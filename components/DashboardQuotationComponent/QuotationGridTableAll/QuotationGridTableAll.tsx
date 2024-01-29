@@ -31,6 +31,7 @@ import {
 } from "@/utils/selectOptions";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
+import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 
 type TableDataType = {
   id: number;
@@ -2619,6 +2620,18 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
     repeat_flag: checkComponent,
   };
 
+  const formatDisplayPrice = (price: number | string): string => {
+    switch (language) {
+      case "ja":
+        const priceNum = typeof price === "number" ? price : Number(price);
+        return formatToJapaneseYen(priceNum, true, false);
+        break;
+      default:
+        return typeof price === "number" ? price.toString() : price;
+        break;
+    }
+  };
+
   const formatDisplayValue = (columnName: string, value: any) => {
     switch (columnName) {
       // 決算月 日本語は月を追加する
@@ -2665,7 +2678,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
       case "discount_amount":
       case "total_amount":
         if (!checkNotFalsyExcludeZero(value)) return null;
-        return (value as number).toLocaleString();
+        // return (value as number).toLocaleString();
+        return formatDisplayPrice(value);
         break;
 
       // 値引率
@@ -3117,7 +3131,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
             </div>
             {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
             {/* サーチモード中は空のdivを表示 */}
-            {searchMode || isInsertModeQuotation || isUpdateModeQuotation ? (
+            {/* {searchMode || isInsertModeQuotation || isUpdateModeQuotation ? ( */}
+            {searchMode || isInsertModeQuotation ? (
               <div
                 className={`${tableContainerSize === "one_third" ? `${styles.search_mode_container_one_third}` : ``} ${
                   tableContainerSize === "half" ? `${styles.search_mode_container_half}` : ``

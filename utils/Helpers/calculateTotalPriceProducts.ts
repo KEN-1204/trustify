@@ -5,7 +5,7 @@ import Decimal from "decimal.js";
 export const calculateTotalPriceProducts = (products: QuotationProductsDetail[], decimalPlaces: number = 0) => {
   let total = new Decimal(0);
   products.forEach((product) => {
-    const unitPrice = new Decimal(product.quotation_unit_price || 0);
+    const unitPrice = new Decimal(product.quotation_product_unit_price || 0);
     const quantity = new Decimal(product.quotation_product_quantity || 0);
     total = total.plus(unitPrice.times(quantity));
   });

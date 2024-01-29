@@ -954,7 +954,8 @@
   min-height: 60px;
 }
 .textarea_box.upsert {
-  padding: 6px 12px;
+  /* padding: 6px 12px; */
+  padding: 6px 9px;
   letter-spacing: 0.3px;
   line-height: 22px;
   /* z-index: 2000; */

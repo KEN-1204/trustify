@@ -29,9 +29,15 @@ type Props = {
   productsArray: QuotationProductsDetail[];
   setSelectedProductsArray?: Dispatch<SetStateAction<QuotationProductsDetail[]>>;
   isInsertMode?: boolean;
+  isUpdateMode?: boolean;
 };
 
-const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArray, isInsertMode = false }) => {
+const ProductListTableMemo: FC<Props> = ({
+  productsArray,
+  setSelectedProductsArray,
+  isInsertMode = false,
+  isUpdateMode = false,
+}) => {
   const language = useStore((state) => state.language);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
@@ -181,7 +187,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
 
   // 活動タイプ、概要、日付、営業担当、事業部、営業所
   type ColumnExcludeKeys =
-    | "quotation_product_id"
+    | "product_id"
     | "product_created_by_user_id"
     | "product_created_by_company_id"
     | "product_created_by_department_of_user"
@@ -417,7 +423,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
 
   // ================== 🌟エンターキーで個別フィールドをアップデート inputタグ ==================
   type ExcludeKeys =
-    | "quotation_product_id"
+    | "product_id"
     | "product_name"
     | "outside_short_name"
     | "inside_short_name"
@@ -482,7 +488,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
         let _newQuantity;
         let _newPrice;
         const updatedArray = productsArray.map((item) => {
-          if (item.quotation_product_id === selectedRowDataQuotationProduct?.quotation_product_id) {
+          if (item.product_id === selectedRowDataQuotationProduct?.product_id) {
             if (["quotation_product_quantity"].includes(fieldName)) {
               // 数量 0以外の整数値の場合のみ変更を許可
               const parsedQuantity = parseInt(newValue, 10);
@@ -669,6 +675,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
 
   // ---------------- 🌟insert/updateモード終了時 or アンマウント時に商品リスト関連をリセット🌟 ----------------
   useEffect(() => {
+    if (isUpdateMode) return;
     // インサートモードが終了したら、商品リスト関連のstateを全てリセット
     if (!isInsertMode) {
       setEditPosition({ row: null, col: null });
@@ -699,6 +706,38 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
       if (selectedRowDataQuotationProduct) setSelectedRowDataQuotationProduct(null);
     };
   }, [isInsertMode]);
+  useEffect(() => {
+    if (isInsertMode) return;
+    // インサートモードが終了したら、商品リスト関連のstateを全てリセット
+    if (!isUpdateMode) {
+      setEditPosition({ row: null, col: null });
+      setTextareaInput("");
+      if (isEditingCell) setIsEditingCell(false);
+      if (setSelectedProductsArray) setSelectedProductsArray([]);
+
+      if (!selectedGridCellRef.current) return;
+      if (!prevSelectedGridCellRef.current) return;
+      prevSelectedGridCellRef.current.setAttribute("aria-selected", "false");
+      prevSelectedGridCellRef.current.setAttribute("tabindex", "-1");
+      selectedGridCellRef.current.setAttribute("aria-selected", "false");
+      selectedGridCellRef.current.setAttribute("tabindex", "-1");
+      if (activeCell) setActiveCell(null);
+      if (clickActiveRow) setClickedActiveRow(null);
+      if (selectedRowDataQuotationProduct) setSelectedRowDataQuotationProduct(null);
+    }
+
+    return () => {
+      console.log("✅商品リストコンポーネント アンマウント");
+      setEditPosition({ row: null, col: null });
+      setTextareaInput("");
+      if (isEditingCell) setIsEditingCell(false);
+      if (setSelectedProductsArray) setSelectedProductsArray([]);
+
+      if (activeCell) setActiveCell(null);
+      if (clickActiveRow) setClickedActiveRow(null);
+      if (selectedRowDataQuotationProduct) setSelectedRowDataQuotationProduct(null);
+    };
+  }, [isUpdateMode]);
   // ---------------- ✅insert/updateモード終了 or アンマウント時に商品リスト関連をリセット✅ ----------------
 
   // ------------------------ 🌟セル編集時のセル以外のクリック監視 編集モード終了🌟 ------------------------
@@ -899,7 +938,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
                 .map((product: QuotationProductsDetail, rowIndex: number) => {
                   return (
                     <div
-                      key={`ProductList_${product.quotation_product_id}`}
+                      key={`ProductList_${product.product_id}`}
                       role="row"
                       tabIndex={-1}
                       aria-rowindex={rowIndex + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
@@ -986,7 +1025,7 @@ const ProductListTableMemo: FC<Props> = ({ productsArray, setSelectedProductsArr
                                     columnName,
                                     originalValueFieldEdit.current
                                   ),
-                                  id: sortedProductsList[rowIndex]?.quotation_product_id,
+                                  id: sortedProductsList[rowIndex]?.product_id,
                                   required: ["quotation_product_quantity"].includes(columnName),
                                   rowIndex: rowIndex,
                                   colIndex: colIndex,

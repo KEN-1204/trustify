@@ -21,6 +21,7 @@ export const useMutateQuotation = () => {
 
   // INSERTモード
   const setIsInsertModeQuotation = useDashboardStore((state) => state.setIsInsertModeQuotation);
+  const setIsUpdateModeQuotation = useDashboardStore((state) => state.setIsUpdateModeQuotation);
 
   // 選択中の行データと更新関数
   const selectedRowDataQuotation = useDashboardStore((state) => state.selectedRowDataQuotation);
@@ -170,12 +171,19 @@ export const useMutateQuotation = () => {
     }
   );
 
+  type UpdatePayload = Omit<Quotation, "created_at" | "updated_at"> & {
+    quotation_products_array: Omit<QuotationProducts, "id" | "created_at" | "updated_at">[];
+    new_quotation_product_ids: string[];
+    delete_product_count: number;
+  };
+
   // 【Quotation一括編集UPDATE用updateQuotationMutation関数】
   const updateQuotationMutation = useMutation(
     // async (newQuotation: Omit<Quotation, "created_at" | "updated_at">) => {
-    async (newQuotation: Omit<Quotation, "created_at" | "updated_at">) => {
+    async (newQuotation: UpdatePayload) => {
       const updateQuotationAndActivityPayload = {
         // 見積テーブル
+        _quotation_id: newQuotation.id,
         _submission_class: newQuotation.submission_class,
         _quotation_date: newQuotation.quotation_date,
         _expiration_date: newQuotation.expiration_date,
@@ -200,14 +208,13 @@ export const useMutateQuotation = () => {
         _lease_period: newQuotation.lease_period,
         _lease_rate: newQuotation.lease_rate,
         _lease_monthly_fee: newQuotation.lease_monthly_fee,
-        // 紐付け関連情報
-        // _created_by_company_id: newQuotation.created_by_company_id,
+        _created_by_company_id: newQuotation.created_by_company_id,
         _created_by_user_id: newQuotation.created_by_user_id,
         _created_by_department_of_user: newQuotation.created_by_department_of_user,
         _created_by_unit_of_user: newQuotation.created_by_unit_of_user,
         _created_by_office_of_user: newQuotation.created_by_office_of_user,
-        // _client_company_id: newQuotation.client_company_id,
-        // _client_contact_id: newQuotation.client_contact_id,
+        _client_company_id: newQuotation.client_company_id,
+        _client_contact_id: newQuotation.client_contact_id,
         _destination_company_id: newQuotation.destination_company_id,
         _destination_contact_id: newQuotation.destination_contact_id,
         _in_charge_stamp_id: newQuotation.in_charge_stamp_id,
@@ -223,7 +230,17 @@ export const useMutateQuotation = () => {
         _quotation_department: newQuotation.quotation_department,
         _quotation_year_month: newQuotation.quotation_year_month,
         _quotation_title: newQuotation.quotation_title,
-        // _quotation_year_month: newQuotation.quotation_year_month,
+        _in_charge_stamp_flag: newQuotation.in_charge_stamp_flag,
+        _supervisor1_stamp_flag: newQuotation.supervisor1_stamp_flag,
+        _supervisor2_stamp_flag: newQuotation.supervisor2_stamp_flag,
+        _in_charge_stamp_name: newQuotation.in_charge_stamp_name,
+        _supervisor1_stamp_name: newQuotation.supervisor1_stamp_name,
+        _supervisor2_stamp_name: newQuotation.supervisor2_stamp_name,
+        // 見積商品リスト
+        _quotation_products_array: newQuotation.quotation_products_array,
+        // 見積商品削除関連 NOT IN用の新たな商品id配列と、削除数
+        _new_quotation_product_ids: newQuotation.new_quotation_product_ids,
+        _delete_product_count: newQuotation.delete_product_count,
         // -- 活動テーブル用
         // _summary: null,
         // _scheduled_follow_up_date: null,
@@ -245,17 +262,12 @@ export const useMutateQuotation = () => {
         // _meeting_id: null,
         // _property_id: null,
         // _quotation_id: null,
-        // --🌠見積商品テーブル
-        // _product_ids: newQuotation.product_ids,
-        // _delete_product_count: newQuotation.delete_product_count,
       };
 
       console.log("🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠rpc実行 updateQuotationAndActivityPayload", updateQuotationAndActivityPayload);
 
-      const { error } = await supabase.rpc(
-        "update_quotation_with_products_and_attendees",
-        updateQuotationAndActivityPayload
-      );
+      // 見積UPDATEと、商品リストのUPSERTとDELETE、活動UPDATE
+      const { error } = await supabase.rpc("update_quotation_with_products", updateQuotationAndActivityPayload);
 
       if (error) throw error;
 
@@ -269,24 +281,25 @@ export const useMutateQuotation = () => {
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
 
-        // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataQuotationを最新状態にする(一括更新の場合UPDATEされた行データを現在選択中のZustandのstateにスプレッドで割り当てようとしても結合してエイリアスを複数使っているのと、実施済み商品と同席者の複数テーブルへのクエリなのでinvalidateQueryのよってstaleにして新たに再フェッチしたデータをクリックしてメインテーブルにデータを反映させる)
-        setIsUpdateRequiredForLatestSelectedRowDataQuotation(true);
-
         // if (loadingGlobalState) setLoadingGlobalState(false);
         if (isLoadingUpsertGlobal) setIsLoadingUpsertGlobal(false);
         // setIsOpenUpdateQuotationModal(false);
-        toast.success("面談の更新が完了しました🌟", {
+        setIsUpdateModeQuotation(false);
+        toast.success("見積の更新が完了しました🌟", {
           position: "top-right",
           // autoClose: 1500,
         });
+
+        // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataQuotationを最新状態にする(一括更新の場合UPDATEされた行データを現在選択中のZustandのstateにスプレッドで割り当てようとしても結合してエイリアスを複数使っているのと、実施済み商品と同席者の複数テーブルへのクエリなのでinvalidateQueryのよってstaleにして新たに再フェッチしたデータをクリックしてメインテーブルにデータを反映させる)
+        setIsUpdateRequiredForLatestSelectedRowDataQuotation(true);
       },
       onError: (err: any) => {
         // if (loadingGlobalState) setLoadingGlobalState(false);
         if (isLoadingUpsertGlobal) setIsLoadingUpsertGlobal(false);
         // setIsOpenUpdateQuotationModal(false);
-        alert(err.message);
-        console.error("UPDATEエラー", err);
-        toast.error("面談の更新に失敗しました...🙇‍♀️", {
+        setIsUpdateModeQuotation(false);
+        console.error("見積UPDATEエラー", err);
+        toast.error("見積の更新に失敗しました...🙇‍♀️", {
           position: "top-right",
           // autoClose: 1500,
         });

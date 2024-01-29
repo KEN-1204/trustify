@@ -303,6 +303,9 @@ export const columnNameToJapaneseQuotation = (columnName: string) => {
     //   return "商品リスト";
     //   break;
 
+    case "discount_rate":
+      return "値引率";
+      break;
     case "quotation_year_month":
       return "見積年月度";
       break;

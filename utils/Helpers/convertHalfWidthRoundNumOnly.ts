@@ -4,6 +4,7 @@ import Decimal from "decimal.js";
 
 export function convertHalfWidthRoundNumOnly(input: string, decimalPlaces: number = 0) {
   // 全角数字を半角に変換する関数
+  console.log("input", input);
   const fullWidthToHalfWidth = (str: string) =>
     str.replace(/[０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0));
 

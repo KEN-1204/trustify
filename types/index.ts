@@ -1942,7 +1942,8 @@ export type EditPosition = { row: number | null; col: number | null };
 
 // 見積商品リストの配列 (取得、UPSERT用)
 export type QuotationProductsDetail = {
-  quotation_product_id: string; // products.id
+  // quotation_product_id: string; // quotation_products.id // quotation_product_idはDBから取得してもユーザーが商品を削除して再度追加した場合nullになり追うことはできないため、商品idと見積idの組み合わせの一意性を確認してUPSERTを行う
+  product_id: string; // products.id
   product_name: string | null;
   outside_short_name: string | null;
   inside_short_name: string | null;

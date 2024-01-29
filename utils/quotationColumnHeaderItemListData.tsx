@@ -68,6 +68,12 @@ const quotationColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
+    columnName: "discount_rate",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
     columnName: "quotation_remarks",
     columnWidth: "100px",
     isFrozen: false,

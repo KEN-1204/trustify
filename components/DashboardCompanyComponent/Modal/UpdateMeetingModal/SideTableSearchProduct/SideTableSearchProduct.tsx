@@ -406,7 +406,8 @@ const SideTableSearchProductMemo = ({
     // 2. 商品リストをsomeで一つずつ商品オブジェクトを取り出し、obj.idがハッシュテーブルに含まれているかチェック
     const foundProduct = selectedProductsArray.find((product) =>
       // selectedSearchProductsSetObj.has(product.contact_id)
-      selectedSearchProductsSetObj.has(product.quotation_product_id)
+      // selectedSearchProductsSetObj.has(product.quotation_product_id)
+      selectedSearchProductsSetObj.has(product.product_id)
     );
     if (foundProduct) {
       alert(
@@ -423,7 +424,7 @@ const SideTableSearchProductMemo = ({
       // 商品リストに一つも含まれていない場合はリストに追加
       const newQuotationProducts = selectedSearchProductsArray.map((product, index) => {
         const newProduct: QuotationProductsDetail = {
-          quotation_product_id: product.id,
+          product_id: product.id,
           product_name: product.product_name,
           outside_short_name: product.outside_short_name,
           inside_short_name: product.inside_short_name,

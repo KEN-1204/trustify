@@ -10,6 +10,7 @@ import { DashboardPropertyComponent } from "@/components/DashboardPropertyCompon
 import { DashboardQuotationComponent } from "@/components/DashboardQuotationComponent/DashboardQuotationComponent";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { Fallback } from "@/components/Fallback/Fallback";
+import useBeforeUnload from "@/hooks/useBeforeUnload";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryNotifications } from "@/hooks/useQueryNotifications";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
@@ -80,6 +81,9 @@ const DashboardHome = ({
   useSubscribeSubscription(userProfile);
   // メンバーが自身のアカウントの紐付け、解除の変更やチームでの役割の変更を監視 うまくいかず
   useSubscribeSubscribedAccount(userProfile);
+
+  // ブラウザバックでのページ遷移に対して確認画面を表示
+  useBeforeUnload("サイトを離れてもよろしいですか？");
 
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
   // const { data: departmentDataArray, isLoading: isLoadingQueryDepartment } = useQueryDepartments(

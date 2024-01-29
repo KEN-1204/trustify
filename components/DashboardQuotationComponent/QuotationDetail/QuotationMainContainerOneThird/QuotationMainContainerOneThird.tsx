@@ -85,6 +85,7 @@ import { SideTableSearchContact } from "@/components/DashboardCompanyComponent/M
 import { FallbackSideTableSearchContact } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchContact/FallbackSideTableSearchContact";
 import { calculateLeaseMonthlyFee } from "@/utils/Helpers/calculateLeaseMonthlyFee";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import Decimal from "decimal.js";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -182,7 +183,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
-  const { createQuotationMutation, updateQuotationFieldMutation } = useMutateQuotation();
+  const { createQuotationMutation, updateQuotationMutation, updateQuotationFieldMutation } = useMutateQuotation();
 
   // メディアクエリState デスクトップモニター
   const isDesktopGTE1600Media = useMedia("(min-width: 1600px)", false);
@@ -361,7 +362,6 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputPaymentTermsEdit, setInputPaymentTermsEdit] = useState("");
   const [inputQuotationDivisionEdit, setInputQuotationDivisionEdit] = useState("standard");
   const [inputSendingMethodEdit, setInputSendingMethodEdit] = useState("");
-  const [inputUseCorporateSealEdit, setInputUseCorporateSealEdit] = useState(false);
   const [inputSalesTaxClassEdit, setInputSalesTaxClassEdit] = useState("");
   const [inputSalesTaxRateEdit, setInputSalesTaxRateEdit] = useState("10");
   // const [inputTotalPriceEdit, setInputTotalPriceEdit] = useState("");
@@ -524,6 +524,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     // 見積関連
     let _quotation_no_custom = "";
     let _quotation_no_system = "";
+    let _quotation_title = "";
     let _submission_class = "A submission";
     let _quotation_date = new Date();
     let _expiration_date = null;
@@ -532,7 +533,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _payment_terms = "従来通り";
     let _quotation_division = "A standard";
     // let _sending_method = "送付状なし";
-    let _sending_method = "With Cover Letter";
+    let _sending_method = "Without Cover Letter";
     let _use_corporate_seal = false;
     let _quotation_notes = "";
     let _sales_tax_class = "A With Tax Notation";
@@ -600,6 +601,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     // 見積関連
     setInputQuotationNoCustom(_quotation_no_custom);
     setInputQuotationNoSystem(_quotation_no_system);
+    setInputQuotationTitle(_quotation_title);
     setInputSubmissionClassEdit(_submission_class);
     setInputQuotationDate(_quotation_date);
     setInputExpirationDate(_expiration_date);
@@ -608,7 +610,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setInputPaymentTermsEdit(_payment_terms);
     setInputQuotationDivisionEdit(_quotation_division);
     setInputSendingMethodEdit(_sending_method);
-    setInputUseCorporateSealEdit(_use_corporate_seal);
+    setCheckboxUseCorporateSealFlagEdit(_use_corporate_seal);
     setInputQuotationNotes(_quotation_notes);
     setInputSalesTaxClassEdit(_sales_tax_class);
     setInputSalesTaxRateEdit(_sales_tax_rate);
@@ -694,6 +696,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     // 見積関連
     setInputQuotationNoCustom(row?.quotation_no_custom ? row?.quotation_no_custom : "");
     setInputQuotationNoSystem(row?.quotation_no_system ? row?.quotation_no_system : "");
+    setInputQuotationTitle(row?.quotation_title ? row?.quotation_title : "");
     setInputSubmissionClassEdit(row?.submission_class ? row.submission_class : "");
     setInputQuotationDate(row?.quotation_date ? new Date(row.quotation_date) : null);
     setInputExpirationDate(row?.expiration_date ? new Date(row.expiration_date) : null);
@@ -702,19 +705,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setInputPaymentTermsEdit(row?.payment_terms ? row.payment_terms : "");
     setInputQuotationDivisionEdit(row?.quotation_division ? row.quotation_division : "");
     setInputSendingMethodEdit(row?.sending_method ? row.sending_method : "");
-    setInputUseCorporateSealEdit(row?.use_corporate_seal ? row.use_corporate_seal : false);
+    setCheckboxUseCorporateSealFlagEdit(row?.use_corporate_seal ? row.use_corporate_seal : false);
     setInputQuotationNotes(row?.quotation_notes ? row.quotation_notes : "");
     setInputSalesTaxClassEdit(row?.sales_tax_class ? row.sales_tax_class : "");
     setInputSalesTaxRateEdit(row?.sales_tax_rate ? row.sales_tax_rate : "");
-    setInputTotalPriceEdit(row?.total_price ? formatDisplayPrice(row.total_price) : "");
-    setInputDiscountAmountEdit(row?.discount_amount ? formatDisplayPrice(row.discount_amount) : "");
-    setInputDiscountRateEdit(row?.discount_rate ? row.discount_rate : "");
-    setInputTotalAmountEdit(row?.total_amount ? formatDisplayPrice(row.total_amount) : "");
+    setInputTotalPriceEdit(isValidNumber(row?.total_price) ? formatDisplayPrice(row.total_price!) : "");
+    setInputDiscountAmountEdit(isValidNumber(row?.discount_amount) ? formatDisplayPrice(row.discount_amount!) : "");
+    setInputDiscountRateEdit(isValidNumber(row?.discount_rate) ? new Decimal(row.discount_rate!).toFixed(2) : "");
+    setInputTotalAmountEdit(isValidNumber(row?.total_amount) ? formatDisplayPrice(row.total_amount!) : "");
     setInputDiscountTitleEdit(row?.discount_title ? row.discount_title : "");
     setInputQuotationRemarks(row?.quotation_remarks ? row.quotation_remarks : "");
     setInputSetItemCountEdit(row?.set_item_count ? row.set_item_count : null);
     setInputSetUnitNameEdit(row?.set_unit_name ? row.set_unit_name : "");
-    setInputSetPriceEdit(row?.set_price ? formatDisplayPrice(row.set_price) : "");
+    setInputSetPriceEdit(isValidNumber(row?.set_price) ? formatDisplayPrice(row.set_price!) : "");
     setInputLeasePeriodEdit(row?.lease_period ? row.lease_period : null);
     setInputLeaseRateEdit(row?.lease_rate ? row.lease_rate : "");
     setInputLeaseMonthlyFeeEdit(row?.lease_monthly_fee ? formatDisplayPrice(row.lease_monthly_fee) : "");
@@ -1773,7 +1776,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       }
     });
     // const productNamesObj = { ...productNames };
-    console.log("productNames", productNames, productNamesArray);
+    // console.log("productNames", productNames, productNamesArray);
     return productNames.join(" / ");
   };
 
@@ -1826,7 +1829,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       setInputTotalPriceEdit(newTotalPrice);
       // 合計金額 = 価格合計 - 値引金額
       // 値引価格の数字と小数点以外は除去
-      console.log("inputDiscountAmountEdit", inputDiscountAmountEdit);
+      console.log("inputDiscountAmountEdit", inputDiscountAmountEdit, "newTotalPrice", newTotalPrice);
       const replacedDiscountAmount = inputDiscountAmountEdit.replace(/[^\d.]/g, "");
       const newTotalAmount = calculateTotalAmount(
         Number(newTotalPrice),
@@ -1946,7 +1949,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
   // -------------------------------- 🌟保存ボタン🌟 --------------------------------
   const [isLoadingUpsert, setIsLoadingUpsert] = useState(false);
-  const handleSaveInsert = async () => {
+  const handleSaveUpsert = async () => {
     // カスタムとオートの両方の見積Noが空文字ならリターン
     if (!inputQuotationNoCustom && !inputQuotationNoSystem)
       return alert(
@@ -1999,118 +2002,238 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     // 月額リース料
     const replacedLeaseMonthlyFee = inputLeaseMonthlyFeeEdit.replace(/[^\d.]/g, "");
 
-    // 商品リストの全てのidが有効化をチェック
-    const result = selectedProductsArray.some(
-      (product) =>
-        product?.quotation_product_id === null ||
-        product?.quotation_product_id === undefined ||
-        product?.quotation_product_id === ""
-    );
+    // 🔹INSERT処理
+    if (isInsertModeQuotation) {
+      // 商品リストの商品idが全てのidが有効かをチェック
+      const result = selectedProductsArray.some(
+        (product) => product?.product_id === null || product?.product_id === undefined || product?.product_id === ""
+      );
 
-    if (result) return alert("エラー：無効な商品が含まれています。");
+      if (result) return alert("エラー：無効な商品が含まれています。");
 
-    // 見積商品リストテーブルのデータ型に合わせた配列を作成
-    type QuotationProductInsertPayload = Omit<QuotationProducts, "id" | "created_at" | "updated_at">[];
-    const insertProductsList: QuotationProductInsertPayload = selectedProductsArray.map((product) => {
-      // if (!product.quotation_product_id) return;
-      return {
-        quotation_product_name: product.quotation_product_name ?? null,
-        quotation_product_inside_short_name: product.quotation_product_inside_short_name ?? null,
-        quotation_product_outside_short_name: product.quotation_product_outside_short_name ?? null,
-        quotation_product_unit_price: isValidNumber(product.quotation_product_unit_price)
-          ? product.quotation_product_unit_price
-          : null,
-        quotation_product_quantity: isValidNumber(product.quotation_product_quantity)
-          ? product.quotation_product_quantity
-          : null,
-        priority: isValidNumber(product.quotation_product_priority) ? product.quotation_product_priority : null,
-        quotation_id: null, // 見積データ作成後のidを使用
-        product_id: product.quotation_product_id,
-      };
-    });
+      // 見積商品リストテーブルのデータ型に合わせた配列を作成
+      type QuotationProductInsertPayload = Omit<QuotationProducts, "id" | "created_at" | "updated_at">[];
+      const insertProductsList: QuotationProductInsertPayload = selectedProductsArray.map((product) => {
+        return {
+          quotation_product_name: product.quotation_product_name ?? null,
+          quotation_product_inside_short_name: product.quotation_product_inside_short_name ?? null,
+          quotation_product_outside_short_name: product.quotation_product_outside_short_name ?? null,
+          quotation_product_unit_price: isValidNumber(product.quotation_product_unit_price)
+            ? product.quotation_product_unit_price
+            : null,
+          quotation_product_quantity: isValidNumber(product.quotation_product_quantity)
+            ? product.quotation_product_quantity
+            : null,
+          priority: isValidNumber(product.quotation_product_priority) ? product.quotation_product_priority : null,
+          quotation_id: null, // 見積データ作成後のidを使用
+          product_id: product.product_id,
+        };
+      });
 
-    try {
-      // 見積テーブルと見積商品リストテーブルにINSERT
-      const insertPayload = {
-        //       id: string;
-        // created_at: string;
-        // updated_at: null,
-        submission_class: inputSubmissionClassEdit || null,
-        quotation_date: inputQuotationDate ? inputQuotationDate.toISOString() : null,
-        expiration_date: inputExpirationDate ? inputExpirationDate.toISOString() : null,
-        deadline: inputDeadlineEdit || null,
-        delivery_place: inputDeliveryPlaceEdit || null,
-        payment_terms: inputPaymentTermsEdit || null,
-        quotation_division: inputQuotationDivisionEdit || null,
-        sending_method: inputSendingMethodEdit || null,
-        use_corporate_seal: inputUseCorporateSealEdit,
-        quotation_notes: inputQuotationNotes || null,
-        sales_tax_class: inputSalesTaxClassEdit || null,
-        sales_tax_rate: inputSalesTaxRateEdit ?? null,
-        total_price: isValidNumber(replacedTotalPrice) ? replacedTotalPrice : null,
-        discount_amount: isValidNumber(replacedDiscountAmount) ? replacedDiscountAmount : null,
-        discount_rate: isValidNumber(replacedDiscountRate) ? replacedDiscountRate : null,
-        discount_title: inputDiscountTitleEdit || null,
-        total_amount: isValidNumber(replacedTotalAmount) ? replacedTotalAmount : null,
-        quotation_remarks: inputQuotationRemarks || null,
-        set_item_count: isValidNumber(inputSetItemCountEdit) ? inputSetItemCountEdit : null,
-        set_unit_name: inputSetUnitNameEdit || null,
-        set_price: isValidNumber(replacedSetPrice) ? replacedSetPrice : null,
-        lease_period: isValidNumber(inputLeasePeriodEdit) ? inputLeasePeriodEdit : null,
-        lease_rate: isValidNumber(replacedLeaseRate) ? replacedLeaseRate : null,
-        lease_monthly_fee: isValidNumber(replacedLeaseMonthlyFee) ? replacedLeaseMonthlyFee : null,
-        created_by_company_id: userProfileState.company_id,
-        created_by_user_id: memberObj.memberId,
-        created_by_department_of_user: memberObj.departmentId || null,
-        created_by_unit_of_user: memberObj.unitId || null,
-        created_by_office_of_user: memberObj.officeId || null,
-        client_company_id: inputCompanyId,
-        client_contact_id: inputContactId,
-        destination_company_id: selectedDestination.destination_company_id || null,
-        destination_contact_id: selectedDestination.destination_contact_id || null,
-        in_charge_stamp_id: memberObjInCharge.signature_stamp_id || null,
-        in_charge_user_id: memberObjInCharge.memberId || null,
-        supervisor1_stamp_id: memberObjSupervisor1.signature_stamp_id || null,
-        supervisor1_user_id: memberObjSupervisor1.memberId || null,
-        supervisor2_stamp_id: memberObjSupervisor2.signature_stamp_id || null,
-        supervisor2_user_id: memberObjSupervisor2.memberId || null,
-        quotation_no_custom: inputQuotationNoCustom ?? null,
-        quotation_no_system: inputQuotationNoSystem ?? null,
-        quotation_member_name: memberObj.memberName,
-        quotation_business_office: officeName ?? null,
-        quotation_department: departmentName ?? null,
-        quotation_year_month: quotationFiscalYearMonth || null,
-        quotation_title: inputQuotationTitle ?? null,
-        in_charge_stamp_flag: checkboxInChargeFlagEdit,
-        supervisor1_stamp_flag: checkboxSupervisor1FlagEdit,
-        supervisor2_stamp_flag: checkboxSupervisor2FlagEdit,
-        in_charge_stamp_name: memberObjInCharge.memberName,
-        supervisor1_stamp_name: memberObjSupervisor1.memberName,
-        supervisor2_stamp_name: memberObjSupervisor2.memberName,
-        quotation_products_array: insertProductsList ?? [],
-      };
+      try {
+        // 見積テーブルと見積商品リストテーブルにINSERT
+        const insertPayload = {
+          //       id: string;
+          // created_at: string;
+          // updated_at: null,
+          submission_class: inputSubmissionClassEdit || null,
+          quotation_date: inputQuotationDate ? inputQuotationDate.toISOString() : null,
+          expiration_date: inputExpirationDate ? inputExpirationDate.toISOString() : null,
+          deadline: inputDeadlineEdit || null,
+          delivery_place: inputDeliveryPlaceEdit || null,
+          payment_terms: inputPaymentTermsEdit || null,
+          quotation_division: inputQuotationDivisionEdit || null,
+          sending_method: inputSendingMethodEdit || null,
+          use_corporate_seal: checkboxUseCorporateSealFlagEdit,
+          quotation_notes: inputQuotationNotes || null,
+          sales_tax_class: inputSalesTaxClassEdit || null,
+          sales_tax_rate: inputSalesTaxRateEdit ?? null,
+          total_price: isValidNumber(replacedTotalPrice) ? replacedTotalPrice : null,
+          discount_amount: isValidNumber(replacedDiscountAmount) ? replacedDiscountAmount : null,
+          discount_rate: isValidNumber(replacedDiscountRate) ? replacedDiscountRate : null,
+          discount_title: inputDiscountTitleEdit || null,
+          total_amount: isValidNumber(replacedTotalAmount) ? replacedTotalAmount : null,
+          quotation_remarks: inputQuotationRemarks || null,
+          set_item_count: isValidNumber(inputSetItemCountEdit) ? inputSetItemCountEdit : null,
+          set_unit_name: inputSetUnitNameEdit || null,
+          set_price: isValidNumber(replacedSetPrice) ? replacedSetPrice : null,
+          lease_period: isValidNumber(inputLeasePeriodEdit) ? inputLeasePeriodEdit : null,
+          lease_rate: isValidNumber(replacedLeaseRate) ? replacedLeaseRate : null,
+          lease_monthly_fee: isValidNumber(replacedLeaseMonthlyFee) ? replacedLeaseMonthlyFee : null,
+          created_by_company_id: userProfileState.company_id,
+          created_by_user_id: memberObj.memberId,
+          created_by_department_of_user: memberObj.departmentId || null,
+          created_by_unit_of_user: memberObj.unitId || null,
+          created_by_office_of_user: memberObj.officeId || null,
+          client_company_id: inputCompanyId,
+          client_contact_id: inputContactId,
+          destination_company_id: selectedDestination.destination_company_id || null,
+          destination_contact_id: selectedDestination.destination_contact_id || null,
+          in_charge_stamp_id: memberObjInCharge.signature_stamp_id || null,
+          in_charge_user_id: memberObjInCharge.memberId || null,
+          supervisor1_stamp_id: memberObjSupervisor1.signature_stamp_id || null,
+          supervisor1_user_id: memberObjSupervisor1.memberId || null,
+          supervisor2_stamp_id: memberObjSupervisor2.signature_stamp_id || null,
+          supervisor2_user_id: memberObjSupervisor2.memberId || null,
+          quotation_no_custom: inputQuotationNoCustom || null,
+          quotation_no_system: inputQuotationNoSystem || null,
+          quotation_member_name: memberObj.memberName,
+          quotation_business_office: officeName ?? null,
+          quotation_department: departmentName ?? null,
+          quotation_year_month: quotationFiscalYearMonth || null,
+          quotation_title: inputQuotationTitle ?? null,
+          in_charge_stamp_flag: checkboxInChargeFlagEdit,
+          supervisor1_stamp_flag: checkboxSupervisor1FlagEdit,
+          supervisor2_stamp_flag: checkboxSupervisor2FlagEdit,
+          in_charge_stamp_name: memberObjInCharge.memberName,
+          supervisor1_stamp_name: memberObjSupervisor1.memberName,
+          supervisor2_stamp_name: memberObjSupervisor2.memberName,
+          quotation_products_array: insertProductsList ?? [],
+        };
 
-      console.log("見積 新規作成 insertPayload", insertPayload);
+        console.log("見積 新規作成 insertPayload", insertPayload);
 
-      // supabaseにINSERT
-      // createQuotationMutation.mutate({ newQuotation: insertPayload, isLoadingUpsert, setIsLoadingUpsert });
-      createQuotationMutation.mutate(insertPayload);
-    } catch (error: any) {
-      console.error("見積INSERTに失敗", error);
-      toast.error(`見積の作成に失敗しました...🙇‍♀️`);
+        // supabaseにINSERT
+        // createQuotationMutation.mutate({ newQuotation: insertPayload, isLoadingUpsert, setIsLoadingUpsert });
+        createQuotationMutation.mutate(insertPayload);
+      } catch (error: any) {
+        console.error("見積INSERTに失敗", error);
+        toast.error(`見積の作成に失敗しました...🙇‍♀️`);
+      }
+    }
+
+    // 🔹UPDATE処理
+    if (isUpdateModeQuotation) {
+      if (!selectedRowDataQuotation?.quotation_id) return alert("エラー：見積データが見つかりませんでした...🙇‍♀️");
+
+      // // 商品リストの全ての商品idが有効かをチェック
+      const result = selectedProductsArray.some(
+        (product) => product?.product_id === null || product?.product_id === undefined || product?.product_id === ""
+      );
+
+      if (result) return alert("エラー：無効な商品が含まれています。");
+
+      // quotation_product_idはDBから取得してもユーザーが商品を削除して再度追加した場合nullになり追うことはできないため、商品idと見積idの組み合わせの一意性を確認してUPSERTを行う
+      // 見積商品リストテーブルのデータ型に合わせた配列を作成
+      type QuotationProductUpdatePayload = Omit<QuotationProducts, "id" | "created_at" | "updated_at">[];
+      const newProductsList: QuotationProductUpdatePayload = selectedProductsArray.map((product) => {
+        return {
+          quotation_product_name: product.quotation_product_name ?? null,
+          quotation_product_inside_short_name: product.quotation_product_inside_short_name ?? null,
+          quotation_product_outside_short_name: product.quotation_product_outside_short_name ?? null,
+          quotation_product_unit_price: isValidNumber(product.quotation_product_unit_price)
+            ? product.quotation_product_unit_price
+            : null,
+          quotation_product_quantity: isValidNumber(product.quotation_product_quantity)
+            ? product.quotation_product_quantity
+            : null,
+          priority: isValidNumber(product.quotation_product_priority) ? product.quotation_product_priority : null,
+          quotation_id: null, // 見積データ作成後のidを使用
+          product_id: product.product_id,
+        };
+      });
+
+      // 既存の商品リストの商品idと新たな商品リストの商品idを比較して、既存の商品リストから削除された商品idの個数を今回の削除数として変数に格納する
+      // 1. まずは今回の商品リストから商品idのみの配列を生成(product_idはsomeメソッドでnullでないことはチェック済み)
+      const newProductIdsArray = newProductsList.map((product) => product.product_id as string);
+      // 2. 商品idの配列をSetオブジェクトに変換
+      const newProductIdsSetObj = new Set(newProductIdsArray);
+      // 3. 新たな商品リストに含まれていない既存の商品idの数を削除数を変数に格納
+      // const deleteProductCount = !!selectedRowDataQuotation.quotation_products_details?.length ? selectedRowDataQuotation.quotation_products_details.filter(product => newProductIdsSetObj.has(product.product_id)).length : 0
+      const deleteProductCount = selectedRowDataQuotation.quotation_products_details.filter(
+        (product) => !newProductIdsSetObj.has(product.product_id)
+      ).length;
+
+      try {
+        // 見積テーブルと見積商品リストテーブルにINSERT
+        const updatePayload = {
+          id: selectedRowDataQuotation.quotation_id,
+          // created_at: string;
+          // updated_at: null,
+          submission_class: inputSubmissionClassEdit || null,
+          quotation_date: inputQuotationDate ? inputQuotationDate.toISOString() : null,
+          expiration_date: inputExpirationDate ? inputExpirationDate.toISOString() : null,
+          deadline: inputDeadlineEdit || null,
+          delivery_place: inputDeliveryPlaceEdit || null,
+          payment_terms: inputPaymentTermsEdit || null,
+          quotation_division: inputQuotationDivisionEdit || null,
+          sending_method: inputSendingMethodEdit || null,
+          use_corporate_seal: checkboxUseCorporateSealFlagEdit,
+          quotation_notes: inputQuotationNotes || null,
+          sales_tax_class: inputSalesTaxClassEdit || null,
+          sales_tax_rate: inputSalesTaxRateEdit ?? null,
+          total_price: isValidNumber(replacedTotalPrice) ? replacedTotalPrice : null,
+          discount_amount: isValidNumber(replacedDiscountAmount) ? replacedDiscountAmount : null,
+          discount_rate: isValidNumber(replacedDiscountRate) ? replacedDiscountRate : null,
+          discount_title: inputDiscountTitleEdit || null,
+          total_amount: isValidNumber(replacedTotalAmount) ? replacedTotalAmount : null,
+          quotation_remarks: inputQuotationRemarks || null,
+          set_item_count: isValidNumber(inputSetItemCountEdit) ? inputSetItemCountEdit : null,
+          set_unit_name: inputSetUnitNameEdit || null,
+          set_price: isValidNumber(replacedSetPrice) ? replacedSetPrice : null,
+          lease_period: isValidNumber(inputLeasePeriodEdit) ? inputLeasePeriodEdit : null,
+          lease_rate: isValidNumber(replacedLeaseRate) ? replacedLeaseRate : null,
+          lease_monthly_fee: isValidNumber(replacedLeaseMonthlyFee) ? replacedLeaseMonthlyFee : null,
+          created_by_company_id: userProfileState.company_id,
+          created_by_user_id: memberObj.memberId,
+          created_by_department_of_user: memberObj.departmentId || null,
+          created_by_unit_of_user: memberObj.unitId || null,
+          created_by_office_of_user: memberObj.officeId || null,
+          client_company_id: inputCompanyId,
+          client_contact_id: inputContactId,
+          destination_company_id: selectedDestination.destination_company_id || null,
+          destination_contact_id: selectedDestination.destination_contact_id || null,
+          in_charge_stamp_id: memberObjInCharge.signature_stamp_id || null,
+          in_charge_user_id: memberObjInCharge.memberId || null,
+          supervisor1_stamp_id: memberObjSupervisor1.signature_stamp_id || null,
+          supervisor1_user_id: memberObjSupervisor1.memberId || null,
+          supervisor2_stamp_id: memberObjSupervisor2.signature_stamp_id || null,
+          supervisor2_user_id: memberObjSupervisor2.memberId || null,
+          quotation_no_custom: inputQuotationNoCustom ?? null,
+          quotation_no_system: inputQuotationNoSystem ?? null,
+          quotation_member_name: memberObj.memberName,
+          quotation_business_office: officeName ?? null,
+          quotation_department: departmentName ?? null,
+          quotation_year_month: quotationFiscalYearMonth || null,
+          quotation_title: inputQuotationTitle ?? null,
+          in_charge_stamp_flag: checkboxInChargeFlagEdit,
+          supervisor1_stamp_flag: checkboxSupervisor1FlagEdit,
+          supervisor2_stamp_flag: checkboxSupervisor2FlagEdit,
+          in_charge_stamp_name: memberObjInCharge.memberName,
+          supervisor1_stamp_name: memberObjSupervisor1.memberName,
+          supervisor2_stamp_name: memberObjSupervisor2.memberName,
+          quotation_products_array: newProductsList ?? [],
+          new_quotation_product_ids: newProductIdsArray,
+          delete_product_count: deleteProductCount,
+        };
+
+        console.log("見積 新規作成 updatePayload", updatePayload);
+
+        // supabaseにUPDATE
+        // createQuotationMutation.mutate({ newQuotation: updatePayload, isLoadingUpsert, setIsLoadingUpsert });
+        updateQuotationMutation.mutate(updatePayload);
+      } catch (error: any) {
+        console.error("見積UPDATEに失敗", error);
+        toast.error(`見積の更新に失敗しました...🙇‍♀️`);
+      }
     }
   };
   // -------------------------------- ✅保存ボタン✅ --------------------------------
 
-  const handleCancelInsert = () => {
-    setIsInsertModeQuotation(false);
+  const handleCancelUpsert = () => {
+    if (isInsertModeQuotation) {
+      setIsInsertModeQuotation(false);
 
-    // 選択している列をリセット
-    if (selectedRowDataQuotation) setSelectedRowDataQuotation(null);
-    if (selectedRowDataContact) setSelectedRowDataContact(null);
-    if (selectedRowDataActivity) setSelectedRowDataActivity(null);
-    if (selectedRowDataMeeting) setSelectedRowDataMeeting(null);
-    if (selectedRowDataProperty) setSelectedRowDataProperty(null);
+      // 選択している列をリセット
+      if (selectedRowDataQuotation) setSelectedRowDataQuotation(null);
+      if (selectedRowDataContact) setSelectedRowDataContact(null);
+      if (selectedRowDataActivity) setSelectedRowDataActivity(null);
+      if (selectedRowDataMeeting) setSelectedRowDataMeeting(null);
+      if (selectedRowDataProperty) setSelectedRowDataProperty(null);
+    }
+    if (isUpdateModeQuotation) {
+      setIsUpdateModeQuotation(false);
+    }
   };
 
   console.log(
@@ -2126,7 +2249,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     "合計金額inputTotalAmountEdit",
     inputTotalAmountEdit,
     "値引率inputDiscountRateEdit",
-    inputDiscountRateEdit
+    inputDiscountRateEdit,
+    "selectedProductsArray",
+    selectedProductsArray,
+    "selectedRowDataQuotation.quotation_products_details",
+    selectedRowDataQuotation?.quotation_products_details
   );
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
@@ -2135,27 +2262,28 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       <form className={`${styles.main_container} w-full`} onSubmit={handleSearchSubmit}>
         <div className={`flex h-full flex-col`}>
           {/* 🌟新規作成 保存ボタンエリア🌟 */}
-          {isInsertModeQuotation && (
+          {(isInsertModeQuotation || isUpdateModeQuotation) && (
             <div
               // className={`sticky top-0 z-[10] flex max-h-[38px] min-h-[38px] w-full items-center border-b border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-bg-base30)] px-[25px] py-[10px] backdrop-blur-xl`}
               className={`sticky top-0 z-[10] flex max-h-[48px] min-h-[38px] w-full items-center border-b-[2px] border-solid border-[var(--color-bg-brand-f)] bg-transparent px-[25px] py-[10px]`}
               // className={`sticky top-0 z-[10] min-h-[76px] w-full rounded-bl-[6px] border-b border-l border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f10)] backdrop-blur-xl`}
             >
               <div className={`mr-[20px] flex min-w-max items-center text-[18px] font-bold`}>
-                <h3>見積作成</h3>
+                {isInsertModeQuotation && <h3>見積作成</h3>}
+                {isUpdateModeQuotation && <h3>見積編集</h3>}
               </div>
               <div className={`flex h-full items-center space-x-[15px]`}>
                 <div className={`mr-[30px] flex h-full w-full items-center space-x-[15px]`}>
                   <button
                     type="button"
                     className={`${styles.upsert_btn} transition-bg02 max-h-[28px] min-h-[28px] min-w-[90px] max-w-[90px] text-[13px]`}
-                    onClick={handleSaveInsert}
+                    onClick={handleSaveUpsert}
                   >
                     保存
                   </button>
                   <div
                     className={`transition-bg02 flex-center max-h-[28px] min-h-[28px] w-[100%] min-w-[90px] max-w-[90px] cursor-pointer rounded-[6px] bg-[var(--color-bg-sub-light)] text-[13px] text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    onClick={handleCancelInsert}
+                    onClick={handleCancelUpsert}
                   >
                     戻る
                   </div>
@@ -2334,7 +2462,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-full flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>会社名</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}
                             onMouseEnter={(e) => {
@@ -2349,23 +2477,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}>
                             {inputCompanyName ? inputCompanyName : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
-
-                        {searchMode && (
-                          <input
-                            type="text"
-                            placeholder="株式会社○○"
-                            autoFocus
-                            className={`${styles.input_box}`}
-                            value={inputCompanyName}
-                            onChange={(e) => setInputCompanyName(e.target.value)}
-                          />
-                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
@@ -2377,7 +2494,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-full flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>部署名</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value} ${styles.text_start}`}
                             onMouseEnter={(e) => {
@@ -2394,22 +2511,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {inputDepartmentName ? inputDepartmentName : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
-
-                        {searchMode && (
-                          <input
-                            type="text"
-                            placeholder="「代表取締役＊」や「＊製造部＊」「＊品質＊」など"
-                            className={`${styles.input_box}`}
-                            value={inputDepartmentName}
-                            onChange={(e) => setInputDepartmentName(e.target.value)}
-                          />
-                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
@@ -2421,7 +2528,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>担当者名</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value}`}
                             data-text={`${
@@ -2442,22 +2549,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {inputContactName ? inputContactName : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
-
-                        {searchMode && (
-                          <input
-                            type="tel"
-                            placeholder=""
-                            className={`${styles.input_box}`}
-                            value={inputContactName}
-                            onChange={(e) => setInputContactName(e.target.value)}
-                          />
-                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
@@ -2473,7 +2570,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>直通TEL</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value}`}
                             data-text={`${
@@ -2494,28 +2591,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {inputDirectLine ? inputDirectLine : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
-
-                        {searchMode && (
-                          <input
-                            type="tel"
-                            className={`${styles.input_box}`}
-                            value={inputDirectLine}
-                            onChange={(e) => setInputDirectLine(e.target.value)}
-                          />
-                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title}`}>代表TEL</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value}`}
                             data-text={`${
@@ -2540,19 +2628,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>{inputTel ? inputTel : ""}</span>
                         )}
                         {/* ----------------- upsert ----------------- */}
-
-                        {searchMode && (
-                          <input
-                            type="tel"
-                            className={`${styles.input_box}`}
-                            value={inputTel}
-                            onChange={(e) => setInputTel(e.target.value)}
-                          />
-                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
@@ -2564,7 +2643,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>内線TEL</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value}`}
                             data-text={`${
@@ -2585,29 +2664,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {inputExtension ? inputExtension : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
-
-                        {searchMode && (
-                          <input
-                            type="tel"
-                            placeholder=""
-                            className={`${styles.input_box}`}
-                            value={inputExtension}
-                            onChange={(e) => setInputExtension(e.target.value)}
-                          />
-                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title}`}>社用携帯</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value}`}
                             data-text={`${
@@ -2632,21 +2701,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start} ${styles.upsert}`}>
                             {inputCompanyCellPhone ? inputCompanyCellPhone : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
-
-                        {searchMode && (
-                          <input
-                            type="text"
-                            className={`${styles.input_box}`}
-                            value={inputCompanyCellPhone}
-                            onChange={(e) => setInputCompanyCellPhone(e.target.value)}
-                          />
-                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
@@ -2657,7 +2717,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>直通FAX</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value}`}
                             data-text={`${
@@ -2678,21 +2738,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {inputDirectFax ? inputDirectFax : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
-
-                        {searchMode && (
-                          <input
-                            type="text"
-                            className={`${styles.input_box}`}
-                            value={inputDirectFax}
-                            onChange={(e) => setInputDirectFax(e.target.value)}
-                          />
-                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
@@ -2700,7 +2751,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title}`}>代表FAX</span>
                         {/* <span className={`${styles.title}`}>会員専用</span> */}
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value}`}
                             data-text={`${
@@ -2721,21 +2772,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start} ${styles.upsert}`}>
                             {inputFax ? inputFax : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
-
-                        {searchMode && (
-                          <input
-                            type="text"
-                            className={`${styles.input_box}`}
-                            value={inputFax}
-                            onChange={(e) => setInputFax(e.target.value)}
-                          />
-                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
@@ -2746,45 +2788,34 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.row_area} flex w-full items-center`}>
                     <div className="flex h-full w-full flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
-                        <span
-                          className={`${styles.title}`}
-                          data-text={`${
-                            selectedRowDataQuotation?.contact_email ? selectedRowDataQuotation?.contact_email : ""
-                          }`}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
-                          }}
-                        >
-                          E-mail
-                        </span>
-                        {!searchMode && !isInsertModeQuotation && (
-                          <span className={`${styles.value}`}>
+                        <span className={`${styles.title}`}>E-mail</span>
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                          <span
+                            className={`${styles.value}`}
+                            data-text={`${
+                              selectedRowDataQuotation?.contact_email ? selectedRowDataQuotation?.contact_email : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              if (hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
                             {selectedRowDataQuotation?.contact_email ? selectedRowDataQuotation?.contact_email : ""}
                           </span>
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {inputContactEmail ? inputContactEmail : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
-
-                        {searchMode && (
-                          <input
-                            type="text"
-                            className={`${styles.input_box}`}
-                            value={inputContactEmail}
-                            onChange={(e) => setInputContactEmail(e.target.value)}
-                          />
-                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
@@ -2796,7 +2827,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>郵便番号</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value}`}
                             data-text={`${selectedRowDataQuotation?.zipcode ? selectedRowDataQuotation?.zipcode : ""}`}
@@ -2815,21 +2846,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {inputZipcode ? inputZipcode : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
-
-                        {searchMode && (
-                          <input
-                            type="text"
-                            className={`${styles.input_box}`}
-                            value={inputZipcode}
-                            onChange={(e) => setInputZipcode(e.target.value)}
-                          />
-                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
@@ -2846,7 +2868,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-full flex-col pr-[20px] ">
                       <div className={`${styles.title_box} ${styles.xl} flex h-full`}>
                         <span className={`${styles.title}`}>○住所</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.full_value} h-[45px] !overflow-visible !whitespace-normal`}
                             onMouseEnter={(e) => {
@@ -2861,23 +2883,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {inputAddress ? inputAddress : ""}
                           </span>
                         )}
                         {/* ----------------- upsert ----------------- */}
-
-                        {searchMode && (
-                          <textarea
-                            cols={30}
-                            // rows={10}
-                            placeholder="「神奈川県＊」や「＊大田区＊」など"
-                            className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
-                            value={inputAddress}
-                            onChange={(e) => setInputAddress(e.target.value)}
-                          ></textarea>
-                        )}
                       </div>
                       <div className={`${styles.underline} `}></div>
                     </div>
@@ -2890,7 +2901,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.title_box} flex h-full min-h-[26px] !items-end `}>
                         <span className={`${styles.section_title} mb-[2px] mr-[5px] !min-w-max`}>送付先</span>
                         <span className={`text-[12px]`}>（送付先が依頼元と違う場合は変更する）</span>
-                        {isInsertModeQuotation && (
+                        {(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <div
                             className={`${styles.upsert_btn} transition-bg02 ml-auto min-h-[26px] min-w-[90px] max-w-[90px] !rounded-[6px] text-[12px]`}
                             onClick={() => {
@@ -2914,7 +2925,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-full flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>会社名</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}
                             onMouseEnter={(e) => {
@@ -2931,7 +2942,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {selectedDestination?.destination_company_name
                               ? selectedDestination?.destination_company_name
@@ -2950,7 +2961,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-full flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>部署名</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value} ${styles.text_start}`}
                             data-text={`${
@@ -2975,7 +2986,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {selectedDestination?.destination_company_department_name
                               ? selectedDestination?.destination_company_department_name
@@ -2994,7 +3005,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>担当者名</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value}`}
                             data-text={`${
@@ -3019,7 +3030,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {selectedDestination?.destination_contact_name
                               ? selectedDestination?.destination_contact_name
@@ -3042,11 +3053,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>直通TEL</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value}`}
                             data-text={`${
-                              selectedRowDataQuotation?.direct_line ? selectedRowDataQuotation?.direct_line : ""
+                              selectedRowDataQuotation?.destination_contact_direct_line
+                                ? selectedRowDataQuotation?.destination_contact_direct_line
+                                : ""
                             }`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
@@ -3065,7 +3078,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {selectedDestination?.destination_contact_direct_line
                               ? selectedDestination?.destination_contact_direct_line
@@ -3079,12 +3092,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title}`}>直通FAX</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value}`}
                             data-text={`${
-                              selectedRowDataQuotation?.main_phone_number
-                                ? selectedRowDataQuotation?.main_phone_number
+                              selectedRowDataQuotation?.destination_contact_direct_fax
+                                ? selectedRowDataQuotation?.destination_contact_direct_fax
                                 : ""
                             }`}
                             onMouseEnter={(e) => {
@@ -3104,7 +3117,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {selectedDestination?.destination_contact_direct_fax
                               ? selectedDestination?.destination_contact_direct_fax
@@ -3124,25 +3137,27 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span
                           className={`${styles.title}`} // data-text={`${selectedRowDataQuotation?.occupation ? selectedRowDataQuotation?.occupation : ""}`}
-                          data-text={`${
-                            selectedRowDataQuotation?.destination_contact_email
-                              ? selectedRowDataQuotation?.destination_contact_email
-                              : ""
-                          }`}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
-                          }}
                         >
                           E-mail
                         </span>
-                        {!searchMode && !isInsertModeQuotation && (
-                          <span className={`${styles.value}`}>
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                          <span
+                            className={`${styles.value}`}
+                            data-text={`${
+                              selectedRowDataQuotation?.destination_contact_email
+                                ? selectedRowDataQuotation?.destination_contact_email
+                                : ""
+                            }`}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                              const el = e.currentTarget;
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                              if (hoveredItemPosWrap) handleCloseTooltip();
+                            }}
+                          >
                             {selectedRowDataQuotation?.destination_contact_email
                               ? selectedRowDataQuotation?.destination_contact_email
                               : ""}
@@ -3150,7 +3165,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {selectedDestination?.destination_contact_email
                               ? selectedDestination?.destination_contact_email
@@ -3169,7 +3184,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title}`}>郵便番号</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.value}`}
                             data-text={`${
@@ -3194,7 +3209,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {selectedDestination?.destination_company_zipcode
                               ? selectedDestination?.destination_company_zipcode
@@ -3218,7 +3233,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-full flex-col pr-[20px] ">
                       <div className={`${styles.title_box} flex h-full`}>
                         <span className={`${styles.title}`}>○住所</span>
-                        {!searchMode && !isInsertModeQuotation && (
+                        {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
                             className={`${styles.full_value} h-[45px] !overflow-visible !whitespace-normal`}
                             onMouseEnter={(e) => {
@@ -3235,7 +3250,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         )}
 
                         {/* ----------------- upsert ----------------- */}
-                        {!searchMode && isInsertModeQuotation && (
+                        {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span className={`${styles.value} ${styles.text_start}`}>
                             {selectedDestination?.destination_company_address
                               ? selectedDestination?.destination_company_address
@@ -3279,7 +3294,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span
                                 className={`${styles.section_title} ${styles.min_text} ${
-                                  useQuotationNoCustom && isInsertModeQuotation ? `` : `!min-w-[88px]`
+                                  useQuotationNoCustom && (isInsertModeQuotation || isUpdateModeQuotation)
+                                    ? ``
+                                    : `!min-w-[88px]`
                                 }`}
                               >
                                 ●見積No
@@ -3288,7 +3305,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {!searchMode &&
                                 isEditModeField !== "quotation_no_system" &&
                                 isEditModeField !== "quotation_no_custom" &&
-                                !isInsertModeQuotation && (
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                   <span
                                     className={`${styles.value} ${styles.value_highlight} ${styles.editable_field}`}
                                     data-text={
@@ -3342,7 +3359,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   {useQuotationNoCustom && !isLoadingQuotationNo && (
                                     <input
@@ -3467,38 +3484,47 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               <div className={`${styles.title} flex flex-col`}>
                                 <span>●提出区分</span>
                               </div>
-                              {!searchMode && isEditModeField !== "submission_class" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.value_highlight} ${styles.editable_field}`}
-                                  data-text={
-                                    selectedRowDataQuotation?.submission_class
+                              {!searchMode &&
+                                isEditModeField !== "submission_class" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    data-text={
+                                      selectedRowDataQuotation?.submission_class
+                                        ? getSubmissionClass(selectedRowDataQuotation?.submission_class)
+                                        : ""
+                                    }
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      // if (!selectedRowDataQuotation?.activity_type) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                                      // }
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "submission_class",
+                                        dispatch: setInputSubmissionClassEdit,
+                                        selectedRowDataValue: selectedRowDataQuotation?.submission_class ?? "",
+                                      });
+                                      handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.submission_class
                                       ? getSubmissionClass(selectedRowDataQuotation?.submission_class)
-                                      : ""
-                                  }
-                                  onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
-                                  onMouseLeave={handleCloseTooltip}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    // if (!selectedRowDataQuotation?.activity_type) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
-                                    // }
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "submission_class",
-                                      dispatch: setInputSubmissionClassEdit,
-                                      selectedRowDataValue: selectedRowDataQuotation?.submission_class ?? "",
-                                    });
-                                    handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.submission_class
-                                    ? getSubmissionClass(selectedRowDataQuotation?.submission_class)
-                                    : ""}
-                                </span>
-                              )}
+                                      : ""}
+                                  </span>
+                                )}
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <select
                                     className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.upsert}`}
@@ -3582,42 +3608,44 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>●納期</span>
-                              {!searchMode && isEditModeField !== "deadline" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!selectedRowDataQuotation?.deadline) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.deadline))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.deadline));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "deadline",
-                                      dispatch: setInputDeadlineEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.deadline ? selectedRowDataQuotation?.deadline : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.deadline ? selectedRowDataQuotation?.deadline : ""}
-                                </span>
-                              )}
+                              {!searchMode &&
+                                isEditModeField !== "deadline" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!selectedRowDataQuotation?.deadline) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.deadline))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.deadline));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "deadline",
+                                        dispatch: setInputDeadlineEdit,
+                                      });
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.deadline ? selectedRowDataQuotation?.deadline : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.deadline ? selectedRowDataQuotation?.deadline : ""}
+                                  </span>
+                                )}
 
                               {/* <CustomSelectInput options={Array(12).fill("新規会社(過去面談無し)")} displayX="center" /> */}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <CustomSelectInput
                                   options={optionsDeadline}
                                   defaultValue={"当日出荷"}
@@ -3684,48 +3712,50 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.title}`}>●見積日</span>
-                              {!searchMode && isEditModeField !== "quotation_date" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    // if (!selectedRowDataQuotation?.activity_type) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
-                                    // }
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "quotation_date",
-                                      dispatch: setInputQuotationDate,
-                                      dateValue: selectedRowDataQuotation?.quotation_date
-                                        ? selectedRowDataQuotation.quotation_date
-                                        : null,
-                                    });
-                                  }}
-                                  data-text={
-                                    selectedRowDataQuotation?.quotation_date
-                                      ? format(new Date(selectedRowDataQuotation?.quotation_date), "yyyy/MM/dd")
-                                      : ""
-                                  }
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    // const { width } = el.getBoundingClientRect();
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.quotation_date
-                                    ? format(new Date(selectedRowDataQuotation.quotation_date), "yyyy/MM/dd")
-                                    : ""}
-                                </span>
-                              )}
+                              {!searchMode &&
+                                isEditModeField !== "quotation_date" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      // if (!selectedRowDataQuotation?.activity_type) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                                      // }
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "quotation_date",
+                                        dispatch: setInputQuotationDate,
+                                        dateValue: selectedRowDataQuotation?.quotation_date
+                                          ? selectedRowDataQuotation.quotation_date
+                                          : null,
+                                      });
+                                    }}
+                                    data-text={
+                                      selectedRowDataQuotation?.quotation_date
+                                        ? format(new Date(selectedRowDataQuotation?.quotation_date), "yyyy/MM/dd")
+                                        : ""
+                                    }
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      // const { width } = el.getBoundingClientRect();
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.quotation_date
+                                      ? format(new Date(selectedRowDataQuotation.quotation_date), "yyyy/MM/dd")
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <DatePickerCustomInput
                                   startDate={inputQuotationDate}
                                   setStartDate={setInputQuotationDate}
@@ -3810,44 +3840,46 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>納入場所</span>
-                              {!searchMode && isEditModeField !== "delivery_place" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!selectedRowDataQuotation?.delivery_place) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.delivery_place))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.delivery_place));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "delivery_place",
-                                      dispatch: setInputDeliveryPlaceEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.delivery_place
+                              {!searchMode &&
+                                isEditModeField !== "delivery_place" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!selectedRowDataQuotation?.delivery_place) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.delivery_place))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.delivery_place));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "delivery_place",
+                                        dispatch: setInputDeliveryPlaceEdit,
+                                      });
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.delivery_place
+                                        ? selectedRowDataQuotation?.delivery_place
+                                        : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.delivery_place
                                       ? selectedRowDataQuotation?.delivery_place
-                                      : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.delivery_place
-                                    ? selectedRowDataQuotation?.delivery_place
-                                    : ""}
-                                </span>
-                              )}
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <CustomSelectInput
                                   options={optionsDeliveryPlace}
                                   defaultValue={"お打ち合わせにより決定"}
@@ -3914,48 +3946,50 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.title}`}>○有効期限</span>
-                              {!searchMode && isEditModeField !== "expiration_date" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    // if (!selectedRowDataQuotation?.activity_type) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
-                                    // }
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "expiration_date",
-                                      dispatch: setInputExpirationDate,
-                                      dateValue: selectedRowDataQuotation?.expiration_date
-                                        ? selectedRowDataQuotation.expiration_date
-                                        : null,
-                                    });
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.expiration_date
+                              {!searchMode &&
+                                isEditModeField !== "expiration_date" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      // if (!selectedRowDataQuotation?.activity_type) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                                      // }
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "expiration_date",
+                                        dispatch: setInputExpirationDate,
+                                        dateValue: selectedRowDataQuotation?.expiration_date
+                                          ? selectedRowDataQuotation.expiration_date
+                                          : null,
+                                      });
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.expiration_date
+                                        ? format(new Date(selectedRowDataQuotation.expiration_date), "yyyy/MM/dd")
+                                        : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      // const { width } = el.getBoundingClientRect();
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.expiration_date
                                       ? format(new Date(selectedRowDataQuotation.expiration_date), "yyyy/MM/dd")
-                                      : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    // const { width } = el.getBoundingClientRect();
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.expiration_date
-                                    ? format(new Date(selectedRowDataQuotation.expiration_date), "yyyy/MM/dd")
-                                    : ""}
-                                </span>
-                              )}
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <DatePickerCustomInput
                                   startDate={inputExpirationDate}
                                   setStartDate={setInputExpirationDate}
@@ -4040,44 +4074,46 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>●取引方法</span>
-                              {!searchMode && isEditModeField !== "payment_terms" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!selectedRowDataQuotation?.payment_terms) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.payment_terms))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.payment_terms));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "payment_terms",
-                                      dispatch: setInputPaymentTermsEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.payment_terms
+                              {!searchMode &&
+                                isEditModeField !== "payment_terms" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!selectedRowDataQuotation?.payment_terms) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.payment_terms))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.payment_terms));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "payment_terms",
+                                        dispatch: setInputPaymentTermsEdit,
+                                      });
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.payment_terms
+                                        ? selectedRowDataQuotation?.payment_terms
+                                        : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.payment_terms
                                       ? selectedRowDataQuotation?.payment_terms
-                                      : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.payment_terms
-                                    ? selectedRowDataQuotation?.payment_terms
-                                    : ""}
-                                </span>
-                              )}
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <CustomSelectInput
                                   options={optionsPaymentTerms}
                                   defaultValue={"従来通り"}
@@ -4144,7 +4180,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.check_title} ${styles.single_text}`}>角印印刷</span>
 
-                              {!isInsertModeQuotation && (
+                              {!(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <div
                                   className={`${styles.grid_select_cell_header} `}
                                   onMouseEnter={(e) => {
@@ -4166,7 +4202,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     className={`${styles.grid_select_cell_header_input} ${
                                       !selectedRowDataQuotation ? `pointer-events-none cursor-not-allowed` : ``
                                     }`}
-                                    checked={checkboxUseCorporateSealFlagEdit}
+                                    checked={checkboxUseCorporateSealFlag}
                                     onChange={async (e) => {
                                       if (!selectedRowDataQuotation) return;
                                       // 個別にチェックボックスを更新するルート
@@ -4175,13 +4211,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                                       console.log(
                                         "チェック 新しい値",
-                                        !checkboxUseCorporateSealFlagEdit,
+                                        !checkboxUseCorporateSealFlag,
                                         "オリジナル",
                                         selectedRowDataQuotation?.use_corporate_seal
                                       );
                                       if (
-                                        !checkboxUseCorporateSealFlagEdit ===
-                                        selectedRowDataQuotation?.use_corporate_seal
+                                        !checkboxUseCorporateSealFlag === selectedRowDataQuotation?.use_corporate_seal
                                       ) {
                                         toast.error(`アップデートに失敗しました🤦‍♀️`);
                                         return;
@@ -4189,12 +4224,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       const updatePayload = {
                                         fieldName: "use_corporate_seal",
                                         fieldNameForSelectedRowData: "use_corporate_seal" as "use_corporate_seal",
-                                        newValue: !checkboxUseCorporateSealFlagEdit,
+                                        newValue: !checkboxUseCorporateSealFlag,
                                         id: selectedRowDataQuotation.quotation_id,
                                       };
                                       // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
                                       updateQuotationFieldMutation.mutate(updatePayload);
-                                      setCheckboxUseCorporateSealFlagEdit(!checkboxUseCorporateSealFlagEdit);
+                                      setCheckboxUseCorporateSealFlag(!checkboxUseCorporateSealFlag);
                                     }}
                                   />
                                   <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -4203,7 +4238,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 </div>
                               )}
                               {/* ----------------- upsert ----------------- */}
-                              {isInsertModeQuotation && (
+                              {(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <div
                                   className={`${styles.grid_select_cell_header} `}
                                   onMouseEnter={(e) => {
@@ -4238,44 +4273,46 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>●見積区分</span>
-                              {!searchMode && isEditModeField !== "quotation_division" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!selectedRowDataQuotation?.quotation_division) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.quotation_division))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.quotation_division));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "quotation_division",
-                                      dispatch: setInputQuotationDivisionEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.quotation_division
+                              {!searchMode &&
+                                isEditModeField !== "quotation_division" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!selectedRowDataQuotation?.quotation_division) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.quotation_division))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.quotation_division));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "quotation_division",
+                                        dispatch: setInputQuotationDivisionEdit,
+                                      });
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.quotation_division
+                                        ? getQuotationDivision(selectedRowDataQuotation?.quotation_division)
+                                        : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.quotation_division
                                       ? getQuotationDivision(selectedRowDataQuotation?.quotation_division)
-                                      : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.quotation_division
-                                    ? getQuotationDivision(selectedRowDataQuotation?.quotation_division)
-                                    : ""}
-                                </span>
-                              )}
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <select
                                     className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.upsert}`}
@@ -4350,44 +4387,46 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.title}`}>○送付方法</span>
-                              {!searchMode && isEditModeField !== "sending_method" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!selectedRowDataQuotation?.sending_method) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.sending_method))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.sending_method));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "sending_method",
-                                      dispatch: setInputSendingMethodEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.sending_method
+                              {!searchMode &&
+                                isEditModeField !== "sending_method" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!selectedRowDataQuotation?.sending_method) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.sending_method))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.sending_method));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "sending_method",
+                                        dispatch: setInputSendingMethodEdit,
+                                      });
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.sending_method
+                                        ? getSendingMethod(selectedRowDataQuotation?.sending_method)
+                                        : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.sending_method
                                       ? getSendingMethod(selectedRowDataQuotation?.sending_method)
-                                      : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.sending_method
-                                    ? getSendingMethod(selectedRowDataQuotation?.sending_method)
-                                    : ""}
-                                </span>
-                              )}
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <select
                                     className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.upsert}`}
@@ -4466,45 +4505,53 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
                           <div className="flex h-full w-full flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full `}>
-                              <span className={`${styles.title} ${isInsertModeQuotation ? `` : `${styles.title_sm}`}`}>
+                              <span
+                                className={`${styles.title} ${
+                                  isInsertModeQuotation || isUpdateModeQuotation ? `` : `${styles.title_sm}`
+                                }`}
+                              >
                                 見積備考
                               </span>
-                              {!searchMode && isEditModeField !== "quotation_notes" && !isInsertModeQuotation && (
-                                <div
-                                  className={`${styles.textarea_box} ${styles.md} ${
-                                    selectedRowDataQuotation ? `${styles.editable_field}` : `${styles.uneditable_field}`
-                                  }`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!selectedRowDataQuotation) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
-                                    handleCloseTooltip();
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "quotation_notes",
-                                      dispatch: setInputQuotationNotes,
-                                      selectedRowDataValue: selectedRowDataQuotation?.quotation_notes
-                                        ? selectedRowDataQuotation?.quotation_notes
-                                        : null,
-                                    });
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                  }}
-                                  dangerouslySetInnerHTML={{
-                                    __html: selectedRowDataQuotation?.quotation_notes
-                                      ? selectedRowDataQuotation?.quotation_notes.replace(/\n/g, "<br>")
-                                      : "",
-                                  }}
-                                ></div>
-                              )}
+                              {!searchMode &&
+                                isEditModeField !== "quotation_notes" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <div
+                                    className={`${styles.textarea_box} ${styles.md} ${
+                                      selectedRowDataQuotation
+                                        ? `${styles.editable_field}`
+                                        : `${styles.uneditable_field}`
+                                    }`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!selectedRowDataQuotation) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                                      handleCloseTooltip();
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "quotation_notes",
+                                        dispatch: setInputQuotationNotes,
+                                        selectedRowDataValue: selectedRowDataQuotation?.quotation_notes
+                                          ? selectedRowDataQuotation?.quotation_notes
+                                          : null,
+                                      });
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                    }}
+                                    dangerouslySetInnerHTML={{
+                                      __html: selectedRowDataQuotation?.quotation_notes
+                                        ? selectedRowDataQuotation?.quotation_notes.replace(/\n/g, "<br>")
+                                        : "",
+                                    }}
+                                  ></div>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <textarea
                                     cols={30}
@@ -4583,44 +4630,46 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 <span>●消費税区分</span>
                                 <span>見積記載有無</span>
                               </div>
-                              {!searchMode && isEditModeField !== "sales_tax_class" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!selectedRowDataQuotation?.sales_tax_class) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.sales_tax_class))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.sales_tax_class));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "sales_tax_class",
-                                      dispatch: setInputSalesTaxClassEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.sales_tax_class
+                              {!searchMode &&
+                                isEditModeField !== "sales_tax_class" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!selectedRowDataQuotation?.sales_tax_class) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.sales_tax_class))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.sales_tax_class));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "sales_tax_class",
+                                        dispatch: setInputSalesTaxClassEdit,
+                                      });
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.sales_tax_class
+                                        ? getSalesTaxClass(selectedRowDataQuotation?.sales_tax_class)
+                                        : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.sales_tax_class
                                       ? getSalesTaxClass(selectedRowDataQuotation?.sales_tax_class)
-                                      : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.sales_tax_class
-                                    ? getSalesTaxClass(selectedRowDataQuotation?.sales_tax_class)
-                                    : ""}
-                                </span>
-                              )}
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <select
                                     className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.upsert}`}
@@ -4695,44 +4744,46 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.title}`}>●消費税率</span>
-                              {!searchMode && isEditModeField !== "sales_tax_rate" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!selectedRowDataQuotation?.sales_tax_rate) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.sales_tax_rate))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.sales_tax_rate));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "sales_tax_rate",
-                                      dispatch: setInputSalesTaxRateEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.sales_tax_rate
+                              {!searchMode &&
+                                isEditModeField !== "sales_tax_rate" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!selectedRowDataQuotation?.sales_tax_rate) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.sales_tax_rate))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.sales_tax_rate));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "sales_tax_rate",
+                                        dispatch: setInputSalesTaxRateEdit,
+                                      });
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.sales_tax_rate
+                                        ? selectedRowDataQuotation?.sales_tax_rate
+                                        : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.sales_tax_rate
                                       ? selectedRowDataQuotation?.sales_tax_rate
-                                      : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.sales_tax_rate
-                                    ? selectedRowDataQuotation?.sales_tax_rate
-                                    : ""}
-                                </span>
-                              )}
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <select
                                     className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.upsert}`}
@@ -4837,7 +4888,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 }}
                               >
                                 <span className={`mr-[6px]`}>価格合計</span>
-                                {isInsertModeQuotation && (
+                                {(isInsertModeQuotation || isUpdateModeQuotation) && (
                                   <div className="flex-center relative h-[15px] w-[15px] rounded-full">
                                     <div
                                       ref={infoIconTotalPriceRef}
@@ -4848,53 +4899,55 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 )}
                               </div>
 
-                              {!searchMode && isEditModeField !== "total_price" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_price)) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.total_price))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.total_price));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "total_price",
-                                      dispatch: setInputTotalPriceEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.total_price ? selectedRowDataQuotation?.total_price : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // scrollWidthがoffsetWidthを超えていればツールチップを表示
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) {
-                                      handleOpenTooltip({
-                                        e: e,
-                                        display: "top",
-                                        content: checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_price)
-                                          ? Number(selectedRowDataQuotation?.total_price).toLocaleString() + "円"
-                                          : "",
-                                        // marginTop: 28,
-                                        itemsPosition: "center",
+                              {!searchMode &&
+                                isEditModeField !== "total_price" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_price)) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.total_price))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.total_price));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "total_price",
+                                        dispatch: setInputTotalPriceEdit,
                                       });
-                                    }
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_price)
-                                    ? Number(selectedRowDataQuotation?.total_price).toLocaleString() + "円"
-                                    : ""}
-                                </span>
-                              )}
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.total_price ? selectedRowDataQuotation?.total_price : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      // scrollWidthがoffsetWidthを超えていればツールチップを表示
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) {
+                                        handleOpenTooltip({
+                                          e: e,
+                                          display: "top",
+                                          content: checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_price)
+                                            ? Number(selectedRowDataQuotation?.total_price).toLocaleString() + "円"
+                                            : "",
+                                          // marginTop: 28,
+                                          itemsPosition: "center",
+                                        });
+                                      }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_price)
+                                      ? Number(selectedRowDataQuotation?.total_price).toLocaleString() + "円"
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span
                                   className={`${styles.value}`}
                                   onMouseEnter={(e) => {
@@ -5021,46 +5074,48 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.title} text-[12px]`}>値引ﾀｲﾄﾙ</span>
-                              {!searchMode && isEditModeField !== "discount_title" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  data-text={
-                                    selectedRowDataQuotation?.discount_title
+                              {!searchMode &&
+                                isEditModeField !== "discount_title" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    data-text={
+                                      selectedRowDataQuotation?.discount_title
+                                        ? selectedRowDataQuotation?.discount_title
+                                        : ""
+                                    }
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      // if (!selectedRowDataQuotation?.activity_type) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                                      // }
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "discount_title",
+                                        dispatch: setInputDiscountTitleEdit,
+                                        selectedRowDataValue: selectedRowDataQuotation?.discount_title ?? "",
+                                      });
+                                      handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.discount_title
                                       ? selectedRowDataQuotation?.discount_title
-                                      : ""
-                                  }
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    // if (!selectedRowDataQuotation?.activity_type) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
-                                    // }
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "discount_title",
-                                      dispatch: setInputDiscountTitleEdit,
-                                      selectedRowDataValue: selectedRowDataQuotation?.discount_title ?? "",
-                                    });
-                                    handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.discount_title
-                                    ? selectedRowDataQuotation?.discount_title
-                                    : ""}
-                                </span>
-                              )}
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <input
                                     type="text"
@@ -5174,7 +5229,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 }}
                               >
                                 <span className={`mr-[6px]`}>値引金額</span>
-                                {isInsertModeQuotation && (
+                                {(isInsertModeQuotation || isUpdateModeQuotation) && (
                                   <div className="flex-center relative h-[15px] w-[15px] rounded-full">
                                     <div
                                       ref={infoIconDiscountRef}
@@ -5185,44 +5240,46 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 )}
                               </div>
 
-                              {!searchMode && isEditModeField !== "discount_amount" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!checkNotFalsyExcludeZero(selectedRowDataQuotation?.discount_amount)) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.discount_amount))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.discount_amount));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "discount_amount",
-                                      dispatch: setInputDiscountAmountEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.discount_amount
-                                      ? selectedRowDataQuotation?.discount_amount
-                                      : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {checkNotFalsyExcludeZero(selectedRowDataQuotation?.discount_amount)
-                                    ? Number(selectedRowDataQuotation?.discount_amount).toLocaleString() + "円"
-                                    : ""}
-                                </span>
-                              )}
+                              {!searchMode &&
+                                isEditModeField !== "discount_amount" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!checkNotFalsyExcludeZero(selectedRowDataQuotation?.discount_amount)) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.discount_amount))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.discount_amount));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "discount_amount",
+                                        dispatch: setInputDiscountAmountEdit,
+                                      });
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.discount_amount
+                                        ? selectedRowDataQuotation?.discount_amount
+                                        : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {checkNotFalsyExcludeZero(selectedRowDataQuotation?.discount_amount)
+                                      ? Number(selectedRowDataQuotation?.discount_amount).toLocaleString() + "円"
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <input
                                     type="text"
@@ -5442,7 +5499,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 onMouseLeave={handleCloseTooltip}
                               >
                                 <span className={`mr-[6px]`}>値引率</span>
-                                {isInsertModeQuotation && (
+                                {(isInsertModeQuotation || isUpdateModeQuotation) && (
                                   <div className="flex-center relative h-[15px] w-[15px] rounded-full">
                                     <div
                                       ref={infoIconDiscountRateRef}
@@ -5453,7 +5510,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 )}
                               </div>
 
-                              {!searchMode && (
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span
                                   className={`${styles.value}`}
                                   onMouseEnter={(e) => {
@@ -5470,9 +5527,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span className={`${styles.value}`}>
-                                  {inputDiscountRateEdit
+                                  {isValidNumber(inputDiscountRateEdit)
                                     ? convertHalfWidthRoundNumOnly(inputDiscountRateEdit, 2) + "%"
                                     : ""}
                                 </span>
@@ -5489,42 +5546,46 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title} text-[12px]`}>合計金額</span>
-                              {!searchMode && isEditModeField !== "total_amount" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_amount)) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.total_amount))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.total_amount));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "total_amount",
-                                      dispatch: setInputTotalAmountEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.total_amount ? selectedRowDataQuotation?.total_amount : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_amount)
-                                    ? Number(selectedRowDataQuotation?.total_amount).toLocaleString() + "円"
-                                    : ""}
-                                </span>
-                              )}
+                              {!searchMode &&
+                                isEditModeField !== "total_amount" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_amount)) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.total_amount))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.total_amount));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "total_amount",
+                                        dispatch: setInputTotalAmountEdit,
+                                      });
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.total_amount
+                                        ? selectedRowDataQuotation?.total_amount
+                                        : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_amount)
+                                      ? Number(selectedRowDataQuotation?.total_amount).toLocaleString() + "円"
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span className={`${styles.value}`}>
                                   {inputTotalAmountEdit ? formatDisplayPrice(inputTotalAmountEdit) : ""}
                                 </span>
@@ -5631,46 +5692,48 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-full flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>見積ﾀｲﾄﾙ</span>
-                              {!searchMode && isEditModeField !== "quotation_title" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  data-text={
-                                    selectedRowDataQuotation?.quotation_title
+                              {!searchMode &&
+                                isEditModeField !== "quotation_title" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    data-text={
+                                      selectedRowDataQuotation?.quotation_title
+                                        ? selectedRowDataQuotation?.quotation_title
+                                        : ""
+                                    }
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      // if (!selectedRowDataQuotation?.activity_type) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                                      // }
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "quotation_title",
+                                        dispatch: setInputQuotationTitle,
+                                        selectedRowDataValue: selectedRowDataQuotation?.quotation_title ?? "",
+                                      });
+                                      handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.quotation_title
                                       ? selectedRowDataQuotation?.quotation_title
-                                      : ""
-                                  }
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    // if (!selectedRowDataQuotation?.activity_type) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
-                                    // }
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "quotation_title",
-                                      dispatch: setInputQuotationTitle,
-                                      selectedRowDataValue: selectedRowDataQuotation?.quotation_title ?? "",
-                                    });
-                                    handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.quotation_title
-                                    ? selectedRowDataQuotation?.quotation_title
-                                    : ""}
-                                </span>
-                              )}
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <input
                                     type="text"
@@ -5883,7 +5946,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-full flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>商品All</span>
-                              {!searchMode && (
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span
                                   className={`${styles.value}`}
                                   data-text={`${
@@ -5910,7 +5973,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   {selectedProductsArray?.length > 0 && (
                                     <span
@@ -5949,7 +6012,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>事業部名</span>
-                              {!searchMode && !isInsertModeQuotation && (
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span
                                   className={`${styles.value}`}
                                   data-text={`${
@@ -5974,7 +6037,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <select
                                     className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.upsert}`}
@@ -6002,7 +6065,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.title} ${styles.min}`}>係・ﾁｰﾑ</span>
-                              {!searchMode && !isInsertModeQuotation && (
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span
                                   className={`${styles.value}`}
                                   data-text={`${
@@ -6027,7 +6090,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <select
                                     className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.upsert}`}
@@ -6060,7 +6123,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>事業所</span>
-                              {!searchMode && !isInsertModeQuotation && (
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span
                                   className={`${styles.value}`}
                                   data-text={`${
@@ -6085,7 +6148,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <select
                                     className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.upsert}`}
@@ -6113,7 +6176,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.title}`}>自社担当</span>
-                              {!searchMode && !isInsertModeQuotation && (
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span
                                   className={`${styles.value}`}
                                   data-text={`${
@@ -6138,7 +6201,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <input
                                     type="text"
@@ -6177,7 +6240,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>担当印</span>
-                              {!searchMode && !isInsertModeQuotation && (
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span
                                   className={`${styles.value}`}
                                   onMouseEnter={(e) => {
@@ -6194,128 +6257,132 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && !memberObjInCharge.signature_stamp_id && (
-                                <>
-                                  <div className="flex-center w-full">
-                                    <RippleButton
-                                      title={`追加`}
-                                      classText="select-none"
-                                      borderRadius="6px"
-                                      clickEventHandler={() => {
-                                        setIsOpenSearchMemberSideTableBefore(true);
-                                        setTimeout(() => {
-                                          setIsOpenSearchMemberSideTable(true);
-                                        }, 100);
-                                        setSideTableState("inCharge");
-                                      }}
-                                      onMouseEnterHandler={(e) =>
+                              {!searchMode &&
+                                (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                !memberObjInCharge.signature_stamp_id && (
+                                  <>
+                                    <div className="flex-center w-full">
+                                      <RippleButton
+                                        title={`追加`}
+                                        classText="select-none"
+                                        borderRadius="6px"
+                                        clickEventHandler={() => {
+                                          setIsOpenSearchMemberSideTableBefore(true);
+                                          setTimeout(() => {
+                                            setIsOpenSearchMemberSideTable(true);
+                                          }, 100);
+                                          setSideTableState("inCharge");
+                                        }}
+                                        onMouseEnterHandler={(e) =>
+                                          handleOpenTooltip({
+                                            e: e,
+                                            display: "top",
+                                            content: `担当印を追加`,
+                                            // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+                                            // marginTop: 48,
+                                            // marginTop: 28,
+                                            marginTop: 9,
+                                          })
+                                        }
+                                        onMouseLeaveHandler={handleCloseTooltip}
+                                      />
+                                    </div>
+                                  </>
+                                )}
+                              {!searchMode &&
+                                (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                memberObjInCharge.signature_stamp_id && (
+                                  <div className="flex w-full items-center">
+                                    <span className={`${styles.value} truncate`}>
+                                      {memberObjInCharge.memberName &&
+                                      memberObjInCharge.signature_stamp_id &&
+                                      memberObjInCharge.signature_stamp_url
+                                        ? memberObjInCharge.memberName
+                                        : `未設定`}
+                                    </span>
+
+                                    <div
+                                      className={`${styles.icon_path_stroke} ${
+                                        styles.icon_btn
+                                      } flex-center transition-bg03 ml-auto ${
+                                        isOpenInChargeMenu ? `pointer-events-none` : ``
+                                      }`}
+                                      onMouseEnter={(e) => {
+                                        if (isOpenInChargeMenu) return;
                                         handleOpenTooltip({
                                           e: e,
                                           display: "top",
-                                          content: `担当印を追加`,
-                                          // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
-                                          // marginTop: 48,
-                                          // marginTop: 28,
-                                          marginTop: 9,
-                                        })
-                                      }
-                                      onMouseLeaveHandler={handleCloseTooltip}
-                                    />
-                                  </div>
-                                </>
-                              )}
-                              {!searchMode && isInsertModeQuotation && memberObjInCharge.signature_stamp_id && (
-                                <div className="flex w-full items-center">
-                                  <span className={`${styles.value} truncate`}>
-                                    {memberObjInCharge.memberName &&
-                                    memberObjInCharge.signature_stamp_id &&
-                                    memberObjInCharge.signature_stamp_url
-                                      ? memberObjInCharge.memberName
-                                      : `未設定`}
-                                  </span>
-
-                                  <div
-                                    className={`${styles.icon_path_stroke} ${
-                                      styles.icon_btn
-                                    } flex-center transition-bg03 ml-auto ${
-                                      isOpenInChargeMenu ? `pointer-events-none` : ``
-                                    }`}
-                                    onMouseEnter={(e) => {
-                                      if (isOpenInChargeMenu) return;
-                                      handleOpenTooltip({
-                                        e: e,
-                                        display: "top",
-                                        content: "データ印を変更",
-                                        // content2: "フィルターの切り替えが可能です。",
-                                        // marginTop: 57,
-                                        // marginTop: 38,
-                                        marginTop: 6,
-                                        itemsPosition: "center",
-                                        whiteSpace: "nowrap",
-                                      });
-                                    }}
-                                    onMouseLeave={() => {
-                                      if (hoveredItemPosWrap) handleCloseTooltip();
-                                    }}
-                                    onClick={() => {
-                                      if (!memberObjInCharge) return;
-                                      if (isOpenInChargeMenu) return;
-                                      setIsOpenInChargeMenu(true);
-                                      if (hoveredItemPosWrap) handleCloseTooltip();
-                                    }}
-                                  >
-                                    <GrPowerReset />
-                                  </div>
-                                  {isOpenInChargeMenu && (
-                                    <>
-                                      <div
-                                        className="fixed left-0 top-0 z-[2000] h-full w-full bg-[#00000000]"
-                                        onClick={() => setIsOpenInChargeMenu(false)}
-                                      ></div>
-                                      <div
-                                        className={`border-real-with-shadow-dark fade03 space-x-[20px] ${styles.update_stamp_menu}`}
-                                      >
+                                          content: "データ印を変更",
+                                          // content2: "フィルターの切り替えが可能です。",
+                                          // marginTop: 57,
+                                          // marginTop: 38,
+                                          marginTop: 6,
+                                          itemsPosition: "center",
+                                          whiteSpace: "nowrap",
+                                        });
+                                      }}
+                                      onMouseLeave={() => {
+                                        if (hoveredItemPosWrap) handleCloseTooltip();
+                                      }}
+                                      onClick={() => {
+                                        if (!memberObjInCharge) return;
+                                        if (isOpenInChargeMenu) return;
+                                        setIsOpenInChargeMenu(true);
+                                        if (hoveredItemPosWrap) handleCloseTooltip();
+                                      }}
+                                    >
+                                      <GrPowerReset />
+                                    </div>
+                                    {isOpenInChargeMenu && (
+                                      <>
                                         <div
-                                          className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--setting-side-bg-select)]  text-[var(--color-text-title)]  hover:bg-[var(--setting-side-bg-select-hover)]`}
-                                          onClick={() => {
-                                            setPrevMemberObjInCharge(initialMemberNullObj);
-                                            setMemberObjInCharge(initialMemberNullObj);
-                                            setIsOpenInChargeMenu(false);
-                                            if (checkboxInChargeFlagEdit) setCheckboxInChargeFlagEdit(false);
-                                          }}
-                                        >
-                                          <span>削除</span>
-                                        </div>
+                                          className="fixed left-0 top-0 z-[2000] h-full w-full bg-[#00000000]"
+                                          onClick={() => setIsOpenInChargeMenu(false)}
+                                        ></div>
                                         <div
-                                          className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`}
-                                          onClick={() => {
-                                            // setIsOpenSearchMemberSideTable(true);
-                                            setIsOpenSearchMemberSideTableBefore(true);
-                                            setTimeout(() => {
-                                              setIsOpenSearchMemberSideTable(true);
-                                            }, 100);
-                                            setSideTableState("inCharge");
-                                            const currentMemberObj = {
-                                              memberId: memberObjInCharge.memberId,
-                                              memberName: memberObjInCharge?.memberName ?? null,
-                                              departmentId: memberObjInCharge?.departmentId ?? null,
-                                              unitId: memberObjInCharge?.unitId ?? null,
-                                              officeId: memberObjInCharge?.officeId ?? null,
-                                              signature_stamp_id: memberObjInCharge?.signature_stamp_id ?? null,
-                                              signature_stamp_url: memberObjInCharge?.signature_stamp_url ?? null,
-                                            };
-                                            setMemberObj(currentMemberObj);
-                                            setPrevMemberObj(currentMemberObj);
-                                            setIsOpenInChargeMenu(false);
-                                          }}
+                                          className={`border-real-with-shadow-dark fade03 space-x-[20px] ${styles.update_stamp_menu}`}
                                         >
-                                          <span>変更</span>
+                                          <div
+                                            className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--setting-side-bg-select)]  text-[var(--color-text-title)]  hover:bg-[var(--setting-side-bg-select-hover)]`}
+                                            onClick={() => {
+                                              setPrevMemberObjInCharge(initialMemberNullObj);
+                                              setMemberObjInCharge(initialMemberNullObj);
+                                              setIsOpenInChargeMenu(false);
+                                              if (checkboxInChargeFlagEdit) setCheckboxInChargeFlagEdit(false);
+                                            }}
+                                          >
+                                            <span>削除</span>
+                                          </div>
+                                          <div
+                                            className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`}
+                                            onClick={() => {
+                                              // setIsOpenSearchMemberSideTable(true);
+                                              setIsOpenSearchMemberSideTableBefore(true);
+                                              setTimeout(() => {
+                                                setIsOpenSearchMemberSideTable(true);
+                                              }, 100);
+                                              setSideTableState("inCharge");
+                                              const currentMemberObj = {
+                                                memberId: memberObjInCharge.memberId,
+                                                memberName: memberObjInCharge?.memberName ?? null,
+                                                departmentId: memberObjInCharge?.departmentId ?? null,
+                                                unitId: memberObjInCharge?.unitId ?? null,
+                                                officeId: memberObjInCharge?.officeId ?? null,
+                                                signature_stamp_id: memberObjInCharge?.signature_stamp_id ?? null,
+                                                signature_stamp_url: memberObjInCharge?.signature_stamp_url ?? null,
+                                              };
+                                              setMemberObj(currentMemberObj);
+                                              setPrevMemberObj(currentMemberObj);
+                                              setIsOpenInChargeMenu(false);
+                                            }}
+                                          >
+                                            <span>変更</span>
+                                          </div>
                                         </div>
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-                              )}
+                                      </>
+                                    )}
+                                  </div>
+                                )}
                               {/* ----------------- upsert ----------------- */}
                             </div>
                             <div className={`${styles.underline}`}></div>
@@ -6324,7 +6391,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.check_title} ${styles.single_text}`}>印字</span>
 
-                              {!searchMode && !isInsertModeQuotation && (
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <div
                                   className={`${styles.grid_select_cell_header} `}
                                   onMouseEnter={(e) => {
@@ -6381,7 +6448,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <div className={`${styles.grid_select_cell_header} `}>
                                   <input
                                     type="checkbox"
@@ -6413,7 +6480,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>上長印1</span>
-                              {!searchMode && (
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span
                                   className={`${styles.value}`}
                                   onMouseEnter={(e) => {
@@ -6430,130 +6497,134 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && !memberObjSupervisor1.signature_stamp_id && (
-                                <>
-                                  <div className="flex-center w-full">
-                                    <RippleButton
-                                      title={`追加`}
-                                      classText="select-none"
-                                      borderRadius="6px"
-                                      clickEventHandler={() => {
-                                        // setIsOpenSearchMemberSideTable(true);
-                                        setIsOpenSearchMemberSideTableBefore(true);
-                                        setTimeout(() => {
-                                          setIsOpenSearchMemberSideTable(true);
-                                        }, 100);
-                                        setSideTableState("supervisor1");
-                                      }}
-                                      onMouseEnterHandler={(e) =>
+                              {!searchMode &&
+                                (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                !memberObjSupervisor1.signature_stamp_id && (
+                                  <>
+                                    <div className="flex-center w-full">
+                                      <RippleButton
+                                        title={`追加`}
+                                        classText="select-none"
+                                        borderRadius="6px"
+                                        clickEventHandler={() => {
+                                          // setIsOpenSearchMemberSideTable(true);
+                                          setIsOpenSearchMemberSideTableBefore(true);
+                                          setTimeout(() => {
+                                            setIsOpenSearchMemberSideTable(true);
+                                          }, 100);
+                                          setSideTableState("supervisor1");
+                                        }}
+                                        onMouseEnterHandler={(e) =>
+                                          handleOpenTooltip({
+                                            e: e,
+                                            display: "top",
+                                            content: `上長印を追加`,
+                                            // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+                                            // marginTop: 48,
+                                            // marginTop: 28,
+                                            marginTop: 9,
+                                          })
+                                        }
+                                        onMouseLeaveHandler={handleCloseTooltip}
+                                      />
+                                    </div>
+                                  </>
+                                )}
+
+                              {!searchMode &&
+                                (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                memberObjSupervisor1.signature_stamp_id && (
+                                  <div className="flex w-full items-center">
+                                    <span className={`${styles.value} truncate`}>
+                                      {memberObjSupervisor1.memberName &&
+                                      memberObjSupervisor1.signature_stamp_id &&
+                                      memberObjSupervisor1.signature_stamp_url
+                                        ? memberObjSupervisor1.memberName
+                                        : `未設定`}
+                                    </span>
+
+                                    <div
+                                      className={`${styles.icon_path_stroke} ${
+                                        styles.icon_btn
+                                      } flex-center transition-bg03 ml-auto ${
+                                        isOpenSupervisor1Menu ? `pointer-events-none` : ``
+                                      }`}
+                                      onMouseEnter={(e) => {
+                                        if (isOpenSupervisor1Menu) return;
                                         handleOpenTooltip({
                                           e: e,
                                           display: "top",
-                                          content: `上長印を追加`,
-                                          // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
-                                          // marginTop: 48,
-                                          // marginTop: 28,
-                                          marginTop: 9,
-                                        })
-                                      }
-                                      onMouseLeaveHandler={handleCloseTooltip}
-                                    />
-                                  </div>
-                                </>
-                              )}
-
-                              {!searchMode && isInsertModeQuotation && memberObjSupervisor1.signature_stamp_id && (
-                                <div className="flex w-full items-center">
-                                  <span className={`${styles.value} truncate`}>
-                                    {memberObjSupervisor1.memberName &&
-                                    memberObjSupervisor1.signature_stamp_id &&
-                                    memberObjSupervisor1.signature_stamp_url
-                                      ? memberObjSupervisor1.memberName
-                                      : `未設定`}
-                                  </span>
-
-                                  <div
-                                    className={`${styles.icon_path_stroke} ${
-                                      styles.icon_btn
-                                    } flex-center transition-bg03 ml-auto ${
-                                      isOpenSupervisor1Menu ? `pointer-events-none` : ``
-                                    }`}
-                                    onMouseEnter={(e) => {
-                                      if (isOpenSupervisor1Menu) return;
-                                      handleOpenTooltip({
-                                        e: e,
-                                        display: "top",
-                                        content: "データ印を変更",
-                                        // content2: "フィルターの切り替えが可能です。",
-                                        // marginTop: 57,
-                                        // marginTop: 38,
-                                        marginTop: 6,
-                                        itemsPosition: "center",
-                                        whiteSpace: "nowrap",
-                                      });
-                                    }}
-                                    onMouseLeave={() => {
-                                      if (hoveredItemPosWrap) handleCloseTooltip();
-                                    }}
-                                    onClick={() => {
-                                      if (!memberObjSupervisor1) return;
-                                      if (isOpenSupervisor1Menu) return;
-                                      setIsOpenSupervisor1Menu(true);
-                                      if (hoveredItemPosWrap) handleCloseTooltip();
-                                    }}
-                                  >
-                                    <GrPowerReset />
-                                  </div>
-                                  {isOpenSupervisor1Menu && (
-                                    <>
-                                      <div
-                                        className="fixed left-0 top-0 z-[2000] h-full w-full bg-[#00000000]"
-                                        onClick={() => setIsOpenSupervisor1Menu(false)}
-                                      ></div>
-                                      <div
-                                        className={`border-real-with-shadow-dark fade03 space-x-[20px] ${styles.update_stamp_menu}`}
-                                      >
+                                          content: "データ印を変更",
+                                          // content2: "フィルターの切り替えが可能です。",
+                                          // marginTop: 57,
+                                          // marginTop: 38,
+                                          marginTop: 6,
+                                          itemsPosition: "center",
+                                          whiteSpace: "nowrap",
+                                        });
+                                      }}
+                                      onMouseLeave={() => {
+                                        if (hoveredItemPosWrap) handleCloseTooltip();
+                                      }}
+                                      onClick={() => {
+                                        if (!memberObjSupervisor1) return;
+                                        if (isOpenSupervisor1Menu) return;
+                                        setIsOpenSupervisor1Menu(true);
+                                        if (hoveredItemPosWrap) handleCloseTooltip();
+                                      }}
+                                    >
+                                      <GrPowerReset />
+                                    </div>
+                                    {isOpenSupervisor1Menu && (
+                                      <>
                                         <div
-                                          className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--setting-side-bg-select)]  text-[var(--color-text-title)]  hover:bg-[var(--setting-side-bg-select-hover)]`}
-                                          onClick={() => {
-                                            setPrevMemberObjSupervisor1(initialMemberNullObj);
-                                            setMemberObjSupervisor1(initialMemberNullObj);
-                                            setIsOpenSupervisor1Menu(false);
-                                            if (checkboxSupervisor1FlagEdit) setCheckboxSupervisor1FlagEdit(false);
-                                          }}
-                                        >
-                                          <span>削除</span>
-                                        </div>
+                                          className="fixed left-0 top-0 z-[2000] h-full w-full bg-[#00000000]"
+                                          onClick={() => setIsOpenSupervisor1Menu(false)}
+                                        ></div>
                                         <div
-                                          className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`}
-                                          onClick={() => {
-                                            // setIsOpenSearchMemberSideTable(true);
-                                            setIsOpenSearchMemberSideTableBefore(true);
-                                            setTimeout(() => {
-                                              setIsOpenSearchMemberSideTable(true);
-                                            }, 100);
-                                            setSideTableState("supervisor1");
-                                            const currentMemberObj = {
-                                              memberId: memberObjSupervisor1.memberId,
-                                              memberName: memberObjSupervisor1?.memberName ?? null,
-                                              departmentId: memberObjSupervisor1?.departmentId ?? null,
-                                              unitId: memberObjSupervisor1?.unitId ?? null,
-                                              officeId: memberObjSupervisor1?.officeId ?? null,
-                                              signature_stamp_id: memberObjSupervisor1?.signature_stamp_id ?? null,
-                                              signature_stamp_url: memberObjSupervisor1?.signature_stamp_url ?? null,
-                                            };
-                                            setMemberObj(currentMemberObj);
-                                            setPrevMemberObj(currentMemberObj);
-                                            setIsOpenSupervisor1Menu(false);
-                                          }}
+                                          className={`border-real-with-shadow-dark fade03 space-x-[20px] ${styles.update_stamp_menu}`}
                                         >
-                                          <span>変更</span>
+                                          <div
+                                            className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--setting-side-bg-select)]  text-[var(--color-text-title)]  hover:bg-[var(--setting-side-bg-select-hover)]`}
+                                            onClick={() => {
+                                              setPrevMemberObjSupervisor1(initialMemberNullObj);
+                                              setMemberObjSupervisor1(initialMemberNullObj);
+                                              setIsOpenSupervisor1Menu(false);
+                                              if (checkboxSupervisor1FlagEdit) setCheckboxSupervisor1FlagEdit(false);
+                                            }}
+                                          >
+                                            <span>削除</span>
+                                          </div>
+                                          <div
+                                            className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`}
+                                            onClick={() => {
+                                              // setIsOpenSearchMemberSideTable(true);
+                                              setIsOpenSearchMemberSideTableBefore(true);
+                                              setTimeout(() => {
+                                                setIsOpenSearchMemberSideTable(true);
+                                              }, 100);
+                                              setSideTableState("supervisor1");
+                                              const currentMemberObj = {
+                                                memberId: memberObjSupervisor1.memberId,
+                                                memberName: memberObjSupervisor1?.memberName ?? null,
+                                                departmentId: memberObjSupervisor1?.departmentId ?? null,
+                                                unitId: memberObjSupervisor1?.unitId ?? null,
+                                                officeId: memberObjSupervisor1?.officeId ?? null,
+                                                signature_stamp_id: memberObjSupervisor1?.signature_stamp_id ?? null,
+                                                signature_stamp_url: memberObjSupervisor1?.signature_stamp_url ?? null,
+                                              };
+                                              setMemberObj(currentMemberObj);
+                                              setPrevMemberObj(currentMemberObj);
+                                              setIsOpenSupervisor1Menu(false);
+                                            }}
+                                          >
+                                            <span>変更</span>
+                                          </div>
                                         </div>
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-                              )}
+                                      </>
+                                    )}
+                                  </div>
+                                )}
                               {/* ----------------- upsert ----------------- */}
                             </div>
                             <div className={`${styles.underline}`}></div>
@@ -6562,7 +6633,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.check_title} ${styles.single_text}`}>印字</span>
 
-                              {!searchMode && !isInsertModeQuotation && (
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <div
                                   className={`${styles.grid_select_cell_header} `}
                                   onMouseEnter={(e) => {
@@ -6624,7 +6695,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <div className={`${styles.grid_select_cell_header} `}>
                                   <input
                                     type="checkbox"
@@ -6656,7 +6727,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>上長印2</span>
-                              {!searchMode && (
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span
                                   className={`${styles.value}`}
                                   onMouseEnter={(e) => {
@@ -6673,130 +6744,134 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && !memberObjSupervisor2.signature_stamp_id && (
-                                <>
-                                  <div className="flex-center w-full">
-                                    <RippleButton
-                                      title={`追加`}
-                                      classText="select-none"
-                                      borderRadius="6px"
-                                      clickEventHandler={() => {
-                                        // setIsOpenSearchMemberSideTable(true);
-                                        setIsOpenSearchMemberSideTableBefore(true);
-                                        setTimeout(() => {
-                                          setIsOpenSearchMemberSideTable(true);
-                                        }, 100);
-                                        setSideTableState("supervisor2");
-                                      }}
-                                      onMouseEnterHandler={(e) =>
+                              {!searchMode &&
+                                (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                !memberObjSupervisor2.signature_stamp_id && (
+                                  <>
+                                    <div className="flex-center w-full">
+                                      <RippleButton
+                                        title={`追加`}
+                                        classText="select-none"
+                                        borderRadius="6px"
+                                        clickEventHandler={() => {
+                                          // setIsOpenSearchMemberSideTable(true);
+                                          setIsOpenSearchMemberSideTableBefore(true);
+                                          setTimeout(() => {
+                                            setIsOpenSearchMemberSideTable(true);
+                                          }, 100);
+                                          setSideTableState("supervisor2");
+                                        }}
+                                        onMouseEnterHandler={(e) =>
+                                          handleOpenTooltip({
+                                            e: e,
+                                            display: "top",
+                                            content: `上長印を追加`,
+                                            // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+                                            // marginTop: 48,
+                                            // marginTop: 28,
+                                            marginTop: 9,
+                                          })
+                                        }
+                                        onMouseLeaveHandler={handleCloseTooltip}
+                                      />
+                                    </div>
+                                  </>
+                                )}
+
+                              {!searchMode &&
+                                (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                memberObjSupervisor2.signature_stamp_id && (
+                                  <div className="flex w-full items-center">
+                                    <span className={`${styles.value} truncate`}>
+                                      {memberObjSupervisor2.memberName &&
+                                      memberObjSupervisor2.signature_stamp_id &&
+                                      memberObjSupervisor2.signature_stamp_url
+                                        ? memberObjSupervisor2.memberName
+                                        : `未設定`}
+                                    </span>
+
+                                    <div
+                                      className={`${styles.icon_path_stroke} ${
+                                        styles.icon_btn
+                                      } flex-center transition-bg03 ml-auto ${
+                                        isOpenSupervisor2Menu ? `pointer-events-none` : ``
+                                      }`}
+                                      onMouseEnter={(e) => {
+                                        if (isOpenSupervisor2Menu) return;
                                         handleOpenTooltip({
                                           e: e,
                                           display: "top",
-                                          content: `上長印を追加`,
-                                          // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
-                                          // marginTop: 48,
-                                          // marginTop: 28,
-                                          marginTop: 9,
-                                        })
-                                      }
-                                      onMouseLeaveHandler={handleCloseTooltip}
-                                    />
-                                  </div>
-                                </>
-                              )}
-
-                              {!searchMode && isInsertModeQuotation && memberObjSupervisor2.signature_stamp_id && (
-                                <div className="flex w-full items-center">
-                                  <span className={`${styles.value} truncate`}>
-                                    {memberObjSupervisor2.memberName &&
-                                    memberObjSupervisor2.signature_stamp_id &&
-                                    memberObjSupervisor2.signature_stamp_url
-                                      ? memberObjSupervisor2.memberName
-                                      : `未設定`}
-                                  </span>
-
-                                  <div
-                                    className={`${styles.icon_path_stroke} ${
-                                      styles.icon_btn
-                                    } flex-center transition-bg03 ml-auto ${
-                                      isOpenSupervisor2Menu ? `pointer-events-none` : ``
-                                    }`}
-                                    onMouseEnter={(e) => {
-                                      if (isOpenSupervisor2Menu) return;
-                                      handleOpenTooltip({
-                                        e: e,
-                                        display: "top",
-                                        content: "データ印を変更",
-                                        // content2: "フィルターの切り替えが可能です。",
-                                        // marginTop: 57,
-                                        // marginTop: 38,
-                                        marginTop: 6,
-                                        itemsPosition: "center",
-                                        whiteSpace: "nowrap",
-                                      });
-                                    }}
-                                    onMouseLeave={() => {
-                                      if (hoveredItemPosWrap) handleCloseTooltip();
-                                    }}
-                                    onClick={() => {
-                                      if (!memberObjSupervisor2) return;
-                                      if (isOpenSupervisor2Menu) return;
-                                      setIsOpenSupervisor2Menu(true);
-                                      if (hoveredItemPosWrap) handleCloseTooltip();
-                                    }}
-                                  >
-                                    <GrPowerReset />
-                                  </div>
-                                  {isOpenSupervisor2Menu && (
-                                    <>
-                                      <div
-                                        className="fixed left-0 top-0 z-[2000] h-full w-full bg-[#00000000]"
-                                        onClick={() => setIsOpenSupervisor2Menu(false)}
-                                      ></div>
-                                      <div
-                                        className={`border-real-with-shadow-dark fade03 space-x-[20px] ${styles.update_stamp_menu}`}
-                                      >
+                                          content: "データ印を変更",
+                                          // content2: "フィルターの切り替えが可能です。",
+                                          // marginTop: 57,
+                                          // marginTop: 38,
+                                          marginTop: 6,
+                                          itemsPosition: "center",
+                                          whiteSpace: "nowrap",
+                                        });
+                                      }}
+                                      onMouseLeave={() => {
+                                        if (hoveredItemPosWrap) handleCloseTooltip();
+                                      }}
+                                      onClick={() => {
+                                        if (!memberObjSupervisor2) return;
+                                        if (isOpenSupervisor2Menu) return;
+                                        setIsOpenSupervisor2Menu(true);
+                                        if (hoveredItemPosWrap) handleCloseTooltip();
+                                      }}
+                                    >
+                                      <GrPowerReset />
+                                    </div>
+                                    {isOpenSupervisor2Menu && (
+                                      <>
                                         <div
-                                          className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--setting-side-bg-select)]  text-[var(--color-text-title)]  hover:bg-[var(--setting-side-bg-select-hover)]`}
-                                          onClick={() => {
-                                            setPrevMemberObjSupervisor2(initialMemberNullObj);
-                                            setMemberObjSupervisor2(initialMemberNullObj);
-                                            setIsOpenSupervisor2Menu(false);
-                                            if (checkboxSupervisor2FlagEdit) setCheckboxSupervisor2FlagEdit(false);
-                                          }}
-                                        >
-                                          <span>削除</span>
-                                        </div>
+                                          className="fixed left-0 top-0 z-[2000] h-full w-full bg-[#00000000]"
+                                          onClick={() => setIsOpenSupervisor2Menu(false)}
+                                        ></div>
                                         <div
-                                          className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`}
-                                          onClick={() => {
-                                            // setIsOpenSearchMemberSideTable(true);
-                                            setIsOpenSearchMemberSideTableBefore(true);
-                                            setTimeout(() => {
-                                              setIsOpenSearchMemberSideTable(true);
-                                            }, 100);
-                                            setSideTableState("supervisor2");
-                                            const currentMemberObj = {
-                                              memberId: memberObjSupervisor2.memberId,
-                                              memberName: memberObjSupervisor2?.memberName ?? null,
-                                              departmentId: memberObjSupervisor2?.departmentId ?? null,
-                                              unitId: memberObjSupervisor2?.unitId ?? null,
-                                              officeId: memberObjSupervisor2?.officeId ?? null,
-                                              signature_stamp_id: memberObjSupervisor2?.signature_stamp_id ?? null,
-                                              signature_stamp_url: memberObjSupervisor2?.signature_stamp_url ?? null,
-                                            };
-                                            setMemberObj(currentMemberObj);
-                                            setPrevMemberObj(currentMemberObj);
-                                            setIsOpenSupervisor2Menu(false);
-                                          }}
+                                          className={`border-real-with-shadow-dark fade03 space-x-[20px] ${styles.update_stamp_menu}`}
                                         >
-                                          <span>変更</span>
+                                          <div
+                                            className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--setting-side-bg-select)]  text-[var(--color-text-title)]  hover:bg-[var(--setting-side-bg-select-hover)]`}
+                                            onClick={() => {
+                                              setPrevMemberObjSupervisor2(initialMemberNullObj);
+                                              setMemberObjSupervisor2(initialMemberNullObj);
+                                              setIsOpenSupervisor2Menu(false);
+                                              if (checkboxSupervisor2FlagEdit) setCheckboxSupervisor2FlagEdit(false);
+                                            }}
+                                          >
+                                            <span>削除</span>
+                                          </div>
+                                          <div
+                                            className={`${styles.menu_btn} transition-bg01 flex-center bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`}
+                                            onClick={() => {
+                                              // setIsOpenSearchMemberSideTable(true);
+                                              setIsOpenSearchMemberSideTableBefore(true);
+                                              setTimeout(() => {
+                                                setIsOpenSearchMemberSideTable(true);
+                                              }, 100);
+                                              setSideTableState("supervisor2");
+                                              const currentMemberObj = {
+                                                memberId: memberObjSupervisor2.memberId,
+                                                memberName: memberObjSupervisor2?.memberName ?? null,
+                                                departmentId: memberObjSupervisor2?.departmentId ?? null,
+                                                unitId: memberObjSupervisor2?.unitId ?? null,
+                                                officeId: memberObjSupervisor2?.officeId ?? null,
+                                                signature_stamp_id: memberObjSupervisor2?.signature_stamp_id ?? null,
+                                                signature_stamp_url: memberObjSupervisor2?.signature_stamp_url ?? null,
+                                              };
+                                              setMemberObj(currentMemberObj);
+                                              setPrevMemberObj(currentMemberObj);
+                                              setIsOpenSupervisor2Menu(false);
+                                            }}
+                                          >
+                                            <span>変更</span>
+                                          </div>
                                         </div>
-                                      </div>
-                                    </>
-                                  )}
-                                </div>
-                              )}
+                                      </>
+                                    )}
+                                  </div>
+                                )}
                               {/* ----------------- upsert ----------------- */}
                             </div>
                             <div className={`${styles.underline}`}></div>
@@ -6805,7 +6880,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.check_title} ${styles.single_text}`}>印字</span>
 
-                              {!searchMode && !isInsertModeQuotation && (
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <div
                                   className={`${styles.grid_select_cell_header} `}
                                   onMouseEnter={(e) => {
@@ -6867,7 +6942,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <div className={`${styles.grid_select_cell_header} `}>
                                   <input
                                     type="checkbox"
@@ -6903,42 +6978,46 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 <span>特記事項</span>
                                 <span>(社内ﾒﾓ)</span>
                               </div>
-                              {!searchMode && isEditModeField !== "quotation_remarks" && !isInsertModeQuotation && (
-                                <div
-                                  className={`${styles.textarea_box} ${styles.md} ${
-                                    selectedRowDataQuotation ? `${styles.editable_field}` : `${styles.uneditable_field}`
-                                  }`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!selectedRowDataQuotation) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
-                                    handleCloseTooltip();
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "quotation_remarks",
-                                      dispatch: setInputQuotationRemarks,
-                                      selectedRowDataValue: selectedRowDataQuotation?.quotation_remarks
-                                        ? selectedRowDataQuotation?.quotation_remarks
-                                        : null,
-                                    });
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                  }}
-                                  dangerouslySetInnerHTML={{
-                                    __html: selectedRowDataQuotation?.quotation_remarks
-                                      ? selectedRowDataQuotation?.quotation_remarks.replace(/\n/g, "<br>")
-                                      : "",
-                                  }}
-                                ></div>
-                              )}
+                              {!searchMode &&
+                                isEditModeField !== "quotation_remarks" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <div
+                                    className={`${styles.textarea_box} ${styles.md} ${
+                                      selectedRowDataQuotation
+                                        ? `${styles.editable_field}`
+                                        : `${styles.uneditable_field}`
+                                    }`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!selectedRowDataQuotation) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                                      handleCloseTooltip();
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "quotation_remarks",
+                                        dispatch: setInputQuotationRemarks,
+                                        selectedRowDataValue: selectedRowDataQuotation?.quotation_remarks
+                                          ? selectedRowDataQuotation?.quotation_remarks
+                                          : null,
+                                      });
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                    }}
+                                    dangerouslySetInnerHTML={{
+                                      __html: selectedRowDataQuotation?.quotation_remarks
+                                        ? selectedRowDataQuotation?.quotation_remarks.replace(/\n/g, "<br>")
+                                        : "",
+                                    }}
+                                  ></div>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && (
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <>
                                   <textarea
                                     cols={30}
@@ -7033,63 +7112,67 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>セット数</span>
-                              {!searchMode && isEditModeField !== "set_item_count" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!selectedRowDataQuotation?.set_item_count) return;
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "set_item_count",
-                                      dispatch: setInputSetItemCountEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.quotation_division === "set" &&
-                                  selectedRowDataQuotation?.set_item_count
-                                    ? selectedRowDataQuotation?.set_item_count
-                                    : ""}
-                                </span>
-                              )}
+                              {!searchMode &&
+                                isEditModeField !== "set_item_count" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!selectedRowDataQuotation?.set_item_count) return;
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "set_item_count",
+                                        dispatch: setInputSetItemCountEdit,
+                                      });
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.quotation_division === "set" &&
+                                    selectedRowDataQuotation?.set_item_count
+                                      ? selectedRowDataQuotation?.set_item_count
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && inputQuotationDivisionEdit === "set" && (
-                                <>
-                                  <input
-                                    type="number"
-                                    min="1"
-                                    className={`${styles.input_box} ${styles.upsert}`}
-                                    // onCompositionStart={() => setIsComposing(true)}
-                                    // onCompositionEnd={() => setIsComposing(false)}
-                                    value={inputSetItemCountEdit ? inputSetItemCountEdit : ""}
-                                    // onChange={(e) => setInputSetItemCountEdit(e.target.value)}
-                                    onChange={(e) => {
-                                      const val = e.target.value;
-                                      if (val === "" || val === "0" || val === "０") {
-                                        setInputSetItemCountEdit(null);
-                                      } else {
-                                        const numValue = Number(val);
-
-                                        // 入力値がマイナスかチェック
-                                        if (numValue < 1) {
-                                          setInputSetItemCountEdit(1); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                              {!searchMode &&
+                                (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                inputQuotationDivisionEdit === "set" && (
+                                  <>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      className={`${styles.input_box} ${styles.upsert}`}
+                                      // onCompositionStart={() => setIsComposing(true)}
+                                      // onCompositionEnd={() => setIsComposing(false)}
+                                      value={inputSetItemCountEdit ? inputSetItemCountEdit : ""}
+                                      // onChange={(e) => setInputSetItemCountEdit(e.target.value)}
+                                      onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val === "" || val === "0" || val === "０") {
+                                          setInputSetItemCountEdit(null);
                                         } else {
-                                          setInputSetItemCountEdit(numValue);
+                                          const numValue = Number(val);
+
+                                          // 入力値がマイナスかチェック
+                                          if (numValue < 1) {
+                                            setInputSetItemCountEdit(1); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                                          } else {
+                                            setInputSetItemCountEdit(numValue);
+                                          }
                                         }
-                                      }
-                                    }}
-                                  />
-                                  {/* <input
+                                      }}
+                                    />
+                                    {/* <input
                                   type="text"
                                   // placeholder="例：600万円 → 6000000　※半角で入力"
                                   className={`${styles.input_box} ${styles.upsert}`}
@@ -7118,8 +7201,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     setInputSetItemCountEdit(converted);
                                   }}
                                 /> */}
-                                </>
-                              )}
+                                  </>
+                                )}
                               {/* ----------------- upsert ----------------- */}
 
                               {/* ============= フィールドエディットモード関連 ============= */}
@@ -7298,89 +7381,95 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.title}`}>期間(年)</span>
-                              {!searchMode && isEditModeField !== "lease_period" && !isInsertModeQuotation && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!selectedRowDataQuotation?.lease_period) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.lease_period))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.lease_period));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "lease_period",
-                                      dispatch: setInputLeasePeriodEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.lease_period ? selectedRowDataQuotation?.lease_period : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.quotation_division === "lease" &&
-                                  selectedRowDataQuotation?.lease_period
-                                    ? selectedRowDataQuotation?.lease_period
-                                    : ""}
-                                </span>
-                              )}
+                              {!searchMode &&
+                                isEditModeField !== "lease_period" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!selectedRowDataQuotation?.lease_period) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.lease_period))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.lease_period));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "lease_period",
+                                        dispatch: setInputLeasePeriodEdit,
+                                      });
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.lease_period
+                                        ? selectedRowDataQuotation?.lease_period
+                                        : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.quotation_division === "lease" &&
+                                    selectedRowDataQuotation?.lease_period
+                                      ? selectedRowDataQuotation?.lease_period
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && inputQuotationDivisionEdit === "lease" && (
-                                <>
-                                  <input
-                                    type="number"
-                                    min="1"
-                                    className={`${styles.input_box} ${styles.upsert}`}
-                                    // onCompositionStart={() => setIsComposing(true)}
-                                    // onCompositionEnd={() => setIsComposing(false)}
-                                    value={inputLeasePeriodEdit ? inputLeasePeriodEdit : ""}
-                                    onChange={(e) => {
-                                      if (!isValidNumber(inputTotalAmountEdit))
-                                        return alert("先に商品を追加して合計金額を算出してください。");
-                                      // if (e.target.value === "0" || e.target.value === "０") {
-                                      //   if (inputLeasePeriodEdit === "0" || inputLeasePeriodEdit === "０")
-                                      //     setInputLeasePeriodEdit("");
-                                      //   return;
-                                      // }
-                                      // setInputLeasePeriodEdit(e.target.value);
+                              {!searchMode &&
+                                (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                inputQuotationDivisionEdit === "lease" && (
+                                  <>
+                                    <input
+                                      type="number"
+                                      min="1"
+                                      className={`${styles.input_box} ${styles.upsert}`}
+                                      // onCompositionStart={() => setIsComposing(true)}
+                                      // onCompositionEnd={() => setIsComposing(false)}
+                                      value={inputLeasePeriodEdit ? inputLeasePeriodEdit : ""}
+                                      onChange={(e) => {
+                                        if (!isValidNumber(inputTotalAmountEdit))
+                                          return alert("先に商品を追加して合計金額を算出してください。");
+                                        // if (e.target.value === "0" || e.target.value === "０") {
+                                        //   if (inputLeasePeriodEdit === "0" || inputLeasePeriodEdit === "０")
+                                        //     setInputLeasePeriodEdit("");
+                                        //   return;
+                                        // }
+                                        // setInputLeasePeriodEdit(e.target.value);
 
-                                      const val = e.target.value;
-                                      if (val === "" || val === "0" || val === "０") {
-                                        setInputLeasePeriodEdit(null);
-                                      } else {
-                                        const numValue = Number(val);
-
-                                        // 入力値がマイナスかチェック
-                                        if (numValue < 1) {
-                                          setInputLeasePeriodEdit(1); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                                        const val = e.target.value;
+                                        if (val === "" || val === "0" || val === "０") {
+                                          setInputLeasePeriodEdit(null);
                                         } else {
-                                          setInputLeasePeriodEdit(numValue);
+                                          const numValue = Number(val);
+
+                                          // 入力値がマイナスかチェック
+                                          if (numValue < 1) {
+                                            setInputLeasePeriodEdit(1); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                                          } else {
+                                            setInputLeasePeriodEdit(numValue);
+                                          }
                                         }
-                                      }
-                                    }}
-                                    // onBlur={(e) => {
-                                    //   if (
-                                    //     !inputLeasePeriodEdit ||
-                                    //     inputLeasePeriodEdit === "" ||
-                                    //     inputLeasePeriodEdit === "0" ||
-                                    //     e.target.value === "０"
-                                    //   )
-                                    //     return setInputLeasePeriodEdit("");
-                                    //   const converted = convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.trim());
-                                    //   if (converted === null) return setInputLeasePeriodEdit("");
-                                    //   setInputLeasePeriodEdit(converted);
-                                    // }}
-                                  />
-                                </>
-                              )}
+                                      }}
+                                      // onBlur={(e) => {
+                                      //   if (
+                                      //     !inputLeasePeriodEdit ||
+                                      //     inputLeasePeriodEdit === "" ||
+                                      //     inputLeasePeriodEdit === "0" ||
+                                      //     e.target.value === "０"
+                                      //   )
+                                      //     return setInputLeasePeriodEdit("");
+                                      //   const converted = convertHalfWidthRoundNumOnly(inputLeasePeriodEdit.trim());
+                                      //   if (converted === null) return setInputLeasePeriodEdit("");
+                                      //   setInputLeasePeriodEdit(converted);
+                                      // }}
+                                    />
+                                  </>
+                                )}
                               {/* ----------------- upsert ----------------- */}
 
                               {/* ============= フィールドエディットモード関連 ============= */}
@@ -7544,52 +7633,56 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title}`}>セット単位</span>
-                              {!searchMode && isEditModeField !== "set_unit_name" && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  data-text={
+                              {!searchMode &&
+                                isEditModeField !== "set_unit_name" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    data-text={
+                                      selectedRowDataQuotation?.set_unit_name
+                                        ? selectedRowDataQuotation?.set_unit_name
+                                        : ""
+                                    }
+                                    onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
+                                    onMouseLeave={handleCloseTooltip}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      // if (!selectedRowDataQuotation?.activity_type) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
+                                      // }
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "set_unit_name",
+                                        dispatch: setInputSetUnitNameEdit,
+                                        selectedRowDataValue: selectedRowDataQuotation?.set_unit_name ?? "",
+                                      });
+                                      handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.quotation_division === "set" &&
                                     selectedRowDataQuotation?.set_unit_name
                                       ? selectedRowDataQuotation?.set_unit_name
-                                      : ""
-                                  }
-                                  onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
-                                  onMouseLeave={handleCloseTooltip}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    // if (!selectedRowDataQuotation?.activity_type) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.activity_type)) {
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.activity_type));
-                                    // }
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "set_unit_name",
-                                      dispatch: setInputSetUnitNameEdit,
-                                      selectedRowDataValue: selectedRowDataQuotation?.set_unit_name ?? "",
-                                    });
-                                    handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.quotation_division === "set" &&
-                                  selectedRowDataQuotation?.set_unit_name
-                                    ? selectedRowDataQuotation?.set_unit_name
-                                    : ""}
-                                </span>
-                              )}
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && inputQuotationDivisionEdit === "set" && (
-                                <>
-                                  <input
-                                    type="text"
-                                    // placeholder=""
-                                    // autoFocus
-                                    className={`${styles.input_box} ${styles.upsert}`}
-                                    value={inputSetUnitNameEdit}
-                                    onChange={(e) => setInputSetUnitNameEdit(e.target.value)}
-                                    onBlur={(e) => setInputSetUnitNameEdit(inputSetUnitNameEdit.trim())}
-                                  />
-                                </>
-                              )}
+                              {!searchMode &&
+                                (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                inputQuotationDivisionEdit === "set" && (
+                                  <>
+                                    <input
+                                      type="text"
+                                      // placeholder=""
+                                      // autoFocus
+                                      className={`${styles.input_box} ${styles.upsert}`}
+                                      value={inputSetUnitNameEdit}
+                                      onChange={(e) => setInputSetUnitNameEdit(e.target.value)}
+                                      onBlur={(e) => setInputSetUnitNameEdit(inputSetUnitNameEdit.trim())}
+                                    />
+                                  </>
+                                )}
                               {/* ----------------- upsert ----------------- */}
 
                               {/* ============= フィールドエディットモード関連 ============= */}
@@ -7662,97 +7755,104 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.title} text-[12px]`}>料率(%)</span>
-                              {!searchMode && isEditModeField !== "lease_rate" && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!selectedRowDataQuotation?.lease_rate) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.lease_rate))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.lease_rate));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "lease_rate",
-                                      dispatch: setInputLeaseRateEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.lease_rate ? selectedRowDataQuotation?.lease_rate : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    // if (!isDesktopGTE1600) handleOpenTooltip(e);
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {selectedRowDataQuotation?.quotation_division === "lease" &&
-                                  checkNotFalsyExcludeZero(selectedRowDataQuotation?.lease_rate)
-                                    ? normalizeDiscountRate(selectedRowDataQuotation.lease_rate!.toString(), true)
-                                    : ""}
-                                </span>
-                              )}
+                              {!searchMode &&
+                                isEditModeField !== "lease_rate" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!selectedRowDataQuotation?.lease_rate) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.lease_rate))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.lease_rate));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "lease_rate",
+                                        dispatch: setInputLeaseRateEdit,
+                                      });
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.lease_rate ? selectedRowDataQuotation?.lease_rate : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {selectedRowDataQuotation?.quotation_division === "lease" &&
+                                    checkNotFalsyExcludeZero(selectedRowDataQuotation?.lease_rate)
+                                      ? normalizeDiscountRate(selectedRowDataQuotation.lease_rate!.toString(), true)
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && inputQuotationDivisionEdit === "lease" && (
-                                <>
-                                  <input
-                                    type="text"
-                                    placeholder="1.8%→1.8　※半角で入力"
-                                    className={`${styles.input_box} ${styles.upsert}`}
-                                    onCompositionStart={() => setIsComposing(true)}
-                                    onCompositionEnd={() => setIsComposing(false)}
-                                    value={inputLeaseRateEdit ? inputLeaseRateEdit : ""}
-                                    // onChange={(e) => setInputLeaseRateEdit(e.target.value)}
-                                    onChange={(e) => {
-                                      if (!isValidNumber(inputTotalAmountEdit))
-                                        return alert("先に商品を追加して合計金額を算出してください。");
-                                      if (e.target.value === "0" || e.target.value === "０") {
-                                        if (inputLeaseRateEdit) setInputLeaseRateEdit("");
-                                        return;
-                                      }
-                                      setInputLeaseRateEdit(e.target.value);
-                                    }}
-                                    onBlur={(e) => {
-                                      if (
-                                        !inputLeaseRateEdit ||
-                                        inputLeaseRateEdit === "" ||
-                                        inputLeaseRateEdit === "0" ||
-                                        inputLeaseRateEdit === "０"
-                                      )
-                                        return setInputLeaseRateEdit("");
-                                      // 小数点第二まで算出
-                                      const convertedRate = convertHalfWidthRoundNumOnly(inputLeaseRateEdit.trim(), 2);
-                                      if (convertedRate === null) return setInputLeaseRateEdit("");
-                                      setInputLeaseRateEdit(convertedRate);
+                              {!searchMode &&
+                                (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                inputQuotationDivisionEdit === "lease" && (
+                                  <>
+                                    <input
+                                      type="text"
+                                      placeholder="1.8%→1.8　※半角で入力"
+                                      className={`${styles.input_box} ${styles.upsert}`}
+                                      onCompositionStart={() => setIsComposing(true)}
+                                      onCompositionEnd={() => setIsComposing(false)}
+                                      value={inputLeaseRateEdit ? inputLeaseRateEdit : ""}
+                                      // onChange={(e) => setInputLeaseRateEdit(e.target.value)}
+                                      onChange={(e) => {
+                                        if (!isValidNumber(inputTotalAmountEdit))
+                                          return alert("先に商品を追加して合計金額を算出してください。");
+                                        if (e.target.value === "0" || e.target.value === "０") {
+                                          if (inputLeaseRateEdit) setInputLeaseRateEdit("");
+                                          return;
+                                        }
+                                        setInputLeaseRateEdit(e.target.value);
+                                      }}
+                                      onBlur={(e) => {
+                                        if (
+                                          !inputLeaseRateEdit ||
+                                          inputLeaseRateEdit === "" ||
+                                          inputLeaseRateEdit === "0" ||
+                                          inputLeaseRateEdit === "０"
+                                        )
+                                          return setInputLeaseRateEdit("");
+                                        // 小数点第二まで算出
+                                        const convertedRate = convertHalfWidthRoundNumOnly(
+                                          inputLeaseRateEdit.trim(),
+                                          2
+                                        );
+                                        if (convertedRate === null) return setInputLeaseRateEdit("");
+                                        setInputLeaseRateEdit(convertedRate);
 
-                                      // 🔹リース料の算出
-                                      // 数字と小数点以外は全て除去
-                                      const replacedAmount = inputTotalAmountEdit.replace(/[^\d.]/g, "");
-                                      if (!isValidNumber(inputTotalAmountEdit)) return;
-                                      // 月額リース料
-                                      const result = calculateLeaseMonthlyFee(replacedAmount, convertedRate, 0);
-                                      console.log(
-                                        "result.monthlyFee",
-                                        result.monthlyFee,
-                                        "replacedAmount",
-                                        replacedAmount,
-                                        "convertedRate",
-                                        convertedRate
-                                      );
-                                      if (result.error || !result.monthlyFee) {
-                                        console.error(result.error);
-                                        toast.error(result.error);
-                                        return;
-                                      }
-                                      setInputLeaseMonthlyFeeEdit(result.monthlyFee);
-                                    }}
-                                  />
-                                </>
-                              )}
+                                        // 🔹リース料の算出
+                                        // 数字と小数点以外は全て除去
+                                        const replacedAmount = inputTotalAmountEdit.replace(/[^\d.]/g, "");
+                                        if (!isValidNumber(inputTotalAmountEdit)) return;
+                                        // 月額リース料
+                                        const result = calculateLeaseMonthlyFee(replacedAmount, convertedRate, 0);
+                                        console.log(
+                                          "result.monthlyFee",
+                                          result.monthlyFee,
+                                          "replacedAmount",
+                                          replacedAmount,
+                                          "convertedRate",
+                                          convertedRate
+                                        );
+                                        if (result.error || !result.monthlyFee) {
+                                          console.error(result.error);
+                                          toast.error(result.error);
+                                          return;
+                                        }
+                                        setInputLeaseMonthlyFeeEdit(result.monthlyFee);
+                                      }}
+                                    />
+                                  </>
+                                )}
                               {/* ----------------- upsert ----------------- */}
 
                               {/* ============= フィールドエディットモード関連 ============= */}
@@ -7876,85 +7976,89 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <span className={`${styles.title} text-[12px]`}>セット価格</span>
-                              {!searchMode && isEditModeField !== "set_price" && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    if (!checkNotFalsyExcludeZero(selectedRowDataQuotation?.set_price)) return;
-                                    // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.set_price))
-                                    //   return alert(returnMessageNotActivity(selectedRowDataQuotation.set_price));
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "set_price",
-                                      dispatch: setInputSetPriceEdit,
-                                    });
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                  data-text={`${
-                                    selectedRowDataQuotation?.set_price ? selectedRowDataQuotation?.set_price : ""
-                                  }`}
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {checkNotFalsyExcludeZero(selectedRowDataQuotation?.set_price)
-                                    ? Number(selectedRowDataQuotation?.set_price).toLocaleString() + "円"
-                                    : ""}
-                                </span>
-                              )}
-
-                              {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && inputQuotationDivisionEdit === "set" && (
-                                <>
-                                  <input
-                                    type="text"
-                                    // placeholder="例：600万円 → 6000000　※半角で入力"
-                                    className={`${styles.input_box} ${styles.upsert} truncate`}
-                                    // onCompositionStart={() => setIsComposing(true)}
-                                    // onCompositionEnd={() => setIsComposing(false)}
-                                    value={checkNotFalsyExcludeZero(inputSetPriceEdit) ? inputSetPriceEdit : ""}
-                                    onChange={(e) => setInputSetPriceEdit(e.target.value)}
-                                    onFocus={() => {
-                                      setInputSetPriceEdit(inputSetPriceEdit.replace(/[^\d.]/g, ""));
-                                    }}
-                                    onBlur={() => {
-                                      // 日本語の場合は円に変換、それ以外は小数点第二位までの数字と小数点か空文字に変換し、空文字の場合はNumberで0に変換
-                                      const convertedPrice =
-                                        language === "ja"
-                                          ? convertToYen(inputSetPriceEdit.trim())
-                                          : Number(convertHalfWidthRoundNumOnly(inputSetPriceEdit.trim(), 2));
-                                      // 数値を日本語はIntl.NumberFormatで￥と区切り文字をつけ、0以外のfalsyは空文字を格納
-                                      const newPrice = checkNotFalsyExcludeZero(convertedPrice)
-                                        ? formatDisplayPrice(convertedPrice as number)
-                                        : "";
-                                      setInputSetPriceEdit(newPrice);
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      const el = e.currentTarget;
-                                      // スクロールwidthがoffsetWidthを超えていればツールチップを表示
-                                      if (el.scrollWidth > el.offsetWidth) {
-                                        handleOpenTooltip({
-                                          e: e,
-                                          display: "top",
-                                          content: inputSetPriceEdit,
-                                          marginTop: 28,
-                                          itemsPosition: "center",
-                                        });
-                                      }
-                                    }}
-                                    onMouseLeave={() => {
+                              {!searchMode &&
+                                isEditModeField !== "set_price" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      if (!checkNotFalsyExcludeZero(selectedRowDataQuotation?.set_price)) return;
+                                      // if (isNotActivityTypeArray.includes(selectedRowDataQuotation.set_price))
+                                      //   return alert(returnMessageNotActivity(selectedRowDataQuotation.set_price));
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "set_price",
+                                        dispatch: setInputSetPriceEdit,
+                                      });
                                       if (hoveredItemPosWrap) handleCloseTooltip();
                                     }}
-                                  />
-                                </>
-                              )}
+                                    data-text={`${
+                                      selectedRowDataQuotation?.set_price ? selectedRowDataQuotation?.set_price : ""
+                                    }`}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {checkNotFalsyExcludeZero(selectedRowDataQuotation?.set_price)
+                                      ? Number(selectedRowDataQuotation?.set_price).toLocaleString() + "円"
+                                      : ""}
+                                  </span>
+                                )}
+
+                              {/* ----------------- upsert ----------------- */}
+                              {!searchMode &&
+                                (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                inputQuotationDivisionEdit === "set" && (
+                                  <>
+                                    <input
+                                      type="text"
+                                      // placeholder="例：600万円 → 6000000　※半角で入力"
+                                      className={`${styles.input_box} ${styles.upsert} truncate`}
+                                      // onCompositionStart={() => setIsComposing(true)}
+                                      // onCompositionEnd={() => setIsComposing(false)}
+                                      value={checkNotFalsyExcludeZero(inputSetPriceEdit) ? inputSetPriceEdit : ""}
+                                      onChange={(e) => setInputSetPriceEdit(e.target.value)}
+                                      onFocus={() => {
+                                        setInputSetPriceEdit(inputSetPriceEdit.replace(/[^\d.]/g, ""));
+                                      }}
+                                      onBlur={() => {
+                                        // 日本語の場合は円に変換、それ以外は小数点第二位までの数字と小数点か空文字に変換し、空文字の場合はNumberで0に変換
+                                        const convertedPrice =
+                                          language === "ja"
+                                            ? convertToYen(inputSetPriceEdit.trim())
+                                            : Number(convertHalfWidthRoundNumOnly(inputSetPriceEdit.trim(), 2));
+                                        // 数値を日本語はIntl.NumberFormatで￥と区切り文字をつけ、0以外のfalsyは空文字を格納
+                                        const newPrice = checkNotFalsyExcludeZero(convertedPrice)
+                                          ? formatDisplayPrice(convertedPrice as number)
+                                          : "";
+                                        setInputSetPriceEdit(newPrice);
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        const el = e.currentTarget;
+                                        // スクロールwidthがoffsetWidthを超えていればツールチップを表示
+                                        if (el.scrollWidth > el.offsetWidth) {
+                                          handleOpenTooltip({
+                                            e: e,
+                                            display: "top",
+                                            content: inputSetPriceEdit,
+                                            marginTop: 28,
+                                            itemsPosition: "center",
+                                          });
+                                        }
+                                      }}
+                                      onMouseLeave={() => {
+                                        if (hoveredItemPosWrap) handleCloseTooltip();
+                                      }}
+                                    />
+                                  </>
+                                )}
                               {/* ----------------- upsert ----------------- */}
 
                               {/* ============= フィールドエディットモード関連 ============= */}
@@ -8049,37 +8153,41 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center`}>
                               <span className={`${styles.title} text-[12px]`}>月額ﾘｰｽ料</span>
-                              {!searchMode && isEditModeField !== "lease_monthly_fee" && (
-                                <span
-                                  className={`${styles.value} ${styles.editable_field}`}
-                                  data-text={
-                                    selectedRowDataQuotation?.lease_monthly_fee
-                                      ? selectedRowDataQuotation?.lease_monthly_fee
-                                      : ""
-                                  }
-                                  onMouseEnter={(e) => {
-                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                                    const el = e.currentTarget;
-                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
-                                  }}
-                                  onMouseLeave={(e) => {
-                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                                    if (hoveredItemPosWrap) handleCloseTooltip();
-                                  }}
-                                >
-                                  {checkNotFalsyExcludeZero(selectedRowDataQuotation?.lease_monthly_fee)
-                                    ? Number(selectedRowDataQuotation?.lease_monthly_fee).toLocaleString() + "円"
-                                    : ""}
-                                </span>
-                              )}
+                              {!searchMode &&
+                                isEditModeField !== "lease_monthly_fee" &&
+                                !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                  <span
+                                    className={`${styles.value} ${styles.editable_field}`}
+                                    data-text={
+                                      selectedRowDataQuotation?.lease_monthly_fee
+                                        ? selectedRowDataQuotation?.lease_monthly_fee
+                                        : ""
+                                    }
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                      const el = e.currentTarget;
+                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                      if (hoveredItemPosWrap) handleCloseTooltip();
+                                    }}
+                                  >
+                                    {checkNotFalsyExcludeZero(selectedRowDataQuotation?.lease_monthly_fee)
+                                      ? Number(selectedRowDataQuotation?.lease_monthly_fee).toLocaleString() + "円"
+                                      : ""}
+                                  </span>
+                                )}
 
                               {/* ----------------- upsert ----------------- */}
-                              {!searchMode && isInsertModeQuotation && inputQuotationDivisionEdit === "lease" && (
-                                <span className={`${styles.value}`}>
-                                  {/* {inputLeaseMonthlyFeeEdit ? inputLeaseMonthlyFeeEdit.toLocaleString() : ""} */}
-                                  {inputLeaseMonthlyFeeEdit ? formatDisplayPrice(inputLeaseMonthlyFeeEdit) : ""}
-                                </span>
-                              )}
+                              {!searchMode &&
+                                (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                inputQuotationDivisionEdit === "lease" && (
+                                  <span className={`${styles.value}`}>
+                                    {/* {inputLeaseMonthlyFeeEdit ? inputLeaseMonthlyFeeEdit.toLocaleString() : ""} */}
+                                    {inputLeaseMonthlyFeeEdit ? formatDisplayPrice(inputLeaseMonthlyFeeEdit) : ""}
+                                  </span>
+                                )}
                               {/* ----------------- upsert ----------------- */}
                             </div>
                             <div className={`${styles.underline}`}></div>
@@ -8139,7 +8247,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <div
                           className={`${styles.section_title} mr-[20px] flex !min-w-max items-center space-x-[6px]`}
                           onMouseEnter={(e) => {
-                            if (!isInsertModeQuotation) return;
+                            if (!(isInsertModeQuotation || isUpdateModeQuotation)) return;
                             if (
                               infoIconQuotationProductList.current &&
                               infoIconQuotationProductList.current.classList.contains(styles.animate_ping)
@@ -8162,7 +8270,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         >
                           <span>見積商品リスト</span>
 
-                          {isInsertModeQuotation && (
+                          {(isInsertModeQuotation || isUpdateModeQuotation) && (
                             <div className="flex-center relative h-[15px] w-[15px] rounded-full">
                               <div
                                 ref={infoIconQuotationProductList}
@@ -8172,7 +8280,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             </div>
                           )}
                         </div>
-                        {isInsertModeQuotation && (
+                        {(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <div className="flex w-full items-center space-x-[10px]">
                             <RippleButton
                               title={`追加`}
@@ -8207,9 +8315,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   clickEventHandler={() => {
                                     if (isEditingCell) return;
                                     const newArray = selectedProductsArray.filter(
-                                      (obj) =>
-                                        obj.quotation_product_id !==
-                                        selectedRowDataQuotationProduct.quotation_product_id
+                                      (obj) => obj.product_id !== selectedRowDataQuotationProduct.product_id
                                     );
                                     // 削除後のpriorityを現在の順番に変更する
                                     const sortedNewArray = newArray.map((obj, index) => {
@@ -8285,7 +8391,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   <div className={`mt-[15px]`}>
                     <ProductListTable
                       productsArray={
-                        isInsertModeQuotation
+                        isInsertModeQuotation || isUpdateModeQuotation
                           ? selectedProductsArray
                           : selectedRowDataQuotation && selectedRowDataQuotation.quotation_products_details?.length > 0
                           ? selectedRowDataQuotation.quotation_products_details
@@ -8293,6 +8399,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       }
                       setSelectedProductsArray={setSelectedProductsArray}
                       isInsertMode={isInsertModeQuotation}
+                      isUpdateMode={isUpdateModeQuotation}
                     />
                   </div>
                   {/* 商品エリアここまで */}
@@ -8319,7 +8426,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <div className="flex h-full w-1/2 flex-col pr-[10px]">
                           {useQuotationNoCustom && (
                             <div className={`${styles.title_box} flex h-full items-center `}>
-                              <span className={`${styles.title_search_mode}`}>ｶｽﾀﾑ見積No</span>
+                              <span className={`${styles.title_search_mode} ${styles.title}`}>見積No</span>
                               <input
                                 type="text"
                                 placeholder="見積Noを入力"
@@ -8332,7 +8439,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           )}
                           {!useQuotationNoCustom && (
                             <div className={`${styles.title_box} flex h-full items-center `}>
-                              <span className={`${styles.title_search_mode}`}>ｵｰﾄ見積No</span>
+                              <span className={`${styles.title_search_mode}`}>見積No</span>
                               <input
                                 type="text"
                                 placeholder="見積Noを入力"
