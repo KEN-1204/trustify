@@ -1593,9 +1593,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       } else {
         console.log("日付チェック 新たな日付のためこのまま更新 newValue", newValue);
         // フィールドがactivity_date（活動日）の場合は活動年月度も同時に更新
-        if (fieldName === "quotation_date" || fieldName === "expiration_date") {
+        if (fieldName === "quotation_date") {
           if (!closingDayRef.current)
-            return toast.error("決算日データが確認できないため、活動を更新できませんでした...🙇‍♀️");
+            return toast.error("決算日データが確認できないため、データを更新できませんでした...🙇‍♀️");
           // if (!(newValue instanceof Date)) return toast.error("エラー：無効な日付です。");
           type ExcludeKeys = "company_id" | "contact_id" | "quotation_id"; // 除外するキー idはUPDATEすることは無いため
           type QuotationFieldNamesForSelectedRowData = Exclude<keyof Quotation_row_data, ExcludeKeys>;
@@ -1604,7 +1604,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
             fieldNameForSelectedRowData: QuotationFieldNamesForSelectedRowData;
             newValue: any;
             id: string;
-            meetingYearMonth?: number | null;
+            quotationYearMonth?: number | null;
           };
 
           const fiscalYearMonth = calculateDateToYearMonth(new Date(newValue), closingDayRef.current);
@@ -1612,30 +1612,16 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
           if (!fiscalYearMonth) return toast.error("日付の更新に失敗しました。");
 
-          // 面談予定日付のみ存在している場合
-          if (selectedRowDataQuotation.quotation_date && !selectedRowDataQuotation.expiration_date) {
-            const updatePayload: UpdateObject = {
-              fieldName: fieldName,
-              fieldNameForSelectedRowData: fieldNameForSelectedRowData,
-              newValue: !!newValue ? newValue : null,
-              id: id,
-            };
-
-            // 入力変換確定状態でエンターキーが押された場合の処理
-            console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
-            await updateQuotationFieldMutation.mutateAsync(updatePayload);
-          } else if (selectedRowDataQuotation.quotation_date && selectedRowDataQuotation.expiration_date) {
-            const updatePayload: UpdateObject = {
-              fieldName: fieldName,
-              fieldNameForSelectedRowData: fieldNameForSelectedRowData,
-              newValue: !!newValue ? newValue : null,
-              id: id,
-              meetingYearMonth: fiscalYearMonth,
-            };
-            // 入力変換確定状態でエンターキーが押された場合の処理
-            console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
-            await updateQuotationFieldMutation.mutateAsync(updatePayload);
-          }
+          const updatePayload: UpdateObject = {
+            fieldName: fieldName,
+            fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+            newValue: !!newValue ? newValue : null,
+            id: id,
+            quotationYearMonth: fiscalYearMonth,
+          };
+          // 入力変換確定状態でエンターキーが押された場合の処理
+          console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
+          await updateQuotationFieldMutation.mutateAsync(updatePayload);
           originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
           setIsEditModeField(null); // エディットモードを終了
           return;
@@ -2075,8 +2061,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           supervisor1_user_id: memberObjSupervisor1.memberId || null,
           supervisor2_stamp_id: memberObjSupervisor2.signature_stamp_id || null,
           supervisor2_user_id: memberObjSupervisor2.memberId || null,
-          quotation_no_custom: inputQuotationNoCustom || null,
-          quotation_no_system: inputQuotationNoSystem || null,
+          quotation_no_custom: useQuotationNoCustom ? inputQuotationNoCustom ?? null : null,
+          quotation_no_system: useQuotationNoCustom ? null : inputQuotationNoSystem ?? null,
           quotation_member_name: memberObj.memberName,
           quotation_business_office: officeName ?? null,
           quotation_department: departmentName ?? null,
@@ -2189,8 +2175,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           supervisor1_user_id: memberObjSupervisor1.memberId || null,
           supervisor2_stamp_id: memberObjSupervisor2.signature_stamp_id || null,
           supervisor2_user_id: memberObjSupervisor2.memberId || null,
-          quotation_no_custom: inputQuotationNoCustom ?? null,
-          quotation_no_system: inputQuotationNoSystem ?? null,
+          quotation_no_custom: useQuotationNoCustom ? inputQuotationNoCustom ?? null : null,
+          quotation_no_system: useQuotationNoCustom ? null : inputQuotationNoSystem ?? null,
           quotation_member_name: memberObj.memberName,
           quotation_business_office: officeName ?? null,
           quotation_department: departmentName ?? null,
@@ -3307,7 +3293,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 isEditModeField !== "quotation_no_custom" &&
                                 !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                   <span
-                                    className={`${styles.value} ${styles.value_highlight} ${styles.editable_field}`}
+                                    className={`${styles.value} ${styles.value_highlight} ${
+                                      selectedRowDataQuotation?.quotation_no_custom ? styles.editable_field : ``
+                                    } ${selectedRowDataQuotation?.quotation_no_system ? styles.uneditable_field : ``}`}
                                     data-text={
                                       selectedRowDataQuotation?.quotation_no_system
                                         ? selectedRowDataQuotation?.quotation_no_system
@@ -3324,24 +3312,19 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                                       if (hoveredItemPosWrap) handleCloseTooltip();
                                     }}
-                                    onClick={handleSingleClickField}
+                                    onClick={(e) => {
+                                      if (!selectedRowDataQuotation?.quotation_no_custom) return;
+                                      handleSingleClickField(e);
+                                    }}
                                     onDoubleClick={(e) => {
-                                      if (
-                                        !selectedRowDataQuotation?.quotation_no_system &&
-                                        !selectedRowDataQuotation?.quotation_no_custom
-                                      ) {
-                                        return;
-                                      }
+                                      // 編集はカスタム見積Noのみ
+                                      if (!selectedRowDataQuotation?.quotation_no_custom) return;
                                       handleDoubleClickField({
                                         e,
                                         // field: "quotation_no_system",
-                                        field: selectedRowDataQuotation?.quotation_no_system
-                                          ? "quotation_no_system"
-                                          : selectedRowDataQuotation?.quotation_no_custom
-                                          ? "quotation_no_custom"
-                                          : "",
+                                        field: "quotation_no_custom",
                                         dispatch: setInputQuotationNoSystem,
-                                        selectedRowDataValue: selectedRowDataQuotation?.quotation_no_system ?? "",
+                                        selectedRowDataValue: selectedRowDataQuotation?.quotation_no_custom ?? "",
                                       });
                                       handleCloseTooltip();
                                     }}
@@ -3408,63 +3391,68 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                               {/* ============= フィールドエディットモード関連 ============= */}
                               {/* フィールドエディットモード selectタグ  */}
-                              {!searchMode &&
-                                (isEditModeField === "quotation_no_system" ||
-                                  isEditModeField === "quotation_no_custom") && (
-                                  <>
-                                    <input
-                                      type="text"
-                                      placeholder=""
-                                      autoFocus
-                                      className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
-                                      value={inputQuotationNoSystem}
-                                      onChange={(e) => setInputQuotationNoSystem(e.target.value)}
-                                      onCompositionStart={() => setIsComposing(true)}
-                                      onCompositionEnd={() => setIsComposing(false)}
-                                      onKeyDown={(e) => {
-                                        handleKeyDownUpdateField({
+                              {!searchMode && isEditModeField === "quotation_no_custom" && (
+                                <>
+                                  <input
+                                    type="text"
+                                    placeholder=""
+                                    autoFocus
+                                    className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                                    value={inputQuotationNoCustom}
+                                    onChange={(e) => {
+                                      if (isEditModeField === "quotation_no_custom")
+                                        setInputQuotationNoCustom(e.target.value);
+                                      // if (isEditModeField === "quotation_no_system")
+                                      //   setInputQuotationNoSystem(e.target.value);
+                                    }}
+                                    onCompositionStart={() => setIsComposing(true)}
+                                    onCompositionEnd={() => setIsComposing(false)}
+                                    onKeyDown={(e) => {
+                                      handleKeyDownUpdateField({
+                                        e,
+                                        // fieldName: "quotation_no_system",
+                                        // fieldNameForSelectedRowData: "quotation_no_system",
+                                        fieldName: isEditModeField,
+                                        fieldNameForSelectedRowData: isEditModeField,
+                                        originalValue: originalValueFieldEdit.current,
+                                        newValue: inputQuotationNoCustom.trim(),
+                                        id: selectedRowDataQuotation?.quotation_id,
+                                        required: false,
+                                      });
+                                    }}
+                                  />
+                                  {/* 送信ボタンとクローズボタン */}
+                                  {!updateQuotationFieldMutation.isLoading && (
+                                    <InputSendAndCloseBtn
+                                      inputState={inputQuotationNoSystem}
+                                      setInputState={setInputQuotationNoSystem}
+                                      onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                                        handleClickSendUpdateField({
                                           e,
                                           // fieldName: "quotation_no_system",
                                           // fieldNameForSelectedRowData: "quotation_no_system",
                                           fieldName: isEditModeField,
                                           fieldNameForSelectedRowData: isEditModeField,
                                           originalValue: originalValueFieldEdit.current,
-                                          newValue: inputQuotationNoSystem.trim(),
+                                          newValue: inputQuotationNoCustom.trim(),
                                           id: selectedRowDataQuotation?.quotation_id,
                                           required: true,
                                         });
                                       }}
+                                      required={false}
+                                      isDisplayClose={false}
+                                      iconSize="18"
+                                      btnSize="24"
                                     />
-                                    {/* 送信ボタンとクローズボタン */}
-                                    {!updateQuotationFieldMutation.isLoading && (
-                                      <InputSendAndCloseBtn
-                                        inputState={inputQuotationNoSystem}
-                                        setInputState={setInputQuotationNoSystem}
-                                        onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
-                                          handleClickSendUpdateField({
-                                            e,
-                                            // fieldName: "quotation_no_system",
-                                            // fieldNameForSelectedRowData: "quotation_no_system",
-                                            fieldName: isEditModeField,
-                                            fieldNameForSelectedRowData: isEditModeField,
-                                            originalValue: originalValueFieldEdit.current,
-                                            newValue: inputQuotationNoSystem.trim(),
-                                            id: selectedRowDataQuotation?.quotation_id,
-                                            required: true,
-                                          })
-                                        }
-                                        required={true}
-                                        isDisplayClose={false}
-                                      />
-                                    )}
-                                    {/* エディットフィールド送信中ローディングスピナー */}
-                                    {updateQuotationFieldMutation.isLoading && (
-                                      <div className={`${styles.field_edit_mode_loading_area}`}>
-                                        <SpinnerComet w="22px" h="22px" s="3px" />
-                                      </div>
-                                    )}
-                                  </>
-                                )}
+                                  )}
+                                  {/* エディットフィールド送信中ローディングスピナー */}
+                                  {updateQuotationFieldMutation.isLoading && (
+                                    <div className={`${styles.field_edit_mode_loading_area}`}>
+                                      <SpinnerComet w="22px" h="22px" s="3px" />
+                                    </div>
+                                  )}
+                                </>
+                              )}
                               {/* フィールドエディットモードオーバーレイ */}
                               {!searchMode && isEditModeField === "quotation_no_system" && (
                                 <div
@@ -3603,7 +3591,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <div className={`${styles.section_underline2} `}></div>
                         {/*  */}
 
-                        {/* ●見積日・●納期 */}
+                        {/* ●納期・●見積日 */}
                         <div className={`${styles.row_area} flex w-full items-center`}>
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
@@ -3642,8 +3630,6 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   </span>
                                 )}
 
-                              {/* <CustomSelectInput options={Array(12).fill("新規会社(過去面談無し)")} displayX="center" /> */}
-
                               {/* ----------------- upsert ----------------- */}
                               {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <CustomSelectInput
@@ -3660,7 +3646,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {/* フィールドエディットモード selectタグ  */}
                               {!searchMode && isEditModeField === "deadline" && (
                                 <>
-                                  <select
+                                  {/* <select
                                     className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
                                     value={inputDeadlineEdit}
                                     onChange={(e) => {
@@ -3673,22 +3659,60 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                         id: selectedRowDataQuotation?.quotation_id,
                                       });
                                     }}
-                                    // onChange={(e) => {
-                                    //   setInputActivityType(e.target.value);
-                                    // }}
                                   >
-                                    {/* <option value=""></option> */}
-                                    {/* {optionsMeetingType.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))} */}
-                                  </select>
+                                  </select> */}
+                                  <input
+                                    type="text"
+                                    placeholder=""
+                                    autoFocus
+                                    className={`${styles.input_box} ${styles.field_edit_mode_input_box}`}
+                                    value={inputDeadlineEdit}
+                                    onChange={(e) => {
+                                      setInputDeadlineEdit(e.target.value);
+                                    }}
+                                    onCompositionStart={() => setIsComposing(true)}
+                                    onCompositionEnd={() => setIsComposing(false)}
+                                    onKeyDown={(e) => {
+                                      handleKeyDownUpdateField({
+                                        e,
+                                        // fieldName: "quotation_no_system",
+                                        // fieldNameForSelectedRowData: "quotation_no_system",
+                                        fieldName: isEditModeField,
+                                        fieldNameForSelectedRowData: isEditModeField,
+                                        originalValue: originalValueFieldEdit.current,
+                                        newValue: inputDeadlineEdit.trim(),
+                                        id: selectedRowDataQuotation?.quotation_id,
+                                        required: false,
+                                      });
+                                    }}
+                                  />
+                                  {/* 送信ボタンとクローズボタン */}
+                                  {!updateQuotationFieldMutation.isLoading && (
+                                    <InputSendAndCloseBtn
+                                      inputState={inputDeadlineEdit}
+                                      setInputState={setInputDeadlineEdit}
+                                      onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                                        handleClickSendUpdateField({
+                                          e,
+                                          // fieldName: "quotation_no_system",
+                                          // fieldNameForSelectedRowData: "quotation_no_system",
+                                          fieldName: isEditModeField,
+                                          fieldNameForSelectedRowData: isEditModeField,
+                                          originalValue: originalValueFieldEdit.current,
+                                          newValue: inputDeadlineEdit.trim(),
+                                          id: selectedRowDataQuotation?.quotation_id,
+                                          required: false,
+                                        });
+                                      }}
+                                      required={false}
+                                      isDisplayClose={false}
+                                      iconSize="18"
+                                      btnSize="24"
+                                    />
+                                  )}
                                   {/* エディットフィールド送信中ローディングスピナー */}
                                   {updateQuotationFieldMutation.isLoading && (
-                                    <div
-                                      className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
-                                    >
+                                    <div className={`${styles.field_edit_mode_loading_area}`}>
                                       <SpinnerComet w="22px" h="22px" s="3px" />
                                     </div>
                                   )}

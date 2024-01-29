@@ -323,8 +323,8 @@ export const useMutateQuotation = () => {
       const { fieldName, fieldNameForSelectedRowData, newValue, id, quotationYearMonth } = fieldData;
 
       // 🔹rpcでquotationsとactivitiesテーブルを同時に更新
-      if (["quotation_date", "quotation_date"].includes(fieldName)) {
-        // quotation_dateの場合は面談年月度も同時にquotationsテーブルに更新
+      if (["quotation_date"].includes(fieldName)) {
+        // quotation_dateの場合は見積年月度も同時にquotationsテーブルに更新 同時にactivitiesテーブルも更新
         if (fieldName === "quotation_date" && !!quotationYearMonth) {
           const jsonValue = { value: newValue };
           const updatePayload = {
@@ -340,21 +340,21 @@ export const useMutateQuotation = () => {
 
           if (error) throw error;
         }
-        // 🔹result_summaryとquotation_dateカラムの更新 同時にactivitiesも更新
-        else {
-          const jsonValue = { value: newValue };
-          const updatePayload = {
-            _quotation_id: id,
-            _column_name: fieldName,
-            _json_value: jsonValue,
-          };
+        // // 🔹result_summaryとquotation_dateカラムの更新 同時にactivitiesも更新
+        // else {
+        //   const jsonValue = { value: newValue };
+        //   const updatePayload = {
+        //     _quotation_id: id,
+        //     _column_name: fieldName,
+        //     _json_value: jsonValue,
+        //   };
 
-          console.log("updateQuotationFieldMutation rpc実行 ", "カラム名", fieldName, "updatePayload", updatePayload);
+        //   console.log("updateQuotationFieldMutation rpc実行 ", "カラム名", fieldName, "updatePayload", updatePayload);
 
-          const { error } = await supabase.rpc("update_quotations_field", updatePayload);
+        //   const { error } = await supabase.rpc("update_quotations_field", updatePayload);
 
-          if (error) throw error;
-        }
+        //   if (error) throw error;
+        // }
       }
       // 🔹quotationsテーブルのみ更新
       else {
@@ -414,7 +414,7 @@ export const useMutateQuotation = () => {
         console.error(`Update failed activities field` + err.message);
         toast.error("アップデートに失敗しました...", {
           position: "top-right",
-          autoClose: 1500,
+          autoClose: 3000,
         });
       },
     }

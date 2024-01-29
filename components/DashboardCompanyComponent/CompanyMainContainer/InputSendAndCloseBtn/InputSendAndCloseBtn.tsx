@@ -15,6 +15,8 @@ type Props<T = string> = {
   isOutside?: boolean;
   outsidePosition?: string;
   isLoadingSendEvent?: boolean;
+  iconSize?: string;
+  btnSize?: string;
 };
 // type StringProps = {
 //   inputState: string; // string or (number | null)
@@ -54,6 +56,8 @@ export const InputSendAndCloseBtn = <T extends string | (number | null) = string
   isOutside = false,
   outsidePosition = "under_right",
   isLoadingSendEvent = false,
+  iconSize,
+  btnSize,
 }: Props<T>) => {
   console.log("inputState", inputState);
   return (
@@ -90,6 +94,7 @@ export const InputSendAndCloseBtn = <T extends string | (number | null) = string
                 ? `cursor-not-allowed text-[#999]`
                 : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
             }`}
+            style={{ ...(btnSize && { minHeight: `${btnSize}px`, minWidth: `${btnSize}px` }) }}
             onClick={onClickSendEvent}
           >
             <IoIosSend
@@ -98,6 +103,7 @@ export const InputSendAndCloseBtn = <T extends string | (number | null) = string
                   ? `text-[#999] group-hover:text-[#999]`
                   : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
               } `}
+              style={{ ...(iconSize && { fontSize: `${iconSize}px` }) }}
             />
           </div>
         </>

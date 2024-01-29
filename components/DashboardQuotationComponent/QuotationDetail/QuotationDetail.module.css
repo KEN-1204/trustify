@@ -800,7 +800,8 @@
   align-items: center;
   position: absolute;
   top: calc(50% - 2.5px);
-  right: 10px;
+  /* right: 10px; */
+  right: 7px;
   transform: translateY(-50%);
   z-index: 2100;
   min-height: 26px;
@@ -831,12 +832,12 @@
   top: 50%;
   transform: translateY(-56%);
 }
-.field_edit_mode_input_box {
+.input_box.field_edit_mode_input_box {
   min-height: 28px;
   padding-right: 38px;
   z-index: 2000;
 }
-.field_edit_mode_input_box_with_close {
+.input_box.field_edit_mode_input_box_with_close {
   min-height: 28px;
   padding-right: 65px;
   z-index: 2000;

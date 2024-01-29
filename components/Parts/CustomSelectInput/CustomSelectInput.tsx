@@ -8,6 +8,7 @@ type Props = {
   changeEventHandler?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   blurEventHandler?: (e: React.FocusEvent<HTMLInputElement, Element>) => void;
   options: any[];
+  getOptionName?: any;
   defaultValue?: any;
   inputStyle?: any;
   displayX?: string;
@@ -18,6 +19,7 @@ export const CustomSelectInput = ({
   state,
   dispatch,
   options,
+  getOptionName,
   defaultValue = "",
   inputStyle,
   displayX = "center",
@@ -127,7 +129,8 @@ export const CustomSelectInput = ({
         >
           {options.map((option, index) => (
             <li key={index} onClick={() => handleSelect(option)} className="min-w-max truncate">
-              {option}
+              {!getOptionName && option}
+              {getOptionName && getOptionName(option)}
             </li>
           ))}
         </ul>
