@@ -1215,7 +1215,7 @@ export const DashboardHeaderMemo: FC = () => {
             <div
               data-text={`${userProfileState?.profile_name}`}
               // className={`flex-center h-[38px] w-[38px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
-              className={`flex-center bg-brand-gradient h-[38px] w-[38px] cursor-pointer rounded-full text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
+              className={`flex-center bg-brand-gradient-light h-[38px] w-[38px] cursor-pointer rounded-full text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip}`}
               onMouseEnter={(e) => handleOpenTooltip(e, "center", "center", "nowrap")}
               onMouseLeave={handleCloseTooltip}
               onClick={() => setOpenProfileMenu(true)}
@@ -1237,7 +1237,7 @@ export const DashboardHeaderMemo: FC = () => {
               data-text={`${userProfileState?.profile_name}`}
               // className={`flex-center h-[37px] w-[37px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
               // className={`flex-center h-[38px] w-[38px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] `}
-              className={`flex-center bg-brand-gradient h-[38px] w-[38px] cursor-pointer rounded-full `}
+              className={`flex-center bg-brand-gradient-light h-[38px] w-[38px] cursor-pointer rounded-full `}
               onMouseEnter={(e) => handleOpenTooltip(e, "center", "center", "nowrap")}
               onMouseLeave={handleCloseTooltip}
               onClick={() => setOpenProfileMenu(true)}
