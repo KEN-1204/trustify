@@ -270,6 +270,7 @@
   padding-bottom: 5px;
   /* display: flex;
   align-items: center; */
+  min-height: 28px;
 }
 .title_box.xl {
   min-height: 65px;
@@ -278,6 +279,7 @@
   /* display: hidden; */
   opacity: 0;
   transition: opacity 0.2s ease;
+  cursor: pointer;
 }
 .title_box:hover .editable_icon {
   /* display: block; */
@@ -309,14 +311,6 @@
   /* padding-right: 20px; */
   /* min-width: 70px; */
   min-width: 95px;
-  /* min-width: 78px; */
-  /* min-width: 78px; */
-  /* min-width: 80px; */
-  /* min-width: 82px; */
-  /* min-width: 80px; */
-  /* min-width: 90px; */
-  /* min-width: 95px; */
-  /* min-width: 75px; */
   /* margin-right: 20px; */
   font-weight: 600;
   font-size: 13px;
@@ -328,11 +322,15 @@
   /* font-family: system-ui; */
   /* font-family: "Noto Serif Japanese"; */
 }
+
 .title.min {
   min-width: 90px;
 }
 .title.title_sm {
   min-width: 82px;
+}
+.title.field_edit {
+  min-width: 87px;
 }
 .title_search_mode {
   color: var(--color-text-brand-f);
@@ -386,6 +384,7 @@
   /* width: 100%; */
   /* text-align: center; */
   font-size: 14px;
+  /* line-height: 21px; */
 }
 
 .double_text {
@@ -794,93 +793,11 @@
   align-items: center;
   cursor: pointer;
 }
-.field_edit_mode_loading_area {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  top: calc(50% - 2.5px);
-  /* right: 10px; */
-  right: 7px;
-  transform: translateY(-50%);
-  z-index: 2100;
-  min-height: 26px;
-  min-width: 26px;
-}
-.field_edit_mode_loading_area_for_select_box {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: absolute;
-  z-index: 2100;
-  min-height: 26px;
-  min-width: 26px;
-  background-color: var(--color-bg-based0);
-  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f30), 0px 0px 0px 1px var(--color-bg-brand-f);
-  backdrop-filter: blur(4px);
-  padding: 0px 5px;
-  height: 30px;
-  border-radius: 4px;
-  display: flex;
-  justify-content: center;
-  /* justify-content: flex-start; */
-  align-items: center;
-  pointer-events: none;
-}
-.field_edit_mode_loading_area_for_select_box.right_position {
-  right: -40px;
-  top: 50%;
-  transform: translateY(-56%);
-}
-.input_box.field_edit_mode_input_box {
-  min-height: 28px;
-  padding-right: 38px;
-  z-index: 2000;
-}
-.input_box.field_edit_mode_input_box_with_close {
-  min-height: 28px;
-  padding-right: 65px;
-  z-index: 2000;
-}
 
-.field_edit_mode_select_box {
-  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
-  min-height: 28px;
-  user-select: none;
-  z-index: 2000;
-}
-.field_edit_mode_textarea {
-  padding: 6px 12px;
-  letter-spacing: 0.3px;
-  line-height: 22px;
-  z-index: 2000;
-  /* padding-right: 65px; */
-  /* min-height: 75px; */
-  min-height: 120px;
-  /* white-space: pre-line; */
-  /* background: #00000030; */
-}
-.field_edit_mode_textarea.xl {
-  min-height: 180px;
-}
-/* テスト */
-.field_edit_mode_input_box.input_box {
-  background-color: var(--color-bg-base);
-  /* box-shadow: none;
-  padding: 0px; */
-}
-.field_edit_mode_input_box_with_close.input_box {
-  background-color: var(--color-bg-base);
-  /* box-shadow: none;
-  padding: 0px; */
-}
-
-.field_edit_mode_select_box.select_box {
-  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
-}
 .select_box {
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding-left: 5px;
+  padding-left: 4px;
   background: var(--color-bg-under-input);
   border-radius: 6px;
 }
@@ -980,6 +897,95 @@
   min-height: 120px;
 }
 /* テスト */
+
+.field_edit_mode_loading_area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: calc(50% - 2.5px);
+  /* right: 10px; */
+  right: 7px;
+  transform: translateY(-50%);
+  z-index: 2100;
+  min-height: 26px;
+  min-width: 26px;
+}
+.field_edit_mode_loading_area_for_select_box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  z-index: 2100;
+  min-height: 26px;
+  min-width: 26px;
+  background-color: var(--color-bg-based0);
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f30), 0px 0px 0px 1px var(--color-bg-brand-f);
+  backdrop-filter: blur(4px);
+  padding: 0px 5px;
+  height: 30px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  /* justify-content: flex-start; */
+  align-items: center;
+  pointer-events: none;
+}
+.field_edit_mode_loading_area_for_select_box.right_position {
+  right: -40px;
+  top: 50%;
+  transform: translateY(-56%);
+}
+.input_box.field_edit_mode_input_box {
+  min-height: 28px;
+  /* min-height: 30px; */
+  /* padding: 0 8px; */
+  /* vertical-align: middle; */
+  /* line-height: 28px; */
+  padding-right: 38px;
+  z-index: 2000;
+}
+.input_box.field_edit_mode_input_box_with_close {
+  min-height: 28px;
+  padding-right: 65px;
+  z-index: 2000;
+}
+
+.field_edit_mode_select_box {
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
+  min-height: 28px;
+  user-select: none;
+  z-index: 2000;
+}
+.field_edit_mode_textarea {
+  padding: 6px 12px;
+  letter-spacing: 0.3px;
+  line-height: 22px;
+  z-index: 2000;
+  /* padding-right: 65px; */
+  /* min-height: 75px; */
+  min-height: 120px;
+  /* white-space: pre-line; */
+  /* background: #00000030; */
+}
+.field_edit_mode_textarea.xl {
+  min-height: 180px;
+}
+/* テスト */
+.field_edit_mode_input_box.input_box {
+  background-color: var(--color-bg-base);
+  /* box-shadow: none;
+  padding: 0px; */
+}
+.field_edit_mode_input_box_with_close.input_box {
+  background-color: var(--color-bg-base);
+  /* box-shadow: none;
+  padding: 0px; */
+}
+
+.field_edit_mode_select_box.select_box {
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
+}
 
 .field_edit_mode_btn_area {
   position: absolute;
@@ -1155,5 +1161,8 @@
   }
   .title.min {
     min-width: 88px;
+  }
+  .title.field_edit {
+    min-width: 80px;
   }
 }

@@ -318,9 +318,10 @@ export const useMutateQuotation = () => {
       newValue: any;
       id: string;
       quotationYearMonth?: number | null;
+      leaseMonthlyFee?: string | null;
     }) => {
       console.log("updateQuotationFieldMutation 引数取得", fieldData);
-      const { fieldName, fieldNameForSelectedRowData, newValue, id, quotationYearMonth } = fieldData;
+      const { fieldName, fieldNameForSelectedRowData, newValue, id, quotationYearMonth, leaseMonthlyFee } = fieldData;
 
       // 🔹rpcでquotationsとactivitiesテーブルを同時に更新
       if (["quotation_date"].includes(fieldName)) {
@@ -340,21 +341,18 @@ export const useMutateQuotation = () => {
 
           if (error) throw error;
         }
-        // // 🔹result_summaryとquotation_dateカラムの更新 同時にactivitiesも更新
-        // else {
-        //   const jsonValue = { value: newValue };
-        //   const updatePayload = {
-        //     _quotation_id: id,
-        //     _column_name: fieldName,
-        //     _json_value: jsonValue,
-        //   };
+      }
+      // 🔹リース料率と月額リース料
+      else if (["lease_rate"].includes(fieldName)) {
+        const updatePayload = {
+          lease_rate: newValue,
+          lease_monthly_fee: leaseMonthlyFee,
+        };
+        const { data, error } = await supabase.from("quotations").update(updatePayload).eq("id", id).select();
 
-        //   console.log("updateQuotationFieldMutation rpc実行 ", "カラム名", fieldName, "updatePayload", updatePayload);
+        if (error) throw error;
 
-        //   const { error } = await supabase.rpc("update_quotations_field", updatePayload);
-
-        //   if (error) throw error;
-        // }
+        console.log("updateQuotationFieldMutation実行完了 mutate data", data);
       }
       // 🔹quotationsテーブルのみ更新
       else {
@@ -370,11 +368,11 @@ export const useMutateQuotation = () => {
         // return data;
       }
 
-      return { fieldNameForSelectedRowData, newValue, quotationYearMonth };
+      return { fieldNameForSelectedRowData, newValue, quotationYearMonth, leaseMonthlyFee };
     },
     {
       onSuccess: async (data) => {
-        const { fieldNameForSelectedRowData, newValue, quotationYearMonth } = data;
+        const { fieldNameForSelectedRowData, newValue, quotationYearMonth, leaseMonthlyFee } = data;
         console.log(
           "✅✅✅✅✅✅✅updateQuotationFieldMutation実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 onSuccess ",
           "fieldNameForSelectedRowData",
@@ -394,6 +392,13 @@ export const useMutateQuotation = () => {
           // 活動日を更新すると順番が入れ替わり、選択中の行がメインテーブルの内容と異なるためリセット
           console.log("プロパティにquotation_dateが含まれているため選択中の行をリセット");
           setSelectedRowDataQuotation(null);
+        } else if (fieldNameForSelectedRowData === "lease_rate") {
+          const newRowDataQuotation = {
+            ...selectedRowDataQuotation,
+            [fieldNameForSelectedRowData]: newValue,
+            lease_monthly_fee: leaseMonthlyFee ?? "",
+          };
+          setSelectedRowDataQuotation(newRowDataQuotation);
         } else {
           const newRowDataQuotation = { ...selectedRowDataQuotation, [fieldNameForSelectedRowData]: newValue };
           setSelectedRowDataQuotation(newRowDataQuotation);

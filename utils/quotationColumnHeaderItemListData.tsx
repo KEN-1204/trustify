@@ -80,6 +80,12 @@ const quotationColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
+    columnName: "quotation_division",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
     columnName: "quotation_no_custom",
     columnWidth: "100px",
     isFrozen: false,

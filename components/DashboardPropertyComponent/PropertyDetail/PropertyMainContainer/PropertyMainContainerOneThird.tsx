@@ -28,6 +28,7 @@ import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import {
+  getCompetitionState,
   getCurrentStatus,
   getDecisionMakerNegotiation,
   getLeaseDivision,

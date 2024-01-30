@@ -242,8 +242,8 @@ const ProductListTableMemo: FC<Props> = ({
   const handleSingleClickGridCell = useCallback(
     // (e: React.MouseEvent<HTMLDivElement>,  isEditable: boolean) => {
     (e: React.MouseEvent<HTMLDivElement>, index: number, columnName: string, rowIndex: number, isEditable: boolean) => {
-      if (setTimeoutRef.current !== null) return;
       if (!isEditable) return;
+      if (setTimeoutRef.current !== null) return;
 
       setTimeoutRef.current = setTimeout(() => {
         setTimeoutRef.current = null;
@@ -1061,15 +1061,17 @@ const ProductListTableMemo: FC<Props> = ({
                               aria-selected={false}
                               tabIndex={-1}
                               className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${
-                                editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
+                                editableColumnNameArray.includes(columnHeaderList[colIndex].columnName) &&
+                                (isInsertMode || isUpdateMode)
                                   ? `${styles.editable}`
                                   : ``
                               }`}
                               style={{
                                 gridColumnStart: colIndex + 1,
-                                ...(editableColumnNameArray.includes(columnHeaderList[colIndex].columnName) && {
-                                  cursor: "pointer",
-                                }),
+                                ...(editableColumnNameArray.includes(columnHeaderList[colIndex].columnName) &&
+                                  (isInsertMode || isUpdateMode) && {
+                                    cursor: "pointer",
+                                  }),
                                 // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
                                 ...(colIndex === columnHeaderList.length - 1 && { borderRight: "none" }),
                               }}
@@ -1103,7 +1105,8 @@ const ProductListTableMemo: FC<Props> = ({
                                   colIndex,
                                   columnHeaderList[colIndex].columnName,
                                   rowIndex,
-                                  editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
+                                  editableColumnNameArray.includes(columnHeaderList[colIndex].columnName) &&
+                                    (isInsertMode || isUpdateMode)
                                 );
                               }}
                               onDoubleClick={(e) =>
@@ -1112,7 +1115,8 @@ const ProductListTableMemo: FC<Props> = ({
                                   colIndex,
                                   columnHeaderList[colIndex].columnName,
                                   rowIndex,
-                                  editableColumnNameArray.includes(columnHeaderList[colIndex].columnName)
+                                  editableColumnNameArray.includes(columnHeaderList[colIndex].columnName) &&
+                                    (isInsertMode || isUpdateMode)
                                 )
                               }
                             >

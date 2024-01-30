@@ -59,7 +59,7 @@ export const InputSendAndCloseBtn = <T extends string | (number | null) = string
   iconSize,
   btnSize,
 }: Props<T>) => {
-  console.log("inputState", inputState);
+  // console.log("inputState", inputState);
   return (
     <>
       {!isOutside && (

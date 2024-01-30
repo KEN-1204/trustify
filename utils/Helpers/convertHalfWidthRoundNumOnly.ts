@@ -26,11 +26,12 @@ export function convertHalfWidthRoundNumOnly(input: string, decimalPlaces: numbe
     return new Decimal(result).toFixed(decimalPlaces, Decimal.ROUND_HALF_UP);
   }
 
-  if (decimalPlaces > 0) {
-    return new Decimal(result).toFixed(decimalPlaces, Decimal.ROUND_HALF_UP);
-  }
+  // if (decimalPlaces > 0) {
+  //   return new Decimal(result).toFixed(decimalPlaces, Decimal.ROUND_HALF_UP);
+  // }
 
-  return result;
+  // return result;
+  return new Decimal(result).toFixed(decimalPlaces, Decimal.ROUND_HALF_UP);
 }
 
 // 使用例

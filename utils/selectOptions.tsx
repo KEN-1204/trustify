@@ -1163,11 +1163,20 @@ export const getQuotationDivision = (value: string, language: string = "ja") => 
 // 送付方法
 // export const optionsSendingMethod = ["送付状なし", "Fax", "郵送"];
 // export const optionsSendingMethod = ["送付状なし"];
-export const optionsSendingMethod = ["Without Cover Letter"];
+export const optionsSendingMethod = ["Without Cover Letter", "Fax", "Mail", "Email"];
 export const getSendingMethod = (value: string, language: string = "ja") => {
   switch (value) {
     case "Without Cover Letter":
       return (language = "ja" ? `送付状なし` : `Without Cover Letter`);
+      break;
+    case "Fax":
+      return (language = "ja" ? `Fax` : `Fax`);
+      break;
+    case "Mail":
+      return (language = "ja" ? `郵送` : `Mail`);
+      break;
+    case "Email":
+      return (language = "ja" ? `メール` : `Email`);
       break;
 
     default:
@@ -1194,5 +1203,29 @@ export const getSalesTaxClass = (value: string, language: string = "ja") => {
 };
 
 // 消費税区分
-export const optionsSalesTaxRate = ["5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18"];
+export const optionsSalesTaxRate = [
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "11",
+  "12",
+  "13",
+  "14",
+  "15",
+  "16",
+  "17",
+  "18",
+  "19",
+  "20",
+  "21",
+  "22",
+  "23",
+  "24",
+  "25",
+  "26",
+  "27",
+];
 // export const optionsSalesTaxRate = ["10", "11", "12", "13", "14", "15", "16", "17", "18"];
