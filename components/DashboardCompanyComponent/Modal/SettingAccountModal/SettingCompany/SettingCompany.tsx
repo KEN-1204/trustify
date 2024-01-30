@@ -37,6 +37,8 @@ import { useMutateOffice } from "@/hooks/useMutateOffice";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
 import { getNumberOfEmployeesClassForCustomer, optionsNumberOfEmployeesClass } from "@/utils/selectOptions";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import { useMutateCompanyLogo } from "@/hooks/useMutateCompanyLogo";
+import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
 
 const SettingCompanyMemo = () => {
   const language = useStore((state) => state.language);
@@ -97,8 +99,11 @@ const SettingCompanyMemo = () => {
   // 削除確認モーダル
   const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false);
 
-  const { useMutateUploadAvatarImg, useMutateDeleteAvatarImg } = useUploadAvatarImg();
-  const { fullUrl: logoUrl, isLoading } = useDownloadUrl(userProfileState?.logo_url, "customer_company_logos");
+  const { uploadCompanyLogoMutation, deleteCompanyLogoMutation } = useMutateCompanyLogo();
+  const { fullUrl: logoUrl, isLoading: isLoadingLogoImg } = useDownloadUrl(
+    userProfileState?.logo_url,
+    "customer_company_logos"
+  );
 
   // キャッシュからお知らせを取得
   // const queryClient = useQueryClient();
@@ -804,15 +809,11 @@ const SettingCompanyMemo = () => {
             <div className={`${styles.section_title}`}>会社・チーム ロゴ</div>
             <div className={`flex h-full w-full items-center justify-between`}>
               <div className="">
-                {!logoUrl && (
+                {!logoUrl && !isLoadingLogoImg && (
                   <label
-                    data-text="ユーザー名"
-                    htmlFor="avatar"
+                    htmlFor="logo"
                     className={`flex-center h-[75px] w-[75px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
-                    // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                    // onMouseLeave={handleCloseTooltip}
                   >
-                    {/* <span>K</span> */}
                     <span className={`text-[30px]`}>
                       {userProfileState?.customer_name
                         ? getCompanyInitial(userProfileState.customer_name)
@@ -820,57 +821,57 @@ const SettingCompanyMemo = () => {
                     </span>
                   </label>
                 )}
-                {logoUrl && (
+                {logoUrl && !isLoadingLogoImg && (
                   <label
-                    htmlFor="avatar"
-                    className={`flex-center group relative h-[75px] w-[75px] cursor-pointer overflow-hidden rounded-full`}
+                    htmlFor="logo"
+                    className={`flex-center group relative h-[75px] w-[75px] cursor-pointer overflow-hidden rounded-full ${styles.logo}`}
                   >
                     <Image
                       src={logoUrl}
-                      alt="Avatar"
-                      className={`h-full w-full object-cover text-[#fff]`}
+                      alt="Logo"
+                      className={`h-full w-full object-contain text-[#fff]`}
                       width={75}
                       height={75}
                     />
                     <div className={`transition-base01 absolute inset-0 z-10 group-hover:bg-[#00000060]`}></div>
                   </label>
                 )}
+                {isLoadingLogoImg && (
+                  <div className={`flex-center relative min-h-[75px] min-w-[75px] overflow-hidden rounded-full`}>
+                    <SkeletonLoadingLineCustom rounded="50%" h="75px" w="75px" />
+                  </div>
+                )}
               </div>
               <div className="flex">
                 {logoUrl && (
                   <div
                     className={`transition-base01 mr-[10px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    // onClick={async () => {
-                    //   if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
-                    //   if (!userProfileState?.avatar_url) return alert("プロフィール画像が見つかりません");
-                    //   useMutateDeleteAvatarImg.mutate(userProfileState.avatar_url);
-                    // }}
+                    onClick={async () => {
+                      if (!userProfileState?.company_id) return alert("会社・チームデータが見つかりませんでした。");
+                      if (!userProfileState?.logo_url) return alert("ロゴ画像データが見つかりませんでした。");
+                      deleteCompanyLogoMutation.mutate(userProfileState.logo_url);
+                    }}
                   >
                     画像を削除
                   </div>
                 )}
 
-                <label htmlFor="avatar">
+                <label htmlFor="logo">
                   <div
                     className={`transition-base01 flex-center max-h-[41px] max-w-[120px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    onClick={() => {
-                      // setLoading(true);
-                    }}
                   >
                     <span>画像を変更</span>
-                    {/* {!loading && <span>画像を変更</span>}
-                          {loading && <SpinnerIDS scale={"scale-[0.3]"} />} */}
                   </div>
                 </label>
               </div>
               <input
                 type="file"
-                id="avatar"
+                id="logo"
                 accept="image/*"
                 className="hidden"
-                // onChange={(e) => {
-                //   useMutateUploadAvatarImg.mutate(e);
-                // }}
+                onChange={(e) => {
+                  uploadCompanyLogoMutation.mutate(e);
+                }}
               />
             </div>
           </div>

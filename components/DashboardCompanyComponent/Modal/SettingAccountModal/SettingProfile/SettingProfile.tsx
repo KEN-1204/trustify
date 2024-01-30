@@ -15,8 +15,10 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { useMutateAuth } from "@/hooks/useMutateAuth";
 import {
   getOccupationName,
+  getOccupationNameForCustomer,
   getPositionClassNameForCustomer,
   optionsOccupation,
+  optionsOccupationForCustomer,
   optionsPositionsClassForCustomer,
 } from "@/utils/selectOptions";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
@@ -1680,11 +1682,16 @@ const SettingProfileMemo = () => {
                   <option value="学生">学生</option>
                   <option value="教育関係者">教育関係者</option>
                   <option value="その他">その他</option> */}
-                  {optionsOccupation.map((option) => (
+                  {optionsOccupationForCustomer.map((option) => (
+                    <option key={option} value={option}>
+                      {getOccupationNameForCustomer(option)}
+                    </option>
+                  ))}
+                  {/* {optionsOccupation.map((option) => (
                     <option key={option} value={option}>
                       {getOccupationName(option)}
                     </option>
-                  ))}
+                  ))} */}
                 </select>
                 <div className="flex">
                   <div

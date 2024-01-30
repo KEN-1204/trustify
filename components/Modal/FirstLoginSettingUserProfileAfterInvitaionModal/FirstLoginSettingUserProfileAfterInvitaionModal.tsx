@@ -14,7 +14,12 @@ import useThemeStore from "@/store/useThemeStore";
 import { runFireworks } from "@/utils/confetti";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
-import { optionsPositionsClassForCustomer } from "@/utils/selectOptions";
+import {
+  getOccupationNameForCustomer,
+  getPositionClassNameForCustomer,
+  optionsOccupationForCustomer,
+  optionsPositionsClassForCustomer,
+} from "@/utils/selectOptions";
 
 type Plans = {
   id: string;
@@ -263,7 +268,12 @@ export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
                         }}
                       >
                         <option value="">回答を選択してください</option>
-                        <option value="社長/CEO">社長/CEO</option>
+                        {optionsOccupationForCustomer.map((option) => (
+                          <option key={option} value={option}>
+                            {getOccupationNameForCustomer(option)}
+                          </option>
+                        ))}
+                        {/* <option value="社長/CEO">社長/CEO</option>
                         <option value="取締役・役員">取締役・役員</option>
                         <option value="プロジェクト/プログラム管理">プロジェクト/プログラム管理</option>
                         <option value="営業">営業</option>
@@ -282,7 +292,7 @@ export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
                         <option value="情報システム/IT管理者">情報システム/IT管理者</option>
                         <option value="CS/カスタマーサービス">CS/カスタマーサービス</option>
                         <option value="購買">購買</option>
-                        <option value="その他">その他</option>
+                        <option value="その他">その他</option> */}
                       </select>
                       {/* 上下矢印アイコン */}
                       <div className={`${styles.close_btn_number}`}>
@@ -448,7 +458,7 @@ export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
                         {/* <option value="8 不明">不明</option> */}
                         {optionsPositionsClassForCustomer.map((option) => (
                           <option key={option} value={option}>
-                            {option}
+                            {getPositionClassNameForCustomer(option)}
                           </option>
                         ))}
                       </select>

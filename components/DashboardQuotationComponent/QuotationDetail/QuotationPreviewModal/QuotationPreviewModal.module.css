@@ -1,0 +1,84 @@
+.overlay {
+  position: fixed;
+  z-index: 1000;
+  /* z-index: 100; */
+  inset: 0;
+  /* background: #00000030; */
+  background-color: var(--color-overlay-insert-update-modal);
+  backdrop-filter: blur(4px);
+  /* transform: translateY(-20px) scaleY(1.1); */
+}
+/* 画面全体でのローディング */
+.loading_overlay {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  background: #00000090;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+/* モーダル内でのローディング */
+.loading_overlay_modal {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  background: #ffffff42;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.preview_modal_area {
+  position: absolute;
+  z-index: 1500;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* A4サイズは210mm * 297mm で 縦横比は1:1.41 */
+.preview_modal {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 92vh;
+  width: calc(92vh / 1.41);
+  max-height: 1240px;
+  max-width: 879px;
+  background-color: #fff;
+  transition: width 0.3s ease, height 0.3s ease, border-radius 0.3s ease;
+  opacity: 0;
+  animation: fade 0.3s 0.1s forwards;
+  box-shadow: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
+}
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.loading_pdf {
+  height: 120px;
+  width: 120px;
+  border-radius: 18px;
+}
+
+.btn {
+  width: 35px;
+  height: 35px;
+  background-color: var(--color-sign-out-bg);
+  cursor: pointer;
+  border-radius: 50%;
+}
+.btn:hover {
+  background-color: var(--color-sign-out-bg-hover);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}

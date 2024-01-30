@@ -56,6 +56,7 @@ import { RestartAfterCancelForMember } from "./Modal/RestartAfterCancelForMember
 import { FallbackModal } from "./DashboardCompanyComponent/Modal/FallbackModal/FallbackModal";
 import { FallbackSideTableSearchSignatureStamp } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchSignatureStamp/FallbackSideTableSearchSignatureStamp";
 import { SideTableSearchSignatureStamp } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchSignatureStamp/SideTableSearchSignatureStamp";
+import { QuotationPreviewModal } from "./DashboardQuotationComponent/QuotationDetail/QuotationPreviewModal/QuotationPreviewModal";
 
 type Prop = {
   title?: string;
@@ -277,6 +278,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const isUpdateModeQuotation = useDashboardStore((state) => state.isUpdateModeQuotation);
   const setIsUpdateModeQuotation = useDashboardStore((state) => state.setIsUpdateModeQuotation);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+  // 見積書プレビューモーダル
+  const isOpenQuotationPreviewModal = useDashboardStore((state) => state.isOpenQuotationPreviewModal);
+
   // 印鑑データ設定サイドテーブル
   const isOpenSearchStampSideTable = useDashboardStore((state) => state.isOpenSearchStampSideTable);
   const isOpenSearchStampSideTableBefore = useDashboardStore((state) => state.isOpenSearchStampSideTableBefore);
@@ -627,6 +631,15 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         </>
       )}
       {/* <Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" /> */}
+
+      {/* 見積書プレビューモーダル */}
+      {isOpenQuotationPreviewModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+            <QuotationPreviewModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
 
       {/* ==================== お知らせ所有者変更モーダル ==================== */}
       {openNotificationChangeTeamOwnerModal && notificationDataState !== null && <ChangeTeamOwnerConfirmationModal />}

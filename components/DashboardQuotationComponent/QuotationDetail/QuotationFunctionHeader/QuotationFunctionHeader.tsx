@@ -30,6 +30,8 @@ const QuotationFunctionHeaderMemo: FC = () => {
   const isUpdateModeQuotation = useDashboardStore((state) => state.isUpdateModeQuotation);
   const setIsInsertModeQuotation = useDashboardStore((state) => state.setIsInsertModeQuotation);
   const setIsUpdateModeQuotation = useDashboardStore((state) => state.setIsUpdateModeQuotation);
+  // 見積書プレビューモーダル関連
+  const setIsOpenQuotationPreviewModal = useDashboardStore((state) => state.setIsOpenQuotationPreviewModal);
 
   // 上画面の選択中の列データ会社
   const selectedRowDataQuotation = useDashboardStore((state) => state.selectedRowDataQuotation);
@@ -198,7 +200,7 @@ const QuotationFunctionHeaderMemo: FC = () => {
             classText={`select-none ${searchMode || !selectedRowDataQuotation ? `cursor-not-allowed` : ``}`}
             clickEventHandler={() => {
               if (searchMode) return;
-              if (!selectedRowDataQuotation) return alert("担当者を選択してください");
+              if (!selectedRowDataQuotation) return alert("見積データを選択してください");
               console.log("見積編集 クリック");
               // 他画面の選択行データはリセット
               setSelectedRowDataContact(null);
@@ -209,6 +211,23 @@ const QuotationFunctionHeaderMemo: FC = () => {
               if (loadingGlobalState) setLoadingGlobalState(false);
               // setIsOpenUpdateQuotationModal(true);
               setIsUpdateModeQuotation(true);
+            }}
+          />
+          <RippleButton
+            title={`印刷`}
+            classText={`select-none ${searchMode || !selectedRowDataQuotation ? `cursor-not-allowed` : ``}`}
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataQuotation) return alert("見積データを選択してください");
+            }}
+          />
+          <RippleButton
+            title={`印刷ﾌﾟﾚﾋﾞｭｰ`}
+            classText={`select-none ${searchMode || !selectedRowDataQuotation ? `cursor-not-allowed` : ``}`}
+            clickEventHandler={() => {
+              if (searchMode) return;
+              // if (!selectedRowDataQuotation) return alert("見積データを選択してください");
+              setIsOpenQuotationPreviewModal(true);
             }}
           />
         </div>

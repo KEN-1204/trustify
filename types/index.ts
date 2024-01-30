@@ -2100,7 +2100,7 @@ export type Quotation_row_data = {
   assigned_employee_id_name: string | null;
   // 🔹商品リスト
   quotation_products_details: QuotationProductsDetails;
-  // 🔹見積ルール
+  // 🔹見積ルール customers_clients結合テーブル
   quotation_rule: string | null;
 };
 

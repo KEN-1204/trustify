@@ -90,43 +90,79 @@ export const timezoneList = [
 'Africa/Cairo'（エジプト）: "Egypt (Cairo)"
 'Africa/Lagos'（ナイジェリア）: "Nigeria (Lagos)"
  */
+// export const optionsPositionsClassForCustomer = [
+//   "1 代表者",
+//   "2 取締役/役員",
+//   "3 部長",
+//   "4 課長",
+//   "5 チームメンバー",
+//   "6 所長・支店長・工場長",
+//   "7 フリーランス・個人事業主",
+// ];
+// export const getPositionClassNameForCustomer = (classNum: string, language: string = "ja") => {
+//   switch (classNum) {
+//     case "1 代表者":
+//       return language === "ja" ? `代表者` : `President`;
+//       break;
+//     case "2 取締役/役員":
+//       return language === "ja" ? `取締役/役員` : `Director/Executive`;
+//       break;
+//     case "3 部長":
+//       return language === "ja" ? `部長` : `Manager`;
+//       break;
+//     case "4 課長":
+//       return language === "ja" ? `課長` : `Section Manager`;
+//       break;
+//     case "5 チームメンバー":
+//       return language === "ja" ? `チームメンバー` : `Team Member`;
+//       break;
+//     case "6 所長・支店長・工場長":
+//       return language === "ja" ? `所長・支店長・工場長` : `Branch Manager`;
+//       break;
+//     case "7 フリーランス・個人事業主":
+//       return language === "ja" ? `フリーランス・個人事業主` : `Freelance`;
+//       break;
+
+//     default:
+//       break;
+//   }
+// };
 export const optionsPositionsClassForCustomer = [
-  "1 代表者",
-  "2 取締役/役員",
-  "3 部長",
-  "4 課長",
-  "5 チームメンバー",
-  "6 所長・支店長・工場長",
-  "7 フリーランス・個人事業主",
+  "1 President",
+  "2 Director/Executive",
+  "3 Manager",
+  "4 Section Manager",
+  "5 Team Member",
+  "6 Branch Manager",
+  "7 Freelance",
 ];
 
-// export const optionsPositionsClassForCustomer = [1, 2, 3, 4, 5, 6, 7];
-
-export const getPositionClassNameForCustomer = (classNum: string, language: string = "ja") => {
-  switch (classNum) {
-    case "1 代表者":
+export const getPositionClassNameForCustomer = (value: string, language: string = "ja") => {
+  switch (value) {
+    case "1 President":
       return language === "ja" ? `代表者` : `President`;
       break;
-    case "2 取締役/役員":
+    case "2 Director/Executive":
       return language === "ja" ? `取締役/役員` : `Director/Executive`;
       break;
-    case "3 部長":
+    case "3 Manager":
       return language === "ja" ? `部長` : `Manager`;
       break;
-    case "4 課長":
+    case "4 Section Manager":
       return language === "ja" ? `課長` : `Section Manager`;
       break;
-    case "5 チームメンバー":
+    case "5 Team Member":
       return language === "ja" ? `チームメンバー` : `Team Member`;
       break;
-    case "6 所長・支店長・工場長":
+    case "6 Branch Manager":
       return language === "ja" ? `所長・支店長・工場長` : `Branch Manager`;
       break;
-    case "7 フリーランス・個人事業主":
+    case "7 Freelance":
       return language === "ja" ? `フリーランス・個人事業主` : `Freelance`;
       break;
 
     default:
+      return value;
       break;
   }
 };
@@ -226,6 +262,96 @@ export const getPositionClassName = (classNum: number, language: string = "ja") 
 //   "20 CS/カスタマーサービス",
 //   "21 その他",
 // ];
+
+export const optionsUsageForCustomer = ["1 company/team", "2 personal"];
+export const getUsageForCustomer = (value: string, language: string = "ja") => {
+  switch (value) {
+    case "1 company/team":
+      return language === "ja" ? `会社・チームで利用` : `company/team`;
+    case "2 personal":
+      return language === "ja" ? `個人で利用用` : `personal`;
+
+    default:
+      return value;
+      break;
+  }
+};
+
+export const optionsOccupationForCustomer = [
+  "01 President",
+  "02 Director/Executive",
+  "03 Project Manager",
+  "04 Sales",
+  "05 Marketing",
+  "06 Creative",
+  "07 Software Development",
+  "08 R&D",
+  "09 Manufacturing",
+  "10 Quality Control",
+  "11 Production Management",
+  "12 Production Engineering",
+  "13 Human Resources",
+  "14 Accounting",
+  "15 General Affairs",
+  "16 Legal",
+  "17 Finance",
+  "18 Purchasing",
+  "19 IT Department",
+  "20 CS",
+  "21 Other",
+];
+
+export const getOccupationNameForCustomer = (Num: string, language: string = "ja") => {
+  switch (Num) {
+    case "01 President":
+      return language === "ja" ? `社長/CEO` : `President`;
+    case "02 Director/Executive":
+      return language === "ja" ? `取締役・役員` : `Director/Executive`;
+    case "03 Project Manager":
+      return language === "ja" ? `プロジェクトマネージャー` : `Project Manager`;
+    case "04 Sales":
+      return language === "ja" ? "営業" : `Sales`;
+    case "05 Marketing":
+      return language === "ja" ? "マーケティング" : `Marketing`;
+    case "06 Creative":
+      return language === "ja" ? "クリエイティブ" : `Creative`;
+    case "07 Software Development":
+      return language === "ja" ? "ソフトウェア開発" : `Software Development`;
+    case "08 R&D":
+      return language === "ja" ? "開発・設計" : `R&D`;
+    case "09 Manufacturing":
+      return language === "ja" ? "製造" : `Manufacturing`;
+    case "10 Quality Control":
+      return language === "ja" ? "品質管理・品質保証" : `Quality Control`;
+    case "11 Production Management":
+      return language === "ja" ? "生産管理" : `Production Management`;
+    case "12 Production Engineering":
+      return language === "ja" ? "生産技術" : `Production Engineering`;
+    case "13 Human Resources":
+      return language === "ja" ? "人事" : `Human Resources`;
+    case "14 Accounting":
+      return language === "ja" ? "経理" : `Accounting`;
+    case "15 General Affairs":
+      return language === "ja" ? "総務" : `General Affairs`;
+    case "16 Legal":
+      return language === "ja" ? "法務" : `Legal`;
+    case "17 Finance":
+      return language === "ja" ? "財務" : `Finance`;
+    case "18 Purchasing":
+      return language === "ja" ? "購買" : `Purchasing`;
+    case "19 IT Department":
+      return language === "ja" ? "情報システム" : `IT Department`;
+    case "20 CS":
+      return language === "ja" ? "CS/カスタマーサービス" : `CS`;
+    case "21 Other":
+      return language === "ja" ? "その他" : `Other`;
+
+    default:
+      return Num;
+      break;
+  }
+};
+
 export const optionsOccupation = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
 
 export const getOccupationName = (Num: number, language: string = "ja") => {
@@ -267,7 +393,7 @@ export const getOccupationName = (Num: number, language: string = "ja") => {
     case 18:
       return language === "ja" ? "18 購買" : `18 Purchasing`;
     case 19:
-      return language === "ja" ? "19 情報システム" : `19 Information Systems`;
+      return language === "ja" ? "19 情報システム" : `19 IT Department`;
     case 20:
       return language === "ja" ? "20 CS/カスタマーサービス" : `20 CS`;
     case 21:

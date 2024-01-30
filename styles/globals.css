@@ -2591,6 +2591,11 @@ textarea {
 .theme_icon_bg_hover:hover {
   opacity: 1;
 }
+.black_icon_bg {
+  /* background-image: var(--background-image-cursor-btn); */
+  background-image: linear-gradient(to top right, #27272a, #666);
+  border: 1px solid var(--theme-icon-border);
+}
 
 /* ------------------ 🌟datePickerスタイル🌟 ------------------== */
 .react-datepicker__tab-loop {

@@ -391,6 +391,7 @@ type State = {
   // セルの編集モード
   isEditingCell: boolean;
   setIsEditingCell: (payload: boolean) => void;
+
   // 見積価格関連
   // 価格合計
   inputTotalPriceEdit: string;
@@ -404,6 +405,10 @@ type State = {
   // 合計金額
   inputTotalAmountEdit: string;
   setInputTotalAmountEdit: (payload: string) => void;
+
+  // 見積書プレビューモーダル
+  isOpenQuotationPreviewModal: boolean;
+  setIsOpenQuotationPreviewModal: (payload: boolean) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -965,6 +970,10 @@ const useDashboardStore = create<State>((set) => ({
   // 合計金額
   inputTotalAmountEdit: "",
   setInputTotalAmountEdit: (payload) => set({ inputTotalAmountEdit: payload }),
+
+  // 見積書プレビューモーダル
+  isOpenQuotationPreviewModal: false,
+  setIsOpenQuotationPreviewModal: (payload) => set({ isOpenQuotationPreviewModal: payload }),
 }));
 
 export default useDashboardStore;

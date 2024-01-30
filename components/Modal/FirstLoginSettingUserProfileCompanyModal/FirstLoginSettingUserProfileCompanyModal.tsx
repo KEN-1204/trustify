@@ -16,6 +16,16 @@ import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { IoLogOutOutline } from "react-icons/io5";
 import { toast } from "react-toastify";
 import NextImage from "next/image";
+import {
+  getNumberOfEmployeesClass,
+  getOccupationNameForCustomer,
+  getPositionClassNameForCustomer,
+  getUsageForCustomer,
+  optionsNumberOfEmployeesClass,
+  optionsOccupationForCustomer,
+  optionsPositionsClassForCustomer,
+  optionsUsageForCustomer,
+} from "@/utils/selectOptions";
 
 type Plans = {
   id: string;
@@ -468,7 +478,12 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                         }}
                       >
                         <option value="">回答を選択してください</option>
-                        <option value="社長/CEO">社長/CEO</option>
+                        {optionsOccupationForCustomer.map((option) => (
+                          <option key={option} value={option}>
+                            {getOccupationNameForCustomer(option)}
+                          </option>
+                        ))}
+                        {/* <option value="社長/CEO">社長/CEO</option>
                         <option value="取締役・役員">取締役・役員</option>
                         <option value="プロジェクト/プログラム管理">プロジェクト/プログラム管理</option>
                         <option value="営業">営業</option>
@@ -487,7 +502,7 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                         <option value="情報システム/IT管理者">情報システム/IT管理者</option>
                         <option value="CS/カスタマーサービス">CS/カスタマーサービス</option>
                         <option value="購買">購買</option>
-                        <option value="その他">その他</option>
+                        <option value="その他">その他</option> */}
                       </select>
                       {/* 上下矢印アイコン */}
                       <div className={`${styles.close_btn_number}`}>
@@ -514,13 +529,20 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                         onChange={(e) => {
                           setInputUsage(e.target.value);
                           if (checkedUsage && !!inputUsage) setCheckedUsage(false);
-                          if (e.target.value === "会社・チームで利用") setInputDepartment("");
-                          if (e.target.value === "個人で利用") setInputDepartment(".");
+                          // if (e.target.value === "会社・チームで利用") setInputDepartment("");
+                          // if (e.target.value === "個人で利用") setInputDepartment(".");
+                          if (e.target.value === "1 company/team") setInputDepartment("");
+                          if (e.target.value === "2 personal") setInputDepartment("");
                         }}
                       >
                         <option value="">回答を選択してください</option>
-                        <option value="会社・チームで利用">会社・チームで利用</option>
-                        <option value="個人で利用">個人で利用</option>
+                        {optionsUsageForCustomer.map((option) => (
+                          <option key={option} value={option}>
+                            {getUsageForCustomer(option)}
+                          </option>
+                        ))}
+                        {/* <option value="会社・チームで利用">会社・チームで利用</option>
+                        <option value="個人で利用">個人で利用</option> */}
                       </select>
                       {/* 上下矢印アイコン */}
                       <div className={`${styles.close_btn_number}`}>
@@ -643,13 +665,18 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                         }}
                       >
                         <option value="">回答を選択してください</option>
-                        <option value="1 代表者">代表者</option>
+                        {optionsPositionsClassForCustomer.map((option) => (
+                          <option key={option} value={option}>
+                            {getPositionClassNameForCustomer(option)}
+                          </option>
+                        ))}
+                        {/* <option value="1 代表者">代表者</option>
                         <option value="2 取締役/役員">取締役/役員</option>
                         <option value="3 部長">部長</option>
                         <option value="4 課長">課長</option>
                         <option value="5 チームメンバー">チームメンバー</option>
                         <option value="6 所長・工場長">所長・工場長</option>
-                        <option value="7 フリーランス・個人事業主">フリーランス・個人事業主</option>
+                        <option value="7 フリーランス・個人事業主">フリーランス・個人事業主</option> */}
                         {/* <option value="8 不明">不明</option> */}
                       </select>
                       {/* 上下矢印アイコン */}
@@ -684,13 +711,18 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                         }}
                       >
                         <option value="">回答を選択してください</option>
-                        <option value="G 1〜49名">1〜49名</option>
+                        {optionsNumberOfEmployeesClass.map((option) => (
+                          <option key={option} value={option}>
+                            {getNumberOfEmployeesClass(option)}
+                          </option>
+                        ))}
+                        {/* <option value="G 1〜49名">1〜49名</option>
                         <option value="F 50〜99名">50〜99名</option>
                         <option value="E 100〜199名">100〜199名</option>
                         <option value="D 200〜299名">200〜299名</option>
                         <option value="C 300〜499名">300〜499名</option>
                         <option value="B 500〜999名">500〜999名</option>
-                        <option value="A 1000名以上">1000名以上</option>
+                        <option value="A 1000名以上">1000名以上</option> */}
                         {/* <option value="G 50名未満">50名未満</option> */}
                       </select>
                       {/* 上下矢印アイコン */}

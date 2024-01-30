@@ -5,6 +5,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation } from "@tanstack/react-query";
 import React, { ChangeEvent } from "react";
 import { toast } from "react-toastify";
+import { v4 as uuidv4 } from "uuid";
 
 export const useUploadAvatarImg = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -15,19 +16,24 @@ export const useUploadAvatarImg = () => {
 
   const useMutateUploadAvatarImg = useMutation(
     async (e: ChangeEvent<HTMLInputElement>) => {
+      setLoadingGlobalState(true);
+
+      if (!userProfileState?.id) {
+        throw new Error("エラー：ユーザーデータが見つかりませんでした...🙇‍♀️");
+      }
+
       if (!e.target.files || e.target.files.length === 0) {
         alert("画像を選択してください");
         throw new Error("Please select the image file");
       }
       console.log("画像アップロード ", e.target.files);
 
-      setLoadingGlobalState(true);
-
       const file = e.target.files[0];
       // ファイルの名前を.区切りでスプリットで分割して、一番最後の要素をpopで取り出す
       const fileExt = file.name.split(".").pop();
       // popで取り出した拡張子と前にランダムな値をつけた文字列でファイルパス名を生成
-      const fileName = `${Math.random()}.${fileExt}`;
+      // const fileName = `${Math.random()}.${fileExt}`;
+      const fileName = `${uuidv4()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       // supabaseのストレージに画像を登録する非同期処理
@@ -41,7 +47,7 @@ export const useUploadAvatarImg = () => {
       const { error: errorDB } = await supabase
         .from("profiles")
         .update({ avatar_url: filePath })
-        .eq("id", userProfileState?.id);
+        .eq("id", userProfileState.id);
       // .select()
       // .single();
 
@@ -90,6 +96,10 @@ export const useUploadAvatarImg = () => {
     async (avatarUrl: string) => {
       setLoadingGlobalState(true);
 
+      if (!userProfileState?.id) {
+        throw new Error("エラー：ユーザーデータが見つかりませんでした...🙇‍♀️");
+      }
+
       // supabaseのストレージに画像を登録する非同期処理
       const { error } = await supabase.storage.from("avatars").remove([avatarUrl]);
 
@@ -105,15 +115,17 @@ export const useUploadAvatarImg = () => {
       const { error: errorDB } = await supabase
         .from("profiles")
         .update({ avatar_url: null })
-        .eq("id", userProfileState?.id);
+        .eq("id", userProfileState.id);
+
+      const newProfile = { ...(userProfileState as UserProfileCompanySubscription), avatar_url: null };
 
       // データベースからプロフィール、会社、サブスクデータを取得
-      const { data: newProfile, errorSelectDB } = await supabase
-        .rpc("get_user_data", { _user_id: userProfileState?.id })
-        .single();
+      // const { data: newProfile, errorSelectDB } = await supabase
+      //   .rpc("get_user_data", { _user_id: userProfileState?.id })
+      //   .single();
 
       if (errorDB) throw new Error(errorDB.message);
-      if (errorSelectDB) throw new Error(errorSelectDB.message);
+      // if (errorSelectDB) throw new Error(errorSelectDB.message);
 
       return newProfile;
     },
