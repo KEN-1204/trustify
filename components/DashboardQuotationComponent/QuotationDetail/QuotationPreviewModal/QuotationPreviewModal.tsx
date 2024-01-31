@@ -1,4 +1,4 @@
-import { Suspense, memo, useEffect, useState } from "react";
+import { Suspense, memo, useEffect, useRef, useState } from "react";
 import styles from "./QuotationPreviewModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
@@ -15,6 +15,7 @@ import NextImage from "next/image";
 // import NextImage from "next/legacy/image";
 import { jsPDF } from "jspdf";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
+import { PDFComponent } from "./PDFComponent";
 
 const FallbackPreview = () => {
   return <SpinnerComet w="56px" h="56px" s="5px" />;
@@ -71,6 +72,8 @@ const QuotationPreviewModalMemo = () => {
   };
   // -------------------------- ✅ツールチップ✅ --------------------------
 
+  const pdfTargetRef = useRef<HTMLDivElement | null>(null);
+  // const [isLoadingPDF, setIsLoadingPDF] = useState(true);
   const [isLoadingPDF, setIsLoadingPDF] = useState(false);
   const [pdfURL, setPdfURL] = useState<string | null>(null);
 
@@ -80,151 +83,20 @@ const QuotationPreviewModalMemo = () => {
   //   "customer_company_logos"
   // );
 
-  // // 初回マウント時にpdfデータをフェッチ
-  useEffect(() => {
-    if (!selectedRowDataQuotation) return;
-    if (pdfURL) return;
-    // 見積もりデータが取得された後にpdfを生成する
-    const loadPDF = async () => {
-      if (!selectedRowDataQuotation) return;
-      setIsLoadingPDF(true);
-      try {
-        const quotation = selectedRowDataQuotation;
+  // -------------------------- 🌟初回マウント時🌟 --------------------------
+  // useEffect(() => {
+  //   if (!isLoadingPDF) return;
+  //   console.log("useEffect実行");
+  //   setTimeout(() => {
+  //     setIsLoadingPDF(false);
+  //     if (pdfTargetRef.current) {
+  //       pdfTargetRef.current.classList.add(styles.mounted);
+  //       console.log("タイマー関数 mounted追加");
+  //     }
+  //   }, 1500);
+  // }, []);
 
-        console.log("🌟useEffect axios.post実行");
-
-        const response = await axios.post(`/api/documents/fonts/encode-font`, {}, {});
-
-        if (!response.data) throw new Error("日本語フォントの読み込みに失敗しました。");
-
-        // フォントファイルのバイナリデータをBase64文字列形式にエンコードしたフォントデータを取得
-        const { base64RegularFont, base64SemiBoldFont, base64BoldFont } = response.data;
-
-        // クライアントサイドでPDFのインスタンスを作成
-        const doc = new jsPDF();
-
-        // VFSにフォントファイルを追加
-        // APIから受け取ったbase64文字列型式のフォントデータをjsPDFのVFSに追加
-        doc.addFileToVFS("NotoSerifJP-Regular.otf", base64RegularFont);
-        doc.addFileToVFS("NotoSerifJP-SemiBold.otf", base64SemiBoldFont);
-        doc.addFileToVFS("NotoSerifJP-Bold.otf", base64BoldFont);
-
-        // フォントを登録
-        doc.addFont('"NotoSerifJP-Regular.otf', '"NotoSerifJP', "normal");
-        doc.addFont('"NotoSerifJP-SemiBold.otf', '"NotoSerifJP', "semibold");
-        doc.addFont('"NotoSerifJP-Bold.otf', '"NotoSerifJP', "bold");
-
-        // 使用するフォントを設定
-        doc.setFont('"NotoSerifJP', "normal");
-
-        // PDFの作成
-        // ヘッダーの追加
-        doc.setFontSize(16);
-        doc.text(quotation.quotation_title ?? "", 20, 20);
-        doc.setFontSize(12);
-        doc.text(
-          `見積日付: ${quotation.quotation_date ? format(new Date(quotation.quotation_date), "yyyy年MM月dd日") : ""}`,
-          20,
-          30
-        );
-        if (quotation.quotation_no_custom) {
-          doc.text(`見積番号: ${quotation.quotation_no_custom ?? ""}`, 20, 40);
-        } else {
-          doc.text(`見積番号: ${quotation.quotation_no_system ?? ""}`, 20, 40);
-        }
-        doc.text(`相手先: ${quotation.company_name ?? ""}`, 20, 50);
-
-        // ロゴ画像 axiosを使用してロゴ画像データをblob形式で取得
-        // try {
-        //   let blobLogo: Blob | null = null;
-        //   if (logoUrl) {
-        //     const responseLogo = await axios.get(logoUrl, { responseType: "blob" });
-        //     blobLogo = responseLogo.data ?? null;
-        //   }
-
-        //   // BlobをBase64エンコードされた文字列に変換
-        //   if (!!blobLogo) {
-        //     const logo = await new Promise((resolve) => {
-        //       const reader = new FileReader();
-        //       // FileReaderのonloadendイベントハンドラの設定 FileReaderがデータの読み込みを完了したときに発火し、resolve関数を呼び出してPromiseを解決する。reader.resultには読み込まれたデータの内容(今回はBase64エンコードされた画像データ)が含まれている
-        //       reader.onloadend = () => resolve(reader.result);
-        //       reader.readAsDataURL(blobLogo as Blob);
-        //     });
-        //     if (!logo) throw new Error("ロゴ画像の読み込みに失敗しました。");
-
-        //     // ロゴ画像の描画 *1
-        //     doc.addImage(logo as string, "PNG", 20, 20, 50, 50);
-        //   }
-        // } catch (errorLogo: any) {
-        //   console.error("画像の取得に失敗しました。", errorLogo);
-        //   throw new Error("ロゴ画像の取得に失敗しました。");
-        // }
-
-        // 商品リストの配置
-        let startY = 60;
-        doc.text("商品リスト", 20, startY);
-        startY += 10;
-        if (quotation?.quotation_products_details && quotation.quotation_products_details.length > 0) {
-          quotation.quotation_products_details.forEach((item, index) => {
-            doc.text(`${item.quotation_product_name}`, 20, startY + index * 10);
-            // doc.text(`${item.quotation_product_outside_short_name}`, 60, startY + index * 10);
-            // doc.text(`${item.unitPrice}円`, 90, startY + index * 10);
-            // doc.text(`${item.quantity}個`, 120, startY + index * 10);
-            // doc.text(`${item.totalPrice}円`, 150, startY + index * 10);
-            // doc.line(20, startY + index * 10 + 2, 180, startY + index * 10 + 2); // 商品毎の線
-            doc.text(`${item.quotation_product_unit_price ?? 0}円`, 60, startY + index * 10);
-            doc.text(`${item.quotation_product_quantity ?? 0}個`, 100, startY + index * 10);
-            doc.text(
-              `${(item.quotation_product_unit_price ?? 0) * (item.quotation_product_quantity ?? 0)}円`,
-              140,
-              startY + index * 10
-            );
-            doc.line(20, startY + index * 10 + 2, 180, startY + index * 10 + 2); // 商品毎の線
-          });
-        }
-
-        // 合計金額と有効期限
-        startY += quotation.quotation_products_details.length * 10 + 10;
-        doc.text(`合計金額: ${quotation.total_amount}円`, 20, startY);
-        doc.text(
-          `有効期限: ${quotation.expiration_date ? format(new Date(quotation.expiration_date), "yyyy年MM月dd日") : ""}`,
-          20,
-          startY + 10
-        );
-
-        // 備考欄
-        doc.text("備考:", 20, startY + 20);
-        doc.text(quotation.quotation_notes ?? "", 20, startY + 30);
-
-        // PDFの保存（ダウンロードや表示に使用）
-        const pdfOutput = doc.output("blob");
-
-        // 一時的な URL を生成
-        const _pdfUrl = URL.createObjectURL(pdfOutput);
-        console.log("🌟一時的なURL _pdfUrl", _pdfUrl);
-
-        setPdfURL(_pdfUrl);
-
-        // setPdfURL(fileURL);
-      } catch (error: any) {
-        console.error("PDFの取得に失敗しました:", error);
-        toast.error(`PDFの取得エラー：${error.message}`);
-      }
-      setIsLoadingPDF(false);
-    };
-
-    loadPDF();
-
-    // Blob URLのクリーンアップ
-    return () => {
-      if (pdfURL) {
-        console.log("🌠クリーンアップ URL.revokeObjectURL()実行して解放");
-        URL.revokeObjectURL(pdfURL);
-      }
-    };
-  }, [selectedRowDataQuotation, setPdfURL, setIsLoadingPDF, pdfURL]);
-
-  // モーダルを閉じる
+  // -------------------------- 🌟モーダルを閉じる関数🌟 --------------------------
   const handleClosePreviewModal = () => {
     if (pdfURL) {
       URL.revokeObjectURL(pdfURL);
@@ -281,16 +153,62 @@ const QuotationPreviewModalMemo = () => {
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<FallbackPreview />}>
             <div
-              className={`${styles.preview_modal_iframe} ${isLoadingPDF || !pdfURL ? `${styles.loading_pdf}` : ``} `}
+              // className={`${styles.preview_modal_iframe} ${isLoadingPDF || !pdfURL ? `${styles.loading_pdf}` : ``} `}
+              // className={`${styles.preview_modal} ${isLoadingPDF || !pdfURL ? `${styles.loading_pdf}` : ``} `}
+              className={`${styles.preview_modal} ${isLoadingPDF ? `${styles.loading_pdf}` : ``} `}
             >
               {/* ---------------------- iframe PDFプレビューエリア ---------------------- */}
-              {!isLoadingPDF && pdfURL && <iframe id="pdf-iframe" src={pdfURL || ""} className={`h-full w-full `} />}
+              {/* {!isLoadingPDF && pdfURL && <iframe id="pdf-iframe" src={pdfURL || ""} className={`h-full w-full `} />} */}
+              {/* {!isLoadingPDF && pdfURL && <PDFComponent />} */}
+              <div ref={pdfTargetRef} className={`${styles.pdf}`}>
+                <div className={`${styles.header_area} flex-center relative h-[6%] w-full bg-[aqua]/[0.3]`}>
+                  <h1 className={`${styles.header} text-[17px] font-semibold`}>御見積書</h1>
+                  <div
+                    className={`${styles.header_right} absolute right-0 top-0 flex h-full flex-col items-end justify-center bg-[yellow]/[0.3] text-[10px]`}
+                  >
+                    <span>No. 123456789123</span>
+                    <span>2021年9月6日</span>
+                  </div>
+                </div>
+
+                <div className={`${styles.detail_area} flex bg-[#dddddd60]`}>
+                  <div className={`${styles.detail_left_area} flex flex-col `}>
+                    <div className={`${styles.company_name_area} flex flex-col justify-end bg-[red]/[0.1]`}>
+                      <h3 className={`${styles.company_name} space-x-[6px] text-[11px] font-semibold`}>
+                        <span>岳石電気株式会社</span>
+                        <span>御中</span>
+                      </h3>
+                      <div className={`${styles.section_underline}`} />
+                    </div>
+
+                    <div className={`${styles.deal_detail_area} bg-[white]/[0.6]`}></div>
+                    <div className={`${styles.total_amount_area} bg-[yellow]/[0.3]`}></div>
+                  </div>
+
+                  <div className={`${styles.detail_right_area} flex flex-col bg-[#02f929]/[0.3]`}>
+                    <div className={`${styles.customer_detail_area} bg-[yellow]/[0.3]`}>
+                      <div className={`${styles.customer_info_area}`}></div>
+                      <div
+                        className={`${styles.corporate_seal} absolute right-[10%] top-0 z-[0] rounded-md bg-[red]/[0.7]`}
+                      ></div>
+                    </div>
+
+                    <div className={`${styles.stamps_area} bg-[blue]/[0.1]`}></div>
+                  </div>
+                </div>
+
+                <div className={`${styles.table_area} bg-[red]/[0.1]`}></div>
+
+                <div className={`${styles.remarks_area} bg-[green]/[0.1]`}></div>
+              </div>
               {isLoadingPDF && !pdfURL && <SpinnerComet w="56px" h="56px" s="5px" />}
               {/* ---------------------- iframe PDFプレビューエリア ここまで ---------------------- */}
               {/* ---------------------- ボタンエリア ---------------------- */}
               {/* 閉じるボタン */}
               <div
-                className={`flex-center transition-bg01 fixed right-[-56px] top-[5px] z-[3000] ${styles.btn}`}
+                className={`flex-center transition-bg01 fixed right-[-56px] top-[5px] z-[3000] ${styles.btn} ${
+                  isLoadingPDF ? `` : `${styles.mounted}`
+                }`}
                 onMouseEnter={(e) =>
                   handleOpenTooltip({
                     e: e,
@@ -307,7 +225,9 @@ const QuotationPreviewModalMemo = () => {
               </div>
               {/* ダウンロードボタン */}
               <div
-                className={`flex-center transition-bg01 fixed right-[-56px] top-[55px] z-[3000] ${styles.btn}`}
+                className={`flex-center transition-bg01 fixed right-[-56px] top-[55px] z-[3000] ${styles.btn} ${
+                  isLoadingPDF ? `` : `${styles.mounted}`
+                }`}
                 onClick={handleDownloadPDF}
                 onMouseEnter={(e) =>
                   handleOpenTooltip({
@@ -325,7 +245,9 @@ const QuotationPreviewModalMemo = () => {
               </div>
               {/* プリントボタン */}
               <div
-                className={`flex-center transition-bg01 fixed right-[-56px] top-[105px] z-[3000] ${styles.btn}`}
+                className={`flex-center transition-bg01 fixed right-[-56px] top-[105px] z-[3000] ${styles.btn} ${
+                  isLoadingPDF ? `` : `${styles.mounted}`
+                }`}
                 onClick={handlePrint}
                 onMouseEnter={(e) =>
                   handleOpenTooltip({
@@ -351,6 +273,179 @@ const QuotationPreviewModalMemo = () => {
 };
 
 export const QuotationPreviewModal = memo(QuotationPreviewModalMemo);
+
+// -------------------------------- jsPDFの実装 --------------------------------
+// // 初回マウント時にpdfデータをフェッチ
+// useEffect(() => {
+//   if (!selectedRowDataQuotation) return;
+//   if (pdfURL) return;
+//   // 見積もりデータが取得された後にpdfを生成する
+//   const loadPDF = async () => {
+//     if (!selectedRowDataQuotation) return;
+//     setIsLoadingPDF(true);
+//     try {
+//       const quotation = selectedRowDataQuotation;
+
+//       console.log("🌟useEffect axios.post実行");
+
+//       const response = await axios.post(`/api/documents/fonts/encode-font`, {}, {});
+
+//       if (!response.data) throw new Error("日本語フォントの読み込みに失敗しました。");
+
+//       // フォントファイルのバイナリデータをBase64文字列形式にエンコードしたフォントデータを取得
+//       // const { base64RegularFont, base64SemiBoldFont, base64BoldFont } = response.data;
+//       const { base64SemiBoldFont } = response.data;
+
+//       // クライアントサイドでPDFのインスタンスを作成
+//       const doc = new jsPDF();
+
+//       console.log("response.data", response.data);
+
+//       // VFSにフォントファイルを追加
+//       // APIから受け取ったbase64文字列型式のフォントデータをjsPDFのVFSに追加
+//       // doc.addFileToVFS("NotoSerifJP-Regular.otf", base64RegularFont);
+//       // doc.addFileToVFS("NotoSerifJP-SemiBold.otf", base64SemiBoldFont);
+//       // doc.addFileToVFS("NotoSerifJP-Bold.otf", base64BoldFont);
+//       doc.addFileToVFS("NotoSansJP-Regular.ttf.ttf", base64SemiBoldFont);
+
+//       // console.log("doc.getFileFromVFS()", doc.getFileFromVFS("NotoSerifJP-SemiBold.otf"));
+//       console.log("doc", doc);
+//       // console.log("doc.vfs", doc.vfs);
+
+//       // // フォントを登録
+//       // doc.addFont("NotoSerifJP-Regular.otf", "NotoSerifJP", "normal");
+//       doc.addFont("NotoSerifJP-SemiBold.otf", "NotoSerifJP", "semibold");
+//       // doc.addFont("NotoSerifJP-Bold.otf", "NotoSerifJP", "bold");
+
+//       console.log("doc.getFont()", doc.getFont());
+//       console.log("doc.getFontList()", doc.getFontList());
+
+//       // console.log("doc.getFileFromVFS()", doc.getFileFromVFS("NotoSerifJP-SemiBold.otf"));
+
+//       // // 使用するフォントを設定
+//       doc.setFont("NotoSerifJP", "semibold");
+
+//       // PDFの作成
+//       // ヘッダーの追加
+//       // doc.setFontSize(16);
+//       // doc.text(quotation.quotation_title ?? "見積もりタイトル", 20, 20);
+//       // doc.setFontSize(12);
+//       // doc.text(
+//       //   `見積日付: ${
+//       //     quotation.quotation_date ? format(new Date(quotation.quotation_date), "yyyy年MM月dd日") : "見積日付"
+//       //   }`,
+//       //   20,
+//       //   30
+//       // );
+//       // if (quotation.quotation_no_custom) {
+//       //   doc.text(`見積番号: ${quotation.quotation_no_custom ?? "見積番号"}`, 20, 40);
+//       // } else {
+//       //   doc.text(`見積番号: ${quotation.quotation_no_system ?? "見積番号"}`, 20, 40);
+//       // }
+//       // doc.text(`相手先: ${quotation.company_name ?? "相手先"}`, 20, 50);
+
+//       // // ロゴ画像 axiosを使用してロゴ画像データをblob形式で取得
+//       // // try {
+//       // //   let blobLogo: Blob | null = null;
+//       // //   if (logoUrl) {
+//       // //     const responseLogo = await axios.get(logoUrl, { responseType: "blob" });
+//       // //     blobLogo = responseLogo.data ?? null;
+//       // //   }
+
+//       // //   // BlobをBase64エンコードされた文字列に変換
+//       // //   if (!!blobLogo) {
+//       // //     const logo = await new Promise((resolve) => {
+//       // //       const reader = new FileReader();
+//       // //       // FileReaderのonloadendイベントハンドラの設定 FileReaderがデータの読み込みを完了したときに発火し、resolve関数を呼び出してPromiseを解決する。reader.resultには読み込まれたデータの内容(今回はBase64エンコードされた画像データ)が含まれている
+//       // //       reader.onloadend = () => resolve(reader.result);
+//       // //       reader.readAsDataURL(blobLogo as Blob);
+//       // //     });
+//       // //     if (!logo) throw new Error("ロゴ画像の読み込みに失敗しました。");
+
+//       // //     // ロゴ画像の描画 *1
+//       // //     doc.addImage(logo as string, "PNG", 20, 20, 50, 50);
+//       // //   }
+//       // // } catch (errorLogo: any) {
+//       // //   console.error("画像の取得に失敗しました。", errorLogo);
+//       // //   throw new Error("ロゴ画像の取得に失敗しました。");
+//       // // }
+
+//       // // 商品リストの配置
+//       // let startY = 60;
+//       // doc.text("商品リスト", 20, startY);
+//       // startY += 10;
+//       // if (quotation?.quotation_products_details && quotation.quotation_products_details.length > 0) {
+//       //   quotation.quotation_products_details.forEach((item, index) => {
+//       //     doc.text(`${item.quotation_product_name ?? "商品名"}`, 20, startY + index * 10);
+//       //     // doc.text(`${item.quotation_product_outside_short_name}`, 60, startY + index * 10);
+//       //     // doc.text(`${item.unitPrice}円`, 90, startY + index * 10);
+//       //     // doc.text(`${item.quantity}個`, 120, startY + index * 10);
+//       //     // doc.text(`${item.totalPrice}円`, 150, startY + index * 10);
+//       //     // doc.line(20, startY + index * 10 + 2, 180, startY + index * 10 + 2); // 商品毎の線
+//       //     doc.text(`${item.quotation_product_unit_price ?? 0}円`, 60, startY + index * 10);
+//       //     doc.text(`${item.quotation_product_quantity ?? 0}個`, 100, startY + index * 10);
+//       //     doc.text(
+//       //       `${(item.quotation_product_unit_price ?? 0) * (item.quotation_product_quantity ?? 0)}円`,
+//       //       140,
+//       //       startY + index * 10
+//       //     );
+//       //     doc.line(20, startY + index * 10 + 2, 180, startY + index * 10 + 2); // 商品毎の線
+//       //   });
+//       // }
+
+//       // // 合計金額と有効期限
+//       // startY += quotation.quotation_products_details.length * 10 + 10;
+//       // doc.text(`合計金額: ${quotation.total_amount}円`, 20, startY);
+//       // doc.text(
+//       //   `有効期限: ${
+//       //     quotation.expiration_date ? format(new Date(quotation.expiration_date), "yyyy年MM月dd日") : "有効期限"
+//       //   }`,
+//       //   20,
+//       //   startY + 10
+//       // );
+
+//       // // 備考欄
+//       // doc.text("備考:", 20, startY + 20);
+//       // doc.text(quotation.quotation_notes ?? "備考", 20, startY + 30);
+
+//       // シンプルなテキストを追加
+//       // doc.text("こんにちは、これはテストのPDFです。", 10, 10);
+
+//       // ユーザーにPDFをダウンロードさせる
+//       // doc.save("test.pdf");
+
+//       // // PDFの保存（ダウンロードや表示に使用）
+//       // const pdfOutput = doc.output("blob");
+
+//       // console.log("pdfOutput", pdfOutput);
+
+//       // // 一時的な URL を生成
+//       // const _pdfUrl = URL.createObjectURL(pdfOutput);
+//       // console.log("🌟一時的なURL _pdfUrl", _pdfUrl);
+
+//       // setPdfURL(_pdfUrl);
+
+//       // setPdfURL(fileURL);
+//     } catch (error: any) {
+//       console.error("PDFの取得に失敗しました:", error);
+//       toast.error(`PDFの取得エラー：${error.message}`);
+//     }
+//     setIsLoadingPDF(false);
+//   };
+
+//   loadPDF();
+
+//   // Blob URLのクリーンアップ
+//   return () => {
+//     if (pdfURL) {
+//       console.log("🌠クリーンアップ URL.revokeObjectURL()実行して解放");
+//       URL.revokeObjectURL(pdfURL);
+//     }
+//   };
+// }, [selectedRowDataQuotation, setPdfURL, setIsLoadingPDF, pdfURL]);
+// -------------------------------- jsPDFの実装 ここまで --------------------------------
+
+// -------------------------------- pdf-libの実装 --------------------------------
 
 // useEffect(() => {
 //   if (!selectedRowDataQuotation) return;

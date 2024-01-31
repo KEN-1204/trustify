@@ -106,8 +106,109 @@
   background-color: var(--color-sign-out-bg);
   cursor: pointer;
   border-radius: 50%;
+  /*  */
+  /* opacity: 0;
+  display: none; */
 }
 .btn:hover {
   background-color: var(--color-sign-out-bg-hover);
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }
+.btn.mounted {
+  /* display: flex;
+  animation: fade 0.3s ease 0.5s forwards; */
+}
+/* @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700&display=swap'); */
+
+/* pdf */
+.pdf {
+  height: 100%;
+  width: 100%;
+  background-color: #fff;
+  position: relative;
+  flex-direction: column;
+  padding: 10% 6% 5%;
+  font-family: "Noto Serif JP", serif;
+  /*  */
+  /* display: none;
+  opacity: 0; */
+}
+.pdf.mounted {
+  /* display: flex;
+  animation: fade 0.3s ease 0.5s forwards; */
+}
+/* ----------------- pdf4部構成 ----------------- */
+.header_area {
+  height: 5%;
+}
+.detail_area {
+  height: 26%;
+  width: 100%;
+  padding-bottom: 6px;
+}
+.table_area {
+  height: 63%;
+}
+.remarks_area {
+  height: 6%;
+}
+
+/* ----------------- header_area ----------------- */
+.header {
+  letter-spacing: 12px;
+}
+.header_right {
+}
+
+.section_underline {
+  min-height: 2px;
+  width: 100%;
+  background-color: var(--color-text-title);
+}
+
+/* ----------------- detail_area ----------------- */
+.detail_left_area {
+  height: 100%;
+  width: 60%;
+}
+.detail_right_area {
+  height: 100%;
+  width: 40%;
+  padding-left: 5%;
+  position: relative;
+}
+/* left_area */
+.company_name_area {
+  height: 16%;
+}
+.deal_detail_area {
+  height: 64%;
+}
+.total_amount_area {
+  height: 20%;
+}
+/* right_area */
+.customer_detail_area {
+  height: 69%;
+  position: relative;
+}
+.stamps_area {
+  height: 31%;
+}
+
+/* customer_detail_area */
+.customer_info_area {
+}
+.corporate_seal {
+  width: 40%;
+  height: 0;
+  padding-top: 40%; /* widthと同じ高さに設定 */
+}
+
+/* company_name_area */
+.company_name {
+}
+/* deal_detail_area */
+
+/* ----------------- table_area ----------------- */
+/* ----------------- remarks_area ----------------- */
