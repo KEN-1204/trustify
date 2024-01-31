@@ -13,12 +13,15 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import NextImage from "next/image";
 // import NextImage from "next/legacy/image";
+import { jsPDF } from "jspdf";
+import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 
 const FallbackPreview = () => {
   return <SpinnerComet w="56px" h="56px" s="5px" />;
 };
 
 const QuotationPreviewModalMemo = () => {
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   const isOpenQuotationPreviewModal = useDashboardStore((state) => state.isOpenQuotationPreviewModal);
   const setIsOpenQuotationPreviewModal = useDashboardStore((state) => state.setIsOpenQuotationPreviewModal);
   const selectedRowDataQuotation = useDashboardStore((state) => state.selectedRowDataQuotation);
@@ -71,37 +74,141 @@ const QuotationPreviewModalMemo = () => {
   const [isLoadingPDF, setIsLoadingPDF] = useState(false);
   const [pdfURL, setPdfURL] = useState<string | null>(null);
 
-  // 初回マウント時にpdfデータをフェッチ
+  // 会社ロゴのフルURLを取得
+  // const { fullUrl: logoUrl, isLoading: isLoadingLogoImg } = useDownloadUrl(
+  //   userProfileState?.logo_url,
+  //   "customer_company_logos"
+  // );
+
+  // // 初回マウント時にpdfデータをフェッチ
   useEffect(() => {
     if (!selectedRowDataQuotation) return;
     if (pdfURL) return;
     // 見積もりデータが取得された後にpdfを生成する
     const loadPDF = async () => {
+      if (!selectedRowDataQuotation) return;
       setIsLoadingPDF(true);
       try {
-        const axiosPayload = {
-          selectedQuotation: selectedRowDataQuotation,
-        };
+        const quotation = selectedRowDataQuotation;
 
-        console.log("🌟useEffect axios.post実行 axiosPayload", axiosPayload);
+        console.log("🌟useEffect axios.post実行");
 
-        const response = await axios.post(`/api/documents/pdf/create-pdf-quotation`, axiosPayload, {
-          responseType: "blob", // PDFデータをBlobとして受け取る
-        });
-        // const response = await axios.post(`/api/documents/pdf/test`, axiosPayload, {
-        //   responseType: "blob", // PDFデータをBlobとして受け取る
-        // });
+        const response = await axios.post(`/api/documents/fonts/encode-font`, {}, {});
 
-        console.log("🌟axios.post成功 response", response);
+        if (!response.data) throw new Error("日本語フォントの読み込みに失敗しました。");
 
-        const blob = new Blob([response.data], { type: "application/pdf" });
-        console.log("🌟blob", blob);
-        const fileURL = URL.createObjectURL(blob);
-        console.log("🌟fileURL", fileURL);
-        setPdfURL(fileURL);
+        // フォントファイルのバイナリデータをBase64文字列形式にエンコードしたフォントデータを取得
+        const { base64RegularFont, base64SemiBoldFont, base64BoldFont } = response.data;
+
+        // クライアントサイドでPDFのインスタンスを作成
+        const doc = new jsPDF();
+
+        // VFSにフォントファイルを追加
+        // APIから受け取ったbase64文字列型式のフォントデータをjsPDFのVFSに追加
+        doc.addFileToVFS("NotoSerifJP-Regular.otf", base64RegularFont);
+        doc.addFileToVFS("NotoSerifJP-SemiBold.otf", base64SemiBoldFont);
+        doc.addFileToVFS("NotoSerifJP-Bold.otf", base64BoldFont);
+
+        // フォントを登録
+        doc.addFont('"NotoSerifJP-Regular.otf', '"NotoSerifJP', "normal");
+        doc.addFont('"NotoSerifJP-SemiBold.otf', '"NotoSerifJP', "semibold");
+        doc.addFont('"NotoSerifJP-Bold.otf', '"NotoSerifJP', "bold");
+
+        // 使用するフォントを設定
+        doc.setFont('"NotoSerifJP', "normal");
+
+        // PDFの作成
+        // ヘッダーの追加
+        doc.setFontSize(16);
+        doc.text(quotation.quotation_title ?? "", 20, 20);
+        doc.setFontSize(12);
+        doc.text(
+          `見積日付: ${quotation.quotation_date ? format(new Date(quotation.quotation_date), "yyyy年MM月dd日") : ""}`,
+          20,
+          30
+        );
+        if (quotation.quotation_no_custom) {
+          doc.text(`見積番号: ${quotation.quotation_no_custom ?? ""}`, 20, 40);
+        } else {
+          doc.text(`見積番号: ${quotation.quotation_no_system ?? ""}`, 20, 40);
+        }
+        doc.text(`相手先: ${quotation.company_name ?? ""}`, 20, 50);
+
+        // ロゴ画像 axiosを使用してロゴ画像データをblob形式で取得
+        // try {
+        //   let blobLogo: Blob | null = null;
+        //   if (logoUrl) {
+        //     const responseLogo = await axios.get(logoUrl, { responseType: "blob" });
+        //     blobLogo = responseLogo.data ?? null;
+        //   }
+
+        //   // BlobをBase64エンコードされた文字列に変換
+        //   if (!!blobLogo) {
+        //     const logo = await new Promise((resolve) => {
+        //       const reader = new FileReader();
+        //       // FileReaderのonloadendイベントハンドラの設定 FileReaderがデータの読み込みを完了したときに発火し、resolve関数を呼び出してPromiseを解決する。reader.resultには読み込まれたデータの内容(今回はBase64エンコードされた画像データ)が含まれている
+        //       reader.onloadend = () => resolve(reader.result);
+        //       reader.readAsDataURL(blobLogo as Blob);
+        //     });
+        //     if (!logo) throw new Error("ロゴ画像の読み込みに失敗しました。");
+
+        //     // ロゴ画像の描画 *1
+        //     doc.addImage(logo as string, "PNG", 20, 20, 50, 50);
+        //   }
+        // } catch (errorLogo: any) {
+        //   console.error("画像の取得に失敗しました。", errorLogo);
+        //   throw new Error("ロゴ画像の取得に失敗しました。");
+        // }
+
+        // 商品リストの配置
+        let startY = 60;
+        doc.text("商品リスト", 20, startY);
+        startY += 10;
+        if (quotation?.quotation_products_details && quotation.quotation_products_details.length > 0) {
+          quotation.quotation_products_details.forEach((item, index) => {
+            doc.text(`${item.quotation_product_name}`, 20, startY + index * 10);
+            // doc.text(`${item.quotation_product_outside_short_name}`, 60, startY + index * 10);
+            // doc.text(`${item.unitPrice}円`, 90, startY + index * 10);
+            // doc.text(`${item.quantity}個`, 120, startY + index * 10);
+            // doc.text(`${item.totalPrice}円`, 150, startY + index * 10);
+            // doc.line(20, startY + index * 10 + 2, 180, startY + index * 10 + 2); // 商品毎の線
+            doc.text(`${item.quotation_product_unit_price ?? 0}円`, 60, startY + index * 10);
+            doc.text(`${item.quotation_product_quantity ?? 0}個`, 100, startY + index * 10);
+            doc.text(
+              `${(item.quotation_product_unit_price ?? 0) * (item.quotation_product_quantity ?? 0)}円`,
+              140,
+              startY + index * 10
+            );
+            doc.line(20, startY + index * 10 + 2, 180, startY + index * 10 + 2); // 商品毎の線
+          });
+        }
+
+        // 合計金額と有効期限
+        startY += quotation.quotation_products_details.length * 10 + 10;
+        doc.text(`合計金額: ${quotation.total_amount}円`, 20, startY);
+        doc.text(
+          `有効期限: ${quotation.expiration_date ? format(new Date(quotation.expiration_date), "yyyy年MM月dd日") : ""}`,
+          20,
+          startY + 10
+        );
+
+        // 備考欄
+        doc.text("備考:", 20, startY + 20);
+        doc.text(quotation.quotation_notes ?? "", 20, startY + 30);
+
+        // PDFの保存（ダウンロードや表示に使用）
+        const pdfOutput = doc.output("blob");
+
+        // 一時的な URL を生成
+        const _pdfUrl = URL.createObjectURL(pdfOutput);
+        console.log("🌟一時的なURL _pdfUrl", _pdfUrl);
+
+        setPdfURL(_pdfUrl);
+
+        // setPdfURL(fileURL);
       } catch (error: any) {
         console.error("PDFの取得に失敗しました:", error);
-        toast.error("PDFの取得に失敗しました...🙇‍♀️");
+        toast.error(`PDFの取得エラー：${error.message}`);
       }
       setIsLoadingPDF(false);
     };
@@ -173,22 +280,12 @@ const QuotationPreviewModalMemo = () => {
         {/* プレビューモーダル */}
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<FallbackPreview />}>
-            <div className={`${styles.preview_modal} ${isLoadingPDF ? `${styles.loading_pdf}` : ``} `}>
+            <div
+              className={`${styles.preview_modal_iframe} ${isLoadingPDF || !pdfURL ? `${styles.loading_pdf}` : ``} `}
+            >
               {/* ---------------------- iframe PDFプレビューエリア ---------------------- */}
-              {/* {!isLoadingPDF && pdfURL && <iframe id="pdf-iframe" src={pdfURL || ""} className={`h-full w-full `} />} */}
-              {!isLoadingPDF && pdfURL && (
-                <NextImage
-                  src={pdfURL}
-                  alt="PDF"
-                  // blurDataURL={bgImagePlaceholder()}
-                  // placeholder="blur"
-                  fill
-                  sizes="100%"
-                  // className="z-[0] h-full w-5/12 object-cover"
-                  className="z-[0] h-full w-full object-cover"
-                />
-              )}
-              {isLoadingPDF && <SpinnerComet w="56px" h="56px" s="5px" />}
+              {!isLoadingPDF && pdfURL && <iframe id="pdf-iframe" src={pdfURL || ""} className={`h-full w-full `} />}
+              {isLoadingPDF && !pdfURL && <SpinnerComet w="56px" h="56px" s="5px" />}
               {/* ---------------------- iframe PDFプレビューエリア ここまで ---------------------- */}
               {/* ---------------------- ボタンエリア ---------------------- */}
               {/* 閉じるボタン */}
@@ -254,3 +351,53 @@ const QuotationPreviewModalMemo = () => {
 };
 
 export const QuotationPreviewModal = memo(QuotationPreviewModalMemo);
+
+// useEffect(() => {
+//   if (!selectedRowDataQuotation) return;
+//   if (pdfURL) return;
+//   // 見積もりデータが取得された後にpdfを生成する
+//   const loadPDF = async () => {
+//     setIsLoadingPDF(true);
+//     try {
+//       const axiosPayload = {
+//         selectedQuotation: selectedRowDataQuotation,
+//       };
+
+//       console.log("🌟useEffect axios.post実行 axiosPayload", axiosPayload);
+
+//       const response = await axios.post(`/api/documents/pdf/create-pdf-quotation`, axiosPayload, {
+//         responseType: "blob", // PDFデータをBlobとして受け取る
+//       });
+
+//       console.log("🌟axios.post成功 response", response);
+
+//       const blob = new Blob([response.data], { type: "application/pdf" });
+//       console.log("🌟blob", blob);
+//       const fileURL = URL.createObjectURL(blob);
+//       console.log("🌟fileURL", fileURL);
+//       setPdfURL(fileURL);
+//     } catch (error: any) {
+//       console.error("PDFの取得に失敗しました:", error);
+//       toast.error("PDFの取得に失敗しました...🙇‍♀️");
+//     }
+//     setIsLoadingPDF(false);
+//   };
+
+//   loadPDF();
+
+//   // Blob URLのクリーンアップ
+//   return () => {
+//     if (pdfURL) {
+//       console.log("🌠クリーンアップ URL.revokeObjectURL()実行して解放");
+//       URL.revokeObjectURL(pdfURL);
+//     }
+//   };
+// }, [selectedRowDataQuotation, setPdfURL, setIsLoadingPDF, pdfURL]);
+
+/*
+*1
+imageData：画像のデータ。これはBase64エンコードされた文字列、URL、HTMLの<canvas>要素、またはUint8Array形式のバイナリデータであることができます。
+format：画像のフォーマット。一般的なフォーマットには'PNG'、'JPG'、'JPEG'などがあります。
+x、y：画像を配置するPDFページ上のx座標とy座標（通常はポイント単位）。
+width、height：画像の幅と高さ。指定しない場合は画像の元のサイズが使用されますが、指定することで画像のサイズを調整できます。
+*/

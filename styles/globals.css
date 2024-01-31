@@ -2658,3 +2658,6 @@ textarea {
   color: #fff !important;
 }
 /* ------------------ ✅カレンダー✅ ------------------ */
+#sidenav-container {
+  width: 0px;
+}

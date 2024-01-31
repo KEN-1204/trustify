@@ -43,22 +43,6 @@
   justify-content: center;
 }
 /* A4サイズは210mm * 297mm で 縦横比は1:1.41 */
-.preview_modal_iframe {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 92vh;
-  /* width: calc(92vh / 1.41); */
-  width: 80vw;
-  max-height: 1240px;
-  /* max-width: 879px; */
-  background-color: #fff;
-  transition: width 0.2s ease, height 0.2s ease, border-radius 0.2s ease;
-  opacity: 0;
-  animation: fade 0.3s 0.1s forwards;
-  box-shadow: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
-}
 .preview_modal {
   position: relative;
   display: flex;
@@ -66,15 +50,37 @@
   justify-content: center;
   height: 92vh;
   width: calc(92vh / 1.41);
-  /* width: 80vw; */
   max-height: 1240px;
   max-width: 879px;
+  /* width: 80vw; */
   background-color: #fff;
   transition: width 0.2s ease, height 0.2s ease, border-radius 0.2s ease;
   opacity: 0;
   animation: fade 0.3s 0.1s forwards;
   box-shadow: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
 }
+.preview_modal_iframe {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* height: 92vh; */
+  /* width: 56vw; */
+  /* width: calc(92vh / 1.41); */
+  height: 90vh;
+  /* max-height: 1240px; */
+  max-height: 1200px;
+  /* height: 1142px; */
+  width: 53vw;
+  max-width: 1124px;
+  /* max-width: 879px; */
+  background-color: #fff;
+  transition: width 0.2s ease, height 0.2s ease, border-radius 0.2s ease;
+  opacity: 0;
+  animation: fade 0.3s 0.1s forwards;
+  box-shadow: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
+}
+
 @keyframes fade {
   0% {
     opacity: 0;
@@ -84,6 +90,11 @@
   }
 }
 .loading_pdf {
+  height: 120px;
+  width: 120px;
+  border-radius: 18px;
+}
+.display_pdf {
   height: 120px;
   width: 120px;
   border-radius: 18px;
