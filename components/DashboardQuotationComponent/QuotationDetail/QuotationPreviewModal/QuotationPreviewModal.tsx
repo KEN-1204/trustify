@@ -142,6 +142,54 @@ const QuotationPreviewModalMemo = () => {
 
   console.log("🌠PDFプレビューモーダル レンダリング pdfURL", pdfURL);
 
+  const dealTitleArray = [
+    { title: "納期", titleLetterArray: ["納", "期"] },
+    { title: "受渡場所", titleLetterArray: ["受", "渡", "場", "所"] },
+    { title: "取引方法", titleLetterArray: ["取", "引", "方", "法"] },
+    { title: "有効期限", titleLetterArray: ["有", "効", "期", "限"] },
+  ];
+
+  const amountTitleArray = ["合", "計", "金", "額"];
+
+  const logoSrc = "/assets/images/Trustify_logo_white1.png";
+  // const logoSrc =
+  //   theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
+
+  const productsArray = [
+    {
+      id: "1-1",
+      product_name: "画像寸法測定器",
+      outside_name: "IM-8000/8030T",
+      unit_quantity: 1,
+      unit_price: 6295000,
+      amount: 6295000,
+    },
+    {
+      id: "2-1",
+      product_name: "画像寸法測定器",
+      outside_name: "IM-8000/8030T",
+      unit_quantity: 1,
+      unit_price: 6295000,
+      amount: 6295000,
+    },
+    {
+      id: "3-1",
+      product_name: "画像寸法測定器",
+      outside_name: "IM-8000/8030T",
+      unit_quantity: 1,
+      unit_price: 6295000,
+      amount: 6295000,
+    },
+    {
+      id: "4-1",
+      product_name: "画像寸法測定器",
+      outside_name: "IM-8000/8030T",
+      unit_quantity: 1,
+      unit_price: 6295000,
+      amount: 6295000,
+    },
+  ];
+
   return (
     <>
       {/* オーバーレイ */}
@@ -164,7 +212,7 @@ const QuotationPreviewModalMemo = () => {
                 <div className={`${styles.header_area} flex-center relative h-[6%] w-full bg-[aqua]/[0.3]`}>
                   <h1 className={`${styles.header} text-[17px] font-semibold`}>御見積書</h1>
                   <div
-                    className={`${styles.header_right} absolute right-0 top-0 flex h-full flex-col items-end justify-center bg-[yellow]/[0.3] text-[10px]`}
+                    className={`${styles.header_right} absolute right-0 top-0 flex h-full flex-col items-end justify-end bg-[yellow]/[0.6] text-[9px]`}
                   >
                     <span>No. 123456789123</span>
                     <span>2021年9月6日</span>
@@ -174,30 +222,229 @@ const QuotationPreviewModalMemo = () => {
                 <div className={`${styles.detail_area} flex bg-[#dddddd60]`}>
                   <div className={`${styles.detail_left_area} flex flex-col `}>
                     <div className={`${styles.company_name_area} flex flex-col justify-end bg-[red]/[0.1]`}>
-                      <h3 className={`${styles.company_name} space-x-[6px] text-[11px] font-semibold`}>
+                      <h3 className={`${styles.company_name} space-x-[6px] text-[10px] font-medium`}>
                         <span>岳石電気株式会社</span>
                         <span>御中</span>
                       </h3>
                       <div className={`${styles.section_underline}`} />
                     </div>
 
-                    <div className={`${styles.deal_detail_area} bg-[white]/[0.6]`}></div>
-                    <div className={`${styles.total_amount_area} bg-[yellow]/[0.3]`}></div>
+                    <div className={`${styles.deal_detail_area} bg-[white]/[0.6]`}>
+                      <p className={`${styles.description} bg-[white]/[0.7]`}>
+                        御照会の件下記の通りお見積り申し上げます
+                      </p>
+                      <div className={`${styles.row_group_container} bg-[white]/[0.1]`}>
+                        {dealTitleArray.map((obj, index) => (
+                          <div key={obj.title} className={`${styles.row_area} flex items-end`}>
+                            <div className={`${styles.title} flex justify-between`}>
+                              {obj.titleLetterArray.map((letter) => (
+                                <span key={letter}>{letter}</span>
+                              ))}
+                            </div>
+                            <div className={`${styles.deal_content}`}>
+                              <span>当日出荷</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className={`${styles.total_amount_area} flex flex-col justify-end bg-[yellow]/[0.3]`}>
+                      <div className={`flex h-full w-full items-end`}>
+                        <div className={`text-[13px] ${styles.amount_title}`}>
+                          {amountTitleArray.map((letter) => (
+                            <span key={letter}>{letter}</span>
+                          ))}
+                        </div>
+                        <div className={`text-[13px] ${styles.amount_content} flex items-end`}>
+                          <span>￥6,000,000-</span>
+                        </div>
+                      </div>
+                      <div className={`${styles.section_underline}`} />
+                    </div>
                   </div>
 
-                  <div className={`${styles.detail_right_area} flex flex-col bg-[#02f929]/[0.3]`}>
+                  <div className={`${styles.detail_right_area} flex flex-col bg-[#02f929]/[0]`}>
                     <div className={`${styles.customer_detail_area} bg-[yellow]/[0.3]`}>
-                      <div className={`${styles.customer_info_area}`}></div>
+                      <div className={`${styles.customer_info_area} flex flex-col`}>
+                        <div className={`${styles.company_logo_area} flex items-end justify-start bg-[white]/[0]`}>
+                          <div
+                            className={`relative flex h-[90%] w-[50%] items-end justify-start bg-[yellow]/[0.3] ${styles.logo_container}`}
+                          >
+                            <NextImage
+                              src={logoSrc}
+                              alt=""
+                              className="h-full w-full object-contain"
+                              // width={}
+                              fill
+                              sizes="100px"
+                            />
+                          </div>
+                        </div>
+                        <div className={`${styles.company_name_area}`}>
+                          <span className={`${styles.company_name} flex items-center`}>
+                            <span className="mr-[1%] text-[9px]">株式会社</span>
+                            <span className="text-[12px]">トラスティファイ</span>
+                          </span>
+                        </div>
+                        <div className={`${styles.user_info_area} flex flex-col`}>
+                          <div className={`${styles.row_area}  flex items-end`}>
+                            <span>メトロロジ事業部</span>
+                          </div>
+                          <div className={`${styles.row_area} flex items-center`}>
+                            <div className={`min-w-[50%]`}>
+                              <span className={``}>東京営業所</span>
+                            </div>
+                            <div className={`min-w-[50%]`}>
+                              <span className={``}>伊藤謙太</span>
+                            </div>
+                          </div>
+                          <div className={`${styles.address_area} flex`}>
+                            <span className={`min-w-max`}>〒105-0023</span>
+                            <div className={`flex flex-col pl-[5%]`}>
+                              <span>東京都港区芝浦1-2-1</span>
+                              <span>シーバンスN館</span>
+                            </div>
+                          </div>
+                          <div className={`${styles.row_area} flex items-center`}>
+                            <div className="flex h-full w-[50%] items-center">
+                              <span>TEL</span>
+                              <span className="pl-[6%]">03-6866-1611</span>
+                            </div>
+                            <div className={`flex h-full w-[50%] items-center`}>
+                              <span>FAX</span>
+                              <span className="pl-[6%]">03-6866-1611</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                       <div
-                        className={`${styles.corporate_seal} absolute right-[10%] top-0 z-[0] rounded-md bg-[red]/[0.7]`}
+                        className={`${styles.corporate_seal} absolute right-[6%] top-0 z-[0] rounded-md bg-[red]/[0.7]`}
                       ></div>
                     </div>
 
-                    <div className={`${styles.stamps_area} bg-[blue]/[0.1]`}></div>
+                    <div className={`${styles.stamps_area} flex flex-row-reverse bg-[blue]/[0]`}>
+                      {Array(3)
+                        .fill(null)
+                        .map((_, index) => (
+                          <div key={index} className={`h-full w-1/3 ${styles.stamp_box} flex-center`}>
+                            {index === 0 && (
+                              <div className="flex h-[25px] w-[25px] flex-col items-center justify-center rounded-full border border-solid border-[red] py-[10%] text-[8px] text-[red]">
+                                <div className="flex flex-col items-center leading-[1.3]">
+                                  <span>伊</span>
+                                  <span>藤</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                    </div>
                   </div>
                 </div>
 
-                <div className={`${styles.table_area} bg-[red]/[0.1]`}></div>
+                <div role="grid" className={`${styles.table_area} bg-[red]/[0]`}>
+                  <div
+                    role="row"
+                    className={`${styles.table_header_row} flex bg-[red]/[0]`}
+                    // style={{ gridTemplateColumns: "65% 5% 12% 18%" }}
+                  >
+                    {Array(4)
+                      .fill(null)
+                      .map((_, index) => (
+                        <div
+                          role="columnheader"
+                          key={index}
+                          className={`${styles.column_header} flex-center`}
+                          style={{ gridColumnStart: index + 1 }}
+                        >
+                          {index === 0 && (
+                            <div className={`flex h-full w-[24%] items-center justify-between`}>
+                              <span>品</span>
+                              <span>名</span>
+                            </div>
+                          )}
+                          {index === 1 && (
+                            <div className={`flex-center h-full w-full`}>
+                              <span>数量</span>
+                            </div>
+                          )}
+                          {index === 2 && (
+                            <div className={`flex-center h-full w-full`}>
+                              <span>単価 (円)</span>
+                            </div>
+                          )}
+                          {index === 3 && (
+                            <div className={`flex-center h-full w-full`}>
+                              <span>金額 (円)</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+
+                  <div
+                    role="rowgroup"
+                    className={`${styles.row_group_products_area} bg-[red]/[0]`}
+                    style={{
+                      ...(productsArray?.length > 0 && {
+                        borderBottom: "0.6px solid #37352f",
+                        minHeight: `${3.6 * productsArray.length + 1}%`,
+                        display: "grid",
+                        // gridTemplateRows: "repeat(1fr)",
+                        gridTemplateRows: `0.1fr repeat(1fr)`,
+                      }),
+                    }}
+                  >
+                    <div role="row" className={`${styles.row} ${styles.blank} flex items-center justify-between`}>
+                      {Object.keys(productsArray).map((key, index) => (
+                        <div
+                          key={key + index.toString() + "blank"}
+                          role="gridcell"
+                          className={`${styles.grid_cell} flex items-center `}
+                        ></div>
+                      ))}
+                    </div>
+                    {productsArray?.length > 0 &&
+                      productsArray.map((obj, index) => {
+                        return (
+                          <div role="row" key={obj.id} className={`${styles.row} flex items-center justify-between`}>
+                            {Object.keys(productsArray).map((key, index) => (
+                              <div
+                                role="gridcell"
+                                key={key + index.toString()}
+                                className={`${styles.grid_cell} flex items-center ${
+                                  index === 0 ? `${styles.product_name_area}` : ``
+                                }`}
+                              >
+                                {index === 0 && (
+                                  <>
+                                    <div
+                                      className={`${styles.product_name} ${
+                                        obj.outside_name ? `w-[52%]` : `w-full`
+                                      } flex items-center bg-[yellow]/[0]`}
+                                    >
+                                      <span>{obj.product_name}</span>
+                                    </div>
+                                    {obj.outside_name && (
+                                      <div
+                                        className={`${styles.outside_name} flex w-[48%] items-center bg-[green]/[0]`}
+                                      >
+                                        <span>{obj.outside_name}</span>
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                                {index !== 0 && (
+                                  <div>
+                                    <span></span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
 
                 <div className={`${styles.remarks_area} bg-[green]/[0.1]`}></div>
               </div>

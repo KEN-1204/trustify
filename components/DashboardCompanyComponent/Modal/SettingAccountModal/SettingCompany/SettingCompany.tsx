@@ -39,6 +39,7 @@ import { getNumberOfEmployeesClassForCustomer, optionsNumberOfEmployeesClass } f
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { useMutateCompanyLogo } from "@/hooks/useMutateCompanyLogo";
 import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
+import { ImInfo } from "react-icons/im";
 
 const SettingCompanyMemo = () => {
   const language = useStore((state) => state.language);
@@ -68,6 +69,9 @@ const SettingCompanyMemo = () => {
   // 規模
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
   const [editedNumberOfEmployeeClass, setEditedNumberOfEmployeeClass] = useState("");
+  // 住所
+  const [editAddressMode, setEditAddressMode] = useState(false);
+  const [editedAddress, setEditedAddress] = useState("");
   // 事業部 追加・編集
   const [insertDepartmentMode, setInsertDepartmentMode] = useState(false);
   const [inputDepartmentName, setInputDepartmentName] = useState("");
@@ -98,6 +102,9 @@ const SettingCompanyMemo = () => {
   const [refetchLoading, setRefetchLoading] = useState(false);
   // 削除確認モーダル
   const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false);
+
+  // 説明アイコン
+  const infoIconAddressRef = useRef<HTMLDivElement | null>(null);
 
   const { uploadCompanyLogoMutation, deleteCompanyLogoMutation } = useMutateCompanyLogo();
   const { fullUrl: logoUrl, isLoading: isLoadingLogoImg } = useDownloadUrl(
@@ -784,6 +791,47 @@ const SettingCompanyMemo = () => {
     }
   };
   // ====================== ✅事業所・営業所タグをボタンクリックで左右にスクロールする関数✅ ======================
+
+  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    marginTop = 0,
+    // itemsPosition = "start",
+    itemsPosition = "center",
+  }: TooltipParams) => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+
+    setHoveredItemPos({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: content,
+      content2: content2,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    setHoveredItemPos(null);
+  };
+  // ==================================================================================
 
   return (
     <>
@@ -2440,6 +2488,133 @@ const SettingCompanyMemo = () => {
             )}
           </div>
           {/* 規模ここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+          {/* 住所 */}
+          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+            {/* <div className={`${styles.section_title}`}>住所</div> */}
+            <div className={`${styles.section_title}`}>
+              <div
+                className="flex max-w-max items-center space-x-[9px]"
+                onMouseEnter={(e) => {
+                  if (
+                    infoIconAddressRef.current &&
+                    infoIconAddressRef.current.classList.contains(styles.animate_ping)
+                  ) {
+                    infoIconAddressRef.current.classList.remove(styles.animate_ping);
+                  }
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: "住所と建物名の間はスペースを空けて入力してください。",
+                    content2: "住所と建物名の間にスペースを空けると見積書の住所のレイアウトが綺麗に反映されます。",
+                    marginTop: 33,
+                    // marginTop: 8,
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <span>印鑑データ</span>
+                {/* <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} /> */}
+                <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                  <div
+                    ref={infoIconAddressRef}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                  ></div>
+                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                </div>
+              </div>
+            </div>
+
+            {!editAddressMode && (
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
+                <div className={`${styles.section_value}`}>
+                  {userProfileState?.customer_address ? userProfileState.customer_address : "未設定"}
+                </div>
+                <div>
+                  <div
+                    className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedAddress(userProfileState?.customer_address ? userProfileState.customer_address : "");
+                      setEditAddressMode(true);
+                    }}
+                  >
+                    編集
+                  </div>
+                </div>
+              </div>
+            )}
+            {editAddressMode && (
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
+                <input
+                  type="text"
+                  placeholder="住所を入力してください"
+                  required
+                  autoFocus
+                  className={`${styles.input_box}`}
+                  value={editedAddress}
+                  onChange={(e) => setEditedAddress(e.target.value)}
+                  // onBlur={() => setEditedName(toHalfWidth(editedName.trim()))}
+                  onBlur={() => setEditedAddress(toHalfWidthAndSpace(editedAddress.trim()))}
+                />
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedAddress("");
+                      setEditAddressMode(false);
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      if (!userProfileState) return;
+                      if (userProfileState.customer_address === editedAddress) {
+                        setEditAddressMode(false);
+                        return;
+                      }
+                      if (editedAddress === "") {
+                        alert("有効な住所を入力してください");
+                        return;
+                      }
+                      if (!userProfileState?.company_id) return alert("会社IDが見つかりません");
+                      setLoadingGlobalState(true);
+                      const { data: companyData, error } = await supabase
+                        .from("companies")
+                        .update({ customer_address: editedAddress })
+                        .eq("id", userProfileState.company_id)
+                        .select("customer_address")
+                        .single();
+
+                      if (error) {
+                        setLoadingGlobalState(false);
+                        setEditAddressMode(false);
+                        alert(error.message);
+                        console.log("住所UPDATEエラー", error.message);
+                        toast.error("住所の更新に失敗しました!");
+                        return;
+                      }
+                      console.log("住所UPDATE成功 companyData.customer_address", companyData.customer_address);
+                      setUserProfileState({
+                        // ...(companyData as UserProfile),
+                        ...(userProfileState as UserProfileCompanySubscription),
+                        customer_address: companyData.customer_address ? companyData.customer_address : null,
+                      });
+                      setLoadingGlobalState(false);
+                      setEditAddressMode(false);
+                      toast.success("住所の更新が完了しました!");
+                    }}
+                  >
+                    保存
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* 住所ここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 

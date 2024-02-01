@@ -578,7 +578,7 @@ export const DashboardHeaderMemo: FC = () => {
             alt=""
             className="h-full w-[90%] object-contain"
             fill
-            priority={true}
+            // priority={true}
             sizes="10vw"
             // placeholder="blur"
             // blurDataURL={theme === "dark" ? blurDataURLDark : blurDataURL}
