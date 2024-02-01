@@ -16,16 +16,20 @@ import NextImage from "next/image";
 import { jsPDF } from "jspdf";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { PDFComponent } from "./PDFComponent";
+import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 
 const FallbackPreview = () => {
   return <SpinnerComet w="56px" h="56px" s="5px" />;
 };
 
 const QuotationPreviewModalMemo = () => {
+  const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const isOpenQuotationPreviewModal = useDashboardStore((state) => state.isOpenQuotationPreviewModal);
   const setIsOpenQuotationPreviewModal = useDashboardStore((state) => state.setIsOpenQuotationPreviewModal);
   const selectedRowDataQuotation = useDashboardStore((state) => state.selectedRowDataQuotation);
+
+  const gridTableRef = useRef<HTMLDivElement | null>(null);
 
   // -------------------------- 🌟ツールチップ🌟 --------------------------
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
@@ -190,6 +194,39 @@ const QuotationPreviewModalMemo = () => {
     },
   ];
 
+  const formatDisplayPrice = (price: number | string): string => {
+    switch (language) {
+      case "ja":
+        const priceNum = typeof price === "number" ? price : Number(price);
+        // return formatToJapaneseYen(priceNum, true, false);
+        return priceNum.toLocaleString();
+        break;
+      default:
+        return typeof price === "number" ? price.toString() : price;
+        break;
+    }
+  };
+
+  const getScale = (currentHeight: number) => {
+    if (currentHeight > 788) {
+      return currentHeight / 788;
+    } else {
+      return 1;
+    }
+  };
+
+  const [scalePdf, setScalePdf] = useState(window.innerHeight / 788);
+  useEffect(() => {
+    const handleResize = () => {
+      setScalePdf(getScale(window.innerHeight));
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // コンポーネントのアンマウント時にイベントリスナーを削除
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <>
       {/* オーバーレイ */}
@@ -208,32 +245,31 @@ const QuotationPreviewModalMemo = () => {
               {/* ---------------------- iframe PDFプレビューエリア ---------------------- */}
               {/* {!isLoadingPDF && pdfURL && <iframe id="pdf-iframe" src={pdfURL || ""} className={`h-full w-full `} />} */}
               {/* {!isLoadingPDF && pdfURL && <PDFComponent />} */}
-              <div ref={pdfTargetRef} className={`${styles.pdf}`}>
-                <div className={`${styles.header_area} flex-center relative h-[6%] w-full bg-[aqua]/[0.3]`}>
-                  <h1 className={`${styles.header} text-[17px] font-semibold`}>御見積書</h1>
+              <div ref={pdfTargetRef} className={`${styles.pdf}`} style={{ transform: `scale(${scalePdf})` }}>
+                <div className={`${styles.top_margin} w-full bg-[red]/[0.1]`}></div>
+                <div className={`${styles.header_area} flex-center relative h-[6%] w-full bg-[aqua]/[0]`}>
+                  <h1 className={`${styles.header} font-semibold`}>御見積書</h1>
                   <div
-                    className={`${styles.header_right} absolute right-0 top-0 flex h-full flex-col items-end justify-end bg-[yellow]/[0.6] text-[9px]`}
+                    className={`${styles.header_right} absolute right-0 top-0 flex h-full flex-col items-end justify-end bg-[yellow]/[0] text-[8px]`}
                   >
                     <span>No. 123456789123</span>
                     <span>2021年9月6日</span>
                   </div>
                 </div>
 
-                <div className={`${styles.detail_area} flex bg-[#dddddd60]`}>
+                <div className={`${styles.detail_area} flex bg-[#dddddd00]`}>
                   <div className={`${styles.detail_left_area} flex flex-col `}>
-                    <div className={`${styles.company_name_area} flex flex-col justify-end bg-[red]/[0.1]`}>
-                      <h3 className={`${styles.company_name} space-x-[6px] text-[10px] font-medium`}>
+                    <div className={`${styles.company_name_area} flex flex-col justify-end bg-[red]/[0]`}>
+                      <h3 className={`${styles.company_name} space-x-[6px] text-[9px] font-medium`}>
                         <span>岳石電気株式会社</span>
                         <span>御中</span>
                       </h3>
                       <div className={`${styles.section_underline}`} />
                     </div>
 
-                    <div className={`${styles.deal_detail_area} bg-[white]/[0.6]`}>
-                      <p className={`${styles.description} bg-[white]/[0.7]`}>
-                        御照会の件下記の通りお見積り申し上げます
-                      </p>
-                      <div className={`${styles.row_group_container} bg-[white]/[0.1]`}>
+                    <div className={`${styles.deal_detail_area} bg-[white]/[0]`}>
+                      <p className={`${styles.description} bg-[white]/[0]`}>御照会の件下記の通りお見積り申し上げます</p>
+                      <div className={`${styles.row_group_container} bg-[white]/[0]`}>
                         {dealTitleArray.map((obj, index) => (
                           <div key={obj.title} className={`${styles.row_area} flex items-end`}>
                             <div className={`${styles.title} flex justify-between`}>
@@ -248,7 +284,7 @@ const QuotationPreviewModalMemo = () => {
                         ))}
                       </div>
                     </div>
-                    <div className={`${styles.total_amount_area} flex flex-col justify-end bg-[yellow]/[0.3]`}>
+                    <div className={`${styles.total_amount_area} flex flex-col justify-end bg-[yellow]/[0]`}>
                       <div className={`flex h-full w-full items-end`}>
                         <div className={`text-[13px] ${styles.amount_title}`}>
                           {amountTitleArray.map((letter) => (
@@ -264,22 +300,25 @@ const QuotationPreviewModalMemo = () => {
                   </div>
 
                   <div className={`${styles.detail_right_area} flex flex-col bg-[#02f929]/[0]`}>
-                    <div className={`${styles.customer_detail_area} bg-[yellow]/[0.3]`}>
+                    <div className={`${styles.customer_detail_area} bg-[yellow]/[0]`}>
                       <div className={`${styles.customer_info_area} flex flex-col`}>
-                        <div className={`${styles.company_logo_area} flex items-end justify-start bg-[white]/[0]`}>
-                          <div
-                            className={`relative flex h-[90%] w-[50%] items-end justify-start bg-[yellow]/[0.3] ${styles.logo_container}`}
-                          >
-                            <NextImage
-                              src={logoSrc}
-                              alt=""
-                              className="h-full w-full object-contain"
-                              // width={}
-                              fill
-                              sizes="100px"
-                            />
+                        {logoSrc && (
+                          <div className={`${styles.company_logo_area} flex items-end justify-start bg-[white]/[0]`}>
+                            <div
+                              className={`relative flex h-[90%] w-[50%] items-end justify-start bg-[yellow]/[0] ${styles.logo_container}`}
+                            >
+                              <NextImage
+                                src={logoSrc}
+                                alt=""
+                                className="h-full w-full object-contain"
+                                // width={}
+                                fill
+                                sizes="100px"
+                              />
+                            </div>
                           </div>
-                        </div>
+                        )}
+                        {!logoSrc && <div className="h-[10%] w-full"></div>}
                         <div className={`${styles.company_name_area}`}>
                           <span className={`${styles.company_name} flex items-center`}>
                             <span className="mr-[1%] text-[9px]">株式会社</span>
@@ -323,25 +362,33 @@ const QuotationPreviewModalMemo = () => {
                     </div>
 
                     <div className={`${styles.stamps_area} flex flex-row-reverse bg-[blue]/[0]`}>
-                      {Array(3)
-                        .fill(null)
-                        .map((_, index) => (
-                          <div key={index} className={`h-full w-1/3 ${styles.stamp_box} flex-center`}>
-                            {index === 0 && (
-                              <div className="flex h-[25px] w-[25px] flex-col items-center justify-center rounded-full border border-solid border-[red] py-[10%] text-[8px] text-[red]">
-                                <div className="flex flex-col items-center leading-[1.3]">
-                                  <span>伊</span>
-                                  <span>藤</span>
+                      <div
+                        className={`${styles.stamps_outside_box} flex flex-row-reverse`}
+                        style={{ ...(Array(2).length > 0 && { width: `${(100 * Array(2).length) / 3}%` }) }}
+                      >
+                        {Array(2)
+                          .fill(null)
+                          .map((_, index) => (
+                            <div key={index} className={`h-full w-full ${styles.stamp_box} flex-center`}>
+                              {index === 0 && (
+                                <div className="flex h-[25px] w-[25px] flex-col items-center justify-center rounded-full border border-solid border-[red] py-[10%] text-[8px] text-[red]">
+                                  <div className="flex flex-col items-center leading-[1.3]">
+                                    <span>伊</span>
+                                    <span>藤</span>
+                                  </div>
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                              )}
+                              {index === 1 && (
+                                <div className="flex h-[25px] w-[25px] flex-col items-center justify-center rounded-full py-[10%] text-[8px] text-[red]"></div>
+                              )}
+                            </div>
+                          ))}
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div role="grid" className={`${styles.table_area} bg-[red]/[0]`}>
+                <div role="grid" ref={gridTableRef} className={`${styles.table_area} bg-[red]/[0]`}>
                   <div
                     role="row"
                     className={`${styles.table_header_row} flex bg-[red]/[0]`}
@@ -381,20 +428,36 @@ const QuotationPreviewModalMemo = () => {
                       ))}
                   </div>
 
+                  <div role="row" className={`${styles.top_margin_row} flex items-center justify-between`}>
+                    {Object.keys(productsArray).map((key, index) => (
+                      <div
+                        key={key + index.toString() + "blank"}
+                        role="gridcell"
+                        className={`${styles.grid_cell} flex items-center `}
+                      ></div>
+                    ))}
+                  </div>
+
                   <div
                     role="rowgroup"
                     className={`${styles.row_group_products_area} bg-[red]/[0]`}
                     style={{
                       ...(productsArray?.length > 0 && {
-                        borderBottom: "0.6px solid #37352f",
-                        minHeight: `${3.6 * productsArray.length + 1}%`,
+                        // borderBottom: "0.6px solid #37352f",
+                        borderBottom: "0.3px solid #37352f",
+                        // minHeight: `${3.3 * productsArray.length + 1}%`,
+                        minHeight: `${3.3 * productsArray.length}%`,
                         display: "grid",
-                        // gridTemplateRows: "repeat(1fr)",
-                        gridTemplateRows: `0.1fr repeat(1fr)`,
+                        gridTemplateRows: "repeat(1fr)",
+                        // gridTemplateRows: `0.1fr repeat(1fr)`,
                       }),
                     }}
                   >
-                    <div role="row" className={`${styles.row} ${styles.blank} flex items-center justify-between`}>
+                    {/* <div
+                      role="row"
+                      style={{ gridRowStart: 1 }}
+                      className={`${styles.row} ${styles.blank} flex items-center justify-between`}
+                    >
                       {Object.keys(productsArray).map((key, index) => (
                         <div
                           key={key + index.toString() + "blank"}
@@ -402,17 +465,22 @@ const QuotationPreviewModalMemo = () => {
                           className={`${styles.grid_cell} flex items-center `}
                         ></div>
                       ))}
-                    </div>
+                    </div> */}
                     {productsArray?.length > 0 &&
                       productsArray.map((obj, index) => {
                         return (
-                          <div role="row" key={obj.id} className={`${styles.row} flex items-center justify-between`}>
+                          <div
+                            role="row"
+                            key={obj.id}
+                            style={{ gridRowStart: index + 1 }}
+                            className={`${styles.row} flex items-center justify-between`}
+                          >
                             {Object.keys(productsArray).map((key, index) => (
                               <div
                                 role="gridcell"
                                 key={key + index.toString()}
                                 className={`${styles.grid_cell} flex items-center ${
-                                  index === 0 ? `${styles.product_name_area}` : ``
+                                  index === 0 ? `${styles.product_name_area}` : `justify-end ${styles.qua_area}`
                                 }`}
                               >
                                 {index === 0 && (
@@ -422,22 +490,22 @@ const QuotationPreviewModalMemo = () => {
                                         obj.outside_name ? `w-[52%]` : `w-full`
                                       } flex items-center bg-[yellow]/[0]`}
                                     >
-                                      <span>{obj.product_name}</span>
+                                      {/* <span>{obj.product_name}</span> */}
+                                      {obj.product_name}
                                     </div>
                                     {obj.outside_name && (
                                       <div
                                         className={`${styles.outside_name} flex w-[48%] items-center bg-[green]/[0]`}
                                       >
-                                        <span>{obj.outside_name}</span>
+                                        {/* <span>{obj.outside_name}</span> */}
+                                        {obj.outside_name}
                                       </div>
                                     )}
                                   </>
                                 )}
-                                {index !== 0 && (
-                                  <div>
-                                    <span></span>
-                                  </div>
-                                )}
+                                {index === 1 && <span>{obj.unit_quantity}</span>}
+                                {index === 2 && <span>{formatDisplayPrice(obj.unit_price)}</span>}
+                                {index === 3 && <span>{formatDisplayPrice(obj.amount)}</span>}
                               </div>
                             ))}
                           </div>
@@ -447,6 +515,8 @@ const QuotationPreviewModalMemo = () => {
                 </div>
 
                 <div className={`${styles.remarks_area} bg-[green]/[0.1]`}></div>
+
+                <div className={`${styles.bottom_margin} w-full bg-[red]/[0.1]`}></div>
               </div>
               {isLoadingPDF && !pdfURL && <SpinnerComet w="56px" h="56px" s="5px" />}
               {/* ---------------------- iframe PDFプレビューエリア ここまで ---------------------- */}

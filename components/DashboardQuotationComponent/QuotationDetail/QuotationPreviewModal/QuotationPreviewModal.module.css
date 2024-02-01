@@ -52,6 +52,7 @@
   width: calc(92vh / 1.41);
   max-height: 1240px;
   max-width: 879px;
+
   /* width: 80vw; */
   background-color: #fff;
   transition: width 0.2s ease, height 0.2s ease, border-radius 0.2s ease;
@@ -124,10 +125,15 @@
 .pdf {
   height: 100%;
   width: 100%;
+  max-height: 725px;
+  max-width: calc(725px / 1.41);
   background-color: #fff;
+  /* background-color: #ddd; */
   position: relative;
   flex-direction: column;
-  padding: 10% 6% 5%;
+  /* padding: 10% 6% 5%; */
+  padding: 0 6% 0;
+  padding: 0 4% 0;
   font-family: "Noto Serif JP", serif;
   /*  */
   /* display: none;
@@ -138,25 +144,39 @@
   animation: fade 0.3s ease 0.5s forwards; */
 }
 /* ----------------- pdf4部構成 ----------------- */
-.header_area {
+.top_margin {
   height: 5%;
 }
+.header_area {
+  /* height: 5%; */
+  height: 4%;
+  /* padding: 0 6% 0; */
+}
 .detail_area {
-  height: 26%;
+  /* height: 26%; */
+  height: 23%;
   width: 100%;
   padding-bottom: 6px;
+  /* padding: 0 6% 0; */
 }
 .table_area {
-  height: 63%;
+  /* height: 63%; */
+  height: 60%;
   border: 0.6px solid #37352f;
+  /* border: 0.3px solid #37352f; */
 }
 .remarks_area {
+  /* height: 6%; */
   height: 6%;
+}
+.bottom_margin {
+  height: 2%;
 }
 
 /* ----------------- header_area ----------------- */
 .header {
-  letter-spacing: 12px;
+  letter-spacing: 15px;
+  font-size: 16px;
 }
 .header_right {
 }
@@ -187,13 +207,14 @@
   height: 16%;
 }
 .deal_detail_area {
-  height: 66%;
+  height: 67%;
   padding-top: 8%;
   font-size: 9px;
 }
 .total_amount_area {
-  height: 18%;
+  height: 17%;
 }
+/* left_area ここまで */
 .total_amount_area .amount_title {
   width: 25%;
   /* background: #00800090; */
@@ -203,7 +224,7 @@
 .total_amount_area .amount_content {
   width: 75%;
   /* background: #00008090; */
-  padding-left: 5%;
+  padding-left: 9%;
   /* margin-bottom: -1px; */
 }
 /* left_area ここまで */
@@ -211,23 +232,23 @@
 /* deal_detail_area */
 .deal_detail_area .description {
   width: 100%;
-  height: 20%;
-  font-size: 9px;
+  height: 18%;
+  font-size: 8px;
 }
 .deal_detail_area .row_group_container {
   width: 100%;
-  height: 80%;
+  height: 82%;
   font-size: 8px;
 }
 .deal_detail_area .row_group_container .row_area {
   width: 100%;
   height: 25%;
-  border-bottom: 1px solid #37352f;
-  border-style: dotted;
+  border-bottom: 1px dotted #37352f;
+  /* border-style: dotted; */
 }
 .deal_detail_area .row_group_container .row_area .title {
   width: 20%;
-  background-color: #ff000030;
+  background-color: #ff000000;
 }
 .deal_detail_area .row_group_container .row_area .deal_content {
   width: 80%;
@@ -249,6 +270,7 @@
 }
 .stamps_area {
   height: 31%;
+  width: 100%;
   position: relative;
   /* border: 0.6px solid #37352f; */
 }
@@ -265,6 +287,7 @@
   height: 0;
   padding-top: 36%; /* widthと同じ高さに設定 */
 }
+/* customer_detail_area customer_info_area */
 .customer_info_area .company_logo_area {
   height: 24%;
   width: 100%;
@@ -284,6 +307,8 @@
   /* background-color: #ffffff90; */
   font-size: 7px;
 }
+/* customer_detail_area customer_info_area */
+/*  */
 .customer_info_area .user_info_area .row_area {
   height: 20%;
   width: 100%;
@@ -295,13 +320,26 @@
   /* background-color: #eee; */
 }
 
+/* customer_detail_area */
+
 /* stamps_area */
-.stamps_area .stamp_box {
+.stamps_area .stamps_outside_box {
+  /* width: 100%; */
+  height: 100%;
   border: 0.6px solid #37352f;
-  border-left: 0.6px solid transparent;
+  border: 0.1px solid #37352f;
 }
-.stamps_area .stamp_box:last-of-type {
+.stamps_area .stamps_outside_box .stamp_box {
+  /* border: 0.6px solid #37352f; */
+  /* border-left: 0.6px solid transparent; */
   border-left: 0.6px solid #37352f;
+  border-left: 0.1px solid #37352f;
+  /* box-shadow: inset 0 0 0 1px #37352f; */
+}
+
+.stamps_area .stamp_box:last-of-type {
+  /* border-left: 0.6px solid #37352f; */
+  border-left: none;
 }
 
 /* company_name_area */
@@ -312,15 +350,20 @@
 /* ----------------- table_area ----------------- */
 /* ヘッダー */
 .table_area .table_header_row {
-  height: 4%;
+  height: 3.3%;
   width: 100%;
   display: grid;
   grid-template-columns: 65% 8% 12% 15%;
   border-bottom: 0.6px solid #37352f;
+  border-bottom: 0.1px solid #37352f;
+  /* border-bottom: 0.3px solid #37352f; */
 }
+
 .table_area .table_header_row .column_header {
   height: 100%;
   border-right: 0.6px solid #37352f;
+  border-right: 0.1px solid #37352f;
+  /* border-right: 0.3px solid #37352f; */
   font-size: 8px;
   font-weight: 800;
 }
@@ -328,11 +371,28 @@
   border-right: none;
 }
 /* ヘッダー ここまで */
+/* テーブル上部マージン */
+.top_margin_row {
+  height: 0.7%;
+  /* background: #ff000010; */
+  width: 100%;
+  display: grid;
+  grid-template-columns: 65% 8% 12% 15%;
+}
+.top_margin_row .grid_cell {
+  height: 100%;
+  border-right: 0.6px solid #37352f;
+  border-right: 0.1px solid #37352f;
+}
+.top_margin_row .grid_cell:last-of-type {
+  border-right: none;
+}
+/* テーブル上部マージン ここまで */
 /* 商品エリア */
 .table_area .row_group_products_area {
   height: auto;
   width: 100%;
-  font-size: 8px;
+  font-size: 7.5px;
   /* padding-top: 0.7%;
   padding-bottom: 0.3%; */
 }
@@ -360,18 +420,33 @@
   width: 100%;
   height: 100%;
   border-right: 0.6px solid #37352f;
+  border-right: 0.1px solid #37352f;
+  /* border-right: 0.3px solid #37352f; */
+  display: flex;
+  align-items: center;
 }
+.table_area .row_group_products_area .row .grid_cell span {
+  /* line-height: 100%; */
+  vertical-align: middle;
+}
+
 .table_area .row_group_products_area .row .grid_cell:last-of-type {
   border-right: none;
 }
 .table_area .row_group_products_area .row .grid_cell.product_name_area {
-  width: 100%;
+  padding-left: 2.5%;
+  padding-right: 2.5%;
+}
+.table_area .row_group_products_area .row .grid_cell.qua_area {
+  /* padding: 0 calc(92vh / 1.41 * 0.01); */
+  padding: 0 calc(92vh / 1.41 * 0.005);
+  /* vertical-align: middle; */
   height: 100%;
-  padding-left: 4%;
-  padding-right: 4%;
+  /* font-family: Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif; */
 }
 .table_area .row_group_products_area .row .grid_cell.product_name_area div {
   height: 100%;
+  /* vertical-align: middle; */
 }
 
 /* 商品エリア ここまで */
