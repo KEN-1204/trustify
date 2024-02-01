@@ -58,8 +58,7 @@
   transition: width 0.2s ease, height 0.2s ease, border-radius 0.2s ease;
   opacity: 0;
   animation: fade 0.3s 0.1s forwards;
-  /* box-shadow: 0px 4px 15px 3px rgba(255, 255, 255, 0.39); */
-  box-shadow: 0px 4px 15px 3px rgba(255, 255, 255, 0.56);
+  box-shadow: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
 }
 .preview_modal_iframe {
   position: relative;
@@ -166,7 +165,6 @@
   /* height: 60%; */
   height: 51%;
   border: 0.6px solid #37352f;
-  border: 0.1px solid #37352f;
   /* border: 0.3px solid #37352f; */
   /* display: grid; */
   /* grid-template-rows: ; */
@@ -175,24 +173,19 @@
   height: 2%;
   width: 100%;
   border: 0.6px solid #37352f;
-  border: 0.1px solid #37352f;
   border-top: none;
   display: grid;
   grid-template-columns: 65% 8% 12% 15%;
-  /* background-color: rgba(255, 0, 0, 0.203); */
 }
 .notes_area {
-  /* height: 7%; */
-  height: 7.5%;
+  height: 7%;
   border: 0.6px solid #37352f;
-  border: 0.1px solid #37352f;
   border-top: none;
   display: grid;
 }
 .remarks_area {
   /* height: 6%; */
-  /* height: 6%; */
-  height: 5.5%;
+  height: 6%;
 }
 .bottom_margin {
   height: 2%;
@@ -246,13 +239,12 @@
   /* background: #00800090; */
   display: flex;
   justify-content: space-between;
-  margin-bottom: -1px;
 }
 .total_amount_area .amount_content {
   width: 75%;
   /* background: #00008090; */
   padding-left: 9%;
-  margin-bottom: -1.2px;
+  /* margin-bottom: -1px; */
 }
 /* left_area ここまで */
 
@@ -313,35 +305,6 @@
   width: 36%;
   height: 0;
   padding-top: 36%; /* widthと同じ高さに設定 */
-}
-.corporate_seal_sample {
-  width: 34%;
-  height: 0;
-  padding-top: 34%; /* widthと同じ高さに設定 */
-}
-.corporate_seal_sample .text1,
-.corporate_seal_sample .text2,
-.corporate_seal_sample .text3 {
-  position: absolute;
-  top: 0;
-  right: 0%;
-  height: 100%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  writing-mode: vertical-rl;
-  white-space: nowrap;
-  font-size: 14px;
-  color: rgb(255 0 0 / 0.9);
-  /* font-family: "UD新ゴNT M"; */
-  font-family: "游明朝体", "Yu Mincho", YuMincho, "ヒラギノ明朝 Pro", "Hiragino Mincho Pro", "MS P明朝", "MS PMincho",
-    serif;
-}
-.corporate_seal_sample .text2 {
-  right: 33%;
-}
-.corporate_seal_sample .text3 {
-  right: 66%;
 }
 /* customer_detail_area customer_info_area */
 .customer_info_area .company_logo_area {
@@ -441,23 +404,26 @@
   font-size: 7.5px;
   grid-row-start: 3;
 }
-.table_area .row_result {
+.table_area .row_group_result_area {
   width: 100%;
   display: grid;
-  grid-template-columns: 65% 8% 12% 15%;
-  /* background-color: #eaff0030; */
-}
-.table_area .row_margin_bottom {
-  /* background-color: #00a6ff30; */
+  background-color: #eaff00;
+  grid-row-start: 4;
 }
 
 /* ----------------- table_area 4部構成(top_margin_row含む)ここまで ----------------- */
-
+.table_area .row_group_result_area .row:nth-of-type(odd) {
+  background-color: #fff;
+}
+.table_area .row_group_result_area .row:nth-of-type(even) {
+  background-color: #ddd;
+}
 /* ======== table_header_row ======== */
 .table_area .table_header_row .column_header {
   height: 100%;
   /* border-right: 0.6px solid #37352f; */
   border-right: 0.1px solid #37352f;
+
   font-size: 8px;
   font-weight: 800;
 }
@@ -527,59 +493,6 @@
 .table_area .row_group_products_area .row .grid_cell.product_name_area div span {
 }
 /* ======== row_group_products_areaここまで ======== */
-/* ======== row_result ======== */
-.table_area .row_result .grid_cell {
-  height: 100%;
-  border-right: 0.1px solid #37352f;
-  font-size: 7.5px;
-}
-.table_area .row_result .grid_cell.first {
-  padding-left: 2.5%;
-  padding-right: 2.5%;
-}
-.table_area .row_result .grid_cell.end,
-.row_amount .grid_cell.end {
-  display: flex;
-  justify-content: flex-end;
-  padding: 0 calc(92vh / 1.41 * 0.005);
-}
-.table_area .row_result .grid_cell:last-of-type {
-  border-right: none;
-}
-.row_amount .grid_cell {
-  height: 100%;
-  border-right: 0.1px solid #37352f;
-  font-size: 9px;
-}
-.row_amount .grid_cell:last-of-type {
-  border-right: none;
-}
-.row_amount .grid_cell:first-of-type {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-}
-
-/* ======== row_resultここまで ======== */
-/* ======== notes_area ======== */
-.notes_area .notes_content {
-  /* padding: 0 calc(92vh / 1.41 * 0.005); */
-  padding: 0.3% 1% 0;
-  font-size: 7.5px;
-  white-space: pre-wrap;
-  /* line-height: 145%; */
-}
-/* ======== notes_areaここまで ======== */
-/* ======== remarks_area ======== */
-.remarks_area .remarks {
-  padding: 0 1%;
-  font-size: 7.5px;
-}
-.remarks_area .page {
-  font-size: 7.5px;
-  margin-top: 0.5%;
-}
-/* ======== notes_areaここまで ======== */
 
 /* 商品エリア ここまで */
 /* ----------------- remarks_area ----------------- */
