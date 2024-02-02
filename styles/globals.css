@@ -903,6 +903,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* サインアウトボタン light */
   --color-sign-out-bg: #00000090;
   --color-sign-out-bg-hover: #000000c0;
+  /* サインアウトボタン 不透明バージョン */
+  --color-black-bg: #303030;
+  --color-black-bg-re: #565656;
 
   /* ナブバー */
   --navColor: #313131;
@@ -1516,6 +1519,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* サインアウトボタン dark */
   --color-sign-out-bg: #cccccc50;
   --color-sign-out-bg-hover: #cccccc90;
+  /* サインアウトボタン 不透明バージョン */
+  --color-black-bg: #565656;
+  --color-black-bg-re: #303030;
 
   /* ナブバー dark */
   --navColor: #fff;

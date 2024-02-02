@@ -373,6 +373,7 @@ export type UserProfileCompanySubscription = {
   company_created_at: string | null;
   company_updated_at: string | null;
   logo_url: string | null;
+  customer_seal_url: string | null;
   customer_name: string | null;
   customer_main_phone_number: string | null;
   customer_main_fax: string | null;
