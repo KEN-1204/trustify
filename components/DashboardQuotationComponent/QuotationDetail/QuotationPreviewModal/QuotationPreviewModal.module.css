@@ -324,8 +324,10 @@
   height: 7.5%;
   border: 0.6px solid #37352f;
   border: 0.1px solid #37352f;
+  /* background-color: rgba(0, 255, 76, 0.203); */
   border-top: none;
   display: grid;
+  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */
 }
 .remarks_area {
   /* height: 6%; */
@@ -708,7 +710,20 @@
   padding: 0.3% 1% 0;
   font-size: 7.5px;
   white-space: pre-wrap;
+  /* background-color: var(--color-bg-brand-f30); */
+  /* background: red; */
   /* line-height: 145%; */
+  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */
+}
+.notes_area .notes_content:hover {
+  color: var(--color-bg-brand-f);
+}
+.textarea_box {
+  resize: none;
+  z-index: 4000;
+  background-color: #fff;
+  height: 100%;
+  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */
 }
 /* ======== notes_areaここまで ======== */
 /* ======== remarks_area ======== */

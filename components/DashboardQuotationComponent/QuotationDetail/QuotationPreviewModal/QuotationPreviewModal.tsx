@@ -229,6 +229,8 @@ const QuotationPreviewModalMemo = () => {
   // -------------------- 🌟各種設定項目State (圧縮率, 末尾備考欄のテキスト、角印の表示有無など)🌟 --------------------
   // セッティングメニュー
   const [isOpenSettings, setIsOpenSettings] = useState(false);
+  // エディットモード 見積備考、末尾の出荷に関する説明欄
+  const [isEditMode, setIsEditMode] = useState<string | null>(null);
   // 画像をPDF化する際の圧縮率3段階を指定
   const [compressionRatio, setCompressionRatio] = useState<CompressionRatio>("FAST");
   // 法人印の表示有無
@@ -283,6 +285,7 @@ const QuotationPreviewModalMemo = () => {
 
   // 🌟印鑑データ配列
   const stampsArray = [
+    // { title: "in_charge", url: selectedRowDataQuotation?.in_charge_stamp_image_url ?? null, isPrint: isPrintInChargeStamp, isFrame: isFrameInChargeStamp },
     { title: "in_charge", url: hankoSrc, isPrint: isPrintInChargeStamp, isFrame: isFrameInChargeStamp },
     {
       title: "supervisor1",
@@ -297,6 +300,19 @@ const QuotationPreviewModalMemo = () => {
       isFrame: isFrameSupervisorStamp2,
     },
   ];
+
+  // -------------------------- 🌟印鑑データ関連useEffect🌟 --------------------------
+  useEffect(() => {
+    // 担当印がfalseになったら、担当印以上の上長印1と2をfalseに変更する
+    if (!isFrameInChargeStamp) {
+      if (isFrameSupervisorStamp1) setIsFrameSupervisorStamp1(false);
+      if (isFrameSupervisorStamp2) setIsFrameSupervisorStamp2(false);
+    }
+    if (!isFrameSupervisorStamp1) {
+      if (isFrameSupervisorStamp2) setIsFrameSupervisorStamp2(false);
+    }
+  }, [isFrameInChargeStamp, isFrameSupervisorStamp1]);
+  // -------------------------- ✅印鑑データ関連useEffect✅ --------------------------
 
   const stampFrameDisplayCount = stampsArray.filter((obj) => obj.isFrame).length;
   console.log("🔥stampFrameDisplayCount", stampFrameDisplayCount);
@@ -532,6 +548,7 @@ const QuotationPreviewModalMemo = () => {
       URL.revokeObjectURL(pdfURL);
     }
     setIsOpenQuotationPreviewModal(false);
+    if (hoveredItemPos) handleCloseTooltip();
   };
   // -------------------------- ✅モーダルを閉じる関数✅ --------------------------
 
@@ -995,7 +1012,23 @@ const QuotationPreviewModalMemo = () => {
 
                 <div className={`${styles.notes_area} w-full bg-[#00eeff00]`}>
                   {/* <p className={`${styles.notes_content}`} dangerouslySetInnerHTML={{ __html: noteTextSample }}></p> */}
-                  <p className={`${styles.notes_content}`} dangerouslySetInnerHTML={{ __html: notesText }}></p>
+                  {isEditMode !== "quotation_notes" && (
+                    <p className={`${styles.notes_content}`} dangerouslySetInnerHTML={{ __html: notesText }}></p>
+                  )}
+                  {isEditMode === "quotation_notes" && (
+                    <textarea
+                      cols={30}
+                      value={notesText}
+                      onChange={(e) => setNotesText(e.target.value)}
+                      className={`${styles.notes_content} ${styles.textarea_box}`}
+                    ></textarea>
+                  )}
+                  {isEditMode && (
+                    <div
+                      className={`absolute left-[-50vw] top-[-50vh] z-[3500] h-[150vh] w-[150vw] bg-[#00000030]`}
+                      onClick={() => setIsEditMode(null)}
+                    ></div>
+                  )}
                 </div>
 
                 <div className={`${styles.remarks_area} bg-[green]/[0]`}>
@@ -1012,6 +1045,7 @@ const QuotationPreviewModalMemo = () => {
 
                 <div className={`${styles.bottom_margin} w-full bg-[red]/[0]`}></div>
               </div>
+
               {isLoadingPDF && !pdfURL && <SpinnerComet w="56px" h="56px" s="5px" />}
               {/* ---------------------- iframe PDFプレビューエリア ここまで ---------------------- */}
               {/* ---------------------- ボタンエリア ---------------------- */}
@@ -1209,11 +1243,95 @@ const QuotationPreviewModalMemo = () => {
                             <span className={``}>：</span>
                           </div>
                         </div>
-                        {isFrameInChargeStamp && (
+                        {/* {isFrameInChargeStamp && selectedRowDataQuotation?.in_charge_stamp_image_url && (
                           <ToggleSwitch state={isPrintInChargeStamp} dispatch={setIsPrintInChargeStamp} />
+                        )} */}
+                        {isFrameInChargeStamp && hankoSrc && (
+                          <ToggleSwitch state={isPrintInChargeStamp} dispatch={setIsPrintInChargeStamp} />
+                        )}
+                        {/* {isFrameInChargeStamp && !selectedRowDataQuotation?.in_charge_stamp_image_url && (
+                          <div>担当印なし</div>
+                        )} */}
+                        {isFrameInChargeStamp && !hankoSrc && <div>担当印なし</div>}
+                      </li>
+
+                      {/*  */}
+                      <li className={`${styles.section_title} min-h-max w-full font-bold`}>
+                        <div className="flex max-w-max flex-col">
+                          <span>上長印1</span>
+                          <div className={`${styles.underline} w-full`} />
+                        </div>
+                      </li>
+                      <li className={`${styles.list}`}>
+                        <div className="pointer-events-none flex min-w-[110px] items-center">
+                          <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                          <div className="flex select-none items-center space-x-[2px]">
+                            <span className={`${styles.list_title}`}>枠線</span>
+                            <span className={``}>：</span>
+                          </div>
+                        </div>
+                        {isFrameInChargeStamp && (
+                          <ToggleSwitch state={isFrameSupervisorStamp1} dispatch={setIsFrameSupervisorStamp1} />
                         )}
                       </li>
 
+                      <li className={`${styles.list}`}>
+                        <div className="pointer-events-none flex min-w-[110px] items-center">
+                          <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                          <div className="flex select-none items-center space-x-[2px]">
+                            <span className={`${styles.list_title}`}>印字</span>
+                            <span className={``}>：</span>
+                          </div>
+                        </div>
+                        {isFrameInChargeStamp &&
+                          isFrameSupervisorStamp1 &&
+                          selectedRowDataQuotation?.supervisor1_stamp_image_url && (
+                            <ToggleSwitch state={isPrintSupervisorStamp1} dispatch={setIsPrintSupervisorStamp1} />
+                          )}
+                        {isFrameInChargeStamp &&
+                          isFrameSupervisorStamp1 &&
+                          !selectedRowDataQuotation?.supervisor1_stamp_image_url && <div>上長印1なし</div>}
+                      </li>
+
+                      {/*  */}
+                      <li className={`${styles.section_title} min-h-max w-full font-bold`}>
+                        <div className="flex max-w-max flex-col">
+                          <span>上長印2</span>
+                          <div className={`${styles.underline} w-full`} />
+                        </div>
+                      </li>
+                      <li className={`${styles.list}`}>
+                        <div className="pointer-events-none flex min-w-[110px] items-center">
+                          <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                          <div className="flex select-none items-center space-x-[2px]">
+                            <span className={`${styles.list_title}`}>枠線</span>
+                            <span className={``}>：</span>
+                          </div>
+                        </div>
+                        {isFrameInChargeStamp && isFrameSupervisorStamp1 && (
+                          <ToggleSwitch state={isFrameSupervisorStamp2} dispatch={setIsFrameSupervisorStamp2} />
+                        )}
+                      </li>
+
+                      <li className={`${styles.list}`}>
+                        <div className="pointer-events-none flex min-w-[110px] items-center">
+                          <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                          <div className="flex select-none items-center space-x-[2px]">
+                            <span className={`${styles.list_title}`}>印字</span>
+                            <span className={``}>：</span>
+                          </div>
+                        </div>
+                        {isFrameInChargeStamp &&
+                          isFrameSupervisorStamp1 &&
+                          isFrameSupervisorStamp2 &&
+                          selectedRowDataQuotation?.supervisor2_stamp_image_url && (
+                            <ToggleSwitch state={isPrintSupervisorStamp2} dispatch={setIsPrintSupervisorStamp2} />
+                          )}
+                        {isFrameInChargeStamp &&
+                          isFrameSupervisorStamp1 &&
+                          isFrameSupervisorStamp2 &&
+                          !selectedRowDataQuotation?.supervisor2_stamp_image_url && <div>上長印2なし</div>}
+                      </li>
                       {/* {Array(3)
                         .fill(null)
                         .map((_, index) => (
