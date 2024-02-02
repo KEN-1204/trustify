@@ -422,6 +422,12 @@
   padding-left: 7%;
   letter-spacing: 1px;
 }
+.deal_detail_area .row_group_container .row_area .deal_content .input_box {
+  position: relative;
+  z-index: 4000;
+  letter-spacing: 1px;
+  padding-left: 0%;
+}
 .deal_detail_area .row_group_container .row_area:nth-of-type(odd) {
   /* background-color: #fff; */
 }
@@ -718,12 +724,15 @@
 .notes_area .notes_content:hover {
   color: var(--color-bg-brand-f);
 }
-.textarea_box {
+.notes_area .notes_content.textarea_box {
   resize: none;
   z-index: 4000;
   background-color: #fff;
   height: 100%;
-  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */
+}
+.notes_area .notes_content.textarea_box:focus {
+  color: #37352f;
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }
 /* ======== notes_areaここまで ======== */
 /* ======== remarks_area ======== */
@@ -735,6 +744,22 @@
 .remarks_area .page {
   font-size: 7.5px;
   margin-top: 0.5%;
+}
+.remarks_area .remarks.input_box {
+  position: relative;
+  height: fit-content;
+  padding: 0 1%;
+  font-size: 7.5px;
+  z-index: 4000;
+  width: 100%;
+  background-color: #fff;
+}
+.remarks_area .remarks.input_box:hover {
+  color: var(--color-bg-brand-f);
+}
+.remarks_area .remarks.input_box:focus {
+  color: #37352f;
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }
 /* ======== notes_areaここまで ======== */
 

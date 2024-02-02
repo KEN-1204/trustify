@@ -4,10 +4,10 @@ import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
-import { MdLocalPrintshop, MdOutlineDataSaverOff } from "react-icons/md";
+import { MdEdit, MdLocalPrintshop, MdOutlineDataSaverOff } from "react-icons/md";
 import { LuSettings, LuSettings2 } from "react-icons/lu";
 import { FiDownload } from "react-icons/fi";
-import { IoChevronForward } from "react-icons/io5";
+import { IoChevronForward, IoClose } from "react-icons/io5";
 import { format } from "date-fns";
 import useStore from "@/store";
 import axios from "axios";
@@ -22,13 +22,7 @@ import { Quotation_row_data } from "@/types";
 import html2canvas from "html2canvas";
 import { toPng, toSvg } from "html-to-image";
 import { ToggleSwitch } from "@/components/Parts/ToggleSwitch/ToggleSwitch";
-
-const dealTitleArray = [
-  { title: "deadline", jpTitle: "納期", titleLetterArray: ["納", "期"] },
-  { title: "delivery_place", jpTitle: "受渡場所", titleLetterArray: ["受", "渡", "場", "所"] },
-  { title: "payment_terms", jpTitle: "取引方法", titleLetterArray: ["取", "引", "方", "法"] },
-  { title: "expiration_date", jpTitle: "有効期限", titleLetterArray: ["有", "効", "期", "限"] },
-];
+import { CiEdit } from "react-icons/ci";
 
 const amountTitleArray = ["合", "計", "金", "額"];
 
@@ -230,7 +224,7 @@ const QuotationPreviewModalMemo = () => {
   // セッティングメニュー
   const [isOpenSettings, setIsOpenSettings] = useState(false);
   // エディットモード 見積備考、末尾の出荷に関する説明欄
-  const [isEditMode, setIsEditMode] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState<string[]>([]);
   // 画像をPDF化する際の圧縮率3段階を指定
   const [compressionRatio, setCompressionRatio] = useState<CompressionRatio>("FAST");
   // 法人印の表示有無
@@ -243,14 +237,6 @@ const QuotationPreviewModalMemo = () => {
   );
 
   // 担当印鑑
-  // const [inChargeStamp, setInChargeStamp] = useState<StampObj>({
-  //   url: selectedRowDataQuotation?.in_charge_stamp_image_url ?? null,
-  //   isPrint: selectedRowDataQuotation?.in_charge_stamp_flag ?? false,
-  //   isFrame: selectedRowDataQuotation?.in_charge_stamp_flag ?? true,
-  // });
-  // const [inChargeStampUrl, setInChargeStampUrl] = useState<string | null>(
-  //   selectedRowDataQuotation?.in_charge_stamp_image_url ?? null
-  // );
   const [isPrintInChargeStamp, setIsPrintInChargeStamp] = useState<boolean>(
     selectedRowDataQuotation?.in_charge_stamp_flag ? true : false
   );
@@ -258,9 +244,6 @@ const QuotationPreviewModalMemo = () => {
     selectedRowDataQuotation?.in_charge_stamp_flag ? true : false
   );
   // 上長印1
-  // const [supervisorStamp1Url, setSupervisorStamp1Url] = useState<string | null>(
-  //   selectedRowDataQuotation?.supervisor1_stamp_image_url ?? null
-  // );
   const [isPrintSupervisorStamp1, setIsPrintSupervisorStamp1] = useState<boolean>(
     selectedRowDataQuotation?.supervisor1_stamp_flag ? true : false
   );
@@ -268,9 +251,6 @@ const QuotationPreviewModalMemo = () => {
     selectedRowDataQuotation?.supervisor1_stamp_flag ? true : false
   );
   // 上長印2
-  // const [supervisorStamp2Url, setSupervisorStamp2Url] = useState<string | null>(
-  //   selectedRowDataQuotation?.supervisor2_stamp_image_url ?? null
-  // );
   const [isPrintSupervisorStamp2, setIsPrintSupervisorStamp2] = useState<boolean>(
     selectedRowDataQuotation?.supervisor2_stamp_flag ? true : false
   );
@@ -282,6 +262,54 @@ const QuotationPreviewModalMemo = () => {
   // 見積備考
   // const [notesText, setNotesText] = useState(selectedRowDataQuotation?.quotation_notes || "");
   const [notesText, setNotesText] = useState(noteTextSample);
+  // 納期
+  // const [deadlineText, setDeadlineText] = useState(selectedRowDataQuotation?.deadline || "");
+  const [deadlineText, setDeadlineText] = useState("当日出荷");
+  // 受取場所
+  // const [deliveryPlaceText, setDeliveryPlaceText] = useState(selectedRowDataQuotation?.delivery_place || "");
+  const [deliveryPlaceText, setDeliveryPlaceText] = useState("貴社指定場所");
+  // 受取場所
+  // const [paymentTermsText, setPaymentTermsText] = useState(selectedRowDataQuotation?.payment_terms || "");
+  const [paymentTermsText, setPaymentTermsText] = useState("従来通り");
+  // 有効期限
+  // const [expireDateText, setExpireDateText] = useState(
+  //   selectedRowDataQuotation?.expiration_date
+  //     ? format(new Date(selectedRowDataQuotation?.expiration_date), "yyyy年MM月dd日")
+  //     : ""
+  // );
+  const [expireDateText, setExpireDateText] = useState("2021年9月15日");
+
+  // 納期、受取場所、取引方法、有効期限
+  const dealTitleArray = [
+    {
+      title: "deadline",
+      jpTitle: "納期",
+      titleLetterArray: ["納", "期"],
+      state: deadlineText,
+      dispatch: setDeadlineText,
+    },
+    {
+      title: "delivery_place",
+      jpTitle: "受渡場所",
+      titleLetterArray: ["受", "渡", "場", "所"],
+      state: deliveryPlaceText,
+      dispatch: setDeliveryPlaceText,
+    },
+    {
+      title: "payment_terms",
+      jpTitle: "取引方法",
+      titleLetterArray: ["取", "引", "方", "法"],
+      state: paymentTermsText,
+      dispatch: setPaymentTermsText,
+    },
+    {
+      title: "expiration_date",
+      jpTitle: "有効期限",
+      titleLetterArray: ["有", "効", "期", "限"],
+      state: expireDateText,
+      dispatch: setExpireDateText,
+    },
+  ];
 
   // 🌟印鑑データ配列
   const stampsArray = [
@@ -563,6 +591,24 @@ const QuotationPreviewModalMemo = () => {
     }, 1500);
   };
   // -------------------------- ✅プリントアウト関数✅ --------------------------
+  // -------------------------- 🌟全てのフィールドを編集モードに変更🌟 --------------------------
+  const handleAllEdit = () => {
+    if (isEditMode.length === 0) {
+      const allEdit = [
+        "quotation_notes",
+        "shipping_remarks",
+        "deadline",
+        "delivery_place",
+        "payment_terms",
+        "expiration_date",
+      ];
+      setIsEditMode(allEdit);
+    } else {
+      setIsEditMode([]);
+    }
+    if (hoveredItemPos) handleCloseTooltip();
+  };
+  // -------------------------- ✅全てのフィールドを編集モードに変更✅ --------------------------
 
   // -------------------------- 🌟セッティングメニュー開閉🌟 --------------------------
   const handleOpenSettings = () => {
@@ -586,6 +632,8 @@ const QuotationPreviewModalMemo = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
   // -------------------------- ✅pdfのスケールリサイズイベント✅ --------------------------
+
+  const isEditingHidden = { ...(isEditMode.length > 0 && { display: "none" }) };
 
   // Webページ上で直接プリントアウト window.print()
   console.log("🌠PDFプレビューモーダル レンダリング pdfURL", pdfURL);
@@ -653,12 +701,24 @@ const QuotationPreviewModalMemo = () => {
                                 <span key={letter}>{letter}</span>
                               ))}
                             </div>
-                            <div className={`${styles.deal_content}`}>
-                              {obj.title === "deadline" && <span>当日出荷</span>}
+                            {!isEditMode.includes(obj.title) && (
+                              <div className={`${styles.deal_content} truncate`}>
+                                {/* {obj.title === "deadline" && <span>当日出荷</span>}
                               {obj.title === "delivery_place" && <span>貴社指定場所</span>}
                               {obj.title === "payment_terms" && <span>従来通り</span>}
-                              {obj.title === "expiration_date" && <span>2021年9月15日</span>}
-                            </div>
+                              {obj.title === "expiration_date" && <span>2021年9月15日</span>} */}
+                                <span>{obj.state}</span>
+                              </div>
+                            )}
+                            {isEditMode.includes(obj.title) && (
+                              <div className={`${styles.deal_content}`}>
+                                <input
+                                  className={`${styles.input_box} ${styles.deal_content} truncate`}
+                                  value={obj.state}
+                                  onChange={(e) => obj.dispatch(e.target.value)}
+                                />
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -1012,10 +1072,10 @@ const QuotationPreviewModalMemo = () => {
 
                 <div className={`${styles.notes_area} w-full bg-[#00eeff00]`}>
                   {/* <p className={`${styles.notes_content}`} dangerouslySetInnerHTML={{ __html: noteTextSample }}></p> */}
-                  {isEditMode !== "quotation_notes" && (
+                  {!isEditMode.includes("quotation_notes") && (
                     <p className={`${styles.notes_content}`} dangerouslySetInnerHTML={{ __html: notesText }}></p>
                   )}
-                  {isEditMode === "quotation_notes" && (
+                  {isEditMode.includes("quotation_notes") && (
                     <textarea
                       cols={30}
                       value={notesText}
@@ -1023,17 +1083,26 @@ const QuotationPreviewModalMemo = () => {
                       className={`${styles.notes_content} ${styles.textarea_box}`}
                     ></textarea>
                   )}
-                  {isEditMode && (
+                  {isEditMode.length > 0 && (
                     <div
                       className={`absolute left-[-50vw] top-[-50vh] z-[3500] h-[150vh] w-[150vw] bg-[#00000030]`}
-                      onClick={() => setIsEditMode(null)}
+                      onClick={() => setIsEditMode([])}
                     ></div>
                   )}
                 </div>
 
-                <div className={`${styles.remarks_area} bg-[green]/[0]`}>
+                <div className={`${styles.remarks_area} flex flex-col justify-start bg-[green]/[0]`}>
                   <p className={`${styles.remarks}`}>※記載価格には消費税等は含まれておりません。</p>
-                  <p className={`${styles.remarks} ${styles.hover_text}`}>{shippingRemarks}</p>
+                  {!isEditMode.includes("shipping_remarks") && (
+                    <p className={`${styles.remarks} ${styles.hover_text} truncate`}>{shippingRemarks}</p>
+                  )}
+                  {isEditMode.includes("shipping_remarks") && (
+                    <input
+                      className={`${styles.remarks} ${styles.input_box} truncate`}
+                      value={shippingRemarks}
+                      onChange={(e) => setShippingRemarks(e.target.value)}
+                    />
+                  )}
                   <div className={`${styles.page} flex-center`}>
                     <div className={`flex h-full w-[5%] items-center justify-between`}>
                       <span>1</span>
@@ -1070,6 +1139,7 @@ const QuotationPreviewModalMemo = () => {
               </div>
               {/* ダウンロードボタン */}
               <div
+                style={isEditingHidden}
                 className={`flex-center transition-bg01 fixed right-[-56px] top-[55px] z-[3000] ${styles.btn} ${
                   isLoadingPDF ? `` : `${styles.mounted}`
                 }`}
@@ -1091,6 +1161,7 @@ const QuotationPreviewModalMemo = () => {
               </div>
               {/* プリントボタン */}
               <div
+                style={isEditingHidden}
                 className={`flex-center transition-bg01 fixed right-[-56px] top-[105px] z-[3000] ${styles.btn} ${
                   isLoadingPDF ? `` : `${styles.mounted}`
                 }`}
@@ -1110,6 +1181,7 @@ const QuotationPreviewModalMemo = () => {
               </div>
               {/* セッティングメニューボタン */}
               <div
+                style={isEditingHidden}
                 className={`flex-center transition-bg01 fixed right-[-56px] top-[155px] z-[3000] ${styles.btn} ${
                   isLoadingPDF ? `` : `${styles.mounted}`
                 }`}
@@ -1127,6 +1199,26 @@ const QuotationPreviewModalMemo = () => {
               >
                 {/* <LuSettings className={`pointer-events-none text-[21px] text-[#fff]`} /> */}
                 <LuSettings2 className={`pointer-events-none text-[21px] text-[#fff]`} />
+              </div>
+              {/* セッティングメニューボタン */}
+              <div
+                className={`flex-center transition-bg01 fixed right-[-56px] z-[3000] ${styles.btn} ${
+                  isLoadingPDF ? `` : `${styles.mounted}`
+                } ${isEditMode.length > 0 ? `top-[55px]` : `top-[205px]`}`}
+                onClick={handleAllEdit}
+                onMouseEnter={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: isEditMode.length > 0 ? `編集モード終了` : `編集モード`,
+                    // marginTop: 28,
+                    itemsPosition: "center",
+                  })
+                }
+                onMouseLeave={handleCloseTooltip}
+              >
+                {isEditMode.length === 0 && <MdEdit className={`pointer-events-none text-[20px] text-[#fff]`} />}
+                {isEditMode.length > 0 && <IoClose className={`pointer-events-none text-[22px] text-[#fff]`} />}
               </div>
               {/* ---------------------- ボタンエリア ここまで ---------------------- */}
 
