@@ -14,7 +14,8 @@ export const useDownloadUrl = (
   key: "avatars" | "documents" | "customer_company_logos" | "signature_stamps"
 ): UseDownloadUrlReturn => {
   const supabase = useSupabaseClient();
-  const [isLoading, setIsLoading] = useState(false);
+  // const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [fullUrl, setFullUrl] = useState<string | null>("");
   // const bucketName = key === "avatars" ? "avatars" : "documents";
   const bucketName = key;

@@ -1,4 +1,4 @@
-import { Suspense, memo, useEffect, useRef, useState } from "react";
+import { Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
 import styles from "./QuotationPreviewModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
@@ -25,27 +25,6 @@ import { ToggleSwitch } from "@/components/Parts/ToggleSwitch/ToggleSwitch";
 import { CiEdit } from "react-icons/ci";
 
 const amountTitleArray = ["合", "計", "金", "額"];
-
-const dealDisplayContent = (columnName: string, obj: Quotation_row_data & { [key: string]: any }) => {
-  switch (columnName) {
-    case "deadline":
-      return productsArray[columnName];
-      break;
-    case "delivery_place":
-      return productsArray[columnName];
-      break;
-    case "payment_terms":
-      return productsArray[columnName];
-      break;
-    case "expiration_date":
-      return productsArray[columnName];
-      break;
-
-    default:
-      return obj[columnName];
-      break;
-  }
-};
 
 const logoSrc = "/assets/images/Trustify_logo_white1.png";
 const hankoSrc = "/assets/images/icons/saito.png";
@@ -88,6 +67,26 @@ const productsArray: { [key: string]: any } = [
     amount: 150000,
   },
 ];
+const dealDisplayContent = (columnName: string, obj: Quotation_row_data & { [key: string]: any }) => {
+  switch (columnName) {
+    case "deadline":
+      return productsArray[columnName];
+      break;
+    case "delivery_place":
+      return productsArray[columnName];
+      break;
+    case "payment_terms":
+      return productsArray[columnName];
+      break;
+    case "expiration_date":
+      return productsArray[columnName];
+      break;
+
+    default:
+      return obj[columnName];
+      break;
+  }
+};
 
 const displayValue = (columnName: string, obj: Quotation_row_data & { [key: string]: any }) => {
   switch (columnName) {
@@ -410,6 +409,83 @@ const QuotationPreviewModalMemo = () => {
   };
   // -------------------------- ✅ポップアップメニュー✅ --------------------------
 
+  // -------------------------- 🌟シングルクリック・ダブルクリック関連🌟 --------------------------
+  // ダブルクリックで各フィールドごとに個別で編集
+  const setTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // 🔹シングルクリック => 何もアクションなし
+  const handleSingleClickField = useCallback(
+    (e: React.MouseEvent<HTMLSpanElement>) => {
+      // if (!selectedRowDataQuotation) return;
+      // 自社で作成した会社でない場合はそのままリターン
+      // if (!isMatchDepartment) return;
+      if (setTimeoutRef.current !== null) return;
+
+      setTimeoutRef.current = setTimeout(() => {
+        setTimeoutRef.current = null;
+        // シングルクリック時に実行したい処理
+        // 0.2秒後に実行されてしまうためここには書かない
+      }, 200);
+      console.log("シングルクリック");
+    },
+    [selectedRowDataQuotation]
+  );
+
+  // 編集前のダブルクリック時の値を保持 => 変更されたかどうかを確認
+  const originalValueFieldEdit = useRef<string | null>("");
+  type DoubleClickProps = {
+    e: React.MouseEvent<HTMLSpanElement>;
+    field: string;
+    // dispatch: React.Dispatch<React.SetStateAction<any>>;
+    // selectedRowDataValue?: any;
+  };
+
+  // 🔹ダブルクリック => ダブルクリックしたフィールドを編集モードに変更
+  const handleDoubleClickField = useCallback(
+    ({ e, field }: DoubleClickProps) => {
+      // if (!selectedRowDataQuotation) return;
+
+      console.log(
+        "ダブルクリック",
+        "field",
+        field,
+        "e.currentTarget.innerText",
+        e.currentTarget.innerText,
+        "e.currentTarget.innerHTML",
+        e.currentTarget.innerHTML
+        // "selectedRowDataValue",
+        // selectedRowDataValue && selectedRowDataValue
+      );
+      if (setTimeoutRef.current) {
+        clearTimeout(setTimeoutRef.current);
+
+        // console.log(e.detail);
+        setTimeoutRef.current = null;
+        // ダブルクリック時に実行したい処理
+        // let text;
+
+        // if (!!selectedRowDataValue) {
+        //   text = selectedRowDataValue;
+        // } else {
+        //   text = e.currentTarget.innerHTML;
+        // }
+
+        // originalValueFieldEdit.current = text;
+        // dispatch(text); // 編集モードでinputStateをクリックした要素のテキストを初期値に設定
+        // const newEditModeArray = [...isEditMode];
+        // // エディットモードの配列に渡されたフィールドが存在しなければ配列に格納する
+        // if (!newEditModeArray.includes(field)) {
+        //   newEditModeArray.push(field);
+        // }
+        const newEditModeArray = [field];
+        setIsEditMode(newEditModeArray); // クリックされたフィールドの編集モードを開く
+        // if (isSelectChangeEvent) originalOptionRef.current = e.currentTarget.innerText; // selectタグ同じ選択肢選択時の編集モード終了用
+      }
+    },
+    [setIsEditMode, selectedRowDataQuotation]
+  );
+  // -------------------------- ✅シングルクリック・ダブルクリック関連✅ --------------------------
+
   // 会社ロゴのフルURLを取得
   // const { fullUrl: logoUrl, isLoading: isLoadingLogoImg } = useDownloadUrl(
   //   userProfileState?.logo_url,
@@ -591,6 +667,10 @@ const QuotationPreviewModalMemo = () => {
     }, 1500);
   };
   // -------------------------- ✅プリントアウト関数✅ --------------------------
+
+  // -------------------------- 🌟エディットモード終了🌟 --------------------------
+  const handleFinishEdit = () => setIsEditMode([]);
+  // -------------------------- ✅エディットモード終了✅ --------------------------
   // -------------------------- 🌟全てのフィールドを編集モードに変更🌟 --------------------------
   const handleAllEdit = () => {
     if (isEditMode.length === 0) {
@@ -604,7 +684,7 @@ const QuotationPreviewModalMemo = () => {
       ];
       setIsEditMode(allEdit);
     } else {
-      setIsEditMode([]);
+      handleFinishEdit();
     }
     if (hoveredItemPos) handleCloseTooltip();
   };
@@ -633,10 +713,14 @@ const QuotationPreviewModalMemo = () => {
   }, []);
   // -------------------------- ✅pdfのスケールリサイズイベント✅ --------------------------
 
+  // -------------------------- 🌟インラインスタイル関連🌟 --------------------------
+  // エディットモードの時には「閉じる」と「終了」ボタン以外は非表示にするstyle
   const isEditingHidden = { ...(isEditMode.length > 0 && { display: "none" }) };
 
+  // -------------------------- ✅インラインスタイル関連✅ --------------------------
+
   // Webページ上で直接プリントアウト window.print()
-  console.log("🌠PDFプレビューモーダル レンダリング pdfURL", pdfURL);
+  console.log("🌠PDFプレビューモーダル レンダリング pdfURL", pdfURL, "isEditMode", isEditMode);
 
   return (
     <>
@@ -661,6 +745,8 @@ const QuotationPreviewModalMemo = () => {
               // className={`${styles.preview_modal} ${isLoadingPDF || !pdfURL ? `${styles.loading_pdf}` : ``} `}
               className={`${styles.preview_modal} ${isLoadingPDF ? `${styles.loading_pdf}` : ``} `}
             >
+              {/* スケールが1以上で、ダウンロード、印刷時に上から覆うオーバーレイ */}
+              {isLoading && scalePdf > 1 && <div className={`${styles.pdf} ${styles.loading}`}></div>}
               {/* ---------------------- iframe PDFプレビューエリア ---------------------- */}
               {/* {!isLoadingPDF && pdfURL && <iframe id="pdf-iframe" src={pdfURL || ""} className={`h-full w-full `} />} */}
               {/* {!isLoadingPDF && pdfURL && <PDFComponent />} */}
@@ -670,6 +756,14 @@ const QuotationPreviewModalMemo = () => {
                 className={`${styles.pdf}`}
                 style={{ transform: `scale(${scalePdf})` }}
               >
+                {/* エディットモードオーバーレイ */}
+                {isEditMode.length > 0 && (
+                  <div
+                    className={`absolute left-[-50vw] top-[-50vh] z-[3500] h-[150vh] w-[150vw] bg-[#00000030]`}
+                    onClick={handleFinishEdit}
+                  ></div>
+                )}
+                {/* エディットモードオーバーレイここまで */}
                 <div className={`${styles.top_margin} w-full bg-[red]/[0]`}></div>
                 <div className={`${styles.header_area} flex-center relative h-[6%] w-full bg-[aqua]/[0]`}>
                   <h1 className={`${styles.header} font-semibold`}>御見積書</h1>
@@ -707,7 +801,19 @@ const QuotationPreviewModalMemo = () => {
                               {obj.title === "delivery_place" && <span>貴社指定場所</span>}
                               {obj.title === "payment_terms" && <span>従来通り</span>}
                               {obj.title === "expiration_date" && <span>2021年9月15日</span>} */}
-                                <span>{obj.state}</span>
+                                <span
+                                  onClick={handleSingleClickField}
+                                  onDoubleClick={(e) => {
+                                    handleDoubleClickField({
+                                      e,
+                                      field: obj.title,
+                                      // dispatch: obj.dispatch,
+                                      // selectedRowDataValue: obj.state ?? "",
+                                    });
+                                  }}
+                                >
+                                  {obj.state}
+                                </span>
                               </div>
                             )}
                             {isEditMode.includes(obj.title) && (
@@ -716,6 +822,7 @@ const QuotationPreviewModalMemo = () => {
                                   className={`${styles.input_box} ${styles.deal_content} truncate`}
                                   value={obj.state}
                                   onChange={(e) => obj.dispatch(e.target.value)}
+                                  autoFocus={isEditMode.every((field) => field === obj.title)}
                                 />
                               </div>
                             )}
@@ -1073,34 +1180,58 @@ const QuotationPreviewModalMemo = () => {
                 <div className={`${styles.notes_area} w-full bg-[#00eeff00]`}>
                   {/* <p className={`${styles.notes_content}`} dangerouslySetInnerHTML={{ __html: noteTextSample }}></p> */}
                   {!isEditMode.includes("quotation_notes") && (
-                    <p className={`${styles.notes_content}`} dangerouslySetInnerHTML={{ __html: notesText }}></p>
+                    <p
+                      className={`${styles.notes_content}`}
+                      dangerouslySetInnerHTML={{ __html: notesText }}
+                      onClick={handleSingleClickField}
+                      onDoubleClick={(e) => {
+                        handleDoubleClickField({
+                          e,
+                          field: "quotation_notes",
+                        });
+                      }}
+                    ></p>
                   )}
                   {isEditMode.includes("quotation_notes") && (
                     <textarea
                       cols={30}
                       value={notesText}
                       onChange={(e) => setNotesText(e.target.value)}
+                      autoFocus={isEditMode.every((field) => field === "quotation_notes")}
                       className={`${styles.notes_content} ${styles.textarea_box}`}
                     ></textarea>
                   )}
-                  {isEditMode.length > 0 && (
+                  {/* {isEditMode.length > 0 && (
                     <div
                       className={`absolute left-[-50vw] top-[-50vh] z-[3500] h-[150vh] w-[150vw] bg-[#00000030]`}
                       onClick={() => setIsEditMode([])}
                     ></div>
-                  )}
+                  )} */}
                 </div>
 
                 <div className={`${styles.remarks_area} flex flex-col justify-start bg-[green]/[0]`}>
                   <p className={`${styles.remarks}`}>※記載価格には消費税等は含まれておりません。</p>
                   {!isEditMode.includes("shipping_remarks") && (
-                    <p className={`${styles.remarks} ${styles.hover_text} truncate`}>{shippingRemarks}</p>
+                    <p className={`${styles.remarks} ${styles.shipping} truncate`}>
+                      <span
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          handleDoubleClickField({
+                            e,
+                            field: "shipping_remarks",
+                          });
+                        }}
+                      >
+                        {shippingRemarks}
+                      </span>
+                    </p>
                   )}
                   {isEditMode.includes("shipping_remarks") && (
                     <input
                       className={`${styles.remarks} ${styles.input_box} truncate`}
                       value={shippingRemarks}
                       onChange={(e) => setShippingRemarks(e.target.value)}
+                      autoFocus={isEditMode.every((field) => field === "shipping_remarks")}
                     />
                   )}
                   <div className={`${styles.page} flex-center`}>

@@ -244,6 +244,7 @@ export const SettingAccountModal = () => {
 
             {/* 右側メインエリア 会社・チーム */}
             {/* {selectedSettingAccountMenu === "Company" && <SettingCompany />} */}
+            {/* {selectedSettingAccountMenu === "Company" && <FallbackSettingProfile title="会社・チーム" />} */}
             {selectedSettingAccountMenu === "Company" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<FallbackSettingProfile title="会社・チーム" />}>

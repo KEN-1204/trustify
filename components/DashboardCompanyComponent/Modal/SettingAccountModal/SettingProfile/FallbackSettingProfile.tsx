@@ -20,7 +20,9 @@ export const FallbackSettingProfile = ({ title = "プロフィール" }: Props) 
         <div className={`mt-[30px] flex min-h-[120px] w-full flex-col `}>
           {/* <div className={`${styles.section_title}`}>プロフィール画像</div> */}
           <div className={`${styles.section_title} max-h-[21px]`}>
-            <SkeletonLoadingLineCustom w="150px" rounded="3px" />
+            <div className="flex min-h-[21px] items-center">
+              <SkeletonLoadingLineCustom w="150px" h="13px" rounded="3px" />
+            </div>
           </div>
           <div className={`flex h-full max-h-[99px] w-full items-center justify-between`}>
             <div className="">
