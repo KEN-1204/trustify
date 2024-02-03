@@ -135,6 +135,10 @@
   transform: translateY(-5%);
   animation: fade_up5 0.3s ease forwards;
 }
+.settings_menu .scroll_container {
+  /* max-height: 33vh; */
+  max-height: 39vh;
+}
 .settings_menu .list {
   padding: 0px 20px;
   min-height: 60px;
@@ -147,7 +151,8 @@
   background-color: var(--color-bg-brand-f30);
 }
 .settings_menu .section_title {
-  padding: 10px 20px 5px;
+  /* padding: 10px 20px 5px; */
+  padding: 10px 20px 6px;
 }
 .settings_menu .section_title .underline {
   min-height: 1px;
@@ -222,12 +227,12 @@
   /* box-shadow: var(--color-bg-under-input-box-shadow);
   background: var(--color-bg-under-input); */
   box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000;
-  background: #3c3c3c;
-  background: #484848;
+  /* background: #3c3c3c; */
+  background-color: #484848;
   padding: 5px 10px;
   border-radius: 4px;
   cursor: pointer;
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow 0.1s ease;
   min-height: 30px;
   /* min-width: 185px; */
   /* min-width: 120px; */
@@ -239,11 +244,21 @@
   white-space: nowrap;
   user-select: none;
 }
-.select_box.confirm {
-  max-width: 307px;
-}
 .select_box:hover {
   box-shadow: inset 0 0 0 1px var(--color-bg-brand-f);
+}
+.edit_btn {
+  /* background-color: #ffffff20; */
+  background-color: #484848;
+  user-select: none;
+  white-space: nowrap;
+  cursor: pointer;
+  /* box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000; */
+  padding: 7px 22px;
+  border-radius: 8px;
+}
+.edit_btn:hover {
+  background-color: #555;
 }
 /* @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700&display=swap'); */
 
@@ -755,7 +770,7 @@
   padding: 0 1%;
   font-size: 7.5px;
 }
-.remarks_area .remarks.shipping span:hover {
+.remarks_area .remarks.footnotes span:hover {
   color: var(--color-bg-brand-f);
   text-decoration: underline;
 }

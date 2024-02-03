@@ -1,4 +1,4 @@
-import { Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
+import { Dispatch, SetStateAction, Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./QuotationPreviewModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
@@ -23,6 +23,7 @@ import html2canvas from "html2canvas";
 import { toPng, toSvg } from "html-to-image";
 import { ToggleSwitch } from "@/components/Parts/ToggleSwitch/ToggleSwitch";
 import { CiEdit } from "react-icons/ci";
+import { TextareaModal } from "@/components/EditModal/TextareaModal";
 
 const amountTitleArray = ["合", "計", "金", "額"];
 
@@ -134,7 +135,6 @@ type CorporateSealObj = { url: string | null; isPrint: boolean };
 type StampObj = { url: string | null; isPrint: boolean; isFrame: boolean };
 type CompressionRatio = "NONE" | "FAST" | "SLOW";
 
-const initialShippingRemarksText = `※当日出荷は弊社営業稼働日の14時までにご発注いただいた場合に対応させていただきます。`;
 const optionsCompressionRatio: CompressionRatio[] = ["NONE", "FAST", "SLOW"];
 const getCompressionRatio = (value: string, language: string) => {
   switch (value) {
@@ -256,8 +256,35 @@ const QuotationPreviewModalMemo = () => {
   const [isFrameSupervisorStamp2, setIsFrameSupervisorStamp2] = useState<boolean>(
     selectedRowDataQuotation?.supervisor2_stamp_flag ? true : false
   );
-  // 末尾の出荷に関する説明欄
-  const [shippingRemarks, setShippingRemarks] = useState<string>(initialShippingRemarksText);
+  // 脚注：末尾の出荷に関する説明欄
+  const initialFootnotesText = `※当日出荷は弊社営業稼働日の14時までにご発注いただいた場合に対応させていただきます。`;
+  const [footnotes, setFootnotes] = useState<string>(() => {
+    const storedFootnotes = localStorage.getItem("footnotes");
+    // return storedFootnotes !== null ? JSON.parse() : initialFootnotesText;
+    return storedFootnotes !== null ? storedFootnotes : initialFootnotesText; // 文字列のためparseは不要
+  });
+  const [isDisplayFootnotes, setIsDisplayFootnotes] = useState(
+    localStorage.getItem("footnotes_display") === "false" ? false : true
+  );
+  const [isOpenEditModal, setIsEditModal] = useState<string | null>(null);
+  const saveLocalStorageFootnotes = () => {
+    localStorage.setItem("footnotes", footnotes);
+  };
+  const saveLocalStorageFootnotesDisplay = () => {
+    localStorage.setItem("footnotes_display", JSON.stringify(!isDisplayFootnotes));
+  };
+  // 脚注 ローカルストレージに追加、変更
+  useEffect(() => {
+    const footnotesLocal = localStorage.getItem("footnotes");
+    if (!footnotesLocal) {
+      localStorage.setItem("footnotes", JSON.stringify(initialFootnotesText));
+    }
+    const displayFootnotesLocal = localStorage.getItem("footnotes_display");
+    if (!displayFootnotesLocal) {
+      localStorage.setItem("footnotes_display", JSON.stringify(true));
+    }
+  }, []);
+
   // 見積備考
   // const [notesText, setNotesText] = useState(selectedRowDataQuotation?.quotation_notes || "");
   const [notesText, setNotesText] = useState(noteTextSample);
@@ -392,6 +419,7 @@ const QuotationPreviewModalMemo = () => {
   const [openPopupMenu, setOpenPopupMenu] = useState<{ y: number; title: string } | null>(null);
   const mappingPopupTitle: { [key: string]: { [key: string]: string } } = {
     compressionRatio: { en: "Compression Ratio", ja: "解像度" },
+    footnotes: { en: "footnotes", ja: "脚注" },
   };
   type PopupMenuParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -676,7 +704,7 @@ const QuotationPreviewModalMemo = () => {
     if (isEditMode.length === 0) {
       const allEdit = [
         "quotation_notes",
-        "shipping_remarks",
+        "footnotes",
         "deadline",
         "delivery_place",
         "payment_terms",
@@ -720,7 +748,29 @@ const QuotationPreviewModalMemo = () => {
   // -------------------------- ✅インラインスタイル関連✅ --------------------------
 
   // Webページ上で直接プリントアウト window.print()
-  console.log("🌠PDFプレビューモーダル レンダリング pdfURL", pdfURL, "isEditMode", isEditMode);
+  console.log(
+    "🌠PDFプレビューモーダル レンダリング pdfURL",
+    pdfURL,
+    "isEditMode",
+    isEditMode,
+    "footnotes.length",
+    footnotes.length
+  );
+
+  // 見積No
+  const quotationNo = selectedRowDataQuotation?.quotation_no_custom
+    ? selectedRowDataQuotation?.quotation_no_custom
+    : selectedRowDataQuotation?.quotation_no_system ?? "";
+  // 見積日付
+  const quotationDate = useMemo(() => {
+    return selectedRowDataQuotation?.quotation_date
+      ? format(new Date(selectedRowDataQuotation?.quotation_date), "yyyy年MM月dd日")
+      : "";
+  }, [selectedRowDataQuotation?.quotation_date]);
+  // 会社名
+  const clientCompanyName = selectedRowDataQuotation?.company_name ?? "";
+  // 合計金額
+  const totalAmount = selectedRowDataQuotation?.total_amount ?? null;
 
   return (
     <>
@@ -733,6 +783,19 @@ const QuotationPreviewModalMemo = () => {
             <SpinnerComet w="56px" h="56px" s="5px" />
           </div>
         </div>
+      )}
+
+      {isOpenEditModal === "footnotes" && (
+        <TextareaModal
+          setIsOpenModal={setIsEditModal}
+          state={footnotes}
+          dispatch={setFootnotes}
+          inputTextarea={"input"}
+          limitLength={112}
+          title={"脚注 編集"}
+          notes="脚注に記載可能な文字数は日本語で62文字、英語で112文字です。"
+          customFunction={saveLocalStorageFootnotes}
+        />
       )}
       {/* Suspenseとfallbackとローディングを使用する */}
       {/* プレビューモーダルエリア */}
@@ -771,7 +834,9 @@ const QuotationPreviewModalMemo = () => {
                     className={`${styles.header_right} absolute right-0 top-0 flex h-full flex-col items-end justify-end bg-[yellow]/[0] text-[8px]`}
                   >
                     <span>No. 123456789012</span>
+                    {/* {quotationNo ? <span>{quotationNo}</span> : <span className="min-h-[12px] w-full"></span>} */}
                     <span>2021年9月6日</span>
+                    {/* {quotationDate ? <span>{quotationDate}</span> : <span className="min-h-[12px] w-full"></span>} */}
                   </div>
                 </div>
 
@@ -779,7 +844,12 @@ const QuotationPreviewModalMemo = () => {
                   <div className={`${styles.detail_left_area} flex flex-col `}>
                     <div className={`${styles.company_name_area} flex flex-col justify-end bg-[red]/[0]`}>
                       <h3 className={`${styles.company_name} space-x-[6px] text-[9px] font-medium`}>
-                        <span>株式会社ジーエンス</span>
+                        {/* <span>株式会社ジーエンス</span> */}
+                        {clientCompanyName ? (
+                          <span>{clientCompanyName}</span>
+                        ) : (
+                          <span className="inline-block min-h-[9px] min-w-[140px]"></span>
+                        )}
                         <span>御中</span>
                       </h3>
                       <div className={`${styles.section_underline}`} />
@@ -838,7 +908,8 @@ const QuotationPreviewModalMemo = () => {
                           ))}
                         </div>
                         <div className={`text-[13px] ${styles.amount_content} flex items-end`}>
-                          <span>￥6,000,000-</span>
+                          {/* <span>￥6,000,000-</span> */}
+                          {totalAmount && <span>{formatDisplayPrice(totalAmount)}-</span>}
                         </div>
                       </div>
                       <div className={`${styles.section_underline}`} />
@@ -866,11 +937,13 @@ const QuotationPreviewModalMemo = () => {
                             </div>
                           </div>
                         )}
-                        {!isPrintCompanyLogo && <div className="h-[10%] w-full"></div>}
+                        {(!isPrintCompanyLogo || !companyLogoUrl) && <div className="h-[10%] w-full"></div>}
                         <div className={`${styles.company_name_area}`}>
                           <span className={`${styles.company_name} flex items-center`}>
-                            <span className="mr-[1%] pt-[0.5%] text-[9px]">株式会社</span>
+                            {/* <span className="mr-[1%] pt-[0.5%] text-[9px]">株式会社</span>
+                            <span className="text-[12px]">トラスティファイ</span> */}
                             <span className="text-[12px]">トラスティファイ</span>
+                            <span className="ml-[1%] pt-[0.5%] text-[9px]">株式会社</span>
                           </span>
                         </div>
                         <div className={`${styles.user_info_area} flex flex-col`}>
@@ -1211,27 +1284,28 @@ const QuotationPreviewModalMemo = () => {
 
                 <div className={`${styles.remarks_area} flex flex-col justify-start bg-[green]/[0]`}>
                   <p className={`${styles.remarks}`}>※記載価格には消費税等は含まれておりません。</p>
-                  {!isEditMode.includes("shipping_remarks") && (
-                    <p className={`${styles.remarks} ${styles.shipping} truncate`}>
+                  {!isDisplayFootnotes && <div className="min-h-[11.25px] w-full"></div>}
+                  {!isEditMode.includes("footnotes") && isDisplayFootnotes && (
+                    <p className={`${styles.remarks} ${styles.footnotes} truncate`}>
                       <span
                         onClick={handleSingleClickField}
                         onDoubleClick={(e) => {
                           handleDoubleClickField({
                             e,
-                            field: "shipping_remarks",
+                            field: "footnotes",
                           });
                         }}
                       >
-                        {shippingRemarks}
+                        {footnotes}
                       </span>
                     </p>
                   )}
-                  {isEditMode.includes("shipping_remarks") && (
+                  {isEditMode.includes("footnotes") && isDisplayFootnotes && (
                     <input
                       className={`${styles.remarks} ${styles.input_box} truncate`}
-                      value={shippingRemarks}
-                      onChange={(e) => setShippingRemarks(e.target.value)}
-                      autoFocus={isEditMode.every((field) => field === "shipping_remarks")}
+                      value={footnotes}
+                      onChange={(e) => setFootnotes(e.target.value)}
+                      autoFocus={isEditMode.every((field) => field === "footnotes")}
                     />
                   )}
                   <div className={`${styles.page} flex-center`}>
@@ -1353,8 +1427,10 @@ const QuotationPreviewModalMemo = () => {
               </div>
               {/* ---------------------- ボタンエリア ここまで ---------------------- */}
 
-              {/* ---------------------- セッティングメニュー ---------------------- */}
+              {/* ---------------------- セッティングメニュー関連 ---------------------- */}
+              {/* メニューオーバーレイ */}
               {isOpenSettings && <div className={`${styles.menu_overlay}`} onClick={handleCloseSettings}></div>}
+              {/* 説明ポップアップ */}
               {openPopupMenu && (
                 <div
                   className={`${styles.description_menu} shadow-all-md border-real-with-shadow fixed right-[-18px] z-[3500] flex min-h-max flex-col rounded-[6px]`}
@@ -1369,17 +1445,30 @@ const QuotationPreviewModalMemo = () => {
 
                   <ul className={`flex flex-col rounded-[6px] ${styles.u_list}`}>
                     {openPopupMenu.title === "compressionRatio" &&
-                      descriptionCompressionRatio.map((item) => (
-                        <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
+                      descriptionCompressionRatio.map((item, index) => (
+                        <li
+                          key={item.title + index.toString()}
+                          className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}
+                        >
                           <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
                             {item.title}
                           </span>
                           <p className="select-none text-[12px]">{item.content}</p>
                         </li>
                       ))}
+                    {!["compressionRatio"].includes(openPopupMenu.title) && (
+                      <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
+                        <p className="select-none text-[12px]">
+                          {openPopupMenu.title === "footnotes" &&
+                            "見積書末尾に記載される脚注を自由に編集が可能です。デフォルトテキストで保存したデータはブラウザを更新しても内容が保存されるため、自チームで常に使用している脚注がある場合は一度設定することでそれ以降の入力不要となります。"}
+                        </p>
+                      </li>
+                    )}
                   </ul>
                 </div>
               )}
+              {/* 説明ポップアップ */}
+              {/* ---------------------------- セッティングメニュー ---------------------------- */}
               {isOpenSettings && (
                 <div
                   className={`${styles.settings_menu} fixed left-[calc(100%+21px)] top-[205px] z-[3000] h-auto w-[330px] rounded-[6px]`}
@@ -1387,13 +1476,15 @@ const QuotationPreviewModalMemo = () => {
                   <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>見積設定メニュー</h3>
 
                   <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
-                    見積書の解像度や印鑑の表示有無、備考欄のテキスト内容などの編集、設定が可能です。
+                    見積書の解像度や印鑑の表示有無、脚注のデフォルトテキストの編集、設定が可能です。
                   </p>
 
                   <hr className="min-h-[1px] w-full bg-[#999]" />
 
-                  <div className="flex max-h-[240px] w-full flex-col overflow-y-auto">
+                  {/* ---------------------------- メニューコンテンツエリア ---------------------------- */}
+                  <div className={`${styles.scroll_container} flex max-h-[240px] w-full flex-col overflow-y-auto`}>
                     <ul className={`flex h-full w-full flex-col`}>
+                      {/* ------------------------------------ */}
                       <li
                         className={`${styles.list}`}
                         onMouseEnter={(e) => {
@@ -1420,6 +1511,8 @@ const QuotationPreviewModalMemo = () => {
                           ))}
                         </select>
                       </li>
+                      {/* ------------------------------------ */}
+                      {/* ------------------------------------ */}
                       <li className={`${styles.list}`}>
                         <div className="pointer-events-none flex min-w-[110px] items-center">
                           <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
@@ -1430,6 +1523,8 @@ const QuotationPreviewModalMemo = () => {
                         </div>
                         <ToggleSwitch state={isPrintCompanyLogo} dispatch={setIsPrintCompanyLogo} />
                       </li>
+                      {/* ------------------------------------ */}
+                      {/* ------------------------------------ */}
                       <li className={`${styles.list}`}>
                         <div className="pointer-events-none flex min-w-[110px] items-center">
                           <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
@@ -1440,7 +1535,8 @@ const QuotationPreviewModalMemo = () => {
                         </div>
                         <ToggleSwitch state={isPrintCorporateSeal} dispatch={setIsPrintCorporateSeal} />
                       </li>
-                      {/*  */}
+                      {/* ------------------------------------ */}
+                      {/* ------------------------------------ */}
                       <li className={`${styles.section_title} min-h-max w-full font-bold`}>
                         <div className="flex max-w-max flex-col">
                           <span>担当者印</span>
@@ -1477,8 +1573,9 @@ const QuotationPreviewModalMemo = () => {
                         )} */}
                         {isFrameInChargeStamp && !hankoSrc && <div>担当印なし</div>}
                       </li>
+                      {/* ------------------------------------ */}
 
-                      {/*  */}
+                      {/* ------------------------------------ */}
                       <li className={`${styles.section_title} min-h-max w-full font-bold`}>
                         <div className="flex max-w-max flex-col">
                           <span>上長印1</span>
@@ -1515,8 +1612,9 @@ const QuotationPreviewModalMemo = () => {
                           isFrameSupervisorStamp1 &&
                           !selectedRowDataQuotation?.supervisor1_stamp_image_url && <div>上長印1なし</div>}
                       </li>
+                      {/* ------------------------------------ */}
 
-                      {/*  */}
+                      {/* ------------------------------------ */}
                       <li className={`${styles.section_title} min-h-max w-full font-bold`}>
                         <div className="flex max-w-max flex-col">
                           <span>上長印2</span>
@@ -1555,6 +1653,55 @@ const QuotationPreviewModalMemo = () => {
                           isFrameSupervisorStamp2 &&
                           !selectedRowDataQuotation?.supervisor2_stamp_image_url && <div>上長印2なし</div>}
                       </li>
+                      {/* ------------------------------------ */}
+                      {/* ------------------------------------ */}
+                      <li className={`${styles.section_title} min-h-max w-full font-bold`}>
+                        <div className="flex max-w-max flex-col">
+                          <span>脚注</span>
+                          <div className={`${styles.underline} w-full`} />
+                        </div>
+                      </li>
+                      <li
+                        className={`${styles.list}`}
+                        onMouseEnter={(e) => {
+                          handleOpenPopupMenu({ e, title: "footnotes" });
+                        }}
+                        onMouseLeave={handleClosePopupMenu}
+                      >
+                        <div className="pointer-events-none flex min-w-[110px] items-center">
+                          <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                          <div className="flex select-none items-center space-x-[2px]">
+                            <span className={`${styles.list_title}`}>デフォルトテキスト</span>
+                            <span className={``}>：</span>
+                          </div>
+                        </div>
+                        <div
+                          className={`transition-bg01 rounded-[8px] bg-[] ${styles.edit_btn}`}
+                          onClick={() => {
+                            // setEditedName(userProfileState?.profile_name ? userProfileState.profile_name : "");
+                            setIsEditModal("footnotes");
+                          }}
+                        >
+                          {footnotes && <span>編集</span>}
+                          {!footnotes && <span>設定</span>}
+                        </div>
+                      </li>
+
+                      <li className={`${styles.list}`}>
+                        <div className="pointer-events-none flex min-w-[110px] items-center">
+                          <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                          <div className="flex select-none items-center space-x-[2px]">
+                            <span className={`${styles.list_title}`}>表示</span>
+                            <span className={``}>：</span>
+                          </div>
+                        </div>
+                        <ToggleSwitch
+                          state={isDisplayFootnotes}
+                          dispatch={setIsDisplayFootnotes}
+                          customFunction={saveLocalStorageFootnotesDisplay}
+                        />
+                      </li>
+                      {/* ------------------------------------ */}
                       {/* {Array(3)
                         .fill(null)
                         .map((_, index) => (
@@ -1562,6 +1709,7 @@ const QuotationPreviewModalMemo = () => {
                         ))} */}
                     </ul>
                   </div>
+                  {/* ---------------------------- メニューコンテンツエリア ---------------------------- */}
                 </div>
               )}
               {/* ---------------------- セッティングメニューここまで ---------------------- */}

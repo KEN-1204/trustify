@@ -2667,3 +2667,42 @@ textarea {
 #sidenav-container {
   width: 0px;
 }
+
+/* -------------- 🌟ポップアップ🌟 -------------- */
+.alert_popup {
+  box-shadow: 0 0 0 1px var(--main-color-tk);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center center;
+  display: none;
+  position: fixed;
+  z-index: 20000;
+  left: 50%;
+  top: 3vh;
+  transform: translateX(-50%) scale(0.5);
+  transform-origin: center;
+  opacity: 0;
+  animation: popupShow 0.2s ease forwards;
+}
+@keyframes popupShow {
+  0% {
+    transform: translateX(-50%) scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes popupHide {
+  0% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) scale(0.5);
+    opacity: 0;
+  }
+}
+/* -------------- ✅ポップアップ✅ -------------- */
