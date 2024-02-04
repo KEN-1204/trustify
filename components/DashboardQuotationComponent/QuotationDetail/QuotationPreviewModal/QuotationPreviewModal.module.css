@@ -333,7 +333,7 @@
 /* @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;500;600;700&display=swap'); */
 
 /* pdf */
-.pdf {
+._pdf {
   height: 100%;
   width: 100%;
   max-height: 725px;
@@ -345,12 +345,42 @@
   position: relative;
   flex-direction: column;
   /* padding: 10% 6% 5%; */
-  padding: 0 6% 0;
   padding: 0 4% 0;
+
   font-family: "Noto Serif JP", serif;
   /*  */
   /* display: none;
   opacity: 0; */
+}
+.pdf {
+  height: 100%;
+  width: 100%;
+  max-height: 725px;
+  max-width: calc(725px / 1.41);
+  background-color: #fff;
+  position: relative;
+  /* flex-direction: column; */
+  display: flex;
+
+  font-family: "Noto Serif JP", serif;
+}
+.left_margin {
+  height: 100%;
+  width: 100%;
+  min-width: 4%;
+  max-width: 4%;
+}
+.right_margin {
+  height: 100%;
+  width: 100%;
+  min-width: 4%;
+  max-width: 4%;
+}
+.pdf_main_container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .pdf.mounted {
@@ -623,13 +653,28 @@
   height: 20%;
   width: 100%;
   /* background-color: #ffffff; */
+  position: relative;
 }
 .customer_info_area .user_info_area .address_area {
   height: 35%;
   /* 5%余り */
   /* background-color: #eee; */
 }
-
+.customer_info_area .user_info_area .row_area .info_input_box {
+  position: relative;
+  z-index: 4000;
+  width: 100%;
+  /* letter-spacing: 1px;
+  padding-left: 0%; */
+  background-color: #fff;
+}
+.customer_info_area .user_info_area .row_area .info_input_box:hover {
+  color: var(--color-bg-brand-f);
+}
+.customer_info_area .user_info_area .row_area .info_input_box:focus {
+  color: #37352f;
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
 /* customer_detail_area */
 
 /* stamps_area */

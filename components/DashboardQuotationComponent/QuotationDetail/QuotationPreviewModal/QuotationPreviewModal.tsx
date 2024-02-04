@@ -36,6 +36,8 @@ import { ToggleSwitch } from "@/components/Parts/ToggleSwitch/ToggleSwitch";
 import { CiEdit } from "react-icons/ci";
 import { TextareaModal } from "@/components/EditModal/TextareaModal";
 import { splitCompanyNameWithPosition } from "@/utils/Helpers/splitCompanyName";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
 
 const amountTitleArray = ["合", "計", "金", "額"];
 
@@ -296,6 +298,15 @@ const QuotationPreviewModalMemo = () => {
       localStorage.setItem("footnotes_display", JSON.stringify(true));
     }
   }, []);
+
+  // 事業部
+  // const [departmentName, setDepartmentName] = useState(selectedRowDataQuotation?.assigned_department_name || "");
+  const [departmentName, setDepartmentName] = useState(
+    "マイクロスコープ事業部マイクロスコープ事業部マイクロスコープ事業部"
+  );
+  // 事業所・営業所
+  // const [officeName, setOfficeName] = useState(selectedRowDataQuotation?.assigned_office_name || "");
+  const [officeName, setOfficeName] = useState("東京営業所東京営業所東京営業所");
 
   // 見積備考
   // const [notesText, setNotesText] = useState(selectedRowDataQuotation?.quotation_notes || "");
@@ -721,6 +732,7 @@ const QuotationPreviewModalMemo = () => {
         "delivery_place",
         "payment_terms",
         "expiration_date",
+        "assigned_department_name",
       ];
       setIsEditMode(allEdit);
     } else {
@@ -735,6 +747,33 @@ const QuotationPreviewModalMemo = () => {
     setIsOpenSettings(true);
   };
   const handleCloseSettings = () => {
+    // 各種設定内容が変更されていればローカルストレージに変更内容を保存
+
+    // 会社名fontSize
+    const storedNameSize = localStorage.getItem("customer_name_size");
+    // if (!storedNameSize || Number(storedNameSize) !== nameSizeNumber) {
+
+    // スライダーの値が変化していれば、fontSizeと背景色をどちらもローカルストレージに保存
+    if (!storedNameSize || Number(storedNameSize) !== nameSizeNumberRef.current) {
+      // localStorage.setItem("customer_name_size", nameSizeNumber?.toString());
+      if (nameSizeNumberRef.current) {
+        localStorage.setItem("customer_name_size", nameSizeNumberRef.current.toString());
+      }
+
+      console.log("nameSizeSliderRef.current.style.background", nameSizeSliderRef.current?.style.background);
+      // スライダーの背景色
+      if (nameSizeSliderRef.current) {
+        // const value = nameSizeSliderRef.current.valueAsNumber;
+        // const min = 0.5;
+        // const max = 1.5;
+
+        // // スライダーの現在地を割合に変換
+        // const valueAsPercentage = ((value - min) / (max - min)) * 100;
+        // const nameSizeBarColor = `linear-gradient(to right, #0d99ff ${valueAsPercentage}%, #999 ${valueAsPercentage}%)`;
+        localStorage.setItem("customer_name_slider_bg", nameSizeSliderRef.current.style.background);
+      }
+    }
+    // セッティングメニューを閉じる
     setIsOpenSettings(false);
   };
   // -------------------------- ✅セッティングメニュー開閉✅ --------------------------
@@ -798,12 +837,76 @@ const QuotationPreviewModalMemo = () => {
   // }, []);
 
   // -------------------------- 🌟会社名サイズとスライダー位置を同期🌟 --------------------------
-  const volumeSliderRef = useRef<HTMLInputElement | null>(null);
-  const volumeNumberRef = useRef(1);
-  const volumeBarPercentageRef = useRef("linear-gradient(to right, #0d99ff 50%, #999 50%)");
+  // スライダーDOM
+  const nameSizeSliderRef = useRef<HTMLInputElement | null>(null);
+  // スライダー初期値
+  // const [nameSizeNumber, setNameSizeNumber] = useState<number>(() => {
+  //   const storedNameSize = localStorage.getItem("customer_name_size");
+  //   return isValidNumber(storedNameSize) ? Number(storedNameSize) : 1;
+  // });
+  const storedCustomerNameSize = useMemo(() => {
+    return localStorage.getItem("customer_name_size") ?? 1;
+  }, []);
+  const nameSizeNumberRef = useRef(isValidNumber(storedCustomerNameSize) ? Number(storedCustomerNameSize) : 1);
+
+  // スライダー背景色
+  const storedSliderBg = useMemo(() => {
+    return localStorage.getItem("customer_name_slider_bg") ?? "linear-gradient(to right, #0d99ff 50%, #999 50%)";
+  }, []);
+  const nameSizeBarPercentageRef = useRef(storedSliderBg);
+
+  // 見積プレビューモーダルの初回マウント時に会社名nのフォントサイズを設定(スライダー初期設定はスライダーを開いた時で分ける)
+  useEffect(() => {
+    if (!companyNameRef.current || !companyTypeRef.current || !nameSizeNumberRef.current)
+      return console.log(
+        "❌nameSizeNumberRef.current",
+        nameSizeNumberRef.current,
+        "❌companyTypeRef.current",
+        companyTypeRef.current,
+        "❌companyNameRef.current",
+        companyNameRef.current
+      );
+
+    // const value = nameSizeSliderRef.current.valueAsNumber;
+    // nameSizeSliderRef.current.defaultValue = nameSizeNumberRef.current.toString();
+    const value = nameSizeNumberRef.current;
+    const newFontSizeName = value * 12;
+    const newFontSizeType = newFontSizeName - 3;
+    console.log(
+      "✅nameSizeNumberRef.current",
+      nameSizeNumberRef.current,
+      "newFontSizeName",
+      newFontSizeName,
+      "newFontSizeType",
+      newFontSizeType
+    );
+
+    companyNameRef.current.style.fontSize = `${newFontSizeName}px`;
+    companyTypeRef.current.style.fontSize = `${newFontSizeType}px`;
+  }, []);
+
+  // セッティングメニューを開いた時にスライダーの初期設定
+  useEffect(() => {
+    if (!isOpenSettings) return;
+    if (!nameSizeSliderRef.current) return;
+
+    const value = nameSizeNumberRef.current;
+
+    const min = 0.5;
+    const max = 1.5;
+
+    // スライダーの現在地を割合に変換
+    const valueAsPercentage = ((value - min) / (max - min)) * 100;
+
+    // バーの色と幅を変更
+    const nameSizeBarColor = `linear-gradient(to right, #0d99ff ${valueAsPercentage}%, #999 ${valueAsPercentage}%)`;
+    nameSizeSliderRef.current.style.background = nameSizeBarColor;
+    nameSizeBarPercentageRef.current = nameSizeBarColor;
+    nameSizeSliderRef.current.dataset.text = value.toFixed(2);
+  }, [isOpenSettings]);
 
   const handleChangeInputRange = (e: React.FormEvent<HTMLInputElement>) => {
-    if (!companyNameRef.current || !companyTypeRef.current || !volumeNumberRef.current) return;
+    if (!companyNameRef.current || !companyTypeRef.current || !nameSizeNumberRef.current) return;
     // スライダーの値を会社名のfontSizeとして渡す
     const value = e.currentTarget.valueAsNumber;
     // 会社種類名は会社名サイズから-3の値を渡す
@@ -817,22 +920,24 @@ const QuotationPreviewModalMemo = () => {
     const max = 1.5;
 
     // スライダーの現在地を割合に変換
-    const valueAsPercentage = ((value - min) / (max - min)) * 100;
+    const valueAsPercentage = (((value - min) / (max - min)) * 100).toFixed(0);
 
     // バーの色と幅を変更
-    // const volumeBarColor = `linear-gradient(to right, #0d99ff ${value * 100}%, #999 ${value * 100}%)`;
-    const volumeBarColor = `linear-gradient(to right, #0d99ff ${valueAsPercentage}%, #999 ${valueAsPercentage}%)`;
+    // const nameSizeBarColor = `linear-gradient(to right, #0d99ff ${value * 100}%, #999 ${value * 100}%)`;
+    const nameSizeBarColor = `linear-gradient(to right, #0d99ff ${valueAsPercentage}%, #999 ${valueAsPercentage}%)`;
+    console.log("nameSizeBarColor", nameSizeBarColor);
 
-    e.currentTarget.style.background = volumeBarColor;
-    volumeBarPercentageRef.current = volumeBarColor;
+    e.currentTarget.style.background = nameSizeBarColor;
+    nameSizeBarPercentageRef.current = nameSizeBarColor;
     e.currentTarget.dataset.text = value.toFixed(2);
-    volumeNumberRef.current = value;
+    nameSizeNumberRef.current = value;
+    // setNameSizeNumber(value);
   };
   // -------------------------- ✅会社名サイズとスライダー位置を同期✅ --------------------------
   // console.log(
   //   "🌟ボリュームスライダー",
   //   value,
-  //   volumeBarColor,
+  //   nameSizeBarColor,
   //   "e.currentTarget.dataset",
   //   e.currentTarget.dataset,
   //   "companyNameRef.current.style.fontSize",
@@ -917,7 +1022,12 @@ const QuotationPreviewModalMemo = () => {
               className={`${styles.preview_modal} ${isLoadingPDF ? `${styles.loading_pdf}` : ``} `}
             >
               {/* スケールが1以上で、ダウンロード、印刷時に上から覆うオーバーレイ */}
-              {isLoading && scalePdf > 1 && <div className={`${styles.pdf} ${styles.loading}`}></div>}
+              {/* {isLoading && scalePdf > 1 && <div className={`${styles.pdf} ${styles.loading}`}></div>} */}
+              {isLoading && scalePdf > 1 && (
+                <div className={`${styles.pdf} ${styles.loading}`} style={{ padding: "0px", backgroundColor: "#aaa" }}>
+                  <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" />
+                </div>
+              )}
               {/* ---------------------- iframe PDFプレビューエリア ---------------------- */}
               {/* {!isLoadingPDF && pdfURL && <iframe id="pdf-iframe" src={pdfURL || ""} className={`h-full w-full `} />} */}
               {/* {!isLoadingPDF && pdfURL && <PDFComponent />} */}
@@ -927,113 +1037,117 @@ const QuotationPreviewModalMemo = () => {
                 className={`${styles.pdf}`}
                 style={{ transform: `scale(${scalePdf})` }}
               >
-                {/* エディットモードオーバーレイ */}
-                {isEditMode.length > 0 && (
-                  <div
-                    className={`absolute left-[-50vw] top-[-50vh] z-[3500] h-[150vh] w-[150vw] bg-[#00000030]`}
-                    onClick={handleFinishEdit}
-                  ></div>
-                )}
-                {/* エディットモードオーバーレイここまで */}
-                <div className={`${styles.top_margin} w-full bg-[red]/[0]`}></div>
-                <div className={`${styles.header_area} flex-center relative h-[6%] w-full bg-[aqua]/[0]`}>
-                  <h1 className={`${styles.header} font-semibold`}>御見積書</h1>
-                  <div
-                    className={`${styles.header_right} absolute right-0 top-0 flex h-full flex-col items-end justify-end bg-[yellow]/[0] text-[8px]`}
-                  >
-                    <span>No. 123456789012</span>
-                    {/* {quotationNo ? <span>{quotationNo}</span> : <span className="min-h-[12px] w-full"></span>} */}
-                    <span>2021年9月6日</span>
-                    {/* {quotationDate ? <span>{quotationDate}</span> : <span className="min-h-[12px] w-full"></span>} */}
-                  </div>
-                </div>
-
-                <div className={`${styles.detail_area} flex bg-[#dddddd00]`}>
-                  <div className={`${styles.detail_left_area} flex flex-col `}>
-                    <div className={`${styles.company_name_area} flex flex-col justify-end bg-[red]/[0]`}>
-                      <h3 className={`${styles.company_name} space-x-[6px] text-[9px] font-medium`}>
-                        {/* <span>株式会社ジーエンス</span> */}
-                        {clientCompanyName ? (
-                          <span>{clientCompanyName}</span>
-                        ) : (
-                          <span className="inline-block min-h-[9px] min-w-[140px]"></span>
-                        )}
-                        <span>御中</span>
-                      </h3>
-                      <div className={`${styles.section_underline}`} />
+                <div className={`${styles.left_margin} h-full w-full min-w-[4%] max-w-[4%]`}></div>
+                <div className={`${styles.pdf_main_container} flex h-full w-full flex-col`}>
+                  {/* エディットモードオーバーレイ */}
+                  {isEditMode.length > 0 && (
+                    <div
+                      className={`absolute left-[-50vw] top-[-50vh] z-[3500] h-[150vh] w-[150vw] bg-[#00000030]`}
+                      onClick={handleFinishEdit}
+                    ></div>
+                  )}
+                  {/* エディットモードオーバーレイここまで */}
+                  <div className={`${styles.top_margin} w-full bg-[red]/[0]`}></div>
+                  <div className={`${styles.header_area} flex-center relative h-[6%] w-full bg-[aqua]/[0]`}>
+                    <h1 className={`${styles.header} font-semibold`}>御見積書</h1>
+                    <div
+                      className={`${styles.header_right} absolute right-0 top-0 flex h-full flex-col items-end justify-end bg-[yellow]/[0] text-[8px]`}
+                    >
+                      <span>No. 123456789012</span>
+                      {/* {quotationNo ? <span>{quotationNo}</span> : <span className="min-h-[12px] w-full"></span>} */}
+                      <span>2021年9月6日</span>
+                      {/* {quotationDate ? <span>{quotationDate}</span> : <span className="min-h-[12px] w-full"></span>} */}
                     </div>
+                  </div>
 
-                    <div className={`${styles.deal_detail_area} bg-[white]/[0]`}>
-                      <p className={`${styles.description} bg-[white]/[0]`}>御照会の件下記の通りお見積り申し上げます</p>
-                      <div className={`${styles.row_group_container} bg-[white]/[0]`}>
-                        {dealTitleArray.map((obj, index) => (
-                          <div key={obj.jpTitle} className={`${styles.row_area} flex items-end`}>
-                            <div className={`${styles.title} flex justify-between`}>
-                              {obj.titleLetterArray.map((letter) => (
-                                <span key={letter}>{letter}</span>
-                              ))}
-                            </div>
-                            {!isEditMode.includes(obj.title) && (
-                              <div className={`${styles.deal_content} truncate`}>
-                                {/* {obj.title === "deadline" && <span>当日出荷</span>}
+                  <div className={`${styles.detail_area} flex bg-[#dddddd00]`}>
+                    <div className={`${styles.detail_left_area} flex flex-col `}>
+                      <div className={`${styles.company_name_area} flex flex-col justify-end bg-[red]/[0]`}>
+                        <h3 className={`${styles.company_name} space-x-[6px] text-[9px] font-medium`}>
+                          {/* <span>株式会社ジーエンス</span> */}
+                          {clientCompanyName ? (
+                            <span>{clientCompanyName}</span>
+                          ) : (
+                            <span className="inline-block min-h-[9px] min-w-[140px]"></span>
+                          )}
+                          <span>御中</span>
+                        </h3>
+                        <div className={`${styles.section_underline}`} />
+                      </div>
+
+                      <div className={`${styles.deal_detail_area} bg-[white]/[0]`}>
+                        <p className={`${styles.description} bg-[white]/[0]`}>
+                          御照会の件下記の通りお見積り申し上げます
+                        </p>
+                        <div className={`${styles.row_group_container} bg-[white]/[0]`}>
+                          {dealTitleArray.map((obj, index) => (
+                            <div key={obj.jpTitle} className={`${styles.row_area} flex items-end`}>
+                              <div className={`${styles.title} flex justify-between`}>
+                                {obj.titleLetterArray.map((letter) => (
+                                  <span key={letter}>{letter}</span>
+                                ))}
+                              </div>
+                              {!isEditMode.includes(obj.title) && (
+                                <div className={`${styles.deal_content} truncate`}>
+                                  {/* {obj.title === "deadline" && <span>当日出荷</span>}
                               {obj.title === "delivery_place" && <span>貴社指定場所</span>}
                               {obj.title === "payment_terms" && <span>従来通り</span>}
                               {obj.title === "expiration_date" && <span>2021年9月15日</span>} */}
-                                <span
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    handleDoubleClickField({
-                                      e,
-                                      field: obj.title,
-                                      // dispatch: obj.dispatch,
-                                      // selectedRowDataValue: obj.state ?? "",
-                                    });
-                                  }}
-                                >
-                                  {obj.state}
-                                </span>
-                              </div>
-                            )}
-                            {isEditMode.includes(obj.title) && (
-                              <div className={`${styles.deal_content}`}>
-                                <input
-                                  className={`${styles.input_box} ${styles.deal_content} truncate`}
-                                  value={obj.state}
-                                  onChange={(e) => obj.dispatch(e.target.value)}
-                                  autoFocus={isEditMode.every((field) => field === obj.title)}
-                                />
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className={`${styles.total_amount_area} flex flex-col justify-end bg-[yellow]/[0]`}>
-                      <div className={`flex h-full w-full items-end`}>
-                        <div className={`text-[13px] ${styles.amount_title}`}>
-                          {amountTitleArray.map((letter) => (
-                            <span key={letter}>{letter}</span>
+                                  <span
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      handleDoubleClickField({
+                                        e,
+                                        field: obj.title,
+                                        // dispatch: obj.dispatch,
+                                        // selectedRowDataValue: obj.state ?? "",
+                                      });
+                                    }}
+                                  >
+                                    {obj.state}
+                                  </span>
+                                </div>
+                              )}
+                              {isEditMode.includes(obj.title) && (
+                                <div className={`${styles.deal_content}`}>
+                                  <input
+                                    className={`${styles.input_box} ${styles.deal_content} truncate`}
+                                    value={obj.state}
+                                    onChange={(e) => obj.dispatch(e.target.value)}
+                                    autoFocus={isEditMode.every((field) => field === obj.title)}
+                                  />
+                                </div>
+                              )}
+                            </div>
                           ))}
                         </div>
-                        <div className={`text-[13px] ${styles.amount_content} flex items-end`}>
-                          {/* <span>￥6,000,000-</span> */}
-                          {totalAmount && <span>{formatDisplayPrice(totalAmount)}-</span>}
-                        </div>
                       </div>
-                      <div className={`${styles.section_underline}`} />
+                      <div className={`${styles.total_amount_area} flex flex-col justify-end bg-[yellow]/[0]`}>
+                        <div className={`flex h-full w-full items-end`}>
+                          <div className={`text-[13px] ${styles.amount_title}`}>
+                            {amountTitleArray.map((letter) => (
+                              <span key={letter}>{letter}</span>
+                            ))}
+                          </div>
+                          <div className={`text-[13px] ${styles.amount_content} flex items-end`}>
+                            {/* <span>￥6,000,000-</span> */}
+                            {totalAmount && <span>{formatDisplayPrice(totalAmount)}-</span>}
+                          </div>
+                        </div>
+                        <div className={`${styles.section_underline}`} />
+                      </div>
                     </div>
-                  </div>
 
-                  <div className={`${styles.detail_right_area} flex flex-col bg-[#02f929]/[0]`}>
-                    <div className={`${styles.customer_detail_area} bg-[yellow]/[0]`}>
-                      <div className={`${styles.customer_info_area} flex flex-col`}>
-                        {isPrintCompanyLogo && companyLogoUrl && (
-                          <div className={`${styles.company_logo_area} flex items-end justify-start bg-[white]/[0]`}>
-                            <div
-                              // className={`relative flex h-[90%] w-[50%] items-end justify-start bg-[yellow]/[0] ${styles.logo_container}`}
-                              className={`relative flex h-[100%] w-[56%] items-end justify-start bg-[yellow]/[0] ${styles.logo_container}`}
-                            >
-                              {/* <NextImage
+                    <div className={`${styles.detail_right_area} flex flex-col bg-[#02f929]/[0]`}>
+                      <div className={`${styles.customer_detail_area} bg-[yellow]/[0]`}>
+                        <div className={`${styles.customer_info_area} flex flex-col`}>
+                          {isPrintCompanyLogo && companyLogoUrl && (
+                            <div className={`${styles.company_logo_area} flex items-end justify-start bg-[white]/[0]`}>
+                              <div
+                                // className={`relative flex h-[90%] w-[50%] items-end justify-start bg-[yellow]/[0] ${styles.logo_container}`}
+                                className={`relative flex h-[100%] w-[56%] items-end justify-start bg-[yellow]/[0] ${styles.logo_container}`}
+                              >
+                                {/* <NextImage
                                 src={logoSrc}
                                 alt=""
                                 className="h-full w-full object-contain object-bottom"
@@ -1041,22 +1155,26 @@ const QuotationPreviewModalMemo = () => {
                                 fill
                                 sizes="100px"
                               /> */}
-                              <div className={`${styles.logo_img}`}></div>
+                                <div className={`${styles.logo_img}`}></div>
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        {(!isPrintCompanyLogo || !companyLogoUrl) && <div className="h-[10%] w-full"></div>}
-                        <div className={`${styles.company_name_area}`}>
-                          <div ref={customerNameRef} className={`${styles.company_name} flex items-center`}>
-                            <span ref={companyTypeRef} className={`mr-[1%] whitespace-nowrap pt-[0.5%] text-[9px]`}>
-                              株式会社
-                            </span>
-                            <span ref={companyNameRef} className={`whitespace-nowrap text-[12px]`}>
+                          )}
+                          {(!isPrintCompanyLogo || !companyLogoUrl) && <div className="h-[10%] w-full"></div>}
+                          <div className={`${styles.company_name_area}`}>
+                            <div ref={customerNameRef} className={`${styles.company_name} flex items-center`}>
+                              <span ref={companyTypeRef} className={`mr-[1%] whitespace-nowrap pt-[0.5%] text-[9px]`}>
+                                株式会社
+                              </span>
+                              <span ref={companyNameRef} className={`whitespace-nowrap text-[12px]`}>
+                                トラスティファイ
+                              </span>
+                              {/* <span ref={companyNameRef} className="text-[12px]">
                               トラスティファイ
                             </span>
-                            {/* <span className="text-[12px]">トラスティファイ</span>
-                            <span className="ml-[1%] pt-[0.5%] text-[9px]">株式会社</span> */}
-                            {/* {customerNameObj && customerNameObj.typePosition === "pre" && (
+                            <span ref={companyTypeRef} className="ml-[1%] text-[9px]">
+                              株式会社
+                            </span> */}
+                              {/* {customerNameObj && customerNameObj.typePosition === "pre" && (
                               <>
                                 <span style={styleCompanyType} className="mr-[1%] pt-[0.5%] text-[9px]">
                                   {customerNameObj.companyType}
@@ -1066,88 +1184,111 @@ const QuotationPreviewModalMemo = () => {
                                 </span>
                               </>
                             )} */}
-                          </div>
-                        </div>
-                        <div className={`${styles.user_info_area} flex flex-col`}>
-                          <div className={`${styles.row_area}  flex items-end`}>
-                            <span>マイクロスコープ事業部</span>
-                          </div>
-                          <div className={`${styles.row_area} flex items-center`}>
-                            <div className={`min-w-[50%]`}>
-                              <span className={``}>東京営業所</span>
-                            </div>
-                            <div className={`min-w-[50%]`}>
-                              <span className={``}>斎藤礼司</span>
                             </div>
                           </div>
-                          <div className={`${styles.address_area} flex`}>
-                            <span className={`min-w-max`}>〒123-0024</span>
-                            <div className={`flex flex-col pl-[5%]`}>
-                              <span>東京都港区芝浦0-0-0</span>
-                              <span>シーバンスX館</span>
-                            </div>
-                          </div>
-                          <div className={`${styles.row_area} flex items-center`}>
-                            <div className="flex h-full w-[50%] items-center">
-                              <span>TEL</span>
-                              <span className="pl-[6%]">03-6866-1611</span>
-                            </div>
-                            <div className={`flex h-full w-[50%] items-center`}>
-                              <span>FAX</span>
-                              <span className="pl-[6%]">03-6866-1611</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      {/* <div
-                        className={`${styles.corporate_seal} absolute right-[6%] top-0 z-[0] rounded-md bg-[red]/[0.7]`}
-                      ></div> */}
-                      {isPrintCorporateSeal && (
-                        <div
-                          className={`${styles.corporate_seal_sample}  absolute right-[6%] top-0 z-[0] rounded-[4px] border-[2px] border-solid border-[red]/[0.7]`}
-                        >
-                          <div className={`${styles.text1}`}>株式会社</div>
-                          <div className={`${styles.text2}`}>トラステ</div>
-                          <div className={`${styles.text3}`}>ィファイ</div>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className={`${styles.stamps_area} flex flex-row-reverse bg-[blue]/[0]`}>
-                      <div
-                        className={`${styles.stamps_outside_box} flex flex-row-reverse`}
-                        style={{
-                          ...(stampFrameDisplayCount > 0 && {
-                            width: `${(100 * stampFrameDisplayCount) / 3}%`,
-                          }),
-                          ...(stampFrameDisplayCount === 0 && { display: "none" }),
-                        }}
-                      >
-                        {stampsArray.map((obj, index) => {
-                          if (!obj.isFrame) return;
-                          return (
-                            <div
-                              key={obj.title + index.toString()}
-                              className={`h-full w-full ${styles.stamp_box} flex-center`}
-                            >
-                              {obj.isPrint && obj.url && (
-                                <div className="relative flex h-[25px] w-[25px] items-center justify-center rounded-full">
-                                  <NextImage
-                                    src={obj.url}
-                                    alt=""
-                                    className="h-full w-full object-contain"
-                                    // width={}
-                                    fill
-                                    sizes="25px"
-                                  />
-                                </div>
+                          <div className={`${styles.user_info_area} flex flex-col`}>
+                            <div className={`${styles.row_area}  flex items-end truncate`}>
+                              {/* <span className={``}>マイクロスコープ事業部</span> */}
+                              {!isEditMode.includes("assigned_department_name") && (
+                                <span
+                                  className={`truncate`}
+                                  onClick={handleSingleClickField}
+                                  onDoubleClick={(e) => {
+                                    handleDoubleClickField({
+                                      e,
+                                      field: "assigned_department_name",
+                                    });
+                                  }}
+                                >
+                                  {departmentName}
+                                </span>
+                              )}
+                              {isEditMode.includes("assigned_department_name") && (
+                                <input
+                                  className={`${styles.info_input_box} truncate`}
+                                  value={departmentName}
+                                  onChange={(e) => setDepartmentName(e.target.value)}
+                                  autoFocus={isEditMode.every((field) => field === "assigned_department_name")}
+                                />
                               )}
                             </div>
-                          );
-                        })}
+                            <div className={`${styles.row_area} flex items-center`}>
+                              <div className={`min-w-[50%] max-w-[50%] truncate`}>
+                                {/* <span className={``}>東京営業所</span> */}
+                                <span className={``}>{officeName}</span>
+                              </div>
+                              <div className={`min-w-[50%]`}>
+                                <span className={``}>斎藤礼司</span>
+                              </div>
+                            </div>
+                            <div className={`${styles.address_area} flex`}>
+                              <span className={`min-w-max`}>〒123-0024</span>
+                              <div className={`flex flex-col pl-[5%]`}>
+                                <span>東京都港区芝浦0-0-0</span>
+                                <span>シーバンスX館</span>
+                              </div>
+                            </div>
+                            <div className={`${styles.row_area} flex items-center`}>
+                              <div className="flex h-full w-[50%] items-center">
+                                <span>TEL</span>
+                                <span className="pl-[6%]">03-6866-1611</span>
+                              </div>
+                              <div className={`flex h-full w-[50%] items-center`}>
+                                <span>FAX</span>
+                                <span className="pl-[6%]">03-6866-1611</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                        {/* <div
+                        className={`${styles.corporate_seal} absolute right-[6%] top-0 z-[0] rounded-md bg-[red]/[0.7]`}
+                      ></div> */}
+                        {isPrintCorporateSeal && (
+                          <div
+                            className={`${styles.corporate_seal_sample}  absolute right-[6%] top-0 z-[0] rounded-[4px] border-[2px] border-solid border-[red]/[0.7]`}
+                          >
+                            <div className={`${styles.text1}`}>株式会社</div>
+                            <div className={`${styles.text2}`}>トラステ</div>
+                            <div className={`${styles.text3}`}>ィファイ</div>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    {/* <div className={`${styles.stamps_area} flex flex-row-reverse bg-[blue]/[0]`}>
+
+                      <div className={`${styles.stamps_area} flex flex-row-reverse bg-[blue]/[0]`}>
+                        <div
+                          className={`${styles.stamps_outside_box} flex flex-row-reverse`}
+                          style={{
+                            ...(stampFrameDisplayCount > 0 && {
+                              width: `${(100 * stampFrameDisplayCount) / 3}%`,
+                            }),
+                            ...(stampFrameDisplayCount === 0 && { display: "none" }),
+                          }}
+                        >
+                          {stampsArray.map((obj, index) => {
+                            if (!obj.isFrame) return;
+                            return (
+                              <div
+                                key={obj.title + index.toString()}
+                                className={`h-full w-full ${styles.stamp_box} flex-center`}
+                              >
+                                {obj.isPrint && obj.url && (
+                                  <div className="relative flex h-[25px] w-[25px] items-center justify-center rounded-full">
+                                    <NextImage
+                                      src={obj.url}
+                                      alt=""
+                                      className="h-full w-full object-contain"
+                                      // width={}
+                                      fill
+                                      sizes="25px"
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      {/* <div className={`${styles.stamps_area} flex flex-row-reverse bg-[blue]/[0]`}>
                       <div
                         className={`${styles.stamps_outside_box} flex flex-row-reverse`}
                         style={{ ...(Array(2).length > 0 && { width: `${(100 * Array(2).length) / 3}%` }) }}
@@ -1185,261 +1326,263 @@ const QuotationPreviewModalMemo = () => {
                           ))}
                       </div>
                     </div> */}
-                  </div>
-                </div>
-
-                <div
-                  role="grid"
-                  // style={{ display: "grid", gridTemplateRows: "3.3% 0.7% auto 1fr 3.3% 10%" }}
-                  ref={gridTableRef}
-                  className={`${styles.table_area} bg-[red]/[0]`}
-                >
-                  <div
-                    role="row"
-                    className={`${styles.table_header_row} flex bg-[red]/[0]`}
-                    // style={{ gridTemplateColumns: "65% 5% 12% 18%" }}
-                  >
-                    {Array(4)
-                      .fill(null)
-                      .map((_, index) => (
-                        <div
-                          role="columnheader"
-                          key={index}
-                          className={`${styles.column_header} flex-center`}
-                          style={{ gridColumnStart: index + 1 }}
-                        >
-                          {index === 0 && (
-                            <div className={`flex h-full w-[24%] items-center justify-between`}>
-                              <span>品</span>
-                              <span>名</span>
-                            </div>
-                          )}
-                          {index === 1 && (
-                            <div className={`flex-center h-full w-full`}>
-                              <span>数量</span>
-                            </div>
-                          )}
-                          {index === 2 && (
-                            <div className={`flex-center h-full w-full`}>
-                              <span>単価 (円)</span>
-                            </div>
-                          )}
-                          {index === 3 && (
-                            <div className={`flex-center h-full w-full`}>
-                              <span>金額 (円)</span>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                  </div>
-
-                  <div role="row" className={`${styles.top_margin_row} `}>
-                    {/* {Object.keys(productsArray).map((key, index) => ( */}
-                    {columnHeaderTitleArray.map((key, index) => (
-                      <div
-                        key={key + index.toString() + "blank"}
-                        role="gridcell"
-                        className={`${styles.grid_cell} flex items-center `}
-                      ></div>
-                    ))}
+                    </div>
                   </div>
 
                   <div
-                    role="rowgroup"
-                    className={`${styles.row_group_products_area} bg-[red]/[0]`}
-                    style={{
-                      ...(productsArray?.length > 0 && {
-                        // borderBottom: "0.6px solid #37352f",
-                        borderBottom: "0.1px solid #37352f",
-                        // minHeight: `${3.3 * productsArray.length + 1}%`,
-                        // minHeight: `${3.3 * productsArray.length}%`,
-                        // minHeight: `${3.5 * productsArray.length}%`,
-                        minHeight: `${3.9 * productsArray.length}%`,
-                        display: "grid",
-                        gridTemplateRows: "repeat(1fr)",
-
-                        // gridTemplateRows: `0.1fr repeat(1fr)`,
-                      }),
-                    }}
+                    role="grid"
+                    // style={{ display: "grid", gridTemplateRows: "3.3% 0.7% auto 1fr 3.3% 10%" }}
+                    ref={gridTableRef}
+                    className={`${styles.table_area} bg-[red]/[0]`}
                   >
-                    {productsArray?.length > 0 &&
-                      productsArray.map((obj: any, index: number) => {
-                        return (
+                    <div
+                      role="row"
+                      className={`${styles.table_header_row} flex bg-[red]/[0]`}
+                      // style={{ gridTemplateColumns: "65% 5% 12% 18%" }}
+                    >
+                      {Array(4)
+                        .fill(null)
+                        .map((_, index) => (
                           <div
-                            role="row"
-                            key={obj.id}
-                            style={{ gridRowStart: index + 1 }}
-                            className={`${styles.row} flex items-center justify-between`}
+                            role="columnheader"
+                            key={index}
+                            className={`${styles.column_header} flex-center`}
+                            style={{ gridColumnStart: index + 1 }}
                           >
-                            {Object.keys(productsArray).map((key, index) => (
-                              <div
-                                role="gridcell"
-                                key={key + index.toString()}
-                                className={`${styles.grid_cell} ${
-                                  index === 0 ? `${styles.product_name_area}` : `${styles.qua_area}`
-                                }`}
-                              >
-                                {index === 0 && (
-                                  <>
-                                    <div className={`${styles.product_name} w-[52%]`}>
-                                      <span>{obj.product_name}</span>
-                                      {/* {obj.product_name} */}
-                                    </div>
-                                    <div className={`${styles.outside_name} w-[48%]`}>
-                                      {obj.outside_name && <span>{obj.outside_name}</span>}
-                                    </div>
-                                  </>
-                                )}
-                                {index === 1 && <span>{obj.unit_quantity}</span>}
-                                {index === 2 && <span>{formatDisplayPrice(obj.unit_price)}</span>}
-                                {index === 3 && <span>{formatDisplayPrice(obj.amount)}</span>}
+                            {index === 0 && (
+                              <div className={`flex h-full w-[24%] items-center justify-between`}>
+                                <span>品</span>
+                                <span>名</span>
                               </div>
-                            ))}
+                            )}
+                            {index === 1 && (
+                              <div className={`flex-center h-full w-full`}>
+                                <span>数量</span>
+                              </div>
+                            )}
+                            {index === 2 && (
+                              <div className={`flex-center h-full w-full`}>
+                                <span>単価 (円)</span>
+                              </div>
+                            )}
+                            {index === 3 && (
+                              <div className={`flex-center h-full w-full`}>
+                                <span>金額 (円)</span>
+                              </div>
+                            )}
                           </div>
-                        );
-                      })}
-                  </div>
+                        ))}
+                    </div>
 
-                  <div role="row" style={{ minHeight: `${3.9}%` }} className={`${styles.row_result}`}>
-                    {columnHeaderTitleArray.map((key, index) => (
-                      <div
-                        key={key + index.toString() + "amount"}
-                        role="gridcell"
-                        className={`${styles.grid_cell} flex items-center ${
-                          index === 0 ? `${styles.first}` : `${styles.end}`
-                        }`}
-                      >
-                        {index === 0 && <span>本体合計</span>}
-                        {index === 3 && <span>{formatDisplayPrice(6795000)}</span>}
-                      </div>
-                    ))}
-                  </div>
+                    <div role="row" className={`${styles.top_margin_row} `}>
+                      {/* {Object.keys(productsArray).map((key, index) => ( */}
+                      {columnHeaderTitleArray.map((key, index) => (
+                        <div
+                          key={key + index.toString() + "blank"}
+                          role="gridcell"
+                          className={`${styles.grid_cell} flex items-center `}
+                        ></div>
+                      ))}
+                    </div>
 
-                  {isDiscount && (
+                    <div
+                      role="rowgroup"
+                      className={`${styles.row_group_products_area} bg-[red]/[0]`}
+                      style={{
+                        ...(productsArray?.length > 0 && {
+                          // borderBottom: "0.6px solid #37352f",
+                          borderBottom: "0.1px solid #37352f",
+                          // minHeight: `${3.3 * productsArray.length + 1}%`,
+                          // minHeight: `${3.3 * productsArray.length}%`,
+                          // minHeight: `${3.5 * productsArray.length}%`,
+                          minHeight: `${3.9 * productsArray.length}%`,
+                          display: "grid",
+                          gridTemplateRows: "repeat(1fr)",
+
+                          // gridTemplateRows: `0.1fr repeat(1fr)`,
+                        }),
+                      }}
+                    >
+                      {productsArray?.length > 0 &&
+                        productsArray.map((obj: any, index: number) => {
+                          return (
+                            <div
+                              role="row"
+                              key={obj.id}
+                              style={{ gridRowStart: index + 1 }}
+                              className={`${styles.row} flex items-center justify-between`}
+                            >
+                              {Object.keys(productsArray).map((key, index) => (
+                                <div
+                                  role="gridcell"
+                                  key={key + index.toString()}
+                                  className={`${styles.grid_cell} ${
+                                    index === 0 ? `${styles.product_name_area}` : `${styles.qua_area}`
+                                  }`}
+                                >
+                                  {index === 0 && (
+                                    <>
+                                      <div className={`${styles.product_name} w-[52%]`}>
+                                        <span>{obj.product_name}</span>
+                                        {/* {obj.product_name} */}
+                                      </div>
+                                      <div className={`${styles.outside_name} w-[48%]`}>
+                                        {obj.outside_name && <span>{obj.outside_name}</span>}
+                                      </div>
+                                    </>
+                                  )}
+                                  {index === 1 && <span>{obj.unit_quantity}</span>}
+                                  {index === 2 && <span>{formatDisplayPrice(obj.unit_price)}</span>}
+                                  {index === 3 && <span>{formatDisplayPrice(obj.amount)}</span>}
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })}
+                    </div>
+
                     <div role="row" style={{ minHeight: `${3.9}%` }} className={`${styles.row_result}`}>
                       {columnHeaderTitleArray.map((key, index) => (
                         <div
-                          key={key + index.toString() + "discount"}
+                          key={key + index.toString() + "amount"}
                           role="gridcell"
                           className={`${styles.grid_cell} flex items-center ${
                             index === 0 ? `${styles.first}` : `${styles.end}`
                           }`}
                         >
-                          {index === 0 && <span>出精値引</span>}
-                          {index === 3 && <span>-{formatDisplayPrice(795000)}</span>}
+                          {index === 0 && <span>本体合計</span>}
+                          {index === 3 && <span>{formatDisplayPrice(6795000)}</span>}
                         </div>
                       ))}
                     </div>
-                  )}
-                  <div
-                    role="row"
-                    style={{
-                      height: `calc(${100 - 3.3 - 0.7 - 3.9 * productsArray.length - 3.9 - (isDiscount ? 3.9 : 0)}%)`,
-                    }}
-                    className={`${styles.row_result} ${styles.row_margin_bottom}`}
-                  >
+
+                    {isDiscount && (
+                      <div role="row" style={{ minHeight: `${3.9}%` }} className={`${styles.row_result}`}>
+                        {columnHeaderTitleArray.map((key, index) => (
+                          <div
+                            key={key + index.toString() + "discount"}
+                            role="gridcell"
+                            className={`${styles.grid_cell} flex items-center ${
+                              index === 0 ? `${styles.first}` : `${styles.end}`
+                            }`}
+                          >
+                            {index === 0 && <span>出精値引</span>}
+                            {index === 3 && <span>-{formatDisplayPrice(795000)}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <div
+                      role="row"
+                      style={{
+                        height: `calc(${100 - 3.3 - 0.7 - 3.9 * productsArray.length - 3.9 - (isDiscount ? 3.9 : 0)}%)`,
+                      }}
+                      className={`${styles.row_result} ${styles.row_margin_bottom}`}
+                    >
+                      {columnHeaderTitleArray.map((key, index) => (
+                        <div
+                          key={key + index.toString() + "margin-bottom"}
+                          role="gridcell"
+                          className={`${styles.grid_cell} flex ${
+                            index === 0 ? `items-start justify-center pt-[5%]` : `items-center`
+                          }`}
+                        >
+                          {index === 0 && <span>以下余白</span>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div role="row" className={`${styles.row_amount} w-full bg-[#09ff0000]`}>
                     {columnHeaderTitleArray.map((key, index) => (
                       <div
-                        key={key + index.toString() + "margin-bottom"}
+                        key={key + index.toString() + "total-amount"}
                         role="gridcell"
-                        className={`${styles.grid_cell} flex ${
-                          index === 0 ? `items-start justify-center pt-[5%]` : `items-center`
+                        className={`${styles.grid_cell} flex items-center ${
+                          index === 0 ? `${styles.first}` : `${styles.end}`
                         }`}
                       >
-                        {index === 0 && <span>以下余白</span>}
+                        {index === 0 && (
+                          <div className={`flex h-full w-[24%] items-center justify-between`}>
+                            <span>合</span>
+                            <span>計</span>
+                          </div>
+                        )}
+                        {index === 3 && <span>{formatDisplayPrice(6000000)}</span>}
                       </div>
                     ))}
                   </div>
-                </div>
 
-                <div role="row" className={`${styles.row_amount} w-full bg-[#09ff0000]`}>
-                  {columnHeaderTitleArray.map((key, index) => (
-                    <div
-                      key={key + index.toString() + "total-amount"}
-                      role="gridcell"
-                      className={`${styles.grid_cell} flex items-center ${
-                        index === 0 ? `${styles.first}` : `${styles.end}`
-                      }`}
-                    >
-                      {index === 0 && (
-                        <div className={`flex h-full w-[24%] items-center justify-between`}>
-                          <span>合</span>
-                          <span>計</span>
-                        </div>
-                      )}
-                      {index === 3 && <span>{formatDisplayPrice(6000000)}</span>}
-                    </div>
-                  ))}
-                </div>
-
-                <div className={`${styles.notes_area} w-full bg-[#00eeff00]`}>
-                  {/* <p className={`${styles.notes_content}`} dangerouslySetInnerHTML={{ __html: noteTextSample }}></p> */}
-                  {!isEditMode.includes("quotation_notes") && (
-                    <p
-                      className={`${styles.notes_content}`}
-                      dangerouslySetInnerHTML={{ __html: notesText }}
-                      onClick={handleSingleClickField}
-                      onDoubleClick={(e) => {
-                        handleDoubleClickField({
-                          e,
-                          field: "quotation_notes",
-                        });
-                      }}
-                    ></p>
-                  )}
-                  {isEditMode.includes("quotation_notes") && (
-                    <textarea
-                      cols={30}
-                      value={notesText}
-                      onChange={(e) => setNotesText(e.target.value)}
-                      autoFocus={isEditMode.every((field) => field === "quotation_notes")}
-                      className={`${styles.notes_content} ${styles.textarea_box}`}
-                    ></textarea>
-                  )}
-                  {/* {isEditMode.length > 0 && (
+                  <div className={`${styles.notes_area} w-full bg-[#00eeff00]`}>
+                    {/* <p className={`${styles.notes_content}`} dangerouslySetInnerHTML={{ __html: noteTextSample }}></p> */}
+                    {!isEditMode.includes("quotation_notes") && (
+                      <p
+                        className={`${styles.notes_content}`}
+                        dangerouslySetInnerHTML={{ __html: notesText }}
+                        onClick={handleSingleClickField}
+                        onDoubleClick={(e) => {
+                          handleDoubleClickField({
+                            e,
+                            field: "quotation_notes",
+                          });
+                        }}
+                      ></p>
+                    )}
+                    {isEditMode.includes("quotation_notes") && (
+                      <textarea
+                        cols={30}
+                        value={notesText}
+                        onChange={(e) => setNotesText(e.target.value)}
+                        autoFocus={isEditMode.every((field) => field === "quotation_notes")}
+                        className={`${styles.notes_content} ${styles.textarea_box}`}
+                      ></textarea>
+                    )}
+                    {/* {isEditMode.length > 0 && (
                     <div
                       className={`absolute left-[-50vw] top-[-50vh] z-[3500] h-[150vh] w-[150vw] bg-[#00000030]`}
                       onClick={() => setIsEditMode([])}
                     ></div>
                   )} */}
-                </div>
+                  </div>
 
-                <div className={`${styles.remarks_area} flex flex-col justify-start bg-[green]/[0]`}>
-                  <p className={`${styles.remarks}`}>※記載価格には消費税等は含まれておりません。</p>
-                  {!isDisplayFootnotes && <div className="min-h-[11.25px] w-full"></div>}
-                  {!isEditMode.includes("footnotes") && isDisplayFootnotes && (
-                    <p className={`${styles.remarks} ${styles.footnotes} truncate`}>
-                      <span
-                        onClick={handleSingleClickField}
-                        onDoubleClick={(e) => {
-                          handleDoubleClickField({
-                            e,
-                            field: "footnotes",
-                          });
-                        }}
-                      >
-                        {footnotes}
-                      </span>
-                    </p>
-                  )}
-                  {isEditMode.includes("footnotes") && isDisplayFootnotes && (
-                    <input
-                      className={`${styles.remarks} ${styles.input_box} truncate`}
-                      value={footnotes}
-                      onChange={(e) => setFootnotes(e.target.value)}
-                      autoFocus={isEditMode.every((field) => field === "footnotes")}
-                    />
-                  )}
-                  <div className={`${styles.page} flex-center`}>
-                    <div className={`flex h-full w-[5%] items-center justify-between`}>
-                      <span>1</span>
-                      <span>/</span>
-                      <span>1</span>
+                  <div className={`${styles.remarks_area} flex flex-col justify-start bg-[green]/[0]`}>
+                    <p className={`${styles.remarks}`}>※記載価格には消費税等は含まれておりません。</p>
+                    {!isDisplayFootnotes && <div className="min-h-[11.25px] w-full"></div>}
+                    {!isEditMode.includes("footnotes") && isDisplayFootnotes && (
+                      <p className={`${styles.remarks} ${styles.footnotes} truncate`}>
+                        <span
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleDoubleClickField({
+                              e,
+                              field: "footnotes",
+                            });
+                          }}
+                        >
+                          {footnotes}
+                        </span>
+                      </p>
+                    )}
+                    {isEditMode.includes("footnotes") && isDisplayFootnotes && (
+                      <input
+                        className={`${styles.remarks} ${styles.input_box} truncate`}
+                        value={footnotes}
+                        onChange={(e) => setFootnotes(e.target.value)}
+                        autoFocus={isEditMode.every((field) => field === "footnotes")}
+                      />
+                    )}
+                    <div className={`${styles.page} flex-center`}>
+                      <div className={`flex h-full w-[5%] items-center justify-between`}>
+                        <span>1</span>
+                        <span>/</span>
+                        <span>1</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className={`${styles.bottom_margin} w-full bg-[red]/[0]`}></div>
+                  <div className={`${styles.bottom_margin} w-full bg-[red]/[0]`}></div>
+                </div>
+                <div className={`${styles.right_margin}  h-full w-full min-w-[4%] max-w-[4%]`}></div>
               </div>
 
               {isLoadingPDF && !pdfURL && <SpinnerComet w="56px" h="56px" s="5px" />}
@@ -1857,30 +2000,20 @@ const QuotationPreviewModalMemo = () => {
 
                         <input
                           type="range"
-                          // data-text={`${(volumeSliderRef.current?.valueAsNumber ?? 0.5) * 2}`}
-                          // data-text={`${volumeNumberRef.current.toFixed(2)}`}
-                          data-text={`${volumeNumberRef.current.toFixed(2)}`}
-                          // min={0}
-                          // max={1}
+                          // data-text={`${nameSizeNumber.toFixed(2)}`}
+                          data-text={`${nameSizeNumberRef.current.toFixed(2)}`}
                           min={0.5}
                           max={1.5}
                           step={0.05}
-                          // defaultValue={1}
-                          defaultValue={volumeNumberRef.current}
-                          // step={0.1}
-                          // step="any"
-                          // defaultValue={0.5}
-                          // min={6}
-                          // max={18}
-                          // step={1}
-                          // defaultValue={12}
+                          // defaultValue={nameSizeNumber}
+                          defaultValue={nameSizeNumberRef.current}
                           className={styles.input_range}
                           style={
                             {
-                              "--linear-gradient": volumeBarPercentageRef.current,
+                              "--linear-gradient": nameSizeBarPercentageRef.current,
                             } as CSSProperties
                           }
-                          ref={volumeSliderRef}
+                          ref={nameSizeSliderRef}
                           onInput={handleChangeInputRange}
                         />
                       </li>
