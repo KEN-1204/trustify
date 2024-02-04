@@ -1,5 +1,7 @@
 // 株式会社キーエンスやキーエンス株式会社を「株式会社」と「キーエンス」に分割して返す
 
+export type CustomerNameObj = { companyType: string; company_name: string; typePosition: string };
+
 export const splitCompanyNameWithPosition = (companyName: string) => {
   // 会社の種類
   const companyTypes = ["株式会社", "合同会社", "合資会社", "合名会社"];

@@ -1,4 +1,15 @@
-import { Dispatch, SetStateAction, Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  CSSProperties,
+  Dispatch,
+  SetStateAction,
+  Suspense,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "./QuotationPreviewModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
@@ -24,6 +35,7 @@ import { toPng, toSvg } from "html-to-image";
 import { ToggleSwitch } from "@/components/Parts/ToggleSwitch/ToggleSwitch";
 import { CiEdit } from "react-icons/ci";
 import { TextareaModal } from "@/components/EditModal/TextareaModal";
+import { splitCompanyNameWithPosition } from "@/utils/Helpers/splitCompanyName";
 
 const amountTitleArray = ["合", "計", "金", "額"];
 
@@ -741,6 +753,94 @@ const QuotationPreviewModalMemo = () => {
   }, []);
   // -------------------------- ✅pdfのスケールリサイズイベント✅ --------------------------
 
+  // 顧客の会社名 株式会社と会社名 scrollWidthがoffsetWidthを上回る文字数ならfontSizeを小さくする
+  const customerNameRef = useRef<HTMLDivElement | null>(null);
+  // const [styleCompanyName, setStyleCompanyName] = useState<CSSProperties>({ fontSize: `12px` });
+  // const [styleCompanyType, setStyleCompanyType] = useState<CSSProperties>({ fontSize: `9px` });
+  const companyNameRef = useRef<HTMLSpanElement | null>(null);
+  const companyTypeRef = useRef<HTMLSpanElement | null>(null);
+  // console.log(
+  //   "customerNameRef.current",
+  //   customerNameRef.current,
+  //   "customerNameRef.current.offsetWidth",
+  //   customerNameRef.current?.offsetWidth,
+  //   "customerNameRef.current.scrollWidth",
+  //   customerNameRef.current?.scrollWidth
+  // );
+
+  // useEffect(() => {
+  //   if (!customerNameRef.current || !companyNameRef.current || !companyTypeRef.current) return;
+  //   // 一度だけ実行
+  //   if (customerNameRef.current.scrollWidth > customerNameRef.current.offsetWidth) {
+  //     // setStyleCompanyName({ fontSize: `11px` });
+  //     // setStyleCompanyType({ fontSize: `8px` });
+  //     companyNameRef.current.style.fontSize = `11px`
+  //     companyTypeRef.current.style.fontSize = `8px`;
+  //   }
+  //   // scrollWidthが表示可能領域のoffsetWidthより小さくなるまでfontSizeを小さくする
+  //   // const adjustFontSize = () => {
+  //   //   if (!customerNameRef.current) return;
+
+  //   //   let fontSize = 12; // 初期フォントサイズ
+  //   //   let typeSize = 9; // 会社種類名の初期フォントサイズ
+
+  //   //   // scrollWidth が offsetWidth 以下になるまで fontSize を減らす
+  //   //   while (customerNameRef.current.scrollWidth > customerNameRef.current.offsetWidth && fontSize > 6) {
+  //   //     fontSize -= 1; // fontSize を少しずつ減らす
+  //   //     typeSize -= 1 / 4; // typeSize も比例して減らす
+  //   //     customerNameRef.current.style.fontSize = `${fontSize}px`; // DOMに直接スタイルを適用
+  //   //     setStyleCompanyName({ fontSize: `${fontSize}px` });
+  //   //     setStyleCompanyType({ fontSize: `${typeSize}px` });
+  //   //   }
+  //   // };
+
+  //   // adjustFontSize();
+  // }, []);
+
+  // -------------------------- 🌟会社名サイズとスライダー位置を同期🌟 --------------------------
+  const volumeSliderRef = useRef<HTMLInputElement | null>(null);
+  const volumeNumberRef = useRef(1);
+  const volumeBarPercentageRef = useRef("linear-gradient(to right, #0d99ff 50%, #999 50%)");
+
+  const handleChangeInputRange = (e: React.FormEvent<HTMLInputElement>) => {
+    if (!companyNameRef.current || !companyTypeRef.current || !volumeNumberRef.current) return;
+    // スライダーの値を会社名のfontSizeとして渡す
+    const value = e.currentTarget.valueAsNumber;
+    // 会社種類名は会社名サイズから-3の値を渡す
+    const newFontSizeName = value * 12;
+    const newFontSizeType = newFontSizeName - 3;
+
+    companyNameRef.current.style.fontSize = `${newFontSizeName}px`;
+    companyTypeRef.current.style.fontSize = `${newFontSizeType}px`;
+
+    const min = 0.5;
+    const max = 1.5;
+
+    // スライダーの現在地を割合に変換
+    const valueAsPercentage = ((value - min) / (max - min)) * 100;
+
+    // バーの色と幅を変更
+    // const volumeBarColor = `linear-gradient(to right, #0d99ff ${value * 100}%, #999 ${value * 100}%)`;
+    const volumeBarColor = `linear-gradient(to right, #0d99ff ${valueAsPercentage}%, #999 ${valueAsPercentage}%)`;
+
+    e.currentTarget.style.background = volumeBarColor;
+    volumeBarPercentageRef.current = volumeBarColor;
+    e.currentTarget.dataset.text = value.toFixed(2);
+    volumeNumberRef.current = value;
+  };
+  // -------------------------- ✅会社名サイズとスライダー位置を同期✅ --------------------------
+  // console.log(
+  //   "🌟ボリュームスライダー",
+  //   value,
+  //   volumeBarColor,
+  //   "e.currentTarget.dataset",
+  //   e.currentTarget.dataset,
+  //   "companyNameRef.current.style.fontSize",
+  //   companyNameRef.current?.style?.fontSize,
+  //   "companyTypeRef.current.style.fontSize",
+  //   companyTypeRef.current?.style?.fontSize
+  // );
+
   // -------------------------- 🌟インラインスタイル関連🌟 --------------------------
   // エディットモードの時には「閉じる」と「終了」ボタン以外は非表示にするstyle
   const isEditingHidden = { ...(isEditMode.length > 0 && { display: "none" }) };
@@ -754,7 +854,11 @@ const QuotationPreviewModalMemo = () => {
     "isEditMode",
     isEditMode,
     "footnotes.length",
-    footnotes.length
+    footnotes.length,
+    "companyNameRef.current.style.fontSize",
+    companyNameRef.current?.style?.fontSize,
+    "companyTypeRef.current.style.fontSize",
+    companyTypeRef.current?.style?.fontSize
   );
 
   // 見積No
@@ -771,6 +875,10 @@ const QuotationPreviewModalMemo = () => {
   const clientCompanyName = selectedRowDataQuotation?.company_name ?? "";
   // 合計金額
   const totalAmount = selectedRowDataQuotation?.total_amount ?? null;
+  // 顧客の会社名(株式会社の会社種類名と会社名で分割)
+  const customerNameObj = useMemo(() => {
+    return userProfileState?.customer_name ? splitCompanyNameWithPosition(userProfileState.customer_name) : "";
+  }, [userProfileState?.customer_name]);
 
   return (
     <>
@@ -939,12 +1047,26 @@ const QuotationPreviewModalMemo = () => {
                         )}
                         {(!isPrintCompanyLogo || !companyLogoUrl) && <div className="h-[10%] w-full"></div>}
                         <div className={`${styles.company_name_area}`}>
-                          <span className={`${styles.company_name} flex items-center`}>
-                            {/* <span className="mr-[1%] pt-[0.5%] text-[9px]">株式会社</span>
-                            <span className="text-[12px]">トラスティファイ</span> */}
-                            <span className="text-[12px]">トラスティファイ</span>
-                            <span className="ml-[1%] pt-[0.5%] text-[9px]">株式会社</span>
-                          </span>
+                          <div ref={customerNameRef} className={`${styles.company_name} flex items-center`}>
+                            <span ref={companyTypeRef} className={`mr-[1%] whitespace-nowrap pt-[0.5%] text-[9px]`}>
+                              株式会社
+                            </span>
+                            <span ref={companyNameRef} className={`whitespace-nowrap text-[12px]`}>
+                              トラスティファイ
+                            </span>
+                            {/* <span className="text-[12px]">トラスティファイ</span>
+                            <span className="ml-[1%] pt-[0.5%] text-[9px]">株式会社</span> */}
+                            {/* {customerNameObj && customerNameObj.typePosition === "pre" && (
+                              <>
+                                <span style={styleCompanyType} className="mr-[1%] pt-[0.5%] text-[9px]">
+                                  {customerNameObj.companyType}
+                                </span>
+                                <span style={styleCompanyName} className="text-[12px]">
+                                  {customerNameObj.company_name}
+                                </span>
+                              </>
+                            )} */}
+                          </div>
                         </div>
                         <div className={`${styles.user_info_area} flex flex-col`}>
                           <div className={`${styles.row_area}  flex items-end`}>
@@ -1701,6 +1823,82 @@ const QuotationPreviewModalMemo = () => {
                           customFunction={saveLocalStorageFootnotesDisplay}
                         />
                       </li>
+                      {/* ------------------------------------ */}
+                      {/* ------------------------------------ */}
+                      <li className={`${styles.section_title} min-h-max w-full font-bold`}>
+                        <div className="flex max-w-max flex-col">
+                          <span>会社名</span>
+                          <div className={`${styles.underline} w-full`} />
+                        </div>
+                      </li>
+                      <li
+                        className={`${styles.list} relative`}
+                        // onMouseEnter={(e) => {
+                        //   handleOpenPopupMenu({ e, title: "footnotes" });
+                        // }}
+                        // onMouseLeave={handleClosePopupMenu}
+                      >
+                        <div className="pointer-events-none relative flex min-w-[110px] items-center">
+                          <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                          <div className="flex select-none items-center space-x-[2px]">
+                            <span className={`${styles.list_title}`}>サイズ</span>
+                            <span className={``}>：</span>
+                          </div>
+                          {/* <span className="absolute right-[-40px] top-[50%] translate-y-[-50%] text-[13px] text-[#fff]">
+                            16
+                          </span> */}
+                        </div>
+                        {/* <div
+                          className={`transition-bg01 rounded-[8px] bg-[] ${styles.edit_btn}`}
+                        >
+                          {footnotes && <span>編集</span>}
+                          {!footnotes && <span>設定</span>}
+                        </div> */}
+
+                        <input
+                          type="range"
+                          // data-text={`${(volumeSliderRef.current?.valueAsNumber ?? 0.5) * 2}`}
+                          // data-text={`${volumeNumberRef.current.toFixed(2)}`}
+                          data-text={`${volumeNumberRef.current.toFixed(2)}`}
+                          // min={0}
+                          // max={1}
+                          min={0.5}
+                          max={1.5}
+                          step={0.05}
+                          // defaultValue={1}
+                          defaultValue={volumeNumberRef.current}
+                          // step={0.1}
+                          // step="any"
+                          // defaultValue={0.5}
+                          // min={6}
+                          // max={18}
+                          // step={1}
+                          // defaultValue={12}
+                          className={styles.input_range}
+                          style={
+                            {
+                              "--linear-gradient": volumeBarPercentageRef.current,
+                            } as CSSProperties
+                          }
+                          ref={volumeSliderRef}
+                          onInput={handleChangeInputRange}
+                        />
+                      </li>
+
+                      {/* <li className={`${styles.list}`}>
+                        <div className="pointer-events-none flex min-w-[110px] items-center">
+                          <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                          <div className="flex select-none items-center space-x-[2px]">
+                            <span className={`${styles.list_title}`}>表示</span>
+                            <span className={``}>：</span>
+                          </div>
+                        </div>
+                        <ToggleSwitch
+                          state={isDisplayFootnotes}
+                          dispatch={setIsDisplayFootnotes}
+                          customFunction={saveLocalStorageFootnotesDisplay}
+                        />
+                      </li> */}
                       {/* ------------------------------------ */}
                       {/* {Array(3)
                         .fill(null)

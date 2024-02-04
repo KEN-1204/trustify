@@ -165,6 +165,76 @@
 .settings_menu .list.test:nth-of-type(even) {
   /* background-color: #333; */
 }
+/* ============ inputスライダー ============ */
+.settings_menu input[type="range"] {
+  position: relative;
+  height: 4px;
+  /* max-width: 75px; */
+  max-width: 120px;
+  /* デフォルトのスライダーを消してカスタムに変更 */
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  outline: none;
+  /* background: transparent; */
+  /* background: linear-gradient(to right, #ff0050 50%, #999 50%); */
+  background: linear-gradient(to right, #0d99ff 50%, #999 50%);
+  background: var(--linear-gradient);
+}
+.settings_menu input[type="range"].input_range::-webkit-slider-runnable-track {
+  height: 4px;
+}
+.settings_menu input[type="range"].input_range::-moz-range-track {
+  height: 4px;
+}
+/* Thumbのスタイル */
+.settings_menu input[type="range"].input_range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  /* background: #ff0050; */
+  /* background: #ff0040; */
+  background: #0d99ff;
+  /* background: #008cff; */
+  /* background: var(--color-bg-brand-f); */
+  /* background: #0c8ce9; */
+  /* background: #0066ff; */
+  border-radius: 50%;
+  cursor: pointer;
+  margin-top: -6px;
+}
+.settings_menu input[type="range"].input_range::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  /* background: #ff0050; */
+  /* background: #ff0040; */
+  background: #0d99ff;
+  /* background: #008cff; */
+  /* background: var(--color-bg-brand-f); */
+  /* background: #0c8ce9; */
+  /* background: #0066ff; */
+  cursor: pointer;
+  border-radius: 50%;
+}
+/* Firefoxでのバーの背景色を変更 */
+.settings_menu input[type="range"]::-moz-focus-outer {
+  border: 0;
+}
+.settings_menu input[type="range"]::after {
+  /* content: "16"; */
+  content: attr(data-text);
+  position: absolute;
+  top: -28px;
+  right: 0;
+  /* top: 50%; */
+  /* left: -35px; */
+  /* transform: translateY(-50%); */
+  font-size: 13px;
+  color: #fff;
+}
+/* ============ inputスライダー ============ */
+
 /* ----------------- settings_menuここまで ----------------- */
 /* @keyframes fade_up {
   0% {
@@ -584,6 +654,7 @@
 
 /* company_name_area */
 .company_name {
+  overflow: hidden;
 }
 /* deal_detail_area */
 
