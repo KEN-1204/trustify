@@ -576,7 +576,7 @@
 
 /* customer_detail_area */
 .customer_info_area {
-  position: relative;
+  /* position: relative; */
   z-index: 10;
   height: 100%;
   width: 100%;
@@ -653,12 +653,36 @@
   height: 20%;
   width: 100%;
   /* background-color: #ffffff; */
-  position: relative;
+  /* position: relative; */
+}
+.customer_info_area .user_info_area .row_area .value {
 }
 .customer_info_area .user_info_area .address_area {
   height: 35%;
   /* 5%余り */
   /* background-color: #eee; */
+
+  max-width: 100%;
+}
+.customer_info_area .user_info_area .address_area .postal_code {
+  /* 郵便番号を保持するdiv。内容に応じて幅を取る */
+  flex: 0 1 auto; /* 成長しない、縮小は可能、基本的に内容の幅 */
+  /* flex-grow: 0; flex-shrink: 1; flex-basis: auto;のショートハンド */
+  /* flex-grow は要素が余分なスペースをどのように埋めるかを制御し、flex-shrink はコンテナがオーバーフローした場合に要素が縮小するかどうかを制御し、flex-basis は要素の初期サイズを設定します。 */
+}
+.customer_info_area .user_info_area .address_area .address_line {
+  /* white-space: pre-wrap; */
+  /* display: flex; */
+  /* 残りのスペースを使用するdiv(残りのスペースを全て埋める) */
+  /* flex: 1 1 auto;  */
+  /* overflow: hidden; */
+  flex-grow: 1;
+  overflow-x: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.customer_info_area .user_info_area .row_area .value:hover {
+  color: var(--color-bg-brand-f);
 }
 .customer_info_area .user_info_area .row_area .info_input_box {
   position: relative;

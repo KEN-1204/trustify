@@ -308,6 +308,43 @@ const QuotationPreviewModalMemo = () => {
   // const [officeName, setOfficeName] = useState(selectedRowDataQuotation?.assigned_office_name || "");
   const [officeName, setOfficeName] = useState("東京営業所東京営業所東京営業所");
 
+  // 住所
+  // const sampleAddress = `東京都港区芝浦港区0-0-0 シーバンスX館`;
+  const sampleAddress = `東京都港区芝浦港区新宿区西新宿0-0-0 芝浦アイランドブルームタワー`;
+  // const sampleAddress = `東京都港区芝浦港区芝浦港区0-0-0`;
+  const [address, setAddress] = useState(sampleAddress.split(" ")[0] ?? "");
+  // 初回マウント時に住所を建物名の前に空白か\nを付けてaddressに格納する
+  const addressLineRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!address) return;
+    if (!addressLineRef.current) return;
+
+    console.log("変更前address", address);
+    const addressEl = addressLineRef.current;
+
+    const splitAddressArray = sampleAddress.split(" ");
+
+    // 建物名が存在しない場合はpre-wrapに変更してリターン
+    if (!splitAddressArray[1]) {
+      addressEl.style.whiteSpace = "pre-wrap";
+      return;
+    }
+
+    let addressWithBuilding;
+    // 建物なしの住所がaddress_lineクラスのdivタグの表示可能領域を超えている場合は、
+    // white-spaceをpre-wrapに変更して「空白+建物名」で住所に結合
+    if (addressEl.scrollWidth > addressEl.offsetWidth) {
+      addressWithBuilding = `${address} ${splitAddressArray[1]}`;
+    }
+    // 表示可能領域を超えていなければ、「\n+建物名」で住所に結合
+    else {
+      addressWithBuilding = `${address}\n${splitAddressArray[1]}`;
+    }
+    // pre-wrapに変更して新住所をstateに格納
+    addressEl.style.whiteSpace = "pre-wrap";
+    setAddress(addressWithBuilding);
+  }, []);
+
   // 見積備考
   // const [notesText, setNotesText] = useState(selectedRowDataQuotation?.quotation_notes || "");
   const [notesText, setNotesText] = useState(noteTextSample);
@@ -733,6 +770,7 @@ const QuotationPreviewModalMemo = () => {
         "payment_terms",
         "expiration_date",
         "assigned_department_name",
+        "assigned_office_name",
       ];
       setIsEditMode(allEdit);
     } else {
@@ -1187,21 +1225,23 @@ const QuotationPreviewModalMemo = () => {
                             </div>
                           </div>
                           <div className={`${styles.user_info_area} flex flex-col`}>
-                            <div className={`${styles.row_area}  flex items-end truncate`}>
-                              {/* <span className={``}>マイクロスコープ事業部</span> */}
+                            <div className={`${styles.row_area}  flex items-end`}>
                               {!isEditMode.includes("assigned_department_name") && (
-                                <span
-                                  className={`truncate`}
-                                  onClick={handleSingleClickField}
-                                  onDoubleClick={(e) => {
-                                    handleDoubleClickField({
-                                      e,
-                                      field: "assigned_department_name",
-                                    });
-                                  }}
-                                >
-                                  {departmentName}
-                                </span>
+                                <>
+                                  {/* <span className={``}>マイクロスコープ事業部</span> */}
+                                  <span
+                                    className={`truncate ${styles.value}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "assigned_department_name",
+                                      });
+                                    }}
+                                  >
+                                    {departmentName}
+                                  </span>
+                                </>
                               )}
                               {isEditMode.includes("assigned_department_name") && (
                                 <input
@@ -1212,20 +1252,57 @@ const QuotationPreviewModalMemo = () => {
                                 />
                               )}
                             </div>
+
                             <div className={`${styles.row_area} flex items-center`}>
-                              <div className={`min-w-[50%] max-w-[50%] truncate`}>
-                                {/* <span className={``}>東京営業所</span> */}
-                                <span className={``}>{officeName}</span>
-                              </div>
+                              {!isEditMode.includes("assigned_office_name") && (
+                                <div className={`min-w-[50%] max-w-[50%] truncate`}>
+                                  {/* <span className={``}>東京営業所</span> */}
+                                  <span
+                                    className={`${styles.value}`}
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "assigned_office_name",
+                                      });
+                                    }}
+                                  >
+                                    {officeName}
+                                  </span>
+                                </div>
+                              )}
+                              {isEditMode.includes("assigned_office_name") && (
+                                <>
+                                  <div className={`min-w-[50%] max-w-[50%]`}>
+                                    <input
+                                      className={`w-full truncate ${styles.info_input_box}`}
+                                      value={officeName}
+                                      onChange={(e) => setOfficeName(e.target.value)}
+                                      autoFocus={isEditMode.every((field) => field === "assigned_office_name")}
+                                    />
+                                  </div>
+                                </>
+                              )}
                               <div className={`min-w-[50%]`}>
                                 <span className={``}>斎藤礼司</span>
                               </div>
                             </div>
                             <div className={`${styles.address_area} flex`}>
-                              <span className={`min-w-max`}>〒123-0024</span>
-                              <div className={`flex flex-col pl-[5%]`}>
-                                <span>東京都港区芝浦0-0-0</span>
-                                <span>シーバンスX館</span>
+                              <span className={`min-w-max ${styles.postal_code}`}>〒123-0024</span>
+                              <div
+                                ref={addressLineRef}
+                                // onMouseEnter={(e) =>
+                                //   console.log("e", e.currentTarget.scrollWidth, "offset", e.currentTarget.offsetWidth)
+                                // }
+                                style={{ whiteSpace: "nowrap", overflowX: "hidden" }}
+                                className={`flex flex-col pl-[5%] ${styles.address_line}`}
+                              >
+                                {/* <span>{`東京都港区芝浦港区芝浦港区芝浦0-0-0 シーバンスX館`}</span> */}
+                                {/* <span>{`東京都港区芝浦港区0-0-0\nシーバンスX館`}</span> */}
+                                {/* <span>{address}</span> */}
+                                {/* <span style={{ whiteSpace: "nowrap" }}>{sampleAddress}</span> */}
+                                {address}
+                                {/* {sampleAddress} */}
                               </div>
                             </div>
                             <div className={`${styles.row_area} flex items-center`}>

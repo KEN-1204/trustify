@@ -2515,7 +2515,7 @@ const SettingCompanyMemo = () => {
                 }}
                 onMouseLeave={handleCloseTooltip}
               >
-                <span>印鑑データ</span>
+                <span>住所</span>
                 {/* <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} /> */}
                 <div className="flex-center relative h-[16px] w-[16px] rounded-full">
                   <div
