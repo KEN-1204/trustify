@@ -754,6 +754,7 @@
   display: grid;
   grid-template-rows: repeat(1fr);
   font-size: 7.5px;
+  font-size: 8px;
   grid-row-start: 3;
 }
 .table_area .row_result {
@@ -847,6 +848,7 @@
   height: 100%;
   border-right: 0.1px solid #37352f;
   font-size: 7.5px;
+  font-size: 8px;
 }
 .table_area .row_result .grid_cell.first {
   padding-left: 2.5%;
@@ -880,7 +882,10 @@
 .notes_area .notes_content {
   /* padding: 0 calc(92vh / 1.41 * 0.005); */
   padding: 0.3% 1% 0;
+  /* padding: 0.6% 1% 0; */
   font-size: 7.5px;
+  font-size: 8px;
+  line-height: 12px;
   white-space: pre-wrap;
   /* background-color: var(--color-bg-brand-f30); */
   /* background: red; */
@@ -909,6 +914,7 @@
 .remarks_area .remarks {
   padding: 0 1%;
   font-size: 7.5px;
+  font-size: 8px;
 }
 .remarks_area .remarks.footnotes span:hover {
   color: var(--color-bg-brand-f);
@@ -917,6 +923,7 @@
 
 .remarks_area .page {
   font-size: 7.5px;
+  font-size: 8px;
   margin-top: 0.5%;
 }
 .remarks_area .remarks.input_box {
@@ -924,6 +931,7 @@
   height: fit-content;
   padding: 0 1%;
   font-size: 7.5px;
+  font-size: 8px;
   z-index: 4000;
   width: 100%;
   background-color: #fff;

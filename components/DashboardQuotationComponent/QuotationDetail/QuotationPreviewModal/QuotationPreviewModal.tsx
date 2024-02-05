@@ -1082,6 +1082,70 @@ const QuotationPreviewModalMemo = () => {
 
   // -------------------------- ✅インラインスタイル関連✅ --------------------------
 
+  // -------------------------- 🌟ポップアップメッセージ🌟 --------------------------
+  const alertPopupRef = useRef<HTMLDivElement | null>(null);
+  const hideTimeoutIdRef = useRef<number | null>(null);
+
+  // 文字数制限を超えた際にポップアップアラートメッセージを表示する
+  const showAlertPopup = (type: "length" | "lines" | "both") => {
+    const alertPopup = alertPopupRef.current;
+    if (!alertPopup) return;
+
+    // 表示するメッセージを格納する変数
+    let message = "";
+    switch (type) {
+      case "length":
+        message = "文字数制限を超えています";
+        break;
+      case "lines":
+        message = "行数制限を超えています";
+        break;
+      case "both":
+        message = "文字数・行数制限を超えています";
+        break;
+      default:
+        message = "制限を超えています"; // デフォルトのメッセージ
+        break;
+    }
+
+    // 既存のタイマーをクリアする
+    if (hideTimeoutIdRef.current !== null) {
+      clearTimeout(hideTimeoutIdRef.current); // 既存の非表示タイマーをキャンセル
+      hideTimeoutIdRef.current = null;
+    }
+
+    // ポップアップの内容を更新
+    alertPopup.innerHTML = `<span>${message}</span>`; // innerHTMLを使用してメッセージを設定
+
+    // ポップアップを即時表示するためのスタイルを設定
+    alertPopup.style.display = "flex"; // ポップアップを表示
+    alertPopup.style.animation = "popupShow 0.1s ease forwards"; // 表示アニメーション
+
+    // 3秒後に非表示アニメーションを適用
+    // 新たに非表示にするためのタイマーを設定(windowオブジェクトのsetTimeoutの結果はnumber型 clearTimeoutで使用)
+    hideTimeoutIdRef.current = window.setTimeout(() => {
+      alertPopup.style.animation = "popupHide 0.2s ease forwards"; // 非表示アニメーション
+
+      // アニメーションが完了した後に要素を非表示にする
+      setTimeout(() => {
+        alertPopup.style.display = "none";
+      }, 200); // 非表示アニメーションの時間に合わせる
+
+      // タイマーIDをリセット
+      hideTimeoutIdRef.current = null;
+    }, 3000); // 表示される時間
+  };
+
+  // コンポーネントのクリーンアップで既存のタイマーがあればクリアする
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutIdRef.current !== null) {
+        clearTimeout(hideTimeoutIdRef.current);
+      }
+    };
+  }, []);
+  // -------------------------- ✅ポップアップメッセージ✅ --------------------------
+
   // Webページ上で直接プリントアウト window.print()
   console.log(
     "🌠PDFプレビューモーダル レンダリング pdfURL",
@@ -1108,6 +1172,12 @@ const QuotationPreviewModalMemo = () => {
           </div>
         </div>
       )}
+
+      {/* アラートポップアップ */}
+      <div ref={alertPopupRef} className={`flex-center alert_popup h-[50px] w-[300px] bg-[#555] text-[#fff]`}>
+        {/* <span>文字数制限を超えています</span> */}
+        {/* <span></span> */}
+      </div>
 
       {isOpenEditModal === "footnotes" && (
         <TextareaModal
@@ -1231,7 +1301,42 @@ const QuotationPreviewModalMemo = () => {
                                     <input
                                       className={`${styles.input_box} ${styles.deal_content} truncate`}
                                       value={obj.state}
-                                      onChange={(e) => obj.dispatch(e.target.value)}
+                                      onChange={(e) => {
+                                        // console.log("obj.state.length", obj.state.length);
+                                        // obj.dispatch(e.target.value)
+
+                                        const inputValue = e.target.value;
+                                        const textarea = e.target;
+                                        const limitLength = 23;
+                                        const lengthExceeded =
+                                          inputValue.length > limitLength ||
+                                          textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
+
+                                        if (lengthExceeded) {
+                                          // ポップアップメッセージを表示
+                                          if (lengthExceeded) showAlertPopup("length");
+
+                                          // 制限を超えた場合の処理 1文字目から245文字のみ残す
+                                          // let trimmedText = inputValue.slice(0, limitLength);
+                                          let trimmedText;
+
+                                          // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
+                                          // 文字数制限を超えている場合、再度文字数制限でトリム
+                                          if (inputValue.length > limitLength) {
+                                            if (inputValue.length === obj.state.length + 1)
+                                              return console.log("一文字");
+                                            trimmedText = inputValue.slice(0, limitLength);
+                                          } else {
+                                            // 文字数を超えずに表示可能領域のみ超えた場合はstateを更新せずにリターン
+                                            return;
+                                          }
+
+                                          obj.dispatch(trimmedText);
+                                        } else {
+                                          // 制限内の場合はそのままセット
+                                          obj.dispatch(inputValue);
+                                        }
+                                      }}
                                       autoFocus={isEditMode.every((field) => field === obj.title)}
                                     />
                                   </div>
@@ -1340,7 +1445,44 @@ const QuotationPreviewModalMemo = () => {
                                 <input
                                   className={`${styles.info_input_box} truncate`}
                                   value={departmentName}
-                                  onChange={(e) => setDepartmentName(e.target.value)}
+                                  onChange={(e) => {
+                                    // console.log("e.target.value.length", e.target.value.length);
+                                    // setDepartmentName(e.target.value);
+
+                                    const inputValue = e.target.value;
+                                    const textarea = e.target;
+                                    const limitLength = 23;
+                                    // const lengthExceeded =
+                                    //   inputValue.length > limitLength || textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
+                                    const lengthExceeded = textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
+
+                                    if (lengthExceeded) {
+                                      // ポップアップメッセージを表示
+                                      if (lengthExceeded) showAlertPopup("length");
+                                      return;
+
+                                      // // 制限を超えた場合の処理 1文字目から245文字のみ残す
+                                      // // let trimmedText = inputValue.slice(0, limitLength);
+                                      // let trimmedText;
+
+                                      // // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
+                                      // // 文字数制限を超えている場合、再度文字数制限でトリム
+                                      // if (inputValue.length > limitLength) {
+                                      //   // 一文字のみの入力で表示領域を超えた場合はstateを更新せずにそのままリターン
+                                      //   if (inputValue.length === departmentName.length + 1)
+                                      //     return console.log("一文字");
+                                      //   trimmedText = inputValue.slice(0, limitLength);
+                                      // } else {
+                                      //   // 文字数を超えずに表示可能領域のみ超えた場合はstateを更新せずにリターン
+                                      //   return;
+                                      // }
+
+                                      // setDepartmentName(trimmedText);
+                                    } else {
+                                      // 制限内の場合はそのままセット
+                                      setDepartmentName(inputValue);
+                                    }
+                                  }}
                                   autoFocus={isEditMode.every((field) => field === "assigned_department_name")}
                                 />
                               )}
@@ -1370,7 +1512,45 @@ const QuotationPreviewModalMemo = () => {
                                     <input
                                       className={`w-full truncate ${styles.info_input_box}`}
                                       value={officeName}
-                                      onChange={(e) => setOfficeName(e.target.value)}
+                                      onChange={(e) => {
+                                        // console.log("e.target.value.length", e.target.value.length);
+                                        // setOfficeName(e.target.value);
+
+                                        const inputValue = e.target.value;
+                                        const textarea = e.target;
+                                        const limitLength = 11;
+                                        // const lengthExceeded =
+                                        //   inputValue.length > limitLength ||
+                                        //   textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
+                                        const lengthExceeded = textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
+
+                                        if (lengthExceeded) {
+                                          // ポップアップメッセージを表示
+                                          if (lengthExceeded) showAlertPopup("length");
+                                          return;
+
+                                          // // 制限を超えた場合の処理 1文字目から245文字のみ残す
+                                          // // let trimmedText = inputValue.slice(0, limitLength);
+                                          // let trimmedText;
+
+                                          // // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
+                                          // // 文字数制限を超えている場合、再度文字数制限でトリム
+                                          // if (inputValue.length > limitLength) {
+                                          //   // 一文字のみの入力で表示領域を超えた場合はstateを更新せずにそのままリターン
+                                          //   if (inputValue.length === officeName.length + 1)
+                                          //     return console.log("一文字");
+                                          //   trimmedText = inputValue.slice(0, limitLength);
+                                          // } else {
+                                          //   // 文字数を超えずに表示可能領域のみ超えた場合はstateを更新せずにリターン
+                                          //   return;
+                                          // }
+
+                                          // setOfficeName(trimmedText);
+                                        } else {
+                                          // 制限内の場合はそのままセット
+                                          setOfficeName(inputValue);
+                                        }
+                                      }}
                                       autoFocus={isEditMode.every((field) => field === "assigned_office_name")}
                                     />
                                   </div>
@@ -1674,7 +1854,7 @@ const QuotationPreviewModalMemo = () => {
                       </div>
                     )}
 
-                    {totalPrice && (
+                    {isValidNumber(totalPrice) && (
                       <div role="row" style={{ minHeight: `${3.9}%` }} className={`${styles.row_result}`}>
                         {columnHeaderTitleArray.map((key, index) => (
                           <div
@@ -1693,7 +1873,7 @@ const QuotationPreviewModalMemo = () => {
                     )}
 
                     {/* {isDiscount && ( */}
-                    {discountAmount && (
+                    {isValidNumber(discountAmount) && Number(discountAmount) !== 0 && (
                       <div role="row" style={{ minHeight: `${3.9}%` }} className={`${styles.row_result}`}>
                         {columnHeaderTitleArray.map((key, index) => (
                           <div
@@ -1707,7 +1887,7 @@ const QuotationPreviewModalMemo = () => {
                             {/* {index === 3 && <span>-{formatDisplayPrice(795000)}</span>} */}
                             {index === 3 && (
                               <span>
-                                {discountAmount ? `-` : ``}
+                                {isValidNumber(discountAmount) ? `-` : ``}
                                 {formatDisplayPrice(discountAmount)}
                               </span>
                             )}
@@ -1723,8 +1903,8 @@ const QuotationPreviewModalMemo = () => {
                           3.3 -
                           (!!productsArray.length ? 0.7 : 0) -
                           3.9 * productsArray.length -
-                          (totalPrice ? 3.9 : 0) -
-                          (discountAmount ? 3.9 : 0)
+                          (isValidNumber(totalPrice) ? 3.9 : 0) -
+                          (isValidNumber(discountAmount) && Number(discountAmount) !== 0 ? 3.9 : 0)
                         }%)`,
                         // height: `calc(${100 - 3.3 - 0.7 - 3.9 * productsArray.length - 3.9 - (isDiscount ? 3.9 : 0)}%)`,
                       }}
@@ -1769,22 +1949,23 @@ const QuotationPreviewModalMemo = () => {
                     {/* <p className={`${styles.notes_content}`} dangerouslySetInnerHTML={{ __html: noteTextSample }}></p> */}
                     {!isEditMode.includes("quotation_notes") && (
                       <>
-                        {/* <p
-                        className={`${styles.notes_content}`}
-                        style={{ whiteSpace: "pre-wrap" }}
-                        dangerouslySetInnerHTML={{ __html: notesText }}
-                        onClick={handleSingleClickField}
-                        onDoubleClick={(e) => {
-                          handleDoubleClickField({
-                            e,
-                            field: "quotation_notes",
-                          });
-                        }}
-                      ></p> */}
-                        <textarea
+                        <p
+                          className={`${styles.notes_content}`}
+                          style={{ whiteSpace: "pre-wrap" }}
+                          dangerouslySetInnerHTML={{ __html: notesText }}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleDoubleClickField({
+                              e,
+                              field: "quotation_notes",
+                            });
+                          }}
+                        ></p>
+                        {/* <textarea
                           cols={30}
                           rows={4}
                           className={`${styles.notes_content}`}
+                          // style={{ whiteSpace: "pre-wrap", resize: "none", lineHeight: "13px" }}
                           style={{ whiteSpace: "pre-wrap", resize: "none" }}
                           readOnly
                           value={notesText}
@@ -1796,28 +1977,85 @@ const QuotationPreviewModalMemo = () => {
                               field: "quotation_notes",
                             });
                           }}
-                        ></textarea>
+                        ></textarea> */}
                       </>
                     )}
                     {isEditMode.includes("quotation_notes") && (
                       <textarea
+                        // style={{ whiteSpace: "pre-wrap", resize: "none", lineHeight: "13px" }}
+                        style={{ whiteSpace: "pre-wrap", resize: "none" }}
                         cols={30}
                         rows={4}
                         value={notesText}
                         onChange={(e) => {
+                          // 現在のtextareaのlineHeightのCSSスタイルを取得
+                          // const textarea = document.querySelector("textarea");
+                          // const computedStyle = window.getComputedStyle(textarea);
+                          // const lineHeight = computedStyle.lineHeight;
+
                           // setNotesText(e.target.value)
                           // 文字数を日本語は245文字、英語は448文字、行数は４行まで
                           const inputValue = e.target.value;
-                          console.log("inputValue.length", inputValue.length);
+                          const textarea = e.target;
                           const limitLength = 245;
-                          if (limitLength && inputValue.length > limitLength) {
-                            // showAlertPopup();
-                            // 0から99番目の文字までをstateに格納
-                            setNotesText(notesText.slice(0, limitLength));
-                            return;
+                          const limitLines = 4;
+                          // const lineHeight = 13; // textareaのline-height font-size7.5pxの1.5倍
+                          // const lines = inputValue.split(`\n`); // 改行文字で分割することで改行数を取得する*3
+                          // const linesExceeded = lines.length > limitLines; // 行数超過可否
+                          const linesExceeded = textarea.scrollHeight > textarea.offsetHeight; // 行数超過可否
+                          const lengthExceeded = inputValue.length > limitLength; // 文字数超過可否
+
+                          console.log(
+                            "文字数",
+                            inputValue.length,
+                            "textarea.scrollHeight",
+                            textarea.scrollHeight,
+                            "textarea.offsetHeight",
+                            textarea.offsetHeight,
+                            linesExceeded
+                          );
+
+                          if (lengthExceeded || linesExceeded) {
+                            // ポップアップメッセージを表示
+                            if (lengthExceeded && !linesExceeded) showAlertPopup("length");
+                            if (!lengthExceeded && linesExceeded) showAlertPopup("lines");
+                            if (lengthExceeded && linesExceeded) showAlertPopup("both");
+
+                            // 制限を超えた場合の処理 1文字目から245文字のみ残す
+                            let trimmedText = inputValue.slice(0, limitLength);
+
+                            // 行数制限を超えた場合(textareaの表示可能領域をscrollHeightが超えた場合)、末尾の改行文字を取り除く
+                            if (linesExceeded) {
+                              // lengthExceededがtrueの場合に限り、inputValueから制限文字数までの部分を取り出し（slice(0, limitLength)）、さらにその結果の末尾が改行文字で終わっているかどうかをendsWith('\n')でチェック
+                              if (trimmedText.endsWith("\n")) {
+                                // 末尾が改行文字であれば、その改行文字を取り除いて更新されたテキストを処理します（slice(0, -1)）
+                                // もし末尾が改行文字であれば、それを取り除く
+                                trimmedText = trimmedText.slice(0, -1);
+                              } else {
+                                // 最後の文字が改行文字でなく行数を超えた場合はstateを更新せずにリターン
+                                return;
+                              }
+                            }
+
+                            // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
+                            // 文字数制限を超えている場合、再度文字数制限でトリム
+                            if (trimmedText.length > limitLength) {
+                              trimmedText = trimmedText.slice(0, limitLength);
+                            }
+
+                            setNotesText(trimmedText);
                           } else {
+                            // 制限内の場合はそのままセット
                             setNotesText(inputValue);
                           }
+                          // if (limitLength && inputValue.length > limitLength) {
+
+                          //   // 0から244番目の文字までをstateに格納
+                          //   setNotesText(notesText.slice(0, limitLength));
+                          //   return;
+                          // } else {
+                          //   setNotesText(inputValue);
+                          // }
                         }}
                         autoFocus={isEditMode.every((field) => field === "quotation_notes")}
                         className={`${styles.notes_content} ${styles.textarea_box}`}
@@ -1853,7 +2091,41 @@ const QuotationPreviewModalMemo = () => {
                       <input
                         className={`${styles.remarks} ${styles.input_box} truncate`}
                         value={footnotes}
-                        onChange={(e) => setFootnotes(e.target.value)}
+                        onChange={(e) => {
+                          // console.log("文字数", footnotes.length);
+                          // setFootnotes(e.target.value);
+
+                          const inputValue = e.target.value;
+                          const textarea = e.target;
+                          const limitLength = 63;
+                          const lengthExceeded =
+                            inputValue.length > limitLength || textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
+
+                          if (lengthExceeded) {
+                            // ポップアップメッセージを表示
+                            if (lengthExceeded) showAlertPopup("length");
+
+                            // 制限を超えた場合の処理 1文字目から245文字のみ残す
+                            // let trimmedText = inputValue.slice(0, limitLength);
+                            let trimmedText;
+
+                            // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
+                            // 文字数制限を超えている場合、再度文字数制限でトリム
+                            if (inputValue.length > limitLength) {
+                              // 一文字のみの入力で表示領域を超えた場合はstateを更新せずにそのままリターン
+                              if (inputValue.length === footnotes.length + 1) return console.log("一文字");
+                              trimmedText = inputValue.slice(0, limitLength);
+                            } else {
+                              // 文字数を超えずに表示可能領域のみ超えた場合はstateを更新せずにリターン
+                              return;
+                            }
+
+                            setFootnotes(trimmedText);
+                          } else {
+                            // 制限内の場合はそのままセット
+                            setFootnotes(inputValue);
+                          }
+                        }}
                         autoFocus={isEditMode.every((field) => field === "footnotes")}
                       />
                     )}
@@ -2607,4 +2879,22 @@ imageData：画像のデータ。これはBase64エンコードされた文字�
 format：画像のフォーマット。一般的なフォーマットには'PNG'、'JPG'、'JPEG'などがあります。
 x、y：画像を配置するPDFページ上のx座標とy座標（通常はポイント単位）。
 width、height：画像の幅と高さ。指定しない場合は画像の元のサイズが使用されますが、指定することで画像のサイズを調整できます。
+
+
+🌠*3 const lines = inputValue.split('\n');
+「
+これは最初の行です。
+これは二行目です。
+
+これは四行目です。
+」
+=>
+[
+  "これは最初の行です。",
+  "これは二行目です。",
+  "", // この空の文字列は、三行目と四行目の間の連続した改行に対応します。
+  "これは四行目です。"
+]
+=> 結果、要素が4つに分割されるので、lengthで４行を取得できる
+
 */
