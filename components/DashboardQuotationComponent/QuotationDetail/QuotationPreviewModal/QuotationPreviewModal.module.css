@@ -664,7 +664,7 @@
 
   max-width: 100%;
 }
-.customer_info_area .user_info_area .address_area .postal_code {
+.customer_info_area .user_info_area .address_area .zip_code {
   /* 郵便番号を保持するdiv。内容に応じて幅を取る */
   flex: 0 1 auto; /* 成長しない、縮小は可能、基本的に内容の幅 */
   /* flex-grow: 0; flex-shrink: 1; flex-basis: auto;のショートハンド */

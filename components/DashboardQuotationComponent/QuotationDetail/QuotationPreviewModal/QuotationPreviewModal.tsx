@@ -29,7 +29,7 @@ import { jsPDF } from "jspdf";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { PDFComponent } from "./PDFComponent";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
-import { Quotation_row_data } from "@/types";
+import { QuotationProductsDetail, Quotation_row_data } from "@/types";
 import html2canvas from "html2canvas";
 import { toPng, toSvg } from "html-to-image";
 import { ToggleSwitch } from "@/components/Parts/ToggleSwitch/ToggleSwitch";
@@ -46,90 +46,21 @@ const hankoSrc = "/assets/images/icons/saito.png";
 // const logoSrc =
 //   theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
 
-const columnHeaderTitleArray = ["product_name", "unit_quantity", "unit_price", "amount"];
-
-const productsArray: { [key: string]: any } = [
-  {
-    id: "1-1",
-    product_name: "画像測定器",
-    outside_name: "IX-9000/9030T",
-    unit_quantity: 1,
-    unit_price: 6295000,
-    amount: 6295000,
-  },
-  {
-    id: "2-1",
-    product_name: "IXエディタソフト",
-    outside_name: "IX-H1E",
-    unit_quantity: 1,
-    unit_price: 200000,
-    amount: 200000,
-  },
-  {
-    id: "3-1",
-    product_name: "データ転送ソフト",
-    outside_name: "IX-H1T",
-    unit_quantity: 1,
-    unit_price: 150000,
-    amount: 150000,
-  },
-  {
-    id: "4-1",
-    product_name: "強化ステージガラス",
-    outside_name: "IX-SG2",
-    unit_quantity: 1,
-    unit_price: 150000,
-    amount: 150000,
-  },
-];
-const dealDisplayContent = (columnName: string, obj: Quotation_row_data & { [key: string]: any }) => {
-  switch (columnName) {
-    case "deadline":
-      return productsArray[columnName];
-      break;
-    case "delivery_place":
-      return productsArray[columnName];
-      break;
-    case "payment_terms":
-      return productsArray[columnName];
-      break;
-    case "expiration_date":
-      return productsArray[columnName];
-      break;
-
-    default:
-      return obj[columnName];
-      break;
-  }
-};
-
-const displayValue = (columnName: string, obj: Quotation_row_data & { [key: string]: any }) => {
-  switch (columnName) {
-    case "product_name":
-      return productsArray[columnName];
-      break;
-    case "unit_quantity":
-      return productsArray[columnName];
-      break;
-    case "unit_price":
-      return productsArray[columnName];
-      break;
-    case "amount":
-      return productsArray[columnName];
-      break;
-
-    default:
-      return obj[columnName];
-      break;
-  }
-};
-
-const formatDisplayPrice = (price: number | string, language: string = "ja"): string => {
+const formatDisplayPrice = (
+  price: number | string | null,
+  language: string = "ja",
+  displayYenSign: boolean = false
+): string => {
+  if (price === null) return "";
   switch (language) {
     case "ja":
       const priceNum = typeof price === "number" ? price : Number(price);
       // return formatToJapaneseYen(priceNum, true, false);
-      return priceNum.toLocaleString();
+      if (displayYenSign) {
+        return formatToJapaneseYen(priceNum);
+      } else {
+        return priceNum.toLocaleString();
+      }
       break;
     default:
       return typeof price === "number" ? price.toString() : price;
@@ -142,6 +73,15 @@ const getScale = (currentHeight: number) => {
     return currentHeight / 788;
   } else {
     return 1;
+  }
+};
+
+// 印鑑ボックスが2つ印字の場合1番目(一番右)にはpadding-left: 1pxを当てる
+const styleStampBox = (index: number, printLength: number) => {
+  if ((printLength === 2 && index === 0) || (printLength === 3 && (index === 1 || index === 0))) {
+    return { paddingLeft: "1px" };
+  } else {
+    return {};
   }
 };
 
@@ -228,10 +168,7 @@ const QuotationPreviewModalMemo = () => {
   const [pdfURL, setPdfURL] = useState<string | null>(null);
 
   const [tableRowCount, setTableRowCount] = useState<number>(2);
-  const [isDiscount, setIsDiscount] = useState(true);
-
-  // 見積もり備考欄サンプルテキスト
-  const noteTextSample = `見積No. 123456789012をご発注いただいた場合に限り適用となります。\n※上記は2021年9月15日までのご発注、16日までに商品を出荷させていただけた場合に限る今回限りの貴社向け特別価格となります。`;
+  // const [isDiscount, setIsDiscount] = useState(true);
 
   // -------------------- 🌟各種設定項目State (圧縮率, 末尾備考欄のテキスト、角印の表示有無など)🌟 --------------------
   // セッティングメニュー
@@ -249,6 +186,7 @@ const QuotationPreviewModalMemo = () => {
     selectedRowDataQuotation?.use_corporate_seal ?? false
   );
 
+  // -------------------------- 🌟印鑑データ関連🌟 --------------------------
   // 担当印鑑
   const [isPrintInChargeStamp, setIsPrintInChargeStamp] = useState<boolean>(
     selectedRowDataQuotation?.in_charge_stamp_flag ? true : false
@@ -270,6 +208,69 @@ const QuotationPreviewModalMemo = () => {
   const [isFrameSupervisorStamp2, setIsFrameSupervisorStamp2] = useState<boolean>(
     selectedRowDataQuotation?.supervisor2_stamp_flag ? true : false
   );
+
+  // 🌟印鑑データ配列
+  const initialImgUrlInCharge = hankoSrc;
+  // const initialImgUrlInCharge = selectedRowDataQuotation?.in_charge_stamp_image_url ?? null;
+  const initialImgUrlSupervisor1 = selectedRowDataQuotation?.supervisor1_stamp_image_url ?? null;
+  const initialImgUrlSupervisor2 = selectedRowDataQuotation?.supervisor2_stamp_image_url ?? null;
+  const stampsArray = [
+    // { title: "in_charge", url: selectedRowDataQuotation?.in_charge_stamp_image_url ?? null, isPrint: isPrintInChargeStamp, isFrame: isFrameInChargeStamp },
+    { title: "in_charge", url: initialImgUrlInCharge, isPrint: isPrintInChargeStamp, isFrame: isFrameInChargeStamp },
+    {
+      title: "supervisor1",
+      url: initialImgUrlSupervisor1,
+      isPrint: isPrintSupervisorStamp1,
+      isFrame: isFrameSupervisorStamp1,
+    },
+    {
+      title: "supervisor2",
+      url: initialImgUrlSupervisor2,
+      isPrint: isPrintSupervisorStamp2,
+      isFrame: isFrameSupervisorStamp2,
+    },
+  ];
+
+  // 担当印がfalseになったら、担当印以上の上長印1と2をfalseに変更する
+  useEffect(() => {
+    if (!isFrameInChargeStamp) {
+      if (isFrameSupervisorStamp1) setIsFrameSupervisorStamp1(false);
+      if (isFrameSupervisorStamp2) setIsFrameSupervisorStamp2(false);
+      return;
+    }
+    if (!isFrameSupervisorStamp1) {
+      if (isFrameSupervisorStamp2) setIsFrameSupervisorStamp2(false);
+      return;
+    }
+  }, [isFrameInChargeStamp, isFrameSupervisorStamp1]);
+
+  const stampFrameDisplayCount = useMemo(() => {
+    return stampsArray.filter((obj) => obj.isFrame).length;
+  }, [isFrameInChargeStamp, isFrameSupervisorStamp1, isFrameSupervisorStamp2]);
+  console.log("🔥stampFrameDisplayCount", stampFrameDisplayCount);
+  // -------------------------- ✅印鑑データ関連✅ --------------------------
+
+  // 見積No
+  // const initialQuotationNo = `123456789012`;
+  const initialQuotationNo = selectedRowDataQuotation?.quotation_no_custom
+    ? selectedRowDataQuotation?.quotation_no_custom
+    : selectedRowDataQuotation?.quotation_no_system ?? "";
+  const quotationNo = initialQuotationNo;
+  // 見積日付
+  // const quotationDate = `2021年9月6日`;
+  const quotationDate = useMemo(() => {
+    return selectedRowDataQuotation?.quotation_date
+      ? format(new Date(selectedRowDataQuotation?.quotation_date), "yyyy年M月d日")
+      : "";
+  }, [selectedRowDataQuotation?.quotation_date]);
+  // 顧客会社名
+  const clientCompanyName = selectedRowDataQuotation?.company_name ?? "";
+
+  // 顧客の会社名(株式会社の会社種類名と会社名で分割)
+  const customerNameObj = useMemo(() => {
+    return userProfileState?.customer_name ? splitCompanyNameWithPosition(userProfileState.customer_name) : "";
+  }, [userProfileState?.customer_name]);
+
   // 脚注：末尾の出荷に関する説明欄
   const initialFootnotesText = `※当日出荷は弊社営業稼働日の14時までにご発注いただいた場合に対応させていただきます。`;
   const [footnotes, setFootnotes] = useState<string>(() => {
@@ -287,7 +288,7 @@ const QuotationPreviewModalMemo = () => {
   const saveLocalStorageFootnotesDisplay = () => {
     localStorage.setItem("footnotes_display", JSON.stringify(!isDisplayFootnotes));
   };
-  // 脚注 ローカルストレージに追加、変更
+  // 🔹脚注 ローカルストレージに追加、変更
   useEffect(() => {
     const footnotesLocal = localStorage.getItem("footnotes");
     if (!footnotesLocal) {
@@ -299,20 +300,24 @@ const QuotationPreviewModalMemo = () => {
     }
   }, []);
 
-  // 事業部
-  // const [departmentName, setDepartmentName] = useState(selectedRowDataQuotation?.assigned_department_name || "");
-  const [departmentName, setDepartmentName] = useState(
-    "マイクロスコープ事業部マイクロスコープ事業部マイクロスコープ事業部"
-  );
-  // 事業所・営業所
-  // const [officeName, setOfficeName] = useState(selectedRowDataQuotation?.assigned_office_name || "");
-  const [officeName, setOfficeName] = useState("東京営業所東京営業所東京営業所");
+  // 🔹事業部
+  // const initialDepartmentName = "マイクロスコープ事業部マイクロスコープ事業部マイクロスコープ事業部";
+  const initialDepartmentName = userProfileState?.assigned_department_name ?? "";
+  const [departmentName, setDepartmentName] = useState(initialDepartmentName);
+  // 🔹事業所・営業所
+  // const initialOfficeName = "東京営業所東京営業所東京営業所";
+  const initialOfficeName = userProfileState?.assigned_office_name ?? "";
+  const [officeName, setOfficeName] = useState(initialOfficeName);
 
-  // 住所
-  // const sampleAddress = `東京都港区芝浦港区0-0-0 シーバンスX館`;
-  const sampleAddress = `東京都港区芝浦港区新宿区西新宿0-0-0 芝浦アイランドブルームタワー`;
+  // 🔹郵便番号
+  const zipCode = userProfileState?.customer_zipcode ?? "";
+
+  // 🔹住所
+  // const sampleAddress = `東京都港区芝浦港区新宿区西新宿0-0-0 芝浦アイランドブルームタワー`;
   // const sampleAddress = `東京都港区芝浦港区芝浦港区0-0-0`;
-  const [address, setAddress] = useState(sampleAddress.split(" ")[0] ?? "");
+  // const sampleAddress = `東京都港区芝浦港区0-0-0 シーバンスX館`;
+  const initialAddress = userProfileState?.customer_address ?? "";
+  const [address, setAddress] = useState(initialAddress.split(" ")[0] ?? "");
   // 初回マウント時に住所を建物名の前に空白か\nを付けてaddressに格納する
   const addressLineRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
@@ -322,7 +327,8 @@ const QuotationPreviewModalMemo = () => {
     console.log("変更前address", address);
     const addressEl = addressLineRef.current;
 
-    const splitAddressArray = sampleAddress.split(" ");
+    // const splitAddressArray = sampleAddress.split(" ");
+    const splitAddressArray = initialAddress.split(" ");
 
     // 建物名が存在しない場合はpre-wrapに変更してリターン
     if (!splitAddressArray[1]) {
@@ -345,27 +351,55 @@ const QuotationPreviewModalMemo = () => {
     setAddress(addressWithBuilding);
   }, []);
 
-  // 見積備考
-  // const [notesText, setNotesText] = useState(selectedRowDataQuotation?.quotation_notes || "");
-  const [notesText, setNotesText] = useState(noteTextSample);
-  // 納期
-  // const [deadlineText, setDeadlineText] = useState(selectedRowDataQuotation?.deadline || "");
-  const [deadlineText, setDeadlineText] = useState("当日出荷");
-  // 受取場所
-  // const [deliveryPlaceText, setDeliveryPlaceText] = useState(selectedRowDataQuotation?.delivery_place || "");
-  const [deliveryPlaceText, setDeliveryPlaceText] = useState("貴社指定場所");
-  // 受取場所
-  // const [paymentTermsText, setPaymentTermsText] = useState(selectedRowDataQuotation?.payment_terms || "");
-  const [paymentTermsText, setPaymentTermsText] = useState("従来通り");
-  // 有効期限
-  // const [expireDateText, setExpireDateText] = useState(
-  //   selectedRowDataQuotation?.expiration_date
-  //     ? format(new Date(selectedRowDataQuotation?.expiration_date), "yyyy年MM月dd日")
-  //     : ""
-  // );
-  const [expireDateText, setExpireDateText] = useState("2021年9月15日");
+  // 🔹TEL
+  const directLine = userProfileState?.direct_line ?? "";
+  // 🔹FAX
+  const directFax = userProfileState?.direct_fax ?? "";
+  // 🔹携帯
+  const companyCellPhone = userProfileState?.company_cell_phone ?? "";
+  // 🔹Email
+  const email = userProfileState?.email ?? "";
 
-  // 納期、受取場所、取引方法、有効期限
+  // 🔹連絡先サブ (Fax・携帯・Emailのどれを記載するか)
+  const optionsContact = ["direct_fax", "company_cell_phone"];
+  type Contact = "direct_fax" | "company_cell_phone";
+  const [displaySubContactInfo, setDisplaySubContactInfo] = useState<Contact>("direct_fax");
+  const mappingsContact: { [key: string]: { [key: string]: string } } = {
+    direct_fax: { ja: "Fax", en: "Fax" },
+    company_cell_phone: { ja: "携帯", en: "Mobile number" },
+    // email: { ja: "Email", en: "Email" },
+  };
+
+  // 🔹見積備考
+  // 見積もり備考欄サンプルテキスト
+  // const initialNotesText = `見積No. 123456789012をご発注いただいた場合に限り適用となります。\n※上記は2021年9月15日までのご発注、16日までに商品を出荷させていただけた場合に限る今回限りの貴社向け特別価格となります。`
+  const initialNotesText = selectedRowDataQuotation?.quotation_notes || "";
+  const [notesText, setNotesText] = useState(initialNotesText);
+  // console.log("notesText.length", notesText.length);
+  // 🔹納期
+  // const initialDeadline = "当日出荷";
+  const initialDeadline = selectedRowDataQuotation?.deadline || "";
+  const [deadlineText, setDeadlineText] = useState(initialDeadline);
+  const [isPrintDeadline, setIsPrintDeadline] = useState(true);
+  // 🔹受取場所
+  // const initialDeliveryPlace = "貴社指定場所";
+  const initialDeliveryPlace = selectedRowDataQuotation?.delivery_place || "";
+  const [deliveryPlaceText, setDeliveryPlaceText] = useState(initialDeliveryPlace);
+  const [isPrintDeliveryPlace, setIsPrintDeliveryPlace] = useState(true);
+  // 🔹取引方法
+  // const initialPaymentTermsText = "従来通り";
+  const initialPaymentTermsText = selectedRowDataQuotation?.payment_terms || "";
+  const [paymentTermsText, setPaymentTermsText] = useState(initialPaymentTermsText);
+  const [isPrintPaymentTermsText, setIsPrintPaymentTermsText] = useState(true);
+  // 🔹有効期限
+  // const initialExpireDate = "2021年9月15日";
+  const initialExpireDate = selectedRowDataQuotation?.expiration_date
+    ? format(new Date(selectedRowDataQuotation?.expiration_date), "yyyy年M月dd日")
+    : "";
+  const [expireDateText, setExpireDateText] = useState(initialExpireDate);
+  const [isPrintExpireDateText, setIsPrintExpireDateText] = useState(true);
+
+  // 🔹納期、受取場所、取引方法、有効期限
   const dealTitleArray = [
     {
       title: "deadline",
@@ -373,6 +407,7 @@ const QuotationPreviewModalMemo = () => {
       titleLetterArray: ["納", "期"],
       state: deadlineText,
       dispatch: setDeadlineText,
+      isPrint: isPrintDeadline,
     },
     {
       title: "delivery_place",
@@ -380,6 +415,7 @@ const QuotationPreviewModalMemo = () => {
       titleLetterArray: ["受", "渡", "場", "所"],
       state: deliveryPlaceText,
       dispatch: setDeliveryPlaceText,
+      isPrint: isPrintDeliveryPlace,
     },
     {
       title: "payment_terms",
@@ -387,6 +423,7 @@ const QuotationPreviewModalMemo = () => {
       titleLetterArray: ["取", "引", "方", "法"],
       state: paymentTermsText,
       dispatch: setPaymentTermsText,
+      isPrint: isPrintPaymentTermsText,
     },
     {
       title: "expiration_date",
@@ -394,42 +431,93 @@ const QuotationPreviewModalMemo = () => {
       titleLetterArray: ["有", "効", "期", "限"],
       state: expireDateText,
       dispatch: setExpireDateText,
+      isPrint: isPrintExpireDateText,
+    },
+  ];
+  // 見積条件セッティングメニュー用配列(納期、受取場所、取引方法、有効期限)
+  const dealStateArray = [
+    {
+      title: "deadline",
+      jpTitle: "納期",
+      isPrint: isPrintDeadline,
+      setIsPrint: setIsPrintDeadline,
+    },
+    {
+      title: "delivery_place",
+      jpTitle: "受渡場所",
+      isPrint: isPrintDeliveryPlace,
+      setIsPrint: setIsPrintDeliveryPlace,
+    },
+    {
+      title: "payment_terms",
+      jpTitle: "取引方法",
+      isPrint: isPrintPaymentTermsText,
+      setIsPrint: setIsPrintPaymentTermsText,
+    },
+    {
+      title: "expiration_date",
+      jpTitle: "有効期限",
+      isPrint: isPrintExpireDateText,
+      setIsPrint: setIsPrintExpireDateText,
     },
   ];
 
-  // 🌟印鑑データ配列
-  const stampsArray = [
-    // { title: "in_charge", url: selectedRowDataQuotation?.in_charge_stamp_image_url ?? null, isPrint: isPrintInChargeStamp, isFrame: isFrameInChargeStamp },
-    { title: "in_charge", url: hankoSrc, isPrint: isPrintInChargeStamp, isFrame: isFrameInChargeStamp },
-    {
-      title: "supervisor1",
-      url: selectedRowDataQuotation?.supervisor1_stamp_image_url ?? null,
-      isPrint: isPrintSupervisorStamp1,
-      isFrame: isFrameSupervisorStamp1,
-    },
-    {
-      title: "supervisor2",
-      url: selectedRowDataQuotation?.supervisor2_stamp_image_url ?? null,
-      isPrint: isPrintSupervisorStamp2,
-      isFrame: isFrameSupervisorStamp2,
-    },
-  ];
+  // 🔹商品リスト
+  const columnHeaderTitleArray = ["product_name", "unit_quantity", "unit_price", "amount"];
 
-  // -------------------------- 🌟印鑑データ関連useEffect🌟 --------------------------
-  useEffect(() => {
-    // 担当印がfalseになったら、担当印以上の上長印1と2をfalseに変更する
-    if (!isFrameInChargeStamp) {
-      if (isFrameSupervisorStamp1) setIsFrameSupervisorStamp1(false);
-      if (isFrameSupervisorStamp2) setIsFrameSupervisorStamp2(false);
-    }
-    if (!isFrameSupervisorStamp1) {
-      if (isFrameSupervisorStamp2) setIsFrameSupervisorStamp2(false);
-    }
-  }, [isFrameInChargeStamp, isFrameSupervisorStamp1]);
-  // -------------------------- ✅印鑑データ関連useEffect✅ --------------------------
+  const productsArray =
+    selectedRowDataQuotation?.quotation_products_details?.sort((a, b) => {
+      // null値を最後にする
+      if (a.quotation_product_priority === null) return 1;
+      if (b.quotation_product_priority === null) return -1;
 
-  const stampFrameDisplayCount = stampsArray.filter((obj) => obj.isFrame).length;
-  console.log("🔥stampFrameDisplayCount", stampFrameDisplayCount);
+      // 両方の優先度が存在する場合は比較
+      return a.quotation_product_priority - b.quotation_product_priority;
+    }) || [];
+  // const productsArray: { [key: string]: any } = [];
+  // const productsArray: { [key: string]: any } = [
+  //   {
+  //     id: "1-1",
+  //     product_name: "画像測定器",
+  //     outside_name: "IX-9000/9030T",
+  //     unit_quantity: 1,
+  //     unit_price: 6295000,
+  //     amount: 6295000,
+  //   },
+  //   {
+  //     id: "2-1",
+  //     product_name: "IXエディタソフト",
+  //     outside_name: "IX-H1E",
+  //     unit_quantity: 1,
+  //     unit_price: 200000,
+  //     amount: 200000,
+  //   },
+  //   {
+  //     id: "3-1",
+  //     product_name: "データ転送ソフト",
+  //     outside_name: "IX-H1T",
+  //     unit_quantity: 1,
+  //     unit_price: 150000,
+  //     amount: 150000,
+  //   },
+  //   {
+  //     id: "4-1",
+  //     product_name: "強化ステージガラス",
+  //     outside_name: "IX-SG2",
+  //     unit_quantity: 1,
+  //     unit_price: 150000,
+  //     amount: 150000,
+  //   },
+  // ];
+
+  // 🔹本体合計
+  const totalPrice = selectedRowDataQuotation?.total_price ?? null;
+
+  // 🔹出精値引・値引金額
+  const discountAmount = selectedRowDataQuotation?.discount_amount ?? null;
+
+  // 🔹合計・合計金額
+  const totalAmount = selectedRowDataQuotation?.total_amount ?? null;
 
   // -------------------------- 🌟ツールチップ🌟 --------------------------
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
@@ -914,13 +1002,17 @@ const QuotationPreviewModalMemo = () => {
       "✅nameSizeNumberRef.current",
       nameSizeNumberRef.current,
       "newFontSizeName",
-      newFontSizeName,
+      Number.isInteger(newFontSizeName) ? newFontSizeName : newFontSizeName.toFixed(1),
       "newFontSizeType",
-      newFontSizeType
+      Number.isInteger(newFontSizeType) ? newFontSizeType : newFontSizeType.toFixed(1)
     );
 
-    companyNameRef.current.style.fontSize = `${newFontSizeName}px`;
-    companyTypeRef.current.style.fontSize = `${newFontSizeType}px`;
+    companyNameRef.current.style.fontSize = `${
+      Number.isInteger(newFontSizeName) ? newFontSizeName : newFontSizeName.toFixed(1)
+    }px`;
+    companyTypeRef.current.style.fontSize = `${
+      Number.isInteger(newFontSizeType) ? newFontSizeType : newFontSizeType.toFixed(1)
+    }px`;
   }, []);
 
   // セッティングメニューを開いた時にスライダーの初期設定
@@ -1004,25 +1096,6 @@ const QuotationPreviewModalMemo = () => {
     companyTypeRef.current?.style?.fontSize
   );
 
-  // 見積No
-  const quotationNo = selectedRowDataQuotation?.quotation_no_custom
-    ? selectedRowDataQuotation?.quotation_no_custom
-    : selectedRowDataQuotation?.quotation_no_system ?? "";
-  // 見積日付
-  const quotationDate = useMemo(() => {
-    return selectedRowDataQuotation?.quotation_date
-      ? format(new Date(selectedRowDataQuotation?.quotation_date), "yyyy年MM月dd日")
-      : "";
-  }, [selectedRowDataQuotation?.quotation_date]);
-  // 会社名
-  const clientCompanyName = selectedRowDataQuotation?.company_name ?? "";
-  // 合計金額
-  const totalAmount = selectedRowDataQuotation?.total_amount ?? null;
-  // 顧客の会社名(株式会社の会社種類名と会社名で分割)
-  const customerNameObj = useMemo(() => {
-    return userProfileState?.customer_name ? splitCompanyNameWithPosition(userProfileState.customer_name) : "";
-  }, [userProfileState?.customer_name]);
-
   return (
     <>
       {/* オーバーレイ */}
@@ -1091,9 +1164,13 @@ const QuotationPreviewModalMemo = () => {
                     <div
                       className={`${styles.header_right} absolute right-0 top-0 flex h-full flex-col items-end justify-end bg-[yellow]/[0] text-[8px]`}
                     >
-                      <span>No. 123456789012</span>
+                      {/* <span>No. 123456789012</span> */}
+                      {quotationNo && <span>No. {quotationNo}</span>}
+                      {!quotationNo && <span className="min-w-[73px]">No. </span>}
                       {/* {quotationNo ? <span>{quotationNo}</span> : <span className="min-h-[12px] w-full"></span>} */}
-                      <span>2021年9月6日</span>
+                      {/* <span>2021年9月6日</span> */}
+                      {quotationDate && <span>{quotationDate}</span>}
+                      {!quotationDate && <span className="min-h-[12px] w-full"></span>}
                       {/* {quotationDate ? <span>{quotationDate}</span> : <span className="min-h-[12px] w-full"></span>} */}
                     </div>
                   </div>
@@ -1118,46 +1195,50 @@ const QuotationPreviewModalMemo = () => {
                           御照会の件下記の通りお見積り申し上げます
                         </p>
                         <div className={`${styles.row_group_container} bg-[white]/[0]`}>
-                          {dealTitleArray.map((obj, index) => (
-                            <div key={obj.jpTitle} className={`${styles.row_area} flex items-end`}>
-                              <div className={`${styles.title} flex justify-between`}>
-                                {obj.titleLetterArray.map((letter) => (
-                                  <span key={letter}>{letter}</span>
-                                ))}
-                              </div>
-                              {!isEditMode.includes(obj.title) && (
-                                <div className={`${styles.deal_content} truncate`}>
-                                  {/* {obj.title === "deadline" && <span>当日出荷</span>}
+                          {dealTitleArray.map((obj, index) => {
+                            if (!obj.isPrint) return;
+
+                            return (
+                              <div key={obj.jpTitle} className={`${styles.row_area} flex items-end`}>
+                                <div className={`${styles.title} flex justify-between`}>
+                                  {obj.titleLetterArray.map((letter) => (
+                                    <span key={letter}>{letter}</span>
+                                  ))}
+                                </div>
+                                {!isEditMode.includes(obj.title) && (
+                                  <div className={`${styles.deal_content} truncate`}>
+                                    {/* {obj.title === "deadline" && <span>当日出荷</span>}
                               {obj.title === "delivery_place" && <span>貴社指定場所</span>}
                               {obj.title === "payment_terms" && <span>従来通り</span>}
                               {obj.title === "expiration_date" && <span>2021年9月15日</span>} */}
-                                  <span
-                                    onClick={handleSingleClickField}
-                                    onDoubleClick={(e) => {
-                                      handleDoubleClickField({
-                                        e,
-                                        field: obj.title,
-                                        // dispatch: obj.dispatch,
-                                        // selectedRowDataValue: obj.state ?? "",
-                                      });
-                                    }}
-                                  >
-                                    {obj.state}
-                                  </span>
-                                </div>
-                              )}
-                              {isEditMode.includes(obj.title) && (
-                                <div className={`${styles.deal_content}`}>
-                                  <input
-                                    className={`${styles.input_box} ${styles.deal_content} truncate`}
-                                    value={obj.state}
-                                    onChange={(e) => obj.dispatch(e.target.value)}
-                                    autoFocus={isEditMode.every((field) => field === obj.title)}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          ))}
+                                    <span
+                                      onClick={handleSingleClickField}
+                                      onDoubleClick={(e) => {
+                                        handleDoubleClickField({
+                                          e,
+                                          field: obj.title,
+                                          // dispatch: obj.dispatch,
+                                          // selectedRowDataValue: obj.state ?? "",
+                                        });
+                                      }}
+                                    >
+                                      {obj.state}
+                                    </span>
+                                  </div>
+                                )}
+                                {isEditMode.includes(obj.title) && (
+                                  <div className={`${styles.deal_content}`}>
+                                    <input
+                                      className={`${styles.input_box} ${styles.deal_content} truncate`}
+                                      value={obj.state}
+                                      onChange={(e) => obj.dispatch(e.target.value)}
+                                      autoFocus={isEditMode.every((field) => field === obj.title)}
+                                    />
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                       <div className={`${styles.total_amount_area} flex flex-col justify-end bg-[yellow]/[0]`}>
@@ -1169,7 +1250,8 @@ const QuotationPreviewModalMemo = () => {
                           </div>
                           <div className={`text-[13px] ${styles.amount_content} flex items-end`}>
                             {/* <span>￥6,000,000-</span> */}
-                            {totalAmount && <span>{formatDisplayPrice(totalAmount)}-</span>}
+                            {/* {totalAmount && <span>{formatDisplayPrice(6000000)}-</span>} */}
+                            {totalAmount && <span>{formatDisplayPrice(totalAmount, language, true)}-</span>}
                           </div>
                         </div>
                         <div className={`${styles.section_underline}`} />
@@ -1200,28 +1282,39 @@ const QuotationPreviewModalMemo = () => {
                           {(!isPrintCompanyLogo || !companyLogoUrl) && <div className="h-[10%] w-full"></div>}
                           <div className={`${styles.company_name_area}`}>
                             <div ref={customerNameRef} className={`${styles.company_name} flex items-center`}>
-                              <span ref={companyTypeRef} className={`mr-[1%] whitespace-nowrap pt-[0.5%] text-[9px]`}>
+                              {/* <span ref={companyTypeRef} className={`mr-[1%] whitespace-nowrap pt-[0.5%] text-[9px]`}>
                                 株式会社
                               </span>
                               <span ref={companyNameRef} className={`whitespace-nowrap text-[12px]`}>
                                 トラスティファイ
-                              </span>
+                              </span> */}
                               {/* <span ref={companyNameRef} className="text-[12px]">
                               トラスティファイ
                             </span>
                             <span ref={companyTypeRef} className="ml-[1%] text-[9px]">
                               株式会社
                             </span> */}
-                              {/* {customerNameObj && customerNameObj.typePosition === "pre" && (
-                              <>
-                                <span style={styleCompanyType} className="mr-[1%] pt-[0.5%] text-[9px]">
-                                  {customerNameObj.companyType}
-                                </span>
-                                <span style={styleCompanyName} className="text-[12px]">
-                                  {customerNameObj.company_name}
-                                </span>
-                              </>
-                            )} */}
+                              {customerNameObj && customerNameObj.typePosition === "pre" && (
+                                <>
+                                  <span ref={companyTypeRef} className="mr-[1%] whitespace-nowrap pt-[0.5%] text-[9px]">
+                                    {/* <span ref={companyTypeRef} className="mr-[1%] whitespace-nowrap pt-[0.5%] text-[9px]"> */}
+                                    {customerNameObj.companyType}
+                                  </span>
+                                  <span ref={companyNameRef} className="whitespace-nowrap text-[12px]">
+                                    {customerNameObj.company_name}
+                                  </span>
+                                </>
+                              )}
+                              {customerNameObj && customerNameObj.typePosition === "post" && (
+                                <>
+                                  <span ref={companyNameRef} className="whitespace-nowrap text-[12px]">
+                                    {customerNameObj.company_name}
+                                  </span>
+                                  <span ref={companyTypeRef} className="ml-[1%] whitespace-nowrap pt-[0.5%] text-[9px]">
+                                    {customerNameObj.companyType}
+                                  </span>
+                                </>
+                              )}
                             </div>
                           </div>
                           <div className={`${styles.user_info_area} flex flex-col`}>
@@ -1288,7 +1381,9 @@ const QuotationPreviewModalMemo = () => {
                               </div>
                             </div>
                             <div className={`${styles.address_area} flex`}>
-                              <span className={`min-w-max ${styles.postal_code}`}>〒123-0024</span>
+                              {/* <span className={`min-w-max ${styles.zip_code}`}>〒123-0024</span> */}
+                              {/* <span className={`max-w-[24%] ${styles.zip_code}`}>〒123-0024</span> */}
+                              <span className={`max-w-[24%] ${styles.zip_code}`}>〒{zipCode}</span>
                               <div
                                 ref={addressLineRef}
                                 // onMouseEnter={(e) =>
@@ -1308,11 +1403,23 @@ const QuotationPreviewModalMemo = () => {
                             <div className={`${styles.row_area} flex items-center`}>
                               <div className="flex h-full w-[50%] items-center">
                                 <span>TEL</span>
-                                <span className="pl-[6%]">03-6866-1611</span>
+                                {/* <span className="pl-[6%]">03-6866-1611</span> */}
+                                <span className="pl-[6%]">{directLine}</span>
                               </div>
                               <div className={`flex h-full w-[50%] items-center`}>
-                                <span>FAX</span>
-                                <span className="pl-[6%]">03-6866-1611</span>
+                                {displaySubContactInfo === "direct_fax" && (
+                                  <>
+                                    <span>FAX</span>
+                                    {/* <span className="pl-[6%]">03-6866-1611</span> */}
+                                    <span className="pl-[6%]">{directFax}</span>
+                                  </>
+                                )}
+                                {displaySubContactInfo === "company_cell_phone" && (
+                                  <>
+                                    <span>携帯</span>
+                                    <span className="pl-[6%]">{companyCellPhone}</span>
+                                  </>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -1347,6 +1454,8 @@ const QuotationPreviewModalMemo = () => {
                               <div
                                 key={obj.title + index.toString()}
                                 className={`h-full w-full ${styles.stamp_box} flex-center`}
+                                // style={styleStampBox(index, stampFrameLength)}
+                                style={{ ...(scalePdf !== 1 && styleStampBox(index, stampFrameDisplayCount)) }}
                               >
                                 {obj.isPrint && obj.url && (
                                   <div className="relative flex h-[25px] w-[25px] items-center justify-center rounded-full">
@@ -1451,36 +1560,83 @@ const QuotationPreviewModalMemo = () => {
                         ))}
                     </div>
 
-                    <div role="row" className={`${styles.top_margin_row} `}>
-                      {/* {Object.keys(productsArray).map((key, index) => ( */}
-                      {columnHeaderTitleArray.map((key, index) => (
-                        <div
-                          key={key + index.toString() + "blank"}
-                          role="gridcell"
-                          className={`${styles.grid_cell} flex items-center `}
-                        ></div>
-                      ))}
-                    </div>
+                    {productsArray?.length > 0 && (
+                      <div role="row" className={`${styles.top_margin_row} `}>
+                        {columnHeaderTitleArray.map((key, index) => (
+                          <div
+                            key={key + index.toString() + "blank"}
+                            role="gridcell"
+                            className={`${styles.grid_cell} flex items-center `}
+                          ></div>
+                        ))}
+                      </div>
+                    )}
 
-                    <div
-                      role="rowgroup"
-                      className={`${styles.row_group_products_area} bg-[red]/[0]`}
-                      style={{
-                        ...(productsArray?.length > 0 && {
-                          // borderBottom: "0.6px solid #37352f",
-                          borderBottom: "0.1px solid #37352f",
-                          // minHeight: `${3.3 * productsArray.length + 1}%`,
-                          // minHeight: `${3.3 * productsArray.length}%`,
-                          // minHeight: `${3.5 * productsArray.length}%`,
-                          minHeight: `${3.9 * productsArray.length}%`,
-                          display: "grid",
-                          gridTemplateRows: "repeat(1fr)",
+                    {productsArray?.length > 0 && (
+                      <div
+                        role="rowgroup"
+                        className={`${styles.row_group_products_area} bg-[red]/[0]`}
+                        style={{
+                          ...(productsArray?.length > 0 && {
+                            // borderBottom: "0.6px solid #37352f",
+                            borderBottom: "0.1px solid #37352f",
+                            // minHeight: `${3.3 * productsArray.length + 1}%`,
+                            // minHeight: `${3.3 * productsArray.length}%`,
+                            // minHeight: `${3.5 * productsArray.length}%`,
+                            minHeight: `${3.9 * productsArray.length}%`,
+                            display: "grid",
+                            gridTemplateRows: "repeat(1fr)",
 
-                          // gridTemplateRows: `0.1fr repeat(1fr)`,
-                        }),
-                      }}
-                    >
-                      {productsArray?.length > 0 &&
+                            // gridTemplateRows: `0.1fr repeat(1fr)`,
+                          }),
+                        }}
+                      >
+                        {productsArray?.length > 0 &&
+                          productsArray.map((obj: QuotationProductsDetail, index: number) => {
+                            console.log("商品 obj", obj.product_id, obj);
+                            if (!obj.product_id) return;
+                            return (
+                              <div
+                                role="row"
+                                key={obj.product_id + index.toString()}
+                                style={{ gridRowStart: index + 1 }}
+                                className={`${styles.row} flex items-center justify-between`}
+                              >
+                                {columnHeaderTitleArray.map((key, index) => {
+                                  return (
+                                    <div
+                                      role="gridcell"
+                                      key={key + obj.product_id + index.toString()}
+                                      className={`${styles.grid_cell} ${
+                                        index === 0 ? `${styles.product_name_area}` : `${styles.qua_area}`
+                                      }`}
+                                    >
+                                      {index === 0 && (
+                                        <>
+                                          <div className={`${styles.product_name} w-[52%]`}>
+                                            <span>{obj.quotation_product_name}</span>
+                                          </div>
+                                          <div className={`${styles.outside_name} w-[48%]`}>
+                                            {obj.quotation_product_outside_short_name && (
+                                              <span>{obj.quotation_product_outside_short_name}</span>
+                                            )}
+                                          </div>
+                                        </>
+                                      )}
+                                      {index === 1 && <span>{obj.quotation_product_quantity}</span>}
+                                      {index === 2 && (
+                                        <span>{formatDisplayPrice(obj.quotation_product_unit_price)}</span>
+                                      )}
+                                      {index === 3 && (
+                                        <span>{formatDisplayPrice(obj.quotation_product_unit_price)}</span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            );
+                          })}
+                        {/* {productsArray?.length > 0 &&
                         productsArray.map((obj: any, index: number) => {
                           return (
                             <div
@@ -1501,7 +1657,6 @@ const QuotationPreviewModalMemo = () => {
                                     <>
                                       <div className={`${styles.product_name} w-[52%]`}>
                                         <span>{obj.product_name}</span>
-                                        {/* {obj.product_name} */}
                                       </div>
                                       <div className={`${styles.outside_name} w-[48%]`}>
                                         {obj.outside_name && <span>{obj.outside_name}</span>}
@@ -1515,25 +1670,30 @@ const QuotationPreviewModalMemo = () => {
                               ))}
                             </div>
                           );
-                        })}
-                    </div>
+                        })} */}
+                      </div>
+                    )}
 
-                    <div role="row" style={{ minHeight: `${3.9}%` }} className={`${styles.row_result}`}>
-                      {columnHeaderTitleArray.map((key, index) => (
-                        <div
-                          key={key + index.toString() + "amount"}
-                          role="gridcell"
-                          className={`${styles.grid_cell} flex items-center ${
-                            index === 0 ? `${styles.first}` : `${styles.end}`
-                          }`}
-                        >
-                          {index === 0 && <span>本体合計</span>}
-                          {index === 3 && <span>{formatDisplayPrice(6795000)}</span>}
-                        </div>
-                      ))}
-                    </div>
+                    {totalPrice && (
+                      <div role="row" style={{ minHeight: `${3.9}%` }} className={`${styles.row_result}`}>
+                        {columnHeaderTitleArray.map((key, index) => (
+                          <div
+                            key={key + index.toString() + "amount"}
+                            role="gridcell"
+                            className={`${styles.grid_cell} flex items-center ${
+                              index === 0 ? `${styles.first}` : `${styles.end}`
+                            }`}
+                          >
+                            {index === 0 && <span>本体合計</span>}
+                            {/* {index === 3 && <span>{formatDisplayPrice(6795000)}</span>} */}
+                            {index === 3 && <span>{formatDisplayPrice(totalPrice)}</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-                    {isDiscount && (
+                    {/* {isDiscount && ( */}
+                    {discountAmount && (
                       <div role="row" style={{ minHeight: `${3.9}%` }} className={`${styles.row_result}`}>
                         {columnHeaderTitleArray.map((key, index) => (
                           <div
@@ -1544,7 +1704,13 @@ const QuotationPreviewModalMemo = () => {
                             }`}
                           >
                             {index === 0 && <span>出精値引</span>}
-                            {index === 3 && <span>-{formatDisplayPrice(795000)}</span>}
+                            {/* {index === 3 && <span>-{formatDisplayPrice(795000)}</span>} */}
+                            {index === 3 && (
+                              <span>
+                                {discountAmount ? `-` : ``}
+                                {formatDisplayPrice(discountAmount)}
+                              </span>
+                            )}
                           </div>
                         ))}
                       </div>
@@ -1552,7 +1718,15 @@ const QuotationPreviewModalMemo = () => {
                     <div
                       role="row"
                       style={{
-                        height: `calc(${100 - 3.3 - 0.7 - 3.9 * productsArray.length - 3.9 - (isDiscount ? 3.9 : 0)}%)`,
+                        height: `calc(${
+                          100 -
+                          3.3 -
+                          (!!productsArray.length ? 0.7 : 0) -
+                          3.9 * productsArray.length -
+                          (totalPrice ? 3.9 : 0) -
+                          (discountAmount ? 3.9 : 0)
+                        }%)`,
+                        // height: `calc(${100 - 3.3 - 0.7 - 3.9 * productsArray.length - 3.9 - (isDiscount ? 3.9 : 0)}%)`,
                       }}
                       className={`${styles.row_result} ${styles.row_margin_bottom}`}
                     >
@@ -1585,7 +1759,8 @@ const QuotationPreviewModalMemo = () => {
                             <span>計</span>
                           </div>
                         )}
-                        {index === 3 && <span>{formatDisplayPrice(6000000)}</span>}
+                        {/* {index === 3 && <span>{formatDisplayPrice(6000000)}</span>} */}
+                        {index === 3 && <span>{formatDisplayPrice(totalAmount)}</span>}
                       </div>
                     ))}
                   </div>
@@ -1593,8 +1768,10 @@ const QuotationPreviewModalMemo = () => {
                   <div className={`${styles.notes_area} w-full bg-[#00eeff00]`}>
                     {/* <p className={`${styles.notes_content}`} dangerouslySetInnerHTML={{ __html: noteTextSample }}></p> */}
                     {!isEditMode.includes("quotation_notes") && (
-                      <p
+                      <>
+                        {/* <p
                         className={`${styles.notes_content}`}
+                        style={{ whiteSpace: "pre-wrap" }}
                         dangerouslySetInnerHTML={{ __html: notesText }}
                         onClick={handleSingleClickField}
                         onDoubleClick={(e) => {
@@ -1603,13 +1780,45 @@ const QuotationPreviewModalMemo = () => {
                             field: "quotation_notes",
                           });
                         }}
-                      ></p>
+                      ></p> */}
+                        <textarea
+                          cols={30}
+                          rows={4}
+                          className={`${styles.notes_content}`}
+                          style={{ whiteSpace: "pre-wrap", resize: "none" }}
+                          readOnly
+                          value={notesText}
+                          // dangerouslySetInnerHTML={{ __html: notesText }}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleDoubleClickField({
+                              e,
+                              field: "quotation_notes",
+                            });
+                          }}
+                        ></textarea>
+                      </>
                     )}
                     {isEditMode.includes("quotation_notes") && (
                       <textarea
                         cols={30}
+                        rows={4}
                         value={notesText}
-                        onChange={(e) => setNotesText(e.target.value)}
+                        onChange={(e) => {
+                          // setNotesText(e.target.value)
+                          // 文字数を日本語は245文字、英語は448文字、行数は４行まで
+                          const inputValue = e.target.value;
+                          console.log("inputValue.length", inputValue.length);
+                          const limitLength = 245;
+                          if (limitLength && inputValue.length > limitLength) {
+                            // showAlertPopup();
+                            // 0から99番目の文字までをstateに格納
+                            setNotesText(notesText.slice(0, limitLength));
+                            return;
+                          } else {
+                            setNotesText(inputValue);
+                          }
+                        }}
                         autoFocus={isEditMode.every((field) => field === "quotation_notes")}
                         className={`${styles.notes_content} ${styles.textarea_box}`}
                       ></textarea>
@@ -1818,7 +2027,7 @@ const QuotationPreviewModalMemo = () => {
                   <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>見積設定メニュー</h3>
 
                   <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
-                    見積書の解像度や印鑑の表示有無、脚注のデフォルトテキストの編集、設定が可能です。
+                    見積書の解像度や印鑑の表示有無、脚注のデフォルトテキストの編集などの各種設定が可能です。
                   </p>
 
                   <hr className="min-h-[1px] w-full bg-[#999]" />
@@ -2068,12 +2277,6 @@ const QuotationPreviewModalMemo = () => {
                             16
                           </span> */}
                         </div>
-                        {/* <div
-                          className={`transition-bg01 rounded-[8px] bg-[] ${styles.edit_btn}`}
-                        >
-                          {footnotes && <span>編集</span>}
-                          {!footnotes && <span>設定</span>}
-                        </div> */}
 
                         <input
                           type="range"
@@ -2094,22 +2297,73 @@ const QuotationPreviewModalMemo = () => {
                           onInput={handleChangeInputRange}
                         />
                       </li>
+                      {/* ------------------------------------ */}
 
-                      {/* <li className={`${styles.list}`}>
-                        <div className="pointer-events-none flex min-w-[110px] items-center">
+                      {/* ------------------------------------ */}
+                      <li className={`${styles.section_title} min-h-max w-full font-bold`}>
+                        <div className="flex max-w-max flex-col">
+                          <span>連絡先サブ</span>
+                          <div className={`${styles.underline} w-full`} />
+                        </div>
+                      </li>
+                      <li
+                        className={`${styles.list} relative`}
+                        // onMouseEnter={(e) => {
+                        //   handleOpenPopupMenu({ e, title: "footnotes" });
+                        // }}
+                        // onMouseLeave={handleClosePopupMenu}
+                      >
+                        <div className="pointer-events-none relative flex min-w-[110px] items-center">
                           <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
                           <div className="flex select-none items-center space-x-[2px]">
                             <span className={`${styles.list_title}`}>表示</span>
                             <span className={``}>：</span>
                           </div>
                         </div>
-                        <ToggleSwitch
-                          state={isDisplayFootnotes}
-                          dispatch={setIsDisplayFootnotes}
-                          customFunction={saveLocalStorageFootnotesDisplay}
-                        />
-                      </li> */}
+
+                        <select
+                          className={`${styles.select_box} truncate`}
+                          value={displaySubContactInfo}
+                          onChange={(e) => setDisplaySubContactInfo(e.target.value as Contact)}
+                        >
+                          {optionsContact.map((option) => (
+                            <option key={option} value={option}>
+                              {mappingsContact[option][language]}
+                            </option>
+                          ))}
+                        </select>
+                      </li>
                       {/* ------------------------------------ */}
+
+                      {/* ------------------------------------ */}
+                      <li className={`${styles.section_title} min-h-max w-full font-bold`}>
+                        <div className="flex max-w-max flex-col">
+                          <span>見積条件表示有無</span>
+                          <div className={`${styles.underline} w-full`} />
+                        </div>
+                      </li>
+                      {dealStateArray.map((obj, index) => (
+                        <li
+                          key={obj.title + "_setting"}
+                          className={`${styles.list} relative`}
+                          // onMouseEnter={(e) => {
+                          //   handleOpenPopupMenu({ e, title: "footnotes" });
+                          // }}
+                          // onMouseLeave={handleClosePopupMenu}
+                        >
+                          <div className="pointer-events-none relative flex min-w-[110px] items-center">
+                            <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                            <div className="flex select-none items-center space-x-[2px]">
+                              <span className={`${styles.list_title}`}>{obj.jpTitle}</span>
+                              <span className={``}>：</span>
+                            </div>
+                          </div>
+
+                          <ToggleSwitch state={obj.isPrint} dispatch={obj.setIsPrint} />
+                        </li>
+                      ))}
+                      {/* ------------------------------------ */}
+
                       {/* {Array(3)
                         .fill(null)
                         .map((_, index) => (

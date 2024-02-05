@@ -69,6 +69,9 @@ const SettingCompanyMemo = () => {
   // 規模
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
   const [editedNumberOfEmployeeClass, setEditedNumberOfEmployeeClass] = useState("");
+  // 郵便番号
+  const [editZipCodeMode, setEditZipCodeMode] = useState(false);
+  const [editedZipCode, setEditedZipCode] = useState("");
   // 住所
   const [editAddressMode, setEditAddressMode] = useState(false);
   const [editedAddress, setEditedAddress] = useState("");
@@ -105,6 +108,11 @@ const SettingCompanyMemo = () => {
 
   // 説明アイコン
   const infoIconAddressRef = useRef<HTMLDivElement | null>(null);
+  const infoIconLogoRef = useRef<HTMLDivElement | null>(null);
+  const infoIconDepartmentRef = useRef<HTMLDivElement | null>(null);
+  const infoIconUnitRef = useRef<HTMLDivElement | null>(null);
+  const infoIconOfficeRef = useRef<HTMLDivElement | null>(null);
+  const infoIconZipCodeRef = useRef<HTMLDivElement | null>(null);
 
   const { uploadCompanyLogoMutation, deleteCompanyLogoMutation } = useMutateCompanyLogo();
   const { fullUrl: logoUrl, isLoading: isLoadingLogoImg } = useDownloadUrl(
@@ -854,7 +862,39 @@ const SettingCompanyMemo = () => {
           <div className={`text-[18px] font-bold text-[var(--color-text-title)]`}>会社・チーム</div>
 
           <div className={`mt-[30px] flex min-h-[120px] w-full flex-col `}>
-            <div className={`${styles.section_title}`}>会社・チーム ロゴ</div>
+            {/* <div className={`${styles.section_title}`}>会社・チーム ロゴ</div> */}
+            <div className={`${styles.section_title}`}>
+              <div
+                className="flex max-w-max items-center space-x-[9px]"
+                onMouseEnter={(e) => {
+                  if (infoIconLogoRef.current && infoIconLogoRef.current.classList.contains(styles.animate_ping)) {
+                    infoIconLogoRef.current.classList.remove(styles.animate_ping);
+                  }
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: "ロゴ画像は見積書自動作成機能でのブランドイメージで使用されます。",
+                    // content2: "",
+                    // marginTop: 33,
+                    marginTop: 9,
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <span>会社・チーム ロゴ</span>
+                {/* <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} /> */}
+                <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                  <div
+                    ref={infoIconLogoRef}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                      logoUrl ? `` : styles.animate_ping
+                    }`}
+                  ></div>
+                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                </div>
+              </div>
+            </div>
+
             <div className={`flex h-full w-full items-center justify-between`}>
               <div className="">
                 {!logoUrl && !isLoadingLogoImg && (
@@ -1213,29 +1253,61 @@ const SettingCompanyMemo = () => {
           {/* <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}> */}
           <div
             className={`mt-[20px] flex w-full flex-col ${
-              !!departmentDataArray && departmentDataArray.length >= 1 ? `min-h-[115px]` : `min-h-[95px]`
+              // !!departmentDataArray && departmentDataArray.length >= 1 ? `min-h-[115px]` : `min-h-[95px]`
+              !!departmentDataArray && departmentDataArray.length >= 1 ? `min-h-[100px]` : `min-h-[95px]`
             }`}
             // className={`mt-[20px] flex w-full flex-col ${true ? `min-h-[105px]` : `min-h-[95px]`}`}
           >
             {/* <div className={`${styles.section_title}`}>事業部</div> */}
             <div className="flex items-start space-x-4">
-              <div className={`${styles.section_title}`}>事業部</div>
-              {/* <div className={`flex flex-col text-[13px] text-[var(--color-text-brand-f)]`}> */}
-              <div className={`flex flex-col text-[13px] text-[var(--color-text-sub)]`}>
-                <p>※事業部を作成することで事業部ごとに商品、営業、売上データを管理できます。</p>
-                {/* <p className="text-[var(--color-text-sub)]">
-                  　(決算日(締め日含む)が未設定の場合は、デフォルトで期末が3月31日、期首が4月1日に設定されます。)
-                </p> */}
+              {/* <div className={`${styles.section_title}`}>事業部</div> */}
+              <div className={`${styles.section_title}`}>
+                <div
+                  className="flex max-w-max items-center space-x-[9px]"
+                  onMouseEnter={(e) => {
+                    if (
+                      infoIconDepartmentRef.current &&
+                      infoIconDepartmentRef.current.classList.contains(styles.animate_ping)
+                    ) {
+                      infoIconDepartmentRef.current.classList.remove(styles.animate_ping);
+                    }
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: "※事業部を作成することで",
+                      content2: "事業部ごとに商品、営業、売上データを管理できます。",
+                      marginTop: 33,
+                      // marginTop: 9,
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <span>事業部</span>
+                  <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                    <div
+                      ref={infoIconDepartmentRef}
+                      className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                        !!departmentDataArray && departmentDataArray.length >= 1 ? `` : styles.animate_ping
+                      }`}
+                    ></div>
+                    <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                  </div>
+                </div>
               </div>
+              {/* <div className={`flex flex-col text-[13px] text-[var(--color-text-sub)]`}>
+                <p>※事業部を作成することで事業部ごとに商品、営業、売上データを管理できます。</p>
+              </div> */}
             </div>
 
             {/* 通常 */}
             {!editDepartmentMode && !insertDepartmentMode && (
               <div
+                // className={`flex h-full w-full items-center justify-between ${
+                //   !!departmentDataArray && departmentDataArray.length >= 1 ? `mt-[15px] min-h-[84px]` : `min-h-[74px]`
+                // }`}
                 className={`flex h-full w-full items-center justify-between ${
-                  !!departmentDataArray && departmentDataArray.length >= 1 ? `mt-[15px] min-h-[84px]` : `min-h-[74px]`
+                  !!departmentDataArray && departmentDataArray.length >= 1 ? `mt-[0px] min-h-[84px]` : `min-h-[74px]`
                 }`}
-                // className={`flex h-full min-h-[74px] w-full items-center justify-between ${true && `mt-[10px]`}`}
               >
                 {(!departmentDataArray || departmentDataArray.length === 0) && (
                   <div className={`${styles.section_value}`}>未設定</div>
@@ -1587,14 +1659,50 @@ const SettingCompanyMemo = () => {
           {/* <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}> */}
           <div
             className={`mt-[15px] flex w-full flex-col ${
-              !!unitDataArray && unitDataArray.length >= 1 ? `min-h-[135px]` : `min-h-115px]`
+              !!unitDataArray && unitDataArray.length >= 1
+                ? insertUnitMode || editUnitMode
+                  ? `min-h-[calc(112px+15px)]`
+                  : `min-h-[112px]`
+                : `min-h-[112px]`
+              // !!unitDataArray && unitDataArray.length >= 1 ? `min-h-[135px]` : `min-h-115px]`
               // !!unitDataArray && unitDataArray.length >= 1 ? `min-h-[105px]` : `min-h-[95px]`
             }`}
             // className={`mt-[20px] flex w-full flex-col ${true ? `min-h-[105px]` : `min-h-[95px]`}`}
           >
             {/* セクションタイトルエリア */}
             <div className="flex items-center space-x-4">
-              <div className={`${styles.section_title} min-w-max`}>係・チーム</div>
+              {/* <div className={`${styles.section_title} min-w-max`}>係・チーム</div> */}
+              <div className={`${styles.section_title}`}>
+                <div
+                  className="flex max-w-max items-center space-x-[9px]"
+                  onMouseEnter={(e) => {
+                    if (infoIconUnitRef.current && infoIconUnitRef.current.classList.contains(styles.animate_ping)) {
+                      infoIconUnitRef.current.classList.remove(styles.animate_ping);
+                    }
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: "※事業部内に係・チームを作成することで",
+                      content2: "係単位で商品、営業、売上データを管理できます。",
+                      marginTop: 33,
+                      // marginTop: 9,
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <span>係・チーム</span>
+                  <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                    <div
+                      ref={infoIconUnitRef}
+                      className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                        !!unitDataArray && unitDataArray.length >= 1 ? `` : styles.animate_ping
+                      }`}
+                    ></div>
+                    <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                  </div>
+                </div>
+              </div>
+
               <div className={`flex space-x-[6px] text-[13px] text-[var(--color-text-brand-f)]`}>
                 <select
                   className={`${styles.language_btn} ${styles.btn_common} transition-bg02`}
@@ -1643,11 +1751,11 @@ const SettingCompanyMemo = () => {
             </div>
 
             {/* 説明エリア */}
-            {!insertUnitMode && !editUnitMode && (
+            {/* {!insertUnitMode && !editUnitMode && (
               <div className="mt-[5px] flex items-start space-x-4 pl-[100px] text-[13px] text-[var(--color-text-sub)]">
                 <p>※事業部内に係・チームを作成することで係単位で商品、営業、売上データを管理できます。</p>
               </div>
-            )}
+            )} */}
             {(insertUnitMode || editUnitMode) && (
               <div className="mt-[15px] flex items-start space-x-4 text-[13px] text-[var(--color-text-brand-f)]">
                 <p>係・チームが属する事業部を選択してから係・チームを保存してください。</p>
@@ -1657,16 +1765,15 @@ const SettingCompanyMemo = () => {
             {/* コンテンツエリア通常 */}
             {!editUnitMode && !insertUnitMode && (
               <div
-                className={`flex h-full min-h-[59px] w-full items-start justify-between ${
-                  !!unitDataArray && unitDataArray.length >= 1 ? `mb-[0px] mt-[24px]` : `mt-[15px] `
+                className={`flex h-full min-h-[84px] w-full items-center justify-between ${
+                  !!unitDataArray && unitDataArray.length >= 1 ? `mb-[0px] mt-[0px]` : `mt-[0px] `
                 }`}
                 // className={`flex h-full min-h-[59px] w-full items-start justify-between ${
-                //   true ? `mb-[0px] mt-[20px]` : `mt-[15px] `
+                //   !!unitDataArray && unitDataArray.length >= 1 ? `mb-[0px] mt-[25px]` : `mt-[15px] `
                 // }`}
-                // className={`flex h-full min-h-[74px] w-full items-center justify-between ${
-                //   !!unitDataArray && unitDataArray.length >= 1 && `mt-[20px]`
+                // className={`flex h-full min-h-[59px] w-full items-start justify-between ${
+                //   !!unitDataArray && unitDataArray.length >= 1 ? `mb-[0px] mt-[24px]` : `mt-[15px] `
                 // }`}
-                // className={`flex h-full min-h-[74px] w-full items-center justify-between ${true && `mt-[10px]`}`}
               >
                 {(!unitDataArray || unitDataArray.length === 0) && (
                   <div className={`${styles.section_value}`}>未設定</div>
@@ -2007,31 +2114,59 @@ const SettingCompanyMemo = () => {
           {/* 事業所・営業所リスト */}
           {/* <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}> */}
           <div
-            // className={`mt-[20px] flex w-full flex-col ${
-            //   !!officeDataArray && officeDataArray.length >= 1 ? `min-h-[105px]` : `min-h-[95px]`
-            // }`}
             className={`mt-[20px] flex w-full flex-col ${
-              !!officeDataArray && officeDataArray.length >= 1 ? `min-h-[115px]` : `min-h-[95px]`
+              !!officeDataArray && officeDataArray.length >= 1 ? `min-h-[100px]` : `min-h-[95px]`
             }`}
-            // className={`mt-[20px] flex w-full flex-col ${true ? `min-h-[105px]` : `min-h-[95px]`}`}
+            // className={`mt-[20px] flex w-full flex-col ${
+            //   !!officeDataArray && officeDataArray.length >= 1 ? `min-h-[115px]` : `min-h-[95px]`
+            // }`}
           >
             {/* <div className={`${styles.section_title}`}>事業所・営業所</div> */}
             <div className="flex items-start space-x-4">
-              <div className={`${styles.section_title}`}>事業所・営業所</div>
-              {/* <div className={`flex flex-col text-[13px] text-[var(--color-text-brand-f)]`}> */}
-              <div className={`flex flex-col text-[13px] text-[var(--color-text-sub)]`}>
-                <p>※事業所・営業所を作成することで事業所ごとに商品、営業、売上データを管理できます。</p>
-                {/* <p className="text-[var(--color-text-sub)]">
-                  　(決算日(締め日含む)が未設定の場合は、デフォルトで期末が3月31日、期首が4月1日に設定されます。)
-                </p> */}
+              {/* <div className={`${styles.section_title}`}>事業所・営業所</div> */}
+              <div className={`${styles.section_title}`}>
+                <div
+                  className="flex max-w-max items-center space-x-[9px]"
+                  onMouseEnter={(e) => {
+                    if (
+                      infoIconOfficeRef.current &&
+                      infoIconOfficeRef.current.classList.contains(styles.animate_ping)
+                    ) {
+                      infoIconOfficeRef.current.classList.remove(styles.animate_ping);
+                    }
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: "※事業所・営業所を作成することで",
+                      content2: "事業所ごとに商品、営業、売上データを管理できます。",
+                      marginTop: 33,
+                      // marginTop: 9,
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <span>事業所・営業所</span>
+                  <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                    <div
+                      ref={infoIconOfficeRef}
+                      className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                        !!officeDataArray && officeDataArray.length >= 1 ? `` : styles.animate_ping
+                      }`}
+                    ></div>
+                    <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                  </div>
+                </div>
               </div>
+              {/* <div className={`flex flex-col text-[13px] text-[var(--color-text-sub)]`}>
+                <p>※事業所・営業所を作成することで事業所ごとに商品、営業、売上データを管理できます。</p>
+              </div> */}
             </div>
 
             {/* 通常 */}
             {!editOfficeMode && !insertOfficeMode && (
               <div
                 className={`flex h-full w-full items-center justify-between ${
-                  !!officeDataArray && officeDataArray.length >= 1 ? `mt-[15px] min-h-[84px]` : `min-h-[74px]`
+                  !!officeDataArray && officeDataArray.length >= 1 ? `mt-[0px] min-h-[84px]` : `min-h-[74px]`
                 }`}
                 // className={`flex h-full min-h-[74px] w-full items-center justify-between ${
                 //   !!officeDataArray && officeDataArray.length >= 1 ? `mt-[10px]` : ``
@@ -2491,6 +2626,140 @@ const SettingCompanyMemo = () => {
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
+          {/* 郵便番号 */}
+          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+            {/* <div className={`${styles.section_title}`}>郵便番号</div> */}
+            <div className={`${styles.section_title}`}>
+              <div
+                className="flex max-w-max items-center space-x-[9px]"
+                onMouseEnter={(e) => {
+                  if (
+                    infoIconZipCodeRef.current &&
+                    infoIconZipCodeRef.current.classList.contains(styles.animate_ping)
+                  ) {
+                    infoIconZipCodeRef.current.classList.remove(styles.animate_ping);
+                  }
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: "ハイフンを入れた郵便番号入力してください。",
+                    content2: "ハイフンを入れることで見積書の郵便番号のレイアウトが綺麗に反映されます。",
+                    marginTop: 33,
+                    // marginTop: 8,
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <span>郵便番号</span>
+                {/* <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} /> */}
+                <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                  <div
+                    ref={infoIconZipCodeRef}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                      userProfileState?.customer_zipcode ? `` : styles.animate_ping
+                    }`}
+                  ></div>
+                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                </div>
+              </div>
+            </div>
+
+            {!editZipCodeMode && (
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
+                <div className={`${styles.section_value}`}>
+                  {userProfileState?.customer_zipcode ? userProfileState.customer_zipcode : "未設定"}
+                </div>
+                <div>
+                  <div
+                    className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedZipCode(userProfileState?.customer_zipcode ? userProfileState.customer_zipcode : "");
+                      setEditZipCodeMode(true);
+                    }}
+                  >
+                    編集
+                  </div>
+                </div>
+              </div>
+            )}
+            {editZipCodeMode && (
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
+                <input
+                  type="text"
+                  placeholder="郵便番号を入力してください"
+                  required
+                  autoFocus
+                  className={`${styles.input_box}`}
+                  value={editedZipCode}
+                  onChange={(e) => setEditedZipCode(e.target.value)}
+                  // onBlur={() => setEditedName(toHalfWidth(editedName.trim()))}
+                  onBlur={() => setEditedZipCode(toHalfWidthAndSpace(editedZipCode.trim()))}
+                />
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedZipCode("");
+                      setEditZipCodeMode(false);
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      if (!userProfileState) return;
+                      if (userProfileState.customer_zipcode === editedZipCode) {
+                        setEditZipCodeMode(false);
+                        return;
+                      }
+                      if (editedZipCode === "") {
+                        alert("有効な郵便番号を入力してください");
+                        return;
+                      }
+                      if (!userProfileState?.company_id) return alert("会社IDが見つかりません");
+                      setLoadingGlobalState(true);
+                      try {
+                        const { data: companyData, error } = await supabase
+                          .from("companies")
+                          .update({ customer_zipcode: editedZipCode })
+                          .eq("id", userProfileState.company_id)
+                          .select("customer_zipcode")
+                          .single();
+
+                        if (error) {
+                          throw error;
+                        }
+
+                        console.log("郵便番号UPDATE成功 companyData.customer_zipcode", companyData.customer_zipcode);
+                        setUserProfileState({
+                          // ...(companyData as UserProfile),
+                          ...(userProfileState as UserProfileCompanySubscription),
+                          customer_zipcode: companyData.customer_zipcode ? companyData.customer_zipcode : null,
+                        });
+                        setLoadingGlobalState(false);
+                        setEditZipCodeMode(false);
+                        toast.success("郵便番号の更新が完了しました!");
+                      } catch (error: any) {
+                        setLoadingGlobalState(false);
+                        setEditZipCodeMode(false);
+                        alert(error.message);
+                        console.log("郵便番号UPDATEエラー", error.message);
+                        toast.error("郵便番号の更新に失敗しました!");
+                        return;
+                      }
+                    }}
+                  >
+                    保存
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* 郵便番号ここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
           {/* 住所 */}
           <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
             {/* <div className={`${styles.section_title}`}>住所</div> */}
@@ -2520,7 +2789,9 @@ const SettingCompanyMemo = () => {
                 <div className="flex-center relative h-[16px] w-[16px] rounded-full">
                   <div
                     ref={infoIconAddressRef}
-                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                      userProfileState?.customer_address ? `` : styles.animate_ping
+                    }`}
                   ></div>
                   <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
                 </div>

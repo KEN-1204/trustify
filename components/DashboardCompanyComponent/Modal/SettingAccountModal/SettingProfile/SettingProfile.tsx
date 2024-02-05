@@ -32,6 +32,9 @@ import { SideTableSearchSignatureStamp } from "../../UpdateMeetingModal/SideTabl
 import { FallbackSideTableSearchSignatureStamp } from "../../UpdateMeetingModal/SideTableSearchSignatureStamp/FallbackSideTableSearchSignatureStamp";
 import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
 import { ImInfo } from "react-icons/im";
+import { toHalfWidthAndSpaceAndHyphen } from "@/utils/Helpers/toHalfWidthAndSpaceAndHyphen";
+import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
+import { toHalfWidth } from "@/utils/Helpers/toHalfWidth";
 
 const SettingProfileMemo = () => {
   const language = useStore((state) => state.language);
@@ -46,6 +49,9 @@ const SettingProfileMemo = () => {
 
   // infoアイコン
   const infoIconStampRef = useRef<HTMLDivElement | null>(null);
+  const infoIconTELRef = useRef<HTMLDivElement | null>(null);
+  const infoIconMobileRef = useRef<HTMLDivElement | null>(null);
+  const infoIconFAXRef = useRef<HTMLDivElement | null>(null);
 
   // 名前編集モード
   const [editNameMode, setEditNameMode] = useState(false);
@@ -61,6 +67,12 @@ const SettingProfileMemo = () => {
   // 電話番号
   const [editTELMode, setEditTELMode] = useState(false);
   const [editedTEL, setEditedTEL] = useState("");
+  // 携帯
+  const [editMobileMode, setEditMobileMode] = useState(false);
+  const [editedMobile, setEditedMobile] = useState("");
+  // 携帯
+  const [editFAXMode, setEditFAXMode] = useState(false);
+  const [editedFAX, setEditedFAX] = useState("");
   // 事業部
   const [editDepartmentMode, setEditDepartmentMode] = useState(false);
   const [editedDepartment, setEditedDepartment] = useState("");
@@ -191,30 +203,31 @@ const SettingProfileMemo = () => {
   // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // 全角文字を半角に変換する関数
-  const toHalfWidth = (strVal: string) => {
-    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-    return strVal.replace(/[！-～]/g, (match) => {
-      return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-    });
-    // .replace(/　/g, " "); // 全角スペースを半角スペースに
-  };
-  const toHalfWidthAndSpace = (strVal: string) => {
-    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-    return strVal
-      .replace(/[！-～]/g, (match) => {
-        return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-      })
-      .replace(/　/g, " "); // 全角スペースを半角スペースに
-  };
-  const toHalfWidthAndSpaceAndHyphen = (strVal: string) => {
-    // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-    return strVal
-      .replace(/[！-～]/g, (match) => {
-        return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-      })
-      .replace(/　/g, " ") // 全角スペースを半角スペースに
-      .replace(/ー/g, "-"); // 全角ハイフンを半角ハイフンに
-  };
+  // const toHalfWidth = (strVal: string) => {
+  //   // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
+  //   return strVal.replace(/[！-～]/g, (match) => {
+  //     return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
+  //   });
+  //   // .replace(/　/g, " "); // 全角スペースを半角スペースに
+  // };
+  // const toHalfWidthAndSpace = (strVal: string) => {
+  //   // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
+  //   return strVal
+  //     .replace(/[！-～]/g, (match) => {
+  //       return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
+  //     })
+  //     .replace(/　/g, " "); // 全角スペースを半角スペースに
+  // };
+  // const toHalfWidthAndSpaceAndHyphen = (strVal: string) => {
+  //   // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
+  //   return strVal
+  //     .replace(/[！-～]/g, (match) => {
+  //       return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
+  //     })
+  //     .replace(/　/g, " ") // 全角スペースを半角スペースに
+  //     .replace(/ー/g, "-") // 全角ハイフンを半角ハイフンに
+  //     .replace(/−/g, "-"); // 全角ハイフンを半角ハイフンに
+  // };
 
   type Era = "昭和" | "平成" | "令和";
   const eras = {
@@ -598,7 +611,9 @@ const SettingProfileMemo = () => {
                 <div className="flex-center relative h-[16px] w-[16px] rounded-full">
                   <div
                     ref={infoIconStampRef}
-                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                      stampUrl ? `` : styles.animate_ping
+                    }`}
                   ></div>
                   <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
                 </div>
@@ -970,9 +985,41 @@ const SettingProfileMemo = () => {
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
-          {/* 電話番号 */}
+          {/* 直通TEL */}
           <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-            <div className={`${styles.section_title}`}>電話番号</div>
+            {/* <div className={`${styles.section_title}`}>電話番号</div> */}
+            <div className={`${styles.section_title}`}>
+              <div
+                className="flex max-w-max items-center space-x-[9px]"
+                onMouseEnter={(e) => {
+                  if (infoIconTELRef.current && infoIconTELRef.current.classList.contains(styles.animate_ping)) {
+                    infoIconTELRef.current.classList.remove(styles.animate_ping);
+                  }
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: "市外・市内局番、加入者番号の間に半角ハイフンを入れてください。",
+                    content2: "ハイフンを入れると見積書に記載されるTELのレイアウトが綺麗に反映されます。",
+                    marginTop: 33,
+                    // marginTop: 8,
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <span>TEL</span>
+                {/* <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} /> */}
+                <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                  <div
+                    ref={infoIconTELRef}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                      userProfileState?.direct_line ? `` : styles.animate_ping
+                    }`}
+                  ></div>
+                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                </div>
+              </div>
+            </div>
+
             {!editTELMode && (
               <div className={`flex h-full w-full items-center justify-between`}>
                 <div className={`${styles.section_value}`}>
@@ -995,7 +1042,7 @@ const SettingProfileMemo = () => {
               <div className={`flex h-full w-full items-center justify-between`}>
                 <input
                   type="text"
-                  placeholder="電話番号を入力してください　例：080-0000-0000"
+                  placeholder="電話番号を入力してください　例：03-1234-5678"
                   required
                   autoFocus
                   className={`${styles.input_box}`}
@@ -1083,6 +1130,260 @@ const SettingProfileMemo = () => {
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
+          {/* 携帯 */}
+          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+            {/* <div className={`${styles.section_title}`}>携帯</div> */}
+            <div className={`${styles.section_title}`}>
+              <div
+                className="flex max-w-max items-center space-x-[9px]"
+                onMouseEnter={(e) => {
+                  if (infoIconMobileRef.current && infoIconMobileRef.current.classList.contains(styles.animate_ping)) {
+                    infoIconMobileRef.current.classList.remove(styles.animate_ping);
+                  }
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: "半角ハイフンを入れた番号を入力してください。",
+                    content2: "ハイフンを入れると見積書に記載される携帯のレイアウトが綺麗に反映されます。",
+                    marginTop: 33,
+                    // marginTop: 8,
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <span>携帯</span>
+                {/* <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} /> */}
+                <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                  <div
+                    ref={infoIconMobileRef}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                      userProfileState?.company_cell_phone ? `` : styles.animate_ping
+                    }`}
+                  ></div>
+                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                </div>
+              </div>
+            </div>
+
+            {!editMobileMode && (
+              <div className={`flex h-full w-full items-center justify-between`}>
+                <div className={`${styles.section_value}`}>
+                  {userProfileState?.company_cell_phone ? userProfileState.company_cell_phone : "未設定"}
+                </div>
+                <div>
+                  <div
+                    className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedMobile(userProfileState?.company_cell_phone ? userProfileState.company_cell_phone : "");
+                      setEditMobileMode(true);
+                    }}
+                  >
+                    編集
+                  </div>
+                </div>
+              </div>
+            )}
+            {editMobileMode && (
+              <div className={`flex h-full w-full items-center justify-between`}>
+                <input
+                  type="text"
+                  placeholder="携帯番号を入力してください　例：080-0000-0000"
+                  required
+                  autoFocus
+                  className={`${styles.input_box}`}
+                  value={editedMobile}
+                  onChange={(e) => setEditedMobile(e.target.value)}
+                  onBlur={() => setEditedMobile(toHalfWidthAndSpaceAndHyphen(editedMobile.trim()))}
+                />
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedMobile("");
+                      setEditMobileMode(false);
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      if (editedMobile === "") {
+                        alert("有効な携帯番号を入力してください");
+                        return;
+                      }
+                      if (userProfileState?.company_cell_phone === editedMobile) {
+                        setEditMobileMode(false);
+                        return;
+                      }
+                      if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
+                      setLoadingGlobalState(true);
+                      const { data: profileData, error } = await supabase
+                        .from("profiles")
+                        .update({ company_cell_phone: editedMobile })
+                        .eq("id", userProfileState.id)
+                        .select("company_cell_phone")
+                        .single();
+
+                      if (error) {
+                        setTimeout(() => {
+                          setLoadingGlobalState(false);
+                          setEditMobileMode(false);
+                          alert(error.message);
+                          console.log("携帯番号UPDATEエラー", error.message);
+                          toast.error("携帯番号の更新に失敗しました!");
+                        }, 500);
+                        return;
+                      }
+                      setTimeout(() => {
+                        console.log("携帯番号UPDATE成功 profileData", profileData);
+                        setUserProfileState({
+                          ...(userProfileState as UserProfileCompanySubscription),
+                          company_cell_phone: profileData.company_cell_phone ? profileData.company_cell_phone : null,
+                        });
+                        setLoadingGlobalState(false);
+                        setEditMobileMode(false);
+                        toast.success("携帯番号の更新が完了しました!");
+                      }, 500);
+                    }}
+                  >
+                    保存
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* 携帯ここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+          {/* FAX */}
+          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+            {/* <div className={`${styles.section_title}`}>携帯</div> */}
+            <div className={`${styles.section_title}`}>
+              <div
+                className="flex max-w-max items-center space-x-[9px]"
+                onMouseEnter={(e) => {
+                  if (infoIconFAXRef.current && infoIconFAXRef.current.classList.contains(styles.animate_ping)) {
+                    infoIconFAXRef.current.classList.remove(styles.animate_ping);
+                  }
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: "FAXが存在する場合は半角ハイフンを入れたFAX番号を入力してください。",
+                    content2: "見積書には電話番号の他に「FAX, Email, 携帯」のいずれかを選択して記載可能です。",
+                    marginTop: 33,
+                    // marginTop: 8,
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <span>FAX</span>
+                {/* <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} /> */}
+                <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                  <div
+                    ref={infoIconFAXRef}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                      userProfileState?.direct_fax ? `` : styles.animate_ping
+                    }`}
+                  ></div>
+                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                </div>
+              </div>
+            </div>
+
+            {!editFAXMode && (
+              <div className={`flex h-full w-full items-center justify-between`}>
+                <div className={`${styles.section_value}`}>
+                  {userProfileState?.direct_fax ? userProfileState.direct_fax : "未設定"}
+                </div>
+                <div>
+                  <div
+                    className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedFAX(userProfileState?.direct_fax ? userProfileState.direct_fax : "");
+                      setEditFAXMode(true);
+                    }}
+                  >
+                    編集
+                  </div>
+                </div>
+              </div>
+            )}
+            {editFAXMode && (
+              <div className={`flex h-full w-full items-center justify-between`}>
+                <input
+                  type="text"
+                  placeholder="FAX番号を入力してください　例：03-0000-0000"
+                  required
+                  autoFocus
+                  className={`${styles.input_box}`}
+                  value={editedFAX}
+                  onChange={(e) => setEditedFAX(e.target.value)}
+                  onBlur={() => setEditedFAX(toHalfWidthAndSpaceAndHyphen(editedFAX.trim()))}
+                />
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedFAX("");
+                      setEditFAXMode(false);
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      if (editedFAX === "") {
+                        alert("有効なFAX番号を入力してください");
+                        return;
+                      }
+                      if (userProfileState?.direct_fax === editedFAX) {
+                        setEditFAXMode(false);
+                        return;
+                      }
+                      if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
+                      setLoadingGlobalState(true);
+                      const { data: profileData, error } = await supabase
+                        .from("profiles")
+                        .update({ direct_fax: editedFAX })
+                        .eq("id", userProfileState.id)
+                        .select("direct_fax")
+                        .single();
+
+                      if (error) {
+                        setTimeout(() => {
+                          setLoadingGlobalState(false);
+                          setEditFAXMode(false);
+                          alert(error.message);
+                          console.log("FAX番号UPDATEエラー", error.message);
+                          toast.error("FAX番号の更新に失敗しました!");
+                        }, 500);
+                        return;
+                      }
+                      setTimeout(() => {
+                        console.log("FAX番号UPDATE成功 profileData", profileData);
+                        setUserProfileState({
+                          ...(userProfileState as UserProfileCompanySubscription),
+                          direct_fax: profileData.direct_fax ? profileData.direct_fax : null,
+                        });
+                        setLoadingGlobalState(false);
+                        setEditFAXMode(false);
+                        toast.success("FAX番号の更新が完了しました!");
+                      }, 500);
+                    }}
+                  >
+                    保存
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* FAX番号ここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
           {/* 事業部 */}
           <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
             {/* <div className={`${styles.section_title}`}>事業部</div> */}
@@ -1090,7 +1391,10 @@ const SettingProfileMemo = () => {
             <div className="relative flex items-start">
               <div className={`${styles.section_title}`}>事業部</div>
               {(!departmentDataArray || departmentDataArray.length === 0) && (
-                <div className="absolute left-[60px] top-0 flex flex-col text-[11px] text-[var(--main-color-tk)]">
+                <div
+                  // className="absolute left-[60px] top-0 flex flex-col text-[11px] text-[var(--main-color-tk)]"
+                  className="absolute left-[140px] top-0 flex flex-col text-[11px] text-[var(--main-color-tk)]"
+                >
                   <p>※事業部リストが作成されていません。</p>
                   <p>　事業部ごとにデータをを統一、分析する場合は「会社・チーム」から事業部を作成してください。</p>
                 </div>
@@ -1369,7 +1673,10 @@ const SettingProfileMemo = () => {
             <div className="relative flex items-start">
               <div className={`${styles.section_title}`}>係・チーム</div>
               {(!unitDataArray || unitDataArray.length === 0) && (
-                <div className="absolute left-[80px] top-0 flex flex-col text-[11px] text-[var(--main-color-tk)]">
+                <div
+                  // className="absolute left-[80px] top-0 flex flex-col text-[11px] text-[var(--main-color-tk)]"
+                  className="absolute left-[140px] top-0 flex flex-col text-[11px] text-[var(--main-color-tk)]"
+                >
                   <p>※係・チームリストが作成されていません。</p>
                   <p>
                     　係・チームごとにデータを統一、分析する場合は「会社・チーム」から係・チームを作成してください。
@@ -1629,394 +1936,6 @@ const SettingProfileMemo = () => {
             )}
           </div>
           {/* 係・チームここまで */}
-
-          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
-
-          {/* 職種 */}
-          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-            <div className={`${styles.section_title}`}>職種</div>
-            {!editOccupationMode && (
-              <div className={`flex h-full w-full items-center justify-between`}>
-                <div className={`${styles.section_value}`}>
-                  {userProfileState?.occupation ? userProfileState.occupation : "未設定"}
-                </div>
-                <div>
-                  <div
-                    className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    onClick={() => {
-                      setEditedOccupation(userProfileState?.occupation ? userProfileState.occupation : "経営者/CEO");
-                      setEditOccupationMode(true);
-                    }}
-                  >
-                    編集
-                  </div>
-                </div>
-              </div>
-            )}
-            {editOccupationMode && (
-              <div className={`flex h-full w-full items-center justify-between`}>
-                <select
-                  className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                  value={editedOccupation}
-                  onChange={(e) => setEditedOccupation(e.target.value)}
-                >
-                  {/* <option value="経営者/CEO">経営者/CEO</option>
-                  <option value="役員">役員</option>
-                  <option value="営業">営業</option>
-                  <option value="マーケティング">マーケティング</option>
-                  <option value="人事">人事</option>
-                  <option value="法務">法務</option>
-                  <option value="財務">財務</option>
-                  <option value="エンジニアリング">エンジニアリング</option>
-                  <option value="データサイエンス">データサイエンス</option>
-                  <option value="総務">総務</option>
-                  <option value="経理">経理</option>
-                  <option value="購買">購買</option>
-                  <option value="事務">事務</option>
-                  <option value="情報システム・IT管理者">情報システム・IT管理者</option>
-                  <option value="広報">広報</option>
-                  <option value="プロジェクト管理">プロジェクト管理</option>
-                  <option value="プロダクト管理">プロダクト管理</option>
-                  <option value="プロダクトデザイン">プロダクトデザイン</option>
-                  <option value="カスタマーサービス">カスタマーサービス</option>
-                  <option value="学生">学生</option>
-                  <option value="教育関係者">教育関係者</option>
-                  <option value="その他">その他</option> */}
-                  {optionsOccupationForCustomer.map((option) => (
-                    <option key={option} value={option}>
-                      {getOccupationNameForCustomer(option)}
-                    </option>
-                  ))}
-                  {/* {optionsOccupation.map((option) => (
-                    <option key={option} value={option}>
-                      {getOccupationName(option)}
-                    </option>
-                  ))} */}
-                </select>
-                <div className="flex">
-                  <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    onClick={() => {
-                      setEditedOccupation("");
-                      setEditOccupationMode(false);
-                    }}
-                  >
-                    キャンセル
-                  </div>
-                  <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
-                    onClick={async () => {
-                      if (editedOccupation === "") {
-                        alert("有効な職種を入力してください");
-                        return;
-                      }
-                      if (userProfileState?.occupation === editedOccupation) {
-                        setEditOccupationMode(false);
-                        return;
-                      }
-                      if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
-                      if (editedOccupation === userProfileState.occupation) {
-                        setEditOccupationMode(false);
-                        return;
-                      }
-                      setLoadingGlobalState(true);
-                      const { data: profileData, error } = await supabase
-                        .from("profiles")
-                        .update({ occupation: editedOccupation })
-                        .eq("id", userProfileState.id)
-                        .select("occupation")
-                        .single();
-
-                      if (error) {
-                        setTimeout(() => {
-                          setLoadingGlobalState(false);
-                          setEditOccupationMode(false);
-                          alert(error.message);
-                          console.log("職種UPDATEエラー", error.message);
-                          toast.error("職種の更新に失敗しました!", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            // theme: `${theme === "light" ? "light" : "dark"}`,
-                          });
-                        }, 500);
-                        return;
-                      }
-                      setTimeout(() => {
-                        console.log("職種UPDATE成功 profileData", profileData);
-                        setUserProfileState({
-                          ...(userProfileState as UserProfileCompanySubscription),
-                          occupation: profileData.occupation ? profileData.occupation : null,
-                        });
-                        setLoadingGlobalState(false);
-                        setEditOccupationMode(false);
-                        toast.success("職種の更新が完了しました!", {
-                          position: "top-right",
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          // theme: `${theme === "light" ? "light" : "dark"}`,
-                        });
-                      }, 500);
-                    }}
-                  >
-                    保存
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          {/* 職種ここまで */}
-
-          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
-
-          {/* 役職クラス */}
-          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-            <div className={`${styles.section_title}`}>役職クラス</div>
-            {!editPositionClassMode && (
-              <div className={`flex h-full w-full items-center justify-between`}>
-                <div className={`${styles.section_value}`}>
-                  {userProfileState?.position_class
-                    ? getPositionClassNameForCustomer(userProfileState.position_class)
-                    : "未設定"}
-                </div>
-                <div>
-                  <div
-                    className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    onClick={() => {
-                      setEditedPositionClass(
-                        userProfileState?.position_class ? userProfileState.position_class : "1 代表者"
-                      );
-                      setEditPositionClassMode(true);
-                    }}
-                  >
-                    編集
-                  </div>
-                </div>
-              </div>
-            )}
-            {editPositionClassMode && (
-              <div className={`flex h-full w-full items-center justify-between`}>
-                <select
-                  className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                  value={editedPositionClass}
-                  onChange={(e) => setEditedPositionClass(e.target.value)}
-                >
-                  <option value="">回答を選択してください</option>
-                  {/* <option value="1 代表者">代表者</option>
-                  <option value="2 取締役/役員">取締役/役員</option>
-                  <option value="3 部長">部長</option>
-                  <option value="4 課長">課長</option>
-                  <option value="5 チームメンバー">チームメンバー</option>
-                  <option value="6 所長・工場長">所長・工場長</option>
-                  <option value="7 フリーランス・個人事業主">フリーランス・個人事業主</option> */}
-                  {optionsPositionsClassForCustomer.map((option) => (
-                    <option key={option} value={option}>
-                      {getPositionClassNameForCustomer(option)}
-                    </option>
-                  ))}
-                </select>
-                <div className="flex">
-                  <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    onClick={() => {
-                      setEditedPositionClass("");
-                      setEditPositionClassMode(false);
-                    }}
-                  >
-                    キャンセル
-                  </div>
-                  <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
-                    onClick={async () => {
-                      if (editedPositionClass === "") {
-                        alert("有効な役職クラスを入力してください");
-                        return;
-                      }
-                      if (userProfileState?.position_class === editedPositionClass) {
-                        setEditPositionClassMode(false);
-                        return;
-                      }
-                      if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
-                      if (editedPositionClass === userProfileState.position_class) {
-                        setEditPositionClassMode(false);
-                        return;
-                      }
-                      setLoadingGlobalState(true);
-                      const { data: profileData, error } = await supabase
-                        .from("profiles")
-                        .update({ position_class: editedPositionClass })
-                        .eq("id", userProfileState.id)
-                        .select("position_class")
-                        .single();
-
-                      if (error) {
-                        setTimeout(() => {
-                          setLoadingGlobalState(false);
-                          setEditPositionClassMode(false);
-                          alert(error.message);
-                          console.log("役職クラスUPDATEエラー", error.message);
-                          toast.error("役職クラスの更新に失敗しました!", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            // theme: `${theme === "light" ? "light" : "dark"}`,
-                          });
-                        }, 500);
-                        return;
-                      }
-                      setTimeout(() => {
-                        console.log("役職クラスUPDATE成功 profileData", profileData);
-                        setUserProfileState({
-                          ...(userProfileState as UserProfileCompanySubscription),
-                          position_class: profileData.position_class ? profileData.position_class : null,
-                        });
-                        setLoadingGlobalState(false);
-                        setEditPositionClassMode(false);
-                        toast.success("役職クラスの更新が完了しました!", {
-                          position: "top-right",
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          // theme: `${theme === "light" ? "light" : "dark"}`,
-                        });
-                      }, 500);
-                    }}
-                  >
-                    保存
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          {/* 役職クラスここまで */}
-
-          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
-
-          {/* 役職名 */}
-          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-            <div className={`${styles.section_title}`}>役職名</div>
-            {!editPositionNameMode && (
-              <div className={`flex h-full w-full items-center justify-between`}>
-                <div className={`${styles.section_value}`}>
-                  {userProfileState?.position_name ? userProfileState.position_name : "未設定"}
-                </div>
-                <div>
-                  <div
-                    className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    onClick={() => {
-                      setEditedPositionName(userProfileState?.position_name ? userProfileState.position_name : "");
-                      setEditPositionNameMode(true);
-                    }}
-                  >
-                    編集
-                  </div>
-                </div>
-              </div>
-            )}
-            {editPositionNameMode && (
-              <div className={`flex h-full w-full items-center justify-between`}>
-                <input
-                  type="text"
-                  placeholder="役職名を入力してください"
-                  required
-                  autoFocus
-                  className={`${styles.input_box}`}
-                  value={editedPositionName}
-                  onChange={(e) => setEditedPositionName(e.target.value)}
-                  onBlur={() => setEditedPositionName(toHalfWidth(editedPositionName.trim()))}
-                />
-                <div className="flex">
-                  <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    onClick={() => {
-                      setEditedPositionName("");
-                      setEditPositionNameMode(false);
-                    }}
-                  >
-                    キャンセル
-                  </div>
-                  <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
-                    onClick={async () => {
-                      if (editedPositionName === "") {
-                        alert("有効な役職名を入力してください");
-                        return;
-                      }
-                      if (userProfileState?.position_name === editedPositionName) {
-                        setEditPositionNameMode(false);
-                        return;
-                      }
-                      if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
-                      setLoadingGlobalState(true);
-                      const { data: profileData, error } = await supabase
-                        .from("profiles")
-                        .update({ position_name: editedPositionName })
-                        .eq("id", userProfileState.id)
-                        .select("position_name")
-                        .single();
-
-                      if (error) {
-                        setTimeout(() => {
-                          setLoadingGlobalState(false);
-                          setEditPositionNameMode(false);
-                          alert(error.message);
-                          console.log("役職名UPDATEエラー", error.message);
-                          toast.error("役職名の更新に失敗しました!", {
-                            position: "top-right",
-                            autoClose: 3000,
-                            hideProgressBar: false,
-                            closeOnClick: true,
-                            pauseOnHover: true,
-                            draggable: true,
-                            progress: undefined,
-                            // theme: `${theme === "light" ? "light" : "dark"}`,
-                          });
-                        }, 500);
-                        return;
-                      }
-                      setTimeout(() => {
-                        console.log("役職名UPDATE成功 profileData", profileData);
-                        setUserProfileState({
-                          ...(userProfileState as UserProfileCompanySubscription),
-                          position_name: profileData.position_name ? profileData.position_name : null,
-                        });
-                        setLoadingGlobalState(false);
-                        setEditPositionNameMode(false);
-                        toast.success("役職名の更新が完了しました!", {
-                          position: "top-right",
-                          autoClose: 3000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          // theme: `${theme === "light" ? "light" : "dark"}`,
-                        });
-                      }, 500);
-                    }}
-                  >
-                    保存
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          {/* 役職名ここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
@@ -2424,6 +2343,394 @@ const SettingProfileMemo = () => {
             )}
           </div>
           {/* 社員番号・IDここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+          {/* 職種 */}
+          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+            <div className={`${styles.section_title}`}>職種</div>
+            {!editOccupationMode && (
+              <div className={`flex h-full w-full items-center justify-between`}>
+                <div className={`${styles.section_value}`}>
+                  {userProfileState?.occupation ? userProfileState.occupation : "未設定"}
+                </div>
+                <div>
+                  <div
+                    className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedOccupation(userProfileState?.occupation ? userProfileState.occupation : "経営者/CEO");
+                      setEditOccupationMode(true);
+                    }}
+                  >
+                    編集
+                  </div>
+                </div>
+              </div>
+            )}
+            {editOccupationMode && (
+              <div className={`flex h-full w-full items-center justify-between`}>
+                <select
+                  className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                  value={editedOccupation}
+                  onChange={(e) => setEditedOccupation(e.target.value)}
+                >
+                  {/* <option value="経営者/CEO">経営者/CEO</option>
+                  <option value="役員">役員</option>
+                  <option value="営業">営業</option>
+                  <option value="マーケティング">マーケティング</option>
+                  <option value="人事">人事</option>
+                  <option value="法務">法務</option>
+                  <option value="財務">財務</option>
+                  <option value="エンジニアリング">エンジニアリング</option>
+                  <option value="データサイエンス">データサイエンス</option>
+                  <option value="総務">総務</option>
+                  <option value="経理">経理</option>
+                  <option value="購買">購買</option>
+                  <option value="事務">事務</option>
+                  <option value="情報システム・IT管理者">情報システム・IT管理者</option>
+                  <option value="広報">広報</option>
+                  <option value="プロジェクト管理">プロジェクト管理</option>
+                  <option value="プロダクト管理">プロダクト管理</option>
+                  <option value="プロダクトデザイン">プロダクトデザイン</option>
+                  <option value="カスタマーサービス">カスタマーサービス</option>
+                  <option value="学生">学生</option>
+                  <option value="教育関係者">教育関係者</option>
+                  <option value="その他">その他</option> */}
+                  {optionsOccupationForCustomer.map((option) => (
+                    <option key={option} value={option}>
+                      {getOccupationNameForCustomer(option)}
+                    </option>
+                  ))}
+                  {/* {optionsOccupation.map((option) => (
+                    <option key={option} value={option}>
+                      {getOccupationName(option)}
+                    </option>
+                  ))} */}
+                </select>
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedOccupation("");
+                      setEditOccupationMode(false);
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      if (editedOccupation === "") {
+                        alert("有効な職種を入力してください");
+                        return;
+                      }
+                      if (userProfileState?.occupation === editedOccupation) {
+                        setEditOccupationMode(false);
+                        return;
+                      }
+                      if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
+                      if (editedOccupation === userProfileState.occupation) {
+                        setEditOccupationMode(false);
+                        return;
+                      }
+                      setLoadingGlobalState(true);
+                      const { data: profileData, error } = await supabase
+                        .from("profiles")
+                        .update({ occupation: editedOccupation })
+                        .eq("id", userProfileState.id)
+                        .select("occupation")
+                        .single();
+
+                      if (error) {
+                        setTimeout(() => {
+                          setLoadingGlobalState(false);
+                          setEditOccupationMode(false);
+                          alert(error.message);
+                          console.log("職種UPDATEエラー", error.message);
+                          toast.error("職種の更新に失敗しました!", {
+                            position: "top-right",
+                            autoClose: 3000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            // theme: `${theme === "light" ? "light" : "dark"}`,
+                          });
+                        }, 500);
+                        return;
+                      }
+                      setTimeout(() => {
+                        console.log("職種UPDATE成功 profileData", profileData);
+                        setUserProfileState({
+                          ...(userProfileState as UserProfileCompanySubscription),
+                          occupation: profileData.occupation ? profileData.occupation : null,
+                        });
+                        setLoadingGlobalState(false);
+                        setEditOccupationMode(false);
+                        toast.success("職種の更新が完了しました!", {
+                          position: "top-right",
+                          autoClose: 3000,
+                          hideProgressBar: false,
+                          closeOnClick: true,
+                          pauseOnHover: true,
+                          draggable: true,
+                          progress: undefined,
+                          // theme: `${theme === "light" ? "light" : "dark"}`,
+                        });
+                      }, 500);
+                    }}
+                  >
+                    保存
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* 職種ここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+          {/* 役職クラス */}
+          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+            <div className={`${styles.section_title}`}>役職クラス</div>
+            {!editPositionClassMode && (
+              <div className={`flex h-full w-full items-center justify-between`}>
+                <div className={`${styles.section_value}`}>
+                  {userProfileState?.position_class
+                    ? getPositionClassNameForCustomer(userProfileState.position_class)
+                    : "未設定"}
+                </div>
+                <div>
+                  <div
+                    className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedPositionClass(
+                        userProfileState?.position_class ? userProfileState.position_class : "1 代表者"
+                      );
+                      setEditPositionClassMode(true);
+                    }}
+                  >
+                    編集
+                  </div>
+                </div>
+              </div>
+            )}
+            {editPositionClassMode && (
+              <div className={`flex h-full w-full items-center justify-between`}>
+                <select
+                  className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                  value={editedPositionClass}
+                  onChange={(e) => setEditedPositionClass(e.target.value)}
+                >
+                  <option value="">回答を選択してください</option>
+                  {/* <option value="1 代表者">代表者</option>
+                  <option value="2 取締役/役員">取締役/役員</option>
+                  <option value="3 部長">部長</option>
+                  <option value="4 課長">課長</option>
+                  <option value="5 チームメンバー">チームメンバー</option>
+                  <option value="6 所長・工場長">所長・工場長</option>
+                  <option value="7 フリーランス・個人事業主">フリーランス・個人事業主</option> */}
+                  {optionsPositionsClassForCustomer.map((option) => (
+                    <option key={option} value={option}>
+                      {getPositionClassNameForCustomer(option)}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedPositionClass("");
+                      setEditPositionClassMode(false);
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      if (editedPositionClass === "") {
+                        alert("有効な役職クラスを入力してください");
+                        return;
+                      }
+                      if (userProfileState?.position_class === editedPositionClass) {
+                        setEditPositionClassMode(false);
+                        return;
+                      }
+                      if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
+                      if (editedPositionClass === userProfileState.position_class) {
+                        setEditPositionClassMode(false);
+                        return;
+                      }
+                      setLoadingGlobalState(true);
+                      const { data: profileData, error } = await supabase
+                        .from("profiles")
+                        .update({ position_class: editedPositionClass })
+                        .eq("id", userProfileState.id)
+                        .select("position_class")
+                        .single();
+
+                      if (error) {
+                        setTimeout(() => {
+                          setLoadingGlobalState(false);
+                          setEditPositionClassMode(false);
+                          alert(error.message);
+                          console.log("役職クラスUPDATEエラー", error.message);
+                          toast.error("役職クラスの更新に失敗しました!", {
+                            position: "top-right",
+                            autoClose: 3000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            // theme: `${theme === "light" ? "light" : "dark"}`,
+                          });
+                        }, 500);
+                        return;
+                      }
+                      setTimeout(() => {
+                        console.log("役職クラスUPDATE成功 profileData", profileData);
+                        setUserProfileState({
+                          ...(userProfileState as UserProfileCompanySubscription),
+                          position_class: profileData.position_class ? profileData.position_class : null,
+                        });
+                        setLoadingGlobalState(false);
+                        setEditPositionClassMode(false);
+                        toast.success("役職クラスの更新が完了しました!", {
+                          position: "top-right",
+                          autoClose: 3000,
+                          hideProgressBar: false,
+                          closeOnClick: true,
+                          pauseOnHover: true,
+                          draggable: true,
+                          progress: undefined,
+                          // theme: `${theme === "light" ? "light" : "dark"}`,
+                        });
+                      }, 500);
+                    }}
+                  >
+                    保存
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* 役職クラスここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+          {/* 役職名 */}
+          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+            <div className={`${styles.section_title}`}>役職名</div>
+            {!editPositionNameMode && (
+              <div className={`flex h-full w-full items-center justify-between`}>
+                <div className={`${styles.section_value}`}>
+                  {userProfileState?.position_name ? userProfileState.position_name : "未設定"}
+                </div>
+                <div>
+                  <div
+                    className={`transition-base01 cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedPositionName(userProfileState?.position_name ? userProfileState.position_name : "");
+                      setEditPositionNameMode(true);
+                    }}
+                  >
+                    編集
+                  </div>
+                </div>
+              </div>
+            )}
+            {editPositionNameMode && (
+              <div className={`flex h-full w-full items-center justify-between`}>
+                <input
+                  type="text"
+                  placeholder="役職名を入力してください"
+                  required
+                  autoFocus
+                  className={`${styles.input_box}`}
+                  value={editedPositionName}
+                  onChange={(e) => setEditedPositionName(e.target.value)}
+                  onBlur={() => setEditedPositionName(toHalfWidth(editedPositionName.trim()))}
+                />
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedPositionName("");
+                      setEditPositionNameMode(false);
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      if (editedPositionName === "") {
+                        alert("有効な役職名を入力してください");
+                        return;
+                      }
+                      if (userProfileState?.position_name === editedPositionName) {
+                        setEditPositionNameMode(false);
+                        return;
+                      }
+                      if (!userProfileState?.id) return alert("ユーザーIDが見つかりません");
+                      setLoadingGlobalState(true);
+                      const { data: profileData, error } = await supabase
+                        .from("profiles")
+                        .update({ position_name: editedPositionName })
+                        .eq("id", userProfileState.id)
+                        .select("position_name")
+                        .single();
+
+                      if (error) {
+                        setTimeout(() => {
+                          setLoadingGlobalState(false);
+                          setEditPositionNameMode(false);
+                          alert(error.message);
+                          console.log("役職名UPDATEエラー", error.message);
+                          toast.error("役職名の更新に失敗しました!", {
+                            position: "top-right",
+                            autoClose: 3000,
+                            hideProgressBar: false,
+                            closeOnClick: true,
+                            pauseOnHover: true,
+                            draggable: true,
+                            progress: undefined,
+                            // theme: `${theme === "light" ? "light" : "dark"}`,
+                          });
+                        }, 500);
+                        return;
+                      }
+                      setTimeout(() => {
+                        console.log("役職名UPDATE成功 profileData", profileData);
+                        setUserProfileState({
+                          ...(userProfileState as UserProfileCompanySubscription),
+                          position_name: profileData.position_name ? profileData.position_name : null,
+                        });
+                        setLoadingGlobalState(false);
+                        setEditPositionNameMode(false);
+                        toast.success("役職名の更新が完了しました!", {
+                          position: "top-right",
+                          autoClose: 3000,
+                          hideProgressBar: false,
+                          closeOnClick: true,
+                          pauseOnHover: true,
+                          draggable: true,
+                          progress: undefined,
+                          // theme: `${theme === "light" ? "light" : "dark"}`,
+                        });
+                      }, 500);
+                    }}
+                  >
+                    保存
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* 役職名ここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 

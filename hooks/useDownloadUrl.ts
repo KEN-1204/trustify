@@ -38,6 +38,7 @@ export const useDownloadUrl = (
           setIsLoading(false);
         } catch (e: any) {
           console.error("画像ダウンロード失敗", e);
+          setIsLoading(false);
         }
       };
       download();
@@ -45,6 +46,7 @@ export const useDownloadUrl = (
     // filePathがnullの場合
     else {
       setFullUrl(null);
+      setIsLoading(false);
     }
   }, [filePath, bucketName]);
   return {
