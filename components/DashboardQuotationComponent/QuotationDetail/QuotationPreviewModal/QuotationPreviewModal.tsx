@@ -483,6 +483,16 @@ const QuotationPreviewModalMemo = () => {
 
   // 🔹商品リスト
   const columnHeaderTitleArray = ["product_name", "unit_quantity", "unit_price", "amount"];
+  // 商品名セル内 商品名と型式の配列 ドラッグで左右の位置を変更可能
+  type RowProductNameArray = ("quotation_product_name" | "quotation_product_outside_short_name")[];
+  type RowGroupProductNamesArray = RowProductNameArray[];
+  const [productNameArray, setProductNameArray] = useState<RowGroupProductNamesArray>(
+    Array(selectedRowDataQuotation?.quotation_products_details?.length ?? 0).fill([
+      "quotation_product_name",
+      "quotation_product_outside_short_name",
+    ])
+  );
+  console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 productNameArray", productNameArray);
 
   const productsArray =
     selectedRowDataQuotation?.quotation_products_details?.sort((a, b) => {
@@ -1165,6 +1175,83 @@ const QuotationPreviewModalMemo = () => {
   }, []);
   // -------------------------- ✅ポップアップメッセージ✅ --------------------------
 
+  // -------------------------- 🌟商品名ドラッグでカラム順番入れ替え🌟 --------------------------
+  type DragIndexObj = { index: number | null; rowIndex: number | null };
+  const [dragItemIndexAndRow, setDragItemIndexAndRow] = useState<DragIndexObj>({ index: null, rowIndex: null });
+  const isDraggingRef = useRef(false);
+  const selectedRightItemsRef = useRef<number[]>([]);
+
+  // ドラッグ中のセル
+  const handleDragStartItem = (index: number, rowIndex: number, e: React.DragEvent<HTMLDivElement>) => {
+    console.log("dragStart🔥", index, "rowIndex", rowIndex);
+    // e.currentTarget.style.cursor = "grabbing";
+    e.currentTarget.classList.add(styles.dragging);
+    setDragItemIndexAndRow({ index, rowIndex });
+    isDraggingRef.current = true;
+  };
+
+  // ドラッグ先のセル
+  const handleDragEnterItem = (destColIndex: number, destRowIndex: number, e: React.DragEvent<HTMLDivElement>) => {
+    console.log(
+      "dragEnter DroppableIndex, dragIndex ドラッグ先のindexと行",
+      destColIndex,
+      destRowIndex,
+      "ドラッグ元 indexと行",
+      dragItemIndexAndRow.index,
+      dragItemIndexAndRow.rowIndex
+    );
+
+    // return;
+    if (destRowIndex !== dragItemIndexAndRow.rowIndex) return;
+
+    // e.currentTarget.style.cursor = "grabbing";
+    e.currentTarget.classList.add(styles.dragging);
+    if (destColIndex === dragItemIndexAndRow.index && destRowIndex === dragItemIndexAndRow.rowIndex) return;
+
+    // 商品名配列をエンターした内容で更新
+    setProductNameArray((prevState) => {
+      let newRowArray = JSON.parse(JSON.stringify(prevState[destRowIndex]));
+      const deleteElement = newRowArray.splice(dragItemIndexAndRow.index, 1)[0];
+      newRowArray.splice(destColIndex, 0, deleteElement);
+
+      console.log("newRowArray", newRowArray);
+      let newRowGroup = JSON.parse(JSON.stringify(prevState));
+      const deleteRow = newRowGroup.splice(dragItemIndexAndRow.rowIndex, 1)[0];
+      newRowGroup.splice(destRowIndex, 0, newRowArray);
+      return newRowGroup;
+    });
+    // 順番が入れ替わった状態のドラッグしているアイテムの現在のindexをStateに保持
+    setDragItemIndexAndRow({ index: destColIndex, rowIndex: destRowIndex });
+  };
+
+  const handleDragEndItem = () => {
+    // console.log("Drop");
+    // console.log("ドラッグID", dragItemIndexAndRow);
+    // console.log("selectedRightItemsRef.current", selectedRightItemsRef.current);
+    // // return;
+    // // 選択中のアイテムは非アクティブ化する
+    // if (!!dragItemIndexAndRow.rowIndex && !!dragItemIndexAndRow.index) {
+    //   // 入れ替え後のアイテムリストのindexで指定したターゲットを取得する
+    //   const target = productNameArray[dragItemIndexAndRow.rowIndex][dragItemIndexAndRow.index];
+    //   console.log("target", target);
+    // }
+    // 並び替えが完了した後のlistItems配列をDBに送信して更新する処理を追加
+    // 入れ替えが完了した状態でZustandにグローバルStateとしてcolumnHeaderItemListの更新内容を保存する
+    // setEditedColumnHeaderItemList(listItemsRight);
+
+    // document.body.style.cursor = ""; // カーソルをデフォルトに戻す
+    // document.body.style.cursor = ""; // カーソルをデフォルトに戻す
+    const rowNameItems = gridTableRef.current?.querySelectorAll(`.${styles.dragging}`);
+    console.log("rowNameItems", rowNameItems);
+    rowNameItems?.forEach((item) => (item as HTMLDivElement).classList.remove(`${styles.dragging}`));
+
+    // 全ての更新が終わったら、Indexをnullにして初期化
+    console.log("ドラッグエンド🔥");
+    setDragItemIndexAndRow({ index: null, rowIndex: null });
+    isDraggingRef.current = false;
+  };
+  // -------------------------- ✅商品名ドラッグでカラム順番入れ替え✅ --------------------------
+
   // Webページ上で直接プリントアウト window.print()
   console.log(
     "🌠PDFプレビューモーダル レンダリング pdfURL",
@@ -1204,9 +1291,11 @@ const QuotationPreviewModalMemo = () => {
           state={footnotes}
           dispatch={setFootnotes}
           inputTextarea={"input"}
-          limitLength={112}
+          // limitLength={112}
+          limitLength={58}
           title={"脚注 編集"}
-          notes="脚注に記載可能な文字数は日本語で62文字、英語で112文字です。"
+          // notes="脚注に記載可能な文字数は日本語で62文字、英語で112文字です。"
+          notes="脚注に記載可能な文字数は58文字です。"
           customFunction={saveLocalStorageFootnotes}
         />
       )}
@@ -1793,42 +1882,126 @@ const QuotationPreviewModalMemo = () => {
                         }}
                       >
                         {productsArray?.length > 0 &&
-                          productsArray.map((obj: QuotationProductsDetail, index: number) => {
+                          productsArray.map((obj: QuotationProductsDetail, rowIndex: number) => {
                             console.log("商品 obj", obj.product_id, obj);
                             if (!obj.product_id) return;
                             return (
                               <div
                                 role="row"
-                                key={obj.product_id + index.toString()}
-                                style={{ gridRowStart: index + 1 }}
+                                key={obj.product_id + rowIndex.toString()}
+                                style={{ gridRowStart: rowIndex + 1 }}
                                 className={`${styles.row} flex items-center justify-between`}
                               >
-                                {columnHeaderTitleArray.map((key, index) => {
+                                {columnHeaderTitleArray.map((key, colIndex) => {
                                   return (
                                     <div
                                       role="gridcell"
-                                      key={key + obj.product_id + index.toString()}
+                                      key={key + obj.product_id + colIndex.toString()}
                                       className={`${styles.grid_cell} ${
-                                        index === 0 ? `${styles.product_name_area}` : `${styles.qua_area}`
+                                        colIndex === 0 ? `${styles.product_name_area}` : `${styles.qua_area}`
                                       }`}
                                     >
-                                      {index === 0 && (
+                                      {colIndex === 0 && (
                                         <>
-                                          <div className={`${styles.product_name} w-[52%]`}>
+                                          {!!productNameArray.length &&
+                                            productNameArray[rowIndex]?.map((value, nameIndex) => {
+                                              console.log("value", value, "rowIndex", rowIndex);
+                                              return (
+                                                <div
+                                                  key={
+                                                    value +
+                                                    rowIndex.toString() +
+                                                    colIndex.toString() +
+                                                    nameIndex.toString()
+                                                  }
+                                                  draggable
+                                                  onDragStart={(e) => handleDragStartItem(nameIndex, rowIndex, e)}
+                                                  onDragEnter={(e) => handleDragEnterItem(nameIndex, rowIndex, e)}
+                                                  onDragOver={(e) => {
+                                                    e.preventDefault();
+                                                    // document.body.style.cursor = "grabbing";
+                                                  }}
+                                                  onDragEnd={handleDragEndItem}
+                                                  // onMouseDown={() => {
+                                                  //   console.log("マウスダウン");
+                                                  //   document.body.style.cursor = "grabbing";
+                                                  // }}
+                                                  onMouseUp={() => {
+                                                    if (!isDraggingRef.current) return;
+                                                    console.log("マウスアップ");
+                                                    // document.body.style.cursor = "";
+                                                    const rowNameItems = gridTableRef.current?.querySelectorAll(
+                                                      `.${styles.dragging}`
+                                                    );
+                                                    console.log("rowNameItems", rowNameItems);
+                                                    rowNameItems?.forEach((item) =>
+                                                      (item as HTMLDivElement).classList.remove(`${styles.dragging}`)
+                                                    );
+                                                    setDragItemIndexAndRow({ index: null, rowIndex: null });
+                                                    isDraggingRef.current = false;
+                                                  }}
+                                                  onMouseLeave={() => {
+                                                    if (!isDraggingRef.current) return;
+                                                    console.log("マウスリーブ");
+                                                    // document.body.style.cursor = ""; // カーソルをデフォルトに戻す
+                                                    const rowNameItems = gridTableRef.current?.querySelectorAll(
+                                                      `.${styles.dragging}`
+                                                    );
+                                                    console.log("rowNameItems", rowNameItems);
+                                                    rowNameItems?.forEach((item) =>
+                                                      (item as HTMLDivElement).classList.remove(`${styles.dragging}`)
+                                                    );
+                                                    setDragItemIndexAndRow({ index: null, rowIndex: null });
+                                                    isDraggingRef.current = false;
+                                                  }}
+                                                  className={`${
+                                                    value === "quotation_product_name" ? `${styles.product_name} ` : ``
+                                                  } ${
+                                                    value === "quotation_product_outside_short_name"
+                                                      ? styles.outside_name
+                                                      : ``
+                                                  } ${styles.draggable_item} ${
+                                                    nameIndex === 0 ? `w-[52%] pl-[8px]` : `w-[48%] pr-[8px]`
+                                                  }`}
+                                                >
+                                                  {value === "quotation_product_name" && (
+                                                    <span>{obj.quotation_product_name}</span>
+                                                  )}
+                                                  {value === "quotation_product_outside_short_name" &&
+                                                    obj.quotation_product_outside_short_name && (
+                                                      <span>{obj.quotation_product_outside_short_name}</span>
+                                                    )}
+                                                  {value === "quotation_product_outside_short_name" &&
+                                                    !obj.quotation_product_outside_short_name && (
+                                                      <span className="inline-block min-h-[5px] min-w-[55px]"></span>
+                                                    )}
+                                                </div>
+                                              );
+                                            })}
+
+                                          {/* <div
+                                            className={`${styles.product_name} ${styles.draggable_item} w-[52%]`}
+                                          >
                                             <span>{obj.quotation_product_name}</span>
                                           </div>
-                                          <div className={`${styles.outside_name} w-[48%]`}>
+                                          <div
+                                            draggable
+                                            className={`${styles.outside_name} ${styles.draggable_item} w-[48%]`}
+                                          >
                                             {obj.quotation_product_outside_short_name && (
                                               <span>{obj.quotation_product_outside_short_name}</span>
                                             )}
-                                          </div>
+                                            {!obj.quotation_product_outside_short_name && (
+                                              <span className="inline-block min-h-[5px] min-w-[55px]"></span>
+                                            )}
+                                          </div> */}
                                         </>
                                       )}
-                                      {index === 1 && <span>{obj.quotation_product_quantity}</span>}
-                                      {index === 2 && (
+                                      {colIndex === 1 && <span>{obj.quotation_product_quantity}</span>}
+                                      {colIndex === 2 && (
                                         <span>{formatDisplayPrice(obj.quotation_product_unit_price)}</span>
                                       )}
-                                      {index === 3 && (
+                                      {colIndex === 3 && (
                                         <span>{formatDisplayPrice(obj.quotation_product_unit_price)}</span>
                                       )}
                                     </div>

@@ -75,6 +75,7 @@
   /* background-color: #f0f0f0; */
   /* background-color: #2894ff; */
   background-color: var(--color-select-box-hover);
+  /* background-color: #1188ff; */
 }
 
 .field_edit_mode_input_box {
