@@ -78,9 +78,17 @@ const getScale = (currentHeight: number) => {
 
 // 印鑑ボックスが2つ印字の場合1番目(一番右)にはpadding-left: 1pxを当てる
 const styleStampBox = (index: number, printLength: number) => {
-  if ((printLength === 2 && index === 0) || (printLength === 3 && (index === 1 || index === 0))) {
+  // if ((printLength === 2 && index === 0) || (printLength === 3 && (index === 1 || index === 0))) {
+  // if ((printLength === 2 && index === 0) || (printLength === 2 && index === 1) || printLength === 3) {
+  if (printLength === 3 && index === 1) {
     return { paddingLeft: "1px" };
-  } else {
+    // return {};
+  }
+  // else if (printLength === 1 && index === 0) {
+  //   // return { borderLeft: "none" };
+  //   return {};
+  // }
+  else {
     return {};
   }
 };
@@ -212,8 +220,10 @@ const QuotationPreviewModalMemo = () => {
   // 🌟印鑑データ配列
   const initialImgUrlInCharge = hankoSrc;
   // const initialImgUrlInCharge = selectedRowDataQuotation?.in_charge_stamp_image_url ?? null;
-  const initialImgUrlSupervisor1 = selectedRowDataQuotation?.supervisor1_stamp_image_url ?? null;
-  const initialImgUrlSupervisor2 = selectedRowDataQuotation?.supervisor2_stamp_image_url ?? null;
+  // const initialImgUrlSupervisor1 = selectedRowDataQuotation?.supervisor1_stamp_image_url ?? null;
+  const initialImgUrlSupervisor1 = hankoSrc;
+  // const initialImgUrlSupervisor2 = selectedRowDataQuotation?.supervisor2_stamp_image_url ?? null;
+  const initialImgUrlSupervisor2 = hankoSrc;
   const stampsArray = [
     // { title: "in_charge", url: selectedRowDataQuotation?.in_charge_stamp_image_url ?? null, isPrint: isPrintInChargeStamp, isFrame: isFrameInChargeStamp },
     { title: "in_charge", url: initialImgUrlInCharge, isPrint: isPrintInChargeStamp, isFrame: isFrameInChargeStamp },
@@ -267,9 +277,18 @@ const QuotationPreviewModalMemo = () => {
   const clientCompanyName = selectedRowDataQuotation?.company_name ?? "";
 
   // 顧客の会社名(株式会社の会社種類名と会社名で分割)
-  const customerNameObj = useMemo(() => {
-    return userProfileState?.customer_name ? splitCompanyNameWithPosition(userProfileState.customer_name) : "";
-  }, [userProfileState?.customer_name]);
+  const [customerNameObj, setCustomerNameObj] = useState<{
+    companyType: string;
+    company_name: string;
+    typePosition: string;
+  }>(
+    userProfileState?.customer_name
+      ? splitCompanyNameWithPosition(userProfileState.customer_name)
+      : { companyType: "", company_name: userProfileState?.customer_name ?? "", typePosition: "" }
+  );
+  // const customerNameObj = useMemo(() => {
+  //   return userProfileState?.customer_name ? splitCompanyNameWithPosition(userProfileState.customer_name) : "";
+  // }, []);
 
   // 脚注：末尾の出荷に関する説明欄
   const initialFootnotesText = `※当日出荷は弊社営業稼働日の14時までにご発注いただいた場合に対応させていただきます。`;
@@ -1364,7 +1383,9 @@ const QuotationPreviewModalMemo = () => {
                     </div>
 
                     <div className={`${styles.detail_right_area} flex flex-col bg-[#02f929]/[0]`}>
+                      {/* ------------------------ customer_detail_area ------------------------ */}
                       <div className={`${styles.customer_detail_area} bg-[yellow]/[0]`}>
+                        {/* ------------ customer_info_area ------------ */}
                         <div className={`${styles.customer_info_area} flex flex-col`}>
                           {isPrintCompanyLogo && companyLogoUrl && (
                             <div className={`${styles.company_logo_area} flex items-end justify-start bg-[white]/[0]`}>
@@ -1386,7 +1407,10 @@ const QuotationPreviewModalMemo = () => {
                           )}
                           {(!isPrintCompanyLogo || !companyLogoUrl) && <div className="h-[10%] w-full"></div>}
                           <div className={`${styles.company_name_area}`}>
-                            <div ref={customerNameRef} className={`${styles.company_name} flex items-center`}>
+                            <div
+                              ref={customerNameRef}
+                              className={`${styles.company_name} ${styles.resize} flex items-center`}
+                            >
                               {/* <span ref={companyTypeRef} className={`mr-[1%] whitespace-nowrap pt-[0.5%] text-[9px]`}>
                                 株式会社
                               </span>
@@ -1401,11 +1425,13 @@ const QuotationPreviewModalMemo = () => {
                             </span> */}
                               {customerNameObj && customerNameObj.typePosition === "pre" && (
                                 <>
-                                  <span ref={companyTypeRef} className="mr-[1%] whitespace-nowrap pt-[0.5%] text-[9px]">
-                                    {/* <span ref={companyTypeRef} className="mr-[1%] whitespace-nowrap pt-[0.5%] text-[9px]"> */}
+                                  <span
+                                    ref={companyTypeRef}
+                                    className="mr-[1%] inline-block whitespace-nowrap pt-[0px] text-[9px]"
+                                  >
                                     {customerNameObj.companyType}
                                   </span>
-                                  <span ref={companyNameRef} className="whitespace-nowrap text-[12px]">
+                                  <span ref={companyNameRef} className="inline-block whitespace-nowrap text-[12px]">
                                     {customerNameObj.company_name}
                                   </span>
                                 </>
@@ -1415,15 +1441,16 @@ const QuotationPreviewModalMemo = () => {
                                   <span ref={companyNameRef} className="whitespace-nowrap text-[12px]">
                                     {customerNameObj.company_name}
                                   </span>
-                                  <span ref={companyTypeRef} className="ml-[1%] whitespace-nowrap pt-[0.5%] text-[9px]">
+                                  <span ref={companyTypeRef} className="ml-[1%] whitespace-nowrap pt-[0px] text-[9px]">
                                     {customerNameObj.companyType}
                                   </span>
                                 </>
                               )}
                             </div>
                           </div>
+                          {/* ------------ user_info_area ------------ */}
                           <div className={`${styles.user_info_area} flex flex-col`}>
-                            <div className={`${styles.row_area}  flex items-end`}>
+                            <div className={`${styles.row_area} ${styles.department_area}  flex items-end`}>
                               {!isEditMode.includes("assigned_department_name") && (
                                 <>
                                   {/* <span className={``}>マイクロスコープ事業部</span> */}
@@ -1488,7 +1515,7 @@ const QuotationPreviewModalMemo = () => {
                               )}
                             </div>
 
-                            <div className={`${styles.row_area} flex items-center`}>
+                            <div className={`${styles.row_area} ${styles.office_name_area} flex items-center`}>
                               {!isEditMode.includes("assigned_office_name") && (
                                 <div className={`min-w-[50%] max-w-[50%] truncate`}>
                                   {/* <span className={``}>東京営業所</span> */}
@@ -1569,7 +1596,7 @@ const QuotationPreviewModalMemo = () => {
                                 // onMouseEnter={(e) =>
                                 //   console.log("e", e.currentTarget.scrollWidth, "offset", e.currentTarget.offsetWidth)
                                 // }
-                                style={{ whiteSpace: "nowrap", overflowX: "hidden" }}
+                                style={{ whiteSpace: "nowrap", overflow: "hidden" }}
                                 className={`flex flex-col pl-[5%] ${styles.address_line}`}
                               >
                                 {/* <span>{`東京都港区芝浦港区芝浦港区芝浦0-0-0 シーバンスX館`}</span> */}
@@ -1580,17 +1607,15 @@ const QuotationPreviewModalMemo = () => {
                                 {/* {sampleAddress} */}
                               </div>
                             </div>
-                            <div className={`${styles.row_area} flex items-center`}>
-                              <div className="flex h-full w-[50%] items-center">
+                            <div className={`${styles.row_area} ${styles.contact_area} flex items-center`}>
+                              <div className={`${styles.contact_item} flex w-[50%] items-center`}>
                                 <span>TEL</span>
-                                {/* <span className="pl-[6%]">03-6866-1611</span> */}
                                 <span className="pl-[6%]">{directLine}</span>
                               </div>
-                              <div className={`flex h-full w-[50%] items-center`}>
+                              <div className={`${styles.contact_item} flex w-[50%] items-center`}>
                                 {displaySubContactInfo === "direct_fax" && (
                                   <>
                                     <span>FAX</span>
-                                    {/* <span className="pl-[6%]">03-6866-1611</span> */}
                                     <span className="pl-[6%]">{directFax}</span>
                                   </>
                                 )}
@@ -1602,11 +1627,12 @@ const QuotationPreviewModalMemo = () => {
                                 )}
                               </div>
                             </div>
+                            <div className={`${styles.under_margin}`}></div>
                           </div>
+                          {/* ------------ user_info_areaここまで ------------ */}
                         </div>
-                        {/* <div
-                        className={`${styles.corporate_seal} absolute right-[6%] top-0 z-[0] rounded-md bg-[red]/[0.7]`}
-                      ></div> */}
+                        {/* ------------ customer_info_areaここまで ------------ */}
+
                         {isPrintCorporateSeal && (
                           <div
                             className={`${styles.corporate_seal_sample}  absolute right-[6%] top-0 z-[0] rounded-[4px] border-[2px] border-solid border-[red]/[0.7]`}
@@ -1635,7 +1661,8 @@ const QuotationPreviewModalMemo = () => {
                                 key={obj.title + index.toString()}
                                 className={`h-full w-full ${styles.stamp_box} flex-center`}
                                 // style={styleStampBox(index, stampFrameLength)}
-                                style={{ ...(scalePdf !== 1 && styleStampBox(index, stampFrameDisplayCount)) }}
+                                // style={{ ...(scalePdf !== 1 && styleStampBox(index, stampFrameDisplayCount)) }}
+                                style={{ ...(scalePdf === 1 && styleStampBox(index, stampFrameDisplayCount)) }}
                               >
                                 {obj.isPrint && obj.url && (
                                   <div className="relative flex h-[25px] w-[25px] items-center justify-center rounded-full">
@@ -1691,8 +1718,9 @@ const QuotationPreviewModalMemo = () => {
                             </div>
                           ))}
                       </div>
-                    </div> */}
+                      </div> */}
                     </div>
+                    {/* ------------------------ customer_detail_area ここまで ------------------------ */}
                   </div>
 
                   <div
@@ -1701,11 +1729,7 @@ const QuotationPreviewModalMemo = () => {
                     ref={gridTableRef}
                     className={`${styles.table_area} bg-[red]/[0]`}
                   >
-                    <div
-                      role="row"
-                      className={`${styles.table_header_row} flex bg-[red]/[0]`}
-                      // style={{ gridTemplateColumns: "65% 5% 12% 18%" }}
-                    >
+                    <div role="row" className={`${styles.table_header_row} flex bg-[red]/[0]`}>
                       {Array(4)
                         .fill(null)
                         .map((_, index) => (
@@ -1759,15 +1783,12 @@ const QuotationPreviewModalMemo = () => {
                         style={{
                           ...(productsArray?.length > 0 && {
                             // borderBottom: "0.6px solid #37352f",
-                            borderBottom: "0.1px solid #37352f",
+                            // borderBottom: "0.1px solid #37352f",
                             // minHeight: `${3.3 * productsArray.length + 1}%`,
                             // minHeight: `${3.3 * productsArray.length}%`,
                             // minHeight: `${3.5 * productsArray.length}%`,
-                            minHeight: `${3.9 * productsArray.length}%`,
+                            // minHeight: `${3.9 * productsArray.length}%`,
                             display: "grid",
-                            gridTemplateRows: "repeat(1fr)",
-
-                            // gridTemplateRows: `0.1fr repeat(1fr)`,
                           }),
                         }}
                       >
@@ -1855,7 +1876,11 @@ const QuotationPreviewModalMemo = () => {
                     )}
 
                     {isValidNumber(totalPrice) && (
-                      <div role="row" style={{ minHeight: `${3.9}%` }} className={`${styles.row_result}`}>
+                      <div
+                        role="row"
+                        // style={{ minHeight: `${3.9}%` }}
+                        className={`${styles.row_result} ${styles.total}`}
+                      >
                         {columnHeaderTitleArray.map((key, index) => (
                           <div
                             key={key + index.toString() + "amount"}
@@ -2097,7 +2122,7 @@ const QuotationPreviewModalMemo = () => {
 
                           const inputValue = e.target.value;
                           const textarea = e.target;
-                          const limitLength = 63;
+                          const limitLength = 58;
                           const lengthExceeded =
                             inputValue.length > limitLength || textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
 
@@ -2119,6 +2144,7 @@ const QuotationPreviewModalMemo = () => {
                               // 文字数を超えずに表示可能領域のみ超えた場合はstateを更新せずにリターン
                               return;
                             }
+                            console.log("trimmedText.length", trimmedText.length);
 
                             setFootnotes(trimmedText);
                           } else {
@@ -2426,14 +2452,12 @@ const QuotationPreviewModalMemo = () => {
                             <span className={``}>：</span>
                           </div>
                         </div>
-                        {isFrameInChargeStamp &&
-                          isFrameSupervisorStamp1 &&
-                          selectedRowDataQuotation?.supervisor1_stamp_image_url && (
-                            <ToggleSwitch state={isPrintSupervisorStamp1} dispatch={setIsPrintSupervisorStamp1} />
-                          )}
-                        {isFrameInChargeStamp &&
-                          isFrameSupervisorStamp1 &&
-                          !selectedRowDataQuotation?.supervisor1_stamp_image_url && <div>上長印1なし</div>}
+                        {isFrameInChargeStamp && isFrameSupervisorStamp1 && stampsArray[1].url && (
+                          <ToggleSwitch state={isPrintSupervisorStamp1} dispatch={setIsPrintSupervisorStamp1} />
+                        )}
+                        {isFrameInChargeStamp && isFrameSupervisorStamp1 && !stampsArray[1].url && (
+                          <div>上長印1なし</div>
+                        )}
                       </li>
                       {/* ------------------------------------ */}
 
@@ -2468,13 +2492,13 @@ const QuotationPreviewModalMemo = () => {
                         {isFrameInChargeStamp &&
                           isFrameSupervisorStamp1 &&
                           isFrameSupervisorStamp2 &&
-                          selectedRowDataQuotation?.supervisor2_stamp_image_url && (
+                          stampsArray[2].url && (
                             <ToggleSwitch state={isPrintSupervisorStamp2} dispatch={setIsPrintSupervisorStamp2} />
                           )}
                         {isFrameInChargeStamp &&
                           isFrameSupervisorStamp1 &&
                           isFrameSupervisorStamp2 &&
-                          !selectedRowDataQuotation?.supervisor2_stamp_image_url && <div>上長印2なし</div>}
+                          !stampsArray[2].url && <div>上長印2なし</div>}
                       </li>
                       {/* ------------------------------------ */}
                       {/* ------------------------------------ */}
