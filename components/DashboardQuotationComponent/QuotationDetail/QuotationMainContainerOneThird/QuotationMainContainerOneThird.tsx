@@ -874,11 +874,16 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   }, []);
   // ----------------------- ✅見積Noカスタム/自動をローカルストレージから取得✅ -----------------------
 
+  // 検索タイプ
+  const searchType = useDashboardStore((state) => state.searchType);
+
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
     if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
     if (value === "") return ""; // 全てのデータ
     if (value === null) return ""; // 全てのデータ
+    if (searchType === "manual" && value.includes("\\%")) value = value.replace(/\\%/g, "%");
+    if (searchType === "manual" && value.includes("\\_")) value = value.replace(/\\_/g, "_");
     if (value.includes("%")) value = value.replace(/\%/g, "＊");
     if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
     if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
@@ -1068,6 +1073,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       // if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
       if (value === "") return null; // 全てのデータ
       if (value === null) return null; // 全てのデータ
+      if (searchType === "manual" && value.includes("%")) value = value.replace(/%/g, "\\%");
+      if (searchType === "manual" && value.includes("％")) value = value.replace(/％/g, "\\%");
+      if (searchType === "manual" && value.includes("_")) value = value.replace(/_/g, "\\_");
+      if (searchType === "manual" && value.includes("＿")) value = value.replace(/＿/g, "\\_");
       if (value.includes("*")) value = value.replace(/\*/g, "%");
       if (value.includes("＊")) value = value.replace(/\＊/g, "%");
       if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
@@ -1347,6 +1356,70 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setHoveredItemPosWrap(null);
   };
   // ==================================== ✅ツールチップ✅ ====================================
+
+  // -------------------------- 🌟ポップアップメッセージ🌟 --------------------------
+  const alertPopupRef = useRef<HTMLDivElement | null>(null);
+  const hideTimeoutIdRef = useRef<number | null>(null);
+
+  // 文字数制限を超えた際にポップアップアラートメッセージを表示する
+  const showAlertPopup = (type: "length" | "lines" | "both") => {
+    const alertPopup = alertPopupRef.current;
+    if (!alertPopup) return;
+
+    // 表示するメッセージを格納する変数
+    let message = "";
+    switch (type) {
+      case "length":
+        message = "文字数制限を超えています";
+        break;
+      case "lines":
+        message = "行数制限を超えています";
+        break;
+      case "both":
+        message = "文字数・行数制限を超えています";
+        break;
+      default:
+        message = "制限を超えています"; // デフォルトのメッセージ
+        break;
+    }
+
+    // 既存のタイマーをクリアする
+    if (hideTimeoutIdRef.current !== null) {
+      clearTimeout(hideTimeoutIdRef.current); // 既存の非表示タイマーをキャンセル
+      hideTimeoutIdRef.current = null;
+    }
+
+    // ポップアップの内容を更新
+    alertPopup.innerHTML = `<span>${message}</span>`; // innerHTMLを使用してメッセージを設定
+
+    // ポップアップを即時表示するためのスタイルを設定
+    alertPopup.style.display = "flex"; // ポップアップを表示
+    alertPopup.style.animation = "popupShow 0.1s ease forwards"; // 表示アニメーション
+
+    // 3秒後に非表示アニメーションを適用
+    // 新たに非表示にするためのタイマーを設定(windowオブジェクトのsetTimeoutの結果はnumber型 clearTimeoutで使用)
+    hideTimeoutIdRef.current = window.setTimeout(() => {
+      alertPopup.style.animation = "popupHide 0.2s ease forwards"; // 非表示アニメーション
+
+      // アニメーションが完了した後に要素を非表示にする
+      setTimeout(() => {
+        alertPopup.style.display = "none";
+      }, 200); // 非表示アニメーションの時間に合わせる
+
+      // タイマーIDをリセット
+      hideTimeoutIdRef.current = null;
+    }, 3000); // 表示される時間
+  };
+
+  // コンポーネントのクリーンアップで既存のタイマーがあればクリアする
+  useEffect(() => {
+    return () => {
+      if (hideTimeoutIdRef.current !== null) {
+        clearTimeout(hideTimeoutIdRef.current);
+      }
+    };
+  }, []);
+  // -------------------------- ✅ポップアップメッセージ✅ --------------------------
 
   // ================== 🌟ユーザーの決算月の締め日を初回マウント時に取得🌟 ==================
   const fiscalEndMonthObjRef = useRef<Date | null>(null);
@@ -2451,6 +2524,18 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
     <>
+      {/* アラートポップアップ */}
+      <div
+        ref={alertPopupRef}
+        className={`flex-center  alert_popup h-[50px] w-[300px] bg-[var(--color-alert-popup-bg)] text-[var(--color-alert-popup-text)]`}
+      ></div>
+      {/* <div
+        // className={`flex-center alert_box_shadow fixed left-[50%] top-[3vh] z-[20000] h-[50px] w-[300px] bg-[#ff8c9f] text-[#fff]`}
+        className={`flex-center alert_box_shadow fixed left-[50%] top-[3vh] z-[20000] h-[50px] w-[300px] bg-[var(--main-color-tk-sm)] text-[#ff3b5b]`}
+        // className={`flex-center alert_box_shadow fixed left-[50%] top-[3vh] z-[20000] h-[50px] w-[300px] bg-[#fff] text-[#ff3b5b]`}
+      >
+        <span>文字数制限を超えています</span>
+      </div> */}
       <form className={`${styles.main_container} w-full`} onSubmit={handleSearchSubmit}>
         <div className={`flex h-full flex-col`}>
           {/* 🌟新規作成 保存ボタンエリア🌟 */}
@@ -4806,10 +4891,56 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     cols={30}
                                     // rows={10}
                                     placeholder=""
-                                    style={{ whiteSpace: "pre-wrap" }}
+                                    style={{ whiteSpace: "pre-wrap", resize: "none" }}
                                     className={`${styles.textarea_box} ${styles.md} ${styles.upsert}`}
                                     value={inputQuotationNotes}
-                                    onChange={(e) => setInputQuotationNotes(e.target.value)}
+                                    // onChange={(e) => setInputQuotationNotes(e.target.value)}
+                                    onChange={(e) => {
+                                      // setInputQuotationNotes(e.target.value);
+
+                                      // 文字数を日本語は245文字、英語は448文字、行数は４行まで
+                                      const inputValue = e.target.value;
+                                      const textarea = e.target;
+                                      const limitLength = 245;
+                                      const limitLines = 4;
+                                      // const lineHeight = 13; // textareaのline-height font-size7.5pxの1.5倍
+                                      // const lines = inputValue.split(`\n`); // 改行文字で分割することで改行数を取得する*3
+                                      // const linesExceeded = lines.length > limitLines; // 行数超過可否
+                                      // const linesExceeded = textarea.scrollHeight > textarea.offsetHeight; // 行数超過可否
+                                      const lengthExceeded = inputValue.length > limitLength; // 文字数超過可否
+
+                                      console.log(
+                                        "文字数",
+                                        inputValue.length
+                                        // "textarea.scrollHeight",
+                                        // textarea.scrollHeight,
+                                        // "textarea.offsetHeight",
+                                        // textarea.offsetHeight,
+                                        // linesExceeded
+                                      );
+
+                                      // if (lengthExceeded || linesExceeded) {
+                                      if (lengthExceeded) {
+                                        // ポップアップメッセージを表示
+                                        if (lengthExceeded) showAlertPopup("length");
+                                        if (!lengthExceeded) showAlertPopup("lines");
+                                        // if (lengthExceeded && linesExceeded) showAlertPopup("both");
+
+                                        // 制限を超えた場合の処理 1文字目から245文字のみ残す
+                                        let trimmedText = inputValue.slice(0, limitLength);
+
+                                        // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
+                                        // 文字数制限を超えている場合、再度文字数制限でトリム
+                                        if (trimmedText.length > limitLength) {
+                                          trimmedText = trimmedText.slice(0, limitLength);
+                                        }
+
+                                        setInputQuotationNotes(trimmedText);
+                                      } else {
+                                        // 制限内の場合はそのままセット
+                                        setInputQuotationNotes(inputValue);
+                                      }
+                                    }}
                                   ></textarea>
                                 </>
                               )}

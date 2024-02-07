@@ -180,10 +180,15 @@ const CompanyMainContainerMemo: FC = () => {
   // 従業員数 フィールドエディットモードのみでサーチなし
   const [inputNumberOfEmployees, setInputNumberOfEmployees] = useState("");
 
+  // 検索タイプ
+  const searchType = useDashboardStore((state) => state.searchType);
+
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
     if (value === "") return ""; // 全てのデータ
     if (value === null) return ""; // 全てのデータ
+    if (searchType === "manual" && value.includes("\\%")) value = value.replace(/\\%/g, "%"); // \%を%に戻す
+    if (searchType === "manual" && value.includes("\\_")) value = value.replace(/\\_/g, "_"); // \_を_に戻す
     if (value.includes("%")) value = value.replace(/\%/g, "＊");
     if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
     if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
@@ -294,6 +299,10 @@ const CompanyMainContainerMemo: FC = () => {
     function adjustFieldValue(value: string | null) {
       if (value === "") return null; // 全てのデータ
       if (value === null) return null; // 全てのデータ
+      if (searchType === "manual" && value.includes("%")) value = value.replace(/%/g, "\\%");
+      if (searchType === "manual" && value.includes("％")) value = value.replace(/％/g, "\\%");
+      if (searchType === "manual" && value.includes("_")) value = value.replace(/_/g, "\\_");
+      if (searchType === "manual" && value.includes("＿")) value = value.replace(/＿/g, "\\_");
       if (value.includes("*")) value = value.replace(/\*/g, "%");
       if (value.includes("＊")) value = value.replace(/\＊/g, "%");
       if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信

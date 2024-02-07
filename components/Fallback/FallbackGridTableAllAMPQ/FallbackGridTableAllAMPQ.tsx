@@ -2,19 +2,19 @@ import useDashboardStore from "@/store/useDashboardStore";
 import useRootStore from "@/store/useRootStore";
 import useThemeStore from "@/store/useThemeStore";
 import React from "react";
-import styles from "./GridTableAll.module.css";
+import styles from "/components/GridTable/GridTableAll/GridTableAll.module.css";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
 import { FiLock, FiRefreshCw, FiSearch } from "react-icons/fi";
 import useStore from "@/store";
-import stylesFooter from "../GridTableFooter/GridTableFooter.module.css";
-import { SkeletonLoadingLines } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLines";
+import stylesFooter from "/components/GridTable/GridTableFooter/GridTableFooter.module.css";
 import { SkeletonLoadingLineFull } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineFull";
 import { SkeletonLoadingLineLong } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineLong";
 import { SkeletonLoadingLineMedium } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineMedium";
 import { SkeletonLoadingLineShort } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineShort";
+import { CiFilter } from "react-icons/ci";
 
-export const FallbackGridTableAll = ({ title }: { title: string }) => {
+export const FallbackGridTableAllAMPQ = ({ title }: { title: string }) => {
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const language = useStore((state) => state.language);
@@ -62,11 +62,20 @@ export const FallbackGridTableAll = ({ title }: { title: string }) => {
             >
               <span>モード</span>
             </button> */}
+
             <button
-              className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} relative cursor-default`}
+              className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} relative cursor-default active:!bg-[var(--color-btn-brand-f)]`}
             >
               <FiSearch className="pointer-events-none text-[14px]" />
               <span>モード設定</span>
+            </button>
+
+            <button
+              className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} relative cursor-default`}
+            >
+              {/* <FiSearch className="pointer-events-none text-[14px]" /> */}
+              <CiFilter className="pointer-events-none stroke-[0.5] text-[17px]" />
+              <span>フィルター</span>
             </button>
             <RippleButton title={`カラム編集`} classText="select-none" />
             <ChangeSizeBtn />

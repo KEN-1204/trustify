@@ -4,12 +4,10 @@ import styles from "./DashboardQuotationComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
-import { Fallback } from "../Fallback/Fallback";
 import { QuotationGridTableAll } from "./QuotationGridTableAll/QuotationGridTableAll";
 import { QuotationDetail } from "./QuotationDetail/QuotationDetail";
-import { FallbackGridTableAll } from "../GridTable/GridTableAll/FallbackGridTableAll";
 import { SpinnerComet } from "../Parts/SpinnerComet/SpinnerComet";
-// import { ContactDetail } from "./ContactDetail/ContactDetail";
+import { FallbackGridTableAllAMPQ } from "../Fallback/FallbackGridTableAllAMPQ/FallbackGridTableAllAMPQ";
 
 export const DashboardQuotationComponent: FC = () => {
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
@@ -72,7 +70,7 @@ export const DashboardQuotationComponent: FC = () => {
           >
             {activeMenuTab === "Quotation" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<FallbackGridTableAll title="見積" />}>
+                <Suspense fallback={<FallbackGridTableAllAMPQ title="見積" />}>
                   <QuotationGridTableAll title="見積" />
                 </Suspense>
               </ErrorBoundary>

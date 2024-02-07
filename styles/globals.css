@@ -35,6 +35,7 @@
   --main-color-light-rgb: 10, 255, 255;
   --main-color-d: #02e7f5;
   --main-color-tk: #ff3b5b;
+
   --main-color-tk-blue: #00f2ea;
 
   /* ブランドカラー */
@@ -454,6 +455,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-rgb: 13, 153, 255;
   --color-bg-brand-f: #0d99ff; /* Figma */
   --color-bg-brand-f-hover: #0d99ff90;
+  --color-bg-brand-f-hover-solid: #e5f4ff;
   --color-bg-brand-f-disabled: #0d99ff90;
   --color-bg-brand-f05: #e5f4ff;
   --color-bg-brand-f00: #0d99ff00;
@@ -472,6 +474,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-fc0: #0d99ffc0;
   --color-bg-brand-fd0: #0d99ffd0;
   --color-bg-brand-fe0: #0d99ffe0;
+  --color-bg-brand-ff0: #0d99fff0;
   --color-bg-brand-f-deep: #0c88e1;
   /* 会社名ハイライト */
   --color-company-highlight: #4189c8;
@@ -570,6 +573,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-row-hover: #ecf4fca0; */
   /* --color-table-row-hover: rgba(55, 53, 47, 0.08); */
   /* --color-table-row-hover: #f0f0f0; */
+  /* 🔹テーブル行ホバー */
   --color-table-row-hover: #f8f8f8;
   /* --color-table-row-hover: #f3f3f3; */
   /* --color-table-row-hover: #f1f9ff; */
@@ -578,9 +582,24 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-bg-selected: #f3f3f3; */
   /* --color-table-bg-selected: #f6fbff; */
   /* --color-table-bg-selected: #f1f9ff; */
+  /* 🔹テーブル行選択 */
   --color-table-bg-selected: #f0f9ff;
   --color-table-bg-selected: #f8f8f8;
   --color-table-bg-selected: #f5f5f5;
+  /* --color-table-bg-selected: var(--color-bg-brand-f); */
+  /* --color-table-bg-selected: #1c9ffd; */
+  --color-table-bg-selected: #33aaff;
+  --color-table-bg-selected: #0095ff;
+  --color-table-color-selected: #fff;
+  /* 🔹テーブル行偶数行カラーチェンジ */
+  --color-table-even-color-changed-bg: #f7f7f7;
+  --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f-hover-solid);
+  /* --color-table-even-color-changed-bg-selected: var(--color-bg-brand-f); */
+  /* --color-table-even-color-changed-bg-selected: #1c9ffd; */
+  --color-table-even-color-changed-bg-selected: #0095ff;
+  /* --color-table-even-color-changed-bg-selected: #0088ff; */
+  /* --color-table-even-color-changed-bg-selected: #0088ffd9; */
+  --color-table-even-color-changed-color-selected: #fff;
   --color-table-checkbox-outline: #ccc;
   --color-table-checkbox-focus-outline: #fff;
   --color-table-dragging-gradient: #2b7fff #acffff;
@@ -929,6 +948,12 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-tooltip-light: #585858; */
   --color-tooltip-light: #525252;
   --color-tooltip-light: #505050;
+  /* アラートポップアップ alert_popup */
+  /* --color-alert-popup-bg: #fff6f8; */
+  --color-alert-popup-bg: #fff;
+  /* --color-alert-popup-bg: #ff3b5bc0; */
+  /* --color-alert-popup-text: #fff; */
+  --color-alert-popup-text: #ff3b5b;
 
   /* HP セクションタイトル light */
   --section-title-hp: -webkit-linear-gradient(135deg, #37352f, #333, #bbb, #333, #37352f);
@@ -976,10 +1001,12 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-dropdown-list-hover: var(--color-bg-brand-f); */
   /* --color-dropdown-list-hover-text: #fff; */
 
-  /* ツールチップのボーダーからー */
+  /* ツールチップのボーダーからー light */
   --box-shadow-tooltip-border: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390;
   --shadow-dropdown-menu: 0 4px 6px 2px #00000033;
   --border-real-with-shadow: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390, var(--shadow-dropdown-menu);
+  --border-real-with-shadow-f: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390,
+    0 4px 10px 2px #ffffff33, var(--shadow-dropdown-menu);
   --border-real-with-shadow-dark: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390,
     var(--shadow-dropdown-menu);
 
@@ -1145,6 +1172,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-rgb: 0, 102, 255;
   --color-bg-brand-f: #0c8ce9; /* Figma */
   --color-bg-brand-f-hover: #0c8ce990;
+  /* --color-bg-brand-f-hover-solid: #1d2f3c; */
+  --color-bg-brand-f-hover-solid: #1e3444;
   --color-bg-brand-f-disabled: #0d99ff42;
   --color-bg-brand-f05: #0e5d95; /* Figma */
   --color-bg-brand-f00: #0c8ce900;
@@ -1163,6 +1192,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-fc0: #0c8ce9c0;
   --color-bg-brand-fd0: #0c8ce9d0;
   --color-bg-brand-fe0: #0c8ce9e0;
+  --color-bg-brand-fe0: #0c8ce9f0;
   --color-bg-brand-f-deep: #0b73bc;
   /* 会社ハイライト */
   --color-company-highlight: #0c8ce9;
@@ -1232,6 +1262,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-reflection: rgba(255, 255, 255, 0.3);
   --color-table-loading-spinner: #7878 78;
   --color-spinner-ids: #fff;
+  /* 🔹テーブル行ホバー */
   --color-table-row-hover: #232323;
   --color-table-row-hover: var(--color-bg-brand-f20);
   --color-table-row-hover: var(--color-bg-brand-f30);
@@ -1240,16 +1271,27 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-row-hover: #292929;
   --color-table-row-hover: #2e2e2e;
   /* --color-table-row-hover: #282828; */
+  /* 🔹テーブル行選択 */
   --color-table-bg-selected: #232323;
   --color-table-bg-selected: #14141490;
   --color-table-bg-selected: #191919;
   --color-table-bg-selected: #2e2e2e;
+  --color-table-bg-selected: #0b67b7;
+  --color-table-color-selected: #fff;
   /* --color-table-bg-selected: #222; */
   /* --color-table-bg-selected: #292929; */
   /* --color-table-bg-selected: #333; */
   /* --color-table-bg-selected: #303030; */
   /* --color-table-bg-selected: var(--color-bg-brand-f20); */
   /* --color-table-bg-selected: var(--color-bg-brand-f30); */
+  /* 🔹テーブル行偶数行カラーチェンジ */
+  --color-table-even-color-changed-bg: #2d2d2d;
+  /* --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f30); */
+  --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f-hover-solid);
+  /* --color-table-even-color-changed-bg-selected: #0088ffa9; */
+  --color-table-even-color-changed-bg-selected: #0b67b7;
+  --color-table-even-color-changed-color-selected: #fff;
+  --color-table-checkbox-outline: #ccc;
   /* --color-table-checkbox-outline: #2e2e2e; */
   --color-table-checkbox-outline: #555;
   --color-table-checkbox-focus-outline: #fff;
@@ -1278,6 +1320,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-under-input: #3c3c3c;
   --color-bg-under-input-gray: #3c3c3c;
   --color-bg-under-input-box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000;
+
   --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
   /* --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px #0066ff; */
   --color-text-under-input: #fff;
@@ -1543,6 +1586,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-tooltip-dark: #282828;
   /* --color-tooltip-light: #333; */
   --color-tooltip-light: #393939;
+  /* アラートポップアップ alert_popup */
+  --color-alert-popup-bg: #555;
+  --color-alert-popup-text: #fff;
 
   /* HP セクションタイトル light */
 
@@ -1609,6 +1655,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-dropdown-menu: 0 4px 10px 2px #ffffff33;
   --shadow-dropdown-menu-dark: 0 4px 6px 2px #00000033;
   --border-real-with-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000, var(--shadow-dropdown-menu);
+  --border-real-with-shadow-f: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390,
+    0 4px 10px 2px #ffffff33, var(--shadow-dropdown-menu);
   --border-real-with-shadow-dark: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390,
     var(--shadow-dropdown-menu-dark);
 
@@ -2438,6 +2486,9 @@ textarea {
 .border-real-with-shadow {
   box-shadow: var(--border-real-with-shadow);
 }
+.border-real-with-shadow-f {
+  box-shadow: var(--border-real-with-shadow-f);
+}
 .border-real-with-shadow-dark {
   box-shadow: var(--border-real-with-shadow-dark);
 }
@@ -2672,8 +2723,13 @@ textarea {
 }
 
 /* -------------- 🌟ポップアップ🌟 -------------- */
+/* アラートポップアップ */
+.alert_box_shadow {
+  box-shadow: 0 0 0 1px var(--main-color-tk);
+}
 .alert_popup {
   box-shadow: 0 0 0 1px var(--main-color-tk);
+  /* backdrop-filter: blur(8px); */
   border-radius: 8px;
   display: flex;
   align-items: center;

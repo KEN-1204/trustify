@@ -62,6 +62,9 @@ const UnderRightActivityLogMemo: FC = () => {
   // ダブルクリックでセルの詳細を確認
   const setIsOpenEditModal = useDashboardStore((state) => state.setIsOpenEditModal);
   const setTextareaInput = useDashboardStore((state) => state.setTextareaInput);
+  // --------------- 🔹モード設定 ---------------
+  const evenRowColorChange = useDashboardStore((state) => state.evenRowColorChange);
+  // --------------- 🔹モード設定ここまで ---------------
 
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
@@ -816,7 +819,7 @@ const UnderRightActivityLogMemo: FC = () => {
                     tabIndex={-1}
                     aria-rowindex={virtualRow.index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
                     aria-selected={false}
-                    className={`${styles.grid_row}`}
+                    className={`${styles.grid_row} ${evenRowColorChange ? `${styles.even_color_change}` : ``}`}
                     style={{
                       display: "grid",
                       gridTemplateColumns: `1fr 3fr repeat(4, 1fr)`,

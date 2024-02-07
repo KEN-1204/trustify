@@ -65,9 +65,6 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   );
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState); // グローバルローディング
   const [refetchLoading, setRefetchLoading] = useState(false); // refetchローディング
-  // 「条件に一致する全ての会社をフェッチするか」、「条件に一致する自社で作成した会社のみをフェッチするか」の抽出条件を保持
-  const isFetchAllCompanies = useDashboardStore((state) => state.isFetchAllCompanies);
-  const [isOpenDropdownMenuSearchMode, setIsOpenDropdownMenuSearchMode] = useState(false);
 
   // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataCompanyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   const isUpdateRequiredForLatestSelectedRowDataCompany = useDashboardStore(
@@ -77,11 +74,19 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     (state) => state.setIsUpdateRequiredForLatestSelectedRowDataCompany
   );
   // 下メインコンテナサーチモード用Zustand =================
+  // 「条件に一致する全ての会社をフェッチするか」、「条件に一致する自社で作成した会社のみをフェッチするか」の抽出条件を保持
+  const isFetchAllCompanies = useDashboardStore((state) => state.isFetchAllCompanies);
+  const [isOpenDropdownMenuSearchMode, setIsOpenDropdownMenuSearchMode] = useState(false);
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   // 下メインコンテナサーチモード用Zustand ここまで =================
+  // --------------- 🔹モード設定 ---------------
+  const evenRowColorChange = useDashboardStore((state) => state.evenRowColorChange);
+  // 検索タイプ(デフォルトは部分一致検索)
+  const searchType = useDashboardStore((state) => state.searchType);
+  // --------------- 🔹モード設定ここまで ---------------
 
   // const [colsWidth, setColsWidth] = useState(
   //   new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
@@ -279,6 +284,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
   // 新規サーチした時のrpc()に渡す検索項目params
   const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
+
+  // 検索タイプ デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
+  const functionName = searchType === "partial_match" ? "search_companies_by_partial_match" : "search_companies";
 
   // ================== 🌟初回表示時の条件なしサーバーデータフェッチ用の関数🌟 ==================
   // 取得カウント保持用state
@@ -518,8 +526,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         "params",
         params
       );
+
       const { data, error, count } = await supabase
-        .rpc("search_companies", { params }, { count: "exact" })
+        // .rpc("search_companies", { params }, { count: "exact" })
+        .rpc(functionName, { params }, { count: "exact" })
         .is("created_by_company_id", null)
         .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
         .range(from, to)
@@ -595,12 +605,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       if (isFetchAllCompanies) {
         // テスト 共有(null)と自社専用両方
         // const { data, error, count } = await supabase
+
         const {
           data: fetchData,
           error: fetchError,
           count: fetchCount,
         } = await supabase
-          .rpc("search_companies", { params }, { count: "exact" })
+          // .rpc("search_companies", { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "exact" })
           // .eq("created_by_company_id", userProfileState.company_id)
           .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
           .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
@@ -618,7 +630,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
           error: fetchError,
           count: fetchCount,
         } = await supabase
-          .rpc("search_companies", { params }, { count: "exact" })
+          // .rpc("search_companies", { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "exact" })
           .eq("created_by_company_id", userProfileState.company_id)
           // .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
           .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
@@ -681,7 +694,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     {
       // queryKey: ["companies"],
       // queryKey: ["companies", newSearchParamsStringRef.current], // 全ての会社 自社専用のみの切り替えなし
-      queryKey: ["companies", newSearchParamsStringRef.current, isFetchAllCompanies], // 全ての会社、自社専用のみの切り替えあり
+      queryKey: ["companies", newSearchParamsStringRef.current, isFetchAllCompanies, functionName], // 全ての会社、自社専用のみの切り替えあり, オート検索/マニュアル検索
       queryFn: async (ctx) => {
         console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
 
@@ -2891,7 +2904,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 onMouseLeave={handleCloseTooltip}
               >
                 <FiSearch className="pointer-events-none text-[14px]" />
-                <span>サーチモード</span>
+                {/* <span>サーチモード</span> */}
+                <span>モード設定</span>
                 {isOpenDropdownMenuSearchMode && (
                   <DropDownMenuSearchMode setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode} />
                 )}
@@ -3233,7 +3247,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                         }
                         // // ================= 🔥🔥テスト🔥🔥==================
                         // className={`${styles.grid_row} ${rowData.id === 1 ? "first" : ""}`}
-                        className={`${styles.grid_row}`}
+                        className={`${styles.grid_row} ${evenRowColorChange ? `${styles.even_color_change}` : ``}`}
                         // ================= 🔥🔥テスト🔥🔥==================
                         style={{
                           // gridTemplateColumns: colsWidth.join(" "),
@@ -3250,7 +3264,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                           aria-selected={false}
                           aria-readonly={true}
                           tabIndex={-1}
-                          className={`${styles.grid_cell} ${styles.grid_column_frozen}`}
+                          className={`${styles.grid_cell} ${styles.grid_column_frozen} ${styles.checkbox_cell}`}
                           // style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
                           style={{ gridColumnStart: 1, left: "0px" }}
                           onClick={(e) => handleClickGridCell(e)}

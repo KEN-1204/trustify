@@ -331,11 +331,17 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   }, [unitDataArray, inputPropertyCreatedByDepartmentOfUser]);
   // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
+  // 検索タイプ
+  const searchType = useDashboardStore((state) => state.searchType);
+
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
     if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
     if (value === "") return ""; // 全てのデータ
     if (value === null) return ""; // 全てのデータ
+    // \%を%に戻す
+    if (searchType === "manual" && value.includes("\\%")) value = value.replace(/\\%/g, "%");
+    if (searchType === "manual" && value.includes("\\_")) value = value.replace(/\\_/g, "_");
     if (value.includes("%")) value = value.replace(/\%/g, "＊");
     if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
     if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
@@ -692,6 +698,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       // if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
       if (value === "") return null; // 全てのデータ
       if (value === null) return null; // 全てのデータ
+      if (searchType === "manual" && value.includes("%")) value = value.replace(/%/g, "\\%");
+      if (searchType === "manual" && value.includes("％")) value = value.replace(/％/g, "\\%");
+      if (searchType === "manual" && value.includes("_")) value = value.replace(/_/g, "\\_");
+      if (searchType === "manual" && value.includes("＿")) value = value.replace(/＿/g, "\\_");
       if (value.includes("*")) value = value.replace(/\*/g, "%");
       if (value.includes("＊")) value = value.replace(/\＊/g, "%");
       if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信

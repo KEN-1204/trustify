@@ -78,6 +78,14 @@ type State = {
   tableContainerSize: string;
   setTableContainerSize: (payload: string) => void;
 
+  // =================== テーブル各種設定 ===================
+  // Row evenの色を変更
+  evenRowColorChange: boolean;
+  setEvenRowColorChange: (payload: boolean) => void;
+  // 検索タイプ (デフォルトで部分一致検索)
+  searchType: string;
+  setSearchType: (payload: string) => void;
+
   // =================== 「会社画面」検索条件 ===================
   // 【「条件に一致する全ての会社をフェッチするか」、「条件に一致する自社で作成した会社のみをフェッチするか」の抽出条件を保持】
   isFetchAllCompanies: boolean;
@@ -299,7 +307,7 @@ type State = {
   // 会社データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   // newSearchCompanyCondition: Omit<Client_company_row_data, ''>
   newSearchCompanyParams: NewSearchCompanyParams | null;
-  setNewSearchCompanyParams: (payload: NewSearchCompanyParams) => void;
+  setNewSearchCompanyParams: (payload: NewSearchCompanyParams | null) => void;
   // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataCompanyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   isUpdateRequiredForLatestSelectedRowDataCompany: boolean;
   setIsUpdateRequiredForLatestSelectedRowDataCompany: (payload: boolean) => void;
@@ -314,7 +322,7 @@ type State = {
 
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchContact_CompanyParams: NewSearchContact_CompanyParams | null;
-  setNewSearchContact_CompanyParams: (payload: NewSearchContact_CompanyParams) => void;
+  setNewSearchContact_CompanyParams: (payload: NewSearchContact_CompanyParams | null) => void;
   // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataContactに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   isUpdateRequiredForLatestSelectedRowDataContact: boolean;
   setIsUpdateRequiredForLatestSelectedRowDataContact: (payload: boolean) => void;
@@ -328,7 +336,7 @@ type State = {
   setSelectedRowDataActivity: (payload: Activity_row_data | null) => void;
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchActivity_Contact_CompanyParams: NewSearchActivity_Contact_CompanyParams | null;
-  setNewSearchActivity_Contact_CompanyParams: (payload: NewSearchActivity_Contact_CompanyParams) => void;
+  setNewSearchActivity_Contact_CompanyParams: (payload: NewSearchActivity_Contact_CompanyParams | null) => void;
   // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataActivityに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   isUpdateRequiredForLatestSelectedRowDataActivity: boolean;
   setIsUpdateRequiredForLatestSelectedRowDataActivity: (payload: boolean) => void;
@@ -342,7 +350,7 @@ type State = {
   setSelectedRowDataMeeting: (payload: Meeting_row_data | null) => void;
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchMeeting_Contact_CompanyParams: NewSearchMeeting_Contact_CompanyParams | null;
-  setNewSearchMeeting_Contact_CompanyParams: (payload: NewSearchMeeting_Contact_CompanyParams) => void;
+  setNewSearchMeeting_Contact_CompanyParams: (payload: NewSearchMeeting_Contact_CompanyParams | null) => void;
   // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataMeetingに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   isUpdateRequiredForLatestSelectedRowDataMeeting: boolean;
   setIsUpdateRequiredForLatestSelectedRowDataMeeting: (payload: boolean) => void;
@@ -356,7 +364,7 @@ type State = {
   setSelectedRowDataProperty: (payload: Property_row_data | null) => void;
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchProperty_Contact_CompanyParams: NewSearchProperty_Contact_CompanyParams | null;
-  setNewSearchProperty_Contact_CompanyParams: (payload: NewSearchProperty_Contact_CompanyParams) => void;
+  setNewSearchProperty_Contact_CompanyParams: (payload: NewSearchProperty_Contact_CompanyParams | null) => void;
   // INSERT,UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataPropertyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   isUpdateRequiredForLatestSelectedRowDataProperty: boolean;
   setIsUpdateRequiredForLatestSelectedRowDataProperty: (payload: boolean) => void;
@@ -370,7 +378,7 @@ type State = {
   setSelectedRowDataQuotation: (payload: Quotation_row_data | null) => void;
   // 担当者データ新規サーチで取得した検索条件を保持し、上画面のuseInfiniteQueryに渡す
   newSearchQuotation_Contact_CompanyParams: NewSearchQuotation_Contact_CompanyParams | null;
-  setNewSearchQuotation_Contact_CompanyParams: (payload: NewSearchQuotation_Contact_CompanyParams) => void;
+  setNewSearchQuotation_Contact_CompanyParams: (payload: NewSearchQuotation_Contact_CompanyParams | null) => void;
   // INSERT,UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataQuotationに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   isUpdateRequiredForLatestSelectedRowDataQuotation: boolean;
   setIsUpdateRequiredForLatestSelectedRowDataQuotation: (payload: boolean) => void;
@@ -602,6 +610,15 @@ const useDashboardStore = create<State>((set) => ({
   // 【テーブルサイズの保持】
   tableContainerSize: "one_third",
   setTableContainerSize: (payload) => set({ tableContainerSize: payload }),
+
+  // =================== テーブル各種設定 ===================
+  // Row evenの色を変更
+  evenRowColorChange: true,
+  setEvenRowColorChange: (payload) => set({ evenRowColorChange: payload }),
+  // 検索タイプ (デフォルトで部分一致検索)
+  searchType: "partial_match",
+  setSearchType: (payload) => set({ searchType: payload }),
+
   // =================== 「会社画面」検索条件 ===================
   // 【「条件に一致する全ての会社をフェッチするか」、「条件に一致する自社で作成した会社のみをフェッチするか」の抽出条件を保持】
   isFetchAllCompanies: true,

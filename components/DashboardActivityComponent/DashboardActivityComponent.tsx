@@ -4,10 +4,9 @@ import styles from "./DashboardActivityComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
-import { Fallback } from "../Fallback/Fallback";
 import { ActivityGridTableAll } from "./ActivityGridTableAll/ActivityGridTableAll";
 import { ActivityDetail } from "./ActivityDetail/ActivityDetail";
-import { FallbackGridTableAll } from "../GridTable/GridTableAll/FallbackGridTableAll";
+import { FallbackGridTableAllAMPQ } from "../Fallback/FallbackGridTableAllAMPQ/FallbackGridTableAllAMPQ";
 // import { ContactDetail } from "./ContactDetail/ContactDetail";
 
 export const DashboardActivityComponent: FC = () => {
@@ -63,12 +62,12 @@ export const DashboardActivityComponent: FC = () => {
           >
             {activeMenuTab === "Activity" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                {/* <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}> */}
-                <Suspense fallback={<FallbackGridTableAll title="活動" />}>
+                <Suspense fallback={<FallbackGridTableAllAMPQ title="活動" />}>
                   <ActivityGridTableAll title="活動" />
                 </Suspense>
               </ErrorBoundary>
             )}
+            {/* {activeMenuTab === "Activity" && <FallbackGridTableAllAMPQ title="活動" />} */}
           </section>
 
           {/* ２画面目 下画面 */}

@@ -4,11 +4,9 @@ import styles from "./DashboardMeetingComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
-import { Fallback } from "../Fallback/Fallback";
 import { MeetingGridTableAll } from "./MeetingGridTableAll/MeetingGridTableAll";
 import { MeetingDetail } from "./MeetingDetail/MeetingDetail";
-import { FallbackGridTableAll } from "../GridTable/GridTableAll/FallbackGridTableAll";
-// import { ContactDetail } from "./ContactDetail/ContactDetail";
+import { FallbackGridTableAllAMPQ } from "../Fallback/FallbackGridTableAllAMPQ/FallbackGridTableAllAMPQ";
 
 export const DashboardMeetingComponent: FC = () => {
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
@@ -63,8 +61,7 @@ export const DashboardMeetingComponent: FC = () => {
           >
             {activeMenuTab === "Meeting" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                {/* <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}> */}
-                <Suspense fallback={<FallbackGridTableAll title="面談" />}>
+                <Suspense fallback={<FallbackGridTableAllAMPQ title="面談" />}>
                   <MeetingGridTableAll title="面談" />
                 </Suspense>
               </ErrorBoundary>

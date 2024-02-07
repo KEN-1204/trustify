@@ -23,6 +23,7 @@ import { GridCellCheckboxFalse } from "@/components/DashboardActivityComponent/A
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { format } from "date-fns";
 import { getNumberOfEmployeesClass } from "@/utils/selectOptions";
+import { DropDownMenuSearchMode } from "@/components/GridTable/GridTableAll/DropDownMenuSearchMode/DropDownMenuSearchMode";
 
 type TableDataType = {
   id: number;
@@ -73,10 +74,17 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     (state) => state.setIsUpdateRequiredForLatestSelectedRowDataContact
   );
   // 下メインコンテナサーチモード用Zustand =================
+  const [isOpenDropdownMenuSearchMode, setIsOpenDropdownMenuSearchMode] = useState(false);
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
+  const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   // 下メインコンテナサーチモード用Zustand ここまで =================
+  // --------------- 🔹モード設定 ---------------
+  const evenRowColorChange = useDashboardStore((state) => state.evenRowColorChange);
+  // 検索タイプ(デフォルトは部分一致検索)
+  const searchType = useDashboardStore((state) => state.searchType);
+  // --------------- 🔹モード設定ここまで ---------------
 
   // const [colsWidth, setColsWidth] = useState(
   //   new Array(Object.keys(tableBodyDataArray[0]).length + 1).fill("minmax(50px, 1fr)")
@@ -263,6 +271,10 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   //   const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
   const newSearchContact_CompanyParams = useDashboardStore((state) => state.newSearchContact_CompanyParams);
 
+  // 検索タイプ オート検索/マニュアル検索
+  const functionName =
+    searchType === "partial_match" ? "search_companies_and_contacts_partial" : "search_companies_and_contacts";
+
   // ================== 🌟条件なしサーバーデータフェッチ用の関数🌟 ==================
   // 取得カウント保持用state
   const [getTotalCount, setGetTotalCount] = useState<number | null>(null);
@@ -360,9 +372,11 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       //   let params = newSearchCompanyParams;
       let params = newSearchContact_CompanyParams;
       console.log("🔥🔥テスト🔥🔥supabase rpcフェッチ実行！！！！！！！！ from, to, params", from, to, params);
+
       // created_by_company_idがnullのもの
       const { data, error, count } = await supabase
-        .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+        // .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+        .rpc(searchType, { params }, { count: "exact" })
         .is("created_by_company_id", null)
         .eq("created_by_company_id", userProfileState.company_id)
         // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
@@ -427,11 +441,13 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       const from = offset * limit;
       const to = from + limit - 1;
       console.log("🔥🔥テスト🔥🔥 from, to", from, to);
+
       //   let params = newSearchCompanyParams;
       let params = newSearchContact_CompanyParams;
       // created_by_company_idが一致するデータのみ
       const { data, error, count } = await supabase
-        .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+        // .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+        .rpc(functionName, { params }, { count: "exact" })
         // .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
         // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
         .eq("created_by_company_id", userProfileState.company_id)
@@ -499,7 +515,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery(
     {
       // queryKey: ["companies"],
-      queryKey: ["contacts", newSearchParamsStringRef.current],
+      queryKey: ["contacts", newSearchParamsStringRef.current, functionName], // オート検索/マニュアル検索
       // queryKey: ["contacts"],
       queryFn: async (ctx) => {
         console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
@@ -2244,6 +2260,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   // ============== 🌟フローズンイベント ドラッグ可能なターゲット上で発生するイベント🌟 ここまで ==============
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   type TooltipParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -2586,15 +2603,47 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                 <span className="pointer-events-none">固定</span>
               </button>
               <button
+                className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${
+                  styles.fh_text_btn
+                } relative ${
+                  isOpenDropdownMenuSearchMode
+                    ? `cursor-default active:!bg-[var(--color-btn-brand-f)]`
+                    : `cursor-pointer active:bg-[var(--color-function-header-text-btn-active)]`
+                }`}
+                onClick={() => {
+                  if (searchMode) setSearchMode(false); // サーチモード中止
+                  if (editSearchMode) setEditSearchMode(false); // 編集モード中止
+                  if (!isOpenDropdownMenuSearchMode) setIsOpenDropdownMenuSearchMode(true);
+                  if (hoveredItemPos) handleCloseTooltip();
+                }}
+                onMouseEnter={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `各種設定`,
+                    // content2: `「全ての会社」に切り替えが可能です`,
+                    marginTop: 9,
+                    // marginTop: 28,
+                    itemsPosition: "center",
+                  })
+                }
+                onMouseLeave={handleCloseTooltip}
+              >
+                <FiSearch className="pointer-events-none text-[14px]" />
+                {/* <span>サーチモード</span> */}
+                <span>モード設定</span>
+                {isOpenDropdownMenuSearchMode && (
+                  <DropDownMenuSearchMode
+                    setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode}
+                    isFetchCompanyType={false}
+                  />
+                )}
+              </button>
+              {/* <button
                 className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} relative cursor-not-allowed`}
               >
                 <FiSearch className="pointer-events-none text-[14px]" />
                 <span>サーチモード</span>
-              </button>
-              {/* <button
-                className={`flex-center transition-base03 h-[26px]  cursor-pointer space-x-2  rounded-[4px] px-[15px] text-[12px]  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn} `}
-              >
-                <span>モード</span>
               </button> */}
               <RippleButton
                 title={`カラム編集`}
@@ -2906,7 +2955,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                         }
                         // // ================= 🔥🔥テスト🔥🔥==================
                         // className={`${styles.grid_row} ${rowData.id === 1 ? "first" : ""}`}
-                        className={`${styles.grid_row}`}
+                        className={`${styles.grid_row} ${evenRowColorChange ? `${styles.even_color_change}` : ``}`}
                         // ================= 🔥🔥テスト🔥🔥==================
                         style={{
                           // gridTemplateColumns: colsWidth.join(" "),
@@ -2923,7 +2972,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                           aria-selected={false}
                           aria-readonly={true}
                           tabIndex={-1}
-                          className={`${styles.grid_cell} ${styles.grid_column_frozen}`}
+                          className={`${styles.grid_cell} ${styles.grid_column_frozen} ${styles.checkbox_cell}`}
                           // style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
                           style={{ gridColumnStart: 1, left: "0px" }}
                           onClick={(e) => handleClickGridCell(e)}

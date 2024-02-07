@@ -32,6 +32,8 @@ import {
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
+import { DropDownMenuSearchMode } from "@/components/GridTable/GridTableAll/DropDownMenuSearchMode/DropDownMenuSearchMode";
+import { CiFilter } from "react-icons/ci";
 
 type TableDataType = {
   id: number;
@@ -78,8 +80,14 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
   const isFetchAllUnits = useDashboardStore((state) => state.isFetchAllUnits);
   const isFetchAllOffices = useDashboardStore((state) => state.isFetchAllOffices);
   const isFetchAllMembers = useDashboardStore((state) => state.isFetchAllMembers);
+  const [isOpenDropdownMenuFilter, setIsOpenDropdownMenuFilter] = useState(false);
   const [isOpenDropdownMenuSearchMode, setIsOpenDropdownMenuSearchMode] = useState(false);
   // 上テーブル検索条件変更用サーチモード用Zustand =================
+  // --------------- 🔹モード設定 ---------------
+  const evenRowColorChange = useDashboardStore((state) => state.evenRowColorChange);
+  // 検索タイプ(デフォルトは部分一致検索)
+  const searchType = useDashboardStore((state) => state.searchType);
+  // --------------- 🔹モード設定ここまで ---------------
 
   // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataQuotationに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   const isUpdateRequiredForLatestSelectedRowDataQuotation = useDashboardStore(
@@ -276,6 +284,12 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
     .map((item, index) => item.columnName as keyof Client_company)
     .join(", "); // columnNameのみの配列を取得
 
+  // 検索タイプ オート検索/マニュアル検索 デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
+  const functionName =
+    searchType === "partial_match"
+      ? "search_quotations_and_companies_and_contacts_partial"
+      : "search_quotations_and_companies_and_contacts";
+
   // ユーザーState
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
@@ -388,7 +402,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
       console.log("🔥🔥テスト🔥🔥supabase rpcフェッチ実行！！！！！！！！ from, to, params", from, to, params);
       // created_by_company_idがnullのもの
       const { data, error, count } = await supabase
-        .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+        // .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+        .rpc(functionName, { params }, { count: "exact" })
         .eq("quotation_created_by_company_id", userProfileState.company_id)
         // .is("quotation_created_by_company_id", null)
         // .or(`quotation_created_by_user_id.eq.${userProfileState.id},quotation_created_by_user_id.is.null`)
@@ -488,7 +503,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
           error: fetchError,
           count: fetchCount,
         } = await supabase
-          .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          // .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "exact" })
           .eq("quotation_created_by_company_id", userProfileState.company_id)
           .eq("quotation_created_by_department_of_user", departmentId)
           .range(from, to)
@@ -507,7 +523,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
           error: fetchError,
           count: fetchCount,
         } = await supabase
-          .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          // .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "exact" })
           .eq("quotation_created_by_company_id", userProfileState.company_id)
           .eq("quotation_created_by_department_of_user", departmentId)
           .eq("quotation_created_by_unit_of_user", unitId)
@@ -527,7 +544,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
           error: fetchError,
           count: fetchCount,
         } = await supabase
-          .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          // .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "exact" })
           .eq("quotation_created_by_company_id", userProfileState.company_id)
           .eq("quotation_created_by_department_of_user", departmentId)
           .eq("quotation_created_by_office_of_user", officeId)
@@ -547,7 +565,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
           error: fetchError,
           count: fetchCount,
         } = await supabase
-          .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          // .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "exact" })
           .eq("quotation_created_by_company_id", userProfileState.company_id)
           .eq("quotation_created_by_office_of_user", officeId)
           .range(from, to)
@@ -566,7 +585,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
           error: fetchError,
           count: fetchCount,
         } = await supabase
-          .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          // .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "exact" })
           .eq("quotation_created_by_company_id", userProfileState.company_id)
           .eq("quotation_created_by_department_of_user", departmentId)
           .eq("quotation_created_by_unit_of_user", unitId)
@@ -587,7 +607,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
           error: fetchError,
           count: fetchCount,
         } = await supabase
-          .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          // .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "exact" })
           .eq("quotation_created_by_company_id", userProfileState.company_id)
           .eq("quotation_created_by_user_id", userId)
           .range(from, to)
@@ -607,7 +628,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
           error: fetchError,
           count: fetchCount,
         } = await supabase
-          .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          // .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "exact" })
           .eq("quotation_created_by_company_id", userProfileState.company_id)
           .range(from, to)
           .order("quotation_date", { ascending: false }) //見積日
@@ -708,6 +730,7 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
         isFetchAllUnits,
         isFetchAllOffices,
         isFetchAllMembers,
+        functionName,
       ],
       // queryKey: ["contacts"],
       queryFn: async (ctx) => {
@@ -2866,8 +2889,9 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
                 <FiLock className="pointer-events-none" />
                 <span className="pointer-events-none">固定</span>
               </button>
+
               <button
-                className={`flex-center transition-base03 group space-x-[6px] rounded-[4px] px-[12px]  text-[12px] text-[var(--color-bg-brand-f)] ${
+                className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${
                   styles.fh_text_btn
                 } relative ${
                   isOpenDropdownMenuSearchMode
@@ -2880,18 +2904,71 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
                   if (!isOpenDropdownMenuSearchMode) setIsOpenDropdownMenuSearchMode(true);
                   if (hoveredItemPos) handleCloseTooltip();
                 }}
+                onMouseEnter={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `各種設定`,
+                    // content2: `「全ての会社」に切り替えが可能です`,
+                    marginTop: 9,
+                    // marginTop: 28,
+                    itemsPosition: "center",
+                  })
+                }
+                onMouseLeave={handleCloseTooltip}
+              >
+                <FiSearch className="pointer-events-none text-[14px]" />
+                {/* <span>サーチモード</span> */}
+                <span>モード設定</span>
+                {isOpenDropdownMenuSearchMode && (
+                  <DropDownMenuSearchMode
+                    setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode}
+                    isFetchCompanyType={false}
+                  />
+                )}
+              </button>
+
+              <button
+                className={`flex-center transition-base03 group space-x-[6px] rounded-[4px] px-[12px]  text-[12px] text-[var(--color-bg-brand-f)] ${
+                  styles.fh_text_btn
+                } relative ${
+                  isOpenDropdownMenuFilter
+                    ? `cursor-default active:!bg-[var(--color-btn-brand-f)]`
+                    : `cursor-pointer active:bg-[var(--color-function-header-text-btn-active)]`
+                }`}
+                onClick={() => {
+                  if (searchMode) setSearchMode(false); // サーチモード中止
+                  if (editSearchMode) setEditSearchMode(false); // 編集モード中止
+                  if (!isOpenDropdownMenuFilter) setIsOpenDropdownMenuFilter(true);
+                  if (hoveredItemPos) handleCloseTooltip();
+                }}
+                onMouseEnter={(e) => {
+                  if (isOpenDropdownMenuFilter) return;
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `検索結果を「事業部」「係・チーム」「事業所・営業所」の`,
+                    content2: `各項目ごとに絞り込むフィルター設定が可能です。`,
+                    marginTop: 28,
+                    itemsPosition: "center",
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
               >
                 {/* <FiSearch className="pointer-events-none text-[14px]" />
                 <span>サーチモード</span> */}
-                {isFetchAll && <FiSearch className="pointer-events-none text-[14px]" />}
+                {isFetchAll && <CiFilter className="pointer-events-none stroke-[0.5] text-[17px]" />}
                 {!isFetchAll && (
-                  <BsCheck2 className="pointer-events-none stroke-[2] text-[14px] text-[#00d436] group-hover:text-[#fff]" />
+                  <div className="flex-center min-h-[17px] min-w-[17px]">
+                    <BsCheck2 className="pointer-events-none  stroke-[2] text-[14px] text-[#00d436] group-hover:text-[#fff]" />
+                  </div>
                 )}
                 <span className={`pointer-events-none ${!isFetchAll ? `text-[#00d436] group-hover:text-[#fff]` : ``}`}>
-                  サーチモード
+                  {/* サーチモード */}
+                  フィルター
                 </span>
-                {isOpenDropdownMenuSearchMode && (
-                  <DropDownMenuSearchModeDetail setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuSearchMode} />
+                {isOpenDropdownMenuFilter && (
+                  <DropDownMenuSearchModeDetail setIsOpenDropdownMenuSearchMode={setIsOpenDropdownMenuFilter} />
                 )}
               </button>
               {/* <button
@@ -3210,7 +3287,7 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
                         }
                         // // ================= 🔥🔥テスト🔥🔥==================
                         // className={`${styles.grid_row} ${rowData.id === 1 ? "first" : ""}`}
-                        className={`${styles.grid_row}`}
+                        className={`${styles.grid_row} ${evenRowColorChange ? `${styles.even_color_change}` : ``}`}
                         // ================= 🔥🔥テスト🔥🔥==================
                         style={{
                           // gridTemplateColumns: colsWidth.join(" "),
@@ -3227,7 +3304,7 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
                           aria-selected={false}
                           aria-readonly={true}
                           tabIndex={-1}
-                          className={`${styles.grid_cell} ${styles.grid_column_frozen}`}
+                          className={`${styles.grid_cell} ${styles.grid_column_frozen} ${styles.checkbox_cell}`}
                           // style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
                           style={{ gridColumnStart: 1, left: "0px" }}
                           onClick={(e) => handleClickGridCell(e)}

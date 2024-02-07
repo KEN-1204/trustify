@@ -390,6 +390,36 @@
   left: 0;
   position: absolute;
 }
+/* 🔹偶数行カラーチェンジ */
+.grid_row.even_color_change:nth-of-type(even) .grid_cell {
+  /* background-color: #f7f7f7; */
+  background-color: var(--color-table-even-color-changed-bg);
+  /* background-color: #0c8ce930; */
+  /* background-color: #1e3444; */
+}
+.grid_row.even_color_change:hover .grid_cell {
+  background-color: var(--color-table-even-color-changed-bg-hover);
+}
+.grid_row.even_color_change[aria-selected="true"] .grid_cell {
+  background-color: var(--color-table-even-color-changed-bg-selected);
+  /* background-color: #0088ffa9; */
+  /* background-color: #1464ab; */
+  /* background-color: #0b67b7; */
+  color: var(--color-table-even-color-changed-color-selected);
+}
+.grid_row.even_color_change[aria-selected="true"] .grid_cell.checkbox_cell {
+  background: var(--color-table-cell-bg);
+}
+.grid_row.even_color_change:nth-of-type(even)[aria-selected="true"] .grid_cell.checkbox_cell {
+  background-color: var(--color-table-even-color-changed-bg);
+}
+/* 🔹偶数行カラーチェンジここまで */
+.grid_row[aria-selected="true"] .grid_cell.checkbox_cell {
+  background: var(--color-table-cell-bg);
+}
+.grid_row[aria-selected="true"] .grid_cell.checkbox_cell {
+  background-color: var(--color-table-even-color-changed-bg);
+}
 
 .grid_column_header_all {
   color: var(--color-text);
@@ -450,8 +480,9 @@
 }
 .grid_row[aria-selected="true"] .grid_cell {
   background-color: var(--color-table-bg-selected);
+  color: var(--color-table-color-selected);
   /* background-color: var(--color-table-row-hover); */
-  color: var(--border-theme-text);
+  /* color: var(--border-theme-text); */
   /* color: var(--selected-text); */
 }
 

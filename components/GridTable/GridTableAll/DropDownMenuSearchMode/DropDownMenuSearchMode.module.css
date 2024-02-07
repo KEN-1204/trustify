@@ -1,4 +1,12 @@
+.modal_container {
+  background-color: var(--color-edit-bg-solid);
+}
+
 .dropdown_list {
+}
+.dropdown_list:hover {
+  /* background-color: var(--color-bg-brand-f20); */
+  background-color: var(--color-bg-sub);
 }
 
 .select_box {
@@ -8,6 +16,10 @@
   border-radius: 4px;
   cursor: pointer;
   transition: box-shadow 0.3s ease;
+  /* min-width: 300px; */
+  /* min-width: 280px; */
+  min-width: 190px;
+  user-select: none;
 }
 
 .dropdown_list:hover .select_box {
@@ -28,3 +40,55 @@
     transform: rotate(360deg);
   }
 }
+
+/* 説明ポップアップメニュー */
+@keyframes fade_up5 {
+  0% {
+    opacity: 0;
+    transform: translateY(5%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.description_menu {
+  /* box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390, 0 4px 10px 2px #ffffff33; */
+  /* background-color: var(--color-black-bg); */
+  /* background-color: #303030; */
+  background-color: var(--color-edit-bg-solid);
+  opacity: 0;
+  transform: translateY(-5%);
+  animation: fade_up5 0.3s ease forwards;
+  max-width: 400px;
+  /* min-width: max-content; */
+  /* color: #fff; */
+  color: var(--color-text-title);
+}
+.description_menu .title {
+  /* padding: 20px 24px 0px; */
+  padding: 15px 20px 0px;
+  font-size: 14px;
+}
+.description_menu .title .underline {
+  min-height: 1px;
+  margin-top: 1px;
+  background-color: var(--color-bg-brand-f);
+}
+.description_menu .u_list {
+  margin: 5px 10px 10px;
+  /* box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f); */
+  /* background-color: var(--color-black-bg-re); */
+}
+.description_menu .u_list .dropdown_list_item {
+  width: 100%;
+  /* padding: 10px 14px; */
+  padding: 10px 10px;
+  user-select: none;
+  font-size: 13px;
+}
+.description_menu .u_list .dropdown_list_item p {
+  white-space: pre-wrap;
+}
+
+/* 説明ポップアップメニューここまで */

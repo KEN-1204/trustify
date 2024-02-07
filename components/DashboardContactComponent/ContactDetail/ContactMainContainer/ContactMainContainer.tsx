@@ -167,10 +167,16 @@ const ContactMainContainerMemo: FC = () => {
     setCheckboxFaxDmFlag(selectedRowDataContact?.fax_dm_ban_flag ? selectedRowDataContact.fax_dm_ban_flag : false);
   }, [selectedRowDataContact?.fax_dm_ban_flag]);
 
+  // 検索タイプ
+  const searchType = useDashboardStore((state) => state.searchType);
+
   // サーチ編集モードでリプレイス前の値に復元する関数
   function beforeAdjustFieldValue(value: string | null) {
     if (value === "") return ""; // 全てのデータ
     if (value === null) return ""; // 全てのデータ
+    // \%を%に戻す
+    if (searchType === "manual" && value.includes("\\%")) value = value.replace(/\\%/g, "%");
+    if (searchType === "manual" && value.includes("\\_")) value = value.replace(/\\_/g, "_");
     if (value.includes("%")) value = value.replace(/\%/g, "＊");
     if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
     if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
@@ -316,6 +322,11 @@ const ContactMainContainerMemo: FC = () => {
     function adjustFieldValue(value: string | null) {
       if (value === "") return null; // 全てのデータ
       if (value === null) return null; // 全てのデータ
+      // 特殊記号%, _をリテラル文字に置換
+      if (searchType === "manual" && value.includes("%")) value = value.replace(/%/g, "\\%");
+      if (searchType === "manual" && value.includes("％")) value = value.replace(/％/g, "\\%");
+      if (searchType === "manual" && value.includes("_")) value = value.replace(/_/g, "\\_");
+      if (searchType === "manual" && value.includes("＿")) value = value.replace(/＿/g, "\\_");
       if (value.includes("*")) value = value.replace(/\*/g, "%");
       if (value.includes("＊")) value = value.replace(/\＊/g, "%");
       if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信

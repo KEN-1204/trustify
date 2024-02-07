@@ -92,7 +92,7 @@ export const DropDownMenuSearchModeDetail = ({ setIsOpenDropdownMenuSearchMode, 
         {/* 説明エリア */}
         <div className={`relative flex h-auto w-full flex-col items-start space-y-[6px] px-[24px] pt-[16px]`}>
           <h2 className="flex items-center space-x-[12px] text-[16px] font-bold text-[var(--color-text-title)]">
-            <span>サーチモード設定</span>
+            <span>フィルター設定</span>
             <span>
               <NextImage
                 width={24}
@@ -110,7 +110,7 @@ export const DropDownMenuSearchModeDetail = ({ setIsOpenDropdownMenuSearchMode, 
 
         <div className={`relative flex h-auto w-full items-start justify-start  px-[24px] pb-[8px] pt-[8px]`}>
           <div
-            className={`flex-center transition-bg03 relative  h-[26px] min-w-[110px]  cursor-pointer space-x-1  rounded-[4px] border border-solid border-transparent px-[6px] text-[12px] text-[var(--color-text-sub)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--setting-bg-sub)] hover:text-[var(--color-text)] ${styles.fh_text_btn}`}
+            className={`flex-center transition-bg03 relative  h-[26px] min-w-[90px]  cursor-pointer space-x-1  rounded-[4px] border border-solid border-transparent px-[6px] text-[12px] text-[var(--color-text-sub)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--setting-bg-sub)] hover:text-[var(--color-text)] ${styles.fh_text_btn}`}
             onClick={() => {
               if (!isAllDepartmentLocal) setIsAllDepartmentLocal(true);
               if (!isAllUnitLocal) setIsAllUnitLocal(true);
@@ -121,7 +121,7 @@ export const DropDownMenuSearchModeDetail = ({ setIsOpenDropdownMenuSearchMode, 
             <div className="flex-center mr-[2px]">
               <FiRefreshCw />
             </div>
-            <span className="whitespace-nowrap">リフレッシュ</span>
+            <span className="whitespace-nowrap">リセット</span>
           </div>
         </div>
 

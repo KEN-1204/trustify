@@ -4,11 +4,9 @@ import styles from "./DashboardPropertyComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
-import { Fallback } from "../Fallback/Fallback";
 import { PropertyGridTableAll } from "./PropertyGridTableAll/PropertyGridTableAll";
 import { PropertyDetail } from "./PropertyDetail/PropertyDetail";
-import { FallbackGridTableAll } from "../GridTable/GridTableAll/FallbackGridTableAll";
-// import { ContactDetail } from "./ContactDetail/ContactDetail";
+import { FallbackGridTableAllAMPQ } from "../Fallback/FallbackGridTableAllAMPQ/FallbackGridTableAllAMPQ";
 
 export const DashboardPropertyComponent: FC = () => {
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
@@ -63,7 +61,7 @@ export const DashboardPropertyComponent: FC = () => {
           >
             {activeMenuTab === "Property" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<FallbackGridTableAll title="面談" />}>
+                <Suspense fallback={<FallbackGridTableAllAMPQ title="面談" />}>
                   <PropertyGridTableAll title="面談" />
                 </Suspense>
               </ErrorBoundary>
