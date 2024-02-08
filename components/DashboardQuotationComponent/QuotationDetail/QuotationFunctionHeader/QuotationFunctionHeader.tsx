@@ -13,6 +13,7 @@ const QuotationFunctionHeaderMemo: FC = () => {
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   const setUnderDisplayFullScreen = useDashboardStore((state) => state.setUnderDisplayFullScreen);
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const newSearchQuotation_Contact_CompanyParams = useDashboardStore(
@@ -43,26 +44,51 @@ const QuotationFunctionHeaderMemo: FC = () => {
   const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
   //   const setSelectedRowDataQuotation = useDashboardStore((state) => state.setSelectedRowDataQuotation);
 
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    content3?: string | undefined | null;
+    textLength?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    content3,
+    textLength,
+    marginTop = 0,
+    // itemsPosition = "start",
+    itemsPosition = "center",
+  }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
-      ? ((e.target as HTMLDivElement).dataset.text2 as string)
-      : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
-      ? ((e.target as HTMLDivElement).dataset.text3 as string)
-      : "";
+    // const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text2 as string)
+    //   : "";
+    // const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   ? ((e.target as HTMLDivElement).dataset.text3 as string)
+    //   : "";
     setHoveredItemPos({
       x: x,
       y: y,
       itemWidth: width,
       itemHeight: height,
-      content: (e.target as HTMLDivElement).dataset.text as string,
+      // content: (e.target as HTMLDivElement).dataset.text as string,
+      content: content,
       content2: content2,
       content3: content3,
       display: display,
-      textLength: ((e.target as HTMLDivElement).dataset.text as string).length,
+      // textLength: ((e.target as HTMLDivElement).dataset.text as string).length,
+      textLength: textLength ? textLength.length : 0,
+      marginTop: marginTop,
+      itemsPosition: "center",
     });
   };
   // ツールチップを非表示
@@ -213,21 +239,40 @@ const QuotationFunctionHeaderMemo: FC = () => {
               setIsUpdateModeQuotation(true);
             }}
           />
-          <RippleButton
+          {/* <RippleButton
             title={`印刷`}
             classText={`select-none ${searchMode || !selectedRowDataQuotation ? `cursor-not-allowed` : ``}`}
             clickEventHandler={() => {
               if (searchMode) return;
               if (!selectedRowDataQuotation) return alert("見積データを選択してください");
             }}
-          />
+          /> */}
           <RippleButton
-            title={`印刷ﾌﾟﾚﾋﾞｭｰ`}
+            title={`見積書ﾌﾟﾚﾋﾞｭｰ・印刷`}
             classText={`select-none ${searchMode || !selectedRowDataQuotation ? `cursor-not-allowed` : ``}`}
             clickEventHandler={() => {
+              if (hoveredItemPos) handleCloseTooltip();
               if (searchMode) return;
-              // if (!selectedRowDataQuotation) return alert("見積データを選択してください");
+              if (!selectedRowDataQuotation) {
+                alert("見積データを選択してください");
+                return;
+              }
               setIsOpenQuotationPreviewModal(true);
+            }}
+            onMouseEnterHandler={(e) =>
+              handleOpenTooltip({
+                e: e,
+                display: "top",
+                content: `見積書をプレビュー画面で確認、`,
+                content2: `PDFファイルのダウンロード、印刷、各種設定が可能です。`,
+                // content3: ``,
+                // marginTop: 48,
+                marginTop: 28,
+                // marginTop: 9,
+              })
+            }
+            onMouseLeaveHandler={() => {
+              if (hoveredItemPos) handleCloseTooltip();
             }}
           />
         </div>
@@ -247,7 +292,7 @@ const QuotationFunctionHeaderMemo: FC = () => {
         </button> */}
         <div className="flex">
           <button
-            data-text={`${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`}
+            // data-text={`${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`}
             className={`flex-center transition-base03   !mr-[10px] h-[26px] min-w-[26px]  space-x-2 rounded-[4px] text-[16px]   ${
               tableContainerSize === "one_third"
                 ? `cursor-not-allowed  text-[#b9b9b9]`
@@ -260,7 +305,17 @@ const QuotationFunctionHeaderMemo: FC = () => {
                 );
               setUnderDisplayFullScreen(!underDisplayFullScreen);
             }}
-            onMouseEnter={(e) => handleOpenTooltip(e, "right")}
+            // onMouseEnter={(e) => handleOpenTooltip(e, "right")}
+            // onMouseLeave={handleCloseTooltip}
+            onMouseEnter={(e) =>
+              handleOpenTooltip({
+                e: e,
+                display: "right-top",
+                // display: "top",
+                content: `${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`,
+                textLength: `${underDisplayFullScreen ? "デフォルト表示" : "全画面表示"}`,
+              })
+            }
             onMouseLeave={handleCloseTooltip}
           >
             {underDisplayFullScreen ? (

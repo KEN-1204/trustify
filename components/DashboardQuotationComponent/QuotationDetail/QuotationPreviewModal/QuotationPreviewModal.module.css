@@ -83,6 +83,27 @@
   animation: fade 0.3s 0.1s forwards;
   box-shadow: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
 }
+.preview_modal_iframe_print {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 90vh;
+  max-height: 1200px;
+  width: 80vw;
+  /* max-width: 1124px; */
+  background-color: #fff;
+  transition: width 0.2s ease, height 0.2s ease, border-radius 0.2s ease;
+  opacity: 0;
+  animation: fade 0.3s 0.1s forwards;
+  /* box-shadow: 0px 4px 15px 3px rgba(255, 255, 255, 0.39); */
+}
+.preview_modal_iframe_print iframe {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+}
 
 @keyframes fade {
   0% {
@@ -988,7 +1009,10 @@
 /* ======== notes_area ======== */
 .notes_area .notes_content {
   /* padding: 0 calc(92vh / 1.41 * 0.005); */
-  padding: 0.3% 1% 0;
+  /* padding: 0.3% 1% 0; */
+  /* padding: 2px 1% 0; */
+  /* padding: 2px 4px 0; */
+  padding: 2px 6px 0;
   /* padding: 0.6% 1% 0; */
   font-size: 7.5px;
   font-size: 8px;

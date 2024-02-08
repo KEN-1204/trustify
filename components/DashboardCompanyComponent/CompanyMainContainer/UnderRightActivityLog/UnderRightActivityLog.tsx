@@ -17,6 +17,7 @@ import { SkeletonLoadingLineLong } from "@/components/Parts/SkeletonLoading/Skel
 import { SkeletonLoadingLineShort } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineShort";
 import { FiRefreshCw } from "react-icons/fi";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
+import { getActivityType } from "@/utils/selectOptions";
 
 type TableDataType = {
   activity_type: string;
@@ -535,6 +536,19 @@ const UnderRightActivityLogMemo: FC = () => {
     // activity_updated_at: "yyyy/MM/dd HH:mm:ss",
   };
 
+  const formatDisplayValue = (columnName: string, value: any) => {
+    switch (columnName) {
+      // 活動タイプ
+      case "activity_type":
+        if (!value) return null;
+        return getActivityType(value);
+
+      default:
+        return value;
+        break;
+    }
+  };
+
   // console.log("右下 selectedRowDataCompany", selectedRowDataCompany);
   console.log(
     "右下 フェッチ回数",
@@ -844,6 +858,7 @@ const UnderRightActivityLogMemo: FC = () => {
                           if (columnName in formatMapping && !!value) {
                             displayValue = format(new Date(value), formatMapping[columnName]);
                           }
+                          displayValue = formatDisplayValue(columnName, displayValue);
                           return (
                             <div
                               key={"row" + virtualRow.index.toString() + index.toString()}

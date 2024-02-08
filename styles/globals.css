@@ -569,6 +569,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-reflection: #d9eafb; */
   /* --color-table-loading-spinner: #0d99ffd0; */
   --color-table-loading-spinner: #0d99ffc0;
+  --color-table-loading-spinner: var(--color-bg-brand-f);
   --color-spinner-ids: #aaa;
   /* --color-table-row-hover: #ecf4fca0; */
   /* --color-table-row-hover: rgba(55, 53, 47, 0.08); */
@@ -949,8 +950,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-tooltip-light: #525252;
   --color-tooltip-light: #505050;
   /* アラートポップアップ alert_popup */
-  /* --color-alert-popup-bg: #fff6f8; */
-  --color-alert-popup-bg: #fff;
+  --color-alert-popup-bg: #fff6f8;
+  /* --color-alert-popup-bg: #fff; */
   /* --color-alert-popup-bg: #ff3b5bc0; */
   /* --color-alert-popup-text: #fff; */
   --color-alert-popup-text: #ff3b5b;
@@ -1260,7 +1261,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-bg-loading: #121212;
   /* --color-table-reflection: rgba(255, 255, 255, 0.2); */
   --color-table-reflection: rgba(255, 255, 255, 0.3);
-  --color-table-loading-spinner: #7878 78;
+  /* --color-table-reflection: #0d99ff42; */
+  --color-table-loading-spinner: #787878;
+  --color-table-loading-spinner: #0d99ffc0;
   --color-spinner-ids: #fff;
   /* 🔹テーブル行ホバー */
   --color-table-row-hover: #232323;
@@ -2765,3 +2768,45 @@ textarea {
   }
 }
 /* -------------- ✅ポップアップ✅ -------------- */
+
+/* -------------- 🌟印刷🌟 -------------- */
+@media print {
+  body,
+  html {
+    /* visibility: hidden; */
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .quotation,
+  .quotation * {
+    visibility: visible;
+  }
+  /* .quotation-print,
+  .quotation-print * {
+    visibility: visible;
+  }
+  .quotation-print {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 92vh;
+    width: calc(92vh / 1.41);
+    max-height: 1240px;
+    max-width: 879px;
+    background-color: #fff;
+  }
+  .preview_modal .quotation {
+    width: 100%;
+    height: 100%;
+    max-height: 725px;
+    max-width: 514px;
+    background-color: #fff;
+    position: relative;
+    display: flex;
+  } */
+}
+/* -------------- ✅印刷✅ -------------- */

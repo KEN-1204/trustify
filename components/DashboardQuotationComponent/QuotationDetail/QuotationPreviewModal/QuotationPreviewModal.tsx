@@ -394,7 +394,18 @@ const QuotationPreviewModalMemo = () => {
   // const initialNotesText = `見積No. 123456789012をご発注いただいた場合に限り適用となります。\n※上記は2021年9月15日までのご発注、16日までに商品を出荷させていただけた場合に限る今回限りの貴社向け特別価格となります。`
   const initialNotesText = selectedRowDataQuotation?.quotation_notes || "";
   const [notesText, setNotesText] = useState(initialNotesText);
+  const quotationNotesRef = useRef<HTMLParagraphElement | null>(null);
   // console.log("notesText.length", notesText.length);
+  // 初回マウント時に見積備考エリアの表示可能領域offsetHeightをscrollHeightが超えている場合は削減する
+  // useEffect(() => {
+  //   if (!quotationNotesRef.current) return
+  //   const notes = quotationNotesRef.current
+  //   if (notes.offsetHeight < notes.scrollHeight) {
+  //     const value = notes.innerHTML
+  //     const lines = value.split(`\n`)
+  //     // 各行の文字数を加算していき、228文字を超えたらその行以降は除外し、残った行を再度「\n」で結合して戻す
+  //   }
+  // }, [])
   // 🔹納期
   // const initialDeadline = "当日出荷";
   const initialDeadline = selectedRowDataQuotation?.deadline || "";
@@ -593,25 +604,68 @@ const QuotationPreviewModalMemo = () => {
   };
   // -------------------------- ✅ツールチップ✅ --------------------------
   // -------------------------- 🌟ポップアップメニュー🌟 --------------------------
-  const [openPopupMenu, setOpenPopupMenu] = useState<{ y: number; title: string } | null>(null);
+  const [openPopupMenu, setOpenPopupMenu] = useState<{
+    x?: number;
+    y: number;
+    title: string;
+    displayX?: string;
+    maxWidth?: number;
+  } | null>(null);
   const mappingPopupTitle: { [key: string]: { [key: string]: string } } = {
     compressionRatio: { en: "Compression Ratio", ja: "解像度" },
-    footnotes: { en: "footnotes", ja: "脚注" },
+    footnotes: { en: "Footnotes", ja: "脚注" },
+    print: { en: "Print Tips", ja: "印刷Tips" },
+    pdf: { en: "PDF Download", ja: "PDFダウンロード" },
+    settings: { en: "Settings", ja: "各種設定メニュー" },
+    edit: { en: "Edit Mode", ja: "編集モード" },
   };
   type PopupMenuParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
     title: string;
+    displayX?: string;
+    maxWidth?: number;
   };
-  const handleOpenPopupMenu = ({ e, title }: PopupMenuParams) => {
-    const { y, height } = e.currentTarget.getBoundingClientRect();
-    setOpenPopupMenu({
-      y: y - height / 2,
-      title: title,
-    });
+  const handleOpenPopupMenu = ({ e, title, displayX, maxWidth }: PopupMenuParams) => {
+    if (!displayX) {
+      const { y, height } = e.currentTarget.getBoundingClientRect();
+      setOpenPopupMenu({
+        y: y - height / 2,
+        title: title,
+      });
+    } else {
+      const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+      // right: 見積書の右端から-18px, アイコンサイズ35px, ポップアップメニュー400px
+      const positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : -18;
+      // -18 - 35 - openPopupMenu.width
+      console.log(
+        "title",
+        title,
+        "displayX",
+        displayX,
+        "positionX",
+        positionX,
+        "x",
+        x,
+        "width",
+        width,
+        "y",
+        y,
+        "height",
+        height
+      );
+      setOpenPopupMenu({
+        x: positionX,
+        y: y - height / 2,
+        title: title,
+        displayX: displayX,
+        maxWidth: maxWidth,
+      });
+    }
   };
   const handleClosePopupMenu = () => {
     setOpenPopupMenu(null);
   };
+
   // -------------------------- ✅ポップアップメニュー✅ --------------------------
 
   // -------------------------- 🌟シングルクリック・ダブルクリック関連🌟 --------------------------
@@ -745,8 +799,13 @@ const QuotationPreviewModalMemo = () => {
   // -------------------------- ✅PDFファイルのダウンロード✅ --------------------------
 
   // -------------------------- 🌟PDFファイルのダウンロード html => pdf🌟 --------------------------
+  const [imageURL, setImageURL] = useState<string | null>(null); // アンマウント時画像URLリソース解放用のstate
+
   const handleSaveImageToPdf = async () => {
     if (!pdfTargetRef.current) return alert("pdfデータの取得に失敗しました。");
+
+    if (hoveredItemPos) handleCloseTooltip();
+    if (openPopupMenu) handleClosePopupMenu();
 
     console.log("pdfTargetRef.current", pdfTargetRef.current);
 
@@ -769,9 +828,12 @@ const QuotationPreviewModalMemo = () => {
       // DOM要素をpng画像に変換
       // const image = await toPng(pdfTargetRef.current); // 成功
       const image = await toPng(pdfTargetRef.current, {
-        quality: 1.0, // 0から1のはんいで品質を指定
+        quality: 1.0, // 0から1の範囲で品質を指定
         pixelRatio: 2, // 画像のピクセル密度を指定
       });
+
+      // 保険で画像URLのリソース解放できなかった時のためのアンマウント時にURLリソース解放用に画像URLをstateに格納
+      setImageURL(image);
 
       // イメージをPDFに追加*2 元々の素材となるDOM要素のレイアウト比を保った状態で画像に変換 もし素材の縦幅がA4の縦横比よりも短い場合は変換後のPDFの下側が空白となる。
       // doc.addImage(image, "PNG", 0, 0, 210, 0, "", "FAST"); // 成功
@@ -783,6 +845,9 @@ const QuotationPreviewModalMemo = () => {
 
       // 5. PDFを保存
       doc.save(getPdfFileName());
+
+      URL.revokeObjectURL(image); // 画像URLを解放
+      setImageURL(null);
     } catch (error: any) {
       console.error("PDFの取得に失敗しました: ", error);
       toast.error("PDFの取得に失敗しました...🙇‍♀️");
@@ -864,20 +929,93 @@ const QuotationPreviewModalMemo = () => {
   // window.open(fileURL, '_blank')
 
   // -------------------------- 🌟プリントアウト関数🌟 --------------------------
-  const handlePrint = () => {
-    setIsLoadingPDF(true);
 
-    setTimeout(() => {
-      setIsLoadingPDF(false);
-    }, 1500);
+  const handlePrint = async () => {
+    if (hoveredItemPos) handleCloseTooltip();
+    if (openPopupMenu) handleClosePopupMenu();
+
+    if (!pdfTargetRef.current) return alert("pdfデータの取得に失敗しました。");
+
+    console.log("pdfTargetRef.current", pdfTargetRef.current);
+
+    setIsLoading(true);
+
+    try {
+      // スケールを1に戻す
+      if (scalePdf > 1) {
+        pdfTargetRef.current.style.transform = `scale(1)`;
+      }
+
+      // DOM要素をpng画像に変換
+      // const image = await toPng(pdfTargetRef.current); // 成功
+      const image = await toPng(pdfTargetRef.current, {
+        quality: 1.0, // 0から1の範囲で品質を指定
+        pixelRatio: 2, // 画像のピクセル密度を指定
+      });
+
+      // 保険で画像URLのリソース解放できなかった時のためのアンマウント時にURLリソース解放用に画像URLをstateに格納
+      setImageURL(image);
+
+      // iframeにHTMLコンテンツを動的に生成して挿入する
+      // iframeを生成
+      let iframe = document.createElement("iframe");
+      iframe.style.visibility = "hidden"; // iframeを画面に表示しない
+      iframe.style.padding = "0";
+      iframe.style.margin = "0";
+      document.body.appendChild(iframe);
+
+      // iframeのdocumentにアクセス
+      let iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
+
+      if (!iframeDoc) throw new Error("印刷に失敗しました");
+
+      // HTMLコンテンツを生成してiframeに挿入
+      iframeDoc.open();
+      iframeDoc.write(
+        `<html><head><style>@media print { html, body { margin: 0; padding: 0; box-sizing: border-box; width: 100%; height: 100%; }}</style></head><body style="background-color: red; padding: 0; margin: 0; border: 0; position: relative; width: 794px; height: 1123px; position: relative; display: flex; align-items: center; justify-content: center;"><img src="${image}" style="background-color: white; padding: 0; margin: 0; object-fit: cover; width: 100%; height: 100%;"></body></html>`
+      );
+      iframeDoc.close();
+
+      // iframeのコンテンツが完全に読み込まれた後に印刷プレビューを開く
+      iframe.onload = function () {
+        if (iframe.contentWindow) {
+          iframe.contentWindow.print();
+        }
+        URL.revokeObjectURL(image); // 画像URLを解放
+        document.body.removeChild(iframe); // 印刷後、iframeを削除
+        setImageURL(null);
+      };
+    } catch (error: any) {
+      console.error("エラー: ", error);
+      toast.error("印刷に失敗しました...🙇‍♀️");
+    }
+
+    // スケールを現在のwindowのサイズに戻す
+    if (scalePdf > 1) {
+      pdfTargetRef.current.style.transform = `scale(${scalePdf})`;
+    }
+
+    setIsLoading(false);
   };
+
+  // 画像のstyle属性でwidthとheightを指定していますが、これをA4サイズのピクセルまたはmm単位で具体的に指定することで、より正確にサイズを制御できます。A4サイズのピクセル数は解像度によって異なりますが、一般的には96DPIの場合、約794x1123ピクセル（約210mm x 297mm）です。
+  // 画像のDPI（ドット・パー・インチ）を調整して、印刷時のサイズを変更することも検討してください。HTMLやCSSで直接DPIを指定することはできませんが、画像を生成する際にDPIを考慮することで、印刷時のサイズ感を調整できます。
   // -------------------------- ✅プリントアウト関数✅ --------------------------
+  /**
+   * 
+   * // iframeDoc.write(
+      //   `<html><body style="padding: 0; margin: 0; box-sizing: border-box; position: relative; display: flex; align-items: center; justify-content: center;"><img src="${image}" style="padding: 0; margin: 0; position: relative; height: 100vh; width: calc(100vh / 1.41);"></body></html>`
+      // );
+   */
 
   // -------------------------- 🌟エディットモード終了🌟 --------------------------
   const handleFinishEdit = () => setIsEditMode([]);
   // -------------------------- ✅エディットモード終了✅ --------------------------
   // -------------------------- 🌟全てのフィールドを編集モードに変更🌟 --------------------------
   const handleAllEdit = () => {
+    if (hoveredItemPos) handleCloseTooltip();
+    if (openPopupMenu) handleClosePopupMenu();
+
     if (isEditMode.length === 0) {
       const allEdit = [
         "quotation_notes",
@@ -900,6 +1038,8 @@ const QuotationPreviewModalMemo = () => {
   // -------------------------- 🌟セッティングメニュー開閉🌟 --------------------------
   const handleOpenSettings = () => {
     setIsOpenSettings(true);
+    if (hoveredItemPos) handleCloseTooltip();
+    if (openPopupMenu) handleClosePopupMenu();
   };
   const handleCloseSettings = () => {
     // 各種設定内容が変更されていればローカルストレージに変更内容を保存
@@ -1168,8 +1308,14 @@ const QuotationPreviewModalMemo = () => {
   // コンポーネントのクリーンアップで既存のタイマーがあればクリアする
   useEffect(() => {
     return () => {
+      // タイマーのクリア
       if (hideTimeoutIdRef.current !== null) {
         clearTimeout(hideTimeoutIdRef.current);
+      }
+      // コンポーネントのアンマウント時に画像URLリソースの解放
+      if (imageURL) {
+        URL.revokeObjectURL(imageURL);
+        setImageURL(null); // 状態をクリア
       }
     };
   }, []);
@@ -1252,6 +1398,10 @@ const QuotationPreviewModalMemo = () => {
   };
   // -------------------------- ✅商品名ドラッグでカラム順番入れ替え✅ --------------------------
 
+  // 見積区分 標準見積、リース見積、セット見積
+  const quotationDivision = selectedRowDataQuotation?.quotation_division;
+  if (!quotationDivision) return;
+
   // Webページ上で直接プリントアウト window.print()
   console.log(
     "🌠PDFプレビューモーダル レンダリング pdfURL",
@@ -1308,7 +1458,7 @@ const QuotationPreviewModalMemo = () => {
             <div
               // className={`${styles.preview_modal_iframe} ${isLoadingPDF || !pdfURL ? `${styles.loading_pdf}` : ``} `}
               // className={`${styles.preview_modal} ${isLoadingPDF || !pdfURL ? `${styles.loading_pdf}` : ``} `}
-              className={`${styles.preview_modal} ${isLoadingPDF ? `${styles.loading_pdf}` : ``} `}
+              className={`${styles.preview_modal} quotation-print ${isLoadingPDF ? `${styles.loading_pdf}` : ``} `}
             >
               {/* スケールが1以上で、ダウンロード、印刷時に上から覆うオーバーレイ */}
               {/* {isLoading && scalePdf > 1 && <div className={`${styles.pdf} ${styles.loading}`}></div>} */}
@@ -1323,7 +1473,7 @@ const QuotationPreviewModalMemo = () => {
               <div
                 ref={pdfTargetRef}
                 // className={`${styles.pdf} ${isLoading ? `opacity-0` : ``}`}
-                className={`${styles.pdf}`}
+                className={`${styles.pdf} quotation`}
                 style={{ transform: `scale(${scalePdf})` }}
               >
                 <div className={`${styles.left_margin} h-full w-full min-w-[4%] max-w-[4%]`}></div>
@@ -2048,7 +2198,7 @@ const QuotationPreviewModalMemo = () => {
                       </div>
                     )}
 
-                    {isValidNumber(totalPrice) && (
+                    {quotationDivision === "A standard" && isValidNumber(totalPrice) && (
                       <div
                         role="row"
                         // style={{ minHeight: `${3.9}%` }}
@@ -2069,9 +2219,62 @@ const QuotationPreviewModalMemo = () => {
                         ))}
                       </div>
                     )}
+                    {quotationDivision !== "A standard" && (
+                      <div
+                        role="row"
+                        // style={{ minHeight: `${3.9}%` }}
+                        className={`${styles.row_result} ${styles.total}`}
+                      >
+                        {columnHeaderTitleArray.map((key, index) => (
+                          <div
+                            key={key + index.toString() + "amount"}
+                            role="gridcell"
+                            className={`${styles.grid_cell} flex items-center ${
+                              index === 0 ? `${styles.first}` : `${styles.end}`
+                            }`}
+                          >
+                            {index === 0 && quotationDivision === "B set" && <span>セット数</span>}
+                            {index === 1 && quotationDivision === "B set" && (
+                              <span>
+                                {(selectedRowDataQuotation.set_item_count ?? 1).toString() +
+                                  (selectedRowDataQuotation.set_unit_name ?? "式")}
+                              </span>
+                            )}
+                            {index === 3 && quotationDivision === "B set" && (
+                              <span>{formatDisplayPrice(selectedRowDataQuotation.set_price ?? 0)}</span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     {/* {isDiscount && ( */}
-                    {isValidNumber(discountAmount) && Number(discountAmount) !== 0 && (
+                    {quotationDivision === "A standard" &&
+                      isValidNumber(discountAmount) &&
+                      Number(discountAmount) !== 0 && (
+                        <div role="row" style={{ minHeight: `${3.9}%` }} className={`${styles.row_result}`}>
+                          {columnHeaderTitleArray.map((key, index) => (
+                            <div
+                              key={key + index.toString() + "discount"}
+                              role="gridcell"
+                              className={`${styles.grid_cell} flex items-center ${
+                                index === 0 ? `${styles.first}` : `${styles.end}`
+                              }`}
+                            >
+                              {index === 0 && <span>出精値引</span>}
+                              {/* {index === 3 && <span>-{formatDisplayPrice(795000)}</span>} */}
+                              {index === 3 && (
+                                <span>
+                                  {isValidNumber(discountAmount) ? `-` : ``}
+                                  {formatDisplayPrice(discountAmount)}
+                                </span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                    {quotationDivision !== "A standard" && (
                       <div role="row" style={{ minHeight: `${3.9}%` }} className={`${styles.row_result}`}>
                         {columnHeaderTitleArray.map((key, index) => (
                           <div
@@ -2081,14 +2284,14 @@ const QuotationPreviewModalMemo = () => {
                               index === 0 ? `${styles.first}` : `${styles.end}`
                             }`}
                           >
-                            {index === 0 && <span>出精値引</span>}
+                            {/* {index === 0 && <span>出精値引</span>} */}
                             {/* {index === 3 && <span>-{formatDisplayPrice(795000)}</span>} */}
-                            {index === 3 && (
-                              <span>
-                                {isValidNumber(discountAmount) ? `-` : ``}
-                                {formatDisplayPrice(discountAmount)}
-                              </span>
-                            )}
+                            {/* {index === 3 && (
+                                <span>
+                                  {isValidNumber(discountAmount) ? `-` : ``}
+                                  {formatDisplayPrice(discountAmount)}
+                                </span>
+                              )} */}
                           </div>
                         ))}
                       </div>
@@ -2148,8 +2351,9 @@ const QuotationPreviewModalMemo = () => {
                     {!isEditMode.includes("quotation_notes") && (
                       <>
                         <p
+                          ref={quotationNotesRef}
                           className={`${styles.notes_content}`}
-                          style={{ whiteSpace: "pre-wrap" }}
+                          style={{ whiteSpace: "pre-wrap", overflow: "hidden" }}
                           dangerouslySetInnerHTML={{ __html: notesText }}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
@@ -2186,72 +2390,66 @@ const QuotationPreviewModalMemo = () => {
                         rows={4}
                         value={notesText}
                         onChange={(e) => {
-                          // 現在のtextareaのlineHeightのCSSスタイルを取得
-                          // const textarea = document.querySelector("textarea");
-                          // const computedStyle = window.getComputedStyle(textarea);
-                          // const lineHeight = computedStyle.lineHeight;
+                          // 制限内の場合はそのままセット
+                          setNotesText(e.target.value);
+                          // // 現在のtextareaのlineHeightのCSSスタイルを取得
+                          // // const textarea = document.querySelector("textarea");
+                          // // const computedStyle = window.getComputedStyle(textarea);
+                          // // const lineHeight = computedStyle.lineHeight;
 
-                          // setNotesText(e.target.value)
-                          // 文字数を日本語は245文字、英語は448文字、行数は４行まで
-                          const inputValue = e.target.value;
-                          const textarea = e.target;
-                          const limitLength = 245;
-                          const limitLines = 4;
-                          // const lineHeight = 13; // textareaのline-height font-size7.5pxの1.5倍
-                          // const lines = inputValue.split(`\n`); // 改行文字で分割することで改行数を取得する*3
-                          // const linesExceeded = lines.length > limitLines; // 行数超過可否
-                          const linesExceeded = textarea.scrollHeight > textarea.offsetHeight; // 行数超過可否
-                          const lengthExceeded = inputValue.length > limitLength; // 文字数超過可否
+                          // // setNotesText(e.target.value)
+                          // // 文字数を日本語は228文字、英語は448文字、行数は４行まで
+                          // const inputValue = e.target.value;
+                          // const textarea = e.target;
+                          // const limitLength = 228;
+                          // const limitLines = 4;
+                          // // const lineHeight = 13; // textareaのline-height font-size7.5pxの1.5倍
+                          // // const lines = inputValue.split(`\n`); // 改行文字で分割することで改行数を取得する*3
+                          // // const linesExceeded = lines.length > limitLines; // 行数超過可否
+                          // const linesExceeded = textarea.scrollHeight > textarea.offsetHeight; // 行数超過可否
+                          // const lengthExceeded = inputValue.length > limitLength; // 文字数超過可否
 
-                          console.log(
-                            "文字数",
-                            inputValue.length,
-                            "textarea.scrollHeight",
-                            textarea.scrollHeight,
-                            "textarea.offsetHeight",
-                            textarea.offsetHeight,
-                            linesExceeded
-                          );
+                          // console.log(
+                          //   "文字数",
+                          //   inputValue.length,
+                          //   "textarea.scrollHeight",
+                          //   textarea.scrollHeight,
+                          //   "textarea.offsetHeight",
+                          //   textarea.offsetHeight,
+                          //   linesExceeded
+                          // );
 
-                          if (lengthExceeded || linesExceeded) {
-                            // ポップアップメッセージを表示
-                            if (lengthExceeded && !linesExceeded) showAlertPopup("length");
-                            if (!lengthExceeded && linesExceeded) showAlertPopup("lines");
-                            if (lengthExceeded && linesExceeded) showAlertPopup("both");
+                          // if (lengthExceeded || linesExceeded) {
+                          //   // ポップアップメッセージを表示
+                          //   if (lengthExceeded && !linesExceeded) showAlertPopup("length");
+                          //   if (!lengthExceeded && linesExceeded) showAlertPopup("lines");
+                          //   if (lengthExceeded && linesExceeded) showAlertPopup("both");
 
-                            // 制限を超えた場合の処理 1文字目から245文字のみ残す
-                            let trimmedText = inputValue.slice(0, limitLength);
+                          //   // 制限を超えた場合の処理 1文字目から245文字のみ残す
+                          //   let trimmedText = inputValue.slice(0, limitLength);
 
-                            // 行数制限を超えた場合(textareaの表示可能領域をscrollHeightが超えた場合)、末尾の改行文字を取り除く
-                            if (linesExceeded) {
-                              // lengthExceededがtrueの場合に限り、inputValueから制限文字数までの部分を取り出し（slice(0, limitLength)）、さらにその結果の末尾が改行文字で終わっているかどうかをendsWith('\n')でチェック
-                              if (trimmedText.endsWith("\n")) {
-                                // 末尾が改行文字であれば、その改行文字を取り除いて更新されたテキストを処理します（slice(0, -1)）
-                                // もし末尾が改行文字であれば、それを取り除く
-                                trimmedText = trimmedText.slice(0, -1);
-                              } else {
-                                // 最後の文字が改行文字でなく行数を超えた場合はstateを更新せずにリターン
-                                return;
-                              }
-                            }
+                          //   // 行数制限を超えた場合(textareaの表示可能領域をscrollHeightが超えた場合)、末尾の改行文字を取り除く
+                          //   if (linesExceeded) {
+                          //     // lengthExceededがtrueの場合に限り、inputValueから制限文字数までの部分を取り出し（slice(0, limitLength)）、さらにその結果の末尾が改行文字で終わっているかどうかをendsWith('\n')でチェック
+                          //     if (trimmedText.endsWith("\n")) {
+                          //       // 末尾が改行文字であれば、その改行文字を取り除いて更新されたテキストを処理します（slice(0, -1)）
+                          //       // もし末尾が改行文字であれば、それを取り除く
+                          //       trimmedText = trimmedText.slice(0, -1);
+                          //     } else {
+                          //       // 最後の文字が改行文字でなく行数を超えた場合はstateを更新せずにリターン
+                          //       return;
+                          //     }
+                          //   }
 
-                            // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
-                            // 文字数制限を超えている場合、再度文字数制限でトリム
-                            if (trimmedText.length > limitLength) {
-                              trimmedText = trimmedText.slice(0, limitLength);
-                            }
+                          //   // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
+                          //   // 文字数制限を超えている場合、再度文字数制限でトリム
+                          //   if (trimmedText.length > limitLength) {
+                          //     trimmedText = trimmedText.slice(0, limitLength);
+                          //   }
 
-                            setNotesText(trimmedText);
-                          } else {
-                            // 制限内の場合はそのままセット
-                            setNotesText(inputValue);
-                          }
-                          // if (limitLength && inputValue.length > limitLength) {
-
-                          //   // 0から244番目の文字までをstateに格納
-                          //   setNotesText(notesText.slice(0, limitLength));
-                          //   return;
+                          //   setNotesText(trimmedText);
                           // } else {
+                          //   // 制限内の場合はそのままセット
                           //   setNotesText(inputValue);
                           // }
                         }}
@@ -2347,6 +2545,7 @@ const QuotationPreviewModalMemo = () => {
               {/* ---------------------- ボタンエリア ---------------------- */}
               {/* 閉じるボタン */}
               <div
+                style={isEditingHidden}
                 className={`flex-center transition-bg01 fixed right-[-56px] top-[5px] z-[3000] ${styles.btn} ${
                   isLoadingPDF ? `` : `${styles.mounted}`
                 }`}
@@ -2362,7 +2561,8 @@ const QuotationPreviewModalMemo = () => {
                 onMouseLeave={handleCloseTooltip}
                 onClick={handleClosePreviewModal}
               >
-                <IoChevronForward className={`pointer-events-none text-[20px] text-[#fff]`} />
+                {/* <IoChevronForward className={`pointer-events-none text-[20px] text-[#fff]`} /> */}
+                <IoClose className={`pointer-events-none text-[22px] text-[#fff]`} />
               </div>
               {/* ダウンロードボタン */}
               <div
@@ -2372,40 +2572,50 @@ const QuotationPreviewModalMemo = () => {
                 }`}
                 // onClick={handleDownloadPDF}
                 onClick={handleSaveImageToPdf}
-                onMouseEnter={(e) =>
+                onMouseEnter={(e) => {
                   handleOpenTooltip({
                     e: e,
                     display: "top",
                     content: `ダウンロード`,
                     // marginTop: 28,
                     itemsPosition: "center",
-                  })
-                }
-                onMouseLeave={handleCloseTooltip}
+                  });
+                  handleOpenPopupMenu({ e, title: "pdf", displayX: "right", maxWidth: 360 });
+                }}
+                onMouseLeave={() => {
+                  if (hoveredItemPos) handleCloseTooltip();
+                  if (openPopupMenu) handleClosePopupMenu();
+                }}
               >
                 <FiDownload className={`pointer-events-none text-[19px] text-[#fff]`} />
                 {/* <a href={pdfURL} download={`見積書.pdf`}>ダウンロード</a> */}
               </div>
-              {/* プリントボタン */}
+              {/* 印刷ボタン */}
               <div
                 style={isEditingHidden}
                 className={`flex-center transition-bg01 fixed right-[-56px] top-[105px] z-[3000] ${styles.btn} ${
                   isLoadingPDF ? `` : `${styles.mounted}`
                 }`}
                 onClick={handlePrint}
-                onMouseEnter={(e) =>
+                onMouseEnter={(e) => {
                   handleOpenTooltip({
                     e: e,
                     display: "top",
                     content: `印刷`,
                     // marginTop: 28,
                     itemsPosition: "center",
-                  })
-                }
-                onMouseLeave={handleCloseTooltip}
+                  });
+                  handleOpenPopupMenu({ e, title: "print", displayX: "right", maxWidth: 360 });
+                }}
+                onMouseLeave={() => {
+                  if (hoveredItemPos) handleCloseTooltip();
+                  if (openPopupMenu) handleClosePopupMenu();
+                }}
               >
                 <MdLocalPrintshop className={`pointer-events-none text-[21px] text-[#fff]`} />
               </div>
+              {/* 印刷ボタンここまで */}
+
               {/* セッティングメニューボタン */}
               <div
                 style={isEditingHidden}
@@ -2413,40 +2623,51 @@ const QuotationPreviewModalMemo = () => {
                   isLoadingPDF ? `` : `${styles.mounted}`
                 }`}
                 onClick={handleOpenSettings}
-                onMouseEnter={(e) =>
+                onMouseEnter={(e) => {
                   handleOpenTooltip({
                     e: e,
                     display: "top",
                     content: `各種設定メニュー`,
                     // marginTop: 28,
                     itemsPosition: "center",
-                  })
-                }
-                onMouseLeave={handleCloseTooltip}
+                  });
+                  handleOpenPopupMenu({ e, title: "settings", displayX: "right", maxWidth: 360 });
+                }}
+                onMouseLeave={() => {
+                  if (hoveredItemPos) handleCloseTooltip();
+                  if (openPopupMenu) handleClosePopupMenu();
+                }}
               >
                 {/* <LuSettings className={`pointer-events-none text-[21px] text-[#fff]`} /> */}
                 <LuSettings2 className={`pointer-events-none text-[21px] text-[#fff]`} />
               </div>
-              {/* セッティングメニューボタン */}
+              {/* セッティングメニューボタンここまで */}
+              {/* 編集ボタン */}
               <div
                 className={`flex-center transition-bg01 fixed right-[-56px] z-[3000] ${styles.btn} ${
                   isLoadingPDF ? `` : `${styles.mounted}`
-                } ${isEditMode.length > 0 ? `top-[55px]` : `top-[205px]`}`}
+                } ${isEditMode.length > 0 ? `top-[5px]` : `top-[205px]`}`}
                 onClick={handleAllEdit}
-                onMouseEnter={(e) =>
+                onMouseEnter={(e) => {
                   handleOpenTooltip({
                     e: e,
                     display: "top",
                     content: isEditMode.length > 0 ? `編集モード終了` : `編集モード`,
                     // marginTop: 28,
                     itemsPosition: "center",
-                  })
-                }
-                onMouseLeave={handleCloseTooltip}
+                  });
+                  if (isEditMode.length !== 0) return;
+                  handleOpenPopupMenu({ e, title: "edit", displayX: "right", maxWidth: 360 });
+                }}
+                onMouseLeave={() => {
+                  if (hoveredItemPos) handleCloseTooltip();
+                  if (openPopupMenu) handleClosePopupMenu();
+                }}
               >
                 {isEditMode.length === 0 && <MdEdit className={`pointer-events-none text-[20px] text-[#fff]`} />}
                 {isEditMode.length > 0 && <IoClose className={`pointer-events-none text-[22px] text-[#fff]`} />}
               </div>
+              {/* 編集ボタンここまで */}
               {/* ---------------------- ボタンエリア ここまで ---------------------- */}
 
               {/* ---------------------- セッティングメニュー関連 ---------------------- */}
@@ -2456,7 +2677,17 @@ const QuotationPreviewModalMemo = () => {
               {openPopupMenu && (
                 <div
                   className={`${styles.description_menu} shadow-all-md border-real-with-shadow fixed right-[-18px] z-[3500] flex min-h-max flex-col rounded-[6px]`}
-                  style={{ top: `${openPopupMenu.y}px` }}
+                  style={{
+                    top: `${openPopupMenu.y}px`,
+                    ...(openPopupMenu?.displayX === "right" && {
+                      right: `${openPopupMenu.x}px`,
+                      maxWidth: `${openPopupMenu.maxWidth}px`,
+                    }),
+                    ...(openPopupMenu?.displayX === "left" && {
+                      right: `${openPopupMenu.x}px`,
+                      maxWidth: `${openPopupMenu.maxWidth}px`,
+                    }),
+                  }}
                 >
                   <div className={`min-h-max w-full font-bold ${styles.title}`}>
                     <div className="flex max-w-max flex-col">
@@ -2480,9 +2711,17 @@ const QuotationPreviewModalMemo = () => {
                       ))}
                     {!["compressionRatio"].includes(openPopupMenu.title) && (
                       <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
-                        <p className="select-none text-[12px]">
+                        <p className="select-none whitespace-pre-wrap text-[12px]">
                           {openPopupMenu.title === "footnotes" &&
                             "見積書末尾に記載される脚注を自由に編集が可能です。デフォルトテキストで保存したデータはブラウザを更新しても内容が保存されるため、自チームで常に使用している脚注がある場合は一度設定することでそれ以降の入力不要となります。"}
+                          {openPopupMenu.title === "print" &&
+                            "印刷ボタンクリック後に印刷ダイアログが開かれた後、「詳細設定」の「余白」を「なし」に切り替えることで綺麗に印刷ができます。"}
+                          {openPopupMenu.title === "pdf" &&
+                            "現在プレビューで表示されている見積書をPDFファイル形式でダウンロードします。"}
+                          {openPopupMenu.title === "settings" &&
+                            "設定メニューから、印鑑や枠線、各取引条件の表示有無や、会社名のサイズ調整、脚注のデフォルトテキストの編集など、各種設定が可能です。"}
+                          {openPopupMenu.title === "edit" &&
+                            "編集モードでは、各取引条件や、見積備考、脚注、事業部や事業所名の編集が可能です。\nまた、各項目は表示されている見積書から直接ダブルクリックすることでも編集が可能です。\n商品名と型式の順番は直接ドラッグ&ドロップで順番の入れ替え可能です。"}
                         </p>
                       </li>
                     )}

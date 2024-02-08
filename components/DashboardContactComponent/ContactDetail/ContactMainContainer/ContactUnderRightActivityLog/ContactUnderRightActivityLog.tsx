@@ -18,6 +18,7 @@ import { SkeletonLoadingLineLong } from "@/components/Parts/SkeletonLoading/Skel
 import { SkeletonLoadingLineShort } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineShort";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
+import { getActivityType } from "@/utils/selectOptions";
 // import { rightRowData } from "./data";
 
 type TableDataType = {
@@ -543,6 +544,19 @@ const ContactUnderRightActivityLogMemo: FC = () => {
   // }, []);
   // ================== ✅intersectionObserver 最後のアイテムまでスクロールしたらshadowを非表示✅ ==================
 
+  const formatDisplayValue = (columnName: string, value: any) => {
+    switch (columnName) {
+      // 活動タイプ
+      case "activity_type":
+        if (!value) return null;
+        return getActivityType(value);
+
+      default:
+        return value;
+        break;
+    }
+  };
+
   console.log(
     "右下 フェッチ回数",
     fetchCountRef.current,
@@ -760,6 +774,7 @@ const ContactUnderRightActivityLogMemo: FC = () => {
                           if (columnName in formatMapping && !!value) {
                             displayValue = format(new Date(value), formatMapping[columnName]);
                           }
+                          displayValue = formatDisplayValue(columnName, displayValue);
                           return (
                             <div
                               key={"row" + virtualRow.index.toString() + index.toString()}

@@ -4897,42 +4897,30 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     // onChange={(e) => setInputQuotationNotes(e.target.value)}
                                     onChange={(e) => {
                                       // setInputQuotationNotes(e.target.value);
-
-                                      // 文字数を日本語は245文字、英語は448文字、行数は４行まで
                                       const inputValue = e.target.value;
-                                      const textarea = e.target;
-                                      const limitLength = 245;
-                                      const limitLines = 4;
-                                      // const lineHeight = 13; // textareaのline-height font-size7.5pxの1.5倍
-                                      // const lines = inputValue.split(`\n`); // 改行文字で分割することで改行数を取得する*3
+                                      const totalLimitLength = 228;
+
+                                      // １行あたりの文字数
                                       // const linesExceeded = lines.length > limitLines; // 行数超過可否
                                       // const linesExceeded = textarea.scrollHeight > textarea.offsetHeight; // 行数超過可否
-                                      const lengthExceeded = inputValue.length > limitLength; // 文字数超過可否
+                                      const lengthExceeded = inputValue.length > totalLimitLength; // 文字数超過可否
 
-                                      console.log(
-                                        "文字数",
-                                        inputValue.length
-                                        // "textarea.scrollHeight",
-                                        // textarea.scrollHeight,
-                                        // "textarea.offsetHeight",
-                                        // textarea.offsetHeight,
-                                        // linesExceeded
-                                      );
+                                      console.log("文字数", inputValue.length);
 
                                       // if (lengthExceeded || linesExceeded) {
                                       if (lengthExceeded) {
                                         // ポップアップメッセージを表示
                                         if (lengthExceeded) showAlertPopup("length");
-                                        if (!lengthExceeded) showAlertPopup("lines");
+                                        // if (!lengthExceeded) showAlertPopup("lines");
                                         // if (lengthExceeded && linesExceeded) showAlertPopup("both");
 
                                         // 制限を超えた場合の処理 1文字目から245文字のみ残す
-                                        let trimmedText = inputValue.slice(0, limitLength);
+                                        let trimmedText = inputValue.slice(0, totalLimitLength);
 
                                         // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
                                         // 文字数制限を超えている場合、再度文字数制限でトリム
-                                        if (trimmedText.length > limitLength) {
-                                          trimmedText = trimmedText.slice(0, limitLength);
+                                        if (trimmedText.length > totalLimitLength) {
+                                          trimmedText = trimmedText.slice(0, totalLimitLength);
                                         }
 
                                         setInputQuotationNotes(trimmedText);
