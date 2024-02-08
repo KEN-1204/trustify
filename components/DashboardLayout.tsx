@@ -57,6 +57,7 @@ import { FallbackModal } from "./DashboardCompanyComponent/Modal/FallbackModal/F
 import { FallbackSideTableSearchSignatureStamp } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchSignatureStamp/FallbackSideTableSearchSignatureStamp";
 import { SideTableSearchSignatureStamp } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchSignatureStamp/SideTableSearchSignatureStamp";
 import { QuotationPreviewModal } from "./DashboardQuotationComponent/QuotationDetail/QuotationPreviewModal/QuotationPreviewModal";
+import { QuotationPreviewForProfile } from "./DashboardQuotationComponent/QuotationDetail/QuotationPreviewModal/QuotationPreviewForProfile";
 
 type Prop = {
   title?: string;
@@ -280,6 +281,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   // 見積書プレビューモーダル
   const isOpenQuotationPreviewModal = useDashboardStore((state) => state.isOpenQuotationPreviewModal);
+  const isOpenQuotationPreviewForProfile = useDashboardStore((state) => state.isOpenQuotationPreviewForProfile);
 
   // 印鑑データ設定サイドテーブル
   const isOpenSearchStampSideTable = useDashboardStore((state) => state.isOpenSearchStampSideTable);
@@ -640,6 +642,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
           </Suspense>
         </ErrorBoundary>
       )}
+
+      {/* プロフィール反映確認用見積書プレビューモーダル */}
+      {isOpenQuotationPreviewForProfile && <QuotationPreviewForProfile />}
 
       {/* ==================== お知らせ所有者変更モーダル ==================== */}
       {openNotificationChangeTeamOwnerModal && notificationDataState !== null && <ChangeTeamOwnerConfirmationModal />}

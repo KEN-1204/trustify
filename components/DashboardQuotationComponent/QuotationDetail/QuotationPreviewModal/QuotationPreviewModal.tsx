@@ -40,6 +40,7 @@ import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
 
 const amountTitleArray = ["合", "計", "金", "額"];
+const leaseTitleArray = ["月", "額", "リ", "ー", "ス", "料"];
 
 const logoSrc = "/assets/images/Trustify_logo_white1.png";
 const hankoSrc = "/assets/images/icons/saito.png";
@@ -200,7 +201,7 @@ const QuotationPreviewModalMemo = () => {
     selectedRowDataQuotation?.in_charge_stamp_flag ? true : false
   );
   const [isFrameInChargeStamp, setIsFrameInChargeStamp] = useState<boolean>(
-    selectedRowDataQuotation?.in_charge_stamp_flag ? true : false
+    selectedRowDataQuotation?.in_charge_stamp_flag ? true : true
   );
   // 上長印1
   const [isPrintSupervisorStamp1, setIsPrintSupervisorStamp1] = useState<boolean>(
@@ -421,6 +422,13 @@ const QuotationPreviewModalMemo = () => {
   const initialPaymentTermsText = selectedRowDataQuotation?.payment_terms || "";
   const [paymentTermsText, setPaymentTermsText] = useState(initialPaymentTermsText);
   const [isPrintPaymentTermsText, setIsPrintPaymentTermsText] = useState(true);
+  // 🔹リース期間
+  // const initialPaymentTermsText = "従来通り";
+  const initialLeasePeriodText = selectedRowDataQuotation?.lease_period
+    ? selectedRowDataQuotation.lease_period.toString() + "年"
+    : "";
+  const [leasePeriodText, setLeasePeriodText] = useState(initialLeasePeriodText);
+  const leasePeriodTitleLetterArray = ["リ", "ー", "ス", "期", "間"];
   // 🔹有効期限
   // const initialExpireDate = "2021年9月15日";
   const initialExpireDate = selectedRowDataQuotation?.expiration_date
@@ -428,6 +436,10 @@ const QuotationPreviewModalMemo = () => {
     : "";
   const [expireDateText, setExpireDateText] = useState(initialExpireDate);
   const [isPrintExpireDateText, setIsPrintExpireDateText] = useState(true);
+
+  // 見積区分 標準見積、リース見積、セット見積
+  const quotationDivision = selectedRowDataQuotation?.quotation_division;
+  if (!quotationDivision) return;
 
   // 🔹納期、受取場所、取引方法、有効期限
   const dealTitleArray = [
@@ -1026,6 +1038,7 @@ const QuotationPreviewModalMemo = () => {
         "expiration_date",
         "assigned_department_name",
         "assigned_office_name",
+        "lease_period",
       ];
       setIsEditMode(allEdit);
     } else {
@@ -1398,10 +1411,6 @@ const QuotationPreviewModalMemo = () => {
   };
   // -------------------------- ✅商品名ドラッグでカラム順番入れ替え✅ --------------------------
 
-  // 見積区分 標準見積、リース見積、セット見積
-  const quotationDivision = selectedRowDataQuotation?.quotation_division;
-  if (!quotationDivision) return;
-
   // Webページ上で直接プリントアウト window.print()
   console.log(
     "🌠PDFプレビューモーダル レンダリング pdfURL",
@@ -1488,7 +1497,10 @@ const QuotationPreviewModalMemo = () => {
                   {/* エディットモードオーバーレイここまで */}
                   <div className={`${styles.top_margin} w-full bg-[red]/[0]`}></div>
                   <div className={`${styles.header_area} flex-center relative h-[6%] w-full bg-[aqua]/[0]`}>
-                    <h1 className={`${styles.header} font-semibold`}>御見積書</h1>
+                    {quotationDivision !== "C lease" && <h1 className={`${styles.header} font-semibold`}>御見積書</h1>}
+                    {quotationDivision === "C lease" && (
+                      <h1 className={`${styles.header} font-semibold`}>リース御見積書</h1>
+                    )}
                     <div
                       className={`${styles.header_right} absolute right-0 top-0 flex h-full flex-col items-end justify-end bg-[yellow]/[0] text-[8px]`}
                     >
@@ -1525,6 +1537,7 @@ const QuotationPreviewModalMemo = () => {
                         <div className={`${styles.row_group_container} bg-[white]/[0]`}>
                           {dealTitleArray.map((obj, index) => {
                             if (!obj.isPrint) return;
+                            if (quotationDivision === "C lease" && obj.title === "payment_terms") return;
 
                             return (
                               <div key={obj.jpTitle} className={`${styles.row_area} flex items-end`}>
@@ -1602,19 +1615,115 @@ const QuotationPreviewModalMemo = () => {
                               </div>
                             );
                           })}
+                          {/* リース期間 */}
+                          {quotationDivision === "C lease" && (
+                            <div className={`${styles.row_area} flex items-end`}>
+                              <div className={`${styles.title} flex justify-between`}>
+                                {leasePeriodTitleLetterArray.map((letter) => (
+                                  <span key={letter + "lease_period"}>{letter}</span>
+                                ))}
+                              </div>
+                              {!isEditMode.includes("lease_period") && (
+                                <div className={`${styles.deal_content} truncate`}>
+                                  <span
+                                    onClick={handleSingleClickField}
+                                    onDoubleClick={(e) => {
+                                      handleDoubleClickField({
+                                        e,
+                                        field: "lease_period",
+                                        // dispatch: obj.dispatch,
+                                        // selectedRowDataValue: obj.state ?? "",
+                                      });
+                                    }}
+                                  >
+                                    {leasePeriodText}
+                                  </span>
+                                </div>
+                              )}
+
+                              {isEditMode.includes("lease_period") && (
+                                <div className={`${styles.deal_content}`}>
+                                  <input
+                                    className={`${styles.input_box} ${styles.deal_content} truncate`}
+                                    value={leasePeriodText}
+                                    onChange={(e) => {
+                                      const inputValue = e.target.value;
+                                      const textarea = e.target;
+                                      const limitLength = 23;
+                                      const lengthExceeded =
+                                        inputValue.length > limitLength || textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
+
+                                      if (lengthExceeded) {
+                                        // ポップアップメッセージを表示
+                                        if (lengthExceeded) showAlertPopup("length");
+
+                                        // 制限を超えた場合の処理 1文字目から245文字のみ残す
+                                        // let trimmedText = inputValue.slice(0, limitLength);
+                                        let trimmedText;
+
+                                        // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
+                                        // 文字数制限を超えている場合、再度文字数制限でトリム
+                                        if (inputValue.length > limitLength) {
+                                          if (inputValue.length === leasePeriodText.length + 1)
+                                            return console.log("一文字");
+                                          trimmedText = inputValue.slice(0, limitLength);
+                                        } else {
+                                          // 文字数を超えずに表示可能領域のみ超えた場合はstateを更新せずにリターン
+                                          return;
+                                        }
+
+                                        setLeasePeriodText(trimmedText);
+                                      } else {
+                                        // 制限内の場合はそのままセット
+                                        setLeasePeriodText(inputValue);
+                                      }
+                                    }}
+                                    autoFocus={isEditMode.every((field) => field === "lease_period")}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {/* リース期間 ここまで */}
                         </div>
                       </div>
                       <div className={`${styles.total_amount_area} flex flex-col justify-end bg-[yellow]/[0]`}>
                         <div className={`flex h-full w-full items-end`}>
-                          <div className={`text-[13px] ${styles.amount_title}`}>
-                            {amountTitleArray.map((letter) => (
-                              <span key={letter}>{letter}</span>
-                            ))}
-                          </div>
-                          <div className={`text-[13px] ${styles.amount_content} flex items-end`}>
+                          {quotationDivision !== "C lease" && (
+                            <div className={`text-[13px] ${styles.amount_title}`}>
+                              {amountTitleArray.map((letter) => (
+                                <span key={letter}>{letter}</span>
+                              ))}
+                            </div>
+                          )}
+                          {quotationDivision === "C lease" && (
+                            <div className={`text-[12px] ${styles.lease_monthly_fee_title}`}>
+                              {leaseTitleArray.map((letter) => (
+                                <span key={letter}>{letter}</span>
+                              ))}
+                              <span>（税抜）</span>
+                            </div>
+                          )}
+                          <div
+                            className={`text-[13px] ${
+                              quotationDivision !== "C lease"
+                                ? styles.amount_content
+                                : `${styles.lease_monthly_fee_content}`
+                            } flex items-end`}
+                          >
                             {/* <span>￥6,000,000-</span> */}
                             {/* {totalAmount && <span>{formatDisplayPrice(6000000)}-</span>} */}
-                            {totalAmount && <span>{formatDisplayPrice(totalAmount, language, true)}-</span>}
+                            {totalAmount && quotationDivision === "A standard" && (
+                              <span>{formatDisplayPrice(totalAmount, language, true)}-</span>
+                            )}
+                            {quotationDivision === "B set" && (
+                              <span>{formatDisplayPrice(selectedRowDataQuotation.set_price ?? 0, language, true)}</span>
+                            )}
+                            {quotationDivision === "C lease" && (
+                              <span>
+                                {formatDisplayPrice(selectedRowDataQuotation.lease_monthly_fee ?? 0, language, true)}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <div className={`${styles.section_underline}`} />
@@ -2148,10 +2257,10 @@ const QuotationPreviewModalMemo = () => {
                                         </>
                                       )}
                                       {colIndex === 1 && <span>{obj.quotation_product_quantity}</span>}
-                                      {colIndex === 2 && (
+                                      {colIndex === 2 && quotationDivision === "A standard" && (
                                         <span>{formatDisplayPrice(obj.quotation_product_unit_price)}</span>
                                       )}
-                                      {colIndex === 3 && (
+                                      {colIndex === 3 && quotationDivision === "A standard" && (
                                         <span>{formatDisplayPrice(obj.quotation_product_unit_price)}</span>
                                       )}
                                     </div>
@@ -2198,6 +2307,7 @@ const QuotationPreviewModalMemo = () => {
                       </div>
                     )}
 
+                    {/* 本体合計 */}
                     {quotationDivision === "A standard" && isValidNumber(totalPrice) && (
                       <div
                         role="row"
@@ -2233,21 +2343,60 @@ const QuotationPreviewModalMemo = () => {
                               index === 0 ? `${styles.first}` : `${styles.end}`
                             }`}
                           >
-                            {index === 0 && quotationDivision === "B set" && <span>セット数</span>}
+                            {index === 0 && ["B set"].includes(quotationDivision) && <span>セット数</span>}
                             {index === 1 && quotationDivision === "B set" && (
-                              <span>
+                              <span className="tracking-[3px]">
                                 {(selectedRowDataQuotation.set_item_count ?? 1).toString() +
                                   (selectedRowDataQuotation.set_unit_name ?? "式")}
                               </span>
                             )}
+                            {index === 1 && quotationDivision === "C lease" && (
+                              <span className="tracking-[3px]">1式</span>
+                            )}
                             {index === 3 && quotationDivision === "B set" && (
                               <span>{formatDisplayPrice(selectedRowDataQuotation.set_price ?? 0)}</span>
+                            )}
+                            {index === 3 && quotationDivision === "C lease" && (
+                              <span>{formatDisplayPrice(selectedRowDataQuotation.total_amount ?? 0)}</span>
                             )}
                           </div>
                         ))}
                       </div>
                     )}
 
+                    {/* 以下余白 標準見積以外 */}
+                    {quotationDivision !== "A standard" && (
+                      <div
+                        role="row"
+                        style={{
+                          height: `calc(${
+                            100 -
+                            3.3 -
+                            (!!productsArray.length ? 0.7 : 0) -
+                            3.9 * productsArray.length -
+                            (isValidNumber(totalPrice) ? 3.9 : 0) -
+                            (isValidNumber(discountAmount) && Number(discountAmount) !== 0 ? 3.9 : 0)
+                          }%)`,
+                          // height: `calc(${100 - 3.3 - 0.7 - 3.9 * productsArray.length - 3.9 - (isDiscount ? 3.9 : 0)}%)`,
+                        }}
+                        className={`${styles.row_result} ${styles.row_margin_bottom}`}
+                      >
+                        {columnHeaderTitleArray.map((key, index) => (
+                          <div
+                            key={key + index.toString() + "margin-bottom"}
+                            role="gridcell"
+                            className={`${styles.grid_cell} flex ${
+                              index === 0 ? `items-start justify-center pt-[5%]` : `items-center`
+                            }`}
+                          >
+                            {index === 0 && <span>以下余白</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* 以下余白 標準見積以外 ここまで */}
+
+                    {/* 出精値引 標準見積でのみ表示 */}
                     {/* {isDiscount && ( */}
                     {quotationDivision === "A standard" &&
                       isValidNumber(discountAmount) &&
@@ -2273,7 +2422,9 @@ const QuotationPreviewModalMemo = () => {
                           ))}
                         </div>
                       )}
+                    {/* 出精値引 標準見積でのみ表示 ここまで */}
 
+                    {/* 出精値引 標準見積以外は空白 */}
                     {quotationDivision !== "A standard" && (
                       <div role="row" style={{ minHeight: `${3.9}%` }} className={`${styles.row_result}`}>
                         {columnHeaderTitleArray.map((key, index) => (
@@ -2296,33 +2447,39 @@ const QuotationPreviewModalMemo = () => {
                         ))}
                       </div>
                     )}
-                    <div
-                      role="row"
-                      style={{
-                        height: `calc(${
-                          100 -
-                          3.3 -
-                          (!!productsArray.length ? 0.7 : 0) -
-                          3.9 * productsArray.length -
-                          (isValidNumber(totalPrice) ? 3.9 : 0) -
-                          (isValidNumber(discountAmount) && Number(discountAmount) !== 0 ? 3.9 : 0)
-                        }%)`,
-                        // height: `calc(${100 - 3.3 - 0.7 - 3.9 * productsArray.length - 3.9 - (isDiscount ? 3.9 : 0)}%)`,
-                      }}
-                      className={`${styles.row_result} ${styles.row_margin_bottom}`}
-                    >
-                      {columnHeaderTitleArray.map((key, index) => (
-                        <div
-                          key={key + index.toString() + "margin-bottom"}
-                          role="gridcell"
-                          className={`${styles.grid_cell} flex ${
-                            index === 0 ? `items-start justify-center pt-[5%]` : `items-center`
-                          }`}
-                        >
-                          {index === 0 && <span>以下余白</span>}
-                        </div>
-                      ))}
-                    </div>
+                    {/* 出精値引 標準見積以外は空白 ここまで */}
+
+                    {/* 以下余白 標準見積ではここで表示 */}
+                    {quotationDivision === "A standard" && (
+                      <div
+                        role="row"
+                        style={{
+                          height: `calc(${
+                            100 -
+                            3.3 -
+                            (!!productsArray.length ? 0.7 : 0) -
+                            3.9 * productsArray.length -
+                            (isValidNumber(totalPrice) ? 3.9 : 0) -
+                            (isValidNumber(discountAmount) && Number(discountAmount) !== 0 ? 3.9 : 0)
+                          }%)`,
+                          // height: `calc(${100 - 3.3 - 0.7 - 3.9 * productsArray.length - 3.9 - (isDiscount ? 3.9 : 0)}%)`,
+                        }}
+                        className={`${styles.row_result} ${styles.row_margin_bottom}`}
+                      >
+                        {columnHeaderTitleArray.map((key, index) => (
+                          <div
+                            key={key + index.toString() + "margin-bottom"}
+                            role="gridcell"
+                            className={`${styles.grid_cell} flex ${
+                              index === 0 ? `items-start justify-center pt-[5%]` : `items-center`
+                            }`}
+                          >
+                            {index === 0 && <span>以下余白</span>}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {/* 以下余白 標準見積ではここで表示 ここまで */}
                   </div>
 
                   <div role="row" className={`${styles.row_amount} w-full bg-[#09ff0000]`}>
@@ -2334,14 +2491,27 @@ const QuotationPreviewModalMemo = () => {
                           index === 0 ? `${styles.first}` : `${styles.end}`
                         }`}
                       >
-                        {index === 0 && (
+                        {/* 合計 */}
+                        {index === 0 && quotationDivision !== "C lease" && (
                           <div className={`flex h-full w-[24%] items-center justify-between`}>
                             <span>合</span>
                             <span>計</span>
                           </div>
                         )}
+                        {/* 物件金額 */}
+                        {index === 0 && quotationDivision === "C lease" && (
+                          <div className={`flex h-full w-[40%] items-center justify-between`}>
+                            <span>物</span>
+                            <span>件</span>
+                            <span>金</span>
+                            <span>額</span>
+                          </div>
+                        )}
                         {/* {index === 3 && <span>{formatDisplayPrice(6000000)}</span>} */}
-                        {index === 3 && <span>{formatDisplayPrice(totalAmount)}</span>}
+                        {index === 3 && quotationDivision !== "B set" && <span>{formatDisplayPrice(totalAmount)}</span>}
+                        {index === 3 && quotationDivision === "B set" && (
+                          <span>{formatDisplayPrice(selectedRowDataQuotation.set_price ?? 0)}</span>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -3050,26 +3220,29 @@ const QuotationPreviewModalMemo = () => {
                           <div className={`${styles.underline} w-full`} />
                         </div>
                       </li>
-                      {dealStateArray.map((obj, index) => (
-                        <li
-                          key={obj.title + "_setting"}
-                          className={`${styles.list} relative`}
-                          // onMouseEnter={(e) => {
-                          //   handleOpenPopupMenu({ e, title: "footnotes" });
-                          // }}
-                          // onMouseLeave={handleClosePopupMenu}
-                        >
-                          <div className="pointer-events-none relative flex min-w-[110px] items-center">
-                            <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
-                            <div className="flex select-none items-center space-x-[2px]">
-                              <span className={`${styles.list_title}`}>{obj.jpTitle}</span>
-                              <span className={``}>：</span>
+                      {dealStateArray.map((obj, index) => {
+                        if (quotationDivision === "C lease" && obj.title === "payment_terms") return;
+                        return (
+                          <li
+                            key={obj.title + "_setting"}
+                            className={`${styles.list} relative`}
+                            // onMouseEnter={(e) => {
+                            //   handleOpenPopupMenu({ e, title: "footnotes" });
+                            // }}
+                            // onMouseLeave={handleClosePopupMenu}
+                          >
+                            <div className="pointer-events-none relative flex min-w-[110px] items-center">
+                              <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                              <div className="flex select-none items-center space-x-[2px]">
+                                <span className={`${styles.list_title}`}>{obj.jpTitle}</span>
+                                <span className={``}>：</span>
+                              </div>
                             </div>
-                          </div>
 
-                          <ToggleSwitch state={obj.isPrint} dispatch={obj.setIsPrint} />
-                        </li>
-                      ))}
+                            <ToggleSwitch state={obj.isPrint} dispatch={obj.setIsPrint} />
+                          </li>
+                        );
+                      })}
                       {/* ------------------------------------ */}
 
                       {/* {Array(3)

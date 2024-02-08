@@ -11,7 +11,7 @@ type UseDownloadUrlReturn = {
 export const useDownloadUrl = (
   filePath: string | undefined | null,
   // key: "avatars" | "documents"
-  key: "avatars" | "documents" | "customer_company_logos" | "signature_stamps"
+  key: "avatars" | "documents" | "customer_company_logos" | "signature_stamps" | "company_seal"
 ): UseDownloadUrlReturn => {
   const supabase = useSupabaseClient();
   // const [isLoading, setIsLoading] = useState(false);

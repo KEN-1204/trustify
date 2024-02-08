@@ -35,6 +35,7 @@ import { ImInfo } from "react-icons/im";
 import { toHalfWidthAndSpaceAndHyphen } from "@/utils/Helpers/toHalfWidthAndSpaceAndHyphen";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { toHalfWidth } from "@/utils/Helpers/toHalfWidth";
+import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 
 const SettingProfileMemo = () => {
   const language = useStore((state) => state.language);
@@ -47,11 +48,18 @@ const SettingProfileMemo = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
 
+  // 見積書プレビュー
+  const setIsOpenQuotationPreviewForProfile = useDashboardStore((state) => state.setIsOpenQuotationPreviewForProfile);
+
   // infoアイコン
   const infoIconStampRef = useRef<HTMLDivElement | null>(null);
   const infoIconTELRef = useRef<HTMLDivElement | null>(null);
   const infoIconMobileRef = useRef<HTMLDivElement | null>(null);
   const infoIconFAXRef = useRef<HTMLDivElement | null>(null);
+  // const infoIconDepartmentRef = useRef<HTMLDivElement | null>(null);
+  // const infoIconUnitRef = useRef<HTMLDivElement | null>(null);
+  // const infoIconOfficeRef = useRef<HTMLDivElement | null>(null);
+  // const infoIconEmployeeIdRef = useRef<HTMLDivElement | null>(null);
 
   // 名前編集モード
   const [editNameMode, setEditNameMode] = useState(false);
@@ -393,6 +401,7 @@ const SettingProfileMemo = () => {
   };
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   type TooltipParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -449,16 +458,39 @@ const SettingProfileMemo = () => {
         <div className={`flex h-full w-full flex-col overflow-y-scroll px-[20px] py-[20px] pr-[80px]`}>
           {/* <div className={`text-[18px] font-bold`}>プロフィール</div> */}
           <div className="flex max-h-[27px] items-center">
-            <h2 className={`mr-[10px] text-[18px] font-bold`}>プロフィール</h2>
+            <h2 className={`mr-[30px] text-[18px] font-bold`}>プロフィール</h2>
+            <RippleButton
+              title={`見積書プレビュー`}
+              classText={`select-none`}
+              clickEventHandler={() => {
+                setIsOpenQuotationPreviewForProfile(true);
+              }}
+              onMouseEnterHandler={(e) =>
+                handleOpenTooltip({
+                  e: e,
+                  display: "top",
+                  content: `現在のプロフィール内容で見積書の反映状況をプレビューで確認する`,
+                  // content2: ``,
+                  // content3: ``,
+                  // marginTop: 48,
+                  // marginTop: 28,
+                  marginTop: 9,
+                })
+              }
+              onMouseLeaveHandler={() => {
+                if (hoveredItemPos) handleCloseTooltip();
+              }}
+            />
             <button
-              className={`flex-center transition-bg03 relative  h-[26px] min-w-[110px]  cursor-pointer space-x-1  rounded-[4px] border border-solid border-transparent px-[6px] text-[12px]  hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-fc0)] hover:text-[#fff] ${
+              className={`flex-center transition-bg03 text-[var(--color-bg-brand-f))] relative ml-[6px] h-[26px]  min-w-[110px] cursor-pointer  space-x-1 rounded-[4px] border border-solid border-transparent px-[6px]  text-[12px] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-fc0)] hover:text-[#fff] ${
                 styles.fh_text_btn
               } ${
                 isLoadingRefresh
                   ? `border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-fc0)] text-[#fff]`
-                  : `text-[var(--color-text-sub)]`
+                  : // : `text-[var(--color-text-sub)]`
+                    `text-[var(--color-bg-brand-f))]`
               }`}
-              data-text={`最新の状態にリフレッシュ`}
+              // data-text={`最新の状態にリフレッシュ`}
               onMouseEnter={(e) =>
                 handleOpenTooltip({
                   e: e,

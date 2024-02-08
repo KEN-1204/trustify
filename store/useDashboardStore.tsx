@@ -417,6 +417,9 @@ type State = {
   // 見積書プレビューモーダル
   isOpenQuotationPreviewModal: boolean;
   setIsOpenQuotationPreviewModal: (payload: boolean) => void;
+  // プロフィール用見積書プレビューモーダル
+  isOpenQuotationPreviewForProfile: boolean;
+  setIsOpenQuotationPreviewForProfile: (payload: boolean) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -991,6 +994,9 @@ const useDashboardStore = create<State>((set) => ({
   // 見積書プレビューモーダル
   isOpenQuotationPreviewModal: false,
   setIsOpenQuotationPreviewModal: (payload) => set({ isOpenQuotationPreviewModal: payload }),
+  // プロフィール用見積書プレビューモーダル
+  isOpenQuotationPreviewForProfile: false,
+  setIsOpenQuotationPreviewForProfile: (payload) => set({ isOpenQuotationPreviewForProfile: payload }),
 }));
 
 export default useDashboardStore;

@@ -179,6 +179,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const infoIconDiscountRateRef = useRef<HTMLDivElement | null>(null);
   const infoIconQuotationNoRef = useRef<HTMLDivElement | null>(null);
   const infoIconQuotationProductList = useRef<HTMLDivElement | null>(null);
+  const infoIconSetQuotation = useRef<HTMLDivElement | null>(null);
+  const infoIconLeaseQuotation = useRef<HTMLDivElement | null>(null);
+  const infoIconRule = useRef<HTMLDivElement | null>(null);
 
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
@@ -719,7 +722,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setInputDiscountTitleEdit(row?.discount_title ? row.discount_title : "");
     setInputQuotationRemarks(row?.quotation_remarks ? row.quotation_remarks : "");
     setInputSetItemCountEdit(row?.set_item_count ? row.set_item_count : null);
-    setInputSetUnitNameEdit(row?.set_unit_name ? row.set_unit_name : "");
+    setInputSetUnitNameEdit(row?.set_unit_name ? row.set_unit_name : language === "ja" ? `式` : ``);
     setInputSetPriceEdit(isValidNumber(row?.set_price) ? formatDisplayPrice(row.set_price!) : "");
     setInputLeasePeriodEdit(row?.lease_period ? row.lease_period : null);
     setInputLeaseRateEdit(row?.lease_rate ? row.lease_rate.toString() : "");
@@ -4943,6 +4946,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     cols={30}
                                     // rows={10}
                                     placeholder=""
+                                    autoFocus
                                     style={{ whiteSpace: "pre-wrap" }}
                                     className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea}`}
                                     value={inputQuotationNotes}
@@ -6023,11 +6027,58 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <div className={`${styles.row_area} flex w-full items-center`}>
                           <div className="flex h-full w-full flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center`}>
-                              <span className={`${styles.title} ${fieldEditTitle("quotation_rule")}`}>見積ルール</span>
+                              {/* <span className={`${styles.title} ${fieldEditTitle("quotation_rule")}`}>見積ルール</span> */}
+                              <div
+                                className={`${styles.title} ${fieldEditTitle("quotation_rule")} flex items-center`}
+                                onMouseEnter={(e) => {
+                                  // if (!(isInsertModeQuotation || isUpdateModeQuotation)) return;
+                                  // if (
+                                  //   (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                  //   infoIconRule.current &&
+                                  //   infoIconRule.current.classList.contains(styles.animate_ping)
+                                  // ) {
+                                  //   infoIconRule.current.classList.remove(styles.animate_ping);
+                                  // }
+                                  handleOpenTooltip({
+                                    e: e,
+                                    display: "top",
+                                    content: `依頼元の会社・部署に紐づく見積ルールの作成が可能です。`,
+                                    content2: !selectedRowDataQuotation?.quotation_rule
+                                      ? `編集アイコンをダブルクリックすることで作成画面を表示します。`
+                                      : `データをダブルクリックですることで編集画面を表示します。`,
+                                    content3: `お客様毎の値引や御見積書の提出ルールをメンバーに周知する際に使用します。`,
+                                    // content4: ``,
+                                    marginTop: 28,
+                                    itemsPosition: "center",
+                                  });
+                                }}
+                                onMouseLeave={() => {
+                                  if (hoveredItemPosWrap) handleCloseTooltip();
+                                }}
+                              >
+                                <span
+                                  className={`${selectedRowDataQuotation?.quotation_rule ? `mr-[6px]` : `mr-[9px]`}`}
+                                >
+                                  見積ルール
+                                </span>
+
+                                {!selectedRowDataQuotation?.quotation_rule && isEditModeField !== "quotation_rule" && (
+                                  <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                                    <div
+                                      ref={infoIconRule}
+                                      className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)]`}
+                                    ></div>
+                                    <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                                  </div>
+                                )}
+                              </div>
+
                               {!searchMode && isEditModeField !== "quotation_rule" && (
                                 <div className="flex max-w-full items-center space-x-[9px] truncate">
                                   <span
-                                    className={`${styles.value} ${styles.text_start} ${styles.value_highlight} ${styles.editable_field}`}
+                                    className={`${styles.value} ${styles.text_start} ${styles.value_highlight} ${
+                                      isInsertModeQuotation || isUpdateModeQuotation ? `` : styles.editable_field
+                                    }`}
                                     data-text={`${
                                       selectedRowDataQuotation?.quotation_rule
                                         ? selectedRowDataQuotation?.quotation_rule
@@ -6042,8 +6093,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                                       if (hoveredItemPosWrap) handleCloseTooltip();
                                     }}
-                                    onClick={handleSingleClickField}
+                                    onClick={(e) => {
+                                      if (isInsertModeQuotation || isUpdateModeQuotation) return;
+                                      handleSingleClickField(e);
+                                    }}
                                     onDoubleClick={(e) => {
+                                      if (isInsertModeQuotation || isUpdateModeQuotation) return;
                                       handleDoubleClickField({
                                         e,
                                         field: "quotation_rule",
@@ -6062,15 +6117,25 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     !selectedRowDataQuotation?.quotation_rule &&
                                     isEditModeField !== "quotation_rule" && (
                                       <div
-                                        className={`relative !ml-[4px] h-[22px] w-[22px] ${styles.editable_icon}`}
+                                        className={`relative !ml-[12px] h-[22px] w-[22px] ${
+                                          isInsertModeQuotation || isUpdateModeQuotation ? `` : styles.editable_icon
+                                        }`}
                                         data-text={`依頼元の会社・部署に紐づく見積ルールの作成が可能です。`}
                                         data-text2={`ダブルクリックで作成画面を表示します。`}
                                         onMouseEnter={(e) => {
+                                          if (isInsertModeQuotation || isUpdateModeQuotation) return;
                                           handleOpenTooltip({ e, display: "top" });
                                         }}
-                                        onMouseLeave={handleCloseTooltip}
-                                        onClick={handleSingleClickField}
+                                        onMouseLeave={(e) => {
+                                          // e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                          if (hoveredItemPosWrap) handleCloseTooltip();
+                                        }}
+                                        onClick={(e) => {
+                                          if (isInsertModeQuotation || isUpdateModeQuotation) return;
+                                          handleSingleClickField(e);
+                                        }}
                                         onDoubleClick={(e) => {
+                                          if (isInsertModeQuotation || isUpdateModeQuotation) return;
                                           handleDoubleClickField({
                                             e,
                                             field: "quotation_rule",
@@ -7239,6 +7304,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     cols={30}
                                     // rows={10}
                                     placeholder=""
+                                    autoFocus
                                     style={{ whiteSpace: "pre-wrap" }}
                                     className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea}`}
                                     value={inputQuotationRemarks}
@@ -7289,7 +7355,45 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <div className={`${styles.row_area} flex w-full items-center`}>
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
-                              <span className={`${styles.title}`}>セット見積り</span>
+                              {/* <span className={`${styles.title}`}>セット見積り</span> */}
+                              <div
+                                className={`${styles.title} flex items-center`}
+                                onMouseEnter={(e) => {
+                                  // if (!(isInsertModeQuotation || isUpdateModeQuotation)) return;
+                                  if (
+                                    (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                    infoIconSetQuotation.current &&
+                                    infoIconSetQuotation.current.classList.contains(styles.animate_ping)
+                                  ) {
+                                    infoIconSetQuotation.current.classList.remove(styles.animate_ping);
+                                  }
+                                  handleOpenTooltip({
+                                    e: e,
+                                    display: "top",
+                                    content: `見積区分を「セット見積」にすることでセット御見積書の作成が可能です。`,
+                                    content2: `セット御見積書はセット価格のみが表示されず、商品ごとの単価、合計金額は記載されません。`,
+                                    content3: `値引実績を残すことができないケースなどに有効です。`,
+                                    // content4: ``,
+                                    marginTop: 28,
+                                    itemsPosition: "left",
+                                  });
+                                }}
+                                onMouseLeave={() => {
+                                  if (hoveredItemPosWrap) handleCloseTooltip();
+                                }}
+                              >
+                                <span className={`mr-[6px]`}>セット見積り</span>
+
+                                <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                                  <div
+                                    ref={infoIconSetQuotation}
+                                    className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                                      isInsertModeQuotation || isUpdateModeQuotation ? styles.animate_ping : ``
+                                    }`}
+                                  ></div>
+                                  <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                                </div>
+                              </div>
                             </div>
                             {/* <div className={`${styles.underline}`}></div> */}
                             <div className={`${styles.section_underline}`}></div>
@@ -7297,7 +7401,45 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           {/* リース見積り */}
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center`}>
-                              <span className={`${styles.title}`}>リース見積り</span>
+                              {/* <span className={`${styles.title}`}>リース見積り</span> */}
+                              <div
+                                className={`${styles.title} flex items-center`}
+                                onMouseEnter={(e) => {
+                                  // if (!(isInsertModeQuotation || isUpdateModeQuotation)) return;
+                                  if (
+                                    (isInsertModeQuotation || isUpdateModeQuotation) &&
+                                    infoIconLeaseQuotation.current &&
+                                    infoIconLeaseQuotation.current.classList.contains(styles.animate_ping)
+                                  ) {
+                                    infoIconLeaseQuotation.current.classList.remove(styles.animate_ping);
+                                  }
+                                  handleOpenTooltip({
+                                    e: e,
+                                    display: "top",
+                                    content: `見積区分を「リース見積」にすることでリース御見積書の作成が可能です。`,
+                                    content2: `事前に料率のみ確認してリース御見積書を準備することで、お客様との初回面談でいつでもリース提案による商談が可能となります。`,
+                                    content3: `お客様に合わせた買い方の提案で初回面談での即売り・受注率の向上に繋がります`,
+                                    // content4: ``,
+                                    marginTop: 28,
+                                    itemsPosition: "left",
+                                  });
+                                }}
+                                onMouseLeave={() => {
+                                  if (hoveredItemPosWrap) handleCloseTooltip();
+                                }}
+                              >
+                                <span className={`mr-[6px]`}>リース見積り</span>
+
+                                <div className="flex-center relative h-[15px] w-[15px] rounded-full">
+                                  <div
+                                    ref={infoIconLeaseQuotation}
+                                    className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                                      isInsertModeQuotation || isUpdateModeQuotation ? styles.animate_ping : ``
+                                    }`}
+                                  ></div>
+                                  <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
+                                </div>
+                              </div>
                             </div>
                             {/* <div className={`${styles.underline}`}></div> */}
                             <div className={`${styles.section_underline}`}></div>

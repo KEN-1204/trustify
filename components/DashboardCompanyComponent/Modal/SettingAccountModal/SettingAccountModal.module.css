@@ -416,6 +416,9 @@
   font-size: 14px;
   color: #fff;
 }
+.fh_text_btn {
+  color: var(--color-bg-brand-f);
+}
 .section_value {
   font-weight: 600;
   font-size: 16px;

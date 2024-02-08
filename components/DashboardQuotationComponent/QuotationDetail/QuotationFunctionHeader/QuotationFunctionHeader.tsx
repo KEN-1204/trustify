@@ -257,6 +257,10 @@ const QuotationFunctionHeaderMemo: FC = () => {
                 alert("見積データを選択してください");
                 return;
               }
+              if (selectedRowDataQuotation.submission_class === "B internal") {
+                alert("提出区分が社内用の見積書を印刷・PDF化はできません。");
+                return;
+              }
               setIsOpenQuotationPreviewModal(true);
             }}
             onMouseEnterHandler={(e) =>
