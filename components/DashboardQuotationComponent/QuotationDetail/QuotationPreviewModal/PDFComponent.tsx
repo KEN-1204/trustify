@@ -10,9 +10,10 @@ import { ImInfo } from "react-icons/im";
 
 type Props = {
   isSample: boolean;
+  modalPosLeft?: number | undefined;
 };
 
-const PDFComponentMemo = ({ isSample = true }: Props) => {
+const PDFComponentMemo = ({ isSample = true, modalPosLeft }: Props) => {
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
@@ -24,13 +25,73 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
   const departmentName = userProfileState?.assigned_department_name ?? null;
   const officeName = userProfileState?.assigned_office_name ?? null;
 
-  const { fullUrl: logoUrl, isLoading: isLoadingLogo } = useDownloadUrl(_logoUrl, "customer_company_logos");
-  const { fullUrl: stampUrl, isLoading: isLoadingStamp } = useDownloadUrl(userStampUrl, "signature_stamps");
-  const { fullUrl: corporateSealUrl, isLoading: isLoadingCorporateSeal } = useDownloadUrl(
-    _corporateSealUrl,
-    "company_seal"
+  // const { fullUrl: logoUrl, isLoading: isLoadingLogo } = useDownloadUrl(_logoUrl, "customer_company_logos");
+  // const { fullUrl: stampUrl, isLoading: isLoadingStamp } = useDownloadUrl(userStampUrl, "signature_stamps");
+  // const { fullUrl: corporateSealUrl, isLoading: isLoadingCorporateSeal } = useDownloadUrl(
+  //   _corporateSealUrl,
+  //   "company_seals"
+  // );
+  // 🔹会社ロゴ画像URL まだオブジェクトURLが格納されていない場合はisEnabledがtrueになり、既に存在する場合はfalseでフェッチをしない
+  const companyLogoImgURL = useDashboardStore((state) => state.companyLogoImgURL);
+  const setCompanyLogoImgURL = useDashboardStore((state) => state.setCompanyLogoImgURL);
+  const { isLoading: isLoadingLogo } = useDownloadUrl(_logoUrl, "customer_company_logos");
+  // 🔹印鑑データ画像URL 印鑑データの画像オブジェクトURLはプロフィール画面で生成してZustandに格納ずみなのでdownloadは不要
+  const myStampImgURL = useDashboardStore((state) => state.myStampImgURL);
+  const setMyStampImgURL = useDashboardStore((state) => state.setMyStampImgURL);
+  const { isLoading: isLoadingStamp } = useDownloadUrl(userStampUrl, "signature_stamps");
+  // 🔹角印画像URL
+  const companySealImgURL = useDashboardStore((state) => state.companySealImgURL);
+  const setCompanySealImgURL = useDashboardStore((state) => state.setCompanySealImgURL);
+  // const { fullUrl: stampUrl, isLoading: isLoadingStamp } = useDownloadUrl(userStampUrl, "signature_stamps");
+  const { isLoading: isLoadingCorporateSeal } = useDownloadUrl(_corporateSealUrl, "company_seals");
+
+  // 見積書プレビューアンマウント時にリソースを解放
+  // useEffect(() => {
+  //   return () => {
+  //     // 印鑑データ
+  //     if (myStampImgURL) {
+  //       URL.revokeObjectURL(myStampImgURL);
+  //       setMyStampImgURL(null);
+  //     }
+  //     // 会社ロゴ
+  //     if (companyLogoImgURL) {
+  //       URL.revokeObjectURL(companyLogoImgURL);
+  //       setCompanyLogoImgURL(null);
+  //     }
+  //     // 角印・社印
+  //     if (companySealImgURL) {
+  //       URL.revokeObjectURL(companySealImgURL);
+  //       setCompanySealImgURL(null);
+  //     }
+  //   };
+  // }, []);
+
+  console.log(
+    "PDFComponent",
+    PDFComponent,
+    "companyLogoImgURL",
+    companyLogoImgURL,
+    "myStampImgURL",
+    myStampImgURL,
+    "companySealImgURL",
+    companySealImgURL
   );
-  console.log("logoUrl", logoUrl, "stampUrl", stampUrl, "corporateSealUrl", corporateSealUrl);
+
+  // アンマウント時にObjectURLをリソース解放 会社ロゴ画像と角印画像URLはプロフィール画面で使用しないため、ここでリソース解放
+  // アカウント設定モーダルのアンマウント時にリソースを解放
+  // useEffect(() => {
+  //   return () => {
+  //     // 会社ロゴ画像と角印はここでリソース解放
+  //     if (companyLogoImgURL) {
+  //       URL.revokeObjectURL(companyLogoImgURL);
+  //       setCompanyLogoImgURL(null);
+  //     }
+  //     if (companySealImgURL) {
+  //       URL.revokeObjectURL(companySealImgURL);
+  //       setCompanySealImgURL(null);
+  //     }
+  //   };
+  // }, []);
 
   const notesText = `上記は2021年9月15日の午前中までにご発注いただいた場合に限る貴社向け今回限り特別価格となります。\n御値引きの口外は厳禁にてお願い申し上げます。`;
 
@@ -198,7 +259,9 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
     } else {
       const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
       // right: 見積書の右端から-18px, アイコンサイズ35px, ポップアップメニュー400px
-      const positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : 106 + 30;
+      // const positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : 106 + 30;
+
+      const positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : x - (modalPosLeft ?? 0) + width + 10;
       // -18 - 35 - openPopupMenu.width
       console.log(
         "title",
@@ -218,8 +281,7 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
       );
       setOpenPopupMenu({
         x: positionX,
-        // y: y - height / 2,
-        y: y - height,
+        y: y - height * 2,
         title: title,
         displayX: displayX,
         maxWidth: maxWidth,
@@ -238,6 +300,40 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
           <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" />
         </div>
       )}
+      {/* 説明ポップアップ */}
+      {openPopupMenu && (
+        <div
+          className={`${styles.description_menu} shadow-all-md border-real-with-shadow pointer-events-none fixed right-[-18px] z-[3500] flex min-h-max flex-col rounded-[6px]`}
+          style={{
+            top: `${openPopupMenu.y}px`,
+            ...(openPopupMenu?.displayX === "right" && {
+              right: `${openPopupMenu.x}px`,
+              maxWidth: `${openPopupMenu.maxWidth}px`,
+            }),
+            ...(openPopupMenu?.displayX === "left" && {
+              left: `${openPopupMenu.x}px`,
+              maxWidth: `${openPopupMenu.maxWidth}px`,
+            }),
+          }}
+        >
+          <div className={`min-h-max w-full font-bold ${styles.title}`}>
+            <div className="flex max-w-max flex-col">
+              <span>{mappingPopupTitle[openPopupMenu.title][language]}</span>
+              <div className={`${styles.underline} w-full`} />
+            </div>
+          </div>
+
+          <ul className={`flex flex-col rounded-[6px] ${styles.u_list}`}>
+            <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
+              <p className="select-none whitespace-pre-wrap text-[12px]">
+                {openPopupMenu.title === "notes" &&
+                  "プロフィール設定、会社・チーム設定画面での入力内容が「会社名、事業部、事業所、住所、電話番号、携帯、会社ロゴ、印鑑データ、法人印」に反映されます。\n会社名のサイズや脚注の内容などは実際の見積画面から編集が可能です。"}
+              </p>
+            </li>
+          </ul>
+        </div>
+      )}
+      {/* 説明ポップアップ */}
       {/* -------------------------------------------------------------------- */}
       {!isLoadingLogo && !isLoadingStamp && !isLoadingCorporateSeal && (
         <div
@@ -258,9 +354,10 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
             )}
             {!isSample && (
               <div
-                className={`flex-center absolute left-[20px] top-[20px] z-[50] rounded-[0px] border-[2px] border-solid border-[var(--color-bg-brand-f)] px-[10px] py-[6px] text-[13px] text-[var(--color-bg-brand-f)]`}
+                className={`flex-center absolute left-[20px] top-[20px] z-[50] rounded-[4px] border-[2px] border-solid border-[var(--color-bg-brand-f)] px-[10px] py-[6px] text-[13px] text-[var(--color-bg-brand-f)]`}
               >
-                <div className={`${styles.text1}`}>お客様用</div>
+                {/* <div className={`${styles.text1}`}>お客様用</div> */}
+                <div className={`${styles.text1}`}>貴社専用</div>
                 {/* <div className={`${styles.text2}`}>本</div> */}
               </div>
             )}
@@ -295,7 +392,7 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
               </div>
             )}
             {/* 説明ポップアップ */}
-            {openPopupMenu && (
+            {/* {openPopupMenu && (
               <div
                 className={`${styles.description_menu} shadow-all-md border-real-with-shadow fixed right-[-18px] z-[3500] flex min-h-max flex-col rounded-[6px]`}
                 style={{
@@ -318,34 +415,6 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
                 </div>
 
                 <ul className={`flex flex-col rounded-[6px] ${styles.u_list}`}>
-                  {/* {openPopupMenu.title === "compressionRatio" &&
-                    descriptionCompressionRatio.map((item, index) => (
-                      <li
-                        key={item.title + index.toString()}
-                        className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}
-                      >
-                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
-                          {item.title}
-                        </span>
-                        <p className="select-none text-[12px]">{item.content}</p>
-                      </li>
-                    ))} */}
-                  {/* {!["compressionRatio"].includes(openPopupMenu.title) && (
-                    <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
-                      <p className="select-none whitespace-pre-wrap text-[12px]">
-                        {openPopupMenu.title === "footnotes" &&
-                          "見積書末尾に記載される脚注を自由に編集が可能です。デフォルトテキストで保存したデータはブラウザを更新しても内容が保存されるため、自チームで常に使用している脚注がある場合は一度設定することでそれ以降の入力不要となります。"}
-                        {openPopupMenu.title === "print" &&
-                          "印刷ボタンクリック後に印刷ダイアログが開かれた後、「詳細設定」の「余白」を「なし」に切り替えることで綺麗に印刷ができます。"}
-                        {openPopupMenu.title === "pdf" &&
-                          "現在プレビューで表示されている見積書をPDFファイル形式でダウンロードします。"}
-                        {openPopupMenu.title === "settings" &&
-                          "設定メニューから、印鑑や枠線、各取引条件の表示有無や、会社名のサイズ調整、脚注のデフォルトテキストの編集など、各種設定が可能です。"}
-                        {openPopupMenu.title === "edit" &&
-                          "編集モードでは、各取引条件や、見積備考、脚注、事業部や事業所名の編集が可能です。\nまた、各項目は表示されている見積書から直接ダブルクリックすることでも編集が可能です。\n商品名と型式の順番は直接ドラッグ&ドロップで順番の入れ替え可能です。"}
-                      </p>
-                    </li>
-                  )} */}
                   <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
                     <p className="select-none whitespace-pre-wrap text-[12px]">
                       {openPopupMenu.title === "notes" &&
@@ -354,7 +423,7 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
                   </li>
                 </ul>
               </div>
-            )}
+            )} */}
             {/* 説明ポップアップ */}
             <div className={`${styles.top_margin} w-full bg-[red]/[0]`}></div>
             <div className={`${styles.header_area} flex-center relative h-[6%] w-full bg-[aqua]/[0]`}>
@@ -444,8 +513,11 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
                                 fill
                                 sizes="100px"
                               /> */}
-                        {!isSample && logoUrl && (
-                          <div style={{ backgroundImage: `url(${logoUrl})` }} className={`${styles.logo_img}`}></div>
+                        {!isSample && companyLogoImgURL && (
+                          <div
+                            style={{ backgroundImage: `url(${companyLogoImgURL})` }}
+                            className={`${styles.logo_img}`}
+                          ></div>
                         )}
                         {isSample && <div className={`${styles.logo_img}`}></div>}
                       </div>
@@ -553,6 +625,7 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
                   </div>
                   {/* ------------ customer_info_areaここまで ------------ */}
 
+                  {/* 角印・社印 */}
                   {isSample && (
                     <div
                       className={`${styles.corporate_seal_sample}  absolute right-[6%] top-0 z-[0] rounded-[4px] border-[2px] border-solid border-[red]/[0.7]`}
@@ -562,10 +635,10 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
                       <div className={`${styles.text3}`}>ィファイ</div>
                     </div>
                   )}
-                  {!isSample && corporateSealUrl && (
-                    <div className={`${styles.corporate_seal_sample} absolute right-[6%] top-0 z-[0] rounded-[4px]`}>
+                  {!isSample && companySealImgURL && (
+                    <div className={`${styles.corporate_seal} absolute right-[6%] top-0 z-[0] rounded-[4px]`}>
                       <NextImage
-                        src={corporateSealUrl}
+                        src={companySealImgURL}
                         alt=""
                         className="h-full w-full object-contain"
                         // width={}
@@ -574,6 +647,7 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
                       />
                     </div>
                   )}
+                  {/* 角印・社印 ここまで */}
                 </div>
 
                 {/* <div className={`${styles.stamps_area} flex flex-row-reverse bg-[blue]/[0]`}>
@@ -624,9 +698,9 @@ const PDFComponentMemo = ({ isSample = true }: Props) => {
                         <div key={index} className={`h-full w-full ${styles.stamp_box} flex-center`}>
                           {index === 0 && (
                             <div className="relative flex h-[25px] w-[25px] items-center justify-center rounded-full">
-                              {!isSample && stampUrl && (
+                              {!isSample && myStampImgURL && (
                                 <NextImage
-                                  src={stampUrl}
+                                  src={myStampImgURL}
                                   alt=""
                                   className="h-full w-full object-contain"
                                   // width={}

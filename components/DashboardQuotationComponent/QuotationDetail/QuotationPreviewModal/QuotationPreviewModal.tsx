@@ -187,13 +187,52 @@ const QuotationPreviewModalMemo = () => {
   // 画像をPDF化する際の圧縮率3段階を指定
   const [compressionRatio, setCompressionRatio] = useState<CompressionRatio>("FAST");
   // 法人印の表示有無
-  const [companyLogoUrl, setCompanyLogoUrl] = useState<string | null>(userProfileState?.logo_url || null);
+  // const [companyLogoUrl, setCompanyLogoUrl] = useState<string | null>(userProfileState?.logo_url || null);
+  const _logoUrl = userProfileState?.logo_url ?? null;
+  const companyLogoUrl = useDashboardStore((state) => state.companyLogoImgURL);
+  const setCompanyLogoImgURL = useDashboardStore((state) => state.setCompanyLogoImgURL);
+  const { isLoading: isLoadingLogo } = useDownloadUrl(_logoUrl, "customer_company_logos");
   const [isPrintCompanyLogo, setIsPrintCompanyLogo] = useState<boolean>(userProfileState?.logo_url ? true : false);
   // 法人印の表示有無
-  const [corporateSealUrl, setCorporateSealUrl] = useState<string | null>(userProfileState?.customer_seal_url || null);
+  // const [corporateSealUrl, setCorporateSealUrl] = useState<string | null>(userProfileState?.customer_seal_url || null);
+  const _corporateSealUrl = userProfileState?.customer_seal_url ?? null;
+  const corporateSealUrl = useDashboardStore((state) => state.companySealImgURL);
+  const setCompanySealImgURL = useDashboardStore((state) => state.setCompanySealImgURL);
+  const { isLoading: isLoadingCorporateSeal } = useDownloadUrl(_corporateSealUrl, "company_seals");
   const [isPrintCorporateSeal, setIsPrintCorporateSeal] = useState<boolean>(
     selectedRowDataQuotation?.use_corporate_seal ?? false
   );
+
+  // 見積書プレビューアンマウント時にリソースを解放
+  useEffect(() => {
+    return () => {
+      // 会社ロゴ
+      if (companyLogoUrl) {
+        URL.revokeObjectURL(companyLogoUrl);
+        setCompanyLogoImgURL(null);
+      }
+      // 角印・社印
+      if (corporateSealUrl) {
+        URL.revokeObjectURL(corporateSealUrl);
+        setCompanySealImgURL(null);
+      }
+      //  // 担当印
+      //  if (companyLogoImgURL) {
+      //    URL.revokeObjectURL(companyLogoImgURL);
+      //    setCompanyLogoImgURL(null);
+      //  }
+      //  // 上長印1
+      //  if (companySealImgURL) {
+      //    URL.revokeObjectURL(companySealImgURL);
+      //    setCompanySealImgURL(null);
+      //  }
+      //  // 上長印2
+      //  if (companyLogoImgURL) {
+      //    URL.revokeObjectURL(companyLogoImgURL);
+      //    setCompanyLogoImgURL(null);
+      //  }
+    };
+  }, []);
 
   // -------------------------- 🌟印鑑データ関連🌟 --------------------------
   // 担当印鑑
@@ -756,12 +795,6 @@ const QuotationPreviewModalMemo = () => {
     [setIsEditMode, selectedRowDataQuotation]
   );
   // -------------------------- ✅シングルクリック・ダブルクリック関連✅ --------------------------
-
-  // 会社ロゴのフルURLを取得
-  // const { fullUrl: logoUrl, isLoading: isLoadingLogoImg } = useDownloadUrl(
-  //   userProfileState?.logo_url,
-  //   "customer_company_logos"
-  // );
 
   // -------------------------- 🌟初回マウント時🌟 --------------------------
   // useEffect(() => {
@@ -1749,7 +1782,13 @@ const QuotationPreviewModalMemo = () => {
                                 fill
                                 sizes="100px"
                               /> */}
-                                <div className={`${styles.logo_img}`}></div>
+                                {!isLoadingLogo && (
+                                  <div
+                                    style={{ backgroundImage: `url(${companyLogoUrl})` }}
+                                    className={`${styles.logo_img}`}
+                                  ></div>
+                                )}
+                                {isLoadingLogo && <SkeletonLoadingLineCustom h="100%" w="100%" rounded="6px" />}
                               </div>
                             </div>
                           )}
@@ -1981,7 +2020,26 @@ const QuotationPreviewModalMemo = () => {
                         </div>
                         {/* ------------ customer_info_areaここまで ------------ */}
 
-                        {isPrintCorporateSeal && (
+                        {isPrintCorporateSeal && corporateSealUrl && !isLoadingCorporateSeal && (
+                          <div className={`${styles.corporate_seal} absolute right-[6%] top-0 z-[0] rounded-[0px]`}>
+                            <NextImage
+                              src={corporateSealUrl}
+                              alt=""
+                              className="h-full w-full object-contain"
+                              // width={}
+                              fill
+                              sizes="25px"
+                            />
+                          </div>
+                        )}
+                        {isPrintCorporateSeal && corporateSealUrl && isLoadingCorporateSeal && (
+                          <div
+                            className={`${styles.corporate_seal} absolute right-[6%] top-[-59px] z-[0] rounded-[6px]`}
+                          >
+                            <SkeletonLoadingLineCustom w="59px" h="59px" rounded="6px" />
+                          </div>
+                        )}
+                        {/* {isPrintCorporateSeal && !corporateSealUrl && (
                           <div
                             className={`${styles.corporate_seal_sample}  absolute right-[6%] top-0 z-[0] rounded-[4px] border-[2px] border-solid border-[red]/[0.7]`}
                           >
@@ -1989,7 +2047,7 @@ const QuotationPreviewModalMemo = () => {
                             <div className={`${styles.text2}`}>トラステ</div>
                             <div className={`${styles.text3}`}>ィファイ</div>
                           </div>
-                        )}
+                        )} */}
                       </div>
 
                       <div className={`${styles.stamps_area} flex flex-row-reverse bg-[blue]/[0]`}>

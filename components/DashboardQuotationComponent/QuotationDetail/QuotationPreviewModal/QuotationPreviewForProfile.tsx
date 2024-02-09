@@ -1,4 +1,4 @@
-import { Suspense, memo } from "react";
+import { Suspense, memo, useEffect, useRef, useState } from "react";
 import styles from "./QuotationPreviewModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
@@ -9,6 +9,15 @@ import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/Sk
 import { IoClose } from "react-icons/io5";
 
 const QuotationPreviewForProfileMemo = () => {
+  const previewModalTwinAreaRef = useRef<HTMLDivElement | null>(null);
+  const [modalLeftPos, setModalLeftPos] = useState(0);
+
+  useEffect(() => {
+    if (!previewModalTwinAreaRef.current) return;
+
+    setModalLeftPos(previewModalTwinAreaRef.current.getBoundingClientRect().x);
+  }, []);
+
   const setIsOpenQuotationPreviewForProfile = useDashboardStore((state) => state.setIsOpenQuotationPreviewForProfile);
   // -------------------------- 🌟モーダルを閉じる関数🌟 --------------------------
   const handleClosePreviewModal = () => {
@@ -19,7 +28,7 @@ const QuotationPreviewForProfileMemo = () => {
     <>
       {/* オーバーレイ */}
       <div className={`${styles.overlay} fade03`} onClick={handleClosePreviewModal}></div>
-      <div className={`${styles.preview_modal_area_twin} space-x-[6vw]`}>
+      <div ref={previewModalTwinAreaRef} className={`${styles.preview_modal_area_twin} space-x-[6vw]`}>
         <div className={`${styles.preview_modal}`}>
           <ErrorBoundary FallbackComponent={ErrorFallback}>
             <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
@@ -36,7 +45,7 @@ const QuotationPreviewForProfileMemo = () => {
                 </div>
               }
             >
-              <PDFComponent isSample={false} />
+              <PDFComponent isSample={false} modalPosLeft={modalLeftPos ?? 0} />
             </Suspense>
           </ErrorBoundary>
         </div>

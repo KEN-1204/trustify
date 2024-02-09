@@ -142,8 +142,17 @@ const SettingProfileMemo = () => {
   const { updateUserEmail } = useMutateAuth();
   // const { createActivityMutation } = useMutateActivity();
   const { useMutateUploadAvatarImg, useMutateDeleteAvatarImg } = useUploadAvatarImg();
-  const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
-  const { fullUrl: stampUrl, isLoading: isLoadingStamp } = useDownloadUrl(
+  // const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
+  // アバター画像
+  const avatarUrl = useDashboardStore((state) => state.avatarImgURL);
+  const { isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
+  // 印鑑データ画像
+  // const { fullUrl: stampUrl, isLoading: isLoadingStamp } = useDownloadUrl(
+  //   userProfileState?.assigned_signature_stamp_url,
+  //   "signature_stamps"
+  // );
+  const stampUrl = useDashboardStore((state) => state.myStampImgURL);
+  const { isLoading: isLoadingStamp } = useDownloadUrl(
     userProfileState?.assigned_signature_stamp_url,
     "signature_stamps"
   );

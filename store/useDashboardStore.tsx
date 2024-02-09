@@ -268,6 +268,18 @@ type State = {
   setUserProfileState: (payload: UserProfileCompanySubscription | null) => void;
   // userProfileState: UserProfile | null;
   // setUserProfileState: (payload: UserProfile | null) => void;
+  // プロフィール画像オブジェクトURL文字列
+  avatarImgURL: string | null;
+  setAvatarImgURL: (payload: string | null) => void;
+  // ハンコ画像オブジェクトURL文字列
+  myStampImgURL: string | null;
+  setMyStampImgURL: (payload: string | null) => void;
+  // 会社ロゴ画像オブジェクトURL文字列
+  companyLogoImgURL: string | null;
+  setCompanyLogoImgURL: (payload: string | null) => void;
+  // 角印画像オブジェクトURL文字列
+  companySealImgURL: string | null;
+  setCompanySealImgURL: (payload: string | null) => void;
 
   // =================== 「お知らせ」notifications関連 ===================
   // 全お知らせ
@@ -834,6 +846,18 @@ const useDashboardStore = create<State>((set) => ({
   // =================== ユーザープロフィール ===================
   userProfileState: null,
   setUserProfileState: (payload) => set({ userProfileState: payload }),
+  // プロフィール画像オブジェクトURL文字列
+  avatarImgURL: null,
+  setAvatarImgURL: (payload) => set({ avatarImgURL: payload }),
+  // ハンコ画像オブジェクトURL文字列
+  myStampImgURL: null,
+  setMyStampImgURL: (payload) => set({ myStampImgURL: payload }),
+  // 会社ロゴ画像オブジェクトURL文字列
+  companyLogoImgURL: null,
+  setCompanyLogoImgURL: (payload) => set({ companyLogoImgURL: payload }),
+  // 角印画像オブジェクトURL文字列
+  companySealImgURL: null,
+  setCompanySealImgURL: (payload) => set({ companySealImgURL: payload }),
 
   // =================== 「お知らせ」notifications関連 ===================
   // 全お知らせ

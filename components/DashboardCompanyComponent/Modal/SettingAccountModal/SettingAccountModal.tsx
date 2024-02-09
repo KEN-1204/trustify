@@ -34,7 +34,38 @@ export const SettingAccountModal = () => {
   // 上画面の選択中の列データ会社
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
-  const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
+
+  // const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
+  const avatarUrl = useDashboardStore((state) => state.avatarImgURL);
+  const { isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
+
+  // アンマウント時にObjectURLをリソース解放 アバター画像以外おオブジェクトURLはここでリソース解放
+  const myStampImgURL = useDashboardStore((state) => state.myStampImgURL);
+  const setMyStampImgURL = useDashboardStore((state) => state.setMyStampImgURL);
+  const companyLogoImgURL = useDashboardStore((state) => state.companyLogoImgURL);
+  const setCompanyLogoImgURL = useDashboardStore((state) => state.setCompanyLogoImgURL);
+  const companySealImgURL = useDashboardStore((state) => state.companySealImgURL);
+  const setCompanySealImgURL = useDashboardStore((state) => state.setCompanySealImgURL);
+  useEffect(() => {
+    return () => {
+      // 印鑑データ
+      if (myStampImgURL) {
+        URL.revokeObjectURL(myStampImgURL);
+        setMyStampImgURL(null);
+      }
+      // 会社ロゴ
+      if (companyLogoImgURL) {
+        URL.revokeObjectURL(companyLogoImgURL);
+        setCompanyLogoImgURL(null);
+      }
+      // 角印・社印
+      if (companySealImgURL) {
+        URL.revokeObjectURL(companySealImgURL);
+        setCompanySealImgURL(null);
+      }
+    };
+  }, []);
+
   // モーダルのbottom, topなどの位置特定用ref => 特にmodalのbottomはメンバー役割クリック時に必要
   const settingModalRef = useRef<HTMLDivElement | null>(null);
 

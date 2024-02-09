@@ -2,7 +2,7 @@ import React, { Dispatch, FC, SetStateAction, memo, useEffect, useRef, useState 
 import styles from "../SettingCompany.module.css";
 import { MdClose } from "react-icons/md";
 import { teamIllustration } from "@/components/assets";
-import { useDownloadUrl } from "@/hooks/useDownloadUrl";
+// import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import Image from "next/image";
 import useDashboardStore from "@/store/useDashboardStore";
 import { HiOutlineSearch } from "react-icons/hi";

@@ -1,7 +1,7 @@
 //
 
 import { SignatureStamp } from "@/types";
-import { Dispatch, SetStateAction, memo } from "react";
+import { Dispatch, SetStateAction, memo, useEffect } from "react";
 import styles from "../UpdateMeetingModal.module.css";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
@@ -14,7 +14,19 @@ type Props = {
 };
 
 const StampListitemMemo = ({ stamp, selectedStampObj, setSelectedStampObj }: Props) => {
-  const { fullUrl: stampUrl, isLoading } = useDownloadUrl(stamp.image_url, "signature_stamps");
+  // const { fullUrl: stampUrl, isLoading } = useDownloadUrl(stamp.image_url, "signature_stamps");
+  const { fullUrl: stampUrl, isLoading, setFullUrl } = useDownloadUrl(stamp.image_url, "signature_stamps", true);
+
+  // ローカルstateで画像のオブジェクトURL文字列を生成しているため、行コンポーネントがアンマウントした時点でリソースを解放
+  useEffect(() => {
+    return () => {
+      if (stampUrl) {
+        URL.revokeObjectURL(stampUrl);
+        setFullUrl(null);
+      }
+    };
+  }, []);
+
   console.log(
     "StampListitemコンポーネント 🔥stamp",
     stamp,

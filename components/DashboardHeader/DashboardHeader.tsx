@@ -67,7 +67,9 @@ export const DashboardHeaderMemo: FC = () => {
   const logoSrc =
     theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
 
-  const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
+  // const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
+  const avatarUrl = useDashboardStore((state) => state.avatarImgURL);
+  const { isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
 
   // テーマホバー有無
   const [hoveredThemeMenu, setHoveredThemeMenu] = useState(false);

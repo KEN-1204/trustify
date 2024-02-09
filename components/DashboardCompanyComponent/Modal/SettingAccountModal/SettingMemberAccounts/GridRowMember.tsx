@@ -79,7 +79,22 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
 
   // 一つの投稿に紐づいた画像のフルパスをダウンロードするためのuseDownloadUrlフックをpostsバケット用の切り替え用キーワードを渡して実行
   // 第一引数には、propsで受け取ったpost_urlを渡してpostUrlという名前をつけてfullUrlを取得
-  const { fullUrl: avatarUrl, isLoading: isLoadingAvatar } = useDownloadUrl(memberAccount.avatar_url, "avatars");
+  // const { fullUrl: avatarUrl, isLoading: isLoadingAvatar } = useDownloadUrl(memberAccount.avatar_url, "avatars");
+  const {
+    fullUrl: avatarUrl,
+    isLoading: isLoadingAvatar,
+    setFullUrl,
+  } = useDownloadUrl(memberAccount.avatar_url, "avatars", true);
+
+  // ローカルstateで画像のオブジェクトURL文字列を生成しているため、行コンポーネントがアンマウントした時点でリソースを解放
+  useEffect(() => {
+    return () => {
+      if (avatarUrl) {
+        URL.revokeObjectURL(avatarUrl);
+        setFullUrl(null);
+      }
+    };
+  }, []);
 
   // 頭文字のみ抽出
   const getInitial = (name: string) => name[0];

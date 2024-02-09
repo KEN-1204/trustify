@@ -1,12 +1,12 @@
 import useDashboardStore from "@/store/useDashboardStore";
-import { UserProfile, UserProfileCompanySubscription } from "@/types";
+import { UserProfileCompanySubscription } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation } from "@tanstack/react-query";
 import { ChangeEvent } from "react";
 import { toast } from "react-toastify";
 import { v4 as uuidv4 } from "uuid";
 
-export const useMutateCompanyLogo = () => {
+export const useMutateCompanySeal = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
@@ -14,10 +14,9 @@ export const useMutateCompanyLogo = () => {
   const supabase = useSupabaseClient();
 
   // 作成
-  const uploadCompanyLogoMutation = useMutation(
+  const uploadCompanySealMutation = useMutation(
     async (e: ChangeEvent<HTMLInputElement>) => {
       if (!loadingGlobalState) setLoadingGlobalState(true);
-      console.log("実行", e.target.files);
 
       if (!userProfileState?.company_id) {
         throw new Error("エラー：会社データが見つかりませんでした...🙇‍♀️");
@@ -25,9 +24,9 @@ export const useMutateCompanyLogo = () => {
       if (!e.target.files || e.target.files.length === 0) {
         // ファイル選択がキャンセルされた場合
         // setLoadingGlobalState(false);
+        // return;
         alert("画像を選択してください");
         throw new Error("Please select the image file");
-        // return;
       }
       console.log("画像アップロード ", e.target.files);
 
@@ -40,16 +39,16 @@ export const useMutateCompanyLogo = () => {
       const filePath = `${fileName}`;
 
       // supabaseのストレージに画像を登録する非同期処理
-      const { error } = await supabase.storage.from("customer_company_logos").upload(filePath, file);
+      const { error } = await supabase.storage.from("company_seals").upload(filePath, file);
 
       if (error) throw new Error(error.message);
 
-      const newProfile = { ...(userProfileState as UserProfileCompanySubscription), logo_url: filePath };
+      const newProfile = { ...(userProfileState as UserProfileCompanySubscription), customer_seal_url: filePath };
 
       // supabaseのデータベースに保存
       const { error: errorDB } = await supabase
         .from("companies")
-        .update({ logo_url: filePath })
+        .update({ customer_seal_url: filePath })
         .eq("id", userProfileState.company_id);
 
       if (errorDB) throw new Error(errorDB.message);
@@ -61,21 +60,21 @@ export const useMutateCompanyLogo = () => {
         setTimeout(() => {
           setUserProfileState(data as UserProfileCompanySubscription);
           setLoadingGlobalState(false);
-          toast.success("ロゴ画像のアップロードが完了しました!");
+          toast.success("角印画像のアップロードが完了しました!");
         }, 500);
       },
       onError: (error: any) => {
         setTimeout(() => {
           setLoadingGlobalState(false);
           alert(error.message);
-          toast.error("ロゴ画像のアップロードに失敗しました!");
+          toast.error("角印画像のアップロードに失敗しました!");
         }, 500);
       },
     }
   );
 
   // 削除
-  const deleteCompanyLogoMutation = useMutation(
+  const deleteCompanySealMutation = useMutation(
     async (logoUrl: string) => {
       setLoadingGlobalState(true);
 
@@ -90,10 +89,10 @@ export const useMutateCompanyLogo = () => {
 
       const { error: errorDB } = await supabase
         .from("companies")
-        .update({ logo_url: null })
+        .update({ customer_seal_url: null })
         .eq("id", userProfileState.company_id);
 
-      const newProfile = { ...(userProfileState as UserProfileCompanySubscription), logo_url: null };
+      const newProfile = { ...(userProfileState as UserProfileCompanySubscription), customer_seal_url: null };
 
       if (errorDB) throw new Error(errorDB.message);
 
@@ -111,17 +110,17 @@ export const useMutateCompanyLogo = () => {
         setTimeout(() => {
           setUserProfileState(data);
           setLoadingGlobalState(false);
-          toast.success("ロゴ画像の削除が完了しました!");
+          toast.success("角印画像の削除が完了しました!");
         }, 500);
       },
       onError: (error: any) => {
         setTimeout(() => {
           setLoadingGlobalState(false);
           alert(error.message);
-          toast.error("ロゴ画像の削除に失敗しました!");
+          toast.error("角印画像の削除に失敗しました!");
         }, 500);
       },
     }
   );
-  return { uploadCompanyLogoMutation, deleteCompanyLogoMutation };
+  return { uploadCompanySealMutation, deleteCompanySealMutation };
 };

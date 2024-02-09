@@ -9,7 +9,19 @@ const MemberCardMemo = ({ member }: { member: MemberAccounts }) => {
   // 選択された削除メンバーの配列Zustand
   const selectedMembersArrayForDeletion = useDashboardStore((state) => state.selectedMembersArrayForDeletion);
   const setSelectedMembersArrayForDeletion = useDashboardStore((state) => state.setSelectedMembersArrayForDeletion);
-  const { fullUrl: avatarUrl, isLoading: isLoadingAvatar } = useDownloadUrl(member.avatar_url, "avatars");
+  // const { fullUrl: avatarUrl, isLoading: isLoadingAvatar } = useDownloadUrl(member.avatar_url, "avatars");
+  const { fullUrl: avatarUrl, isLoading: isLoadingAvatar, setFullUrl } = useDownloadUrl(member.avatar_url, "avatars");
+
+  // ローカルstateで画像のオブジェクトURL文字列を生成しているため、行コンポーネントがアンマウントした時点でリソースを解放
+  useEffect(() => {
+    return () => {
+      if (avatarUrl) {
+        URL.revokeObjectURL(avatarUrl);
+        setFullUrl(null);
+      }
+    };
+  }, []);
+
   // 頭文字のみ抽出
   const getInitial = (name: string) => name[0];
 

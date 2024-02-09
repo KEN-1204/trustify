@@ -40,6 +40,7 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { useMutateCompanyLogo } from "@/hooks/useMutateCompanyLogo";
 import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
 import { ImInfo } from "react-icons/im";
+import { useMutateCompanySeal } from "@/hooks/useMutateCompanySeal";
 
 const SettingCompanyMemo = () => {
   const language = useStore((state) => state.language);
@@ -113,12 +114,27 @@ const SettingCompanyMemo = () => {
   const infoIconUnitRef = useRef<HTMLDivElement | null>(null);
   const infoIconOfficeRef = useRef<HTMLDivElement | null>(null);
   const infoIconZipCodeRef = useRef<HTMLDivElement | null>(null);
+  const infoIconCompanySealRef = useRef<HTMLDivElement | null>(null);
 
   const { uploadCompanyLogoMutation, deleteCompanyLogoMutation } = useMutateCompanyLogo();
-  const { fullUrl: logoUrl, isLoading: isLoadingLogoImg } = useDownloadUrl(
-    userProfileState?.logo_url,
-    "customer_company_logos"
-  );
+  // const { fullUrl: logoUrl, isLoading: isLoadingLogoImg } = useDownloadUrl(
+  //   userProfileState?.logo_url,
+  //   "customer_company_logos"
+  // );
+  const logoUrl = useDashboardStore((state) => state.companyLogoImgURL);
+  const setLogoUrl = useDashboardStore((state) => state.setCompanyLogoImgURL);
+  const { isLoading: isLoadingLogoImg } = useDownloadUrl(userProfileState?.logo_url, "customer_company_logos");
+
+  const { uploadCompanySealMutation, deleteCompanySealMutation } = useMutateCompanySeal();
+  // const { fullUrl: companySealUrl, isLoading: isLoadingCompanySeal } = useDownloadUrl(
+  //   userProfileState?.customer_seal_url,
+  //   "company_seals"
+  // );
+  const companySealUrl = useDashboardStore((state) => state.companySealImgURL);
+  const setCompanySealUrl = useDashboardStore((state) => state.setCompanySealImgURL);
+  const { isLoading: isLoadingCompanySeal } = useDownloadUrl(userProfileState?.customer_seal_url, "company_seals");
+
+  // アカウント設定モーダル全体がアンマウントされた時にオブジェクトURLのリソースを解放する
 
   // キャッシュからお知らせを取得
   // const queryClient = useQueryClient();
@@ -861,6 +877,7 @@ const SettingCompanyMemo = () => {
         <div className={`flex h-full w-full flex-col overflow-y-scroll px-[20px] py-[20px] pr-[80px]`}>
           <div className={`text-[18px] font-bold text-[var(--color-text-title)]`}>会社・チーム</div>
 
+          {/* 会社・チーム ロゴ */}
           <div className={`mt-[30px] flex min-h-[120px] w-full flex-col `}>
             {/* <div className={`${styles.section_title}`}>会社・チーム ロゴ</div> */}
             <div className={`${styles.section_title}`}>
@@ -944,6 +961,7 @@ const SettingCompanyMemo = () => {
                   </div>
                 )}
 
+                {/* <label htmlFor="logo" onClick={() => setLoadingGlobalState(true)}> */}
                 <label htmlFor="logo">
                   <div
                     className={`transition-base01 flex-center max-h-[41px] max-w-[120px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
@@ -963,6 +981,7 @@ const SettingCompanyMemo = () => {
               />
             </div>
           </div>
+          {/* 会社・チーム ロゴ ここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
@@ -2886,6 +2905,119 @@ const SettingCompanyMemo = () => {
             )}
           </div>
           {/* 住所ここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+          {/* 角印・社印 画像 */}
+          <div className={`mt-[20px] flex min-h-[120px] w-full flex-col `}>
+            {/* <div className={`${styles.section_title}`}>角印・社印 画像</div> */}
+            <div className={`${styles.section_title}`}>
+              <div
+                className="flex max-w-max items-center space-x-[9px]"
+                onMouseEnter={(e) => {
+                  if (
+                    infoIconCompanySealRef.current &&
+                    infoIconCompanySealRef.current.classList.contains(styles.animate_ping)
+                  ) {
+                    infoIconCompanySealRef.current.classList.remove(styles.animate_ping);
+                  }
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: "角印画像は見積書自動作成機能での社印の押印に使用されます。",
+                    // content2: "",
+                    // marginTop: 33,
+                    marginTop: 9,
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <span>角印 画像</span>
+                {/* <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} /> */}
+                <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                  <div
+                    ref={infoIconCompanySealRef}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                      companySealUrl ? `` : styles.animate_ping
+                    }`}
+                  ></div>
+                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                </div>
+              </div>
+            </div>
+
+            <div className={`flex h-full w-full items-center justify-between`}>
+              <div className="">
+                {!companySealUrl && !isLoadingCompanySeal && (
+                  <label
+                    htmlFor="company_seal"
+                    className={`flex-center h-[75px] w-[75px] cursor-pointer rounded-[6px] border-[2px] border-solid border-[var(--main-color-tk)] text-[var(--main-color-tk)] ${styles.tooltip} mr-[15px]`}
+                  >
+                    <span className={`text-[15px]`}>
+                      {/* {userProfileState?.customer_name
+                        ? getCompanyInitial(userProfileState.customer_name)
+                        : `${getCompanyInitial("未設定")}`} */}
+                      未設定
+                    </span>
+                  </label>
+                )}
+                {companySealUrl && !isLoadingCompanySeal && (
+                  <label
+                    htmlFor="company_seal"
+                    className={`flex-center group relative h-[75px] w-[75px] cursor-pointer overflow-hidden rounded-[0px]`}
+                  >
+                    <Image
+                      src={companySealUrl}
+                      alt="company_seal"
+                      className={`h-full w-full object-contain text-[#fff]`}
+                      width={75}
+                      height={75}
+                    />
+                    <div
+                      className={`transition-bg01 absolute inset-0 z-10 rounded-[6px] group-hover:bg-[#00000060]`}
+                    ></div>
+                  </label>
+                )}
+                {isLoadingCompanySeal && (
+                  <div className={`flex-center relative min-h-[75px] min-w-[75px] overflow-hidden rounded-[6px]`}>
+                    <SkeletonLoadingLineCustom rounded="6px" h="75px" w="75px" />
+                  </div>
+                )}
+              </div>
+              <div className="flex">
+                {companySealUrl && (
+                  <div
+                    className={`transition-base01 mr-[10px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={async () => {
+                      if (!userProfileState?.company_id) return alert("会社・チームデータが見つかりませんでした。");
+                      if (!userProfileState?.customer_seal_url) return alert("角印画像データが見つかりませんでした。");
+                      deleteCompanySealMutation.mutate(userProfileState.customer_seal_url);
+                    }}
+                  >
+                    画像を削除
+                  </div>
+                )}
+
+                <label htmlFor="company_seal">
+                  <div
+                    className={`transition-bg01 flex-center max-h-[41px] max-w-[120px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                  >
+                    <span>画像を変更</span>
+                  </div>
+                </label>
+              </div>
+              <input
+                type="file"
+                id="company_seal"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  uploadCompanySealMutation.mutate(e);
+                }}
+              />
+            </div>
+          </div>
+          {/* 角印画像 ここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
