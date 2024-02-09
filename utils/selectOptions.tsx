@@ -720,10 +720,10 @@ export const getPriorityName = (value: string, language: string = "ja") => {
 export const optionsMeetingType = ["Visit", "Web"];
 export const getMeetingType = (value: string, language: string = "ja") => {
   switch (value) {
-    case "Zoom":
+    case "Visit":
       return language === "ja" ? `訪問` : `Visit`;
       break;
-    case "Teams":
+    case "Web":
       return language === "ja" ? `Web` : `Web`;
       break;
 

@@ -25,7 +25,7 @@
 } */
 .tooltip {
   position: fixed;
-  z-index: 1500;
+  z-index: 15000;
   min-height: fit-content;
   padding: 3px 7px;
   transform: translateX(-50%);
@@ -76,7 +76,7 @@
 } */
 .tooltip_area {
   position: absolute;
-  z-index: 1500;
+  z-index: 15000;
   pointer-events: none;
   font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
 }
@@ -87,6 +87,7 @@
   /* position: absolute;
   z-index: 1500; */
   position: relative;
+  left: 50%;
   z-index: 1;
   min-height: fit-content;
   padding: 3px 7px;
@@ -108,7 +109,8 @@
   z-index: -1;
   bottom: -4px;
   /* top: -10px; */
-  left: 0;
+  /* left: 0; */
+  left: 50%;
   transform: translateX(-50%) rotate(135deg);
   transform-origin: center center;
   background: var(--color-tooltip-light);

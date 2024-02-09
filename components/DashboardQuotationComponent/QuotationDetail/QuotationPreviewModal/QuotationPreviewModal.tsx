@@ -258,26 +258,49 @@ const QuotationPreviewModalMemo = () => {
   );
 
   // 🌟印鑑データ配列
-  const initialImgUrlInCharge = hankoSrc;
-  // const initialImgUrlInCharge = selectedRowDataQuotation?.in_charge_stamp_image_url ?? null;
-  // const initialImgUrlSupervisor1 = selectedRowDataQuotation?.supervisor1_stamp_image_url ?? null;
-  const initialImgUrlSupervisor1 = hankoSrc;
-  // const initialImgUrlSupervisor2 = selectedRowDataQuotation?.supervisor2_stamp_image_url ?? null;
-  const initialImgUrlSupervisor2 = hankoSrc;
+  // const initialImgUrlInCharge = hankoSrc;
+  const _initialImgUrlInCharge = selectedRowDataQuotation?.in_charge_stamp_image_url ?? null;
+  const { fullUrl: initialImgUrlInCharge, isLoading: isLoadingInCharge } = useDownloadUrl(
+    _initialImgUrlInCharge,
+    "signature_stamps",
+    true
+  );
+  // const initialImgUrlSupervisor1 = hankoSrc;
+  const _initialImgUrlSupervisor1 = selectedRowDataQuotation?.supervisor1_stamp_image_url ?? null;
+  const { fullUrl: initialImgUrlSupervisor1, isLoading: isLoadingSupervisor1 } = useDownloadUrl(
+    _initialImgUrlSupervisor1,
+    "signature_stamps",
+    true
+  );
+  // const initialImgUrlSupervisor2 = hankoSrc;
+  const _initialImgUrlSupervisor2 = selectedRowDataQuotation?.supervisor2_stamp_image_url ?? null;
+  const { fullUrl: initialImgUrlSupervisor2, isLoading: isLoadingSupervisor2 } = useDownloadUrl(
+    _initialImgUrlSupervisor2,
+    "signature_stamps",
+    true
+  );
   const stampsArray = [
     // { title: "in_charge", url: selectedRowDataQuotation?.in_charge_stamp_image_url ?? null, isPrint: isPrintInChargeStamp, isFrame: isFrameInChargeStamp },
-    { title: "in_charge", url: initialImgUrlInCharge, isPrint: isPrintInChargeStamp, isFrame: isFrameInChargeStamp },
+    {
+      title: "in_charge",
+      url: initialImgUrlInCharge,
+      isPrint: isPrintInChargeStamp,
+      isFrame: isFrameInChargeStamp,
+      isLoadingStamp: isLoadingInCharge,
+    },
     {
       title: "supervisor1",
       url: initialImgUrlSupervisor1,
       isPrint: isPrintSupervisorStamp1,
       isFrame: isFrameSupervisorStamp1,
+      isLoadingStamp: isLoadingSupervisor1,
     },
     {
       title: "supervisor2",
       url: initialImgUrlSupervisor2,
       isPrint: isPrintSupervisorStamp2,
       isFrame: isFrameSupervisorStamp2,
+      isLoadingStamp: isLoadingSupervisor2,
     },
   ];
 
@@ -1793,6 +1816,7 @@ const QuotationPreviewModalMemo = () => {
                             </div>
                           )}
                           {(!isPrintCompanyLogo || !companyLogoUrl) && <div className="h-[10%] w-full"></div>}
+                          {/* 会社名エリア */}
                           <div className={`${styles.company_name_area}`}>
                             <div
                               ref={customerNameRef}
@@ -1835,6 +1859,7 @@ const QuotationPreviewModalMemo = () => {
                               )}
                             </div>
                           </div>
+                          {/* 会社名エリア ここまで */}
                           {/* ------------ user_info_area ------------ */}
                           <div className={`${styles.user_info_area} flex flex-col`}>
                             <div className={`${styles.row_area} ${styles.department_area}  flex items-end`}>
@@ -2072,14 +2097,19 @@ const QuotationPreviewModalMemo = () => {
                               >
                                 {obj.isPrint && obj.url && (
                                   <div className="relative flex h-[25px] w-[25px] items-center justify-center rounded-full">
-                                    <NextImage
-                                      src={obj.url}
-                                      alt=""
-                                      className="h-full w-full object-contain"
-                                      // width={}
-                                      fill
-                                      sizes="25px"
-                                    />
+                                    {!obj.isLoadingStamp && (
+                                      <NextImage
+                                        src={obj.url}
+                                        alt=""
+                                        className="h-full w-full object-contain"
+                                        // width={}
+                                        fill
+                                        sizes="25px"
+                                      />
+                                    )}
+                                    {obj.isLoadingStamp && (
+                                      <SkeletonLoadingLineCustom w="100%" h="100%" rounded="50%" />
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -2422,8 +2452,8 @@ const QuotationPreviewModalMemo = () => {
                       </div>
                     )}
 
-                    {/* 以下余白 標準見積以外 */}
-                    {quotationDivision !== "A standard" && (
+                    {/* 以下余白 標準見積以外 商品リスト20行超えたら非表示(Max21行) */}
+                    {quotationDivision !== "A standard" && productsArray.length < 20 && (
                       <div
                         role="row"
                         style={{
@@ -2507,8 +2537,8 @@ const QuotationPreviewModalMemo = () => {
                     )}
                     {/* 出精値引 標準見積以外は空白 ここまで */}
 
-                    {/* 以下余白 標準見積ではここで表示 */}
-                    {quotationDivision === "A standard" && (
+                    {/* 以下余白 標準見積ではここで表示 商品リスト20行超えたら非表示(Max21行) */}
+                    {quotationDivision === "A standard" && productsArray.length < 20 && (
                       <div
                         role="row"
                         style={{
@@ -2558,7 +2588,7 @@ const QuotationPreviewModalMemo = () => {
                         )}
                         {/* 物件金額 */}
                         {index === 0 && quotationDivision === "C lease" && (
-                          <div className={`flex h-full w-[40%] items-center justify-between`}>
+                          <div className={`flex h-full w-[39%] items-center justify-between`}>
                             <span>物</span>
                             <span>件</span>
                             <span>金</span>

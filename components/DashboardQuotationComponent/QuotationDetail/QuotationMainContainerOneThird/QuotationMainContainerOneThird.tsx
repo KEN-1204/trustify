@@ -154,6 +154,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const isUpdateModeQuotation = useDashboardStore((state) => state.isUpdateModeQuotation);
   const setIsUpdateModeQuotation = useDashboardStore((state) => state.setIsUpdateModeQuotation);
 
+  // 会社詳細モーダル
+  const setIsOpenClientCompanyDetailModal = useDashboardStore((state) => state.setIsOpenClientCompanyDetailModal);
+  // 担当者詳細モーダル
+  const setIsOpenContactDetailModal = useDashboardStore((state) => state.setIsOpenContactDetailModal);
+
   // 確認モーダル(自社担当名、データ所有者変更確認)
   const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
   // 自社担当検索サイドテーブル開閉
@@ -2744,13 +2749,14 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <span className={`${styles.title}`}>会社名</span>
                         {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
-                            className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}
+                            className={`${styles.value} ${styles.value_highlight} ${styles.text_start} ${styles.editable_field} hover:text-[var(--color-bg-brand-f)]`}
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                             }}
+                            onClick={() => setIsOpenClientCompanyDetailModal(true)}
                           >
                             {selectedRowDataQuotation?.company_name ? selectedRowDataQuotation?.company_name : ""}
                           </span>
@@ -2810,7 +2816,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <span className={`${styles.title}`}>担当者名</span>
                         {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                           <span
-                            className={`${styles.value}`}
+                            className={`${styles.value} ${styles.editable_field} hover:text-[var(--color-bg-brand-f)]`}
                             data-text={`${
                               selectedRowDataQuotation?.contact_name ? selectedRowDataQuotation?.contact_name : ""
                             }`}
@@ -2823,6 +2829,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                               if (hoveredItemPosWrap) handleCloseTooltip();
                             }}
+                            onClick={() => setIsOpenContactDetailModal(true)}
                           >
                             {selectedRowDataQuotation?.contact_name ? selectedRowDataQuotation?.contact_name : ""}
                           </span>

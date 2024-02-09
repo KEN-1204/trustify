@@ -2103,7 +2103,8 @@ export const UpdateMeetingModal = () => {
                           // content3: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
                           content3:
                             "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          marginTop: 57,
+                          // marginTop: 57,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -2356,8 +2357,8 @@ export const UpdateMeetingModal = () => {
                               content: "選択する商品を全て、事業部、係・チーム、事業所ごとに",
                               content2: "フィルターの切り替えが可能です。",
                               // marginTop: 57,
-                              marginTop: 38,
-                              // marginTop: 12,
+                              // marginTop: 38,
+                              marginTop: 12,
                               itemsPosition: "center",
                               whiteSpace: "nowrap",
                             });
@@ -2866,8 +2867,8 @@ export const UpdateMeetingModal = () => {
                           content: "商品ごとにデータを管理することが可能となります。",
                           content2: "この商品名が見積書の品名に記載されます。",
                           // marginTop: 57,
-                          marginTop: 38,
-                          // marginTop: 9,
+                          // marginTop: 38,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         });
@@ -2964,8 +2965,8 @@ export const UpdateMeetingModal = () => {
                                   // content2: "この商品名が見積書の品名に記載されます。",
                                   // marginTop: 57,
                                   // marginTop: 38,
-                                  marginTop: 24,
-                                  // marginTop: 9,
+                                  // marginTop: 24,
+                                  marginTop: 12,
                                   // marginTop: 3,
                                   itemsPosition: "center",
                                   whiteSpace: "nowrap",
@@ -3050,8 +3051,8 @@ export const UpdateMeetingModal = () => {
                           // content2: "この商品名が見積書の品名に記載されます。",
                           // marginTop: 57,
                           // marginTop: 38,
-                          // marginTop: 9,
-                          marginTop: 3,
+                          marginTop: 12,
+                          // marginTop: 3,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         });
@@ -3076,8 +3077,8 @@ export const UpdateMeetingModal = () => {
                           // content2: "この商品名が見積書の品名に記載されます。",
                           // marginTop: 57,
                           // marginTop: 38,
-                          // marginTop: 9,
-                          marginTop: 3,
+                          marginTop: 12,
+                          // marginTop: 3,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         });
@@ -3304,7 +3305,8 @@ export const UpdateMeetingModal = () => {
                         content2: "展開した場合は「案件_作成」から案件を作成しましょう。",
                         // content2: "",
                         // marginTop: 57,
-                        marginTop: 39,
+                        // marginTop: 39,
+                        marginTop: 12,
                         itemsPosition: "center",
                         whiteSpace: "nowrap",
                       })
@@ -3323,7 +3325,8 @@ export const UpdateMeetingModal = () => {
                         content: "面談した結果、「来期」に導入の可能性がある案件へと展開した際に使用します。",
                         content2: "展開した場合は「案件_作成」から案件を作成しましょう。",
                         // marginTop: 57,
-                        marginTop: 39,
+                        // marginTop: 39,
+                        marginTop: 12,
                         itemsPosition: "center",
                         whiteSpace: "nowrap",
                       })
@@ -3342,7 +3345,8 @@ export const UpdateMeetingModal = () => {
                         content: "展開中の客先への再面談で引き続き",
                         content2: "展開が継続、もしくは受注した際に使用します。",
                         // marginTop: 18,
-                        marginTop: 39,
+                        // marginTop: 39,
+                        marginTop: 12,
                         itemsPosition: "center",
                         whiteSpace: "nowrap",
                       })
@@ -3378,7 +3382,7 @@ export const UpdateMeetingModal = () => {
                           content2: "受注率と面談時の最上位職位には相関があるため現状把握や分析に役立ちます。",
                           // marginTop: 57,
                           // marginTop: 38,
-                          marginTop: 9,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         });

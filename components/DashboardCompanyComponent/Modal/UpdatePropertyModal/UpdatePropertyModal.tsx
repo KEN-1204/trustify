@@ -1326,7 +1326,8 @@ export const UpdatePropertyModal = () => {
                         content: "マーケティングが引合・リードを獲得した際に使用します。",
                         content2: "リード獲得後の営業のフォロー状況やリード発生での受注状況を把握することで",
                         content3: "マーケティングの成果を正確に管理することが可能です。",
-                        marginTop: 57,
+                        // marginTop: 57,
+                        marginTop: 12,
                         itemsPosition: "center",
                         whiteSpace: "nowrap",
                       })
@@ -1347,7 +1348,8 @@ export const UpdatePropertyModal = () => {
                         content2: "面談から展開率(どれだけ受注可能性のある案件に展開したか)を把握することが可能です。",
                         content3:
                           "受注率、展開率、アポ率を把握することで目標達成に必要なプロセスと改善点が明確になります。",
-                        marginTop: 57,
+                        // marginTop: 57,
+                        marginTop: 12,
                         itemsPosition: "center",
                         whiteSpace: "nowrap",
                       })
@@ -1365,7 +1367,8 @@ export const UpdatePropertyModal = () => {
                         display: "top",
                         content: "お客様が予算申請に上げていただいた際に使用します。",
                         content2: "長期的な案件も予定通り取り切るために管理することができます。",
-                        marginTop: 36,
+                        // marginTop: 36,
+                        marginTop: 12,
                         itemsPosition: "center",
                         whiteSpace: "nowrap",
                       })
@@ -1384,7 +1387,8 @@ export const UpdatePropertyModal = () => {
                         content: "案件を受注した際に使用します。",
                         content2:
                           "受注率、展開率、アポ率を把握することで目標達成に必要なプロセスと改善点が明確になります。",
-                        marginTop: 36,
+                        // marginTop: 36,
+                        marginTop: 12,
                         itemsPosition: "center",
                         whiteSpace: "nowrap",
                       })
@@ -1470,8 +1474,8 @@ export const UpdatePropertyModal = () => {
                           content: "選択する商品を全て、事業部、係・チーム、事業所ごとに",
                           content2: "フィルターの切り替えが可能です。",
                           // marginTop: 57,
-                          marginTop: 38,
-                          // marginTop: 12,
+                          // marginTop: 38,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         });
@@ -1605,8 +1609,8 @@ export const UpdatePropertyModal = () => {
                             content: "フィルターされた商品リストを表示します。",
                             content2: "アイコンをクリックしてフィルターの切り替えが可能です。",
                             // marginTop: 57,
-                            marginTop: 38,
-                            // marginTop: 12,
+                            // marginTop: 38,
+                            marginTop: 12,
                             itemsPosition: "center",
                             whiteSpace: "nowrap",
                           });
@@ -1763,8 +1767,8 @@ export const UpdatePropertyModal = () => {
                           content: "円単位でデータを管理します。",
                           content2: "600万円と入力しても円単位に自動補完されます。",
                           // marginTop: 57,
-                          marginTop: 39,
-                          // marginTop: 10,
+                          // marginTop: 39,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -2063,7 +2067,8 @@ export const UpdatePropertyModal = () => {
                               )}に設定されています。`
                             : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
                           content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          marginTop: 57,
+                          // marginTop: 57,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -2134,7 +2139,8 @@ export const UpdatePropertyModal = () => {
                             : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
                           content3:
                             "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          marginTop: 57,
+                          // marginTop: 57,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -2245,7 +2251,8 @@ export const UpdatePropertyModal = () => {
                               )}に設定されています。`
                             : `決算月が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
                           content3: "変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          marginTop: 57,
+                          // marginTop: 57,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -2324,7 +2331,8 @@ export const UpdatePropertyModal = () => {
                             : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
                           content3:
                             "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          marginTop: 57,
+                          // marginTop: 57,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -2395,8 +2403,8 @@ export const UpdatePropertyModal = () => {
                           content: "選択する商品を全て、事業部、係・チーム、事業所ごとに",
                           content2: "フィルターの切り替えが可能です。",
                           // marginTop: 57,
-                          marginTop: 38,
-                          // marginTop: 12,
+                          // marginTop: 38,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         });
@@ -2530,8 +2538,8 @@ export const UpdatePropertyModal = () => {
                             content: "フィルターされた商品リストを表示します。",
                             content2: "アイコンをクリックしてフィルターの切り替えが可能です。",
                             // marginTop: 57,
-                            marginTop: 38,
-                            // marginTop: 12,
+                            // marginTop: 38,
+                            marginTop: 12,
                             itemsPosition: "center",
                             whiteSpace: "nowrap",
                           });
@@ -2680,8 +2688,8 @@ export const UpdatePropertyModal = () => {
                           content: "円単位でデータを管理します。",
                           content2: "600万円と入力しても円単位に自動補完されます。",
                           // marginTop: 57,
-                          marginTop: 39,
-                          // marginTop: 10,
+                          // marginTop: 39,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -2855,8 +2863,8 @@ export const UpdatePropertyModal = () => {
                           content: "円単位でデータを管理します。",
                           content2: "600万円と入力しても円単位に自動補完されます。",
                           // marginTop: 57,
-                          marginTop: 39,
-                          // marginTop: 10,
+                          // marginTop: 39,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -2938,8 +2946,8 @@ export const UpdatePropertyModal = () => {
                           content: "売上価格と売上台数、値引価格を入力することで",
                           content2: "値引率は自動計算されます。",
                           // marginTop: 57,
-                          marginTop: 39,
-                          // marginTop: 10,
+                          // marginTop: 39,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -3428,8 +3436,8 @@ export const UpdatePropertyModal = () => {
                           content: "円単位でデータを管理します。",
                           content2: "600万円と入力しても円単位に自動補完されます。",
                           // marginTop: 57,
-                          marginTop: 39,
-                          // marginTop: 10,
+                          // marginTop: 39,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -3579,7 +3587,8 @@ export const UpdatePropertyModal = () => {
                             : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
                           content3:
                             "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          marginTop: 57,
+                          // marginTop: 57,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })

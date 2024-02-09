@@ -101,7 +101,7 @@ const CalendarMemo: FC = () => {
           date.setSeconds(seconds);
 
           return {
-            title: meeting.company_name || "",
+            title: (meeting.company_name || "") + (meeting.contact_name ? "　" + meeting.contact_name : ""),
             start: date,
             // end: new Date(meeting.end_date), // データベースのカラム名に合わせて適切に設定してください
           };

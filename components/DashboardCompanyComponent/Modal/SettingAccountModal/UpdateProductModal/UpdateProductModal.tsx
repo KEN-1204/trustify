@@ -233,7 +233,7 @@ export const UpdateProductModal = () => {
                           content2: "この商品名が見積書の品名に記載されます。",
                           // marginTop: 57,
                           // marginTop: 38,
-                          marginTop: 9,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })
@@ -280,8 +280,8 @@ export const UpdateProductModal = () => {
                           content: "円単位でデータを管理します。",
                           content2: "600万円と入力しても円単位に自動補完されます。",
                           // marginTop: 57,
-                          marginTop: 39,
-                          // marginTop: 10,
+                          // marginTop: 39,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })

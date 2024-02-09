@@ -101,6 +101,11 @@ const ActivityMainContainerOneThirdMemo = () => {
   const setIsEditModeField = useDashboardStore((state) => state.setIsEditModeField);
   const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
 
+  // 会社詳細モーダル
+  const setIsOpenClientCompanyDetailModal = useDashboardStore((state) => state.setIsOpenClientCompanyDetailModal);
+  // 担当者詳細モーダル
+  const setIsOpenContactDetailModal = useDashboardStore((state) => state.setIsOpenContactDetailModal);
+
   const queryClient = useQueryClient();
   // useMutation
   const { updateActivityFieldMutation, updateActivityMultipleFieldMutation } = useMutateActivity();
@@ -2531,13 +2536,14 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span className={`${styles.title} ${styles.min}`}>●会社名</span>
                       {!searchMode && (
                         <span
-                          className={`${styles.value} ${styles.value_highlight}`}
+                          className={`${styles.value} ${styles.value_highlight} ${styles.editable_field} hover:text-[var(--color-bg-brand-f)]`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                           }}
+                          onClick={() => setIsOpenClientCompanyDetailModal(true)}
                         >
                           {selectedRowDataActivity?.company_name ? selectedRowDataActivity?.company_name : ""}
                         </span>
@@ -2607,13 +2613,14 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span className={`${styles.title} ${styles.min}`}>担当者名</span>
                       {!searchMode && (
                         <span
-                          className={`${styles.value}`}
+                          className={`${styles.value} ${styles.editable_field} hover:text-[var(--color-bg-brand-f)]`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                           }}
+                          onClick={() => setIsOpenContactDetailModal(true)}
                         >
                           {selectedRowDataActivity?.contact_name ? selectedRowDataActivity?.contact_name : ""}
                         </span>

@@ -108,6 +108,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const setIsEditModeField = useDashboardStore((state) => state.setIsEditModeField);
   const [isComposing, setIsComposing] = useState(false); // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
 
+  // 会社詳細モーダル
+  const setIsOpenClientCompanyDetailModal = useDashboardStore((state) => state.setIsOpenClientCompanyDetailModal);
+  // 担当者詳細モーダル
+  const setIsOpenContactDetailModal = useDashboardStore((state) => state.setIsOpenContactDetailModal);
+
   // const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -4013,13 +4018,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title}`}>●会社名</span>
                     {!searchMode && (
                       <span
-                        className={`${styles.value} ${styles.value_highlight} ${styles.text_start}`}
+                        className={`${styles.value} ${styles.value_highlight} ${styles.text_start} ${styles.editable_field} hover:text-[var(--color-bg-brand-f)]`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
+                        onClick={() => setIsOpenClientCompanyDetailModal(true)}
                       >
                         {selectedRowDataMeeting?.company_name ? selectedRowDataMeeting?.company_name : ""}
                       </span>
@@ -4081,13 +4087,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title}`}>担当者名</span>
                     {!searchMode && (
                       <span
-                        className={`${styles.value}`}
+                        className={`${styles.value} ${styles.editable_field} hover:text-[var(--color-bg-brand-f)]`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
+                        onClick={() => setIsOpenContactDetailModal(true)}
                       >
                         {selectedRowDataMeeting?.contact_name ? selectedRowDataMeeting?.contact_name : ""}
                       </span>

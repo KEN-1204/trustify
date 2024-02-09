@@ -47,7 +47,12 @@ const TooltipModalMemo: FC = () => {
       return;
 
     if (menuRef.current) {
+      // if (hoveredItemPosModal?.maxWidth) {
+      //   menuRef.current.style.maxWidth = `${hoveredItemPosModal?.maxWidth}px`;
+      // }
+
       const tooltipWidth = menuRef.current.offsetWidth;
+      const tooltipHeight = menuRef.current.offsetHeight;
       // const tooltipRectWidth = menuRef.current.getBoundingClientRect().width;
       console.log("tooltipOffsetWidth,", tooltipWidth);
       const tooltipHalfWidth = tooltipWidth / 2;
@@ -78,37 +83,56 @@ const TooltipModalMemo: FC = () => {
           const tooltipTextWidth = tooltipText?.getBoundingClientRect().width;
           console.log("tooltipWidth", tooltipWidth, "tooltipTextWidth", tooltipTextWidth, "tooltipText", tooltipText);
           // menuRef.current.style.minWidth = `${tooltipWidth}px`;
-          menuRef.current.style.minWidth = `max-content`;
+          // menuRef.current.style.minWidth = `max-content`;
         }
         // 画面左を超えているか モーダルLeft位置と、そのLeft位置からツールチップの中心点までの距離を合算した距離よりもツールチップの半分の長さが超えている場合
-        if ((hoveredItemPosModal?.containerLeft ?? 0) + leftPosition < tooltipHalfWidth) {
-          console.log(
-            "ビューポートより左🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥！！！！！！！！！！！！！！！！炎",
-            tooltipLeftPosition,
-            leftPosition,
-            (hoveredItemPosModal?.containerLeft ?? 0) + leftPosition,
-            tooltipHalfWidth,
-            (hoveredItemPosModal?.containerLeft ?? 0) + leftPosition - tooltipHalfWidth
-          );
+        // if ((hoveredItemPosModal?.containerLeft ?? 0) + leftPosition < tooltipHalfWidth) {
+        //   console.log(
+        //     "ビューポートより左🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥！！！！！！！！！！！！！！！！炎",
+        //     tooltipLeftPosition,
+        //     leftPosition,
+        //     (hoveredItemPosModal?.containerLeft ?? 0) + leftPosition,
+        //     tooltipHalfWidth,
+        //     (hoveredItemPosModal?.containerLeft ?? 0) + leftPosition - tooltipHalfWidth
+        //   );
 
-          const addWidth = Math.abs((hoveredItemPosModal?.containerLeft ?? 0) + leftPosition - tooltipHalfWidth) + 20;
-          // adjustedLeft = 0 - (hoveredItemPosModal?.containerLeft ?? 0);
-          adjustedLeft += addWidth;
-          // 超えている場合は矢印を消去
-          if (arrowRef.current) arrowRef.current.style.opacity = "0";
-          if (arrowRef.current) arrowRef.current.style.display = "hidden";
-        }
+        //   const addWidth = Math.abs((hoveredItemPosModal?.containerLeft ?? 0) + leftPosition - tooltipHalfWidth) + 20;
+        //   // adjustedLeft = 0 - (hoveredItemPosModal?.containerLeft ?? 0);
+        //   adjustedLeft += addWidth;
+        //   // 超えている場合は矢印を消去
+        //   if (arrowRef.current) arrowRef.current.style.opacity = "0";
+        //   if (arrowRef.current) arrowRef.current.style.display = "hidden";
+        // }
       }
 
-      // 画面左端を超えている場合、位置を右に調整
-      if (leftPosition < 0) {
-        console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥！！！！！！！！！！！！！！！！炎");
+      // // 画面左端を超えている場合、位置を右に調整
+      // if (leftPosition < 0) {
+      //   console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥！！！！！！！！！！！！！！！！炎");
+      //   adjustedLeft = 10; // 10pxの余白を残す
+      // }
+      // // 画面左端を超えている場合、位置を右に調整
+      if (hoveredItemPositionX + hoveredItemHalfWidth - tooltipHalfWidth < 0) {
         adjustedLeft = 10; // 10pxの余白を残す
+        // スタイルを更新
+        menuRef.current.style.left = `${adjustedLeft}px`;
+        // 超えている場合は矢印を消去
+        if (arrowRef.current) arrowRef.current.style.opacity = "0";
+        if (arrowRef.current) arrowRef.current.style.display = "hidden";
+      } else {
+        // スタイルを更新
+        adjustedLeft = adjustedLeft - tooltipHalfWidth;
+        menuRef.current.style.left = `${adjustedLeft}px`;
       }
 
       // スタイルを更新
       // adjustedLeft = adjustedLeft - tooltipHalfWidth;
-      menuRef.current.style.left = `${adjustedLeft}px`;
+      // menuRef.current.style.left = `${adjustedLeft}px`;
+      //
+
+      menuRef.current.style.top = `${
+        (hoveredItemPosModal?.y ?? 0) - tooltipHeight - (hoveredItemPosModal?.marginTop ?? 0)
+      }px`;
+      if (arrowRef.current) arrowRef.current.style.bottom = `${-4}px`;
     }
   }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth, hoveredItemDisplay]);
 
@@ -126,13 +150,15 @@ const TooltipModalMemo: FC = () => {
   if (hoveredItemDisplay === "top") {
     return (
       <div
-        className={`${styles.tooltip_area}  ${hoveredItemPosModal ? `block ${styles.fade}` : "transition-base hidden"}`}
+        className={`${styles.tooltip_area} ${styles.fade} ${hoveredItemPosModal ? `block` : "hidden"}`}
         style={{
           position: "absolute",
           // position: "fixed",
+          // backgroundColor: "red",
           zIndex: 20000,
           // left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
           top: `${`${hoveredItemPositionY - hoveredItemHeight - 8 - (hoveredItemPosModal?.marginTop ?? 0)}px`}`,
+          // bottom: `${`${hoveredItemPositionY + hoveredItemHeight}px`}`,
           ...(!!hoveredItemPosModal?.maxWidth && { maxWidth: hoveredItemPosModal.maxWidth }),
         }}
         ref={menuRef}
@@ -238,7 +264,7 @@ const TooltipModalMemo: FC = () => {
   // );
   return (
     <div
-      className={`${styles.tooltip}  ${hoveredItemPosModal ? `block ${styles.fade}` : "transition-base hidden"}`}
+      className={`${styles.tooltip} ${styles.fade} ${hoveredItemPosModal ? `block` : "hidden"}`}
       style={{
         position: "absolute",
 

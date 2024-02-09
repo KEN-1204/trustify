@@ -421,6 +421,13 @@ const SideTableSearchProductMemo = ({
       );
       return;
     } else {
+      // 商品リストの数が21個を超える場合は、現在のバージョンはMax21個までなのでリターン
+      if (selectedProductsArray.length + selectedSearchProductsArray.length >= 21) {
+        alert(
+          "現在のバージョンでは商品リストへの追加は最大で21個までに制限されています。制限の解除をご要望の場合はニーズカードから提出をお願い致します。"
+        );
+        return;
+      }
       // 商品リストに一つも含まれていない場合はリストに追加
       const newQuotationProducts = selectedSearchProductsArray.map((product, index) => {
         const newProduct: QuotationProductsDetail = {

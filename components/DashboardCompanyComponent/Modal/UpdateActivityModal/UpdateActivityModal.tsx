@@ -967,7 +967,8 @@ export const UpdateActivityModal = () => {
                           // content3: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
                           content3:
                             "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
-                          marginTop: 57,
+                          // marginTop: 57,
+                          marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
                         })

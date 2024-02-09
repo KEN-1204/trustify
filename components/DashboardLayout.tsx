@@ -58,6 +58,8 @@ import { FallbackSideTableSearchSignatureStamp } from "./DashboardCompanyCompone
 import { SideTableSearchSignatureStamp } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchSignatureStamp/SideTableSearchSignatureStamp";
 import { QuotationPreviewModal } from "./DashboardQuotationComponent/QuotationDetail/QuotationPreviewModal/QuotationPreviewModal";
 import { QuotationPreviewForProfile } from "./DashboardQuotationComponent/QuotationDetail/QuotationPreviewModal/QuotationPreviewForProfile";
+import { ClientCompanyDetailModal } from "./Modal/ClientCompanyDetailModal/ClientCompanyDetailModal";
+import { ContactDetailModal } from "./Modal/ContactDetailModal/ContactDetailModal";
 
 type Prop = {
   title?: string;
@@ -255,6 +257,10 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const isOpenSettingInvitationModal = useDashboardStore((state) => state.isOpenSettingInvitationModal);
   // アカウントを増やす・減らすモーダル
   const isOpenChangeAccountCountsModal = useDashboardStore((state) => state.isOpenChangeAccountCountsModal);
+  // 会社詳細画面モーダル
+  const isOpenClientCompanyDetailModal = useDashboardStore((state) => state.isOpenClientCompanyDetailModal);
+  // 担当者詳細画面モーダル
+  const isOpenContactDetailModal = useDashboardStore((state) => state.isOpenContactDetailModal);
   // 会社作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.isOpenInsertNewClientCompanyModal);
   const isOpenUpdateClientCompanyModal = useDashboardStore((state) => state.isOpenUpdateClientCompanyModal);
@@ -527,6 +533,23 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<FallbackDecreaseAccountCountsModal />}>
             <DecreaseAccountCountsModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+
+      {/* 会社 詳細モーダル */}
+      {isOpenClientCompanyDetailModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <ClientCompanyDetailModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* 担当者 詳細モーダル */}
+      {isOpenContactDetailModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <ContactDetailModal />
           </Suspense>
         </ErrorBoundary>
       )}
