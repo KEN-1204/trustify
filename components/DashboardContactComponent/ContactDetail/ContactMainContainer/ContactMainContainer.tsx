@@ -27,6 +27,7 @@ import {
   getNumberOfEmployeesClass,
   getOccupationName,
   getPositionClassName,
+  mappingIndustryType,
   optionsIndustryType,
   optionsMonth,
   optionsNumberOfEmployeesClass,
@@ -45,6 +46,7 @@ import {
 // 通常
 import { ContactUnderRightActivityLog } from "./ContactUnderRightActivityLog/ContactUnderRightActivityLog";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 // 名前付きエクスポートの場合のダイナミックインポート
 // const ContactUnderRightActivityLog = dynamic(
 //   () =>
@@ -213,7 +215,13 @@ const ContactMainContainerMemo: FC = () => {
       setInputHP(beforeAdjustFieldValue(newSearchContact_CompanyParams.website_url));
       //   setInputCompanyEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_email));
       setInputCompanyEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams["client_companies.email"]));
-      setInputIndustryType(beforeAdjustFieldValue(newSearchContact_CompanyParams.industry_type));
+      setInputIndustryType(
+        beforeAdjustFieldValue(
+          newSearchContact_CompanyParams.industry_type_id
+            ? newSearchContact_CompanyParams.industry_type_id.toString()
+            : ""
+        )
+      );
       setInputProductL(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_large));
       setInputProductM(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_medium));
       setInputProductS(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_small));
@@ -348,7 +356,7 @@ const ContactMainContainerMemo: FC = () => {
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
     let _company_email = adjustFieldValue(inputCompanyEmail);
-    let _industry_type = adjustFieldValue(inputIndustryType);
+    let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
     let _product_category_large = adjustFieldValue(inputProductL);
     let _product_category_medium = adjustFieldValue(inputProductM);
     let _product_category_small = adjustFieldValue(inputProductS);
@@ -397,7 +405,7 @@ const ContactMainContainerMemo: FC = () => {
       website_url: _website_url,
       //   company_email: _company_email,
       "client_companies.email": _company_email,
-      industry_type: _industry_type,
+      industry_type_id: _industry_type_id,
       product_category_large: _product_category_large,
       product_category_medium: _product_category_medium,
       product_category_small: _product_category_small,
@@ -3006,7 +3014,9 @@ const ContactMainContainerMemo: FC = () => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                       }}
                     >
-                      {selectedRowDataContact?.industry_type ? selectedRowDataContact?.industry_type : ""}
+                      {isValidNumber(selectedRowDataContact?.industry_type_id)
+                        ? mappingIndustryType[selectedRowDataContact?.industry_type_id][language]
+                        : ""}
                     </span>
                   )}
                   {searchMode && !inputProductL && (
@@ -3018,7 +3028,7 @@ const ContactMainContainerMemo: FC = () => {
                       <option value=""></option>
                       {optionsIndustryType.map((option) => (
                         <option key={option} value={option}>
-                          {option}
+                          {mappingIndustryType[option][language]}
                         </option>
                       ))}
                     </select>

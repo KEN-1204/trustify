@@ -26,6 +26,7 @@ import {
   getResultCategory,
   getResultNegotiateDecisionMaker,
   getWebTool,
+  mappingIndustryType,
   optionsIndustryType,
   optionsMeetingParticipationRequest,
   optionsMeetingType,
@@ -56,6 +57,7 @@ import { formatTime } from "@/utils/Helpers/formatTime";
 import { splitTime } from "@/utils/Helpers/splitTime";
 import { IoIosSend } from "react-icons/io";
 import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtn/InputSendAndCloseBtn";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -342,7 +344,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       setInputHP(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.website_url));
       //   setInputCompanyEmail(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.company_email));
       setInputCompanyEmail(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["client_companies.email"]));
-      setInputIndustryType(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.industry_type));
+      setInputIndustryType(
+        beforeAdjustFieldValue(
+          newSearchMeeting_Contact_CompanyParams.industry_type_id
+            ? newSearchMeeting_Contact_CompanyParams.industry_type_id.toString()
+            : ""
+        )
+      );
       setInputProductL(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.product_category_large));
       setInputProductM(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.product_category_medium));
       setInputProductS(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.product_category_small));
@@ -705,7 +713,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
     let _company_email = adjustFieldValue(inputCompanyEmail);
-    let _industry_type = adjustFieldValue(inputIndustryType);
+    let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
     let _product_category_large = adjustFieldValue(inputProductL);
     let _product_category_medium = adjustFieldValue(inputProductM);
     let _product_category_small = adjustFieldValue(inputProductS);
@@ -789,7 +797,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       website_url: _website_url,
       //   company_email: _company_email,
       "client_companies.email": _company_email,
-      industry_type: _industry_type,
+      industry_type_id: _industry_type_id,
       product_category_large: _product_category_large,
       product_category_medium: _product_category_medium,
       product_category_small: _product_category_small,
@@ -5378,7 +5386,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           // if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
-                        {selectedRowDataMeeting?.industry_type ? selectedRowDataMeeting?.industry_type : ""}
+                        {selectedRowDataMeeting?.industry_type_id
+                          ? mappingIndustryType[selectedRowDataMeeting?.industry_type_id][language]
+                          : ""}
                       </span>
                     )}
                     {searchMode && !inputProductL && (
@@ -5396,7 +5406,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         <option value=""></option>
                         {optionsIndustryType.map((option) => (
                           <option key={option} value={option}>
-                            {option}
+                            {mappingIndustryType[option][language]}
                           </option>
                         ))}
                         {/* <option value="機械要素・部品">機械要素・部品</option>

@@ -186,6 +186,9 @@
 .required_title {
   color: var(--main-color-tk);
 }
+.title.double {
+  font-size: 15px;
+}
 
 .input_box {
   /* height: 100%; */

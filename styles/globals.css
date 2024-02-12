@@ -517,7 +517,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-table-tab: linear-gradient(to top right, #2b7fff, #0affff50);
   --color-bg-brand-table-tab: linear-gradient(to top right, #206eff, #0affff50);
   --color-bg-brand-table-tab: linear-gradient(to top right, #0048ff, #0affff50);
-  --color-bg-brand-table-tab2: linear-gradient(
+  --color-bg-brand-table-tab: linear-gradient(to top right, #0048ff, #0affffc0);
+  /* --color-bg-brand-table-tab: linear-gradient(to top right, #0048ff, #0affff50); */
+  /* --color-bg-brand-table-tab2: linear-gradient(
     to bottom left,
     #cffcfdd0 0.89%,
     #bef3f5d0 17.23%,
@@ -525,7 +527,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     #7dc8ebd0 55.12%,
     #0ab5ffd0 71.54%,
     #0088ffd0 100%
-  );
+  ); */
   /* --color-bg-brand-table-tab: #fff; */
   /* --color-bg-brand-table-tab: #e2f0fd; */
   /* --color-bg-brand-table-tab: linear-gradient(to top left, #2b7fff, #acffff); */
@@ -707,6 +709,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-sidebar-active: #e5f4ff; */
   /* --color-sidebar-active: #2b7fff; */
   --color-sidebar-active: #0d99ff;
+  --color-sidebar-active-gradient: linear-gradient(to right, #2b7fff, #0abeff, #0affff50);
+  --color-sidebar-active-gradient: linear-gradient(to right, #2b7fff, #0abeff, #cffcfd);
+  --color-sidebar-active-gradient: linear-gradient(to right, #2b7fff, #60e6ff);
   /* --color-sidebar-active: #ddf0fe; */
   /* --color-sidebar-active: #3eabfa; */
 
@@ -1238,7 +1243,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-table-tab: #2258a9;
   --color-bg-brand-table-tab: linear-gradient(to top right, #2b7fffba, #0affff90);
   --color-bg-brand-table-tab: linear-gradient(to top right, #0048ffd0, #0affff90);
-  --color-bg-brand-table-tab2: linear-gradient(
+  /* --color-bg-brand-table-tab: linear-gradient(to right, #2b7fffd0, #60e6ff90); */
+  /* --color-bg-brand-table-tab2: linear-gradient(
     to bottom left,
     #cffcfdb7 0.89%,
     #bef3f5b7 17.23%,
@@ -1246,7 +1252,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     #7dc8ebb7 55.12%,
     #0ab5ffb7 71.54%,
     #0088ffb7 100%
-  );
+  ); */
   --color-border-table: #333;
   /* --color-border-table: #555; */
   /* --color-border-table: #484848; */
@@ -1390,6 +1396,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   );
   /* ======================= 🌟サイドバー dark ======================= */
   --color-sidebar-active: #0c8ce9;
+  --color-sidebar-active: #0c8ce9d0;
+  --color-sidebar-active-gradient: linear-gradient(to right, #2b7fffd0, #0abeff90, #0affff90);
+  /* --color-sidebar-active-gradient: linear-gradient(to right, #2b7fffd0, #60e6ff90); */
+  --color-sidebar-active-gradient: linear-gradient(to right, #206effd0, #60e6ff90);
   /* --color-sidebar-active: #2b7fff; */
   /* --color-sidebar-active: #275190; */
   /* --color-sidebar-active: #24608b; */
@@ -2810,3 +2820,25 @@ textarea {
   } */
 }
 /* -------------- ✅印刷✅ -------------- */
+
+/* 説明アイコン用ping */
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+@keyframes ping18 {
+  75%,
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
+}
+.animate_ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+.animate_ping18 {
+  animation: ping18 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}

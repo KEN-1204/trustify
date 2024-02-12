@@ -1,0 +1,189 @@
+.app_main_container {
+  position: relative;
+  /* margin-left: var(--sidebar-open-width); */
+
+  /* background-color: var(--color-bg-base); */
+  color: var(--color-text);
+
+  display: flex;
+}
+
+.spacer_left {
+  /* transition: all 0.5s ease; */
+  min-width: var(--sidebar-width);
+  height: 100vh;
+}
+
+.main_contents_wrapper {
+  /* width: calc(100% - var(--sidebar-open-width)); */
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow-y: scroll;
+  overflow-x: inherit;
+}
+.spacer_top {
+  min-height: var(--header-height);
+  width: 100%;
+}
+.main_contents_container {
+  width: 100%;
+  height: calc(100vh - var(--header-height));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow-y: scroll;
+  overflow-x: inherit;
+}
+
+.screen1 {
+  min-height: calc(100vh - var(--header-height));
+  width: 100%;
+  display: flex;
+  flex-grow: 1;
+  flex: 1;
+}
+.company_table_screen {
+  /* min-height: calc(100vh - var(--header-height)); */
+  /* height: calc(100vh - var(--header-height)); */
+  /* min-height: min-content; */
+  width: 100%;
+  /* background-color: var(--color-bg-base); */
+  /* flex-grow: 1; */
+  /* flex: 1; */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  /* padding: 20px 20px 20px 20px; */
+  /* 右側余白なし */
+  /* padding: 20px 0px 20px 20px; */
+  /* 左右余白あり */
+  /* padding: 20px 20px 20px 20px; */
+  /* 左右余白あり right 10px */
+  /* padding: 20px 10px 20px 20px; */
+}
+.company_table_screen_pr {
+  padding: 20px 10px 20px 20px;
+}
+
+.company_screen_under_one_third {
+  /* min-height: calc(100vh - var(--header-height)); */
+  /* height: calc(100vh - var(--header-height)); */
+  /* min-height: min-content; */
+  width: 100%;
+  /* background-color: var(--color-bg-base); */
+  /* background: #ccc; */
+
+  /* calc(画面サイズ - ヘッダー56px) - テーブルサイズ(calc() 上pt20px - 下pt20px) pt=padding-top */
+  height: 100%;
+  min-height: calc(100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px);
+  flex-grow: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  /* 右側余白なし */
+  padding: 20px 0px 0px 20px;
+  /* 左右余白あり right 20px */
+  /* padding: 20px 20px 0px 20px; */
+  /* 左右余白あり right 10px */
+  /* padding: 20px 10px 0px 20px; */
+
+  /* 画面上下を固定 */
+  /* overflow: hidden; */
+}
+.company_screen_under_half {
+  /* min-height: calc(100vh - var(--header-height)); */
+  /* height: calc(100vh - var(--header-height)); */
+  /* min-height: min-content; */
+  width: 100%;
+  /* background-color: var(--color-bg-base); */
+  /* min-height: calc(100vh - var(--header-height)); */
+  /* -----------------------------🌟テスト🌟----------------------------- */
+  /* -----------------------------パターン1 ハーフとオールで全体表示 */
+  /* height: 100%; */
+  /* -----------------------------パターン2 */
+  height: 100%;
+  min-height: calc(100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px);
+  /* -----------------------------🌟テスト🌟----------------------------- */
+  /* background: #ccc; */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  /* 右側余白なし */
+  /* padding: 20px 0px 0px 20px; */
+  /* 左右余白あり */
+  /* padding: 20px 20px 0px 20px; */
+  /* 左右余白あり right 10px */
+  padding: 20px 10px 0px 20px;
+
+  /* 画面上下を固定 */
+  /* overflow: hidden; */
+}
+
+.company_screen_under_all {
+  /* min-height: calc(100vh - var(--header-height)); */
+  /* height: calc(100vh - var(--header-height)); */
+  /* min-height: min-content; */
+  width: 100%;
+  /* background-color: var(--color-bg-base); */
+  height: 100%;
+  /* ヘッダー除いた画面サイズ */
+  /* min-height: calc(100vh - var(--header-height)); */
+  /* 画面下のサイズのみ */
+  min-height: calc(100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px);
+  /* background: #ccc; */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  /* 右側余白なし */
+  /* padding: 20px 0px 0px 20px;  */
+  /* 左右余白あり */
+  /* padding: 20px 20px 0px 20px; */
+  /* 左右余白あり right 10px */
+  padding: 20px 10px 0px 20px;
+
+  /* 画面上下を固定 */
+  /* overflow: hidden; */
+}
+
+.all_container {
+  height: calc(100vh - var(--header-height));
+  /* max-height: calc(100vh - var(--header-height)); */
+}
+
+.overlay {
+  position: fixed;
+  z-index: 500;
+  inset: 0;
+  /* background-color: #00000090; */
+}
+
+.company_container {
+  font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
+  font-family: sans-serif, "Hiragino Sans", Roboto, system-ui;
+}
+
+.content_card {
+  /* background: #1e1f22; discord */
+  background: var(--color-bg-sub-re);
+  cursor: pointer;
+}
+.content_card:hover {
+  background: var(--color-bg-sub-re-hover);
+}
+/* text-[var(--color-text-brand-f)] */
+.content_card:hover .right_arrow {
+  transform: translateX(3px);
+}
+.content_card:hover .animate_icon svg,
+.content_card:hover .animate_icon svg path,
+.content_card:hover .animate_icon svg g {
+  /* animation-play-state: running; */
+  animation-play-state: paused;
+}

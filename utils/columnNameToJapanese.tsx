@@ -33,7 +33,8 @@ export const columnNameToJapanese = (columnName: string) => {
     case "industry_small":
       return "業界(小分類)";
       break;
-    case "industry_type":
+    // case "industry_type":
+    case "industry_type_id":
       return "業種";
       break;
     case "product_category_large":

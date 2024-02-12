@@ -156,8 +156,24 @@
   left: 0%;
   top: 0%;
   height: 100%;
+  /* ここから */
   background-color: var(--color-sidebar-active);
+  /* background: var(--color-sidebar-active-gradient); */
+  /* background: linear-gradient(to right, #2b7fff, #0abeff, #0affff50); */
+  /* background: linear-gradient(to right, #2b7fffd0, #0abeff90, #0affff90); */
+  /* ここまで */
+  /* background-color: var(--color-bg-brand-f); */
+  /* background-color: #d2ebff; */
   /* background: linear-gradient(to top right, #2b7fff, #60e6ff); */
+  /* background: linear-gradient(to right, #2b7fff, #60e6ff); */
+  /* background: linear-gradient(to bottom left, #0affff, #0abeff, #0066ff); */
+  /* background: linear-gradient(to bottom left, #0affff, #0abeff, #2b7fff); */
+  /* background: linear-gradient(to left, #0affff, #0abeff, #2b7fff); */
+  /* background: linear-gradient(to left, #0affffc0, #0abeffc0, #2b7fffc0); */
+  /* background: linear-gradient(to right, #0048ff, #0abeff, #0affff50); */
+  /* background: linear-gradient(to right, #206eff, #0affff50); */
+  /* background: linear-gradient(to bottom left, #cffcfd 9%, #0affff 30%, #0abeff 56%, #0066ff 88%); */
+  /* background: linear-gradient(to left, #cffcfd 9%, #0affff 30%, #0abeff 56%, #0066ff 88%); */
   /* background: linear-gradient(to top right, var(--color-bg-brand-f), #0abeff, #0affff); */
   /* background: linear-gradient(to left bottom, #ffffff20 0%, #80e9ff 20%, #0abeff 65%, var(--color-bg-brand-f) 85%); */
   animation: fullWidthLeft 0.4s 0.4s forwards;
@@ -215,9 +231,11 @@
 }
 .icon_wrapper svg {
   color: var(--color-text-sub);
+  /* color: var(--color-bg-brand-f); */
 }
 .icon_wrapper svg path {
   stroke: var(--color-text-sub);
+  /* stroke: var(--color-bg-brand-f); */
 }
 .icon_wrapper span {
   max-width: 75px;
@@ -261,12 +279,13 @@
   }
   100% {
     color: #fff;
+    /* color: #0095ff; */
     font-weight: 700;
   }
 }
 
-.menu_item.active .icon_wrapper svg,
-.menu_item.active .icon_wrapper svg path,
+/* .menu_item.active .icon_wrapper svg,
+.menu_item.active .icon_wrapper svg path, */
 .menu_item:hover .icon_wrapper svg path,
 .menu_item:hover .icon_wrapper svg path,
 .menu_item:hover .icon_wrapper span {
@@ -278,6 +297,8 @@
 .menu_item.active .icon_wrapper span {
   color: #fff;
   stroke: #fff;
+  /* color: #63fa35;
+  stroke: #63fa35; */
   /* stroke-width: 3px; */
   animation: switchIconColor 0.5s forwards;
   /* animation: switchIconColor 0.3s forwards; */
@@ -293,5 +314,7 @@
   100% {
     color: #fff;
     stroke: #fff;
+    /* color: #0095ff;
+    stroke: #0095ff; */
   }
 }

@@ -213,6 +213,7 @@
 }
 .table_tab {
   background: var(--color-bg-brand-table-tab);
+  /* --color-sidebar-active-gradient: linear-gradient(to right, #2b7fff, #60e6ff); */
   /* background: linear-gradient(
     to bottom left,
     #cffcfdd0 0.89%,

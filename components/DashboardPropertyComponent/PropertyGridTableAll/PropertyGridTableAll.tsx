@@ -32,6 +32,7 @@ import {
   getSalesContributionCategory,
   getSubscriptionInterval,
   getTermDivision,
+  mappingIndustryType,
 } from "@/utils/selectOptions";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
@@ -2812,6 +2813,12 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       case "current_status":
         if (!value) return null;
         return getCurrentStatus(value);
+
+      // 業種
+      case "industry_type_id":
+        if (!value) return null;
+        if (typeof value !== "number") return value;
+        return mappingIndustryType[value][language];
 
       default:
         return value;

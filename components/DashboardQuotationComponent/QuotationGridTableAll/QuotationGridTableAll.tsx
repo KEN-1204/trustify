@@ -28,6 +28,7 @@ import {
   getSalesTaxClass,
   getSendingMethod,
   getSubmissionClass,
+  mappingIndustryType,
 } from "@/utils/selectOptions";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
@@ -2735,6 +2736,12 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
       case "sales_tax_class":
         if (!value) return null;
         return getSalesTaxClass(value);
+
+      // 業種
+      case "industry_type_id":
+        if (!value) return null;
+        if (typeof value !== "number") return value;
+        return mappingIndustryType[value][language];
 
       default:
         return value;

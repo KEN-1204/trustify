@@ -75,6 +75,8 @@ export const DashboardHeaderMemo: FC = () => {
   const [hoveredThemeMenu, setHoveredThemeMenu] = useState(false);
   // プロフィールアイコンホバー
   const [hoveredIcon, setHoveredIcon] = useState(false);
+  //
+  const infoIconNoticeRef = useRef<HTMLDivElement | null>(null);
 
   const handleOpenTooltip = (
     e: React.MouseEvent<HTMLElement, MouseEvent>,
@@ -1026,7 +1028,10 @@ export const DashboardHeaderMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.navbarItem} ${activeMenuTab === "SDB" ? styles.active : ""} `}
-                onClick={() => setActiveMenuTab("SDB")}
+                onClick={() => {
+                  setActiveMenuTab("SDB");
+                  handleCloseTooltip();
+                }}
               >
                 <div
                   className={`${styles.navbarItemInner}`}
@@ -1492,15 +1497,33 @@ export const DashboardHeaderMemo: FC = () => {
               openNotificationModal ? `bg-[var(--color-bg-sub-re)]` : ``
             }`}
             onClick={() => setOpenNotificationModal(true)}
-            onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-            onMouseLeave={handleCloseTooltip}
+            onMouseEnter={(e) => {
+              if (infoIconNoticeRef.current && infoIconNoticeRef.current.classList.contains("animate_ping")) {
+                infoIconNoticeRef.current.classList.remove("animate_ping");
+              }
+              handleOpenTooltip(e, "center");
+            }}
+            onMouseLeave={(e) => {
+              handleCloseTooltip();
+            }}
           >
             <AiOutlineBell className="text-[24px] text-[var(--color-icon)]" />
             {/* 通知アイコン */}
             {/* {!!notificationsCacheData?.length && */}
+            {/* {!!incompleteNotifications?.length &&
+              incompleteNotifications.some((notice) => notice.already_read === false) && (
+                <div className={`${styles.notice_outer} flex-center transition-base`}>
+                  <div className={`${styles.notice_inner} transition-base`}></div>
+                </div>
+              )} */}
+
             {!!incompleteNotifications?.length &&
               incompleteNotifications.some((notice) => notice.already_read === false) && (
                 <div className={`${styles.notice_outer} flex-center transition-base`}>
+                  <div
+                    ref={infoIconNoticeRef}
+                    className={`flex-center animate_ping absolute left-[2px] top-[2px] h-[8px] w-[8px] rounded-full border-[1px] border-solid border-[var(--color-red-tk)]`}
+                  ></div>
                   <div className={`${styles.notice_inner} transition-base`}></div>
                 </div>
               )}

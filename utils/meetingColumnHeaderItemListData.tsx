@@ -395,7 +395,8 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "industry_type",
+    // columnName: "industry_type",
+    columnName: "industry_type_id",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,

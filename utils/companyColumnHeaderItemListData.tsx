@@ -122,7 +122,8 @@ const companyColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "industry_type",
+    // columnName: "industry_type",
+    columnName: "industry_type_id",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,

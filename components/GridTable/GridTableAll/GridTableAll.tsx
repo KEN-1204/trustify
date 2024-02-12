@@ -19,7 +19,7 @@ import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchMode } from "./DropDownMenuSearchMode/DropDownMenuSearchMode";
-import { getNumberOfEmployeesClass } from "@/utils/selectOptions";
+import { getNumberOfEmployeesClass, mappingIndustryType } from "@/utils/selectOptions";
 
 type TableDataType = {
   id: number;
@@ -2617,6 +2617,11 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       case "number_of_employees_class":
         if (!value) return null;
         return getNumberOfEmployeesClass(value);
+      // 業種
+      case "industry_type_id":
+        if (!value) return null;
+        if (typeof value !== "number") return value;
+        return mappingIndustryType[value][language];
 
       default:
         return value;

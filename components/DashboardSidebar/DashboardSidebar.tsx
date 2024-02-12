@@ -561,7 +561,10 @@ export const DashboardSidebarMemo: FC = () => {
                 <div
                   className={`${styles.menu_item_inner}`}
                   data-text="セールスダッシュボード"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "left")}
+                  onMouseEnter={(e) => {
+                    handleOpenTooltip(e, "left");
+                    handleCloseTooltip();
+                  }}
                   onMouseLeave={handleCloseTooltip}
                 >
                   <div className={`${styles.icon_wrapper}`}>

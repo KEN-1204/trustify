@@ -41,6 +41,7 @@ import {
   getSalesContributionCategory,
   getSubscriptionInterval,
   getTermDivision,
+  mappingIndustryType,
   optionsCompetitionState,
   optionsCurrentStatus,
   optionsDecisionMakerNegotiation,
@@ -77,6 +78,7 @@ import { convertToYen } from "@/utils/Helpers/convertToYen";
 import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
 import { calculateDiscountRate } from "@/utils/Helpers/calculateDiscountRate";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -395,7 +397,13 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       setInputHP(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.website_url));
       //   setInputCompanyEmail(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.company_email));
       setInputCompanyEmail(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams["client_companies.email"]));
-      setInputIndustryType(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.industry_type));
+      setInputIndustryType(
+        beforeAdjustFieldValue(
+          newSearchProperty_Contact_CompanyParams.industry_type_id
+            ? newSearchProperty_Contact_CompanyParams.industry_type_id.toString()
+            : ""
+        )
+      );
       setInputProductL(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.product_category_large));
       setInputProductM(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.product_category_medium));
       setInputProductS(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.product_category_small));
@@ -728,7 +736,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
     let _company_email = adjustFieldValue(inputCompanyEmail);
-    let _industry_type = adjustFieldValue(inputIndustryType);
+    let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
     let _product_category_large = adjustFieldValue(inputProductL);
     let _product_category_medium = adjustFieldValue(inputProductM);
     let _product_category_small = adjustFieldValue(inputProductS);
@@ -844,7 +852,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       website_url: _website_url,
       //   company_email: _company_email,
       "client_companies.email": _company_email,
-      industry_type: _industry_type,
+      industry_type_id: _industry_type_id,
       product_category_large: _product_category_large,
       product_category_medium: _product_category_medium,
       product_category_small: _product_category_small,
@@ -7101,7 +7109,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
-                        {selectedRowDataProperty?.industry_type ? selectedRowDataProperty?.industry_type : ""}
+                        {selectedRowDataProperty?.industry_type_id
+                          ? mappingIndustryType[selectedRowDataProperty?.industry_type_id][language]
+                          : ""}
                       </span>
                     )}
                     {searchMode && !inputProductL && (
@@ -7113,7 +7123,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         <option value=""></option>
                         {optionsIndustryType.map((option) => (
                           <option key={option} value={option}>
-                            {option}
+                            {mappingIndustryType[option][language]}
                           </option>
                         ))}
                       </select>

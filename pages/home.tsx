@@ -8,6 +8,7 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardMeetingComponent } from "@/components/DashboardMeetingComponent/DashboardMeetingComponent";
 import { DashboardPropertyComponent } from "@/components/DashboardPropertyComponent/DashboardPropertyComponent";
 import { DashboardQuotationComponent } from "@/components/DashboardQuotationComponent/DashboardQuotationComponent";
+import { DashboardSDBComponent } from "@/components/DashboardSDBComponent/DashboardSDBComponent";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { Fallback } from "@/components/Fallback/Fallback";
 import useBeforeUnload from "@/hooks/useBeforeUnload";
@@ -356,6 +357,7 @@ const DashboardHome = ({
       {activeMenuTab === "Property" && <DashboardPropertyComponent />}
       {activeMenuTab === "Calendar" && <DashboardCalendarComponent />}
       {activeMenuTab === "Quotation" && <DashboardQuotationComponent />}
+      {activeMenuTab === "SDB" && <DashboardSDBComponent />}
       {/* {activeMenuTab === "Contacts" && <div className="flex-center w-screen h-screen bg-red-100">あい</div>} */}
     </DashboardLayout>
   );

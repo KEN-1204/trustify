@@ -12,9 +12,18 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { BsChevronLeft } from "react-icons/bs";
-import { getNumberOfEmployeesClass, optionsMonth, optionsNumberOfEmployeesClass } from "@/utils/selectOptions";
+import {
+  getNumberOfEmployeesClass,
+  mappingIndustryType,
+  optionsIndustryType,
+  optionsMonth,
+  optionsNumberOfEmployeesClass,
+} from "@/utils/selectOptions";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import useStore from "@/store";
 
 export const UpdateClientCompanyModal = () => {
+  const language = useStore((state) => state.language);
   const setIsOpenUpdateClientCompanyModal = useDashboardStore((state) => state.setIsOpenUpdateClientCompanyModal);
   // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
@@ -83,7 +92,9 @@ export const UpdateClientCompanyModal = () => {
       : "";
     let _industry_large = selectedRowDataCompany.industry_large ? selectedRowDataCompany.industry_large : "";
     let _industry_small = selectedRowDataCompany.industry_small ? selectedRowDataCompany.industry_small : "";
-    let _industry_type = selectedRowDataCompany.industry_type ? selectedRowDataCompany.industry_type : "";
+    let _industry_type_id = isValidNumber(selectedRowDataCompany.industry_type_id)
+      ? selectedRowDataCompany.industry_type_id!.toString()
+      : "";
     let _product_category_large = selectedRowDataCompany.product_category_large
       ? selectedRowDataCompany.product_category_large
       : "";
@@ -143,7 +154,7 @@ export const UpdateClientCompanyModal = () => {
     setDepartmentContacts(_department_contacts);
     setIndustryL(_industry_large);
     setIndustryS(_industry_small);
-    setIndustryType(_industry_type);
+    setIndustryType(_industry_type_id);
     setProductCategoryL(_product_category_large);
     setProductCategoryM(_product_category_medium);
     setProductCategoryS(_product_category_small);
@@ -220,7 +231,7 @@ export const UpdateClientCompanyModal = () => {
       department_contacts: departmentContacts ? departmentContacts : null,
       industry_large: industryL ? industryL : null,
       industry_small: industryS ? industryS : null,
-      industry_type: industryType ? industryType : null,
+      industry_type_id: isValidNumber(industryType) ? parseInt(industryType, 10) : null,
       product_category_large: productCategoryL ? productCategoryL : null,
       product_category_medium: productCategoryM ? productCategoryM : null,
       product_category_small: productCategoryS ? productCategoryS : null,
@@ -942,7 +953,12 @@ export const UpdateClientCompanyModal = () => {
                     onChange={(e) => setIndustryType(e.target.value)}
                   >
                     <option value=""></option>
-                    <option value="機械要素・部品">機械要素・部品</option>
+                    {optionsIndustryType.map((option) => (
+                      <option key={option} value={option.toString()}>
+                        {mappingIndustryType[option][language]}
+                      </option>
+                    ))}
+                    {/* <option value="機械要素・部品">機械要素・部品</option>
                     <option value="自動車・輸送機器">自動車・輸送機器</option>
                     <option value="電子部品・半導体">電子部品・半導体</option>
                     <option value="製造・加工受託">製造・加工受託</option>
@@ -993,7 +1009,7 @@ export const UpdateClientCompanyModal = () => {
                     <option value="商社・卸売">商社・卸売</option>
                     <option value="官公庁">官公庁</option>
                     <option value="個人">個人</option>
-                    <option value="不明">不明</option>
+                    <option value="不明">不明</option> */}
                   </select>
                 </div>
                 <div className={`${styles.underline}`}></div>

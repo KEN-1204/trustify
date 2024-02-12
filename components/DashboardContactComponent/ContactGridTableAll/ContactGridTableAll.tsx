@@ -22,7 +22,7 @@ import { GridCellCheckboxTrue } from "@/components/DashboardActivityComponent/Ac
 import { GridCellCheckboxFalse } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxFalse";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { format } from "date-fns";
-import { getNumberOfEmployeesClass } from "@/utils/selectOptions";
+import { getNumberOfEmployeesClass, mappingIndustryType } from "@/utils/selectOptions";
 import { DropDownMenuSearchMode } from "@/components/GridTable/GridTableAll/DropDownMenuSearchMode/DropDownMenuSearchMode";
 
 type TableDataType = {
@@ -2459,6 +2459,11 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       case "number_of_employees_class":
         if (!value) return null;
         return getNumberOfEmployeesClass(value);
+      // 業種
+      case "industry_type_id":
+        if (!value) return null;
+        if (typeof value !== "number") return value;
+        return mappingIndustryType[value][language];
 
       default:
         return value;

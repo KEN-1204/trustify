@@ -12,7 +12,12 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { BsChevronLeft } from "react-icons/bs";
-import { getNumberOfEmployeesClass, optionsMonth, optionsNumberOfEmployeesClass } from "@/utils/selectOptions";
+import {
+  getNumberOfEmployeesClass,
+  mappingIndustryType,
+  optionsMonth,
+  optionsNumberOfEmployeesClass,
+} from "@/utils/selectOptions";
 import { useQueryClientCompanyOnly } from "@/hooks/useQueryCientCompanyOnly";
 import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
@@ -889,7 +894,9 @@ export const ClientCompanyDetailModal = () => {
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>業種</span>
-                  <span className={`${styles.value}`}>{company?.industry_type ? company.industry_type : ""}</span>
+                  <span className={`${styles.value}`}>
+                    {company?.industry_type_id ? mappingIndustryType[company.industry_type_id][language] : ""}
+                  </span>
                   {/* <select
                     className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                     value={industryType}

@@ -22,7 +22,9 @@ import {
   getOccupationName,
   getPositionClassName,
   getPriorityName,
+  mappingIndustryType,
   optionsActivityType,
+  optionsIndustryType,
   optionsMonth,
   optionsNumberOfEmployeesClass,
   optionsOccupation,
@@ -46,6 +48,7 @@ import { useQueryOffices } from "@/hooks/useQueryOffices";
 import { useQueryClient } from "@tanstack/react-query";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -325,7 +328,13 @@ const ActivityMainContainerOneThirdMemo = () => {
       setInputHP(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.website_url));
       //   setInputCompanyEmail(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.company_email));
       setInputCompanyEmail(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["client_companies.email"]));
-      setInputIndustryType(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.industry_type));
+      setInputIndustryType(
+        beforeAdjustFieldValue(
+          newSearchActivity_Contact_CompanyParams.industry_type_id
+            ? newSearchActivity_Contact_CompanyParams.industry_type_id.toString()
+            : ""
+        )
+      );
       setInputProductL(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.product_category_large));
       setInputProductM(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.product_category_medium));
       setInputProductS(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.product_category_small));
@@ -551,7 +560,8 @@ const ActivityMainContainerOneThirdMemo = () => {
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
     let _company_email = adjustFieldValue(inputCompanyEmail);
-    let _industry_type = adjustFieldValue(inputIndustryType);
+    // let _industry_type = adjustFieldValue(inputIndustryType);
+    let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
     let _product_category_large = adjustFieldValue(inputProductL);
     let _product_category_medium = adjustFieldValue(inputProductM);
     let _product_category_small = adjustFieldValue(inputProductS);
@@ -632,7 +642,7 @@ const ActivityMainContainerOneThirdMemo = () => {
       website_url: _website_url,
       //   company_email: _company_email,
       "client_companies.email": _company_email,
-      industry_type: _industry_type,
+      industry_type_id: _industry_type_id,
       product_category_large: _product_category_large,
       product_category_medium: _product_category_medium,
       product_category_small: _product_category_small,
@@ -3832,7 +3842,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
-                        {selectedRowDataActivity?.industry_type ? selectedRowDataActivity?.industry_type : ""}
+                        {selectedRowDataActivity?.industry_type_id
+                          ? mappingIndustryType[selectedRowDataActivity?.industry_type_id][language]
+                          : ""}
                       </span>
                     )}
                     {/* {searchMode && !inputProductL && (
@@ -5178,7 +5190,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span className={`${styles.title}`}>○業種</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {selectedRowDataActivity?.industry_type ? selectedRowDataActivity?.industry_type : ""}
+                          {selectedRowDataActivity?.industry_type_id
+                            ? mappingIndustryType[selectedRowDataActivity?.industry_type_id][language]
+                            : ""}
                         </span>
                       )}
                       {searchMode && !inputProductL && (
@@ -5194,7 +5208,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                           onChange={(e) => setInputIndustryType(e.target.value)}
                         >
                           <option value=""></option>
-                          <option value="機械要素・部品">機械要素・部品</option>
+                          {optionsIndustryType.map((option) => (
+                            <option key={option} value={option.toString()}>
+                              {mappingIndustryType[option][language]}
+                            </option>
+                          ))}
+                          {/* <option value="機械要素・部品">機械要素・部品</option>
                           <option value="自動車・輸送機器">自動車・輸送機器</option>
                           <option value="電子部品・半導体">電子部品・半導体</option>
                           <option value="製造・加工受託">製造・加工受託</option>
@@ -5245,7 +5264,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           <option value="商社・卸売">商社・卸売</option>
                           <option value="官公庁">官公庁</option>
                           <option value="個人">個人</option>
-                          <option value="不明">不明</option>
+                          <option value="不明">不明</option> */}
                         </select>
                       )}
                     </div>

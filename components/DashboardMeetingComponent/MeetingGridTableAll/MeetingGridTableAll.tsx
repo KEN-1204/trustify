@@ -28,6 +28,7 @@ import {
   getResultCategory,
   getResultNegotiateDecisionMaker,
   getWebTool,
+  mappingIndustryType,
 } from "@/utils/selectOptions";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
@@ -2812,6 +2813,12 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       case "meeting_type":
         if (!value) return null;
         return getMeetingType(value);
+
+      // 業種
+      case "industry_type_id":
+        if (!value) return null;
+        if (typeof value !== "number") return value;
+        return mappingIndustryType[value][language];
 
       default:
         return value;

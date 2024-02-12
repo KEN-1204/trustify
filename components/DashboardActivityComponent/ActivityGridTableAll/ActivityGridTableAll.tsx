@@ -22,7 +22,12 @@ import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTabl
 import { GridCellCheckboxTrue } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxTrue";
 import { GridCellCheckboxFalse } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxFalse";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
-import { getActivityType, getNumberOfEmployeesClass, getPriorityName } from "@/utils/selectOptions";
+import {
+  getActivityType,
+  getNumberOfEmployeesClass,
+  getPriorityName,
+  mappingIndustryType,
+} from "@/utils/selectOptions";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchMode } from "@/components/GridTable/GridTableAll/DropDownMenuSearchMode/DropDownMenuSearchMode";
@@ -2709,6 +2714,12 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       case "activity_type":
         if (!value) return null;
         return getActivityType(value);
+
+      // 業種
+      case "industry_type_id":
+        if (!value) return null;
+        if (typeof value !== "number") return value;
+        return mappingIndustryType[value][language];
 
       default:
         return value;

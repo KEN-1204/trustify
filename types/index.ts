@@ -155,7 +155,13 @@ export type Client_company = {
   department_contacts?: string | null;
   industry_large?: string | null;
   industry_small?: string | null;
-  industry_type?: string | null;
+  // industry_type?: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   product_category_large?: string | null;
   product_category_medium?: string | null;
   product_category_small?: string | null;
@@ -234,7 +240,13 @@ export type Client_company_row_data = {
   group_company?: string | null;
   industry_large?: string | null;
   industry_small?: string | null;
-  industry_type?: string | null;
+  // industry_type?: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   main_fax?: string | null;
   main_phone_number?: string;
   manager?: string | null;
@@ -271,7 +283,13 @@ export type NewSearchCompanyParams = {
   capital: number | null;
   established_in: string | null;
   business_content: string | null;
-  industry_type: string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   product_category_large: string | null;
   product_category_medium: string | null;
   product_category_small: string | null;
@@ -694,7 +712,13 @@ export type Contact_row_data = {
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
-  industry_type: string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   product_category_large: string | null;
   product_category_medium: string | null;
   product_category_small: string | null;
@@ -760,7 +784,13 @@ export type Activity_row_data = {
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
-  industry_type: string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   product_category_large: string | null;
   product_category_medium: string | null;
   product_category_small: string | null;
@@ -881,7 +911,13 @@ export type Meeting_row_data = {
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
-  industry_type: string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   product_category_large: string | null;
   product_category_medium: string | null;
   product_category_small: string | null;
@@ -996,7 +1032,13 @@ export type ValidMeeting = {
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
-  industry_type: string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   product_category_large: string | null;
   product_category_medium: string | null;
   product_category_small: string | null;
@@ -1111,7 +1153,13 @@ export type Property_row_data = {
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
-  industry_type: string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   product_category_large: string | null;
   product_category_medium: string | null;
   product_category_small: string | null;
@@ -1241,7 +1289,13 @@ export type NewSearchContact_CompanyParams = {
   website_url: string | null;
   // company_email: string | null;
   "client_companies.email": string | null;
-  industry_type: string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   product_category_large: string | null;
   product_category_medium: string | null;
   product_category_small: string | null;
@@ -1291,7 +1345,13 @@ export type NewSearchActivity_Contact_CompanyParams = {
   website_url: string | null;
   // company_email: string | null;
   "client_companies.email": string | null;
-  industry_type: string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   product_category_large: string | null;
   product_category_medium: string | null;
   product_category_small: string | null;
@@ -1365,7 +1425,13 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   website_url: string | null;
   // company_email: string | null;
   "client_companies.email": string | null;
-  industry_type: string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   product_category_large: string | null;
   product_category_medium: string | null;
   product_category_small: string | null;
@@ -1452,7 +1518,13 @@ export type NewSearchProperty_Contact_CompanyParams = {
   website_url: string | null;
   // company_email: string | null;
   "client_companies.email": string | null;
-  industry_type: string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   product_category_large: string | null;
   product_category_medium: string | null;
   product_category_small: string | null;
@@ -1991,7 +2063,13 @@ export type Quotation_row_data = {
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
-  industry_type: string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
   product_category_large: string | null;
   product_category_medium: string | null;
   product_category_small: string | null;
@@ -2217,4 +2295,16 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   // 担当印 社員番号
   "e.employee_id_name": string | null;
   // employee_id_name: string | null;
+};
+
+// 市区町村
+export type Cities = {
+  city_id: number;
+  created_at: string;
+  updated_at: string | null;
+  city_name_ja: string | null;
+  city_name_en: string | null;
+  city_code_jp: number | null;
+  region_id: number | null;
+  country_id: number | null;
 };

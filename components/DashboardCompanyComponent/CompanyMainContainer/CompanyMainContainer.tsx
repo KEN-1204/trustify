@@ -42,11 +42,13 @@ import { CiEdit } from "react-icons/ci";
 import { UnderRightActivityLog } from "./UnderRightActivityLog/UnderRightActivityLog";
 import {
   getNumberOfEmployeesClass,
+  mappingIndustryType,
   optionsIndustryType,
   optionsMonth,
   optionsNumberOfEmployeesClass,
   optionsProductL,
 } from "@/utils/selectOptions";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 // 名前付きエクスポートの場合のダイナミックインポート
 // const UnderRightActivityLog = dynamic(
 //   () => import("./UnderRightActivityLog/UnderRightActivityLog").then((mod) => mod.UnderRightActivityLog),
@@ -64,6 +66,7 @@ import {
 // 常にサーバー側にモジュールを含める必要はありません。たとえば、ブラウザのみで動作するライブラリがモジュールに含まれている場合です。
 
 const CompanyMainContainerMemo: FC = () => {
+  const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // サーチモード、編集モード
   const searchMode = useDashboardStore((state) => state.searchMode);
@@ -153,6 +156,7 @@ const CompanyMainContainerMemo: FC = () => {
   const [inputHP, setInputHP] = useState("");
   const [inputEmail, setInputEmail] = useState("");
   const [inputIndustryType, setInputIndustryType] = useState("");
+  // const [inputIndustryType, setInputIndustryType] = useState<number | null>(null);
   const [inputProductL, setInputProductL] = useState("");
   const [inputProductM, setInputProductM] = useState("");
   const [inputProductS, setInputProductS] = useState("");
@@ -222,7 +226,11 @@ const CompanyMainContainerMemo: FC = () => {
       setInputContent(beforeAdjustFieldValue(newSearchCompanyParams?.business_content));
       setInputHP(beforeAdjustFieldValue(newSearchCompanyParams.website_url));
       setInputEmail(beforeAdjustFieldValue(newSearchCompanyParams.email));
-      setInputIndustryType(beforeAdjustFieldValue(newSearchCompanyParams.industry_type));
+      setInputIndustryType(
+        beforeAdjustFieldValue(
+          newSearchCompanyParams.industry_type_id ? newSearchCompanyParams.industry_type_id.toString() : ""
+        )
+      );
       setInputProductL(beforeAdjustFieldValue(newSearchCompanyParams.product_category_large));
       setInputProductM(beforeAdjustFieldValue(newSearchCompanyParams.product_category_medium));
       setInputProductS(beforeAdjustFieldValue(newSearchCompanyParams.product_category_small));
@@ -325,7 +333,7 @@ const CompanyMainContainerMemo: FC = () => {
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
     let _email = adjustFieldValue(inputEmail);
-    let _industry_type = adjustFieldValue(inputIndustryType);
+    let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
     let _product_category_large = adjustFieldValue(inputProductL);
     let _product_category_medium = adjustFieldValue(inputProductM);
     let _product_category_small = adjustFieldValue(inputProductS);
@@ -368,7 +376,7 @@ const CompanyMainContainerMemo: FC = () => {
       business_content: _business_content,
       website_url: _website_url,
       email: _email,
-      industry_type: _industry_type,
+      industry_type_id: _industry_type_id,
       product_category_large: _product_category_large,
       product_category_medium: _product_category_medium,
       product_category_small: _product_category_small,
@@ -804,7 +812,9 @@ const CompanyMainContainerMemo: FC = () => {
     "newSearchCompanyParams",
     newSearchCompanyParams,
     "selectedRowDataCompany",
-    selectedRowDataCompany
+    selectedRowDataCompany,
+    "optionsIndustryType",
+    optionsIndustryType
   );
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
@@ -2171,15 +2181,16 @@ const CompanyMainContainerMemo: FC = () => {
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○業種</span>
                   {/* ディスプレイ */}
-                  {!searchMode && isEditModeField !== "industry_type" && (
+                  {!searchMode && isEditModeField !== "industry_type_id" && (
                     <span
                       className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
                       onClick={handleSingleClickField}
                       onDoubleClick={(e) => {
                         handleDoubleClickField({
                           e,
-                          field: "industry_type",
+                          field: "industry_type_id",
                           dispatch: setInputIndustryType,
+                          selectedRowDataValue: selectedRowDataCompany?.industry_type_id ?? "",
                         });
                       }}
                       onMouseEnter={(e) => {
@@ -2189,7 +2200,10 @@ const CompanyMainContainerMemo: FC = () => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                       }}
                     >
-                      {selectedRowDataCompany?.industry_type ? selectedRowDataCompany?.industry_type : ""}
+                      {/* {selectedRowDataCompany?.industry_type_id ? selectedRowDataCompany?.industry_type_id : ""} */}
+                      {selectedRowDataCompany?.industry_type_id
+                        ? mappingIndustryType[selectedRowDataCompany?.industry_type_id][language]
+                        : ""}
                     </span>
                   )}
                   {/* サーチ */}
@@ -2200,7 +2214,12 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputIndustryType(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="機械要素・部品">機械要素・部品</option>
+                      {optionsIndustryType.map((option) => (
+                        <option key={option} value={option.toString()}>
+                          {mappingIndustryType[option][language]}
+                        </option>
+                      ))}
+                      {/* <option value="機械要素・部品">機械要素・部品</option>
                       <option value="自動車・輸送機器">自動車・輸送機器</option>
                       <option value="電子部品・半導体">電子部品・半導体</option>
                       <option value="製造・加工受託">製造・加工受託</option>
@@ -2251,12 +2270,12 @@ const CompanyMainContainerMemo: FC = () => {
                       <option value="商社・卸売">商社・卸売</option>
                       <option value="官公庁">官公庁</option>
                       <option value="個人">個人</option>
-                      <option value="不明">不明</option>
+                      <option value="不明">不明</option> */}
                     </select>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
                   {/* フィールドエディットモード selectタグ  */}
-                  {!searchMode && isEditModeField === "industry_type" && (
+                  {!searchMode && isEditModeField === "industry_type_id" && (
                     <>
                       <select
                         className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
@@ -2265,7 +2284,7 @@ const CompanyMainContainerMemo: FC = () => {
                           // setInputEmployeesClass(e.target.value);
                           handleChangeSelectUpdateField({
                             e,
-                            fieldName: "industry_type",
+                            fieldName: "industry_type_id",
                             value: e.target.value,
                             id: selectedRowDataCompany?.id,
                           });
@@ -2273,7 +2292,7 @@ const CompanyMainContainerMemo: FC = () => {
                       >
                         {optionsIndustryType.map((option) => (
                           <option key={option} value={option}>
-                            {option}
+                            {mappingIndustryType[option][language]}
                           </option>
                         ))}
                       </select>
@@ -2286,7 +2305,7 @@ const CompanyMainContainerMemo: FC = () => {
                     </>
                   )}
                   {/* フィールドエディットモードオーバーレイ */}
-                  {!searchMode && isEditModeField === "industry_type" && (
+                  {!searchMode && isEditModeField === "industry_type_id" && (
                     <div
                       className={`${styles.edit_mode_overlay}`}
                       onClick={(e) => {
