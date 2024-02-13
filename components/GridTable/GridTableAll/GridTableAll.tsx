@@ -277,6 +277,11 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     "created_by_office_of_user",
     "budget_request_month1",
     "budget_request_month2",
+    "country_id",
+    "region_id",
+    "city_id",
+    "street_address",
+    "building_name",
   ].join(", "); // columnNameのみの配列をオブジェクトに変換して取得 { column1, column2, ... }
 
   // ユーザーState

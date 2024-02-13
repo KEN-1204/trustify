@@ -555,12 +555,39 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       )}
 
       {/* 会社_作成・編集モーダル */}
-      {isOpenInsertNewClientCompanyModal && <InsertNewClientCompanyModal />}
-      {isOpenUpdateClientCompanyModal && <UpdateClientCompanyModal />}
+      {isOpenInsertNewClientCompanyModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <InsertNewClientCompanyModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {isOpenUpdateClientCompanyModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <UpdateClientCompanyModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* {isOpenUpdateClientCompanyModal && <UpdateClientCompanyModal />} */}
 
       {/* 担当者_作成・編集モーダル */}
-      {isOpenInsertNewContactModal && <InsertNewContactModal />}
-      {isOpenUpdateContactModal && <UpdateContactModal />}
+      {/* {isOpenInsertNewContactModal && <InsertNewContactModal />}
+      {isOpenUpdateContactModal && <UpdateContactModal />} */}
+      {isOpenInsertNewContactModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <InsertNewContactModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {isOpenUpdateContactModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <UpdateContactModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
 
       {/* 活動_作成・編集モーダル */}
       {/* {isOpenInsertNewActivityModal && <InsertNewActivityModal />}

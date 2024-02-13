@@ -1,4 +1,4 @@
-import React, { CSSProperties, KeyboardEvent, useEffect, useRef, useState } from "react";
+import React, { CSSProperties, KeyboardEvent, Suspense, useEffect, useRef, useState } from "react";
 import styles from "./InsertNewClientCompanyModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -21,7 +21,7 @@ import {
   mappingCountries,
   mappingIndustryType,
   mappingRegionsJp,
-  optionRegionArray,
+  regionArrayJP,
   optionsIndustryType,
   optionsMonth,
   optionsNumberOfEmployeesClass,
@@ -33,6 +33,12 @@ import { useQueryCities } from "@/hooks/useQueryCities";
 import { CustomSelectInput } from "@/components/Parts/CustomSelectInput/CustomSelectInput";
 import { HiChevronDown } from "react-icons/hi2";
 import { Cities } from "@/types";
+import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
+import { InputBoxCity } from "./InputBoxCity";
+import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+import { FallbackInputBox } from "./FallbackInputBox";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const InsertNewClientCompanyModal = () => {
   const language = useStore((state) => state.language);
@@ -61,6 +67,7 @@ export const InsertNewClientCompanyModal = () => {
   const [industryType, setIndustryType] = useState("");
   // 国別・都道府県別・市区町村別
   const [countryId, setCountryId] = useState("153");
+  const prevCountryIdRef = useRef("153");
   const [regionId, setRegionId] = useState(
     isDuplicateCompany && selectedRowDataCompany?.region_id ? selectedRowDataCompany.region_id.toString() : ""
   );
@@ -68,6 +75,10 @@ export const InsertNewClientCompanyModal = () => {
   const [countryName, setCountryName] = useState("日本");
   const [regionName, setRegionName] = useState("");
   const [cityName, setCityName] = useState("");
+  // 町名・番地
+  const [streetAddress, setStreetAddress] = useState("");
+  // 建物名・部屋番号
+  const [buildingName, setBuildingName] = useState("");
   //
   const [productCategoryL, setProductCategoryL] = useState("");
   const [productCategoryM, setProductCategoryM] = useState("");
@@ -105,9 +116,9 @@ export const InsertNewClientCompanyModal = () => {
   const supabase = useSupabaseClient();
   const { createClientCompanyMutation } = useMutateClientCompany();
 
-  // ======================= 🌟市区町村のuseQuery🌟 =======================
-  const { data: citiesArray, isLoading: isLoadingCities } = useQueryCities(regionId ? Number(regionId) : null);
-  // ======================= ✅市区町村のuseQuery✅ =======================
+  // // // ======================= 🌟市区町村のuseQuery🌟 =======================
+  // const { data: citiesArray, isLoading: isLoadingCities } = useQueryCities(regionId ? Number(regionId) : null);
+  // // // ======================= ✅市区町村のuseQuery✅ =======================
 
   // ======================= 🌟「会社_複製」の場合はデータを複製🌟 =======================
   // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
@@ -137,6 +148,8 @@ export const InsertNewClientCompanyModal = () => {
       ? selectedRowDataCompany.region_id!.toString()
       : "";
     let _city_id = isValidNumber(selectedRowDataCompany.city_id) ? selectedRowDataCompany.city_id!.toString() : "";
+    let _street_address = selectedRowDataCompany.street_address ? selectedRowDataCompany.street_address : "";
+    let _building_name = selectedRowDataCompany.building_name ? selectedRowDataCompany.building_name : "";
     //
     let _product_category_large = selectedRowDataCompany.product_category_large
       ? selectedRowDataCompany.product_category_large
@@ -202,15 +215,31 @@ export const InsertNewClientCompanyModal = () => {
     setIndustryType(_industry_type_id);
     // 国別・都道府県別・市区町村別
     setCountryId(_country_id);
+    prevCountryIdRef.current = _country_id;
     setRegionId(_region_id);
     setCityId(_city_id);
     setCountryName(
       selectedRowDataCompany.country_id ? mappingCountries[selectedRowDataCompany.country_id][language] : "日本"
     );
-    setRegionName(selectedRowDataCompany.region_id ? mappingRegionsJp[selectedRowDataCompany.region_id][language] : "");
-    const _cityObj = citiesArray?.find((obj) => obj.city_id === selectedRowDataCompany.city_id);
-    const _cityName = language === "ja" ? _cityObj?.city_name_ja : _cityObj?.city_name_en;
-    setCityName(_cityName ?? "");
+    console.log(
+      "🔥🔥🔥🔥🔥selectedRowDataCompany.country_id",
+      selectedRowDataCompany.country_id,
+      "🔥🔥🔥🔥🔥selectedRowDataCompany.region_id",
+      selectedRowDataCompany.region_id,
+      "🔥🔥🔥🔥🔥mappingCountries[selectedRowDataCompany.country_id][language]",
+      selectedRowDataCompany.country_id && mappingCountries[selectedRowDataCompany.country_id][language],
+      "mappingRegionsJp[selectedRowDataCompany.region_id][language]",
+      selectedRowDataCompany.region_id && mappingRegionsJp[selectedRowDataCompany.region_id][language]
+    );
+    setRegionName(
+      selectedRowDataCompany.country_id === 153 && selectedRowDataCompany.region_id
+        ? mappingRegionsJp[selectedRowDataCompany.region_id][language]
+        : ""
+    );
+    // 町名・番地と建物名が入力されていなかった場合は、抽出してセット
+
+    setStreetAddress(streetAddress);
+    setBuildingName(_building_name);
     //
     setProductCategoryL(_product_category_large);
     setProductCategoryM(_product_category_medium);
@@ -246,6 +275,65 @@ export const InsertNewClientCompanyModal = () => {
   }, []);
   // ======================= ✅「会社_複製」の場合はデータを複製✅ =======================
 
+  const [isMounted, setIsMounted] = useState(false);
+  // const queryClient = useQueryClient()
+  useEffect(() => {
+    if (!isDuplicateCompany) return setIsMounted(true);
+    if (isMounted) return;
+    if (streetAddress) return;
+    if (!regionName) return;
+    if (!cityName) return;
+
+    // const citiesArray = queryClient.getQueryData(["cities", regionId]) as Cities[];
+    // if (!citiesArray) return;
+
+    if (address && countryId === "153") {
+      let _streetAddress;
+      // 住所から都道府県を削除
+      const addressWithoutRegion = address.replace(regionName, "").trim();
+      // const addressWithoutRegion = regionArrayJP.reduce((acc: any, region: RegionArray) => {
+      //   if (acc.includes(region.name_ja)) {
+      //     return acc.replace(region.name_ja, "").trim();
+      //   }
+      // }, address as string);
+
+      // 市区町村を削除
+      const addressWithoutCity = addressWithoutRegion.replace(cityName, "").trim();
+      // const addressWithoutCity = citiesArray.reduce((acc, city) => {
+      //   if (acc.includes(city.city_name_ja)) {
+      //     return acc.replace(city.city_name_ja, "").trim();
+      //   }
+      // }, addressWithoutRegion);
+
+      // 建物名を削除
+      if (buildingName) {
+        _streetAddress = addressWithoutCity.replace(buildingName, "").trim();
+      } else {
+        if (addressWithoutCity.includes(" ")) {
+          const streetAndBuilding = addressWithoutCity.split(" ");
+          const _buildingName = streetAndBuilding[streetAndBuilding.length - 1];
+          setBuildingName(_buildingName);
+          _streetAddress = addressWithoutCity.replace(_buildingName, "").trim();
+          console.log(
+            "streetAndBuilding",
+            streetAndBuilding,
+            "streetAndBuilding[streetAndBuilding.length - 1]",
+            _buildingName,
+            "addressWithoutCity",
+            addressWithoutCity,
+            'addressWithoutCity.replace(_buildingName, "").trim()',
+            _streetAddress
+          );
+        } else {
+          _streetAddress = addressWithoutCity;
+        }
+      }
+
+      setStreetAddress(_streetAddress);
+    }
+    setIsMounted(true);
+  }, [regionName, cityName, isMounted]);
+
   // console.log("InsertNewClientCompanyModalコンポーネント レンダリング selectedRowDataCompany", selectedRowDataCompany);
 
   // キャンセルでモーダルを閉じる
@@ -258,9 +346,15 @@ export const InsertNewClientCompanyModal = () => {
     if (!name) return alert("会社名を入力してください");
     if (!mainPhoneNumber) return alert("代表TELを入力してください");
     if (!departmentName) return alert("部署名を入力してください");
-    if (!address) return alert("住所を入力してください");
+    // if (!address) return alert("住所を入力してください");
+    if (!countryName) return alert("国名を入力してください");
+    if (!regionName) return alert("都道府県を入力してください");
+    if (!cityName) return alert("市区町村を入力してください");
 
     setLoadingGlobalState(true);
+
+    // 住所
+    const _address = regionName + cityName + (streetAddress ?? "") + " " + buildingName;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newClientCompany = {
@@ -277,7 +371,8 @@ export const InsertNewClientCompanyModal = () => {
       department_name: departmentName,
       main_fax: mainFax ? mainFax : null,
       zipcode: zipcode ? zipcode : null,
-      address: address ? address : null,
+      // address: address ? address : null,
+      address: _address ? _address : null,
       department_contacts: departmentContacts ? departmentContacts : null,
       industry_large: industryL ? industryL : null,
       industry_small: industryS ? industryS : null,
@@ -288,6 +383,8 @@ export const InsertNewClientCompanyModal = () => {
       country_id: isValidNumber(countryId) ? parseInt(countryId, 10) : null,
       region_id: isValidNumber(regionId) ? parseInt(regionId, 10) : null,
       city_id: isValidNumber(cityId) ? parseInt(cityId, 10) : null,
+      street_address: streetAddress ? streetAddress : null,
+      building_name: buildingName ? buildingName : null,
       //
       product_category_large: productCategoryL ? productCategoryL : null,
       product_category_medium: productCategoryM ? productCategoryM : null,
@@ -435,22 +532,20 @@ export const InsertNewClientCompanyModal = () => {
   const inputRegionRef = useRef<HTMLInputElement | null>(null);
   const inputCityRef = useRef<HTMLInputElement | null>(null);
   type SuggestedObj = { id: string; fullName: string };
-  const [suggestedCountryIdNameArray, setSuggestedCountryIdNameArray] = useState<CountryOption[]>(countryArray);
-  const [suggestedRegionIdNameArray, setSuggestedRegionIdNameArray] = useState<RegionArray[]>(optionRegionArray);
+  // const [suggestedCountryIdNameArray, setSuggestedCountryIdNameArray] = useState<CountryOption[]>(countryArray);
+  // const [suggestedRegionIdNameArray, setSuggestedRegionIdNameArray] = useState<RegionArray[]>(regionArrayJP);
+  const [suggestedCountryIdNameArray, setSuggestedCountryIdNameArray] = useState<CountryOption[]>();
+  const [suggestedRegionIdNameArray, setSuggestedRegionIdNameArray] = useState<RegionArray[]>();
   const [suggestedCityIdNameArray, setSuggestedCityIdNameArray] = useState<Cities[]>([]);
-  // 町名・番地
-  const [streetAddress, setStreetAddress] = useState("");
-  // 建物名・部屋番号
-  const [buildingName, setBuildingName] = useState("");
 
   // 市区町村の配列取得時にsuggestedCityIdNameArrayに格納
-  useEffect(() => {
-    if (!citiesArray || citiesArray.length) {
-      setSuggestedCityIdNameArray([]);
-      return;
-    }
-    setSuggestedCityIdNameArray(citiesArray);
-  }, [citiesArray]);
+  // useEffect(() => {
+  //   if (!citiesArray || citiesArray.length) {
+  //     setSuggestedCityIdNameArray([]);
+  //     return;
+  //   }
+  //   setSuggestedCityIdNameArray(citiesArray);
+  // }, [citiesArray]);
 
   // 紹介予定商品の入力値を商品リストから生成した予測変換リストから絞り込んで提案する
   const handleSuggestedName = (e: KeyboardEvent<HTMLInputElement>, title: string) => {
@@ -466,31 +561,37 @@ export const InsertNewClientCompanyModal = () => {
     // 入力値が存在する場合は、入力値に一致するavailableKeywordsをフィルター
     if (e.currentTarget.value.length) {
       if (title === "country") {
-        const filteredResult = suggestedCountryIdNameArray.filter((obj) => {
+        const filteredResult = countryArray.filter((obj) => {
           if (language === "ja") return obj.name_ja.toLowerCase().includes(e.currentTarget.value.toLowerCase());
           if (language === "en") return obj.name_en.toLowerCase().includes(e.currentTarget.value.toLowerCase());
         });
         console.log("🌟filteredResult", filteredResult, "🌟入力あり", e.currentTarget.value);
         setSuggestedCountryIdNameArray(filteredResult);
+        return;
       }
 
       if (title === "region") {
-        const filteredResult = suggestedRegionIdNameArray.filter((obj) => {
+        const filteredResult = regionArrayJP.filter((obj) => {
           if (language === "ja") return obj.name_ja.toLowerCase().includes(e.currentTarget.value.toLowerCase());
           if (language === "en") return obj.name_en.toLowerCase().includes(e.currentTarget.value.toLowerCase());
         });
         console.log("🌟filteredResult", filteredResult, "🌟入力あり", e.currentTarget.value);
         setSuggestedRegionIdNameArray(filteredResult);
+        return;
       }
 
-      if (title === "city") {
-        const filteredResult = suggestedCityIdNameArray.filter((obj) => {
-          if (language === "ja") return obj.city_name_ja?.toLowerCase().includes(e.currentTarget.value.toLowerCase());
-          if (language === "en") return obj.city_name_en?.toLowerCase().includes(e.currentTarget.value.toLowerCase());
-        });
-        console.log("🌟filteredResult", filteredResult, "🌟入力あり", e.currentTarget.value);
-        setSuggestedCityIdNameArray(filteredResult);
-      }
+      // if (title === "city") {
+      //   if (!citiesArray) {
+      //     return setSuggestedCityIdNameArray([]);
+      //   }
+      //   const filteredResult = citiesArray.filter((obj) => {
+      //     if (language === "ja") return obj.city_name_ja?.toLowerCase().includes(e.currentTarget.value.toLowerCase());
+      //     if (language === "en") return obj.city_name_en?.toLowerCase().includes(e.currentTarget.value.toLowerCase());
+      //   });
+      //   console.log("🌟filteredResult", filteredResult, "🌟入力あり", e.currentTarget.value);
+      //   setSuggestedCityIdNameArray(filteredResult);
+      //   return;
+      // }
     }
   };
 
@@ -508,42 +609,155 @@ export const InsertNewClientCompanyModal = () => {
     // 入力値が存在する場合は、入力値に一致するavailableKeywordsをフィルター
     if (currentInputState.length) {
       if (title === "country") {
-        const filteredResult = suggestedCountryIdNameArray.filter((obj) => {
+        const filteredResult = countryArray.filter((obj) => {
           if (language === "ja") return obj.name_ja.toLowerCase().includes(currentInputState.toLowerCase());
           if (language === "en") return obj.name_en.toLowerCase().includes(currentInputState.toLowerCase());
         });
         console.log("🌟filteredResult", filteredResult, "🌟入力あり", currentInputState);
         setSuggestedCountryIdNameArray(filteredResult);
+        return;
       }
 
       if (title === "region") {
-        const filteredResult = suggestedRegionIdNameArray.filter((obj) => {
+        const filteredResult = regionArrayJP.filter((obj) => {
           if (language === "ja") return obj.name_ja.toLowerCase().includes(currentInputState.toLowerCase());
           if (language === "en") return obj.name_en.toLowerCase().includes(currentInputState.toLowerCase());
         });
         console.log("🌟filteredResult", filteredResult, "🌟入力あり", currentInputState);
         setSuggestedRegionIdNameArray(filteredResult);
+        return;
       }
 
-      if (title === "city") {
-        const filteredResult = suggestedCityIdNameArray.filter((obj) => {
-          if (language === "ja") return obj.city_name_ja?.toLowerCase().includes(currentInputState.toLowerCase());
-          if (language === "en") return obj.city_name_en?.toLowerCase().includes(currentInputState.toLowerCase());
-        });
-        console.log("🌟filteredResult", filteredResult, "🌟入力あり", currentInputState);
-        setSuggestedCityIdNameArray(filteredResult);
-      }
+      // if (title === "city") {
+      //   if (!citiesArray) {
+      //     return setSuggestedCityIdNameArray([]);
+      //   }
+      //   const filteredResult = citiesArray.filter((obj) => {
+      //     if (language === "ja") return obj.city_name_ja?.toLowerCase().includes(currentInputState.toLowerCase());
+      //     if (language === "en") return obj.city_name_en?.toLowerCase().includes(currentInputState.toLowerCase());
+      //   });
+      //   console.log("🌟filteredResult", filteredResult, "🌟入力あり", currentInputState);
+      //   setSuggestedCityIdNameArray(filteredResult);
+      //   return;
+      // }
     }
   };
 
-  // 住所を都道府県、市区町村が更新される度に結合するuseEffect
-  // useEffect(() => {
-  //   if (!regionName) {
-  //     setAddress('')
-  //     return
-  //   }
+  // 国以下を全てリセット
+  const resetRegion = () => {
+    if (countryId) setCountryId("");
+    if (countryName) setCountryName("");
+    if (regionId) setRegionId("");
+    if (regionName) setRegionName("");
+    if (cityId) setCityId("");
+    if (cityName) setCityName("");
+    if (streetAddress) setStreetAddress("");
+    if (buildingName) setBuildingName("");
+  };
 
-  // }, [])
+  // onBlurで入力している国名と完全一致している選択肢があればidをセットする
+  const handleBlurSetId = (currentInputState: string, title: string) => {
+    if (!currentInputState) return;
+
+    if (title === "country") {
+      const matchCountryId = countryArray.find(
+        (obj) => (language === "ja" ? obj.name_ja : obj.name_en) === currentInputState
+      )?.id;
+      if (matchCountryId) {
+        const newCountryId = matchCountryId.toString();
+        setCountryId(newCountryId);
+        if (newCountryId !== prevCountryIdRef.current) {
+          resetRegion();
+          prevCountryIdRef.current = newCountryId;
+        }
+      }
+      if (!matchCountryId && countryId) {
+        setCountryId("");
+        if (prevCountryIdRef.current !== "") {
+          resetRegion();
+          prevCountryIdRef.current = "";
+        }
+      }
+    }
+    if (title === "region" && countryName === "日本") {
+      if (/都|道|府|県/.test(currentInputState)) {
+        const matchRegionId = regionArrayJP.find(
+          (obj) => (language === "ja" ? obj.name_ja : obj.name_en) === currentInputState
+        )?.id;
+        if (matchRegionId && regionId !== matchRegionId.toString()) setRegionId(matchRegionId.toString());
+        if (!matchRegionId && regionId) setRegionId("");
+      }
+      // 都道府県が含まれていなくて、かつ候補が一つならその候補をidとNameにセット
+      else if (suggestedRegionIdNameArray?.length === 1) {
+        const newRegionName = suggestedRegionIdNameArray[0].name_ja;
+        const matchRegionId = regionArrayJP.find(
+          (obj) => (language === "ja" ? obj.name_ja : obj.name_en) === newRegionName
+        )?.id;
+        if (matchRegionId && regionId !== matchRegionId.toString()) setRegionId(matchRegionId.toString());
+        if (!matchRegionId && regionId) setRegionId("");
+        setRegionName(newRegionName);
+      } else {
+        if (regionId) setRegionId("");
+      }
+    }
+    // if (title === "city" && regionId && !!citiesArray?.length) {
+    //   const matchCityId = citiesArray.find(
+    //     (obj) => (language === "ja" ? obj.city_name_ja : obj.city_name_en) === currentInputState
+    //   )?.city_id;
+    //   if (matchCityId && cityId !== matchCityId.toString()) setCityId(matchCityId.toString());
+    //   if (!matchCityId && cityId) setCityId("");
+    // }
+  };
+
+  // 住所の各セクションで空文字になったらセクション以下を全てリセットするuseEffect
+  useEffect(() => {
+    if (!isMounted) return;
+    if (!countryName) {
+      // if (address) setAddress("");
+      if (suggestedRegionIdNameArray?.length !== 0) setSuggestedRegionIdNameArray([]);
+      if (suggestedCityIdNameArray?.length !== 0) setSuggestedCityIdNameArray([]);
+      if (countryId) setCountryId("");
+      prevCountryIdRef.current = "";
+      if (regionId) setRegionId("");
+      if (regionName) setRegionName("");
+      if (cityId) setCityId("");
+      if (cityName) setCityName("");
+      if (streetAddress) setStreetAddress("");
+      if (buildingName) setBuildingName("");
+      return;
+    }
+  }, [countryName]);
+  useEffect(() => {
+    if (!isMounted) return;
+    if (!regionName) {
+      if (regionId) setRegionId("");
+      if (suggestedCityIdNameArray?.length !== 0) setSuggestedCityIdNameArray([]);
+      if (cityId) setCityId("");
+      if (cityName) setCityName("");
+      if (streetAddress) setStreetAddress("");
+      if (buildingName) setBuildingName("");
+      return;
+    }
+  }, [regionName]);
+  useEffect(() => {
+    if (!isMounted) return;
+    if (!cityName) {
+      if (streetAddress) setStreetAddress("");
+      if (buildingName) setBuildingName("");
+      return;
+    }
+  }, [cityName]);
+  useEffect(() => {
+    if (!isMounted) return;
+    if (!streetAddress) {
+      if (buildingName) setBuildingName("");
+      return;
+    }
+  }, [streetAddress]);
+
+  console.log("countryName", countryName, "countryId", countryId, "国リスト候補", suggestedCountryIdNameArray);
+  console.log("regionName", regionName, "regionId", regionId, "都道府県リスト候補", suggestedRegionIdNameArray);
+  // console.log("cityName", cityName, "cityId", cityId, "市区町村リスト候補", suggestedCityIdNameArray);
 
   return (
     <>
@@ -553,7 +767,10 @@ export const InsertNewClientCompanyModal = () => {
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
       )} */}
-      <div className={`${styles.container} fade03`}>
+      <div className={`${styles.container} fade03`} ref={modalContainerRef}>
+        {/* ツールチップ */}
+        {hoveredItemPosModal && <TooltipModal />}
+        {/* ローディングオーバーレイ */}
         {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
             {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
@@ -758,11 +975,11 @@ export const InsertNewClientCompanyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title}`}>国名</span>
-                    <div className={`input_container relative z-[100] flex h-[32px] w-full items-start`}>
+                    <div className={`input_container relative z-[1000] flex h-[32px] w-full items-start`}>
                       <input
                         ref={inputCountryRef}
                         type="text"
-                        placeholder="キーワード入力後、市区町村を選択してください。"
+                        placeholder="キーワード入力後、国名を選択してください。"
                         required
                         className={`${styles.input_box}`}
                         value={countryName}
@@ -774,49 +991,47 @@ export const InsertNewClientCompanyModal = () => {
                         }}
                         onBlur={() => {
                           if (!!resultCountryRefs.current) resultCountryRefs.current.style.opacity = "0";
+                          handleBlurSetId(countryName, "country");
                         }}
                       />
                       {/* 予測変換結果 */}
-                      {suggestedCountryIdNameArray &&
-                        suggestedCountryIdNameArray &&
-                        suggestedCountryIdNameArray?.length > 0 && (
-                          <div
-                            ref={resultCountryRefs}
-                            className={`${styles.result_box}`}
-                            style={
-                              {
-                                "--color-border-custom": "#ccc",
-                              } as CSSProperties
-                            }
-                          >
-                            {suggestedCountryIdNameArray &&
-                              suggestedCountryIdNameArray &&
-                              suggestedCountryIdNameArray?.length > 0 && (
-                                <div className="sticky top-0 flex min-h-[5px] w-full flex-col items-center justify-end">
-                                  <hr className={`min-h-[4px] w-full bg-[var(--color-bg-under-input)]`} />
-                                  <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
-                                </div>
-                              )}
-                            <ul>
-                              {suggestedCountryIdNameArray?.map((country, index) => (
-                                <li
-                                  key={country.id.toString() + index.toString()}
-                                  onClick={(e) => {
-                                    // console.log("🌟innerText", e.currentTarget.innerText);
-                                    const countryName = language === "ja" ? country.name_ja : country.name_en;
-                                    const countryId = country.id;
-                                    // setPlannedProduct1(e.currentTarget.innerText);
-                                    setCountryName(countryName ?? "");
-                                    setCountryId(countryId ? countryId.toString() : "");
-                                    setSuggestedCountryIdNameArray([]);
-                                  }}
-                                >
-                                  {language === "ja" ? country.name_ja : country.name_en}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
+                      {suggestedCountryIdNameArray && suggestedCountryIdNameArray?.length > 0 && (
+                        <div
+                          ref={resultCountryRefs}
+                          className={`${styles.result_box}`}
+                          style={
+                            {
+                              "--color-border-custom": "#ccc",
+                            } as CSSProperties
+                          }
+                        >
+                          {suggestedCountryIdNameArray && suggestedCountryIdNameArray?.length > 0 && (
+                            <div className="sticky top-0 z-[100] flex min-h-[5px] w-full flex-col items-center justify-end">
+                              <hr className={`min-h-[4px] w-full bg-[var(--color-bg-under-input)]`} />
+                              <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
+                            </div>
+                          )}
+                          <ul>
+                            {suggestedCountryIdNameArray?.map((country, index) => (
+                              <li
+                                key={country.id.toString() + index.toString()}
+                                onClick={(e) => {
+                                  // console.log("🌟innerText", e.currentTarget.innerText);
+                                  const countryName = language === "ja" ? country.name_ja : country.name_en;
+                                  const countryId = country.id;
+                                  // setPlannedProduct1(e.currentTarget.innerText);
+                                  setCountryName(countryName ?? "");
+                                  setCountryId(countryId ? countryId.toString() : "");
+                                  prevCountryIdRef.current = countryId ? countryId.toString() : "";
+                                  setSuggestedCountryIdNameArray([]);
+                                }}
+                              >
+                                {language === "ja" ? country.name_ja : country.name_en}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
                       {/* 予測変換結果 */}
                       <div
                         className={`flex-center absolute right-[3px] top-[50%] min-h-[20px] min-w-[20px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]`}
@@ -836,19 +1051,24 @@ export const InsertNewClientCompanyModal = () => {
                           });
                         }}
                         onMouseLeave={() => {
-                          // if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
                           if (hoveredItemPosModal) handleCloseTooltip();
                         }}
                         onClick={() => {
                           if (inputCountryRef.current) {
-                            inputCountryRef.current.focus();
-                            // 矢印クリック 全商品をリストで表示
-
-                            if (!suggestedCountryIdNameArray?.length && countryArray && countryArray.length > 0) {
-                              setSuggestedCountryIdNameArray(countryArray);
+                            // フォーカス状態でリスト表示されている場合はフォーカスを切ってリストを削除
+                            if (!!suggestedCountryIdNameArray?.length) {
+                              inputCountryRef.current.blur();
+                              setSuggestedCountryIdNameArray([]);
+                            }
+                            // まだフォーカスされていない場合
+                            else {
+                              inputCountryRef.current.focus();
+                              // 矢印クリック 全商品をリストで表示
+                              if (!suggestedCountryIdNameArray?.length && countryArray && countryArray.length > 0) {
+                                setSuggestedCountryIdNameArray(countryArray);
+                              }
                             }
                           }
-                          // if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
                           if (hoveredItemPosModal) handleCloseTooltip();
                         }}
                       >
@@ -873,7 +1093,7 @@ export const InsertNewClientCompanyModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 国名 */}
+              {/* 都道府県 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -883,7 +1103,7 @@ export const InsertNewClientCompanyModal = () => {
                         <input
                           ref={inputRegionRef}
                           type="text"
-                          placeholder="キーワード入力後、市区町村を選択してください。"
+                          placeholder="キーワード入力後、都道府県を選択してください。"
                           required
                           className={`${styles.input_box}`}
                           value={regionName}
@@ -895,49 +1115,47 @@ export const InsertNewClientCompanyModal = () => {
                           }}
                           onBlur={() => {
                             if (!!resultRegionRefs.current) resultRegionRefs.current.style.opacity = "0";
+                            handleBlurSetId(regionName, "region");
                           }}
                         />
                         {/* 予測変換結果 */}
-                        {suggestedRegionIdNameArray &&
-                          suggestedRegionIdNameArray &&
-                          suggestedRegionIdNameArray?.length > 0 && (
-                            <div
-                              ref={resultRegionRefs}
-                              className={`${styles.result_box}`}
-                              style={
-                                {
-                                  "--color-border-custom": "#ccc",
-                                } as CSSProperties
-                              }
-                            >
-                              {suggestedRegionIdNameArray &&
-                                suggestedRegionIdNameArray &&
-                                suggestedRegionIdNameArray?.length > 0 && (
-                                  <div className="sticky top-0 flex min-h-[5px] w-full flex-col items-center justify-end">
-                                    <hr className={`min-h-[4px] w-full bg-[var(--color-bg-under-input)]`} />
-                                    <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
-                                  </div>
-                                )}
-                              <ul>
-                                {suggestedRegionIdNameArray?.map((region, index) => (
-                                  <li
-                                    key={region.id.toString() + index.toString()}
-                                    onClick={(e) => {
-                                      // console.log("🌟innerText", e.currentTarget.innerText);
-                                      const regionName = language === "ja" ? region.name_ja : region.name_en;
-                                      const regionId = region.id;
-                                      // setPlannedProduct1(e.currentTarget.innerText);
-                                      setRegionName(regionName ?? "");
-                                      setRegionId(regionId ? regionId.toString() : "");
-                                      setSuggestedRegionIdNameArray([]);
-                                    }}
-                                  >
-                                    {language === "ja" ? region.name_ja : region.name_en}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+                        {suggestedRegionIdNameArray && suggestedRegionIdNameArray?.length > 0 && (
+                          <div
+                            ref={resultRegionRefs}
+                            className={`${styles.result_box}`}
+                            style={
+                              {
+                                "--color-border-custom": "#ccc",
+                                maxHeight: "240px",
+                              } as CSSProperties
+                            }
+                          >
+                            {suggestedRegionIdNameArray && suggestedRegionIdNameArray?.length > 0 && (
+                              <div className="sticky top-0 flex min-h-[5px] w-full flex-col items-center justify-end">
+                                <hr className={`min-h-[4px] w-full bg-[var(--color-bg-under-input)]`} />
+                                <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
+                              </div>
+                            )}
+                            <ul>
+                              {suggestedRegionIdNameArray?.map((region, index) => (
+                                <li
+                                  key={region.id.toString() + index.toString()}
+                                  onClick={(e) => {
+                                    // console.log("🌟innerText", e.currentTarget.innerText);
+                                    const regionName = language === "ja" ? region.name_ja : region.name_en;
+                                    const regionId = region.id;
+                                    // setPlannedProduct1(e.currentTarget.innerText);
+                                    setRegionName(regionName ?? "");
+                                    setRegionId(regionId ? regionId.toString() : "");
+                                    setSuggestedRegionIdNameArray([]);
+                                  }}
+                                >
+                                  {language === "ja" ? region.name_ja : region.name_en}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                         {/* 予測変換結果 */}
                         <div
                           className={`flex-center absolute right-[3px] top-[50%] min-h-[20px] min-w-[20px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]`}
@@ -962,15 +1180,24 @@ export const InsertNewClientCompanyModal = () => {
                           }}
                           onClick={() => {
                             if (inputRegionRef.current) {
-                              inputRegionRef.current.focus();
-                              // 矢印クリック 全商品をリストで表示
-
-                              if (
-                                !suggestedRegionIdNameArray?.length &&
-                                optionRegionArray &&
-                                optionRegionArray.length > 0
-                              ) {
-                                setSuggestedRegionIdNameArray(optionRegionArray);
+                              // フォーカス状態でリスト表示されている場合はフォーカスを切ってリストを削除
+                              if (!!suggestedRegionIdNameArray?.length) {
+                                inputRegionRef.current.blur();
+                                setSuggestedRegionIdNameArray([]);
+                              }
+                              // まだフォーカスされていない場合
+                              else {
+                                // 矢印クリック 全商品をリストで表示
+                                if (countryName === "日本") {
+                                  inputRegionRef.current.focus();
+                                  if (
+                                    !suggestedRegionIdNameArray?.length &&
+                                    regionArrayJP &&
+                                    regionArrayJP.length > 0
+                                  ) {
+                                    setSuggestedRegionIdNameArray(regionArrayJP);
+                                  }
+                                }
                               }
                             }
                             // if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
@@ -998,22 +1225,26 @@ export const InsertNewClientCompanyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full min-h-[35px] items-center`}>
                     <span className={`${styles.title}`}>市区町村</span>
-                    {/* <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={numberOfEmployees}
-                      onChange={(e) => setNumberOfEmployees(e.target.value)}
-                      onBlur={() => setNumberOfEmployees(toHalfWidth(numberOfEmployees.trim()))}
-                    /> */}
-                    {/* <CustomSelectInput
-                      options={citiesArray}
-                      // defaultValue={"お打ち合わせにより決定"}
-                      displayX="center"
-                      state={cityName}
-                      dispatch={setCityName}
-                    /> */}
+                    {/* <FallbackInputBox /> */}
                     {!!regionName && (
+                      <ErrorBoundary FallbackComponent={ErrorFallback}>
+                        <Suspense fallback={<FallbackInputBox />}>
+                          <InputBoxCity
+                            cityName={cityName}
+                            setCityName={setCityName}
+                            cityId={cityId}
+                            setCityId={setCityId}
+                            regionName={regionName}
+                            regionId={regionId}
+                            hoveredItemPosModal={hoveredItemPosModal}
+                            handleOpenTooltip={handleOpenTooltip}
+                            handleCloseTooltip={handleCloseTooltip}
+                            isDuplicateCompany={isDuplicateCompany}
+                          />
+                        </Suspense>
+                      </ErrorBoundary>
+                    )}
+                    {/* {!!regionName && (
                       <div className={`input_container relative z-[100] flex h-[32px] w-full items-start`}>
                         <input
                           ref={inputCityRef}
@@ -1030,9 +1261,9 @@ export const InsertNewClientCompanyModal = () => {
                           }}
                           onBlur={() => {
                             if (!!resultCityRefs.current) resultCityRefs.current.style.opacity = "0";
+                            handleBlurSetId(cityName, "city");
                           }}
                         />
-                        {/* 予測変換結果 */}
                         {suggestedCityIdNameArray &&
                           suggestedCityIdNameArray &&
                           suggestedCityIdNameArray?.length > 0 && (
@@ -1073,7 +1304,6 @@ export const InsertNewClientCompanyModal = () => {
                               </ul>
                             </div>
                           )}
-                        {/* 予測変換結果 */}
                         <div
                           className={`flex-center absolute right-[3px] top-[50%] min-h-[20px] min-w-[20px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]`}
                           onMouseEnter={(e) => {
@@ -1092,27 +1322,31 @@ export const InsertNewClientCompanyModal = () => {
                             });
                           }}
                           onMouseLeave={() => {
-                            // if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
                             if (hoveredItemPosModal) handleCloseTooltip();
                           }}
                           onClick={() => {
                             if (inputCityRef.current) {
-                              inputCityRef.current.focus();
-                              // 矢印クリック 全商品をリストで表示
-
-                              if (!suggestedCityIdNameArray?.length && citiesArray && citiesArray.length > 0) {
-                                setSuggestedCityIdNameArray(citiesArray);
+                              // フォーカス状態でリスト表示されている場合はフォーカスを切ってリストを削除
+                              if (!!suggestedCityIdNameArray?.length) {
+                                inputCityRef.current.blur();
+                                setSuggestedCityIdNameArray([]);
+                              }
+                              // まだフォーカスされていない場合
+                              else {
+                                inputCityRef.current.focus();
+                                // 矢印クリック 全商品をリストで表示
+                                if (!suggestedCityIdNameArray?.length && citiesArray && citiesArray.length > 0) {
+                                  setSuggestedCityIdNameArray(citiesArray);
+                                }
                               }
                             }
-                            // if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
                             if (hoveredItemPosModal) handleCloseTooltip();
                           }}
                         >
-                          {/* <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-sub)]" /> */}
                           <HiChevronDown className="stroke-[1] text-[13px] text-[var(--color-text-brand-f)]" />
                         </div>
                       </div>
-                    )}
+                    )} */}
                     {/* 予測変換input セレクトと組み合わせ ここまで */}
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -1135,14 +1369,16 @@ export const InsertNewClientCompanyModal = () => {
                     <span className={`${styles.title}`}>
                       {language === "ja" ? `町名・番地` : `Street address/Address line`}
                     </span>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={streetAddress}
-                      onChange={(e) => setStreetAddress(e.target.value)}
-                      onBlur={() => setStreetAddress(toHalfWidth(streetAddress.trim()))}
-                    />
+                    {!!cityName && (
+                      <input
+                        type="text"
+                        placeholder=""
+                        className={`${styles.input_box}`}
+                        value={streetAddress}
+                        onChange={(e) => setStreetAddress(e.target.value)}
+                        onBlur={() => setStreetAddress(toHalfWidth(streetAddress.trim()))}
+                      />
+                    )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1164,14 +1400,16 @@ export const InsertNewClientCompanyModal = () => {
                       <span>建物名・</span>
                       <span>部屋番号</span>
                     </div>
-                    <input
-                      type="text"
-                      placeholder=""
-                      className={`${styles.input_box}`}
-                      value={buildingName}
-                      onChange={(e) => setBuildingName(e.target.value)}
-                      onBlur={() => setBuildingName(toHalfWidth(buildingName.trim()))}
-                    />
+                    {cityName && (
+                      <input
+                        type="text"
+                        placeholder=""
+                        className={`${styles.input_box}`}
+                        value={buildingName}
+                        onChange={(e) => setBuildingName(e.target.value)}
+                        onBlur={() => setBuildingName(toHalfWidth(buildingName).replace(/[\s\u3000]/g, ""))}
+                      />
+                    )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1185,11 +1423,16 @@ export const InsertNewClientCompanyModal = () => {
           {/* --------- 横幅全部ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
             {/* 住所 */}
-            <div className={`${styles.row_area} ${styles.text_area} flex w-full items-center`}>
+            {/* <div className={`${styles.row_area} ${styles.text_area} flex w-full items-center`}> */}
+            <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full `}>
+                <div className={`${styles.title_box} flex h-full items-end`} style={{ minHeight: "28px" }}>
+                  {/* <span className={`${styles.title} ${styles.required_title}`}>●住所</span> */}
                   <span className={`${styles.title} ${styles.required_title}`}>●住所</span>
-                  <textarea
+                  <p className={`text-[14px] text-[var(--color-text-under-input)]`}>
+                    {(regionName ?? "") + (cityName ?? "") + (streetAddress ?? "") + " " + (buildingName ?? "")}
+                  </p>
+                  {/* <textarea
                     cols={30}
                     rows={10}
                     placeholder="※入力必須　住所を入力してください （例：東京都千代田区千代田1-1）"
@@ -1199,7 +1442,7 @@ export const InsertNewClientCompanyModal = () => {
                     onChange={(e) => setAddress(e.target.value)}
                     // onBlur={() => setAddress(toHalfWidth(address.trim()))}
                     onBlur={() => setAddress(formatJapaneseAddress(address.trim()))}
-                  ></textarea>
+                  ></textarea> */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>

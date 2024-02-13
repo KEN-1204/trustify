@@ -109,7 +109,8 @@
   height: 90px;
 }
 .title_box {
-  position: relative;
+  /* position: relative; */
+  min-height: 35px;
   padding-bottom: 5px;
 }
 .limited_lock_cover_half {
@@ -189,7 +190,34 @@
 .title.double {
   font-size: 15px;
 }
-
+.result_box {
+  position: absolute;
+  top: calc(100% - 5px);
+  left: 0px;
+  z-index: 10000;
+  width: calc(100% + 0px);
+  background: var(--color-bg-under-input);
+  border-left: 1px solid var(--color-bg-brand-f);
+  border-right: 1px solid var(--color-bg-brand-f);
+  border-bottom: 1px solid var(--color-bg-brand-f);
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
+  padding: 0px 0px;
+  max-height: 120px;
+  overflow-y: scroll;
+}
+.result_box ul li {
+  z-index: 1000;
+  list-style: none;
+  cursor: pointer;
+  min-height: 32px;
+  max-height: 32px;
+  padding: 6px 8px;
+  font-size: 13px;
+}
+.result_box ul li:hover {
+  background: var(--color-bg-brand-f20);
+}
 .input_box {
   /* height: 100%; */
   width: 100%;

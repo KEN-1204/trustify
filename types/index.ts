@@ -161,6 +161,8 @@ export type Client_company = {
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
+  street_address: string | null;
+  building_name: string | null;
   // ここまで
   product_category_large?: string | null;
   product_category_medium?: string | null;
@@ -246,6 +248,8 @@ export type Client_company_row_data = {
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
+  street_address: string | null;
+  building_name: string | null;
   // ここまで
   main_fax?: string | null;
   main_phone_number?: string;

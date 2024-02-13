@@ -544,7 +544,7 @@ export const mappingRegionsJp: { [key: number]: { [key: string]: string } } = {
 
 export type RegionArray = { id: number; name_ja: string; name_en: string };
 
-export const optionRegionArray = [
+export const regionArrayJP = [
   { id: 1, name_ja: "北海道", name_en: "Hokkaido" },
   { id: 2, name_ja: "青森県", name_en: "Aomori" },
   { id: 3, name_ja: "岩手県", name_en: "Iwate" },
