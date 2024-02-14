@@ -488,7 +488,9 @@ const PDFComponentMemo = ({ isSample = true, modalPosLeft }: Props) => {
 
                     <div className={`text-[13px] ${styles.amount_content} flex items-end`}>
                       {/* <span>￥6,000,000-</span> */}
-                      <span>{formatDisplayPrice(6645200)}-</span>
+                      {/* <span>{formatDisplayPrice(6645200)}-</span> */}
+                      {/* <span>{formatDisplayPrice(6646800)}-</span> */}
+                      <span>{formatDisplayPrice(6636900)}-</span>
                     </div>
                   </div>
                   <div className={`${styles.section_underline}`} />
@@ -958,7 +960,9 @@ const PDFComponentMemo = ({ isSample = true, modalPosLeft }: Props) => {
                     }`}
                   >
                     {index === 0 && <span>出精値引</span>}
-                    {index === 3 && <span>-{formatDisplayPrice(149800)}</span>}
+                    {/* {index === 3 && <span>-{formatDisplayPrice(149800)}</span>} */}
+                    {/* {index === 3 && <span>-{formatDisplayPrice(149200)}</span>} */}
+                    {index === 3 && <span>-{formatDisplayPrice(158100)}</span>}
                   </div>
                 ))}
               </div>
@@ -1004,7 +1008,9 @@ const PDFComponentMemo = ({ isSample = true, modalPosLeft }: Props) => {
                       <span>計</span>
                     </div>
                   )}
-                  {index === 3 && <span>{formatDisplayPrice(6645200)}</span>}
+                  {/* {index === 3 && <span>{formatDisplayPrice(6645200)}</span>} */}
+                  {/* {index === 3 && <span>{formatDisplayPrice(6646800)}</span>} */}
+                  {index === 3 && <span>{formatDisplayPrice(6636900)}</span>}
                 </div>
               ))}
             </div>
