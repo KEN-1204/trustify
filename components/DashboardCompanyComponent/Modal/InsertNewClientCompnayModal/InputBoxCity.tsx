@@ -46,7 +46,7 @@ type Props = {
     whiteSpace,
   }: TooltipParams) => void;
   handleCloseTooltip: () => void;
-  isDuplicateCompany: boolean;
+  isDuplicateOrUpdateCompany?: boolean;
 };
 
 const InputBoxCityMemo = ({
@@ -59,7 +59,7 @@ const InputBoxCityMemo = ({
   hoveredItemPosModal,
   handleOpenTooltip,
   handleCloseTooltip,
-  isDuplicateCompany,
+  isDuplicateOrUpdateCompany,
 }: Props) => {
   const language = useStore((state) => state.language);
   const inputCityRef = useRef<HTMLInputElement | null>(null);
@@ -75,8 +75,8 @@ const InputBoxCityMemo = ({
 
   // 会社複製時の初回マウント時にNameをセット
   useEffect(() => {
+    if (!isDuplicateOrUpdateCompany) return;
     if (!selectedRowDataCompany) return;
-    if (!isDuplicateCompany) return;
     const _cityObj = citiesArray?.find((obj) => obj.city_id === selectedRowDataCompany.city_id);
     const _cityName = language === "ja" ? _cityObj?.city_name_ja : _cityObj?.city_name_en;
     setCityName(_cityName ?? "");

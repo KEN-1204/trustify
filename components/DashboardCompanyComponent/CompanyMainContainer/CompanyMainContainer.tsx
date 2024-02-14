@@ -1624,17 +1624,18 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* ディスプレイ */}
                   {!searchMode && isEditModeField !== "address" && (
                     <span
-                      className={`${styles.textarea_value} h-[45px] ${
-                        isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
-                      }`}
-                      onClick={handleSingleClickField}
-                      onDoubleClick={(e) => {
-                        handleDoubleClickField({
-                          e,
-                          field: "address",
-                          dispatch: setInputAddress,
-                        });
-                      }}
+                      // className={`${styles.textarea_value} h-[45px] ${
+                      //   isOwnCompany ? `cursor-pointer` : ``
+                      // }`}
+                      className={`${styles.textarea_value} h-[45px]`}
+                      // onClick={handleSingleClickField}
+                      // onDoubleClick={(e) => {
+                      //   handleDoubleClickField({
+                      //     e,
+                      //     field: "address",
+                      //     dispatch: setInputAddress,
+                      //   });
+                      // }}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                       }}

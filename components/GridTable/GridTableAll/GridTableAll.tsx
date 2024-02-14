@@ -332,7 +332,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       const { data, error, count } = await supabase
         .from("client_companies")
         // .select(`${columnNamesObj}`)
-        .select(`${columnNamesObj}`, { count: "exact" })
+        // .select(`${columnNamesObj}`, { count: "exact" })
+        // .select(`${columnNamesObj}`, { count: "estimated" })
+        .select(`${columnNamesObj}`, { count: "estimated" })
         .is("created_by_company_id", null)
         .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
         .range(from, to)
@@ -432,7 +434,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
           count: fetchCount,
         } = await supabase
           .from("client_companies")
-          .select(`${columnNamesObj}`, { count: "exact" })
+          // .select(`${columnNamesObj}`, { count: "exact" })
+          .select(`${columnNamesObj}`, { count: "estimated" })
           // .eq("created_by_company_id", userProfileState.company_id)
           .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
           .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
@@ -451,7 +454,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
           count: fetchCount,
         } = await supabase
           .from("client_companies")
-          .select(`${columnNamesObj}`, { count: "exact" })
+          // .select(`${columnNamesObj}`, { count: "exact" })
+          .select(`${columnNamesObj}`, { count: "estimated" })
           .eq("created_by_company_id", userProfileState.company_id)
           // .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
           .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
@@ -534,7 +538,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
       const { data, error, count } = await supabase
         // .rpc("search_companies", { params }, { count: "exact" })
-        .rpc(functionName, { params }, { count: "exact" })
+        // .rpc(functionName, { params }, { count: "exact" })
+        .rpc(functionName, { params }, { count: "estimated" })
         .is("created_by_company_id", null)
         .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
         .range(from, to)
@@ -617,7 +622,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
           count: fetchCount,
         } = await supabase
           // .rpc("search_companies", { params }, { count: "exact" })
-          .rpc(functionName, { params }, { count: "exact" })
+          // .rpc(functionName, { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "estimated" })
           // .eq("created_by_company_id", userProfileState.company_id)
           .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
           .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
@@ -636,7 +642,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
           count: fetchCount,
         } = await supabase
           // .rpc("search_companies", { params }, { count: "exact" })
-          .rpc(functionName, { params }, { count: "exact" })
+          // .rpc(functionName, { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "estimated" })
           .eq("created_by_company_id", userProfileState.company_id)
           // .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
           .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)

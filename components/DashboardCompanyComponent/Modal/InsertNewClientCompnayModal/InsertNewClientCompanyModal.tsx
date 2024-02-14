@@ -71,6 +71,7 @@ export const InsertNewClientCompanyModal = () => {
   const [regionId, setRegionId] = useState(
     isDuplicateCompany && selectedRowDataCompany?.region_id ? selectedRowDataCompany.region_id.toString() : ""
   );
+  // const [cityId, setCityId] = useState("");
   const [cityId, setCityId] = useState("");
   const [countryName, setCountryName] = useState("日本");
   const [regionName, setRegionName] = useState("");
@@ -354,7 +355,7 @@ export const InsertNewClientCompanyModal = () => {
     setLoadingGlobalState(true);
 
     // 住所
-    const _address = regionName + cityName + (streetAddress ?? "") + " " + buildingName;
+    const _address = (regionName + cityName + (streetAddress ?? "") + " " + (buildingName ?? "")).trim();
 
     // 新規作成するデータをオブジェクトにまとめる
     const newClientCompany = {
@@ -774,7 +775,7 @@ export const InsertNewClientCompanyModal = () => {
         {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
             {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
-            <SpinnerComet w="48px" h="48px" />
+            <SpinnerComet w="48px" h="48px" s="5px" />
             {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
           </div>
         )}
@@ -1239,7 +1240,7 @@ export const InsertNewClientCompanyModal = () => {
                             hoveredItemPosModal={hoveredItemPosModal}
                             handleOpenTooltip={handleOpenTooltip}
                             handleCloseTooltip={handleCloseTooltip}
-                            isDuplicateCompany={isDuplicateCompany}
+                            isDuplicateOrUpdateCompany={isDuplicateCompany}
                           />
                         </Suspense>
                       </ErrorBoundary>
@@ -1825,7 +1826,7 @@ export const InsertNewClientCompanyModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full flex-col`}>
             {/* 業種 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
+              <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>業種</span>
                   <select

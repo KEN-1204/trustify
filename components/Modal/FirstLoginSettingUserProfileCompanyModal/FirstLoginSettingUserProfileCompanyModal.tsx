@@ -736,7 +736,10 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
                   <div className="w-full pt-[30px]">
                     <button
                       className={`flex-center h-[40px] w-full cursor-pointer rounded-[6px] font-bold  ${
-                        !!inputCompany && !!inputDepartment && !!inputPosition && !!inputNumberOfEmployeeClass
+                        !!inputCompany &&
+                        (inputUsage === "会社・チームで利用" ? !!inputDepartment : true) &&
+                        !!inputPosition &&
+                        !!inputNumberOfEmployeeClass
                           ? `bg-[var(--color-bg-brand-f)] text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`
                           : `bg-[var(--color-bg-brand-f-disabled)] text-[#ffffffc0]`
                       }`}

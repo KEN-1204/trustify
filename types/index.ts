@@ -391,6 +391,7 @@ export type UserProfileCompanySubscription = {
   unit: string | null;
   usage: string | null;
   purpose_of_use: string | null;
+  // 🔹companiesテーブル
   company_id: string | null;
   company_created_at: string | null;
   company_updated_at: string | null;
@@ -414,6 +415,8 @@ export type UserProfileCompanySubscription = {
   customer_budget_request_month1: string | null;
   customer_budget_request_month2: string | null;
   customer_website_url: string | null;
+  customer_closing_days: number[];
+  // 🔹subscribed_accountsテーブル
   subscribed_account_id: string | null;
   account_created_at: string | null;
   account_company_role: string | null;

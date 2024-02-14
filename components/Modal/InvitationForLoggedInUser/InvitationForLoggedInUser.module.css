@@ -12,7 +12,8 @@
   max-height: 665px; /* 730 * 0.911 */
   border-radius: 8px;
   background-color: var(--color-edit-bg-solid);
-  box-shadow: var(--color-edit-border);
+  /* box-shadow: var(--color-edit-border); */
+  box-shadow: var(--color-edit-border-with-shadow);
   /* overflow: hidden; */
   padding: 1px;
 }

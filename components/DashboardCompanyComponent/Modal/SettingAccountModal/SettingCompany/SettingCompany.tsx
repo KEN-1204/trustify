@@ -42,6 +42,9 @@ import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/Sk
 import { ImInfo } from "react-icons/im";
 import { useMutateCompanySeal } from "@/hooks/useMutateCompanySeal";
 
+const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Stu"];
+const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
+
 const SettingCompanyMemo = () => {
   const language = useStore((state) => state.language);
   const supabase = useSupabaseClient();
@@ -67,6 +70,13 @@ const SettingCompanyMemo = () => {
   // const [editedFiscalEndMonth, setEditedFiscalEndMonth] = useState("");
   const [editedFiscalEndMonth, setEditedFiscalEndMonth] = useState<Date | null>(null);
   const prevFiscalEndMonthRef = useRef<Date | null>(null);
+  // 定休日
+  const initialClosingDays = userProfileState?.customer_closing_days ? userProfileState?.customer_closing_days : [];
+  const [editClosingDaysMode, setEditClosingDaysMode] = useState(false);
+  const [editedClosingDays, setEditedClosingDays] = useState<number[]>(initialClosingDays);
+  const prevClosingDaysRef = useRef<number[]>(initialClosingDays);
+  // 営業カレンダー(営業稼働日数から各プロセス分析用)(国の祝日と顧客独自の休業日、半休日、営業短縮日を指定)
+
   // 規模
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
   const [editedNumberOfEmployeeClass, setEditedNumberOfEmployeeClass] = useState("");
@@ -115,6 +125,7 @@ const SettingCompanyMemo = () => {
   const infoIconOfficeRef = useRef<HTMLDivElement | null>(null);
   const infoIconZipCodeRef = useRef<HTMLDivElement | null>(null);
   const infoIconCompanySealRef = useRef<HTMLDivElement | null>(null);
+  const infoIconClosingDaysRef = useRef<HTMLDivElement | null>(null);
 
   const { uploadCompanyLogoMutation, deleteCompanyLogoMutation } = useMutateCompanyLogo();
   // const { fullUrl: logoUrl, isLoading: isLoadingLogoImg } = useDownloadUrl(
@@ -823,6 +834,7 @@ const SettingCompanyMemo = () => {
     display: string;
     content: string;
     content2?: string | undefined | null;
+    content3?: string | undefined | null;
     marginTop?: number;
     itemsPosition?: string;
   };
@@ -831,6 +843,7 @@ const SettingCompanyMemo = () => {
     display,
     content,
     content2,
+    content3,
     marginTop = 0,
     // itemsPosition = "start",
     itemsPosition = "center",
@@ -846,6 +859,7 @@ const SettingCompanyMemo = () => {
       itemHeight: height,
       content: content,
       content2: content2,
+      content3: content3,
       display: display,
       marginTop: marginTop,
       itemsPosition: itemsPosition,
@@ -2528,6 +2542,243 @@ const SettingCompanyMemo = () => {
             )}
           </div>
           {/* 事業所・拠点ここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+          {/* 定休日リスト */}
+          <div
+            className={`mt-[20px] flex w-full flex-col ${
+              !!editedClosingDays && editedClosingDays.length >= 1 ? `min-h-[100px]` : `min-h-[95px]`
+            }`}
+          >
+            <div className="flex items-start space-x-4">
+              <div className={`${styles.section_title}`}>
+                <div
+                  className="flex max-w-max items-center space-x-[9px]"
+                  onMouseEnter={(e) => {
+                    if (
+                      infoIconClosingDaysRef.current &&
+                      infoIconClosingDaysRef.current.classList.contains(styles.animate_ping)
+                    ) {
+                      infoIconClosingDaysRef.current.classList.remove(styles.animate_ping);
+                    }
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: "定休日を先に設定しておくことで年度、半期、四半期、月度ごとの",
+                      content2: "営業稼働日数を基にした各プロセスの適切な目標設定、進捗確認、分析が可能となります。",
+                      content3: "定休日以外の祝日やお客様独自の休業日は下記の営業カレンダーで個別に設定できます。",
+                      marginTop: 57,
+                      // marginTop: 33,
+                      // marginTop: 9,
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <span>定休日</span>
+                  <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                    <div
+                      ref={infoIconClosingDaysRef}
+                      className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                        !!editedClosingDays && editedClosingDays.length >= 1 ? `` : styles.animate_ping
+                      }`}
+                    ></div>
+                    <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                  </div>
+                </div>
+              </div>
+              {/* <div className={`flex flex-col text-[13px] text-[var(--color-text-sub)]`}>
+                <p>※事業所・営業所を作成することで事業所ごとに商品、営業、売上データを管理できます。</p>
+              </div> */}
+            </div>
+
+            {/* 通常 */}
+            {!editClosingDaysMode && (
+              <div
+                className={`flex h-full w-full items-center justify-between ${
+                  !!editedClosingDays && editedClosingDays.length >= 1 ? `mt-[0px] min-h-[84px]` : `min-h-[74px]`
+                }`}
+              >
+                {/* {(!editedClosingDays || editedClosingDays.length === 0) && (
+                  <div className={`${styles.section_value}`}>未設定</div>
+                )} */}
+                {(!editedClosingDays || editedClosingDays.length === 0) && (
+                  <div
+                    // ref={rowOfficeContainer}
+                    className={`relative min-w-[calc(761px-78px-20px)] max-w-[calc(761px-78px-20px)] overflow-x-hidden`}
+                  >
+                    {/* Rowグループ */}
+                    <div
+                      // ref={rowOfficeRef}
+                      className={`${styles.row_group} scrollbar-hide mr-[50px] flex items-center justify-start space-x-[33px]`}
+                    >
+                      {Array(7)
+                        .fill(null)
+                        .map((_, index) => (
+                          <div
+                            key={index}
+                            className="transition-bg03 flex-center min-h-[48px] min-w-[48px] select-none rounded-full border border-solid border-[#d6dbe0] text-[14px] text-[var(--color-text-title)] hover:border-[var(--color-bg-brand-f)]"
+                          >
+                            <span className="text-[16px] font-bold text-[var(--color-text-sub)]">月</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+                {/* mapメソッドで事業所・営業所タグリストを展開 */}
+                {/* {true && ( */}
+                {!!editedClosingDays && editedClosingDays.length >= 1 && (
+                  <div
+                    // ref={rowOfficeContainer}
+                    className={`relative min-w-[calc(761px-78px-20px)] max-w-[calc(761px-78px-20px)] overflow-x-hidden ${styles.office_tag_container}`}
+                  >
+                    {/* Rowグループ */}
+                    <div
+                      // ref={rowOfficeRef}
+                      className={`${styles.row_group} scrollbar-hide mr-[50px] flex items-center space-x-[12px] overflow-x-scroll `}
+                    >
+                      {editedClosingDays &&
+                        editedClosingDays.length >= 1 &&
+                        [...editedClosingDays]
+                          .sort((a, b) => {
+                            // if (a.office_name === null) return 1; // null値をリストの最後に移動
+                            // if (b.office_name === null) return -1;
+                            // 日曜日(0)を最後にするためのソート関数 日曜日(0)を最大値として扱うための変換
+                            const adjustedA = a === 0 ? 7 : a;
+                            const adjustedB = b === 0 ? 7 : b;
+                            return adjustedA - adjustedB;
+                          })
+                          .map((day, index) => {
+                            const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
+                            const dayName = dayNames[day % 7]; // 日曜日を7として計算した場合の対策
+                            return (
+                              <div
+                                key={day.toString() + index.toString()}
+                                className={`transition-bg03 flex h-[35px] min-h-[35px] min-w-max max-w-[150px] cursor-pointer select-none items-center justify-center space-x-2 rounded-full border border-solid border-[#d6dbe0] px-[18px] text-[14px] text-[var(--color-text-title)] hover:border-[var(--color-bg-brand-f)]`}
+                                // onClick={() => {
+                                //   if (selectedOffice?.id === officeData.id) return setSelectedOffice(null);
+                                //   setSelectedOffice(officeData);
+                                // }}
+                              >
+                                {/* <Image
+                              // src="/assets/images/icons/business/icons8-businesswoman-94.png"
+                              src={officeTagIcons[index % officeTagIcons.length].iconURL}
+                              alt="tag"
+                              className="ml-[-4px] w-[22px]"
+                              width={22}
+                              height={22}
+                            /> */}
+                                <span className="text-[13px]">{dayName}</span>
+                              </div>
+                            );
+                          })}
+                      {/* テストデータ */}
+                      {Array(7)
+                        .fill(null)
+                        .map((_, index) => (
+                          <div
+                            key={index}
+                            className="transition-bg03 flex h-[35px] min-h-[35px] min-w-max max-w-[150px] cursor-pointer select-none items-center justify-center space-x-2 rounded-full border border-solid border-[#d6dbe0] px-[18px] text-[14px] text-[var(--color-text-title)] hover:border-[var(--color-bg-brand-f)]"
+                          >
+                            <span className="text-[13px]">月</span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+                <div className={`relative`}>
+                  {!!editedClosingDays && editedClosingDays.length > 0 && (
+                    <>
+                      <div
+                        className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} ${styles.active} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                        onClick={() => {
+                          if (deleteOfficeMutation.isLoading) return;
+                          setEditClosingDaysMode(true);
+                        }}
+                      >
+                        編集
+                      </div>
+                    </>
+                  )}
+                  {editedClosingDays?.length === 0 && (
+                    <div
+                      className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                      onClick={() => {
+                        setEditClosingDaysMode(true);
+                      }}
+                    >
+                      追加
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* INSERT 新たに定休日を設定する */}
+            {editClosingDaysMode && (
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
+                <input
+                  type="text"
+                  placeholder="事業所・営業所名を入力してください"
+                  required
+                  autoFocus
+                  className={`${styles.input_box}`}
+                  value={inputOfficeName}
+                  onChange={(e) => setInputOfficeName(e.target.value)}
+                  onBlur={() => setInputOfficeName(toHalfWidthAndSpace(inputOfficeName.trim()))}
+                />
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      if (createOfficeMutation.isLoading) return;
+                      setInputOfficeName("");
+                      setInsertOfficeMode(false);
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      if (createOfficeMutation.isLoading) return;
+                      // 事業所・営業所の編集
+                      if (inputOfficeName === "") {
+                        setInputOfficeName("");
+                        setInsertOfficeMode(false);
+                        return;
+                      }
+                      if (!userProfileState?.company_id) {
+                        alert("エラー：会社データが見つかりませんでした。");
+                        setInputOfficeName("");
+                        setInsertOfficeMode(false);
+                        return;
+                      }
+
+                      const insertFieldPayload = {
+                        created_by_company_id: userProfileState.company_id,
+                        office_name: inputOfficeName,
+                      };
+                      console.log("insertFieldPayload", insertFieldPayload);
+
+                      await createOfficeMutation.mutateAsync(insertFieldPayload);
+
+                      setInputOfficeName("");
+                      setInsertOfficeMode(false);
+                    }}
+                  >
+                    {!createOfficeMutation.isLoading && <span>保存</span>}
+                    {createOfficeMutation.isLoading && (
+                      <div className="relative h-full w-full">
+                        <SpinnerIDS3 fontSize={20} width={20} height={20} color="#fff" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* 定休日ここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 

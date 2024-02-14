@@ -409,6 +409,7 @@
 }
 .textarea_box_search_mode {
   padding: 6px 8px;
+  /* padding: 6px 6px; */
   line-height: normal;
 }
 .textarea_box_search_mode:focus {
@@ -535,10 +536,13 @@
   padding-right: 65px;
 }
 .field_edit_mode_textarea.textarea_box {
-  /* background-color: var(--color-bg-base); */
-  /* box-shadow: none;
+  background-color: var(--color-bg-base);
+  box-shadow: none;
   padding: 0px;
-  padding-right: 65px; */
+  padding-right: 65px;
+}
+.field_edit_mode_textarea.textarea_box.address {
+  min-height: 48px;
 }
 .field_edit_mode_select_box.select_box {
   box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);

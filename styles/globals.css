@@ -793,6 +793,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-edit-item-bg: #fff;
   --color-edit-item-border: 0 0 0 1px #ccc;
   --color-edit-border: inset 0px 0px 0px 1px #999, 0px 0px 0px 1px #00000030;
+  --color-edit-border-with-shadow: inset 0px 0px 0px 1px #999, 0px 0px 0px 1px #00000030,
+    0px 3px 15px 3px rgba(0, 0, 0, 0.24);
   --color-edit-frozen-bg: #eeeeee70;
   --color-edit-frozen-text: #c0c0c0;
   --color-edit-border-frozen: 0 0 0 1px #cfcfcf;
@@ -1448,6 +1450,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-edit-item-bg: #252525;
   --color-edit-item-border: 0 0 0 1px #ccc;
   --color-edit-border: inset 0px 0px 0px 1px #ffffffe0, 0px 0px 0px 1px #000;
+  --color-edit-border-with-shadow: inset 0px 0px 0px 1px #ffffffe0, 0px 0px 0px 1px #000,
+    0px 3px 15px 3px rgba(0, 0, 0, 0.24);
   --color-edit-frozen-bg: #444444e0;
   --color-edit-frozen-text: #999;
   --color-edit-border-frozen: inset 0px 0px 0px 1px #777777e0, 0px 0px 0px 1px #333;
@@ -1773,6 +1777,7 @@ textarea {
   scrollbar-width: none;
 }
 
+/* シャドウ */
 .border-shadow {
   box-shadow: var(--header-border-bottom);
 }
