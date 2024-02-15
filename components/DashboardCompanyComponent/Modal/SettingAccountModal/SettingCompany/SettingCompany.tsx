@@ -41,6 +41,9 @@ import { useMutateCompanyLogo } from "@/hooks/useMutateCompanyLogo";
 import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
 import { ImInfo } from "react-icons/im";
 import { useMutateCompanySeal } from "@/hooks/useMutateCompanySeal";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
+import { useQueryAnnualFiscalMonthClosingDays } from "@/hooks/useQueryAnnualFiscalMonthClosingDays";
 
 const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Stu"];
 const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
@@ -85,7 +88,39 @@ const SettingCompanyMemo = () => {
   const [editedClosingDays, setEditedClosingDays] = useState<number[]>([]);
   const prevClosingDaysRef = useRef<number[]>(initialClosingDays);
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const isDisplayAddBtn =
+    initialClosingDays?.length === 0 ||
+    !(initialClosingDays.length > 0 && isValidNumber(selectedDay) && initialClosingDays.includes(selectedDay!));
+  const isActiveAddBtn =
+    editedClosingDays.length > 0 || (isValidNumber(selectedDay) && !initialClosingDays.includes(selectedDay!));
+  const isDisplayDeleteBtn = !isDisplayAddBtn;
+  const getIsSelected = (day: number) => {
+    if (initialClosingDays?.length === 0) {
+      return editedClosingDays.includes(day);
+    }
+    if (initialClosingDays?.length > 0) {
+      return isValidNumber(selectedDay) && selectedDay === day;
+    }
+  };
   // 営業カレンダー(営業稼働日数から各プロセス分析用)(国の祝日と顧客独自の休業日、半休日、営業短縮日を指定)
+  // 🌟選択した年度の休業日を取得するuseQuery🌟
+  // 決算日が28日から30日で、かつその日にちがその月の決算日でないかチェック 該当するなら各月の開始日と終了日を選択してもらう
+  const fiscalYearEndDate = userProfileState?.customer_fiscal_end_month
+    ? new Date(userProfileState?.customer_fiscal_end_month)
+    : null;
+  // new Date(fiscalYearEndDate.getFullYear(), fiscalYearEndDate.getMonth() + 1, 0).getDate()でその月の末日を取得
+  const isRequiredCustomInputFiscalStartEndDate =
+    fiscalYearEndDate &&
+    fiscalYearEndDate.getDate() !==
+      new Date(fiscalYearEndDate.getFullYear(), fiscalYearEndDate.getMonth() + 1, 0).getDate() &&
+    27 < fiscalYearEndDate.getDate() &&
+    fiscalYearEndDate.getDate() <= 31; // 28~30までで末日でない決算月かどうか確認
+  const {
+    data: annualMonthlyClosingDays,
+    isLoading: isLoadingAnnualMonthlyClosingDays,
+    isError: isErrorAnnualMonthlyClosingDay,
+    error: errorAnnualClosingDays,
+  } = useQueryAnnualFiscalMonthClosingDays();
 
   // 規模
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
@@ -126,8 +161,10 @@ const SettingCompanyMemo = () => {
   const [refetchLoading, setRefetchLoading] = useState(false);
   // 削除確認モーダル
   const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false);
-  // 定休日追加変更確認モーダル
-  const [showConfirmUpsertClosingDayModal, setShowConfirmUpsertClosingDayModal] = useState<string | null>(null);
+  // 選択した会計年度の営業カレンダーに定休日反映確認モーダル
+  const [showConfirmApplyClosingDayModal, setShowConfirmApplyClosingDayModal] = useState<string | null>(null);
+  // 営業カレンダー表示、反映用の選択中の会計年度
+  const [selectedFiscalYear, setSelectedFiscalYear] = useState<string | null>(null);
 
   // 説明アイコン
   const infoIconAddressRef = useRef<HTMLDivElement | null>(null);
@@ -883,12 +920,81 @@ const SettingCompanyMemo = () => {
   };
   // ==================================================================================
 
-  // ===================== 🌟定休日のUPSERT🌟 =====================
-  const handleSubmitClosingDays = async () => {
-    if (loadingGlobalState) return;
+  // 定休日の日付リストを生成する関数
+  const generateClosedDaysList = (fiscalYearStartDate: Date, closedDaysIndexes: number[]) => {
+    if (!userProfileState) return;
+    console.time("generateClosedDaysList関数");
+    // 期首の日付を起点としたwhileループ用のDateオブジェクトを作成
+    let currentDateForLoop = fiscalYearStartDate;
+    // 期首のちょうど1年後の次年度、来期の期首のDateオブジェクトを作成
+    const nextFiscalYearStartDate = new Date(fiscalYearStartDate);
+    nextFiscalYearStartDate.setFullYear(nextFiscalYearStartDate.getFullYear() + 1);
 
+    // customer_business_calendarsテーブルのバルクインサート用の定休日日付リスト
+    const closedDays = [];
+
+    // 来期の期首未満(期末まで)の定休日となる日付を変数に格納
+    while (currentDateForLoop.getTime() < nextFiscalYearStartDate.getTime()) {
+      // 現在の日付の曜日が定休日インデックスリストの曜日に含まれていれば定休日日付リストに格納
+      if (closedDaysIndexes.includes(currentDateForLoop.getDay())) {
+        closedDays.push({
+          customer_id: userProfileState.company_id,
+          date: currentDateForLoop.toISOString().split("T")[0], // 時間情報を除いた日付情報のみセット
+          status: "closed",
+          working_hours: 0,
+        });
+      }
+      currentDateForLoop.setDate(currentDateForLoop.getDate() + 1); // 次の日に進める
+    }
+
+    console.timeEnd("generateClosedDaysList関数");
+    return closedDays;
+  };
+
+  // ===================== 🌟営業カレンダーに定休日を反映🌟 =====================
+  // const [isLoadingClosingDay, setIsLoading]
+  const handleApplyClosingDaysCalendar = async (fiscalYear: string | null) => {
+    if (loadingGlobalState) return;
+    if (!userProfileState?.customer_fiscal_end_month) return alert("先に決算日を登録してください。");
+    if (!fiscalYear) return alert("定休日を反映する会計年度を選択してください。");
+
+    // companiesテーブルのcustomer_closing_daysフィールドに定休日の配列をINSERTして、
+    // customer_business_calendarsテーブル現在の会計年度 １年間INSERTした後の1年後に再度自動的にINSERTするようにスケジュールが必要
+    if (showConfirmApplyClosingDayModal === "Insert") {
+      // 決算日の翌日の期首のDateオブジェクトを生成
+      const fiscalYearStartDate = calculateFiscalYearStart(userProfileState.customer_fiscal_end_month);
+      // 期首から来期の期首の前日までの定休日となる日付リストを生成(バルクインサート用) DATE[]
+      const closedDaysArrayForBulkCreate = generateClosedDaysList(fiscalYearStartDate, editedClosingDays);
+
+      // 1. customer_business_calendarsテーブルへの定休日リストをバルクインサート
+      // 2. companiesテーブルのcustomer_closing_daysフィールドをUPDATE
+      try {
+        const insertPayload = {
+          _customer_id: userProfileState.company_id,
+          _closed_days: closedDaysArrayForBulkCreate, // 営業カレンダーテーブル用配列
+          _closing_days: editedClosingDays, // companiesのcustomer_closing_daysフィールド用配列
+        };
+        // 1と2を一つのFUNCTIONで実行
+        const { error } = await supabase.rpc("insert_closing_days_and_update_company", insertPayload);
+
+        if (error) throw error;
+
+        console.log("✅営業カレンダーのバルクインサートと会社テーブルの定休日リストのUPDATE成功");
+
+        // 営業カレンダーのuseQueryのキャッシュをinvalidate
+
+        // ユーザー情報のZustandから定休日リストのみ部分的に更新
+        setUserProfileState({ ...userProfileState, customer_closing_days: editedClosingDays });
+      } catch (error: any) {
+        console.error("Bulk create エラー: ", error);
+        toast.error("定休日の追加に失敗しました...🙇‍♀️");
+      }
+    }
+    // Update
+    else {
+    }
     setEditedClosingDays([]);
-    setShowConfirmUpsertClosingDayModal(null);
+    setShowConfirmApplyClosingDayModal(null);
   };
   // ===================== ✅定休日のUPSERT✅ =====================
 
@@ -2602,7 +2708,7 @@ const SettingCompanyMemo = () => {
                     <div
                       ref={infoIconClosingDaysRef}
                       className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
-                        !!editedClosingDays && editedClosingDays.length >= 1 ? `` : styles.animate_ping
+                        initialClosingDays.length >= 1 ? `` : styles.animate_ping
                       }`}
                     ></div>
                     <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
@@ -2615,40 +2721,40 @@ const SettingCompanyMemo = () => {
             </div>
 
             {/* 通常 */}
-            {!editClosingDaysMode && (
-              <div
-                // className={`flex h-full w-full items-center justify-between ${
-                //   !!editedClosingDays && editedClosingDays.length >= 1 ? `mt-[0px] min-h-[84px]` : `min-h-[74px]`
-                // }`}
-                className={`flex h-full min-h-[84px] w-full items-center justify-between`}
-              >
-                {/* {(!editedClosingDays || editedClosingDays.length === 0) && (
+            <div
+              // className={`flex h-full w-full items-center justify-between ${
+              //   !!editedClosingDays && editedClosingDays.length >= 1 ? `mt-[0px] min-h-[84px]` : `min-h-[74px]`
+              // }`}
+              className={`flex h-full min-h-[84px] w-full items-center justify-between`}
+            >
+              {/* {(!editedClosingDays || editedClosingDays.length === 0) && (
                   <div className={`${styles.section_value}`}>未設定</div>
                 )} */}
+              <div
+                // ref={rowOfficeContainer}
+                className={`relative min-w-[calc(761px-78px-20px)] max-w-[calc(761px-78px-20px)] overflow-x-hidden`}
+              >
+                {/* Rowグループ */}
                 <div
-                  // ref={rowOfficeContainer}
-                  className={`relative min-w-[calc(761px-78px-20px)] max-w-[calc(761px-78px-20px)] overflow-x-hidden`}
+                  // ref={rowOfficeRef}
+                  className={`${styles.row_group} scrollbar-hide mr-[50px] flex items-center justify-start space-x-[33px]`}
                 >
-                  {/* Rowグループ */}
-                  <div
-                    // ref={rowOfficeRef}
-                    className={`${styles.row_group} scrollbar-hide mr-[50px] flex items-center justify-start space-x-[33px]`}
-                  >
-                    {sortedDaysPlaceholder.map((day) => {
-                      // const adjustedIndex = day === 0 ? 7 : day;
-                      const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
-                      const dayName = dayNames[day % 7];
-                      return (
-                        <div
-                          key={day.toString() + "closing_day"}
-                          className={`transition-bg03 flex-center min-h-[48px] min-w-[48px] cursor-pointer select-none rounded-full border border-solid text-[14px] ${
-                            styles.closing_day_icon
-                          } ${editedClosingDays.includes(day) ? `${styles.selected}` : ``} ${
-                            initialClosingDays.includes(day) ? `${styles.active}` : ``
-                          }`}
-                          onClick={() => {
-                            // setSelectedDay(day);
-                            const clickedRealDay = day === 7 ? 0 : day;
+                  {sortedDaysPlaceholder.map((day) => {
+                    // const adjustedIndex = day === 0 ? 7 : day;
+                    const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
+                    const dayName = dayNames[day % 7];
+                    return (
+                      <div
+                        key={day.toString() + "closing_day"}
+                        className={`transition-bg03 flex-center min-h-[48px] min-w-[48px] cursor-pointer select-none rounded-full border border-solid text-[14px] ${
+                          styles.closing_day_icon
+                        } ${getIsSelected(day === 7 ? 0 : day) ? `${styles.selected}` : ``} ${
+                          initialClosingDays.includes(day) ? `${styles.active}` : ``
+                        }`}
+                        onClick={() => {
+                          // setSelectedDay(day);
+                          const clickedRealDay = day === 7 ? 0 : day;
+                          if (initialClosingDays.length === 0) {
                             const copiedDays = [...editedClosingDays];
                             // 選択した曜日が既に定休日リストに含まれている場合は削除する
                             if (editedClosingDays.includes(clickedRealDay)) {
@@ -2668,138 +2774,181 @@ const SettingCompanyMemo = () => {
                               }
                               setEditedClosingDays(copiedDays);
                             }
-                          }}
-                        >
-                          <span className={`${language === "ja" ? `text-[16px]` : `text-[14px]`}  font-bold`}>
-                            {dayName}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
+                          }
+                          // 既に定休日が設定済みの場合
+                          else {
+                            if (selectedDay === clickedRealDay) setSelectedDay(null);
+                            if (selectedDay !== clickedRealDay) setSelectedDay(clickedRealDay);
+                          }
+                        }}
+                      >
+                        <span className={`${language === "ja" ? `text-[16px]` : `text-[14px]`}  font-bold`}>
+                          {dayName}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
-                {/* mapメソッドで事業所・営業所タグリストを展開 */}
-                {/* {true && ( */}
-                {/* {!!editedClosingDays && editedClosingDays.length >= 1 && (
+              </div>
+              <div className={`relative`}>
+                {isDisplayDeleteBtn && (
                   <div
-                    // ref={rowOfficeContainer}
-                    className={`relative min-w-[calc(761px-78px-20px)] max-w-[calc(761px-78px-20px)] overflow-x-hidden ${styles.office_tag_container}`}
-                  >
-                    <div
-                      // ref={rowOfficeRef}
-                      className={`${styles.row_group} scrollbar-hide mr-[50px] flex items-center space-x-[12px] overflow-x-scroll `}
-                    >
-                      {editedClosingDays &&
-                        editedClosingDays.length >= 1 &&
-                        [...editedClosingDays]
-                          .sort((a, b) => {
-                            // if (a.office_name === null) return 1; // null値をリストの最後に移動
-                            // if (b.office_name === null) return -1;
-                            // 日曜日(0)を最後にするためのソート関数 日曜日(0)を最大値として扱うための変換
-                            const adjustedA = a === 0 ? 7 : a;
-                            const adjustedB = b === 0 ? 7 : b;
-                            return adjustedA - adjustedB;
-                          })
-                          .map((day, index) => {
-                            const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
-                            const dayName = dayNames[day % 7]; // 日曜日を7として計算した場合の対策
-                            return (
-                              <div
-                                key={day.toString() + index.toString()}
-                                className="transition-bg03 flex-center min-h-[48px] min-w-[48px] select-none rounded-full border border-solid border-[#d6dbe0] text-[14px] text-[var(--color-text-title)] hover:border-[var(--color-bg-brand-f)]"
-                              >
-                                <span className="text-[16px] font-bold text-[var(--color-text-sub)]">{dayName}</span>
-                              </div>
-                            );
-                          })}
-                    </div>
-                  </div>
-                )} */}
-                <div className={`relative`}>
-                  {initialClosingDays && initialClosingDays.length > 0 && editedClosingDays.length > 0 && (
-                    <>
-                      <div
-                        className={`${styles.section_title} ${styles.delete} ${styles.delete_btn}`}
-                        onClick={async () => {
-                          if (deleteOfficeMutation.isLoading) return;
-                          if (!selectedOffice) return;
-                          if (!selectedOffice.id) return;
+                    className={`transition-base01 min-w-[78px] rounded-[8px] px-[25px] py-[10px] ${styles.section_title} cursor-pointer bg-[var(--main-color-tk)] !text-[#fff] hover:bg-[var(--main-color-tk-hover)]`}
+                    onClick={async () => {
+                      if (!userProfileState || !userProfileState.company_id)
+                        return alert("ユーザ情報が見つかりませんでした。");
+                      // 定休日が設定済みでinitialにselectedDayが含まれていないならリターン
+                      if (
+                        initialClosingDays.length > 0 &&
+                        !(isValidNumber(selectedDay) && initialClosingDays.includes(selectedDay!))
+                      ) {
+                        return alert("削除対象の定休日が見つかりませんでした。");
+                      }
+                      setLoadingGlobalState(true);
 
-                          await deleteOfficeMutation.mutateAsync(selectedOffice.id);
-                          setSelectedOffice(null);
-                        }}
-                      >
-                        {!deleteOfficeMutation.isLoading && <span>削除</span>}
-                        {deleteOfficeMutation.isLoading && (
-                          <div className="h-full w-full">
-                            <SpinnerIDS3 fontSize={20} width={20} height={20} />
-                          </div>
-                        )}
-                      </div>
-                      <div
-                        className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} ${styles.active} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                        onClick={() => {
-                          if (deleteOfficeMutation.isLoading) return;
-                          // if (invertFalsyExcludeZero(activeOfficeTagIndex)) return;
-                          if (!selectedOffice) return;
-                          // if (!officeDataArray[activeOfficeTagIndex]) return;
-                          const officePayload = {
-                            id: selectedOffice.id,
-                            created_by_company_id: selectedOffice.created_by_company_id,
-                            office_name: selectedOffice.office_name,
-                          };
-                          originalOfficeNameRef.current = selectedOffice.office_name;
-                          console.log("officePayload", officePayload);
-                          setEditedOffice(officePayload);
-                          setEditOfficeMode(true);
-                        }}
-                      >
-                        編集
-                      </div>
-                    </>
-                  )}
-                  {initialClosingDays?.length === 0 && (
-                    <div
-                      className={`transition-base01 min-w-[78px] rounded-[8px] px-[25px] py-[10px] ${
-                        styles.section_title
-                      } ${
-                        editedClosingDays.length > 0
-                          ? `cursor-pointer bg-[var(--color-bg-brand-f)] !text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`
-                          : `cursor-not-allowed bg-[var(--setting-side-bg-select)] !text-[var(--color-text-disabled)]`
-                      }`}
-                      onClick={() => {
-                        if (editedClosingDays.length === 0)
-                          return alert("先に定休日に設定する曜日を選択してから追加してください。");
-                        setEditClosingDaysMode(true);
-                      }}
-                    >
-                      追加
-                    </div>
-                  )}
+                      try {
+                        const newClosingDays = [...initialClosingDays];
+                        const removedClosingDays = newClosingDays.filter((_day) => _day !== selectedDay!);
+                        const { error } = await supabase
+                          .from("companies")
+                          .update({ customer_closing_days: removedClosingDays })
+                          .eq("id", userProfileState.company_id);
+
+                        if (error) throw error;
+                        console.log("規模削除UPDATE成功 removedClosingDays", removedClosingDays);
+                        setUserProfileState({
+                          ...(userProfileState as UserProfileCompanySubscription),
+                          customer_closing_days: removedClosingDays,
+                        });
+                        toast.success("定休日の削除が完了しました🌟");
+                      } catch (error: any) {
+                        console.error("customer_closing_days UPDATEエラー", error);
+                        toast.error("定休日の削除に失敗しました...🙇‍♀️");
+                      }
+                      setSelectedDay(null);
+                      setLoadingGlobalState(false);
+                    }}
+                  >
+                    削除
+                  </div>
+                )}
+                {isDisplayAddBtn && (
+                  <div
+                    className={`transition-base01 min-w-[78px] rounded-[8px] px-[25px] py-[10px] ${
+                      styles.section_title
+                    } ${
+                      isActiveAddBtn
+                        ? `cursor-pointer bg-[var(--color-bg-brand-f)] !text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`
+                        : `cursor-not-allowed bg-[var(--setting-side-bg-select)] !text-[var(--color-text-disabled)]`
+                    }`}
+                    onClick={async () => {
+                      if (!userProfileState || !userProfileState.company_id)
+                        return alert("ユーザ情報が見つかりませんでした。");
+                      // 定休日が未設定なら
+                      if (initialClosingDays.length === 0 && editedClosingDays.length === 0) {
+                        return alert("先に定休日に設定する曜日を選択してから追加してください。");
+                      }
+                      // 定休日が設定済みなら
+                      if (initialClosingDays.length > 0 && !isValidNumber(selectedDay)) {
+                        return alert("追加する定休日を選択してください");
+                      }
+                      setLoadingGlobalState(true);
+
+                      try {
+                        let newClosingDays;
+                        if (initialClosingDays.length === 0) newClosingDays = editedClosingDays;
+                        if (initialClosingDays.length > 0 && isValidNumber(selectedDay)) {
+                          newClosingDays = [...initialClosingDays];
+                          // 挿入する位置を見つける
+                          const insertAt = newClosingDays.findIndex((currentDay) => selectedDay! <= currentDay);
+                          // 適切な値が見つかった場合、その位置に値を挿入
+                          if (insertAt !== -1) {
+                            newClosingDays.splice(insertAt, 0, selectedDay!);
+                          } else {
+                            // 配列内のどの値よりも挿入する値が大きい場合、配列の末尾に値を追加
+                            newClosingDays.push(selectedDay!);
+                          }
+                        }
+                        if (!newClosingDays) throw new Error("エラーが発生しました。");
+                        const { error } = await supabase
+                          .from("companies")
+                          .update({ customer_closing_days: newClosingDays })
+                          .eq("id", userProfileState.company_id);
+
+                        if (error) throw error;
+                        console.log("規模UPDATE成功 newClosingDays", newClosingDays);
+                        setUserProfileState({
+                          ...(userProfileState as UserProfileCompanySubscription),
+                          customer_closing_days: newClosingDays,
+                        });
+                        toast.success("定休日の追加が完了しました🌟");
+                      } catch (error: any) {
+                        console.error("customer_closing_days UPDATEエラー", error);
+                        toast.error("定休日の追加に失敗しました...🙇‍♀️");
+                      }
+                      if (editedClosingDays.length > 0) setEditedClosingDays([]);
+                      if (isValidNumber(selectedDay)) setSelectedDay(null);
+                      setLoadingGlobalState(false);
+                    }}
+                  >
+                    追加
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+          {/* 定休日ここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+          {/* 営業カレンダー */}
+          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+            <div className={`${styles.section_title}`}>営業カレンダー</div>
+
+            {!editNumberOfEmployeeClassMode && (
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
+                <div className={`${styles.section_value}`}>
+                  {userProfileState?.customer_number_of_employees_class
+                    ? getNumberOfEmployeesClassForCustomer(userProfileState.customer_number_of_employees_class)
+                    : "未設定"}
+                </div>
+                <div>
+                  <div
+                    className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedNumberOfEmployeeClass(
+                        userProfileState?.customer_number_of_employees_class
+                          ? userProfileState.customer_number_of_employees_class
+                          : ""
+                      );
+                      setEditNumberOfEmployeeClassMode(true);
+                    }}
+                  >
+                    編集
+                  </div>
                 </div>
               </div>
             )}
-
-            {/* INSERT 新たに定休日を設定する */}
-            {editClosingDaysMode && (
+            {editNumberOfEmployeeClassMode && (
               <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
-                <input
-                  type="text"
-                  placeholder="事業所・営業所名を入力してください"
-                  required
-                  autoFocus
-                  className={`${styles.input_box}`}
-                  value={inputOfficeName}
-                  onChange={(e) => setInputOfficeName(e.target.value)}
-                  onBlur={() => setInputOfficeName(toHalfWidthAndSpace(inputOfficeName.trim()))}
-                />
+                <select
+                  className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                  value={editedNumberOfEmployeeClass}
+                  onChange={(e) => setEditedNumberOfEmployeeClass(e.target.value)}
+                >
+                  <option value="">回答を選択してください</option>
+                  {optionsNumberOfEmployeesClass.map((option) => (
+                    <option key={option} value={option}>
+                      {getNumberOfEmployeesClassForCustomer(option)}
+                    </option>
+                  ))}
+                </select>
                 <div className="flex">
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                     onClick={() => {
-                      if (createOfficeMutation.isLoading) return;
-                      setInputOfficeName("");
-                      setInsertOfficeMode(false);
+                      setEditedNumberOfEmployeeClass("");
+                      setEditNumberOfEmployeeClassMode(false);
                     }}
                   >
                     キャンセル
@@ -2807,44 +2956,55 @@ const SettingCompanyMemo = () => {
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
-                      if (createOfficeMutation.isLoading) return;
-                      // 事業所・営業所の編集
-                      if (inputOfficeName === "") {
-                        setInputOfficeName("");
-                        setInsertOfficeMode(false);
+                      if (!userProfileState) return;
+                      if (userProfileState.customer_number_of_employees_class === editedNumberOfEmployeeClass) {
+                        setEditNumberOfEmployeeClassMode(false);
                         return;
                       }
-                      if (!userProfileState?.company_id) {
-                        alert("エラー：会社データが見つかりませんでした。");
-                        setInputOfficeName("");
-                        setInsertOfficeMode(false);
+                      if (editedNumberOfEmployeeClass === "") {
+                        alert("有効な規模を入力してください");
                         return;
                       }
+                      if (!userProfileState?.company_id) return alert("会社IDが見つかりません");
+                      setLoadingGlobalState(true);
+                      const { data: companyData, error } = await supabase
+                        .from("companies")
+                        .update({ customer_number_of_employees_class: editedNumberOfEmployeeClass })
+                        .eq("id", userProfileState.company_id)
+                        .select("customer_number_of_employees_class")
+                        .single();
 
-                      const insertFieldPayload = {
-                        created_by_company_id: userProfileState.company_id,
-                        office_name: inputOfficeName,
-                      };
-                      console.log("insertFieldPayload", insertFieldPayload);
-
-                      await createOfficeMutation.mutateAsync(insertFieldPayload);
-
-                      setInputOfficeName("");
-                      setInsertOfficeMode(false);
+                      if (error) {
+                        setLoadingGlobalState(false);
+                        setEditNumberOfEmployeeClassMode(false);
+                        alert(error.message);
+                        console.log("規模UPDATEエラー", error.message);
+                        toast.error("規模の更新に失敗しました!");
+                        return;
+                      }
+                      console.log(
+                        "規模UPDATE成功 companyData.customer_number_of_employees_class",
+                        companyData.customer_number_of_employees_class
+                      );
+                      setUserProfileState({
+                        // ...(companyData as UserProfile),
+                        ...(userProfileState as UserProfileCompanySubscription),
+                        customer_number_of_employees_class: companyData.customer_number_of_employees_class
+                          ? companyData.customer_number_of_employees_class
+                          : null,
+                      });
+                      setLoadingGlobalState(false);
+                      setEditNumberOfEmployeeClassMode(false);
+                      toast.success("規模の更新が完了しました!");
                     }}
                   >
-                    {!createOfficeMutation.isLoading && <span>保存</span>}
-                    {createOfficeMutation.isLoading && (
-                      <div className="relative h-full w-full">
-                        <SpinnerIDS3 fontSize={20} width={20} height={20} color="#fff" />
-                      </div>
-                    )}
+                    保存
                   </div>
                 </div>
               </div>
             )}
           </div>
-          {/* 定休日ここまで */}
+          {/* 営業カレンダーここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
@@ -3753,24 +3913,25 @@ const SettingCompanyMemo = () => {
       )}
       {/* ============================== チームから削除の確認モーダルここまで ============================== */}
       {/* ============================== チームから削除の確認モーダル ============================== */}
-      {!!showConfirmUpsertClosingDayModal && (
+      {!!showConfirmApplyClosingDayModal && (
         <ConfirmationModal
           titleText={
-            showConfirmUpsertClosingDayModal === "Update"
+            showConfirmApplyClosingDayModal === "Update"
               ? `定休日を変更してもよろしいですか？`
               : `定休日を追加してもよろしいですか？`
           }
-          sectionP1="定休日は1ヶ月に1回のみ追加・変更可です。"
-          sectionP2="設定した定休日に基づいてお客様の年間の営業稼働日数が算出され、年度・半期・四半期・月度ごとの各プロセスの正確なデータ分析が可能になります。"
+          sectionP1="設定した定休日に基づいてお客様の年間の営業稼働日数が算出され、年度・半期・四半期・月度ごとの各プロセスの正確なデータ分析が可能になります。"
+          sectionP2="※定休日は1ヶ月に1回のみ追加・変更可です。"
           cancelText="戻る"
-          submitText={showConfirmUpsertClosingDayModal === "Update" ? `変更する` : `追加する`}
+          submitText={showConfirmApplyClosingDayModal === "Update" ? `変更する` : `追加する`}
           clickEventClose={() => {
             if (loadingGlobalState) return;
             setEditedClosingDays([]);
-            setShowConfirmUpsertClosingDayModal(null);
+            setShowConfirmApplyClosingDayModal(null);
           }}
-          clickEventSubmit={handleSubmitClosingDays}
-          isLoadingState={loadingGlobalState}
+          clickEventSubmit={() => handleApplyClosingDaysCalendar(selectedFiscalYear)}
+          // isLoadingState={loadingGlobalState}
+          buttonColor="brand"
         />
       )}
       {/* ============================== チームから削除の確認モーダルここまで ============================== */}

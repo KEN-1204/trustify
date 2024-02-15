@@ -108,7 +108,7 @@ export const SettingAccountModal = () => {
           </div>
         </div>
       )} */}
-      <div className={`${styles.container} fade02`} ref={settingModalRef}>
+      <div className={`${styles.container} fade03`} ref={settingModalRef}>
         {/* メインコンテンツ コンテナ */}
         <div className={`${styles.main_contents_container}`}>
           {/* =============================== 左側エリア =============================== */}

@@ -164,7 +164,7 @@ const PDFComponentMemo = ({ isSample = true, modalPosLeft }: Props) => {
   const productsArray: { [key: string]: any } = [
     {
       id: "1-1",
-      product_name: "画像寸法測定器",
+      product_name: "画像測定器",
       outside_name: "IX-9000/9030T",
       unit_quantity: 1,
       unit_price: 6295000,

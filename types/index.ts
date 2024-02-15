@@ -2315,3 +2315,14 @@ export type Cities = {
   region_id: number | null;
   country_id: number | null;
 };
+
+// 営業カレンダーの各日付
+export type CustomerBusinessCalendars = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  customer_id: string | null;
+  date: string | null;
+  status: string | null;
+  working_hours: number | null;
+};
