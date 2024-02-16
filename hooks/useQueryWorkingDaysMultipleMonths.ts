@@ -1,3 +1,4 @@
+import { formatDateToYYYYMMDD } from "@/utils/Helpers/formatDateLocalToYYYYMMDD";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -74,8 +75,10 @@ export const useQueryWorkingDaysMultipleMonths = (
       const newFiscalMonth = `${newYear}-${String(newMonth + 1).padStart(2, "0")}`; // 月が一桁の場合は0でパディング*4
 
       fiscalYearMonthsArray.push({
-        start_date: startDate.toISOString().split("T")[0],
-        end_date: endDate.toISOString().split("T")[0],
+        // start_date: startDate.toISOString().split("T")[0],
+        // end_date: endDate.toISOString().split("T")[0],
+        start_date: formatDateToYYYYMMDD(startDate),
+        end_date: formatDateToYYYYMMDD(endDate),
         fiscal_month: newFiscalMonth,
         total_days: _totalDays,
       });

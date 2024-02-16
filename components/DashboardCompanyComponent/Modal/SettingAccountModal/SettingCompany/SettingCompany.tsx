@@ -44,6 +44,11 @@ import { useMutateCompanySeal } from "@/hooks/useMutateCompanySeal";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
 import { useQueryAnnualFiscalMonthClosingDays } from "@/hooks/useQueryAnnualFiscalMonthClosingDays";
+import { fillWorkingDaysForEachFiscalMonth } from "@/utils/Helpers/fillWorkingDaysForEachFiscalMonth";
+import { generateFiscalYearCalendar } from "@/utils/Helpers/generateFiscalYearCalendar";
+import { useQueryCalendarForFiscalBase } from "@/hooks/useQueryCalendarForFiscalBase";
+import { useQueryCalendarForCalendarBase } from "@/hooks/useQueryCalendarForCalendarBase";
+import { formatDateToYYYYMMDD } from "@/utils/Helpers/formatDateLocalToYYYYMMDD";
 
 const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Stu"];
 const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
@@ -102,25 +107,70 @@ const SettingCompanyMemo = () => {
       return isValidNumber(selectedDay) && selectedDay === day;
     }
   };
-  // 営業カレンダー(営業稼働日数から各プロセス分析用)(国の祝日と顧客独自の休業日、半休日、営業短縮日を指定)
-  // 🌟選択した年度の休業日を取得するuseQuery🌟
-  // 決算日が28日から30日で、かつその日にちがその月の決算日でないかチェック 該当するなら各月の開始日と終了日を選択してもらう
+  // 🔹営業カレンダー(営業稼働日数から各プロセス分析用)(国の祝日と顧客独自の休業日、半休日、営業短縮日を指定)
+  // ②決算日が28日から30日で、かつその日にちがその月の決算日でないかチェック 該当するなら各月の開始日と終了日を選択してもらう
   const fiscalYearEndDate = userProfileState?.customer_fiscal_end_month
     ? new Date(userProfileState?.customer_fiscal_end_month)
     : null;
   // new Date(fiscalYearEndDate.getFullYear(), fiscalYearEndDate.getMonth() + 1, 0).getDate()でその月の末日を取得
-  const isRequiredCustomInputFiscalStartEndDate =
+  const isRequiredInputFiscalStartEndDate =
     fiscalYearEndDate &&
     fiscalYearEndDate.getDate() !==
       new Date(fiscalYearEndDate.getFullYear(), fiscalYearEndDate.getMonth() + 1, 0).getDate() &&
     27 < fiscalYearEndDate.getDate() &&
-    fiscalYearEndDate.getDate() <= 31; // 28~30までで末日でない決算月かどうか確認
+    fiscalYearEndDate.getDate() <= 31
+      ? true
+      : false; // 28~30までで末日でない決算月かどうか確認
+  // ユーザーが入力した各会計月度の開始日、終了日の入力値を保持するstate
+  const [fiscalMonthStartEndInputArray, setFiscalMonthStartEndInputArray] = useState(null);
+  // ②ならisReadyをfalseにして、12個分の開始終了日の要素の配列が完成した時にtrueにする
+  const [isReadyClosingDays, setIsReadyClosingDays] = useState(isRequiredInputFiscalStartEndDate ? false : true);
+  // 決算月を現在の月が過ぎている場合は、現在の年を初期値として、決算月が12月以外で先にある場合は現在の年の前の年を初期値とする
+  const currentDate = new Date();
+  const initialQueryYear =
+    fiscalYearEndDate && (fiscalYearEndDate.getTime() < currentDate.getTime() || fiscalYearEndDate.getMonth() === 11)
+      ? currentDate.getFullYear()
+      : currentDate.getFullYear() - 1;
+  // 選択した年度 営業カレンダー表示反映用の選択中の会計年度
+  const [selectedFiscalYear, setSelectedFiscalYear] = useState<string | null>(initialQueryYear);
+
+  // 🌟useQuery 選択した年度の休業日を取得する🌟
   const {
     data: annualMonthlyClosingDays,
     isLoading: isLoadingAnnualMonthlyClosingDays,
     isError: isErrorAnnualMonthlyClosingDay,
     error: errorAnnualClosingDays,
-  } = useQueryAnnualFiscalMonthClosingDays();
+  } = useQueryAnnualFiscalMonthClosingDays({
+    customerId: userProfileState?.company_id ?? null,
+    selectedYear: initialQueryYear,
+    fiscalYearEnd: userProfileState?.customer_fiscal_end_month,
+    isRequiredInputFiscalStartEndDate: isRequiredInputFiscalStartEndDate ?? false,
+    customInputArray: isRequiredInputFiscalStartEndDate ? fiscalMonthStartEndInputArray : null,
+    isReady: isReadyClosingDays,
+  });
+
+  // 🌟useQuery 顧客の会計月度ごとの営業日も追加した会計年度カレンダーの完全リスト🌟
+  const {
+    data: calendarForFiscalBase,
+    isLoading: isLoadingCalendarForFiscalBase,
+    isError: isErrorCalendarForFiscalBase,
+    error: errorCalendarForFiscalBase,
+  } = useQueryCalendarForFiscalBase({
+    selectedFiscalYear: selectedFiscalYear,
+    annualMonthlyClosingDays: annualMonthlyClosingDays,
+  });
+  // const [calendarForFiscalBase, setCalendarForFiscalBase] = useState([]);
+
+  // 🌟useQuery カレンダーベースの営業日も追加した完全リスト🌟
+  const {
+    data: calendarForCalendarBase,
+    isLoading: isLoadingCalendarForCalendarBase,
+    isError: isErrorCalendarForCalendarBase,
+    error: errorCalendarForCalendarBase,
+  } = useQueryCalendarForCalendarBase({
+    selectedFiscalYear: selectedFiscalYear,
+    annualMonthlyClosingDays: annualMonthlyClosingDays,
+  });
 
   // 規模
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
@@ -163,8 +213,6 @@ const SettingCompanyMemo = () => {
   const [showConfirmCancelModal, setShowConfirmCancelModal] = useState(false);
   // 選択した会計年度の営業カレンダーに定休日反映確認モーダル
   const [showConfirmApplyClosingDayModal, setShowConfirmApplyClosingDayModal] = useState<string | null>(null);
-  // 営業カレンダー表示、反映用の選択中の会計年度
-  const [selectedFiscalYear, setSelectedFiscalYear] = useState<string | null>(null);
 
   // 説明アイコン
   const infoIconAddressRef = useRef<HTMLDivElement | null>(null);
@@ -175,6 +223,7 @@ const SettingCompanyMemo = () => {
   const infoIconZipCodeRef = useRef<HTMLDivElement | null>(null);
   const infoIconCompanySealRef = useRef<HTMLDivElement | null>(null);
   const infoIconClosingDaysRef = useRef<HTMLDivElement | null>(null);
+  const infoIconBusinessCalendarRef = useRef<HTMLDivElement | null>(null);
 
   const { uploadCompanyLogoMutation, deleteCompanyLogoMutation } = useMutateCompanyLogo();
   // const { fullUrl: logoUrl, isLoading: isLoadingLogoImg } = useDownloadUrl(
@@ -213,7 +262,6 @@ const SettingCompanyMemo = () => {
     refetch: refetchQUeryDepartments,
   } = useQueryDepartments(userProfileState?.company_id, true);
   // } = useQueryDepartments(userProfileState?.company_id);
-  console.log("departmentDataArray", departmentDataArray);
 
   // useMutation
   const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
@@ -939,7 +987,8 @@ const SettingCompanyMemo = () => {
       if (closedDaysIndexes.includes(currentDateForLoop.getDay())) {
         closedDays.push({
           customer_id: userProfileState.company_id,
-          date: currentDateForLoop.toISOString().split("T")[0], // 時間情報を除いた日付情報のみセット
+          // date: currentDateForLoop.toISOString().split("T")[0], // 時間情報を除いた日付情報のみセット
+          date: formatDateToYYYYMMDD(currentDateForLoop), // 時間情報を除いた日付情報のみセット
           status: "closed",
           working_hours: 0,
         });
@@ -997,6 +1046,19 @@ const SettingCompanyMemo = () => {
     setShowConfirmApplyClosingDayModal(null);
   };
   // ===================== ✅定休日のUPSERT✅ =====================
+
+  console.log(
+    "営業カレンダー🌟 選択中の年度selectedFiscalYear",
+    selectedFiscalYear,
+    "🌟選択した年度の休業日を取得するuseQuery🌟 annualMonthlyClosingDays",
+    annualMonthlyClosingDays,
+    "🌟顧客の会計月度ごとの営業日も追加した会計年度カレンダーの完全リストuseQuery🌟 calendarForFiscalBase",
+    calendarForFiscalBase,
+    "🌟カレンダーベースの営業日も追加した完全リストuseQuery🌟 calendarForCalendarBase",
+    calendarForCalendarBase,
+    "departmentDataArray",
+    departmentDataArray
+  );
 
   return (
     <>
@@ -2695,7 +2757,8 @@ const SettingCompanyMemo = () => {
                       display: "top",
                       content: "定休日を先に設定しておくことで年度、半期、四半期、月度ごとの",
                       content2: "営業稼働日数を基にした各プロセスの適切な目標設定、進捗確認、分析が可能となります。",
-                      content3: "定休日以外の祝日やお客様独自の休業日は下記の営業カレンダーで個別に設定可能です。",
+                      content3:
+                        "設定した定休日の適用や定休日以外の祝日やお客様独自の休業日は営業カレンダーから個別に設定可能です。",
                       marginTop: 57,
                       // marginTop: 33,
                       // marginTop: 9,
@@ -2903,7 +2966,44 @@ const SettingCompanyMemo = () => {
 
           {/* 営業カレンダー */}
           <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-            <div className={`${styles.section_title}`}>営業カレンダー</div>
+            {/* <div className={`${styles.section_title}`}>営業カレンダー</div> */}
+            <div className="flex items-start space-x-4">
+              <div className={`${styles.section_title}`}>
+                <div
+                  className="flex max-w-max items-center space-x-[9px]"
+                  onMouseEnter={(e) => {
+                    if (
+                      infoIconBusinessCalendarRef.current &&
+                      infoIconBusinessCalendarRef.current.classList.contains(styles.animate_ping)
+                    ) {
+                      infoIconBusinessCalendarRef.current.classList.remove(styles.animate_ping);
+                    }
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: "決算日を登録することで会計年度の期首から正確に各月度の営業稼働日が算出されます。",
+                      content2: "各月度へ設定した定休日の適用や定休日以外の祝日やお客様独自の休業日、営業日は",
+                      content3: "営業カレンダーから個別に設定可能です。",
+                      marginTop: 57,
+                      // marginTop: 33,
+                      // marginTop: 9,
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <span>営業カレンダー</span>
+                  <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                    <div
+                      ref={infoIconBusinessCalendarRef}
+                      className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                        initialClosingDays.length >= 1 ? `` : styles.animate_ping
+                      }`}
+                    ></div>
+                    <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {!editNumberOfEmployeeClassMode && (
               <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>

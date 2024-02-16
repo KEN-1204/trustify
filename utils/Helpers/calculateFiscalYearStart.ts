@@ -13,6 +13,8 @@ export const calculateFiscalYearStart = (fiscalYearEnd: string) => {
   // 期末から翌日に進めることで期首のDateオブジェクトを生成(時間情報はミリ秒単位で全て0)
   fiscalYearEndDateOnly.setDate(fiscalYearEndDateOnly.getDate() + 1);
 
+  console.log("🌠fiscalYearEnd", fiscalYearEnd, "fiscalYearEndDateOnly", fiscalYearEndDateOnly);
+
   // 月末が決算日だった場合は次の月の1日が期首になる
   return fiscalYearEndDateOnly;
 };

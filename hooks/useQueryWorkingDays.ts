@@ -1,3 +1,4 @@
+import { formatDateToYYYYMMDD } from "@/utils/Helpers/formatDateLocalToYYYYMMDD";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -31,8 +32,10 @@ export const useQueryWorkingDaysMonthly = (
       .from("customer_business_calendars")
       .select("*", { count: "exact" })
       .eq("customer_id", customerId)
-      .gte("date", startDate.toISOString().split("T")[0]) // *2 時間情報を除く日付情報のみを渡す
-      .lte("date", endDate.toISOString().split("T")[0])
+      // .gte("date", startDate.toISOString().split("T")[0]) // *2 時間情報を除く日付情報のみを渡す
+      // .lte("date", endDate.toISOString().split("T")[0])
+      .gte("date", formatDateToYYYYMMDD(startDate)) // *2 時間情報を除く日付情報のみを渡す
+      .lte("date", formatDateToYYYYMMDD(endDate))
       .eq("status", "休業日");
 
     if (error) {
