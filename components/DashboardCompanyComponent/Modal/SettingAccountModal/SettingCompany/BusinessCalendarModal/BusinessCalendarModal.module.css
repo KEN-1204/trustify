@@ -85,33 +85,137 @@
 .left_margin {
   height: 100%;
   width: 100%;
-  min-width: 21px;
-  max-width: 21px;
+  /* min-width: 2%;
+  max-width: 2%; */
+  /* min-width: 9.5px;
+  max-width: 9.5px; */
+  min-width: 6px;
+  max-width: 6px;
 }
 .pdf_main_container {
   height: 100%;
   width: 100%;
-  min-width: 472px;
-  max-width: 472px;
+  /* min-width: 472px;
+  max-width: 472px; */
+  /* min-width: 96%;
+  max-width: 96%; */
+  /* min-width: 495px;
+  max-width: 495px; */
+  min-width: 498px;
+  max-width: 498px;
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 .right_margin {
   height: 100%;
   width: 100%;
-  min-width: 21px;
-  max-width: 21px;
+  /* min-width: 2%;
+  max-width: 2%; */
+  /* min-width: 9.5px;
+  max-width: 9.5px; */
+  min-width: 10px;
+  max-width: 10px;
 }
 /* ---------------------------------- ✅pdf横 3部構成✅ ---------------------------------- */
 
-/* ---------------------------------- 🌟pdf6部構成(上下マージン含めず)🌟 ---------------------------------- */
+/* ---------------------------------- 🌟pdf5部構成(上下マージン含む)🌟 ---------------------------------- */
 .top_margin {
-  height: 2%;
+  /* 合計3% */
+  height: 3%;
 }
-/* 上下マージン除く96%がメイン */
-
-/* 上下マージン除く96%がメイン */
+.year_section {
+  /* 合計8% 年度セクションの行は２行 */
+  height: 4%;
+  display: flex;
+  align-items: center;
+}
+.monthly_row_section {
+  /* 合計72% 月度セクションの行は4行 */
+  height: 18%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+.summary_section {
+  /* 合計10% */
+  height: 10%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.remarks_section {
+  /* 合計4% */
+  height: 4%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 .bottom_margin {
-  height: 2%;
+  /* 合計3% */
+  height: 3%;
 }
-/* ---------------------------------- ✅pdf6部構成(上下マージン含めず)✅ ---------------------------------- */
+/* ---------------------------------- ✅pdf5部構成(上下マージン含む)✅ ---------------------------------- */
+
+/* 🌟monthly_row_section🌟 */
+.monthly_row_section .month {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.monthly_row_section .month .month_title {
+  font-weight: 800;
+  font-size: 22px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  line-height: 27px;
+  padding-right: 5px;
+}
+.monthly_row_section .month .month_title span {
+  /* width: 100%; */
+  transform: scaleX(1) scaleY(1.1);
+  text-align: center;
+}
+.monthly_row_section .month .month_grid_container {
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
+  /* font-weight: 800; */
+  font-size: 12px;
+}
+.monthly_row_section .month .month_grid_container .month_row {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.monthly_row_section .month .month_grid_container .month_row_date {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.monthly_row_section .month .month_grid_container .month_date_container {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+.monthly_row_section .month .month_grid_container .month_date_container .month_grid_cell {
+  border-radius: 50%;
+  /* background-color: #ff000030; */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.monthly_row_section .month .month_grid_container .month_date_container .month_grid_cell:hover {
+  border-radius: 50%;
+  background-color: #ff000030;
+}
+.monthly_row_section .month .month_grid_container .month_date_container .month_grid_cell span {
+  /* width: 100%;
+  height: 100%;
+  text-align: center; */
+}
+.monthly_row_section .month .month_grid_container .month_row .month_grid_cell {
+  /* border-right: 1px solid #ccc;
+  border-bottom: 1px solid #ccc; */
+}
+/* ✅monthly_row_section✅ */

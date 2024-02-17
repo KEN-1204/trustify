@@ -37,6 +37,18 @@ const getCompressionRatio = (value: string, language: string) => {
   }
 };
 
+const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Stu"];
+const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
+const sortedDaysPlaceholder = Array(7)
+  .fill(null)
+  .map((_, index) => index)
+  .sort((a, b) => {
+    // 日曜日(0)を最後にするためのソート関数 日曜日(0)を最大値として扱うための変換
+    const adjustedA = a === 0 ? 7 : a;
+    const adjustedB = b === 0 ? 7 : b;
+    return adjustedA - adjustedB;
+  });
+
 const BusinessCalendarModalMemo = () => {
   //   const [modalLeftPos, setModalLeftPos] = useState(0);
 
@@ -509,19 +521,236 @@ const BusinessCalendarModalMemo = () => {
             <Suspense fallback={<FallbackBusinessCalendar />}>
               <div ref={pdfTargetRef} className={`${styles.pdf} quotation`} style={{ transform: `scale(${scalePdf})` }}>
                 {/* ---------------- 左マージン ---------------- */}
-                <div className={`${styles.left_margin} h-full w-full min-w-[4%] max-w-[4%]`}></div>
+                <div className={`${styles.left_margin}`}></div>
                 {/* ---------------- 左マージン ---------------- */}
                 {/* ---------------- 真ん中 ---------------- */}
                 <div className={`${styles.pdf_main_container} flex h-full w-full flex-col`}>
                   {/* エディットモードオーバーレイ z-[3500] */}
                   {isEditMode.length > 0 && <EditModeOverlay />}
-                  <div className={`${styles.top_margin} w-full bg-[red]/[0]`}></div>
-                  {/* <div className={`${styles.header_area} flex-center relative h-[6%] w-full bg-[aqua]/[0]`}></div> */}
-                  <div className={`${styles.bottom_margin} w-full bg-[red]/[0]`}></div>
+                  <div className={`${styles.top_margin} w-full bg-[red]/[0.3]`}></div>
+                  <div className={`${styles.year_section} w-full bg-[aqua]/[0.3]`}></div>
+                  {Array(4)
+                    .fill(null)
+                    .map((_, rowIndex) => {
+                      const monthlyRowKey = "monthly_row" + rowIndex.toString();
+                      return (
+                        <div key={monthlyRowKey} className={`${styles.monthly_row_section} w-full bg-[pink]/[0]`}>
+                          {Array(3)
+                            .fill(null)
+                            .map((_, colIndex) => {
+                              const monthKey = "month" + rowIndex.toString() + colIndex.toString();
+                              const getRow = (rowIndex: number): number => {
+                                if (rowIndex === 0) return 1;
+                                if (rowIndex === 1) return 4;
+                                if (rowIndex === 2) return 7;
+                                if (rowIndex === 3) return 10;
+                                return rowIndex;
+                              };
+                              const titleValue = getRow(rowIndex) + colIndex;
+                              return (
+                                <div key={monthKey} className={`${styles.month} w-1/3 bg-[white]/[0]`}>
+                                  {/* <div className={`h-full w-[16%] bg-[red]/[0.1] ${styles.month_title}`}> */}
+                                  <div className={`h-full w-[22%] bg-[red]/[0] ${styles.month_title}`}>
+                                    <span>{titleValue}</span>
+                                  </div>
+                                  <div
+                                    role="grid"
+                                    // className={`h-full w-[84%] bg-[yellow]/[0] ${styles.month_grid_container}`}
+                                    className={`h-full w-[78%] bg-[yellow]/[0] ${styles.month_grid_container}`}
+                                  >
+                                    <div role="columnheader" className={`${styles.month_row}`}>
+                                      {sortedDaysPlaceholder.map((day, monthColHeaderIndex) => {
+                                        const monthColumnHeaderIndexKey =
+                                          "month_grid_columnheader_day" +
+                                          rowIndex.toString() +
+                                          colIndex.toString() +
+                                          monthColHeaderIndex.toString();
+                                        const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
+                                        const dayName = dayNames[day % 7];
+                                        return (
+                                          <div
+                                            role="gridcell"
+                                            key={monthColumnHeaderIndexKey}
+                                            className={`${styles.month_grid_cell} flex-center`}
+                                          >
+                                            <span>{dayName}</span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+
+                                    {(rowIndex === 0 || rowIndex === 1) && (
+                                      <div role="grid" className={`${styles.month_date_container}`}>
+                                        {Array(31)
+                                          .fill(null)
+                                          .map((_, monthCellIndex) => {
+                                            const monthCellIndexKey =
+                                              "month_grid_cell_date" +
+                                              rowIndex.toString() +
+                                              colIndex.toString() +
+                                              monthCellIndex.toString();
+                                            let displayValue;
+                                            if (!displayValue) displayValue = monthCellIndex + 1;
+                                            if (typeof displayValue === "number" && displayValue > 31)
+                                              displayValue = null;
+
+                                            return (
+                                              <div
+                                                role="gridcell"
+                                                key={monthCellIndexKey}
+                                                className={`${styles.month_grid_cell} flex-center`}
+                                                style={{
+                                                  ...(displayValue === null && {
+                                                    borderRight: "none",
+                                                    borderBottom: "none",
+                                                  }),
+                                                }}
+                                              >
+                                                <span>{displayValue}</span>
+                                              </div>
+                                            );
+                                          })}
+                                      </div>
+                                    )}
+                                    {(rowIndex === 2 || rowIndex === 3) && (
+                                      <div role="grid" className={`${styles.month_date_container}`}>
+                                        {Array(42)
+                                          .fill(null)
+                                          .map((_, monthCellIndex) => {
+                                            const monthCellIndexKey =
+                                              "month_grid_cell_date" +
+                                              rowIndex.toString() +
+                                              colIndex.toString() +
+                                              monthCellIndex.toString();
+                                            let displayValue;
+                                            if (!displayValue) displayValue = monthCellIndex + 1;
+                                            if (typeof displayValue === "number" && displayValue <= 6) {
+                                              displayValue = null;
+                                            } else {
+                                              displayValue -= 6;
+                                            }
+                                            if (typeof displayValue === "number" && displayValue > 31)
+                                              displayValue = null;
+
+                                            return (
+                                              <div
+                                                role="gridcell"
+                                                key={monthCellIndexKey}
+                                                className={`${styles.month_grid_cell} flex-center`}
+                                                style={{
+                                                  ...(displayValue === null && {
+                                                    borderRight: "none",
+                                                    borderBottom: "none",
+                                                  }),
+                                                }}
+                                              >
+                                                <span>{displayValue}</span>
+                                              </div>
+                                            );
+                                          })}
+                                      </div>
+                                    )}
+
+                                    {/* {Array(7)
+                                      .fill(null)
+                                      .map((_, monthRowIndex) => {
+                                        const monthRowHeaderIndexKey =
+                                          "month_grid_row_header" +
+                                          rowIndex.toString() +
+                                          colIndex.toString() +
+                                          monthRowIndex.toString();
+
+                                        if (monthRowIndex === 0) {
+                                          return (
+                                            <div
+                                              role="columnheader"
+                                              key={monthRowHeaderIndexKey}
+                                              className={`${styles.month_row}`}
+                                            >
+                                              {sortedDaysPlaceholder.map((day, monthColIndex) => {
+                                                const monthCellIndexKey =
+                                                  "month_grid_cell_day" +
+                                                  rowIndex.toString() +
+                                                  colIndex.toString() +
+                                                  monthRowIndex.toString() +
+                                                  monthColIndex.toString();
+                                                const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
+                                                const dayName = dayNames[day % 7];
+                                                return (
+                                                  <div
+                                                    role="gridcell"
+                                                    key={monthCellIndexKey}
+                                                    className={`${styles.month_grid_cell} flex-center`}
+                                                  >
+                                                    <span>{dayName}</span>
+                                                  </div>
+                                                );
+                                              })}
+                                            </div>
+                                          );
+                                        }
+                                        if (monthRowIndex !== 0) {
+                                          return (
+                                            <div
+                                              role="row"
+                                              key={monthRowIndexKey}
+                                              className={`${styles.month_row_date}`}
+                                            >
+                                              {Array(7)
+                                                .fill(null)
+                                                .map((_, monthColIndex) => {
+                                                  const monthCellIndexKey =
+                                                    "month_grid_cell_date" +
+                                                    rowIndex.toString() +
+                                                    colIndex.toString() +
+                                                    monthRowIndex.toString() +
+                                                    monthColIndex.toString();
+                                                  let displayValue;
+                                                  if (monthRowIndex === 1) displayValue = 1 + monthColIndex;
+                                                  if (monthRowIndex === 2) displayValue = 8 + monthColIndex;
+                                                  if (monthRowIndex === 3) displayValue = 15 + monthColIndex;
+                                                  if (monthRowIndex === 4) displayValue = 22 + monthColIndex;
+                                                  if (monthRowIndex === 5) displayValue = 29 + monthColIndex;
+                                                  if (monthRowIndex === 6) displayValue = 36 + monthColIndex;
+                                                  if (typeof displayValue === "number" && displayValue > 31)
+                                                    displayValue = null;
+
+                                                  return (
+                                                    <div
+                                                      role="gridcell"
+                                                      key={monthCellIndexKey}
+                                                      className={`${styles.month_grid_cell} flex-center`}
+                                                      style={{
+                                                        ...(displayValue === null && {
+                                                          borderRight: "none",
+                                                          borderBottom: "none",
+                                                        }),
+                                                      }}
+                                                    >
+                                                      <span>{displayValue}</span>
+                                                    </div>
+                                                  );
+                                                })}
+                                            </div>
+                                          );
+                                        }
+                                      })} */}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      );
+                    })}
+
+                  <div className={`${styles.year_section} w-full bg-[aqua]/[0.3]`}></div>
+                  <div className={`${styles.summary_section} w-full bg-[yellow]/[0.3]`}></div>
+                  <div className={`${styles.remarks_section} w-full bg-[green]/[0.3]`}></div>
+                  <div className={`${styles.bottom_margin} w-full bg-[red]/[0.3]`}></div>
                 </div>
                 {/* ---------------- 真ん中 ---------------- */}
                 {/* ---------------- 右マージン ---------------- */}
-                <div className={`${styles.right_margin}  h-full w-full min-w-[4%] max-w-[4%]`}></div>
+                <div className={`${styles.right_margin}`}></div>
                 {/* ---------------- 右マージン ---------------- */}
               </div>
             </Suspense>
