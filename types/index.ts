@@ -2323,6 +2323,7 @@ export type CustomerBusinessCalendars = {
   updated_at: string | null;
   customer_id: string | null;
   date: string | null;
+  day_of_week: number | null;
   status: string | null;
   working_hours: number | null;
 };

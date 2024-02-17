@@ -1,5 +1,6 @@
 // 期首の日付を決算日から計算する関数
-export const calculateFiscalYearStart = (fiscalYearEnd: string) => {
+export const calculateFiscalYearStart = (fiscalYearEnd: string | null) => {
+  if (!fiscalYearEnd) return null;
   // 決算日を設定するときにクライアントサイドで「fiscalEndDate.setHours(23, 59, 59, 999);」のようにミリ秒単位で決算日の終わりを設定してからtoISOStringでUTC時間文字列に変換してデータベースに保存しているため、
   // Supabaseデータベースから取得した決算日のUTC時間文字列を使って翌日の期首のDateオブジェクトを生成するときには、時間情報は全て0にリセットして期首のDateオブジェクトを生成する
   // まずはUTC文字列からDateオブジェクトを生成

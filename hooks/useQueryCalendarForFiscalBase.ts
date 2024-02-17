@@ -4,7 +4,7 @@ import { UseQueryResult, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useEffect } from "react";
 
 type Props = {
-  selectedFiscalYear: string | null;
+  selectedFiscalYear: number | null;
   annualMonthlyClosingDays:
     | {
         fiscal_year_month: string;
@@ -14,6 +14,7 @@ type Props = {
       }[]
     | null
     | undefined;
+  isReady: boolean;
 };
 
 type QueryResponse =
@@ -27,7 +28,9 @@ type QueryResponse =
 export const useQueryCalendarForFiscalBase = ({
   selectedFiscalYear,
   annualMonthlyClosingDays,
-}: Props): UseQueryResult<QueryResponse> => {
+  isReady = true,
+}: Props) => {
+  // }: Props): UseQueryResult<QueryResponse> => {
   // const queryClient = useQueryClient();
 
   // const { data, status, isLoading, isError, error } = useQuery({
@@ -42,7 +45,7 @@ export const useQueryCalendarForFiscalBase = ({
     },
     staleTime: Infinity,
     // ユーザーが選択している期間が単月の場合はフェッチを拒否
-    enabled: !!selectedFiscalYear && !!annualMonthlyClosingDays,
+    enabled: !!selectedFiscalYear && !!annualMonthlyClosingDays && isReady,
   });
 
   // const { data, status } = queryResult;

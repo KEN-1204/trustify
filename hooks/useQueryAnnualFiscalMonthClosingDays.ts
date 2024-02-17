@@ -22,6 +22,20 @@ type Props = {
   isReady: boolean;
 };
 
+type QueryFnResponse = {
+  getTime: number;
+  annual_closing_days_obj: {
+    annual_closing_days_count: number;
+    annual_closing_days: {
+      fiscal_year_month: string; // 2024-4
+      start_date: string; // 2024-4-1(年月度の開始日)営業日を追加する時に使用
+      end_date: string; // 2024-5-1(翌月度の月初)営業日を追加する時に使用
+      closing_days: CustomerBusinessCalendars[]; // 休業日の日付オブジェクトの配列
+      closing_days_count: number; // 各月度ごとの休業日の数
+    }[];
+  };
+};
+
 export const useQueryAnnualFiscalMonthClosingDays = ({
   customerId,
   selectedYear,
@@ -34,13 +48,15 @@ export const useQueryAnnualFiscalMonthClosingDays = ({
   const queryClient = useQueryClient();
 
   // fiscalYearMonth: 2024-4, startDate: その年月度の開始日 2024-4-1 endDate: 終了日 2024-5-1(翌月度の月初)
-  const getAnnualFiscalMonthClosingDays = async (): Promise<
-    | { fiscal_year_month: string; start_date: string; end_date: string; closing_days: CustomerBusinessCalendars[] }[]
-    | null
-  > => {
+  // const getAnnualFiscalMonthClosingDays = async (): Promise<
+  //   | { fiscal_year_month: string; start_date: string; end_date: string; closing_days: CustomerBusinessCalendars[] }[]
+  //   | null
+  // > => {
+  const getAnnualFiscalMonthClosingDays = async (): Promise<QueryFnResponse | null> => {
     if (!fiscalYearEnd) return null;
     // 決算日の翌日の期首のDateオブジェクトを生成(時間情報は全て0にリセット済み)
     const fiscalYearStartDate = calculateFiscalYearStart(fiscalYearEnd);
+    if (!fiscalYearStartDate) return null;
     // 期首の日付を起点としたwhileループ用のDateオブジェクトを作成
     let currentDateForLoop = fiscalYearStartDate;
     // 期首のちょうど1年後の次年度、来期の期首のDateオブジェクトを作成
@@ -108,8 +124,10 @@ export const useQueryAnnualFiscalMonthClosingDays = ({
         const formattedEndDate = new Date(endDate.getFullYear(), endDate.getMonth() + 1, endDate.getDate());
         return {
           fiscal_year_month: `${currentDateForLoop.getFullYear()}-${currentDateForLoop.getMonth() + 1}`, // ブラウザ表示用に変換(1月は0を1に変換して2024-1をセット)
-          start_date: startDate.toISOString().split("T")[0], // 日付部分（YYYY-MM-DD）のみ
-          end_date: formattedEndDate.toISOString().split("T")[0],
+          // start_date: startDate.toISOString().split("T")[0], // 日付部分（YYYY-MM-DD）のみ
+          // end_date: formattedEndDate.toISOString().split("T")[0],
+          start_date: formatDateToYYYYMMDD(startDate), // 日付部分（YYYY-MM-DD）のみ
+          end_date: formatDateToYYYYMMDD(formattedEndDate),
         };
       });
     }
@@ -132,12 +150,19 @@ export const useQueryAnnualFiscalMonthClosingDays = ({
 
       console.log("✅get_annual_fiscal_month_closing_days関数実行成功 結果", annualMonthlyClosingDays);
 
-      return annualMonthlyClosingDays as {
-        fiscal_year_month: string; // 2024-4
-        start_date: string; // 2024-4-1(年月度の開始日)営業日を追加する時に使用
-        end_date: string; // 2024-5-1(翌月度の月初)営業日を追加する時に使用
-        closing_days: CustomerBusinessCalendars[]; // 休業日の日付オブジェクトの配列
-      }[];
+      return {
+        getTime: Date.now(),
+        annual_closing_days_obj: annualMonthlyClosingDays as {
+          annual_closing_days_count: number;
+          annual_closing_days: {
+            fiscal_year_month: string; // 2024-4
+            start_date: string; // 2024-4-1(年月度の開始日)営業日を追加する時に使用
+            end_date: string; // 2024-5-1(翌月度の月初)営業日を追加する時に使用
+            closing_days: CustomerBusinessCalendars[]; // 休業日の日付オブジェクトの配列
+            closing_days_count: number; // 各月度ごとの休業日の数
+          }[];
+        },
+      };
     } catch (error: any) {
       console.error("エラー：", error);
       toast.error("営業稼働日の取得に失敗しました...🙇‍♀️");
@@ -155,8 +180,9 @@ export const useQueryAnnualFiscalMonthClosingDays = ({
 
   useEffect(() => {
     // useQueryのqueryFnの取得が成功して、かつ、dataがnullでないなら各会計月度ごとに単月のキャッシュを作成
-    if (status === "success" && !!data && !!data?.length) {
-      data.forEach((obj) => {
+    // if (status === "success" && !!data && !!data?.length) {
+    if (status === "success" && !!data && !!data?.annual_closing_days_obj.annual_closing_days.length) {
+      data.annual_closing_days_obj.annual_closing_days.forEach((obj) => {
         const _queryKey = ["fiscal_month_closing_days", obj.fiscal_year_month];
         // 既にキャッシュにその月度のキャッシュが存在しているか確認、存在していなければキャッシュに保存
         // if (!queryClient.getQueryData(_queryKey)) {

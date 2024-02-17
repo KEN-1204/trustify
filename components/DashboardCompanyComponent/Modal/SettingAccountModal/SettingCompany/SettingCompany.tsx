@@ -18,7 +18,7 @@ import { HiOutlineSearch } from "react-icons/hi";
 import { SkeletonLoading } from "@/components/Parts/SkeletonLoading/SkeletonLoading";
 import { FallbackChangeOwner } from "./FallbackChangeOwner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, getDaysInYear } from "date-fns";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
 import { DatePickerCustomInputForSettings } from "@/utils/DatePicker/DatePickerCustomInputForSettings";
@@ -109,9 +109,13 @@ const SettingCompanyMemo = () => {
   };
   // 🔹営業カレンダー(営業稼働日数から各プロセス分析用)(国の祝日と顧客独自の休業日、半休日、営業短縮日を指定)
   // ②決算日が28日から30日で、かつその日にちがその月の決算日でないかチェック 該当するなら各月の開始日と終了日を選択してもらう
+  // 決算日Date
   const fiscalYearEndDate = userProfileState?.customer_fiscal_end_month
     ? new Date(userProfileState?.customer_fiscal_end_month)
     : null;
+  // 期首Date
+  const fiscalYearStartDate = calculateFiscalYearStart(userProfileState?.customer_fiscal_end_month ?? null);
+
   // new Date(fiscalYearEndDate.getFullYear(), fiscalYearEndDate.getMonth() + 1, 0).getDate()でその月の末日を取得
   const isRequiredInputFiscalStartEndDate =
     fiscalYearEndDate &&
@@ -132,7 +136,7 @@ const SettingCompanyMemo = () => {
       ? currentDate.getFullYear()
       : currentDate.getFullYear() - 1;
   // 選択した年度 営業カレンダー表示反映用の選択中の会計年度
-  const [selectedFiscalYear, setSelectedFiscalYear] = useState<string | null>(initialQueryYear);
+  const [selectedFiscalYear, setSelectedFiscalYear] = useState<number | null>(initialQueryYear);
 
   // 🌟useQuery 選択した年度の休業日を取得する🌟
   const {
@@ -149,6 +153,21 @@ const SettingCompanyMemo = () => {
     isReady: isReadyClosingDays,
   });
 
+  const [prevFetchTimeAnnualClosing, setPrevFetchTimeAnnualClosing] = useState<number | null>(null);
+  const isReadyCalendarForFBRef = useRef(true);
+  const isReadyCalendarForCBRef = useRef(true);
+
+  useEffect(() => {
+    console.log("💡💡💡💡💡💡再フェッチを確認");
+    if (prevFetchTimeAnnualClosing === (annualMonthlyClosingDays?.getTime ?? null)) return;
+    // 取得したタイムスタンプが変更されたら各カレンダーuseQueryのisReadyをtrueに変更する
+    isReadyCalendarForFBRef.current = true;
+    isReadyCalendarForCBRef.current = true;
+    // フェッチした時間を更新
+    console.log("🔥🔥🔥🔥🔥フェッチ時間を更新して営業カレンダーを再生成");
+    setPrevFetchTimeAnnualClosing(annualMonthlyClosingDays?.getTime ?? null);
+  }, [annualMonthlyClosingDays?.getTime]);
+
   // 🌟useQuery 顧客の会計月度ごとの営業日も追加した会計年度カレンダーの完全リスト🌟
   const {
     data: calendarForFiscalBase,
@@ -157,7 +176,10 @@ const SettingCompanyMemo = () => {
     error: errorCalendarForFiscalBase,
   } = useQueryCalendarForFiscalBase({
     selectedFiscalYear: selectedFiscalYear,
-    annualMonthlyClosingDays: annualMonthlyClosingDays,
+    annualMonthlyClosingDays: annualMonthlyClosingDays
+      ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
+      : null,
+    isReady: isReadyCalendarForFBRef.current,
   });
   // const [calendarForFiscalBase, setCalendarForFiscalBase] = useState([]);
 
@@ -169,8 +191,30 @@ const SettingCompanyMemo = () => {
     error: errorCalendarForCalendarBase,
   } = useQueryCalendarForCalendarBase({
     selectedFiscalYear: selectedFiscalYear,
-    annualMonthlyClosingDays: annualMonthlyClosingDays,
+    annualMonthlyClosingDays: annualMonthlyClosingDays
+      ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
+      : null,
+    isReady: isReadyCalendarForCBRef.current,
   });
+
+  // 年間休業日日数
+  const annualClosingDaysCount = annualMonthlyClosingDays?.annual_closing_days_obj?.annual_closing_days_count ?? 0;
+  // 年間営業稼働日数
+  // const annualWorkingDaysCount = 365 - annualClosingDaysCount;
+  const annualWorkingDaysCount =
+    calendarForFiscalBase?.daysCountInYear ?? getDaysInYear(selectedFiscalYear ?? new Date().getFullYear());
+  // 年間の営業カレンダーの月度配列 開始日を期首に設定
+  // const getAnnualFiscalMonthsArray = () => {
+  //   if (!fiscalYearStartDate || !calendarForCalendarBase) return Array(13).fill(null);
+  //   return calendarForCalendarBase.map((obj) => obj.fiscalYearMonth.split("-")[1]);
+  // }
+  // // 年間の営業カレンダーの月度配列 開始日を期首に設定
+  // const getAnnualEachMonthClosingDaysArray = () => {
+  //   if (!fiscalYearStartDate || !calendarForFiscalBase || !calendarForCalendarBase) return Array(13).fill(null);
+  //   if (!calendarForFiscalBase && calendarForCalendarBase) return calendarForCalendarBase.map(obj => obj.allDays);
+  //   return calendarForFiscalBase.map((obj) => obj.allDays);
+
+  // }
 
   // 規模
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
@@ -969,8 +1013,9 @@ const SettingCompanyMemo = () => {
   // ==================================================================================
 
   // 定休日の日付リストを生成する関数
-  const generateClosedDaysList = (fiscalYearStartDate: Date, closedDaysIndexes: number[]) => {
+  const generateClosedDaysList = (fiscalYearStartDate: Date | null, closedDaysIndexes: number[]) => {
     if (!userProfileState) return;
+    if (!fiscalYearStartDate) return;
     console.time("generateClosedDaysList関数");
     // 期首の日付を起点としたwhileループ用のDateオブジェクトを作成
     let currentDateForLoop = fiscalYearStartDate;
@@ -983,14 +1028,16 @@ const SettingCompanyMemo = () => {
 
     // 来期の期首未満(期末まで)の定休日となる日付を変数に格納
     while (currentDateForLoop.getTime() < nextFiscalYearStartDate.getTime()) {
+      const dayOfWeek = currentDateForLoop.getDay();
       // 現在の日付の曜日が定休日インデックスリストの曜日に含まれていれば定休日日付リストに格納
-      if (closedDaysIndexes.includes(currentDateForLoop.getDay())) {
+      if (closedDaysIndexes.includes(dayOfWeek)) {
         closedDays.push({
-          customer_id: userProfileState.company_id,
+          // customer_id: userProfileState.company_id,
           // date: currentDateForLoop.toISOString().split("T")[0], // 時間情報を除いた日付情報のみセット
           date: formatDateToYYYYMMDD(currentDateForLoop), // 時間情報を除いた日付情報のみセット
-          status: "closed",
-          working_hours: 0,
+          day_of_week: dayOfWeek,
+          // status: "closed",
+          // working_hours: 0,
         });
       }
       currentDateForLoop.setDate(currentDateForLoop.getDate() + 1); // 次の日に進める
@@ -1002,7 +1049,7 @@ const SettingCompanyMemo = () => {
 
   // ===================== 🌟営業カレンダーに定休日を反映🌟 =====================
   // const [isLoadingClosingDay, setIsLoading]
-  const handleApplyClosingDaysCalendar = async (fiscalYear: string | null) => {
+  const handleApplyClosingDaysCalendar = async (fiscalYear: number | null) => {
     if (loadingGlobalState) return;
     if (!userProfileState?.customer_fiscal_end_month) return alert("先に決算日を登録してください。");
     if (!fiscalYear) return alert("定休日を反映する会計年度を選択してください。");
@@ -1013,27 +1060,38 @@ const SettingCompanyMemo = () => {
       // 決算日の翌日の期首のDateオブジェクトを生成
       const fiscalYearStartDate = calculateFiscalYearStart(userProfileState.customer_fiscal_end_month);
       // 期首から来期の期首の前日までの定休日となる日付リストを生成(バルクインサート用) DATE[]
-      const closedDaysArrayForBulkCreate = generateClosedDaysList(fiscalYearStartDate, editedClosingDays);
+      const closedDaysArrayForBulkInsert = generateClosedDaysList(fiscalYearStartDate, editedClosingDays);
 
       // 1. customer_business_calendarsテーブルへの定休日リストをバルクインサート
       // 2. companiesテーブルのcustomer_closing_daysフィールドをUPDATE
       try {
         const insertPayload = {
           _customer_id: userProfileState.company_id,
-          _closed_days: closedDaysArrayForBulkCreate, // 営業カレンダーテーブル用配列
-          _closing_days: editedClosingDays, // companiesのcustomer_closing_daysフィールド用配列
+          _closed_days: closedDaysArrayForBulkInsert, // 営業カレンダーテーブル用配列
+          // _closing_days: editedClosingDays, // companiesのcustomer_closing_daysフィールド用配列
         };
         // 1と2を一つのFUNCTIONで実行
-        const { error } = await supabase.rpc("insert_closing_days_and_update_company", insertPayload);
+        const { error } = await supabase.rpc("bulk_insert_closing_days", insertPayload);
 
         if (error) throw error;
 
         console.log("✅営業カレンダーのバルクインサートと会社テーブルの定休日リストのUPDATE成功");
 
+        // 先に営業カレンダーのFB, CB共にisReadyをfalseにして再フェッチを防ぐ
+        isReadyCalendarForFBRef.current = false;
+        isReadyCalendarForCBRef.current = false;
+
         // 営業カレンダーのuseQueryのキャッシュをinvalidate
+        await queryClient.invalidateQueries({ queryKey: ["annual_fiscal_month_closing_days"] });
+
+        // 新たに休業日の取得が終わったころ
+        // setTimeout(async () => {
+        //   await queryClient.invalidateQueries({ queryKey: ["calendar_for_fiscal_base"] });
+        //   await queryClient.invalidateQueries({ queryKey: ["calendar_for_calendar_base"] });
+        // }, 1500);
 
         // ユーザー情報のZustandから定休日リストのみ部分的に更新
-        setUserProfileState({ ...userProfileState, customer_closing_days: editedClosingDays });
+        // setUserProfileState({ ...userProfileState, customer_closing_days: editedClosingDays });
       } catch (error: any) {
         console.error("Bulk create エラー: ", error);
         toast.error("定休日の追加に失敗しました...🙇‍♀️");
@@ -2965,8 +3023,7 @@ const SettingCompanyMemo = () => {
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
           {/* 営業カレンダー */}
-          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
-            {/* <div className={`${styles.section_title}`}>営業カレンダー</div> */}
+          <div className={`mt-[20px] flex min-h-[136px] w-full flex-col`}>
             <div className="flex items-start space-x-4">
               <div className={`${styles.section_title}`}>
                 <div
@@ -2981,9 +3038,9 @@ const SettingCompanyMemo = () => {
                     handleOpenTooltip({
                       e: e,
                       display: "top",
-                      content: "決算日を登録することで会計年度の期首から正確に各月度の営業稼働日が算出されます。",
-                      content2: "各月度へ設定した定休日の適用や定休日以外の祝日やお客様独自の休業日、営業日は",
-                      content3: "営業カレンダーから個別に設定可能です。",
+                      content: "決算日を登録することで会計年度の期首から正確に各月度の営業稼働日数が算出されます。",
+                      content2: "各月度へ設定した定休日の適用や定休日以外の祝日や",
+                      content3: "お客様独自の休業日、営業日は営業カレンダーから個別に設定可能です。",
                       marginTop: 57,
                       // marginTop: 33,
                       // marginTop: 9,
@@ -3003,106 +3060,153 @@ const SettingCompanyMemo = () => {
                   </div>
                 </div>
               </div>
+
+              <div className={`flex items-center ${styles.section_title}`}>
+                <span className="mr-[12px]">{selectedFiscalYear}年度：</span>
+                {fiscalYearEndDate && fiscalYearStartDate ? (
+                  <div className="flex items-center">
+                    {/* <span>4月1日</span> */}
+                    <span>{format(fiscalYearStartDate, "M月d日")}</span>
+                    <span>〜</span>
+                    {/* <span>12月31日</span> */}
+                    <span>{format(fiscalYearEndDate, "M月d日")}</span>
+                  </div>
+                ) : (
+                  <span>未設定</span>
+                )}
+              </div>
             </div>
 
-            {!editNumberOfEmployeeClassMode && (
-              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
-                <div className={`${styles.section_value}`}>
-                  {userProfileState?.customer_number_of_employees_class
-                    ? getNumberOfEmployeesClassForCustomer(userProfileState.customer_number_of_employees_class)
-                    : "未設定"}
-                </div>
-                <div>
-                  <div
-                    className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    onClick={() => {
-                      setEditedNumberOfEmployeeClass(
-                        userProfileState?.customer_number_of_employees_class
-                          ? userProfileState.customer_number_of_employees_class
-                          : ""
-                      );
-                      setEditNumberOfEmployeeClassMode(true);
-                    }}
-                  >
-                    編集
+            <div className={`mt-[6px] flex h-full min-h-[104px] w-full select-none items-center justify-between`}>
+              <div className={`${styles.section_value} flex h-[70px] w-full items-center justify-between pr-[20px]`}>
+                {/*  */}
+                <div className={`mr-[9px] flex h-full w-[20%] flex-col !text-[14px]`}>
+                  <div className={`flex h-1/2 w-full items-center`}>
+                    <span className={`min-w-[80px]`}>営業稼働日</span>
+                    <span>{annualWorkingDaysCount}</span>
+                  </div>
+                  <div className={`flex h-1/2 w-full items-center`}>
+                    <span className={`min-w-[80px]`}>休日</span>
+                    <span className="text-[var(--main-color-tk)]">{annualClosingDaysCount}</span>
                   </div>
                 </div>
-              </div>
-            )}
-            {editNumberOfEmployeeClassMode && (
-              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
-                <select
-                  className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                  value={editedNumberOfEmployeeClass}
-                  onChange={(e) => setEditedNumberOfEmployeeClass(e.target.value)}
-                >
-                  <option value="">回答を選択してください</option>
-                  {optionsNumberOfEmployeesClass.map((option) => (
-                    <option key={option} value={option}>
-                      {getNumberOfEmployeesClassForCustomer(option)}
-                    </option>
-                  ))}
-                </select>
-                <div className="flex">
-                  <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
-                    onClick={() => {
-                      setEditedNumberOfEmployeeClass("");
-                      setEditNumberOfEmployeeClassMode(false);
-                    }}
-                  >
-                    キャンセル
-                  </div>
-                  <div
-                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
-                    onClick={async () => {
-                      if (!userProfileState) return;
-                      if (userProfileState.customer_number_of_employees_class === editedNumberOfEmployeeClass) {
-                        setEditNumberOfEmployeeClassMode(false);
-                        return;
-                      }
-                      if (editedNumberOfEmployeeClass === "") {
-                        alert("有効な規模を入力してください");
-                        return;
-                      }
-                      if (!userProfileState?.company_id) return alert("会社IDが見つかりません");
-                      setLoadingGlobalState(true);
-                      const { data: companyData, error } = await supabase
-                        .from("companies")
-                        .update({ customer_number_of_employees_class: editedNumberOfEmployeeClass })
-                        .eq("id", userProfileState.company_id)
-                        .select("customer_number_of_employees_class")
-                        .single();
 
-                      if (error) {
-                        setLoadingGlobalState(false);
-                        setEditNumberOfEmployeeClassMode(false);
-                        alert(error.message);
-                        console.log("規模UPDATEエラー", error.message);
-                        toast.error("規模の更新に失敗しました!");
-                        return;
-                      }
-                      console.log(
-                        "規模UPDATE成功 companyData.customer_number_of_employees_class",
-                        companyData.customer_number_of_employees_class
-                      );
-                      setUserProfileState({
-                        // ...(companyData as UserProfile),
-                        ...(userProfileState as UserProfileCompanySubscription),
-                        customer_number_of_employees_class: companyData.customer_number_of_employees_class
-                          ? companyData.customer_number_of_employees_class
-                          : null,
-                      });
-                      setLoadingGlobalState(false);
-                      setEditNumberOfEmployeeClassMode(false);
-                      toast.success("規模の更新が完了しました!");
+                {/* 月度別 gridコンテナ */}
+                <div
+                  role="grid"
+                  className={`grid h-[70px] w-[80%] rounded-[3px] text-[13px]`}
+                  style={{ gridTemplateRows: `repeat(2, 1fr)`, border: `2px solid var(--color-border-black)` }}
+                >
+                  <div
+                    role="row"
+                    className={`grid h-full w-full items-center bg-[var(--color-bg-sub)]`}
+                    style={{
+                      gridRowStart: 1,
+                      gridTemplateColumns: `99px repeat(12, 1fr)`,
+                      borderBottom: `1px solid var(--color-border-black)`,
                     }}
                   >
-                    保存
+                    {Array(13)
+                      .fill(null)
+                      .map((_, index) => {
+                        let displayValue = index.toString();
+                        if (index !== 0) {
+                          if (
+                            fiscalYearStartDate &&
+                            calendarForCalendarBase &&
+                            calendarForCalendarBase.completeAnnualFiscalCalendar?.length > 0
+                          ) {
+                            displayValue =
+                              calendarForCalendarBase.completeAnnualFiscalCalendar[index - 1].fiscalYearMonth.split(
+                                "-"
+                              )[1];
+                          }
+                        }
+                        return (
+                          <div
+                            role="gridcell"
+                            key={index.toString() + `calendar_row1`}
+                            className={`h-full ${
+                              index === 0 ? `flex items-center justify-between px-[3px] text-[13px]` : `flex-center`
+                            }`}
+                            style={{
+                              gridColumnStart: index + 1,
+                              ...(index !== 12 && { borderRight: `1px solid var(--color-border-black)` }),
+                            }}
+                          >
+                            {index === 0 &&
+                              "月度"
+                                .split("")
+                                .map((letter, index) => <span key={`fiscal_month` + index.toString()}>{letter}</span>)}
+                            {index !== 0 && <span>{displayValue}</span>}
+                          </div>
+                        );
+                      })}
+                  </div>
+                  <div
+                    role="row"
+                    className={`grid h-full w-full items-center`}
+                    style={{ gridRowStart: 2, gridTemplateColumns: `99px repeat(12, 1fr)` }}
+                  >
+                    {Array(13)
+                      .fill(null)
+                      .map((_, index) => {
+                        let workingDays = index;
+                        let monthDaysCount = 0;
+                        if (index !== 0) {
+                          if (calendarForCalendarBase) {
+                            monthDaysCount =
+                              calendarForCalendarBase.completeAnnualFiscalCalendar[index - 1].monthlyDays.length;
+                          }
+                          if (calendarForFiscalBase) {
+                            workingDays =
+                              calendarForFiscalBase.completeAnnualFiscalCalendar[index - 1].monthlyWorkingDaysCount;
+                          } else {
+                            workingDays = monthDaysCount;
+                          }
+                        }
+                        return (
+                          <div
+                            role="gridcell"
+                            key={index.toString() + `calendar_row2`}
+                            className={`h-full ${
+                              index === 0 ? `flex items-center justify-between px-[3px] text-[13px]` : `flex-center`
+                            }`}
+                            style={{
+                              gridColumnStart: index + 1,
+                              ...(index !== 12 && { borderRight: `1px solid var(--color-border-black)` }),
+                            }}
+                          >
+                            {index === 0 &&
+                              "営業稼働日数"
+                                .split("")
+                                .map((letter, index) => <span key={`fiscal_month` + index.toString()}>{letter}</span>)}
+                            {!!workingDays && index !== 0 && (
+                              <span className="text-[var(--color-text-brand-f)]">{workingDays}</span>
+                            )}
+                            {!workingDays && index !== 0 && <span className="text-[var(--color-text-brand-f)]">-</span>}
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               </div>
-            )}
+              <div>
+                <div
+                  className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                  onClick={() => {
+                    setEditedNumberOfEmployeeClass(
+                      userProfileState?.customer_number_of_employees_class
+                        ? userProfileState.customer_number_of_employees_class
+                        : ""
+                    );
+                    setEditNumberOfEmployeeClassMode(true);
+                  }}
+                >
+                  編集
+                </div>
+              </div>
+            </div>
           </div>
           {/* 営業カレンダーここまで */}
 

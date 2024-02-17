@@ -1,11 +1,10 @@
 import { CustomerBusinessCalendars } from "@/types";
-import { fillWorkingDaysForEachFiscalMonth } from "@/utils/Helpers/fillWorkingDaysForEachFiscalMonth";
 import { generateFiscalYearCalendar } from "@/utils/Helpers/generateFiscalYearCalendar";
 import { UseQueryResult, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 type Props = {
-  selectedFiscalYear: string | null;
+  selectedFiscalYear: number | null;
   annualMonthlyClosingDays:
     | {
         fiscal_year_month: string;
@@ -15,12 +14,13 @@ type Props = {
       }[]
     | null
     | undefined;
+  isReady: boolean;
 };
 
 type QueryResponse =
   | {
       fiscalYearMonth: string;
-      allDays: { date: string }[];
+      allDays: { date: string; day_of_week: number }[];
     }[]
   | null
   | unknown;
@@ -28,7 +28,9 @@ type QueryResponse =
 export const useQueryCalendarForCalendarBase = ({
   selectedFiscalYear,
   annualMonthlyClosingDays,
-}: Props): UseQueryResult<QueryResponse> => {
+  isReady = true,
+}: Props) => {
+  // }: Props): UseQueryResult<QueryResponse> => {
   //   const queryClient = useQueryClient();
 
   // const { data, status, isLoading, isError, error } = useQuery({
@@ -44,7 +46,7 @@ export const useQueryCalendarForCalendarBase = ({
     },
     staleTime: Infinity,
     // ユーザーが選択している期間が単月の場合はフェッチを拒否
-    enabled: !!selectedFiscalYear && !!annualMonthlyClosingDays,
+    enabled: !!selectedFiscalYear && !!annualMonthlyClosingDays && isReady,
   });
 
   //   const { data, status } = queryResult;
