@@ -439,6 +439,12 @@ type State = {
   // プロフィール用見積書プレビューモーダル
   isOpenQuotationPreviewForProfile: boolean;
   setIsOpenQuotationPreviewForProfile: (payload: boolean) => void;
+
+  // =================== 営業カレンダー ===================
+  isOpenBusinessCalendarSettingModal: boolean;
+  setIsOpenBusinessCalendarSettingModal: (payload: boolean) => void;
+  selectedFiscalYearSetting: number | null;
+  setSelectedFiscalYearSetting: (payload: number) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -1036,6 +1042,12 @@ const useDashboardStore = create<State>((set) => ({
   // プロフィール用見積書プレビューモーダル
   isOpenQuotationPreviewForProfile: false,
   setIsOpenQuotationPreviewForProfile: (payload) => set({ isOpenQuotationPreviewForProfile: payload }),
+
+  // =================== 営業カレンダー ===================
+  isOpenBusinessCalendarSettingModal: false,
+  setIsOpenBusinessCalendarSettingModal: (payload) => set({ isOpenBusinessCalendarSettingModal: payload }),
+  selectedFiscalYearSetting: null,
+  setSelectedFiscalYearSetting: (payload) => set({ selectedFiscalYearSetting: payload }),
 }));
 
 export default useDashboardStore;

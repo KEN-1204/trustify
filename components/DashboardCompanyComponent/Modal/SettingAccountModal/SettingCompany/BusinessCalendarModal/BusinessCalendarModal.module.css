@@ -1,0 +1,117 @@
+.overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  /* background: #00000030; */
+  background-color: var(--color-overlay-insert-update-modal);
+  background-color: var(--overlay-dark99);
+  backdrop-filter: blur(4px);
+  /* transform: translateY(-20px) scaleY(1.1); */
+}
+
+.preview_modal_area_twin {
+  /* position: fixed; */
+  position: absolute;
+  z-index: 1500;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  /* background-color: #fff; */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* A4サイズは210mm * 297mm で 縦横比は1:1.41 */
+.preview_modal {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 92vh;
+  width: calc(92vh / 1.41);
+  max-height: 1240px;
+  max-width: 879px;
+  /* width: 80vw; */
+  background-color: #fff;
+  transition: width 0.2s ease, height 0.2s ease, border-radius 0.2s ease;
+  opacity: 0;
+  animation: fade 0.3s 0.1s forwards;
+  box-shadow: 0px 4px 15px 3px rgba(255, 255, 255, 0.56);
+}
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.btn {
+  width: 35px;
+  height: 35px;
+  background-color: var(--color-sign-out-bg);
+  cursor: pointer;
+  border-radius: 50%;
+}
+.btn:hover {
+  background-color: var(--color-sign-out-bg-hover);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+
+.pdf {
+  height: 100%;
+  width: 100%;
+  max-height: 725px;
+  /* max-width: calc(725px / 1.41); */
+  max-width: 514px;
+  background-color: #fff;
+  position: relative;
+  display: flex;
+
+  font-family: "Noto Serif JP", serif;
+}
+.pdf.loading {
+  position: absolute;
+  z-index: 10;
+  height: 92vh;
+  width: calc(92vh / 1.41);
+  max-height: 1240px;
+  max-width: 879px;
+  background-color: #ffffff;
+}
+/* ---------------------------------- 🌟pdf横 3部構成🌟 ---------------------------------- */
+.left_margin {
+  height: 100%;
+  width: 100%;
+  min-width: 21px;
+  max-width: 21px;
+}
+.pdf_main_container {
+  height: 100%;
+  width: 100%;
+  min-width: 472px;
+  max-width: 472px;
+  display: flex;
+  flex-direction: column;
+}
+.right_margin {
+  height: 100%;
+  width: 100%;
+  min-width: 21px;
+  max-width: 21px;
+}
+/* ---------------------------------- ✅pdf横 3部構成✅ ---------------------------------- */
+
+/* ---------------------------------- 🌟pdf6部構成(上下マージン含めず)🌟 ---------------------------------- */
+.top_margin {
+  height: 2%;
+}
+/* 上下マージン除く96%がメイン */
+
+/* 上下マージン除く96%がメイン */
+.bottom_margin {
+  height: 2%;
+}
+/* ---------------------------------- ✅pdf6部構成(上下マージン含めず)✅ ---------------------------------- */

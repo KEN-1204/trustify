@@ -75,6 +75,11 @@ const SettingCompanyMemo = () => {
   // Zustand会社所有者名
   const companyOwnerName = useDashboardStore((state) => state.companyOwnerName);
   const setCompanyOwnerName = useDashboardStore((state) => state.setCompanyOwnerName);
+  // 営業カレンダー編集モーダル開閉state
+  const setIsOpenBusinessCalendarSettingModal = useDashboardStore(
+    (state) => state.setIsOpenBusinessCalendarSettingModal
+  );
+  const setSelectedFiscalYearSetting = useDashboardStore((state) => state.setSelectedFiscalYearSetting);
   //
   // チームの所有者の変更モーダル ページ数
   const [changeTeamOwnerStep, setChangeTeamOwnerStep] = useState<number | null>(null);
@@ -3195,12 +3200,14 @@ const SettingCompanyMemo = () => {
                 <div
                   className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                   onClick={() => {
-                    setEditedNumberOfEmployeeClass(
-                      userProfileState?.customer_number_of_employees_class
-                        ? userProfileState.customer_number_of_employees_class
-                        : ""
-                    );
-                    setEditNumberOfEmployeeClassMode(true);
+                    if (!selectedFiscalYear) return alert("会計年度データが見つかりませんでした。");
+                    // setEditedNumberOfEmployeeClass(
+                    //   userProfileState?.customer_number_of_employees_class
+                    //     ? userProfileState.customer_number_of_employees_class
+                    //     : ""
+                    // );
+                    setSelectedFiscalYearSetting(selectedFiscalYear);
+                    setIsOpenBusinessCalendarSettingModal(true);
                   }}
                 >
                   編集

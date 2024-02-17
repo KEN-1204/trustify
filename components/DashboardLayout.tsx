@@ -60,6 +60,8 @@ import { QuotationPreviewModal } from "./DashboardQuotationComponent/QuotationDe
 import { QuotationPreviewForProfile } from "./DashboardQuotationComponent/QuotationDetail/QuotationPreviewModal/QuotationPreviewForProfile";
 import { ClientCompanyDetailModal } from "./Modal/ClientCompanyDetailModal/ClientCompanyDetailModal";
 import { ContactDetailModal } from "./Modal/ContactDetailModal/ContactDetailModal";
+import { FallbackBusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/FallbackBusinessCalendarModal";
+import { BusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModal";
 
 type Prop = {
   title?: string;
@@ -288,6 +290,8 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // 見積書プレビューモーダル
   const isOpenQuotationPreviewModal = useDashboardStore((state) => state.isOpenQuotationPreviewModal);
   const isOpenQuotationPreviewForProfile = useDashboardStore((state) => state.isOpenQuotationPreviewForProfile);
+  // 営業カレンダー編集プレビューモーダル
+  const isOpenBusinessCalendarSettingModal = useDashboardStore((state) => state.isOpenBusinessCalendarSettingModal);
 
   // 印鑑データ設定サイドテーブル
   const isOpenSearchStampSideTable = useDashboardStore((state) => state.isOpenSearchStampSideTable);
@@ -695,6 +699,16 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
 
       {/* プロフィール反映確認用見積書プレビューモーダル */}
       {isOpenQuotationPreviewForProfile && <QuotationPreviewForProfile />}
+
+      {/* 営業カレンダー編集プレビューモーダル */}
+      {isOpenBusinessCalendarSettingModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackBusinessCalendarModal />}>
+            <BusinessCalendarModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* {isOpenBusinessCalendarSettingModal && <FallbackBusinessCalendarModal />} */}
 
       {/* ==================== お知らせ所有者変更モーダル ==================== */}
       {openNotificationChangeTeamOwnerModal && notificationDataState !== null && <ChangeTeamOwnerConfirmationModal />}
