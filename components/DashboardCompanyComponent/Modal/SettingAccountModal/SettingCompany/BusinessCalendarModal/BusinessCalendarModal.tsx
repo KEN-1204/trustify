@@ -1,4 +1,4 @@
-import { Suspense, memo, useEffect, useRef, useState } from "react";
+import { Suspense, memo, useEffect, useMemo, useRef, useState } from "react";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
@@ -11,15 +11,23 @@ import { BusinessCalendarComponent } from "./BusinessCalendarComponent/BusinessC
 import useStore from "@/store";
 import jsPDF from "jspdf";
 import { toPng } from "html-to-image";
-import { format, getDaysInYear } from "date-fns";
+import { format, getDaysInYear, getYear, isWithinInterval, subMonths } from "date-fns";
 import { toast } from "react-toastify";
 import { FiDownload } from "react-icons/fi";
 import { LuSettings2 } from "react-icons/lu";
-import { MdEdit, MdLocalPrintshop } from "react-icons/md";
+import { MdEdit, MdLocalPrintshop, MdOutlineDataSaverOff } from "react-icons/md";
 import { useQueryAnnualFiscalMonthClosingDays } from "@/hooks/useQueryAnnualFiscalMonthClosingDays";
 import { useQueryCalendarForFiscalBase } from "@/hooks/useQueryCalendarForFiscalBase";
 import { useQueryCalendarForCalendarBase } from "@/hooks/useQueryCalendarForCalendarBase";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
+import { ImInfo } from "react-icons/im";
+import { FaRegDotCircle } from "react-icons/fa";
+import { RxDot, RxDotFilled } from "react-icons/rx";
+import { calculateCurrentFiscalYear } from "@/utils/Helpers/calculateCurrentFiscalYear";
+import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurrentFiscalYearEndDate";
+import { splitArrayIntoChunks } from "@/utils/Helpers/splitArrayIntoChunks";
+import { CustomerBusinessCalendars } from "@/types";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 
 type CompressionRatio = "NONE" | "FAST" | "SLOW";
 const optionsCompressionRatio: CompressionRatio[] = ["NONE", "FAST", "SLOW"];
@@ -41,6 +49,63 @@ const getCompressionRatio = (value: string, language: string) => {
   }
 };
 
+const descriptionCompressionRatio = [
+  {
+    title: "高解像度 / 重",
+    content:
+      "圧縮を行わずにPDFに変換するため、画像を最高品質の状態でPDFに保存、印刷が可能ですが、ファイルサイズが大きいのが特徴です。",
+  },
+  {
+    title: "中解像度 / 中",
+    content:
+      "画像を高品質に保った状態でファイルサイズも小さくします。印刷やPDFデータの送受信などどちらでもバランスよく活用できます。",
+  },
+  {
+    title: "低解像度 / 軽",
+    content: "より高い圧縮率でファイルサイズを最小限に軽量化できますが、画質が劣化する可能性があります。",
+  },
+];
+
+const descriptionGuide = [
+  {
+    title: "正確なデータ分析と評価",
+    content:
+      "営業稼働日と休業日を設定しておくことで、年度・月度ごとの稼働日に基づいた適切な面談・デモ件数、TELPR件数の目標設定と各プロセスの結果に基づく正確な評価・分析が可能となります。\nまた、稼働日を年度ごとに設定することで、各営業テリトリーの過去比較を行う際に稼働日も考慮した正確な分析が可能です。",
+  },
+  {
+    title: "PDFダウンロード",
+    content: "登録した営業カレンダーは右側のダウンロードアイコンからPDF形式でダウンロードが可能です。",
+  },
+  {
+    title: "印刷",
+    content:
+      "A7サイズでの印刷が可能なため、印刷して各メンバーの手帳に入れておくことで、お客様との商談で自社の営業締日ベースでのスケジュールの擦り合わせなどで活用頂けます。",
+  },
+];
+
+const descriptionSteps = [
+  {
+    title: "ステップ1：定休日を適用",
+    content:
+      "会計年度を選択してから、「会社・チーム」画面で設定した定休日を一括で適用します。\n各年度ごとに定休日は1ヶ月に1回のみ一括変更が可能です。",
+  },
+  {
+    title: "ステップ2：会社独自の休業日を個別登録",
+    content:
+      "定休日以外の休業日はお客様ごとに異なるため、「休業日の個別編集」からカレンダーの日付を複数選択して登録・変更します。",
+  },
+  // {
+  //   title: "",
+  //   content: "より高い圧縮率でファイルサイズを最小限に軽量化できますが、画質が劣化する可能性があります。",
+  // },
+];
+
+const mappingDescriptions: { [key: string]: { [key: string]: string }[] } = {
+  guide: descriptionGuide,
+  step: descriptionSteps,
+  compressionRatio: descriptionCompressionRatio,
+};
+
 const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Stu"];
 const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
 const sortedDaysPlaceholder = Array(7)
@@ -52,6 +117,14 @@ const sortedDaysPlaceholder = Array(7)
     const adjustedB = b === 0 ? 7 : b;
     return adjustedA - adjustedB;
   });
+
+// 月の始まりの1日の曜日に応じて１ヶ月の配列の先頭にnullを追加する関数
+const addNullMonthArray = (dayOfWeek: number, array: any[]) => {
+  //  日曜日の場合、6このnullを追加(月曜始まりのカレンダー)
+  // それ以外の場合、dayOfWeek - 1 個のnullを追加 (月曜日は追加しない実装になってる)
+  const nullCount = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  return [...Array(nullCount).fill(null), ...array];
+};
 
 const BusinessCalendarModalMemo = () => {
   //   const [modalLeftPos, setModalLeftPos] = useState(0);
@@ -70,6 +143,7 @@ const BusinessCalendarModalMemo = () => {
   const language = useStore((state) => state.language);
   // 選択中の会計年度
   const selectedFiscalYearSetting = useDashboardStore((state) => state.selectedFiscalYearSetting);
+  const setSelectedFiscalYearSetting = useDashboardStore((state) => state.setSelectedFiscalYearSetting);
   // 決算日が28~30までで末日でない決算日の場合の各月度の開始日、終了日カスタムinput
   const fiscalMonthStartEndInputArray = useDashboardStore((state) => state.fiscalMonthStartEndInputArray);
   const setFiscalMonthStartEndInputArray = useDashboardStore((state) => state.setFiscalMonthStartEndInputArray);
@@ -88,14 +162,110 @@ const BusinessCalendarModalMemo = () => {
   // 🔹useRef関連
   const previewModalTwinAreaRef = useRef<HTMLDivElement | null>(null);
   const pdfTargetRef = useRef<HTMLDivElement | null>(null);
+  // 説明アイコン
+  const infoIconSettingMenuRef = useRef<HTMLDivElement | null>(null);
+  const infoIconStepRef = useRef<HTMLDivElement | null>(null);
 
   // 🔹変数定義関連
   // 決算日Date
-  const fiscalYearEndDate = userProfileState?.customer_fiscal_end_month
-    ? new Date(userProfileState?.customer_fiscal_end_month)
-    : null;
+  const fiscalYearEndDate = calculateCurrentFiscalYearEndDate(userProfileState?.customer_fiscal_end_month ?? null);
   // 期首Date
   const fiscalYearStartDate = calculateFiscalYearStart(userProfileState?.customer_fiscal_end_month ?? null);
+  // 選択年オプション(現在の年から3年遡る, 1年後は決算日まで３ヶ月を切った場合は選択肢に入れる)
+  const [optionsFiscalYear, setOptionsFiscalYear] = useState<{ label: string; value: number }[]>([]);
+  // 年度別の定休日適用ステータス配列
+  type StatusClosingDays = { fiscal_year: number; updated_at: number | null }[];
+  const [statusAnnualClosingDaysArray, setStatusAnnualClosingDaysArray] = useState<StatusClosingDays | null>(null);
+  // 現在選択している会計年度が定休日を適用したかと、している場合１ヶ月前かどうか確認
+  const statusClosingDaysSelectedYear = statusAnnualClosingDaysArray?.find(
+    (obj) => obj.fiscal_year === selectedFiscalYearSetting
+  );
+  const isAvailableApplyClosingDays = useMemo(() => {
+    if (!statusClosingDaysSelectedYear?.updated_at) return true;
+    const currentDate = new Date();
+    const oneMonthAgo = subMonths(currentDate, 1);
+    const isWithinOneMonth = isWithinInterval(new Date(statusClosingDaysSelectedYear.updated_at), {
+      start: oneMonthAgo,
+      end: currentDate,
+    });
+    if (isWithinOneMonth) {
+      return false;
+    } else {
+      return true;
+    }
+  }, [statusClosingDaysSelectedYear, selectedFiscalYearSetting]);
+
+  useEffect(() => {
+    if (!fiscalYearEndDate || !selectedFiscalYearSetting || !userProfileState) {
+      setIsOpenBusinessCalendarSettingModal(false);
+      return;
+    }
+    // const currentYear = selectedFiscalYearSetting;
+    // const currentYear = getYear(new Date());
+    // 現在の会計年度を取得
+    const currentYear = calculateCurrentFiscalYear(userProfileState?.customer_fiscal_end_month ?? null);
+    // // 2020年度から現在+翌年度までの選択肢を生成
+    let y = 2020;
+    let years = [];
+    while (y <= currentYear) {
+      years.push(y);
+      y += 1;
+    }
+    // let years = [currentYear - 3, currentYear - 2, currentYear - 1, currentYear];
+
+    // 現在の日付が決算日から３ヶ月以内かどうかをチェック subMonths: 特定のDateから3ヶ月前の日付を計算
+    const threeMonthsBeforeFiscalEnd = subMonths(fiscalYearEndDate, 3);
+    // isWithinInterval: 第一引数に指定された日付が、第二引数に指定された期間内にあるかどうかを真偽値で返す
+    const isWithin3Months = isWithinInterval(new Date(), { start: threeMonthsBeforeFiscalEnd, end: fiscalYearEndDate });
+    if (isWithin3Months) {
+      // ３ヶ月以内であれば翌年度も追加
+      years.push(currentYear + 1);
+    }
+
+    // 年度を選択肢として指定
+    const yearOptions = years.map((year) => ({
+      label: `${year}年度`,
+      value: year,
+    }));
+
+    console.log(
+      "fiscalYearEndDate",
+      fiscalYearEndDate,
+      "threeMonthsBeforeFiscalEnd",
+      threeMonthsBeforeFiscalEnd,
+      "yearOptions",
+      yearOptions,
+      "selectedFiscalYearSetting",
+      selectedFiscalYearSetting
+    );
+
+    // stateにオプションを追加
+    setOptionsFiscalYear(yearOptions);
+
+    // ローカルストレージから各年度の定休日の更新日時を取得する 存在しなければ取得した各年度を配列でローカルストレージに格納する
+    const statusAnnualClosingDays = localStorage.getItem("status_annual_closing_days");
+    console.log("ローカルストレージ statusAnnualClosingDays", statusAnnualClosingDays);
+    if (statusAnnualClosingDays) {
+      const parsedStatusArray: StatusClosingDays = JSON.parse(statusAnnualClosingDays);
+      let newArray = parsedStatusArray;
+      console.log("ローカルストレージ存在ルート parsedStatusArray", parsedStatusArray);
+
+      if (isWithin3Months && newArray.every((obj) => obj.fiscal_year !== currentYear + 1)) {
+        newArray.push({ fiscal_year: currentYear + 1, updated_at: null });
+        const newValue = JSON.stringify(newArray);
+        console.log("ローカルストレージ存在ルート 3ヶ月以内 newValue", newValue);
+        localStorage.setItem("status_annual_closing_days", newValue);
+      }
+      setStatusAnnualClosingDaysArray(newArray);
+    } else {
+      const newStatusArray = years.map((year) => {
+        return { fiscal_year: year, updated_at: null };
+      });
+      localStorage.setItem("status_annual_closing_days", JSON.stringify(newStatusArray));
+      setStatusAnnualClosingDaysArray(newStatusArray);
+    }
+  }, []);
+
   // 決算日が28~30までで末日でない決算月かどうか確認
   const isRequiredInputFiscalStartEndDate =
     fiscalYearEndDate &&
@@ -176,6 +346,88 @@ const BusinessCalendarModalMemo = () => {
   // 年間営業稼働日数
   const annualWorkingDaysCount =
     calendarForFiscalBase?.daysCountInYear ?? getDaysInYear(selectedFiscalYearSetting ?? new Date().getFullYear());
+
+  // カレンダーリストを3つの要素をもつ4つの配列に分割する
+  type SplitMonthsArray =
+    | {
+        fiscalYearMonth: string;
+        monthlyDays: CustomerBusinessCalendars[];
+        monthlyWorkingDaysCount: number;
+      }[][]
+    | null;
+  const splitMonthsArrayForCB: SplitMonthsArray = useMemo(
+    () =>
+      !!calendarForCalendarBase?.completeAnnualFiscalCalendar?.length
+        ? splitArrayIntoChunks(calendarForCalendarBase?.completeAnnualFiscalCalendar, 3)
+        : null,
+    [calendarForCalendarBase?.completeAnnualFiscalCalendar]
+  );
+  const splitMonthsArrayForFB: SplitMonthsArray = useMemo(
+    () =>
+      !!calendarForFiscalBase?.completeAnnualFiscalCalendar?.length
+        ? splitArrayIntoChunks(calendarForFiscalBase?.completeAnnualFiscalCalendar, 3)
+        : null,
+    [calendarForFiscalBase?.completeAnnualFiscalCalendar]
+  );
+
+  // 年が切り替わるインデックス(切り替わらない場合はnull)
+  // const switchYearIndex =
+  //   calendarForCalendarBase?.completeAnnualFiscalCalendar.findIndex(
+  //     (obj) => obj.fiscalYearMonth?.split("-")[0] !== selectedFiscalYearSetting.toString()
+  //   ) ?? null;
+  const rowIndexOfSwitchYear = useMemo(() => {
+    const index = splitMonthsArrayForFB?.findIndex((chunk) =>
+      chunk.some((element) => {
+        const year = parseInt(element.fiscalYearMonth.split("-")[0]); // 年を取得
+        return year !== selectedFiscalYearSetting;
+      })
+    );
+    return index !== -1 ? index : null;
+  }, [splitMonthsArrayForFB]);
+
+  // 年が切り替わるインデックスがチャンクの先頭、かつ、rowIndexが最初の行でない場合はtrue
+  const isSwitchYear = useMemo(() => {
+    if (rowIndexOfSwitchYear && splitMonthsArrayForFB) {
+      const index = splitMonthsArrayForFB[rowIndexOfSwitchYear].findIndex((element) => {
+        const year = parseInt(element.fiscalYearMonth.split("-")[0]);
+        if (year !== selectedFiscalYearSetting && rowIndexOfSwitchYear !== 0) {
+          return true;
+        } else {
+          return false;
+        }
+      });
+      return index === 0 ? true : false;
+    } else {
+      return false;
+    }
+  }, [rowIndexOfSwitchYear]);
+
+  // 月度ごとの締日の日付を4行3列で作成
+  const fiscalEndDateArray: (number | null | undefined)[][] | null = useMemo(() => {
+    if (!splitMonthsArrayForFB) return null;
+    return splitMonthsArrayForFB.map((row) => {
+      return row.map((col) => {
+        if (!!col.monthlyDays.length) {
+          const value = col.monthlyDays[col.monthlyDays.length - 1].date?.split("-")[2] ?? null;
+          return value ? Number(value) : null;
+        }
+      });
+    });
+  }, [splitMonthsArrayForFB]);
+
+  console.log(
+    "🔥🔥🔥🔥🔥🔥🔥",
+    "splitMonthsArrayForCB",
+    splitMonthsArrayForCB,
+    "splitMonthsArrayForFB",
+    splitMonthsArrayForFB,
+    "rowIndexOfSwitchYear",
+    rowIndexOfSwitchYear,
+    "isSwitchYear",
+    isSwitchYear,
+    "fiscalEndDateArray",
+    fiscalEndDateArray
+  );
   // -------------------------- ✅useQuery✅ --------------------------
 
   // -------------------------- 🌟エディットモード終了🌟 --------------------------
@@ -530,7 +782,8 @@ const BusinessCalendarModalMemo = () => {
   } | null>(null);
   const mappingPopupTitle: { [key: string]: { [key: string]: string } } = {
     compressionRatio: { en: "Compression Ratio", ja: "解像度" },
-    footnotes: { en: "Footnotes", ja: "脚注" },
+    guide: { en: "Guide", ja: "使い方 Tips" },
+    step: { en: "Step", ja: "カレンダー設定手順" },
     print: { en: "Print Tips", ja: "印刷Tips" },
     pdf: { en: "PDF Download", ja: "PDFダウンロード" },
     settings: { en: "Settings", ja: "各種設定メニュー" },
@@ -552,8 +805,11 @@ const BusinessCalendarModalMemo = () => {
     } else {
       const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
       // right: 見積書の右端から-18px, アイコンサイズ35px, ポップアップメニュー400px
-      const positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : -18;
-      // -18 - 35 - openPopupMenu.width
+      // const positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : -18;
+      // const positionX = displayX === "right" ? 0 : -18;
+
+      // モーダル外に配置した場合
+      const positionX = displayX === "right" ? x + width + 9 : x - 9;
       console.log(
         "title",
         title,
@@ -572,7 +828,9 @@ const BusinessCalendarModalMemo = () => {
       );
       setOpenPopupMenu({
         x: positionX,
-        y: y - height / 2,
+        // y: y - height / 2,
+        y: y,
+        // y: y + 18,
         title: title,
         displayX: displayX,
         maxWidth: maxWidth,
@@ -610,10 +868,30 @@ const BusinessCalendarModalMemo = () => {
     return (
       <div className={`${styles.year_section} w-full bg-[aqua]/[0]`}>
         <div className={`flex h-full w-[1%] bg-[green]/[0]`}></div>
-        <div className={`flex h-full w-[12%] items-center bg-[red]/[0] text-[22px] font-bold leading-[22px]`}>
+        <div className={`flex h-full w-[13%] items-center bg-[red]/[0] text-[22px] font-bold leading-[22px]`}>
           <span className={``}>{year}</span>
         </div>
-        <div className={`flex h-full w-[86%] flex-col justify-end`}>
+        <div className={`flex h-full w-[85%] flex-col justify-end`}>
+          <div className="h-[1px] w-full rounded-[6px] bg-[#37352f]"></div>
+          <div className="h-[12px] w-full"></div>
+        </div>
+        <div className={`flex h-full w-[1%] bg-[green]/[0]`}></div>
+      </div>
+    );
+  };
+  const YearSectionDouble = ({ year, nextYear }: { year: number; nextYear: number }) => {
+    return (
+      <div className={`${styles.year_section} w-full bg-[aqua]/[0]`}>
+        <div className={`flex h-full w-[1%] bg-[green]/[0]`}></div>
+        <div
+          className={`flex h-full w-[28%] items-center space-x-[2px] bg-[red]/[0] text-[22px] font-bold leading-[22px]`}
+        >
+          <span className={``}>{year}</span>
+          {/* <span className={``}>-</span> */}
+          <span className={`h-[2px] w-[10px] bg-[var(--color-text-title)]`}></span>
+          <span className={``}>{nextYear}</span>
+        </div>
+        <div className={`flex h-full w-[72%] flex-col justify-end`}>
           <div className="h-[1px] w-full rounded-[6px] bg-[#37352f]"></div>
           <div className="h-[10px] w-full"></div>
         </div>
@@ -803,7 +1081,12 @@ const BusinessCalendarModalMemo = () => {
 
                   <div className={`${styles.top_margin} w-full bg-[red]/[0]`}></div>
 
-                  <YearSection year={2023} />
+                  {/* 会計年度が単一の年のみ */}
+                  {/* {isSwitchYear && <YearSection year={2023} />} */}
+                  {isSwitchYear && <YearSection year={selectedFiscalYearSetting} />}
+                  {!isSwitchYear && (
+                    <YearSectionDouble year={selectedFiscalYearSetting} nextYear={selectedFiscalYearSetting + 1} />
+                  )}
 
                   {/* <MonthlyRow monthlyRowKey="monthly_row_first" /> */}
 
@@ -812,142 +1095,261 @@ const BusinessCalendarModalMemo = () => {
                     .map((_, rowIndex) => {
                       const monthlyRowKey = "monthly_row" + rowIndex.toString();
 
-                      if (rowIndex === 3) {
-                        return <YearSection year={2024} key={monthlyRowKey} />;
+                      if (!splitMonthsArrayForCB) return;
+
+                      let monthRowIndex = rowIndex;
+
+                      if (isSwitchYear && rowIndex === rowIndexOfSwitchYear) {
+                        return <YearSection year={selectedFiscalYearSetting + 1} key={monthlyRowKey} />;
                       }
-                      // <YearSectionBlank />
-                      if (rowIndex !== 3)
-                        return (
-                          <div key={monthlyRowKey} className={`${styles.monthly_row_section} w-full bg-[pink]/[0]`}>
-                            {Array(3)
-                              .fill(null)
-                              .map((_, colIndex) => {
-                                const monthKey = "month" + rowIndex.toString() + colIndex.toString();
-                                const getRow = (rowIndex: number): number => {
-                                  if (rowIndex === 0) return 1;
-                                  if (rowIndex === 1) return 4;
-                                  if (rowIndex === 2) return 7;
-                                  // if (rowIndex === 3) return 10;
-                                  if (rowIndex === 4) return 10;
-                                  return rowIndex;
-                                };
-                                const titleValue = getRow(rowIndex) + colIndex;
-                                return (
-                                  <div key={monthKey} className={`${styles.month} w-1/3 bg-[white]/[0]`}>
-                                    {/* <div className={`h-full w-[16%] bg-[red]/[0.1] ${styles.month_title}`}> */}
-                                    <div className={`h-full w-[22%] bg-[red]/[0] ${styles.month_title}`}>
-                                      <span>{titleValue}</span>
-                                    </div>
-                                    <div
-                                      role="grid"
-                                      // className={`h-full w-[84%] bg-[yellow]/[0] ${styles.month_grid_container}`}
-                                      className={`h-full w-[78%] bg-[yellow]/[0] ${styles.month_grid_container}`}
-                                    >
-                                      <div role="columnheader" className={`${styles.month_row}`}>
-                                        {sortedDaysPlaceholder.map((day, monthColHeaderIndex) => {
-                                          const monthColumnHeaderIndexKey =
-                                            "month_grid_columnheader_day" +
+                      if (isSwitchYear && rowIndexOfSwitchYear && rowIndex > rowIndexOfSwitchYear) {
+                        monthRowIndex -= 1;
+                      }
+
+                      console.log(
+                        "isSwitchYear",
+                        isSwitchYear,
+                        "rowIndex",
+                        rowIndex,
+                        "monthRowIndex",
+                        monthRowIndex,
+                        "splitMonthsArrayForCB[monthRowIndex]",
+                        splitMonthsArrayForCB[monthRowIndex]
+                      );
+
+                      // if (rowIndex === 3) {
+                      //   return <YearSection year={2024} key={monthlyRowKey} />;
+                      // }
+                      // if (rowIndex !== 3)
+                      return (
+                        <div key={monthlyRowKey} className={`${styles.monthly_row_section} w-full bg-[pink]/[0]`}>
+                          {/* {Array(3)
+                            .fill(null) */}
+                          {splitMonthsArrayForCB[monthRowIndex].map((obj, colIndex) => {
+                            const monthKey = "month" + rowIndex.toString() + colIndex.toString();
+                            // const getRow = (rowIndex: number): number => {
+                            //   if (rowIndex === 0) return 1;
+                            //   if (rowIndex === 1) return 4;
+                            //   if (rowIndex === 2) return 7;
+                            //   // if (rowIndex === 3) return 10;
+                            //   if (rowIndex === 4) return 10;
+                            //   return rowIndex;
+                            // };
+                            // const titleValue = getRow(rowIndex) + colIndex;
+                            const titleValue = obj.fiscalYearMonth.split("-")[1];
+                            const daysArray = obj.monthlyDays;
+                            if (!isValidNumber(daysArray[0].day_of_week)) return;
+                            // 1日が月曜日以外なら曜日と一致するようにnullを先頭に追加する
+                            // 0は7にソートしてるので曜日の始まりは1の月曜日
+                            const formattedDaysArray = addNullMonthArray(daysArray[0].day_of_week!, daysArray);
+                            console.log(
+                              "月🌠obj",
+                              obj,
+                              "titleValue",
+                              titleValue,
+                              "daysArray[0].day_of_week",
+                              daysArray[0].day_of_week,
+                              "formattedDaysArray",
+                              formattedDaysArray
+                            );
+                            // if (daysArray[0].day_of_week !== 1) {}
+                            return (
+                              <div key={monthKey} className={`${styles.month} w-1/3 bg-[white]/[0]`}>
+                                {/* <div className={`h-full w-[16%] bg-[red]/[0.1] ${styles.month_title}`}> */}
+                                <div className={`h-full w-[22%] bg-[red]/[0] ${styles.month_title}`}>
+                                  <span>{titleValue}</span>
+                                </div>
+                                <div
+                                  role="grid"
+                                  // className={`h-full w-[84%] bg-[yellow]/[0] ${styles.month_grid_container}`}
+                                  className={`h-full w-[78%] bg-[yellow]/[0] ${styles.month_grid_container}`}
+                                >
+                                  <div role="columnheader" className={`${styles.month_row}`}>
+                                    {sortedDaysPlaceholder.map((day, monthColHeaderIndex) => {
+                                      const monthColumnHeaderIndexKey =
+                                        "month_grid_columnheader_day" +
+                                        rowIndex.toString() +
+                                        colIndex.toString() +
+                                        monthColHeaderIndex.toString();
+                                      const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
+                                      const dayName = dayNames[day % 7];
+                                      return (
+                                        <div
+                                          role="gridcell"
+                                          key={monthColumnHeaderIndexKey}
+                                          className={`${styles.month_grid_cell} flex-center`}
+                                        >
+                                          <span>{dayName}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+
+                                  <div role="grid" className={`${styles.month_date_container}`}>
+                                    {/* {Array(31)
+                                      .fill(null) */}
+                                    {formattedDaysArray.map((obj, monthCellIndex) => {
+                                      const monthCellIndexKey =
+                                        "month_grid_cell_date" +
+                                        rowIndex.toString() +
+                                        colIndex.toString() +
+                                        monthCellIndex.toString();
+                                      // let displayValue;
+                                      // if (!displayValue) displayValue = monthCellIndex + 1;
+                                      // if (typeof displayValue === "number" && displayValue > 31) displayValue = null;
+                                      let displayValue = null;
+                                      // 締日
+                                      let isFiscalEndDay = false;
+                                      if (obj !== null) {
+                                        if (!obj?.date) return;
+
+                                        const date = parseInt(obj.date.split("-")[2], 10);
+                                        if (!isValidNumber(date)) return;
+
+                                        displayValue = date;
+
+                                        if (fiscalEndDateArray) {
+                                          try {
+                                            const fiscalEndDate = fiscalEndDateArray[monthRowIndex][colIndex];
+                                            if (fiscalEndDate && displayValue && fiscalEndDate === displayValue) {
+                                              isFiscalEndDay = true;
+                                            }
+                                          } catch (error: any) {
+                                            console.log("❌締日取得エラー");
+                                          }
+                                        }
+                                      }
+                                      return (
+                                        <div
+                                          role="gridcell"
+                                          key={monthCellIndexKey}
+                                          className={`${styles.month_grid_cell} ${
+                                            displayValue === null ? `` : `${styles.date}`
+                                          } flex-center`}
+                                          style={{
+                                            ...(displayValue === null && {
+                                              cursor: "default",
+                                            }),
+                                            ...(isFiscalEndDay && {
+                                              width: "18px",
+                                              height: "18px",
+                                              maxWidth: "18px",
+                                              maxHeight: "18px",
+                                              minWidth: "18px",
+                                              minHeight: "18px",
+                                              borderRadius: "3px",
+                                              border: "1px solid var(--color-text-title)",
+                                            }),
+                                          }}
+                                        >
+                                          <span
+                                            style={{
+                                              ...(isFiscalEndDay && {
+                                                width: "18px",
+                                                height: "18px",
+                                                maxWidth: "18px",
+                                                maxHeight: "18px",
+                                                minWidth: "18px",
+                                                minHeight: "18px",
+                                                lineHeight: "18px",
+                                                textAlign: "center",
+                                                // borderRadius: "3px",
+                                                // border: "1px solid var(--color-text-title)",
+                                                display: "inline-block",
+                                              }),
+                                            }}
+                                          >
+                                            {displayValue}
+                                          </span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+
+                                  {/* {(rowIndex === 0 || rowIndex === 1) && (
+                                    <div role="grid" className={`${styles.month_date_container}`}>
+                                      {Array(31)
+                                        .fill(null)
+                                        .map((_, monthCellIndex) => {
+                                          const monthCellIndexKey =
+                                            "month_grid_cell_date" +
                                             rowIndex.toString() +
                                             colIndex.toString() +
-                                            monthColHeaderIndex.toString();
-                                          const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
-                                          const dayName = dayNames[day % 7];
+                                            monthCellIndex.toString();
+                                          let displayValue;
+                                          if (!displayValue) displayValue = monthCellIndex + 1;
+                                          if (typeof displayValue === "number" && displayValue > 31)
+                                            displayValue = null;
+
                                           return (
                                             <div
                                               role="gridcell"
-                                              key={monthColumnHeaderIndexKey}
-                                              className={`${styles.month_grid_cell} flex-center`}
+                                              key={monthCellIndexKey}
+                                              className={`${styles.month_grid_cell} ${
+                                                displayValue === null ? `` : `${styles.date}`
+                                              } flex-center`}
+                                              style={{
+                                                ...(displayValue === null && {
+                                                  cursor: "default",
+                                                }),
+                                              }}
                                             >
-                                              <span>{dayName}</span>
+                                              <span>{displayValue}</span>
                                             </div>
                                           );
                                         })}
-                                      </div>
-
-                                      {(rowIndex === 0 || rowIndex === 1) && (
-                                        <div role="grid" className={`${styles.month_date_container}`}>
-                                          {Array(31)
-                                            .fill(null)
-                                            .map((_, monthCellIndex) => {
-                                              const monthCellIndexKey =
-                                                "month_grid_cell_date" +
-                                                rowIndex.toString() +
-                                                colIndex.toString() +
-                                                monthCellIndex.toString();
-                                              let displayValue;
-                                              if (!displayValue) displayValue = monthCellIndex + 1;
-                                              if (typeof displayValue === "number" && displayValue > 31)
-                                                displayValue = null;
-
-                                              return (
-                                                <div
-                                                  role="gridcell"
-                                                  key={monthCellIndexKey}
-                                                  className={`${styles.month_grid_cell} ${
-                                                    displayValue === null ? `` : `${styles.date}`
-                                                  } flex-center`}
-                                                  style={{
-                                                    ...(displayValue === null && {
-                                                      cursor: "default",
-                                                    }),
-                                                  }}
-                                                >
-                                                  <span>{displayValue}</span>
-                                                </div>
-                                              );
-                                            })}
-                                        </div>
-                                      )}
-                                      {(rowIndex === 2 || rowIndex === 4) && (
-                                        <div role="grid" className={`${styles.month_date_container}`}>
-                                          {Array(42)
-                                            .fill(null)
-                                            .map((_, monthCellIndex) => {
-                                              const monthCellIndexKey =
-                                                "month_grid_cell_date" +
-                                                rowIndex.toString() +
-                                                colIndex.toString() +
-                                                monthCellIndex.toString();
-                                              let displayValue;
-                                              if (!displayValue) displayValue = monthCellIndex + 1;
-                                              if (typeof displayValue === "number" && displayValue <= 6) {
-                                                displayValue = null;
-                                              } else {
-                                                displayValue -= 6;
-                                              }
-                                              if (typeof displayValue === "number" && displayValue > 31)
-                                                displayValue = null;
-
-                                              return (
-                                                <div
-                                                  role="gridcell"
-                                                  key={monthCellIndexKey}
-                                                  className={`${styles.month_grid_cell} ${
-                                                    displayValue === null ? `` : `${styles.date}`
-                                                  } ${
-                                                    displayValue && displayValue > 20
-                                                      ? `${styles.out_of_fiscal_year}`
-                                                      : ``
-                                                  } flex-center`}
-                                                  style={{
-                                                    ...(displayValue === null && {
-                                                      cursor: "default",
-                                                    }),
-                                                  }}
-                                                >
-                                                  <span>{displayValue}</span>
-                                                </div>
-                                              );
-                                            })}
-                                        </div>
-                                      )}
                                     </div>
-                                  </div>
-                                );
-                              })}
-                          </div>
-                        );
+                                  )} */}
+                                  {/* {(rowIndex === 2 || rowIndex === 4) && (
+                                    <div role="grid" className={`${styles.month_date_container}`}>
+                                      {Array(42)
+                                        .fill(null)
+                                        .map((_, monthCellIndex) => {
+                                          const monthCellIndexKey =
+                                            "month_grid_cell_date" +
+                                            rowIndex.toString() +
+                                            colIndex.toString() +
+                                            monthCellIndex.toString();
+                                          let displayValue;
+                                          if (!displayValue) displayValue = monthCellIndex + 1;
+                                          if (typeof displayValue === "number" && displayValue <= 6) {
+                                            displayValue = null;
+                                          } else {
+                                            displayValue -= 6;
+                                          }
+                                          if (typeof displayValue === "number" && displayValue > 31)
+                                            displayValue = null;
+
+                                          return (
+                                            <div
+                                              role="gridcell"
+                                              key={monthCellIndexKey}
+                                              className={`${styles.month_grid_cell} ${
+                                                displayValue === null ? `` : `${styles.date}`
+                                              } ${
+                                                displayValue && displayValue > 20 ? `${styles.out_of_fiscal_year}` : ``
+                                              } flex-center`}
+                                              style={{
+                                                ...(displayValue === null && {
+                                                  cursor: "default",
+                                                }),
+                                              }}
+                                            >
+                                              <span>{displayValue}</span>
+                                            </div>
+                                          );
+                                        })}
+                                    </div>
+                                  )} */}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
                     })}
+
+                  {!isSwitchYear && <YearSectionBlank />}
 
                   <div className={`${styles.summary_section} w-full bg-[yellow]/[0]`}>
                     <div className={`min-h-[6px] w-full bg-[green]/[0]`}></div>
@@ -971,7 +1373,7 @@ const BusinessCalendarModalMemo = () => {
                       <div className="h-full min-w-[9px] bg-[white]/[0]"></div>
                       <div className={`flex h-full w-[23%] items-center text-[12px]`}>
                         <div
-                          className={`h-[16px] min-w-[24px] rounded-[3px] border-[1px] border-solid border-[var(--color-text-title)]`}
+                          className={`h-[16px] min-w-[16px] rounded-[3px] border-[1px] border-solid border-[var(--color-text-title)]`}
                         ></div>
                         <div className={`h-full min-w-[2px]`}></div>
                         <span>決算上の締日</span>
@@ -996,12 +1398,7 @@ const BusinessCalendarModalMemo = () => {
           {/* ----------------------------- ✅カレンダーPDFコンポーネント✅ ----------------------------- */}
 
           {/* ------------------------ボタンエリア------------------------ */}
-          {/* <div
-        className={`flex-center transition-bg01 fixed right-[30px] top-[4%] z-[5500] h-[35px] w-[35px] cursor-pointer rounded-full bg-[var(--color-sign-out-bg)] ${styles.btn}`}
-        onClick={handleCloseSettingModal}
-      >
-        <IoClose className={`pointer-events-none text-[22px] text-[#fff]`} />
-      </div> */}
+
           {/* ------------------------ボタンエリア------------------------ */}
           {/* 閉じるボタン */}
           <div
@@ -1029,17 +1426,9 @@ const BusinessCalendarModalMemo = () => {
             // onClick={handleDownloadPDF}
             onClick={handleSaveImageToPdf}
             onMouseEnter={(e) => {
-              handleOpenTooltip({
-                e: e,
-                display: "top",
-                content: `ダウンロード`,
-                // marginTop: 28,
-                itemsPosition: "center",
-              });
               handleOpenPopupMenu({ e, title: "pdf", displayX: "right", maxWidth: 360 });
             }}
             onMouseLeave={() => {
-              if (hoveredItemPos) handleCloseTooltip();
               if (openPopupMenu) handleClosePopupMenu();
             }}
           >
@@ -1052,17 +1441,9 @@ const BusinessCalendarModalMemo = () => {
             className={`flex-center transition-bg01 fixed right-[-56px] top-[105px] z-[3000] ${styles.btn}`}
             onClick={handlePrint}
             onMouseEnter={(e) => {
-              handleOpenTooltip({
-                e: e,
-                display: "top",
-                content: `印刷`,
-                // marginTop: 28,
-                itemsPosition: "center",
-              });
               handleOpenPopupMenu({ e, title: "print", displayX: "right", maxWidth: 360 });
             }}
             onMouseLeave={() => {
-              if (hoveredItemPos) handleCloseTooltip();
               if (openPopupMenu) handleClosePopupMenu();
             }}
           >
@@ -1075,17 +1456,9 @@ const BusinessCalendarModalMemo = () => {
             className={`flex-center transition-bg01 fixed right-[-56px] top-[155px] z-[3000] ${styles.btn}`}
             onClick={handleOpenSettings}
             onMouseEnter={(e) => {
-              handleOpenTooltip({
-                e: e,
-                display: "top",
-                content: `各種設定メニュー`,
-                // marginTop: 28,
-                itemsPosition: "center",
-              });
               handleOpenPopupMenu({ e, title: "settings", displayX: "right", maxWidth: 360 });
             }}
             onMouseLeave={() => {
-              if (hoveredItemPos) handleCloseTooltip();
               if (openPopupMenu) handleClosePopupMenu();
             }}
           >
@@ -1100,18 +1473,10 @@ const BusinessCalendarModalMemo = () => {
             }`}
             onClick={handleAllEdit}
             onMouseEnter={(e) => {
-              handleOpenTooltip({
-                e: e,
-                display: "top",
-                content: isEditMode.length > 0 ? `編集モード終了` : `編集モード`,
-                // marginTop: 28,
-                itemsPosition: "center",
-              });
               if (isEditMode.length !== 0) return;
               handleOpenPopupMenu({ e, title: "edit", displayX: "right", maxWidth: 360 });
             }}
             onMouseLeave={() => {
-              if (hoveredItemPos) handleCloseTooltip();
               if (openPopupMenu) handleClosePopupMenu();
             }}
           >
@@ -1124,58 +1489,259 @@ const BusinessCalendarModalMemo = () => {
           {/* ---------------------- セッティングメニュー関連 ---------------------- */}
           {/* メニューオーバーレイ */}
           {isOpenSettings && <div className={`${styles.menu_overlay}`} onClick={handleCloseSettings}></div>}
-          {/* 説明ポップアップ */}
-          {openPopupMenu && (
-            <div
-              className={`${styles.description_menu} shadow-all-md border-real-with-shadow fixed right-[-18px] z-[3500] flex min-h-max flex-col rounded-[6px]`}
-              style={{
-                top: `${openPopupMenu.y}px`,
-                ...(openPopupMenu?.displayX === "right" && {
-                  right: `${openPopupMenu.x}px`,
-                  maxWidth: `${openPopupMenu.maxWidth}px`,
-                }),
-                ...(openPopupMenu?.displayX === "left" && {
-                  right: `${openPopupMenu.x}px`,
-                  maxWidth: `${openPopupMenu.maxWidth}px`,
-                }),
+
+          {/* ---------------------------- セッティングメニュー ---------------------------- */}
+          <div
+            className={`${styles.settings_menu} fixed right-[calc(100%+21px)] top-[0px] z-[3000] h-auto w-[330px] rounded-[6px]`}
+          >
+            <h3
+              className={`flex w-full items-center space-x-[9px] px-[20px] pt-[20px] text-[15px] font-bold`}
+              onMouseEnter={(e) => {
+                if (
+                  infoIconSettingMenuRef.current &&
+                  infoIconSettingMenuRef.current.classList.contains(styles.animate_ping)
+                ) {
+                  infoIconSettingMenuRef.current.classList.remove(styles.animate_ping);
+                }
+                handleOpenPopupMenu({ e, title: "guide", displayX: "right" });
+              }}
+              onMouseLeave={() => {
+                if (openPopupMenu) handleClosePopupMenu();
               }}
             >
-              <div className={`min-h-max w-full font-bold ${styles.title}`}>
-                <div className="flex max-w-max flex-col">
-                  <span>{mappingPopupTitle[openPopupMenu.title][language]}</span>
-                  <div className={`${styles.underline} w-full`} />
-                </div>
+              <span>営業カレンダー設定メニュー</span>
+              <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                <div
+                  ref={infoIconSettingMenuRef}
+                  className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                ></div>
+                <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
               </div>
+            </h3>
 
-              <ul className={`flex flex-col rounded-[6px] ${styles.u_list}`}>
-                {/* {openPopupMenu.title === "compressionRatio" &&
-              descriptionCompressionRatio.map((item, index) => (
+            <p className={`w-full px-[20px] pb-[10px] pt-[10px] text-[11px]`}>
+              ここでは設定した定休日の適用や、会計年度ごとに自社独自の休業日、営業日をカスタマイズが可能です。
+            </p>
+            {/* <p className={`w-full px-[20px] pb-[12px] pt-[0px] text-[11px]`}>
+              また、営業カレンダーをPDFでダウンロードや、印刷してメンバーに配布し、お客様との商談でスケジュールの擦り合わせなどにお使いください。
+            </p> */}
+
+            <hr className="min-h-[1px] w-full bg-[#999]" />
+
+            {/* ---------------------------- メニューコンテンツエリア ---------------------------- */}
+            <div className={`${styles.scroll_container} flex max-h-[240px] w-full flex-col overflow-y-auto`}>
+              <ul className={`flex h-full w-full flex-col`}>
+                {/* ------------------------------------ */}
+                <li
+                  className={`${styles.list}`}
+                  onMouseEnter={(e) => {
+                    if (infoIconStepRef.current && infoIconStepRef.current.classList.contains(styles.animate_ping)) {
+                      infoIconStepRef.current.classList.remove(styles.animate_ping);
+                    }
+                    handleOpenPopupMenu({ e, title: "step", displayX: "right" });
+                  }}
+                  onMouseLeave={handleClosePopupMenu}
+                >
+                  <div className="pointer-events-none flex min-w-[110px] items-center">
+                    <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                    <div className="flex select-none items-center space-x-[2px]">
+                      <span className={`${styles.list_title}`}>手順</span>
+                      <span className={``}>：</span>
+                    </div>
+                  </div>
+                  <div className="flex w-full items-center justify-end pr-[9px]">
+                    <div className="flex-center relative h-[18px] w-[18px] rounded-full">
+                      <div
+                        ref={infoIconStepRef}
+                        className={`flex-center absolute left-0 top-0 h-[18px] w-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                      ></div>
+                      <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
+                    </div>
+                  </div>
+                </li>
+                {/* ------------------------------------ */}
+                {/* ------------------------------------ */}
+                <li className={`${styles.section_title} min-h-max w-full font-bold`}>
+                  <div className="flex max-w-max flex-col">
+                    <span>会計年度</span>
+                    <div className={`${styles.underline} w-full`} />
+                  </div>
+                </li>
+                <li
+                  className={`${styles.list}`}
+                  // onMouseEnter={(e) => {
+                  //   handleOpenPopupMenu({ e, title: "footnotes" });
+                  // }}
+                  // onMouseLeave={handleClosePopupMenu}
+                >
+                  <div className="pointer-events-none flex min-w-[110px] items-center">
+                    <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                    <div className="flex select-none items-center space-x-[2px]">
+                      <span className={`${styles.list_title}`}>表示中</span>
+                      <span className={``}>：</span>
+                    </div>
+                  </div>
+                  <select
+                    className={`${styles.select_box} truncate`}
+                    value={selectedFiscalYearSetting}
+                    onChange={(e) => setSelectedFiscalYearSetting(Number(e.target.value))}
+                  >
+                    {optionsFiscalYear.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </li>
+                {/* ------------------------------------ */}
+                <li className={`${styles.list}`}>
+                  <div className="pointer-events-none flex min-w-[110px] items-center">
+                    <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                    <div className="flex select-none items-center space-x-[2px]">
+                      <span className={`${styles.list_title}`}>定休日適用ステータス</span>
+                      <span className={``}>：</span>
+                    </div>
+                  </div>
+                  {/* {isFrameInChargeStamp && hankoSrc && (
+                    <ToggleSwitch state={isPrintInChargeStamp} dispatch={setIsPrintInChargeStamp} />
+                  )} */}
+                  {/* {isFrameInChargeStamp && !hankoSrc && <div>担当印なし</div>} */}
+                  {!statusClosingDaysSelectedYear?.updated_at && <div>未適用</div>}
+                  {isAvailableApplyClosingDays && statusClosingDaysSelectedYear?.updated_at && <div>適用可</div>}
+                  {!isAvailableApplyClosingDays && statusClosingDaysSelectedYear?.updated_at && <div>適用不可</div>}
+                </li>
+                {/* ------------------------------------ */}
+                {/* ------------------------------------ */}
+                {/* <li className={`${styles.section_title} min-h-max w-full font-bold`}>
+                  <div className="flex max-w-max flex-col">
+                    <span>脚注</span>
+                    <div className={`${styles.underline} w-full`} />
+                  </div>
+                </li> */}
+                <li
+                  className={`${styles.list}`}
+                  // onMouseEnter={(e) => {
+                  //   handleOpenPopupMenu({ e, title: "footnotes" });
+                  // }}
+                  // onMouseLeave={handleClosePopupMenu}
+                >
+                  <div className="pointer-events-none flex min-w-[110px] items-center">
+                    <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                    <div className="flex select-none items-center space-x-[2px]">
+                      <span className={`${styles.list_title}`}>定休日一括設定</span>
+                      <span className={``}>：</span>
+                    </div>
+                  </div>
+                  {(isAvailableApplyClosingDays || !statusClosingDaysSelectedYear?.updated_at) && (
+                    <div
+                      className={`transition-bg02 rounded-[8px] ${styles.edit_btn} ${styles.brand}`}
+                      onClick={() => {
+                        // setEditedName(userProfileState?.profile_name ? userProfileState.profile_name : "");
+                        // setIsEditModal("footnotes");
+                      }}
+                    >
+                      <span>適用</span>
+                    </div>
+                  )}
+                </li>
+                {/* ------------------------------------ */}
+                {/* ------------------------------------ */}
+                <li className={`${styles.section_title} min-h-max w-full font-bold`}>
+                  <div className="flex max-w-max flex-col">
+                    <span>PDF・印刷</span>
+                    <div className={`${styles.underline} w-full`} />
+                  </div>
+                </li>
+                <li
+                  className={`${styles.list}`}
+                  onMouseEnter={(e) => {
+                    handleOpenPopupMenu({ e, title: "compressionRatio", displayX: "right" });
+                  }}
+                  onMouseLeave={handleClosePopupMenu}
+                >
+                  <div className="pointer-events-none flex min-w-[110px] items-center">
+                    <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                    <div className="flex select-none items-center space-x-[2px]">
+                      <span className={`${styles.list_title}`}>解像度</span>
+                      <span className={``}>：</span>
+                    </div>
+                  </div>
+                  <select
+                    className={`${styles.select_box} truncate`}
+                    value={compressionRatio}
+                    onChange={(e) => setCompressionRatio(e.target.value as CompressionRatio)}
+                  >
+                    {optionsCompressionRatio.map((value) => (
+                      <option key={value} value={value}>
+                        {getCompressionRatio(value, language)}
+                      </option>
+                    ))}
+                  </select>
+                </li>
+                {/* ------------------------------------ */}
+              </ul>
+            </div>
+          </div>
+          {/* ---------------------- セッティングメニュー関連ここまで ---------------------- */}
+        </div>
+      </div>
+      {/* 説明ポップアップ */}
+      {openPopupMenu && (
+        <div
+          // className={`${styles.description_menu} shadow-all-md border-real-with-shadow fixed right-[-18px] z-[3500] flex min-h-max flex-col rounded-[6px]`}
+          className={`${styles.description_menu} shadow-all-md border-real-with-shadow pointer-events-none fixed z-[3500] flex min-h-max flex-col rounded-[6px]`}
+          style={{
+            top: `${openPopupMenu.y}px`,
+            ...(openPopupMenu?.displayX === "right" && {
+              left: `${openPopupMenu.x}px`,
+              maxWidth: `${openPopupMenu.maxWidth}px`,
+            }),
+            ...(openPopupMenu?.displayX === "left" && {
+              right: `${openPopupMenu.x}px`,
+              maxWidth: `${openPopupMenu.maxWidth}px`,
+            }),
+          }}
+        >
+          <div className={`min-h-max w-full font-bold ${styles.title}`}>
+            <div className="flex max-w-max flex-col">
+              <span>{mappingPopupTitle[openPopupMenu.title][language]}</span>
+              <div className={`${styles.underline} w-full`} />
+            </div>
+          </div>
+
+          <ul className={`flex flex-col rounded-[6px] ${styles.u_list}`}>
+            {["guide", "step", "compressionRatio"].includes(openPopupMenu.title) &&
+              mappingDescriptions[openPopupMenu.title].map((item, index) => (
                 <li
                   key={item.title + index.toString()}
                   className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}
                 >
-                  <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
-                    {item.title}
-                  </span>
-                  <p className="select-none text-[12px]">{item.content}</p>
+                  <div className="flex min-w-max items-center space-x-[3px]">
+                    {/* <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} /> */}
+                    {/* <FaRegDotCircle className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} /> */}
+                    <RxDot className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                    {/* <RxDotFilled className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} /> */}
+                    <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                      {item.title}
+                    </span>
+                  </div>
+                  <p className="select-none text-[12px]" style={{ whiteSpace: "pre-wrap" }}>
+                    {item.content}
+                  </p>
                 </li>
-              ))} */}
-                {!["compressionRatio"].includes(openPopupMenu.title) && (
-                  <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
-                    <p className="select-none whitespace-pre-wrap text-[12px]">
-                      {openPopupMenu.title === "footnotes" &&
-                        "見積書末尾に記載される脚注を自由に編集が可能です。デフォルトテキストで保存したデータはブラウザを更新しても内容が保存されるため、自チームで常に使用している脚注がある場合は一度設定することでそれ以降の入力不要となります。"}
-                    </p>
-                  </li>
-                )}
-              </ul>
-            </div>
-          )}
-          {/* 説明ポップアップ */}
-          {/* ---------------------- セッティングメニュー関連ここまで ---------------------- */}
+              ))}
+            {!["guide", "step", "compressionRatio"].includes(openPopupMenu.title) && (
+              <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
+                <p className="select-none whitespace-pre-wrap text-[12px]">
+                  {openPopupMenu.title === "footnotes" &&
+                    "見積書末尾に記載される脚注を自由に編集が可能です。デフォルトテキストで保存したデータはブラウザを更新しても内容が保存されるため、自チームで常に使用している脚注がある場合は一度設定することでそれ以降の入力不要となります。"}
+                </p>
+              </li>
+            )}
+          </ul>
         </div>
-      </div>
-      {/* ------------------------プレビューモーダルエリア------------------------ */}
+      )}
+      {/* 説明ポップアップ */}
     </>
   );
 };

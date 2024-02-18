@@ -49,6 +49,8 @@ import { generateFiscalYearCalendar } from "@/utils/Helpers/generateFiscalYearCa
 import { useQueryCalendarForFiscalBase } from "@/hooks/useQueryCalendarForFiscalBase";
 import { useQueryCalendarForCalendarBase } from "@/hooks/useQueryCalendarForCalendarBase";
 import { formatDateToYYYYMMDD } from "@/utils/Helpers/formatDateLocalToYYYYMMDD";
+import { calculateCurrentFiscalYear } from "@/utils/Helpers/calculateCurrentFiscalYear";
+import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurrentFiscalYearEndDate";
 
 const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Stu"];
 const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
@@ -115,9 +117,10 @@ const SettingCompanyMemo = () => {
   // 🔹営業カレンダー(営業稼働日数から各プロセス分析用)(国の祝日と顧客独自の休業日、半休日、営業短縮日を指定)
   // ②決算日が28日から30日で、かつその日にちがその月の決算日でないかチェック 該当するなら各月の開始日と終了日を選択してもらう
   // 決算日Date
-  const fiscalYearEndDate = userProfileState?.customer_fiscal_end_month
-    ? new Date(userProfileState?.customer_fiscal_end_month)
-    : null;
+  // const fiscalYearEndDate = userProfileState?.customer_fiscal_end_month
+  //   ? new Date(userProfileState?.customer_fiscal_end_month)
+  //   : null;
+  const fiscalYearEndDate = calculateCurrentFiscalYearEndDate(userProfileState?.customer_fiscal_end_month ?? null);
   // 期首Date
   const fiscalYearStartDate = calculateFiscalYearStart(userProfileState?.customer_fiscal_end_month ?? null);
 
@@ -140,10 +143,12 @@ const SettingCompanyMemo = () => {
   );
   // 決算月を現在の月が過ぎている場合は、現在の年を初期値として、決算月が12月以外で先にある場合は現在の年の前の年を初期値とする
   const currentDate = new Date();
-  const initialQueryYear =
-    fiscalYearEndDate && (fiscalYearEndDate.getTime() < currentDate.getTime() || fiscalYearEndDate.getMonth() === 11)
-      ? currentDate.getFullYear()
-      : currentDate.getFullYear() - 1;
+  // const fiscalYearEndMonth = fiscalYearEndDate;
+  // const initialQueryYear =
+  //   fiscalYearEndDate ? (new Date(currentDate.getFullYear(), fiscalYearEndDate.getMonth(), fiscalYearEndDate.getDate()).getTime() < currentDate.getTime() || (currentDate.getMonth() === 11 && fiscalYearEndDate.getMonth() === 11))
+  //     ? currentDate.getFullYear()
+  //     : currentDate.getFullYear() - 1 : null;
+  const initialQueryYear = calculateCurrentFiscalYear(userProfileState?.customer_fiscal_end_month ?? null);
   // 選択した年度 営業カレンダー表示反映用の選択中の会計年度
   const [selectedFiscalYear, setSelectedFiscalYear] = useState<number | null>(initialQueryYear);
 
@@ -3205,6 +3210,7 @@ const SettingCompanyMemo = () => {
                   className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
                   onClick={() => {
                     if (!selectedFiscalYear) return alert("会計年度データが見つかりませんでした。");
+                    if (!fiscalYearEndDate) return alert("決算日が登録されていません。先に決算日を登録してください。");
                     // setEditedNumberOfEmployeeClass(
                     //   userProfileState?.customer_number_of_employees_class
                     //     ? userProfileState.customer_number_of_employees_class
