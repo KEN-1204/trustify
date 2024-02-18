@@ -184,7 +184,8 @@ const BusinessCalendarModalMemo = () => {
       const doc = new jsPDF({
         orientation: "p", // p:縦向き, l:横向き
         unit: "mm", // mm: ミリメートル, 他には, cm,in,px,pc,em,ex, pxで指定する場合、optionのhotfixesを指定
-        format: "a4", // PDFのページフォーマット a4:A4サイズ
+        // format: "a4", // PDFのページフォーマット a4:A4サイズ
+        format: "a7", // PDFのページフォーマット a4:A4サイズ
       });
       // const pdf = new jsPDF()
 
@@ -204,7 +205,11 @@ const BusinessCalendarModalMemo = () => {
       // ・FAST: 低圧縮 => 143KB
       // ・SLOW: 高圧縮 => 161KB
       // ・NONE: 圧縮なし => 6MB
-      doc.addImage(image, "PNG", 0, 0, 210, 0, "", compressionRatio); // デフォルトの圧縮率はFASTの中間
+
+      /* A4サイズは210mm * 297mm で 縦横比は1:1.41 */
+      // doc.addImage(image, "PNG", 0, 0, 210, 0, "", compressionRatio); // デフォルトの圧縮率はFASTの中間
+      /* A7サイズは74mm * 105mm で 縦横比は1:1.41 */
+      doc.addImage(image, "PNG", 0, 0, 105, 0, "", compressionRatio); // デフォルトの圧縮率はFASTの中間
 
       // 5. PDFを保存
       doc.save(getPdfFileName());
@@ -265,6 +270,9 @@ const BusinessCalendarModalMemo = () => {
       let iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
 
       if (!iframeDoc) throw new Error("印刷に失敗しました");
+
+      /* A4サイズは210mm * 297mm で 縦横比は1:1.41 */
+      /* A7サイズは74mm * 105mm で 縦横比は1:1.41 */
 
       // HTMLコンテンツを生成してiframeに挿入
       iframeDoc.open();
@@ -499,6 +507,159 @@ const BusinessCalendarModalMemo = () => {
     );
   };
   // ----------------- ✅編集モードオーバーレイコンポーネント✅ -----------------
+  // ----------------- 🌟編集モードオーバーレイコンポーネント🌟 -----------------
+  const YearSection = ({ year }: { year: number }) => {
+    return (
+      <div className={`${styles.year_section} w-full bg-[aqua]/[0]`}>
+        <div className={`flex h-full w-[1%] bg-[green]/[0]`}></div>
+        <div className={`flex h-full w-[12%] items-center bg-[red]/[0] text-[22px] font-bold leading-[22px]`}>
+          <span className={``}>{year}</span>
+        </div>
+        <div className={`flex h-full w-[86%] flex-col justify-end`}>
+          <div className="h-[1px] w-full rounded-[6px] bg-[#37352f]"></div>
+          <div className="h-[10px] w-full"></div>
+        </div>
+        <div className={`flex h-full w-[1%] bg-[green]/[0]`}></div>
+      </div>
+    );
+  };
+  const YearSectionBlank = () => {
+    return (
+      <div className={`${styles.year_section} w-full bg-[aqua]/[0]`}>
+        <div className={`flex h-full w-[1%] bg-[green]/[0]`}></div>
+        <div className={`flex h-full w-[12%] items-center bg-[red]/[0] text-[22px] font-bold leading-[22px]`}>
+          <span className={``}></span>
+        </div>
+        <div className={`flex h-full w-[86%] flex-col justify-end`}>
+          {/* <div className="h-[1px] w-full rounded-[6px] bg-[#37352f]"></div> */}
+          <div className="h-[10px] w-full"></div>
+        </div>
+        <div className={`flex h-full w-[1%] bg-[green]/[0]`}></div>
+      </div>
+    );
+  };
+  // ----------------- ✅編集モードオーバーレイコンポーネント✅ -----------------
+
+  // ----------------- 🌟編集モードオーバーレイコンポーネント🌟 -----------------
+  const MonthlyRow = ({ monthlyRowKey, rowIndex }: { monthlyRowKey: string; rowIndex: number }) => {
+    return (
+      <div key={monthlyRowKey} className={`${styles.monthly_row_section} w-full bg-[pink]/[0]`}>
+        {Array(3)
+          .fill(null)
+          .map((_, colIndex) => {
+            const monthKey = "month" + rowIndex.toString() + colIndex.toString();
+            const getRow = (rowIndex: number): number => {
+              if (rowIndex === 0) return 1;
+              if (rowIndex === 1) return 4;
+              if (rowIndex === 2) return 7;
+              if (rowIndex === 3) return 10;
+              return rowIndex;
+            };
+            const titleValue = getRow(rowIndex) + colIndex;
+            return (
+              <div key={monthKey} className={`${styles.month} w-1/3 bg-[white]/[0]`}>
+                <div className={`h-full w-[22%] bg-[red]/[0] ${styles.month_title}`}>
+                  <span>{titleValue}</span>
+                </div>
+                <div role="grid" className={`h-full w-[78%] bg-[yellow]/[0] ${styles.month_grid_container}`}>
+                  <div role="columnheader" className={`${styles.month_row}`}>
+                    {sortedDaysPlaceholder.map((day, monthColHeaderIndex) => {
+                      const monthColumnHeaderIndexKey =
+                        "month_grid_columnheader_day" +
+                        rowIndex.toString() +
+                        colIndex.toString() +
+                        monthColHeaderIndex.toString();
+                      const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
+                      const dayName = dayNames[day % 7];
+                      return (
+                        <div
+                          role="gridcell"
+                          key={monthColumnHeaderIndexKey}
+                          className={`${styles.month_grid_cell} flex-center`}
+                        >
+                          <span>{dayName}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {(rowIndex === 0 || rowIndex === 1) && (
+                    <div role="grid" className={`${styles.month_date_container}`}>
+                      {Array(31)
+                        .fill(null)
+                        .map((_, monthCellIndex) => {
+                          const monthCellIndexKey =
+                            "month_grid_cell_date" +
+                            rowIndex.toString() +
+                            colIndex.toString() +
+                            monthCellIndex.toString();
+                          let displayValue;
+                          if (!displayValue) displayValue = monthCellIndex + 1;
+                          if (typeof displayValue === "number" && displayValue > 31) displayValue = null;
+
+                          return (
+                            <div
+                              role="gridcell"
+                              key={monthCellIndexKey}
+                              className={`${styles.month_grid_cell} flex-center`}
+                              style={{
+                                ...(displayValue === null && {
+                                  borderRight: "none",
+                                  borderBottom: "none",
+                                }),
+                              }}
+                            >
+                              <span>{displayValue}</span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                  {(rowIndex === 2 || rowIndex === 3) && (
+                    <div role="grid" className={`${styles.month_date_container}`}>
+                      {Array(42)
+                        .fill(null)
+                        .map((_, monthCellIndex) => {
+                          const monthCellIndexKey =
+                            "month_grid_cell_date" +
+                            rowIndex.toString() +
+                            colIndex.toString() +
+                            monthCellIndex.toString();
+                          let displayValue;
+                          if (!displayValue) displayValue = monthCellIndex + 1;
+                          if (typeof displayValue === "number" && displayValue <= 6) {
+                            displayValue = null;
+                          } else {
+                            displayValue -= 6;
+                          }
+                          if (typeof displayValue === "number" && displayValue > 31) displayValue = null;
+
+                          return (
+                            <div
+                              role="gridcell"
+                              key={monthCellIndexKey}
+                              className={`${styles.month_grid_cell} flex-center`}
+                              style={{
+                                ...(displayValue === null && {
+                                  borderRight: "none",
+                                  borderBottom: "none",
+                                }),
+                              }}
+                            >
+                              <span>{displayValue}</span>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+      </div>
+    );
+  };
+  // ----------------- ✅編集モードオーバーレイコンポーネント✅ -----------------
   return (
     <>
       {/* オーバーレイ z-index: 1000; */}
@@ -527,223 +688,155 @@ const BusinessCalendarModalMemo = () => {
                 <div className={`${styles.pdf_main_container} flex h-full w-full flex-col`}>
                   {/* エディットモードオーバーレイ z-[3500] */}
                   {isEditMode.length > 0 && <EditModeOverlay />}
+
                   <div className={`${styles.top_margin} w-full bg-[red]/[0.3]`}></div>
-                  <div className={`${styles.year_section} w-full bg-[aqua]/[0.3]`}></div>
-                  {Array(4)
+
+                  <YearSection year={2023} />
+
+                  {/* <MonthlyRow monthlyRowKey="monthly_row_first" /> */}
+
+                  {Array(5)
                     .fill(null)
                     .map((_, rowIndex) => {
                       const monthlyRowKey = "monthly_row" + rowIndex.toString();
-                      return (
-                        <div key={monthlyRowKey} className={`${styles.monthly_row_section} w-full bg-[pink]/[0]`}>
-                          {Array(3)
-                            .fill(null)
-                            .map((_, colIndex) => {
-                              const monthKey = "month" + rowIndex.toString() + colIndex.toString();
-                              const getRow = (rowIndex: number): number => {
-                                if (rowIndex === 0) return 1;
-                                if (rowIndex === 1) return 4;
-                                if (rowIndex === 2) return 7;
-                                if (rowIndex === 3) return 10;
-                                return rowIndex;
-                              };
-                              const titleValue = getRow(rowIndex) + colIndex;
-                              return (
-                                <div key={monthKey} className={`${styles.month} w-1/3 bg-[white]/[0]`}>
-                                  {/* <div className={`h-full w-[16%] bg-[red]/[0.1] ${styles.month_title}`}> */}
-                                  <div className={`h-full w-[22%] bg-[red]/[0] ${styles.month_title}`}>
-                                    <span>{titleValue}</span>
-                                  </div>
-                                  <div
-                                    role="grid"
-                                    // className={`h-full w-[84%] bg-[yellow]/[0] ${styles.month_grid_container}`}
-                                    className={`h-full w-[78%] bg-[yellow]/[0] ${styles.month_grid_container}`}
-                                  >
-                                    <div role="columnheader" className={`${styles.month_row}`}>
-                                      {sortedDaysPlaceholder.map((day, monthColHeaderIndex) => {
-                                        const monthColumnHeaderIndexKey =
-                                          "month_grid_columnheader_day" +
-                                          rowIndex.toString() +
-                                          colIndex.toString() +
-                                          monthColHeaderIndex.toString();
-                                        const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
-                                        const dayName = dayNames[day % 7];
-                                        return (
-                                          <div
-                                            role="gridcell"
-                                            key={monthColumnHeaderIndexKey}
-                                            className={`${styles.month_grid_cell} flex-center`}
-                                          >
-                                            <span>{dayName}</span>
-                                          </div>
-                                        );
-                                      })}
+
+                      if (rowIndex === 3) {
+                        return <YearSection year={2024} />;
+                      }
+                      // <YearSectionBlank />
+                      if (rowIndex !== 3)
+                        return (
+                          <div key={monthlyRowKey} className={`${styles.monthly_row_section} w-full bg-[pink]/[0]`}>
+                            {Array(3)
+                              .fill(null)
+                              .map((_, colIndex) => {
+                                const monthKey = "month" + rowIndex.toString() + colIndex.toString();
+                                const getRow = (rowIndex: number): number => {
+                                  if (rowIndex === 0) return 1;
+                                  if (rowIndex === 1) return 4;
+                                  if (rowIndex === 2) return 7;
+                                  // if (rowIndex === 3) return 10;
+                                  if (rowIndex === 4) return 10;
+                                  return rowIndex;
+                                };
+                                const titleValue = getRow(rowIndex) + colIndex;
+                                return (
+                                  <div key={monthKey} className={`${styles.month} w-1/3 bg-[white]/[0]`}>
+                                    {/* <div className={`h-full w-[16%] bg-[red]/[0.1] ${styles.month_title}`}> */}
+                                    <div className={`h-full w-[22%] bg-[red]/[0] ${styles.month_title}`}>
+                                      <span>{titleValue}</span>
                                     </div>
-
-                                    {(rowIndex === 0 || rowIndex === 1) && (
-                                      <div role="grid" className={`${styles.month_date_container}`}>
-                                        {Array(31)
-                                          .fill(null)
-                                          .map((_, monthCellIndex) => {
-                                            const monthCellIndexKey =
-                                              "month_grid_cell_date" +
-                                              rowIndex.toString() +
-                                              colIndex.toString() +
-                                              monthCellIndex.toString();
-                                            let displayValue;
-                                            if (!displayValue) displayValue = monthCellIndex + 1;
-                                            if (typeof displayValue === "number" && displayValue > 31)
-                                              displayValue = null;
-
-                                            return (
-                                              <div
-                                                role="gridcell"
-                                                key={monthCellIndexKey}
-                                                className={`${styles.month_grid_cell} flex-center`}
-                                                style={{
-                                                  ...(displayValue === null && {
-                                                    borderRight: "none",
-                                                    borderBottom: "none",
-                                                  }),
-                                                }}
-                                              >
-                                                <span>{displayValue}</span>
-                                              </div>
-                                            );
-                                          })}
-                                      </div>
-                                    )}
-                                    {(rowIndex === 2 || rowIndex === 3) && (
-                                      <div role="grid" className={`${styles.month_date_container}`}>
-                                        {Array(42)
-                                          .fill(null)
-                                          .map((_, monthCellIndex) => {
-                                            const monthCellIndexKey =
-                                              "month_grid_cell_date" +
-                                              rowIndex.toString() +
-                                              colIndex.toString() +
-                                              monthCellIndex.toString();
-                                            let displayValue;
-                                            if (!displayValue) displayValue = monthCellIndex + 1;
-                                            if (typeof displayValue === "number" && displayValue <= 6) {
-                                              displayValue = null;
-                                            } else {
-                                              displayValue -= 6;
-                                            }
-                                            if (typeof displayValue === "number" && displayValue > 31)
-                                              displayValue = null;
-
-                                            return (
-                                              <div
-                                                role="gridcell"
-                                                key={monthCellIndexKey}
-                                                className={`${styles.month_grid_cell} flex-center`}
-                                                style={{
-                                                  ...(displayValue === null && {
-                                                    borderRight: "none",
-                                                    borderBottom: "none",
-                                                  }),
-                                                }}
-                                              >
-                                                <span>{displayValue}</span>
-                                              </div>
-                                            );
-                                          })}
-                                      </div>
-                                    )}
-
-                                    {/* {Array(7)
-                                      .fill(null)
-                                      .map((_, monthRowIndex) => {
-                                        const monthRowHeaderIndexKey =
-                                          "month_grid_row_header" +
-                                          rowIndex.toString() +
-                                          colIndex.toString() +
-                                          monthRowIndex.toString();
-
-                                        if (monthRowIndex === 0) {
+                                    <div
+                                      role="grid"
+                                      // className={`h-full w-[84%] bg-[yellow]/[0] ${styles.month_grid_container}`}
+                                      className={`h-full w-[78%] bg-[yellow]/[0] ${styles.month_grid_container}`}
+                                    >
+                                      <div role="columnheader" className={`${styles.month_row}`}>
+                                        {sortedDaysPlaceholder.map((day, monthColHeaderIndex) => {
+                                          const monthColumnHeaderIndexKey =
+                                            "month_grid_columnheader_day" +
+                                            rowIndex.toString() +
+                                            colIndex.toString() +
+                                            monthColHeaderIndex.toString();
+                                          const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
+                                          const dayName = dayNames[day % 7];
                                           return (
                                             <div
-                                              role="columnheader"
-                                              key={monthRowHeaderIndexKey}
-                                              className={`${styles.month_row}`}
+                                              role="gridcell"
+                                              key={monthColumnHeaderIndexKey}
+                                              className={`${styles.month_grid_cell} flex-center`}
                                             >
-                                              {sortedDaysPlaceholder.map((day, monthColIndex) => {
-                                                const monthCellIndexKey =
-                                                  "month_grid_cell_day" +
-                                                  rowIndex.toString() +
-                                                  colIndex.toString() +
-                                                  monthRowIndex.toString() +
-                                                  monthColIndex.toString();
-                                                const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
-                                                const dayName = dayNames[day % 7];
-                                                return (
-                                                  <div
-                                                    role="gridcell"
-                                                    key={monthCellIndexKey}
-                                                    className={`${styles.month_grid_cell} flex-center`}
-                                                  >
-                                                    <span>{dayName}</span>
-                                                  </div>
-                                                );
-                                              })}
+                                              <span>{dayName}</span>
                                             </div>
                                           );
-                                        }
-                                        if (monthRowIndex !== 0) {
-                                          return (
-                                            <div
-                                              role="row"
-                                              key={monthRowIndexKey}
-                                              className={`${styles.month_row_date}`}
-                                            >
-                                              {Array(7)
-                                                .fill(null)
-                                                .map((_, monthColIndex) => {
-                                                  const monthCellIndexKey =
-                                                    "month_grid_cell_date" +
-                                                    rowIndex.toString() +
-                                                    colIndex.toString() +
-                                                    monthRowIndex.toString() +
-                                                    monthColIndex.toString();
-                                                  let displayValue;
-                                                  if (monthRowIndex === 1) displayValue = 1 + monthColIndex;
-                                                  if (monthRowIndex === 2) displayValue = 8 + monthColIndex;
-                                                  if (monthRowIndex === 3) displayValue = 15 + monthColIndex;
-                                                  if (monthRowIndex === 4) displayValue = 22 + monthColIndex;
-                                                  if (monthRowIndex === 5) displayValue = 29 + monthColIndex;
-                                                  if (monthRowIndex === 6) displayValue = 36 + monthColIndex;
-                                                  if (typeof displayValue === "number" && displayValue > 31)
-                                                    displayValue = null;
+                                        })}
+                                      </div>
 
-                                                  return (
-                                                    <div
-                                                      role="gridcell"
-                                                      key={monthCellIndexKey}
-                                                      className={`${styles.month_grid_cell} flex-center`}
-                                                      style={{
-                                                        ...(displayValue === null && {
-                                                          borderRight: "none",
-                                                          borderBottom: "none",
-                                                        }),
-                                                      }}
-                                                    >
-                                                      <span>{displayValue}</span>
-                                                    </div>
-                                                  );
-                                                })}
-                                            </div>
-                                          );
-                                        }
-                                      })} */}
+                                      {(rowIndex === 0 || rowIndex === 1) && (
+                                        <div role="grid" className={`${styles.month_date_container}`}>
+                                          {Array(31)
+                                            .fill(null)
+                                            .map((_, monthCellIndex) => {
+                                              const monthCellIndexKey =
+                                                "month_grid_cell_date" +
+                                                rowIndex.toString() +
+                                                colIndex.toString() +
+                                                monthCellIndex.toString();
+                                              let displayValue;
+                                              if (!displayValue) displayValue = monthCellIndex + 1;
+                                              if (typeof displayValue === "number" && displayValue > 31)
+                                                displayValue = null;
+
+                                              return (
+                                                <div
+                                                  role="gridcell"
+                                                  key={monthCellIndexKey}
+                                                  className={`${styles.month_grid_cell} ${
+                                                    displayValue === null ? `` : `${styles.date}`
+                                                  } flex-center`}
+                                                  style={{
+                                                    ...(displayValue === null && {
+                                                      cursor: "default",
+                                                    }),
+                                                  }}
+                                                >
+                                                  <span>{displayValue}</span>
+                                                </div>
+                                              );
+                                            })}
+                                        </div>
+                                      )}
+                                      {(rowIndex === 2 || rowIndex === 4) && (
+                                        <div role="grid" className={`${styles.month_date_container}`}>
+                                          {Array(42)
+                                            .fill(null)
+                                            .map((_, monthCellIndex) => {
+                                              const monthCellIndexKey =
+                                                "month_grid_cell_date" +
+                                                rowIndex.toString() +
+                                                colIndex.toString() +
+                                                monthCellIndex.toString();
+                                              let displayValue;
+                                              if (!displayValue) displayValue = monthCellIndex + 1;
+                                              if (typeof displayValue === "number" && displayValue <= 6) {
+                                                displayValue = null;
+                                              } else {
+                                                displayValue -= 6;
+                                              }
+                                              if (typeof displayValue === "number" && displayValue > 31)
+                                                displayValue = null;
+
+                                              return (
+                                                <div
+                                                  role="gridcell"
+                                                  key={monthCellIndexKey}
+                                                  className={`${styles.month_grid_cell} ${
+                                                    displayValue === null ? `` : `${styles.date}`
+                                                  } ${
+                                                    displayValue && displayValue > 20
+                                                      ? `${styles.out_of_fiscal_year}`
+                                                      : ``
+                                                  } flex-center`}
+                                                  style={{
+                                                    ...(displayValue === null && {
+                                                      cursor: "default",
+                                                    }),
+                                                  }}
+                                                >
+                                                  <span>{displayValue}</span>
+                                                </div>
+                                              );
+                                            })}
+                                        </div>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              );
-                            })}
-                        </div>
-                      );
+                                );
+                              })}
+                          </div>
+                        );
                     })}
 
-                  <div className={`${styles.year_section} w-full bg-[aqua]/[0.3]`}></div>
                   <div className={`${styles.summary_section} w-full bg-[yellow]/[0.3]`}></div>
                   <div className={`${styles.remarks_section} w-full bg-[green]/[0.3]`}></div>
                   <div className={`${styles.bottom_margin} w-full bg-[red]/[0.3]`}></div>
