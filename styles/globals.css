@@ -1830,7 +1830,11 @@ textarea {
   justify-content: center;
   align-items: center;
 }
-
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 /* 共通transition width */
 
 .transition-w01 {

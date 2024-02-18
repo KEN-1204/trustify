@@ -443,8 +443,12 @@ type State = {
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
   setIsOpenBusinessCalendarSettingModal: (payload: boolean) => void;
+  // 選択中の会計年度
   selectedFiscalYearSetting: number | null;
   setSelectedFiscalYearSetting: (payload: number) => void;
+  // 決算日が28~30までで末日でない決算日の場合の各月度の開始日、終了日カスタムinput
+  fiscalMonthStartEndInputArray: { startDate: Date; endDate: Date }[] | null;
+  setFiscalMonthStartEndInputArray: (payload: { startDate: Date; endDate: Date }[] | null) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -1046,8 +1050,12 @@ const useDashboardStore = create<State>((set) => ({
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: false,
   setIsOpenBusinessCalendarSettingModal: (payload) => set({ isOpenBusinessCalendarSettingModal: payload }),
+  // 選択中の会計年度
   selectedFiscalYearSetting: null,
   setSelectedFiscalYearSetting: (payload) => set({ selectedFiscalYearSetting: payload }),
+  // 決算日が28~30までで末日でない決算日の場合の各月度の開始日、終了日カスタムinput
+  fiscalMonthStartEndInputArray: null,
+  setFiscalMonthStartEndInputArray: (payload) => set({ fiscalMonthStartEndInputArray: payload }),
 }));
 
 export default useDashboardStore;

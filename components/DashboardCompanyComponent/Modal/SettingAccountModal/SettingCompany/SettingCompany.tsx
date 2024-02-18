@@ -131,9 +131,13 @@ const SettingCompanyMemo = () => {
       ? true
       : false; // 28~30までで末日でない決算月かどうか確認
   // ユーザーが入力した各会計月度の開始日、終了日の入力値を保持するstate
-  const [fiscalMonthStartEndInputArray, setFiscalMonthStartEndInputArray] = useState(null);
+  // const [fiscalMonthStartEndInputArray, setFiscalMonthStartEndInputArray] = useState(null);
+  const fiscalMonthStartEndInputArray = useDashboardStore((state) => state.fiscalMonthStartEndInputArray);
+  const setFiscalMonthStartEndInputArray = useDashboardStore((state) => state.setFiscalMonthStartEndInputArray);
   // ②ならisReadyをfalseにして、12個分の開始終了日の要素の配列が完成した時にtrueにする
-  const [isReadyClosingDays, setIsReadyClosingDays] = useState(isRequiredInputFiscalStartEndDate ? false : true);
+  const [isReadyClosingDays, setIsReadyClosingDays] = useState(
+    isRequiredInputFiscalStartEndDate ? (fiscalMonthStartEndInputArray ? true : false) : true
+  );
   // 決算月を現在の月が過ぎている場合は、現在の年を初期値として、決算月が12月以外で先にある場合は現在の年の前の年を初期値とする
   const currentDate = new Date();
   const initialQueryYear =
@@ -169,7 +173,7 @@ const SettingCompanyMemo = () => {
     isReadyCalendarForFBRef.current = true;
     isReadyCalendarForCBRef.current = true;
     // フェッチした時間を更新
-    console.log("🔥🔥🔥🔥🔥フェッチ時間を更新して営業カレンダーを再生成");
+    console.log("🔥🔥🔥🔥🔥営業カレンダーを再生成");
     setPrevFetchTimeAnnualClosing(annualMonthlyClosingDays?.getTime ?? null);
   }, [annualMonthlyClosingDays?.getTime]);
 

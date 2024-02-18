@@ -90,8 +90,12 @@
   max-width: 2%; */
   /* min-width: 9.5px;
   max-width: 9.5px; */
-  min-width: 6px;
-  max-width: 6px;
+  /* min-width: 6px;
+  max-width: 6px; */
+  min-width: 5px;
+  max-width: 5px;
+  /* min-width: 4px;
+  max-width: 4px; */
 }
 .pdf_main_container {
   height: 100%;
@@ -115,8 +119,12 @@
   max-width: 2%; */
   /* min-width: 9.5px;
   max-width: 9.5px; */
-  min-width: 10px;
-  max-width: 10px;
+  /* min-width: 10px;
+  max-width: 10px; */
+  min-width: 11px;
+  max-width: 11px;
+  /* min-width: 12px;
+  max-width: 12px; */
 }
 /* ---------------------------------- ✅pdf横 3部構成✅ ---------------------------------- */
 
@@ -142,21 +150,31 @@
 }
 .summary_section {
   /* 合計10% */
-  height: 10%;
+  /* height: 11%; */
+  height: 11%;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 .remarks_section {
   /* 合計4% */
-  height: 4%;
+  /* height: 5%; */
+  height: 5%;
+  /* min-height: 39px;
+  max-height: 39px; */
+  min-height: 33px;
+  max-height: 33px;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 .bottom_margin {
   /* 合計3% */
-  height: 3%;
+  /* height: 3%; */
+  /* height: 2%; */
+  height: 1%;
 }
 /* ---------------------------------- ✅pdf5部構成(上下マージン含む)✅ ---------------------------------- */
 
