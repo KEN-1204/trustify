@@ -93,7 +93,8 @@ export const useQueryAnnualFiscalMonthClosingDays = ({
         // };
         // ローカルエリアの時間でYYYY-MM-DDにフォーマット
         const newFiscalMonth = {
-          fiscal_year_month: `${currentDateForLoop.getFullYear()}-${currentDateForLoop.getMonth() + 1}`, // ブラウザ表示用に変換(1月は0を1に変換して2024-1をセット)
+          // fiscal_year_month: `${currentDateForLoop.getFullYear()}-${currentDateForLoop.getMonth() + 1}`, // ブラウザ表示用に変換(1月は0を1に変換して2024-1をセット)
+          fiscal_year_month: `${endDate.getFullYear()}-${endDate.getMonth() + 1}`, // ブラウザ表示用に変換(1月は0を1に変換して2024-1をセット)
           start_date: formatDateToYYYYMMDD(currentDateForLoop), // 日付部分（YYYY-MM-DD）のみ
           end_date: formatDateToYYYYMMDD(endDate),
         };

@@ -1,3 +1,4 @@
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import React, { FC } from "react";
 import { MdClose } from "react-icons/md";
@@ -13,6 +14,8 @@ type Props = {
   submitText: string;
   clickEventSubmit: () => void;
   buttonColor?: "brand" | "red" | "green";
+  zIndexOverlay?: string;
+  zIndex?: string;
 };
 
 export const ConfirmationModal: FC<Props> = ({
@@ -26,12 +29,15 @@ export const ConfirmationModal: FC<Props> = ({
   submitText = "削除する",
   clickEventSubmit,
   buttonColor = "red",
+  zIndexOverlay,
+  zIndex,
 }) => {
   return (
     <>
       {/* オーバーレイ */}
       <div
         className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
+        style={{ ...(zIndexOverlay && { zIndex: zIndexOverlay }) }}
         // onClick={() => {
         //   setShowConfirmCancelModal(null);
         // }}
@@ -40,10 +46,12 @@ export const ConfirmationModal: FC<Props> = ({
       <div
         // className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-[300px] w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] "
         className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-max w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] "
+        style={{ ...(zIndex && { zIndex: zIndex }) }}
       >
         {isLoadingState && (
           <div className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
-            <SpinnerIDS scale={"scale-[0.5]"} />
+            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+            <SpinnerComet w="56px" h="56px" s="6px" />
           </div>
         )}
         {/* クローズボタン */}

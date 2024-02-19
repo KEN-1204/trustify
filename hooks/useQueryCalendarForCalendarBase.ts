@@ -14,6 +14,22 @@ type Props = {
       }[]
     | null
     | undefined;
+  // annualMonthlyClosingDays:
+  //   | {
+  //       getTime: number;
+  //       annual_closing_days_obj: {
+  //         annual_closing_days_count: number;
+  //         annual_closing_days: {
+  //           fiscal_year_month: string; // 2024-4
+  //           start_date: string; // 2024-4-1(年月度の開始日)営業日を追加する時に使用
+  //           end_date: string; // 2024-5-1(翌月度の月初)営業日を追加する時に使用
+  //           closing_days: CustomerBusinessCalendars[]; // 休業日の日付オブジェクトの配列
+  //           closing_days_count: number; // 各月度ごとの休業日の数
+  //         }[];
+  //       };
+  //     }
+  //   | null
+  //   | undefined;
   isReady: boolean;
 };
 

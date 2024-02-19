@@ -9,7 +9,15 @@ export function fillWorkingDaysForEachFiscalMonth(
     start_date: string;
     end_date: string;
     closing_days: CustomerBusinessCalendars[];
-  }[]
+  }[],
+  // closingDaysData: {
+  //   fiscal_year_month: string; // 2024-4
+  //   start_date: string; // 2024-4-1(年月度の開始日)営業日を追加する時に使用
+  //   end_date: string; // 2024-5-1(翌月度の月初)営業日を追加する時に使用
+  //   closing_days: CustomerBusinessCalendars[]; // 休業日の日付オブジェクトの配列
+  //   closing_days_count: number; // 各月度ごとの休業日の数
+  // }[],
+  company_id: string
 ): {
   daysCountInYear: number;
   completeAnnualFiscalCalendar: {
@@ -18,10 +26,10 @@ export function fillWorkingDaysForEachFiscalMonth(
     monthlyWorkingDaysCount: number;
   }[];
 } | null {
+  // const UserProfileState = useDashboardStore((state) => state.userProfileState);
+  // if (!UserProfileState?.company_id) return null;
   console.log("🔥fillWorkingDaysForEachFiscalMonth関数 実行");
   console.time("fillWorkingDaysForEachFiscalMonth関数");
-  const UserProfileState = useDashboardStore((state) => state.userProfileState);
-  if (!UserProfileState?.company_id) return null;
 
   let daysCountInYear = 0;
 
@@ -38,10 +46,12 @@ export function fillWorkingDaysForEachFiscalMonth(
     while (d < endDate) {
       console.log(`🔥fillWorkingDaysForEachFiscalMonth関数 forループ ${fiscal_year_month} - ${d.getDate()}`);
       // const formattedDate = d.toISOString().split("T")[0]; // 日付情報のみ取得
-      const formattedDate = formatDateToYYYYMMDD(d); // 日付情報のみ取得
+      const formattedDateNotZeroPad = formatDateToYYYYMMDD(d); // 日付情報のみ取得
+      const formattedDate = formatDateToYYYYMMDD(d, true); // 左0詰め日付情報のみ取得
       const dayOfWeek = d.getDay();
 
       // 既存の休業日かどうかをチェック(既に配列内に存在する日付の場合は休業日のため営業日はpushしない)
+      // const isClosingDay = closing_days.some((cd) => cd.date === formattedDate);
       const isClosingDay = closing_days.some((cd) => cd.date === formattedDate);
 
       // 休業日でない場合はpush
@@ -51,8 +61,9 @@ export function fillWorkingDaysForEachFiscalMonth(
           id: "", // 適宜生成または割り当て
           created_at: "", // 適宜生成または割り当て new Date().toISOString()
           updated_at: null,
-          customer_id: UserProfileState.company_id,
-          date: formattedDate,
+          customer_id: company_id,
+          // date: formattedDate,
+          date: formattedDateNotZeroPad,
           day_of_week: dayOfWeek,
           status: "working_day",
           working_hours: 480,
@@ -61,7 +72,10 @@ export function fillWorkingDaysForEachFiscalMonth(
         workingDaysCount += 1;
       } else {
         // 既存の休業日を追加
-        monthlyDays.push(closing_days.find((cd) => cd.date === formattedDate) as CustomerBusinessCalendars);
+        // monthlyDays.push(closing_days.find((cd) => cd.date === formattedDate) as CustomerBusinessCalendars);
+        const dateObj = closing_days.find((cd) => cd.date === formattedDate) as CustomerBusinessCalendars;
+        const newDate = { ...dateObj, date: formattedDateNotZeroPad } as CustomerBusinessCalendars;
+        monthlyDays.push(newDate);
       }
 
       d.setDate(d.getDate() + 1); // 翌日に更新

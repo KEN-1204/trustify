@@ -1,3 +1,4 @@
+import useDashboardStore from "@/store/useDashboardStore";
 import { CustomerBusinessCalendars } from "@/types";
 import { fillWorkingDaysForEachFiscalMonth } from "@/utils/Helpers/fillWorkingDaysForEachFiscalMonth";
 import { UseQueryResult, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -14,6 +15,22 @@ type Props = {
       }[]
     | null
     | undefined;
+  // annualMonthlyClosingDays:
+  //   | {
+  //       getTime: number;
+  //       annual_closing_days_obj: {
+  //         annual_closing_days_count: number;
+  //         annual_closing_days: {
+  //           fiscal_year_month: string; // 2024-4
+  //           start_date: string; // 2024-4-1(年月度の開始日)営業日を追加する時に使用
+  //           end_date: string; // 2024-5-1(翌月度の月初)営業日を追加する時に使用
+  //           closing_days: CustomerBusinessCalendars[]; // 休業日の日付オブジェクトの配列
+  //           closing_days_count: number; // 各月度ごとの休業日の数
+  //         }[];
+  //       };
+  //     }
+  //   | null
+  //   | undefined;
   isReady: boolean;
 };
 
@@ -32,6 +49,7 @@ export const useQueryCalendarForFiscalBase = ({
 }: Props) => {
   // }: Props): UseQueryResult<QueryResponse> => {
   // const queryClient = useQueryClient();
+  const UserProfileState = useDashboardStore((state) => state.userProfileState);
 
   // const { data, status, isLoading, isError, error } = useQuery({
   const queryResult = useQuery({
@@ -39,13 +57,17 @@ export const useQueryCalendarForFiscalBase = ({
     queryFn: () => {
       if (!selectedFiscalYear) return null;
       if (!annualMonthlyClosingDays) return null;
+      if (!UserProfileState?.company_id) return null;
       console.log("🔥useQueryCalendarForFiscalBase queryFn実行");
-      const newCalendarForFiscalBase = fillWorkingDaysForEachFiscalMonth(annualMonthlyClosingDays);
+      const newCalendarForFiscalBase = fillWorkingDaysForEachFiscalMonth(
+        annualMonthlyClosingDays,
+        UserProfileState.company_id
+      );
       return newCalendarForFiscalBase;
     },
     staleTime: Infinity,
     // ユーザーが選択している期間が単月の場合はフェッチを拒否
-    enabled: !!selectedFiscalYear && !!annualMonthlyClosingDays && isReady,
+    enabled: !!selectedFiscalYear && !!annualMonthlyClosingDays && isReady && !!UserProfileState?.company_id,
   });
 
   // const { data, status } = queryResult;

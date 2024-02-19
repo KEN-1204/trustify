@@ -28,6 +28,10 @@ import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurr
 import { splitArrayIntoChunks } from "@/utils/Helpers/splitArrayIntoChunks";
 import { CustomerBusinessCalendars } from "@/types";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import { formatDateToYYYYMMDD } from "@/utils/Helpers/formatDateLocalToYYYYMMDD";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ConfirmationModal } from "../ConfirmationModal/ConfirmationModal";
 
 type CompressionRatio = "NONE" | "FAST" | "SLOW";
 const optionsCompressionRatio: CompressionRatio[] = ["NONE", "FAST", "SLOW"];
@@ -106,8 +110,10 @@ const mappingDescriptions: { [key: string]: { [key: string]: string }[] } = {
   compressionRatio: descriptionCompressionRatio,
 };
 
-const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Stu"];
+const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
+const dayFullNamesEn = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const dayFullNamesJa = ["日曜日", "月曜日", "火曜日", "水曜日", "木曜日", "金曜日", "土曜日"];
 const sortedDaysPlaceholder = Array(7)
   .fill(null)
   .map((_, index) => index)
@@ -117,9 +123,15 @@ const sortedDaysPlaceholder = Array(7)
     const adjustedB = b === 0 ? 7 : b;
     return adjustedA - adjustedB;
   });
+// 定休日リストの数値から定休日の曜日の一覧を取得する関数
+const getClosingDaysNameString = (closingDaysList: number[]) => {
+  if (!closingDaysList.length) return null;
+  const nameList = closingDaysList.map((num) => dayFullNamesJa[num]);
+  return nameList;
+};
 
 // 月の始まりの1日の曜日に応じて１ヶ月の配列の先頭にnullを追加する関数
-const addNullMonthArray = (dayOfWeek: number, array: any[]) => {
+const addNullMonthArray = (dayOfWeek: number, array: any[]): (CustomerBusinessCalendars | null)[] => {
   //  日曜日の場合、6このnullを追加(月曜始まりのカレンダー)
   // それ以外の場合、dayOfWeek - 1 個のnullを追加 (月曜日は追加しない実装になってる)
   const nullCount = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -151,6 +163,9 @@ const BusinessCalendarModalMemo = () => {
   if (!selectedFiscalYearSetting) return null;
   if (!userProfileState) return null;
 
+  const supabase = useSupabaseClient();
+  const queryClient = useQueryClient();
+
   // 🔹ローカルstate関連
   const [pdfURL, setPdfURL] = useState<string | null>(null);
   const [imageURL, setImageURL] = useState<string | null>(null); // アンマウント時画像URLリソース解放用のstate
@@ -167,6 +182,8 @@ const BusinessCalendarModalMemo = () => {
   const infoIconStepRef = useRef<HTMLDivElement | null>(null);
 
   // 🔹変数定義関連
+  // 設定済みの定休日の曜日名の配列
+  const customerClosingDaysNameArray = getClosingDaysNameString(userProfileState.customer_closing_days);
   // 決算日Date
   const fiscalYearEndDate = calculateCurrentFiscalYearEndDate(userProfileState?.customer_fiscal_end_month ?? null);
   // 期首Date
@@ -174,12 +191,13 @@ const BusinessCalendarModalMemo = () => {
   // 選択年オプション(現在の年から3年遡る, 1年後は決算日まで３ヶ月を切った場合は選択肢に入れる)
   const [optionsFiscalYear, setOptionsFiscalYear] = useState<{ label: string; value: number }[]>([]);
   // 年度別の定休日適用ステータス配列
-  type StatusClosingDays = { fiscal_year: number; updated_at: number | null }[];
-  const [statusAnnualClosingDaysArray, setStatusAnnualClosingDaysArray] = useState<StatusClosingDays | null>(null);
+  type StatusClosingDays = { fiscal_year: number; applied_closing_days: number[]; updated_at: number | null };
+  const [statusAnnualClosingDaysArray, setStatusAnnualClosingDaysArray] = useState<StatusClosingDays[] | null>(null);
   // 現在選択している会計年度が定休日を適用したかと、している場合１ヶ月前かどうか確認
   const statusClosingDaysSelectedYear = statusAnnualClosingDaysArray?.find(
     (obj) => obj.fiscal_year === selectedFiscalYearSetting
   );
+  // 現在選択している会計年度の定休日が適用できるかどうか(1ヶ月以内なら適用不可)
   const isAvailableApplyClosingDays = useMemo(() => {
     if (!statusClosingDaysSelectedYear?.updated_at) return true;
     const currentDate = new Date();
@@ -194,6 +212,8 @@ const BusinessCalendarModalMemo = () => {
       return true;
     }
   }, [statusClosingDaysSelectedYear, selectedFiscalYearSetting]);
+  // 現在の会計年度ので適用されている定休日があれば曜日の配列のみ変数に格納
+  const closingDaysArraySelectedYear = statusClosingDaysSelectedYear?.applied_closing_days ?? [];
 
   useEffect(() => {
     if (!fiscalYearEndDate || !selectedFiscalYearSetting || !userProfileState) {
@@ -246,12 +266,12 @@ const BusinessCalendarModalMemo = () => {
     const statusAnnualClosingDays = localStorage.getItem("status_annual_closing_days");
     console.log("ローカルストレージ statusAnnualClosingDays", statusAnnualClosingDays);
     if (statusAnnualClosingDays) {
-      const parsedStatusArray: StatusClosingDays = JSON.parse(statusAnnualClosingDays);
+      const parsedStatusArray: StatusClosingDays[] = JSON.parse(statusAnnualClosingDays);
       let newArray = parsedStatusArray;
       console.log("ローカルストレージ存在ルート parsedStatusArray", parsedStatusArray);
 
       if (isWithin3Months && newArray.every((obj) => obj.fiscal_year !== currentYear + 1)) {
-        newArray.push({ fiscal_year: currentYear + 1, updated_at: null });
+        newArray.push({ fiscal_year: currentYear + 1, applied_closing_days: [], updated_at: null });
         const newValue = JSON.stringify(newArray);
         console.log("ローカルストレージ存在ルート 3ヶ月以内 newValue", newValue);
         localStorage.setItem("status_annual_closing_days", newValue);
@@ -259,7 +279,7 @@ const BusinessCalendarModalMemo = () => {
       setStatusAnnualClosingDaysArray(newArray);
     } else {
       const newStatusArray = years.map((year) => {
-        return { fiscal_year: year, updated_at: null };
+        return { fiscal_year: year, applied_closing_days: [], updated_at: null };
       });
       localStorage.setItem("status_annual_closing_days", JSON.stringify(newStatusArray));
       setStatusAnnualClosingDaysArray(newStatusArray);
@@ -303,6 +323,7 @@ const BusinessCalendarModalMemo = () => {
   const isReadyCalendarForCBRef = useRef(true);
 
   useEffect(() => {
+    if (!annualMonthlyClosingDays?.getTime) return;
     console.log("💡💡💡💡💡💡年間休日リストの再フェッチを確認");
     if (prevFetchTimeAnnualClosing === (annualMonthlyClosingDays?.getTime ?? null)) return;
     // 取得したタイムスタンプが変更されたら各カレンダーuseQueryのisReadyをtrueに変更する
@@ -311,6 +332,13 @@ const BusinessCalendarModalMemo = () => {
     // フェッチした時間を更新
     console.log("🔥🔥🔥🔥🔥営業カレンダーを再生成");
     setPrevFetchTimeAnnualClosing(annualMonthlyClosingDays?.getTime ?? null);
+
+    // 年間休日数が変更されると営業稼働日数が変わるのでfiscal_baseのみinvalidate
+    const resetQueryCalendars = async () => {
+      await queryClient.invalidateQueries({ queryKey: ["calendar_for_fiscal_base"] });
+      // await queryClient.invalidateQueries({ queryKey: ["calendar_for_calendar_base"] });
+    };
+    resetQueryCalendars();
   }, [annualMonthlyClosingDays?.getTime]);
 
   // 🌟useQuery 顧客の会計月度ごとの営業日も追加した会計年度カレンダーの完全リスト🌟
@@ -324,7 +352,8 @@ const BusinessCalendarModalMemo = () => {
     annualMonthlyClosingDays: annualMonthlyClosingDays
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
-    isReady: isReadyCalendarForFBRef.current,
+    // annualMonthlyClosingDays: annualMonthlyClosingDays ? annualMonthlyClosingDays : null,
+    isReady: isReadyCalendarForFBRef.current && !isLoadingAnnualMonthlyClosingDays,
   });
 
   // 🌟useQuery カレンダーベースの営業日も追加した完全リスト🌟
@@ -338,7 +367,8 @@ const BusinessCalendarModalMemo = () => {
     annualMonthlyClosingDays: annualMonthlyClosingDays
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
-    isReady: isReadyCalendarForCBRef.current,
+    // annualMonthlyClosingDays: annualMonthlyClosingDays ? annualMonthlyClosingDays : null,
+    isReady: isReadyCalendarForCBRef.current && !isLoadingAnnualMonthlyClosingDays,
   });
 
   // 年間休業日日数
@@ -416,7 +446,9 @@ const BusinessCalendarModalMemo = () => {
   }, [splitMonthsArrayForFB]);
 
   console.log(
-    "🔥🔥🔥🔥🔥🔥🔥",
+    "BusinessCalendarコンポーネント再レンダリング",
+    "annualMonthlyClosingDays",
+    annualMonthlyClosingDays,
     "splitMonthsArrayForCB",
     splitMonthsArrayForCB,
     "splitMonthsArrayForFB",
@@ -657,6 +689,120 @@ const BusinessCalendarModalMemo = () => {
   // 画像のDPI（ドット・パー・インチ）を調整して、印刷時のサイズを変更することも検討してください。HTMLやCSSで直接DPIを指定することはできませんが、画像を生成する際にDPIを考慮することで、印刷時のサイズ感を調整できます。
   // -------------------------- ✅プリントアウト関数✅ --------------------------
 
+  // 定休日の日付リストを生成する関数
+  const generateClosedDaysList = (fiscalYearStartDate: Date | null, closedDaysIndexes: number[]) => {
+    if (!userProfileState) return;
+    if (!fiscalYearStartDate) return;
+    console.time("generateClosedDaysList関数");
+    // 期首の日付を起点としたwhileループ用のDateオブジェクトを作成
+    let currentDateForLoop = fiscalYearStartDate;
+    // 期首のちょうど1年後の次年度、来期の期首用のDateオブジェクトを作成
+    const nextFiscalYearStartDate = new Date(fiscalYearStartDate);
+    nextFiscalYearStartDate.setFullYear(nextFiscalYearStartDate.getFullYear() + 1);
+
+    // customer_business_calendarsテーブルのバルクインサート用の定休日日付リスト
+    const closedDays = [];
+
+    // 来期の期首未満(期末まで)の定休日となる日付を変数に格納
+    while (currentDateForLoop.getTime() < nextFiscalYearStartDate.getTime()) {
+      const dayOfWeek = currentDateForLoop.getDay();
+      // 現在の日付の曜日が定休日インデックスリストの曜日に含まれていれば定休日日付リストに格納
+      if (closedDaysIndexes.includes(dayOfWeek)) {
+        closedDays.push({
+          // customer_id: userProfileState.company_id,
+          // date: currentDateForLoop.toISOString().split("T")[0], // 時間情報を除いた日付情報のみセット
+          date: formatDateToYYYYMMDD(currentDateForLoop, true), // 時間情報を除いた日付情報のみセット DATE型で挿入するので一桁台の月、日付は0を左に詰めるためtrueを第二引数に渡す
+          day_of_week: dayOfWeek,
+          // status: "closed",
+          // working_hours: 0,
+        });
+      }
+      currentDateForLoop.setDate(currentDateForLoop.getDate() + 1); // 次の日に進める
+    }
+
+    console.timeEnd("generateClosedDaysList関数");
+    return closedDays;
+  };
+  // ===================== 🌟営業カレンダーに定休日を反映🌟 =====================
+  // 選択した会計年度の営業カレンダーに定休日反映確認モーダル
+  const [showConfirmApplyClosingDayModal, setShowConfirmApplyClosingDayModal] = useState<string | null>(null);
+  const [isLoadingApply, setIsLoadingApply] = useState(false);
+
+  const handleApplyClosingDaysCalendar = async () => {
+    if (isLoadingApply) return;
+    if (!userProfileState?.customer_fiscal_end_month) return alert("先に決算日を登録してください。");
+    if (!fiscalYearStartDate) return alert("先に決算日を登録してください。");
+    if (!userProfileState?.customer_closing_days) return alert("定休日が設定されていません。");
+    if (!selectedFiscalYearSetting) return alert("定休日を反映する会計年度を選択してください。");
+
+    setIsLoadingApply(true);
+
+    // companiesテーブルのcustomer_closing_daysフィールドに定休日の配列をINSERTして、
+    // customer_business_calendarsテーブル現在の会計年度 １年間INSERTした後の1年後に再度自動的にINSERTするようにスケジュールが必要
+    if (showConfirmApplyClosingDayModal === "Insert") {
+      // 決算日の翌日の期首のDateオブジェクトを生成
+      const fiscalYearStartDate = calculateFiscalYearStart(userProfileState.customer_fiscal_end_month);
+      // 期首から来期の期首の前日までの定休日となる日付リストを生成(バルクインサート用) DATE[]
+      const closedDaysArrayForBulkInsert = generateClosedDaysList(
+        fiscalYearStartDate,
+        userProfileState?.customer_closing_days
+      );
+
+      // 1. customer_business_calendarsテーブルへの定休日リストをバルクインサート
+      // 2. companiesテーブルのcustomer_closing_daysフィールドをUPDATE
+      try {
+        const insertPayload = {
+          _customer_id: userProfileState.company_id,
+          _closed_days: closedDaysArrayForBulkInsert, // 営業カレンダーテーブル用配列
+          // _closing_days: editedClosingDays, // companiesのcustomer_closing_daysフィールド用配列
+        };
+        console.log("🔥バルクインサート実行 insertPayload", insertPayload);
+        // 1と2を一つのFUNCTIONで実行
+        const { error } = await supabase.rpc("bulk_insert_closing_days", insertPayload);
+
+        if (error) throw error;
+
+        console.log("✅営業カレンダーのバルクインサートと会社テーブルの定休日リストのUPDATE成功");
+
+        // 先に営業カレンダーのFB, CB共にisReadyをfalseにして再フェッチを防ぐ
+        isReadyCalendarForFBRef.current = false;
+        isReadyCalendarForCBRef.current = false;
+
+        // 営業カレンダーのuseQueryのキャッシュをinvalidate
+        await queryClient.invalidateQueries({ queryKey: ["annual_fiscal_month_closing_days"] });
+
+        // ローカルストレージの年度別定休日ステータスを更新する
+        if (statusAnnualClosingDaysArray) {
+          const newArray = [...statusAnnualClosingDaysArray];
+          const newClosingDays = userProfileState.customer_closing_days;
+          const newStatusClosingDaysObj = {
+            fiscal_year: selectedFiscalYearSetting,
+            applied_closing_days: newClosingDays,
+            updated_at: Date.now(),
+          } as StatusClosingDays;
+          const replaceAtIndex = newArray.findIndex((obj) => obj.fiscal_year === selectedFiscalYearSetting);
+          if (replaceAtIndex !== -1) {
+            // 置き換えるオブジェクトが見つかった場合のみ実行
+            newArray.splice(replaceAtIndex, 1, newStatusClosingDaysObj);
+            // ローカルストレージとローカルstateを更新
+            localStorage.setItem("status_annual_closing_days", JSON.stringify(newArray));
+            setStatusAnnualClosingDaysArray(newArray);
+          }
+        }
+      } catch (error: any) {
+        console.error("Bulk create エラー: ", error);
+        toast.error("定休日の追加に失敗しました...🙇‍♀️");
+      }
+    }
+    // Update
+    else {
+    }
+    // setEditedClosingDays([]);
+    // setShowConfirmApplyClosingDayModal(null);
+    setIsLoadingApply(false);
+  };
+  // ===================== ✅定休日のUPSERT✅ =====================
+
   // -------------------------- 🌟インラインスタイル関連🌟 --------------------------
   // エディットモードの時には「閉じる」と「終了」ボタン以外は非表示にするstyle
   const isEditingHidden = { ...(isEditMode.length > 0 && { display: "none" }) };
@@ -788,6 +934,8 @@ const BusinessCalendarModalMemo = () => {
     pdf: { en: "PDF Download", ja: "PDFダウンロード" },
     settings: { en: "Settings", ja: "各種設定メニュー" },
     edit: { en: "Edit Mode", ja: "編集モード" },
+    applyClosingDays: { en: "Apply Closing Days", ja: "定休日一括設定" },
+    displayFiscalYear: { en: "Display fiscal year", ja: "会計年度" },
   };
   type PopupMenuParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -868,17 +1016,19 @@ const BusinessCalendarModalMemo = () => {
     return (
       <div className={`${styles.year_section} w-full bg-[aqua]/[0]`}>
         <div className={`flex h-full w-[1%] bg-[green]/[0]`}></div>
-        <div className={`flex h-full w-[13%] items-center bg-[red]/[0] text-[22px] font-bold leading-[22px]`}>
+        {/* <div className={`flex h-full w-[13%] items-center bg-[red]/[0] text-[22px] font-bold leading-[22px]`}> */}
+        <div className={`flex h-full w-[12%] items-center bg-[red]/[0] text-[20px] font-bold leading-[22px]`}>
           <span className={``}>{year}</span>
         </div>
-        <div className={`flex h-full w-[85%] flex-col justify-end`}>
+        <div className={`flex h-full w-[86%] flex-col justify-end`}>
           <div className="h-[1px] w-full rounded-[6px] bg-[#37352f]"></div>
-          <div className="h-[12px] w-full"></div>
+          <div className="h-[10px] w-full"></div>
         </div>
         <div className={`flex h-full w-[1%] bg-[green]/[0]`}></div>
       </div>
     );
   };
+
   const YearSectionDouble = ({ year, nextYear }: { year: number; nextYear: number }) => {
     return (
       <div className={`${styles.year_section} w-full bg-[aqua]/[0]`}>
@@ -920,48 +1070,52 @@ const BusinessCalendarModalMemo = () => {
   const AnnualMonthlyWorkingDaysRow = () => {
     return (
       <>
-        <div className={`flex h-full w-full items-center justify-between text-[13px] font-bold`}>
-          <div className="h-full min-w-[9px] bg-[white]/[0]"></div>
-          <div className={`flex h-full w-[23%] flex-col items-start !text-[13px]`}>
-            <div className={`flex h-1/2 w-full items-center`}>
-              <div className={`flex min-w-[77px] items-center`}>
+        <div className={`flex h-full w-full items-center justify-between text-[11px] font-bold`}>
+          <div className="h-full min-w-[9px] bg-[white]/[0.9]"></div>
+          <div
+            className={`flex h-full w-[24%] flex-col items-start justify-center bg-[yellow]/[0] pl-[6px] !text-[11px]`}
+          >
+            <div className={`flex h-[17px] w-full items-center`}>
+              <div className={`flex min-w-[80px] items-center`}>
                 <div className={`flex-between min-w-[70px]`}>
                   {"営業稼働日".split("").map((letter, index) => (
                     <span key={`summary_title_first` + index.toString()}>{letter}</span>
                   ))}
                 </div>
               </div>
-              <span>{annualWorkingDaysCount}</span>
+              <span className="text-[11px]">{annualWorkingDaysCount}</span>
             </div>
-            <div className={`flex h-1/2 w-full items-center`}>
-              <div className={`flex min-w-[77px] items-center`}>
+            <div className={`flex h-[17px] w-full items-center`}>
+              <div className={`flex min-w-[80px] items-center`}>
                 <div className={`flex-between min-w-[70px]`}>
                   {"休日".split("").map((letter, index) => (
                     <span key={`summary_title_second` + index.toString()}>{letter}</span>
                   ))}
                 </div>
               </div>
-              <span className="">{annualClosingDaysCount}</span>
+              <span className="text-[11px]">{annualClosingDaysCount}</span>
             </div>
           </div>
 
-          {/* <div className={`h-full min-w-[9px]`}></div> */}
+          <div className={`h-full min-w-[4%]`}></div>
 
           {/* 月度別 gridコンテナ */}
           <div
             role="grid"
-            className={`grid h-full w-[77%] rounded-[3px] text-[13px]`}
+            // className={`grid h-full w-[77%] rounded-[3px]`}
+            className={`grid h-[38px] w-[72%] rounded-[3px]`}
+            // className={`grid w-[72%] rounded-[3px] h-[34px]`}
             // style={{ gridTemplateRows: `repeat(2, 1fr)`, border: `2px solid var(--color-border-black)` }}
-            style={{ gridTemplateRows: `repeat(2, 1fr)`, border: `2px solid var(--color-text-title)` }}
+            style={{ gridTemplateRows: `repeat(2, 1fr)`, border: `2px solid #37352f` }}
           >
             <div
               role="row"
               // className={`grid h-full w-full items-center bg-[var(--color-bg-sub)]`}
-              className={`grid h-full w-full items-center`}
+              className={`grid h-[17px] w-full items-center`}
               style={{
                 gridRowStart: 1,
                 gridTemplateColumns: `99px repeat(12, 1fr)`,
-                borderBottom: `1px solid var(--color-text-title)`,
+                borderBottom: `1px solid #37352f`,
               }}
             >
               {Array(13)
@@ -982,12 +1136,10 @@ const BusinessCalendarModalMemo = () => {
                     <div
                       role="gridcell"
                       key={index.toString() + `calendar_row1`}
-                      className={`h-full ${
-                        index === 0 ? `flex items-center justify-between px-[3px] text-[13px]` : `flex-center`
-                      }`}
+                      className={`h-full ${index === 0 ? `flex items-center justify-between px-[3px]` : `flex-center`}`}
                       style={{
                         gridColumnStart: index + 1,
-                        ...(index !== 12 && { borderRight: `1px solid var(--color-text-title)` }),
+                        ...(index !== 12 && { borderRight: `1px solid #37352f` }),
                       }}
                     >
                       {index === 0 &&
@@ -1001,7 +1153,7 @@ const BusinessCalendarModalMemo = () => {
             </div>
             <div
               role="row"
-              className={`grid h-full w-full items-center`}
+              className={`grid h-[17px] w-full items-center`}
               style={{ gridRowStart: 2, gridTemplateColumns: `99px repeat(12, 1fr)` }}
             >
               {Array(13)
@@ -1025,12 +1177,10 @@ const BusinessCalendarModalMemo = () => {
                     <div
                       role="gridcell"
                       key={index.toString() + `calendar_row2`}
-                      className={`h-full ${
-                        index === 0 ? `flex items-center justify-between px-[3px] text-[13px]` : `flex-center`
-                      }`}
+                      className={`h-full ${index === 0 ? `flex items-center justify-between px-[3px]` : `flex-center`}`}
                       style={{
                         gridColumnStart: index + 1,
-                        ...(index !== 12 && { borderRight: `1px solid var(--color-text-title)` }),
+                        ...(index !== 12 && { borderRight: `1px solid #37352f` }),
                       }}
                     >
                       {index === 0 &&
@@ -1050,6 +1200,114 @@ const BusinessCalendarModalMemo = () => {
     );
   };
   // ----------------- ✅営業稼働日数リスト✅ -----------------
+  // ----------------- テスト -----------------
+  const TestCalendar = () => {
+    return (
+      <>
+        {Array(1)
+          .fill(null)
+          .map((_, rowIndex) => {
+            const monthlyRowKey = "monthly_row" + rowIndex.toString();
+
+            if (!splitMonthsArrayForCB) return;
+
+            let monthRowIndex = rowIndex;
+
+            return (
+              <div key={monthlyRowKey} className={`${styles.monthly_row_section} w-full bg-[pink]/[0]`}>
+                {Array(3)
+                  .fill(null)
+                  .map((monthObj, colIndex) => {
+                    const monthKey = "month" + rowIndex.toString() + colIndex.toString();
+                    const getRow = (rowIndex: number): number => {
+                      if (rowIndex === 0) return 1;
+                      if (rowIndex === 1) return 4;
+                      if (rowIndex === 2) return 7;
+                      // if (rowIndex === 3) return 10;
+                      if (rowIndex === 4) return 10;
+                      return rowIndex;
+                    };
+                    const titleValue = getRow(rowIndex) + colIndex;
+                    return (
+                      <div key={monthKey} className={`${styles.month} w-1/3 bg-[white]/[0]`}>
+                        {/* <div className={`h-full w-[16%] bg-[red]/[0.1] ${styles.month_title}`}> */}
+                        <div className={`h-full w-[22%] bg-[red]/[0] ${styles.month_title}`}>
+                          <span>{titleValue}</span>
+                        </div>
+                        <div
+                          role="grid"
+                          // className={`h-full w-[84%] bg-[yellow]/[0] ${styles.month_grid_container}`}
+                          className={`h-full w-[78%] bg-[yellow]/[0] ${styles.month_grid_container}`}
+                        >
+                          <div role="columnheader" className={`${styles.month_row}`}>
+                            {sortedDaysPlaceholder.map((day, monthColHeaderIndex) => {
+                              const monthColumnHeaderIndexKey =
+                                "month_grid_columnheader_day" +
+                                rowIndex.toString() +
+                                colIndex.toString() +
+                                monthColHeaderIndex.toString();
+                              const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
+                              const dayName = dayNames[day % 7];
+                              let isClosed = false;
+                              return (
+                                <div
+                                  role="gridcell"
+                                  key={monthColumnHeaderIndexKey}
+                                  className={`${styles.month_grid_cell} ${styles.day_header} ${
+                                    isClosed ? `${styles.is_closed}` : ``
+                                  } flex-center`}
+                                >
+                                  <span>{dayName}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                          <div role="grid" className={`${styles.month_date_container}`}>
+                            {Array(31)
+                              .fill(null)
+                              .map((dateObj, monthCellIndex) => {
+                                const monthCellIndexKey =
+                                  "month_grid_cell_date" +
+                                  rowIndex.toString() +
+                                  colIndex.toString() +
+                                  monthCellIndex.toString();
+                                let displayValue;
+                                if (!displayValue) displayValue = monthCellIndex + 1;
+                                if (typeof displayValue === "number" && displayValue > 31) displayValue = null;
+                                // 締日
+                                let isFiscalEndDay = false;
+                                // 休日
+                                let isClosed = false;
+
+                                return (
+                                  <div
+                                    role="gridcell"
+                                    key={monthCellIndexKey}
+                                    className={`${styles.month_grid_cell} ${
+                                      displayValue === null ? `` : `${styles.date}`
+                                    } ${isClosed ? `${styles.is_closed}` : ``} flex-center`}
+                                    style={{
+                                      ...(displayValue === null && {
+                                        cursor: "default",
+                                      }),
+                                    }}
+                                  >
+                                    <span>{displayValue}</span>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            );
+          })}
+      </>
+    );
+  };
+  // ----------------- テスト -----------------
   return (
     <>
       {/* オーバーレイ z-index: 1000; */}
@@ -1081,15 +1339,17 @@ const BusinessCalendarModalMemo = () => {
 
                   <div className={`${styles.top_margin} w-full bg-[red]/[0]`}></div>
 
-                  {/* 会計年度が単一の年のみ */}
                   {/* {isSwitchYear && <YearSection year={2023} />} */}
+                  {/* 会計年度が2年に跨る場合 */}
                   {isSwitchYear && <YearSection year={selectedFiscalYearSetting} />}
+                  {/* 会計年度が単一の年のみ */}
                   {!isSwitchYear && (
                     <YearSectionDouble year={selectedFiscalYearSetting} nextYear={selectedFiscalYearSetting + 1} />
                   )}
 
                   {/* <MonthlyRow monthlyRowKey="monthly_row_first" /> */}
 
+                  {/* -------- 12ヶ月分の4行 + 年度区切り行(2年に跨がれば) -------- */}
                   {Array(5)
                     .fill(null)
                     .map((_, rowIndex) => {
@@ -1106,26 +1366,25 @@ const BusinessCalendarModalMemo = () => {
                         monthRowIndex -= 1;
                       }
 
-                      console.log(
-                        "isSwitchYear",
-                        isSwitchYear,
-                        "rowIndex",
-                        rowIndex,
-                        "monthRowIndex",
-                        monthRowIndex,
-                        "splitMonthsArrayForCB[monthRowIndex]",
-                        splitMonthsArrayForCB[monthRowIndex]
-                      );
+                      // console.log(
+                      //   "isSwitchYear",
+                      //   isSwitchYear,
+                      //   "rowIndex",
+                      //   rowIndex,
+                      //   "monthRowIndex",
+                      //   monthRowIndex,
+                      //   "splitMonthsArrayForCB[monthRowIndex]",
+                      //   splitMonthsArrayForCB[monthRowIndex]
+                      // );
 
-                      // if (rowIndex === 3) {
-                      //   return <YearSection year={2024} key={monthlyRowKey} />;
-                      // }
-                      // if (rowIndex !== 3)
+                      {
+                        /* -------- ３ヶ月分の１行 -------- */
+                      }
                       return (
                         <div key={monthlyRowKey} className={`${styles.monthly_row_section} w-full bg-[pink]/[0]`}>
                           {/* {Array(3)
                             .fill(null) */}
-                          {splitMonthsArrayForCB[monthRowIndex].map((obj, colIndex) => {
+                          {splitMonthsArrayForCB[monthRowIndex].map((monthObj, colIndex) => {
                             const monthKey = "month" + rowIndex.toString() + colIndex.toString();
                             // const getRow = (rowIndex: number): number => {
                             //   if (rowIndex === 0) return 1;
@@ -1136,23 +1395,22 @@ const BusinessCalendarModalMemo = () => {
                             //   return rowIndex;
                             // };
                             // const titleValue = getRow(rowIndex) + colIndex;
-                            const titleValue = obj.fiscalYearMonth.split("-")[1];
-                            const daysArray = obj.monthlyDays;
+                            const titleValue = monthObj.fiscalYearMonth.split("-")[1];
+                            const daysArray = monthObj.monthlyDays;
                             if (!isValidNumber(daysArray[0].day_of_week)) return;
                             // 1日が月曜日以外なら曜日と一致するようにnullを先頭に追加する
                             // 0は7にソートしてるので曜日の始まりは1の月曜日
                             const formattedDaysArray = addNullMonthArray(daysArray[0].day_of_week!, daysArray);
-                            console.log(
-                              "月🌠obj",
-                              obj,
-                              "titleValue",
-                              titleValue,
-                              "daysArray[0].day_of_week",
-                              daysArray[0].day_of_week,
-                              "formattedDaysArray",
-                              formattedDaysArray
-                            );
-                            // if (daysArray[0].day_of_week !== 1) {}
+                            // console.log(
+                            //   "月🌠obj",
+                            //   obj,
+                            //   "titleValue",
+                            //   titleValue,
+                            //   "daysArray[0].day_of_week",
+                            //   daysArray[0].day_of_week,
+                            //   "formattedDaysArray",
+                            //   formattedDaysArray
+                            // );
                             return (
                               <div key={monthKey} className={`${styles.month} w-1/3 bg-[white]/[0]`}>
                                 {/* <div className={`h-full w-[16%] bg-[red]/[0.1] ${styles.month_title}`}> */}
@@ -1173,22 +1431,40 @@ const BusinessCalendarModalMemo = () => {
                                         monthColHeaderIndex.toString();
                                       const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
                                       const dayName = dayNames[day % 7];
+                                      // 休日
+                                      // console.log(
+                                      //   "userProfileState.customer_closing_days",
+                                      //   userProfileState.customer_closing_days,
+                                      //   "day",
+                                      //   day,
+                                      //   "day % 7",
+                                      //   day % 7
+                                      // );
+                                      let isClosed = false;
+                                      if (
+                                        !!closingDaysArraySelectedYear.length &&
+                                        closingDaysArraySelectedYear.includes(day % 7)
+                                      ) {
+                                        isClosed = true;
+                                      }
                                       return (
                                         <div
                                           role="gridcell"
                                           key={monthColumnHeaderIndexKey}
-                                          className={`${styles.month_grid_cell} flex-center`}
+                                          className={`${styles.month_grid_cell} ${styles.day_header} ${
+                                            isClosed ? `${styles.is_closed}` : ``
+                                          } flex-center`}
                                         >
                                           <span>{dayName}</span>
                                         </div>
                                       );
                                     })}
                                   </div>
-
+                                  {/* -------- １ヶ月間の日付 -------- */}
                                   <div role="grid" className={`${styles.month_date_container}`}>
                                     {/* {Array(31)
                                       .fill(null) */}
-                                    {formattedDaysArray.map((obj, monthCellIndex) => {
+                                    {formattedDaysArray.map((dateObj, monthCellIndex) => {
                                       const monthCellIndexKey =
                                         "month_grid_cell_date" +
                                         rowIndex.toString() +
@@ -1200,10 +1476,12 @@ const BusinessCalendarModalMemo = () => {
                                       let displayValue = null;
                                       // 締日
                                       let isFiscalEndDay = false;
-                                      if (obj !== null) {
-                                        if (!obj?.date) return;
+                                      // 休日
+                                      let isClosed = false;
+                                      if (dateObj !== null) {
+                                        if (!dateObj?.date) return;
 
-                                        const date = parseInt(obj.date.split("-")[2], 10);
+                                        const date = parseInt(dateObj.date.split("-")[2], 10);
                                         if (!isValidNumber(date)) return;
 
                                         displayValue = date;
@@ -1218,46 +1496,52 @@ const BusinessCalendarModalMemo = () => {
                                             console.log("❌締日取得エラー");
                                           }
                                         }
+                                        if (isValidNumber(dateObj.day_of_week)) {
+                                          // 休日 現在選択中の定休日の曜日リストに含まれているかどうか
+                                          // isClosed = [0, 6].includes(dateObj.day_of_week!);
+                                          // isClosed = closingDaysArraySelectedYear.includes(dateObj.day_of_week!);
+                                          isClosed = dateObj.status! === "closed";
+                                          // const isClosed = monthCellIndex % 5 === 0 || monthCellIndex % 6 === 0;
+                                        }
                                       }
+
                                       return (
                                         <div
                                           role="gridcell"
                                           key={monthCellIndexKey}
                                           className={`${styles.month_grid_cell} ${
                                             displayValue === null ? `` : `${styles.date}`
-                                          } flex-center`}
+                                          } ${isClosed ? `${styles.is_closed}` : ``} flex-center`}
                                           style={{
                                             ...(displayValue === null && {
                                               cursor: "default",
                                             }),
-                                            ...(isFiscalEndDay && {
-                                              width: "18px",
-                                              height: "18px",
-                                              maxWidth: "18px",
-                                              maxHeight: "18px",
-                                              minWidth: "18px",
-                                              minHeight: "18px",
-                                              borderRadius: "3px",
-                                              border: "1px solid var(--color-text-title)",
-                                            }),
+                                            // ...(isFiscalEndDay && {
+                                            //   width: "18px",
+                                            //   height: "18px",
+                                            //   maxWidth: "18px",
+                                            //   maxHeight: "18px",
+                                            //   minWidth: "18px",
+                                            //   minHeight: "18px",
+                                            //   borderRadius: "3px",
+                                            //   border: "1px solid #37352f",
+                                            // }),
                                           }}
                                         >
                                           <span
-                                            style={{
-                                              ...(isFiscalEndDay && {
-                                                width: "18px",
-                                                height: "18px",
-                                                maxWidth: "18px",
-                                                maxHeight: "18px",
-                                                minWidth: "18px",
-                                                minHeight: "18px",
-                                                lineHeight: "18px",
-                                                textAlign: "center",
-                                                // borderRadius: "3px",
-                                                // border: "1px solid var(--color-text-title)",
-                                                display: "inline-block",
-                                              }),
-                                            }}
+                                          // style={{
+                                          //   ...(isFiscalEndDay && {
+                                          //     width: "18px",
+                                          //     height: "18px",
+                                          //     maxWidth: "18px",
+                                          //     maxHeight: "18px",
+                                          //     minWidth: "18px",
+                                          //     minHeight: "18px",
+                                          //     lineHeight: "18px",
+                                          //     textAlign: "center",
+                                          //     display: "inline-block",
+                                          //   }),
+                                          // }}
                                           >
                                             {displayValue}
                                           </span>
@@ -1265,82 +1549,6 @@ const BusinessCalendarModalMemo = () => {
                                       );
                                     })}
                                   </div>
-
-                                  {/* {(rowIndex === 0 || rowIndex === 1) && (
-                                    <div role="grid" className={`${styles.month_date_container}`}>
-                                      {Array(31)
-                                        .fill(null)
-                                        .map((_, monthCellIndex) => {
-                                          const monthCellIndexKey =
-                                            "month_grid_cell_date" +
-                                            rowIndex.toString() +
-                                            colIndex.toString() +
-                                            monthCellIndex.toString();
-                                          let displayValue;
-                                          if (!displayValue) displayValue = monthCellIndex + 1;
-                                          if (typeof displayValue === "number" && displayValue > 31)
-                                            displayValue = null;
-
-                                          return (
-                                            <div
-                                              role="gridcell"
-                                              key={monthCellIndexKey}
-                                              className={`${styles.month_grid_cell} ${
-                                                displayValue === null ? `` : `${styles.date}`
-                                              } flex-center`}
-                                              style={{
-                                                ...(displayValue === null && {
-                                                  cursor: "default",
-                                                }),
-                                              }}
-                                            >
-                                              <span>{displayValue}</span>
-                                            </div>
-                                          );
-                                        })}
-                                    </div>
-                                  )} */}
-                                  {/* {(rowIndex === 2 || rowIndex === 4) && (
-                                    <div role="grid" className={`${styles.month_date_container}`}>
-                                      {Array(42)
-                                        .fill(null)
-                                        .map((_, monthCellIndex) => {
-                                          const monthCellIndexKey =
-                                            "month_grid_cell_date" +
-                                            rowIndex.toString() +
-                                            colIndex.toString() +
-                                            monthCellIndex.toString();
-                                          let displayValue;
-                                          if (!displayValue) displayValue = monthCellIndex + 1;
-                                          if (typeof displayValue === "number" && displayValue <= 6) {
-                                            displayValue = null;
-                                          } else {
-                                            displayValue -= 6;
-                                          }
-                                          if (typeof displayValue === "number" && displayValue > 31)
-                                            displayValue = null;
-
-                                          return (
-                                            <div
-                                              role="gridcell"
-                                              key={monthCellIndexKey}
-                                              className={`${styles.month_grid_cell} ${
-                                                displayValue === null ? `` : `${styles.date}`
-                                              } ${
-                                                displayValue && displayValue > 20 ? `${styles.out_of_fiscal_year}` : ``
-                                              } flex-center`}
-                                              style={{
-                                                ...(displayValue === null && {
-                                                  cursor: "default",
-                                                }),
-                                              }}
-                                            >
-                                              <span>{displayValue}</span>
-                                            </div>
-                                          );
-                                        })}
-                                    </div>
-                                  )} */}
                                 </div>
                               </div>
                             );
@@ -1349,42 +1557,47 @@ const BusinessCalendarModalMemo = () => {
                       );
                     })}
 
+                  <TestCalendar />
+
                   {!isSwitchYear && <YearSectionBlank />}
 
                   <div className={`${styles.summary_section} w-full bg-[yellow]/[0]`}>
-                    <div className={`min-h-[6px] w-full bg-[green]/[0]`}></div>
-                    <div className={`min-h-[3px] w-full bg-[red]/[0]`}></div>
-                    <div className={`flex-between min-h-[22px] w-full bg-[blue]/[0]`}>
+                    {/* <div className={`min-h-[6px] w-full bg-[green]/[0.3]`}></div> */}
+                    {/* <div className={`min-h-[3px] w-full bg-[red]/[0.3]`}></div> */}
+                    {/* <div className={`flex-between min-h-[22px] w-full bg-[blue]/[0.3]`}>
                       <div className="h-full min-w-[9px] bg-[white]/[0]"></div>
                       <div className={`flex h-full w-[23%] items-center text-[16px] font-bold`}>
                         <span>2023年度</span>
                       </div>
                       <div className={`flex h-full w-[77%] items-center text-[12px]`}></div>
                       <div className="h-full min-w-[6px] bg-[white]/[0]"></div>
-                    </div>
+                    </div> */}
                     {/* <div className={`min-h-[1px] w-full bg-[red]/[0]`}></div> */}
-                    <div className={`h-full w-full bg-[white]/[0]`}>
+                    <div className={`h-full w-full bg-[white]/[0.3]`}>
                       <AnnualMonthlyWorkingDaysRow />
                     </div>
                   </div>
                   <div className={`${styles.remarks_section} w-full bg-[green]/[0] font-bold`}>
-                    <div className={`min-h-[1px] w-full bg-[red]/[0]`}></div>
+                    {/* <div className={`min-h-[1px] w-full bg-[red]/[0.3]`}></div> */}
                     <div className={`flex-between h-[18px] w-full bg-[aqua]/[0]`}>
                       <div className="h-full min-w-[9px] bg-[white]/[0]"></div>
-                      <div className={`flex h-full w-[23%] items-center text-[12px]`}>
+                      <div className={`flex h-full w-[24%] items-center pl-[6px] text-[10px]`}>
                         <div
-                          className={`h-[16px] min-w-[16px] rounded-[3px] border-[1px] border-solid border-[var(--color-text-title)]`}
+                          className={`h-[14px] min-w-[14px] rounded-[3px] border-[1px] border-solid border-[#37352f]`}
                         ></div>
                         <div className={`h-full min-w-[2px]`}></div>
                         <span>決算上の締日</span>
                       </div>
-                      <div className={`flex h-full w-[77%] items-center text-[11px] font-bold tracking-[1px]`}>
+
+                      <div className={`h-full min-w-[4%]`}></div>
+
+                      <div className={`flex h-full w-[72%] items-center text-[10px] font-bold tracking-[1px]`}>
                         <p>※営業稼働日数は決算上の締日を基準とした稼働日数</p>
                       </div>
                       <div className="h-full min-w-[6px] bg-[white]/[0]"></div>
                     </div>
                     {/* <div className={`h-[18px] w-full bg-[yellow]/[0]`}></div> */}
-                    <div className={`min-h-[12px] w-full bg-[green]/[0]`}></div>
+                    {/* <div className={`min-h-[12px] w-full bg-[green]/[0.3]`}></div> */}
                   </div>
                   <div className={`${styles.bottom_margin} w-full bg-[red]/[0]`}></div>
                 </div>
@@ -1569,10 +1782,10 @@ const BusinessCalendarModalMemo = () => {
                 </li>
                 <li
                   className={`${styles.list}`}
-                  // onMouseEnter={(e) => {
-                  //   handleOpenPopupMenu({ e, title: "footnotes" });
-                  // }}
-                  // onMouseLeave={handleClosePopupMenu}
+                  onMouseEnter={(e) => {
+                    handleOpenPopupMenu({ e, title: "displayFiscalYear", displayX: "right" });
+                  }}
+                  onMouseLeave={handleClosePopupMenu}
                 >
                   <div className="pointer-events-none flex min-w-[110px] items-center">
                     <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
@@ -1620,10 +1833,10 @@ const BusinessCalendarModalMemo = () => {
                 </li> */}
                 <li
                   className={`${styles.list}`}
-                  // onMouseEnter={(e) => {
-                  //   handleOpenPopupMenu({ e, title: "footnotes" });
-                  // }}
-                  // onMouseLeave={handleClosePopupMenu}
+                  onMouseEnter={(e) => {
+                    handleOpenPopupMenu({ e, title: "applyClosingDays", displayX: "right" });
+                  }}
+                  onMouseLeave={handleClosePopupMenu}
                 >
                   <div className="pointer-events-none flex min-w-[110px] items-center">
                     <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
@@ -1636,8 +1849,9 @@ const BusinessCalendarModalMemo = () => {
                     <div
                       className={`transition-bg02 rounded-[8px] ${styles.edit_btn} ${styles.brand}`}
                       onClick={() => {
-                        // setEditedName(userProfileState?.profile_name ? userProfileState.profile_name : "");
-                        // setIsEditModal("footnotes");
+                        if (!selectedFiscalYearSetting) return alert("会計年度が選択されていません。");
+                        if (!userProfileState.customer_closing_days) return alert("定休日が設定されていません。");
+                        setShowConfirmApplyClosingDayModal("Insert");
                       }}
                     >
                       <span>適用</span>
@@ -1735,6 +1949,16 @@ const BusinessCalendarModalMemo = () => {
                 <p className="select-none whitespace-pre-wrap text-[12px]">
                   {openPopupMenu.title === "footnotes" &&
                     "見積書末尾に記載される脚注を自由に編集が可能です。デフォルトテキストで保存したデータはブラウザを更新しても内容が保存されるため、自チームで常に使用している脚注がある場合は一度設定することでそれ以降の入力不要となります。"}
+                  {openPopupMenu.title === "applyClosingDays" &&
+                    !!customerClosingDaysNameArray?.length &&
+                    `定休日は「${customerClosingDaysNameArray.join(
+                      ", "
+                    )}」で登録されています。これらを${selectedFiscalYearSetting}年度のカレンダーに休日として一括で適用します。`}
+                  {openPopupMenu.title === "applyClosingDays" &&
+                    !customerClosingDaysNameArray?.length &&
+                    `先に「会社・チーム」画面から定休日を登録しておくことで、選択中の会計年度のカレンダーに休日として一括で適用できます。`}
+                  {openPopupMenu.title === "displayFiscalYear" &&
+                    `選択中の会計年度の営業カレンダーを表示します。\n会計年度は2020年から当年度まで選択可能で、翌年度のカレンダーはお客様の決算日から現在の日付が3ヶ月を切ると表示、設定、編集が可能となります。`}
                 </p>
               </li>
             )}
@@ -1742,6 +1966,34 @@ const BusinessCalendarModalMemo = () => {
         </div>
       )}
       {/* 説明ポップアップ */}
+
+      {/* ============================== 定休日の適用の確認モーダル ============================== */}
+      {!!showConfirmApplyClosingDayModal && (
+        <ConfirmationModal
+          titleText={
+            showConfirmApplyClosingDayModal === "Update"
+              ? `定休日を変更してもよろしいですか？`
+              : `定休日を年間休日に追加してもよろしいですか？`
+          }
+          sectionP1="設定した休日に基づいてお客様の年間の営業稼働日数が算出され、年度・半期・四半期・月度ごとの各プロセスの正確なデータ分析が可能になります。"
+          sectionP2="※定休日は各会計年度で1ヶ月に1回のみ追加・変更可です。"
+          cancelText="戻る"
+          submitText={showConfirmApplyClosingDayModal === "Update" ? `変更する` : `追加する`}
+          clickEventClose={() => {
+            if (isLoadingApply) return;
+            setShowConfirmApplyClosingDayModal(null);
+          }}
+          clickEventSubmit={() => {
+            if (isLoadingApply) return;
+            handleApplyClosingDaysCalendar();
+          }}
+          isLoadingState={isLoadingApply}
+          buttonColor="brand"
+          zIndexOverlay="5000"
+          zIndex="5500"
+        />
+      )}
+      {/* ============================== 定休日の適用の確認モーダルここまで ============================== */}
     </>
   );
 };

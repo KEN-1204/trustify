@@ -90,10 +90,10 @@
   max-width: 2%; */
   /* min-width: 9.5px;
   max-width: 9.5px; */
-  /* min-width: 6px;
-  max-width: 6px; */
-  min-width: 5px;
-  max-width: 5px;
+  min-width: 6px;
+  max-width: 6px;
+  /* min-width: 5px;
+  max-width: 5px; */
   /* min-width: 4px;
   max-width: 4px; */
 }
@@ -119,10 +119,10 @@
   max-width: 2%; */
   /* min-width: 9.5px;
   max-width: 9.5px; */
-  /* min-width: 10px;
-  max-width: 10px; */
-  min-width: 11px;
-  max-width: 11px;
+  min-width: 10px;
+  max-width: 10px;
+  /* min-width: 11px;
+  max-width: 11px; */
   /* min-width: 12px;
   max-width: 12px; */
 }
@@ -131,50 +131,79 @@
 /* ---------------------------------- 🌟pdf5部構成(上下マージン含む)🌟 ---------------------------------- */
 .top_margin {
   /* 合計3% */
-  height: 3%;
+  /* height: 3%; */
+  /* height: 2%; */
+  height: 1%;
+  /* background-color: #ff000030; */
 }
 .year_section {
   /* 合計8% 年度セクションの行は２行 */
-  height: 4%;
-  max-height: 4%;
+  /* height: 4%;
+  max-height: 4%; */
+  height: 3%;
+  /* max-height: 3%; */
+  /* min-height: 24px;
+  max-height: 24px; */
+  min-height: 24px;
+  max-height: 24px;
   display: flex;
   align-items: center;
 }
 .monthly_row_section {
   /* 合計72% 月度セクションの行は4行 */
-  height: 18%;
+  /* height: 18%; */
+  /* min-height: 126px;
+  max-height: 126px; */
+  /* height: 17%; */
+  height: 16%;
+  /* min-height: 124px;
+  max-height: 124px; */
+  /* min-height: 122px;
+  max-height: 122px; */
+  min-height: 120px;
+  max-height: 120px;
+  /* min-height: 119px;
+  max-height: 119px; */
   display: flex;
   align-items: center;
   justify-content: space-between;
   /* margin-bottom: 6px; */
+  /* background-color: #00ff0030; */
 }
 .summary_section {
   /* 合計10% */
   /* height: 11%; */
-  height: 11%;
+  height: 6%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  /* background-color: #0066ff30; */
 }
 .remarks_section {
   /* 合計4% */
   /* height: 5%; */
-  height: 5%;
+  height: 2%;
   /* min-height: 39px;
   max-height: 39px; */
-  min-height: 33px;
-  max-height: 33px;
+  /* min-height: 33px;
+  max-height: 33px; */
+  /* min-height: 18px;
+  max-height: 18px; */
+  min-height: 14px;
+  max-height: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  /* background-color: #00ff00c0; */
 }
 .bottom_margin {
   /* 合計3% */
   /* height: 3%; */
   /* height: 2%; */
   height: 1%;
+  /* background-color: #ff0000c0; */
 }
 /* ---------------------------------- ✅pdf5部構成(上下マージン含む)✅ ---------------------------------- */
 
@@ -183,7 +212,7 @@
   height: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* justify-content: space-between; */
 }
 .monthly_row_section .month .month_title {
   font-weight: 800;
@@ -207,8 +236,16 @@
   grid-template-rows: repeat(7, 1fr);
   /* font-weight: 800; */
   font-size: 12px;
-  min-width: 133px;
-  max-width: 133px;
+  /* min-width: 133px;
+  max-width: 133px; */
+  /* min-width: 126px;
+  max-width: 126px;
+  min-height: 126px;
+  max-height: 126px; */
+  /* min-width: 119px;
+  max-width: 119px;
+  min-height: 119px;
+  max-height: 119px; */
 }
 .monthly_row_section .month .month_grid_container .month_row {
   display: grid;
@@ -222,14 +259,28 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
 }
+.monthly_row_section .month .month_grid_container .month_row .month_grid_cell.day_header,
 .monthly_row_section .month .month_grid_container .month_date_container .month_grid_cell {
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 17px;
+  max-width: 17px;
+  min-height: 17px;
+  max-height: 17px;
+}
+/* .monthly_row_section .month .month_grid_container .month_row .month_grid_cell.day_header, */
+.monthly_row_section .month .month_grid_container .month_date_container .month_grid_cell.date {
+  font-size: 11px;
 }
 .monthly_row_section .month .month_grid_container .month_date_container .month_grid_cell.date {
   border-radius: 50%;
   cursor: pointer;
+}
+.monthly_row_section .month .month_grid_container .month_date_container .month_grid_cell.date.is_closed,
+.monthly_row_section .month .month_grid_container .month_row .month_grid_cell.day_header.is_closed {
+  /* color: #ff0050; */
+  color: #ff3b5b;
 }
 .monthly_row_section .month .month_grid_container .month_date_container .month_grid_cell.date:hover {
   border-radius: 50%;

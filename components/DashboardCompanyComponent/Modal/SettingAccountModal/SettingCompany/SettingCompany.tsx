@@ -172,6 +172,7 @@ const SettingCompanyMemo = () => {
   const isReadyCalendarForCBRef = useRef(true);
 
   useEffect(() => {
+    if (!annualMonthlyClosingDays?.getTime) return;
     console.log("💡💡💡💡💡💡再フェッチを確認");
     if (prevFetchTimeAnnualClosing === (annualMonthlyClosingDays?.getTime ?? null)) return;
     // 取得したタイムスタンプが変更されたら各カレンダーuseQueryのisReadyをtrueに変更する
@@ -180,6 +181,12 @@ const SettingCompanyMemo = () => {
     // フェッチした時間を更新
     console.log("🔥🔥🔥🔥🔥営業カレンダーを再生成");
     setPrevFetchTimeAnnualClosing(annualMonthlyClosingDays?.getTime ?? null);
+
+    // 年間休日数が変更されると営業稼働日数が変わるのでfiscal_baseのみinvalidate
+    const resetQueryCalendars = async () => {
+      await queryClient.invalidateQueries({ queryKey: ["calendar_for_fiscal_base"] });
+      // await queryClient.invalidateQueries({ queryKey: ["calendar_for_calendar_base"] });
+    };
   }, [annualMonthlyClosingDays?.getTime]);
 
   // 🌟useQuery 顧客の会計月度ごとの営業日も追加した会計年度カレンダーの完全リスト🌟
@@ -193,7 +200,7 @@ const SettingCompanyMemo = () => {
     annualMonthlyClosingDays: annualMonthlyClosingDays
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
-    isReady: isReadyCalendarForFBRef.current,
+    isReady: isReadyCalendarForFBRef.current && !isLoadingAnnualMonthlyClosingDays,
   });
   // const [calendarForFiscalBase, setCalendarForFiscalBase] = useState([]);
 
@@ -208,7 +215,7 @@ const SettingCompanyMemo = () => {
     annualMonthlyClosingDays: annualMonthlyClosingDays
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
-    isReady: isReadyCalendarForCBRef.current,
+    isReady: isReadyCalendarForCBRef.current && !isLoadingAnnualMonthlyClosingDays,
   });
 
   // 年間休業日日数
@@ -1414,6 +1421,7 @@ const SettingCompanyMemo = () => {
                     setStartDate={setEditedFiscalEndMonth}
                     required={true}
                     minHeight="min-h-[40px]"
+                    fontSize="!text-[16px]"
                   />
                 </div>
                 {/* DatePicker ver */}
@@ -4133,7 +4141,7 @@ const SettingCompanyMemo = () => {
         />
       )}
       {/* ============================== チームから削除の確認モーダルここまで ============================== */}
-      {/* ============================== チームから削除の確認モーダル ============================== */}
+      {/* ============================== 定休日の適用の確認モーダル ============================== */}
       {!!showConfirmApplyClosingDayModal && (
         <ConfirmationModal
           titleText={
@@ -4155,7 +4163,7 @@ const SettingCompanyMemo = () => {
           buttonColor="brand"
         />
       )}
-      {/* ============================== チームから削除の確認モーダルここまで ============================== */}
+      {/* ============================== 定休日の適用の確認モーダルここまで ============================== */}
       {/* 右側メインエリア 会社・チーム ここまで */}
     </>
   );
