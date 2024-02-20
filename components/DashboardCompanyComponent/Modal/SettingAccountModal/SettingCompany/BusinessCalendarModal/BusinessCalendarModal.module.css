@@ -289,6 +289,7 @@
 }
 .monthly_row_section .month .month_grid_container .month_date_container .month_grid_cell.out_of_fiscal_year {
   color: #ccc;
+  pointer-events: none;
   /* border-right: 1px solid #ccc;
   border-bottom: 1px solid #ccc; */
 }

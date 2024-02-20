@@ -2695,6 +2695,9 @@ textarea {
 .react-datepicker__tab-loop {
   z-index: 3000;
 }
+.react-datepicker-popper {
+  z-index: 20000 !important;
+}
 .react-datepicker__input-container input.active-color-placeholder::placeholder {
   color: var(--color-text-title);
   /* font-size: 14px; */

@@ -51,6 +51,7 @@ import { useQueryCalendarForCalendarBase } from "@/hooks/useQueryCalendarForCale
 import { formatDateToYYYYMMDD } from "@/utils/Helpers/formatDateLocalToYYYYMMDD";
 import { calculateCurrentFiscalYear } from "@/utils/Helpers/calculateCurrentFiscalYear";
 import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurrentFiscalYearEndDate";
+import { GrPowerReset } from "react-icons/gr";
 
 const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Stu"];
 const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
@@ -122,7 +123,17 @@ const SettingCompanyMemo = () => {
   //   : null;
   const fiscalYearEndDate = calculateCurrentFiscalYearEndDate(userProfileState?.customer_fiscal_end_month ?? null);
   // 期首Date
-  const fiscalYearStartDate = calculateFiscalYearStart(userProfileState?.customer_fiscal_end_month ?? null);
+  const fiscalYearStartDate = calculateFiscalYearStart({
+    fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+  });
+  console.log(
+    "userProfileState?.customer_fiscal_end_month",
+    userProfileState?.customer_fiscal_end_month,
+    "fiscalYearEndDate",
+    fiscalYearEndDate,
+    "fiscalYearStartDate",
+    fiscalYearStartDate
+  );
 
   // new Date(fiscalYearEndDate.getFullYear(), fiscalYearEndDate.getMonth() + 1, 0).getDate()でその月の末日を取得
   const isRequiredInputFiscalStartEndDate =
@@ -160,33 +171,29 @@ const SettingCompanyMemo = () => {
     error: errorAnnualClosingDays,
   } = useQueryAnnualFiscalMonthClosingDays({
     customerId: userProfileState?.company_id ?? null,
-    selectedYear: initialQueryYear,
+    selectedYear: selectedFiscalYear ?? initialQueryYear,
     fiscalYearEnd: userProfileState?.customer_fiscal_end_month,
     isRequiredInputFiscalStartEndDate: isRequiredInputFiscalStartEndDate ?? false,
     customInputArray: isRequiredInputFiscalStartEndDate ? fiscalMonthStartEndInputArray : null,
-    isReady: isReadyClosingDays,
   });
 
   const [prevFetchTimeAnnualClosing, setPrevFetchTimeAnnualClosing] = useState<number | null>(null);
-  const isReadyCalendarForFBRef = useRef(true);
-  const isReadyCalendarForCBRef = useRef(true);
 
   useEffect(() => {
     if (!annualMonthlyClosingDays?.getTime) return;
+    if (prevFetchTimeAnnualClosing === annualMonthlyClosingDays.getTime) return;
     console.log("💡💡💡💡💡💡再フェッチを確認");
-    if (prevFetchTimeAnnualClosing === (annualMonthlyClosingDays?.getTime ?? null)) return;
-    // 取得したタイムスタンプが変更されたら各カレンダーuseQueryのisReadyをtrueに変更する
-    isReadyCalendarForFBRef.current = true;
-    isReadyCalendarForCBRef.current = true;
+
     // フェッチした時間を更新
     console.log("🔥🔥🔥🔥🔥営業カレンダーを再生成");
-    setPrevFetchTimeAnnualClosing(annualMonthlyClosingDays?.getTime ?? null);
+    setPrevFetchTimeAnnualClosing(annualMonthlyClosingDays.getTime);
 
     // 年間休日数が変更されると営業稼働日数が変わるのでfiscal_baseのみinvalidate
     const resetQueryCalendars = async () => {
+      await queryClient.invalidateQueries({ queryKey: ["calendar_for_calendar_base"] });
       await queryClient.invalidateQueries({ queryKey: ["calendar_for_fiscal_base"] });
-      // await queryClient.invalidateQueries({ queryKey: ["calendar_for_calendar_base"] });
     };
+    resetQueryCalendars();
   }, [annualMonthlyClosingDays?.getTime]);
 
   // 🌟useQuery 顧客の会計月度ごとの営業日も追加した会計年度カレンダーの完全リスト🌟
@@ -200,9 +207,8 @@ const SettingCompanyMemo = () => {
     annualMonthlyClosingDays: annualMonthlyClosingDays
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
-    isReady: isReadyCalendarForFBRef.current && !isLoadingAnnualMonthlyClosingDays,
+    isReady: !isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
   });
-  // const [calendarForFiscalBase, setCalendarForFiscalBase] = useState([]);
 
   // 🌟useQuery カレンダーベースの営業日も追加した完全リスト🌟
   const {
@@ -215,7 +221,7 @@ const SettingCompanyMemo = () => {
     annualMonthlyClosingDays: annualMonthlyClosingDays
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
-    isReady: isReadyCalendarForCBRef.current && !isLoadingAnnualMonthlyClosingDays,
+    isReady: isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
   });
 
   // 年間休業日日数
@@ -224,18 +230,6 @@ const SettingCompanyMemo = () => {
   // const annualWorkingDaysCount = 365 - annualClosingDaysCount;
   const annualWorkingDaysCount =
     calendarForFiscalBase?.daysCountInYear ?? getDaysInYear(selectedFiscalYear ?? new Date().getFullYear());
-  // 年間の営業カレンダーの月度配列 開始日を期首に設定
-  // const getAnnualFiscalMonthsArray = () => {
-  //   if (!fiscalYearStartDate || !calendarForCalendarBase) return Array(13).fill(null);
-  //   return calendarForCalendarBase.map((obj) => obj.fiscalYearMonth.split("-")[1]);
-  // }
-  // // 年間の営業カレンダーの月度配列 開始日を期首に設定
-  // const getAnnualEachMonthClosingDaysArray = () => {
-  //   if (!fiscalYearStartDate || !calendarForFiscalBase || !calendarForCalendarBase) return Array(13).fill(null);
-  //   if (!calendarForFiscalBase && calendarForCalendarBase) return calendarForCalendarBase.map(obj => obj.allDays);
-  //   return calendarForFiscalBase.map((obj) => obj.allDays);
-
-  // }
 
   // 規模
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
@@ -678,28 +672,23 @@ const SettingCompanyMemo = () => {
     );
     console.log("left", rowRef.current.scrollLeft);
     if (rowRef.current.scrollWidth <= rowContainer.current.clientWidth) {
-      console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥");
       rowContainer.current.classList.add(`${styles.inactive}`);
       arrowIconAreaLeft.current.style.opacity = "0";
       arrowIconAreaLeft.current.style.pointerEvents = "none";
       arrowIconAreaRight.current.style.opacity = "0";
       arrowIconAreaRight.current.style.pointerEvents = "none";
     } else if (rowRef.current.scrollWidth > rowContainer.current.clientWidth) {
-      console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅");
       rowContainer.current.classList.remove(`${styles.inactive}`);
       let maxScrollableWidth = rowRef.current.scrollWidth - rowRef.current.clientWidth;
       if (rowRef.current.scrollLeft === 0) {
-        console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅左端なら");
         // 左端なら
         arrowIconAreaRight.current.style.opacity = "1";
         arrowIconAreaRight.current.style.pointerEvents = "auto";
       } else if (rowRef.current.scrollLeft === maxScrollableWidth) {
-        console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅右端なら");
         // 右端なら
         arrowIconAreaLeft.current.style.opacity = "1";
         arrowIconAreaLeft.current.style.pointerEvents = "auto";
       } else {
-        console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅右端なら");
         // 真ん中なら
         arrowIconAreaRight.current.style.opacity = "1";
         arrowIconAreaRight.current.style.pointerEvents = "auto";
@@ -740,14 +729,7 @@ const SettingCompanyMemo = () => {
             Math.round(maxScrollableWidth) > Math.round(scrollLeftAfterEnd) ? "1" : "0";
           arrowIconAreaRight.current.style.pointerEvents =
             Math.round(maxScrollableWidth) > Math.round(scrollLeftAfterEnd) ? "auto" : "none";
-          console.log(
-            "scrollLeftAfterEnd",
-            scrollLeftAfterEnd,
-            "maxScrollableWidth",
-            maxScrollableWidth,
-            "maxScrollableWidth > scrollLeftAfterEnd ",
-            maxScrollableWidth > scrollLeftAfterEnd
-          );
+
           setIsMoved(false);
         }
         // }, 500);
@@ -805,28 +787,23 @@ const SettingCompanyMemo = () => {
     );
     console.log("left", rowUnitRef.current.scrollLeft);
     if (rowUnitRef.current.scrollWidth <= rowUnitContainer.current.clientWidth) {
-      console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥Unit");
       rowUnitContainer.current.classList.add(`${styles.inactive}`);
       arrowIconUnitAreaLeft.current.style.opacity = "0";
       arrowIconUnitAreaLeft.current.style.pointerEvents = "none";
       arrowIconUnitAreaRight.current.style.opacity = "0";
       arrowIconUnitAreaRight.current.style.pointerEvents = "none";
     } else if (rowUnitRef.current.scrollWidth > rowUnitContainer.current.clientWidth) {
-      console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅Unit");
       rowUnitContainer.current.classList.remove(`${styles.inactive}`);
       let maxScrollableWidth = rowUnitRef.current.scrollWidth - rowUnitRef.current.clientWidth;
       if (rowUnitRef.current.scrollLeft === 0) {
-        console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅左端ならUnit");
         // 左端なら
         arrowIconUnitAreaRight.current.style.opacity = "1";
         arrowIconUnitAreaRight.current.style.pointerEvents = "auto";
       } else if (rowUnitRef.current.scrollLeft === maxScrollableWidth) {
-        console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅右端ならUnit");
         // 右端なら
         arrowIconUnitAreaLeft.current.style.opacity = "1";
         arrowIconUnitAreaLeft.current.style.pointerEvents = "auto";
       } else {
-        console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅右端ならUnit");
         // 真ん中なら
         arrowIconUnitAreaRight.current.style.opacity = "1";
         arrowIconUnitAreaRight.current.style.pointerEvents = "auto";
@@ -911,28 +888,23 @@ const SettingCompanyMemo = () => {
     );
     console.log("left", rowOfficeRef.current.scrollLeft);
     if (rowOfficeRef.current.scrollWidth <= rowOfficeContainer.current.clientWidth) {
-      console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥");
       rowOfficeContainer.current.classList.add(`${styles.inactive}`);
       arrowIconOfficeAreaLeft.current.style.opacity = "0";
       arrowIconOfficeAreaLeft.current.style.pointerEvents = "none";
       arrowIconOfficeAreaRight.current.style.opacity = "0";
       arrowIconOfficeAreaRight.current.style.pointerEvents = "none";
     } else if (rowOfficeRef.current.scrollWidth > rowOfficeContainer.current.clientWidth) {
-      console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅Office");
       rowOfficeContainer.current.classList.remove(`${styles.inactive}`);
       let maxScrollableWidth = rowOfficeRef.current.scrollWidth - rowOfficeRef.current.clientWidth;
       if (rowOfficeRef.current.scrollLeft === 0) {
-        console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅左端ならOffice");
         // 左端なら
         arrowIconOfficeAreaRight.current.style.opacity = "1";
         arrowIconOfficeAreaRight.current.style.pointerEvents = "auto";
       } else if (rowOfficeRef.current.scrollLeft === maxScrollableWidth) {
-        console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅右端ならOffice");
         // 右端なら
         arrowIconOfficeAreaLeft.current.style.opacity = "1";
         arrowIconOfficeAreaLeft.current.style.pointerEvents = "auto";
       } else {
-        console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅✅✅右端ならOffice");
         // 真ん中なら
         arrowIconOfficeAreaRight.current.style.opacity = "1";
         arrowIconOfficeAreaRight.current.style.pointerEvents = "auto";
@@ -1079,7 +1051,9 @@ const SettingCompanyMemo = () => {
     // customer_business_calendarsテーブル現在の会計年度 １年間INSERTした後の1年後に再度自動的にINSERTするようにスケジュールが必要
     if (showConfirmApplyClosingDayModal === "Insert") {
       // 決算日の翌日の期首のDateオブジェクトを生成
-      const fiscalYearStartDate = calculateFiscalYearStart(userProfileState.customer_fiscal_end_month);
+      const fiscalYearStartDate = calculateFiscalYearStart({
+        fiscalYearEnd: userProfileState.customer_fiscal_end_month,
+      });
       // 期首から来期の期首の前日までの定休日となる日付リストを生成(バルクインサート用) DATE[]
       const closedDaysArrayForBulkInsert = generateClosedDaysList(fiscalYearStartDate, editedClosingDays);
 
@@ -1098,18 +1072,8 @@ const SettingCompanyMemo = () => {
 
         console.log("✅営業カレンダーのバルクインサートと会社テーブルの定休日リストのUPDATE成功");
 
-        // 先に営業カレンダーのFB, CB共にisReadyをfalseにして再フェッチを防ぐ
-        isReadyCalendarForFBRef.current = false;
-        isReadyCalendarForCBRef.current = false;
-
         // 営業カレンダーのuseQueryのキャッシュをinvalidate
         await queryClient.invalidateQueries({ queryKey: ["annual_fiscal_month_closing_days"] });
-
-        // 新たに休業日の取得が終わったころ
-        // setTimeout(async () => {
-        //   await queryClient.invalidateQueries({ queryKey: ["calendar_for_fiscal_base"] });
-        //   await queryClient.invalidateQueries({ queryKey: ["calendar_for_calendar_base"] });
-        // }, 1500);
 
         // ユーザー情報のZustandから定休日リストのみ部分的に更新
         // setUserProfileState({ ...userProfileState, customer_closing_days: editedClosingDays });
@@ -1480,6 +1444,10 @@ const SettingCompanyMemo = () => {
                           ? companyData.customer_fiscal_end_month
                           : null,
                       });
+
+                      // 年間休日のキャッシュをinvalidate
+                      await queryClient.invalidateQueries({ queryKey: ["annual_fiscal_month_closing_days"] });
+
                       setLoadingGlobalState(false);
                       setEditFiscalEndMonthMode(false);
                       toast.success("決算日の更新が完了しました!");
@@ -3097,6 +3065,32 @@ const SettingCompanyMemo = () => {
                   <span>未設定</span>
                 )}
               </div>
+
+              <div
+                className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03`}
+                // onMouseEnter={(e) => {
+                //   // if (isOpenDropdownMenuFilterProducts) return;
+                //   handleOpenTooltip({
+                //     e: e,
+                //     display: "top",
+                //     content: "選択中のメンバーをリセット",
+                //     // content2: "フィルターの切り替えが可能です。",
+                //     // marginTop: 57,
+                //     // marginTop: 38,
+                //     marginTop: 12,
+                //     itemsPosition: "center",
+                //     whiteSpace: "nowrap",
+                //   });
+                // }}
+                // onMouseLeave={() => {
+                //   if (hoveredItemPosSideTable) handleCloseTooltip();
+                // }}
+                onClick={async () => {
+                  await queryClient.invalidateQueries(["annual_fiscal_month_closing_days"]);
+                }}
+              >
+                <GrPowerReset />
+              </div>
             </div>
 
             <div className={`mt-[6px] flex h-full min-h-[104px] w-full select-none items-center justify-between`}>
@@ -3135,11 +3129,11 @@ const SettingCompanyMemo = () => {
                         if (index !== 0) {
                           if (
                             fiscalYearStartDate &&
-                            calendarForCalendarBase &&
-                            calendarForCalendarBase.completeAnnualFiscalCalendar?.length > 0
+                            calendarForFiscalBase &&
+                            calendarForFiscalBase.completeAnnualFiscalCalendar?.length > 0
                           ) {
                             displayValue =
-                              calendarForCalendarBase.completeAnnualFiscalCalendar[index - 1].fiscalYearMonth.split(
+                              calendarForFiscalBase.completeAnnualFiscalCalendar[index - 1].fiscalYearMonth.split(
                                 "-"
                               )[1];
                           }
@@ -3176,9 +3170,9 @@ const SettingCompanyMemo = () => {
                         let workingDays = index;
                         let monthDaysCount = 0;
                         if (index !== 0) {
-                          if (calendarForCalendarBase) {
+                          if (calendarForFiscalBase) {
                             monthDaysCount =
-                              calendarForCalendarBase.completeAnnualFiscalCalendar[index - 1].monthlyDays.length;
+                              calendarForFiscalBase.completeAnnualFiscalCalendar[index - 1].monthlyDays.length;
                           }
                           if (calendarForFiscalBase) {
                             workingDays =

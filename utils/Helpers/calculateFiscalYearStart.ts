@@ -1,7 +1,11 @@
 import { calculateCurrentFiscalYear } from "./calculateCurrentFiscalYear";
 
 // 期首の日付を決算日から計算する関数
-export const calculateFiscalYearStart = (fiscalYearEnd: string | null) => {
+type Props = {
+  fiscalYearEnd: Date | string | null;
+  selectedYear?: number;
+};
+export const calculateFiscalYearStart = ({ fiscalYearEnd, selectedYear }: Props) => {
   if (!fiscalYearEnd) return null;
   // 決算日を設定するときにクライアントサイドで「fiscalEndDate.setHours(23, 59, 59, 999);」のようにミリ秒単位で決算日の終わりを設定してからtoISOStringでUTC時間文字列に変換してデータベースに保存しているため、
   // Supabaseデータベースから取得した決算日のUTC時間文字列を使って翌日の期首のDateオブジェクトを生成するときには、時間情報は全て0にリセットして期首のDateオブジェクトを生成する
@@ -12,7 +16,7 @@ export const calculateFiscalYearStart = (fiscalYearEnd: string | null) => {
   // 23:59:59:999の時間情報を0:0:0:000にリセット
   const fiscalYearEndDateOnly = new Date(
     // fiscalYearEndDateObj.getFullYear(),
-    currentFiscalYear,
+    selectedYear ? selectedYear : currentFiscalYear,
     fiscalYearEndDateObj.getMonth(),
     fiscalYearEndDateObj.getDate()
   );

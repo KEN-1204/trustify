@@ -131,7 +131,18 @@ const getClosingDaysNameString = (closingDaysList: number[]) => {
 };
 
 // 月の始まりの1日の曜日に応じて１ヶ月の配列の先頭にnullを追加する関数
-const addNullMonthArray = (dayOfWeek: number, array: any[]): (CustomerBusinessCalendars | null)[] => {
+// const addNullMonthArray = (dayOfWeek: number, array: any[]): (CustomerBusinessCalendars | null)[] => {
+const addNullMonthArray = (
+  dayOfWeek: number,
+  array: any[]
+): ({
+  date: string;
+  day_of_week: number;
+  status: string | null;
+  timestamp: number;
+  isFiscalMonthEnd: boolean;
+  isOutOfFiscalYear: boolean;
+} | null)[] => {
   //  日曜日の場合、6このnullを追加(月曜始まりのカレンダー)
   // それ以外の場合、dayOfWeek - 1 個のnullを追加 (月曜日は追加しない実装になってる)
   const nullCount = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
@@ -187,7 +198,9 @@ const BusinessCalendarModalMemo = () => {
   // 決算日Date
   const fiscalYearEndDate = calculateCurrentFiscalYearEndDate(userProfileState?.customer_fiscal_end_month ?? null);
   // 期首Date
-  const fiscalYearStartDate = calculateFiscalYearStart(userProfileState?.customer_fiscal_end_month ?? null);
+  const fiscalYearStartDate = calculateFiscalYearStart({
+    fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+  });
   // 選択年オプション(現在の年から3年遡る, 1年後は決算日まで３ヶ月を切った場合は選択肢に入れる)
   const [optionsFiscalYear, setOptionsFiscalYear] = useState<{ label: string; value: number }[]>([]);
   // 年度別の定休日適用ステータス配列
@@ -313,30 +326,24 @@ const BusinessCalendarModalMemo = () => {
     fiscalYearEnd: userProfileState?.customer_fiscal_end_month,
     isRequiredInputFiscalStartEndDate: isRequiredInputFiscalStartEndDate ?? false,
     customInputArray: isRequiredInputFiscalStartEndDate ? fiscalMonthStartEndInputArray : null,
-    isReady: isReadyClosingDays,
   });
 
   // 一度取得した年間の休業日リストを保持しておき、変更されたかチェックできるようにする
   const [prevFetchTimeAnnualClosing, setPrevFetchTimeAnnualClosing] = useState<number | null>(null);
-  // 年間の休業日が変更されたら、両カレンダーをisReadyをtrueにしてinvalidateにしてから再度新しく生成する
-  const isReadyCalendarForFBRef = useRef(true);
-  const isReadyCalendarForCBRef = useRef(true);
 
   useEffect(() => {
     if (!annualMonthlyClosingDays?.getTime) return;
+    if (prevFetchTimeAnnualClosing === annualMonthlyClosingDays?.getTime) return;
     console.log("💡💡💡💡💡💡年間休日リストの再フェッチを確認");
-    if (prevFetchTimeAnnualClosing === (annualMonthlyClosingDays?.getTime ?? null)) return;
-    // 取得したタイムスタンプが変更されたら各カレンダーuseQueryのisReadyをtrueに変更する
-    isReadyCalendarForFBRef.current = true;
-    isReadyCalendarForCBRef.current = true;
+
     // フェッチした時間を更新
     console.log("🔥🔥🔥🔥🔥営業カレンダーを再生成");
-    setPrevFetchTimeAnnualClosing(annualMonthlyClosingDays?.getTime ?? null);
+    setPrevFetchTimeAnnualClosing(annualMonthlyClosingDays.getTime);
 
     // 年間休日数が変更されると営業稼働日数が変わるのでfiscal_baseのみinvalidate
     const resetQueryCalendars = async () => {
+      await queryClient.invalidateQueries({ queryKey: ["calendar_for_calendar_base"] });
       await queryClient.invalidateQueries({ queryKey: ["calendar_for_fiscal_base"] });
-      // await queryClient.invalidateQueries({ queryKey: ["calendar_for_calendar_base"] });
     };
     resetQueryCalendars();
   }, [annualMonthlyClosingDays?.getTime]);
@@ -352,8 +359,7 @@ const BusinessCalendarModalMemo = () => {
     annualMonthlyClosingDays: annualMonthlyClosingDays
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
-    // annualMonthlyClosingDays: annualMonthlyClosingDays ? annualMonthlyClosingDays : null,
-    isReady: isReadyCalendarForFBRef.current && !isLoadingAnnualMonthlyClosingDays,
+    isReady: !isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
   });
 
   // 🌟useQuery カレンダーベースの営業日も追加した完全リスト🌟
@@ -367,8 +373,7 @@ const BusinessCalendarModalMemo = () => {
     annualMonthlyClosingDays: annualMonthlyClosingDays
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
-    // annualMonthlyClosingDays: annualMonthlyClosingDays ? annualMonthlyClosingDays : null,
-    isReady: isReadyCalendarForCBRef.current && !isLoadingAnnualMonthlyClosingDays,
+    isReady: !isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
   });
 
   // 年間休業日日数
@@ -376,29 +381,91 @@ const BusinessCalendarModalMemo = () => {
   // 年間営業稼働日数
   const annualWorkingDaysCount =
     calendarForFiscalBase?.daysCountInYear ?? getDaysInYear(selectedFiscalYearSetting ?? new Date().getFullYear());
+  // 会計期間の開始日と終了日 開始日タイムスタンプ
+  const fiscalStartDateTime: number | null = useMemo(() => {
+    if (!calendarForFiscalBase?.completeAnnualFiscalCalendar) return null;
+    const fiscalStartMonthDays = calendarForFiscalBase?.completeAnnualFiscalCalendar[0].monthlyDays;
+    const fiscalStartDate = fiscalStartMonthDays[0].date;
+    if (!fiscalStartDate) return null;
+    const fiscalStartDateTimestamp = new Date(fiscalStartDate).getTime();
+    console.log(
+      "会計期間の開始日と終了日 開始日",
+      "fiscalStartDate",
+      fiscalStartDate,
+      "fiscalStartDateTimestamp",
+      fiscalStartDateTimestamp
+    );
+    return fiscalStartDateTimestamp;
+  }, [calendarForFiscalBase, userProfileState.customer_fiscal_end_month]);
+  // 会計期間の開始日と終了日 終了日タイムスタンプ
+  // const fiscalEndDateTime: number | null = useMemo(() => {
+  //   if (!calendarForFiscalBase?.completeAnnualFiscalCalendar) return null;
+  //   const annualMonthlyDays = calendarForFiscalBase?.completeAnnualFiscalCalendar;
+  //   const fiscalEndMonthDays = annualMonthlyDays[annualMonthlyDays?.length - 1].monthlyDays;
+  //   const fiscalEndDate = fiscalEndMonthDays[fiscalEndMonthDays.length - 1].date;
+  //   if (!fiscalEndDate) return null;
+  //   const fiscalEndDateTimestamp = new Date(fiscalEndDate).getTime();
+  //   console.log(
+  //     "会計期間の開始日と終了日 終了日",
+  //     "fiscalEndDate",
+  //     fiscalEndDate,
+  //     "fiscalEndDateTimestamp",
+  //     fiscalEndDateTimestamp
+  //   );
+  //   return fiscalEndDateTimestamp;
+  // }, [calendarForFiscalBase, userProfileState?.customer_fiscal_end_month]);
 
-  // カレンダーリストを3つの要素をもつ4つの配列に分割する
-  type SplitMonthsArray =
+  // カレンダーリストを3つの要素をもつ4つの配列に分割する 4行3列
+  type SplitMonthsArrayCB =
+    | {
+        fiscalYearMonth: string;
+        monthlyDays: {
+          date: string;
+          day_of_week: number;
+          status: string | null;
+          timestamp: number;
+          isFiscalMonthEnd: boolean;
+          isOutOfFiscalYear: boolean;
+        }[];
+      }[][]
+    | null;
+  type SplitMonthsArrayFB =
     | {
         fiscalYearMonth: string;
         monthlyDays: CustomerBusinessCalendars[];
         monthlyWorkingDaysCount: number;
       }[][]
     | null;
-  const splitMonthsArrayForCB: SplitMonthsArray = useMemo(
-    () =>
-      !!calendarForCalendarBase?.completeAnnualFiscalCalendar?.length
-        ? splitArrayIntoChunks(calendarForCalendarBase?.completeAnnualFiscalCalendar, 3)
-        : null,
-    [calendarForCalendarBase?.completeAnnualFiscalCalendar]
-  );
-  const splitMonthsArrayForFB: SplitMonthsArray = useMemo(
-    () =>
-      !!calendarForFiscalBase?.completeAnnualFiscalCalendar?.length
-        ? splitArrayIntoChunks(calendarForFiscalBase?.completeAnnualFiscalCalendar, 3)
-        : null,
-    [calendarForFiscalBase?.completeAnnualFiscalCalendar]
-  );
+  const splitMonthsArrayForCB: SplitMonthsArrayCB = useMemo(() => {
+    const newSplitArray = !!calendarForCalendarBase?.completeAnnualFiscalCalendar?.length
+      ? splitArrayIntoChunks(calendarForCalendarBase?.completeAnnualFiscalCalendar, 3)
+      : null;
+    return newSplitArray;
+  }, [calendarForCalendarBase?.completeAnnualFiscalCalendar, userProfileState?.customer_fiscal_end_month]);
+
+  const splitMonthsArrayForFB: SplitMonthsArrayFB = useMemo(() => {
+    if (!calendarForFiscalBase?.completeAnnualFiscalCalendar?.length) return null;
+    if (!calendarForCalendarBase) return null;
+
+    // 12個の配列を15個に変換
+    let newArray15: ({
+      fiscalYearMonth: string;
+      monthlyDays: CustomerBusinessCalendars[];
+      monthlyWorkingDaysCount: number;
+    } | null)[] = [...calendarForFiscalBase?.completeAnnualFiscalCalendar];
+    // 会計期間の開始月とカレンダー上の開始月が一致しているか
+    if (calendarForCalendarBase.isSameStartMonthFiscalAndCalendar) {
+      // 一致している場合は末尾に３つnullを追加
+      newArray15 = [...newArray15, null, null, null];
+    } else {
+      // 一致していない場合は、先頭に1つnullと、末尾に２つnullを追加
+      newArray15 = [null, ...newArray15, null, null];
+    }
+    // 5行3列
+    const newSplitArray53 = splitArrayIntoChunks(newArray15, 3);
+
+    return newSplitArray53;
+  }, [calendarForFiscalBase?.completeAnnualFiscalCalendar, userProfileState?.customer_fiscal_end_month]);
 
   // 年が切り替わるインデックス(切り替わらない場合はnull)
   // const switchYearIndex =
@@ -408,18 +475,21 @@ const BusinessCalendarModalMemo = () => {
   const rowIndexOfSwitchYear = useMemo(() => {
     const index = splitMonthsArrayForFB?.findIndex((chunk) =>
       chunk.some((element) => {
+        if (element === null) return false;
         const year = parseInt(element.fiscalYearMonth.split("-")[0]); // 年を取得
         return year !== selectedFiscalYearSetting;
       })
     );
     return index !== -1 ? index : null;
-  }, [splitMonthsArrayForFB]);
+  }, [splitMonthsArrayForFB, userProfileState?.customer_fiscal_end_month]);
 
   // 年が切り替わるインデックスがチャンクの先頭、かつ、rowIndexが最初の行でない場合はtrue
-  const isSwitchYear = useMemo(() => {
+  const isSwitchYearColFirst = useMemo(() => {
     if (rowIndexOfSwitchYear && splitMonthsArrayForFB) {
-      const index = splitMonthsArrayForFB[rowIndexOfSwitchYear].findIndex((element) => {
+      const index = splitMonthsArrayForFB[rowIndexOfSwitchYear]?.findIndex((element) => {
+        if (element === null) return false;
         const year = parseInt(element.fiscalYearMonth.split("-")[0]);
+        // 2023-12から2024-1に年が切り替わり、かつ３列の先頭の位置だった場合はtrue
         if (year !== selectedFiscalYearSetting && rowIndexOfSwitchYear !== 0) {
           return true;
         } else {
@@ -430,35 +500,43 @@ const BusinessCalendarModalMemo = () => {
     } else {
       return false;
     }
-  }, [rowIndexOfSwitchYear]);
+  }, [rowIndexOfSwitchYear, userProfileState?.customer_fiscal_end_month]);
 
-  // 月度ごとの締日の日付を4行3列で作成
-  const fiscalEndDateArray: (number | null | undefined)[][] | null = useMemo(() => {
-    if (!splitMonthsArrayForFB) return null;
-    return splitMonthsArrayForFB.map((row) => {
-      return row.map((col) => {
-        if (!!col.monthlyDays.length) {
-          const value = col.monthlyDays[col.monthlyDays.length - 1].date?.split("-")[2] ?? null;
-          return value ? Number(value) : null;
-        }
-      });
-    });
-  }, [splitMonthsArrayForFB]);
+  // 月度ごとの締日の日付を4行3列で作成 => 5行3列
+  // const fiscalEndDateArray: (number | null | undefined)[][] | null = useMemo(() => {
+  //   if (!splitMonthsArrayForFB || !calendarForCalendarBase) return null;
+  //   const array53 = splitMonthsArrayForFB.map((row) => {
+  //     return row.map((col) => {
+  //       if (!col) return null;
+  //       if (!!col.monthlyDays.length) {
+  //         const value = col.monthlyDays[col.monthlyDays.length - 1].date?.split("-")[2] ?? null;
+  //         return value ? Number(value) : null;
+  //       }
+  //     });
+  //   });
+  //   return array53;
+  // }, [splitMonthsArrayForFB, userProfileState?.customer_fiscal_end_month]);
 
   console.log(
     "BusinessCalendarコンポーネント再レンダリング",
+    "userProfileState.customer_fiscal_end_month",
+    userProfileState.customer_fiscal_end_month,
     "annualMonthlyClosingDays",
     annualMonthlyClosingDays,
+    "calendarForCalendarBase",
+    calendarForCalendarBase,
+    "calendarForFiscalBase",
+    calendarForFiscalBase,
     "splitMonthsArrayForCB",
     splitMonthsArrayForCB,
     "splitMonthsArrayForFB",
     splitMonthsArrayForFB,
     "rowIndexOfSwitchYear",
     rowIndexOfSwitchYear,
-    "isSwitchYear",
-    isSwitchYear,
-    "fiscalEndDateArray",
-    fiscalEndDateArray
+    "isSwitchYearColFirst",
+    isSwitchYearColFirst
+    // "fiscalEndDateArray",
+    // fiscalEndDateArray,
   );
   // -------------------------- ✅useQuery✅ --------------------------
 
@@ -741,7 +819,9 @@ const BusinessCalendarModalMemo = () => {
     // customer_business_calendarsテーブル現在の会計年度 １年間INSERTした後の1年後に再度自動的にINSERTするようにスケジュールが必要
     if (showConfirmApplyClosingDayModal === "Insert") {
       // 決算日の翌日の期首のDateオブジェクトを生成
-      const fiscalYearStartDate = calculateFiscalYearStart(userProfileState.customer_fiscal_end_month);
+      const fiscalYearStartDate = calculateFiscalYearStart({
+        fiscalYearEnd: userProfileState.customer_fiscal_end_month,
+      });
       // 期首から来期の期首の前日までの定休日となる日付リストを生成(バルクインサート用) DATE[]
       const closedDaysArrayForBulkInsert = generateClosedDaysList(
         fiscalYearStartDate,
@@ -763,10 +843,6 @@ const BusinessCalendarModalMemo = () => {
         if (error) throw error;
 
         console.log("✅営業カレンダーのバルクインサートと会社テーブルの定休日リストのUPDATE成功");
-
-        // 先に営業カレンダーのFB, CB共にisReadyをfalseにして再フェッチを防ぐ
-        isReadyCalendarForFBRef.current = false;
-        isReadyCalendarForCBRef.current = false;
 
         // 営業カレンダーのuseQueryのキャッシュをinvalidate
         await queryClient.invalidateQueries({ queryKey: ["annual_fiscal_month_closing_days"] });
@@ -1016,7 +1092,7 @@ const BusinessCalendarModalMemo = () => {
     return (
       <div className={`${styles.year_section} w-full bg-[aqua]/[0]`}>
         <div className={`flex h-full w-[1%] bg-[green]/[0]`}></div>
-        {/* <div className={`flex h-full w-[13%] items-center bg-[red]/[0] text-[22px] font-bold leading-[22px]`}> */}
+        {/* <div className={`flex h-full w-[3px] bg-[green]/[0]`}></div> */}
         <div className={`flex h-full w-[12%] items-center bg-[red]/[0] text-[20px] font-bold leading-[22px]`}>
           <span className={``}>{year}</span>
         </div>
@@ -1033,15 +1109,15 @@ const BusinessCalendarModalMemo = () => {
     return (
       <div className={`${styles.year_section} w-full bg-[aqua]/[0]`}>
         <div className={`flex h-full w-[1%] bg-[green]/[0]`}></div>
+        {/* <div className={`flex h-full w-[3px] bg-[green]/[0]`}></div> */}
         <div
-          className={`flex h-full w-[28%] items-center space-x-[2px] bg-[red]/[0] text-[22px] font-bold leading-[22px]`}
+          className={`flex h-full w-[26%] items-center space-x-[2px] bg-[red]/[0] text-[20px] font-bold leading-[22px]`}
         >
           <span className={``}>{year}</span>
-          {/* <span className={``}>-</span> */}
           <span className={`h-[2px] w-[10px] bg-[var(--color-text-title)]`}></span>
           <span className={``}>{nextYear}</span>
         </div>
-        <div className={`flex h-full w-[72%] flex-col justify-end`}>
+        <div className={`flex h-full w-[74%] flex-col justify-end`}>
           <div className="h-[1px] w-full rounded-[6px] bg-[#37352f]"></div>
           <div className="h-[10px] w-full"></div>
         </div>
@@ -1125,11 +1201,11 @@ const BusinessCalendarModalMemo = () => {
                   if (index !== 0) {
                     if (
                       fiscalYearStartDate &&
-                      calendarForCalendarBase &&
-                      calendarForCalendarBase.completeAnnualFiscalCalendar?.length > 0
+                      calendarForFiscalBase &&
+                      calendarForFiscalBase.completeAnnualFiscalCalendar?.length > 0
                     ) {
                       displayValue =
-                        calendarForCalendarBase.completeAnnualFiscalCalendar[index - 1].fiscalYearMonth.split("-")[1];
+                        calendarForFiscalBase.completeAnnualFiscalCalendar[index - 1].fiscalYearMonth.split("-")[1];
                     }
                   }
                   return (
@@ -1162,9 +1238,8 @@ const BusinessCalendarModalMemo = () => {
                   let workingDays = index;
                   let monthDaysCount = 0;
                   if (index !== 0) {
-                    if (calendarForCalendarBase) {
-                      monthDaysCount =
-                        calendarForCalendarBase.completeAnnualFiscalCalendar[index - 1].monthlyDays.length;
+                    if (calendarForFiscalBase) {
+                      monthDaysCount = calendarForFiscalBase.completeAnnualFiscalCalendar[index - 1].monthlyDays.length;
                     }
                     if (calendarForFiscalBase) {
                       workingDays =
@@ -1339,18 +1414,23 @@ const BusinessCalendarModalMemo = () => {
 
                   <div className={`${styles.top_margin} w-full bg-[red]/[0]`}></div>
 
-                  {/* {isSwitchYear && <YearSection year={2023} />} */}
+                  {/* {isSwitchYearColFirst && <YearSection year={2023} />} */}
                   {/* 会計年度が2年に跨る場合 */}
-                  {isSwitchYear && <YearSection year={selectedFiscalYearSetting} />}
+                  {/* {isSwitchYearColFirst && <YearSection year={selectedFiscalYearSetting} />} */}
                   {/* 会計年度が単一の年のみ */}
-                  {!isSwitchYear && (
+                  {/* {!isSwitchYearColFirst && (
+                    <YearSectionDouble year={selectedFiscalYearSetting} nextYear={selectedFiscalYearSetting + 1} />
+                  )} */}
+                  {rowIndexOfSwitchYear !== 0 && <YearSection year={selectedFiscalYearSetting} />}
+                  {rowIndexOfSwitchYear === 0 && (
                     <YearSectionDouble year={selectedFiscalYearSetting} nextYear={selectedFiscalYearSetting + 1} />
                   )}
 
                   {/* <MonthlyRow monthlyRowKey="monthly_row_first" /> */}
 
                   {/* -------- 12ヶ月分の4行 + 年度区切り行(2年に跨がれば) -------- */}
-                  {Array(5)
+                  {/* {Array(5) */}
+                  {Array(6)
                     .fill(null)
                     .map((_, rowIndex) => {
                       const monthlyRowKey = "monthly_row" + rowIndex.toString();
@@ -1359,23 +1439,48 @@ const BusinessCalendarModalMemo = () => {
 
                       let monthRowIndex = rowIndex;
 
-                      if (isSwitchYear && rowIndex === rowIndexOfSwitchYear) {
-                        return <YearSection year={selectedFiscalYearSetting + 1} key={monthlyRowKey} />;
+                      // 先頭列に年の切り替わりがあり、先頭列にない場合は単一の年を返す
+                      if (isSwitchYearColFirst && rowIndex === rowIndexOfSwitchYear && rowIndexOfSwitchYear !== 0) {
+                        return <YearSection key={monthlyRowKey} year={selectedFiscalYearSetting + 1} />;
                       }
-                      if (isSwitchYear && rowIndexOfSwitchYear && rowIndex > rowIndexOfSwitchYear) {
+                      if (isSwitchYearColFirst && rowIndexOfSwitchYear && rowIndex > rowIndexOfSwitchYear) {
                         monthRowIndex -= 1;
                       }
 
-                      // console.log(
-                      //   "isSwitchYear",
-                      //   isSwitchYear,
-                      //   "rowIndex",
-                      //   rowIndex,
-                      //   "monthRowIndex",
-                      //   monthRowIndex,
-                      //   "splitMonthsArrayForCB[monthRowIndex]",
-                      //   splitMonthsArrayForCB[monthRowIndex]
-                      // );
+                      // 先頭列以外で年が切り替わる場合はダブル(先頭行に切り替わりがない場合)
+                      if (!isSwitchYearColFirst && rowIndexOfSwitchYear && rowIndex === rowIndexOfSwitchYear) {
+                        return (
+                          <YearSectionDouble
+                            key={monthlyRowKey}
+                            year={selectedFiscalYearSetting}
+                            nextYear={selectedFiscalYearSetting + 1}
+                          />
+                        );
+                      }
+                      if (!isSwitchYearColFirst && rowIndexOfSwitchYear && rowIndex > rowIndexOfSwitchYear) {
+                        // return <YearSectionBlank />;
+                        monthRowIndex -= 1;
+                      }
+                      // 最初の行に年の切り替わりがある場合は最後の行はundefinedになるのでblankを渡す
+                      if (rowIndexOfSwitchYear === 0 && rowIndex === 5) {
+                        return <YearSectionBlank key={monthlyRowKey} />;
+                      }
+                      // if (!isSwitchYearColFirst && rowIndexOfSwitchYear && rowIndex === 5) {
+                      //   // monthRowIndex -= 1;
+                      //   return;
+                      // }
+                      console.log(
+                        "isSwitchYearColFirst",
+                        isSwitchYearColFirst,
+                        "rowIndex",
+                        rowIndex,
+                        "monthRowIndex",
+                        monthRowIndex,
+                        "splitMonthsArrayForCB",
+                        splitMonthsArrayForCB,
+                        "splitMonthsArrayForCB[monthRowIndex]",
+                        splitMonthsArrayForCB[monthRowIndex]
+                      );
 
                       {
                         /* -------- ３ヶ月分の１行 -------- */
@@ -1478,6 +1583,8 @@ const BusinessCalendarModalMemo = () => {
                                       let isFiscalEndDay = false;
                                       // 休日
                                       let isClosed = false;
+                                      // 会計期間外
+                                      let isOutOfFiscalYear = false;
                                       if (dateObj !== null) {
                                         if (!dateObj?.date) return;
 
@@ -1486,16 +1593,16 @@ const BusinessCalendarModalMemo = () => {
 
                                         displayValue = date;
 
-                                        if (fiscalEndDateArray) {
-                                          try {
-                                            const fiscalEndDate = fiscalEndDateArray[monthRowIndex][colIndex];
-                                            if (fiscalEndDate && displayValue && fiscalEndDate === displayValue) {
-                                              isFiscalEndDay = true;
-                                            }
-                                          } catch (error: any) {
-                                            console.log("❌締日取得エラー");
-                                          }
+                                        // 締め日かどうかチェック
+                                        if (dateObj.isFiscalMonthEnd) {
+                                          isFiscalEndDay = true;
                                         }
+                                        // 会計期間かどうかチェック
+                                        if (dateObj.isOutOfFiscalYear) {
+                                          isOutOfFiscalYear = true;
+                                        }
+
+                                        // 休日かどうかチェック
                                         if (isValidNumber(dateObj.day_of_week)) {
                                           // 休日 現在選択中の定休日の曜日リストに含まれているかどうか
                                           // isClosed = [0, 6].includes(dateObj.day_of_week!);
@@ -1503,6 +1610,28 @@ const BusinessCalendarModalMemo = () => {
                                           isClosed = dateObj.status! === "closed";
                                           // const isClosed = monthCellIndex % 5 === 0 || monthCellIndex % 6 === 0;
                                         }
+                                        // 会計期間かどうかチェック
+                                        // if (fiscalStartDateTime && dateObj?.timestamp && fiscalEndDateTime) {
+                                        //   if (
+                                        //     dateObj.timestamp < fiscalStartDateTime ||
+                                        //     fiscalEndDateTime < dateObj.timestamp
+                                        //   ) {
+                                        //     isOutOfFiscalYear = true;
+                                        //   } else {
+                                        //     // 締め日かどうかチェック
+                                        //     // if (dateObj.)
+                                        //     // if (fiscalEndDateArray) {
+                                        //     //   try {
+                                        //     //     // const fiscalEndDate = fiscalEndDateArray[monthRowIndex][colIndex];
+                                        //     //     // if (fiscalEndDate && displayValue && fiscalEndDate === displayValue) {
+                                        //     //     //   isFiscalEndDay = true;
+                                        //     //     // }
+                                        //     //   } catch (error: any) {
+                                        //     //     console.log("❌締日取得エラー");
+                                        //     //   }
+                                        //     // }
+                                        //   }
+                                        // }
                                       }
 
                                       return (
@@ -1511,37 +1640,39 @@ const BusinessCalendarModalMemo = () => {
                                           key={monthCellIndexKey}
                                           className={`${styles.month_grid_cell} ${
                                             displayValue === null ? `` : `${styles.date}`
-                                          } ${isClosed ? `${styles.is_closed}` : ``} flex-center`}
+                                          } ${isClosed ? `${styles.is_closed}` : ``} ${
+                                            isOutOfFiscalYear ? `${styles.out_of_fiscal_year}` : ``
+                                          } flex-center`}
                                           style={{
                                             ...(displayValue === null && {
                                               cursor: "default",
                                             }),
-                                            // ...(isFiscalEndDay && {
-                                            //   width: "18px",
-                                            //   height: "18px",
-                                            //   maxWidth: "18px",
-                                            //   maxHeight: "18px",
-                                            //   minWidth: "18px",
-                                            //   minHeight: "18px",
-                                            //   borderRadius: "3px",
-                                            //   border: "1px solid #37352f",
-                                            // }),
+                                            ...(isFiscalEndDay && {
+                                              // width: "18px",
+                                              // height: "18px",
+                                              // maxWidth: "18px",
+                                              // maxHeight: "18px",
+                                              // minWidth: "18px",
+                                              // minHeight: "18px",
+                                              borderRadius: "3px",
+                                              border: "1px solid #37352f",
+                                            }),
                                           }}
                                         >
                                           <span
-                                          // style={{
-                                          //   ...(isFiscalEndDay && {
-                                          //     width: "18px",
-                                          //     height: "18px",
-                                          //     maxWidth: "18px",
-                                          //     maxHeight: "18px",
-                                          //     minWidth: "18px",
-                                          //     minHeight: "18px",
-                                          //     lineHeight: "18px",
-                                          //     textAlign: "center",
-                                          //     display: "inline-block",
-                                          //   }),
-                                          // }}
+                                            style={{
+                                              ...(isFiscalEndDay && {
+                                                // width: "18px",
+                                                // height: "18px",
+                                                // maxWidth: "18px",
+                                                // maxHeight: "18px",
+                                                // minWidth: "18px",
+                                                // minHeight: "18px",
+                                                // lineHeight: "18px",
+                                                textAlign: "center",
+                                                display: "inline-block",
+                                              }),
+                                            }}
                                           >
                                             {displayValue}
                                           </span>
@@ -1557,9 +1688,9 @@ const BusinessCalendarModalMemo = () => {
                       );
                     })}
 
-                  <TestCalendar />
+                  {/* <TestCalendar /> */}
 
-                  {!isSwitchYear && <YearSectionBlank />}
+                  {/* {!isSwitchYearColFirst && <YearSectionBlank />} */}
 
                   <div className={`${styles.summary_section} w-full bg-[yellow]/[0]`}>
                     {/* <div className={`min-h-[6px] w-full bg-[green]/[0.3]`}></div> */}

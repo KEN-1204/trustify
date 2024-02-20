@@ -1,6 +1,6 @@
 // 引数の配列内の要素を指定した数分取り出して小さな配列に分割する
-// 12ヶ月分の要素数を持つ配列から３ヶ月分の要素数を持つ4つの配列に分割する
 
+// 15ヶ月分の要素数を持つ配列から３ヶ月分の要素数を持つ5つの配列に分割する
 export function splitArrayIntoChunks(array: any[], chunkSize: number) {
   let result = [];
   for (let i = 0; i < array.length; i += chunkSize) {
@@ -8,6 +8,14 @@ export function splitArrayIntoChunks(array: any[], chunkSize: number) {
     result.push(chunk);
   }
   return result;
+  // // 12ヶ月分の要素数を持つ配列から３ヶ月分の要素数を持つ4つの配列に分割する
+  // export function splitArrayIntoChunks(array: any[], chunkSize: number) {
+  //   let result = [];
+  //   for (let i = 0; i < array.length; i += chunkSize) {
+  //     let chunk = array.slice(i, i + chunkSize);
+  //     result.push(chunk);
+  //   }
+  //   return result;
 }
 
 /**

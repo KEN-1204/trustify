@@ -7,7 +7,8 @@ export function fillWorkingDaysForEachFiscalMonth(
   closingDaysData: {
     fiscal_year_month: string;
     start_date: string;
-    end_date: string;
+    // end_date: string;
+    next_month_start_date: string;
     closing_days: CustomerBusinessCalendars[];
   }[],
   // closingDaysData: {
@@ -26,24 +27,29 @@ export function fillWorkingDaysForEachFiscalMonth(
     monthlyWorkingDaysCount: number;
   }[];
 } | null {
-  // const UserProfileState = useDashboardStore((state) => state.userProfileState);
-  // if (!UserProfileState?.company_id) return null;
   console.log("🔥fillWorkingDaysForEachFiscalMonth関数 実行");
-  console.time("fillWorkingDaysForEachFiscalMonth関数");
+  // console.time("fillWorkingDaysForEachFiscalMonth関数");
 
+  // 年間日数計算用
   let daysCountInYear = 0;
 
-  const completeAnnualFiscalCalendar = closingDaysData.map((monthData, index) => {
-    const { fiscal_year_month, closing_days, start_date, end_date } = monthData;
+  // 期首の月初のカレンダー月 2023-03-21 => 03 => 3
+  const firstMonthStartDateCalendar = parseInt(closingDaysData[0].start_date.split("-")[1], 10);
 
+  const completeAnnualFiscalCalendar = closingDaysData.map((monthData, index) => {
+    const { fiscal_year_month, closing_days, start_date, next_month_start_date } = monthData;
+
+    // 月度の開始日と終了日を取得 fiscal_year_month: 2024-4
     const startDate = new Date(start_date);
-    const endDate = new Date(end_date); // 翌月度の月初なので < の未満までループ処理
+    // const endDate = new Date(end_date); // 翌月度の月初なので < の未満までループ処理
+    const nextMonthStartDate = new Date(next_month_start_date); // 翌月度の月初なので < の未満までループ処理
 
     // 月度内の全ての日付リスト
     const monthlyDays: CustomerBusinessCalendars[] = [];
     let workingDaysCount = 0;
     let d = new Date(startDate);
-    while (d < endDate) {
+    // while (d < endDate) {
+    while (d < nextMonthStartDate) {
       console.log(`🔥fillWorkingDaysForEachFiscalMonth関数 forループ ${fiscal_year_month} - ${d.getDate()}`);
       // const formattedDate = d.toISOString().split("T")[0]; // 日付情報のみ取得
       const formattedDateNotZeroPad = formatDateToYYYYMMDD(d); // 日付情報のみ取得

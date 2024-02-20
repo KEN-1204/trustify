@@ -14,15 +14,24 @@ export const calculateCurrentFiscalYear = (fiscalYearEnd: string | Date | null) 
     const fiscalYearEndMonth = fiscalYearEndDate.getMonth();
     const fiscalYearEndDay = fiscalYearEndDate.getDate();
     // 現在の年で月と日付は決算日のDateオブジェクトを生成
-    const currentFiscalYearEndDateThisYear = new Date(currentYear, fiscalYearEndMonth, fiscalYearEndDay);
+    // const currentFiscalYearEndDateThisYear = new Date(currentYear, fiscalYearEndMonth, fiscalYearEndDay);
+    const currentFiscalYearEndDateThisYear = new Date(
+      currentYear,
+      fiscalYearEndMonth,
+      fiscalYearEndDay,
+      23,
+      59,
+      59,
+      999
+    );
     // 12月末日決算の場合のみ特別なチェック*1
     // const fiscalYearEndDateDec = new Date(currentYear, 0, 0);
     const isDecemberYearEnd = fiscalYearEndDate.getMonth() === 11 && fiscalYearEndDate.getDate() === 31;
 
-    // 現在の日付より決算日が先にある場合(つまり現在2月で3月決算の場合)、かつ、決算日が12月末日でないなら、
-    // 現在は前の会計年度にいるため-1をする
+    // 現在の日付より決算日が先にある場合(つまり現在2月で3月決算の場合)、
+    // 現在は前の会計年度にいるため-1をする 12月決算の場合は現在がどの日付でも前年度の12月末になるので、-1する
     fiscalYear =
-      currentDate.getTime() <= currentFiscalYearEndDateThisYear.getTime() && !isDecemberYearEnd
+      currentDate.getTime() <= currentFiscalYearEndDateThisYear.getTime() && isDecemberYearEnd
         ? currentYear - 1
         : currentYear;
     // console.log(

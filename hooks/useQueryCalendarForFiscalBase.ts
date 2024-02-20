@@ -10,7 +10,8 @@ type Props = {
     | {
         fiscal_year_month: string;
         start_date: string;
-        end_date: string;
+        // end_date: string;
+        next_month_start_date: string;
         closing_days: CustomerBusinessCalendars[];
       }[]
     | null
@@ -49,25 +50,26 @@ export const useQueryCalendarForFiscalBase = ({
 }: Props) => {
   // }: Props): UseQueryResult<QueryResponse> => {
   // const queryClient = useQueryClient();
-  const UserProfileState = useDashboardStore((state) => state.userProfileState);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
 
   // const { data, status, isLoading, isError, error } = useQuery({
   const queryResult = useQuery({
-    queryKey: ["calendar_for_fiscal_base", selectedFiscalYear],
+    queryKey: ["calendar_for_fiscal_base", userProfileState?.customer_fiscal_end_month, selectedFiscalYear],
     queryFn: () => {
       if (!selectedFiscalYear) return null;
       if (!annualMonthlyClosingDays) return null;
-      if (!UserProfileState?.company_id) return null;
+      if (!userProfileState?.company_id) return null;
+      if (!userProfileState?.customer_fiscal_end_month) return null;
       console.log("🔥useQueryCalendarForFiscalBase queryFn実行");
       const newCalendarForFiscalBase = fillWorkingDaysForEachFiscalMonth(
         annualMonthlyClosingDays,
-        UserProfileState.company_id
+        userProfileState.company_id
       );
       return newCalendarForFiscalBase;
     },
     staleTime: Infinity,
     // ユーザーが選択している期間が単月の場合はフェッチを拒否
-    enabled: !!selectedFiscalYear && !!annualMonthlyClosingDays && isReady && !!UserProfileState?.company_id,
+    enabled: !!selectedFiscalYear && !!annualMonthlyClosingDays && !!userProfileState?.company_id && isReady,
   });
 
   // const { data, status } = queryResult;

@@ -1,5 +1,6 @@
 // 会計年度の年間の休業日を月ごとに配列で取得する
 
+import useDashboardStore from "@/store/useDashboardStore";
 import { CustomerBusinessCalendars } from "@/types";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
 import { formatDateToYYYYMMDD } from "@/utils/Helpers/formatDateLocalToYYYYMMDD";
@@ -19,7 +20,7 @@ type Props = {
   fiscalYearEnd: string | null | undefined;
   isRequiredInputFiscalStartEndDate?: boolean;
   customInputArray?: CustomInputStartEndDate[] | null | undefined;
-  isReady: boolean;
+  // isReady: boolean;
 };
 
 type QueryFnResponse = {
@@ -29,7 +30,8 @@ type QueryFnResponse = {
     annual_closing_days: {
       fiscal_year_month: string; // 2024-4
       start_date: string; // 2024-4-1(年月度の開始日)営業日を追加する時に使用
-      end_date: string; // 2024-5-1(翌月度の月初)営業日を追加する時に使用
+      // end_date: string; // 2024-5-1(翌月度の月初)営業日を追加する時に使用
+      next_month_start_date: string; // 2024-5-1(翌月度の月初)営業日を追加する時に使用
       closing_days: CustomerBusinessCalendars[]; // 休業日の日付オブジェクトの配列
       closing_days_count: number; // 各月度ごとの休業日の数
     }[];
@@ -42,10 +44,14 @@ export const useQueryAnnualFiscalMonthClosingDays = ({
   fiscalYearEnd,
   isRequiredInputFiscalStartEndDate = false,
   customInputArray,
-  isReady,
-}: Props) => {
+}: // isReady,
+Props) => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
+
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
+
+  // if (!userProfileState?.customer_fiscal_end_month) return
 
   // fiscalYearMonth: 2024-4, startDate: その年月度の開始日 2024-4-1 endDate: 終了日 2024-5-1(翌月度の月初)
   // const getAnnualFiscalMonthClosingDays = async (): Promise<
@@ -54,24 +60,32 @@ export const useQueryAnnualFiscalMonthClosingDays = ({
   // > => {
   const getAnnualFiscalMonthClosingDays = async (): Promise<QueryFnResponse | null> => {
     if (!fiscalYearEnd) return null;
+    // const fiscalYearEndDate = new Date(fiscalYearEnd);
     // 決算日の翌日の期首のDateオブジェクトを生成(時間情報は全て0にリセット済み)
-    const fiscalYearStartDate = calculateFiscalYearStart(fiscalYearEnd);
+    // const selectedFiscalYearEndDate = new Date(selectedYear, fiscalYearEndDate.getMonth(), fiscalYearEndDate.getDate(), 23,59,59,999);
+    const fiscalYearStartDate = calculateFiscalYearStart({ fiscalYearEnd: fiscalYearEnd, selectedYear: selectedYear });
     if (!fiscalYearStartDate) return null;
+
     // 期首の日付を起点としたwhileループ用のDateオブジェクトを作成
     let currentDateForLoop = fiscalYearStartDate;
     // 期首のちょうど1年後の次年度、来期の期首のDateオブジェクトを作成
     const nextFiscalYearStartDate = new Date(fiscalYearStartDate);
     nextFiscalYearStartDate.setFullYear(nextFiscalYearStartDate.getFullYear() + 1);
 
-    console.log("🔥fiscalYearStartDate", fiscalYearStartDate, "nextFiscalYearStartDate", nextFiscalYearStartDate);
-    console.log("🔥isRequiredInputFiscalStartEndDate", isRequiredInputFiscalStartEndDate, "isReady", isReady);
     console.log(
-      "🔥currentDateForLoop.getTime()",
-      currentDateForLoop.getTime(),
-      "🔥nextFiscalYearStartDate.getTime()",
-      nextFiscalYearStartDate.getTime(),
-      "currentDateForLoop.getTime() < nextFiscalYearStartDate.getTime()",
-      currentDateForLoop.getTime() < nextFiscalYearStartDate.getTime()
+      "休業日useQuery関数実行!!🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥",
+      "selectedYear",
+      selectedYear,
+      "fiscalYearStartDate",
+      fiscalYearStartDate,
+      "fiscalYearEnd",
+      fiscalYearEnd,
+      "userProfileState?.customer_fiscal_end_month",
+      userProfileState?.customer_fiscal_end_month,
+      "currentDateForLoop",
+      currentDateForLoop,
+      "nextFiscalYearStartDate",
+      nextFiscalYearStartDate
     );
 
     // =================== 顧客の年度の期首を始めとした各月度の開始日と終了日をまとめた配列を作成
@@ -79,41 +93,44 @@ export const useQueryAnnualFiscalMonthClosingDays = ({
     // 🔹一般的なケース：決算日が1日から27日か、月の末日のユーザーの場合
     if (!isRequiredInputFiscalStartEndDate) {
       while (currentDateForLoop.getTime() < nextFiscalYearStartDate.getTime()) {
-        const endDate = new Date(
+        // 翌月度の初日
+        const nextMonthFirstDate = new Date(
           currentDateForLoop.getFullYear(),
           currentDateForLoop.getMonth() + 1,
           currentDateForLoop.getDate()
+        );
+        // 会計月度 翌月初日の1日前の各月度の締日
+        // const fiscalMonthEndDate = new Date(currentDateForLoop.getFullYear(), currentDateForLoop.getMonth() + 1, 0);
+        const fiscalMonthEndDate = new Date(
+          nextMonthFirstDate.getFullYear(),
+          nextMonthFirstDate.getMonth(),
+          nextMonthFirstDate.getDate() - 1,
+          23,
+          59,
+          59,
+          999
         );
         // その月度の開始日と終了日をオブジェクトにまとめてpush(SQLの条件分で取得する休業日をその月度の範囲絞るため)
         // UTC時間文字列だと日本は9時間オフセットされるため開始日が前日でセットされてしまうためこれは不採用
         // const newFiscalMonth = {
         //   fiscal_year_month: `${currentDateForLoop.getFullYear()}-${currentDateForLoop.getMonth() + 1}`, // ブラウザ表示用に変換(1月は0を1に変換して2024-1をセット)
         //   start_date: currentDateForLoop.toISOString().split("T")[0], // 日付部分（YYYY-MM-DD）のみ
-        //   end_date: endDate.toISOString().split("T")[0],
+        //   end_date: nextMonthFirstDate.toISOString().split("T")[0],
         // };
         // ローカルエリアの時間でYYYY-MM-DDにフォーマット
         const newFiscalMonth = {
           // fiscal_year_month: `${currentDateForLoop.getFullYear()}-${currentDateForLoop.getMonth() + 1}`, // ブラウザ表示用に変換(1月は0を1に変換して2024-1をセット)
-          fiscal_year_month: `${endDate.getFullYear()}-${endDate.getMonth() + 1}`, // ブラウザ表示用に変換(1月は0を1に変換して2024-1をセット)
+          fiscal_year_month: `${fiscalMonthEndDate.getFullYear()}-${fiscalMonthEndDate.getMonth() + 1}`, // ブラウザ表示用に変換(1月は0を1に変換して2024-1をセット) 月度は締日の月に合わせる 3/21-4-20は4月度, 4/1-4/30は4月度
           start_date: formatDateToYYYYMMDD(currentDateForLoop), // 日付部分（YYYY-MM-DD）のみ
-          end_date: formatDateToYYYYMMDD(endDate),
+          next_month_start_date: formatDateToYYYYMMDD(nextMonthFirstDate), // <演算子で範囲比較するので翌月初日0秒をセット
+          // end_date: formatDateToYYYYMMDD(nextMonthFirstDate), // <演算子で範囲比較するので翌月初日0秒をセット
         };
         annualFiscalMonths.push(newFiscalMonth);
 
         currentDateForLoop.setMonth(currentDateForLoop.getMonth() + 1); // 次の月に進める
       }
     }
-    /**
-     console.log(
-          "🔥while文 newFiscalMonth",
-          newFiscalMonth,
-          "currentDateForLoop",
-          currentDateForLoop,
-          "nextFiscalYearStartDate",
-          nextFiscalYearStartDate
-        );
-        console.log("🔥annualFiscalMonths", annualFiscalMonths);
-     */
+
     // 🔹珍しいケース：※決算日が28日から30日で、かつその日にちがその月の決算日でない場合は開始、終了日はユーザー入力を取得
     else {
       // 🔹珍しいケース：開始、終了日はユーザー入力を取得が必要 なければnullを返す
@@ -128,7 +145,7 @@ export const useQueryAnnualFiscalMonthClosingDays = ({
           // start_date: startDate.toISOString().split("T")[0], // 日付部分（YYYY-MM-DD）のみ
           // end_date: formattedEndDate.toISOString().split("T")[0],
           start_date: formatDateToYYYYMMDD(startDate), // 日付部分（YYYY-MM-DD）のみ
-          end_date: formatDateToYYYYMMDD(formattedEndDate),
+          next_month_start_date: formatDateToYYYYMMDD(formattedEndDate),
         };
       });
     }
@@ -158,7 +175,8 @@ export const useQueryAnnualFiscalMonthClosingDays = ({
           annual_closing_days: {
             fiscal_year_month: string; // 2024-4
             start_date: string; // 2024-4-1(年月度の開始日)営業日を追加する時に使用
-            end_date: string; // 2024-5-1(翌月度の月初)営業日を追加する時に使用
+            // end_date: string; // 2024-5-1(翌月度の月初)営業日を追加する時に使用
+            next_month_start_date: string; // 2024-5-1(翌月度の月初)営業日を追加する時に使用
             closing_days: CustomerBusinessCalendars[]; // 休業日の日付オブジェクトの配列
             closing_days_count: number; // 各月度ごとの休業日の数
           }[];
@@ -172,11 +190,11 @@ export const useQueryAnnualFiscalMonthClosingDays = ({
   };
 
   const { data, status, isLoading, isError, error } = useQuery({
-    queryKey: ["annual_fiscal_month_closing_days", selectedYear],
+    queryKey: ["annual_fiscal_month_closing_days", userProfileState?.customer_fiscal_end_month, selectedYear],
     queryFn: getAnnualFiscalMonthClosingDays,
     staleTime: Infinity,
     // ユーザーが選択している期間が単月の場合はフェッチを拒否
-    enabled: !!customerId && !!selectedYear && !!fiscalYearEnd && !isRequiredInputFiscalStartEndDate && isReady,
+    enabled: !!customerId && !!selectedYear && !!fiscalYearEnd,
   });
 
   useEffect(() => {
