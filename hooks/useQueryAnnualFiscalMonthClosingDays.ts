@@ -2,10 +2,12 @@
 
 import useDashboardStore from "@/store/useDashboardStore";
 import { CustomerBusinessCalendars } from "@/types";
+import { calculateCurrentFiscalYear } from "@/utils/Helpers/calculateCurrentFiscalYear";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
 import { formatDateToYYYYMMDD } from "@/utils/Helpers/formatDateLocalToYYYYMMDD";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 
@@ -63,6 +65,7 @@ Props) => {
     // const fiscalYearEndDate = new Date(fiscalYearEnd);
     // 決算日の翌日の期首のDateオブジェクトを生成(時間情報は全て0にリセット済み)
     // const selectedFiscalYearEndDate = new Date(selectedYear, fiscalYearEndDate.getMonth(), fiscalYearEndDate.getDate(), 23,59,59,999);
+    // const fiscalYear = calculateCurrentFiscalYear({ fiscalYearEnd: fiscalYearEnd, selectedYear: selectedYear });
     const fiscalYearStartDate = calculateFiscalYearStart({ fiscalYearEnd: fiscalYearEnd, selectedYear: selectedYear });
     if (!fiscalYearStartDate) return null;
 
@@ -189,8 +192,12 @@ Props) => {
     }
   };
 
+  const fiscalEndMonthKey = userProfileState?.customer_fiscal_end_month
+    ? format(new Date(userProfileState?.customer_fiscal_end_month), "yyyy-MM-dd")
+    : null;
+
   const { data, status, isLoading, isError, error } = useQuery({
-    queryKey: ["annual_fiscal_month_closing_days", userProfileState?.customer_fiscal_end_month, selectedYear],
+    queryKey: ["annual_fiscal_month_closing_days", fiscalEndMonthKey, selectedYear],
     queryFn: getAnnualFiscalMonthClosingDays,
     staleTime: Infinity,
     // ユーザーが選択している期間が単月の場合はフェッチを拒否

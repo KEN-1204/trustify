@@ -196,10 +196,14 @@ const BusinessCalendarModalMemo = () => {
   // 設定済みの定休日の曜日名の配列
   const customerClosingDaysNameArray = getClosingDaysNameString(userProfileState.customer_closing_days);
   // 決算日Date
-  const fiscalYearEndDate = calculateCurrentFiscalYearEndDate(userProfileState?.customer_fiscal_end_month ?? null);
+  const fiscalYearEndDate = calculateCurrentFiscalYearEndDate({
+    fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+    selectedYear: selectedFiscalYearSetting,
+  });
   // 期首Date
   const fiscalYearStartDate = calculateFiscalYearStart({
     fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+    selectedYear: selectedFiscalYearSetting,
   });
   // 選択年オプション(現在の年から3年遡る, 1年後は決算日まで３ヶ月を切った場合は選択肢に入れる)
   const [optionsFiscalYear, setOptionsFiscalYear] = useState<{ label: string; value: number }[]>([]);
@@ -236,7 +240,10 @@ const BusinessCalendarModalMemo = () => {
     // const currentYear = selectedFiscalYearSetting;
     // const currentYear = getYear(new Date());
     // 現在の会計年度を取得
-    const currentYear = calculateCurrentFiscalYear(userProfileState?.customer_fiscal_end_month ?? null);
+    const currentYear = calculateCurrentFiscalYear({
+      fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+      selectedYear: selectedFiscalYearSetting,
+    });
     // // 2020年度から現在+翌年度までの選択肢を生成
     let y = 2020;
     let years = [];
@@ -473,24 +480,63 @@ const BusinessCalendarModalMemo = () => {
   //     (obj) => obj.fiscalYearMonth?.split("-")[0] !== selectedFiscalYearSetting.toString()
   //   ) ?? null;
   const rowIndexOfSwitchYear = useMemo(() => {
-    const index = splitMonthsArrayForFB?.findIndex((chunk) =>
-      chunk.some((element) => {
-        if (element === null) return false;
-        const year = parseInt(element.fiscalYearMonth.split("-")[0]); // 年を取得
-        return year !== selectedFiscalYearSetting;
-      })
-    );
-    return index !== -1 ? index : null;
-  }, [splitMonthsArrayForFB, userProfileState?.customer_fiscal_end_month]);
+    // インデックス取得一つのみ
+    // const index = splitMonthsArrayForCB?.findIndex((chunk) =>
+    //   chunk.some((element) => {
+    //     if (element === null) return false;
+    //     const year = parseInt(element.fiscalYearMonth.split("-")[0]); // 年を取得
+    //     return year !== selectedFiscalYearSetting;
+    //   })
+    // );
+    // return index !== -1 ? index : null;
+    // 11月12月始まりだと2回年の切り替わりがあるため、複数のインデックスを取得できるように配列に格納
+    const indexesArray: number[] | null = !!splitMonthsArrayForCB?.length
+      ? (splitMonthsArrayForCB
+          ?.map((chunk, index) =>
+            chunk.some((element) => {
+              if (!element) return false;
+              const year = parseInt(element.fiscalYearMonth.split("-")[0]); // 年を取得
+              return year !== selectedFiscalYearSetting;
+            })
+              ? index
+              : null
+          )
+          .filter((index) => index !== null) as number[])
+      : null;
+
+    return indexesArray && indexesArray?.length > 0 ? indexesArray : null;
+  }, [splitMonthsArrayForCB, userProfileState?.customer_fiscal_end_month]);
+
+  // splitMonthsArrayForCB[0][0].fiscalYearMonth.split
+  const firstYear = splitMonthsArrayForCB
+    ? parseInt(splitMonthsArrayForCB[0][0].fiscalYearMonth.split("-")[0], 10)
+    : selectedFiscalYearSetting;
+  // 1行目の２番目 2023-2024の2024
+  const firstRowSecondYear =
+    rowIndexOfSwitchYear && rowIndexOfSwitchYear.includes(0) && splitMonthsArrayForCB
+      ? parseInt(splitMonthsArrayForCB[0][2].fiscalYearMonth.split("-")[0], 10)
+      : null;
+  // 年が2回切り替わりあるパターンの３番目の年、最後の行
+  const thirdYear =
+    rowIndexOfSwitchYear &&
+    rowIndexOfSwitchYear.length === 2 &&
+    rowIndexOfSwitchYear.includes(4) &&
+    splitMonthsArrayForCB
+      ? parseInt(splitMonthsArrayForCB[4][2].fiscalYearMonth.split("-")[0], 10)
+      : null;
+  const secondYear =
+    rowIndexOfSwitchYear && rowIndexOfSwitchYear.length === 1 && splitMonthsArrayForCB
+      ? parseInt(splitMonthsArrayForCB[4][2].fiscalYearMonth.split("-")[0], 10)
+      : null;
 
   // 年が切り替わるインデックスがチャンクの先頭、かつ、rowIndexが最初の行でない場合はtrue
   const isSwitchYearColFirst = useMemo(() => {
-    if (rowIndexOfSwitchYear && splitMonthsArrayForFB) {
-      const index = splitMonthsArrayForFB[rowIndexOfSwitchYear]?.findIndex((element) => {
+    if (rowIndexOfSwitchYear && rowIndexOfSwitchYear.length === 1 && splitMonthsArrayForCB) {
+      const index = splitMonthsArrayForCB[rowIndexOfSwitchYear[0]]?.findIndex((element) => {
         if (element === null) return false;
         const year = parseInt(element.fiscalYearMonth.split("-")[0]);
         // 2023-12から2024-1に年が切り替わり、かつ３列の先頭の位置だった場合はtrue
-        if (year !== selectedFiscalYearSetting && rowIndexOfSwitchYear !== 0) {
+        if (year !== selectedFiscalYearSetting && rowIndexOfSwitchYear[0] !== 0) {
           return true;
         } else {
           return false;
@@ -521,6 +567,8 @@ const BusinessCalendarModalMemo = () => {
     "BusinessCalendarコンポーネント再レンダリング",
     "userProfileState.customer_fiscal_end_month",
     userProfileState.customer_fiscal_end_month,
+    "selectedFiscalYearSetting",
+    selectedFiscalYearSetting,
     "annualMonthlyClosingDays",
     annualMonthlyClosingDays,
     "calendarForCalendarBase",
@@ -1421,9 +1469,13 @@ const BusinessCalendarModalMemo = () => {
                   {/* {!isSwitchYearColFirst && (
                     <YearSectionDouble year={selectedFiscalYearSetting} nextYear={selectedFiscalYearSetting + 1} />
                   )} */}
-                  {rowIndexOfSwitchYear !== 0 && <YearSection year={selectedFiscalYearSetting} />}
+                  {/* {rowIndexOfSwitchYear !== 0 && <YearSection year={selectedFiscalYearSetting} />}
                   {rowIndexOfSwitchYear === 0 && (
                     <YearSectionDouble year={selectedFiscalYearSetting} nextYear={selectedFiscalYearSetting + 1} />
+                  )} */}
+                  {rowIndexOfSwitchYear && !rowIndexOfSwitchYear.includes(0) && <YearSection year={firstYear} />}
+                  {rowIndexOfSwitchYear && rowIndexOfSwitchYear.includes(0) && (
+                    <YearSectionDouble year={firstYear} nextYear={firstRowSecondYear ?? 0} />
                   )}
 
                   {/* <MonthlyRow monthlyRowKey="monthly_row_first" /> */}
@@ -1439,32 +1491,80 @@ const BusinessCalendarModalMemo = () => {
 
                       let monthRowIndex = rowIndex;
 
-                      // 先頭列に年の切り替わりがあり、先頭列にない場合は単一の年を返す
-                      if (isSwitchYearColFirst && rowIndex === rowIndexOfSwitchYear && rowIndexOfSwitchYear !== 0) {
-                        return <YearSection key={monthlyRowKey} year={selectedFiscalYearSetting + 1} />;
+                      // 切り替わり1回ルート 先頭列に年の切り替わりがあり、先頭列にない場合は単一の年を返す
+                      if (
+                        isSwitchYearColFirst &&
+                        rowIndexOfSwitchYear?.length === 1 &&
+                        rowIndexOfSwitchYear[0] === rowIndex &&
+                        rowIndexOfSwitchYear[0] !== 0
+                      ) {
+                        return <YearSection key={monthlyRowKey} year={secondYear ?? 0} />;
                       }
-                      if (isSwitchYearColFirst && rowIndexOfSwitchYear && rowIndex > rowIndexOfSwitchYear) {
+                      // 切り替わり1回ルート
+                      if (
+                        isSwitchYearColFirst &&
+                        rowIndexOfSwitchYear &&
+                        rowIndexOfSwitchYear?.length === 1 &&
+                        rowIndex > rowIndexOfSwitchYear[0]
+                      ) {
                         monthRowIndex -= 1;
                       }
 
-                      // 先頭列以外で年が切り替わる場合はダブル(先頭行に切り替わりがない場合)
-                      if (!isSwitchYearColFirst && rowIndexOfSwitchYear && rowIndex === rowIndexOfSwitchYear) {
+                      // 切り替わり1回ルート 先頭列以外で年が切り替わる場合はダブル(先頭行に切り替わりがない場合)
+                      if (
+                        !isSwitchYearColFirst &&
+                        rowIndexOfSwitchYear &&
+                        rowIndexOfSwitchYear?.length === 1 &&
+                        rowIndex === rowIndexOfSwitchYear[0]
+                      ) {
+                        return <YearSectionDouble key={monthlyRowKey} year={firstYear} nextYear={secondYear ?? 0} />;
+                      }
+                      // 切り替わり1回ルート
+                      if (
+                        !isSwitchYearColFirst &&
+                        rowIndexOfSwitchYear &&
+                        rowIndexOfSwitchYear?.length === 1 &&
+                        rowIndex > rowIndexOfSwitchYear[0]
+                      ) {
+                        // return <YearSectionBlank />;
+                        monthRowIndex -= 1;
+                      }
+                      // 切り替わり1回ルート 最初の行に年の切り替わりがある場合は最後の行はundefinedになるのでblankを渡す
+                      if (rowIndexOfSwitchYear?.length === 1 && rowIndexOfSwitchYear[0] === 0 && rowIndex === 5) {
+                        return <YearSectionBlank key={monthlyRowKey} />;
+                      }
+
+                      // 切り替わり2回ルート 11月、12月のどちらかが開始月で年の切り替わりが2回、年が3つ出現する場合
+                      if (
+                        !isSwitchYearColFirst &&
+                        rowIndexOfSwitchYear &&
+                        rowIndexOfSwitchYear?.length === 2 &&
+                        rowIndexOfSwitchYear.includes(4) &&
+                        rowIndex === 4
+                      ) {
                         return (
                           <YearSectionDouble
                             key={monthlyRowKey}
-                            year={selectedFiscalYearSetting}
-                            nextYear={selectedFiscalYearSetting + 1}
+                            year={firstRowSecondYear ?? 0}
+                            nextYear={thirdYear ?? 0}
                           />
                         );
                       }
-                      if (!isSwitchYearColFirst && rowIndexOfSwitchYear && rowIndex > rowIndexOfSwitchYear) {
+                      // 切り替わり2回ルート
+                      if (
+                        !isSwitchYearColFirst &&
+                        rowIndexOfSwitchYear &&
+                        rowIndexOfSwitchYear?.length === 2 &&
+                        rowIndex > rowIndexOfSwitchYear[1]
+                      ) {
                         // return <YearSectionBlank />;
                         monthRowIndex -= 1;
                       }
                       // 最初の行に年の切り替わりがある場合は最後の行はundefinedになるのでblankを渡す
-                      if (rowIndexOfSwitchYear === 0 && rowIndex === 5) {
-                        return <YearSectionBlank key={monthlyRowKey} />;
-                      }
+                      // if (rowIndexOfSwitchYear?.length === 2 && rowIndexOfSwitchYear[1] === 4 && rowIndex === 5) {
+                      //   return <YearSectionBlank key={monthlyRowKey} />;
+                      // }
+
                       // if (!isSwitchYearColFirst && rowIndexOfSwitchYear && rowIndex === 5) {
                       //   // monthRowIndex -= 1;
                       //   return;

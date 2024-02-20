@@ -137,12 +137,17 @@ export function generateFiscalYearCalendar(
   // 🔹まずは、先頭の月同士を比較する 元々のstart_dateの"2023-03-21"と、生成したfiscalYearMonth:"2023-4"を年月のみのタイムスタンプで比較
   // const fiscalStartMonth = parseInt(closingDaysData[0].start_date.split("-")[1], 10);
   // 期首の月初のカレンダー月 2023-03-21 => 03 => 3 (3/21-4/20はカレンダー3月始まり)
+  const fiscalStartYearCalendar = parseInt(closingDaysData[0].start_date.split("-")[0], 10);
   const fiscalStartMonthCalendar = parseInt(closingDaysData[0].start_date.split("-")[1], 10);
+  // const fiscalStartMonthDateOnly = new Date(fiscalStartYearCalendar,fiscalStartMonthCalendar, 1)
   // 2023-04 => 4 (3/21-4/20は月度は4月始まり)
-  const fiscalFirstMonth = parseInt(completeAnnualFiscalCalendar[0].fiscalYearMonth.split("-")[1], 10);
+  const addedFirstFiscalYear = parseInt(completeAnnualFiscalCalendar[0].fiscalYearMonth.split("-")[0], 10);
+  const addedFirstFiscalMonth = parseInt(completeAnnualFiscalCalendar[0].fiscalYearMonth.split("-")[1], 10);
+  // const addedFirstFiscalMonthDateOnly = new Date(addedFirstFiscalYear,addedFirstFiscalMonth, 1)
   // 会計期間の開始月とカレンダー上の開始月が一致しているか
   let isSameStartMonthFiscalAndCalendar = true;
-  if (fiscalStartMonthCalendar < fiscalFirstMonth) {
+  // if (fiscalStartMonthCalendar < fiscalFirstMonth) {
+  if (!(fiscalStartYearCalendar === addedFirstFiscalYear && fiscalStartMonthCalendar === addedFirstFiscalMonth)) {
     // 🔹不一致ルート
     isSameStartMonthFiscalAndCalendar = false;
     console.log(

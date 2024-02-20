@@ -3,7 +3,7 @@ import { calculateCurrentFiscalYear } from "./calculateCurrentFiscalYear";
 // 期首の日付を決算日から計算する関数
 type Props = {
   fiscalYearEnd: Date | string | null;
-  selectedYear?: number;
+  selectedYear?: number | null;
 };
 export const calculateFiscalYearStart = ({ fiscalYearEnd, selectedYear }: Props) => {
   if (!fiscalYearEnd) return null;
@@ -11,12 +11,18 @@ export const calculateFiscalYearStart = ({ fiscalYearEnd, selectedYear }: Props)
   // Supabaseデータベースから取得した決算日のUTC時間文字列を使って翌日の期首のDateオブジェクトを生成するときには、時間情報は全て0にリセットして期首のDateオブジェクトを生成する
   // まずはUTC文字列からDateオブジェクトを生成
   const fiscalYearEndDateObj = new Date(fiscalYearEnd);
-  // 現在の会計年度を取得
-  const currentFiscalYear = calculateCurrentFiscalYear(fiscalYearEnd);
+  // 現在の会計年度を取得(selectedYearが存在する場合は、その当時の会計年度を取得)
+  const currentFiscalYear = calculateCurrentFiscalYear({
+    fiscalYearEnd: fiscalYearEnd,
+    selectedYear: selectedYear ?? null,
+  });
+
+  const isDecemberYearEnd = fiscalYearEndDateObj.getMonth() === 11 && fiscalYearEndDateObj.getDate() === 31;
+
   // 23:59:59:999の時間情報を0:0:0:000にリセット
   const fiscalYearEndDateOnly = new Date(
     // fiscalYearEndDateObj.getFullYear(),
-    selectedYear ? selectedYear : currentFiscalYear,
+    isDecemberYearEnd ? currentFiscalYear - 1 : currentFiscalYear,
     fiscalYearEndDateObj.getMonth(),
     fiscalYearEndDateObj.getDate()
   );

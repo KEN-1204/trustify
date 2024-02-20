@@ -117,14 +117,21 @@ const SettingCompanyMemo = () => {
   };
   // 🔹営業カレンダー(営業稼働日数から各プロセス分析用)(国の祝日と顧客独自の休業日、半休日、営業短縮日を指定)
   // ②決算日が28日から30日で、かつその日にちがその月の決算日でないかチェック 該当するなら各月の開始日と終了日を選択してもらう
+
+  const initialQueryYear = calculateCurrentFiscalYear({
+    fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+  });
+  // 選択した年度 営業カレンダー表示反映用の選択中の会計年度
+  const [selectedFiscalYear, setSelectedFiscalYear] = useState<number | null>(initialQueryYear);
   // 決算日Date
-  // const fiscalYearEndDate = userProfileState?.customer_fiscal_end_month
-  //   ? new Date(userProfileState?.customer_fiscal_end_month)
-  //   : null;
-  const fiscalYearEndDate = calculateCurrentFiscalYearEndDate(userProfileState?.customer_fiscal_end_month ?? null);
+  const fiscalYearEndDate = calculateCurrentFiscalYearEndDate({
+    fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+    selectedYear: selectedFiscalYear ?? null,
+  });
   // 期首Date
   const fiscalYearStartDate = calculateFiscalYearStart({
     fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+    selectedYear: selectedFiscalYear ?? null,
   });
   console.log(
     "userProfileState?.customer_fiscal_end_month",
@@ -159,9 +166,6 @@ const SettingCompanyMemo = () => {
   //   fiscalYearEndDate ? (new Date(currentDate.getFullYear(), fiscalYearEndDate.getMonth(), fiscalYearEndDate.getDate()).getTime() < currentDate.getTime() || (currentDate.getMonth() === 11 && fiscalYearEndDate.getMonth() === 11))
   //     ? currentDate.getFullYear()
   //     : currentDate.getFullYear() - 1 : null;
-  const initialQueryYear = calculateCurrentFiscalYear(userProfileState?.customer_fiscal_end_month ?? null);
-  // 選択した年度 営業カレンダー表示反映用の選択中の会計年度
-  const [selectedFiscalYear, setSelectedFiscalYear] = useState<number | null>(initialQueryYear);
 
   // 🌟useQuery 選択した年度の休業日を取得する🌟
   const {

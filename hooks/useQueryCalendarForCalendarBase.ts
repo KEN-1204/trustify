@@ -2,6 +2,7 @@ import useDashboardStore from "@/store/useDashboardStore";
 import { CustomerBusinessCalendars } from "@/types";
 import { generateFiscalYearCalendar } from "@/utils/Helpers/generateFiscalYearCalendar";
 import { UseQueryResult, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { useEffect } from "react";
 
 type Props = {
@@ -44,10 +45,14 @@ export const useQueryCalendarForCalendarBase = ({
   // }: Props): UseQueryResult<QueryResponse> => {
   //   const queryClient = useQueryClient();
 
+  const fiscalEndMonthKey = userProfileState?.customer_fiscal_end_month
+    ? format(new Date(userProfileState?.customer_fiscal_end_month), "yyyy-MM-dd")
+    : null;
+
   // const { data, status, isLoading, isError, error } = useQuery({
   //   return useQuery({
   const queryResult = useQuery({
-    queryKey: ["calendar_for_calendar_base", userProfileState?.customer_fiscal_end_month, selectedFiscalYear],
+    queryKey: ["calendar_for_calendar_base", fiscalEndMonthKey, selectedFiscalYear],
     queryFn: () => {
       if (!selectedFiscalYear) return null;
       if (!annualMonthlyClosingDays) return null;

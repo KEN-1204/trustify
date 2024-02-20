@@ -1,4 +1,9 @@
-export const calculateCurrentFiscalYearEndDate = (fiscalYearEnd: string | Date | null) => {
+type Props = {
+  fiscalYearEnd: string | Date | null;
+  selectedYear?: number | null;
+};
+
+export const calculateCurrentFiscalYearEndDate = ({ fiscalYearEnd: fiscalYearEnd, selectedYear }: Props) => {
   let fiscalYearEndDate;
   if (typeof fiscalYearEnd === "string") {
     fiscalYearEndDate = new Date(fiscalYearEnd);
@@ -11,7 +16,21 @@ export const calculateCurrentFiscalYearEndDate = (fiscalYearEnd: string | Date |
 
   if (fiscalYearEndDate) {
     const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
+    let currentYear = currentDate.getFullYear();
+
+    if (selectedYear) {
+      const selectedYearSameDate = new Date(
+        selectedYear,
+        currentDate.getMonth(),
+        currentDate.getDate(),
+        currentDate.getHours(),
+        currentDate.getMinutes(),
+        currentDate.getSeconds(),
+        currentDate.getMilliseconds()
+      );
+      currentYear = selectedYearSameDate.getFullYear();
+    }
+
     const fiscalYearEndMonth = fiscalYearEndDate.getMonth();
     const fiscalYearEndDay = fiscalYearEndDate.getDate();
     // 現在の年で月と日付は決算日のDateオブジェクトを生成
