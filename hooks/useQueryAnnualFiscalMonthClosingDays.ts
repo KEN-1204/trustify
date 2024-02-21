@@ -89,6 +89,8 @@ Props) => {
 
     console.log(
       "休業日useQuery関数実行!!🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥",
+      "クエリキー",
+      `"annual_fiscal_month_closing_days ${fiscalEndMonthKey}, ${selectedYear}`,
       "selectedYear",
       selectedYear,
       "fiscalYearStartDate",
@@ -210,6 +212,7 @@ Props) => {
 
   const { data, status, isLoading, isError, error } = useQuery({
     queryKey: ["annual_fiscal_month_closing_days", fiscalEndMonthKey, selectedYear],
+    // queryKey: ["annual_fiscal_month_closing_days", fiscalEndMonthKey, selectedYear, appliedAtOfSelectedYear],
     queryFn: getAnnualFiscalMonthClosingDays,
     staleTime: Infinity,
     // ユーザーが選択している期間が単月の場合はフェッチを拒否

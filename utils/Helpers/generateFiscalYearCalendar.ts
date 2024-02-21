@@ -53,6 +53,13 @@ export function generateFiscalYearCalendar(
     59,
     999
   );
+
+  // 12ヶ月分の各配列から休業日の配列をflatMapで並列に展開して一つの配列にまとめ、
+  // さらにnew SetでSetオブジェクトに変換してからhasメソッドで各日付データがSetオブジェクトないに含まれているかを高速でチェックする
+  const allClosingDaysSetObj = new Set(
+    closingDaysData.flatMap((data) => data.closing_days.map((closingDay) => closingDay.date))
+  );
+
   console.log(
     "チェック nextFiscalYearStartDate",
     nextFiscalYearStartDate,
@@ -62,7 +69,9 @@ export function generateFiscalYearCalendar(
     format(fiscalYearEndDate, "yyyy-MM-dd HH:mm:ss"),
     "fiscalYearStartDate",
     fiscalYearStartDate,
-    format(fiscalYearStartDate, "yyyy-MM-dd HH:mm:ss")
+    format(fiscalYearStartDate, "yyyy-MM-dd HH:mm:ss"),
+    "１年間の休業日Setオブジェクト",
+    allClosingDaysSetObj
   );
 
   const completeAnnualFiscalCalendar = closingDaysData.map((monthData, monthIndex) => {
@@ -100,7 +109,8 @@ export function generateFiscalYearCalendar(
       const dayOfWeek = d.getDay(); //曜日
       const timestamp = d.getTime();
       // const timestamp = new Date(formattedDateNotZeroPad).getTime();
-      const isClosed = closing_days.some((cd) => cd.date === formattedDate); // 休業日かどうか
+      // const isClosed = closing_days.some((cd) => cd.date === formattedDate); // 休業日かどうか
+      const isClosed = allClosingDaysSetObj.has(formattedDate);
       // 月度末日かどうか
       const isFiscalMonthEnd = currentMonthEndDate.getDate() === d.getDate();
       // 会計期間内かどうか 初月と最終月のみチェック

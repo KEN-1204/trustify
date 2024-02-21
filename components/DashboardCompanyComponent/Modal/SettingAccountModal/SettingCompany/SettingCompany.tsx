@@ -47,7 +47,7 @@ import { useQueryAnnualFiscalMonthClosingDays } from "@/hooks/useQueryAnnualFisc
 import { fillWorkingDaysForEachFiscalMonth } from "@/utils/Helpers/fillWorkingDaysForEachFiscalMonth";
 import { generateFiscalYearCalendar } from "@/utils/Helpers/generateFiscalYearCalendar";
 import { useQueryCalendarForFiscalBase } from "@/hooks/useQueryCalendarForFiscalBase";
-import { useQueryCalendarForCalendarBase } from "@/hooks/useQueryCalendarForCalendarBase";
+// import { useQueryCalendarForCalendarBase } from "@/hooks/useQueryCalendarForCalendarBase";
 import { formatDateToYYYYMMDD } from "@/utils/Helpers/formatDateLocalToYYYYMMDD";
 import { calculateCurrentFiscalYear } from "@/utils/Helpers/calculateCurrentFiscalYear";
 import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurrentFiscalYearEndDate";
@@ -185,24 +185,59 @@ const SettingCompanyMemo = () => {
     customInputArray: isRequiredInputFiscalStartEndDate ? fiscalMonthStartEndInputArray : null,
   });
 
-  const [prevFetchTimeAnnualClosing, setPrevFetchTimeAnnualClosing] = useState<number | null>(null);
+  // const [prevFetchTimeAnnualClosing, setPrevFetchTimeAnnualClosing] = useState<number | null>(() => {
+  //   return annualMonthlyClosingDays?.getTime ?? null;
+  // });
 
+  // useEffect(() => {
+  //   if (!annualMonthlyClosingDays?.getTime) return;
+  //   if (!prevFetchTimeAnnualClosing && annualMonthlyClosingDays?.getTime) {
+  //     setPrevFetchTimeAnnualClosing(annualMonthlyClosingDays.getTime);
+  //     return;
+  //   }
+  //   if (prevFetchTimeAnnualClosing === annualMonthlyClosingDays?.getTime) return;
+  //   console.log(
+  //     "💡💡💡💡💡💡年間休日リストの再フェッチを確認",
+  //     "prevFetchTimeAnnualClosing",
+  //     prevFetchTimeAnnualClosing,
+  //     "annualMonthlyClosingDays?.getTime",
+  //     annualMonthlyClosingDays?.getTime
+  //   );
+
+  //   // フェッチした時間を更新
+  //   console.log("🔥🔥🔥🔥🔥営業カレンダーを再生成");
+  //   setPrevFetchTimeAnnualClosing(annualMonthlyClosingDays.getTime);
+
+  //   // 年間休日数が変更されると営業稼働日数が変わるのでfiscal_baseのみinvalidate
+  //   const resetQueryCalendars = async () => {
+  //     // await queryClient.invalidateQueries({ queryKey: ["calendar_for_calendar_base"] });
+  //     // await queryClient.invalidateQueries({ queryKey: ["calendar_for_fiscal_base"] });
+  //   };
+  //   resetQueryCalendars();
+  // }, [annualMonthlyClosingDays?.getTime]);
+
+  // 年度別の定休日適用ステータス配列
+  // type StatusClosingDays = { fiscal_year: number; applied_closing_days: number[]; updated_at: number | null };
+  // const [statusAnnualClosingDaysArray, setStatusAnnualClosingDaysArray] = useState<StatusClosingDays[] | null>(() => {
+  //   const localStatus = localStorage.getItem("status_annual_closing_days");
+  //   const parsedStatus = localStatus ? JSON.parse(localStatus) : null;
+  //   return parsedStatus;
+  // });
+  const statusAnnualClosingDaysArray = useDashboardStore((state) => state.statusAnnualClosingDaysArray);
+  const setStatusAnnualClosingDaysArray = useDashboardStore((state) => state.setStatusAnnualClosingDaysArray);
+
+  // 初回マウント時にローカルストレージの各年度別の定休日適用ステータスをZustandに格納
   useEffect(() => {
-    if (!annualMonthlyClosingDays?.getTime) return;
-    if (prevFetchTimeAnnualClosing === annualMonthlyClosingDays.getTime) return;
-    console.log("💡💡💡💡💡💡再フェッチを確認");
+    if (statusAnnualClosingDaysArray) return;
+    const localStatus = localStorage.getItem("status_annual_closing_days");
+    const parsedStatus = localStatus ? JSON.parse(localStatus) : null;
+    setStatusAnnualClosingDaysArray(parsedStatus);
+  }, []);
 
-    // フェッチした時間を更新
-    console.log("🔥🔥🔥🔥🔥営業カレンダーを再生成");
-    setPrevFetchTimeAnnualClosing(annualMonthlyClosingDays.getTime);
-
-    // 年間休日数が変更されると営業稼働日数が変わるのでfiscal_baseのみinvalidate
-    const resetQueryCalendars = async () => {
-      await queryClient.invalidateQueries({ queryKey: ["calendar_for_calendar_base"] });
-      await queryClient.invalidateQueries({ queryKey: ["calendar_for_fiscal_base"] });
-    };
-    resetQueryCalendars();
-  }, [annualMonthlyClosingDays?.getTime]);
+  // 選択中の年度の定休日の適用日(queryKey用)
+  const appliedAtClosingDaysOfSelectedFiscalYear = statusAnnualClosingDaysArray
+    ? statusAnnualClosingDaysArray?.find((obj) => obj.fiscal_year === selectedFiscalYear)?.updated_at
+    : null;
 
   // 🌟useQuery 顧客の会計月度ごとの営業日も追加した会計年度カレンダーの完全リスト🌟
   const {
@@ -216,28 +251,29 @@ const SettingCompanyMemo = () => {
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
     isReady: !isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
+    appliedAtOfSelectedYear: appliedAtClosingDaysOfSelectedFiscalYear ?? null,
   });
 
   // 🌟useQuery カレンダーベースの営業日も追加した完全リスト🌟
-  const {
-    data: calendarForCalendarBase,
-    isLoading: isLoadingCalendarForCalendarBase,
-    isError: isErrorCalendarForCalendarBase,
-    error: errorCalendarForCalendarBase,
-  } = useQueryCalendarForCalendarBase({
-    selectedFiscalYear: selectedFiscalYear,
-    annualMonthlyClosingDays: annualMonthlyClosingDays
-      ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
-      : null,
-    isReady: isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
-  });
+  // const {
+  //   data: calendarForCalendarBase,
+  //   isLoading: isLoadingCalendarForCalendarBase,
+  //   isError: isErrorCalendarForCalendarBase,
+  //   error: errorCalendarForCalendarBase,
+  // } = useQueryCalendarForCalendarBase({
+  //   selectedFiscalYear: selectedFiscalYear,
+  //   annualMonthlyClosingDays: annualMonthlyClosingDays
+  //     ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
+  //     : null,
+  //   isReady: isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
+  // });
 
   // 年間休業日日数
   const annualClosingDaysCount = annualMonthlyClosingDays?.annual_closing_days_obj?.annual_closing_days_count ?? 0;
   // 年間営業稼働日数
   // const annualWorkingDaysCount = 365 - annualClosingDaysCount;
-  const annualWorkingDaysCount =
-    calendarForFiscalBase?.daysCountInYear ?? getDaysInYear(selectedFiscalYear ?? new Date().getFullYear());
+  // const annualWorkingDaysCount =
+  //   calendarForFiscalBase?.daysCountInYear ?? getDaysInYear(selectedFiscalYear ?? new Date().getFullYear());
 
   // 規模
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
@@ -1162,8 +1198,8 @@ const SettingCompanyMemo = () => {
     annualMonthlyClosingDays,
     "🌟顧客の会計月度ごとの営業日も追加した会計年度カレンダーの完全リストuseQuery🌟 calendarForFiscalBase",
     calendarForFiscalBase,
-    "🌟カレンダーベースの営業日も追加した完全リストuseQuery🌟 calendarForCalendarBase",
-    calendarForCalendarBase,
+    // "🌟カレンダーベースの営業日も追加した完全リストuseQuery🌟 calendarForCalendarBase",
+    // calendarForCalendarBase,
     "departmentDataArray",
     departmentDataArray
   );
@@ -3127,7 +3163,10 @@ const SettingCompanyMemo = () => {
                 <div className={`mr-[9px] flex h-full w-[20%] flex-col !text-[14px]`}>
                   <div className={`flex h-1/2 w-full items-center`}>
                     <span className={`min-w-[80px]`}>営業稼働日</span>
-                    <span>{annualWorkingDaysCount}</span>
+                    <span>
+                      {calendarForFiscalBase?.workingDaysCountInYear ??
+                        getDaysInYear(selectedFiscalYear ?? new Date().getFullYear())}
+                    </span>
                   </div>
                   <div className={`flex h-1/2 w-full items-center`}>
                     <span className={`min-w-[80px]`}>休日</span>

@@ -313,6 +313,9 @@
   /* transform: translateY(-5%); */
   /* animation: fade_up5 0.3s ease forwards; */
 }
+.settings_menu.fade_up {
+  animation: fade_up5 0.3s ease forwards;
+}
 .settings_menu .scroll_container {
   /* max-height: 33vh; */
   max-height: 39vh;
@@ -327,6 +330,36 @@
 }
 .settings_menu .list:hover {
   background-color: var(--color-bg-brand-f30);
+}
+.settings_menu .list.edit_mode {
+  cursor: pointer;
+}
+.settings_menu .list.edit_mode span {
+  min-width: 48px;
+  /* text-align: center; */
+}
+.settings_menu .list.edit_mode.active {
+  background-color: var(--color-bg-brand-f);
+}
+.settings_menu .list.edit_mode.active:hover svg {
+  color: #fff;
+}
+.settings_menu .list.edit_mode.active .working_day {
+  color: #00d436;
+}
+.settings_menu .list.edit_mode.active .closing_day {
+  color: var(--main-color-tk);
+}
+.settings_menu .list.edit_mode:hover .arrow_icon {
+  color: var(--color-bg-brand-f);
+}
+.settings_menu .list.edit_mode:hover .working_day {
+  /* background-color: #303030; */
+  /* color: var(--color-bg-brand-f); */
+  color: #00d436;
+}
+.settings_menu .list.edit_mode:hover .closing_day {
+  color: var(--main-color-tk);
 }
 .settings_menu .section_title {
   /* padding: 10px 20px 5px; */

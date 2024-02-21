@@ -22,6 +22,7 @@ import {
   Quotation_row_data,
   SettingModalProperties,
   StampObj,
+  StatusClosingDays,
   StripeSchedule,
   UserProfile,
   UserProfileCompanySubscription,
@@ -449,6 +450,9 @@ type State = {
   // 決算日が28~30までで末日でない決算日の場合の各月度の開始日、終了日カスタムinput
   fiscalMonthStartEndInputArray: { startDate: Date; endDate: Date }[] | null;
   setFiscalMonthStartEndInputArray: (payload: { startDate: Date; endDate: Date }[] | null) => void;
+  // 各会計年度別の定休日の適用状況・ステータス
+  statusAnnualClosingDaysArray: StatusClosingDays[] | null;
+  setStatusAnnualClosingDaysArray: (payload: StatusClosingDays[] | null) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -1056,6 +1060,9 @@ const useDashboardStore = create<State>((set) => ({
   // 決算日が28~30までで末日でない決算日の場合の各月度の開始日、終了日カスタムinput
   fiscalMonthStartEndInputArray: null,
   setFiscalMonthStartEndInputArray: (payload) => set({ fiscalMonthStartEndInputArray: payload }),
+  // 各会計年度別の定休日の適用状況・ステータス
+  statusAnnualClosingDaysArray: null,
+  setStatusAnnualClosingDaysArray: (payload) => set({ statusAnnualClosingDaysArray: payload }),
 }));
 
 export default useDashboardStore;

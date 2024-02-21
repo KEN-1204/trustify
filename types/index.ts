@@ -2327,3 +2327,6 @@ export type CustomerBusinessCalendars = {
   status: string | null;
   working_hours: number | null;
 };
+
+// 各会計年度別の定休日の適用状況・ステータス
+export type StatusClosingDays = { fiscal_year: number; applied_closing_days: number[]; updated_at: number | null };

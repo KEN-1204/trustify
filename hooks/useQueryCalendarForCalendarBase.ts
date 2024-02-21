@@ -34,14 +34,20 @@ type Props = {
   //   | null
   //   | undefined;
   isReady: boolean;
+  appliedAtOfSelectedYear: number | null;
 };
 
 export const useQueryCalendarForCalendarBase = ({
   selectedFiscalYear,
   annualMonthlyClosingDays,
   isReady = true,
+  appliedAtOfSelectedYear,
 }: Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const statusAnnualClosingDaysArray = useDashboardStore((state) => state.statusAnnualClosingDaysArray);
+
+  const appliedAt =
+    statusAnnualClosingDaysArray?.find((obj) => obj.fiscal_year === selectedFiscalYear)?.updated_at ?? null;
   // }: Props): UseQueryResult<QueryResponse> => {
   //   const queryClient = useQueryClient();
 
@@ -52,11 +58,17 @@ export const useQueryCalendarForCalendarBase = ({
   // const { data, status, isLoading, isError, error } = useQuery({
   //   return useQuery({
   const queryResult = useQuery({
-    queryKey: ["calendar_for_calendar_base", fiscalEndMonthKey, selectedFiscalYear],
+    // queryKey: ["calendar_for_calendar_base", fiscalEndMonthKey, selectedFiscalYear, appliedAtOfSelectedYear],
+    queryKey: ["calendar_for_calendar_base", fiscalEndMonthKey, selectedFiscalYear, appliedAt],
+    // queryKey: ["calendar_for_calendar_base", fiscalEndMonthKey, selectedFiscalYear],
     queryFn: () => {
       if (!selectedFiscalYear) return null;
       if (!annualMonthlyClosingDays) return null;
-      console.log("🔥useQueryCalendarForCalendarBase queryFn実行");
+      console.log(
+        "🔥useQueryCalendarForCalendarBase queryFn実行 クエリキー",
+        // `calendar_for_fiscal_base ${fiscalEndMonthKey}, ${selectedFiscalYear}, ${appliedAtOfSelectedYear}`
+        `calendar_for_fiscal_base ${fiscalEndMonthKey}, ${selectedFiscalYear}, ${appliedAt}`
+      );
       const newCalendarForCalendarBase = generateFiscalYearCalendar(annualMonthlyClosingDays);
       return newCalendarForCalendarBase;
     },

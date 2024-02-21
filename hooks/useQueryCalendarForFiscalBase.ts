@@ -34,24 +34,22 @@ type Props = {
   //   | null
   //   | undefined;
   isReady: boolean;
+  appliedAtOfSelectedYear: number | null;
 };
-
-type QueryResponse =
-  | {
-      fiscalYearMonth: string;
-      allDays: CustomerBusinessCalendars[];
-    }[]
-  | null
-  | unknown;
 
 export const useQueryCalendarForFiscalBase = ({
   selectedFiscalYear,
   annualMonthlyClosingDays,
   isReady = true,
+  appliedAtOfSelectedYear,
 }: Props) => {
   // }: Props): UseQueryResult<QueryResponse> => {
   // const queryClient = useQueryClient();
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const statusAnnualClosingDaysArray = useDashboardStore((state) => state.statusAnnualClosingDaysArray);
+
+  const appliedAt =
+    statusAnnualClosingDaysArray?.find((obj) => obj.fiscal_year === selectedFiscalYear)?.updated_at ?? null;
 
   const fiscalEndMonthKey = userProfileState?.customer_fiscal_end_month
     ? format(new Date(userProfileState?.customer_fiscal_end_month), "yyyy-MM-dd")
@@ -59,13 +57,19 @@ export const useQueryCalendarForFiscalBase = ({
 
   // const { data, status, isLoading, isError, error } = useQuery({
   const queryResult = useQuery({
-    queryKey: ["calendar_for_fiscal_base", fiscalEndMonthKey, selectedFiscalYear],
+    // queryKey: ["calendar_for_fiscal_base", fiscalEndMonthKey, selectedFiscalYear, appliedAtOfSelectedYear],
+    queryKey: ["calendar_for_fiscal_base", fiscalEndMonthKey, selectedFiscalYear, appliedAt],
+    // queryKey: ["calendar_for_fiscal_base", fiscalEndMonthKey, selectedFiscalYear],
     queryFn: () => {
       if (!selectedFiscalYear) return null;
       if (!annualMonthlyClosingDays) return null;
       if (!userProfileState?.company_id) return null;
       if (!userProfileState?.customer_fiscal_end_month) return null;
-      console.log("🔥useQueryCalendarForFiscalBase queryFn実行");
+      console.log(
+        "🔥useQueryCalendarForFiscalBase queryFn実行 クエリキー",
+        // `calendar_for_fiscal_base ${fiscalEndMonthKey}, ${selectedFiscalYear}, ${appliedAtOfSelectedYear}`
+        `calendar_for_fiscal_base ${fiscalEndMonthKey}, ${selectedFiscalYear}, ${appliedAt}`
+      );
       const newCalendarForFiscalBase = fillWorkingDaysForEachFiscalMonth(
         annualMonthlyClosingDays,
         userProfileState.company_id

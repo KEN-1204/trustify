@@ -1,5 +1,4 @@
 import { CustomerBusinessCalendars } from "@/types";
-import useDashboardStore from "@/store/useDashboardStore";
 import { formatDateToYYYYMMDD } from "./formatDateLocalToYYYYMMDD";
 
 // 🔹休業日以外の日付を営業日として追加してユーザーの月初日から始まるカレンダーリストを生成する関数
@@ -21,6 +20,8 @@ export function fillWorkingDaysForEachFiscalMonth(
   company_id: string
 ): {
   daysCountInYear: number;
+  workingDaysCountInYear: number;
+  closingDaysCountInYear: number;
   completeAnnualFiscalCalendar: {
     fiscalYearMonth: string;
     monthlyDays: CustomerBusinessCalendars[];
@@ -32,9 +33,11 @@ export function fillWorkingDaysForEachFiscalMonth(
 
   // 年間日数計算用
   let daysCountInYear = 0;
+  // 年間営業稼働日日数計算用
+  let workingDaysCountInYear = 0;
 
   // 期首の月初のカレンダー月 2023-03-21 => 03 => 3
-  const firstMonthStartDateCalendar = parseInt(closingDaysData[0].start_date.split("-")[1], 10);
+  // const firstMonthStartDateCalendar = parseInt(closingDaysData[0].start_date.split("-")[1], 10);
 
   const completeAnnualFiscalCalendar = closingDaysData.map((monthData, index) => {
     const { fiscal_year_month, closing_days, start_date, next_month_start_date } = monthData;
@@ -89,12 +92,17 @@ export function fillWorkingDaysForEachFiscalMonth(
 
     // 年間日数変数にmonthlyDaysの要素数を加算する
     daysCountInYear += monthlyDays.length;
+    workingDaysCountInYear += workingDaysCount;
 
     return { fiscalYearMonth: fiscal_year_month, monthlyDays: monthlyDays, monthlyWorkingDaysCount: workingDaysCount };
   });
 
+  const closingDaysCountInYear = daysCountInYear - workingDaysCountInYear;
+
   const completeAnnualFiscalCalendarObj = {
     daysCountInYear: daysCountInYear,
+    workingDaysCountInYear: workingDaysCountInYear,
+    closingDaysCountInYear: closingDaysCountInYear,
     completeAnnualFiscalCalendar: completeAnnualFiscalCalendar,
   };
 
