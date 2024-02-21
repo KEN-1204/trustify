@@ -293,6 +293,32 @@
   /* border-right: 1px solid #ccc;
   border-bottom: 1px solid #ccc; */
 }
+
+.monthly_row_section
+  .month
+  .month_grid_container
+  .month_date_container
+  .month_grid_cell.date.edit_mode:not(.out_of_fiscal_year) {
+  z-index: 4000;
+  position: relative;
+  background-color: #fff;
+}
+.monthly_row_section
+  .month
+  .month_grid_container
+  .month_date_container
+  .month_grid_cell.date.edit_mode:not(.out_of_fiscal_year):hover {
+  color: #fff;
+  background-color: var(--color-bg-brand-f);
+}
+.monthly_row_section
+  .month
+  .month_grid_container
+  .month_date_container
+  .month_grid_cell.date.edit_mode:not(.out_of_fiscal_year).active {
+  color: #fff;
+  background-color: var(--bright-green);
+}
 /* ✅monthly_row_section✅ */
 /* 🌟summary_section🌟 */
 
@@ -312,6 +338,13 @@
   /* opacity: 0; */
   /* transform: translateY(-5%); */
   /* animation: fade_up5 0.3s ease forwards; */
+}
+.menu_overlay.edit_mode {
+  z-index: 3700;
+  /* background-color: #ff0000c0; */
+}
+.settings_menu.edit_mode {
+  z-index: 4500;
 }
 .settings_menu.fade_up {
   animation: fade_up5 0.3s ease forwards;

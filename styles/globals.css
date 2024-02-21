@@ -1001,6 +1001,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* スケルトンローディング */
   --color-skeleton-bg: #99999947;
   --color-skeleton-bg-wave: #ffffff70;
+  --color-skeleton-bg-wave-light: #ffffff99;
 
   /* canva 背景カラー */
   --color-bg-c-sub: #ebecf0;
@@ -1655,9 +1656,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* テキスト シャドウ dark */
   --color-text-brand-shadow: #ffffff70;
 
-  /* スケルトンローディング */
+  /* スケルトンローディング dark */
   --color-skeleton-bg: #99999970;
   --color-skeleton-bg-wave: #ffffff22;
+  /* --color-skeleton-bg-wave: #ffffff66; */
+  --color-skeleton-bg-wave-light: #ffffff66;
 
   /* canva 背景カラー dark */
   --color-bg-c-sub: #6c6c6c;

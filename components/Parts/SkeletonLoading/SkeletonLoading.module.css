@@ -5,6 +5,7 @@
   background: var(--color-skeleton-bg);
   position: relative;
   overflow: hidden;
+  /* --color-skeleton-bg-wave: #ffffff66; */
 }
 .skeleton::before {
   content: "";

@@ -25,11 +25,13 @@ export function generateFiscalYearCalendar(
     fiscalYearMonth: string;
     monthlyDays: {
       date: string;
+      datePadZero: string;
       day_of_week: number;
       status: string | null;
       timestamp: number;
       isFiscalMonthEnd: boolean;
       isOutOfFiscalYear: boolean;
+      closedDateId: string | null;
     }[];
   }[];
   isSameStartMonthFiscalAndCalendar: boolean;
@@ -56,8 +58,12 @@ export function generateFiscalYearCalendar(
 
   // 12ヶ月分の各配列から休業日の配列をflatMapで並列に展開して一つの配列にまとめ、
   // さらにnew SetでSetオブジェクトに変換してからhasメソッドで各日付データがSetオブジェクトないに含まれているかを高速でチェックする
-  const allClosingDaysSetObj = new Set(
-    closingDaysData.flatMap((data) => data.closing_days.map((closingDay) => closingDay.date))
+  // const allClosingDaysSetObj = new Set(
+  //   closingDaysData.flatMap((data) => data.closing_days.map((closingDay) => closingDay.date))
+  // );
+  // 🌟dateをキーで、idをvalueにしたMapオブジェクトを作成して、休業日の一致とidの取得を同時に行う
+  const allClosingDaysMapObj = new Map(
+    closingDaysData.flatMap((data) => data.closing_days.map((closingDay) => [closingDay.date, closingDay.id]))
   );
 
   console.log(
@@ -70,8 +76,10 @@ export function generateFiscalYearCalendar(
     "fiscalYearStartDate",
     fiscalYearStartDate,
     format(fiscalYearStartDate, "yyyy-MM-dd HH:mm:ss"),
-    "１年間の休業日Setオブジェクト",
-    allClosingDaysSetObj
+    // "１年間の休業日Setオブジェクト",
+    // allClosingDaysSetObj,
+    "１年間の休業日Mapオブジェクト",
+    allClosingDaysMapObj
   );
 
   const completeAnnualFiscalCalendar = closingDaysData.map((monthData, monthIndex) => {
@@ -95,11 +103,13 @@ export function generateFiscalYearCalendar(
     // 月度内の全ての日付リスト
     const monthlyDays: {
       date: string;
+      datePadZero: string;
       day_of_week: number;
       status: string | null;
       timestamp: number;
       isFiscalMonthEnd: boolean;
       isOutOfFiscalYear: boolean;
+      closedDateId: string | null;
     }[] = [];
     let d = new Date(startDate);
     while (d <= endDate) {
@@ -110,7 +120,10 @@ export function generateFiscalYearCalendar(
       const timestamp = d.getTime();
       // const timestamp = new Date(formattedDateNotZeroPad).getTime();
       // const isClosed = closing_days.some((cd) => cd.date === formattedDate); // 休業日かどうか
-      const isClosed = allClosingDaysSetObj.has(formattedDate);
+      // Setオブジェクトのhasメソッドで休業日かどうかをチェック
+      // const isClosed = allClosingDaysSetObj.has(formattedDate);
+      // Mapオブジェクトのgetメソッドで休業日かどうかdateのキーでチェックして一致すればvalueのidを取得する(一致しなければundefinedを返す)
+      const isClosedId = allClosingDaysMapObj.get(formattedDate);
       // 月度末日かどうか
       const isFiscalMonthEnd = currentMonthEndDate.getDate() === d.getDate();
       // 会計期間内かどうか 初月と最終月のみチェック
@@ -123,11 +136,14 @@ export function generateFiscalYearCalendar(
 
       monthlyDays.push({
         date: formattedDateNotZeroPad,
+        datePadZero: formattedDate,
         day_of_week: dayOfWeek,
-        status: isClosed ? "closed" : null,
+        // status: isClosed ? "closed" : null,
+        status: isClosedId ? "closed" : null, // idが取得できていればclosed, undefinedならnullをセット
         timestamp: timestamp,
         isFiscalMonthEnd: isFiscalMonthEnd,
         isOutOfFiscalYear: isOutOfFiscalYear,
+        closedDateId: isClosedId ?? null, // idが取得できていれば休業日のidをセット, undefinedならnullをセット
       }); // リスト末尾に追加
       d.setDate(d.getDate() + 1); // 翌日に更新
     }
@@ -170,11 +186,13 @@ export function generateFiscalYearCalendar(
     const endDate0 = new Date(fiscalStartYear, fiscalStartMonthCalendar, 0); // 月末
     const monthlyDays0: {
       date: string;
+      datePadZero: string;
       day_of_week: number;
       status: string | null;
       timestamp: number;
       isFiscalMonthEnd: boolean;
       isOutOfFiscalYear: boolean;
+      closedDateId: string | null;
     }[] = [];
     const addObj0 = {
       addYearMonth: firstAddYearMonth0,
@@ -214,11 +232,13 @@ export function generateFiscalYearCalendar(
     const endDate13 = new Date(secondAddYear, secondAddMonth, 0); // 月末
     const monthlyDays13: {
       date: string;
+      datePadZero: string;
       day_of_week: number;
       status: string | null;
       timestamp: number;
       isFiscalMonthEnd: boolean;
       isOutOfFiscalYear: boolean;
+      closedDateId: string | null;
     }[] = [];
     const addObj13 = {
       addYearMonth: secondAddYearMonth13,
@@ -232,11 +252,13 @@ export function generateFiscalYearCalendar(
     const endDate14 = new Date(secondAddYear, secondAddMonth, 0); // 月末
     const monthlyDays14: {
       date: string;
+      datePadZero: string;
       day_of_week: number;
       status: string | null;
       timestamp: number;
       isFiscalMonthEnd: boolean;
       isOutOfFiscalYear: boolean;
+      closedDateId: string | null;
     }[] = [];
     const addObj14 = {
       addYearMonth: thirdAddYearMonth14,
@@ -269,10 +291,14 @@ export function generateFiscalYearCalendar(
         const _formattedDate = formatDateToYYYYMMDD(_d, true); // 0詰め日付情報のみ取得
         const _dayOfWeek = _d.getDay();
         const _timestamp = _d.getTime();
-        const _isClosed = closingDaysData[0].closing_days.some((cd) => cd.date === _formattedDate);
 
         let isOutOfFiscalYear = true;
+        let isClosedId = null;
+        // 先頭の列のみ会計期間が含まれるためindexが0のみチェック
         if (index === 0) {
+          // const _isClosed = closingDaysData[0].closing_days.some((cd) => cd.date === _formattedDate);
+          // Mapオブジェクトのgetメソッドで休業日かどうかdateのキーでチェックして一致すればvalueのidを取得する(一致しなければundefinedを返す)
+          isClosedId = allClosingDaysMapObj.get(_formattedDate) ?? null;
           // 会計期間内かどうか
           if (isDateWithinPeriod({ targetDate: _d, startDate: fiscalYearStartDate, endDate: fiscalYearEndDate })) {
             isOutOfFiscalYear = false;
@@ -281,11 +307,14 @@ export function generateFiscalYearCalendar(
 
         _monthlyDays.push({
           date: _formattedDateNotZeroPad,
+          datePadZero: _formattedDate,
           day_of_week: _dayOfWeek,
-          status: _isClosed ? "closed" : null,
+          // status: _isClosed ? "closed" : null,
+          status: isClosedId ? "closed" : null,
           timestamp: _timestamp,
           isFiscalMonthEnd: false,
           isOutOfFiscalYear: isOutOfFiscalYear,
+          closedDateId: isClosedId ?? null,
         }); // リスト末尾に追加
         _d.setDate(_d.getDate() + 1); // 翌日に更新
         isOutOfFiscalYear = true;
@@ -370,11 +399,13 @@ export function generateFiscalYearCalendar(
     const endDate13 = new Date(addYear13, addMonth13, 0); // 月末
     const monthlyDays13: {
       date: string;
+      datePadZero: string;
       day_of_week: number;
       status: string | null;
       timestamp: number;
       isFiscalMonthEnd: boolean;
       isOutOfFiscalYear: boolean;
+      closedDateId: string | null;
     }[] = [];
     const addObj13 = {
       addYearMonth: addYearMonth13,
@@ -388,11 +419,13 @@ export function generateFiscalYearCalendar(
     const endDate14 = new Date(addYear14, addMonth14, 0); // 月末
     const monthlyDays14: {
       date: string;
+      datePadZero: string;
       day_of_week: number;
       status: string | null;
       timestamp: number;
       isFiscalMonthEnd: boolean;
       isOutOfFiscalYear: boolean;
+      closedDateId: string | null;
     }[] = [];
     const addObj14 = {
       addYearMonth: addYearMonth14,
@@ -406,11 +439,13 @@ export function generateFiscalYearCalendar(
     const endDate15 = new Date(addYear15, addMonth15, 0); // 月末
     const monthlyDays15: {
       date: string;
+      datePadZero: string;
       day_of_week: number;
       status: string | null;
       timestamp: number;
       isFiscalMonthEnd: boolean;
       isOutOfFiscalYear: boolean;
+      closedDateId: string | null;
     }[] = [];
     const addObj15 = {
       addYearMonth: addYearMonth15,
@@ -447,11 +482,13 @@ export function generateFiscalYearCalendar(
 
         _monthlyDays.push({
           date: _formattedDateNotZeroPad,
+          datePadZero: _formattedDate,
           day_of_week: _dayOfWeek,
           status: _isClosed ? "closed" : null,
           timestamp: _timestamp,
           isFiscalMonthEnd: false,
           isOutOfFiscalYear: true,
+          closedDateId: null,
         }); // リスト末尾に追加
         _d.setDate(_d.getDate() + 1); // 翌日に更新
       }

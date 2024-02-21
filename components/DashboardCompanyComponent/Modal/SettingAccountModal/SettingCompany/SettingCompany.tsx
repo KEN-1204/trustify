@@ -223,16 +223,17 @@ const SettingCompanyMemo = () => {
   //   const parsedStatus = localStatus ? JSON.parse(localStatus) : null;
   //   return parsedStatus;
   // });
+
   const statusAnnualClosingDaysArray = useDashboardStore((state) => state.statusAnnualClosingDaysArray);
   const setStatusAnnualClosingDaysArray = useDashboardStore((state) => state.setStatusAnnualClosingDaysArray);
 
-  // 初回マウント時にローカルストレージの各年度別の定休日適用ステータスをZustandに格納
-  useEffect(() => {
-    if (statusAnnualClosingDaysArray) return;
-    const localStatus = localStorage.getItem("status_annual_closing_days");
-    const parsedStatus = localStatus ? JSON.parse(localStatus) : null;
-    setStatusAnnualClosingDaysArray(parsedStatus);
-  }, []);
+  // // 初回マウント時にローカルストレージの各年度別の定休日適用ステータスをZustandに格納
+  // useEffect(() => {
+  //   if (statusAnnualClosingDaysArray) return;
+  //   const localStatus = localStorage.getItem("status_annual_closing_days");
+  //   const parsedStatus = localStatus ? JSON.parse(localStatus) : null;
+  //   setStatusAnnualClosingDaysArray(parsedStatus);
+  // }, []);
 
   // 選択中の年度の定休日の適用日(queryKey用)
   const appliedAtClosingDaysOfSelectedFiscalYear = statusAnnualClosingDaysArray

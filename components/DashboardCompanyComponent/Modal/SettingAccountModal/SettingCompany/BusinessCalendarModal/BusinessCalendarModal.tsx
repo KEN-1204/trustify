@@ -138,11 +138,13 @@ const addNullMonthArray = (
   array: any[]
 ): ({
   date: string;
+  datePadZero: string;
   day_of_week: number;
   status: string | null;
   timestamp: number;
   isFiscalMonthEnd: boolean;
   isOutOfFiscalYear: boolean;
+  closedDateId: string | null;
 } | null)[] => {
   //  日曜日の場合、6このnullを追加(月曜始まりのカレンダー)
   // それ以外の場合、dayOfWeek - 1 個のnullを追加 (月曜日は追加しない実装になってる)
@@ -185,6 +187,14 @@ const BusinessCalendarModalMemo = () => {
   const [isEditMode, setIsEditMode] = useState<string[]>([]); // エディットモード
   const [isOpenSettings, setIsOpenSettings] = useState(false); // セッティングメニュー
   const [compressionRatio, setCompressionRatio] = useState<CompressionRatio>("FAST"); // 画像をPDF化する際の圧縮率3段階を指定
+
+  // 編集モードポップアップ開閉
+  const [isOpenEditModePopup, setIsOpenEditModePopup] = useState(false);
+  // 休日=>営業日編集用 休日を保持する配列 idを保持
+  const [editClosingDaysArray, setEditClosingDaysArray] = useState<string[]>([]);
+  // 営業日=>休日編集用 営業日を保持する配列 datePadZeroを保持 YYYY-MM-DD形式
+  const [editWorkingDaysArray, setEditWorkingDaysArray] = useState<string[]>([]);
+  // SQL標準および多くのデータベースシステムでは、DATE型の値をYYYY-MM-DD形式で扱います。この形式はISO 8601日付形式に準拠しており、月や日が1桁の場合には0で詰めるのが一般的です。したがって、2024-4-1の代わりに2024-04-01の形式を使用することを推奨します。
 
   // 🔹useRef関連
   const previewModalTwinAreaRef = useRef<HTMLDivElement | null>(null);
@@ -437,11 +447,13 @@ const BusinessCalendarModalMemo = () => {
         fiscalYearMonth: string;
         monthlyDays: {
           date: string;
+          datePadZero: string;
           day_of_week: number;
           status: string | null;
           timestamp: number;
           isFiscalMonthEnd: boolean;
           isOutOfFiscalYear: boolean;
+          closedDateId: string | null;
         }[];
       }[][]
     | null;
@@ -642,17 +654,17 @@ const BusinessCalendarModalMemo = () => {
   };
   // -------------------------- ✅モーダルを閉じる関数✅ --------------------------
 
-  // -------------------------- 🌟セッティングメニュー開閉🌟 --------------------------
-  const handleOpenSettings = () => {
-    setIsOpenSettings(true);
-    if (hoveredItemPos) handleCloseTooltip();
-    if (openPopupMenu) handleClosePopupMenu();
-  };
-  const handleCloseSettings = () => {
-    // セッティングメニューを閉じる
-    setIsOpenSettings(false);
-  };
-  // -------------------------- ✅セッティングメニュー開閉✅ --------------------------
+  // // -------------------------- 🌟セッティングメニュー開閉🌟 --------------------------
+  // const handleOpenSettings = () => {
+  //   setIsOpenSettings(true);
+  //   if (hoveredItemPos) handleCloseTooltip();
+  //   if (openPopupMenu) handleClosePopupMenu();
+  // };
+  // const handleCloseSettings = () => {
+  //   // セッティングメニューを閉じる
+  //   setIsOpenSettings(false);
+  // };
+  // // -------------------------- ✅セッティングメニュー開閉✅ --------------------------
 
   // -------------------------- 🌟PDFファイルのダウンロード html => pdf🌟 --------------------------
   // pdfファイル名の取得関数
@@ -1137,21 +1149,68 @@ const BusinessCalendarModalMemo = () => {
   };
   // -------------------------- ✅フォールバック✅ --------------------------
 
+  // -------------------------- 🌟日付クリック🌟 --------------------------
+  type DateCellProps = {
+    dateObj: {
+      date: string;
+      datePadZero: string;
+      day_of_week: number;
+      status: string | null;
+      timestamp: number;
+      isFiscalMonthEnd: boolean;
+      isOutOfFiscalYear: boolean;
+      closedDateId: string | null;
+    };
+  };
+  // 全てそれぞれの配列に格納
+  // 1. 編集モード 営業日->休日 working_to_closing datePadZeroを格納(ISO8601日付形式/YYYY-MM-DD形式)
+  // 2. 編集モード 休日->営業日 closing_to_working idを格納
+  // 3. 通常モード時にクリックで編集モード起動 営業日->休日 working_to_closing
+  // 4. 通常モード時にクリックで編集モード起動 休日->営業日 closing_to_working
+  const handleClickDateCell = ({ dateObj }: DateCellProps) => {
+    // 🔹1. 編集モード 営業日->休日 working_to_closing datePadZeroを格納(ISO8601日付形式/YYYY-MM-DD形式)
+    if (isEditMode.includes("working_to_closing")) {
+      // 既に選択済みの場合は選択を解除
+      if (editWorkingDaysArray.includes(dateObj.datePadZero)) {
+        const filteredArray = editWorkingDaysArray.filter((date) => date !== dateObj.datePadZero);
+        setEditWorkingDaysArray(filteredArray);
+      } else {
+        const newArray = [...editWorkingDaysArray, dateObj.datePadZero];
+        setEditWorkingDaysArray(newArray);
+      }
+    }
+  };
+  // -------------------------- ✅日付クリック✅ --------------------------
+
+  // -------------------------- 🌟エディットモードポップアップメニュー開閉🌟 --------------------------
+  const handleCloseEditModePopup = () => {
+    if (hoveredItemPos) handleCloseTooltip();
+    // if (openPopupMenu) handleClosePopupMenu();
+    setIsOpenEditModePopup(false);
+    if (isEditMode.length > 0) setIsEditMode([]);
+  };
+  // -------------------------- ✅エディットモードポップアップメニュー開閉✅ --------------------------
+
   // -------------------------- 🌟エディットモード終了🌟 --------------------------
-  const handleFinishEdit = () => setIsEditMode([]);
+  const handleFinishEdit = () => {
+    if (isEditMode.length > 0) setIsEditMode([]);
+    // setIsOpenEditModePopup(false);
+    if (hoveredItemPos) handleCloseTooltip();
+  };
   // -------------------------- ✅エディットモード終了✅ --------------------------
   // -------------------------- 🌟全てのフィールドを編集モードに変更🌟 --------------------------
   const handleAllEdit = () => {
     if (hoveredItemPos) handleCloseTooltip();
-    if (openPopupMenu) handleClosePopupMenu();
+    // if (openPopupMenu) handleClosePopupMenu();
 
     if (isEditMode.length === 0) {
-      const allEdit = ["working_to_closing", "closing_to_working"];
-      setIsEditMode(allEdit);
+      // const allEdit = ["working_to_closing", "closing_to_working"];
+      // setIsEditMode(allEdit);
+      setIsOpenEditModePopup(true);
     } else {
       handleFinishEdit();
     }
-    if (hoveredItemPos) handleCloseTooltip();
+    // if (hoveredItemPos) handleCloseTooltip();
   };
   // -------------------------- ✅全てのフィールドを編集モードに変更✅ --------------------------
 
@@ -1159,13 +1218,15 @@ const BusinessCalendarModalMemo = () => {
   const EditModeOverlay = () => {
     return (
       <div
-        className={`absolute left-[-50vw] top-[-50vh] z-[3500] h-[150vh] w-[150vw] bg-[#00000030]`}
+        // className={`absolute left-[-50vw] top-[-50vh] z-[3500] h-[150vh] w-[150vw] bg-[#00000030]`}
+        className={`absolute left-[-50vw] top-[-50vh] z-[3700] h-[150vh] w-[150vw] bg-[#00000030]`}
+        // style={{ backgroundColor: "#ff0000c0" }}
         onClick={handleFinishEdit}
       ></div>
     );
   };
   // ----------------- ✅編集モードオーバーレイコンポーネント✅ -----------------
-  // ----------------- 🌟編集モードオーバーレイコンポーネント🌟 -----------------
+  // ----------------- 🌟年切り替わりコンポーネント🌟 -----------------
   const YearSection = ({ year }: { year: number }) => {
     return (
       <div className={`${styles.year_section} w-full bg-[aqua]/[0]`}>
@@ -1218,7 +1279,7 @@ const BusinessCalendarModalMemo = () => {
       </div>
     );
   };
-  // ----------------- ✅編集モードオーバーレイコンポーネント✅ -----------------
+  // ----------------- ✅年切り替わりコンポーネント✅ -----------------
 
   // ----------------- 🌟営業稼働日数リスト🌟 -----------------
   const AnnualMonthlyWorkingDaysRow = () => {
@@ -1772,6 +1833,17 @@ const BusinessCalendarModalMemo = () => {
                                             displayValue === null ? `` : `${styles.date}`
                                           } ${isClosed ? `${styles.is_closed}` : ``} ${
                                             isOutOfFiscalYear ? `${styles.out_of_fiscal_year}` : ``
+                                          } ${
+                                            (isEditMode.includes("working_to_closing") && !isClosed) ||
+                                            (isEditMode.includes("closing_to_working") && isClosed)
+                                              ? `${styles.edit_mode}`
+                                              : ``
+                                          } ${
+                                            !isClosed &&
+                                            dateObj?.datePadZero &&
+                                            editWorkingDaysArray.includes(dateObj.datePadZero)
+                                              ? `${styles.active}`
+                                              : ``
                                           } flex-center`}
                                           style={{
                                             ...(displayValue === null && {
@@ -1781,20 +1853,10 @@ const BusinessCalendarModalMemo = () => {
                                               borderRadius: "3px",
                                               border: "1px solid #37352f",
                                             }),
-                                            ...(isEditMode.includes("working_to_closing") &&
-                                              !isClosed &&
-                                              dateObj?.isOutOfFiscalYear === false && {
-                                                zIndex: 4000,
-                                                position: "relative",
-                                                backgroundColor: "#fff",
-                                              }),
-                                            ...(isEditMode.includes("closing_to_working") &&
-                                              isClosed &&
-                                              dateObj?.isOutOfFiscalYear === false && {
-                                                zIndex: 4000,
-                                                position: "relative",
-                                                backgroundColor: "#fff",
-                                              }),
+                                          }}
+                                          onClick={() => {
+                                            if (!dateObj) return;
+                                            handleClickDateCell({ dateObj: dateObj });
                                           }}
                                         >
                                           <span
@@ -1962,11 +2024,26 @@ const BusinessCalendarModalMemo = () => {
 
           {/* ---------------------- セッティングメニュー関連 ---------------------- */}
           {/* メニューオーバーレイ */}
-          {isOpenSettings && <div className={`${styles.menu_overlay}`} onClick={handleCloseSettings}></div>}
+          {/* {isOpenSettings && <div className={`${styles.menu_overlay}`} onClick={handleCloseSettings}></div>} */}
+          {isOpenEditModePopup &&
+            !isEditMode.includes("working_to_closing") &&
+            !isEditMode.includes("closing_to_working") && (
+              <div className={`${styles.menu_overlay} ${styles.edit_mode}`} onClick={handleCloseEditModePopup}></div>
+            )}
 
           {/* ---------------------------- セッティングメニュー ---------------------------- */}
           <div
-            className={`${styles.settings_menu} fixed right-[calc(100%+21px)] top-[0px] z-[3000] h-auto w-[330px] rounded-[6px]`}
+            className={`${
+              styles.settings_menu
+            } fixed right-[calc(100%+21px)] top-[0px] z-[3000] h-auto w-[330px] rounded-[6px] ${
+              isOpenEditModePopup ? `pointer-events-none` : ``
+            }`}
+            onClick={() => {
+              if (isOpenEditModePopup) {
+                handleCloseEditModePopup();
+                return;
+              }
+            }}
           >
             <h3
               className={`flex w-full items-center space-x-[9px] px-[20px] pt-[20px] text-[15px] font-bold`}
@@ -2172,102 +2249,104 @@ const BusinessCalendarModalMemo = () => {
 
           {/* ---------------------- 営業日休日変更ポップアップ ---------------------- */}
           {/* 休日 => 営業日 or 営業日 => 休日  */}
-          <div
-            className={`${styles.settings_menu} ${styles.fade_up} fixed right-[calc(-330px-18px)] top-[205px] z-[3000] h-auto w-[330px] overflow-hidden rounded-[6px]`}
-            // className={`${styles.description_menu} shadow-all-md border-real-with-shadow pointer-events-none fixed z-[3500] flex min-h-max flex-col rounded-[6px]`}
-            // style={{
-            //   top: `${openPopupMenu.y}px`,
-            //   ...(openPopupMenu?.displayX === "right" && {
-            //     left: `${openPopupMenu.x}px`,
-            //     maxWidth: `${openPopupMenu.maxWidth}px`,
-            //   }),
-            //   ...(openPopupMenu?.displayX === "left" && {
-            //     right: `${openPopupMenu.x}px`,
-            //     maxWidth: `${openPopupMenu.maxWidth}px`,
-            //   }),
-            // }}
-          >
-            <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>編集モード</h3>
+          {isOpenEditModePopup && (
+            <div
+              className={`${styles.settings_menu} ${styles.edit_mode} ${styles.fade_up} fixed right-[calc(-330px-18px)] top-[205px] z-[3000] h-auto w-[330px] overflow-hidden rounded-[6px]`}
+              // className={`${styles.description_menu} shadow-all-md border-real-with-shadow pointer-events-none fixed z-[3500] flex min-h-max flex-col rounded-[6px]`}
+              // style={{
+              //   top: `${openPopupMenu.y}px`,
+              //   ...(openPopupMenu?.displayX === "right" && {
+              //     left: `${openPopupMenu.x}px`,
+              //     maxWidth: `${openPopupMenu.maxWidth}px`,
+              //   }),
+              //   ...(openPopupMenu?.displayX === "left" && {
+              //     right: `${openPopupMenu.x}px`,
+              //     maxWidth: `${openPopupMenu.maxWidth}px`,
+              //   }),
+              // }}
+            >
+              <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>編集モード</h3>
 
-            <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
-              営業カレンダーから日付を選択して「営業日から休日へ」または「休日から営業日へ」個別に変更が可能です。
-            </p>
+              <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
+                営業カレンダーから日付を選択して「営業日から休日へ」または「休日から営業日へ」個別に変更が可能です。
+              </p>
 
-            <hr className="min-h-[1px] w-full bg-[#999]" />
+              <hr className="min-h-[1px] w-full bg-[#999]" />
 
-            {/* ---------------------------- メニューコンテンツエリア ---------------------------- */}
-            <div className={`${styles.scroll_container} flex max-h-[240px] w-full flex-col overflow-y-auto`}>
-              <ul className={`flex h-full w-full flex-col`}>
-                {/* ------------------------------------ */}
-                <li
-                  className={`${styles.list} ${styles.edit_mode} ${
-                    isEditMode.includes("working_to_closing") ? `${styles.active}` : ``
-                  }`}
-                  // onMouseEnter={(e) => {
-                  //   if (infoIconStepRef.current && infoIconStepRef.current.classList.contains(styles.animate_ping)) {
-                  //     infoIconStepRef.current.classList.remove(styles.animate_ping);
-                  //   }
-                  //   handleOpenPopupMenu({ e, title: "step", displayX: "right" });
-                  // }}
-                  // onMouseLeave={handleClosePopupMenu}
-                  onClick={() => {
-                    if (isEditMode.includes("working_to_closing")) {
-                      setIsEditMode([]);
-                    } else {
-                      setIsEditMode(["working_to_closing"]);
-                    }
-                  }}
-                >
-                  <div className="pointer-events-none flex w-full min-w-[110px] items-center justify-start">
-                    <MdOutlineDataSaverOff className="mr-[36px] min-h-[20px] min-w-[20px] text-[20px]" />
-                    <div className="flex w-full select-none items-center justify-start space-x-[39px] text-[16px] font-bold">
-                      <span className={`${styles.working_day}`}>営業日</span>
-                      <FaLongArrowAltRight
-                        className={`${styles.arrow_icon} pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px]`}
-                      />
-                      <span className={`${styles.closing_day}`}>休日</span>
+              {/* ---------------------------- メニューコンテンツエリア ---------------------------- */}
+              <div className={`${styles.scroll_container} flex max-h-[240px] w-full flex-col overflow-y-auto`}>
+                <ul className={`flex h-full w-full flex-col`}>
+                  {/* ------------------------------------ */}
+                  <li
+                    className={`${styles.list} ${styles.edit_mode} ${
+                      isEditMode.includes("working_to_closing") ? `${styles.active}` : ``
+                    }`}
+                    // onMouseEnter={(e) => {
+                    //   if (infoIconStepRef.current && infoIconStepRef.current.classList.contains(styles.animate_ping)) {
+                    //     infoIconStepRef.current.classList.remove(styles.animate_ping);
+                    //   }
+                    //   handleOpenPopupMenu({ e, title: "step", displayX: "right" });
+                    // }}
+                    // onMouseLeave={handleClosePopupMenu}
+                    onClick={() => {
+                      if (isEditMode.includes("working_to_closing")) {
+                        setIsEditMode([]);
+                      } else {
+                        setIsEditMode(["working_to_closing"]);
+                      }
+                    }}
+                  >
+                    <div className="pointer-events-none flex w-full min-w-[110px] items-center justify-start">
+                      <MdOutlineDataSaverOff className="mr-[36px] min-h-[20px] min-w-[20px] text-[20px]" />
+                      <div className="flex w-full select-none items-center justify-start space-x-[39px] text-[16px] font-bold">
+                        <span className={`${styles.working_day}`}>営業日</span>
+                        <FaLongArrowAltRight
+                          className={`${styles.arrow_icon} pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px]`}
+                        />
+                        <span className={`${styles.closing_day}`}>休日</span>
+                      </div>
                     </div>
-                  </div>
-                </li>
-                {/* ------------------------------------ */}
+                  </li>
+                  {/* ------------------------------------ */}
 
-                <hr className="min-h-[1px] w-full bg-[#333]" />
+                  <hr className="min-h-[1px] w-full bg-[#333]" />
 
-                {/* ------------------------------------ */}
-                <li
-                  className={`${styles.list} ${styles.edit_mode} ${
-                    isEditMode.includes("closing_to_working") ? `${styles.active}` : ``
-                  }`}
-                  // onMouseEnter={(e) => {
-                  //   if (infoIconStepRef.current && infoIconStepRef.current.classList.contains(styles.animate_ping)) {
-                  //     infoIconStepRef.current.classList.remove(styles.animate_ping);
-                  //   }
-                  //   handleOpenPopupMenu({ e, title: "step", displayX: "right" });
-                  // }}
-                  // onMouseLeave={handleClosePopupMenu}
-                  onClick={() => {
-                    if (isEditMode.includes("closing_to_working")) {
-                      setIsEditMode([]);
-                    } else {
-                      setIsEditMode(["closing_to_working"]);
-                    }
-                  }}
-                >
-                  <div className="pointer-events-none flex w-full min-w-[110px] items-center justify-start">
-                    <MdOutlineDataSaverOff className="mr-[36px] min-h-[20px] min-w-[20px] text-[20px]" />
-                    <div className="flex w-full select-none items-center justify-start space-x-[39px] text-[16px] font-bold">
-                      <span className={`${styles.closing_day}`}>休日</span>
-                      <FaLongArrowAltRight
-                        className={`${styles.arrow_icon} pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px]`}
-                      />
-                      <span className={`${styles.working_day}`}>営業日</span>
+                  {/* ------------------------------------ */}
+                  <li
+                    className={`${styles.list} ${styles.edit_mode} ${
+                      isEditMode.includes("closing_to_working") ? `${styles.active}` : ``
+                    }`}
+                    // onMouseEnter={(e) => {
+                    //   if (infoIconStepRef.current && infoIconStepRef.current.classList.contains(styles.animate_ping)) {
+                    //     infoIconStepRef.current.classList.remove(styles.animate_ping);
+                    //   }
+                    //   handleOpenPopupMenu({ e, title: "step", displayX: "right" });
+                    // }}
+                    // onMouseLeave={handleClosePopupMenu}
+                    onClick={() => {
+                      if (isEditMode.includes("closing_to_working")) {
+                        setIsEditMode([]);
+                      } else {
+                        setIsEditMode(["closing_to_working"]);
+                      }
+                    }}
+                  >
+                    <div className="pointer-events-none flex w-full min-w-[110px] items-center justify-start">
+                      <MdOutlineDataSaverOff className="mr-[36px] min-h-[20px] min-w-[20px] text-[20px]" />
+                      <div className="flex w-full select-none items-center justify-start space-x-[39px] text-[16px] font-bold">
+                        <span className={`${styles.closing_day}`}>休日</span>
+                        <FaLongArrowAltRight
+                          className={`${styles.arrow_icon} pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px]`}
+                        />
+                        <span className={`${styles.working_day}`}>営業日</span>
+                      </div>
                     </div>
-                  </div>
-                </li>
-                {/* ------------------------------------ */}
-              </ul>
+                  </li>
+                  {/* ------------------------------------ */}
+                </ul>
+              </div>
             </div>
-          </div>
+          )}
           {/* 休日 => 営業日 or 営業日 => 休日 */}
           {/* ---------------------- 営業日休日変更ポップアップ ここまで ---------------------- */}
         </div>

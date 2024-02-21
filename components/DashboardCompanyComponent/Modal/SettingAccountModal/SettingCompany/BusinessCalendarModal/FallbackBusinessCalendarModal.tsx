@@ -39,7 +39,7 @@ export const FallbackBusinessCalendarModal = () => {
             className={`${styles.pdf} ${styles.loading}`}
             style={{ transform: `scale(${getScale(window.innerHeight)})`, padding: "0px", backgroundColor: "#aaa" }}
           >
-            <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" />
+            <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" waveBg="var(--color-skeleton-bg-wave-light)" />
           </div>
           {/* ----------------------------- ✅カレンダーPDFコンポーネント✅ ----------------------------- */}
         </div>
