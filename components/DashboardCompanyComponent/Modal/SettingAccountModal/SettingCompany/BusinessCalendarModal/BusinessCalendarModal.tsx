@@ -195,6 +195,8 @@ const BusinessCalendarModalMemo = () => {
   // 🔹変数定義関連
   // 設定済みの定休日の曜日名の配列
   const customerClosingDaysNameArray = getClosingDaysNameString(userProfileState.customer_closing_days);
+  // 現在の会計年度初期値
+  const initialCurrentFiscalYearRef = useRef<number>(selectedFiscalYearSetting);
   // 決算日Date
   const fiscalYearEndDate = calculateCurrentFiscalYearEndDate({
     fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
@@ -242,7 +244,7 @@ const BusinessCalendarModalMemo = () => {
     // 現在の会計年度を取得
     const currentYear = calculateCurrentFiscalYear({
       fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
-      selectedYear: selectedFiscalYearSetting,
+      // selectedYear: selectedFiscalYearSetting,
     });
     // // 2020年度から現在+翌年度までの選択肢を生成
     let y = 2020;
@@ -252,11 +254,36 @@ const BusinessCalendarModalMemo = () => {
       y += 1;
     }
     // let years = [currentYear - 3, currentYear - 2, currentYear - 1, currentYear];
+    const currentFiscalYearEndDate = calculateCurrentFiscalYearEndDate({
+      fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+    });
+    if (!currentFiscalYearEndDate) {
+      // 年度を選択肢として指定
+      const yearOptions = years.map((year) => ({
+        label: `${year}年度`,
+        value: year,
+      }));
+
+      console.log("yearOptions", yearOptions);
+
+      // stateにオプションを追加
+      setOptionsFiscalYear(yearOptions);
+      return;
+    }
 
     // 現在の日付が決算日から３ヶ月以内かどうかをチェック subMonths: 特定のDateから3ヶ月前の日付を計算
-    const threeMonthsBeforeFiscalEnd = subMonths(fiscalYearEndDate, 3);
+    const threeMonthsBeforeFiscalEnd = subMonths(currentFiscalYearEndDate, 3);
+    console.log(
+      "subMonths結果",
+      threeMonthsBeforeFiscalEnd,
+      "currentFiscalYearEndDate",
+      format(currentFiscalYearEndDate, "yyyy-MM-dd HH:mm:ss")
+    );
     // isWithinInterval: 第一引数に指定された日付が、第二引数に指定された期間内にあるかどうかを真偽値で返す
-    const isWithin3Months = isWithinInterval(new Date(), { start: threeMonthsBeforeFiscalEnd, end: fiscalYearEndDate });
+    const isWithin3Months = isWithinInterval(new Date(), {
+      start: threeMonthsBeforeFiscalEnd,
+      end: currentFiscalYearEndDate,
+    });
     if (isWithin3Months) {
       // ３ヶ月以内であれば翌年度も追加
       years.push(currentYear + 1);
@@ -268,16 +295,7 @@ const BusinessCalendarModalMemo = () => {
       value: year,
     }));
 
-    console.log(
-      "fiscalYearEndDate",
-      fiscalYearEndDate,
-      "threeMonthsBeforeFiscalEnd",
-      threeMonthsBeforeFiscalEnd,
-      "yearOptions",
-      yearOptions,
-      "selectedFiscalYearSetting",
-      selectedFiscalYearSetting
-    );
+    console.log("yearOptions", yearOptions);
 
     // stateにオプションを追加
     setOptionsFiscalYear(yearOptions);
@@ -388,39 +406,6 @@ const BusinessCalendarModalMemo = () => {
   // 年間営業稼働日数
   const annualWorkingDaysCount =
     calendarForFiscalBase?.daysCountInYear ?? getDaysInYear(selectedFiscalYearSetting ?? new Date().getFullYear());
-  // 会計期間の開始日と終了日 開始日タイムスタンプ
-  const fiscalStartDateTime: number | null = useMemo(() => {
-    if (!calendarForFiscalBase?.completeAnnualFiscalCalendar) return null;
-    const fiscalStartMonthDays = calendarForFiscalBase?.completeAnnualFiscalCalendar[0].monthlyDays;
-    const fiscalStartDate = fiscalStartMonthDays[0].date;
-    if (!fiscalStartDate) return null;
-    const fiscalStartDateTimestamp = new Date(fiscalStartDate).getTime();
-    console.log(
-      "会計期間の開始日と終了日 開始日",
-      "fiscalStartDate",
-      fiscalStartDate,
-      "fiscalStartDateTimestamp",
-      fiscalStartDateTimestamp
-    );
-    return fiscalStartDateTimestamp;
-  }, [calendarForFiscalBase, userProfileState.customer_fiscal_end_month]);
-  // 会計期間の開始日と終了日 終了日タイムスタンプ
-  // const fiscalEndDateTime: number | null = useMemo(() => {
-  //   if (!calendarForFiscalBase?.completeAnnualFiscalCalendar) return null;
-  //   const annualMonthlyDays = calendarForFiscalBase?.completeAnnualFiscalCalendar;
-  //   const fiscalEndMonthDays = annualMonthlyDays[annualMonthlyDays?.length - 1].monthlyDays;
-  //   const fiscalEndDate = fiscalEndMonthDays[fiscalEndMonthDays.length - 1].date;
-  //   if (!fiscalEndDate) return null;
-  //   const fiscalEndDateTimestamp = new Date(fiscalEndDate).getTime();
-  //   console.log(
-  //     "会計期間の開始日と終了日 終了日",
-  //     "fiscalEndDate",
-  //     fiscalEndDate,
-  //     "fiscalEndDateTimestamp",
-  //     fiscalEndDateTimestamp
-  //   );
-  //   return fiscalEndDateTimestamp;
-  // }, [calendarForFiscalBase, userProfileState?.customer_fiscal_end_month]);
 
   // カレンダーリストを3つの要素をもつ4つの配列に分割する 4行3列
   type SplitMonthsArrayCB =
@@ -492,13 +477,22 @@ const BusinessCalendarModalMemo = () => {
     // 11月12月始まりだと2回年の切り替わりがあるため、複数のインデックスを取得できるように配列に格納
     const indexesArray: number[] | null = !!splitMonthsArrayForCB?.length
       ? (splitMonthsArrayForCB
-          ?.map((chunk, index) =>
-            chunk.some((element) => {
+          ?.map((chunk, rowIndex) =>
+            chunk.some((element, colIndex) => {
               if (!element) return false;
-              const year = parseInt(element.fiscalYearMonth.split("-")[0]); // 年を取得
-              return year !== selectedFiscalYearSetting;
+              const colFirstYear = parseInt(chunk[0].fiscalYearMonth.split("-")[0], 10); // 列先頭年を取得
+              const targetYear = parseInt(element.fiscalYearMonth.split("-")[0], 10); // チェック対象年を取得
+              const prevRowLastColYear =
+                rowIndex !== 0
+                  ? parseInt(splitMonthsArrayForCB[rowIndex - 1][2].fiscalYearMonth.split("-")[0], 10)
+                  : null; // 前の行の最終列の年を取得 => これと現在の行の年が切り替わっているかも確認
+              // return year !== selectedFiscalYearSetting;
+              return (
+                targetYear !== colFirstYear ||
+                (typeof prevRowLastColYear === "number" && targetYear !== prevRowLastColYear)
+              );
             })
-              ? index
+              ? rowIndex
               : null
           )
           .filter((index) => index !== null) as number[])
@@ -643,6 +637,10 @@ const BusinessCalendarModalMemo = () => {
     if (pdfURL) {
       URL.revokeObjectURL(pdfURL);
     }
+
+    // 選択年を現在の会計年度に戻す
+    setSelectedFiscalYearSetting(initialCurrentFiscalYearRef?.current);
+
     setIsOpenBusinessCalendarSettingModal(false);
     if (hoveredItemPos) handleCloseTooltip();
   };

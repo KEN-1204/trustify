@@ -1,6 +1,6 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import Image from "next/image";
-import React, { Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, { Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./SettingCompany.module.css";
 import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { useUploadAvatarImg } from "@/hooks/useUploadAvatarImg";
@@ -117,12 +117,16 @@ const SettingCompanyMemo = () => {
   };
   // 🔹営業カレンダー(営業稼働日数から各プロセス分析用)(国の祝日と顧客独自の休業日、半休日、営業短縮日を指定)
   // ②決算日が28日から30日で、かつその日にちがその月の決算日でないかチェック 該当するなら各月の開始日と終了日を選択してもらう
-
-  const initialQueryYear = calculateCurrentFiscalYear({
-    fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
-  });
+  const currentDate = new Date();
+  // const initialQueryYear = calculateCurrentFiscalYear({
+  //   fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+  // });
   // 選択した年度 営業カレンダー表示反映用の選択中の会計年度
-  const [selectedFiscalYear, setSelectedFiscalYear] = useState<number | null>(initialQueryYear);
+  const [selectedFiscalYear, setSelectedFiscalYear] = useState<number>(() => {
+    return calculateCurrentFiscalYear({
+      fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+    });
+  });
   // 決算日Date
   const fiscalYearEndDate = calculateCurrentFiscalYearEndDate({
     fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
@@ -160,7 +164,7 @@ const SettingCompanyMemo = () => {
     isRequiredInputFiscalStartEndDate ? (fiscalMonthStartEndInputArray ? true : false) : true
   );
   // 決算月を現在の月が過ぎている場合は、現在の年を初期値として、決算月が12月以外で先にある場合は現在の年の前の年を初期値とする
-  const currentDate = new Date();
+
   // const fiscalYearEndMonth = fiscalYearEndDate;
   // const initialQueryYear =
   //   fiscalYearEndDate ? (new Date(currentDate.getFullYear(), fiscalYearEndDate.getMonth(), fiscalYearEndDate.getDate()).getTime() < currentDate.getTime() || (currentDate.getMonth() === 11 && fiscalYearEndDate.getMonth() === 11))
@@ -175,7 +179,7 @@ const SettingCompanyMemo = () => {
     error: errorAnnualClosingDays,
   } = useQueryAnnualFiscalMonthClosingDays({
     customerId: userProfileState?.company_id ?? null,
-    selectedYear: selectedFiscalYear ?? initialQueryYear,
+    selectedYear: selectedFiscalYear,
     fiscalYearEnd: userProfileState?.customer_fiscal_end_month,
     isRequiredInputFiscalStartEndDate: isRequiredInputFiscalStartEndDate ?? false,
     customInputArray: isRequiredInputFiscalStartEndDate ? fiscalMonthStartEndInputArray : null,
@@ -1009,6 +1013,62 @@ const SettingCompanyMemo = () => {
   };
   // ==================================================================================
 
+  // ----------------------------- 🌟決算日を変更する関数🌟 -----------------------------
+  const [isOpenConfirmUpdateFiscal, setIsOpenConfirmFiscal] = useState(false);
+  const handleUpdateFiscalYearEnd = async () => {
+    if (prevFiscalEndMonthRef.current?.getTime() === editedFiscalEndMonth?.getTime()) {
+      setEditFiscalEndMonthMode(false);
+      return;
+    }
+    if (editedFiscalEndMonth === null) {
+      alert("有効な決算日を入力してください");
+      return;
+    }
+    if (!userProfileState?.company_id) return alert("エラー：お客様のユーザー情報が見つかりませんでした。");
+
+    setLoadingGlobalState(true); // ローディング開始
+
+    try {
+      const { data: companyData, error } = await supabase
+        .from("companies")
+        .update({ customer_fiscal_end_month: editedFiscalEndMonth.toISOString() })
+        .eq("id", userProfileState.company_id)
+        .select("customer_fiscal_end_month")
+        .single();
+
+      if (error) throw error;
+
+      console.log(
+        "決算日UPDATE成功 更新後決算日 companyData.customer_fiscal_end_month",
+        companyData.customer_fiscal_end_month,
+        "editedFiscalEndMonth",
+        editedFiscalEndMonth
+      );
+      setUserProfileState({
+        // ...(companyData as UserProfile),
+        ...(userProfileState as UserProfileCompanySubscription),
+        customer_fiscal_end_month: companyData.customer_fiscal_end_month ? companyData.customer_fiscal_end_month : null,
+      });
+
+      // 年間休日のキャッシュをinvalidate
+      await queryClient.invalidateQueries({ queryKey: ["annual_fiscal_month_closing_days"] });
+
+      // 選択中の会計年度を新たな決算日から期首の暦年に変更する
+      const newFiscalYear = calculateCurrentFiscalYear({
+        fiscalYearEnd: companyData.customer_fiscal_end_month ?? null,
+      });
+      setSelectedFiscalYear(newFiscalYear);
+
+      toast.success("決算日の更新が完了しました!");
+    } catch (error: any) {
+      console.error("決算日UPDATEエラー", error.message);
+      toast.error("決算日の更新に失敗しました!");
+    }
+    setLoadingGlobalState(false); // ローディング終了
+    setEditFiscalEndMonthMode(false); // エディットモード終了
+    setIsOpenConfirmFiscal(false); // 確認モーダル閉じる
+  };
+
   // 定休日の日付リストを生成する関数
   const generateClosedDaysList = (fiscalYearStartDate: Date | null, closedDaysIndexes: number[]) => {
     if (!userProfileState) return;
@@ -1043,6 +1103,7 @@ const SettingCompanyMemo = () => {
     console.timeEnd("generateClosedDaysList関数");
     return closedDays;
   };
+  // ----------------------------- ✅決算日を変更する関数✅ -----------------------------
 
   // ===================== 🌟営業カレンダーに定休日を反映🌟 =====================
   // const [isLoadingClosingDay, setIsLoading]
@@ -1406,7 +1467,7 @@ const SettingCompanyMemo = () => {
                   </div>
                   <div
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
-                    onClick={async () => {
+                    onClick={() => {
                       if (prevFiscalEndMonthRef.current?.getTime() === editedFiscalEndMonth?.getTime()) {
                         setEditFiscalEndMonthMode(false);
                         return;
@@ -1417,44 +1478,7 @@ const SettingCompanyMemo = () => {
                       }
                       if (!userProfileState?.company_id)
                         return alert("エラー：お客様のユーザー情報が見つかりませんでした。");
-                      // ローディング開始
-                      setLoadingGlobalState(true);
-
-                      const { data: companyData, error } = await supabase
-                        .from("companies")
-                        .update({ customer_fiscal_end_month: editedFiscalEndMonth.toISOString() })
-                        .eq("id", userProfileState.company_id)
-                        .select("customer_fiscal_end_month")
-                        .single();
-
-                      if (error) {
-                        setLoadingGlobalState(false);
-                        setEditFiscalEndMonthMode(false);
-                        alert(error.message);
-                        console.log("決算日UPDATEエラー", error.message);
-                        toast.error("決算日の更新に失敗しました!");
-                        return;
-                      }
-                      console.log(
-                        "決算日UPDATE成功 更新後決算日 companyData.customer_fiscal_end_month",
-                        companyData.customer_fiscal_end_month,
-                        "editedFiscalEndMonth",
-                        editedFiscalEndMonth
-                      );
-                      setUserProfileState({
-                        // ...(companyData as UserProfile),
-                        ...(userProfileState as UserProfileCompanySubscription),
-                        customer_fiscal_end_month: companyData.customer_fiscal_end_month
-                          ? companyData.customer_fiscal_end_month
-                          : null,
-                      });
-
-                      // 年間休日のキャッシュをinvalidate
-                      await queryClient.invalidateQueries({ queryKey: ["annual_fiscal_month_closing_days"] });
-
-                      setLoadingGlobalState(false);
-                      setEditFiscalEndMonthMode(false);
-                      toast.success("決算日の更新が完了しました!");
+                      setIsOpenConfirmFiscal(true);
                     }}
                   >
                     保存
@@ -4162,6 +4186,26 @@ const SettingCompanyMemo = () => {
         />
       )}
       {/* ============================== 定休日の適用の確認モーダルここまで ============================== */}
+      {/* ============================== 決算日変更の確認モーダル ============================== */}
+      {!!isOpenConfirmUpdateFiscal && (
+        <ConfirmationModal
+          titleText={`決算日を変更してもよろしいですか？`}
+          sectionP1="決算日を変更することでお客様の会計期間が変更されます。"
+          // sectionP2="※定休日は1ヶ月に1回のみ追加・変更可です。"
+          cancelText="戻る"
+          submitText={`変更する`}
+          clickEventClose={() => {
+            if (loadingGlobalState) return;
+            setEditedFiscalEndMonth(null);
+            setEditFiscalEndMonthMode(false); // エディットモード終了
+            setIsOpenConfirmFiscal(false);
+          }}
+          clickEventSubmit={handleUpdateFiscalYearEnd}
+          // isLoadingState={loadingGlobalState}
+          buttonColor="brand"
+        />
+      )}
+      {/* ============================== 決算日変更の確認モーダルここまで ============================== */}
       {/* 右側メインエリア 会社・チーム ここまで */}
     </>
   );

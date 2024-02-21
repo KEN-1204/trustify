@@ -4,6 +4,7 @@ import useDashboardStore from "@/store/useDashboardStore";
 import { CustomerBusinessCalendars } from "@/types";
 import { calculateCurrentFiscalYear } from "@/utils/Helpers/calculateCurrentFiscalYear";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
+import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurrentFiscalYearEndDate";
 import { formatDateToYYYYMMDD } from "@/utils/Helpers/formatDateLocalToYYYYMMDD";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -66,6 +67,17 @@ Props) => {
     // 決算日の翌日の期首のDateオブジェクトを生成(時間情報は全て0にリセット済み)
     // const selectedFiscalYearEndDate = new Date(selectedYear, fiscalYearEndDate.getMonth(), fiscalYearEndDate.getDate(), 23,59,59,999);
     // const fiscalYear = calculateCurrentFiscalYear({ fiscalYearEnd: fiscalYearEnd, selectedYear: selectedYear });
+
+    // 🔹1. 現在2024年2/21 12/20決算 会計年度2023年 (期首の年が会計年度)
+    // 決算月が現在よりも先にある場合は会計年度は現在の年よりも-1
+    // パターン1. 選択年が2023年なら: 2023/12/21-2024/12-20を返す
+
+    // 🔹2. 3/20決算 現在2024年6/21 会計年度2024年
+    // 決算月が現在よりも前にある場合は会計年度は現在の年と同じ
+    // パターン2. 選択年が2023年なら: 2023/03/21-2024/03-20を返す
+
+    // 🌠どちらのパターンも選択年が会計年度となるので選択年の期首起算で１年間を返す
+
     const fiscalYearStartDate = calculateFiscalYearStart({ fiscalYearEnd: fiscalYearEnd, selectedYear: selectedYear });
     if (!fiscalYearStartDate) return null;
 

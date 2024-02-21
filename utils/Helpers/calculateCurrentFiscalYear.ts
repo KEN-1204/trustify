@@ -51,20 +51,21 @@ export const calculateCurrentFiscalYear = ({ fiscalYearEnd, selectedYear }: Prop
       fiscalYear = new Date().getFullYear(); // 未登録の場合はnullまたはデフォルト値
     }
   } else {
+    // selectedYearありルート
     if (fiscalYearEndDate) {
-      // let currentDate = new Date();
+      let currentDate = new Date();
 
-      // currentDate = new Date(
-      //   selectedYear,
-      //   currentDate.getMonth(),
-      //   currentDate.getDate(),
-      //   currentDate.getHours(),
-      //   currentDate.getMinutes(),
-      //   currentDate.getSeconds(),
-      //   currentDate.getMilliseconds()
-      // );
+      currentDate = new Date(
+        selectedYear,
+        currentDate.getMonth(),
+        currentDate.getDate(),
+        currentDate.getHours(),
+        currentDate.getMinutes(),
+        currentDate.getSeconds(),
+        currentDate.getMilliseconds()
+      );
 
-      // const currentYear = currentDate.getFullYear();
+      const currentYear = currentDate.getFullYear();
 
       // 12月末日決算の場合のみ特別なチェック*1
       // const fiscalYearEndDateDec = new Date(currentYear, 0, 0);
