@@ -404,6 +404,18 @@ const BusinessCalendarModalMemo = () => {
   //   resetQueryCalendars();
   // }, [annualMonthlyClosingDays?.getTime]);
 
+  const getAppliedAtOfSelectedYear = () => {
+    const status = localStorage.getItem("status_annual_closing_days");
+    if (status) {
+      const parsedStatus: StatusClosingDays[] | null = JSON.parse(status);
+      const appliedAt = parsedStatus?.find((obj) => obj.fiscal_year === selectedFiscalYearSetting)?.updated_at;
+      console.log("ローカルストレージからappliedAt取得", appliedAt);
+      return appliedAt ?? null;
+    } else {
+      return null;
+    }
+  };
+
   // 🌟useQuery 顧客の会計月度ごとの営業日も追加した会計年度カレンダーの完全リスト🌟
   const {
     data: calendarForFiscalBase,
@@ -416,7 +428,7 @@ const BusinessCalendarModalMemo = () => {
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
     isReady: !isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
-    appliedAtOfSelectedYear: statusClosingDaysSelectedYear?.updated_at ?? null, // 選択中の年度の定休日の適用日(queryKey用)
+    appliedAtOfSelectedYear: statusClosingDaysSelectedYear?.updated_at ?? getAppliedAtOfSelectedYear() ?? null, // 選択中の年度の定休日の適用日(queryKey用)
   });
 
   // 🌟useQuery カレンダーベースの営業日も追加した完全リスト🌟
@@ -431,7 +443,7 @@ const BusinessCalendarModalMemo = () => {
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
     isReady: !isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
-    appliedAtOfSelectedYear: statusClosingDaysSelectedYear?.updated_at ?? null, // 選択中の年度の定休日の適用日(queryKey用)
+    appliedAtOfSelectedYear: statusClosingDaysSelectedYear?.updated_at ?? getAppliedAtOfSelectedYear() ?? null, // 選択中の年度の定休日の適用日(queryKey用)
   });
 
   // 年間休業日日数
@@ -1188,6 +1200,8 @@ const BusinessCalendarModalMemo = () => {
     // if (openPopupMenu) handleClosePopupMenu();
     setIsOpenEditModePopup(false);
     if (isEditMode.length > 0) setIsEditMode([]);
+    if (editWorkingDaysArray.length > 0) setEditWorkingDaysArray([]);
+    if (editClosingDaysArray.length > 0) setEditClosingDaysArray([]);
   };
   // -------------------------- ✅エディットモードポップアップメニュー開閉✅ --------------------------
 
@@ -1208,7 +1222,8 @@ const BusinessCalendarModalMemo = () => {
       // setIsEditMode(allEdit);
       setIsOpenEditModePopup(true);
     } else {
-      handleFinishEdit();
+      // handleFinishEdit();
+      handleCloseEditModePopup();
     }
     // if (hoveredItemPos) handleCloseTooltip();
   };
@@ -2251,7 +2266,7 @@ const BusinessCalendarModalMemo = () => {
           {/* 休日 => 営業日 or 営業日 => 休日  */}
           {isOpenEditModePopup && (
             <div
-              className={`${styles.settings_menu} ${styles.edit_mode} ${styles.fade_up} fixed right-[calc(-330px-18px)] top-[205px] z-[3000] h-auto w-[330px] overflow-hidden rounded-[6px]`}
+              className={`${styles.settings_menu} ${styles.edit_mode} ${styles.fade_up} fixed right-[calc(-330px-18px)] top-[205px] z-[3000] h-auto w-[330px] rounded-[6px]`}
               // className={`${styles.description_menu} shadow-all-md border-real-with-shadow pointer-events-none fixed z-[3500] flex min-h-max flex-col rounded-[6px]`}
               // style={{
               //   top: `${openPopupMenu.y}px`,
@@ -2268,7 +2283,7 @@ const BusinessCalendarModalMemo = () => {
               <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>編集モード</h3>
 
               <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
-                営業カレンダーから日付を選択して「営業日から休日へ」または「休日から営業日へ」個別に変更が可能です。
+                以下の２つの編集モードを選択後、営業カレンダーから日付を選択して適用することで「営業日から休日へ」または「休日から営業日へ」個別に変更が可能です。
               </p>
 
               <hr className="min-h-[1px] w-full bg-[#999]" />
@@ -2313,7 +2328,7 @@ const BusinessCalendarModalMemo = () => {
 
                   {/* ------------------------------------ */}
                   <li
-                    className={`${styles.list} ${styles.edit_mode} ${
+                    className={`${styles.list} ${styles.edit_mode} rounded-b-[6px] ${
                       isEditMode.includes("closing_to_working") ? `${styles.active}` : ``
                     }`}
                     // onMouseEnter={(e) => {
@@ -2344,6 +2359,36 @@ const BusinessCalendarModalMemo = () => {
                   </li>
                   {/* ------------------------------------ */}
                 </ul>
+              </div>
+              <div
+                className={`${styles.settings_menu} ${styles.edit_mode} ${styles.fade_up} z-[3000] h-auto w-[330px] overflow-hidden rounded-[6px]`}
+                style={{ position: "absolute", bottom: "-70px", left: 0 }}
+              >
+                <li className={`${styles.list} ${styles.btn_area} space-x-[20px]`}>
+                  <div
+                    className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${
+                      ((isEditMode.includes("working_to_closing") && editWorkingDaysArray.length > 0) ||
+                        (isEditMode.includes("closing_to_working") && editClosingDaysArray.length > 0)) &&
+                      styles.active
+                    }`}
+                    // onClick={() => {
+                    //   if (!selectedFiscalYearSetting) return alert("会計年度が選択されていません。");
+                    //   if (!userProfileState.customer_closing_days) return alert("定休日が設定されていません。");
+                    //   setShowConfirmApplyClosingDayModal("Insert");
+                    //   if (openPopupMenu) handleClosePopupMenu();
+                    // }}
+                  >
+                    <span>適用</span>
+                  </div>
+                  <div
+                    className={`transition-bg02 ${styles.edit_btn} ${styles.cancel}`}
+                    onClick={() => {
+                      handleCloseEditModePopup();
+                    }}
+                  >
+                    <span>戻る</span>
+                  </div>
+                </li>
               </div>
             </div>
           )}

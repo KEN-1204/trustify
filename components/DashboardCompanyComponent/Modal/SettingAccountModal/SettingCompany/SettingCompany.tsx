@@ -6,7 +6,7 @@ import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { useUploadAvatarImg } from "@/hooks/useUploadAvatarImg";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
-import { Department, Notification, Office, Unit, UserProfileCompanySubscription } from "@/types";
+import { Department, Notification, Office, StatusClosingDays, Unit, UserProfileCompanySubscription } from "@/types";
 import { MdClose } from "react-icons/md";
 import { teamIllustration } from "@/components/assets";
 import { ChangeTeamOwnerModal } from "./ChangeTeamOwnerModal/ChangeTeamOwnerModal";
@@ -240,6 +240,18 @@ const SettingCompanyMemo = () => {
     ? statusAnnualClosingDaysArray?.find((obj) => obj.fiscal_year === selectedFiscalYear)?.updated_at
     : null;
 
+  const getAppliedAtOfSelectedYear = () => {
+    const status = localStorage.getItem("status_annual_closing_days");
+    if (status) {
+      const parsedStatus: StatusClosingDays[] | null = JSON.parse(status);
+      const appliedAt = parsedStatus?.find((obj) => obj.fiscal_year === selectedFiscalYear)?.updated_at;
+      console.log("ローカルストレージからappliedAt取得", appliedAt);
+      return appliedAt ?? null;
+    } else {
+      return null;
+    }
+  };
+
   // 🌟useQuery 顧客の会計月度ごとの営業日も追加した会計年度カレンダーの完全リスト🌟
   const {
     data: calendarForFiscalBase,
@@ -252,7 +264,7 @@ const SettingCompanyMemo = () => {
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
     isReady: !isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
-    appliedAtOfSelectedYear: appliedAtClosingDaysOfSelectedFiscalYear ?? null,
+    appliedAtOfSelectedYear: appliedAtClosingDaysOfSelectedFiscalYear ?? getAppliedAtOfSelectedYear() ?? null,
   });
 
   // 🌟useQuery カレンダーベースの営業日も追加した完全リスト🌟

@@ -1,5 +1,5 @@
 import useDashboardStore from "@/store/useDashboardStore";
-import { CustomerBusinessCalendars } from "@/types";
+import { CustomerBusinessCalendars, StatusClosingDays } from "@/types";
 import { generateFiscalYearCalendar } from "@/utils/Helpers/generateFiscalYearCalendar";
 import { UseQueryResult, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -44,12 +44,22 @@ export const useQueryCalendarForCalendarBase = ({
   appliedAtOfSelectedYear,
 }: Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
-  const statusAnnualClosingDaysArray = useDashboardStore((state) => state.statusAnnualClosingDaysArray);
+  // const statusAnnualClosingDaysArray = useDashboardStore((state) => state.statusAnnualClosingDaysArray);
 
-  const appliedAt =
-    statusAnnualClosingDaysArray?.find((obj) => obj.fiscal_year === selectedFiscalYear)?.updated_at ?? null;
-  // }: Props): UseQueryResult<QueryResponse> => {
-  //   const queryClient = useQueryClient();
+  // const appliedAt =
+  //   statusAnnualClosingDaysArray?.find((obj) => obj.fiscal_year === selectedFiscalYear)?.updated_at ?? null;
+
+  const getAppliedAtOfSelectedYear = () => {
+    const status = localStorage.getItem("status_annual_closing_days");
+    if (status) {
+      const parsedStatus: StatusClosingDays[] | null = JSON.parse(status);
+      const appliedAt = parsedStatus?.find((obj) => obj.fiscal_year === selectedFiscalYear)?.updated_at;
+      console.log("ローカルストレージからappliedAt取得", appliedAt);
+      return appliedAt ?? null;
+    } else {
+      return null;
+    }
+  };
 
   const fiscalEndMonthKey = userProfileState?.customer_fiscal_end_month
     ? format(new Date(userProfileState?.customer_fiscal_end_month), "yyyy-MM-dd")
@@ -59,7 +69,12 @@ export const useQueryCalendarForCalendarBase = ({
   //   return useQuery({
   const queryResult = useQuery({
     // queryKey: ["calendar_for_calendar_base", fiscalEndMonthKey, selectedFiscalYear, appliedAtOfSelectedYear],
-    queryKey: ["calendar_for_calendar_base", fiscalEndMonthKey, selectedFiscalYear, appliedAt],
+    queryKey: [
+      "calendar_for_calendar_base",
+      fiscalEndMonthKey,
+      selectedFiscalYear,
+      appliedAtOfSelectedYear ?? getAppliedAtOfSelectedYear() ?? null,
+    ],
     // queryKey: ["calendar_for_calendar_base", fiscalEndMonthKey, selectedFiscalYear],
     queryFn: () => {
       if (!selectedFiscalYear) return null;
@@ -67,7 +82,7 @@ export const useQueryCalendarForCalendarBase = ({
       console.log(
         "🔥useQueryCalendarForCalendarBase queryFn実行 クエリキー",
         // `calendar_for_fiscal_base ${fiscalEndMonthKey}, ${selectedFiscalYear}, ${appliedAtOfSelectedYear}`
-        `calendar_for_fiscal_base ${fiscalEndMonthKey}, ${selectedFiscalYear}, ${appliedAt}`
+        `calendar_for_fiscal_base ${fiscalEndMonthKey}, ${selectedFiscalYear}, ${appliedAtOfSelectedYear}`
       );
       const newCalendarForCalendarBase = generateFiscalYearCalendar(annualMonthlyClosingDays);
       return newCalendarForCalendarBase;

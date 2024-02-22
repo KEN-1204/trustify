@@ -364,6 +364,57 @@
 .settings_menu .list:hover {
   background-color: var(--color-bg-brand-f30);
 }
+.settings_menu .list.btn_area {
+  padding: 0px 20px;
+  min-height: 60px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.settings_menu .list.btn_area:hover {
+  background-color: #303030;
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390, 0 4px 10px 2px #ffffff33;
+}
+.settings_menu .list.btn_area .edit_btn {
+  /* background-color: #ffffff20; */
+  background-color: #484848;
+  user-select: none;
+  white-space: nowrap;
+  cursor: pointer;
+  /* box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000; */
+  padding: 7px 22px;
+  border-radius: 8px;
+  width: 50%;
+  display: flex;
+  justify-content: center;
+}
+.settings_menu .list.btn_area .edit_btn.brand {
+  color: #999;
+  background-color: #393939;
+  cursor: not-allowed;
+}
+.settings_menu .list.btn_area .edit_btn.brand:hover {
+  box-shadow: none;
+}
+.settings_menu .list.btn_area .edit_btn.cancel:hover {
+  background-color: #555;
+}
+.settings_menu .list.btn_area .edit_btn.brand.active {
+  color: #fff;
+  background-color: var(--color-bg-brand-f90);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  cursor: pointer;
+}
+.settings_menu .list.btn_area .edit_btn.brand.active:hover {
+  color: #fff;
+  background-color: var(--color-bg-brand-fd0);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+/* .edit_btn.brand:hover {
+  background-color: var(--color-bg-brand-f90);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+} */
 .settings_menu .list.edit_mode {
   cursor: pointer;
 }
@@ -394,6 +445,7 @@
 .settings_menu .list.edit_mode:hover .closing_day {
   color: var(--main-color-tk);
 }
+
 .settings_menu .section_title {
   /* padding: 10px 20px 5px; */
   padding: 10px 20px 6px;
