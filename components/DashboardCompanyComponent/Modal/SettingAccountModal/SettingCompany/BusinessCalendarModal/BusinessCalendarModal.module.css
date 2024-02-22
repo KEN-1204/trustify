@@ -60,6 +60,9 @@
   background-color: var(--color-sign-out-bg-hover);
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }
+.btn .icon path {
+  stroke: #fff;
+}
 
 .pdf {
   height: 100%;
@@ -282,6 +285,7 @@
   /* color: #ff0050; */
   color: #ff3b5b;
 }
+
 .monthly_row_section .month .month_grid_container .month_date_container .month_grid_cell.date:hover {
   border-radius: 50%;
   background-color: var(--color-bg-brand-f);
@@ -317,6 +321,14 @@
   .month_date_container
   .month_grid_cell.date.edit_mode:not(.out_of_fiscal_year).active {
   color: #fff;
+  background-color: #ff3b5b;
+}
+.monthly_row_section
+  .month
+  .month_grid_container
+  .month_date_container
+  .month_grid_cell.date.is_closed.edit_mode:not(.out_of_fiscal_year).active {
+  color: #fff;
   background-color: var(--bright-green);
 }
 /* ✅monthly_row_section✅ */
@@ -341,7 +353,7 @@
 }
 .menu_overlay.edit_mode {
   z-index: 3700;
-  /* background-color: #ff0000c0; */
+  background-color: #00000030;
 }
 .settings_menu.edit_mode {
   z-index: 4500;
@@ -373,8 +385,7 @@
   justify-content: space-between;
 }
 .settings_menu .list.btn_area:hover {
-  background-color: #303030;
-  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390, 0 4px 10px 2px #ffffff33;
+  background-color: transparent;
 }
 .settings_menu .list.btn_area .edit_btn {
   /* background-color: #ffffff20; */
@@ -408,7 +419,8 @@
 }
 .settings_menu .list.btn_area .edit_btn.brand.active:hover {
   color: #fff;
-  background-color: var(--color-bg-brand-fd0);
+  /* background-color: var(--color-bg-brand-fd0); */
+  background-color: var(--color-bg-brand-f);
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }
 /* .edit_btn.brand:hover {

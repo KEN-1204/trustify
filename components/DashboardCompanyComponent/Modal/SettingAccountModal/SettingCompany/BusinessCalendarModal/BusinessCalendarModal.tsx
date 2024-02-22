@@ -33,6 +33,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { ConfirmationModal } from "../ConfirmationModal/ConfirmationModal";
 import { BsCheck2 } from "react-icons/bs";
+import { GrPowerReset } from "react-icons/gr";
 
 type CompressionRatio = "NONE" | "FAST" | "SLOW";
 const optionsCompressionRatio: CompressionRatio[] = ["NONE", "FAST", "SLOW"];
@@ -192,8 +193,10 @@ const BusinessCalendarModalMemo = () => {
   const [isOpenEditModePopup, setIsOpenEditModePopup] = useState(false);
   // 休日=>営業日編集用 休日を保持する配列 idを保持
   const [editClosingDaysArray, setEditClosingDaysArray] = useState<string[]>([]);
-  // 営業日=>休日編集用 営業日を保持する配列 datePadZeroを保持 YYYY-MM-DD形式
-  const [editWorkingDaysArray, setEditWorkingDaysArray] = useState<string[]>([]);
+  // 営業日=>休日編集用 営業日を保持する配列 datePadZeroを保持 YYYY-MM-DD形式 Mapオブジェクトで保持してJSX内で検索を高速にできるようにする keyがdatePadZeroで、valueが日付オブジェクト本体
+  type InsertDateInfo = { date: string; day_of_week: number };
+  // const [editWorkingDaysArray, setEditWorkingDaysArray] = useState<{date:string, day_of_week: number}[]>([]);
+  const [editWorkingDaysMapObj, setEditWorkingDaysMapObj] = useState<Map<string, InsertDateInfo>>(new Map());
   // SQL標準および多くのデータベースシステムでは、DATE型の値をYYYY-MM-DD形式で扱います。この形式はISO 8601日付形式に準拠しており、月や日が1桁の場合には0で詰めるのが一般的です。したがって、2024-4-1の代わりに2024-04-01の形式を使用することを推奨します。
 
   // 🔹useRef関連
@@ -963,6 +966,134 @@ const BusinessCalendarModalMemo = () => {
   };
   // ===================== ✅定休日のUPSERT✅ =====================
 
+  // -------------------------- 🌟エディットモードポップアップメニュー開閉🌟 --------------------------
+  const handleCloseEditModePopup = () => {
+    if (openPopupMenu) handleClosePopupMenu();
+    if (hoveredItemPos) handleCloseTooltip();
+    setIsOpenEditModePopup(false);
+    if (isEditMode.length > 0) setIsEditMode([]);
+    // if (editWorkingDaysArray.length > 0) setEditWorkingDaysArray([]);
+    if (editWorkingDaysMapObj.size > 0) setEditWorkingDaysMapObj(new Map());
+    if (editClosingDaysArray.length > 0) setEditClosingDaysArray([]);
+  };
+  // -------------------------- ✅エディットモードポップアップメニュー開閉✅ --------------------------
+
+  // -------------------------- 🌟エディットモード終了🌟 --------------------------
+  const handleFinishEdit = () => {
+    if (isEditMode.length > 0) setIsEditMode([]);
+    if (openPopupMenu) handleClosePopupMenu();
+    if (hoveredItemPos) handleCloseTooltip();
+  };
+  // -------------------------- ✅エディットモード終了✅ --------------------------
+  // -------------------------- 🌟全てのフィールドを編集モードに変更🌟 --------------------------
+  const handleSwitchEditMode = () => {
+    // if (openPopupMenu) handleClosePopupMenu();
+
+    if (isEditMode.length === 0) {
+      // const allEdit = ["working_to_closing", "closing_to_working"];
+      // setIsEditMode(allEdit);
+      setIsOpenEditModePopup(true);
+    } else {
+      // handleFinishEdit();
+      // handleCloseEditModePopup();
+      handleFinishEdit();
+    }
+    // if (hoveredItemPos) handleCloseTooltip();
+  };
+  // -------------------------- ✅全てのフィールドを編集モードに変更✅ --------------------------
+
+  // -------------------------- 🌟日付クリック🌟 --------------------------
+  type DateCellProps = {
+    dateObj: {
+      date: string;
+      datePadZero: string;
+      day_of_week: number;
+      status: string | null;
+      timestamp: number;
+      isFiscalMonthEnd: boolean;
+      isOutOfFiscalYear: boolean;
+      closedDateId: string | null;
+    };
+  };
+  // 全てそれぞれの配列に格納
+  // 1. 編集モード 営業日->休日 working_to_closing datePadZeroを格納(ISO8601日付形式/YYYY-MM-DD形式)
+  // 2. 編集モード 休日->営業日 closing_to_working idを格納
+  // 3. 通常モード時にクリックで編集モード起動 営業日->休日 working_to_closing
+  // 4. 通常モード時にクリックで編集モード起動 休日->営業日 closing_to_working
+  const addDateWorkingToClosing = ({ dateObj }: DateCellProps) => {
+    // 🔹最初からMapオブジェクトで保持するパターン
+
+    // Mapの現在のstateをコピーして不変性を担保
+    const updatedMap = new Map(editWorkingDaysMapObj);
+
+    if (updatedMap.has(dateObj.datePadZero)) {
+      // 既に選択されている場合は削除 キーを指定して削除
+      updatedMap.delete(dateObj.datePadZero);
+    } else {
+      // 選択されていない場合は追加
+      updatedMap.set(dateObj.datePadZero, { date: dateObj.datePadZero, day_of_week: dateObj.day_of_week });
+    }
+    // Mapのstateの更新
+    setEditWorkingDaysMapObj(updatedMap);
+
+    // // 🔹配列からMapに変換パターン:既に選択済みの場合は選択を解除 Mapオブジェクトに変換して高速にチェック
+    // // Mapオブジェクトの初期化、editWorkingDaysArrayからMapを生成
+    // const editWorkingDaysMapObj = new Map(editWorkingDaysArray.map(obj => [obj.date, obj]));
+
+    // // キーに割り当てたdateの値をもつキーのオブジェクトが存在するかチェック
+    // if (editWorkingDaysMapObj.has(dateObj.datePadZero)) {
+    //   // 存在する場合は削除
+    //   editWorkingDaysMapObj.delete(dateObj.datePadZero);
+    // } else {
+    //   // 存在しない場合は追加 第一引数にキー: date, 第二引数に値: dateとday_of_weekを持つオブジェクト
+    //   editWorkingDaysMapObj.set(dateObj.datePadZero, {
+    //     date: dateObj.datePadZero,
+    //     day_of_week: dateObj.day_of_week
+    //   });
+    // }
+
+    // // Mapオブジェクトから新い配列を生成してstateを更新
+    // // *Mapオブジェクトのvalues()のイテレータから配列を作成(スプレッド, Array.from)はどちらでもOK
+    // // const newArray = Array.from(editWorkingDaysMapObj.values());
+    // const newArray = [...editWorkingDaysMapObj.values()];
+    // setEditWorkingDaysArray(newArray)
+  };
+  const addDateClosingToWorking = ({ dateObj }: DateCellProps) => {
+    if (!dateObj.closedDateId) return;
+    // 既に選択済みの場合は選択を解除
+    if (editClosingDaysArray.includes(dateObj.closedDateId)) {
+      const filteredArray = editClosingDaysArray.filter((id) => id !== dateObj.closedDateId);
+      setEditClosingDaysArray(filteredArray);
+    } else {
+      const newArray = [...editClosingDaysArray, dateObj.closedDateId];
+      setEditClosingDaysArray(newArray);
+    }
+  };
+  const handleClickDateCell = ({ dateObj }: DateCellProps) => {
+    // 🔹1. 編集モード 営業日->休日 working_to_closing datePadZeroを格納(ISO8601日付形式/YYYY-MM-DD形式)
+    if (isEditMode.includes("working_to_closing")) {
+      addDateWorkingToClosing({ dateObj });
+    }
+    // 🔹2. 編集モード 休日->営業日 closing_to_working idを格納
+    if (isEditMode.includes("closing_to_working")) {
+      addDateClosingToWorking({ dateObj });
+    }
+  };
+  console.log("editWorkingDaysMapObj", editWorkingDaysMapObj, "editClosingDaysArray", editClosingDaysArray);
+  // -------------------------- ✅日付クリック✅ --------------------------
+
+  // -------------------------- 🌟営業日 休日 一括更新(バルクインサート or バルクデリート)🌟 --------------------------
+  const handleUpdateDaysStatus = async () => {
+    // 🔹営業日->休日 DATE型のdateの値を使用してバルクインサート
+    if (isEditMode.includes("working_to_closing") && editWorkingDaysMapObj.size > 0) {
+      // const bulkInsertPayload =
+    }
+    // 🔹休日->営業日 idを使用してバルクデリート
+    if (isEditMode.includes("closing_to_working") && editClosingDaysArray.length > 0) {
+    }
+  };
+  // -------------------------- ✅営業日 休日 一括更新(バルクインサート or バルクデリート)✅ --------------------------
+
   // -------------------------- 🌟インラインスタイル関連🌟 --------------------------
   // エディットモードの時には「閉じる」と「終了」ボタン以外は非表示にするstyle
   const isEditingHidden = { ...(isEditMode.length > 0 && { display: "none" }) };
@@ -1093,17 +1224,20 @@ const BusinessCalendarModalMemo = () => {
     print: { en: "Print Tips", ja: "印刷Tips" },
     pdf: { en: "PDF Download", ja: "PDFダウンロード" },
     settings: { en: "Settings", ja: "各種設定メニュー" },
-    edit: { en: "Edit Mode", ja: "編集モード" },
+    edit_mode: { en: "Edit mode", ja: "編集モード" },
     applyClosingDays: { en: "Apply Closing Days", ja: "定休日一括設定" },
     displayFiscalYear: { en: "Display fiscal year", ja: "会計年度" },
+    working_to_closing: { en: "Working days to Closing days", ja: "営業日 → 休日" },
+    closing_to_working: { en: "Closing days to Working days", ja: "休日 → 営業日" },
   };
   type PopupMenuParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
     title: string;
     displayX?: string;
     maxWidth?: number;
+    context?: string;
   };
-  const handleOpenPopupMenu = ({ e, title, displayX, maxWidth }: PopupMenuParams) => {
+  const handleOpenPopupMenu = ({ e, title, displayX, maxWidth, context }: PopupMenuParams) => {
     if (!displayX) {
       const { y, height } = e.currentTarget.getBoundingClientRect();
       setOpenPopupMenu({
@@ -1112,12 +1246,8 @@ const BusinessCalendarModalMemo = () => {
       });
     } else {
       const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-      // right: 見積書の右端から-18px, アイコンサイズ35px, ポップアップメニュー400px
-      // const positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : -18;
-      // const positionX = displayX === "right" ? 0 : -18;
-
       // モーダル外に配置した場合
-      const positionX = displayX === "right" ? x + width + 9 : x - 9;
+      const positionX = displayX === "right" ? x + width + 9 : window.innerWidth - x + 9;
       console.log(
         "title",
         title,
@@ -1136,9 +1266,7 @@ const BusinessCalendarModalMemo = () => {
       );
       setOpenPopupMenu({
         x: positionX,
-        // y: y - height / 2,
         y: y,
-        // y: y + 18,
         title: title,
         displayX: displayX,
         maxWidth: maxWidth,
@@ -1160,74 +1288,6 @@ const BusinessCalendarModalMemo = () => {
     );
   };
   // -------------------------- ✅フォールバック✅ --------------------------
-
-  // -------------------------- 🌟日付クリック🌟 --------------------------
-  type DateCellProps = {
-    dateObj: {
-      date: string;
-      datePadZero: string;
-      day_of_week: number;
-      status: string | null;
-      timestamp: number;
-      isFiscalMonthEnd: boolean;
-      isOutOfFiscalYear: boolean;
-      closedDateId: string | null;
-    };
-  };
-  // 全てそれぞれの配列に格納
-  // 1. 編集モード 営業日->休日 working_to_closing datePadZeroを格納(ISO8601日付形式/YYYY-MM-DD形式)
-  // 2. 編集モード 休日->営業日 closing_to_working idを格納
-  // 3. 通常モード時にクリックで編集モード起動 営業日->休日 working_to_closing
-  // 4. 通常モード時にクリックで編集モード起動 休日->営業日 closing_to_working
-  const handleClickDateCell = ({ dateObj }: DateCellProps) => {
-    // 🔹1. 編集モード 営業日->休日 working_to_closing datePadZeroを格納(ISO8601日付形式/YYYY-MM-DD形式)
-    if (isEditMode.includes("working_to_closing")) {
-      // 既に選択済みの場合は選択を解除
-      if (editWorkingDaysArray.includes(dateObj.datePadZero)) {
-        const filteredArray = editWorkingDaysArray.filter((date) => date !== dateObj.datePadZero);
-        setEditWorkingDaysArray(filteredArray);
-      } else {
-        const newArray = [...editWorkingDaysArray, dateObj.datePadZero];
-        setEditWorkingDaysArray(newArray);
-      }
-    }
-  };
-  // -------------------------- ✅日付クリック✅ --------------------------
-
-  // -------------------------- 🌟エディットモードポップアップメニュー開閉🌟 --------------------------
-  const handleCloseEditModePopup = () => {
-    if (hoveredItemPos) handleCloseTooltip();
-    // if (openPopupMenu) handleClosePopupMenu();
-    setIsOpenEditModePopup(false);
-    if (isEditMode.length > 0) setIsEditMode([]);
-    if (editWorkingDaysArray.length > 0) setEditWorkingDaysArray([]);
-    if (editClosingDaysArray.length > 0) setEditClosingDaysArray([]);
-  };
-  // -------------------------- ✅エディットモードポップアップメニュー開閉✅ --------------------------
-
-  // -------------------------- 🌟エディットモード終了🌟 --------------------------
-  const handleFinishEdit = () => {
-    if (isEditMode.length > 0) setIsEditMode([]);
-    // setIsOpenEditModePopup(false);
-    if (hoveredItemPos) handleCloseTooltip();
-  };
-  // -------------------------- ✅エディットモード終了✅ --------------------------
-  // -------------------------- 🌟全てのフィールドを編集モードに変更🌟 --------------------------
-  const handleAllEdit = () => {
-    if (hoveredItemPos) handleCloseTooltip();
-    // if (openPopupMenu) handleClosePopupMenu();
-
-    if (isEditMode.length === 0) {
-      // const allEdit = ["working_to_closing", "closing_to_working"];
-      // setIsEditMode(allEdit);
-      setIsOpenEditModePopup(true);
-    } else {
-      // handleFinishEdit();
-      handleCloseEditModePopup();
-    }
-    // if (hoveredItemPos) handleCloseTooltip();
-  };
-  // -------------------------- ✅全てのフィールドを編集モードに変更✅ --------------------------
 
   // ----------------- 🌟編集モードオーバーレイコンポーネント🌟 -----------------
   const EditModeOverlay = () => {
@@ -1856,7 +1916,13 @@ const BusinessCalendarModalMemo = () => {
                                           } ${
                                             !isClosed &&
                                             dateObj?.datePadZero &&
-                                            editWorkingDaysArray.includes(dateObj.datePadZero)
+                                            editWorkingDaysMapObj.has(dateObj.datePadZero)
+                                              ? `${styles.active}`
+                                              : ``
+                                          } ${
+                                            isClosed &&
+                                            dateObj?.closedDateId &&
+                                            editClosingDaysArray.includes(dateObj.closedDateId)
                                               ? `${styles.active}`
                                               : ``
                                           } flex-center`}
@@ -1871,7 +1937,23 @@ const BusinessCalendarModalMemo = () => {
                                           }}
                                           onClick={() => {
                                             if (!dateObj) return;
-                                            handleClickDateCell({ dateObj: dateObj });
+                                            // 編集モードでない時にクリックした場合はポップアップを開く
+                                            if (!isOpenEditModePopup) {
+                                              setIsOpenEditModePopup(true);
+                                              // 営業日をクリックした場合は「営業日→休日」モードに
+                                              if (!isClosed) {
+                                                setIsEditMode(["working_to_closing"]);
+                                                addDateWorkingToClosing({ dateObj });
+                                              }
+                                              // 休日をクリックした場合は「休日→営業日」モードに
+                                              if (isClosed) {
+                                                setIsEditMode(["closing_to_working"]);
+                                                addDateClosingToWorking({ dateObj });
+                                              }
+                                            } else {
+                                              // クリックした日付を配列に格納して選択中の状態に変更
+                                              handleClickDateCell({ dateObj: dateObj });
+                                            }
                                           }}
                                         >
                                           <span
@@ -2022,19 +2104,66 @@ const BusinessCalendarModalMemo = () => {
             className={`flex-center transition-bg01 fixed right-[-56px] z-[3000] ${styles.btn} ${
               isEditMode.length > 0 ? `top-[5px]` : `top-[155px]`
             }`}
-            onClick={handleAllEdit}
+            onClick={() => {
+              handleSwitchEditMode();
+              // handleFinishEdit();
+              if (openPopupMenu) handleClosePopupMenu();
+              if (hoveredItemPos) handleCloseTooltip();
+            }}
             onMouseEnter={(e) => {
-              if (isEditMode.length !== 0) return;
-              handleOpenPopupMenu({ e, title: "edit", displayX: "right", maxWidth: 360 });
+              if (isEditMode.length !== 0) {
+                handleOpenTooltip({
+                  e: e,
+                  display: "bottom",
+                  content: `編集モード終了`,
+                  // marginTop: 28,
+                  itemsPosition: "center",
+                });
+                return;
+              }
+              handleOpenPopupMenu({ e, title: "edit_mode", displayX: "right", maxWidth: 360 });
             }}
             onMouseLeave={() => {
               if (openPopupMenu) handleClosePopupMenu();
+              if (hoveredItemPos) handleCloseTooltip();
             }}
           >
             {isEditMode.length === 0 && <MdEdit className={`pointer-events-none text-[20px] text-[#fff]`} />}
             {isEditMode.length > 0 && <IoClose className={`pointer-events-none text-[22px] text-[#fff]`} />}
           </div>
           {/* 編集ボタンここまで */}
+          {/* リセットボタン */}
+          {isOpenEditModePopup &&
+            ((isEditMode.includes("working_to_closing") && editWorkingDaysMapObj.size > 0) ||
+              (isEditMode.includes("closing_to_working") && editClosingDaysArray.length > 0)) && (
+              <div
+                className={`flex-center transition-bg01 fixed right-[-56px] z-[3000] ${styles.btn} top-[55px]`}
+                onClick={() => {
+                  if (isEditMode.includes("working_to_closing")) {
+                    setEditWorkingDaysMapObj(new Map());
+                  }
+                  if (isEditMode.includes("closing_to_working")) {
+                    setEditClosingDaysArray([]);
+                  }
+                  if (hoveredItemPos) handleCloseTooltip();
+                }}
+                onMouseEnter={(e) => {
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `選択中の日付をリセット`,
+                    // marginTop: 28,
+                    itemsPosition: "center",
+                  });
+                }}
+                onMouseLeave={() => {
+                  if (hoveredItemPos) handleCloseTooltip();
+                }}
+              >
+                <GrPowerReset className={`pointer-events-none text-[20px] ${styles.icon}`} />
+              </div>
+            )}
+          {/* リセットボタンここまで */}
           {/* ---------------------- ボタンエリア ここまで ---------------------- */}
 
           {/* ---------------------- セッティングメニュー関連 ---------------------- */}
@@ -2045,6 +2174,65 @@ const BusinessCalendarModalMemo = () => {
             !isEditMode.includes("closing_to_working") && (
               <div className={`${styles.menu_overlay} ${styles.edit_mode}`} onClick={handleCloseEditModePopup}></div>
             )}
+
+          {/* 説明ポップアップ */}
+          {/* {openPopupMenu && ["working_to_closing", "closing_to_working"].includes(openPopupMenu.title) && (
+            <div
+              className={`${styles.description_menu} shadow-all-md border-real-with-shadow fixed right-[-18px] z-[3500] flex min-h-max flex-col rounded-[6px]`}
+              style={{
+                top: `${openPopupMenu.y}px`,
+                ...(openPopupMenu?.displayX === "right" && {
+                  right: `${openPopupMenu.x}px`,
+                  maxWidth: `${openPopupMenu.maxWidth}px`,
+                }),
+                ...(openPopupMenu?.displayX === "left" && {
+                  right: `${openPopupMenu.x}px`,
+                  maxWidth: `${openPopupMenu.maxWidth}px`,
+                }),
+              }}
+            >
+              <div className={`min-h-max w-full font-bold ${styles.title}`}>
+                <div className="flex max-w-max flex-col">
+                  <span>{mappingPopupTitle[openPopupMenu.title][language]}</span>
+                  <div className={`${styles.underline} w-full`} />
+                </div>
+              </div>
+
+              <ul className={`flex flex-col rounded-[6px] ${styles.u_list}`}>
+                {openPopupMenu.title === "compressionRatio" &&
+                  descriptionCompressionRatio.map((item, index) => (
+                    <li
+                      key={item.title + index.toString()}
+                      className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}
+                    >
+                      <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                        {item.title}
+                      </span>
+                      <p className="select-none text-[12px]">{item.content}</p>
+                    </li>
+                  ))}
+                {!["compressionRatio"].includes(openPopupMenu.title) && (
+                  <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
+                    <p className="select-none whitespace-pre-wrap text-[12px]">
+                      {openPopupMenu.title === "working_to_closing" &&
+                        "見積書末尾に記載される脚注を自由に編集が可能です。デフォルトテキストで保存したデータはブラウザを更新しても内容が保存されるため、自チームで常に使用している脚注がある場合は一度設定することでそれ以降の入力不要となります。"}
+                      {openPopupMenu.title === "closing_to_working" &&
+                        "見積書末尾に記載される脚注を自由に編集が可能です。デフォルトテキストで保存したデータはブラウザを更新しても内容が保存されるため、自チームで常に使用している脚注がある場合は一度設定することでそれ以降の入力不要となります。"}
+                      {openPopupMenu.title === "print" &&
+                        "印刷ボタンクリック後に印刷ダイアログが開かれた後、「詳細設定」の「余白」を「なし」に切り替えることで綺麗に印刷ができます。"}
+                      {openPopupMenu.title === "pdf" &&
+                        "現在プレビューで表示されている見積書をPDFファイル形式でダウンロードします。"}
+                      {openPopupMenu.title === "settings" &&
+                        "設定メニューから、印鑑や枠線、各取引条件の表示有無や、会社名のサイズ調整、脚注のデフォルトテキストの編集など、各種設定が可能です。"}
+                      {openPopupMenu.title === "edit" &&
+                        "編集モードでは、各取引条件や、見積備考、脚注、事業部や事業所名の編集が可能です。\nまた、各項目は表示されている見積書から直接ダブルクリックすることでも編集が可能です。\n商品名と型式の順番は直接ドラッグ&ドロップで順番の入れ替え可能です。"}
+                    </p>
+                  </li>
+                )}
+              </ul>
+            </div>
+          )} */}
+          {/* 説明ポップアップ */}
 
           {/* ---------------------------- セッティングメニュー ---------------------------- */}
           <div
@@ -2296,19 +2484,22 @@ const BusinessCalendarModalMemo = () => {
                     className={`${styles.list} ${styles.edit_mode} ${
                       isEditMode.includes("working_to_closing") ? `${styles.active}` : ``
                     }`}
-                    // onMouseEnter={(e) => {
-                    //   if (infoIconStepRef.current && infoIconStepRef.current.classList.contains(styles.animate_ping)) {
-                    //     infoIconStepRef.current.classList.remove(styles.animate_ping);
-                    //   }
-                    //   handleOpenPopupMenu({ e, title: "step", displayX: "right" });
-                    // }}
-                    // onMouseLeave={handleClosePopupMenu}
+                    onMouseEnter={(e) => {
+                      // if (infoIconStepRef.current && infoIconStepRef.current.classList.contains(styles.animate_ping)) {
+                      //   infoIconStepRef.current.classList.remove(styles.animate_ping);
+                      // }
+                      handleOpenPopupMenu({ e, title: "working_to_closing", displayX: "left" });
+                    }}
+                    onMouseLeave={() => {
+                      if (openPopupMenu) handleClosePopupMenu();
+                    }}
                     onClick={() => {
                       if (isEditMode.includes("working_to_closing")) {
                         setIsEditMode([]);
                       } else {
                         setIsEditMode(["working_to_closing"]);
                       }
+                      if (openPopupMenu) handleClosePopupMenu();
                     }}
                   >
                     <div className="pointer-events-none flex w-full min-w-[110px] items-center justify-start">
@@ -2324,26 +2515,29 @@ const BusinessCalendarModalMemo = () => {
                   </li>
                   {/* ------------------------------------ */}
 
-                  <hr className="min-h-[1px] w-full bg-[#333]" />
+                  <hr className="min-h-[1px] w-full bg-[#666]" />
 
                   {/* ------------------------------------ */}
                   <li
                     className={`${styles.list} ${styles.edit_mode} rounded-b-[6px] ${
                       isEditMode.includes("closing_to_working") ? `${styles.active}` : ``
                     }`}
-                    // onMouseEnter={(e) => {
-                    //   if (infoIconStepRef.current && infoIconStepRef.current.classList.contains(styles.animate_ping)) {
-                    //     infoIconStepRef.current.classList.remove(styles.animate_ping);
-                    //   }
-                    //   handleOpenPopupMenu({ e, title: "step", displayX: "right" });
-                    // }}
-                    // onMouseLeave={handleClosePopupMenu}
+                    onMouseEnter={(e) => {
+                      // if (infoIconStepRef.current && infoIconStepRef.current.classList.contains(styles.animate_ping)) {
+                      //   infoIconStepRef.current.classList.remove(styles.animate_ping);
+                      // }
+                      handleOpenPopupMenu({ e, title: "closing_to_working", displayX: "left" });
+                    }}
+                    onMouseLeave={() => {
+                      if (openPopupMenu) handleClosePopupMenu();
+                    }}
                     onClick={() => {
                       if (isEditMode.includes("closing_to_working")) {
                         setIsEditMode([]);
                       } else {
                         setIsEditMode(["closing_to_working"]);
                       }
+                      if (openPopupMenu) handleClosePopupMenu();
                     }}
                   >
                     <div className="pointer-events-none flex w-full min-w-[110px] items-center justify-start">
@@ -2367,26 +2561,38 @@ const BusinessCalendarModalMemo = () => {
                 <li className={`${styles.list} ${styles.btn_area} space-x-[20px]`}>
                   <div
                     className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${
-                      ((isEditMode.includes("working_to_closing") && editWorkingDaysArray.length > 0) ||
+                      ((isEditMode.includes("working_to_closing") && editWorkingDaysMapObj.size > 0) ||
                         (isEditMode.includes("closing_to_working") && editClosingDaysArray.length > 0)) &&
                       styles.active
                     }`}
-                    // onClick={() => {
-                    //   if (!selectedFiscalYearSetting) return alert("会計年度が選択されていません。");
-                    //   if (!userProfileState.customer_closing_days) return alert("定休日が設定されていません。");
-                    //   setShowConfirmApplyClosingDayModal("Insert");
-                    //   if (openPopupMenu) handleClosePopupMenu();
-                    // }}
+                    onClick={() => {
+                      handleUpdateDaysStatus();
+                    }}
                   >
                     <span>適用</span>
                   </div>
                   <div
                     className={`transition-bg02 ${styles.edit_btn} ${styles.cancel}`}
                     onClick={() => {
-                      handleCloseEditModePopup();
+                      // handleCloseEditModePopup();
+                      if (
+                        isOpenEditModePopup &&
+                        !isEditMode.includes("working_to_closing") &&
+                        !isEditMode.includes("closing_to_working")
+                      ) {
+                        handleCloseEditModePopup();
+                      } else {
+                        handleFinishEdit();
+                      }
                     }}
                   >
-                    <span>戻る</span>
+                    {isOpenEditModePopup &&
+                      !isEditMode.includes("working_to_closing") &&
+                      !isEditMode.includes("closing_to_working") && <span>終了</span>}
+                    {isOpenEditModePopup &&
+                      (isEditMode.includes("working_to_closing") || isEditMode.includes("closing_to_working")) && (
+                        <span>戻る</span>
+                      )}
                   </div>
                 </li>
               </div>
@@ -2398,6 +2604,7 @@ const BusinessCalendarModalMemo = () => {
       </div>
 
       {/* 説明ポップアップ */}
+
       {openPopupMenu && (
         <div
           // className={`${styles.description_menu} shadow-all-md border-real-with-shadow fixed right-[-18px] z-[3500] flex min-h-max flex-col rounded-[6px]`}
@@ -2429,10 +2636,7 @@ const BusinessCalendarModalMemo = () => {
                   className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}
                 >
                   <div className="flex min-w-max items-center space-x-[3px]">
-                    {/* <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} /> */}
-                    {/* <FaRegDotCircle className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} /> */}
                     <RxDot className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
-                    {/* <RxDotFilled className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} /> */}
                     <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
                       {item.title}
                     </span>
@@ -2445,8 +2649,8 @@ const BusinessCalendarModalMemo = () => {
             {!["guide", "step", "compressionRatio"].includes(openPopupMenu.title) && (
               <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
                 <p className="select-none whitespace-pre-wrap text-[12px]">
-                  {openPopupMenu.title === "footnotes" &&
-                    "見積書末尾に記載される脚注を自由に編集が可能です。デフォルトテキストで保存したデータはブラウザを更新しても内容が保存されるため、自チームで常に使用している脚注がある場合は一度設定することでそれ以降の入力不要となります。"}
+                  {openPopupMenu.title === "edit_mode" &&
+                    "定休日を適用後、個別に日付を「営業日から休日へ」または「休日から営業日へ」変更が可能です。"}
                   {openPopupMenu.title === "applyClosingDays" &&
                     !!customerClosingDaysNameArray?.length &&
                     `定休日は「${customerClosingDaysNameArray.join(
@@ -2457,6 +2661,10 @@ const BusinessCalendarModalMemo = () => {
                     `先に「会社・チーム」画面から定休日を登録しておくことで、選択中の会計年度のカレンダーに休日として一括で適用できます。`}
                   {openPopupMenu.title === "displayFiscalYear" &&
                     `選択中の会計年度の営業カレンダーを表示します。\n会計年度は2020年から当年度まで選択可能で、翌年度のカレンダーはお客様の決算日から現在の日付が3ヶ月を切ると表示、設定、編集が可能となります。`}
+                  {openPopupMenu.title === "working_to_closing" &&
+                    `「営業日 → 休日」を選択後、カレンダーから会計期間内の営業日を選択して下の適用ボタンをクリックすることで休日へ変更できます。\n日付は複数選択して一括で更新が可能です。`}
+                  {openPopupMenu.title === "closing_to_working" &&
+                    `「休日 → 営業日」を選択後、カレンダーから会計期間内の休日を選択して下の適用ボタンをクリックすることで営業日へ変更できます。\n日付は複数選択して一括で更新が可能です。`}
                 </p>
               </li>
             )}
