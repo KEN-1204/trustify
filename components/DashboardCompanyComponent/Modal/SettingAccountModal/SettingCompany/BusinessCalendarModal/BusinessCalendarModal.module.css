@@ -8,7 +8,23 @@
   backdrop-filter: blur(4px);
   /* transform: translateY(-20px) scaleY(1.1); */
 }
+/* 画面全体でのローディング */
+.loading_overlay {
+  position: fixed;
+  z-index: 5000;
+  inset: 0;
+  background: #00000090;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
+.loading_spinner_outside {
+  height: 120px;
+  width: 120px;
+  border-radius: 18px;
+  background-color: #fff;
+}
 .preview_modal_area_twin {
   /* position: fixed; */
   position: absolute;
@@ -62,6 +78,20 @@
 }
 .btn .icon path {
   stroke: #fff;
+}
+.btn.initial {
+  width: 35px;
+  height: 35px;
+  background-color: var(--color-sign-out-bg);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  cursor: pointer;
+  border-radius: 50%;
+}
+.btn.initial:hover {
+  background-color: var(--color-bg-brand-f);
+}
+.btn.initial path {
+  /* stroke: var(--color-bg-brand-f); */
 }
 
 .pdf {
@@ -353,7 +383,7 @@
 }
 .menu_overlay.edit_mode {
   z-index: 3700;
-  background-color: #00000030;
+  /* background-color: #00000030; */
 }
 .settings_menu.edit_mode {
   z-index: 4500;

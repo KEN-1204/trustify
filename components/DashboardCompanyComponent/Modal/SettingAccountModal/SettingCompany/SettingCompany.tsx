@@ -263,6 +263,7 @@ const SettingCompanyMemo = () => {
     annualMonthlyClosingDays: annualMonthlyClosingDays
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
+    getTime: annualMonthlyClosingDays ? annualMonthlyClosingDays.getTime : null,
     isReady: !isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
     appliedAtOfSelectedYear: appliedAtClosingDaysOfSelectedFiscalYear ?? getAppliedAtOfSelectedYear() ?? null,
   });

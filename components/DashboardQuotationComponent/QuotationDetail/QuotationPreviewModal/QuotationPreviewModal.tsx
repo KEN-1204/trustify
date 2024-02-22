@@ -98,17 +98,17 @@ type CorporateSealObj = { url: string | null; isPrint: boolean };
 type StampObj = { url: string | null; isPrint: boolean; isFrame: boolean };
 type CompressionRatio = "NONE" | "FAST" | "SLOW";
 
-const optionsCompressionRatio: CompressionRatio[] = ["NONE", "FAST", "SLOW"];
+const optionsCompressionRatio: CompressionRatio[] = ["NONE", "SLOW", "FAST"];
 const getCompressionRatio = (value: string, language: string) => {
   switch (value) {
     case "NONE":
-      return language === "ja" ? `高解像度 / 重` : `High Quality`;
-      break;
-    case "FAST":
-      return language === "ja" ? `中解像度 / 中` : `Middle Quality`;
+      return language === "ja" ? `高解像度 / 重` : `High resolution`;
       break;
     case "SLOW":
-      return language === "ja" ? `低解像度 / 軽` : `High Quality`;
+      return language === "ja" ? `中解像度 / 中` : `Middle resolution`;
+      break;
+    case "FAST":
+      return language === "ja" ? `低解像度 / 軽` : `Low resolution`;
       break;
 
     default:
@@ -1527,7 +1527,12 @@ const QuotationPreviewModalMemo = () => {
             >
               {/* スケールが1以上で、ダウンロード、印刷時に上から覆うオーバーレイ */}
               {/* {isLoading && scalePdf > 1 && <div className={`${styles.pdf} ${styles.loading}`}></div>} */}
-              {isLoading && scalePdf > 1 && (
+              {/* {isLoading && scalePdf > 1 && (
+                <div className={`${styles.pdf} ${styles.loading}`} style={{ padding: "0px", backgroundColor: "#aaa" }}>
+                  <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" />
+                </div>
+              )} */}
+              {isLoading && (
                 <div className={`${styles.pdf} ${styles.loading}`} style={{ padding: "0px", backgroundColor: "#aaa" }}>
                   <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" />
                 </div>

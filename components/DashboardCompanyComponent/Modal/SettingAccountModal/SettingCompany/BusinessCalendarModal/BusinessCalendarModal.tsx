@@ -1,4 +1,4 @@
-import { Suspense, memo, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useDashboardStore from "@/store/useDashboardStore";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
@@ -34,19 +34,21 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ConfirmationModal } from "../ConfirmationModal/ConfirmationModal";
 import { BsCheck2 } from "react-icons/bs";
 import { GrPowerReset } from "react-icons/gr";
+import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
+// 解像度
 type CompressionRatio = "NONE" | "FAST" | "SLOW";
-const optionsCompressionRatio: CompressionRatio[] = ["NONE", "FAST", "SLOW"];
+const optionsCompressionRatio: CompressionRatio[] = ["NONE", "SLOW", "FAST"];
 const getCompressionRatio = (value: string, language: string) => {
   switch (value) {
     case "NONE":
-      return language === "ja" ? `高解像度 / 重` : `High Quality`;
-      break;
-    case "FAST":
-      return language === "ja" ? `中解像度 / 中` : `Middle Quality`;
+      return language === "ja" ? `高解像度 / 重` : `High resolution`;
       break;
     case "SLOW":
-      return language === "ja" ? `低解像度 / 軽` : `High Quality`;
+      return language === "ja" ? `中解像度 / 中` : `Middle resolution`;
+      break;
+    case "FAST":
+      return language === "ja" ? `低解像度 / 軽` : `Low resolution`;
       break;
 
     default:
@@ -71,6 +73,9 @@ const descriptionCompressionRatio = [
     content: "より高い圧縮率でファイルサイズを最小限に軽量化できますが、画質が劣化する可能性があります。",
   },
 ];
+// 印刷サイズ
+type PrintSize = "A4" | "A5" | "A6" | "A7";
+const optionsPrintSize: PrintSize[] = ["A4", "A5", "A6", "A7"];
 
 const descriptionGuide = [
   {
@@ -85,7 +90,7 @@ const descriptionGuide = [
   {
     title: "印刷",
     content:
-      "A7サイズでの印刷が可能なため、印刷して各メンバーの手帳に入れておくことで、お客様との商談で自社の営業締日ベースでのスケジュールの擦り合わせなどで活用頂けます。",
+      "A7サイズで印刷して各メンバーの手帳に入れておくことで、お客様との商談で自社の営業締日ベースでのスケジュールの擦り合わせなどで活用頂けます。\n印刷サイズはA4〜A7サイズの範囲で変更が可能です。",
   },
 ];
 
@@ -98,18 +103,71 @@ const descriptionSteps = [
   {
     title: "ステップ2：会社独自の休業日を個別登録",
     content:
-      "定休日以外の休業日はお客様ごとに異なるため、「休業日の個別編集」からカレンダーの日付を複数選択して登録・変更します。",
+      "定休日以外の休業日はお客様ごとに異なるため、カレンダーの日付を複数選択して「営業日を休日に」または「休日を営業日に」登録・変更しましょう。",
+  },
+  {
+    title: "ステップ3：印刷・PDFダウンロード",
+    content:
+      "自社専用の営業カレンダーが完成したら、設定メニューの「印刷サイズ」と「解像度」を確認し、右側のアイコンから印刷・PDFをダウンロードが可能です。",
   },
   // {
   //   title: "",
   //   content: "より高い圧縮率でファイルサイズを最小限に軽量化できますが、画質が劣化する可能性があります。",
   // },
 ];
+const descriptionPrintTips = [
+  // {
+  //   title: "Tips",
+  //   content:
+  //     "印刷ボタンクリック後に印刷ダイアログが開かれた後、「詳細設定」の「余白」を「なし」に切り替えることで綺麗に印刷ができます。また、「用紙サイズ」のそれぞれの選択肢については下記の通りです。",
+  // },
+  {
+    title: "A4",
+    content: "国際標準の紙のサイズ(210x297mm)",
+  },
+  {
+    title: "A5",
+    content: "A4サイズの半分の大きさ(148x210mm)で、ノートや小冊子によく使用されます。",
+  },
+  {
+    title: "3.5x5インチ(L判)",
+    content: "写真プリントでよく使用されるサイズ(L判)",
+  },
+  {
+    title: "4x6インチ",
+    content: "写真プリントの標準的なサイズ(KG判に近いサイズ)",
+  },
+  {
+    title: "5x5インチ",
+    content: "正方形の写真プリントに使用されるサイズで、アルバムやデザインに適しています。",
+  },
+  {
+    title: "5x7インチ",
+    content: "カードやポートレートに適したサイズ",
+  },
+  {
+    title: "JIS B5",
+    content: "日本工業規格(JIS)に基づいたBシリーズの紙サイズ(182x257mm)。学校の教科書などで使用されます。",
+  },
+  {
+    title: "Legal",
+    content: "契約書や法的文書に使用されます。約8.5x14インチ(216x356mm)",
+  },
+  {
+    title: "Letter",
+    content: "日常の文書印刷に広く使用されます。約8.5x11インチ(216x279mm)",
+  },
+  {
+    title: "はがき",
+    content: "日本の郵便はがきに使用されるサイズ(100x148mm)で、年賀状や招待状などに適しています。",
+  },
+];
 
 const mappingDescriptions: { [key: string]: { [key: string]: string }[] } = {
   guide: descriptionGuide,
   step: descriptionSteps,
   compressionRatio: descriptionCompressionRatio,
+  printTips: descriptionPrintTips,
 };
 
 const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -185,8 +243,10 @@ const BusinessCalendarModalMemo = () => {
   const [pdfURL, setPdfURL] = useState<string | null>(null);
   const [imageURL, setImageURL] = useState<string | null>(null); // アンマウント時画像URLリソース解放用のstate
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingSkeleton, setIsLoadingSkeleton] = useState(false);
   const [isEditMode, setIsEditMode] = useState<string[]>([]); // エディットモード
   const [isOpenSettings, setIsOpenSettings] = useState(false); // セッティングメニュー
+  const [printSize, setPrintSize] = useState<string>("A7"); // A4, A5, A6, A7
   const [compressionRatio, setCompressionRatio] = useState<CompressionRatio>("FAST"); // 画像をPDF化する際の圧縮率3段階を指定
 
   // 編集モードポップアップ開閉
@@ -430,6 +490,7 @@ const BusinessCalendarModalMemo = () => {
     annualMonthlyClosingDays: annualMonthlyClosingDays
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
+    getTime: annualMonthlyClosingDays ? annualMonthlyClosingDays.getTime : null,
     isReady: !isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
     appliedAtOfSelectedYear: statusClosingDaysSelectedYear?.updated_at ?? getAppliedAtOfSelectedYear() ?? null, // 選択中の年度の定休日の適用日(queryKey用)
   });
@@ -445,6 +506,7 @@ const BusinessCalendarModalMemo = () => {
     annualMonthlyClosingDays: annualMonthlyClosingDays
       ? annualMonthlyClosingDays.annual_closing_days_obj.annual_closing_days
       : null,
+    getTime: annualMonthlyClosingDays ? annualMonthlyClosingDays.getTime : null,
     isReady: !isLoadingAnnualMonthlyClosingDays && !!annualMonthlyClosingDays,
     appliedAtOfSelectedYear: statusClosingDaysSelectedYear?.updated_at ?? getAppliedAtOfSelectedYear() ?? null, // 選択中の年度の定休日の適用日(queryKey用)
   });
@@ -682,48 +744,89 @@ const BusinessCalendarModalMemo = () => {
   // // -------------------------- ✅セッティングメニュー開閉✅ --------------------------
 
   // -------------------------- 🌟PDFファイルのダウンロード html => pdf🌟 --------------------------
-  // pdfファイル名の取得関数
-  const getPdfFileName = () => {
-    const title = `${selectedFiscalYearSetting}年度_カレンダー`;
-    // const currentDate = format(new Date(), "yyMMddHHmmss");
-    const fileName = `${title}.pdf`;
-    return fileName;
-  };
 
   const handleSaveImageToPdf = async () => {
     if (!pdfTargetRef.current) return alert("pdfデータの取得に失敗しました。");
+
+    setIsLoadingSkeleton(true);
 
     if (hoveredItemPos) handleCloseTooltip();
     if (openPopupMenu) handleClosePopupMenu();
 
     console.log("pdfTargetRef.current", pdfTargetRef.current);
+    console.log("ここまで0");
 
-    setIsLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    console.log("ここまで1 scale変更");
+
+    // pdfファイル名の取得関数
+    const getPdfFileName = () => {
+      const title = `${selectedFiscalYearSetting}年度_カレンダー`;
+      // const currentDate = format(new Date(), "yyMMddHHmmss");
+      const fileName = `${title}.pdf`;
+      return fileName;
+    };
+    const getFormatSize = (formatSize: string) => {
+      switch (formatSize) {
+        case "A7":
+          return "a7";
+        case "A6":
+          return "a6";
+        case "A5":
+          return "a5";
+        case "A4":
+          return "a4";
+        default:
+          return "a7";
+          break;
+      }
+    };
+
+    const getToPngDetails = () => {
+      // quality: 1.0, // 0から1の範囲で品質を指定 最高レベル○13.15
+      // pixelRatio: 2, // 画像のピクセル密度を指定
+      // quality: 0.8, // 画質と処理時間のバランスを取るために少し下げる ○12.23
+      // pixelRatio: 1.5, // 高品質ながらも処理の負荷を考慮
+      // quality: 0.5, // 画質と処理時間のバランスを取るために少し下げる ○10.09
+      // pixelRatio: 1.5, // 高品質ながらも処理の負荷を考慮
+      // quality: 0.5, // 画質と処理時間のバランスを取るために少し下げる 11.54 バツ
+      // pixelRatio: 1, // デフォルト値
+      // quality: 0.5, // 画質と処理時間のバランスを取るために少し下げる 9.23 バツ
+      // pixelRatio: 1.2, // デフォルト値
+      if (compressionRatio === "FAST") return { quality: 0.5, pixelRatio: 1.5 };
+      if (compressionRatio === "SLOW") return { quality: 1, pixelRatio: 2 };
+      if (compressionRatio === "NONE") return { quality: 1, pixelRatio: 2 };
+      return { quality: 1, pixelRatio: 2 };
+    };
 
     try {
       // スケールを1に戻す
-      // if (scalePdf > 1) {
-      //   pdfTargetRef.current.style.transform = `scale(1)`;
-      // }
       if (scalePdf > 1) {
         pdfTargetRef.current.style.transform = `scale(1)`;
       }
+
+      console.log("ここまで2 new jsPDFインスタンス作成");
 
       // 3. jsPDFインスタンスjの生成
       const doc = new jsPDF({
         orientation: "p", // p:縦向き, l:横向き
         unit: "mm", // mm: ミリメートル, 他には, cm,in,px,pc,em,ex, pxで指定する場合、optionのhotfixesを指定
         // format: "a4", // PDFのページフォーマット a4:A4サイズ
-        format: "a7", // PDFのページフォーマット a4:A4サイズ
+        format: getFormatSize(printSize), // PDFのページフォーマット a4:A4サイズ
       });
       // const pdf = new jsPDF()
+
+      console.log("ここまで3 toPng実行");
 
       // DOM要素をpng画像に変換
       // const image = await toPng(pdfTargetRef.current); // 成功
       const image = await toPng(pdfTargetRef.current, {
-        quality: 1.0, // 0から1の範囲で品質を指定
-        pixelRatio: 2, // 画像のピクセル密度を指定
+        quality: getToPngDetails().quality, // FAST以外は1
+        pixelRatio: getToPngDetails().pixelRatio, // FAST以外は2
       });
+
+      console.log("ここまで4 setImageURLのstateを更新");
 
       // 保険で画像URLのリソース解放できなかった時のためのアンマウント時にURLリソース解放用に画像URLをstateに格納
       setImageURL(image);
@@ -734,17 +837,29 @@ const BusinessCalendarModalMemo = () => {
       // ・FAST: 低圧縮 => 143KB
       // ・SLOW: 高圧縮 => 161KB
       // ・NONE: 圧縮なし => 6MB
+      console.log("ここまで5 addImage実行");
 
       /* A4サイズは210mm * 297mm で 縦横比は1:1.41 */
       // doc.addImage(image, "PNG", 0, 0, 210, 0, "", compressionRatio); // デフォルトの圧縮率はFASTの中間
       /* A7サイズは74mm * 105mm で 縦横比は1:1.41 */
-      doc.addImage(image, "PNG", 0, 0, 105, 0, "", compressionRatio); // デフォルトの圧縮率はFASTの中間
+      // doc.addImage(image, "PNG", 0, 0, 74, 0, "", compressionRatio); // デフォルトの圧縮率はFASTの中間
+      // printSizeごとにaddImageの第五引数の横幅の指定を対応するサイズに変換
+      if (printSize === "A7") doc.addImage(image, "PNG", 0, 0, 74, 0, "", compressionRatio);
+      if (printSize === "A6") doc.addImage(image, "PNG", 0, 0, 105, 0, "", compressionRatio);
+      if (printSize === "A5") doc.addImage(image, "PNG", 0, 0, 148, 0, "", compressionRatio);
+      if (printSize === "A4") doc.addImage(image, "PNG", 0, 0, 210, 0, "", compressionRatio);
+
+      console.log("ここまで6 doc.save実行");
 
       // 5. PDFを保存
       doc.save(getPdfFileName());
 
+      console.log("ここまで7 revokeURL実行");
+
       URL.revokeObjectURL(image); // 画像URLを解放
       setImageURL(null);
+
+      console.log("ここまで8 ✅関数実行完了");
     } catch (error: any) {
       console.error("PDFの取得に失敗しました: ", error);
       toast.error("PDFの取得に失敗しました...🙇‍♀️");
@@ -755,7 +870,7 @@ const BusinessCalendarModalMemo = () => {
       pdfTargetRef.current.style.transform = `scale(${scalePdf})`;
     }
 
-    setIsLoading(false);
+    setIsLoadingSkeleton(false);
   };
   // -------------------------- ✅PDFファイルのダウンロード html => pdf✅ --------------------------
 
@@ -769,7 +884,9 @@ const BusinessCalendarModalMemo = () => {
 
     console.log("pdfTargetRef.current", pdfTargetRef.current);
 
-    setIsLoading(true);
+    setIsLoadingSkeleton(true);
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     try {
       // スケールを1に戻す
@@ -777,11 +894,17 @@ const BusinessCalendarModalMemo = () => {
         pdfTargetRef.current.style.transform = `scale(1)`;
       }
 
+      const getToPngDetails = () => {
+        if (compressionRatio === "FAST") return { quality: 0.5, pixelRatio: 1.5 };
+        if (compressionRatio === "SLOW") return { quality: 1, pixelRatio: 2 };
+        if (compressionRatio === "NONE") return { quality: 1, pixelRatio: 2 };
+        return { quality: 1, pixelRatio: 2 };
+      };
+
       // DOM要素をpng画像に変換
-      // const image = await toPng(pdfTargetRef.current); // 成功
       const image = await toPng(pdfTargetRef.current, {
-        quality: 1.0, // 0から1の範囲で品質を指定
-        pixelRatio: 2, // 画像のピクセル密度を指定
+        quality: getToPngDetails().quality, // FAST以外は1
+        pixelRatio: getToPngDetails().pixelRatio, // FAST以外は2
       });
 
       // 保険で画像URLのリソース解放できなかった時のためのアンマウント時にURLリソース解放用に画像URLをstateに格納
@@ -803,11 +926,41 @@ const BusinessCalendarModalMemo = () => {
       /* A4サイズは210mm * 297mm で 縦横比は1:1.41 */
       /* A7サイズは74mm * 105mm で 縦横比は1:1.41 */
 
-      // HTMLコンテンツを生成してiframeに挿入
+      /*
+      🔹DPI 350 dpiで計算した場合(印刷用途) *13.7795
+      A4サイズ
+      横: 210mm x (350 / 25.4) ≈ 2894 ピクセル
+      縦: 297mm x (350 / 25.4) ≈ 4093 ピクセル
+      A5サイズ
+      横: 148mm x (350 / 25.4) ≈ 2039 ピクセル
+      縦: 210mm x (350 / 25.4) ≈ 2894 ピクセル
+      A6サイズ
+      横: 105mm x (350 / 25.4) ≈ 1449 ピクセル
+      縦: 148mm x (350 / 25.4) ≈ 2039 ピクセル
+      A7サイズ
+      横: 74mm x (350 / 25.4) ≈ 1020 ピクセル
+      縦: 105mm x (350 / 25.4) ≈ 1449 ピクセル
+      */
+
+      const getPixels = () => {
+        // dpi 350 印刷用途
+        if (printSize === "A4") return { width: 2894, height: 4093 };
+        if (printSize === "A5") return { width: 2039, height: 2894 };
+        if (printSize === "A6") return { width: 1449, height: 2039 };
+        if (printSize === "A4") return { width: 1020, height: 1449 };
+        return { width: 794, height: 1123 }; // dpi 96
+      };
+      const printWidth = getPixels().width;
+      const printHeight = getPixels().height;
+
+      // HTMLコンテンツを生成してiframeに挿入 *1 width: 794px; height: 1123px;
       iframeDoc.open();
       iframeDoc.write(
-        `<html><head><style>@media print { html, body { margin: 0; padding: 0; box-sizing: border-box; width: 100%; height: 100%; }}</style></head><body style="background-color: red; padding: 0; margin: 0; border: 0; position: relative; width: 794px; height: 1123px; position: relative; display: flex; align-items: center; justify-content: center;"><img src="${image}" style="background-color: white; padding: 0; margin: 0; object-fit: cover; width: 100%; height: 100%;"></body></html>`
+        `<html><head><style>@media print { html, body { margin: 0; padding: 0; box-sizing: border-box; width: 100%; height: 100%; }}</style></head><body style="background-color: red; padding: 0; margin: 0; border: 0; position: relative; width: ${printWidth}px; height: ${printHeight}px; position: relative; display: flex; align-items: center; justify-content: center;"><img src="${image}" style="background-color: white; padding: 0; margin: 0; object-fit: cover; width: 100%; height: 100%;"></body></html>`
       );
+      // iframeDoc.write(
+      //   `<html><head><style>@media print { html, body { margin: 0; padding: 0; box-sizing: border-box; width: 100%; height: 100%; }}</style></head><body style="background-color: red; padding: 0; margin: 0; border: 0; position: relative; width: 794px; height: 1123px; position: relative; display: flex; align-items: center; justify-content: center;"><img src="${image}" style="background-color: white; padding: 0; margin: 0; object-fit: cover; width: 100%; height: 100%;"></body></html>`
+      // );
       iframeDoc.close();
 
       // iframeのコンテンツが完全に読み込まれた後に印刷プレビューを開く
@@ -829,10 +982,39 @@ const BusinessCalendarModalMemo = () => {
       pdfTargetRef.current.style.transform = `scale(${scalePdf})`;
     }
 
-    setIsLoading(false);
+    setIsLoadingSkeleton(false);
   };
+  // *1
+  /**
+🔹DPI 350 dpiで計算した場合(印刷用途) *13.7795
+A4サイズ
+横: 210mm x (350 / 25.4) ≈ 2894 ピクセル
+縦: 297mm x (350 / 25.4) ≈ 4093 ピクセル
+A5サイズ
+横: 148mm x (350 / 25.4) ≈ 2039 ピクセル
+縦: 210mm x (350 / 25.4) ≈ 2894 ピクセル
+A6サイズ
+横: 105mm x (350 / 25.4) ≈ 1449 ピクセル
+縦: 148mm x (350 / 25.4) ≈ 2039 ピクセル
+A7サイズ
+横: 74mm x (350 / 25.4) ≈ 1020 ピクセル
+縦: 105mm x (350 / 25.4) ≈ 1449 ピクセル
 
-  // 画像のstyle属性でwidthとheightを指定していますが、これをA4サイズのピクセルまたはmm単位で具体的に指定することで、より正確にサイズを制御できます。A4サイズのピクセル数は解像度によって異なりますが、一般的には96DPIの場合、約794x1123ピクセル（約210mm x 297mm）です。
+🔹DPI 96 dpiで計算した場合(Webスクリーン用途)
+A4サイズ
+横: 210mm x (96 / 25.4) ≈ 794 ピクセル
+縦: 297mm x (96 / 25.4) ≈ 1123 ピクセル
+A5サイズ
+横: 148mm x (96 / 25.4) ≈ 558 ピクセル
+縦: 210mm x (96 / 25.4) ≈ 794 ピクセル
+A6サイズ
+横: 105mm x (96 / 25.4) ≈ 397 ピクセル
+縦: 148mm x (96 / 25.4) ≈ 558 ピクセル
+A7サイズ
+横: 74mm x (96 / 25.4) ≈ 279 ピクセル
+縦: 105mm x (96 / 25.4) ≈ 397 ピクセル
+   */
+  // 画像のstyle属性でwidthとheightを指定していますが、これをA4サイズのピクセルまたはmm単位で具体的に指定することで、より正確にサイズを制御できます。A4サイズのピクセル数は解像度によって異なりますが、一般的にはWebスクリーン用途では96DPIの場合、約794x1123ピクセル（約210mm x 297mm）です。印刷用途では350dpi（300～400dpi）
   // 画像のDPI（ドット・パー・インチ）を調整して、印刷時のサイズを変更することも検討してください。HTMLやCSSで直接DPIを指定することはできませんが、画像を生成する際にDPIを考慮することで、印刷時のサイズ感を調整できます。
   // -------------------------- ✅プリントアウト関数✅ --------------------------
 
@@ -923,7 +1105,7 @@ const BusinessCalendarModalMemo = () => {
 
         if (error) throw error;
 
-        console.log("✅営業カレンダーのバルクインサートと会社テーブルの定休日リストのUPDATE成功");
+        console.log("✅定休日を営業カレンダーテーブルへバルクインサート成功");
 
         // 営業カレンダーのuseQueryのキャッシュをinvalidate
         await queryClient.invalidateQueries({ queryKey: ["annual_fiscal_month_closing_days"] });
@@ -1084,13 +1266,109 @@ const BusinessCalendarModalMemo = () => {
 
   // -------------------------- 🌟営業日 休日 一括更新(バルクインサート or バルクデリート)🌟 --------------------------
   const handleUpdateDaysStatus = async () => {
+    if (!userProfileState.company_id) return alert("会社データが見つかりませんでした。");
+    console.log(
+      "handleUpdateDaysStatus関数実行 isEditMode",
+      isEditMode,
+      "editWorkingDaysMapObj",
+      editWorkingDaysMapObj,
+      "editClosingDaysArray",
+      editClosingDaysArray
+    );
     // 🔹営業日->休日 DATE型のdateの値を使用してバルクインサート
     if (isEditMode.includes("working_to_closing") && editWorkingDaysMapObj.size > 0) {
-      // const bulkInsertPayload =
+      try {
+        // Mapオブジェクトを配列に変換
+        const workingDaysArray = [...editWorkingDaysMapObj.values()];
+        // Mapオブジェクトのサイズと変換後の配列の要素数が一致しているか確認
+        if (editWorkingDaysMapObj.size !== workingDaysArray.length)
+          throw new Error("営業日から休日への変更処理にエラーが発生しました。");
+
+        setIsLoading(true);
+
+        const bulkInsertPayload = {
+          _customer_id: userProfileState.company_id,
+          _closed_days: workingDaysArray,
+        };
+
+        console.log(
+          "🔥バルクインサート実行 bulkInsertPayload",
+          bulkInsertPayload,
+          "editWorkingDaysMapObj",
+          editWorkingDaysMapObj
+        );
+
+        const { error } = await supabase.rpc("bulk_insert_closing_days", bulkInsertPayload);
+
+        if (error) throw error;
+
+        console.log("✅営業日を休日へバルクインサート成功");
+
+        // 営業カレンダーのuseQueryのキャッシュをinvalidate
+        // queryKeyを詳細に指定して選択している会計年度のキャッシュのみを再フェッチ
+        const fiscalEndMonthKey = userProfileState?.customer_fiscal_end_month
+          ? format(new Date(userProfileState?.customer_fiscal_end_month), "yyyy-MM-dd")
+          : null;
+        const queryKey = ["annual_fiscal_month_closing_days", fiscalEndMonthKey, selectedFiscalYearSetting];
+        // 営業カレンダーのuseQueryのキャッシュをinvalidate
+        await queryClient.invalidateQueries({ queryKey: queryKey });
+        // await queryClient.invalidateQueries({ queryKey: ["annual_fiscal_month_closing_days"] });
+
+        toast.success("営業日から休日への更新が完了しました!🌟");
+      } catch (error: any) {
+        console.error("Bulk insert エラー: ", error);
+        toast.error("営業日から休日への変更に失敗しました...🙇‍♀️");
+      }
     }
     // 🔹休日->営業日 idを使用してバルクデリート
     if (isEditMode.includes("closing_to_working") && editClosingDaysArray.length > 0) {
+      setIsLoading(true);
+
+      try {
+        const bulkDeletePayload = {
+          _customer_id: userProfileState.company_id,
+          _closed_day_ids: editClosingDaysArray,
+        };
+
+        console.log("🔥バルクデリート実行 bulkDeletePayload", bulkDeletePayload);
+
+        const { error } = await supabase.rpc("bulk_delete_closing_days", bulkDeletePayload);
+
+        if (error) throw error;
+
+        console.log("✅休日のバルクデリート成功");
+
+        // queryKeyを詳細に指定して選択している会計年度のキャッシュのみを再フェッチ
+        const fiscalEndMonthKey = userProfileState?.customer_fiscal_end_month
+          ? format(new Date(userProfileState?.customer_fiscal_end_month), "yyyy-MM-dd")
+          : null;
+        const queryKey = ["annual_fiscal_month_closing_days", fiscalEndMonthKey, selectedFiscalYearSetting];
+        // 営業カレンダーのuseQueryのキャッシュをinvalidate
+        await queryClient.invalidateQueries({ queryKey: queryKey });
+        // const queryKeyCB = [
+        //   "calendar_for_calendar_base",
+        //   fiscalEndMonthKey,
+        //   selectedFiscalYearSetting,
+        //   statusClosingDaysSelectedYear?.updated_at ?? getAppliedAtOfSelectedYear() ?? null,
+        // ];
+        // await queryClient.invalidateQueries({ queryKey: queryKeyCB });
+        // const queryKeyFB = [
+        //   "calendar_for_fiscal_base",
+        //   fiscalEndMonthKey,
+        //   selectedFiscalYearSetting,
+        //   statusClosingDaysSelectedYear?.updated_at ?? getAppliedAtOfSelectedYear() ?? null,
+        // ];
+        // await queryClient.invalidateQueries({ queryKey: queryKeyFB });
+
+        toast.success("休日から営業日への更新が完了しました!🌟");
+      } catch (error: any) {
+        console.error("Bulk delete エラー: ", error);
+        toast.error("休日から営業日への変更に失敗しました...🙇‍♀️");
+      }
     }
+
+    setIsLoading(false); // ローディングh数量
+    handleCloseEditModePopup(); // 全てを閉じる
   };
   // -------------------------- ✅営業日 休日 一括更新(バルクインサート or バルクデリート)✅ --------------------------
 
@@ -1222,6 +1500,8 @@ const BusinessCalendarModalMemo = () => {
     guide: { en: "Guide", ja: "使い方 Tips" },
     step: { en: "Step", ja: "カレンダー設定手順" },
     print: { en: "Print Tips", ja: "印刷Tips" },
+    printTips: { en: "Print Tips", ja: "印刷Tips" },
+    printSize: { en: "Print Size", ja: "印刷・PDFサイズ" },
     pdf: { en: "PDF Download", ja: "PDFダウンロード" },
     settings: { en: "Settings", ja: "各種設定メニュー" },
     edit_mode: { en: "Edit mode", ja: "編集モード" },
@@ -1601,6 +1881,16 @@ const BusinessCalendarModalMemo = () => {
     <>
       {/* オーバーレイ z-index: 1000; */}
       <div className={`${styles.overlay} fade03`} onClick={handleCloseSettingModal}></div>
+
+      {/* ローディングオーバーレイ */}
+      {(isLoading || isLoadingSkeleton) && (
+        <div className={`${styles.loading_overlay}`}>
+          <div className={`${styles.loading_spinner_outside} flex-center bg-[#fff]`}>
+            <SpinnerComet w="56px" h="56px" s="6px" />
+          </div>
+        </div>
+      )}
+      {/* ローディングオーバーレイ ここまで */}
       {/* アラートポップアップ */}
       <div ref={alertPopupRef} className={`flex-center alert_popup h-[50px] w-[300px] bg-[#555] text-[#fff]`}></div>
       {/* アラートポップアップ ここまで */}
@@ -1614,378 +1904,410 @@ const BusinessCalendarModalMemo = () => {
           </ErrorBoundary>
         </div> */}
         <div className={`${styles.preview_modal}`}>
+          {/* ----------------------------- ローディングフォールバック ----------------------------- */}
+          {(isLoadingAnnualMonthlyClosingDays ||
+            isLoadingCalendarForFiscalBase ||
+            isLoadingCalendarForCalendarBase) && (
+            <div
+              className={`${styles.pdf} ${styles.loading}`}
+              style={{ transform: `scale(${scalePdf})`, padding: "0px", backgroundColor: "#aaa" }}
+            >
+              <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" waveBg="var(--color-skeleton-bg-wave-light)" />
+            </div>
+          )}
+          {/* スケールが1以上で、ダウンロード、印刷時に上から覆うオーバーレイ */}
+          {/* {isLoading && scalePdf > 1 && (
+            <div className={`${styles.pdf} ${styles.loading}`} style={{ padding: "0px", backgroundColor: "#aaa" }}>
+              <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" />
+            </div>
+          )} */}
+          {isLoadingSkeleton && (
+            <div className={`${styles.pdf} ${styles.loading}`} style={{ padding: "0px", backgroundColor: "#aaa" }}>
+              <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" />
+            </div>
+          )}
+          {/* ----------------------------- ローディングフォールバック ----------------------------- */}
           {/* ----------------------------- 🌟カレンダーPDFコンポーネント🌟 ----------------------------- */}
-          <ErrorBoundary FallbackComponent={ErrorFallback}>
-            <Suspense fallback={<FallbackBusinessCalendar />}>
-              <div ref={pdfTargetRef} className={`${styles.pdf} quotation`} style={{ transform: `scale(${scalePdf})` }}>
-                {/* ---------------- 左マージン ---------------- */}
-                <div className={`${styles.left_margin}`}></div>
-                {/* ---------------- 左マージン ---------------- */}
-                {/* ---------------- 真ん中 ---------------- */}
-                <div className={`${styles.pdf_main_container} flex h-full w-full flex-col`}>
-                  {/* エディットモードオーバーレイ z-[3500] */}
-                  {isEditMode.length > 0 && <EditModeOverlay />}
+          {!isLoadingAnnualMonthlyClosingDays &&
+            !isLoadingCalendarForFiscalBase &&
+            !isLoadingCalendarForCalendarBase && (
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<FallbackBusinessCalendar />}>
+                  <div
+                    ref={pdfTargetRef}
+                    className={`${styles.pdf} quotation`}
+                    style={{ transform: `scale(${scalePdf})` }}
+                  >
+                    {/* ---------------- 左マージン ---------------- */}
+                    <div className={`${styles.left_margin}`}></div>
+                    {/* ---------------- 左マージン ---------------- */}
+                    {/* ---------------- 真ん中 ---------------- */}
+                    <div className={`${styles.pdf_main_container} flex h-full w-full flex-col`}>
+                      {/* エディットモードオーバーレイ z-[3500] */}
+                      {isEditMode.length > 0 && !isLoading && <EditModeOverlay />}
 
-                  <div className={`${styles.top_margin} w-full bg-[red]/[0]`}></div>
+                      <div className={`${styles.top_margin} w-full bg-[red]/[0]`}></div>
 
-                  {/* {isSwitchYearColFirst && <YearSection year={2023} />} */}
-                  {/* 会計年度が2年に跨る場合 */}
-                  {/* {isSwitchYearColFirst && <YearSection year={selectedFiscalYearSetting} />} */}
-                  {/* 会計年度が単一の年のみ */}
-                  {/* {!isSwitchYearColFirst && (
+                      {/* {isSwitchYearColFirst && <YearSection year={2023} />} */}
+                      {/* 会計年度が2年に跨る場合 */}
+                      {/* {isSwitchYearColFirst && <YearSection year={selectedFiscalYearSetting} />} */}
+                      {/* 会計年度が単一の年のみ */}
+                      {/* {!isSwitchYearColFirst && (
                     <YearSectionDouble year={selectedFiscalYearSetting} nextYear={selectedFiscalYearSetting + 1} />
                   )} */}
-                  {/* {rowIndexOfSwitchYear !== 0 && <YearSection year={selectedFiscalYearSetting} />}
+                      {/* {rowIndexOfSwitchYear !== 0 && <YearSection year={selectedFiscalYearSetting} />}
                   {rowIndexOfSwitchYear === 0 && (
                     <YearSectionDouble year={selectedFiscalYearSetting} nextYear={selectedFiscalYearSetting + 1} />
                   )} */}
-                  {rowIndexOfSwitchYear && !rowIndexOfSwitchYear.includes(0) && <YearSection year={firstYear} />}
-                  {rowIndexOfSwitchYear && rowIndexOfSwitchYear.includes(0) && (
-                    <YearSectionDouble year={firstYear} nextYear={firstRowSecondYear ?? 0} />
-                  )}
+                      {rowIndexOfSwitchYear && !rowIndexOfSwitchYear.includes(0) && <YearSection year={firstYear} />}
+                      {rowIndexOfSwitchYear && rowIndexOfSwitchYear.includes(0) && (
+                        <YearSectionDouble year={firstYear} nextYear={firstRowSecondYear ?? 0} />
+                      )}
 
-                  {/* <MonthlyRow monthlyRowKey="monthly_row_first" /> */}
+                      {/* <MonthlyRow monthlyRowKey="monthly_row_first" /> */}
 
-                  {/* -------- 12ヶ月分の4行 + 年度区切り行(2年に跨がれば) -------- */}
-                  {/* {Array(5) */}
-                  {Array(6)
-                    .fill(null)
-                    .map((_, rowIndex) => {
-                      const monthlyRowKey = "monthly_row" + rowIndex.toString();
+                      {/* -------- 12ヶ月分の4行 + 年度区切り行(2年に跨がれば) -------- */}
+                      {/* {Array(5) */}
+                      {Array(6)
+                        .fill(null)
+                        .map((_, rowIndex) => {
+                          const monthlyRowKey = "monthly_row" + rowIndex.toString();
 
-                      if (!splitMonthsArrayForCB) return;
+                          if (!splitMonthsArrayForCB) return;
 
-                      let monthRowIndex = rowIndex;
+                          let monthRowIndex = rowIndex;
 
-                      // 切り替わり1回ルート 先頭列に年の切り替わりがあり、先頭列にない場合は単一の年を返す
-                      if (
-                        isSwitchYearColFirst &&
-                        rowIndexOfSwitchYear?.length === 1 &&
-                        rowIndexOfSwitchYear[0] === rowIndex &&
-                        rowIndexOfSwitchYear[0] !== 0
-                      ) {
-                        return <YearSection key={monthlyRowKey} year={secondYear ?? 0} />;
-                      }
-                      // 切り替わり1回ルート
-                      if (
-                        isSwitchYearColFirst &&
-                        rowIndexOfSwitchYear &&
-                        rowIndexOfSwitchYear?.length === 1 &&
-                        rowIndex > rowIndexOfSwitchYear[0]
-                      ) {
-                        monthRowIndex -= 1;
-                      }
+                          // 切り替わり1回ルート 先頭列に年の切り替わりがあり、先頭列にない場合は単一の年を返す
+                          if (
+                            isSwitchYearColFirst &&
+                            rowIndexOfSwitchYear?.length === 1 &&
+                            rowIndexOfSwitchYear[0] === rowIndex &&
+                            rowIndexOfSwitchYear[0] !== 0
+                          ) {
+                            return <YearSection key={monthlyRowKey} year={secondYear ?? 0} />;
+                          }
+                          // 切り替わり1回ルート
+                          if (
+                            isSwitchYearColFirst &&
+                            rowIndexOfSwitchYear &&
+                            rowIndexOfSwitchYear?.length === 1 &&
+                            rowIndex > rowIndexOfSwitchYear[0]
+                          ) {
+                            monthRowIndex -= 1;
+                          }
 
-                      // 切り替わり1回ルート 先頭列以外で年が切り替わる場合はダブル(先頭行に切り替わりがない場合)
-                      if (
-                        !isSwitchYearColFirst &&
-                        rowIndexOfSwitchYear &&
-                        rowIndexOfSwitchYear?.length === 1 &&
-                        rowIndex === rowIndexOfSwitchYear[0]
-                      ) {
-                        return <YearSectionDouble key={monthlyRowKey} year={firstYear} nextYear={secondYear ?? 0} />;
-                      }
-                      // 切り替わり1回ルート
-                      if (
-                        !isSwitchYearColFirst &&
-                        rowIndexOfSwitchYear &&
-                        rowIndexOfSwitchYear?.length === 1 &&
-                        rowIndex > rowIndexOfSwitchYear[0]
-                      ) {
-                        // return <YearSectionBlank />;
-                        monthRowIndex -= 1;
-                      }
-                      // 切り替わり1回ルート 最初の行に年の切り替わりがある場合は最後の行はundefinedになるのでblankを渡す
-                      if (rowIndexOfSwitchYear?.length === 1 && rowIndexOfSwitchYear[0] === 0 && rowIndex === 5) {
-                        return <YearSectionBlank key={monthlyRowKey} />;
-                      }
-
-                      // 切り替わり2回ルート 11月、12月のどちらかが開始月で年の切り替わりが2回、年が3つ出現する場合
-                      if (
-                        !isSwitchYearColFirst &&
-                        rowIndexOfSwitchYear &&
-                        rowIndexOfSwitchYear?.length === 2 &&
-                        rowIndexOfSwitchYear.includes(4) &&
-                        rowIndex === 4
-                      ) {
-                        return (
-                          <YearSectionDouble
-                            key={monthlyRowKey}
-                            year={firstRowSecondYear ?? 0}
-                            nextYear={thirdYear ?? 0}
-                          />
-                        );
-                      }
-                      // 切り替わり2回ルート
-                      if (
-                        !isSwitchYearColFirst &&
-                        rowIndexOfSwitchYear &&
-                        rowIndexOfSwitchYear?.length === 2 &&
-                        rowIndex > rowIndexOfSwitchYear[1]
-                      ) {
-                        // return <YearSectionBlank />;
-                        monthRowIndex -= 1;
-                      }
-                      // 最初の行に年の切り替わりがある場合は最後の行はundefinedになるのでblankを渡す
-                      // if (rowIndexOfSwitchYear?.length === 2 && rowIndexOfSwitchYear[1] === 4 && rowIndex === 5) {
-                      //   return <YearSectionBlank key={monthlyRowKey} />;
-                      // }
-
-                      // if (!isSwitchYearColFirst && rowIndexOfSwitchYear && rowIndex === 5) {
-                      //   // monthRowIndex -= 1;
-                      //   return;
-                      // }
-                      console.log(
-                        "isSwitchYearColFirst",
-                        isSwitchYearColFirst,
-                        "rowIndex",
-                        rowIndex,
-                        "monthRowIndex",
-                        monthRowIndex,
-                        "splitMonthsArrayForCB",
-                        splitMonthsArrayForCB,
-                        "splitMonthsArrayForCB[monthRowIndex]",
-                        splitMonthsArrayForCB[monthRowIndex]
-                      );
-
-                      {
-                        /* -------- ３ヶ月分の１行 -------- */
-                      }
-                      return (
-                        <div key={monthlyRowKey} className={`${styles.monthly_row_section} w-full bg-[pink]/[0]`}>
-                          {/* {Array(3)
-                            .fill(null) */}
-                          {splitMonthsArrayForCB[monthRowIndex].map((monthObj, colIndex) => {
-                            const monthKey = "month" + rowIndex.toString() + colIndex.toString();
-                            // const getRow = (rowIndex: number): number => {
-                            //   if (rowIndex === 0) return 1;
-                            //   if (rowIndex === 1) return 4;
-                            //   if (rowIndex === 2) return 7;
-                            //   // if (rowIndex === 3) return 10;
-                            //   if (rowIndex === 4) return 10;
-                            //   return rowIndex;
-                            // };
-                            // const titleValue = getRow(rowIndex) + colIndex;
-                            const titleValue = monthObj.fiscalYearMonth.split("-")[1];
-                            const daysArray = monthObj.monthlyDays;
-                            if (!isValidNumber(daysArray[0].day_of_week)) return;
-                            // 1日が月曜日以外なら曜日と一致するようにnullを先頭に追加する
-                            // 0は7にソートしてるので曜日の始まりは1の月曜日
-                            const formattedDaysArray = addNullMonthArray(daysArray[0].day_of_week!, daysArray);
-                            // console.log(
-                            //   "月🌠obj",
-                            //   obj,
-                            //   "titleValue",
-                            //   titleValue,
-                            //   "daysArray[0].day_of_week",
-                            //   daysArray[0].day_of_week,
-                            //   "formattedDaysArray",
-                            //   formattedDaysArray
-                            // );
+                          // 切り替わり1回ルート 先頭列以外で年が切り替わる場合はダブル(先頭行に切り替わりがない場合)
+                          if (
+                            !isSwitchYearColFirst &&
+                            rowIndexOfSwitchYear &&
+                            rowIndexOfSwitchYear?.length === 1 &&
+                            rowIndex === rowIndexOfSwitchYear[0]
+                          ) {
                             return (
-                              <div key={monthKey} className={`${styles.month} w-1/3 bg-[white]/[0]`}>
-                                {/* <div className={`h-full w-[16%] bg-[red]/[0.1] ${styles.month_title}`}> */}
-                                <div className={`h-full w-[22%] bg-[red]/[0] ${styles.month_title}`}>
-                                  <span>{titleValue}</span>
-                                </div>
-                                <div
-                                  role="grid"
-                                  // className={`h-full w-[84%] bg-[yellow]/[0] ${styles.month_grid_container}`}
-                                  className={`h-full w-[78%] bg-[yellow]/[0] ${styles.month_grid_container}`}
-                                >
-                                  <div role="columnheader" className={`${styles.month_row}`}>
-                                    {sortedDaysPlaceholder.map((day, monthColHeaderIndex) => {
-                                      const monthColumnHeaderIndexKey =
-                                        "month_grid_columnheader_day" +
-                                        rowIndex.toString() +
-                                        colIndex.toString() +
-                                        monthColHeaderIndex.toString();
-                                      const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
-                                      const dayName = dayNames[day % 7];
-                                      // 休日
-                                      // console.log(
-                                      //   "userProfileState.customer_closing_days",
-                                      //   userProfileState.customer_closing_days,
-                                      //   "day",
-                                      //   day,
-                                      //   "day % 7",
-                                      //   day % 7
-                                      // );
-                                      let isClosed = false;
-                                      if (
-                                        !!closingDaysArraySelectedYear.length &&
-                                        closingDaysArraySelectedYear.includes(day % 7)
-                                      ) {
-                                        isClosed = true;
-                                      }
-                                      return (
-                                        <div
-                                          role="gridcell"
-                                          key={monthColumnHeaderIndexKey}
-                                          className={`${styles.month_grid_cell} ${styles.day_header} ${
-                                            isClosed ? `${styles.is_closed}` : ``
-                                          } flex-center`}
-                                        >
-                                          <span>{dayName}</span>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                  {/* -------- １ヶ月間の日付 -------- */}
-                                  <div role="grid" className={`${styles.month_date_container}`}>
-                                    {/* {Array(31)
-                                      .fill(null) */}
-                                    {formattedDaysArray.map((dateObj, monthCellIndex) => {
-                                      const monthCellIndexKey =
-                                        "month_grid_cell_date" +
-                                        rowIndex.toString() +
-                                        colIndex.toString() +
-                                        monthCellIndex.toString();
-                                      // let displayValue;
-                                      // if (!displayValue) displayValue = monthCellIndex + 1;
-                                      // if (typeof displayValue === "number" && displayValue > 31) displayValue = null;
-                                      let displayValue = null;
-                                      // 締日
-                                      let isFiscalEndDay = false;
-                                      // 休日
-                                      let isClosed = false;
-                                      // 会計期間外
-                                      let isOutOfFiscalYear = false;
-                                      if (dateObj !== null) {
-                                        if (!dateObj?.date) return;
-
-                                        const date = parseInt(dateObj.date.split("-")[2], 10);
-                                        if (!isValidNumber(date)) return;
-
-                                        displayValue = date;
-
-                                        // 締め日かどうかチェック
-                                        if (dateObj.isFiscalMonthEnd) {
-                                          isFiscalEndDay = true;
-                                        }
-                                        // 会計期間かどうかチェック
-                                        if (dateObj.isOutOfFiscalYear) {
-                                          isOutOfFiscalYear = true;
-                                        }
-
-                                        // 休日かどうかチェック
-                                        if (isValidNumber(dateObj.day_of_week)) {
-                                          // 休日 現在選択中の定休日の曜日リストに含まれているかどうか
-                                          // isClosed = [0, 6].includes(dateObj.day_of_week!);
-                                          // isClosed = closingDaysArraySelectedYear.includes(dateObj.day_of_week!);
-                                          isClosed = dateObj.status! === "closed";
-                                          // const isClosed = monthCellIndex % 5 === 0 || monthCellIndex % 6 === 0;
-                                        }
-                                        // 会計期間かどうかチェック
-                                        // if (fiscalStartDateTime && dateObj?.timestamp && fiscalEndDateTime) {
-                                        //   if (
-                                        //     dateObj.timestamp < fiscalStartDateTime ||
-                                        //     fiscalEndDateTime < dateObj.timestamp
-                                        //   ) {
-                                        //     isOutOfFiscalYear = true;
-                                        //   } else {
-                                        //     // 締め日かどうかチェック
-                                        //     // if (dateObj.)
-                                        //     // if (fiscalEndDateArray) {
-                                        //     //   try {
-                                        //     //     // const fiscalEndDate = fiscalEndDateArray[monthRowIndex][colIndex];
-                                        //     //     // if (fiscalEndDate && displayValue && fiscalEndDate === displayValue) {
-                                        //     //     //   isFiscalEndDay = true;
-                                        //     //     // }
-                                        //     //   } catch (error: any) {
-                                        //     //     console.log("❌締日取得エラー");
-                                        //     //   }
-                                        //     // }
-                                        //   }
-                                        // }
-                                      }
-
-                                      return (
-                                        <div
-                                          role="gridcell"
-                                          key={monthCellIndexKey}
-                                          className={`${styles.month_grid_cell} ${
-                                            displayValue === null ? `` : `${styles.date}`
-                                          } ${isClosed ? `${styles.is_closed}` : ``} ${
-                                            isOutOfFiscalYear ? `${styles.out_of_fiscal_year}` : ``
-                                          } ${
-                                            (isEditMode.includes("working_to_closing") && !isClosed) ||
-                                            (isEditMode.includes("closing_to_working") && isClosed)
-                                              ? `${styles.edit_mode}`
-                                              : ``
-                                          } ${
-                                            !isClosed &&
-                                            dateObj?.datePadZero &&
-                                            editWorkingDaysMapObj.has(dateObj.datePadZero)
-                                              ? `${styles.active}`
-                                              : ``
-                                          } ${
-                                            isClosed &&
-                                            dateObj?.closedDateId &&
-                                            editClosingDaysArray.includes(dateObj.closedDateId)
-                                              ? `${styles.active}`
-                                              : ``
-                                          } flex-center`}
-                                          style={{
-                                            ...(displayValue === null && {
-                                              cursor: "default",
-                                            }),
-                                            ...(isFiscalEndDay && {
-                                              borderRadius: "3px",
-                                              border: "1px solid #37352f",
-                                            }),
-                                          }}
-                                          onClick={() => {
-                                            if (!dateObj) return;
-                                            // 編集モードでない時にクリックした場合はポップアップを開く
-                                            if (!isOpenEditModePopup) {
-                                              setIsOpenEditModePopup(true);
-                                              // 営業日をクリックした場合は「営業日→休日」モードに
-                                              if (!isClosed) {
-                                                setIsEditMode(["working_to_closing"]);
-                                                addDateWorkingToClosing({ dateObj });
-                                              }
-                                              // 休日をクリックした場合は「休日→営業日」モードに
-                                              if (isClosed) {
-                                                setIsEditMode(["closing_to_working"]);
-                                                addDateClosingToWorking({ dateObj });
-                                              }
-                                            } else {
-                                              // クリックした日付を配列に格納して選択中の状態に変更
-                                              handleClickDateCell({ dateObj: dateObj });
-                                            }
-                                          }}
-                                        >
-                                          <span
-                                            style={{
-                                              ...(isFiscalEndDay && {
-                                                textAlign: "center",
-                                                display: "inline-block",
-                                              }),
-                                            }}
-                                          >
-                                            {displayValue}
-                                          </span>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              </div>
+                              <YearSectionDouble key={monthlyRowKey} year={firstYear} nextYear={secondYear ?? 0} />
                             );
-                          })}
-                        </div>
-                      );
-                    })}
+                          }
+                          // 切り替わり1回ルート
+                          if (
+                            !isSwitchYearColFirst &&
+                            rowIndexOfSwitchYear &&
+                            rowIndexOfSwitchYear?.length === 1 &&
+                            rowIndex > rowIndexOfSwitchYear[0]
+                          ) {
+                            // return <YearSectionBlank />;
+                            monthRowIndex -= 1;
+                          }
+                          // 切り替わり1回ルート 最初の行に年の切り替わりがある場合は最後の行はundefinedになるのでblankを渡す
+                          if (rowIndexOfSwitchYear?.length === 1 && rowIndexOfSwitchYear[0] === 0 && rowIndex === 5) {
+                            return <YearSectionBlank key={monthlyRowKey} />;
+                          }
 
-                  {/* <TestCalendar /> */}
+                          // 切り替わり2回ルート 11月、12月のどちらかが開始月で年の切り替わりが2回、年が3つ出現する場合
+                          if (
+                            !isSwitchYearColFirst &&
+                            rowIndexOfSwitchYear &&
+                            rowIndexOfSwitchYear?.length === 2 &&
+                            rowIndexOfSwitchYear.includes(4) &&
+                            rowIndex === 4
+                          ) {
+                            return (
+                              <YearSectionDouble
+                                key={monthlyRowKey}
+                                year={firstRowSecondYear ?? 0}
+                                nextYear={thirdYear ?? 0}
+                              />
+                            );
+                          }
+                          // 切り替わり2回ルート
+                          if (
+                            !isSwitchYearColFirst &&
+                            rowIndexOfSwitchYear &&
+                            rowIndexOfSwitchYear?.length === 2 &&
+                            rowIndex > rowIndexOfSwitchYear[1]
+                          ) {
+                            // return <YearSectionBlank />;
+                            monthRowIndex -= 1;
+                          }
+                          // 最初の行に年の切り替わりがある場合は最後の行はundefinedになるのでblankを渡す
+                          // if (rowIndexOfSwitchYear?.length === 2 && rowIndexOfSwitchYear[1] === 4 && rowIndex === 5) {
+                          //   return <YearSectionBlank key={monthlyRowKey} />;
+                          // }
 
-                  {/* {!isSwitchYearColFirst && <YearSectionBlank />} */}
+                          // if (!isSwitchYearColFirst && rowIndexOfSwitchYear && rowIndex === 5) {
+                          //   // monthRowIndex -= 1;
+                          //   return;
+                          // }
+                          console.log(
+                            "isSwitchYearColFirst",
+                            isSwitchYearColFirst,
+                            "rowIndex",
+                            rowIndex,
+                            "monthRowIndex",
+                            monthRowIndex,
+                            "splitMonthsArrayForCB",
+                            splitMonthsArrayForCB,
+                            "splitMonthsArrayForCB[monthRowIndex]",
+                            splitMonthsArrayForCB[monthRowIndex]
+                          );
 
-                  <div className={`${styles.summary_section} w-full bg-[yellow]/[0]`}>
-                    {/* <div className={`min-h-[6px] w-full bg-[green]/[0.3]`}></div> */}
-                    {/* <div className={`min-h-[3px] w-full bg-[red]/[0.3]`}></div> */}
-                    {/* <div className={`flex-between min-h-[22px] w-full bg-[blue]/[0.3]`}>
+                          {
+                            /* -------- ３ヶ月分の１行 -------- */
+                          }
+                          return (
+                            <div key={monthlyRowKey} className={`${styles.monthly_row_section} w-full bg-[pink]/[0]`}>
+                              {/* {Array(3)
+                            .fill(null) */}
+                              {splitMonthsArrayForCB[monthRowIndex].map((monthObj, colIndex) => {
+                                const monthKey = "month" + rowIndex.toString() + colIndex.toString();
+                                // const getRow = (rowIndex: number): number => {
+                                //   if (rowIndex === 0) return 1;
+                                //   if (rowIndex === 1) return 4;
+                                //   if (rowIndex === 2) return 7;
+                                //   // if (rowIndex === 3) return 10;
+                                //   if (rowIndex === 4) return 10;
+                                //   return rowIndex;
+                                // };
+                                // const titleValue = getRow(rowIndex) + colIndex;
+                                const titleValue = monthObj.fiscalYearMonth.split("-")[1];
+                                const daysArray = monthObj.monthlyDays;
+                                if (!isValidNumber(daysArray[0].day_of_week)) return;
+                                // 1日が月曜日以外なら曜日と一致するようにnullを先頭に追加する
+                                // 0は7にソートしてるので曜日の始まりは1の月曜日
+                                const formattedDaysArray = addNullMonthArray(daysArray[0].day_of_week!, daysArray);
+                                // console.log(
+                                //   "月🌠obj",
+                                //   obj,
+                                //   "titleValue",
+                                //   titleValue,
+                                //   "daysArray[0].day_of_week",
+                                //   daysArray[0].day_of_week,
+                                //   "formattedDaysArray",
+                                //   formattedDaysArray
+                                // );
+                                return (
+                                  <div key={monthKey} className={`${styles.month} w-1/3 bg-[white]/[0]`}>
+                                    {/* <div className={`h-full w-[16%] bg-[red]/[0.1] ${styles.month_title}`}> */}
+                                    <div className={`h-full w-[22%] bg-[red]/[0] ${styles.month_title}`}>
+                                      <span>{titleValue}</span>
+                                    </div>
+                                    <div
+                                      role="grid"
+                                      // className={`h-full w-[84%] bg-[yellow]/[0] ${styles.month_grid_container}`}
+                                      className={`h-full w-[78%] bg-[yellow]/[0] ${styles.month_grid_container}`}
+                                    >
+                                      <div role="columnheader" className={`${styles.month_row}`}>
+                                        {sortedDaysPlaceholder.map((day, monthColHeaderIndex) => {
+                                          const monthColumnHeaderIndexKey =
+                                            "month_grid_columnheader_day" +
+                                            rowIndex.toString() +
+                                            colIndex.toString() +
+                                            monthColHeaderIndex.toString();
+                                          const dayNames = language === "ja" ? dayNamesJa : dayNamesEn;
+                                          const dayName = dayNames[day % 7];
+                                          // 休日
+                                          // console.log(
+                                          //   "userProfileState.customer_closing_days",
+                                          //   userProfileState.customer_closing_days,
+                                          //   "day",
+                                          //   day,
+                                          //   "day % 7",
+                                          //   day % 7
+                                          // );
+                                          let isClosed = false;
+                                          if (
+                                            !!closingDaysArraySelectedYear.length &&
+                                            closingDaysArraySelectedYear.includes(day % 7)
+                                          ) {
+                                            isClosed = true;
+                                          }
+                                          return (
+                                            <div
+                                              role="gridcell"
+                                              key={monthColumnHeaderIndexKey}
+                                              className={`${styles.month_grid_cell} ${styles.day_header} ${
+                                                isClosed ? `${styles.is_closed}` : ``
+                                              } flex-center`}
+                                            >
+                                              <span>{dayName}</span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                      {/* -------- １ヶ月間の日付 -------- */}
+                                      <div role="grid" className={`${styles.month_date_container}`}>
+                                        {/* {Array(31)
+                                      .fill(null) */}
+                                        {formattedDaysArray.map((dateObj, monthCellIndex) => {
+                                          const monthCellIndexKey =
+                                            "month_grid_cell_date" +
+                                            rowIndex.toString() +
+                                            colIndex.toString() +
+                                            monthCellIndex.toString();
+                                          // let displayValue;
+                                          // if (!displayValue) displayValue = monthCellIndex + 1;
+                                          // if (typeof displayValue === "number" && displayValue > 31) displayValue = null;
+                                          let displayValue = null;
+                                          // 締日
+                                          let isFiscalEndDay = false;
+                                          // 休日
+                                          let isClosed = false;
+                                          // 会計期間外
+                                          let isOutOfFiscalYear = false;
+                                          if (dateObj !== null) {
+                                            if (!dateObj?.date) return;
+
+                                            const date = parseInt(dateObj.date.split("-")[2], 10);
+                                            if (!isValidNumber(date)) return;
+
+                                            displayValue = date;
+
+                                            // 締め日かどうかチェック
+                                            if (dateObj.isFiscalMonthEnd) {
+                                              isFiscalEndDay = true;
+                                            }
+                                            // 会計期間かどうかチェック
+                                            if (dateObj.isOutOfFiscalYear) {
+                                              isOutOfFiscalYear = true;
+                                            }
+
+                                            // 休日かどうかチェック
+                                            if (isValidNumber(dateObj.day_of_week)) {
+                                              // 休日 現在選択中の定休日の曜日リストに含まれているかどうか
+                                              // isClosed = [0, 6].includes(dateObj.day_of_week!);
+                                              // isClosed = closingDaysArraySelectedYear.includes(dateObj.day_of_week!);
+                                              isClosed = dateObj.status! === "closed";
+                                              // const isClosed = monthCellIndex % 5 === 0 || monthCellIndex % 6 === 0;
+                                            }
+                                            // 会計期間かどうかチェック
+                                            // if (fiscalStartDateTime && dateObj?.timestamp && fiscalEndDateTime) {
+                                            //   if (
+                                            //     dateObj.timestamp < fiscalStartDateTime ||
+                                            //     fiscalEndDateTime < dateObj.timestamp
+                                            //   ) {
+                                            //     isOutOfFiscalYear = true;
+                                            //   } else {
+                                            //     // 締め日かどうかチェック
+                                            //     // if (dateObj.)
+                                            //     // if (fiscalEndDateArray) {
+                                            //     //   try {
+                                            //     //     // const fiscalEndDate = fiscalEndDateArray[monthRowIndex][colIndex];
+                                            //     //     // if (fiscalEndDate && displayValue && fiscalEndDate === displayValue) {
+                                            //     //     //   isFiscalEndDay = true;
+                                            //     //     // }
+                                            //     //   } catch (error: any) {
+                                            //     //     console.log("❌締日取得エラー");
+                                            //     //   }
+                                            //     // }
+                                            //   }
+                                            // }
+                                          }
+
+                                          return (
+                                            <div
+                                              role="gridcell"
+                                              key={monthCellIndexKey}
+                                              className={`${styles.month_grid_cell} ${
+                                                displayValue === null ? `` : `${styles.date}`
+                                              } ${isClosed ? `${styles.is_closed}` : ``} ${
+                                                isOutOfFiscalYear ? `${styles.out_of_fiscal_year}` : ``
+                                              } ${
+                                                (isEditMode.includes("working_to_closing") && !isClosed) ||
+                                                (isEditMode.includes("closing_to_working") && isClosed)
+                                                  ? `${styles.edit_mode}`
+                                                  : ``
+                                              } ${
+                                                !isClosed &&
+                                                dateObj?.datePadZero &&
+                                                editWorkingDaysMapObj.has(dateObj.datePadZero)
+                                                  ? `${styles.active}`
+                                                  : ``
+                                              } ${
+                                                isClosed &&
+                                                dateObj?.closedDateId &&
+                                                editClosingDaysArray.includes(dateObj.closedDateId)
+                                                  ? `${styles.active}`
+                                                  : ``
+                                              } flex-center`}
+                                              style={{
+                                                ...(displayValue === null && {
+                                                  cursor: "default",
+                                                }),
+                                                ...(isFiscalEndDay && {
+                                                  borderRadius: "3px",
+                                                  border: "1px solid #37352f",
+                                                }),
+                                              }}
+                                              onClick={() => {
+                                                if (!dateObj) return;
+                                                // 編集モードでない時にクリックした場合はポップアップを開く
+                                                if (!isOpenEditModePopup) {
+                                                  setIsOpenEditModePopup(true);
+                                                  // 営業日をクリックした場合は「営業日→休日」モードに
+                                                  if (!isClosed) {
+                                                    setIsEditMode(["working_to_closing"]);
+                                                    addDateWorkingToClosing({ dateObj });
+                                                  }
+                                                  // 休日をクリックした場合は「休日→営業日」モードに
+                                                  if (isClosed) {
+                                                    setIsEditMode(["closing_to_working"]);
+                                                    addDateClosingToWorking({ dateObj });
+                                                  }
+                                                } else {
+                                                  // クリックした日付を配列に格納して選択中の状態に変更
+                                                  handleClickDateCell({ dateObj: dateObj });
+                                                }
+                                              }}
+                                            >
+                                              <span
+                                                style={{
+                                                  ...(isFiscalEndDay && {
+                                                    textAlign: "center",
+                                                    display: "inline-block",
+                                                  }),
+                                                }}
+                                              >
+                                                {displayValue}
+                                              </span>
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })}
+
+                      {/* <TestCalendar /> */}
+
+                      {/* {!isSwitchYearColFirst && <YearSectionBlank />} */}
+
+                      <div className={`${styles.summary_section} w-full bg-[yellow]/[0]`}>
+                        {/* <div className={`min-h-[6px] w-full bg-[green]/[0.3]`}></div> */}
+                        {/* <div className={`min-h-[3px] w-full bg-[red]/[0.3]`}></div> */}
+                        {/* <div className={`flex-between min-h-[22px] w-full bg-[blue]/[0.3]`}>
                       <div className="h-full min-w-[9px] bg-[white]/[0]"></div>
                       <div className={`flex h-full w-[23%] items-center text-[16px] font-bold`}>
                         <span>2023年度</span>
@@ -1993,42 +2315,43 @@ const BusinessCalendarModalMemo = () => {
                       <div className={`flex h-full w-[77%] items-center text-[12px]`}></div>
                       <div className="h-full min-w-[6px] bg-[white]/[0]"></div>
                     </div> */}
-                    {/* <div className={`min-h-[1px] w-full bg-[red]/[0]`}></div> */}
-                    <div className={`h-full w-full bg-[white]/[0.3]`}>
-                      <AnnualMonthlyWorkingDaysRow />
-                    </div>
-                  </div>
-                  <div className={`${styles.remarks_section} w-full bg-[green]/[0] font-bold`}>
-                    {/* <div className={`min-h-[1px] w-full bg-[red]/[0.3]`}></div> */}
-                    <div className={`flex-between h-[18px] w-full bg-[aqua]/[0]`}>
-                      <div className="h-full min-w-[9px] bg-[white]/[0]"></div>
-                      <div className={`flex h-full w-[24%] items-center pl-[6px] text-[10px]`}>
-                        <div
-                          className={`h-[14px] min-w-[14px] rounded-[3px] border-[1px] border-solid border-[#37352f]`}
-                        ></div>
-                        <div className={`h-full min-w-[2px]`}></div>
-                        <span>決算上の締日</span>
+                        {/* <div className={`min-h-[1px] w-full bg-[red]/[0]`}></div> */}
+                        <div className={`h-full w-full bg-[white]/[0.3]`}>
+                          <AnnualMonthlyWorkingDaysRow />
+                        </div>
                       </div>
+                      <div className={`${styles.remarks_section} w-full bg-[green]/[0] font-bold`}>
+                        {/* <div className={`min-h-[1px] w-full bg-[red]/[0.3]`}></div> */}
+                        <div className={`flex-between h-[18px] w-full bg-[aqua]/[0]`}>
+                          <div className="h-full min-w-[9px] bg-[white]/[0]"></div>
+                          <div className={`flex h-full w-[24%] items-center pl-[6px] text-[10px]`}>
+                            <div
+                              className={`h-[14px] min-w-[14px] rounded-[3px] border-[1px] border-solid border-[#37352f]`}
+                            ></div>
+                            <div className={`h-full min-w-[2px]`}></div>
+                            <span>決算上の締日</span>
+                          </div>
 
-                      <div className={`h-full min-w-[4%]`}></div>
+                          <div className={`h-full min-w-[4%]`}></div>
 
-                      <div className={`flex h-full w-[72%] items-center text-[10px] font-bold tracking-[1px]`}>
-                        <p>※営業稼働日数は決算上の締日を基準とした稼働日数</p>
+                          <div className={`flex h-full w-[72%] items-center text-[10px] font-bold tracking-[1px]`}>
+                            <p>※営業稼働日数は決算上の締日を基準とした稼働日数</p>
+                          </div>
+                          <div className="h-full min-w-[6px] bg-[white]/[0]"></div>
+                        </div>
+                        {/* <div className={`h-[18px] w-full bg-[yellow]/[0]`}></div> */}
+                        {/* <div className={`min-h-[12px] w-full bg-[green]/[0.3]`}></div> */}
                       </div>
-                      <div className="h-full min-w-[6px] bg-[white]/[0]"></div>
+                      <div className={`${styles.bottom_margin} w-full bg-[red]/[0]`}></div>
                     </div>
-                    {/* <div className={`h-[18px] w-full bg-[yellow]/[0]`}></div> */}
-                    {/* <div className={`min-h-[12px] w-full bg-[green]/[0.3]`}></div> */}
+                    {/* ---------------- 真ん中 ---------------- */}
+                    {/* ---------------- 右マージン ---------------- */}
+                    <div className={`${styles.right_margin}`}></div>
+                    {/* ---------------- 右マージン ---------------- */}
                   </div>
-                  <div className={`${styles.bottom_margin} w-full bg-[red]/[0]`}></div>
-                </div>
-                {/* ---------------- 真ん中 ---------------- */}
-                {/* ---------------- 右マージン ---------------- */}
-                <div className={`${styles.right_margin}`}></div>
-                {/* ---------------- 右マージン ---------------- */}
-              </div>
-            </Suspense>
-          </ErrorBoundary>
+                </Suspense>
+              </ErrorBoundary>
+            )}
           {/* ----------------------------- ✅カレンダーPDFコンポーネント✅ ----------------------------- */}
 
           {/* ------------------------ボタンエリア------------------------ */}
@@ -2075,7 +2398,9 @@ const BusinessCalendarModalMemo = () => {
             className={`flex-center transition-bg01 fixed right-[-56px] top-[105px] z-[3000] ${styles.btn}`}
             onClick={handlePrint}
             onMouseEnter={(e) => {
-              handleOpenPopupMenu({ e, title: "print", displayX: "right", maxWidth: 360 });
+              // handleOpenPopupMenu({ e, title: "print", displayX: "right", maxWidth: 360 });
+              handleOpenPopupMenu({ e, title: "print", displayX: "right" });
+              // handleOpenPopupMenu({ e, title: "printTips", displayX: "right" });
             }}
             onMouseLeave={() => {
               if (openPopupMenu) handleClosePopupMenu();
@@ -2137,7 +2462,7 @@ const BusinessCalendarModalMemo = () => {
             ((isEditMode.includes("working_to_closing") && editWorkingDaysMapObj.size > 0) ||
               (isEditMode.includes("closing_to_working") && editClosingDaysArray.length > 0)) && (
               <div
-                className={`flex-center transition-bg01 fixed right-[-56px] z-[3000] ${styles.btn} top-[55px]`}
+                className={`flex-center fixed right-[-56px] z-[3000] ${styles.btn} ${styles.initial} top-[55px]`}
                 onClick={() => {
                   if (isEditMode.includes("working_to_closing")) {
                     setEditWorkingDaysMapObj(new Map());
@@ -2330,7 +2655,7 @@ const BusinessCalendarModalMemo = () => {
                     if (openPopupMenu) handleClosePopupMenu();
                   }}
                 >
-                  <div className="pointer-events-none flex min-w-[110px] items-center">
+                  <div className="pointer-events-none flex min-w-[130px] items-center">
                     <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
                     <div className="flex select-none items-center space-x-[2px]">
                       <span className={`${styles.list_title}`}>表示中</span>
@@ -2411,6 +2736,7 @@ const BusinessCalendarModalMemo = () => {
                   )}
                 </li>
                 {/* ------------------------------------ */}
+
                 {/* ------------------------------------ */}
                 <li className={`${styles.section_title} min-h-max w-full font-bold`}>
                   <div className="flex max-w-max flex-col">
@@ -2421,11 +2747,40 @@ const BusinessCalendarModalMemo = () => {
                 <li
                   className={`${styles.list}`}
                   onMouseEnter={(e) => {
+                    handleOpenPopupMenu({ e, title: "printSize", displayX: "right" });
+                  }}
+                  onMouseLeave={() => {
+                    if (openPopupMenu) handleClosePopupMenu();
+                  }}
+                >
+                  <div className="pointer-events-none flex min-w-[130px] items-center">
+                    <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                    <div className="flex select-none items-center space-x-[2px]">
+                      <span className={`${styles.list_title}`}>印刷サイズ</span>
+                      <span className={``}>：</span>
+                    </div>
+                  </div>
+                  <select
+                    className={`${styles.select_box} truncate`}
+                    value={printSize}
+                    onChange={(e) => setPrintSize(e.target.value as PrintSize)}
+                  >
+                    {optionsPrintSize.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
+                </li>
+                <hr className="min-h-[3px] w-full" />
+                <li
+                  className={`${styles.list}`}
+                  onMouseEnter={(e) => {
                     handleOpenPopupMenu({ e, title: "compressionRatio", displayX: "right" });
                   }}
                   onMouseLeave={handleClosePopupMenu}
                 >
-                  <div className="pointer-events-none flex min-w-[110px] items-center">
+                  <div className="pointer-events-none flex min-w-[130px] items-center">
                     <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
                     <div className="flex select-none items-center space-x-[2px]">
                       <span className={`${styles.list_title}`}>解像度</span>
@@ -2468,7 +2823,15 @@ const BusinessCalendarModalMemo = () => {
               //   }),
               // }}
             >
-              <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>編集モード</h3>
+              <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
+                <span className="mr-[24px]">編集モード</span>
+                {isEditMode.includes("working_to_closing") && editWorkingDaysMapObj.size > 0 && (
+                  <span className={`text-[var(--color-text-brand-f)]`}>{editWorkingDaysMapObj.size}件選択中</span>
+                )}
+                {isEditMode.includes("closing_to_working") && editClosingDaysArray.length > 0 && (
+                  <span className={`text-[var(--color-text-brand-f)]`}>{editClosingDaysArray.length}件選択中</span>
+                )}
+              </h3>
 
               <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
                 以下の２つの編集モードを選択後、営業カレンダーから日付を選択して適用することで「営業日から休日へ」または「休日から営業日へ」個別に変更が可能です。
@@ -2629,11 +2992,12 @@ const BusinessCalendarModalMemo = () => {
           </div>
 
           <ul className={`flex flex-col rounded-[6px] ${styles.u_list}`}>
-            {["guide", "step", "compressionRatio"].includes(openPopupMenu.title) &&
+            {["guide", "step", "compressionRatio", "printTips"].includes(openPopupMenu.title) &&
               mappingDescriptions[openPopupMenu.title].map((item, index) => (
                 <li
                   key={item.title + index.toString()}
                   className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}
+                  style={{ ...(openPopupMenu.title === "printTips" && { padding: "3px 14px" }) }}
                 >
                   <div className="flex min-w-max items-center space-x-[3px]">
                     <RxDot className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
@@ -2646,7 +3010,7 @@ const BusinessCalendarModalMemo = () => {
                   </p>
                 </li>
               ))}
-            {!["guide", "step", "compressionRatio"].includes(openPopupMenu.title) && (
+            {!["guide", "step", "compressionRatio", "printTips"].includes(openPopupMenu.title) && (
               <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
                 <p className="select-none whitespace-pre-wrap text-[12px]">
                   {openPopupMenu.title === "edit_mode" &&
@@ -2665,9 +3029,37 @@ const BusinessCalendarModalMemo = () => {
                     `「営業日 → 休日」を選択後、カレンダーから会計期間内の営業日を選択して下の適用ボタンをクリックすることで休日へ変更できます。\n日付は複数選択して一括で更新が可能です。`}
                   {openPopupMenu.title === "closing_to_working" &&
                     `「休日 → 営業日」を選択後、カレンダーから会計期間内の休日を選択して下の適用ボタンをクリックすることで営業日へ変更できます。\n日付は複数選択して一括で更新が可能です。`}
+                  {openPopupMenu.title === "pdf" &&
+                    "現在プレビューで表示されている見積書をPDFファイル形式でダウンロードします。"}
+                  {openPopupMenu.title === "printSize" &&
+                    "印刷・PDFサイズを「A4〜A7」の範囲で変更が可能です。それぞれサイズに応じた使用用途は下記の通りです。\n\n・A4：公的文書、ビジネスに用いられる資料、契約書\n・A5：雑誌、ノート\n・A6：文庫本、手帳\n・A7：ワイシャツの胸ポケットに入る小型のメモ帳・手帳の中に入れるカレンダー"}
+                  {openPopupMenu.title === "print" &&
+                    "印刷ボタンクリック後に印刷ダイアログが開かれた後、「詳細設定」の「余白」を「なし」に切り替えることで綺麗に印刷ができます。また、「用紙サイズ」のそれぞれの選択肢については下記の通りです。"}
                 </p>
               </li>
             )}
+            {openPopupMenu.title === "print" && <hr className="mb-[6px] min-h-[1px] w-full bg-[#666]" />}
+            {openPopupMenu.title === "print" &&
+              descriptionPrintTips.map((obj, index) => (
+                <li key={obj.title} className={`flex w-full space-x-[3px] px-[14px] py-[3px] text-[12px]`}>
+                  <span className="min-w-[80px] max-w-[80px] font-bold">・{obj.title}：</span>
+                  <p className="whitespace-pre-wrap">{obj.content}</p>
+                </li>
+              ))}
+            {/* {openPopupMenu.title === "print" && (
+              <>
+                <li className={`flex w-full space-x-[3px] px-[14px] py-[3px] text-[12px]`}>
+                  <span>・A4：</span>
+                  <p className="whitespace-pre-wrap">国際標準の紙のサイズ(210x297mm)</p>
+                </li>
+                <li className={`flex w-full space-x-[3px] px-[14px] py-[3px] text-[12px]`}>
+                  <span className="min-w-max">・A4：</span>
+                  <p className="whitespace-pre-wrap">
+                    A4サイズの半分の大きさ(148x210mm)で、ノートや小冊子によく使用されます。
+                  </p>
+                </li>
+              </>
+            )} */}
           </ul>
         </div>
       )}

@@ -33,6 +33,7 @@ type Props = {
   //     }
   //   | null
   //   | undefined;
+  getTime: number | null;
   isReady: boolean;
   appliedAtOfSelectedYear: number | null;
 };
@@ -40,6 +41,7 @@ type Props = {
 export const useQueryCalendarForFiscalBase = ({
   selectedFiscalYear,
   annualMonthlyClosingDays,
+  getTime,
   isReady = true,
   appliedAtOfSelectedYear,
 }: Props) => {
@@ -70,6 +72,7 @@ export const useQueryCalendarForFiscalBase = ({
       "calendar_for_fiscal_base",
       fiscalEndMonthKey,
       selectedFiscalYear,
+      getTime,
       appliedAtOfSelectedYear ?? getAppliedAtOfSelectedYear() ?? null,
     ],
     // queryKey: ["calendar_for_fiscal_base", fiscalEndMonthKey, selectedFiscalYear],
@@ -81,7 +84,7 @@ export const useQueryCalendarForFiscalBase = ({
       console.log(
         "🔥useQueryCalendarForFiscalBase queryFn実行 クエリキー",
         // `calendar_for_fiscal_base ${fiscalEndMonthKey}, ${selectedFiscalYear}, ${appliedAtOfSelectedYear}`
-        `calendar_for_fiscal_base ${fiscalEndMonthKey}, ${selectedFiscalYear}, ${appliedAtOfSelectedYear}`
+        `calendar_for_fiscal_base ${fiscalEndMonthKey}, ${selectedFiscalYear}, ${getTime}, ${appliedAtOfSelectedYear}`
       );
       const newCalendarForFiscalBase = fillWorkingDaysForEachFiscalMonth(
         annualMonthlyClosingDays,
