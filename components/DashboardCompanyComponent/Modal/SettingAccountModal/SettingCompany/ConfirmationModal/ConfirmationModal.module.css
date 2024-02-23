@@ -1,0 +1,17 @@
+/* 画面全体でのローディング */
+.loading_overlay {
+  position: fixed;
+  z-index: 5000;
+  inset: 0;
+  background: #00000090;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.loading_spinner_outside {
+  height: 120px;
+  width: 120px;
+  border-radius: 18px;
+  background-color: #fff;
+}

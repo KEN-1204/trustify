@@ -2,6 +2,7 @@ import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import React, { FC } from "react";
 import { MdClose } from "react-icons/md";
+import styles from "./ConfirmationModal.module.css";
 
 type Props = {
   clickEventClose: () => void;
@@ -48,10 +49,17 @@ export const ConfirmationModal: FC<Props> = ({
         className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-max w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] "
         style={{ ...(zIndex && { zIndex: zIndex }) }}
       >
-        {isLoadingState && (
+        {/* {!isLoadingState && (
           <div className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
-            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+            <SpinnerIDS scale={"scale-[0.5]"} />
             <SpinnerComet w="56px" h="56px" s="6px" />
+          </div>
+        )} */}
+        {isLoadingState && (
+          <div className={`${styles.loading_overlay}`}>
+            <div className={`${styles.loading_spinner_outside} flex-center bg-[#fff]`}>
+              <SpinnerComet w="56px" h="56px" s="6px" />
+            </div>
           </div>
         )}
         {/* クローズボタン */}

@@ -79,9 +79,11 @@ const SettingCompanyMemo = () => {
   const companyOwnerName = useDashboardStore((state) => state.companyOwnerName);
   const setCompanyOwnerName = useDashboardStore((state) => state.setCompanyOwnerName);
   // 営業カレンダー編集モーダル開閉state
+  const isOpenBusinessCalendarSettingModal = useDashboardStore((state) => state.isOpenBusinessCalendarSettingModal);
   const setIsOpenBusinessCalendarSettingModal = useDashboardStore(
     (state) => state.setIsOpenBusinessCalendarSettingModal
   );
+  const selectedFiscalYearSetting = useDashboardStore((state) => state.selectedFiscalYearSetting);
   const setSelectedFiscalYearSetting = useDashboardStore((state) => state.setSelectedFiscalYearSetting);
   //
   // チームの所有者の変更モーダル ページ数
@@ -127,16 +129,29 @@ const SettingCompanyMemo = () => {
       fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
     });
   });
+  // 営業カレンダーモーダルを閉じた時に会計年度を元に戻す
+  useEffect(() => {
+    if (!selectedFiscalYearSetting) return;
+    // 営業カレンダーモーダルを閉じた時に会計年度が一致していなければ会計年度を戻す
+    if (selectedFiscalYearSetting && selectedFiscalYear !== selectedFiscalYearSetting) {
+      // 会計年度を戻す
+      setSelectedFiscalYear(selectedFiscalYearSetting);
+    }
+  }, [isOpenBusinessCalendarSettingModal]);
   // 決算日Date
-  const fiscalYearEndDate = calculateCurrentFiscalYearEndDate({
-    fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
-    selectedYear: selectedFiscalYear ?? null,
-  });
+  const fiscalYearEndDate = useMemo(() => {
+    return calculateCurrentFiscalYearEndDate({
+      fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+      selectedYear: selectedFiscalYear ?? null,
+    });
+  }, [userProfileState?.customer_fiscal_end_month, selectedFiscalYear]);
   // 期首Date
-  const fiscalYearStartDate = calculateFiscalYearStart({
-    fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
-    selectedYear: selectedFiscalYear ?? null,
-  });
+  const fiscalYearStartDate = useMemo(() => {
+    return calculateFiscalYearStart({
+      fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+      selectedYear: selectedFiscalYear ?? null,
+    });
+  }, [userProfileState?.customer_fiscal_end_month, selectedFiscalYear]);
   console.log(
     "userProfileState?.customer_fiscal_end_month",
     userProfileState?.customer_fiscal_end_month,
@@ -1120,89 +1135,88 @@ const SettingCompanyMemo = () => {
   };
 
   // 定休日の日付リストを生成する関数
-  const generateClosedDaysList = (fiscalYearStartDate: Date | null, closedDaysIndexes: number[]) => {
-    if (!userProfileState) return;
-    if (!fiscalYearStartDate) return;
-    console.time("generateClosedDaysList関数");
-    // 期首の日付を起点としたwhileループ用のDateオブジェクトを作成
-    let currentDateForLoop = fiscalYearStartDate;
-    // 期首のちょうど1年後の次年度、来期の期首のDateオブジェクトを作成
-    const nextFiscalYearStartDate = new Date(fiscalYearStartDate);
-    nextFiscalYearStartDate.setFullYear(nextFiscalYearStartDate.getFullYear() + 1);
+  // const generateClosedDaysList = (fiscalYearStartDate: Date | null, closedDaysIndexes: number[]) => {
+  //   if (!userProfileState) return;
+  //   if (!fiscalYearStartDate) return;
+  //   console.time("generateClosedDaysList関数");
+  //   // 期首の日付を起点としたwhileループ用のDateオブジェクトを作成
+  //   let currentDateForLoop = fiscalYearStartDate;
+  //   // 期首のちょうど1年後の次年度、来期の期首のDateオブジェクトを作成
+  //   const nextFiscalYearStartDate = new Date(fiscalYearStartDate);
+  //   nextFiscalYearStartDate.setFullYear(nextFiscalYearStartDate.getFullYear() + 1);
 
-    // customer_business_calendarsテーブルのバルクインサート用の定休日日付リスト
-    const closedDays = [];
+  //   // customer_business_calendarsテーブルのバルクインサート用の定休日日付リスト
+  //   const closedDays = [];
 
-    // 来期の期首未満(期末まで)の定休日となる日付を変数に格納
-    while (currentDateForLoop.getTime() < nextFiscalYearStartDate.getTime()) {
-      const dayOfWeek = currentDateForLoop.getDay();
-      // 現在の日付の曜日が定休日インデックスリストの曜日に含まれていれば定休日日付リストに格納
-      if (closedDaysIndexes.includes(dayOfWeek)) {
-        closedDays.push({
-          // customer_id: userProfileState.company_id,
-          // date: currentDateForLoop.toISOString().split("T")[0], // 時間情報を除いた日付情報のみセット
-          date: formatDateToYYYYMMDD(currentDateForLoop), // 時間情報を除いた日付情報のみセット
-          day_of_week: dayOfWeek,
-          // status: "closed",
-          // working_hours: 0,
-        });
-      }
-      currentDateForLoop.setDate(currentDateForLoop.getDate() + 1); // 次の日に進める
-    }
+  //   // 来期の期首未満(期末まで)の定休日となる日付を変数に格納
+  //   while (currentDateForLoop.getTime() < nextFiscalYearStartDate.getTime()) {
+  //     const dayOfWeek = currentDateForLoop.getDay();
+  //     // 現在の日付の曜日が定休日インデックスリストの曜日に含まれていれば定休日日付リストに格納
+  //     if (closedDaysIndexes.includes(dayOfWeek)) {
+  //       closedDays.push({
+  //         // customer_id: userProfileState.company_id,
+  //         // date: currentDateForLoop.toISOString().split("T")[0], // 時間情報を除いた日付情報のみセット
+  //         date: formatDateToYYYYMMDD(currentDateForLoop), // 時間情報を除いた日付情報のみセット
+  //         day_of_week: dayOfWeek,
+  //         // status: "closed",
+  //         // working_hours: 0,
+  //       });
+  //     }
+  //     currentDateForLoop.setDate(currentDateForLoop.getDate() + 1); // 次の日に進める
+  //   }
 
-    console.timeEnd("generateClosedDaysList関数");
-    return closedDays;
-  };
+  //   console.timeEnd("generateClosedDaysList関数");
+  //   return closedDays;
+  // };
   // ----------------------------- ✅決算日を変更する関数✅ -----------------------------
 
   // ===================== 🌟営業カレンダーに定休日を反映🌟 =====================
-  // const [isLoadingClosingDay, setIsLoading]
-  const handleApplyClosingDaysCalendar = async (fiscalYear: number | null) => {
-    if (loadingGlobalState) return;
-    if (!userProfileState?.customer_fiscal_end_month) return alert("先に決算日を登録してください。");
-    if (!fiscalYear) return alert("定休日を反映する会計年度を選択してください。");
+  // const handleApplyClosingDaysCalendar = async (fiscalYear: number | null) => {
+  //   if (loadingGlobalState) return;
+  //   if (!userProfileState?.customer_fiscal_end_month) return alert("先に決算日を登録してください。");
+  //   if (!fiscalYear) return alert("定休日を反映する会計年度を選択してください。");
 
-    // companiesテーブルのcustomer_closing_daysフィールドに定休日の配列をINSERTして、
-    // customer_business_calendarsテーブル現在の会計年度 １年間INSERTした後の1年後に再度自動的にINSERTするようにスケジュールが必要
-    if (showConfirmApplyClosingDayModal === "Insert") {
-      // 決算日の翌日の期首のDateオブジェクトを生成
-      const fiscalYearStartDate = calculateFiscalYearStart({
-        fiscalYearEnd: userProfileState.customer_fiscal_end_month,
-      });
-      // 期首から来期の期首の前日までの定休日となる日付リストを生成(バルクインサート用) DATE[]
-      const closedDaysArrayForBulkInsert = generateClosedDaysList(fiscalYearStartDate, editedClosingDays);
+  //   // companiesテーブルのcustomer_closing_daysフィールドに定休日の配列をINSERTして、
+  //   // customer_business_calendarsテーブル現在の会計年度 １年間INSERTした後の1年後に再度自動的にINSERTするようにスケジュールが必要
+  //   if (showConfirmApplyClosingDayModal === "Insert") {
+  //     // 決算日の翌日の期首のDateオブジェクトを生成
+  //     const fiscalYearStartDate = calculateFiscalYearStart({
+  //       fiscalYearEnd: userProfileState.customer_fiscal_end_month,
+  //     });
+  //     // 期首から来期の期首の前日までの定休日となる日付リストを生成(バルクインサート用) DATE[]
+  //     const closedDaysArrayForBulkInsert = generateClosedDaysList(fiscalYearStartDate, editedClosingDays);
 
-      // 1. customer_business_calendarsテーブルへの定休日リストをバルクインサート
-      // 2. companiesテーブルのcustomer_closing_daysフィールドをUPDATE
-      try {
-        const insertPayload = {
-          _customer_id: userProfileState.company_id,
-          _closed_days: closedDaysArrayForBulkInsert, // 営業カレンダーテーブル用配列
-          // _closing_days: editedClosingDays, // companiesのcustomer_closing_daysフィールド用配列
-        };
-        // 1と2を一つのFUNCTIONで実行
-        const { error } = await supabase.rpc("bulk_insert_closing_days", insertPayload);
+  //     // 1. customer_business_calendarsテーブルへの定休日リストをバルクインサート
+  //     // 2. companiesテーブルのcustomer_closing_daysフィールドをUPDATE
+  //     try {
+  //       const insertPayload = {
+  //         _customer_id: userProfileState.company_id,
+  //         _closed_days: closedDaysArrayForBulkInsert, // 営業カレンダーテーブル用配列
+  //         // _closing_days: editedClosingDays, // companiesのcustomer_closing_daysフィールド用配列
+  //       };
+  //       // 1と2を一つのFUNCTIONで実行
+  //       const { error } = await supabase.rpc("bulk_insert_closing_days", insertPayload);
 
-        if (error) throw error;
+  //       if (error) throw error;
 
-        console.log("✅営業カレンダーのバルクインサートと会社テーブルの定休日リストのUPDATE成功");
+  //       console.log("✅営業カレンダーのバルクインサートと会社テーブルの定休日リストのUPDATE成功");
 
-        // 営業カレンダーのuseQueryのキャッシュをinvalidate
-        await queryClient.invalidateQueries({ queryKey: ["annual_fiscal_month_closing_days"] });
+  //       // 営業カレンダーのuseQueryのキャッシュをinvalidate
+  //       await queryClient.invalidateQueries({ queryKey: ["annual_fiscal_month_closing_days"] });
 
-        // ユーザー情報のZustandから定休日リストのみ部分的に更新
-        // setUserProfileState({ ...userProfileState, customer_closing_days: editedClosingDays });
-      } catch (error: any) {
-        console.error("Bulk create エラー: ", error);
-        toast.error("定休日の追加に失敗しました...🙇‍♀️");
-      }
-    }
-    // Update
-    else {
-    }
-    setEditedClosingDays([]);
-    setShowConfirmApplyClosingDayModal(null);
-  };
+  //       // ユーザー情報のZustandから定休日リストのみ部分的に更新
+  //       // setUserProfileState({ ...userProfileState, customer_closing_days: editedClosingDays });
+  //     } catch (error: any) {
+  //       console.error("Bulk create エラー: ", error);
+  //       toast.error("定休日の追加に失敗しました...🙇‍♀️");
+  //     }
+  //   }
+  //   // Update
+  //   else {
+  //   }
+  //   setEditedClosingDays([]);
+  //   setShowConfirmApplyClosingDayModal(null);
+  // };
   // ===================== ✅定休日のUPSERT✅ =====================
 
   console.log(
@@ -4217,7 +4231,7 @@ const SettingCompanyMemo = () => {
       )}
       {/* ============================== チームから削除の確認モーダルここまで ============================== */}
       {/* ============================== 定休日の適用の確認モーダル ============================== */}
-      {!!showConfirmApplyClosingDayModal && (
+      {/* {!!showConfirmApplyClosingDayModal && (
         <ConfirmationModal
           titleText={
             showConfirmApplyClosingDayModal === "Update"
@@ -4234,10 +4248,9 @@ const SettingCompanyMemo = () => {
             setShowConfirmApplyClosingDayModal(null);
           }}
           clickEventSubmit={() => handleApplyClosingDaysCalendar(selectedFiscalYear)}
-          // isLoadingState={loadingGlobalState}
           buttonColor="brand"
         />
-      )}
+      )} */}
       {/* ============================== 定休日の適用の確認モーダルここまで ============================== */}
       {/* ============================== 決算日変更の確認モーダル ============================== */}
       {!!isOpenConfirmUpdateFiscal && (

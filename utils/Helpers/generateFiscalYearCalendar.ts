@@ -132,7 +132,15 @@ export function generateFiscalYearCalendar(
         if (!isDateWithinPeriod({ targetDate: d, startDate: fiscalYearStartDate, endDate: fiscalYearEndDate }))
           isOutOfFiscalYear = true;
       }
-      console.log(`🔥generateFiscalYearCalendar関数 whileループ ${fiscal_year_month} - ${d.getDate()}`);
+      console.log(
+        `🔥generateFiscalYearCalendar関数 whileループ ${fiscal_year_month} - ${formattedDate}`,
+        isClosedId && "✅休業日",
+        !isClosedId && "営業日",
+        "曜日",
+        dayOfWeek,
+        !isOutOfFiscalYear && "会計期間内",
+        isFiscalMonthEnd && "✅月末締日"
+      );
 
       monthlyDays.push({
         date: formattedDateNotZeroPad,
@@ -285,7 +293,8 @@ export function generateFiscalYearCalendar(
       const _monthlyDays = obj.monthlyDays;
       let _d = new Date(_startDate);
       while (_d <= _endDate) {
-        console.log(`🔥generateFiscalYearCalendar関数 先頭に追加 whileループ ${_addYearMonth} - ${_d.getDate()}`);
+        // console.log(`🔥generateFiscalYearCalendar関数 先頭に追加 whileループ ${_addYearMonth} - ${_d.getDate()}`);
+
         // const formattedDate = d.toISOString().split("T")[0]; // 日付情報のみ取得
         const _formattedDateNotZeroPad = formatDateToYYYYMMDD(_d); // 日付情報のみ取得
         const _formattedDate = formatDateToYYYYMMDD(_d, true); // 0詰め日付情報のみ取得
@@ -304,6 +313,17 @@ export function generateFiscalYearCalendar(
             isOutOfFiscalYear = false;
           }
         }
+
+        console.log(
+          `🔥generateFiscalYearCalendar関数 whileループ ${_addYearMonth} - ${_formattedDate}`,
+          isClosedId && "✅休業日",
+          !isClosedId && "営業日",
+          "曜日",
+          _dayOfWeek,
+          !isOutOfFiscalYear && "会計期間内",
+          index === 0 && "カレンダー先頭に追加",
+          index !== 0 && "カレンダー末尾に追加"
+        );
 
         _monthlyDays.push({
           date: _formattedDateNotZeroPad,
@@ -472,19 +492,25 @@ export function generateFiscalYearCalendar(
       const _monthlyDays = obj.monthlyDays;
       let _d = new Date(_startDate);
       while (_d <= _endDate) {
-        console.log(`🔥generateFiscalYearCalendar関数 先頭に追加 whileループ ${_addYearMonth} - ${_d.getDate()}`);
+        // console.log(`🔥generateFiscalYearCalendar関数 先頭に追加 whileループ ${_addYearMonth} - ${_d.getDate()}`);
         // const formattedDate = d.toISOString().split("T")[0]; // 日付情報のみ取得
         const _formattedDateNotZeroPad = formatDateToYYYYMMDD(_d); // 日付情報のみ取得
         const _formattedDate = formatDateToYYYYMMDD(_d, true); // 0詰め日付情報のみ取得
         const _dayOfWeek = _d.getDay();
         const _timestamp = _d.getTime();
-        const _isClosed = closingDaysData[0].closing_days.some((cd) => cd.date === _formattedDate);
+        // const _isClosed = closingDaysData[0].closing_days.some((cd) => cd.date === _formattedDate);
+
+        console.log(
+          `🔥generateFiscalYearCalendar関数 whileループ ${_addYearMonth} - ${_formattedDate}`,
+          "会計期間外",
+          "カレンダー末尾に追加"
+        );
 
         _monthlyDays.push({
           date: _formattedDateNotZeroPad,
           datePadZero: _formattedDate,
           day_of_week: _dayOfWeek,
-          status: _isClosed ? "closed" : null,
+          status: null,
           timestamp: _timestamp,
           isFiscalMonthEnd: false,
           isOutOfFiscalYear: true,
