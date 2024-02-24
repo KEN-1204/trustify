@@ -1,0 +1,38 @@
+.column_lane {
+  background-color: rgb(38 38 38 / 0);
+}
+.column_lane.active {
+  background-color: rgb(38 38 38 / 0.5);
+}
+
+.barrel {
+  color: rgb(115 115 115 / var(--tw-text-opacity));
+  background-color: rgb(115 115 115 / 0.2);
+  border: 1px solid rgb(115 115 115 / var(--tw-border-opacity));
+}
+
+.barrel.active {
+  background-color: rgb(153 27 27 / 0.2);
+  color: rgb(239 68 68 / var(--tw-text-opacity));
+  border: 1px solid rgb(153 27 27 / var(--tw-border-opacity));
+}
+
+.fire_icon {
+  display: none;
+}
+.fire_icon.active {
+  display: block;
+}
+.trash_icon {
+  display: block;
+}
+.trash_icon.active {
+  display: none;
+}
+
+.drop_indicator {
+  opacity: 0;
+}
+.drop_indicator.active {
+  opacity: 1;
+}

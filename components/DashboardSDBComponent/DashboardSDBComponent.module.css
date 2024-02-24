@@ -1,5 +1,6 @@
 .app_main_container {
   position: relative;
+  z-index: 0;
   /* margin-left: var(--sidebar-open-width); */
 
   /* background-color: var(--color-bg-base); */
@@ -14,6 +15,23 @@
   height: 100vh;
 }
 
+/* サイドバー表示中のオーバーレイ */
+.sidebar_overlay {
+  position: absolute;
+  z-index: 5000;
+  inset: 0;
+  background-color: #00000030;
+  opacity: 0;
+  animation: fade 0.3s 0.1s ease forwards;
+}
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
 .main_contents_wrapper {
   /* width: calc(100% - var(--sidebar-open-width)); */
   width: 100%;

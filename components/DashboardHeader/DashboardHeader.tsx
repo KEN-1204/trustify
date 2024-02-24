@@ -65,7 +65,9 @@ export const DashboardHeaderMemo: FC = () => {
   const setSelectedRowDataQuotation = useDashboardStore((state) => state.setSelectedRowDataQuotation);
   // テーマ別ロゴ
   const logoSrc =
-    theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
+    theme === "light" && activeMenuTab !== "SDB"
+      ? "/assets/images/Trustify_logo_white1.png"
+      : "/assets/images/Trustify_logo_black.png";
 
   // const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
   const avatarUrl = useDashboardStore((state) => state.avatarImgURL);
@@ -563,20 +565,41 @@ export const DashboardHeaderMemo: FC = () => {
     setIsLT1440(isLT1440Media);
   }, [isLT1440Media]);
 
+  // テストファンクション
+  const handleTestFn = () => {
+    // console.log("テスト クリック");
+    toast.success("Thanks! by TRUSTiFY🌠");
+  };
+
   return (
-    <header className={`${styles.app_header} ${activeMenuTab !== "HOME" ? `transition-bg01` : `transition-bg05`}`}>
+    <header
+      className={`${styles.app_header} ${
+        activeMenuTab !== "HOME" && activeMenuTab !== "SDB" ? `transition-bg01` : `transition-bg05`
+      } ${activeMenuTab === "SDB" ? `${styles.sdb}` : ``}`}
+    >
       {/* 左コンテンツ */}
       <div className="relative flex h-full  items-center justify-start ">
         <div
-          data-text={`${isOpenSidebar ? "メニューを縮小" : "メニューを拡大"}`}
+          data-text={`${
+            activeMenuTab !== "SDB"
+              ? isOpenSidebar
+                ? "メニューを縮小"
+                : "メニューを拡大"
+              : isOpenSidebar
+              ? "メニューを非表示"
+              : "メニューを表示"
+          }`}
           className="flex-center  min-h-[40px] min-w-[40px] cursor-pointer rounded-full hover:bg-[--color-bg-sub]"
           onMouseEnter={(e) => handleOpenTooltip(e, "left")}
           onMouseLeave={handleCloseTooltip}
           onClick={() => setIsOpenSidebar(!isOpenSidebar)}
         >
-          <HiOutlineBars3 className="pointer-events-none text-[24px] text-[--color-text]" />
+          <HiOutlineBars3 className={`pointer-events-none text-[24px] text-[--color-text] ${styles.sdb_icon}`} />
         </div>
-        <div className="relative flex h-full w-[145px] select-none items-center justify-center pl-[16px]">
+        <div
+          className="relative flex h-full w-[145px] select-none items-center justify-center pl-[16px]"
+          onClick={handleTestFn}
+        >
           <Image
             src={logoSrc}
             alt=""
@@ -591,15 +614,16 @@ export const DashboardHeaderMemo: FC = () => {
           />
         </div>
         {/* ヘッダータブ左スクロール時に連続でツールチップが表示されないようにするためのオーバーレイ */}
+
         <div
           className={`${
-            activeMenuTab !== "HOME" ? `transition-bg01` : `transition-bg05`
-          } absolute left-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)]`}
+            activeMenuTab !== "HOME" && activeMenuTab !== "SDB" ? `transition-bg01` : `transition-bg05`
+          } absolute left-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)] ${styles.arrow_overlay}`}
         ></div>
       </div>
 
       {/* 左矢印 */}
-      {tabPage !== 1 && (
+      {tabPage !== 1 && activeMenuTab !== "SDB" && (
         <div
           className={`flex-center absolute left-[calc(16px+185px)]  z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)]`}
           onClick={() => {
@@ -630,41 +654,42 @@ export const DashboardHeaderMemo: FC = () => {
 
       {/* 真ん中のコンテンツ */}
       {/* <div className="bg-blue-0 relative flex h-full flex-1 justify-start pl-[39px] md:overflow-x-hidden"> */}
-      <div className="bg-blue-0 relative flex h-full flex-1 justify-start pl-[39px] md:overflow-x-hidden">
-        {/* ============================= 1列目ナビゲーションタブ ここから ============================= */}
-        {/* <nav className={`${tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""} transition-base `}> */}
-        <nav
-          // className={`${
-          //   tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""
-          // } transition-base flex-center w-full max-w-[calc(100vw-185px-35px-165px-48px-39px)]`}
-          // className={`${
-          //   tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""
-          // } transition-base flex-center w-full min-w-[calc(100vw-16px-185px-39px-165px-32px)]`}
-          className={`${
-            tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""
-          } transition-base flex-center min-w-[calc(100vw-185px-35px-165px-48px-39px)]`}
-        >
-          <ul
-            className={`hidden h-full w-full items-center justify-around text-[14px] font-[500] text-[--navColor] md:flex`}
+      {activeMenuTab !== "SDB" && (
+        <div className="bg-blue-0 relative flex h-full flex-1 justify-start pl-[39px] md:overflow-x-hidden">
+          {/* ============================= 1列目ナビゲーションタブ ここから ============================= */}
+          {/* <nav className={`${tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""} transition-base `}> */}
+          <nav
+            // className={`${
+            //   tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""
+            // } transition-base flex-center w-full max-w-[calc(100vw-185px-35px-165px-48px-39px)]`}
+            // className={`${
+            //   tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""
+            // } transition-base flex-center w-full min-w-[calc(100vw-16px-185px-39px-165px-32px)]`}
+            className={`${
+              tabPage === 2 ? "-ml-[calc(100%+39px)]" : ""
+            } transition-base flex-center min-w-[calc(100vw-185px-35px-165px-48px-39px)]`}
           >
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/home"
-                className={`${styles.navbarItem} ${activeMenuTab === "HOME" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("HOME")}
-                onClick={() => switchActiveTab("HOME")}
-              >
+            <ul
+              className={`hidden h-full w-full items-center justify-around text-[14px] font-[500] text-[--navColor] md:flex`}
+            >
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="ホーム画面"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  className={`${styles.navbarItem} ${activeMenuTab === "HOME" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("HOME")}
+                  onClick={() => switchActiveTab("HOME")}
                 >
-                  <span>
-                    {language === "ja" && "ホーム"}
-                    {language === "en" && "HOME"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner}`}
+                    data-text="ホーム画面"
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "ホーム"}
+                      {language === "en" && "HOME"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "ホーム"}
                       {language === "en" && "HOME"}
@@ -675,28 +700,28 @@ export const DashboardHeaderMemo: FC = () => {
                       <GrHomeRounded className={`text-[16px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/company"
-                className={`${styles.navbarItem} ${activeMenuTab === "Company" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Company")}
-                onClick={() => switchActiveTab("Company")}
-              >
+              </li>
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="営業先の会社リストを一覧で確認する"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/company"
+                  className={`${styles.navbarItem} ${activeMenuTab === "Company" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("Company")}
+                  onClick={() => switchActiveTab("Company")}
                 >
-                  <span>
-                    {language === "ja" && "会社"}
-                    {language === "en" && "Company"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner}`}
+                    data-text="営業先の会社リストを一覧で確認する"
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "会社"}
+                      {language === "en" && "Company"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "会社"}
                       {language === "en" && "Company"}
@@ -707,31 +732,31 @@ export const DashboardHeaderMemo: FC = () => {
                       <HiOutlineBuildingOffice2 className={`text-[20px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Contacts" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Contacts")}
-                onClick={() => switchActiveTab("Contacts")}
-              >
+              </li>
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="日々の営業活動内容を担当者別に確認し、"
-                  data-text2="今行くべき営業リストの作成や、架電時に過去の活動内容をフックにアポに繋げたり、"
-                  data-text3="面談前の上長や他部署の担当者の同席依頼などに活用しましょう。"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Contacts" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("Contacts")}
+                  onClick={() => switchActiveTab("Contacts")}
                 >
-                  <span>
-                    {language === "ja" && "担当者"}
-                    {language === "en" && "Contacts"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner}`}
+                    data-text="日々の営業活動内容を担当者別に確認し、"
+                    data-text2="今行くべき営業リストの作成や、架電時に過去の活動内容をフックにアポに繋げたり、"
+                    data-text3="面談前の上長や他部署の担当者の同席依頼などに活用しましょう。"
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "担当者"}
+                      {language === "en" && "Contacts"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "担当者"}
                       {language === "en" && "Contacts"}
@@ -742,32 +767,32 @@ export const DashboardHeaderMemo: FC = () => {
                       <GrUserManager className={`text-[18px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Activity" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Activity")}
-                onClick={() => switchActiveTab("Activity")}
-              >
+              </li>
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="架電内容、次回フォロー予定日、面談結果など顧客に関する"
-                  // data-text2={`全ての情報をきちんと記録することで、リスト作成、架電、面談、フォロー時に\n有効な情報を短時間で取得し、組織全体で最高の結果が出せるようにしましょう`}
-                  data-text2="全ての情報をきちんと記録することで、リスト作成、架電、面談、フォロー時に"
-                  data-text3="有効な情報を短時間で取得し、組織全体で最高の結果が出せるようにしましょう"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Activity" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("Activity")}
+                  onClick={() => switchActiveTab("Activity")}
                 >
-                  <span>
-                    {language === "ja" && "活動"}
-                    {language === "en" && "Activity"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner}`}
+                    data-text="架電内容、次回フォロー予定日、面談結果など顧客に関する"
+                    // data-text2={`全ての情報をきちんと記録することで、リスト作成、架電、面談、フォロー時に\n有効な情報を短時間で取得し、組織全体で最高の結果が出せるようにしましょう`}
+                    data-text2="全ての情報をきちんと記録することで、リスト作成、架電、面談、フォロー時に"
+                    data-text3="有効な情報を短時間で取得し、組織全体で最高の結果が出せるようにしましょう"
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "活動"}
+                      {language === "en" && "Activity"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "活動"}
                       {language === "en" && "Activity"}
@@ -778,31 +803,31 @@ export const DashboardHeaderMemo: FC = () => {
                       <BsTelephonePlus className={`text-[18px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Meeting" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Meeting")}
-                onClick={() => switchActiveTab("Meeting")}
-              >
+              </li>
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="「訪問・WEB面談」の内容を記録しましょう。"
-                  data-text2="お客様から頂いた情報が売れる商品開発に繋がり、将来の顧客となります。"
-                  data-text3={`過去の面談内容を活用して今売れる営業先を見つけたり、\n売れる営業マンの良い情報を社内に共有しましょう。`}
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center", "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Meeting" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("Meeting")}
+                  onClick={() => switchActiveTab("Meeting")}
                 >
-                  <span>
-                    {language === "ja" && "面談・訪問"}
-                    {language === "en" && "Meeting"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner}`}
+                    data-text="「訪問・WEB面談」の内容を記録しましょう。"
+                    data-text2="お客様から頂いた情報が売れる商品開発に繋がり、将来の顧客となります。"
+                    data-text3={`過去の面談内容を活用して今売れる営業先を見つけたり、\n売れる営業マンの良い情報を社内に共有しましょう。`}
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center", "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "面談・訪問"}
+                      {language === "en" && "Meeting"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "面談・訪問"}
                       {language === "en" && "Meeting"}
@@ -813,30 +838,30 @@ export const DashboardHeaderMemo: FC = () => {
                       <HiOutlineChatBubbleLeftRight className={`text-[20px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Property" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Property")}
-                onClick={() => switchActiveTab("Property")}
-              >
+              </li>
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="面談・訪問時に「商談、申請、受注」に展開した案件を記録しましょう。"
-                  data-text2="このデータが顧客に刺さる商品開発へと繋がり、将来の財産となります。"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Property" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("Property")}
+                  onClick={() => switchActiveTab("Property")}
                 >
-                  <span>
-                    {language === "ja" && "案件"}
-                    {language === "en" && "Property"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner}`}
+                    data-text="面談・訪問時に「商談、申請、受注」に展開した案件を記録しましょう。"
+                    data-text2="このデータが顧客に刺さる商品開発へと繋がり、将来の財産となります。"
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "案件"}
+                      {language === "en" && "Property"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "案件"}
                       {language === "en" && "Property"}
@@ -847,35 +872,35 @@ export const DashboardHeaderMemo: FC = () => {
                       <AiOutlineMoneyCollect className={`text-[22px]`} />
                     </span>
                   )} */}
-                  {isLT1440 && language === "en" && (
-                    <span>
-                      <BiMoneyWithdraw className={`text-[22px]`} />
-                    </span>
-                  )}
+                    {isLT1440 && language === "en" && (
+                      <span>
+                        <BiMoneyWithdraw className={`text-[22px]`} />
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Calendar" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Calendar")}
-                onClick={() => switchActiveTab("Calendar")}
-              >
+              </li>
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="自分とメンバーのアポイント状況を確認する"
-                  data-text2="もう一件面談を入れる余地が無いか、効率は良いか確認してみましょう。"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Calendar" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("Calendar")}
+                  onClick={() => switchActiveTab("Calendar")}
                 >
-                  <span>
-                    {language === "ja" && "カレンダー"}
-                    {language === "en" && "Calendar"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner}`}
+                    data-text="自分とメンバーのアポイント状況を確認する"
+                    data-text2="もう一件面談を入れる余地が無いか、効率は良いか確認してみましょう。"
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "カレンダー"}
+                      {language === "en" && "Calendar"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "カレンダー"}
                       {language === "en" && "Calendar"}
@@ -886,31 +911,31 @@ export const DashboardHeaderMemo: FC = () => {
                       <BsCalendarDate className={`text-[18px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
+              </li>
 
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Quotation" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Quotation")}
-                onClick={() => switchActiveTab("Quotation")}
-              >
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="見積もりを作成する"
-                  data-text2="いつでもお客様と商談ができる状態を維持しましょう。"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Quotation" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("Quotation")}
+                  onClick={() => switchActiveTab("Quotation")}
                 >
-                  <span>
-                    {language === "ja" && "見積"}
-                    {language === "en" && "Quotation"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner}`}
+                    data-text="見積もりを作成する"
+                    data-text2="いつでもお客様と商談ができる状態を維持しましょう。"
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "見積"}
+                      {language === "en" && "Quotation"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "見積"}
                       {language === "en" && "Quotation"}
@@ -921,28 +946,28 @@ export const DashboardHeaderMemo: FC = () => {
                       <GrDocumentVerified className={`text-[18px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Lead" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Lead")}
-              >
+              </li>
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner} cursor-not-allowed`}
-                  data-text="開発・準備中..."
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Lead" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("Lead")}
                 >
-                  <span>
-                    {language === "ja" && "引合・リード"}
-                    {language === "en" && "Lead"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner} cursor-not-allowed`}
+                    data-text="開発・準備中..."
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "引合・リード"}
+                      {language === "en" && "Lead"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "引合・リード"}
                       {language === "en" && "Lead"}
@@ -953,28 +978,28 @@ export const DashboardHeaderMemo: FC = () => {
                       <BsTelephoneInbound className={`text-[18px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Alignment" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Alignment")}
-              >
+              </li>
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner} cursor-not-allowed`}
-                  data-text="開発・準備中..."
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Alignment" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("Alignment")}
                 >
-                  <span>
-                    {language === "ja" && "連携"}
-                    {language === "en" && "Alignment"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner} cursor-not-allowed`}
+                    data-text="開発・準備中..."
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "連携"}
+                      {language === "en" && "Alignment"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "連携"}
                       {language === "en" && "Alignment"}
@@ -985,30 +1010,30 @@ export const DashboardHeaderMemo: FC = () => {
                       <FaLink className={`text-[18px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Message" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Message")}
-              >
+              </li>
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner} cursor-not-allowed`}
-                  // data-text="顧客からの伝言や顧客への送付物、書類作成など"
-                  // data-text2="依頼ごとお願いしましょう"
-                  data-text="開発・準備中..."
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Message" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("Message")}
                 >
-                  <span>
-                    {language === "ja" && "メッセージ"}
-                    {language === "en" && "Message"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner} cursor-not-allowed`}
+                    // data-text="顧客からの伝言や顧客への送付物、書類作成など"
+                    // data-text2="依頼ごとお願いしましょう"
+                    data-text="開発・準備中..."
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "メッセージ"}
+                      {language === "en" && "Message"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "メッセージ"}
                       {language === "en" && "Message"}
@@ -1019,31 +1044,32 @@ export const DashboardHeaderMemo: FC = () => {
                       <FaTelegramPlane className={`text-[18px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "SDB" ? styles.active : ""} `}
-                onClick={() => {
-                  setActiveMenuTab("SDB");
-                  handleCloseTooltip();
-                }}
-              >
+              </li>
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="セールスダッシュボード"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "SDB" ? styles.active : ""} `}
+                  onClick={() => {
+                    setIsOpenSidebar(false);
+                    setActiveMenuTab("SDB");
+                    handleCloseTooltip();
+                  }}
                 >
-                  <span>
-                    {language === "ja" && "SDB"}
-                    {language === "en" && "SDB"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner}`}
+                    data-text="セールスダッシュボード"
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "SDB"}
+                      {language === "en" && "SDB"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "SDB"}
                       {language === "en" && "SDB"}
@@ -1054,28 +1080,28 @@ export const DashboardHeaderMemo: FC = () => {
                       <MdOutlineLeaderboard className={`text-[18px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-            <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
-                onClick={openSettingInvitation}
-              >
+              </li>
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
-                  className={`${styles.navbarItemInner}`}
-                  data-text="管理者専用スペース"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
+                  onClick={openSettingInvitation}
                 >
-                  <span>
-                    {language === "ja" && "管理者"}
-                    {language === "en" && "Admin"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner}`}
+                    data-text="管理者専用スペース"
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "管理者"}
+                      {language === "en" && "Admin"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "管理者"}
                       {language === "en" && "Admin"}
@@ -1086,37 +1112,37 @@ export const DashboardHeaderMemo: FC = () => {
                       <MdOutlineAdminPanelSettings className={`text-[20px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-          </ul>
-        </nav>
-        {/* ============================= 1列目ナビゲーションタブ ここまで ============================= */}
-        {/* ============================= ２列目ナビゲーションタブ ここから ============================= */}
-        {/* <nav className="h-full min-w-[970px] pl-[69px]"> */}
-        <nav className="flex-center h-full min-w-[calc(100vw-185px-35px-165px-48px-39px)] pl-[69px]">
-          <ul
-            className={`hidden h-full w-full items-center justify-start text-[14px] font-[500] text-[--navColor] md:flex`}
-          >
-            <li className={`${styles.navList2}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Pre-approval" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Pre-approval")}
-              >
+              </li>
+            </ul>
+          </nav>
+          {/* ============================= 1列目ナビゲーションタブ ここまで ============================= */}
+          {/* ============================= ２列目ナビゲーションタブ ここから ============================= */}
+          {/* <nav className="h-full min-w-[970px] pl-[69px]"> */}
+          <nav className="flex-center h-full min-w-[calc(100vw-185px-35px-165px-48px-39px)] pl-[69px]">
+            <ul
+              className={`hidden h-full w-full items-center justify-start text-[14px] font-[500] text-[--navColor] md:flex`}
+            >
+              <li className={`${styles.navList2}`}>
                 <div
-                  className={`${styles.navbarItemInner} cursor-not-allowed`}
-                  data-text="開発・準備中..."
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Pre-approval" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("Pre-approval")}
                 >
-                  <span>
-                    {language === "ja" && "事前承認"}
-                    {language === "en" && "Pre-approval"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner} cursor-not-allowed`}
+                    data-text="開発・準備中..."
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "事前承認"}
+                      {language === "en" && "Pre-approval"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "事前承認"}
                       {language === "en" && "Pre-approval"}
@@ -1127,28 +1153,28 @@ export const DashboardHeaderMemo: FC = () => {
                       <BsCheck2Circle className={`text-[18px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-            <li className={`${styles.navList2}`}>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.navbarItem} ${activeMenuTab === "Supporter" ? styles.active : ""} `}
-                // onClick={() => setActiveMenuTab("Supporter")}
-              >
+              </li>
+              <li className={`${styles.navList2}`}>
                 <div
-                  className={`${styles.navbarItemInner} cursor-not-allowed`}
-                  data-text="プレミアム専用スペースです"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                  onMouseLeave={handleCloseTooltip}
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Supporter" ? styles.active : ""} `}
+                  // onClick={() => setActiveMenuTab("Supporter")}
                 >
-                  <span>
-                    {language === "ja" && "プレミアム"}
-                    {language === "en" && "Premium"}
-                  </span>
-                  {/* {!isLT1440 && (
+                  <div
+                    className={`${styles.navbarItemInner} cursor-not-allowed`}
+                    data-text="プレミアム専用スペースです"
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "プレミアム"}
+                      {language === "en" && "Premium"}
+                    </span>
+                    {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "プレミアム"}
                       {language === "en" && "Premium"}
@@ -1159,19 +1185,20 @@ export const DashboardHeaderMemo: FC = () => {
                       <GrHomeRounded className={`text-[16px]`} />
                     </span>
                   )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
                 </div>
-                <div className={`${styles.active_underline}`} />
-              </div>
-            </li>
-          </ul>
-        </nav>
-        {/* ============================= ２列目ナビゲーションタブ ここまで ============================= */}
-      </div>
+              </li>
+            </ul>
+          </nav>
+          {/* ============================= ２列目ナビゲーションタブ ここまで ============================= */}
+        </div>
+      )}
 
       {/* 右矢印 */}
-      {tabPage !== 2 && (
+      {tabPage !== 2 && activeMenuTab !== "SDB" && (
         <div
-          className="flex-center absolute right-[calc(32px+165px-8px)] z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)]"
+          className={`flex-center absolute right-[calc(32px+165px-8px)] z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-btn-brand-f05)] `}
           onClick={() => {
             if (tabPage !== 2) {
               setTabPage((prev) => {
@@ -1203,11 +1230,13 @@ export const DashboardHeaderMemo: FC = () => {
       {/* ============================= 右側のコンテンツ ============================= */}
       <div className="flex h-[40px] w-[165px]  flex-row-reverse items-center justify-start">
         {/* ヘッダータブ左スクロール時に連続でツールチップが表示されないようにするためのオーバーレイ */}
+
         <div
           className={`${
-            activeMenuTab !== "HOME" ? `transition-bg01` : `transition-bg05`
-          } absolute right-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)]`}
+            activeMenuTab !== "HOME" && activeMenuTab !== "SDB" ? `transition-bg01` : `transition-bg05`
+          } absolute right-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)] ${styles.arrow_overlay}`}
         ></div>
+
         {/* 一番右 プロフィールアイコン */}
         <div className="flex-center relative  h-full w-[52px] px-[6px] py-[1px]">
           {/* <div
@@ -1485,7 +1514,7 @@ export const DashboardHeaderMemo: FC = () => {
               setSelectedSettingAccountMenu("Profile");
             }}
           >
-            <IoSettingsOutline className="text-[24px] text-[var(--color-icon)]" />
+            <IoSettingsOutline className={`text-[24px] text-[var(--color-icon)] ${styles.sdb_icon}`} />
             {/* <div>{neonIconsSettingsGear("32")}</div> */}
           </div>
         </div>
@@ -1507,7 +1536,7 @@ export const DashboardHeaderMemo: FC = () => {
               handleCloseTooltip();
             }}
           >
-            <AiOutlineBell className="text-[24px] text-[var(--color-icon)]" />
+            <AiOutlineBell className={`text-[24px] text-[var(--color-icon)] ${styles.sdb_icon}`} />
             {/* 通知アイコン */}
             {/* {!!notificationsCacheData?.length && */}
             {/* {!!incompleteNotifications?.length &&

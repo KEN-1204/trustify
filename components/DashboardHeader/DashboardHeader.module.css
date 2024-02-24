@@ -22,6 +22,21 @@
   /* font-family: sans-serif; */
   /* transition: background 0.5s ease; */
 }
+.app_header.sdb {
+  --color-bg-base-header: var(--color-bg-base-header-sdb);
+  --color-bg-base: var(--color-bg-base-header-sdb);
+  --color-bg-sub-re: #404040;
+  --color-bg-sub: #404040;
+  --shadow-header: var(--shadow-sidebar-dark);
+  /* background: var(--color-bg-base-header-sdb); */
+}
+
+.app_header.sdb .sdb_icon {
+  color: #fff;
+}
+.app_header.sdb .arrow_overlay {
+  /* background: var(--color-bg-base-header-sdb); */
+}
 
 .navList {
   width: 100%;

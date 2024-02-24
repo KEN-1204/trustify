@@ -30,6 +30,7 @@ export const DashboardSidebarMemo: FC = () => {
   const isOpenSideBarPickBox = useDashboardStore((state) => state.isOpenSideBarPickBox);
   const setIsOpenSideBarPickBox = useDashboardStore((state) => state.setIsOpenSideBarPickBox);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
+  const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
   // タブ切り替え時にサーチモードと編集モードがtrueならfalseにしてタブ切り替えする
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
@@ -110,8 +111,15 @@ export const DashboardSidebarMemo: FC = () => {
       className={`${styles.app_sidebar} ${
         isOpenSidebar
           ? `${activeMenuTab === "HOME" ? `transition-w02-bg05` : ` transition-w02-bg01`}`
-          : `${activeMenuTab === "HOME" ? `${styles.mini} transition-w01-bg05` : `${styles.mini} transition-w01-bg01`}`
+          : `${
+              activeMenuTab === "HOME"
+                ? `${styles.mini} transition-w01-bg05`
+                : `${styles.mini} transition-w01-bg01 ${activeMenuTab === "SDB" ? `${styles.display_in_out}` : ``}`
+            }`
       }`}
+      style={{
+        ...(activeMenuTab === "SDB" && !isOpenSidebar && { left: "-100%" }),
+      }}
       // className={`${styles.app_sidebar} ${isOpenSidebar ? `transition-base02` : `${styles.mini} transition-base01`}`}
     >
       <div className={`${styles.wrapper}`}>
@@ -147,7 +155,7 @@ export const DashboardSidebarMemo: FC = () => {
               >
                 {isOpenSidebar && (
                   <span
-                    className={`pointer-events-none select-none whitespace-nowrap  ${
+                    className={`fade1 pointer-events-none select-none whitespace-nowrap ${
                       isOpenSidebar ? "" : "transition-base  text-[12px]"
                     }`}
                   >
@@ -156,7 +164,7 @@ export const DashboardSidebarMemo: FC = () => {
                 )}
 
                 {!isOpenSidebar && (
-                  <div className="flex-col-center pointer-events-none w-full">
+                  <div className="flex-col-center fade1 pointer-events-none w-full">
                     <span
                       className={`transition-base03 fade03 pointer-events-none scale-90 select-none whitespace-nowrap text-[10px] text-[var(--color-text)]`}
                     >
@@ -173,7 +181,9 @@ export const DashboardSidebarMemo: FC = () => {
             </div>
 
             {/* ディバイダー */}
-            {!isOpenSidebar && <div className={`min-h-[2px] w-full bg-[var(--color-border)]`}></div>}
+            {!isOpenSidebar && activeMenuTab !== "SDB" && (
+              <div className={`min-h-[2px] w-full bg-[var(--color-border)]`}></div>
+            )}
 
             {/* ========================= menu_container ここから ========================= */}
             <div
@@ -556,14 +566,18 @@ export const DashboardSidebarMemo: FC = () => {
                 // href="/home"
                 // prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "SDB" ? styles.active : ""} `}
-                onClick={() => switchActiveTab("SDB")}
+                onClick={() => {
+                  setIsOpenSidebar(false);
+                  switchActiveTab("SDB");
+                  handleCloseTooltip();
+                }}
               >
                 <div
                   className={`${styles.menu_item_inner}`}
                   data-text="セールスダッシュボード"
                   onMouseEnter={(e) => {
                     handleOpenTooltip(e, "left");
-                    handleCloseTooltip();
+                    // handleCloseTooltip();
                   }}
                   onMouseLeave={handleCloseTooltip}
                 >
@@ -675,11 +689,11 @@ export const DashboardSidebarMemo: FC = () => {
                 onMouseLeave={handleCloseTooltip}
               >
                 {isOpenSidebar && (
-                  <span className={`pointer-events-none select-none whitespace-nowrap`}>ピックボックス</span>
+                  <span className={`fade1 pointer-events-none select-none whitespace-nowrap`}>ピックボックス</span>
                 )}
                 {!isOpenSidebar && (
-                  <div className="flex-col-center pointer-events-none w-full">
-                    <span className="transition-base03 pointer-events-none scale-75 select-none whitespace-nowrap text-[8px] text-[var(--color-text)]">
+                  <div className="flex-col-center fade1 pointer-events-none w-full">
+                    <span className="transition-base03  pointer-events-none scale-75 select-none whitespace-nowrap text-[8px] text-[var(--color-text)]">
                       ピックボックス
                     </span>
                     <BsChevronDown
@@ -693,7 +707,9 @@ export const DashboardSidebarMemo: FC = () => {
             </div>
 
             {/* ディバイダー */}
-            {!isOpenSidebar && <div className={`min-h-[2px] w-full bg-[var(--color-border)]`}></div>}
+            {!isOpenSidebar && activeMenuTab !== "SDB" && (
+              <div className={`min-h-[2px] w-full bg-[var(--color-border)]`}></div>
+            )}
 
             {/* ========================= pickbox_container ここから ========================= */}
             <div

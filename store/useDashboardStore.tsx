@@ -453,6 +453,14 @@ type State = {
   // 各会計年度別の定休日の適用状況・ステータス
   statusAnnualClosingDaysArray: StatusClosingDays[] | null;
   setStatusAnnualClosingDaysArray: (payload: StatusClosingDays[] | null) => void;
+
+  // =================== SDB ===================
+  // ネタ表, 進捗ホワイトボード, SDBなどのタブ
+  activeTabSDB: string;
+  setActiveTabSDB: (payload: string) => void;
+  // 全社, 事業部, 係, メンバー個人ごとのデータの範囲別
+  activeSectionSDB: string;
+  setActiveSectionSDB: (payload: string) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -1063,6 +1071,14 @@ const useDashboardStore = create<State>((set) => ({
   // 各会計年度別の定休日の適用状況・ステータス
   statusAnnualClosingDaysArray: null,
   setStatusAnnualClosingDaysArray: (payload) => set({ statusAnnualClosingDaysArray: payload }),
+
+  // =================== SDB ===================
+  // ネタ表, 進捗ホワイトボード, SDBなどのタブ
+  activeTabSDB: "Deals",
+  setActiveTabSDB: (payload) => set({ activeTabSDB: payload }),
+  // 全社, 事業部, 係, メンバー個人ごとのデータの範囲別
+  activeSectionSDB: "All",
+  setActiveSectionSDB: (payload) => set({ activeSectionSDB: payload }),
 }));
 
 export default useDashboardStore;

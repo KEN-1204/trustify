@@ -92,6 +92,12 @@ bg-[#06c755] */
 
   /* ボーダー */
   /* rgba(255, 255, 255, 0.12) 0px 1px 1px */
+
+  /* // disable the trail */
+  --toastify-color-progress-bgo: 0;
+
+  /* // increase the opacity */
+  --toastify-color-progress-bgo: 0.8;
 }
 /* 
 トークルーム メインbg
@@ -386,6 +392,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-basee0: #ffffffe0;
   --color-bg-base-header: #fff;
   --color-bg-base-deep: #fff;
+  --color-bg-base-header-sdb: #2c2c2c;
+
   /* chat-gptのサブ背景 #f7f7f8 ホバー時：#ececf1 */
   --color-bg-sub: rgba(64, 87, 109, 0.07);
   --color-bg-sub-hover: #394c6026;
@@ -995,6 +1003,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-top-white-md: 0px -4px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-header: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-sidebar: 2px 0px 4px -1px rgba(57, 76, 96, 0.15);
+  --shadow-sidebar-dark: 0 2px 6px 1px rgba(57, 76, 96, 0.3);
   /* テキスト シャドウ light */
   --color-text-brand-shadow: #ffffff00;
 
@@ -1113,6 +1122,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-bg-base-header: #191919; */
   --color-bg-base-header: #202020;
   --color-bg-base-deep: #141414;
+  --color-bg-base-header-sdb: #202020;
   /* --color-bg-sub: #252525; */
   --color-bg-sub: #383838;
   --color-bg-sub-hover: #555;
@@ -1652,6 +1662,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-bottom-white-md: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
   --shadow-sidebar: 1px 0px 6px -1px rgba(255, 255, 255, 0.12);
+  --shadow-sidebar-dark: 0px 0px 6px -1px rgba(255, 255, 255, 0.6);
   --color-header-shadow-hover: rgb(0 0 0 / 69%) 0px 16px 38px -5px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
   /* テキスト シャドウ dark */
   --color-text-brand-shadow: #ffffff70;
@@ -1997,6 +2008,9 @@ textarea {
 /* フェードアニメーション */
 .fade1 {
   animation: fade 1s;
+}
+.fade08 {
+  animation: fade 0.8s;
 }
 .fade05 {
   animation: fade 0.5s;

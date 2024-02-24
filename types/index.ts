@@ -2330,3 +2330,15 @@ export type CustomerBusinessCalendars = {
 
 // 各会計年度別の定休日の適用状況・ステータス
 export type StatusClosingDays = { fiscal_year: number; applied_closing_days: number[]; updated_at: number | null };
+
+// ---------------- ネタ表(トレロボード) ----------------
+
+// export type ColumnProps = {
+//   title: string;
+//   headingColor: string;
+//   column: string;
+//   cards: CardType[];
+//   setCards: Dispatch<SetStateAction<CardType[]>>;
+// };
+
+export type CardType = { title: string; id: string; columnName: string };

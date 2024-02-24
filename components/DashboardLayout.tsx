@@ -351,7 +351,8 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* ヘッダー */}
       <DashboardHeader />
       {/* サイドバー */}
-      {activeMenuTab !== "SDB" && <DashboardSidebar />}
+      {/* {activeMenuTab !== "SDB" && <DashboardSidebar />} */}
+      {<DashboardSidebar />}
       {/* メイン */}
       <main>{children}</main>
       {/* <main className="relative flex h-full min-h-screen flex-col items-center">{children}</main> */}
