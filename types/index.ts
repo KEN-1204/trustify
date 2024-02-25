@@ -2341,4 +2341,4 @@ export type StatusClosingDays = { fiscal_year: number; applied_closing_days: num
 //   setCards: Dispatch<SetStateAction<CardType[]>>;
 // };
 
-export type CardType = { title: string; id: string; columnName: string };
+type CardType = { id: string; taskTitle: string; contents: string; columnTitle: string };

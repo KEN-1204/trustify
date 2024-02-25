@@ -3,6 +3,7 @@ import styles from "./ScreenDealBoards.module.css";
 import { FaFire } from "react-icons/fa";
 import { FiPlus, FiTrash } from "react-icons/fi";
 import { DealBoardTest } from "./DealBoard/DealBoardTest";
+import { DealBoard } from "./DealBoard/DealBoard";
 
 const DEFAULT_CARDS = Array(11)
   .fill(null)

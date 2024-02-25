@@ -4,13 +4,14 @@ import { ScreenDealBoards } from "./ScreenDealBoards/ScreenDealBoards";
 
 export const DashboardSDBComponent = () => {
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
+  const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
   const activeTabSDB = useDashboardStore((state) => state.activeTabSDB);
 
   return (
     <>
       <div className={`flex-center ${styles.app_main_container} relative`}>
         {/* サイドバー表示時オーバーレイ */}
-        {isOpenSidebar && <div className={`${styles.sidebar_overlay}`}></div>}
+        {isOpenSidebar && <div className={`${styles.sidebar_overlay}`} onClick={() => setIsOpenSidebar(false)}></div>}
         <div className={`${styles.main_contents_wrapper} `}>
           {/* 上ヘッダーサイズ分のスペーサー */}
           <div className={`${styles.spacer_top}`}></div>
