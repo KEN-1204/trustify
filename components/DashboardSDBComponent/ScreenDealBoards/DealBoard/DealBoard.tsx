@@ -17,9 +17,10 @@ import { FaFire } from "react-icons/fa";
 import { AddCard } from "./AddCard";
 import { EditModalDealCard } from "./EditModalDealCard";
 import useDashboardStore from "@/store/useDashboardStore";
-import { mappingOrderCertaintyStartOfMonth } from "@/utils/selectOptions";
+import { mappingOrderCertaintyStartOfMonth, mappingOrderCertaintyStartOfMonthToast } from "@/utils/selectOptions";
 import useStore from "@/store";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import { toast } from "react-toastify";
 
 type ColumnSizeInfo = {
   prevColumnHeight: number;
@@ -91,13 +92,6 @@ const DealBoardMemo = () => {
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
   const editedDealCard = useDashboardStore((state) => state.editedDealCard);
   const setEditedDealCard = useDashboardStore((state) => state.setEditedDealCard);
-
-  // const dealColumnList: ColumnLane[] = [
-  //   { titleNum: 1, headingColor: "text-pink-400", cards: cards, setCards: setCards },
-  //   { titleNum: 2, headingColor: "text-red-400", cards: cards, setCards: setCards },
-  //   { titleNum: 3, headingColor: "text-emerald-400", cards: cards, setCards: setCards },
-  //   { titleNum: 4, headingColor: "text-blue-400", cards: cards, setCards: setCards },
-  // ];
 
   // useEffect(() => {
   //   hasCheckedRef.current && localStorage.setItem("cards", JSON.stringify(cards));
@@ -194,6 +188,12 @@ const DealBoardMemo = () => {
     return categorizedCardsMapObj.get(4);
   }, [categorizedCardsMapObj]);
 
+  // const dealColumnList: ColumnLane[] = [
+  //   { titleNum: 1, headingColor: "text-pink-400", cards: cards, setCards: setCards },
+  //   { titleNum: 2, headingColor: "text-red-400", cards: cards, setCards: setCards },
+  //   { titleNum: 3, headingColor: "text-emerald-400", cards: cards, setCards: setCards },
+  //   { titleNum: 4, headingColor: "text-blue-400", cards: cards, setCards: setCards },
+  // ];
   //  const dealColumnList: ColumnLane[] = [
   //    { titleNum: 1, headingColor: styles.award, cards: cards, setCards: setCards },
   //    { titleNum: 2, headingColor: styles.eighty, cards: cards, setCards: setCards },
@@ -204,24 +204,28 @@ const DealBoardMemo = () => {
     {
       titleNum: 1,
       headingColor: styles.award,
+      // headingColor: "text-pink-500",
       cards: awardArray ?? [],
       setCards: setCards,
     },
     {
       titleNum: 2,
       headingColor: styles.eighty,
+      // headingColor: "text-red-500",
       cards: eightyArray ?? [],
       setCards: setCards,
     },
     {
       titleNum: 3,
       headingColor: styles.fifty,
+      // headingColor: "text-emerald-500",
       cards: fiftyArray ?? [],
       setCards: setCards,
     },
     {
       titleNum: 4,
       headingColor: styles.thirty,
+      // headingColor: "text-blue-500",
       cards: thirtyArray ?? [],
       setCards: setCards,
     },
@@ -1248,33 +1252,63 @@ const DealBoardMemo = () => {
     console.log("Endここまで");
 
     // 🔹更新
-    setCards((prev) => {
-      const newCards = [...prev];
-      // ドラッグしてるカードを削除して、ドロップした位置に挿入
-      const deleteAt = newCards.findIndex((card) => card.property_id === draggingCardObj.property_id);
-      const deleteCard = newCards.splice(deleteAt, 1)[0];
-      const newInsertCard = {
-        property_id: deleteCard.property_id,
-        company_name: deleteCard.company_name,
-        company_department_name: deleteCard.company_department_name,
-        column_title_num: dropColumnTitle,
-      } as DealCardType;
+    // setCards((prev) => {
+    //   const newCards = [...prev];
+    //   // ドラッグしてるカードを削除して、ドロップした位置に挿入
+    //   const deleteAt = newCards.findIndex((card) => card.property_id === draggingCardObj.property_id);
+    //   const deleteCard = newCards.splice(deleteAt, 1)[0];
+    //   const newInsertCard = {
+    //     property_id: deleteCard.property_id,
+    //     company_name: deleteCard.company_name,
+    //     company_department_name: deleteCard.company_department_name,
+    //     column_title_num: dropColumnTitle,
+    //   } as DealCardType;
 
-      if (draggingCardIndexRef.current?.currentRowIndex === -1) {
+    //   if (draggingCardIndexRef.current?.currentRowIndex === -1) {
+    //     newCards.push(newInsertCard);
+    //   } else {
+    //     const insertAt = newCards.findIndex((card) => card.property_id === (dropCardObj as DealCardType).property_id);
+    //     if (insertAt === -1) {
+    //       // ドロップ先のカードが見つからない場合は末尾に追加
+    //       newCards.push(newInsertCard);
+    //     } else {
+    //       newCards.splice(insertAt, 0, newInsertCard);
+    //     }
+    //   }
+
+    //   return newCards;
+    // });
+
+    const newCards = [...cards];
+    // ドラッグしてるカードを削除して、ドロップした位置に挿入
+    const deleteAt = newCards.findIndex((card) => card.property_id === draggingCardObj.property_id);
+    const deleteCard = newCards.splice(deleteAt, 1)[0];
+    const newInsertCard = {
+      property_id: deleteCard.property_id,
+      company_name: deleteCard.company_name,
+      company_department_name: deleteCard.company_department_name,
+      column_title_num: dropColumnTitle,
+    } as DealCardType;
+
+    if (draggingCardIndexRef.current?.currentRowIndex === -1) {
+      newCards.push(newInsertCard);
+    } else {
+      const insertAt = newCards.findIndex((card) => card.property_id === (dropCardObj as DealCardType).property_id);
+      if (insertAt === -1) {
+        // ドロップ先のカードが見つからない場合は末尾に追加
         newCards.push(newInsertCard);
       } else {
-        const insertAt = newCards.findIndex((card) => card.property_id === (dropCardObj as DealCardType).property_id);
-        if (insertAt === -1) {
-          // ドロップ先のカードが見つからない場合は末尾に追加
-          newCards.push(newInsertCard);
-        } else {
-          newCards.splice(insertAt, 0, newInsertCard);
-        }
+        newCards.splice(insertAt, 0, newInsertCard);
       }
-
-      return newCards;
-    });
+    }
+    setCards(newCards);
     setUpdateCardsMapTrigger(Date.now()); // メモ化したMapオブジェクトを再計算して生成
+
+    // トーストを表示
+    toast.success(
+      `${deleteCard.company_name}を${mappingOrderCertaintyStartOfMonthToast[dropColumnTitle][language]}に変更しました🌟`
+    );
+
     /**
      *  console.log(
         "🌟🌟🌟🌟更新",
@@ -1422,6 +1456,9 @@ const DealBoardMemo = () => {
     // 削除
     // setCards((pv) => pv.filter((c) => c.id !== deleteCardObj.id));
     setCards(Array.from(cardIdsMapObj.values()));
+
+    // トーストを表示
+    toast.success(`${deleteCardObj.company_name}を案件没に変更しました。`);
   };
   // --------------- ゴミ箱 受 Drop ここまで ---------------
   /* ---------------------------------- ✅ゴミ箱✅ ---------------------------------- */
@@ -1455,7 +1492,7 @@ const DealBoardMemo = () => {
   return (
     <>
       {/* ------------------------ ボード ------------------------ */}
-      <div ref={boardRef} className={`${styles.board} flex h-full w-full overflow-scroll p-[48px]`}>
+      <div ref={boardRef} className={`${styles.board} flex  w-full overflow-scroll p-[48px]`}>
         {/* ------------ Columnレーングループ ------------ */}
         {dealColumnList.map((column: ColumnLane, columnIndex: number) => {
           // const filteredCards = categorizedCardsMapObj.get(column.titleNum);
@@ -1472,7 +1509,7 @@ const DealBoardMemo = () => {
               ref={(ref) => (columnLanesRef.current[columnIndex] = ref)}
               className={`${styles.column} ${animate ? `${styles.animate}` : ``} ${
                 isMounted ? `${styles.is_mount}` : ``
-              } ${columnIndex === 3 ? `${styles.last}` : ``} w-56 shrink-0`}
+              } ${columnIndex === 3 ? `${styles.last}` : ``} ${column.headingColor}  w-56 shrink-0`}
               // style={getColumnHeight(columnIndex)}
             >
               {/* ------------ Columnタイトル ------------ */}
@@ -1515,7 +1552,7 @@ const DealBoardMemo = () => {
                         data-column-index={columnIndex}
                         data-row-index={rowIndex}
                         // className={`${styles.drop_indicator} my-0.5 h-0.5 min-h-[2px] w-full bg-violet-400 opacity-0`}
-                        className={`${styles.drop_indicator} pointer-events-none my-0.5 h-0.5 min-h-[2px] w-full opacity-0`}
+                        className={`${styles.drop_indicator} pointer-events-none my-0.5 h-0.5 min-h-[2px] w-full  opacity-0`}
                       />
                       {/* Row上インジケータ ここまで */}
                       {/* スペーサーtop ドラッグ位置に空間を空ける用 */}
@@ -1531,6 +1568,12 @@ const DealBoardMemo = () => {
                         draggable={true}
                         data-card-column-title={card.column_title_num}
                         data-card-row-index={rowIndex}
+                        className={`${styles.row_card} ${animate ? `${styles.fade_in}` : ``} ${
+                          isMounted ? `${styles.is_mount}` : ``
+                        }  cursor-grab rounded border border-solid border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing  ${
+                          rowIndex === filteredCards.length - 1 ? `last` : ``
+                        }`}
+                        style={{ ...(animate && { animationDelay: `${(rowIndex + 1) * 0.3}s` }) }} // 各カードのアニメーションの遅延を設定
                         onClick={() => {
                           setEditedDealCard(card);
                           setIsOpenEditModal(true);
@@ -1573,12 +1616,6 @@ const DealBoardMemo = () => {
                             columnLastCardIndex: filteredCards.length - 1,
                           })
                         }
-                        className={`${styles.row_card} ${animate ? `${styles.fade_in}` : ``} ${
-                          isMounted ? `${styles.is_mount}` : ``
-                        }  cursor-grab rounded border border-solid border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing  ${
-                          rowIndex === filteredCards.length - 1 ? `last` : ``
-                        }`}
-                        style={{ ...(animate && { animationDelay: `${(rowIndex + 1) * 0.2}s` }) }} // 各カードおアニメーションの遅延を設定
                       >
                         <p className={`pointer-events-none whitespace-pre-wrap text-sm`}>{card.company_name}</p>
                       </div>

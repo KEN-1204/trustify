@@ -100,11 +100,13 @@ bg-[#06c755] */
   /* ボーダー */
   /* rgba(255, 255, 255, 0.12) 0px 1px 1px */
 
+  /* トースト react-toastify */
   /* // disable the trail */
   --toastify-color-progress-bgo: 0;
 
   /* // increase the opacity */
   --toastify-color-progress-bgo: 0.8;
+  --toastify-toast-background: #333;
 }
 /* 
 トークルーム メインbg
@@ -996,6 +998,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* シャドウ light */
   --shadow-sm: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-all-md: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
+  --shadow-all-md-dark: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
   --shadow-all-lg: 0px 3px 15px 3px rgba(0, 0, 0, 0.39);
   --shadow-all-md-center: 0px 3px 15px 2px rgba(0, 0, 0, 0.2);
   --shadow-all-lg-center: 0px 0px 10px 2px rgba(0, 0, 0, 0.39);
@@ -1058,12 +1061,17 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-select-box-hover: #2894ff;
 
   /* ------------- 🌟ネタ表🌟 ------------- */
-  --color-table-bg: #fdfdfd;
+  /* --color-table-bg: #fdfdfd; */
+  --color-sdb-bg: #fff;
   --color-table-text: var(--color-text-title);
-  --color-award: rgb(236 72 153 / 1);
-  --color-eighty: rgb(239 68 68 / 1);
-  --color-fifty: rgb(16 185 129 / 1);
-  --color-thirty: rgb(59 130 246 / 1);
+  --color-award: rgb(252, 70, 204);
+  --color-eighty: var(--main-color-tk);
+  --color-fifty: rgb(30, 209, 102);
+  --color-thirty: #0d82ff;
+  /* --color-award: rgb(236 72 153 / 1); */
+  /* --color-eighty: rgb(239 68 68 / 1); */
+  /* --color-fifty: rgb(16 185 129 / 1); */
+  /* --color-thirty: rgb(59 130 246 / 1); */
   --color-column-bg: var(--color-bg-sub);
   --color-column-lane-active: rgb(246, 246, 246);
   --color-column-border-active: inset 0px 0px 0px 1px var(--color-bg-brand-fd0), 0px 0px 0px 1px var(--color-bg-brand-f);
@@ -1073,6 +1081,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-card-bg: rgb(248, 248, 248);
   --color-card-border: rgb(190, 190, 190);
   --color-card-text: var(--color-text-title-black);
+  --card-shadow: var(--shadow-sm);
+  --color-card-dragging-bg: linear-gradient(to bottom left, #0affffd0, #0abeffd0, #0066ffd0);
   --color-barrel-text: rgb(115 115 115 / 1);
   --color-barrel-bg: var(--color-bg-sub);
   --color-barrel-border: rgb(115 115 115 / 1);
@@ -1138,9 +1148,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* Youtube背景 background-color: #0f0f0f */
   /* Tiktok背景メイン background-color: rgb(18, 18, 18) #121212 背景サブ background-color: rgb(37, 37, 37) #252525 ブラックサブ2 background-color: rgba(255, 255, 255, 0.08) テーマカラー赤 background-color: rgb(255, 59, 92) #ff3b5c */
   /* dark */
-  /* --color-bg-base: #121212; */
   /* --color-bg-base: #191919; */
   --color-bg-base: #202020;
+  /* --color-bg-base: hsl(225 calc(1 * 6.3%) 12.5% / 1); */
+  /* --color-bg-base: #121212; */
+  /* --color-bg-base: #151515; */
   --color-bg-base10: #20202010;
   --color-bg-base20: #20202020;
   --color-bg-base30: #20202030;
@@ -1685,6 +1697,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* シャドウ dark */
   --shadow-sm: 0px 1px 1px 0px rgba(255, 255, 255, 0.12);
   --shadow-all-md: 0px 4px 15px 1px rgba(255, 255, 255, 0.15);
+  --shadow-all-md-dark: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
   --shadow-all-lg: 0px 3px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-all-md-center: 0px 0px 15px 1px rgba(255, 255, 255, 0.15);
   --shadow-all-lg-center: 0px 0px 15px 3px rgba(255, 255, 255, 0.39);
@@ -1698,8 +1711,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-bottom-white-md: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
   /* --shadow-header: 0px 1px 6px 2px rgba(0, 0, 0, 0.33); */
-  --shadow-header-sdb: 0px 1px 12px 0px rgba(0, 0, 0, 0.24);
-  --shadow-sidebar: 1px 0px 6px -1px rgba(255, 255, 255, 0.12);
+  --shadow-header-sdb: 0px 1px 6px 0px rgba(0, 0, 0, 0.33);
+  --shadow-header-sdb: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
+  --shadow-sidebar: 1px 0px 6px -2px rgba(255, 255, 255, 0.12);
   /* --shadow-sidebar: 1px 0px 6px 1px rgba(0, 0, 0, 0.33); */
   --shadow-sidebar-dark: 0px 0px 6px -1px rgba(255, 255, 255, 0.3);
   --color-header-shadow-hover: rgb(0 0 0 / 69%) 0px 16px 38px -5px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
@@ -1758,19 +1772,28 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-select-box-hover: #1188ff;
 
   /* ------------- 🌟ネタ表🌟 ------------- */
-  --color-table-bg: #171717;
-  --color-table-text: #fafafa;
-  --color-award: rgb(244 114 182 / 1);
-  --color-eighty: rgb(248 113 113 / 1);
-  --color-fifty: rgb(52 211 153 / 1);
-  --color-thirty: rgb(96 165 250 / 1);
+  /* --color-sdb-bg: #171717; */
+  --color-sdb-bg: #121212;
+  /* --color-sdb-bg: #151515; */
+  --color-sdb-text: #fafafa;
+  /* --color-award: rgb(236 72 153 / 1);
+  --color-eighty: var(--main-color-tk);
+  --color-fifty: rgb(16 185 129 / 1);
+  --color-thirty: rgb(59 130 246 / 1); */
+  --color-award: rgb(252, 70, 204);
+  --color-eighty: var(--main-color-tk);
+  --color-fifty: rgb(30, 209, 102);
+  --color-thirty: #0d82ff;
   --color-column-bg: transparent;
   --color-column-lane-active: rgb(38 38 38 / 0.6);
   --color-column-border-active: inset 0px 0px 0px 1px #063c13, 0px 0px 0px 1px #00ff40;
-  --color-column-sideborder-active: var(--color-bg-brand-fc0);
+  /* --color-column-sideborder-active: var(--color-bg-brand-fc0); */
+  --color-column-sideborder-active: var(--color-bg-brandc0);
   --color-card-bg: rgb(38 38 38 / 1);
   --color-card-border: rgb(64 64 64 / 1);
   --color-card-text: rgb(245 245 245 / 1);
+  --card-shadow: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
+  --color-card-dragging-bg: linear-gradient(to bottom left, #0affffc0, #0abeffc0, #0066ffc0);
   --color-barrel-bg: rgb(115 115 115 / 0.2);
   --color-barrel-text: rgb(115 115 115 / 1);
   --color-barrel-border: rgb(115 115 115 / 1);
@@ -1866,6 +1889,9 @@ textarea {
 }
 .shadow-all-md {
   box-shadow: var(--shadow-all-md);
+}
+.shadow-all-md-dark {
+  box-shadow: var(--shadow-all-md-dark);
 }
 .shadow-all-lg {
   box-shadow: var(--shadow-all-lg);
@@ -2942,4 +2968,9 @@ textarea {
 }
 .animate_ping18 {
   animation: ping18 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* -------------- 🌟印刷🌟 -------------- */
+.Toastify__toast-theme--dark {
+  --toastify-color-dark: #292929;
 }

@@ -125,7 +125,9 @@ export const DashboardSidebarMemo: FC = () => {
       <div className={`${styles.wrapper}`}>
         <div className={styles.spacer} />
         <div
-          className={`${styles.content_container} ${activeMenuTab !== "HOME" ? `transition-bg01` : `transition-bg05`}`}
+          className={`${styles.content_container} ${
+            activeMenuTab !== "HOME" && activeMenuTab !== "SDB" ? `transition-bg01` : `transition-bg05`
+          } ${activeMenuTab === "SDB" ? `${styles.sdb}` : ``}`}
         >
           <div className={`${styles.section}`}>
             {/* ========================= メニュータイトル ========================= */}
@@ -470,98 +472,7 @@ export const DashboardSidebarMemo: FC = () => {
                   </div>
                 </div>
               </div>
-              <div
-                className={`${styles.menu_item} ${activeMenuTab === "Lead" ? styles.active : ""} `}
-                // href="/home"
-                // prefetch={false}
-                // onClick={() => switchActiveTab("Lead")}
-              >
-                <div
-                  className={styles.menu_item_inner}
-                  data-text="開発・準備中..."
-                  onMouseEnter={(e) => {
-                    if (isOpenSidebar) return;
-                    handleOpenTooltip(e, "left");
-                  }}
-                  onMouseLeave={() => {
-                    if (isOpenSidebar) return;
-                    handleCloseTooltip();
-                  }}
-                >
-                  <div className={styles.icon_wrapper}>
-                    <BsTelephoneInbound
-                      className={`${styles.sidebar_icon} scale-[0.85] text-[24px] text-[var(--color-text)]`}
-                    />
-                  </div>
-                  <div
-                    className={`${styles.text_wrapper} ${
-                      isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
-                    }`}
-                  >
-                    <span>引合・リード</span>
-                  </div>
-                </div>
-              </div>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.menu_item} ${activeMenuTab === "Alignment" ? styles.active : ""} `}
-                onClick={() => switchActiveTab("Alignment")}
-              >
-                <div
-                  className={styles.menu_item_inner}
-                  data-text="連携"
-                  onMouseEnter={(e) => {
-                    if (isOpenSidebar) return;
-                    handleOpenTooltip(e, "left");
-                  }}
-                  onMouseLeave={() => {
-                    if (isOpenSidebar) return;
-                    handleCloseTooltip();
-                  }}
-                >
-                  <div className={styles.icon_wrapper}>
-                    <FaLink className={`${styles.sidebar_icon} scale-[0.85] text-[24px] text-[var(--color-text)]`} />
-                  </div>
-                  <div
-                    className={`${styles.text_wrapper} ${
-                      isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
-                    }`}
-                  >
-                    <span className="truncate">連携</span>
-                  </div>
-                </div>
-              </div>
-              <div
-                // href="/home"
-                // prefetch={false}
-                className={`${styles.menu_item} ${activeMenuTab === "Message" ? styles.active : ""} `}
-                onClick={() => switchActiveTab("Message")}
-              >
-                <div
-                  className={styles.menu_item_inner}
-                  data-text="メッセージ"
-                  onMouseEnter={(e) => {
-                    if (isOpenSidebar) return;
-                    handleOpenTooltip(e, "left");
-                  }}
-                  onMouseLeave={() => {
-                    if (isOpenSidebar) return;
-                    handleCloseTooltip();
-                  }}
-                >
-                  <div className={styles.icon_wrapper}>
-                    <FaTelegramPlane className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`} />
-                  </div>
-                  <div
-                    className={`${styles.text_wrapper} ${
-                      isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
-                    }`}
-                  >
-                    <span className="truncate">メッセージ</span>
-                  </div>
-                </div>
-              </div>
+
               <div
                 // href="/home"
                 // prefetch={false}
@@ -593,6 +504,106 @@ export const DashboardSidebarMemo: FC = () => {
                   </div>
                 </div>
               </div>
+
+              <div
+                className={`${styles.menu_item} ${activeMenuTab === "Lead" ? styles.active : ""} !cursor-not-allowed`}
+                // href="/home"
+                // prefetch={false}
+                // onClick={() => switchActiveTab("Lead")}
+              >
+                <div
+                  className={styles.menu_item_inner}
+                  data-text="開発・準備中..."
+                  onMouseEnter={(e) => {
+                    // if (isOpenSidebar) return;
+                    handleOpenTooltip(e, "left");
+                  }}
+                  onMouseLeave={() => {
+                    // if (isOpenSidebar) return;
+                    handleCloseTooltip();
+                  }}
+                >
+                  <div className={styles.icon_wrapper}>
+                    <BsTelephoneInbound
+                      className={`${styles.sidebar_icon} scale-[0.85] text-[24px] text-[var(--color-text)]`}
+                    />
+                  </div>
+                  <div
+                    className={`${styles.text_wrapper} ${
+                      isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
+                    }`}
+                  >
+                    <span>引合・リード</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                // href="/home"
+                // prefetch={false}
+                className={`${styles.menu_item} ${
+                  activeMenuTab === "Alignment" ? styles.active : ""
+                } !cursor-not-allowed`}
+                // onClick={() => switchActiveTab("Alignment")}
+              >
+                <div
+                  className={styles.menu_item_inner}
+                  // data-text="連携"
+                  data-text="開発・準備中..."
+                  onMouseEnter={(e) => {
+                    // if (isOpenSidebar) return;
+                    handleOpenTooltip(e, "left");
+                  }}
+                  onMouseLeave={() => {
+                    // if (isOpenSidebar) return;
+                    handleCloseTooltip();
+                  }}
+                >
+                  <div className={styles.icon_wrapper}>
+                    <FaLink className={`${styles.sidebar_icon} scale-[0.85] text-[24px] text-[var(--color-text)]`} />
+                  </div>
+                  <div
+                    className={`${styles.text_wrapper} ${
+                      isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
+                    }`}
+                  >
+                    <span className="truncate">連携</span>
+                  </div>
+                </div>
+              </div>
+              <div
+                // href="/home"
+                // prefetch={false}
+                className={`${styles.menu_item} ${
+                  activeMenuTab === "Message" ? styles.active : ""
+                } !cursor-not-allowed`}
+                // onClick={() => switchActiveTab("Message")}
+              >
+                <div
+                  className={styles.menu_item_inner}
+                  // data-text="メッセージ"
+                  data-text="開発・準備中..."
+                  onMouseEnter={(e) => {
+                    // if (isOpenSidebar) return;
+                    handleOpenTooltip(e, "left");
+                  }}
+                  onMouseLeave={() => {
+                    // if (isOpenSidebar) return;
+                    handleCloseTooltip();
+                  }}
+                >
+                  <div className={styles.icon_wrapper}>
+                    <FaTelegramPlane className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`} />
+                  </div>
+                  <div
+                    className={`${styles.text_wrapper} ${
+                      isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
+                    }`}
+                  >
+                    <span className="truncate">メッセージ</span>
+                  </div>
+                </div>
+              </div>
+
               <div
                 // href="/home"
                 // prefetch={false}
@@ -629,19 +640,21 @@ export const DashboardSidebarMemo: FC = () => {
               <div
                 // href="/home"
                 // prefetch={false}
-                className={`${styles.menu_item} ${activeMenuTab === "Pre-approval" ? styles.active : ""} `}
-                onClick={() => switchActiveTab("Pre-approval")}
+                className={`${styles.menu_item} ${
+                  activeMenuTab === "Pre-approval" ? styles.active : ""
+                } !cursor-not-allowed`}
+                // onClick={() => switchActiveTab("Pre-approval")}
               >
                 <div
                   className={styles.menu_item_inner}
                   // data-text="事前承認・稟議"
                   data-text="開発・準備中..."
                   onMouseEnter={(e) => {
-                    if (isOpenSidebar) return;
+                    // if (isOpenSidebar) return;
                     handleOpenTooltip(e, "left");
                   }}
                   onMouseLeave={() => {
-                    if (isOpenSidebar) return;
+                    // if (isOpenSidebar) return;
                     handleCloseTooltip();
                   }}
                 >

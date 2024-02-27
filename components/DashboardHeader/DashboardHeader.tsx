@@ -952,6 +952,44 @@ export const DashboardHeaderMemo: FC = () => {
                   <div className={`${styles.active_underline}`} />
                 </div>
               </li>
+
+              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
+                <div
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "SDB" ? styles.active : ""} `}
+                  onClick={() => {
+                    setIsOpenSidebar(false);
+                    setActiveMenuTab("SDB");
+                    handleCloseTooltip();
+                  }}
+                >
+                  <div
+                    className={`${styles.navbarItemInner}`}
+                    data-text="セールスダッシュボード"
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "SDB"}
+                      {language === "en" && "SDB"}
+                    </span>
+                    {/* {!isLT1440 && (
+                    <span>
+                      {language === "ja" && "SDB"}
+                      {language === "en" && "SDB"}
+                    </span>
+                  )}
+                  {isLT1440 && (
+                    <span>
+                      <MdOutlineLeaderboard className={`text-[18px]`} />
+                    </span>
+                  )} */}
+                  </div>
+                  <div className={`${styles.active_underline}`} />
+                </div>
+              </li>
+
               <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
                   // href="/home"
@@ -1050,42 +1088,7 @@ export const DashboardHeaderMemo: FC = () => {
                   <div className={`${styles.active_underline}`} />
                 </div>
               </li>
-              <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
-                <div
-                  // href="/home"
-                  // prefetch={false}
-                  className={`${styles.navbarItem} ${activeMenuTab === "SDB" ? styles.active : ""} `}
-                  onClick={() => {
-                    setIsOpenSidebar(false);
-                    setActiveMenuTab("SDB");
-                    handleCloseTooltip();
-                  }}
-                >
-                  <div
-                    className={`${styles.navbarItemInner}`}
-                    data-text="セールスダッシュボード"
-                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                    onMouseLeave={handleCloseTooltip}
-                  >
-                    <span>
-                      {language === "ja" && "SDB"}
-                      {language === "en" && "SDB"}
-                    </span>
-                    {/* {!isLT1440 && (
-                    <span>
-                      {language === "ja" && "SDB"}
-                      {language === "en" && "SDB"}
-                    </span>
-                  )}
-                  {isLT1440 && (
-                    <span>
-                      <MdOutlineLeaderboard className={`text-[18px]`} />
-                    </span>
-                  )} */}
-                  </div>
-                  <div className={`${styles.active_underline}`} />
-                </div>
-              </li>
+
               <li className={`${styles.navList} ${isLT1440 ? `${styles.normal}` : ``}`}>
                 <div
                   // href="/home"
@@ -1582,7 +1585,7 @@ export const DashboardHeaderMemo: FC = () => {
 
               {/* モーダル */}
               <div
-                className="shadow-all-md absolute right-[0px] top-[50px] z-[100] flex min-h-[560px] min-w-[400px] max-w-[400px] flex-col overflow-hidden rounded-[8px] bg-[var(--color-edit-bg-solid)]"
+                className="shadow-all-md-dark  absolute right-[0px] top-[50px] z-[100] flex min-h-[560px] min-w-[400px] max-w-[400px] flex-col overflow-hidden rounded-[8px] bg-[var(--color-edit-bg-solid)]"
                 // ref={modalContainerRef}
               >
                 {/* {hoveredItemPosModal && <TooltipModal />} */}

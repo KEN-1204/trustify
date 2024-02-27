@@ -28,13 +28,21 @@
   --color-bg-sub-re: #404040;
   --color-bg-sub: #404040;
   --shadow-header: var(--shadow-sidebar-dark); */
+  /* background-color: var(--color-sdb-bg); */
+  /* background-color: #171717; */
+  --color-bg-base-header: var(--color-sdb-bg);
+  --color-bg-base: var(--color-sdb-bg);
+  /* background-color: var(--color-sdb-bg); */
   --shadow-header: var(--shadow-header-sdb);
+  /* box-shadow: var(--shadow-sidebar); */
+  border-bottom: 1px solid var(--color-border);
 }
 .app_header.sdb .sdb_icon {
   /* color: #fff; */
 }
 .app_header.sdb .arrow_overlay {
   /* background: var(--color-bg-base-header-sdb); */
+  /* background: var(--color-sdb-bg); */
 }
 
 .navList {

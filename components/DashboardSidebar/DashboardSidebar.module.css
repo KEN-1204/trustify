@@ -6,7 +6,7 @@
   top: 0;
   left: 0;
   bottom: 0;
-  /* background: var(--color-bg-base); */
+  /* background: var(--color-bg-base-sub); */
   border-right: 1px solid var(--color-border);
   /* transition: background-color border box-shadow 0.3s ease !important; */
   /* transition: background-color 0.5s ease, border 0.5s ease, box-shadow 0.5s ease; */
@@ -22,6 +22,7 @@
 .app_sidebar.mini.display_in_out {
   /* width: var(--sidebar-open-width); */
 }
+
 .wrapper {
   height: 100%;
   width: 100%;
@@ -45,6 +46,15 @@
   background: var(--color-bg-base);
   /* transition: background-color 0.5s ease; */
   overflow-y: auto;
+}
+.content_container.sdb {
+  /* --color-bg-base-header: var(--color-sdb-bg);
+  --color-bg-base: var(--color-sdb-bg);
+  --shadow-header: var(--shadow-header-sdb); */
+  background-color: var(--color-sdb-bg);
+}
+.app_sidebar.sdb {
+  /* --color-border: var(--shadow-header-sdb); */
 }
 .section {
   position: relative;

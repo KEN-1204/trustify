@@ -19,8 +19,10 @@ export const ScreenDealBoards = () => {
   return (
     <>
       {/* <section className={`${styles.company_table_screen} h-screen w-full bg-neutral-900 text-neutral-50`}> */}
-      <section className={`${styles.company_table_screen} transition-bg05 w-full bg-neutral-900 text-neutral-50`}>
+      <section className={`${styles.company_table_screen} transition-bg05 w-full `}>
         {/* <DealBoardTest /> */}
+        <DealBoard />
+        <DealBoard />
         <DealBoard />
       </section>
     </>
