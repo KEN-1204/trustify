@@ -6,6 +6,8 @@ import {
   ColumnHeaderItemList,
   Contact_row_data,
   EditPosition,
+  EditedCard,
+  EditedDealCard,
   EditedProduct,
   Meeting_row_data,
   MemberAccounts,
@@ -461,6 +463,12 @@ type State = {
   // 全社, 事業部, 係, メンバー個人ごとのデータの範囲別
   activeSectionSDB: string;
   setActiveSectionSDB: (payload: string) => void;
+
+  // トレロボード
+  editedTaskCard: EditedCard;
+  setEditedTaskCard: (payload: EditedCard) => void;
+  editedDealCard: EditedDealCard;
+  setEditedDealCard: (payload: EditedDealCard) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -1079,6 +1087,12 @@ const useDashboardStore = create<State>((set) => ({
   // 全社, 事業部, 係, メンバー個人ごとのデータの範囲別
   activeSectionSDB: "All",
   setActiveSectionSDB: (payload) => set({ activeSectionSDB: payload }),
+
+  // トレロボード
+  editedTaskCard: null,
+  setEditedTaskCard: (payload) => set({ editedTaskCard: payload }),
+  editedDealCard: null,
+  setEditedDealCard: (payload) => set({ editedDealCard: payload }),
 }));
 
 export default useDashboardStore;

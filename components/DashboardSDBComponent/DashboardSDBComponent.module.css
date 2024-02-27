@@ -20,7 +20,7 @@
   position: absolute;
   z-index: 5000;
   inset: 0;
-  background-color: #00000030;
+  background-color: #00000060;
   opacity: 0;
   animation: fade 0.3s 0.1s ease forwards;
 }

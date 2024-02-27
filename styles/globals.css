@@ -25,6 +25,8 @@
   --caret-color-blue: #1da1f2;
   --caret-color-light-blue: #02e7f5;
 
+  --color-text-title-black: #37352f;
+
   /* TikTok */
   --caret-color-red: #ff3b5b;
   /* 現在のメインロゴ: #2B7FFF
@@ -59,6 +61,11 @@
 
   /* ビビッドカラー */
   --bright-green: #00d436;
+  --bright-green30: #00d43630;
+  --bright-green29: #00d43629;
+  --bright-green20: #00d43620;
+  --bright-green10: #00d43610;
+  --bright-green-placeholder: #56e67a;
   --vivid-green-dark: #0fff92;
   --bright-green-rgb: 0, 212, 54;
   --bright-red: #f63e54;
@@ -1001,7 +1008,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-top-md: 0px -10px 10px -5px rgba(0, 0, 0, 0.08);
   --shadow-top-md2: 0px -4px 15px -3px rgba(0, 0, 0, 0.15);
   --shadow-top-white-md: 0px -4px 15px 3px rgba(255, 255, 255, 0.39);
-  --shadow-header: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
+  /* --shadow-header: 0 2px 4px -1px rgba(57, 76, 96, 0.15); */
+  --shadow-header: 0 2px 4px 0px rgba(57, 76, 96, 0.15);
+  --shadow-header-sdb: 0 2px 4px 0px rgba(57, 76, 96, 0.15);
   --shadow-sidebar: 2px 0px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-sidebar-dark: 0 2px 6px 1px rgba(57, 76, 96, 0.3);
   /* テキスト シャドウ light */
@@ -1024,6 +1033,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* ツールチップのボーダーからー light */
   --box-shadow-tooltip-border: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390;
+  --box-shadow-tooltip-border-brand: inset 0px 0px 0px 1px var(--color-bg-brand-f60),
+    0px 0px 0px 1px var(--color-bg-brand-f);
   --shadow-dropdown-menu: 0 4px 6px 2px #00000033;
   --border-real-with-shadow: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390, var(--shadow-dropdown-menu);
   --border-real-with-shadow-f: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390,
@@ -1045,6 +1056,31 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* セレクトボックス カスタム */
   --color-select-box-bg: #666;
   --color-select-box-hover: #2894ff;
+
+  /* ------------- 🌟ネタ表🌟 ------------- */
+  --color-table-bg: #fdfdfd;
+  --color-table-text: var(--color-text-title);
+  --color-award: rgb(236 72 153 / 1);
+  --color-eighty: rgb(239 68 68 / 1);
+  --color-fifty: rgb(16 185 129 / 1);
+  --color-thirty: rgb(59 130 246 / 1);
+  --color-column-bg: var(--color-bg-sub);
+  --color-column-lane-active: rgb(246, 246, 246);
+  --color-column-border-active: inset 0px 0px 0px 1px var(--color-bg-brand-fd0), 0px 0px 0px 1px var(--color-bg-brand-f);
+  --color-column-sideborder-active: var(--color-bg-brand-f90);
+  /* --color-column-border-active: inset 0px 0px 0px 1px #ff3b5b90, 0px 0px 0px 1px #ff3b5b; */
+  /* --color-column-lane-active: #0ab5ff15; */
+  --color-card-bg: rgb(248, 248, 248);
+  --color-card-border: rgb(190, 190, 190);
+  --color-card-text: var(--color-text-title-black);
+  --color-barrel-text: rgb(115 115 115 / 1);
+  --color-barrel-bg: var(--color-bg-sub);
+  --color-barrel-border: rgb(115 115 115 / 1);
+  --color-barrel-text-active: rgba(255, 0, 0, 0.9);
+  --color-barrel-bg-active: rgba(255, 117, 117, 0.2);
+  --color-barrel-border-active: rgb(239 68 68 / 1);
+  --color-drop-indicator-active: #ff3b5b;
+  /* ------------- ✅ネタ表✅ ここまで ------------- */
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -1661,8 +1697,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-top-white-md: 0px -4px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-bottom-white-md: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
+  /* --shadow-header: 0px 1px 6px 2px rgba(0, 0, 0, 0.33); */
+  --shadow-header-sdb: 0px 1px 12px 0px rgba(0, 0, 0, 0.24);
   --shadow-sidebar: 1px 0px 6px -1px rgba(255, 255, 255, 0.12);
-  --shadow-sidebar-dark: 0px 0px 6px -1px rgba(255, 255, 255, 0.6);
+  /* --shadow-sidebar: 1px 0px 6px 1px rgba(0, 0, 0, 0.33); */
+  --shadow-sidebar-dark: 0px 0px 6px -1px rgba(255, 255, 255, 0.3);
   --color-header-shadow-hover: rgb(0 0 0 / 69%) 0px 16px 38px -5px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
   /* テキスト シャドウ dark */
   --color-text-brand-shadow: #ffffff70;
@@ -1688,6 +1727,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* ツールチップのボーダーからー */
 
   --box-shadow-tooltip-border: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000;
+  --box-shadow-tooltip-border-brand: inset 0px 0px 0px 1px var(--color-bg-brand-f-deep),
+    0px 0px 0px 1px var(--color-bg-brand-f);
   --shadow-dropdown-menu: 0 4px 10px 2px #ffffff33;
   --shadow-dropdown-menu-dark: 0 4px 6px 2px #00000033;
   --border-real-with-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000, var(--shadow-dropdown-menu);
@@ -1715,6 +1756,29 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-select-box-bg: #333;
   /* --color-select-box-hover: #2894ff; */
   --color-select-box-hover: #1188ff;
+
+  /* ------------- 🌟ネタ表🌟 ------------- */
+  --color-table-bg: #171717;
+  --color-table-text: #fafafa;
+  --color-award: rgb(244 114 182 / 1);
+  --color-eighty: rgb(248 113 113 / 1);
+  --color-fifty: rgb(52 211 153 / 1);
+  --color-thirty: rgb(96 165 250 / 1);
+  --color-column-bg: transparent;
+  --color-column-lane-active: rgb(38 38 38 / 0.6);
+  --color-column-border-active: inset 0px 0px 0px 1px #063c13, 0px 0px 0px 1px #00ff40;
+  --color-column-sideborder-active: var(--color-bg-brand-fc0);
+  --color-card-bg: rgb(38 38 38 / 1);
+  --color-card-border: rgb(64 64 64 / 1);
+  --color-card-text: rgb(245 245 245 / 1);
+  --color-barrel-bg: rgb(115 115 115 / 0.2);
+  --color-barrel-text: rgb(115 115 115 / 1);
+  --color-barrel-border: rgb(115 115 115 / 1);
+  --color-barrel-bg-active: rgb(153 27 27 / 0.2);
+  --color-barrel-text-active: rgb(239 68 68 / 1);
+  --color-barrel-border-active: rgb(153 27 27 / 1);
+  --color-drop-indicator-active: #00ff40;
+  /* ------------- ✅ネタ表✅ ここまで ------------- */
 }
 
 /* html {
@@ -2523,6 +2587,9 @@ textarea {
   /* box-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000; */
   box-shadow: var(--box-shadow-tooltip-border);
   /* box-shadow: var(--color-edit-border); */
+}
+.border-real-brand {
+  box-shadow: var(--box-shadow-tooltip-border-brand);
 }
 /* .border-real-border {
   filter: drop-shadow(0px 0px 1px #33333390);

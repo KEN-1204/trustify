@@ -2341,4 +2341,17 @@ export type StatusClosingDays = { fiscal_year: number; applied_closing_days: num
 //   setCards: Dispatch<SetStateAction<CardType[]>>;
 // };
 
-type CardType = { id: string; taskTitle: string; contents: string; columnTitle: string };
+export type CardType = { id: string; taskTitle: string; contents: string | null; columnTitle: string };
+
+// export type EditedCard = { columnTitle: string; card: CardType } | null;
+export type EditedCard = CardType | null;
+
+export type DealCardType = {
+  property_id: string;
+  company_name: string; // 会社名
+  company_department_name: string | null; // 部署名
+  column_title_num: number; // 月初確度 or 中間確度 中間確度があればこちらを優先
+  expansion_year_month: number; // 展開日付 => 当月発生の場合はネタ外として扱う
+};
+
+export type EditedDealCard = DealCardType | null;

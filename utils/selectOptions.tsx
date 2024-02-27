@@ -1377,13 +1377,15 @@ export const getLeaseDivision = (value: string, language: string = "ja") => {
   }
 };
 
-// 月初確度
+// 月初確度 order_certainty_start_of_month ネタ読みの精度も確認するため
+// 最初のネタ確度から受注、ペンディング、没のアクティビティを担当者毎に記録する
+// 各確度ごとの獲得率を算出して可視化することで、正確な売上予測と過分な製造、在庫管理によるコストを削減、利益最大化を図る
 export const optionsOrderCertaintyStartOfMonth = [1, 2, 3, 4];
 
 export const getOrderCertaintyStartOfMonth = (classNum: number, language: string = "ja") => {
   switch (classNum) {
     case 1:
-      return language === "ja" ? `A (受注済み)` : `A (受注済み)`;
+      return language === "ja" ? `A (受注済み)` : `A (受注済み)`; // AwardのA
       break;
     case 2:
       return language === "ja" ? `○ (80%以上の確率で受注)` : `○ (80%以上の確率で受注)`;
@@ -1398,6 +1400,12 @@ export const getOrderCertaintyStartOfMonth = (classNum: number, language: string
     default:
       break;
   }
+};
+export const mappingOrderCertaintyStartOfMonth: { [key: number]: { [key: string]: string } } = {
+  1: { ja: `A  (受注済み)`, en: "" },
+  2: { ja: `○  (80%以上の確率で受注)`, en: "" },
+  3: { ja: `△  (50%以上の確率で受注)`, en: "" },
+  4: { ja: `▲  (30%以上の確率で受注)`, en: "" },
 };
 // export const getInvertOrderCertaintyStartOfMonth = (classNum: string, language: string = "ja") => {
 //   switch (classNum) {

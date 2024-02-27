@@ -10,24 +10,14 @@ import {
   useRef,
   useState,
 } from "react";
-import { BurnBarrel } from "./BurnBarel";
-import styles from "./DealBoard.module.css";
+import styles from "./TaskBoard.module.css";
 import { FiPlus, FiTrash } from "react-icons/fi";
 import { FaFire } from "react-icons/fa";
 import { AddCard } from "./AddCard";
-import { EditModalDealCard } from "./EditModalDealCard";
+import { EditModalTaskCard } from "./EditModalTaskCard";
 import useDashboardStore from "@/store/useDashboardStore";
 import { mappingOrderCertaintyStartOfMonth } from "@/utils/selectOptions";
 import useStore from "@/store";
-import { isValidNumber } from "@/utils/Helpers/isValidNumber";
-
-type ColumnSizeInfo = {
-  prevColumnHeight: number;
-  columnHeight: number;
-  prevRowLength: number;
-  rowLength: number;
-  isResizedColumnHeight: boolean;
-};
 
 type ColumnLane = {
   // title: string;
@@ -36,15 +26,6 @@ type ColumnLane = {
   cards: DealCardType[];
   setCards: Dispatch<SetStateAction<DealCardType[]>>;
 };
-// type ColumnLane = {
-//   // title: string;
-//   titleNum: number; // 1: A (受注済み),2: ○ (80%以上の確率で受注), 3: ...
-//   headingColor: string;
-//   cards: DealCardType[];
-//   setCards: Dispatch<SetStateAction<DealCardType[]>>;
-//   columnInfo: ColumnSizeInfo;
-//   setColumnInfo: Dispatch<SetStateAction<ColumnSizeInfo>>;
-// };
 
 // type DealCardType = { id: string; taskTitle: string; contents: string | null; columnTitle: string };
 
@@ -81,7 +62,7 @@ const mappingColumnIndexToTitle: { [key: number]: number } = {
   3: 4, //"▲ (30%以上の確率で受注)"
 };
 
-const DealBoardMemo = () => {
+const TaskBoardMemo = () => {
   const language = useStore((state) => state.language);
   // const [cards, setCards] = useState<DealCardType[]>([]);
   const [cards, setCards] = useState<DealCardType[]>(DEFAULT_CARDS);
@@ -98,6 +79,12 @@ const DealBoardMemo = () => {
   //   { titleNum: 3, headingColor: "text-emerald-400", cards: cards, setCards: setCards },
   //   { titleNum: 4, headingColor: "text-blue-400", cards: cards, setCards: setCards },
   // ];
+  const dealColumnList: ColumnLane[] = [
+    { titleNum: 1, headingColor: styles.award, cards: cards, setCards: setCards },
+    { titleNum: 2, headingColor: styles.eighty, cards: cards, setCards: setCards },
+    { titleNum: 3, headingColor: styles.fifty, cards: cards, setCards: setCards },
+    { titleNum: 4, headingColor: styles.thirty, cards: cards, setCards: setCards },
+  ];
 
   // useEffect(() => {
   //   hasCheckedRef.current && localStorage.setItem("cards", JSON.stringify(cards));
@@ -117,7 +104,6 @@ const DealBoardMemo = () => {
   // --------------- 🔹ボード
   const boardRef = useRef<HTMLDivElement | null>(null);
   // --------------- 🔹Columnレーン
-  const columnsRef = useRef<(HTMLDivElement | null)[]>([]);
   const columnLanesRef = useRef<(HTMLDivElement | null)[]>([]);
   // カラムレーンホバー時のアクティブ状態
   const columnActiveRef = useRef(false);
@@ -126,11 +112,8 @@ const DealBoardMemo = () => {
   // --------------- 🔹カード
   // １列分の全てのカードのrefオブジェクトの配列
   const rowCardsRef = useRef<(HTMLDivElement | null)[]>([]);
-  // ドラッグしているカラムの情報
-  const prevDraggingColumnIndexRef = useRef<number | null>(null);
-  const draggingColumnIndexRef = useRef<number | null>(null);
   // ドラッグしているカードの情報
-  const originDraggingCardIndexRef = useRef<{ originColumnIndex: number; originRowIndex: number } | null>(null);
+  const prevDraggingCardIndexRef = useRef<{ prevColumnIndex: number; prevRowIndex: number } | null>(null);
   const draggingCardIndexRef = useRef<{ currentColumnIndex: number; currentRowIndex: number } | null>(null);
   const draggingCardSizeY = useRef(0);
   // const [draggingCardSizeY, setDraggingCardSizeY] = useState(0);
@@ -138,7 +121,7 @@ const DealBoardMemo = () => {
   // カードホバー時のアクティブ状態
   const rowCardActiveRef = useRef(false);
   // ドラッグ中のカードのDOM
-  const draggingCardElRef = useRef<HTMLDivElement | null>(null);
+  const draggingCardDom = useRef<HTMLDivElement | null>(null);
   // ドラッグ中のカードを掴んだ位置からカード上部までの距離
   const offsetDragCardPositionRef = useRef({ x: 0, y: 0, bottom: 0 });
   // ゴミ箱関連
@@ -150,242 +133,28 @@ const DealBoardMemo = () => {
   const [updateCardsMapTrigger, setUpdateCardsMapTrigger] = useState(Date.now());
   // カテゴライズしたカードリストMapオブジェクト
   const categorizedCardsMapObj = useMemo(() => {
-    // reduceパターンだと列に１枚もカードが存在しなくなった場合に対応できないため下記に変更
-    // const categorizedCards: Map<number, DealCardType[]> = cards.reduce((map, card) => {
-    //   // 既にそのtitleのキーがMapに存在するか確認
-    //   if (!map.has(card.column_title_num)) {
-    //     map.set(card.column_title_num, []); // 存在しなければ新しい配列と共にキーを追加
-    //   }
+    const categorizedCards: Map<number, DealCardType[]> = cards.reduce((map, card) => {
+      // 既にそのtitleのキーがMapに存在するか確認
+      if (!map.has(card.column_title_num)) {
+        map.set(card.column_title_num, []); // 存在しなければ新しい配列と共にキーを追加
+      }
 
-    //   map.get(card.column_title_num).push(card); // カードを適切な配列に追加
+      map.get(card.column_title_num).push(card); // カードを適切な配列に追加
 
-    //   return map; // 更新されたMapを返す
-    // }, new Map());
+      return map; // 更新されたMapを返す
+    }, new Map());
 
-    // Mapオブジェクトを作成
-    const categorizedCards = new Map<number, DealCardType[]>();
-
-    // 4列全てに対して空の配列を初期値として設定 月初確度の値は1~4までのINTEGER型のため1~4のkey, 空の配列をvalueとしたエントリをMapオブジェクトにセット
-    for (let i = 1; i <= 4; i++) {
-      categorizedCards.set(i, []);
-    }
-
-    // カードデータを適切な列に追加
-    cards.forEach((card) => {
-      // 取り出したカードの確度に対応する数字のkey(列)のvalue(配列)を取得して、この配列にカードを追加
-      categorizedCards.get(card.column_title_num)?.push(card);
-    });
-
-    console.log("✅✅✅✅✅✅✅✅✅✅✅✅✅再生成", "cards", cards, "categorizedCards", categorizedCards);
+    console.log(
+      "✅✅✅✅✅✅✅✅✅✅✅✅✅再生成updateCardsMapTrigger",
+      updateCardsMapTrigger,
+      "cards",
+      cards,
+      "categorizedCards",
+      categorizedCards
+    );
     return categorizedCards;
   }, [cards]);
   // }, [cards, updateCardsMapTrigger]);
-
-  const awardArray = useMemo(() => {
-    return categorizedCardsMapObj.get(1);
-  }, [categorizedCardsMapObj]);
-  const eightyArray = useMemo(() => {
-    return categorizedCardsMapObj.get(2);
-  }, [categorizedCardsMapObj]);
-  const fiftyArray = useMemo(() => {
-    return categorizedCardsMapObj.get(3);
-  }, [categorizedCardsMapObj]);
-  const thirtyArray = useMemo(() => {
-    return categorizedCardsMapObj.get(4);
-  }, [categorizedCardsMapObj]);
-
-  //  const dealColumnList: ColumnLane[] = [
-  //    { titleNum: 1, headingColor: styles.award, cards: cards, setCards: setCards },
-  //    { titleNum: 2, headingColor: styles.eighty, cards: cards, setCards: setCards },
-  //    { titleNum: 3, headingColor: styles.fifty, cards: cards, setCards: setCards },
-  //    { titleNum: 4, headingColor: styles.thirty, cards: cards, setCards: setCards },
-  //  ];
-  const dealColumnList: ColumnLane[] = [
-    {
-      titleNum: 1,
-      headingColor: styles.award,
-      cards: awardArray ?? [],
-      setCards: setCards,
-    },
-    {
-      titleNum: 2,
-      headingColor: styles.eighty,
-      cards: eightyArray ?? [],
-      setCards: setCards,
-    },
-    {
-      titleNum: 3,
-      headingColor: styles.fifty,
-      cards: fiftyArray ?? [],
-      setCards: setCards,
-    },
-    {
-      titleNum: 4,
-      headingColor: styles.thirty,
-      cards: thirtyArray ?? [],
-      setCards: setCards,
-    },
-  ];
-
-  // 🔹ボードの高さをカラム全体の高さから余白を設けて再計算 cardsの内容が変更されるごとに再計算
-  useEffect(() => {}, [cards]);
-
-  // ------------------------ ❌一旦無し❌ ------------------------
-  // const [awardColumnInfo, setAwardColumnInfo] = useState<ColumnSizeInfo>({
-  //   prevColumnHeight: 0,
-  //   columnHeight: 0,
-  //   prevRowLength: 0,
-  //   rowLength: 0,
-  //   isResizedColumnHeight: false,
-  // });
-  // const [eightyColumnInfo, setEightyColumnInfo] = useState<ColumnSizeInfo>({
-  //   prevColumnHeight: 0,
-  //   columnHeight: 0,
-  //   prevRowLength: 0,
-  //   rowLength: 0,
-  //   isResizedColumnHeight: false,
-  // });
-  // const [fiftyColumnInfo, setFiftyColumnInfo] = useState<ColumnSizeInfo>({
-  //   prevColumnHeight: 0,
-  //   columnHeight: 0,
-  //   prevRowLength: 0,
-  //   rowLength: 0,
-  //   isResizedColumnHeight: false,
-  // });
-  // const [thirtyColumnInfo, setThirtyColumnInfo] = useState<ColumnSizeInfo>({
-  //   prevColumnHeight: 0,
-  //   columnHeight: 0,
-  //   prevRowLength: 0,
-  //   rowLength: 0,
-  //   isResizedColumnHeight: false,
-  // });
-
-  // const dealColumnList: ColumnLane[] = [
-  //   {
-  //     titleNum: 1,
-  //     headingColor: styles.award,
-  //     cards: awardArray ?? [],
-  //     setCards: setCards,
-  //     columnInfo: awardColumnInfo,
-  //     setColumnInfo: setAwardColumnInfo,
-  //   },
-  //   {
-  //     titleNum: 2,
-  //     headingColor: styles.eighty,
-  //     cards: eightyArray ?? [],
-  //     setCards: setCards,
-  //     columnInfo: eightyColumnInfo,
-  //     setColumnInfo: setEightyColumnInfo,
-  //   },
-  //   {
-  //     titleNum: 3,
-  //     headingColor: styles.fifty,
-  //     cards: fiftyArray ?? [],
-  //     setCards: setCards,
-  //     columnInfo: fiftyColumnInfo,
-  //     setColumnInfo: setFiftyColumnInfo,
-  //   },
-  //   {
-  //     titleNum: 4,
-  //     headingColor: styles.thirty,
-  //     cards: thirtyArray ?? [],
-  //     setCards: setCards,
-  //     columnInfo: awardColumnInfo,
-  //     setColumnInfo: setAwardColumnInfo,
-  //   },
-  // ];
-
-  // それぞれのColumnのheightをインラインスタイルに返す
-  // const getColumnHeight = (columnIndex: number) => {
-  //   if (columnIndex === 0 && awardColumnInfo.columnHeight !== 0)
-  //     return { minHeight: `${awardColumnInfo.columnHeight}px` };
-  //   else if (columnIndex === 1 && eightyColumnInfo.columnHeight !== 0)
-  //     return { minHeight: `${eightyColumnInfo.columnHeight}px` };
-  //   else if (columnIndex === 2 && fiftyColumnInfo.columnHeight !== 0)
-  //     return { minHeight: `${fiftyColumnInfo.columnHeight}px` };
-  //   else if (columnIndex === 3 && thirtyColumnInfo.columnHeight !== 0)
-  //     return { minHeight: `${thirtyColumnInfo.columnHeight}px` };
-  //   else {
-  //     return {};
-  //   }
-  // };
-
-  // // 現在のカラムの高さと最大の要素数を格納
-  // useEffect(() => {
-  //   if (!columnLanesRef.current) return;
-  //   if (!columnLanesRef.current[0]) return;
-  //   if (!awardArray) return;
-  //   // 初回マウント時のカラムの高さを取得して保存
-  //   // columnHeightRef.current = columnLanesRef.current[0].offsetHeight;
-  //   // setColumnHeight(columnLanesRef.current[0].offsetHeight);
-  //   // setPrevColumnHeight(columnLanesRef.current[0].offsetHeight);
-  //   const newHeight = columnLanesRef.current[0].offsetHeight;
-  //   const maxLength = awardArray.length;
-  //   const newInfo = {
-  //     ...awardColumnInfo,
-  //     prevColumnHeight: newHeight,
-  //     columnHeight: newHeight,
-  //     prevRowLength: maxLength,
-  //     rowLength: maxLength,
-  //   };
-  //   setAwardColumnInfo(newInfo);
-  //   console.log("useEffect高さセット 0", newInfo);
-  // }, []);
-  // useEffect(() => {
-  //   if (!columnLanesRef.current) return;
-  //   if (!columnLanesRef.current[1]) return;
-  //   if (!eightyArray) return;
-  //   // 初回マウント時のカラムの高さを取得して保存
-  //   const newHeight = columnLanesRef.current[1].offsetHeight;
-  //   const maxLength = eightyArray.length;
-  //   const newInfo = {
-  //     ...eightyColumnInfo,
-  //     prevColumnHeight: newHeight,
-  //     columnHeight: newHeight,
-  //     prevRowLength: maxLength,
-  //     rowLength: maxLength,
-  //   };
-  //   setEightyColumnInfo(newInfo);
-  //   console.log("useEffect高さセット 1", newInfo);
-  // }, []);
-  // useEffect(() => {
-  //   if (!columnLanesRef.current) return;
-  //   if (!columnLanesRef.current[2]) return;
-  //   if (!fiftyArray) return;
-  //   // 初回マウント時のカラムの高さを取得して保存
-  //   const newHeight = columnLanesRef.current[2].offsetHeight;
-  //   const maxLength = fiftyArray.length;
-  //   const newInfo = {
-  //     ...fiftyColumnInfo,
-  //     prevColumnHeight: newHeight,
-  //     columnHeight: newHeight,
-  //     prevRowLength: maxLength,
-  //     rowLength: maxLength,
-  //   };
-  //   setFiftyColumnInfo(newInfo);
-  //   console.log("useEffect高さセット 2", newInfo);
-  // }, []);
-  // useEffect(() => {
-  //   if (!columnLanesRef.current) return;
-  //   if (!columnLanesRef.current[3]) return;
-  //   if (!thirtyArray) return;
-  //   // 初回マウント時のカラムの高さを取得して保存
-  //   // columnHeightRef.current = columnLanesRef.current[0].offsetHeight;
-  //   // setColumnHeight(columnLanesRef.current[0].offsetHeight);
-  //   // setPrevColumnHeight(columnLanesRef.current[0].offsetHeight);
-  //   const newHeight = columnLanesRef.current[3].offsetHeight;
-  //   const maxLength = thirtyArray.length;
-  //   const newInfo = {
-  //     ...thirtyColumnInfo,
-  //     prevColumnHeight: newHeight,
-  //     columnHeight: newHeight,
-  //     prevRowLength: maxLength,
-  //     rowLength: maxLength,
-  //   };
-  //   setThirtyColumnInfo(newInfo);
-  //   console.log("useEffect高さセット 3", newInfo);
-  // }, []);
-  // ------------------------ ❌一旦無し❌ ------------------------
 
   // ----------------------- 🌟Columnレーン🌟 -----------------------
 
@@ -397,68 +166,13 @@ const DealBoardMemo = () => {
     e,
     columnIndex,
     columnTitleNum,
-    columnLastCardIndex,
   }: {
     e: DragEvent<HTMLDivElement>;
     columnIndex: number;
     columnTitleNum: number;
-    columnLastCardIndex: number;
   }) => {
     // ドラッグ中のカード
-    if (!draggingCardElRef.current) return console.log("1");
-    if (!draggingCardIndexRef.current) return console.log("1");
-    if (!originDraggingCardIndexRef.current) return console.log("1");
-
-    // ------------------------ ❌一旦無し❌ ------------------------
-    // if (!isValidNumber(prevDraggingColumnIndexRef.current))
-    //   return console.log("1", "前回のカラム", prevDraggingColumnIndexRef.current);
-
-    // // 前回のホバーしていたカラム
-    // const { columnInfo: columnInfoPrev, setColumnInfo: setColumnInfoPrev } =
-    //   dealColumnList[prevDraggingColumnIndexRef.current!];
-    // const {
-    //   isResizedColumnHeight: isResizedColumnHeightPrev,
-    //   prevRowLength: prevRowLengthPrev,
-    //   prevColumnHeight: prevColumnHeightPrev,
-    // } = columnInfoPrev;
-
-    // // ドラッグ中の列を格納
-    // draggingColumnIndexRef.current = columnIndex;
-
-    // console.log(
-    //   "Columnレーン Leave🔹✅",
-    //   "前回のカラム",
-    //   prevDraggingColumnIndexRef.current,
-    //   "Leaveしたカラム",
-    //   columnIndex,
-    //   "リサイズ中",
-    //   isResizedColumnHeightPrev
-    // );
-
-    // // 🔹前のカラムと今回のカラムが別で、かつ前回のカラムのisResizedがtrue(最後尾にドラッグしていた)場合は、前のカラムの高さを元に戻す
-    // if (prevDraggingColumnIndexRef.current === columnIndex && isResizedColumnHeightPrev) {
-    //   // 現在のカラムDOM要素
-    //   // const hoveredColumnElPrev = columnLanesRef.current[prevDraggingColumnIndexRef.current!];
-    //   // if (!hoveredColumnElPrev) return console.log("1");
-    //   const newInfo = {
-    //     ...columnInfoPrev,
-    //     columnHeight: prevColumnHeightPrev,
-    //     isResizedColumnHeight: false,
-    //   } as ColumnSizeInfo;
-    //   console.log(
-    //     "Columnレーン Leave 高さを元に戻す✅",
-    //     "前回のcolumnInfo",
-    //     columnInfoPrev,
-    //     "更新後のcolumnInfo",
-    //     newInfo
-    //   );
-    //   setColumnInfoPrev(newInfo);
-    // }
-
-    // // // 高さを戻したらカラムindexをnullに変更
-    // // prevDraggingColumnIndexRef.current = null;
-
-    // ------------------------ ❌一旦無し❌ ------------------------
+    if (!draggingCardDom.current) return;
 
     // Columnレーンをアクティブにする前に前回のactiveなColumnと異なるColumnかチェック
     if (prevActiveColumnDom.current) {
@@ -475,7 +189,6 @@ const DealBoardMemo = () => {
     // Columnレーンをアクティブ
     const hoveredColumn = columnLanesRef.current[columnIndex];
     if (!hoveredColumn) return;
-
     if (!hoveredColumn.classList.contains(styles.active)) {
       hoveredColumn.classList.add(`${styles.active}`);
       // activeにしたカラムを記憶
@@ -490,96 +203,15 @@ const DealBoardMemo = () => {
     // const lastCardInCurrentColumn = lastIndicators.current[columnIndex];
     const lastCardInCurrentColumn = hoveredColumn.querySelector(`.${styles.row_card}.last`);
 
-    if (!lastCardInCurrentColumn) {
-      // 前回のインジケータのactiveクラスを削除
-      // if (!boardRef.current) return;
-      // const activeIndicatorAll = boardRef.current.querySelectorAll(`.${styles.drop_indicator}.${styles.active}`);
-      const activeIndicator = prevIndicatorRef.current;
-      console.log(
-        "Columnレーン Enter 最後のカード無し!!!!!!!!!!!✅ indexをrowIndex-1で格納 activeIndicator",
-        activeIndicator
-      );
-      if (activeIndicator && activeIndicator.classList.contains(styles.active)) {
-        activeIndicator.classList.remove(styles.active);
-      }
-
-      // 末尾のインジケータをアクティブに
-      const lastIndicator = hoveredColumn.querySelector(`.${styles.drop_indicator}.last`);
-      if (lastIndicator && !lastIndicator.classList.contains(styles.active)) {
-        lastIndicator.classList.add(`${styles.active}`);
-        prevIndicatorRef.current = lastIndicator as HTMLDivElement;
-      }
-      // ドラッグ中の列行indexを現在ホバー中のカラムと末尾に設定
-      draggingCardIndexRef.current = {
-        currentColumnIndex: columnIndex,
-        currentRowIndex: -1,
-      };
-      return;
-    }
+    if (!lastCardInCurrentColumn) return;
     // const lastCardBottomInCurrentColumn = lastCardInCurrentColumn.getBoundingClientRect().bottom;
     // if (!lastCardBottomInCurrentColumn) return;
     const lastCardTopInCurrentColumn = lastCardInCurrentColumn.getBoundingClientRect().top;
     if (!lastCardTopInCurrentColumn) return;
-
-    console.log(
-      "Columnレーン Enter 変更前ドラッグ中のindex",
-      draggingCardIndexRef.current,
-      "ホバー中のカラムindex",
-      columnIndex,
-      "前回のカラムindex",
-      prevDraggingColumnIndexRef.current,
-      "最後のカードTop",
-      lastCardTopInCurrentColumn,
-      "ドラッグ中のカードTop",
-      draggingCardTop
-    );
-
     // 末尾のカードの最下部よりドラッグ中のカードの上部が下の場合は末尾のインジケータをactiveにする
-    // 初期位置が別のカラムの場合で、かつ既にホバー先のカラムの最終カードindexとドラッグ中のrowIndexが同じ場合は-1せずリターン
-    if (
-      originDraggingCardIndexRef.current.originColumnIndex !== columnIndex &&
-      draggingCardIndexRef.current.currentRowIndex === columnLastCardIndex
-    ) {
-      console.log(
-        "Columnレーン Enter ✅既に最後のindexのため-1せずリターン",
-        draggingCardIndexRef.current,
-        "最後のカードindex",
-        columnLastCardIndex
-      );
-      return;
-    }
-    // ------------------------ ❌一旦無し❌ ------------------------
-    // 🔹エンター先が別のカラムで、かつドラッグしている行が最後尾の場合は高さを増やす
-    // 現在ホバー中のカラム
-    // const { columnInfo, setColumnInfo } = dealColumnList[columnIndex];
-    // const { isResizedColumnHeight, rowLength, columnHeight } = columnInfo;
-    // ------------------------ ❌一旦無し❌ ------------------------
+
     if (lastCardTopInCurrentColumn < draggingCardTop) {
-      console.log(
-        "🔥 Columnレーン 末尾をアクティブに変更",
-        lastCardTopInCurrentColumn < draggingCardTop,
-        "前回のカラム",
-        prevDraggingColumnIndexRef.current,
-        "今回のカラム",
-        columnIndex
-      );
-
-      // ------------------------ ❌一旦無し❌ ------------------------
-      // if (prevDraggingColumnIndexRef.current !== columnIndex && !isResizedColumnHeight) {
-      //   // 現在のカラムDOM要素
-      //   const hoveredColumnEl = columnLanesRef.current[columnIndex];
-      //   if (!hoveredColumnEl) return;
-      //   // hoveredColumnEl.style.height = `${columnHeightRef.current + draggingCardElRef.current.offsetHeight}px`;
-      //   const newInfo = {
-      //     ...columnInfo,
-      //     columnHeight: columnHeight + draggingCardElRef.current.offsetHeight,
-      //     isResizedColumnHeight: true,
-      //   } as ColumnSizeInfo;
-      //   console.log("高さを更新✅", "現在のcolumnInfo", columnInfo, "更新後のcolumnInfo", newInfo);
-      //   setColumnInfo(newInfo);
-      // }
-      // ------------------------ ❌一旦無し❌ ------------------------
-
+      console.log("🔥🔥🔥🔥🔥🔥🔥🔥", lastCardTopInCurrentColumn < draggingCardTop);
       // 前回のインジケータを非アクティブ化 同じカラムの末尾以外
       if (prevIndicatorRef.current) {
         const isSame =
@@ -589,8 +221,7 @@ const DealBoardMemo = () => {
           prevIndicatorRef.current.classList.remove(`${styles.active}`);
         }
       }
-      const lastIndicator = hoveredColumn.querySelector(`.${styles.drop_indicator}.last`);
-      // console.log("✅✅✅✅hoveredColumn", hoveredColumn, "lastIndicator", lastIndicator);
+      const lastIndicator = hoveredColumn.querySelector(`.${styles.drop_indicator}:last-of-type`);
       if (lastIndicator && !lastIndicator.classList.contains(styles.active)) {
         lastIndicator.classList.add(`${styles.active}`);
 
@@ -612,20 +243,15 @@ const DealBoardMemo = () => {
       }
     }
 
-    // ------------------------ ❌一旦無し❌ ------------------------
-    // // 🔹前回のドラッグ中の列を現在の列に更新
-    // prevDraggingColumnIndexRef.current = columnIndex;
-    // ------------------------ ❌一旦無し❌ ------------------------
-
     console.log(
-      "Columnレーン Enter🔹✅ ドラッグ中のindex",
+      "Columnレーン Enter🔹",
       draggingCardIndexRef.current,
       "draggingCardTop",
       draggingCardTop,
       "lastCardTopInCurrentColumn",
-      lastCardTopInCurrentColumn,
-      "更新後の前回のカラムindex",
-      prevDraggingColumnIndexRef.current
+      lastCardTopInCurrentColumn
+      // "lastCardBottomInCurrentColumn",
+      // lastCardBottomInCurrentColumn
     );
   };
   // ----------------------- 受Columnレーン Enter -----------------------
@@ -641,17 +267,7 @@ const DealBoardMemo = () => {
   };
 
   // ----------------------- 受Columnレーン onDragLeave -----------------------
-  const handleDragLeaveColumnLane = ({
-    e,
-    columnIndex,
-    columnTitleNum,
-    columnLastCardIndex,
-  }: {
-    e: DragEvent<HTMLDivElement>;
-    columnIndex: number;
-    columnTitleNum: number;
-    columnLastCardIndex: number;
-  }) => {};
+  const handleDragLeaveColumnLane = () => {};
 
   // ----------------------- 🌟Columnレーン🌟 -----------------------
 
@@ -671,21 +287,16 @@ const DealBoardMemo = () => {
     rowIndex: number;
   }) => {
     // ドラッグ開始時の列と行を保存
-    originDraggingCardIndexRef.current = { originColumnIndex: columnIndex, originRowIndex: rowIndex };
+    prevDraggingCardIndexRef.current = { prevColumnIndex: columnIndex, prevRowIndex: rowIndex };
     draggingCardIndexRef.current = { currentColumnIndex: columnIndex, currentRowIndex: rowIndex };
     draggingCardObjRef.current = card;
     draggingCardSizeY.current = e.currentTarget.getBoundingClientRect().height;
     // setDraggingCardSizeY(e.currentTarget.getBoundingClientRect().height);
-    // ------------------------ ❌一旦無し❌ ------------------------
-    // ドラッグ開始時の列を格納
-    // prevDraggingColumnIndexRef.current = columnIndex;
-    // draggingColumnIndexRef.current = columnIndex;
-    // ------------------------ ❌一旦無し❌ ------------------------
 
     // is_draggingクラス付与
     e.currentTarget.classList.add(styles.is_dragging);
 
-    draggingCardElRef.current = e.currentTarget as HTMLDivElement;
+    draggingCardDom.current = e.currentTarget as HTMLDivElement;
 
     // 実際にドラッグしたマウスポインタの位置と、実際のカードの左端、上部の差分の距離を記憶しておく(ドラッグ後に使用)
     const cardRect = e.currentTarget.getBoundingClientRect();
@@ -733,17 +344,6 @@ const DealBoardMemo = () => {
     rowIndex: number;
     columnLastCardIndex: number;
   }) => {
-    console.log(
-      "Rowカード Enter 変更前ドラッグ中のindex",
-      draggingCardIndexRef.current,
-      "ホバー中のindex",
-      "columnIndex",
-      columnIndex,
-      "rowIndex",
-      rowIndex,
-      "前回のカラム",
-      prevDraggingColumnIndexRef.current
-    );
     // console.log("handleDragStartCard 🌟カードドラッグエンター hoveredAboveIndicator", hoveredAboveIndicator);
 
     if (!draggingCardObjRef.current) return;
@@ -756,22 +356,69 @@ const DealBoardMemo = () => {
 
     if (!columnLanesRef.current) return;
 
-    // 最下部以下にドラッグしている場合は末尾のインジケータをactiveに更新
-    // 現在のポインターの位置からとカードのtopまで距離をオフセットtopの位置
-    const draggingCardTop = e.clientY - offsetDragCardPositionRef.current.y;
-    const draggingCardBottom = e.clientY + offsetDragCardPositionRef.current.bottom;
+    // // 最下部以下にドラッグしている場合は末尾のインジケータをactiveに更新
+    // // 現在のポインターの位置からとカードのtopまで距離をオフセットtopの位置
+    // const draggingCardTop = e.clientY - offsetDragCardPositionRef.current.y;
+    // const draggingCardBottom = e.clientY + offsetDragCardPositionRef.current.bottom;
 
-    // 現在のカラム
-    const hoveredColumn = columnLanesRef.current[columnIndex];
-    if (!hoveredColumn) return;
+    // // 現在のカラム
+    // const hoveredColumn = columnLanesRef.current[columnIndex];
+    // if (!hoveredColumn) return;
 
-    // 最後のカード
-    const lastCardInCurrentColumn = hoveredColumn.querySelector(`.${styles.row_card}.last`);
-    if (!lastCardInCurrentColumn) return;
-    const lastCardTopInCurrentColumn = lastCardInCurrentColumn.getBoundingClientRect().top;
-    if (!lastCardTopInCurrentColumn) return;
-    const lastCardBottomInCurrentColumn = lastCardInCurrentColumn.getBoundingClientRect().bottom;
-    if (!lastCardBottomInCurrentColumn) return;
+    // // 最後のカード
+    // const lastCardInCurrentColumn = hoveredColumn.querySelector(`.${styles.row_card}.last`);
+    // if (!lastCardInCurrentColumn) return;
+    // const lastCardTopInCurrentColumn = lastCardInCurrentColumn.getBoundingClientRect().top;
+    // if (!lastCardTopInCurrentColumn) return;
+    // const lastCardBottomInCurrentColumn = lastCardInCurrentColumn.getBoundingClientRect().bottom;
+    // if (!lastCardBottomInCurrentColumn) return;
+
+    // // 最後のカード上部よりドラッグ中のカード上部を下にある(topが超えている)場合、かつ、現在の列が同じで行が最終行の場合は-1
+    // if (lastCardTopInCurrentColumn < draggingCardTop) {
+    //   console.log(
+    //     "🔥🔥🔥🔥🔥lastCardTopInCurrentColumn < draggingCardTop",
+    //     lastCardTopInCurrentColumn < draggingCardTop,
+    //     "最終カードtop",
+    //     lastCardTopInCurrentColumn,
+    //     "clientY",
+    //     e.clientY,
+    //     "ドラッグtop",
+    //     draggingCardTop
+    //   );
+    //   if (
+    //     draggingCardIndexRef.current.currentColumnIndex === columnIndex &&
+    //     draggingCardIndexRef.current.currentRowIndex === columnLastCardIndex &&
+    //     draggingCardIndexRef.current.currentRowIndex === rowIndex &&
+    //     columnLastCardIndex === rowIndex
+    //   ) {
+    //     // 前回のactiveなインジケータを削除するかどうかチェック
+    //     if (prevIndicatorRef.current) {
+    //       prevIndicatorRef.current.classList.remove(`${styles.active}`);
+    //     }
+    //     // 現在のカラム
+    //     const currentColumn = columnLanesRef.current[columnIndex];
+    //     if (!currentColumn) return;
+
+    //     // インジケータをactiveに変更
+    //     // カード上のインジケータをアクティブに
+    //     const lastIndicator = currentColumn.querySelector(
+    //       `.${styles.drop_indicator}[data-column-index="${columnIndex}"][data-row-index="${-1}"]`
+    //     );
+    //     if (lastIndicator && !lastIndicator.classList.contains(styles.active)) {
+    //       lastIndicator.classList.add(`${styles.active}`);
+    //       // prevインジケータを現在のactiveインジケータに更新
+    //       prevIndicatorRef.current = lastIndicator as HTMLDivElement;
+    //     }
+
+    //     // 現在ホバー中のカードと現在保持しているDOMの列と行が異なれば更新する
+    //     draggingCardIndexRef.current = {
+    //       currentColumnIndex: columnIndex,
+    //       currentRowIndex: -1,
+    //     };
+
+    //     return;
+    //   }
+    // }
 
     // 前回のactiveなインジケータを削除するかどうかチェック
     if (prevIndicatorRef.current) {
@@ -817,60 +464,28 @@ const DealBoardMemo = () => {
       // prevSpacerRef.current = spacer as HTMLDivElement;
     }
 
-    // ------------------------ ❌一旦無し❌ ------------------------
-    // // ドラッグ中の列を格納
-    // draggingColumnIndexRef.current = columnIndex;
-    // // 現在ホバー中のカラム
-    // const { columnInfo, setColumnInfo } = dealColumnList[columnIndex];
-    // const { isResizedColumnHeight, rowLength, columnHeight } = columnInfo;
-
-    // // 🔹前のカラムと今回のカラムが一緒で、かつisResizedがtrue(最後尾にドラッグしていた)、かつ今回のrowが最終行でない場合は現在ホバー中のカラムの高さを元に戻す
-    // if (
-    //   prevDraggingColumnIndexRef.current === columnIndex &&
-    //   isResizedColumnHeight &&
-    //   draggingCardIndexRef.current.currentRowIndex !== -1
-    // ) {
-    //   // 現在のカラムDOM要素
-    //   const hoveredColumnEl = columnLanesRef.current[columnIndex];
-    //   if (!hoveredColumnEl) return;
-    //   // hoveredColumnEl.style.height = `${columnHeightRef.current}px`;
-    //   const newInfo = {
-    //     ...columnInfo,
-    //     columnHeight: columnHeight,
-    //     // rowLength: RowLength,
-    //     isResizedColumnHeight: false,
-    //   } as ColumnSizeInfo;
-    //   console.log("高さを元に戻す✅", "前回のcolumnInfo", columnInfo, "更新後のcolumnInfo", newInfo);
-    //   setColumnInfo(newInfo);
-    // }
-    // // 🔹前回のドラッグ中の列と現在の列が同じため格納は不要だが格納しておく
-    // prevDraggingColumnIndexRef.current = columnIndex;
-    // ------------------------ ❌一旦無し❌ ------------------------
-
     console.log(
       "Rowカード Enter🔥",
       "ドラッグ先のindex",
-      "columnIndex",
-      columnIndex,
       "rowIndex",
       rowIndex,
+      "columnIndex",
+      columnIndex,
       "ドラッグ中のindex",
       draggingCardIndexRef.current,
       "初期位置",
-      originDraggingCardIndexRef.current,
+      prevDraggingCardIndexRef.current,
       "最後のカードのindex",
-      columnLastCardIndex,
-      "ドラッグ中のカードTop",
-      draggingCardTop,
-      "最後のカードのTop",
-      lastCardTopInCurrentColumn,
-      "ドラッグ中のカードBottom",
-      draggingCardBottom,
-      "最後のカードのBottom",
-      lastCardBottomInCurrentColumn,
-      e.clientY,
-      "前回のカラム",
-      prevDraggingColumnIndexRef.current
+      columnLastCardIndex
+      // "ドラッグ中のカードTop",
+      // draggingCardTop,
+      // "最後のカードのTop",
+      // lastCardTopInCurrentColumn,
+      // "ドラッグ中のカードBottom",
+      // draggingCardBottom,
+      // "最後のカードのBottom",
+      // lastCardBottomInCurrentColumn,
+      // e.clientY
     );
   };
   // ---------------------------- ✅受カード Enter✅ ----------------------------
@@ -944,15 +559,13 @@ const DealBoardMemo = () => {
       "最後のカードのBottom",
       lastCardBottomInCurrentColumn,
       "e.clientY",
-      e.clientY,
-      "前回のカラム",
-      prevDraggingColumnIndexRef.current
+      e.clientY
     );
 
     // 最後のカード上部よりドラッグ中のカード上部を下にある(topが超えている)場合、かつ、現在の列が同じで行が最終行の場合は-1
     if (!draggingCardIndexRef.current) return;
     console.log(
-      "🔥🔥🔥🔥🔥カード Leave lastCardTopInCurrentColumn < draggingCardTop",
+      "🔥🔥🔥🔥🔥lastCardTopInCurrentColumn < draggingCardTop",
       lastCardTopInCurrentColumn < draggingCardTop,
       "最終カードtop",
       lastCardTopInCurrentColumn,
@@ -992,39 +605,6 @@ const DealBoardMemo = () => {
         currentColumnIndex: columnIndex,
         currentRowIndex: -1,
       };
-
-      // ------------------------ ❌一旦無し❌ ------------------------
-      // // ドラッグ中の列を格納
-      // draggingColumnIndexRef.current = columnIndex;
-      // if (!draggingCardElRef.current) return;
-      // // エンター先が別のカラムで、かつ最後尾の場合は記録されてるカラム最大長さと、現在の最大長さが一致する場合のみカラムの高さをドラッグ中のカードの高さ分加算する (columnLastCardIndex + 1はindexで0から始まるので+1)
-      // // 🔹エンター先が別のカラムで、かつドラッグしている行が最後尾の場合は高さを増やす
-      // // 現在ホバー中のカラム
-      // const { columnInfo, setColumnInfo } = dealColumnList[columnIndex];
-      // const { isResizedColumnHeight, rowLength, columnHeight } = columnInfo;
-      // if (
-      //   originDraggingCardIndexRef.current?.originColumnIndex !== columnIndex &&
-      //   rowLength - 1 === columnLastCardIndex &&
-      //   (draggingCardIndexRef.current.currentRowIndex === -1 ||
-      //     draggingCardIndexRef.current.currentRowIndex === columnLastCardIndex) &&
-      //   !isResizedColumnHeight
-      // ) {
-      //   // 現在のカラムDOM要素
-      //   const hoveredColumnEl = columnLanesRef.current[columnIndex];
-      //   if (!hoveredColumnEl) return;
-      //   // hoveredColumnEl.style.height = `${columnHeightRef.current + draggingCardElRef.current.offsetHeight}px`;
-      //   const newInfo = {
-      //     ...columnInfo,
-      //     columnHeight: columnHeight + draggingCardElRef.current.offsetHeight,
-      //     isResizedColumnHeight: true,
-      //   } as ColumnSizeInfo;
-      //   console.log("高さを更新✅", "現在のcolumnInfo", columnInfo, "更新後のcolumnInfo", newInfo);
-      //   setColumnInfo(newInfo);
-      // }
-      // // 🔹前回のドラッグ中の列を現在の列に更新
-      // prevDraggingColumnIndexRef.current = columnIndex;
-      // ------------------------ ❌一旦無し❌ ------------------------
-
       return;
     }
   };
@@ -1052,29 +632,14 @@ const DealBoardMemo = () => {
       "最終ドロップ位置",
       draggingCardIndexRef.current,
       "初回スタート位置",
-      originDraggingCardIndexRef.current
+      prevDraggingCardIndexRef.current
     );
 
     // インジケータのactiveクラスを全て削除
     if (!boardRef.current) return;
-    const activeIndicatorAll = boardRef.current.querySelectorAll(`.${styles.drop_indicator}.${styles.active}`);
-    // const activeIndicator = prevIndicatorRef.current;
-    console.log(
-      "Endここまで prevIndicatorRef.current",
-      prevIndicatorRef.current,
-      "activeIndicatorAll",
-      activeIndicatorAll
-    );
-    if (activeIndicatorAll.length > 0) {
-      Array.from(activeIndicatorAll).forEach((activeIndicator) => {
-        console.log("Endここまで 削除 activeIndicator.classList", activeIndicator);
-        if (activeIndicator.classList.contains(styles.active)) {
-          console.log("Endここまで indicatorがアクティブのため削除", activeIndicator.classList);
-          activeIndicator.classList.remove(styles.active);
-        }
-      });
-      // 記録用のインジケータをnullにリセット
-      prevIndicatorRef.current = null;
+    const activeIndicator = boardRef.current.querySelector(`.${styles.drop_indicator}.${styles.active}`);
+    if (activeIndicator) {
+      activeIndicator.classList.remove(styles.active);
     }
 
     // Columnレーンも非アクティブにリセット
@@ -1092,16 +657,14 @@ const DealBoardMemo = () => {
     const draggingCardObj = draggingCardObjRef.current;
     if (!draggingCardObj) return;
     if (!draggingCardIndexRef.current) return;
-    if (!originDraggingCardIndexRef.current) return;
-
-    console.log("Endここまで");
+    if (!prevDraggingCardIndexRef.current) return;
 
     // ドロップ先のColumnインデックス
     const dropColumnIndex = draggingCardIndexRef.current.currentColumnIndex;
     const dropRowIndex = draggingCardIndexRef.current?.currentRowIndex;
     // 大ラッグ
-    const originDragColumnIndex = originDraggingCardIndexRef.current.originColumnIndex;
-    const originDragRowIndex = originDraggingCardIndexRef.current.originRowIndex;
+    const prevDragColumnIndex = prevDraggingCardIndexRef.current.prevColumnIndex;
+    const prevDragRowIndex = prevDraggingCardIndexRef.current.prevRowIndex;
 
     // 🔹ゴミ箱の上でDropした場合はこのままリターン
     if (dropColumnIndex === -3 && dropRowIndex === -3) {
@@ -1110,43 +673,39 @@ const DealBoardMemo = () => {
     }
 
     // 初回ドラッグ位置と最終ドロップ先の位置が一緒の場合はこのままリターン
-    if (dropColumnIndex === originDragColumnIndex && dropRowIndex === originDragRowIndex) {
+    if (dropColumnIndex === prevDragColumnIndex && dropRowIndex === prevDragRowIndex) {
       console.log(
         "End✅ 元のドラッグ初期位置と一緒のためリターン 列",
         dropColumnIndex,
-        originDragColumnIndex,
+        prevDragColumnIndex,
         "行",
         dropRowIndex,
-        originDragRowIndex
+        prevDragRowIndex
       );
       return;
     }
     // 初回カラムとドロップ先のカラムが同じで、rowIndexが１増えてるだけの場合は入れ替え不要なのでリターン
-    if (dropColumnIndex === originDragColumnIndex && dropRowIndex === originDragRowIndex + 1) {
+    if (dropColumnIndex === prevDragColumnIndex && dropRowIndex === prevDragRowIndex + 1) {
       console.log(
         "End✅ rowIndexが1増えてるだけ、入れ替え不要のためリターン 列",
         dropColumnIndex,
-        originDragColumnIndex,
+        prevDragColumnIndex,
         "行",
         dropRowIndex,
-        originDragRowIndex
+        prevDragRowIndex
       );
       return;
     }
 
     // 初回ドラッグ位置が最終行で、初回カラムとドロップカラムが一緒の場合はリターン
-    if (
-      dropRowIndex === -1 &&
-      originDragRowIndex === columnLastCardIndex &&
-      originDragColumnIndex === dropColumnIndex
-    ) {
+    if (dropRowIndex === -1 && prevDragRowIndex === columnLastCardIndex && prevDragColumnIndex === dropColumnIndex) {
       console.log(
         "End✅ 初回ドラッグ位置が最終行で、初回カラムとドロップカラムが一緒の場合はリターン 列",
         dropColumnIndex,
-        originDragColumnIndex,
+        prevDragColumnIndex,
         "行",
         dropRowIndex,
-        originDragRowIndex,
+        prevDragRowIndex,
         "最終行 columnLastCardIndex",
         columnLastCardIndex
       );
@@ -1157,24 +716,7 @@ const DealBoardMemo = () => {
     const dropColumnTitle = mappingColumnIndexToTitle[draggingCardIndexRef.current.currentColumnIndex];
     // ドロップ先の列のカード配列
     const cardListInCurrentColumn = categorizedCardsMapObj.get(dropColumnTitle);
-    console.log(
-      "Endここまで",
-      "mappingColumnIndexToTitle",
-      mappingColumnIndexToTitle,
-      "categorizedCardsMapObj",
-      categorizedCardsMapObj,
-      "dropColumnTitle",
-      dropColumnTitle
-    );
-    if (!cardListInCurrentColumn)
-      return console.log(
-        "End リターン mappingColumnIndexToTitle",
-        mappingColumnIndexToTitle,
-        "categorizedCardsMapObj",
-        categorizedCardsMapObj,
-        "dropColumnTitle",
-        dropColumnTitle
-      );
+    if (!cardListInCurrentColumn) return;
     // ドロップ先のカードオブジェクト
     let dropCardObj: DealCardType | null;
     // columnIndexが最後の2で、rowIndexが-1だった場合、そのカラムの最後尾に挿入
@@ -1191,63 +733,6 @@ const DealBoardMemo = () => {
       dropCardObj = cardListInCurrentColumn[dropRowIndex];
     }
 
-    // ------------------------ ❌一旦無し❌ ------------------------
-    // // 1. 別のカラムの最終行にドロップされた場合は、その列のサイズをドラッグ要素の高さ分heightを加算し、
-    // // 2. 最終行が開始位置で、別のカラムの行にドロップされた場合は開始位置の列の高さをドラッグ要素の高さ分引き算する
-    // // ドラッグ中の列を格納
-    // draggingColumnIndexRef.current = columnIndex;
-    // // ドロップされたカラムinfo
-    // const { columnInfo, setColumnInfo } = dealColumnList[dropColumnIndex];
-    // const { isResizedColumnHeight, columnHeight, prevColumnHeight, rowLength, prevRowLength } = columnInfo;
-    // // ドラッグ元のカラムinfo
-    // const { columnInfo: columnInfoOrigin, setColumnInfo: setColumnInfoOrigin } = dealColumnList[originDragColumnIndex];
-
-    // // 1. 加算 カラム高さ、長さ
-    // if (
-    //   originDragColumnIndex !== dropColumnIndex &&
-    //   isResizedColumnHeight &&
-    //   (dropRowIndex === -1 || dropRowIndex === rowLength - 1)
-    // ) {
-    //   // 現在のカラムDOM要素
-    //   // const hoveredColumnEl = columnLanesRef.current[dropColumnIndex];
-    //   // if (!hoveredColumnEl) return;
-    //   const newInfo = {
-    //     rowLength: columnHeight + 1,
-    //     prevRowLength: columnHeight + 1,
-    //     columnHeight: columnHeight,
-    //     prevColumnHeight: columnHeight,
-    //     isResizedColumnHeight: false,
-    //   } as ColumnSizeInfo;
-    //   console.log("高さと最大長を更新", "前回のcolumnInfo", columnInfo, "更新後のcolumnInfo", newInfo);
-    //   setColumnInfo(newInfo);
-    // }
-    // // 2. 引き算 カラム高さ、長さ
-    // else if (
-    //   (originDragRowIndex === -1 || originDragRowIndex === rowLength - 1) &&
-    //   originDragColumnIndex !== dropColumnIndex
-    // ) {
-    //   if (!draggingCardElRef.current) return;
-    //   // 現在のカラムDOM要素
-    //   // const originColumnEl = columnLanesRef.current[originDragColumnIndex];
-    //   // if (!originColumnEl) return;
-    //   const newInfo = {
-    //     rowLength: columnInfoOrigin.columnHeight - 1,
-    //     prevRowLength: columnInfoOrigin.columnHeight - 1,
-    //     columnHeight: columnInfoOrigin.columnHeight - draggingCardElRef.current.offsetHeight,
-    //     prevColumnHeight: columnInfoOrigin.columnHeight - draggingCardElRef.current.offsetHeight,
-    //     isResizedColumnHeight: false,
-    //   } as ColumnSizeInfo;
-    //   console.log("高さと最大長を更新", "前回のcolumnInfo", columnInfo, "更新後のcolumnInfo", newInfo);
-    //   setColumnInfoOrigin(newInfo);
-    // }
-    // // ドラッグindexをnullに
-    // draggingColumnIndexRef.current = null;
-    // prevDraggingColumnIndexRef.current = null;
-    // ------------------------ ❌一旦無し❌ ------------------------
-
-    console.log("Endここまで");
-
-    // 🔹更新
     setCards((prev) => {
       const newCards = [...prev];
       // ドラッグしてるカードを削除して、ドロップした位置に挿入
@@ -1359,10 +844,10 @@ const DealBoardMemo = () => {
 
   // --------------- ゴミ箱 受 Leave ---------------
   const handleDragLeaveTrash = (e: DragEvent<HTMLDivElement>) => {
-    if (originDraggingCardIndexRef.current) {
+    if (prevDraggingCardIndexRef.current) {
       draggingCardIndexRef.current = {
-        currentColumnIndex: originDraggingCardIndexRef.current.originColumnIndex,
-        currentRowIndex: originDraggingCardIndexRef.current.originRowIndex,
+        currentColumnIndex: prevDraggingCardIndexRef.current.prevColumnIndex,
+        currentRowIndex: prevDraggingCardIndexRef.current.prevRowIndex,
       };
     }
     console.log("ゴミ箱Leave🌟", draggingCardIndexRef.current);
@@ -1380,28 +865,6 @@ const DealBoardMemo = () => {
   // --------------- ゴミ箱 受 Drop ---------------
   const handleDropTrash = () => {
     console.log("ゴミ箱ドロップ🌟");
-
-    // インジケータのactiveクラスを全て削除
-    if (!boardRef.current) return;
-    const activeIndicatorAll = boardRef.current.querySelectorAll(`.${styles.drop_indicator}.${styles.active}`);
-    // const activeIndicator = prevIndicatorRef.current;
-    console.log(
-      "ゴミ箱ドロップ ここまで prevIndicatorRef.current",
-      prevIndicatorRef.current,
-      "activeIndicatorAll",
-      activeIndicatorAll
-    );
-    if (activeIndicatorAll.length > 0) {
-      Array.from(activeIndicatorAll).forEach((activeIndicator) => {
-        console.log("Endここまで 削除 activeIndicator.classList", activeIndicator);
-        if (activeIndicator.classList.contains(styles.active)) {
-          console.log("Endここまで indicatorがアクティブのため削除", activeIndicator.classList);
-          activeIndicator.classList.remove(styles.active);
-        }
-      });
-      // 記録用のインジケータをnullにリセット
-      prevIndicatorRef.current = null;
-    }
 
     if (trashAreaRef.current && trashAreaRef.current.classList.contains(styles.active)) {
       trashAreaRef.current?.classList.remove(`${styles.active}`);
@@ -1426,40 +889,21 @@ const DealBoardMemo = () => {
   // --------------- ゴミ箱 受 Drop ここまで ---------------
   /* ---------------------------------- ✅ゴミ箱✅ ---------------------------------- */
 
-  console.log(
-    "DealBoardレンダリング",
-    "cards",
-    cards,
-    "categorizedCardsMapObj",
-    categorizedCardsMapObj,
-    "dealColumnList",
-    dealColumnList
-  );
+  // 変数関連
+  // const filteredCards = cards.filter((c) => c.columnName === columnName);
 
-  const getCardStyle = () => {};
+  // Boardのheightを現在の
 
-  const [animate, setAnimate] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    // コンポーネントがマウントされたらアニメーションを開始
-    setAnimate(true);
-
-    // 2秒後にはフェードアニメーションを削除
-    setTimeout(() => {
-      setIsMounted(true);
-      setAnimate(false);
-    }, 2000);
-  }, []);
+  console.log("cards", cards, "categorizedCardsMapObj", categorizedCardsMapObj);
 
   return (
     <>
       {/* ------------------------ ボード ------------------------ */}
+      {/* <div ref={boardRef} className={`${styles.board} flex h-full w-full gap-3 overflow-scroll p-[48px]`}> */}
       <div ref={boardRef} className={`${styles.board} flex h-full w-full overflow-scroll p-[48px]`}>
         {/* ------------ Columnレーングループ ------------ */}
         {dealColumnList.map((column: ColumnLane, columnIndex: number) => {
-          // const filteredCards = categorizedCardsMapObj.get(column.titleNum);
-          const filteredCards = column.cards;
+          const filteredCards = categorizedCardsMapObj.get(column.titleNum);
           console.log("filteredCards", filteredCards, "column.title", column.titleNum);
           if (!filteredCards) return;
           if (!column.titleNum) return;
@@ -1470,15 +914,14 @@ const DealBoardMemo = () => {
             <div
               key={"column" + columnTitle}
               ref={(ref) => (columnLanesRef.current[columnIndex] = ref)}
-              className={`${styles.column} ${animate ? `${styles.animate}` : ``} ${
-                isMounted ? `${styles.is_mount}` : ``
-              } ${columnIndex === 3 ? `${styles.last}` : ``} w-56 shrink-0`}
-              // style={getColumnHeight(columnIndex)}
+              className={`${styles.column} ${columnIndex === 3 ? `${styles.last}` : ``} w-56 shrink-0`}
             >
               {/* ------------ Columnタイトル ------------ */}
               <div className={`${styles.title_area} mb-3 flex items-center justify-between`}>
                 <h3 className={`font-medium ${column.headingColor}`}>{columnTitle}</h3>
-                <span className={`${styles.card_count} rounded text-sm text-neutral-400`}>{filteredCards.length}</span>
+                <span className={`${styles.card_count}  rounded text-sm text-neutral-400 `}>
+                  {filteredCards.length}
+                </span>
               </div>
               {/* ------------ Columnレーン ------------ */}
               <div
@@ -1486,23 +929,11 @@ const DealBoardMemo = () => {
                 data-column-title={column.titleNum}
                 onDrop={(e) => handleDropColumnLane()}
                 onDragEnter={(e) =>
-                  handleDragEnterColumnLane({
-                    e: e,
-                    columnIndex: columnIndex,
-                    columnTitleNum: column.titleNum,
-                    columnLastCardIndex: filteredCards.length - 1,
-                  })
+                  handleDragEnterColumnLane({ e: e, columnIndex: columnIndex, columnTitleNum: column.titleNum })
                 }
                 onDragOver={(e) => handleDragOverColumnLane({ e: e, columnIndex: columnIndex })}
-                onDragLeave={(e) =>
-                  handleDragLeaveColumnLane({
-                    e: e,
-                    columnIndex: columnIndex,
-                    columnTitleNum: column.titleNum,
-                    columnLastCardIndex: filteredCards.length - 1,
-                  })
-                }
-                className={`${styles.column_lane}  h-full w-full transition-colors`}
+                onDragLeave={(e) => handleDragLeaveColumnLane()}
+                className={`${styles.column_lane} h-full w-full transition-colors`}
               >
                 {/* ------------ Rowグループ ------------ */}
                 {filteredCards.map((card: DealCardType, rowIndex: number) => {
@@ -1515,7 +946,7 @@ const DealBoardMemo = () => {
                         data-column-index={columnIndex}
                         data-row-index={rowIndex}
                         // className={`${styles.drop_indicator} my-0.5 h-0.5 min-h-[2px] w-full bg-violet-400 opacity-0`}
-                        className={`${styles.drop_indicator} pointer-events-none my-0.5 h-0.5 min-h-[2px] w-full opacity-0`}
+                        className={`${styles.drop_indicator} my-0.5 h-0.5 min-h-[2px] w-full opacity-0`}
                       />
                       {/* Row上インジケータ ここまで */}
                       {/* スペーサーtop ドラッグ位置に空間を空ける用 */}
@@ -1573,12 +1004,11 @@ const DealBoardMemo = () => {
                             columnLastCardIndex: filteredCards.length - 1,
                           })
                         }
-                        className={`${styles.row_card} ${animate ? `${styles.fade_in}` : ``} ${
-                          isMounted ? `${styles.is_mount}` : ``
-                        }  cursor-grab rounded border border-solid border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing  ${
+                        className={`${
+                          styles.row_card
+                        } cursor-grab rounded border border-solid border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing ${
                           rowIndex === filteredCards.length - 1 ? `last` : ``
                         }`}
-                        style={{ ...(animate && { animationDelay: `${(rowIndex + 1) * 0.2}s` }) }} // 各カードおアニメーションの遅延を設定
                       >
                         <p className={`pointer-events-none whitespace-pre-wrap text-sm`}>{card.company_name}</p>
                       </div>
@@ -1593,12 +1023,10 @@ const DealBoardMemo = () => {
                   data-column={column.titleNum.toString() + "_last"}
                   data-column-index={columnIndex}
                   data-row-index={-1}
-                  className={`${styles.drop_indicator} last pointer-events-none my-0.5 h-0.5 w-full bg-violet-400 opacity-0`}
+                  className={`${styles.drop_indicator} last my-0.5 h-0.5 w-full bg-violet-400 opacity-0`}
                 />
                 {/* ------------ 末尾インジケータ ここまで ------------ */}
                 {/* スペーサーtop ドラッグ位置に空間を空ける用 */}
-                {/* <div className={`${styles.spacer} bottom pointer-events-none h-[24px] w-full rounded`}></div> */}
-                <div className={`${styles.spacer} bottom pointer-events-none h-[90px] w-full rounded`}></div>
                 {/* <div
                         data-column-index={columnIndex}
                         data-row-index={rowIndex}
@@ -1635,7 +1063,7 @@ const DealBoardMemo = () => {
         </div>
         {/* ------------------- ゴミ箱レーン ここまで ------------------- */}
         {/* ------------------- 編集モーダル ------------------- */}
-        {isOpenEditModal && editedDealCard && <EditModalDealCard setIsOpenEditModal={setIsOpenEditModal} />}
+        {isOpenEditModal && editedDealCard && <EditModalTaskCard setIsOpenEditModal={setIsOpenEditModal} />}
         {/* ------------------- 編集モーダル ここまで ------------------- */}
       </div>
       {/* ------------------------ ボード ここまで ------------------------ */}
@@ -1643,4 +1071,4 @@ const DealBoardMemo = () => {
   );
 };
 
-export const DealBoard = memo(DealBoardMemo);
+export const TaskBoard = memo(TaskBoardMemo);

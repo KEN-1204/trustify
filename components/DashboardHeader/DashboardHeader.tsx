@@ -64,10 +64,12 @@ export const DashboardHeaderMemo: FC = () => {
   const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
   const setSelectedRowDataQuotation = useDashboardStore((state) => state.setSelectedRowDataQuotation);
   // テーマ別ロゴ
+  // const logoSrc =
+  //   theme === "light" && activeMenuTab !== "SDB"
+  //     ? "/assets/images/Trustify_logo_white1.png"
+  //     : "/assets/images/Trustify_logo_black.png";
   const logoSrc =
-    theme === "light" && activeMenuTab !== "SDB"
-      ? "/assets/images/Trustify_logo_white1.png"
-      : "/assets/images/Trustify_logo_black.png";
+    theme === "light" ? "/assets/images/Trustify_logo_white1.png" : "/assets/images/Trustify_logo_black.png";
 
   // const { fullUrl: avatarUrl, isLoading } = useDownloadUrl(userProfileState?.avatar_url, "avatars");
   const avatarUrl = useDashboardStore((state) => state.avatarImgURL);

@@ -1,11 +1,19 @@
 import useDashboardStore from "@/store/useDashboardStore";
 import styles from "./DashboardSDBComponent.module.css";
 import { ScreenDealBoards } from "./ScreenDealBoards/ScreenDealBoards";
+import { ScreenTaskBoards } from "./TaskBoard/ScreenTaskBoards";
+import useThemeStore from "@/store/useThemeStore";
+import { useEffect } from "react";
 
 export const DashboardSDBComponent = () => {
+  const setTheme = useThemeStore((state) => state.setTheme);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
   const activeTabSDB = useDashboardStore((state) => state.activeTabSDB);
+
+  useEffect(() => {
+    setTheme("dark");
+  }, []);
 
   return (
     <>
@@ -20,6 +28,7 @@ export const DashboardSDBComponent = () => {
             {/* １画面目  */}
             {/* {activeTabSDB === "Deals" && <ScreenDealBoards />} */}
             <ScreenDealBoards />
+            {/* <ScreenTaskBoards /> */}
           </div>
         </div>
       </div>

@@ -1,20 +1,13 @@
 .company_table_screen {
-  /* min-height: calc(100vh - var(--header-height)); */
-  /* height: calc(100vh - var(--header-height)); */
-  /* min-height: min-content; */
+  /* height: 100vh; */
   width: 100%;
-  /* background-color: var(--color-bg-base); */
-  /* flex-grow: 1; */
-  /* flex: 1; */
+  /* background-color: rgb(23 23 23 / 1); */
+  /* color: rgb(250 250 250 / 1); */
+  /* background-color: #171717; */
+  background-color: var(--color-table-bg);
+  color: var(--color-table-text);
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  /* padding: 20px 20px 20px 20px; */
-  /* 右側余白なし */
-  /* padding: 20px 0px 20px 20px; */
-  /* 左右余白あり */
-  /* padding: 20px 20px 20px 20px; */
-  /* 左右余白あり right 10px */
-  /* padding: 20px 10px 20px 20px; */
 }
