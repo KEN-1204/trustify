@@ -39,6 +39,20 @@
   --main-color-tk: #ff3b5b;
   --main-color-tk-hover: #d5314c;
   --main-color-tk10: #ff3b5b10;
+  --main-color-tk20: #ff3b5b20;
+  --main-color-tk30: #ff3b5b30;
+  --main-color-tk40: #ff3b5b40;
+  --main-color-tk50: #ff3b5b50;
+  --main-color-tk60: #ff3b5b60;
+  --main-color-tk70: #ff3b5b70;
+  --main-color-tk80: #ff3b5b80;
+  --main-color-tk90: #ff3b5b90;
+  --main-color-tka0: #ff3b5ba0;
+  --main-color-tkb0: #ff3b5bb0;
+  --main-color-tkc0: #ff3b5bc0;
+  --main-color-tkd0: #ff3b5bd0;
+  --main-color-tke0: #ff3b5be0;
+  --main-color-tkf0: #ff3b5bf0;
 
   --main-color-tk-blue: #00f2ea;
 
@@ -1068,6 +1082,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-eighty: var(--main-color-tk);
   --color-fifty: rgb(30, 209, 102);
   --color-thirty: #0d82ff;
+  --color-award-icon: rgb(252, 70, 204);
+  --color-award-icon-bg: var(--color-card-bg);
+  /* --color-award-icon-bg: rgb(255, 243, 252); */
+  /* --color-award-icon: rgb(228, 239, 31); */
+  /* --color-award-icon-bg: rgb(56, 56, 8); */
   /* --color-award: rgb(236 72 153 / 1); */
   /* --color-eighty: rgb(239 68 68 / 1); */
   /* --color-fifty: rgb(16 185 129 / 1); */
@@ -1079,6 +1098,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-column-border-active: inset 0px 0px 0px 1px #ff3b5b90, 0px 0px 0px 1px #ff3b5b; */
   /* --color-column-lane-active: #0ab5ff15; */
   --color-card-bg: rgb(248, 248, 248);
+  --color-card-bg-disabled: rgba(248, 248, 248, 0.3);
   --color-card-border: rgb(190, 190, 190);
   --color-card-text: var(--color-text-title-black);
   --card-shadow: var(--shadow-sm);
@@ -1712,7 +1732,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
   /* --shadow-header: 0px 1px 6px 2px rgba(0, 0, 0, 0.33); */
   --shadow-header-sdb: 0px 1px 6px 0px rgba(0, 0, 0, 0.33);
-  --shadow-header-sdb: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
+  --shadow-header-sdb: 0px 1px 6px -1px rgba(255, 255, 255, 0.12);
   --shadow-sidebar: 1px 0px 6px -2px rgba(255, 255, 255, 0.12);
   /* --shadow-sidebar: 1px 0px 6px 1px rgba(0, 0, 0, 0.33); */
   --shadow-sidebar-dark: 0px 0px 6px -1px rgba(255, 255, 255, 0.3);
@@ -1784,12 +1804,15 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-eighty: var(--main-color-tk);
   --color-fifty: rgb(30, 209, 102);
   --color-thirty: #0d82ff;
+  --color-award-icon: rgb(228, 239, 31);
+  --color-award-icon-bg: rgb(56, 56, 8);
   --color-column-bg: transparent;
   --color-column-lane-active: rgb(38 38 38 / 0.6);
   --color-column-border-active: inset 0px 0px 0px 1px #063c13, 0px 0px 0px 1px #00ff40;
   /* --color-column-sideborder-active: var(--color-bg-brand-fc0); */
   --color-column-sideborder-active: var(--color-bg-brandc0);
   --color-card-bg: rgb(38 38 38 / 1);
+  --color-card-bg-disabled: rgba(38 38 38, 0.3);
   --color-card-border: rgb(64 64 64 / 1);
   --color-card-text: rgb(245 245 245 / 1);
   --card-shadow: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
@@ -2970,7 +2993,7 @@ textarea {
   animation: ping18 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
-/* -------------- 🌟印刷🌟 -------------- */
+/* -------------- 🌟react-toastify トースト🌟 -------------- */
 .Toastify__toast-theme--dark {
   --toastify-color-dark: #292929;
 }

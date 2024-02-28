@@ -13,7 +13,7 @@ import {
 import { BurnBarrel } from "./BurnBarel";
 import styles from "./DealBoard.module.css";
 import { FiPlus, FiTrash } from "react-icons/fi";
-import { FaFire } from "react-icons/fa";
+import { FaFire, FaRegStar } from "react-icons/fa";
 import { AddCard } from "./AddCard";
 import { EditModalDealCard } from "./EditModalDealCard";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -55,6 +55,7 @@ type DealCardType = {
   company_department_name: string | null; // 部署名
   column_title_num: number; // 月初確度 or 中間確度 中間確度があればこちらを優先
   expansion_year_month: number; // 展開日付 => 当月発生の場合はネタ外として扱う
+  rejected_flag: boolean; // 物件没フラグ => 没の場合は、その確度の最後尾に並べて、斜線を引きdraggableをfalseにする
 };
 // type DealCardType = Property_row_data;
 
@@ -71,6 +72,7 @@ const DEFAULT_CARDS = Array(11)
       company_department_name: "開発本部開発第二課",
       column_title_num: columnName,
       expansion_year_month: 202403,
+      rejected_flag: false,
     };
   });
 
@@ -1445,20 +1447,40 @@ const DealBoardMemo = () => {
       burnBarrelIconRef.current.style.display = "none";
     }
 
-    const deleteCardObj = draggingCardObjRef.current;
+    // -------------- 🔹カードをcardsの配列から削除パターン🔹 --------------
+    // const deleteCardObj = draggingCardObjRef.current;
+    // if (!deleteCardObj) return;
 
-    if (!deleteCardObj) return;
+    // const cardIdsMapObj = new Map(cards.map((obj) => [obj.property_id, obj]));
 
+    // cardIdsMapObj.delete(deleteCardObj.property_id);
+
+    // // 削除
+    // // setCards((pv) => pv.filter((c) => c.id !== deleteCardObj.id));
+    // setCards(Array.from(cardIdsMapObj.values()));
+    // -------------- 🔹カードをcardsの配列から削除パターン🔹 ここまで --------------
+
+    // -------------- 🔹rejectedをtrueにしてdraggableをfalseで物件没(置き物)に変更🔹 --------------
+    const cardObjToUpdate = draggingCardObjRef.current;
+    if (!cardObjToUpdate) return;
+    const cardIdToUpdate = cardObjToUpdate.property_id;
+
+    // 既存のcards配列からMapオブジェクトを作成
     const cardIdsMapObj = new Map(cards.map((obj) => [obj.property_id, obj]));
 
-    cardIdsMapObj.delete(deleteCardObj.property_id);
-
-    // 削除
-    // setCards((pv) => pv.filter((c) => c.id !== deleteCardObj.id));
+    // 特定のオブジェクトを取得し、プロパティを更新
+    if (cardIdsMapObj.has(cardIdToUpdate)) {
+      // const cardToUpdate = cardIdsMapObj.get(draggingCardId);
+      const updatedCardObj = { ...cardObjToUpdate, rejected_flag: true } as DealCardType;
+      cardIdsMapObj.set(cardIdToUpdate, updatedCardObj);
+    }
+    // Mapオブジェクトから新しい配列を生成し、stateを更新
     setCards(Array.from(cardIdsMapObj.values()));
 
+    // -------------- 🔹rejectedをtrueにしてdraggableをfalseで置き物に変更🔹 --------------
+
     // トーストを表示
-    toast.success(`${deleteCardObj.company_name}を案件没に変更しました。`);
+    toast.success(`${cardObjToUpdate.company_name}を案件没に変更しました。`);
   };
   // --------------- ゴミ箱 受 Drop ここまで ---------------
   /* ---------------------------------- ✅ゴミ箱✅ ---------------------------------- */
@@ -1492,7 +1514,7 @@ const DealBoardMemo = () => {
   return (
     <>
       {/* ------------------------ ボード ------------------------ */}
-      <div ref={boardRef} className={`${styles.board} flex  w-full overflow-scroll p-[48px]`}>
+      <div ref={boardRef} className={`${styles.board} flex  w-full overflow-scroll`}>
         {/* ------------ Columnレーングループ ------------ */}
         {dealColumnList.map((column: ColumnLane, columnIndex: number) => {
           // const filteredCards = categorizedCardsMapObj.get(column.titleNum);
@@ -1543,6 +1565,7 @@ const DealBoardMemo = () => {
               >
                 {/* ------------ Rowグループ ------------ */}
                 {filteredCards.map((card: DealCardType, rowIndex: number) => {
+                  const isRejected = card.rejected_flag;
                   return (
                     <Fragment key={"row_card" + card.property_id}>
                       {/* Row上インジケータ */}
@@ -1562,17 +1585,17 @@ const DealBoardMemo = () => {
                         className={`${styles.spacer} top h-0 w-full rounded`}
                       ></div> */}
                       {/* スペーサーtop */}
-                      {/* Rowカード */}
+                      {/* 🌟Rowカード */}
                       <div
                         ref={(ref) => (rowCardsRef.current[rowIndex] = ref)}
-                        draggable={true}
+                        draggable={!isRejected}
                         data-card-column-title={card.column_title_num}
                         data-card-row-index={rowIndex}
                         className={`${styles.row_card} ${animate ? `${styles.fade_in}` : ``} ${
                           isMounted ? `${styles.is_mount}` : ``
-                        }  cursor-grab rounded border border-solid border-neutral-700 bg-neutral-800 p-3 active:cursor-grabbing  ${
+                        }  cursor-grab rounded bg-neutral-800 active:cursor-grabbing ${
                           rowIndex === filteredCards.length - 1 ? `last` : ``
-                        }`}
+                        } ${isRejected ? `${styles.rejected}` : ``}`}
                         style={{ ...(animate && { animationDelay: `${(rowIndex + 1) * 0.3}s` }) }} // 各カードのアニメーションの遅延を設定
                         onClick={() => {
                           setEditedDealCard(card);
@@ -1617,7 +1640,27 @@ const DealBoardMemo = () => {
                           })
                         }
                       >
-                        <p className={`pointer-events-none whitespace-pre-wrap text-sm`}>{card.company_name}</p>
+                        {/* {columnIndex === 0 && (
+                          <FaRegStar
+                            className={`${styles.star_icon_single} mr-[6px] min-h-[15px] min-w-[15px] text-[15px]`}
+                          />
+                        )} */}
+                        {columnIndex === 0 && (
+                          <div className={`${styles.star_icon_wrapper} flex-center`}>
+                            <FaRegStar className={`${styles.star_icon}  min-h-[15px] min-w-[15px] text-[15px]`} />
+                          </div>
+                        )}
+                        {/* <p className={`pointer-events-none whitespace-pre-wrap text-sm`}>{card.company_name}</p> */}
+                        <div className={`pointer-events-none flex w-full items-center justify-between`}>
+                          <div className={`pointer-events-none flex flex-col justify-center`}>
+                            <p className={`${styles.main} pointer-events-none truncate`}>{card.company_name}</p>
+                            <p className={`${styles.sub} pointer-events-none truncate`}>{card.company_name}</p>
+                          </div>
+                          <div className={`pointer-events-none flex flex-col items-end justify-center`}>
+                            <span className={`${styles.right_info} pointer-events-none truncate`}>IM3</span>
+                            <span className={`${styles.right_info} pointer-events-none truncate`}>300,600,000</span>
+                          </div>
+                        </div>
                       </div>
                       {/* Rowカード ここまで */}
                     </Fragment>

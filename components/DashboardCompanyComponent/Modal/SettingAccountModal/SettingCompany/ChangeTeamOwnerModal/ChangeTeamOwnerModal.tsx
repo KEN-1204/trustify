@@ -356,10 +356,7 @@ const ChangeTeamOwnerModalMemo: FC<Props> = ({
               <div className={`mt-[15px] flex min-h-[44px] w-full items-center  pl-[4px]`}>
                 {!logoUrl && (
                   <div
-                    // data-text="ユーザー名"
                     className={`flex-center min-h-[40px] min-w-[40px] cursor-pointer rounded-full bg-[var(--color-bg-brand-sub)] text-[#fff] hover:bg-[var(--color-bg-brand-sub-hover)] ${styles.tooltip} mr-[15px]`}
-                    // onMouseEnter={(e) => handleOpenTooltip(e, "center")}
-                    // onMouseLeave={handleCloseTooltip}
                   >
                     {/* <span>K</span> */}
                     <span className={`text-[20px]`}>
@@ -369,7 +366,7 @@ const ChangeTeamOwnerModalMemo: FC<Props> = ({
                     </span>
                   </div>
                 )}
-                {logoUrl && (
+                {/* {logoUrl && (
                   <div
                     className={`flex-center mr-[15px] min-h-[40px] min-w-[40px] cursor-pointer overflow-hidden rounded-full hover:bg-[#00000020]`}
                   >
@@ -380,6 +377,21 @@ const ChangeTeamOwnerModalMemo: FC<Props> = ({
                       width={75}
                       height={75}
                     />
+                  </div>
+                )} */}
+                {logoUrl && (
+                  <div
+                    // htmlFor="logo"
+                    className={`flex-center group relative mr-[15px] max-h-[40px] min-h-[40px] min-w-[40px] max-w-[40px] overflow-hidden rounded-full ${styles.logo}`}
+                  >
+                    <Image
+                      src={logoUrl}
+                      alt="Logo"
+                      className={`h-full w-full object-contain text-[#fff]`}
+                      width={40}
+                      height={40}
+                    />
+                    <div className={`transition-base01 absolute inset-0 z-10 group-hover:bg-[#00000060]`}></div>
                   </div>
                 )}
                 <div className={`flex h-full w-full items-center justify-between pt-[4px] text-[12px]`}>
