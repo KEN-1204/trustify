@@ -1,5 +1,5 @@
 import useStore from "@/store";
-import React, { FC, memo, useEffect, useRef, useState } from "react";
+import React, { FC, Fragment, memo, useEffect, useRef, useState } from "react";
 import styles from "./DashboardHeader.module.css";
 import { HiOutlineBars3 } from "react-icons/hi2";
 import { IoLogOutOutline, IoSettingsOutline } from "react-icons/io5";
@@ -19,7 +19,13 @@ import { useQueryNotifications } from "@/hooks/useQueryNotifications";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { TooltipModal } from "../Parts/Tooltip/TooltipModal";
-import { MdClose, MdOutlineAdminPanelSettings, MdOutlineLeaderboard, MdOutlineModeEditOutline } from "react-icons/md";
+import {
+  MdClose,
+  MdOutlineAdminPanelSettings,
+  MdOutlineDataSaverOff,
+  MdOutlineLeaderboard,
+  MdOutlineModeEditOutline,
+} from "react-icons/md";
 import { VscSettings } from "react-icons/vsc";
 import { toast } from "react-toastify";
 import { Notification } from "@/types";
@@ -34,6 +40,9 @@ import { useMedia } from "react-use";
 import { GrDocumentVerified, GrHomeRounded, GrUserManager } from "react-icons/gr";
 import { BiMoneyWithdraw } from "react-icons/bi";
 import { FaLink, FaTelegramPlane } from "react-icons/fa";
+import { LuSettings2 } from "react-icons/lu";
+import { RxDot } from "react-icons/rx";
+import { optionsColorPalette } from "@/utils/selectOptions";
 
 export const DashboardHeaderMemo: FC = () => {
   const supabase = useSupabaseClient();
@@ -42,6 +51,7 @@ export const DashboardHeaderMemo: FC = () => {
   const setTheme = useThemeStore((state) => state.setTheme);
   // const theme = useStore((state) => state.theme);
   const language = useStore((state) => state.language);
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
@@ -148,6 +158,98 @@ export const DashboardHeaderMemo: FC = () => {
   const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
 
+  // ------------ SDB関連 ------------
+  // セッティングメニュー
+  const [isOpenSettingsSDB, setIsOpenSettingsSDB] = useState(false);
+
+  const mappingDescriptionsSDB: { [key: string]: { [key: string]: string }[] } = {
+    // guide: descriptionGuide,
+    // step: descriptionSteps,
+    // compressionRatio: descriptionCompressionRatio,
+    // printTips: descriptionPrintTips,
+  };
+  // テーマカラーパレット
+  const activeThemeColor = useDashboardStore((state) => state.activeThemeColor);
+  const setActiveThemeColor = useDashboardStore((state) => state.setActiveThemeColor);
+  const mappingPaletteStyle: { [key: string]: string } = {
+    "theme-brand-f": "var(--color-palette-brand-f)",
+    "theme-black-gradient": "var(--color-palette-black-gradient)",
+    "theme-simple12": "var(--color-palette-simple12)",
+    "theme-simple17": "var(--color-palette-simple17)",
+  };
+
+  // テーマカラー変更
+  const handleSwitchThemeColor = (color: string) => {
+    if (color === activeThemeColor) return;
+    setActiveThemeColor(color);
+    // ローカルストレージにセット 文字列のためparseは不要
+    localStorage.setItem("theme_color", color);
+  };
+
+  // -------------------------- 🌟ポップアップメニュー🌟 --------------------------
+  const [isOpenPopupOverlay, setIsOpenPopupOverlay] = useState(false);
+  const [openPopupMenu, setOpenPopupMenu] = useState<{
+    x?: number;
+    y: number;
+    title: string;
+    displayX?: string;
+    maxWidth?: number;
+  } | null>(null);
+  const mappingPopupTitle: { [key: string]: { [key: string]: string } } = {
+    compressionRatio: { en: "Compression Ratio", ja: "解像度" },
+    footnotes: { en: "Footnotes", ja: "脚注" },
+    print: { en: "Print Tips", ja: "印刷Tips" },
+    pdf: { en: "PDF Download", ja: "PDFダウンロード" },
+    settings: { en: "Settings", ja: "各種設定メニュー" },
+    edit: { en: "Edit Mode", ja: "編集モード" },
+    change_theme: { en: "Change theme", ja: "テーマカラー変更" },
+  };
+  type PopupMenuParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    title: string;
+    displayX?: string;
+    maxWidth?: number;
+  };
+  const handleOpenPopupMenu = ({ e, title, displayX, maxWidth }: PopupMenuParams) => {
+    if (!displayX) {
+      const { y, height } = e.currentTarget.getBoundingClientRect();
+      setOpenPopupMenu({
+        y: y - height / 2,
+        title: title,
+      });
+    } else {
+      const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+      // right: 見積書の右端から-18px, アイコンサイズ35px, ポップアップメニュー400px
+      let positionX = 0;
+      positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : 0;
+      positionX = displayX === "left" ? window.innerWidth - x : 0;
+      console.log("クリック", displayX, e, x, y, width, height);
+
+      setOpenPopupMenu({
+        x: positionX,
+        // y: y - height / 2,
+        y: y,
+        title: title,
+        displayX: displayX,
+        maxWidth: maxWidth,
+      });
+    }
+  };
+  const handleClosePopupMenu = () => {
+    setOpenPopupMenu(null);
+  };
+  const handleCloseSettings = () => {
+    setIsOpenSettingsSDB(false);
+  };
+  const handleCloseClickPopup = () => {
+    if (!!openPopupMenu && isOpenPopupOverlay) {
+      handleClosePopupMenu();
+      setIsOpenPopupOverlay(false);
+    }
+  };
+
+  // -------------------------- ✅ポップアップメニュー✅ --------------------------
+
   const queryClient = useQueryClient();
   const notificationsCacheData = queryClient.getQueryData<Notification[]>(["my_notifications"]);
 
@@ -160,7 +262,11 @@ export const DashboardHeaderMemo: FC = () => {
     "incompleteNotifications",
     incompleteNotifications,
     "completedNotifications",
-    completedNotifications
+    completedNotifications,
+    "activeMenuTab",
+    activeMenuTab,
+    "activeThemeColor",
+    activeThemeColor
   );
 
   // ================================ お知らせ キャッシュから取得したnotificationsを、未読、既読、完了済みに振り分ける
@@ -591,12 +697,16 @@ export const DashboardHeaderMemo: FC = () => {
               ? "メニューを非表示"
               : "メニューを表示"
           }`}
-          className="flex-center  min-h-[40px] min-w-[40px] cursor-pointer rounded-full hover:bg-[--color-bg-sub]"
+          className={`${
+            styles.icon_btn
+          } flex-center  min-h-[40px] min-w-[40px] cursor-pointer rounded-full hover:bg-[--color-bg-sub] ${
+            activeMenuTab === "SDB" ? `${styles.sdb}` : ``
+          }`}
           onMouseEnter={(e) => handleOpenTooltip(e, "left")}
           onMouseLeave={handleCloseTooltip}
           onClick={() => setIsOpenSidebar(!isOpenSidebar)}
         >
-          <HiOutlineBars3 className={`pointer-events-none text-[24px] text-[--color-text] ${styles.sdb_icon}`} />
+          <HiOutlineBars3 className={`pointer-events-none text-[24px] text-[--color-text]`} />
         </div>
         <div
           className="relative flex h-full w-[145px] select-none items-center justify-center pl-[16px]"
@@ -617,11 +727,15 @@ export const DashboardHeaderMemo: FC = () => {
         </div>
         {/* ヘッダータブ左スクロール時に連続でツールチップが表示されないようにするためのオーバーレイ */}
 
-        <div
-          className={`${
-            activeMenuTab !== "HOME" && activeMenuTab !== "SDB" ? `transition-bg01` : `transition-bg05`
-          } absolute left-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)] ${styles.arrow_overlay}`}
-        ></div>
+        {activeMenuTab !== "SDB" && (
+          <div
+            className={`${
+              activeMenuTab !== "HOME" && activeMenuTab !== "SDB" ? `transition-bg01` : `transition-bg05`
+            } absolute left-[185px] top-0 z-30 h-full w-[39px] ${styles.arrow_overlay} ${
+              activeMenuTab !== "SDB" ? `bg-[var(--color-bg-base)]` : ``
+            }`}
+          ></div>
+        )}
       </div>
 
       {/* 左矢印 */}
@@ -1233,14 +1347,22 @@ export const DashboardHeaderMemo: FC = () => {
       )} */}
 
       {/* ============================= 右側のコンテンツ ============================= */}
-      <div className="flex h-[40px] w-[165px]  flex-row-reverse items-center justify-start">
+      <div
+        className={`flex h-[40px] flex-row-reverse items-center justify-start ${
+          activeMenuTab !== "SDB" ? `w-[165px]` : ``
+        }`}
+      >
         {/* ヘッダータブ左スクロール時に連続でツールチップが表示されないようにするためのオーバーレイ */}
 
-        <div
-          className={`${
-            activeMenuTab !== "HOME" && activeMenuTab !== "SDB" ? `transition-bg01` : `transition-bg05`
-          } absolute right-[185px] top-0 z-30 h-full w-[39px] bg-[var(--color-bg-base)] ${styles.arrow_overlay}`}
-        ></div>
+        {activeMenuTab !== "SDB" && (
+          <div
+            className={`${
+              activeMenuTab !== "HOME" && activeMenuTab !== "SDB" ? `transition-bg01` : `transition-bg05`
+            } absolute right-[185px] top-0 z-30 h-full w-[39px]  ${styles.arrow_overlay} ${
+              activeMenuTab !== "SDB" ? `bg-[var(--color-bg-base)]` : ``
+            }`}
+          ></div>
+        )}
 
         {/* 一番右 プロフィールアイコン */}
         <div className="flex-center relative  h-full w-[52px] px-[6px] py-[1px]">
@@ -1510,7 +1632,9 @@ export const DashboardHeaderMemo: FC = () => {
         <div className="flex-center mr-[8px] h-full w-[40px]">
           <div
             data-text="アカウント設定"
-            className={`flex-center h-full w-full cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-re)]`}
+            className={`flex-center h-full w-full cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-re)] ${
+              styles.icon_btn
+            } ${activeMenuTab === "SDB" ? `${styles.sdb}` : ``}`}
             onMouseEnter={(e) => handleOpenTooltip(e, "center")}
             onMouseLeave={handleCloseTooltip}
             onClick={() => {
@@ -1528,6 +1652,8 @@ export const DashboardHeaderMemo: FC = () => {
           <div
             data-text="お知らせ"
             className={`flex-center h-full w-full cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-re)] ${
+              styles.icon_btn
+            } ${activeMenuTab === "SDB" ? `${styles.sdb}` : ``} ${
               openNotificationModal ? `bg-[var(--color-bg-sub-re)]` : ``
             }`}
             onClick={() => setOpenNotificationModal(true)}
@@ -1986,71 +2112,199 @@ export const DashboardHeaderMemo: FC = () => {
           )}
           {/* ==================== お知らせポップアップ ここまで ==================== */}
         </div>
-      </div>
-      {/* ==================== お知らせ所有者変更モーダル ==================== */}
-      {/* {openNotificationChangeTeamOwnerModal && notificationDataState !== null && (
-        <>
-          
-          <div
-            className="fixed left-0 top-0 z-[1000] h-[100vh] w-[100vw] bg-[var(--color-overlay)] backdrop-blur-sm"
-            onClick={() => {
-              console.log("オーバーレイ クリック");
-              setOpenNotificationChangeTeamOwnerModal(false);
-            }}
-          ></div>
-          <div className="fixed left-[50%] top-[50%] z-[2000] h-[52vh] w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
-            
-            <button
-              className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
-              onClick={() => setOpenNotificationChangeTeamOwnerModal(false)}
+        {/* SDB時のみ表示アイコン */}
+        {activeMenuTab === "SDB" && (
+          <div className="flex-center mr-[8px] h-full w-[40px]">
+            <div
+              data-text="各種設定メニュー"
+              className={`flex-center h-full w-full cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-re)] ${
+                styles.icon_btn
+              } ${activeMenuTab === "SDB" ? `${styles.sdb}` : ``}`}
+              onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+              onMouseLeave={handleCloseTooltip}
+              onClick={() => {
+                setIsOpenSettingsSDB(true);
+                if (hoveredItemPos) handleCloseTooltip();
+                if (openPopupMenu) handleClosePopupMenu();
+              }}
+              // onClick={() => {
+              //   setLoadingGlobalState(false);
+              //   setIsOpenSettingAccountModal(true);
+              //   setSelectedSettingAccountMenu("Profile");
+              // }}
             >
-              <MdClose className="text-[20px] text-[#fff]" />
-            </button>
-            <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
-              このチームの所有権を受け入れますか？
-            </h3>
-            <section className={`mt-[15px] flex h-auto w-full flex-col text-[14px]`}>
-              <p>
-                <span className="font-bold">{notificationDataState.from_user_name}</span>（
-                <span className="font-bold">{notificationDataState.from_user_email}</span>
-                ）が<span className="font-bold">{notificationDataState.from_company_name}</span>
-                の所有者として、代わりにあなたを任命しました。この任命を受け入れると、いかに同意したものとみなされます。
-              </p>
-              <ul className="mt-[20px] flex w-full list-disc flex-col space-y-3 pl-[15px]">
-                <li className="">
-                  このチーム、チームメンバー、チームのコンテンツを管理する管理者権限を新たに受け入れます。
-                </li>
-                <li className="">
-                  このチームのメンバーが作成し、このチーム内に保存される、既存および今後のコンテンツ全てに対する責任を負います。
-                </li>
-                <li className="">
-                  TRUSTiFYの利用規約がこのチームの所有権に適用されることに同意し、プライバシーポリシーを読みました。
-                </li>
-              </ul>
-            </section>
-            <section className="flex w-full items-start justify-end">
-              <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
-                <button
-                  className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-sub)] hover:bg-[var(--setting-side-bg-select-hover)]`}
-                >
-                  所有権を拒否する
-                </button>
-                <button
-                  className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]"
-                  onClick={() => {
-                    handleAcceptChangeTeamOwner();
-                    setNotificationDataState(null);
-                    setOpenNotificationChangeTeamOwnerModal(false);
-                  }}
-                >
-                  所有権を受け入れる
-                </button>
-              </div>
-            </section>
+              <LuSettings2 className={`text-[23px] text-[var(--color-icon)] ${styles.sdb_icon}`} />
+            </div>
           </div>
-        </>
-      )} */}
-      {/* ==================== お知らせ所有者変更モーダル ここまで ==================== */}
+        )}
+        {/* SDB時のみ表示アイコン ここまで */}
+      </div>
+      {/* ============================= 右側のコンテンツ ここまで ============================= */}
+      {/* ---------------------- SDBセッティングメニュー ---------------------- */}
+      {isOpenSettingsSDB && <div className={`${styles.menu_overlay}`} onClick={handleCloseSettings}></div>}
+      {isOpenSettingsSDB && (
+        <div className={`${styles.settings_menu} fixed right-[185px] top-[56px] h-auto w-[330px] rounded-[6px]`}>
+          <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>各種設定メニュー</h3>
+
+          <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
+            背景色などのテーマカラーの変更が可能です。
+          </p>
+
+          <hr className="min-h-[1px] w-full bg-[#999]" />
+
+          {/* -------- メニューコンテンツエリア -------- */}
+          <div className={`${styles.scroll_container} flex max-h-[240px] w-full flex-col overflow-y-auto`}>
+            <ul className={`flex h-full w-full flex-col`}>
+              {/* ------------------------------------ */}
+              <li
+                className={`${styles.list}`}
+                onClick={(e) => {
+                  if (isOpenPopupOverlay) return;
+                  if (!openPopupMenu) {
+                    handleOpenPopupMenu({ e, title: "change_theme", displayX: "left", maxWidth: 360 });
+                    setIsOpenPopupOverlay(true);
+                  } else {
+                    handleClosePopupMenu();
+                    setIsOpenPopupOverlay(false);
+                  }
+                }}
+                // onMouseEnter={(e) => {}}
+                // onMouseLeave={handleClosePopupMenu}
+              >
+                <div className="pointer-events-none flex min-w-[110px] items-center">
+                  <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                  <div className="flex select-none items-center space-x-[2px]">
+                    <span className={`${styles.list_title}`}>テーマカラー</span>
+                    <span className={``}>：</span>
+                  </div>
+                </div>
+                <div className={`transition-bg02 rounded-[8px] ${styles.edit_btn} ${styles.brand}`}>
+                  <span>変更</span>
+                </div>
+              </li>
+              {/* ------------------------------------ */}
+            </ul>
+          </div>
+        </div>
+      )}
+      {/* ---------------------- SDBセッティングメニュー ここまで ---------------------- */}
+      {/* ---------------------- 説明ポップアップ ---------------------- */}
+      {/* クリック時のオーバーレイ */}
+      {isOpenPopupOverlay && (
+        <div
+          className={`${styles.menu_overlay} ${styles.above_setting_menu} bg-[#ffffff00]`}
+          onClick={handleCloseClickPopup}
+        ></div>
+      )}
+      {/* 説明ポップアップ */}
+      {openPopupMenu && (
+        <div
+          // className={`${styles.description_menu} shadow-all-md border-real-with-shadow fixed right-[-18px] z-[3500] flex min-h-max flex-col rounded-[6px]`}
+          className={`${styles.description_menu} shadow-all-md border-real-with-shadow ${
+            isOpenPopupOverlay ? `` : `pointer-events-none`
+          } fixed z-[3500] flex min-h-max flex-col rounded-[6px]`}
+          style={{
+            top: `${openPopupMenu.y}px`,
+            ...(openPopupMenu?.displayX === "right" && {
+              left: `${openPopupMenu.x}px`,
+              maxWidth: `${openPopupMenu.maxWidth}px`,
+            }),
+            ...(openPopupMenu?.displayX === "left" && {
+              right: `${openPopupMenu.x}px`,
+              maxWidth: `${openPopupMenu.maxWidth}px`,
+            }),
+          }}
+        >
+          <div className={`min-h-max w-full font-bold ${styles.title}`}>
+            <div className="flex max-w-max flex-col">
+              <span>{mappingPopupTitle[openPopupMenu.title][language]}</span>
+              <div className={`${styles.underline} w-full`} />
+            </div>
+          </div>
+
+          {openPopupMenu.title !== "change_theme" && (
+            <ul className={`flex flex-col rounded-[6px] ${styles.u_list}`}>
+              {["guide"].includes(openPopupMenu.title) &&
+                mappingDescriptionsSDB[openPopupMenu.title].map((item, index) => (
+                  <li
+                    key={item.title + index.toString()}
+                    className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}
+                    style={{ ...(openPopupMenu.title === "printTips" && { padding: "3px 14px" }) }}
+                  >
+                    <div className="flex min-w-max items-center space-x-[3px]">
+                      <RxDot className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                      <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                        {item.title}
+                      </span>
+                    </div>
+                    <p className="select-none text-[12px]" style={{ whiteSpace: "pre-wrap" }}>
+                      {item.content}
+                    </p>
+                  </li>
+                ))}
+              {!["guide"].includes(openPopupMenu.title) && (
+                <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
+                  <p className="select-none whitespace-pre-wrap text-[12px]">
+                    {openPopupMenu.title === "edit_mode" &&
+                      "定休日を適用後、個別に日付を「営業日から休日へ」または「休日から営業日へ」変更が可能です。"}
+                    {openPopupMenu.title === "print" &&
+                      "印刷ボタンクリック後に印刷ダイアログが開かれた後、「詳細設定」の「余白」を「なし」に切り替えることで綺麗に印刷ができます。また、「用紙サイズ」のそれぞれの選択肢については下記の通りです。"}
+                  </p>
+                </li>
+              )}
+            </ul>
+          )}
+          {openPopupMenu.title === "change_theme" && (
+            <div className={`${styles.change_menu} flex w-full max-w-[280px] flex-col`}>
+              <div className={`${styles.description_area} w-full px-[20px] pt-[12px] text-[12px]`}>
+                <p>下記のカラーパレットからお好きなカラーを選択することでテーマカラーの変更が可能です。</p>
+              </div>
+              <div role="grid" className={`${styles.grid}`}>
+                {optionsColorPalette.map((value, index) => {
+                  const isActive = value === activeThemeColor;
+                  return (
+                    <Fragment key={value + "palette"}>
+                      <div role="gridcell" className={`${styles.palette_cell} flex-center h-[66px]`}>
+                        {isActive && (
+                          <div
+                            className={`${styles.active_color} flex-center h-[39px] w-[39px] rounded-full bg-[var(--main-color-tk)]`}
+                          >
+                            <div className={`${styles.space} flex-center h-[35px] w-[35px] rounded-full`}>
+                              <div
+                                className={`${styles.color_option} flex-center relative h-[31px] w-[31px] rounded-full bg-[var(--color-bg-brand-sub)]`}
+                                style={{ background: `${mappingPaletteStyle[value]}` }}
+                              >
+                                {!isActive && (
+                                  <div className="absolute left-0 top-0 z-[10] h-full w-full rounded-full hover:bg-[#00000020]" />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {!isActive && (
+                          <div
+                            className={`${styles.space_inactive} flex-center h-[39px] w-[39px] rounded-full`}
+                            onClick={() => {
+                              console.log("value", value, "activeThemeColor", activeThemeColor);
+                              handleSwitchThemeColor(value);
+                            }}
+                          >
+                            <div
+                              className={`${styles.color_option} flex-center bg-brand-gradient-light h-[35px] w-[35px] rounded-full`}
+                              style={{ background: `${mappingPaletteStyle[value]}` }}
+                            ></div>
+                          </div>
+                        )}
+                      </div>
+                    </Fragment>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      {/* ---------------------- 説明ポップアップ ここまで ---------------------- */}
     </header>
   );
 };

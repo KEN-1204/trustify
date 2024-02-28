@@ -469,6 +469,10 @@ type State = {
   setEditedTaskCard: (payload: EditedCard) => void;
   editedDealCard: EditedDealCard;
   setEditedDealCard: (payload: EditedDealCard) => void;
+
+  // テーマカラー
+  activeThemeColor: string;
+  setActiveThemeColor: (payload: string) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -1093,6 +1097,10 @@ const useDashboardStore = create<State>((set) => ({
   setEditedTaskCard: (payload) => set({ editedTaskCard: payload }),
   editedDealCard: null,
   setEditedDealCard: (payload) => set({ editedDealCard: payload }),
+
+  // テーマカラー
+  activeThemeColor: "theme-brand-f",
+  setActiveThemeColor: (payload) => set({ activeThemeColor: payload }),
 }));
 
 export default useDashboardStore;

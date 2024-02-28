@@ -115,17 +115,23 @@
   color: var(--color-card-text);
   /* color: rgba(255, 0, 0, 0.9); */
   background-color: var(--color-card-bg);
+  /* background-color: #262626; */
+  /* background-color: #292929; */
   /* background-color: rgba(255, 117, 117, 0.2); */
   /* background-color: var(--color-bg-sub-re); */
   /* border-color: #404040; */
   /* border-color: rgb(64 64 64 / 1); */
   border: 1px solid var(--color-card-border);
+  /* border: 1px solid #404040; */
+  /* border: 1px solid #565656; */
+  /* border: 1px solid #666; */
   /* border-color: var(--color-card-border); */
   /* border-color: rgb(239 68 68 / 1); */
   /* border-color: var(--color-bg-brand-f); */
   box-shadow: var(--card-shadow);
   user-select: none;
-  padding: 9px 12px;
+  /* padding: 9px 12px; */
+  padding: 9px 10px;
   opacity: 0;
 }
 .column.award .column_lane .row_card {
@@ -200,19 +206,33 @@
   animation: fadeIn 0.5s 0.1s ease forwards;
 }
 /* カードコンテンツ */
-.column .column_lane .row_card .main {
+.column .column_lane .row_card .left_contents {
+  min-width: 140px;
+  max-width: 140px;
+  pointer-events: none;
+}
+.column .column_lane .row_card .left_contents .main {
   color: var(--color-text-title);
   line-height: 20px;
   font-size: 14px;
+  font-weight: 600;
   pointer-events: none;
 }
-.column .column_lane .row_card .sub {
+.column .column_lane .row_card .left_contents .sub {
   color: var(--color-text-sub);
-  font-size: 9px;
+  font-size: 10px;
+  /* line-height: 13px; */
+  pointer-events: none;
+  width: 100%;
+  max-width: 145px;
+}
+.column .column_lane .row_card .right_main {
+  color: var(--color-text-title);
+  font-size: 12px;
   /* line-height: 13px; */
   pointer-events: none;
 }
-.column .column_lane .row_card .right_info {
+.column .column_lane .row_card .right_second {
   color: var(--color-text-sub);
   font-size: 11px;
   /* line-height: 13px; */
@@ -220,13 +240,23 @@
 }
 /* 没 */
 .column .column_lane .row_card.rejected {
-  text-decoration: line-through #ccc;
+  /* text-decoration: line-through #ccc;
   cursor: pointer;
   border-color: #292929;
-  background-color: rgb(24, 24, 24);
+  background-color: rgb(24, 24, 24); */
+  text-decoration: line-through var(--color-card-line-rejected);
+  cursor: pointer;
+  border-color: var(--color-card-border-rejected);
+  background-color: var(--color-card-bg-rejected);
+  /* text-decoration: line-through #666;
+  cursor: pointer;
+  border-color: rgb(210, 210, 210);
+  background-color: rgb(248, 248, 248); */
 }
-.column .column_lane .row_card.rejected p {
-  color: #999;
+.column .column_lane .row_card.rejected * {
+  /* color: #999; dark */
+  /* color: #bcbcbc; light */
+  color: var(--color-card-text-rejected);
 }
 
 .column .column_lane .drop_indicator {

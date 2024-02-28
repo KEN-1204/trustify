@@ -36,6 +36,7 @@
   --shadow-header: var(--shadow-header-sdb);
   /* box-shadow: var(--shadow-sidebar); */
   border-bottom: 1px solid var(--color-border);
+  background-color: transparent;
 }
 .app_header.sdb .sdb_icon {
   /* color: #fff; */
@@ -43,6 +44,15 @@
 .app_header.sdb .arrow_overlay {
   /* background: var(--color-bg-base-header-sdb); */
   /* background: var(--color-sdb-bg); */
+}
+.app_header.sdb .icon_btn.sdb:hover {
+  /* --color-bg-sub-re: rgba(64, 87, 109, 0.08);
+  --color-bg-sub-re-hover: rgba(57, 76, 96, 0.15);
+  --color-bg-sub-re: #404040;
+  --color-bg-sub-re-hover: #555; */
+  /* --color-bg-sub: #383838; */
+  /* --color-bg-sub: rgba(64, 87, 109, 0.07); */
+  background-color: var(--color-header-icon-btn);
 }
 
 .navList {
@@ -321,3 +331,139 @@
   border-color: var(--border-theme-dark);
 }
 /* チェックボックス ここまで */
+
+/* ----------------- SDB settings_menu ----------------- */
+.menu_overlay {
+  position: fixed;
+  z-index: 3200;
+  left: 0vw;
+  top: 0vh;
+  width: 100vw;
+  height: 100vh;
+  /* background-color: #ffffff60; */
+}
+.menu_overlay.above_setting_menu {
+  z-index: 3600;
+}
+@keyframes fade_up5 {
+  0% {
+    opacity: 0;
+    transform: translateY(5%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.settings_menu {
+  z-index: 3500;
+  /* background-color: var(--color-sign-out-bg); */
+  /* background-color: #00000090; */
+  background-color: #303030;
+  /* box-shadow: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390, 0 4px 10px 2px #ffffff33; */
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390, 0 4px 10px 2px #ffffff33;
+  color: #fff;
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(-5%);
+  animation: fade_up5 0.3s ease forwards;
+}
+.settings_menu .scroll_container {
+  max-height: 39vh;
+}
+.settings_menu .list {
+  padding: 0px 20px;
+  min-height: 60px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.settings_menu .list:hover {
+  background-color: var(--color-bg-brand-f30);
+}
+.settings_menu .section_title {
+  padding: 10px 20px 6px;
+}
+.settings_menu .section_title .underline {
+  min-height: 1px;
+  margin-top: 1px;
+  background-color: var(--color-bg-brand-f);
+}
+.edit_btn {
+  background-color: #484848;
+  user-select: none;
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 7px 22px;
+  border-radius: 8px;
+}
+.edit_btn:hover {
+  background-color: #555;
+}
+.edit_btn.brand:hover {
+  background-color: var(--color-bg-brand-f90);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+/* 説明ポッポアップ */
+.description_menu {
+  z-index: 3800;
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390, 0 4px 10px 2px #ffffff33;
+  background-color: #303030;
+  opacity: 0;
+  transform: translateY(-5%);
+  animation: fade_up5 0.3s ease forwards;
+  max-width: 400px;
+  color: #fff;
+}
+.description_menu .title {
+  padding: 20px 20px 0px;
+}
+.description_menu .title .underline {
+  min-height: 1px;
+  margin-top: 1px;
+  background-color: var(--color-bg-brand-f);
+}
+.description_menu .u_list {
+  margin: 5px 10px 10px;
+}
+.description_menu .u_list .dropdown_list_item {
+  width: 100%;
+  padding: 10px 14px;
+  user-select: none;
+}
+.description_menu .change_menu {
+  pointer-events: all;
+}
+.description_menu .grid {
+  padding: 5px 5px 10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+.description_menu .grid .palette_cell {
+}
+.description_menu .grid .palette_cell .active_color {
+  border-radius: 50%;
+}
+.description_menu .grid .palette_cell .space {
+  background-color: #202020;
+  border-radius: 50%;
+  /* background-color: var(--color-bg-base); */
+}
+.description_menu .grid .palette_cell .space_inactive {
+  background-color: transparent;
+  border-radius: 50%;
+}
+.description_menu .grid .palette_cell .space_inactive:hover {
+  background-color: var(--color-bg-brand-f);
+  border-radius: 50%;
+}
+.description_menu .grid .palette_cell .active_color .color_option {
+  cursor: not-allowed;
+}
+.description_menu .grid .palette_cell .color_option {
+  border-radius: 50%;
+  cursor: pointer;
+  /* background-color: var(--color-bg-base); */
+}
+/* ----------------- SDB settings_menu ここまで ----------------- */

@@ -21,6 +21,7 @@ import { mappingOrderCertaintyStartOfMonth, mappingOrderCertaintyStartOfMonthToa
 import useStore from "@/store";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { toast } from "react-toastify";
+import { splitCompanyNameWithPosition } from "@/utils/Helpers/splitCompanyName";
 
 type ColumnSizeInfo = {
   prevColumnHeight: number;
@@ -68,7 +69,7 @@ const DEFAULT_CARDS = Array(11)
     if (10 <= index) columnName = 4;
     return {
       property_id: index.toString(),
-      company_name: `株式会社X ${index}`,
+      company_name: `株式会社キーエンス${index}`,
       company_department_name: "開発本部開発第二課",
       column_title_num: columnName,
       expansion_year_month: 202403,
@@ -1306,10 +1307,12 @@ const DealBoardMemo = () => {
     setCards(newCards);
     setUpdateCardsMapTrigger(Date.now()); // メモ化したMapオブジェクトを再計算して生成
 
-    // トーストを表示
-    toast.success(
-      `${deleteCard.company_name}を${mappingOrderCertaintyStartOfMonthToast[dropColumnTitle][language]}に変更しました🌟`
-    );
+    // カラムが異なる場合はトーストを表示
+    if (dropColumnIndex !== originDragColumnIndex) {
+      toast.success(
+        `${deleteCard.company_name}を${mappingOrderCertaintyStartOfMonthToast[dropColumnTitle][language]}に変更しました🌟`
+      );
+    }
 
     /**
      *  console.log(
@@ -1593,7 +1596,7 @@ const DealBoardMemo = () => {
                         data-card-row-index={rowIndex}
                         className={`${styles.row_card} ${animate ? `${styles.fade_in}` : ``} ${
                           isMounted ? `${styles.is_mount}` : ``
-                        }  cursor-grab rounded bg-neutral-800 active:cursor-grabbing ${
+                        }  transition-bg05 cursor-grab rounded bg-neutral-800 active:cursor-grabbing ${
                           rowIndex === filteredCards.length - 1 ? `last` : ``
                         } ${isRejected ? `${styles.rejected}` : ``}`}
                         style={{ ...(animate && { animationDelay: `${(rowIndex + 1) * 0.3}s` }) }} // 各カードのアニメーションの遅延を設定
@@ -1640,25 +1643,43 @@ const DealBoardMemo = () => {
                           })
                         }
                       >
-                        {/* {columnIndex === 0 && (
-                          <FaRegStar
-                            className={`${styles.star_icon_single} mr-[6px] min-h-[15px] min-w-[15px] text-[15px]`}
-                          />
-                        )} */}
                         {columnIndex === 0 && (
+                          <FaRegStar
+                            className={`${styles.star_icon_single} ml-[-3px] mr-[6px] min-h-[15px] min-w-[15px] text-[15px]`}
+                          />
+                        )}
+                        {/* {columnIndex === 0 && (
                           <div className={`${styles.star_icon_wrapper} flex-center`}>
                             <FaRegStar className={`${styles.star_icon}  min-h-[15px] min-w-[15px] text-[15px]`} />
                           </div>
-                        )}
+                        )} */}
                         {/* <p className={`pointer-events-none whitespace-pre-wrap text-sm`}>{card.company_name}</p> */}
                         <div className={`pointer-events-none flex w-full items-center justify-between`}>
-                          <div className={`pointer-events-none flex flex-col justify-center`}>
-                            <p className={`${styles.main} pointer-events-none truncate`}>{card.company_name}</p>
-                            <p className={`${styles.sub} pointer-events-none truncate`}>{card.company_name}</p>
+                          <div
+                            className={`${styles.left_contents} flex min-w-[140px] flex-col justify-center bg-[red]/[0]`}
+                          >
+                            <div className={`${styles.main} truncate`}>
+                              {/* <span>{card.company_name}</span> */}
+                              <span>{splitCompanyNameWithPosition(card.company_name).company_name}</span>
+                            </div>
+                            <div className={`${styles.sub} flex items-center space-x-[6px] truncate`}>
+                              <div className="max-w-[80px] truncate bg-[aqua]/[0]">
+                                {/* <span className={``}>画像寸法測定器 IM-7000</span> */}
+                                <span className={``}>2024/04~</span>
+                                {/* <span className={``}>ネタ外</span> */}
+                              </div>
+                              {/* <div className="max-w-[75px] truncate bg-[purple]/[0]">
+                                <span className={`truncate`}>3,600,000</span>
+                              </div> */}
+                            </div>
                           </div>
-                          <div className={`pointer-events-none flex flex-col items-end justify-center`}>
-                            <span className={`${styles.right_info} pointer-events-none truncate`}>IM3</span>
-                            <span className={`${styles.right_info} pointer-events-none truncate`}>300,600,000</span>
+                          <div
+                            className={`pointer-events-none flex min-w-[65px] flex-col items-end justify-center bg-[green]/[0]`}
+                          >
+                            {/* <span className={`${styles.right_first} pointer-events-none truncate`}>2024/04~</span> */}
+                            <span className={`${styles.right_main} pointer-events-none truncate`}>IM3</span>
+                            <span className={`${styles.right_second} pointer-events-none truncate`}>300,600,000</span>
+                            {/* <span className={`${styles.right_first} pointer-events-none truncate`}>ネタ外</span> */}
                           </div>
                         </div>
                       </div>

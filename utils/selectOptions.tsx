@@ -1604,3 +1604,8 @@ export const optionsSalesTaxRate = [
   "27",
 ];
 // export const optionsSalesTaxRate = ["10", "11", "12", "13", "14", "15", "16", "17", "18"];
+
+// -------------------------- SDB --------------------------
+
+// 🔹テーマパレットカラー
+export const optionsColorPalette = ["theme-brand-f", "theme-black-gradient", "theme-simple12", "theme-simple17"];

@@ -4,12 +4,13 @@
   /* background-color: rgb(23 23 23 / 1); */
   /* color: rgb(250 250 250 / 1); */
   /* background-color: #121212; */
-  /* background-color: #171717; */
   /* background-color: #0f0f0f; */
-  background-color: var(--color-sdb-bg);
+
+  /* background-color: #171717; */
   /* background-image: url("/assets/images/beautiful/ocean2.jpg");
   background-size: cover;
   background-repeat: no-repeat; */
+  /* background-color: var(--color-sdb-bg); */
   /* background: -webkit-linear-gradient(
     33deg,
     #101010 10%,

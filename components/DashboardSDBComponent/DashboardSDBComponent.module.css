@@ -5,10 +5,43 @@
 
   /* background-color: var(--color-bg-base); */
   color: var(--color-text-title);
-
+  background: var(--color-sdb-bg);
   display: flex;
 }
-
+.app_main_container.brand_f {
+  background: var(--color-sdb-bg);
+}
+.app_main_container.black_gradient {
+  background: -webkit-linear-gradient(
+    33deg,
+    #101010 10%,
+    #121212 30%,
+    #151515 42%,
+    #272727 60%,
+    #333 66%,
+    #272727 72%,
+    #171717 82%
+  );
+}
+.app_main_container.black_gradient {
+  /* background: -webkit-linear-gradient(
+    33deg,
+    #101010 10%,
+    #121212 30%,
+    #151515 42%,
+    #272727 60%,
+    #333 66%,
+    #272727 72%,
+    #171717 82%
+  ); */
+  background: var(--color-sdb-bg-black-gradient);
+}
+.app_main_container.simple12 {
+  background: var(--color-sdb-bg-simple12);
+}
+.app_main_container.simple17 {
+  background: var(--color-sdb-bg-simple17);
+}
 .spacer_left {
   /* transition: all 0.5s ease; */
   min-width: var(--sidebar-width);
@@ -20,7 +53,7 @@
   position: absolute;
   z-index: 5000;
   inset: 0;
-  background-color: #00000060;
+  background-color: var(--color-sidebar-open-overlay);
   opacity: 0;
   animation: fade 0.3s 0.1s ease forwards;
 }

@@ -11,7 +11,7 @@ export const ScreenDealBoards = () => {
   return (
     <>
       {/* <section className={`${styles.company_table_screen} h-screen w-full bg-neutral-900 text-neutral-50`}> */}
-      <section className={`${styles.company_table_screen} transition-bg05 w-full `}>
+      <section className={`${styles.company_table_screen} transition-bg05 w-full`}>
         <div className={`${styles.board_container}`}>
           <div className={`${styles.section_title_area}`}>
             <div className={`${styles.entity_detail_wrapper}`}>

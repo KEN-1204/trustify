@@ -1074,9 +1074,14 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-select-box-bg: #666;
   --color-select-box-hover: #2894ff;
 
-  /* ------------- 🌟ネタ表🌟 ------------- */
+  /* ------------- 🌟ネタ表SDB🌟 light ------------- */
+  --color-header-icon-btn: rgba(64, 87, 109, 0.12);
+  --color-sidebar-open-overlay: #00000015;
   /* --color-table-bg: #fdfdfd; */
   --color-sdb-bg: #fff;
+  --color-sdb-bg-black-gradient: #fff;
+  --color-sdb-bg-simple12: #fff;
+  --color-sdb-bg-simple17: #fff;
   --color-table-text: var(--color-text-title);
   --color-award: rgb(252, 70, 204);
   --color-eighty: var(--main-color-tk);
@@ -1101,6 +1106,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-card-bg-disabled: rgba(248, 248, 248, 0.3);
   --color-card-border: rgb(190, 190, 190);
   --color-card-text: var(--color-text-title-black);
+  --color-card-bg-rejected: rgb(252, 252, 252);
+  --color-card-border-rejected: rgb(220, 220, 220);
+  --color-card-text-rejected: var(--color-text-disabled);
+  --color-card-line-rejected: #555;
   --card-shadow: var(--shadow-sm);
   --color-card-dragging-bg: linear-gradient(to bottom left, #0affffd0, #0abeffd0, #0066ffd0);
   --color-barrel-text: rgb(115 115 115 / 1);
@@ -1110,7 +1119,20 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-barrel-bg-active: rgba(255, 117, 117, 0.2);
   --color-barrel-border-active: rgb(239 68 68 / 1);
   --color-drop-indicator-active: #ff3b5b;
-  /* ------------- ✅ネタ表✅ ここまで ------------- */
+  /* テーマカラーパレット */
+  --color-palette-brand-f: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd 0.89%,
+    #bef3f5 17.23%,
+    #7de2eb 42.04%,
+    #7dc8eb 55.12%,
+    #0ab5ff 71.54%,
+    #0066ff 100% /* rgb(0, 136, 255) 100% */
+  );
+  --color-palette-black-gradient: #fff;
+  --color-palette-simple12: #fff;
+  --color-palette-simple17: #fff;
+  /* ------------- ✅ネタ表✅ ここまで light ------------- */
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -1791,9 +1813,23 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-select-box-hover: #2894ff; */
   --color-select-box-hover: #1188ff;
 
-  /* ------------- 🌟ネタ表🌟 ------------- */
+  /* ------------- 🌟ネタ表SDB🌟 dark ------------- */
+  --color-header-icon-btn: #99999960;
+  --color-sidebar-open-overlay: #00000060;
   /* --color-sdb-bg: #171717; */
   --color-sdb-bg: #121212;
+  --color-sdb-bg-black-gradient: -webkit-linear-gradient(
+    33deg,
+    #101010 10%,
+    #121212 30%,
+    #151515 42%,
+    #272727 60%,
+    #333 66%,
+    #272727 72%,
+    #171717 82%
+  );
+  --color-sdb-bg-simple12: #121212;
+  --color-sdb-bg-simple17: #171717;
   /* --color-sdb-bg: #151515; */
   --color-sdb-text: #fafafa;
   /* --color-award: rgb(236 72 153 / 1);
@@ -1811,10 +1847,17 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-column-border-active: inset 0px 0px 0px 1px #063c13, 0px 0px 0px 1px #00ff40;
   /* --color-column-sideborder-active: var(--color-bg-brand-fc0); */
   --color-column-sideborder-active: var(--color-bg-brandc0);
-  --color-card-bg: rgb(38 38 38 / 1);
+  /* --color-card-bg: rgb(38 38 38 / 1); */
+  /* --color-card-bg: #262626; */
+  --color-card-bg: #292929;
   --color-card-bg-disabled: rgba(38 38 38, 0.3);
-  --color-card-border: rgb(64 64 64 / 1);
+  --color-card-border: #404040;
+  --color-card-border: #666;
   --color-card-text: rgb(245 245 245 / 1);
+  --color-card-bg-rejected: rgb(24, 24, 24);
+  --color-card-border-rejected: #292929;
+  --color-card-text-rejected: #999;
+  --color-card-line-rejected: #ccc;
   --card-shadow: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --color-card-dragging-bg: linear-gradient(to bottom left, #0affffc0, #0abeffc0, #0066ffc0);
   --color-barrel-bg: rgb(115 115 115 / 0.2);
@@ -1824,7 +1867,39 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-barrel-text-active: rgb(239 68 68 / 1);
   --color-barrel-border-active: rgb(153 27 27 / 1);
   --color-drop-indicator-active: #00ff40;
-  /* ------------- ✅ネタ表✅ ここまで ------------- */
+  /* テーマカラーパレット */
+  /* --color-palette-brand-f: linear-gradient(60deg, #cffcfd, #7de2eb, #0ab5ff, #0066ff); */
+  --color-palette-brand-f: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd 0.89%,
+    #bef3f5 17.23%,
+    #7de2eb 42.04%,
+    #7dc8eb 55.12%,
+    #0ab5ff 71.54%,
+    #0066ff 100% /* rgb(0, 136, 255) 100% */
+  );
+  --color-palette-brand-f: -webkit-linear-gradient(33deg, #cffcfd 10%, #7de2eb 30%, #121212 50%, #0066ff 82%);
+  /* --color-palette-brand-f: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd 0.89%,
+    #0affff 30.23%,
+    #0066ff 71.54%,
+    #121212 100%
+  ); */
+  --color-palette-black-gradient: -webkit-linear-gradient(
+    33deg,
+    #101010 10%,
+    #121212 30%,
+    #151515 42%,
+    #272727 60%,
+    #333 66%,
+    #272727 72%,
+    #171717 82%
+  );
+  /* --color-palette-simple12: linear-gradient(to top right, #fff 30%, #171717 55%); */
+  --color-palette-simple12: #121212;
+  --color-palette-simple17: #171717;
+  /* ------------- ✅ネタ表✅ ここまで dark ------------- */
 }
 
 /* html {
@@ -2461,6 +2536,21 @@ textarea {
 } */
 /* STRIPE
 メイン薄い #80E9FF, #7A73FF, ロゴ #55D2FF */
+.bg-gradient-brand4 {
+  background: linear-gradient(236.22deg, #3bffff 56%, #0affff 88%);
+  filter: blur(120px);
+  opacity: 0.66;
+}
+.bg-gradient-brand-vivid-blue {
+  background: linear-gradient(236.22deg, #7a73ff -3.32%, #0d99ff 12.21%, #0d99ff 73.4%);
+  filter: blur(120px);
+  opacity: 0.66;
+}
+.bg-gradient-brand-white {
+  background: linear-gradient(236.22deg, #c8ffff 56%, #edf5ff 88%);
+  filter: blur(120px);
+  opacity: 0.66;
+}
 .bg-gradient-brand1 {
   /* background: linear-gradient(236.22deg, #0066ff -3.32%, #eec850 12.21%, var(--color-bg-brand-f) 73.4%); */
   background: linear-gradient(236.22deg, #0066ff -3.32%, #0affff 12.21%, var(--color-bg-brand-f) 73.4%);
@@ -2997,3 +3087,5 @@ textarea {
 .Toastify__toast-theme--dark {
   --toastify-color-dark: #292929;
 }
+
+/* -------------- 🌟SDB🌟 -------------- */
