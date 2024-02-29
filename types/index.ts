@@ -2346,12 +2346,17 @@ export type CardType = { id: string; taskTitle: string; contents: string | null;
 // export type EditedCard = { columnTitle: string; card: CardType } | null;
 export type EditedCard = CardType | null;
 
-export type DealCardType = {
-  property_id: string;
-  company_name: string; // 会社名
-  company_department_name: string | null; // 部署名
+// export type DealCardType = {
+//   property_id: string;
+//   company_name: string; // 会社名
+//   company_department_name: string | null; // 部署名
+//   column_title_num: number; // 月初確度 or 中間確度 中間確度があればこちらを優先
+//   expansion_year_month: number; // 展開日付 => 当月発生の場合はネタ外として扱う
+//   rejected_flag: boolean; // 物件没フラグ => 没の場合は、その確度の最後尾に並べて、斜線を引きdraggableをfalseにする
+//   pending_flag: boolean; // 物件没フラグ => 没の場合は、その確度の最後尾に並べて、斜線を引きdraggableをfalseにする
+// };
+export type DealCardType = Property_row_data & {
   column_title_num: number; // 月初確度 or 中間確度 中間確度があればこちらを優先
-  expansion_year_month: number; // 展開日付 => 当月発生の場合はネタ外として扱う
 };
 
 export type EditedDealCard = DealCardType | null;

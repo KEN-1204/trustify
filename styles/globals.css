@@ -26,6 +26,10 @@
   --caret-color-light-blue: #02e7f5;
 
   --color-text-title-black: #37352f;
+  --color-text-title-black-hover: #37352f90;
+
+  /* bg */
+  --color-bg-sub-solid-light: #f3f5f8;
 
   /* TikTok */
   --caret-color-red: #ff3b5b;
@@ -420,6 +424,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* chat-gptのサブ背景 #f7f7f8 ホバー時：#ececf1 */
   --color-bg-sub: rgba(64, 87, 109, 0.07);
   --color-bg-sub-hover: #394c6026;
+  --color-bg-sub-solid: #f3f5f8;
   --color-bg-sub-light: rgba(64, 87, 109, 0.07);
   --color-bg-sub-light-hover: #394c6026;
   /* --color-bg-sub: #40576d12; */

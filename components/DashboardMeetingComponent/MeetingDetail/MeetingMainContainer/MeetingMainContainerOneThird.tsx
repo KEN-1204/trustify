@@ -1531,7 +1531,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
             // className={`${styles.left_container1 h-full min-w-[calc((100vw-var(--sidebar-width))/3)1 pb-[35px] pt-[10px]`}
             className={`${styles.left_container} ${
               isOpenSidebar ? `transition-base02` : `transition-base01`
-            } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] pb-[35px] pt-[0px]`}
+            } h-full pb-[35px] pt-[0px] ${
+              tableContainerSize === "one_third"
+                ? `min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)]`
+                : `min-w-[calc((100vw-var(--sidebar-width))/3-14px)] max-w-[calc((100vw-var(--sidebar-width))/3-14px)]`
+            }`}
           >
             {/* --------- ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
@@ -2568,7 +2572,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
           <div
             className={`${styles.right_container} ${
               isOpenSidebar ? `transition-base02` : `transition-base01`
-            } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] grow bg-[aqua]/[0] pb-[35px] pt-[0px]`}
+            } h-full grow bg-[aqua]/[0] pb-[35px] pt-[0px] ${
+              tableContainerSize === "one_third"
+                ? `min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)]`
+                : `min-w-[calc((100vw-var(--sidebar-width))/3-14px)] max-w-[calc((100vw-var(--sidebar-width))/3-14px)]`
+            }`}
           >
             <div className={`${styles.right_contents_wrapper} flex h-full w-full flex-col bg-[#000]/[0]`}>
               {/* 下エリア 禁止フラグなど */}
@@ -4002,7 +4010,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
             // className={`${styles.left_container1 h-full min-w-[calc((100vw-var(--sidebar-width))/3)1 pb-[35px] pt-[10px]`}
             className={`${styles.left_container} ${
               isOpenSidebar ? `transition-base02` : `transition-base01`
-            } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] pb-[35px] pt-[0px]`}
+            } h-full pb-[35px] pt-[0px] ${
+              tableContainerSize === "one_third"
+                ? `min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)]`
+                : `min-w-[calc((100vw-var(--sidebar-width))/3-15px)] max-w-[calc((100vw-var(--sidebar-width))/3-15px)]`
+            }`}
           >
             {/* --------- ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>

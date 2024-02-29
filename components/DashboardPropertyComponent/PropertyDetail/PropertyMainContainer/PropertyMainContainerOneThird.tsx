@@ -79,6 +79,8 @@ import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
 import { calculateDiscountRate } from "@/utils/Helpers/calculateDiscountRate";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import { UnderRightActivityLogCustom } from "./UnderRightActivityLogCustom/UnderRightActivityLogCustom";
+import { FallbackUnderRightActivityLogCustom } from "./UnderRightActivityLogCustom/FallbackUnderRightActivityLogCustom";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -1881,7 +1883,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
             // className={`${styles.left_container1 h-full min-w-[calc((100vw-var(--sidebar-width))/3)1 pb-[35px] pt-[10px]`}
             className={`${styles.left_container} ${
               isOpenSidebar ? `transition-base02` : `transition-base01`
-            } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] pb-[35px] pt-[0px]`}
+            } h-full  pb-[35px] pt-[0px] ${
+              tableContainerSize === "one_third"
+                ? `min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)]`
+                : `min-w-[calc((100vw-var(--sidebar-width))/3-14px)] max-w-[calc((100vw-var(--sidebar-width))/3-14px)]`
+            }`} // ラージ、ミディアムは右paddingに10px追加されるため10pxを３等分で割り振る(右のみ+1)
           >
             {/* --------- ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
@@ -4477,7 +4483,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
           <div
             className={`${styles.right_container} ${
               isOpenSidebar ? `transition-base02` : `transition-base01`
-            } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] grow bg-[aqua]/[0] pb-[35px] pt-[0px]`}
+            } h-full grow bg-[aqua]/[0] pb-[35px] pt-[0px] ${
+              tableContainerSize === "one_third"
+                ? `min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)]`
+                : `min-w-[calc((100vw-var(--sidebar-width))/3-14px)] max-w-[calc((100vw-var(--sidebar-width))/3-14px)]`
+            }`}
           >
             <div className={`${styles.right_contents_wrapper} flex h-full w-full flex-col bg-[#000]/[0]`}>
               {/* 下エリア 禁止フラグなど */}
@@ -5918,11 +5928,35 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
             // className={`${styles.left_container1 h-full min-w-[calc((100vw-var(--sidebar-width))/3)1 pb-[35px] pt-[10px]`}
             className={`${styles.left_container} ${
               isOpenSidebar ? `transition-base02` : `transition-base01`
-            } h-full min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)] pb-[35px] pt-[0px]`}
+            } h-full pb-[35px] pt-[0px] ${
+              tableContainerSize === "one_third"
+                ? `min-w-[calc((100vw-var(--sidebar-width))/3-11px)] max-w-[calc((100vw-var(--sidebar-width))/3-11px)]`
+                : `min-w-[calc((100vw-var(--sidebar-width))/3-15px)] max-w-[calc((100vw-var(--sidebar-width))/3-15px)]`
+            }`}
           >
             {/* --------- ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full w-full flex-col`}>
-              {/* 会社情報 通常 */}
+              {/* アクティビティ セクションタイトル 通常 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.section_title}`}>活動</span>
+                  </div>
+                  <div className={`${styles.section_underline}`}></div>
+                </div>
+              </div>
+
+              <div className={`${styles.spacer} h-[5px] w-full`}></div>
+
+              {/* 活動履歴 */}
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<FallbackUnderRightActivityLogCustom />}>
+                  <UnderRightActivityLogCustom />
+                </Suspense>
+              </ErrorBoundary>
+              {/* <FallbackUnderRightActivityLogCustom /> */}
+
+              {/* 会社情報 セクションタイトル 通常 */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -5935,6 +5969,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.section_underline}`}></div>
                 </div>
               </div>
+
               {/* 会社名 通常 */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">

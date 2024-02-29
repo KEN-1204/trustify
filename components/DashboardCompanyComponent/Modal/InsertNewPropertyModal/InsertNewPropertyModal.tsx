@@ -39,6 +39,7 @@ import { normalizeDiscountRate } from "@/utils/Helpers/normalizeDiscountRate";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
 import { calculateDiscountRate } from "@/utils/Helpers/calculateDiscountRate";
 import {
+  getCompetitionState,
   getCurrentStatus,
   getDecisionMakerNegotiation,
   getLeaseDivision,
@@ -3488,7 +3489,7 @@ export const InsertNewPropertyModal = () => {
                       <option value=""></option>
                       {optionsCompetitionState.map((option) => (
                         <option key={option} value={`${option}`}>
-                          {option}
+                          {getCompetitionState(option)}
                         </option>
                       ))}
                       {/* <option value="競合無し">競合無し</option>

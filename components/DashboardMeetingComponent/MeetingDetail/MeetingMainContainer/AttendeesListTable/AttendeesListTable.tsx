@@ -202,8 +202,11 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
                 gridTemplateColumns: `2fr 1fr repeat(5, 1fr)`,
                 minHeight: "25px",
                 //   width: `100%`,
+                minWidth: `800px`,
                 width: `var(--row-width)`,
-                "--row-width": "800px",
+                "--row-width": "100%",
+                // width: `var(--row-width)`,
+                // "--row-width": "800px",
               } as CSSProperties
             }
           >
@@ -223,7 +226,7 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
                 style={{
                   gridColumnStart: index + 1,
                   //   ...(columnHeaderList.length - 1 === index && { borderRightStyle: "none" }),
-                  ...(index === columnHeaderList.length - 1 && { borderRight: "none" }),
+                  // ...(index === columnHeaderList.length - 1 && { borderRight: "none" }),
                 }}
               >
                 <div className={`draggable_column_header pointer-events-none w-full`}>
@@ -276,10 +279,13 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
                 {
                   height: `${attendeesArray.length * 25}px`,
                   //   height: `${10 * 25}px`,
-                  width: `var(--row-width)`,
                   position: "relative",
                   "--header-row-height": "25px",
-                  "--row-width": "",
+                  minWidth: `800px`,
+                  width: `var(--row-width)`,
+                  "--row-width": "100%",
+                  // width: `var(--row-width)`,
+                  // "--row-width": "",
                 } as any
               }
               className={`${styles.grid_rowgroup_virtualized_container}`}
@@ -326,7 +332,7 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
                             gridColumnStart: index + 1,
                             ...(columnHeaderList[index] === "summary" && { cursor: "pointer" }),
                             // ...(columnHeaderList.length - 1 === index && { borderRight: "none" }),
-                            ...(index === columnHeaderList.length - 1 && { borderRight: "none" }),
+                            // ...(index === columnHeaderList.length - 1 && { borderRight: "none" }),
                           }}
                           onClick={handleSingleClickGridCell}
                           onDoubleClick={(e) => handleDoubleClickGridCell(e, index, columnHeaderList[index])}

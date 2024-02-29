@@ -62,6 +62,7 @@ import { ClientCompanyDetailModal } from "./Modal/ClientCompanyDetailModal/Clien
 import { ContactDetailModal } from "./Modal/ContactDetailModal/ContactDetailModal";
 import { FallbackBusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/FallbackBusinessCalendarModal";
 import { BusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModal";
+import { EditModalDealCard } from "./DashboardSDBComponent/ScreenDealBoards/EditModalDealCard/EditModalDealCard";
 
 type Prop = {
   title?: string;
@@ -302,41 +303,10 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   // 【お知らせの所有者変更モーダルをクリック時にお知らせの情報を保持するState】
   const notificationDataState = useDashboardStore((state) => state.notificationDataState);
 
-  // // ================================ ツールチップ ================================
-  // const layoutContainerRef = useRef<HTMLDivElement | null>(null);
-  // const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
-  // const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
-  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
-  //   // モーダルコンテナのleftを取得する
-  //   if (!layoutContainerRef.current) return;
-  //   const containerLeft = layoutContainerRef.current?.getBoundingClientRect().left;
-  //   const containerTop = layoutContainerRef.current?.getBoundingClientRect().top;
-  //   // ホバーしたアイテムにツールチップを表示
-  //   const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-  //   // console.log("ツールチップx, y width , height", x, y, width, height);
-  //   const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
-  //     ? ((e.target as HTMLDivElement).dataset.text2 as string)
-  //     : "";
-  //   const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
-  //     ? ((e.target as HTMLDivElement).dataset.text3 as string)
-  //     : "";
-  //   setHoveredItemPosModal({
-  //     x: x - containerLeft,
-  //     y: y - containerTop,
-  //     itemWidth: width,
-  //     itemHeight: height,
-  //     content: (e.target as HTMLDivElement).dataset.text as string,
-  //     content2: content2,
-  //     content3: content3,
-  //     display: display,
-  //   });
-  // };
-  // // ============================================================================================
-  // // ================================ ツールチップを非表示 ================================
-  // const handleCloseTooltip = () => {
-  //   setHoveredItemPosModal(null);
-  // };
-  // // ============================================================================================
+  // -------------------------------- SDB関連 --------------------------------
+  // ネタ表 詳細・編集モーダル
+  const editedDealCard = useDashboardStore((state) => state.editedDealCard);
+
   const [hoveredThemeIcon, setHoveredThemeIcon] = useState(false);
   const hoveredThemeIconRef = useRef<HTMLDivElement | null>(null);
 
@@ -710,6 +680,10 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         </ErrorBoundary>
       )}
       {/* {isOpenBusinessCalendarSettingModal && <FallbackBusinessCalendarModal />} */}
+
+      {/* --------------------------- SDB関連 --------------------------- */}
+      {/* ネタ表 詳細・編集モーダル */}
+      {editedDealCard && <EditModalDealCard />}
 
       {/* ==================== お知らせ所有者変更モーダル ==================== */}
       {openNotificationChangeTeamOwnerModal && notificationDataState !== null && <ChangeTeamOwnerConfirmationModal />}

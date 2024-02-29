@@ -15,13 +15,21 @@ import styles from "./DealBoard.module.css";
 import { FiPlus, FiTrash } from "react-icons/fi";
 import { FaFire, FaRegStar } from "react-icons/fa";
 import { AddCard } from "./AddCard";
-import { EditModalDealCard } from "./EditModalDealCard";
+import { EditModalDealCard } from "../EditModalDealCard/EditModalDealCard";
 import useDashboardStore from "@/store/useDashboardStore";
 import { mappingOrderCertaintyStartOfMonth, mappingOrderCertaintyStartOfMonthToast } from "@/utils/selectOptions";
 import useStore from "@/store";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { toast } from "react-toastify";
 import { splitCompanyNameWithPosition } from "@/utils/Helpers/splitCompanyName";
+import { MdOutlineMoreTime } from "react-icons/md";
+import { ImFire } from "react-icons/im";
+import { AiFillFire, AiOutlineFire } from "react-icons/ai";
+import { BsFire } from "react-icons/bs";
+import { DealCardType } from "@/types";
+import { companyColumnHeaderItemListData } from "@/utils/companyColumnHeaderItemListData";
+import { SEED_CARDS } from "./data";
+import { format } from "date-fns";
 
 type ColumnSizeInfo = {
   prevColumnHeight: number;
@@ -50,32 +58,21 @@ type ColumnLane = {
 
 // type DealCardType = { id: string; taskTitle: string; contents: string | null; columnTitle: string };
 
-type DealCardType = {
-  property_id: string;
-  company_name: string; // 会社名
-  company_department_name: string | null; // 部署名
-  column_title_num: number; // 月初確度 or 中間確度 中間確度があればこちらを優先
-  expansion_year_month: number; // 展開日付 => 当月発生の場合はネタ外として扱う
-  rejected_flag: boolean; // 物件没フラグ => 没の場合は、その確度の最後尾に並べて、斜線を引きdraggableをfalseにする
-};
-// type DealCardType = Property_row_data;
+// type DealCardType = {
+//   property_id: string;
+//   company_name: string; // 会社名
+//   company_department_name: string | null; // 部署名
+//   column_title_num: number; // 月初確度 or 中間確度 中間確度があればこちらを優先
+//   expansion_year_month: number; // 展開日付 => 当月発生の場合はネタ外として扱う
+//   rejected_flag: boolean; // 物件没フラグ => 没の場合は、その確度の最後尾に並べて、斜線を引きdraggableをfalseにする
+//   pending_flag: boolean; // ペンディングフラグ => 没の場合は、その確度の最後尾に並べて、斜線を引きdraggableをfalseにする
+// };
 
-const DEFAULT_CARDS = Array(11)
-  .fill(null)
-  .map((_, index) => {
-    let columnName = 1;
-    if (4 < index && index < 8) columnName = 2;
-    if (8 <= index && index <= 9) columnName = 3;
-    if (10 <= index) columnName = 4;
-    return {
-      property_id: index.toString(),
-      company_name: `株式会社キーエンス${index}`,
-      company_department_name: "開発本部開発第二課",
-      column_title_num: columnName,
-      expansion_year_month: 202403,
-      rejected_flag: false,
-    };
-  });
+// const propertyColumnNameObj: { [key: string]: any } = companyColumnHeaderItemListData.reduce((acc, obj) => {
+//   const newObj = { [obj.columnName]: null };
+//   acc[obj.columnName] = newObj;
+//   return acc;
+// }, {} as { [key: string]: any });
 
 // 列のインデックスとタイトルのマッピング
 const mappingColumnIndexToTitle: { [key: number]: number } = {
@@ -85,10 +82,18 @@ const mappingColumnIndexToTitle: { [key: number]: number } = {
   3: 4, //"▲ (30%以上の確率で受注)"
 };
 
+// 担当者idや事業部idなどのエンティティのidとタイプをPropsで受け取る
+type Props = {
+  userId: string;
+};
+
 const DealBoardMemo = () => {
   const language = useStore((state) => state.language);
   // const [cards, setCards] = useState<DealCardType[]>([]);
-  const [cards, setCards] = useState<DealCardType[]>(DEFAULT_CARDS);
+
+  // useQueryで指定された期間とエンティティのネタを取得してローカルstateに格納
+
+  const [cards, setCards] = useState<DealCardType[]>(SEED_CARDS);
   // const [hasChecked, setHasChecked] = useState(false);
   const hasCheckedRef = useRef(false);
   // 編集モーダル
@@ -109,8 +114,6 @@ const DealBoardMemo = () => {
   // }, []);
 
   // ----------------------------- 🌟Column関連🌟
-
-  const isHighlightIndicatorRef = useRef(false);
   // --------------- 🔹ボード
   const boardRef = useRef<HTMLDivElement | null>(null);
   // --------------- 🔹Columnレーン
@@ -1569,6 +1572,7 @@ const DealBoardMemo = () => {
                 {/* ------------ Rowグループ ------------ */}
                 {filteredCards.map((card: DealCardType, rowIndex: number) => {
                   const isRejected = card.rejected_flag;
+                  const isPending = card.pending_flag;
                   return (
                     <Fragment key={"row_card" + card.property_id}>
                       {/* Row上インジケータ */}
@@ -1591,14 +1595,14 @@ const DealBoardMemo = () => {
                       {/* 🌟Rowカード */}
                       <div
                         ref={(ref) => (rowCardsRef.current[rowIndex] = ref)}
-                        draggable={!isRejected}
+                        draggable={!isRejected && !isPending}
                         data-card-column-title={card.column_title_num}
                         data-card-row-index={rowIndex}
                         className={`${styles.row_card} ${animate ? `${styles.fade_in}` : ``} ${
                           isMounted ? `${styles.is_mount}` : ``
                         }  transition-bg05 cursor-grab rounded bg-neutral-800 active:cursor-grabbing ${
                           rowIndex === filteredCards.length - 1 ? `last` : ``
-                        } ${isRejected ? `${styles.rejected}` : ``}`}
+                        } ${isRejected ? `${styles.rejected}` : ``} ${isPending ? `${styles.pending}` : ``}`}
                         style={{ ...(animate && { animationDelay: `${(rowIndex + 1) * 0.3}s` }) }} // 各カードのアニメーションの遅延を設定
                         onClick={() => {
                           setEditedDealCard(card);
@@ -1643,6 +1647,16 @@ const DealBoardMemo = () => {
                           })
                         }
                       >
+                        {isPending && (
+                          <div className={`${styles.pending_icon}`}>
+                            <MdOutlineMoreTime className="text-[18px] text-[#fff]" />
+                          </div>
+                        )}
+                        {isRejected && (
+                          <div className={`${styles.pending_icon}`}>
+                            <BsFire className="text-[18px] text-[#fff]" />
+                          </div>
+                        )}
                         {columnIndex === 0 && (
                           <FaRegStar
                             className={`${styles.star_icon_single} ml-[-3px] mr-[6px] min-h-[15px] min-w-[15px] text-[15px]`}
@@ -1660,12 +1674,26 @@ const DealBoardMemo = () => {
                           >
                             <div className={`${styles.main} truncate`}>
                               {/* <span>{card.company_name}</span> */}
-                              <span>{splitCompanyNameWithPosition(card.company_name).company_name}</span>
+                              <span>
+                                {card.company_name
+                                  ? splitCompanyNameWithPosition(card.company_name).company_name
+                                  : "未設定"}
+                              </span>
                             </div>
                             <div className={`${styles.sub} flex items-center space-x-[6px] truncate`}>
-                              <div className="max-w-[80px] truncate bg-[aqua]/[0]">
-                                {/* <span className={``}>画像寸法測定器 IM-7000</span> */}
-                                <span className={``}>2024/04~</span>
+                              {/* <div className="max-w-[80px] truncate bg-[aqua]/[0]"> */}
+                              <div className="max-w-[140px] truncate bg-[aqua]/[0]">
+                                {/* <span className={``}>2024/04~</span> */}
+                                <span className={``}>
+                                  {card.expansion_date
+                                    ? `${`${format(new Date(card.expansion_date), "yyyy/MM")}〜`}`
+                                    : "展開日付不明"}
+                                  {columnIndex === 0
+                                    ? card.sales_date
+                                      ? `${format(new Date(card.sales_date), "yyyy/MM")}`
+                                      : `売上日付不明`
+                                    : ``}
+                                </span>
                                 {/* <span className={``}>ネタ外</span> */}
                               </div>
                               {/* <div className="max-w-[75px] truncate bg-[purple]/[0]">
@@ -1674,11 +1702,33 @@ const DealBoardMemo = () => {
                             </div>
                           </div>
                           <div
-                            className={`pointer-events-none flex min-w-[65px] flex-col items-end justify-center bg-[green]/[0]`}
+                            className={`pointer-events-none flex min-w-[65px] max-w-[68px] flex-col items-end justify-center bg-[green]/[0]`}
                           >
                             {/* <span className={`${styles.right_first} pointer-events-none truncate`}>2024/04~</span> */}
-                            <span className={`${styles.right_main} pointer-events-none truncate`}>IM3</span>
-                            <span className={`${styles.right_second} pointer-events-none truncate`}>300,600,000</span>
+                            <span
+                              className={`${styles.right_main} pointer-events-none inline-block max-w-[68px] truncate`}
+                            >
+                              {columnIndex !== 0
+                                ? card.expected_product
+                                  ? card.expected_product
+                                  : `予定商品不明`
+                                : ``}
+                              {columnIndex === 0 ? (card.sold_product ? card.sold_product : `売商品不明`) : ``}
+                            </span>
+                            <span
+                              className={`${styles.right_second} pointer-events-none inline-block max-w-[68px] truncate`}
+                            >
+                              {columnIndex !== 0
+                                ? card.expected_sales_price
+                                  ? Number(card.expected_sales_price).toLocaleString()
+                                  : `予定金額不明`
+                                : ``}
+                              {columnIndex === 0
+                                ? card.sales_price
+                                  ? Number(card.sales_price).toLocaleString()
+                                  : `売上金額不明`
+                                : ``}
+                            </span>
                             {/* <span className={`${styles.right_first} pointer-events-none truncate`}>ネタ外</span> */}
                           </div>
                         </div>
@@ -1731,12 +1781,15 @@ const DealBoardMemo = () => {
             <FiTrash />
           </div>
           <div ref={burnBarrelIconRef} className={`${styles.fire_icon} pointer-events-none`}>
-            <FaFire className={`animate-bounce`} />
+            {/* <FaFire className={`animate-bounce`} /> */}
+            {/* <AiOutlineFire className={`animate-bounce`} /> */}
+            {/* <AiFillFire className={`animate-bounce`} /> */}
+            <BsFire className={`animate-bounce`} />
           </div>
         </div>
         {/* ------------------- ゴミ箱レーン ここまで ------------------- */}
         {/* ------------------- 編集モーダル ------------------- */}
-        {isOpenEditModal && editedDealCard && <EditModalDealCard setIsOpenEditModal={setIsOpenEditModal} />}
+        {/* {isOpenEditModal && editedDealCard && <EditModalDealCard setIsOpenEditModal={setIsOpenEditModal} />} */}
         {/* ------------------- 編集モーダル ここまで ------------------- */}
       </div>
       {/* ------------------------ ボード ここまで ------------------------ */}

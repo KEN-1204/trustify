@@ -5,6 +5,7 @@ import { ScreenTaskBoards } from "./TaskBoard/ScreenTaskBoards";
 import useThemeStore from "@/store/useThemeStore";
 import { useEffect } from "react";
 import { DotsGradient } from "../Parts/DotsGradient/DotsGradient";
+import { EditModalDealCard } from "./ScreenDealBoards/EditModalDealCard/EditModalDealCard";
 
 export const DashboardSDBComponent = () => {
   const setTheme = useThemeStore((state) => state.setTheme);
