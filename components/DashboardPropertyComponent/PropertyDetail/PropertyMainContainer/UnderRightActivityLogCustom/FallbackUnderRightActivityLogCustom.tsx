@@ -83,6 +83,7 @@ export const FallbackUnderRightActivityLogCustom = ({ isLoading = true }: Props)
         } ${tableContainerSize === "half" ? `${styles.company_table_screen_pr}` : ``} ${
           tableContainerSize === "all" ? `${styles.company_table_screen_pr}` : ``
         }`}
+        style={{ ...(!isLoading && { minHeight: "74px", marginTop: `5px` }) }}
       >
         {/* ================== テーブルタブヘッダー ================== */}
         <div className={`${styles.right_table_tab_header}`}>
@@ -167,8 +168,8 @@ export const FallbackUnderRightActivityLogCustom = ({ isLoading = true }: Props)
 
           {/* ======================== 🌟Grid列トラック Rowグループコンテナ🌟 ======================== */}
           {/* <div className={`flex h-[calc(100%-25px)] w-full flex-col space-y-[22px] px-[15px] py-[15px]`}> */}
-          <div className={`flex h-[90px] w-full flex-col space-y-[22px] px-[15px] py-[15px]`}>
-            {isLoading && (
+          {isLoading && (
+            <div className={`flex h-[90px] w-full flex-col space-y-[22px] px-[15px] py-[15px]`}>
               <>
                 <div className="flex flex-col space-y-[10px]">
                   <SkeletonLoadingLineFull rounded="rounded-[6px]" />
@@ -180,13 +181,13 @@ export const FallbackUnderRightActivityLogCustom = ({ isLoading = true }: Props)
                   <SkeletonLoadingLineShort rounded="rounded-[6px]" />
                 </div> */}
               </>
-            )}
-            {!isLoading && (
-              <>
-                <span className={`text-[var(--color-text-sub)]`}>この客先への活動履歴はまだありません。</span>
-              </>
-            )}
-          </div>
+            </div>
+          )}
+          {!isLoading && (
+            <div className={`flex h-[0px] w-full flex-col space-y-[22px] px-[15px] py-[0px]`}>
+              <></>
+            </div>
+          )}
           {/* ======================== ✅Grid列トラック Rowグループコンテナ✅ ======================== */}
         </div>
         {/* ================== Gridスクロールコンテナ ここまで ================== */}
@@ -197,7 +198,7 @@ export const FallbackUnderRightActivityLogCustom = ({ isLoading = true }: Props)
             <div className={`${styles.grid_pagination} space-x-3 px-[10px] `}>
               <button className=" focus:outline-scale-600 flex rounded bg-transparent p-0  outline-offset-1 transition-all focus:outline-4 ">
                 <span className=" font-regular text-scale-1200 bordershadow-scale-600 hover:bordershadow-scale-700 dark:bordershadow-scale-800 hover:dark:bordershadow-scale-900 focus-visible:outline-scale-700 relative inline-flex cursor-pointer items-center space-x-2 rounded border border-[#777] bg-transparent px-[0px] text-center text-[12px] shadow-sm  duration-200 ease-out focus-visible:outline-4 focus-visible:outline-offset-1">
-                  <span className="truncate">- 件</span>
+                  <span className="truncate text-[var(--color-text-title)]">- 件</span>
                 </span>
               </button>
               <p className="space-x-2 text-[13px] font-medium text-[#bbb]">

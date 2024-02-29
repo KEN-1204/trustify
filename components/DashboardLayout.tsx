@@ -63,6 +63,7 @@ import { ContactDetailModal } from "./Modal/ContactDetailModal/ContactDetailModa
 import { FallbackBusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/FallbackBusinessCalendarModal";
 import { BusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModal";
 import { EditModalDealCard } from "./DashboardSDBComponent/ScreenDealBoards/EditModalDealCard/EditModalDealCard";
+import { DetailPropertyModal } from "./DashboardPropertyComponent/PropertyDetail/PropertyMainContainer/DetailPropertyModal";
 
 type Prop = {
   title?: string;
@@ -260,10 +261,6 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const isOpenSettingInvitationModal = useDashboardStore((state) => state.isOpenSettingInvitationModal);
   // アカウントを増やす・減らすモーダル
   const isOpenChangeAccountCountsModal = useDashboardStore((state) => state.isOpenChangeAccountCountsModal);
-  // 会社詳細画面モーダル
-  const isOpenClientCompanyDetailModal = useDashboardStore((state) => state.isOpenClientCompanyDetailModal);
-  // 担当者詳細画面モーダル
-  const isOpenContactDetailModal = useDashboardStore((state) => state.isOpenContactDetailModal);
   // 会社作成モーダル 新規作成と編集モーダル
   const isOpenInsertNewClientCompanyModal = useDashboardStore((state) => state.isOpenInsertNewClientCompanyModal);
   const isOpenUpdateClientCompanyModal = useDashboardStore((state) => state.isOpenUpdateClientCompanyModal);
@@ -302,6 +299,14 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const openNotificationChangeTeamOwnerModal = useDashboardStore((state) => state.openNotificationChangeTeamOwnerModal);
   // 【お知らせの所有者変更モーダルをクリック時にお知らせの情報を保持するState】
   const notificationDataState = useDashboardStore((state) => state.notificationDataState);
+
+  // -------------------------------- 各画面詳細モーダル --------------------------------
+  // 会社詳細画面モーダル
+  const isOpenClientCompanyDetailModal = useDashboardStore((state) => state.isOpenClientCompanyDetailModal);
+  // 担当者詳細画面モーダル
+  const isOpenContactDetailModal = useDashboardStore((state) => state.isOpenContactDetailModal);
+  // 担当者詳細画面モーダル
+  const isOpenPropertyDetailModal = useDashboardStore((state) => state.isOpenPropertyDetailModal);
 
   // -------------------------------- SDB関連 --------------------------------
   // ネタ表 詳細・編集モーダル
@@ -512,23 +517,6 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         </ErrorBoundary>
       )}
 
-      {/* 会社 詳細モーダル */}
-      {isOpenClientCompanyDetailModal && (
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <Suspense fallback={<FallbackModal />}>
-            <ClientCompanyDetailModal />
-          </Suspense>
-        </ErrorBoundary>
-      )}
-      {/* 担当者 詳細モーダル */}
-      {isOpenContactDetailModal && (
-        <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <Suspense fallback={<FallbackModal />}>
-            <ContactDetailModal />
-          </Suspense>
-        </ErrorBoundary>
-      )}
-
       {/* 会社_作成・編集モーダル */}
       {isOpenInsertNewClientCompanyModal && (
         <ErrorBoundary FallbackComponent={ErrorFallback}>
@@ -680,6 +668,32 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         </ErrorBoundary>
       )}
       {/* {isOpenBusinessCalendarSettingModal && <FallbackBusinessCalendarModal />} */}
+
+      {/* --------------------------- 各画面詳細モーダル --------------------------- */}
+      {/* 会社 詳細モーダル */}
+      {isOpenClientCompanyDetailModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <ClientCompanyDetailModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* 担当者 詳細モーダル */}
+      {isOpenContactDetailModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <ContactDetailModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* 案件 詳細モーダル ネタ表から */}
+      {isOpenPropertyDetailModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackModal />}>
+            <DetailPropertyModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
 
       {/* --------------------------- SDB関連 --------------------------- */}
       {/* ネタ表 詳細・編集モーダル */}

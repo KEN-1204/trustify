@@ -17,7 +17,7 @@ import { SkeletonLoadingLineShort } from "@/components/Parts/SkeletonLoading/Ske
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { FiRefreshCw } from "react-icons/fi";
 import { getActivityType } from "@/utils/selectOptions";
-import { Contact_row_data, Property_row_data } from "@/types";
+import { Contact_row_data, DealCardType, Property_row_data } from "@/types";
 import { FallbackUnderRightActivityLogCustom } from "./FallbackUnderRightActivityLogCustom";
 // import { rightRowData } from "./data";
 
@@ -30,7 +30,7 @@ type TableDataType = {
   our_office: string;
 };
 
-type SelectedRowData = Contact_row_data | Property_row_data;
+type SelectedRowData = Contact_row_data | Property_row_data | DealCardType;
 
 const UnderRightActivityLogCustomMemo: FC = () => {
   const language = useStore((state) => state.language);
@@ -54,6 +54,8 @@ const UnderRightActivityLogCustomMemo: FC = () => {
   // 上画面の選択中の列データ会社
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
+  // 選択中の列データ会社
+  const editedDealCard = useDashboardStore((state) => state.editedDealCard);
   // 選択中の行データのid保持用state => 行切り替え(selectedRowDataContact更新)後に前と今でidが異なるかチェック
   const [currentRowDataContactId, setCurrentRowDataContactId] = useState<string | null>(null);
   // デバウンスとenableと組み合わせてqueryFnの実行を遅延させる
@@ -81,6 +83,7 @@ const UnderRightActivityLogCustomMemo: FC = () => {
   const parentGridScrollContainer = useRef<HTMLDivElement | null>(null);
   // Rowグループコンテナ(Virtualize収納用インナー)
   const gridRowGroupContainerRef = useRef<HTMLDivElement | null>(null);
+  const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
 
   // // 選択中のデータが見つからなかった場合はフォールバックを表示
   // if (!selectedRowDataContact && !selectedRowDataProperty)
@@ -90,6 +93,23 @@ const UnderRightActivityLogCustomMemo: FC = () => {
   // if (selectedRowDataContact) selectedData = selectedRowDataContact;
   let selectedData: SelectedRowData = selectedRowDataContact as Contact_row_data;
   if (selectedRowDataProperty) selectedData = selectedRowDataProperty as Property_row_data;
+  if (activeMenuTab === "SDB" && !!editedDealCard) selectedData = editedDealCard as DealCardType;
+
+  console.log(
+    "UnderRightActivityLogCustomコンポーネントレンダリング selectedData",
+    selectedData,
+    "selectedRowDataContact",
+    selectedRowDataContact,
+    "selectedRowDataProperty",
+    selectedRowDataProperty,
+    "editedDealCard",
+    editedDealCard
+  );
+  if (activeMenuTab === "SDB" && (!selectedData?.contact_id || selectedData?.contact_id?.length < 5)) {
+    console.log("UnderRightActivityLogCustomコンポーネント リターン selectedData.contact_id", selectedData.contact_id);
+    return <FallbackUnderRightActivityLogCustom isLoading={false} />;
+    // return null;
+  }
 
   // 選択中のデータが見つからなかった場合はフォールバックを表示
   // if (!selectedData || !selectedData?.contact_id) return <FallbackUnderRightActivityLogCustom isLoading={false} />;

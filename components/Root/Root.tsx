@@ -1276,14 +1276,12 @@ export const Root: FC = () => {
               try {
                 await navigator.clipboard.writeText("info@thetrustify.com");
                 toast.success(`コピーしました!`, {
-                  position: "bottom-center",
                   autoClose: 1500,
                   hideProgressBar: false,
                   closeOnClick: true,
                   pauseOnHover: true,
                   draggable: true,
                   progress: undefined,
-                  transition: Zoom,
                 });
               } catch (e: any) {
                 toast.error(`コピーできませんでした!`, {
@@ -1294,7 +1292,6 @@ export const Root: FC = () => {
                   pauseOnHover: true,
                   draggable: true,
                   progress: undefined,
-                  transition: Zoom,
                 });
               }
             }}

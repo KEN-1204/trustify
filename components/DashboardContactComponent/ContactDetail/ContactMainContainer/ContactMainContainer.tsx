@@ -1180,7 +1180,7 @@ const ContactMainContainerMemo: FC = () => {
                               setInputTel(formattedNumber);
                               toast.error(
                                 `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
-                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                                { autoClose: false }
                               );
                               return;
                             }
@@ -1208,7 +1208,7 @@ const ContactMainContainerMemo: FC = () => {
                               setInputTel(formattedNumber);
                               toast.error(
                                 `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
-                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                                { autoClose: false }
                               );
                               return;
                             }
@@ -1307,7 +1307,7 @@ const ContactMainContainerMemo: FC = () => {
                               setInputTel(formattedNumber);
                               toast.error(
                                 `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
-                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                                { autoClose: false }
                               );
                               return;
                             }
@@ -1335,7 +1335,7 @@ const ContactMainContainerMemo: FC = () => {
                               setInputTel(formattedNumber);
                               toast.error(
                                 `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
-                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                                { autoClose: false }
                               );
                               return;
                             }
@@ -1459,9 +1459,7 @@ const ContactMainContainerMemo: FC = () => {
                             if (!isValid) {
                               setInputTel(formattedNumber);
                               toast.error(`有効なFax番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
-                                position: "bottom-center",
                                 autoClose: false,
-                                transition: Zoom,
                               });
                               return;
                             }
@@ -1488,9 +1486,7 @@ const ContactMainContainerMemo: FC = () => {
                             if (!isValid) {
                               setInputTel(formattedNumber);
                               toast.error(`有効なFax番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
-                                position: "bottom-center",
                                 autoClose: false,
-                                transition: Zoom,
                               });
                               return;
                             }
@@ -1623,9 +1619,7 @@ const ContactMainContainerMemo: FC = () => {
                             if (!isValid) {
                               setInputTel(formattedNumber);
                               toast.error(`有効な番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
-                                position: "bottom-center",
                                 autoClose: false,
-                                transition: Zoom,
                               });
                               return;
                             }
@@ -1654,9 +1648,7 @@ const ContactMainContainerMemo: FC = () => {
                             if (!isValid) {
                               setInputTel(formattedNumber);
                               toast.error(`有効な番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
-                                position: "bottom-center",
                                 autoClose: false,
-                                transition: Zoom,
                               });
                               return;
                             }
@@ -1751,9 +1743,7 @@ const ContactMainContainerMemo: FC = () => {
                             if (!isValid) {
                               setInputTel(formattedNumber);
                               toast.error(`有効な番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
-                                position: "bottom-center",
                                 autoClose: false,
-                                transition: Zoom,
                               });
                               return;
                             }
@@ -1782,9 +1772,7 @@ const ContactMainContainerMemo: FC = () => {
                             if (!isValid) {
                               setInputTel(formattedNumber);
                               toast.error(`有効な番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
-                                position: "bottom-center",
                                 autoClose: false,
-                                transition: Zoom,
                               });
                               return;
                             }
@@ -1840,25 +1828,21 @@ const ContactMainContainerMemo: FC = () => {
                         try {
                           await navigator.clipboard.writeText(selectedRowDataContact.contact_email);
                           toast.success(`コピーしました!`, {
-                            position: "bottom-center",
                             autoClose: 1000,
                             hideProgressBar: false,
                             closeOnClick: true,
                             pauseOnHover: true,
                             draggable: true,
                             progress: undefined,
-                            transition: Zoom,
                           });
                         } catch (e: any) {
                           toast.error(`コピーできませんでした!`, {
-                            position: "bottom-center",
                             autoClose: 1000,
                             hideProgressBar: false,
                             closeOnClick: true,
                             pauseOnHover: true,
                             draggable: true,
                             progress: undefined,
-                            transition: Zoom,
                           });
                         }
                       }}
@@ -2959,25 +2943,21 @@ const ContactMainContainerMemo: FC = () => {
                         try {
                           await navigator.clipboard.writeText(selectedRowDataContact.company_email);
                           toast.success(`コピーしました!`, {
-                            position: "bottom-center",
                             autoClose: 1000,
                             hideProgressBar: false,
                             closeOnClick: true,
                             pauseOnHover: true,
                             draggable: true,
                             progress: undefined,
-                            transition: Zoom,
                           });
                         } catch (e: any) {
                           toast.error(`コピーできませんでした!`, {
-                            position: "bottom-center",
                             autoClose: 1000,
                             hideProgressBar: false,
                             closeOnClick: true,
                             pauseOnHover: true,
                             draggable: true,
                             progress: undefined,
-                            transition: Zoom,
                           });
                         }
                       }}

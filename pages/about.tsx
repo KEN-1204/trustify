@@ -291,25 +291,25 @@ const About = () => {
                       try {
                         await navigator.clipboard.writeText("info@thetrustify.com");
                         toast.success(`コピーしました!`, {
-                          position: "bottom-center",
+                          // position: "bottom-center",
                           autoClose: 1500,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          transition: Zoom,
+                          // hideProgressBar: false,
+                          // closeOnClick: true,
+                          // pauseOnHover: true,
+                          // draggable: true,
+                          // progress: undefined,
+                          // transition: Zoom,
                         });
                       } catch (e: any) {
                         toast.error(`コピーできませんでした!`, {
-                          position: "top-right",
+                          // position: "top-right",
                           autoClose: 1500,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          transition: Zoom,
+                          // hideProgressBar: false,
+                          // closeOnClick: true,
+                          // pauseOnHover: true,
+                          // draggable: true,
+                          // progress: undefined,
+                          // transition: Zoom,
                         });
                       }
                     }}

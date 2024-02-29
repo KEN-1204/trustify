@@ -14,6 +14,7 @@ const EditModalDealCardMemo = () => {
   const language = useStore((state) => state.language);
   const editedDealCard = useDashboardStore((state) => state.editedDealCard);
   const setEditedDealCard = useDashboardStore((state) => state.setEditedDealCard);
+  const setIsOpenPropertyDetailModal = useDashboardStore((state) => state.setIsOpenPropertyDetailModal);
   const [isEditText, setIsEditText] = useState(false);
   const [text, setText] = useState("");
   const [isOverDetailContents, setIsOverContents] = useState(false);
@@ -47,6 +48,14 @@ const EditModalDealCardMemo = () => {
     // ペンディングを解除
     else {
     }
+  };
+
+  // 案件概要を保存
+  const handleSaveSummary = async () => {};
+
+  // 詳細を確認 => 案件詳細モーダルを開く
+  const handleOpenDetailModalProperty = () => {
+    setIsOpenPropertyDetailModal(true);
   };
 
   console.log("EditModalDealCardレンダリング editedDealCard", editedDealCard);
@@ -159,12 +168,18 @@ const EditModalDealCardMemo = () => {
           {/* ----------------- 概要・アクション ----------------- */}
 
           {/* ----------------- 保存・キャンセル ----------------- */}
-          <div className={`flex h-[39px] w-full items-center pl-[39px]`}>
-            <div className="flex h-full items-center gap-[9px]">
-              <button className={`${styles.save_btn}`}>保存</button>
-              <button className={`${styles.cancel_btn}`}>保存</button>
+          {isEditText && (
+            <div className={`mt-[9px] flex h-[39px] w-full items-center pl-[39px]`}>
+              <div className="flex h-full items-center gap-[6px]">
+                <button className={`${styles.save_btn}`} onClick={handleSaveSummary}>
+                  保存
+                </button>
+                <button className={`${styles.cancel_btn}`} onClick={() => setIsEditText(false)}>
+                  キャンセル
+                </button>
+              </div>
             </div>
-          </div>
+          )}
           {/* ----------------- 保存・キャンセルここまで ----------------- */}
 
           {/* ----------------- アクティビティ・案件詳細 ----------------- */}
@@ -185,7 +200,9 @@ const EditModalDealCardMemo = () => {
                   >
                     {isOverDetailContents && (
                       <div className={`${styles.show_more_btn_wrapper}`}>
-                        <button className={`${styles.btn_expand}`}>詳細を確認</button>
+                        <button className={`${styles.btn_expand}`} onClick={handleOpenDetailModalProperty}>
+                          詳細を確認
+                        </button>
                       </div>
                     )}
                     <div className={`${styles.div_container}`}>
@@ -206,7 +223,9 @@ const EditModalDealCardMemo = () => {
               </div>
               {!isOverDetailContents && (
                 <div className={`mt-[6px] flex w-full items-center justify-end`}>
-                  <button className={`${styles.btn_detail}`}>詳細を確認</button>
+                  <button className={`${styles.btn_detail}`} onClick={handleOpenDetailModalProperty}>
+                    詳細を確認
+                  </button>
                 </div>
               )}
             </div>

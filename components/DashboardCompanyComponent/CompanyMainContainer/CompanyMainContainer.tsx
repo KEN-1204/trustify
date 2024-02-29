@@ -1192,7 +1192,7 @@ const CompanyMainContainerMemo: FC = () => {
                               setInputTel(formattedNumber);
                               toast.error(
                                 `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
-                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                                { autoClose: false }
                               );
                               return;
                             }
@@ -1219,7 +1219,7 @@ const CompanyMainContainerMemo: FC = () => {
                               setInputTel(formattedNumber);
                               toast.error(
                                 `有効な電話番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`,
-                                { position: "bottom-center", autoClose: false, transition: Zoom }
+                                { autoClose: false }
                               );
                               return;
                             }
@@ -1311,9 +1311,7 @@ const CompanyMainContainerMemo: FC = () => {
                             if (!isValid) {
                               setInputFax(formattedFax);
                               toast.error(`有効なFax番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
-                                position: "bottom-center",
                                 autoClose: false,
-                                transition: Zoom,
                               });
                               return;
                             }
@@ -1339,9 +1337,7 @@ const CompanyMainContainerMemo: FC = () => {
                             if (!isValid) {
                               setInputFax(formattedFax);
                               toast.error(`有効なFax番号を入力してください。「数字、ハイフン、＋、()」のみ有効です。`, {
-                                position: "bottom-center",
                                 autoClose: false,
-                                transition: Zoom,
                               });
                               return;
                             }

@@ -312,10 +312,17 @@
 .edit_modal .container .cancel_btn {
   height: 36px;
   font-size: 13px;
-  padding: 0 22px;
+  padding: 0 20px;
   border-radius: 9px;
 }
 .edit_modal .container .save_btn {
   background-color: var(--color-text-brand-f);
   color: #fff;
+  transition: background-color 0.3s ease;
+}
+.edit_modal .container .save_btn:hover {
+  background-color: var(--color-text-brand-f-hover);
+}
+.edit_modal .container .cancel_btn:hover {
+  color: var(--color-text-title-black-hover);
 }

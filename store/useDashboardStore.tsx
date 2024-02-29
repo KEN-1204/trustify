@@ -107,12 +107,16 @@ type State = {
   isFetchAllMembers: boolean;
   setIsFetchAllMembers: (payload: boolean) => void;
 
+  // ---------------- 詳細画面モーダル ----------------
   // 会社詳細画面
   isOpenClientCompanyDetailModal: boolean;
   setIsOpenClientCompanyDetailModal: (payload: boolean) => void;
   // 担当者詳細画面
   isOpenContactDetailModal: boolean;
   setIsOpenContactDetailModal: (payload: boolean) => void;
+  // 案件詳細モーダル(SDBネタ表)
+  isOpenPropertyDetailModal: boolean;
+  setIsOpenPropertyDetailModal: (payload: boolean) => void;
 
   // =================== 会社作成モーダル ===================
   // 新規作成モーダル
@@ -510,12 +514,16 @@ const useDashboardStore = create<State>((set) => ({
   setResetColumnHeaderItemList: (payload) => set({ resetColumnHeaderItemList: payload }),
   ColumnHeaderItemListReset: (payload) => set({ resetColumnHeaderItemList: payload }),
 
+  // ---------------- 詳細画面モーダル ----------------
   // 会社詳細画面
   isOpenClientCompanyDetailModal: false,
   setIsOpenClientCompanyDetailModal: (payload) => set({ isOpenClientCompanyDetailModal: payload }),
   // 担当者詳細画面
   isOpenContactDetailModal: false,
   setIsOpenContactDetailModal: (payload) => set({ isOpenContactDetailModal: payload }),
+  // 案件詳細モーダル(SDBネタ表)
+  isOpenPropertyDetailModal: false,
+  setIsOpenPropertyDetailModal: (payload) => set({ isOpenPropertyDetailModal: payload }),
 
   // =================== 会社作成モーダル ===================
   // 新規作成モーダル
