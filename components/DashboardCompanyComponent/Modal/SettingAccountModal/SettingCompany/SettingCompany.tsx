@@ -35,7 +35,13 @@ import { useMutateUnit } from "@/hooks/useMutateUnit";
 import { AiFillCaretDown } from "react-icons/ai";
 import { useMutateOffice } from "@/hooks/useMutateOffice";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
-import { getNumberOfEmployeesClassForCustomer, optionsNumberOfEmployeesClass } from "@/utils/selectOptions";
+import {
+  getNumberOfEmployeesClassForCustomer,
+  mappingFiscalYearBasis,
+  mappingFiscalYearBasisForOption,
+  optionsFiscalYearBasis,
+  optionsNumberOfEmployeesClass,
+} from "@/utils/selectOptions";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { useMutateCompanyLogo } from "@/hooks/useMutateCompanyLogo";
 import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
@@ -127,6 +133,7 @@ const SettingCompanyMemo = () => {
   const [selectedFiscalYear, setSelectedFiscalYear] = useState<number>(() => {
     return calculateCurrentFiscalYear({
       fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
     });
   });
   // 営業カレンダーモーダルを閉じた時に会計年度を元に戻す
@@ -150,15 +157,30 @@ const SettingCompanyMemo = () => {
     return calculateFiscalYearStart({
       fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
       selectedYear: selectedFiscalYear ?? null,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
     });
-  }, [userProfileState?.customer_fiscal_end_month, selectedFiscalYear]);
+  }, [userProfileState?.customer_fiscal_end_month, userProfileState?.customer_fiscal_year_basis, selectedFiscalYear]);
+
+  // 現在の会計年度を再計算 会計年度基準が変更された場合
+  // useEffect(() => {
+  //   const newFiscalYear = calculateCurrentFiscalYear({
+  //     fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+  //     fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
+  //   });
+  //   setSelectedFiscalYear(newFiscalYear);
+  // }, [userProfileState?.customer_fiscal_year_basis]);
+
   console.log(
     "userProfileState?.customer_fiscal_end_month",
     userProfileState?.customer_fiscal_end_month,
+    "userProfileState?.customer_fiscal_year_basis",
+    userProfileState?.customer_fiscal_year_basis,
     "fiscalYearEndDate",
     fiscalYearEndDate,
     "fiscalYearStartDate",
-    fiscalYearStartDate
+    fiscalYearStartDate,
+    "selectedFiscalYear",
+    selectedFiscalYear
   );
 
   // new Date(fiscalYearEndDate.getFullYear(), fiscalYearEndDate.getMonth() + 1, 0).getDate()でその月の末日を取得
@@ -304,6 +326,9 @@ const SettingCompanyMemo = () => {
   // const annualWorkingDaysCount =
   //   calendarForFiscalBase?.daysCountInYear ?? getDaysInYear(selectedFiscalYear ?? new Date().getFullYear());
 
+  // 会計年度基準
+  const [editFiscalYearBasisMode, setEditFiscalYearBasisMode] = useState(false);
+  const [editedFiscalYearBasis, setEditedFiscalYearBasis] = useState("");
   // 規模
   const [editNumberOfEmployeeClassMode, setEditNumberOfEmployeeClassMode] = useState(false);
   const [editedNumberOfEmployeeClass, setEditedNumberOfEmployeeClass] = useState("");
@@ -356,6 +381,7 @@ const SettingCompanyMemo = () => {
   const infoIconCompanySealRef = useRef<HTMLDivElement | null>(null);
   const infoIconClosingDaysRef = useRef<HTMLDivElement | null>(null);
   const infoIconBusinessCalendarRef = useRef<HTMLDivElement | null>(null);
+  const infoIconFiscalYearBasisRef = useRef<HTMLDivElement | null>(null);
 
   const { uploadCompanyLogoMutation, deleteCompanyLogoMutation } = useMutateCompanyLogo();
   // const { fullUrl: logoUrl, isLoading: isLoadingLogoImg } = useDownloadUrl(
@@ -1121,6 +1147,7 @@ const SettingCompanyMemo = () => {
       // 選択中の会計年度を新たな決算日から期首の暦年に変更する
       const newFiscalYear = calculateCurrentFiscalYear({
         fiscalYearEnd: companyData.customer_fiscal_end_month ?? null,
+        fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
       });
       setSelectedFiscalYear(newFiscalYear);
 
@@ -3018,7 +3045,7 @@ const SettingCompanyMemo = () => {
                           .eq("id", userProfileState.company_id);
 
                         if (error) throw error;
-                        console.log("規模削除UPDATE成功 removedClosingDays", removedClosingDays);
+                        console.log("削除UPDATE成功 removedClosingDays", removedClosingDays);
                         setUserProfileState({
                           ...(userProfileState as UserProfileCompanySubscription),
                           customer_closing_days: removedClosingDays,
@@ -3148,10 +3175,10 @@ const SettingCompanyMemo = () => {
                 {fiscalYearEndDate && fiscalYearStartDate ? (
                   <div className="flex items-center">
                     {/* <span>4月1日</span> */}
-                    <span>{format(fiscalYearStartDate, "M月d日")}</span>
+                    <span>{format(fiscalYearStartDate, "yyyy年M月d日")}</span>
                     <span>〜</span>
                     {/* <span>12月31日</span> */}
-                    <span>{format(fiscalYearEndDate, "M月d日")}</span>
+                    <span>{format(fiscalYearEndDate, "yyyy年M月d日")}</span>
                   </div>
                 ) : (
                   <span>未設定</span>
@@ -3323,6 +3350,154 @@ const SettingCompanyMemo = () => {
             </div>
           </div>
           {/* 営業カレンダーここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
+          {/* 会計年度基準 */}
+          <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}>
+            <div className={`${styles.section_title}`}>
+              <div
+                className="flex max-w-max items-center space-x-[9px]"
+                onMouseEnter={(e) => {
+                  if (
+                    infoIconFiscalYearBasisRef.current &&
+                    infoIconFiscalYearBasisRef.current.classList.contains(styles.animate_ping)
+                  ) {
+                    infoIconFiscalYearBasisRef.current.classList.remove(styles.animate_ping);
+                  }
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: "自社で採用している会計年度の基準に合うように期首と期末を選択・変更が可能です。",
+                    content2: "例えば、会計年度が2023年4月1日〜2024年3月31日で基準が期首の場合は「2023年度」",
+                    content3: "基準が期末の場合は「FY2024(2024年度)」となります。",
+                    marginTop: 57,
+                    // marginTop: 33,
+                    // marginTop: 9,
+                    itemsPosition: "left",
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <span>会計年度基準</span>
+                <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                  <div
+                    ref={infoIconFiscalYearBasisRef}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                  ></div>
+                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                </div>
+              </div>
+            </div>
+
+            {!editFiscalYearBasisMode && (
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
+                <div className={`${styles.section_value}`}>
+                  {userProfileState?.customer_fiscal_year_basis
+                    ? mappingFiscalYearBasis[userProfileState?.customer_fiscal_year_basis][language]
+                    : "未設定"}
+                </div>
+                <div>
+                  <div
+                    className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedFiscalYearBasis(
+                        userProfileState?.customer_fiscal_year_basis ? userProfileState.customer_fiscal_year_basis : ""
+                      );
+                      setEditFiscalYearBasisMode(true);
+                    }}
+                  >
+                    編集
+                  </div>
+                </div>
+              </div>
+            )}
+            {editFiscalYearBasisMode && (
+              <div className={`flex h-full min-h-[74px] w-full items-center justify-between`}>
+                <select
+                  className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                  value={editedFiscalYearBasis}
+                  onChange={(e) => setEditedFiscalYearBasis(e.target.value)}
+                >
+                  {/* <option value="">回答を選択してください</option> */}
+                  {optionsFiscalYearBasis.map((option) => (
+                    <option key={option} value={option}>
+                      {mappingFiscalYearBasisForOption[option][language]}
+                    </option>
+                  ))}
+                </select>
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      setEditedFiscalYearBasis("");
+                      setEditFiscalYearBasisMode(false);
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      if (!userProfileState) return;
+                      if (userProfileState.customer_fiscal_year_basis === editedFiscalYearBasis) {
+                        setEditNumberOfEmployeeClassMode(false);
+                        return;
+                      }
+                      if (editedFiscalYearBasis === "") {
+                        alert("有効な会計年度基準を入力してください");
+                        return;
+                      }
+                      if (!userProfileState?.company_id) return alert("会社IDが見つかりません");
+                      setLoadingGlobalState(true);
+
+                      try {
+                        const { error } = await supabase
+                          .from("companies")
+                          .update({ customer_fiscal_year_basis: editedFiscalYearBasis })
+                          .eq("id", userProfileState.company_id)
+                          .select("customer_fiscal_year_basis");
+
+                        if (error) throw error;
+                        console.log("会計年度基準UPDATE成功 editedFiscalYearBasis", editedFiscalYearBasis);
+                        setUserProfileState({
+                          ...(userProfileState as UserProfileCompanySubscription),
+                          customer_fiscal_year_basis: editedFiscalYearBasis ? editedFiscalYearBasis : "firstDayBasis",
+                        });
+
+                        // 新しい会計年度に変更
+                        const newFiscalYear = calculateCurrentFiscalYear({
+                          fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+                          fiscalYearBasis: editedFiscalYearBasis,
+                        });
+                        setSelectedFiscalYear(newFiscalYear);
+
+                        // 🔹営業カレンダーのuseQueryのキャッシュをinvalidate
+                        // queryKeyを詳細に指定して選択している会計年度のキャッシュのみを再フェッチ
+                        const fiscalEndMonthKey = userProfileState?.customer_fiscal_end_month
+                          ? format(new Date(userProfileState?.customer_fiscal_end_month), "yyyy-MM-dd")
+                          : null;
+                        const queryKey = ["annual_fiscal_month_closing_days", fiscalEndMonthKey, selectedFiscalYear];
+                        await queryClient.invalidateQueries({ queryKey: queryKey });
+
+                        setLoadingGlobalState(false);
+                        setEditFiscalYearBasisMode(false);
+                        toast.success("会計年度基準の更新が完了しました!");
+                      } catch (error: any) {
+                        setLoadingGlobalState(false);
+                        setEditFiscalYearBasisMode(false);
+                        console.error("会計年度基準UPDATEエラー", error);
+                        toast.error("会計年度基準の更新に失敗しました!");
+                      }
+                    }}
+                  >
+                    保存
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* 会計年度基準ここまで */}
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 

@@ -1,3 +1,5 @@
+import { calculateCurrentFiscalYear } from "./Helpers/calculateCurrentFiscalYear";
+
 // ローカルタイムゾーン
 export const optionsTimeZoneEn = [
   { areaName: "Japan (Tokyo)", timeZone: "Asia/Tokyo" },
@@ -784,6 +786,17 @@ export const optionsProductL = [
 
 // 決算月
 export const optionsMonth = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+
+// 会計年度基準
+export const optionsFiscalYearBasis = ["firstDayBasis", "endDayBasis"];
+export const mappingFiscalYearBasis: { [key: string]: { [key: string]: string } } = {
+  firstDayBasis: { ja: "期首（年度初め）", en: "Fiscal Year Based on Start Date" },
+  endDayBasis: { ja: "期末（決算日）", en: "Fiscal Year Based on End Date" },
+};
+export const mappingFiscalYearBasisForOption: { [key: string]: { [key: string]: string } } = {
+  firstDayBasis: { ja: "期首（年度初め）に基づく会計年度", en: "Fiscal Year Based on Start Date" },
+  endDayBasis: { ja: "期末（決算日）に基づく会計年度", en: "Fiscal Year Based on End Date" },
+};
 
 // 規模（ランク）
 export const optionsNumberOfEmployeesClass = ["A", "B", "C", "D", "E", "F", "G"];
@@ -1614,20 +1627,101 @@ export type SdbTabsListItem = {
   title: string;
   name: { [key: string]: string };
 };
-// セクションタブ
+// ダッシュボードタブ
 export const sdbTabsList: SdbTabsListItem[] = [
-  { title: "SalesProgress", name: { ja: "売上進捗", en: "Sales Progress" } },
-  { title: "SalesDashboard", name: { ja: "セールスダッシュボード", en: "Sales Dashboard" } },
-  { title: "SalesProcess", name: { ja: "営業プロセス", en: "Sales Process" } },
-  { title: "DealsStatus", name: { ja: "案件ステータス", en: "Deals Status" } },
-  { title: "SalesAreaMap", name: { ja: "売上エリアマップ", en: "Sales Area Map" } },
+  { title: "salesProgress", name: { ja: "売上進捗", en: "Sales Progress" } },
+  { title: "salesDashboard", name: { ja: "セールスダッシュボード", en: "Sales Dashboard" } },
+  { title: "salesProcess", name: { ja: "営業プロセス", en: "Sales Process" } },
+  { title: "dealsStatus", name: { ja: "案件ステータス", en: "Deals Status" } },
+  { title: "salesAreaMap", name: { ja: "売上エリアマップ", en: "Sales Area Map" } },
 ];
 
 export const mappingSdbTabName: { [key: string]: { [key: string]: string } } = {
-  SalesProgress: { ja: "売上進捗", en: "Sales Progress" },
-  SalesDashboard: { ja: "セールスダッシュボード", en: "Sales Dashboard" },
-  SalesProcess: { ja: "営業プロセス", en: "Sales Process" },
-  DealsStatus: { ja: "案件ステータス", en: "Deals Status" },
-  SalesAreaMap: { ja: "売上エリアマップ", en: "Sales Area Map" },
+  salesProgress: { ja: "売上進捗", en: "Sales Progress" },
+  salesDashboard: { ja: "セールスダッシュボード", en: "Sales Dashboard" },
+  salesProcess: { ja: "営業プロセス", en: "Sales Process" },
+  dealsStatus: { ja: "案件ステータス", en: "Deals Status" },
+  salesAreaMap: { ja: "売上エリアマップ", en: "Sales Area Map" },
 };
+// セクションタブ 全社・事業部・係・メンバー
+export const sectionList: SdbTabsListItem[] = [
+  { title: "company", name: { ja: "全社", en: "Company" } },
+  { title: "department", name: { ja: "事業部", en: "Department" } },
+  { title: "section", name: { ja: "課", en: "Section" } },
+  { title: "unit", name: { ja: "係・チーム", en: "Unit" } },
+  { title: "member", name: { ja: "メンバー", en: "Member" } },
+  { title: "office", name: { ja: "事業所", en: "Office" } },
+];
+export const mappingSectionName: { [key: string]: { [key: string]: string } } = {
+  Company: { ja: "全社", en: "Company" },
+  department: { ja: "事業部", en: "Department" },
+  section: { ja: "課", en: "Section" },
+  unit: { ja: "係・チーム", en: "Unit" },
+  member: { ja: "メンバー", en: "Member" },
+  office: { ja: "事業所", en: "Office" },
+};
+// 期間タブ 年度(FiscalYear)・半期(Half)・四半期(Quarter)・月次(Monthly)
+export const periodList: SdbTabsListItem[] = [
+  { title: "fiscalYear", name: { ja: "年度", en: "Fiscal Year" } },
+  { title: "half", name: { ja: "半期", en: "Half" } },
+  { title: "quarter", name: { ja: "四半期", en: "Quarter" } },
+  { title: "monthly", name: { ja: "月次", en: "Monthly" } },
+];
+export const mappingPeriodName: { [key: string]: { [key: string]: string } } = {
+  fiscalYear: { ja: "年度", en: "Fiscal Year" },
+  half: { ja: "半期", en: "Half" },
+  quarter: { ja: "四半期", en: "Quarter" },
+  monthly: { ja: "月次", en: "Monthly" },
+};
+// 年度を選択した際の年度を2020年から現在の会計年度までの期間で選択肢を取得する関数
+type YearProps = {
+  fiscalYearEnd: string | Date | null;
+  language: string | Date | null;
+  fiscalYearBasis: string;
+};
+export const getOptionsFiscalYear = ({ fiscalYearEnd, fiscalYearBasis }: YearProps) => {
+  const currentFiscalYear = calculateCurrentFiscalYear({
+    fiscalYearEnd: fiscalYearEnd,
+    fiscalYearBasis: fiscalYearBasis,
+  });
+
+  if (!currentFiscalYear) return [];
+
+  const initialYear = 2020;
+  let yearList = [];
+  for (let year = initialYear; year <= currentFiscalYear; year++) {
+    const yearOption = { title: year, name: { ja: `${year}年度`, en: "First Half of the Fiscal Year(H1)" } };
+    yearList.push(yearOption);
+  }
+
+  return yearList;
+};
+// 半期を選択した際の上期、下期の配列
+export const optionsFiscalHalf = [
+  { title: 1, name: { ja: "上半期(H1)", en: "First Half of the Fiscal Year(H1)" } },
+  { title: 2, name: { ja: "下半期(H2)", en: "Second Half of the Fiscal Year(H2)" } },
+];
+// 四半期を選択した際の選択肢
+export const optionsFiscalQuarter = [
+  { title: 1, name: { ja: "第一四半期(Q1)", en: "First Quarter(Q1)" } },
+  { title: 2, name: { ja: "第二四半期(Q2)", en: "Second Quarter(Q2)" } },
+  { title: 3, name: { ja: "第三四半期(Q3)", en: "Third Quarter(Q3)" } },
+  { title: 4, name: { ja: "第四四半期(Q4)", en: "Fourth Quarter(Q4)" } },
+];
+// 四半期を選択した際の選択肢
+export const optionsFiscalMonth = [
+  { title: 1, name: { ja: `1月`, en: `Jan.` } },
+  { title: 2, name: { ja: `2月`, en: `Feb.` } },
+  { title: 3, name: { ja: `3月`, en: `Mar.` } },
+  { title: 4, name: { ja: `4月`, en: `Apr.` } },
+  { title: 5, name: { ja: `5月`, en: `May` } },
+  { title: 6, name: { ja: `6月`, en: `Jun.` } },
+  { title: 7, name: { ja: `7月`, en: `Jul.` } },
+  { title: 8, name: { ja: `8月`, en: `Aug.` } },
+  { title: 9, name: { ja: `9月`, en: `Sep.` } },
+  { title: 10, name: { ja: `10月`, en: `Oct.` } },
+  { title: 11, name: { ja: `11月`, en: `Nov.` } },
+  { title: 12, name: { ja: `12月`, en: `Dec.` } },
+];
+
 // -------------------------- ✅SDB関連✅ --------------------------

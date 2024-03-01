@@ -337,6 +337,7 @@ const BusinessCalendarModalMemo = () => {
     // 現在の会計年度を取得
     const currentYear = calculateCurrentFiscalYear({
       fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
       // selectedYear: selectedFiscalYearSetting,
     });
     // // 2020年度から現在+翌年度までの選択肢を生成
@@ -1086,6 +1087,7 @@ A7サイズ
     const fiscalYearStartDate = calculateFiscalYearStart({
       fiscalYearEnd: userProfileState.customer_fiscal_end_month,
       selectedYear: selectedFiscalYearSetting,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
     });
     if (!fiscalYearStartDate) return alert("先に決算日を登録してください。");
     if (!userProfileState?.customer_closing_days?.length) return alert("定休日が設定されていません。");
@@ -1173,6 +1175,7 @@ A7サイズ
         const fiscalYearStartDate = calculateFiscalYearStart({
           fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
           selectedYear: selectedFiscalYearSetting,
+          fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
         });
 
         if (!fiscalYearStartDate) throw new Error("期首データが見つかりませんでした。");

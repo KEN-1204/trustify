@@ -467,6 +467,9 @@ type State = {
   // 全社, 事業部, 係, メンバー個人ごとのデータの範囲別
   activeSectionSDB: string;
   setActiveSectionSDB: (payload: string) => void;
+  // 月次・四半期・半期・年度ごとの期間データの範囲別
+  activePeriodSDB: { period: string; timeValue: number };
+  setActivePeriodSDB: (payload: { period: string; timeValue: number }) => void;
 
   // トレロボード
   editedTaskCard: EditedCard;
@@ -1094,11 +1097,14 @@ const useDashboardStore = create<State>((set) => ({
 
   // =================== SDB ===================
   // ネタ表, 進捗ホワイトボード, SDBなどのタブ
-  activeTabSDB: "SalesProgress",
+  activeTabSDB: "salesProgress",
   setActiveTabSDB: (payload) => set({ activeTabSDB: payload }),
   // 全社, 事業部, 係, メンバー個人ごとのデータの範囲別
-  activeSectionSDB: "All",
+  activeSectionSDB: "company",
   setActiveSectionSDB: (payload) => set({ activeSectionSDB: payload }),
+  // 月次・四半期・半期・年度ごとの期間データの範囲別
+  activePeriodSDB: { period: "monthly", timeValue: 4 },
+  setActivePeriodSDB: (payload) => set({ activePeriodSDB: payload }),
 
   // トレロボード
   editedTaskCard: null,

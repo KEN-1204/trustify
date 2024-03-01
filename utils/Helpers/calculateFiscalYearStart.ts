@@ -1,12 +1,15 @@
 import { format } from "date-fns";
 import { calculateCurrentFiscalYear } from "./calculateCurrentFiscalYear";
+import { calculateCurrentFiscalYearBasisEndDay } from "./calculateCurrentFiscalYearBasisEndDay";
+import { calculateFiscalYearStartBasisEndDay } from "./calculateFiscalYearStartBasisEndDay";
 
 // 期首の日付を決算日から計算する関数
 type Props = {
   fiscalYearEnd: Date | string | null;
   selectedYear?: number | null;
+  fiscalYearBasis?: string | null;
 };
-export const calculateFiscalYearStart = ({ fiscalYearEnd, selectedYear }: Props) => {
+export const calculateFiscalYearStart = ({ fiscalYearEnd, selectedYear, fiscalYearBasis }: Props) => {
   if (!fiscalYearEnd) return null;
   // 決算日を設定するときにクライアントサイドで「fiscalEndDate.setHours(23, 59, 59, 999);」のようにミリ秒単位で決算日の終わりを設定してからtoISOStringでUTC時間文字列に変換してデータベースに保存しているため、
   // Supabaseデータベースから取得した決算日のUTC時間文字列を使って翌日の期首のDateオブジェクトを生成するときには、時間情報は全て0にリセットして期首のDateオブジェクトを生成する
@@ -16,11 +19,21 @@ export const calculateFiscalYearStart = ({ fiscalYearEnd, selectedYear }: Props)
   let currentFiscalYear = fiscalYearEndDateObj.getFullYear();
 
   if (!selectedYear) {
-    // 現在の会計年度を取得(selectedYearが存在する場合は、その当時の会計年度を取得)
-    currentFiscalYear = calculateCurrentFiscalYear({
-      fiscalYearEnd: fiscalYearEnd,
-      // selectedYear: selectedYear ?? null,
-    });
+    if (!fiscalYearBasis || fiscalYearBasis === "firstDayBasis") {
+      // 現在の会計年度を取得(selectedYearが存在する場合は、その当時の会計年度を取得)
+      currentFiscalYear = calculateCurrentFiscalYear({
+        fiscalYearEnd: fiscalYearEnd,
+        // selectedYear: selectedYear ?? null,
+        fiscalYearBasis: fiscalYearBasis ?? null,
+      });
+    } else {
+      // 会計年度基準が期末の場合
+      currentFiscalYear = calculateFiscalYearStartBasisEndDay({
+        fiscalYearEnd: fiscalYearEnd,
+        // selectedYear: selectedYear,
+        fiscalYearBasis: fiscalYearBasis ?? null,
+      });
+    }
   } else {
     // selectedYearありルート
     // 🔹1. 現在2024年2/21 12/20決算 会計年度2023年 (期首の年が会計年度)
@@ -35,22 +48,32 @@ export const calculateFiscalYearStart = ({ fiscalYearEnd, selectedYear }: Props)
 
     currentFiscalYear = selectedYear;
 
-    const isDecemberYearEnd = fiscalYearEndDateObj.getMonth() === 11 && fiscalYearEndDateObj.getDate() === 31;
-    // 選択年2023年で 12/31決算なら: 2023/01/01-2023/12/31を返すので、
-    // 2022/12/31にしてDateを+1することで2023/01/01を期首に設定できるため、selectedYearを代入したyearを-1する
-    if (isDecemberYearEnd) currentFiscalYear -= 1;
-    console.log(
-      "calculateFiscalYearStart関数 selectedYearありルート selectedYear",
-      selectedYear,
-      "12月末かどうか isDecemberYearEnd",
-      isDecemberYearEnd,
-      "引数で渡された決算日fiscalYearEnd",
-      fiscalYearEnd,
-      "決算日Date fiscalYearEndDateObj",
-      format(fiscalYearEndDateObj, "yyyy-MM-dd HH:mm:ss"),
-      "currentFiscalYear",
-      currentFiscalYear
-    );
+    // 会計年度基準が期首の場合
+    if (!fiscalYearBasis || fiscalYearBasis === "firstDayBasis") {
+      const isDecemberYearEnd = fiscalYearEndDateObj.getMonth() === 11 && fiscalYearEndDateObj.getDate() === 31;
+      // 選択年2023年で 12/31決算なら: 2023/01/01-2023/12/31を返すので、
+      // 2022/12/31にしてDateを+1することで2023/01/01を期首に設定できるため、selectedYearを代入したyearを-1する
+      if (isDecemberYearEnd) currentFiscalYear -= 1;
+      console.log(
+        "calculateFiscalYearStart関数 selectedYearありルート selectedYear",
+        selectedYear,
+        "12月末かどうか isDecemberYearEnd",
+        isDecemberYearEnd,
+        "引数で渡された決算日fiscalYearEnd",
+        fiscalYearEnd,
+        "決算日Date fiscalYearEndDateObj",
+        format(fiscalYearEndDateObj, "yyyy-MM-dd HH:mm:ss"),
+        "currentFiscalYear",
+        currentFiscalYear
+      );
+    } else {
+      // 会計年度基準が期末の場合
+      currentFiscalYear = calculateFiscalYearStartBasisEndDay({
+        fiscalYearEnd: fiscalYearEnd,
+        selectedYear: selectedYear,
+        fiscalYearBasis: fiscalYearBasis,
+      });
+    }
   }
 
   // 23:59:59:999の時間情報を0:0:0:000にリセット

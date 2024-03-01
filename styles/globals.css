@@ -1149,7 +1149,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-detail-modal-bg: #ffffffde;
   /* -------- ✅案件詳細モーダルSDB✅ light -------- */
   /* -------- 🌟セッティングメニュー🌟 light -------- */
-  --color-settings-menu-bg: #ffffffde;
+  /* --color-settings-menu-bg: #ffffffde; */
+  --color-settings-menu-bg: #242424;
   /* -------- ✅セッティングメニュー✅ light -------- */
 }
 
@@ -2857,6 +2858,16 @@ textarea {
 }
 .underline_area:not(:hover) .flow_underline::after {
   transform-origin: left; /* ホバーを外した時に右側を原点とする */
+}
+.flow_underline.brand_light {
+  background: transparent;
+}
+.flow_underline.brand_light.one_px,
+.flow_underline.brand_light.one_px::after {
+  height: 1px;
+}
+.flow_underline.brand_light::after {
+  background: linear-gradient(to right, #ffffff 0%, #ffffff 6%, #80e9ff 22%, #80e9ff 33%, var(--color-bg-brand-f) 78%);
 }
 /* アンダーライン自体をホバー */
 /* .flow_underline.hover::after {

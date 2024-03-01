@@ -78,7 +78,11 @@ Props) => {
 
     // 🌠どちらのパターンも選択年が会計年度となるので選択年の期首起算で１年間を返す
 
-    const fiscalYearStartDate = calculateFiscalYearStart({ fiscalYearEnd: fiscalYearEnd, selectedYear: selectedYear });
+    const fiscalYearStartDate = calculateFiscalYearStart({
+      fiscalYearEnd: fiscalYearEnd,
+      selectedYear: selectedYear,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
+    });
     if (!fiscalYearStartDate) return null;
 
     // 期首の日付を起点としたwhileループ用のDateオブジェクトを作成

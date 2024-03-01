@@ -59,7 +59,7 @@ export const DashboardSDBComponent = () => {
             {/* １画面目  */}
             {/* {activeTabSDB === "Deals" && <ScreenDealBoards />} */}
             {/* {activeTabSDB === "SalesProgress" && <ScreenDealBoards />} */}
-            {activeTabSDB === "SalesProgress" && <SalesProgressScreen />}
+            {activeTabSDB === "salesProgress" && <SalesProgressScreen />}
             {/* <ScreenTaskBoards /> */}
           </div>
         </div>
