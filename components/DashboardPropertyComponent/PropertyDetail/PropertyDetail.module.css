@@ -552,14 +552,17 @@
   transform: scaleX(0);
   transform-origin: right; /* 初期状態では左側を原点とする */
   /* transition: transform 0.25s ease; */
-  transition: transform 0.22s ease;
+  /* transition: transform 0.22s ease; */
+  transition: transform 0.15s ease;
 }
 .title_box.active ~ .underline::after {
   transform: scaleX(1);
 }
 .underline::after {
   /* transition: transform 0.25s ease, transform-origin 0s 0.3s;  */
-  transition: transform 0.22s ease, transform-origin 0s 0.22s; /* transform-originの変更を遅延 */
+  /* transform-originの変更を遅延 */
+  /* transition: transform 0.22s ease, transform-origin 0s 0.22s;  */
+  transition: transform 0.15s ease, transform-origin 0s 0.15s; /* transform-originの変更を遅延 */
 }
 .title_box:not(.active) ~ .underline::after {
   transform-origin: left; /* ホバーを外した時に右側を原点とする */

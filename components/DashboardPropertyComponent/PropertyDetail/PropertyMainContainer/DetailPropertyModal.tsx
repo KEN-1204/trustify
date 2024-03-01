@@ -4951,7 +4951,7 @@ const DetailPropertyModalMemo = () => {
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                       }}
-                      onClick={() => setIsOpenClientCompanyDetailModal(true)}
+                      // onClick={() => setIsOpenClientCompanyDetailModal(true)}
                     >
                       {selectedRowDataProperty?.company_name ? selectedRowDataProperty?.company_name : ""}
                     </span>
@@ -5839,6 +5839,14 @@ const DetailPropertyModalMemo = () => {
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div> */}
+                </div>
+              </div>
+
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <span className={`${styles.title}`}>○法人番号</span> */}
+                  </div>
                 </div>
               </div>
 

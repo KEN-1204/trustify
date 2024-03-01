@@ -30,13 +30,52 @@
   align-items: center;
 }
 
+/* セクションタイトル関連 */
+.section_container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  align-items: center;
+  margin-top: 15px;
+}
+.section_container .section_wrapper {
+  height: 60px;
+  width: 100%;
+  max-width: 1440px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 48px;
+  /* background-color: #0000ff30; */
+}
+.section_container .section_wrapper .section_title {
+  /* box-shadow: 0 0 0 1px var(--color-bg-brand-sub);
+  background-color: var(--color-bg-brand-sub20); */
+  box-shadow: 0 0 0 1px var(--color-bg-brand);
+  background-color: var(--color-bg-brand30);
+  border-radius: 33px;
+  min-width: 130px;
+  height: 39px;
+  font-weight: 600;
+}
+.section_container .section_wrapper .section_title span {
+  line-height: 24px;
+}
+.section_container .section_wrapper .section_title svg,
+.section_container .section_wrapper .section_title path {
+  min-height: 18px;
+  /* padding-bottom: 2px; */
+}
+
+/* ネタ表ボード */
 .entity_board_container {
   display: flex;
   flex-direction: column;
   width: 100%;
   align-items: center;
+  margin-top: 9px;
 }
-.entity_board_container .section_title_area {
+.entity_board_container .entity_detail_container {
   width: 100%;
   max-width: 1440px;
   display: flex;
@@ -44,21 +83,23 @@
   padding: 0 48px;
   /* background-color: #fff; */
 }
-.entity_board_container .section_title_area .entity_detail_wrapper {
+.entity_board_container .entity_detail_container .entity_detail_wrapper {
   /* width: 300px; */
-  height: 80px;
+  /* height: 80px; */
+  height: 56px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  /* background-color: #0000ff30; */
   /* box-shadow: 0 0 0 1px #333; */
 }
-.entity_board_container .section_title_area .entity_detail_wrapper .entity_detail {
+.entity_board_container .entity_detail_container .entity_detail_wrapper .entity_detail {
   display: flex;
   align-items: center;
   height: 48px;
 }
-.entity_board_container .section_title_area .entity_detail_wrapper .entity_name {
+.entity_board_container .entity_detail_container .entity_detail_wrapper .entity_name {
 }
-.entity_board_container .section_title_area .entity_detail_wrapper .sub_info {
+.entity_board_container .entity_detail_container .entity_detail_wrapper .sub_info {
   color: var(--color-text-sub);
 }
