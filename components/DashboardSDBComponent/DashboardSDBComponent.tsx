@@ -6,6 +6,7 @@ import useThemeStore from "@/store/useThemeStore";
 import { useEffect } from "react";
 import { DotsGradient } from "../Parts/DotsGradient/DotsGradient";
 import { EditModalDealCard } from "./ScreenDealBoards/EditModalDealCard/EditModalDealCard";
+import { SalesProgressScreen } from "./SalesProgressScreen/SalesProgressScreen";
 
 export const DashboardSDBComponent = () => {
   const setTheme = useThemeStore((state) => state.setTheme);
@@ -57,7 +58,8 @@ export const DashboardSDBComponent = () => {
           <div className={`${styles.main_contents_container}`}>
             {/* １画面目  */}
             {/* {activeTabSDB === "Deals" && <ScreenDealBoards />} */}
-            <ScreenDealBoards />
+            {/* {activeTabSDB === "SalesProgress" && <ScreenDealBoards />} */}
+            {activeTabSDB === "SalesProgress" && <SalesProgressScreen />}
             {/* <ScreenTaskBoards /> */}
           </div>
         </div>

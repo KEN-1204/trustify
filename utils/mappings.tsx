@@ -54,3 +54,7 @@ interface NumberOfEmployeesClassTitles {
 
 // 規模(ランク)
 // export mappingNumberOfEmployeesClass
+
+// --------------------------- 🌟SDB関連🌟 ---------------------------
+
+// --------------------------- ✅SDB関連✅ ---------------------------

@@ -1290,6 +1290,7 @@ const DealBoardMemo = () => {
     const deleteAt = newCards.findIndex((card) => card.property_id === draggingCardObj.property_id);
     const deleteCard = newCards.splice(deleteAt, 1)[0];
     const newInsertCard = {
+      ...deleteCard,
       property_id: deleteCard.property_id,
       company_name: deleteCard.company_name,
       company_department_name: deleteCard.company_department_name,
@@ -1653,8 +1654,8 @@ const DealBoardMemo = () => {
                           </div>
                         )}
                         {isRejected && (
-                          <div className={`${styles.pending_icon}`}>
-                            <BsFire className="text-[18px] text-[#fff]" />
+                          <div className={`${styles.rejected_icon}`}>
+                            <BsFire className="text-[18px]" />
                           </div>
                         )}
                         {columnIndex === 0 && (

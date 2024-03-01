@@ -1094,7 +1094,7 @@ const useDashboardStore = create<State>((set) => ({
 
   // =================== SDB ===================
   // ネタ表, 進捗ホワイトボード, SDBなどのタブ
-  activeTabSDB: "Deals",
+  activeTabSDB: "SalesProgress",
   setActiveTabSDB: (payload) => set({ activeTabSDB: payload }),
   // 全社, 事業部, 係, メンバー個人ごとのデータの範囲別
   activeSectionSDB: "All",

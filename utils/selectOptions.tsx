@@ -1605,7 +1605,29 @@ export const optionsSalesTaxRate = [
 ];
 // export const optionsSalesTaxRate = ["10", "11", "12", "13", "14", "15", "16", "17", "18"];
 
-// -------------------------- SDB --------------------------
+// -------------------------- 🌟SDB関連🌟 --------------------------
 
 // 🔹テーマパレットカラー
 export const optionsColorPalette = ["theme-brand-f", "theme-black-gradient", "theme-simple12", "theme-simple17"];
+
+export type SdbTabsListItem = {
+  title: string;
+  name: { [key: string]: string };
+};
+// セクションタブ
+export const sdbTabsList: SdbTabsListItem[] = [
+  { title: "SalesProgress", name: { ja: "売上進捗", en: "Sales Progress" } },
+  { title: "SalesDashboard", name: { ja: "セールスダッシュボード", en: "Sales Dashboard" } },
+  { title: "SalesProcess", name: { ja: "営業プロセス", en: "Sales Process" } },
+  { title: "DealsStatus", name: { ja: "案件ステータス", en: "Deals Status" } },
+  { title: "SalesAreaMap", name: { ja: "売上エリアマップ", en: "Sales Area Map" } },
+];
+
+export const mappingSdbTabName: { [key: string]: { [key: string]: string } } = {
+  SalesProgress: { ja: "売上進捗", en: "Sales Progress" },
+  SalesDashboard: { ja: "セールスダッシュボード", en: "Sales Dashboard" },
+  SalesProcess: { ja: "営業プロセス", en: "Sales Process" },
+  DealsStatus: { ja: "案件ステータス", en: "Deals Status" },
+  SalesAreaMap: { ja: "売上エリアマップ", en: "Sales Area Map" },
+};
+// -------------------------- ✅SDB関連✅ --------------------------
