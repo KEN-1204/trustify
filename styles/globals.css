@@ -544,10 +544,12 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-subc0: #2b7fffc0;
   --color-bg-brand-subd0: #2b7fffd0;
   --color-bg-brand-sube0: #2b7fffe0;
+  --color-bg-brand-subf0: #2b7ffff0;
   --color-bg-brand-sub08: #2b7fff90;
   --color-bg-brand-sub-deep: #2265c9;
   --color-bg-brand-sub-rgb: 43, 127, 255;
   --color-bg-brand-sub-hover: #2571e2;
+  --color-bg-brand-sub-hover-light: #66a3ff;
 
   /* ===================== 🌟テーブル light ブルーテーマ ===================== */
   --color-bg-table-header: #f5f5f5;
@@ -1088,6 +1090,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sdb-bg-black-gradient: #fff;
   --color-sdb-bg-simple12: #fff;
   --color-sdb-bg-simple17: #fff;
+  --color-sdb-section-title-bg: var(--color-bg-brand-subf0);
+  --color-sdb-section-title-bg-hover: var(--color-bg-brand-sub-hover-light);
+  --color-sdb-section-title-border: var(--color-bg-brand-sub-hover-light);
+  --color-sdb-section-title-text: #fff;
   --color-table-text: var(--color-text-title);
   --color-award: rgb(252, 70, 204);
   --color-eighty: var(--main-color-tk);
@@ -1142,6 +1148,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* -------- 🌟案件詳細モーダルSDB🌟 light -------- */
   --color-detail-modal-bg: #ffffffde;
   /* -------- ✅案件詳細モーダルSDB✅ light -------- */
+  /* -------- 🌟セッティングメニュー🌟 light -------- */
+  --color-settings-menu-bg: #ffffffde;
+  /* -------- ✅セッティングメニュー✅ light -------- */
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -1349,6 +1358,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-brand-sube0: #2b7fffe0;
   --color-bg-brand-sub-rgb: 43, 127, 255;
   --color-bg-brand-sub-hover: #2571e2;
+  --color-bg-brand-sub-hover-light: #3d8aff;
 
   /* ======================================== 🌟テーブル dark ======================================== */
   /* --color-bg-brand-table-tab: #0e5d95; */
@@ -1840,7 +1850,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   );
   --color-sdb-bg-simple12: #121212;
   --color-sdb-bg-simple17: #171717;
-  /* --color-sdb-bg: #151515; */
+  --color-sdb-section-title-bg: var(--color-bg-brand30);
+  --color-sdb-section-title-bg-hover: var(--color-bg-brandc0);
+  --color-sdb-section-title-text: #fff;
+  --color-sdb-section-title-border: var(--color-bg-brand);
   --color-sdb-text: #fafafa;
   /* --color-award: rgb(236 72 153 / 1);
   --color-eighty: var(--main-color-tk);
@@ -1913,6 +1926,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* -------- 🌟案件詳細モーダルSDB🌟 dark -------- */
   --color-detail-modal-bg: #000000ee;
   /* -------- ✅案件詳細モーダルSDB✅ dark -------- */
+  /* -------- 🌟セッティングメニュー🌟 dark -------- */
+  --color-settings-menu-bg: #242424;
+  /* -------- ✅セッティングメニュー✅ dark -------- */
 }
 
 /* html {

@@ -51,20 +51,34 @@
 .section_container .section_wrapper .section_title {
   /* box-shadow: 0 0 0 1px var(--color-bg-brand-sub);
   background-color: var(--color-bg-brand-sub20); */
-  box-shadow: 0 0 0 1px var(--color-bg-brand);
-  background-color: var(--color-bg-brand30);
+  /* background-color: var(--color-bg-brand30); */
+  box-shadow: 0 0 0 1px var(--color-sdb-section-title-border);
+  background-color: var(--color-sdb-section-title-bg);
+  color: var(--color-sdb-section-title-text);
   border-radius: 33px;
-  min-width: 130px;
   height: 39px;
-  font-weight: 600;
+  padding: 0 24px;
+  font-size: 14px;
+  /* font-weight: 600; */
+  margin-left: 12px;
+  user-select: none;
+  transition: background-color 0.3s ease;
+}
+.section_container .section_wrapper .section_title:hover {
+  cursor: pointer;
+  background-color: var(--color-sdb-section-title-bg-hover);
+}
+.section_container .section_wrapper .section_title .div_wrapper {
+  height: 100%;
 }
 .section_container .section_wrapper .section_title span {
   line-height: 24px;
 }
-.section_container .section_wrapper .section_title svg,
-.section_container .section_wrapper .section_title path {
-  min-height: 18px;
-  /* padding-bottom: 2px; */
+.section_container .section_wrapper .section_title .down_icon {
+  height: 24px;
+}
+.section_container .section_wrapper .section_title .down_icon svg {
+  font-size: 14px;
 }
 
 /* ネタ表ボード */
@@ -102,4 +116,323 @@
 }
 .entity_board_container .entity_detail_container .entity_detail_wrapper .sub_info {
   color: var(--color-text-sub);
+}
+
+/* ---------------------------------- settings_menu ---------------------------------- */
+/* オーバーレイ */
+.menu_overlay {
+  position: fixed;
+  z-index: 3200;
+  left: 0vw;
+  top: 0vh;
+  width: 100vw;
+  height: 100vh;
+  /* background-color: #ffffff60; */
+}
+.menu_overlay.above_setting_menu {
+  z-index: 3600;
+}
+.menu_overlay.edit_mode {
+  z-index: 3700;
+  /* background-color: #00000030; */
+}
+
+@keyframes fade_up5 {
+  0% {
+    opacity: 0;
+    transform: translateY(9%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade_down5 {
+  0% {
+    opacity: 0;
+    transform: translateY(-9%);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade5 {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* セッティングメニュー */
+.settings_menu {
+  z-index: 3500;
+  /* background-color: #303030; */
+  /* background-color: #242424; */
+  background-color: var(--color-settings-menu-bg);
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390, 0 4px 10px 2px #ffffff33;
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font-size: 13px;
+  opacity: 0;
+  transform: translateY(-5%);
+  animation: fade_up5 0.3s ease forwards;
+}
+.settings_menu.fade_up {
+  animation: fade_up5 0.3s ease forwards;
+}
+.settings_menu.fade_down {
+  animation: fade_down5 0.3s ease forwards;
+}
+.settings_menu.fade {
+  animation: fade5 0.3s ease forwards;
+}
+.settings_menu.edit_mode {
+  z-index: 4500;
+}
+.settings_menu.fade_up {
+  animation: fade_up5 0.3s ease forwards;
+}
+.settings_menu .scroll_container {
+  max-height: 39vh;
+}
+.settings_menu .list {
+  padding: 0px 20px;
+  min-height: 60px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.settings_menu .list:hover {
+  background-color: var(--color-bg-brand-f30);
+}
+.settings_menu .list.btn_area {
+  padding: 0px 20px;
+  min-height: 60px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.settings_menu .list.btn_area:hover {
+  background-color: transparent;
+}
+.settings_menu .list.btn_area .edit_btn {
+  background-color: #484848;
+  user-select: none;
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 7px 22px;
+  border-radius: 8px;
+  width: 50%;
+  display: flex;
+  justify-content: center;
+}
+.settings_menu .list.btn_area .edit_btn.brand {
+  color: #999;
+  background-color: #393939;
+  cursor: not-allowed;
+}
+.settings_menu .list.btn_area .edit_btn.brand:hover {
+  box-shadow: none;
+}
+.settings_menu .list.btn_area .edit_btn.cancel:hover {
+  background-color: #555;
+}
+.settings_menu .list.btn_area .edit_btn.brand.active {
+  color: #fff;
+  background-color: var(--color-bg-brand-f90);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  cursor: pointer;
+}
+.settings_menu .list.btn_area .edit_btn.brand.active:hover {
+  color: #fff;
+  background-color: var(--color-bg-brand-f);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.settings_menu .list.edit_mode {
+  cursor: pointer;
+}
+.settings_menu .list.edit_mode span {
+  min-width: 48px;
+  /* text-align: center; */
+}
+.settings_menu .list.edit_mode.active {
+  background-color: var(--color-bg-brand-f);
+}
+.settings_menu .list.edit_mode.active:hover svg {
+  color: #fff;
+}
+.settings_menu .list.edit_mode.active .working_day {
+  color: #00d436;
+}
+.settings_menu .list.edit_mode.active .closing_day {
+  color: var(--main-color-tk);
+}
+.settings_menu .list.edit_mode:hover .arrow_icon {
+  color: var(--color-bg-brand-f);
+}
+.settings_menu .list.edit_mode:hover .working_day {
+  color: #00d436;
+}
+.settings_menu .list.edit_mode:hover .closing_day {
+  color: var(--main-color-tk);
+}
+
+.settings_menu .section_title {
+  padding: 10px 20px 6px;
+}
+.settings_menu .section_title .underline {
+  min-height: 1px;
+  margin-top: 1px;
+  background-color: var(--color-bg-brand-f);
+}
+.settings_menu .list.test:nth-of-type(odd) {
+  /* background-color: #fff; */
+}
+.settings_menu .list.test:nth-of-type(even) {
+  /* background-color: #333; */
+}
+/* ============ inputスライダー ============ */
+.settings_menu input[type="range"] {
+  position: relative;
+  height: 4px;
+  /* max-width: 75px; */
+  max-width: 120px;
+  /* デフォルトのスライダーを消してカスタムに変更 */
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  outline: none;
+  background: linear-gradient(to right, #0d99ff 50%, #999 50%);
+  background: var(--linear-gradient);
+}
+.settings_menu input[type="range"].input_range::-webkit-slider-runnable-track {
+  height: 4px;
+}
+.settings_menu input[type="range"].input_range::-moz-range-track {
+  height: 4px;
+}
+/* Thumbのスタイル */
+.settings_menu input[type="range"].input_range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 15px;
+  height: 15px;
+  background: #0d99ff;
+  border-radius: 50%;
+  cursor: pointer;
+  margin-top: -6px;
+}
+.settings_menu input[type="range"].input_range::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  background: #0d99ff;
+  cursor: pointer;
+  border-radius: 50%;
+}
+/* Firefoxでのバーの背景色を変更 */
+.settings_menu input[type="range"]::-moz-focus-outer {
+  border: 0;
+}
+.settings_menu input[type="range"]::after {
+  /* content: "16"; */
+  content: attr(data-text);
+  position: absolute;
+  top: -28px;
+  right: 0;
+  /* top: 50%; */
+  /* left: -35px; */
+  /* transform: translateY(-50%); */
+  font-size: 13px;
+  color: #fff;
+}
+/* ============ inputスライダー ============ */
+
+.description_menu {
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390, 0 4px 10px 2px #ffffff33;
+  /* background-color: var(--color-black-bg); */
+  background-color: #303030;
+  opacity: 0;
+  transform: translateY(-5%);
+  animation: fade_up5 0.3s ease forwards;
+  max-width: 400px;
+  color: #fff;
+}
+.description_menu .title {
+  padding: 20px 24px 0px;
+}
+.description_menu .title .underline {
+  min-height: 1px;
+  margin-top: 1px;
+  background-color: var(--color-bg-brand-f);
+}
+.description_menu .u_list {
+  margin: 5px 10px 10px;
+  /* box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f); */
+  /* background-color: var(--color-black-bg-re); */
+}
+.description_menu .u_list .dropdown_list_item {
+  width: 100%;
+  padding: 10px 14px;
+  user-select: none;
+}
+.select_box {
+  /* box-shadow: var(--color-bg-under-input-box-shadow);
+  background: var(--color-bg-under-input); */
+  box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000;
+  /* background: #3c3c3c; */
+  font-size: 14px;
+  background-color: #484848;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: box-shadow 0.1s ease;
+  min-height: 30px;
+  /* min-width: 185px; */
+  /* min-width: 120px; */
+  /* max-width: 400px; */
+  width: 100%;
+  /* width: fit-content; */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: none;
+}
+.select_box:hover {
+  box-shadow: inset 0 0 0 1px var(--color-bg-brand-f);
+}
+.edit_btn {
+  /* background-color: #ffffff20; */
+  background-color: #484848;
+  user-select: none;
+  white-space: nowrap;
+  cursor: pointer;
+  /* box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000; */
+  padding: 7px 22px;
+  border-radius: 8px;
+}
+.edit_btn:hover {
+  background-color: #555;
+}
+.edit_btn.brand:hover {
+  background-color: var(--color-bg-brand-f90);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+
+/* ---------------------------------- settings_menuここまで ---------------------------------- */
+
+/* 説明アイコン用ping */
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+.animate_ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
