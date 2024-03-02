@@ -1643,7 +1643,7 @@ export const DashboardHeaderMemo: FC = () => {
               setSelectedSettingAccountMenu("Profile");
             }}
           >
-            <IoSettingsOutline className={`text-[24px] text-[var(--color-icon)] ${styles.sdb_icon}`} />
+            <IoSettingsOutline className={`text-[24px] text-[var(--color-icon-header)] ${styles.sdb_icon}`} />
             {/* <div>{neonIconsSettingsGear("32")}</div> */}
           </div>
         </div>
@@ -1667,7 +1667,10 @@ export const DashboardHeaderMemo: FC = () => {
               handleCloseTooltip();
             }}
           >
-            <AiOutlineBell className={`text-[24px] text-[var(--color-icon)] ${styles.sdb_icon}`} />
+            <AiOutlineBell
+              // className={`text-[24px] text-[var(--color-icon)] ${styles.sdb_icon}`}
+              className={`text-[24px] text-[var(--color-icon-header)] ${styles.sdb_icon}`}
+            />
             {/* 通知アイコン */}
             {/* {!!notificationsCacheData?.length && */}
             {/* {!!incompleteNotifications?.length &&
@@ -2133,7 +2136,7 @@ export const DashboardHeaderMemo: FC = () => {
               //   setSelectedSettingAccountMenu("Profile");
               // }}
             >
-              <LuSettings2 className={`text-[23px] text-[var(--color-icon)] ${styles.sdb_icon}`} />
+              <LuSettings2 className={`text-[23px] text-[var(--color-icon-header)] ${styles.sdb_icon}`} />
             </div>
           </div>
         )}
@@ -2144,7 +2147,12 @@ export const DashboardHeaderMemo: FC = () => {
       {isOpenSettingsSDB && <div className={`${styles.menu_overlay}`} onClick={handleCloseSettings}></div>}
       {isOpenSettingsSDB && (
         <div className={`${styles.settings_menu} fixed right-[185px] top-[56px] h-auto w-[330px] rounded-[6px]`}>
-          <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>各種設定メニュー</h3>
+          <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
+            <div className="flex max-w-max flex-col">
+              <span>各種設定メニュー</span>
+              <div className={`${styles.section_underline} w-full`} />
+            </div>
+          </h3>
 
           <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
             背景色などのテーマカラーの変更が可能です。

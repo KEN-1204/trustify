@@ -22,6 +22,10 @@ const ScreenDealBoardsMemo = () => {
                     </div>
                     <div className={`${styles.sub_info} pt-[6px]`}>代表取締役</div>
                     <div className={`${styles.sub_info} pt-[6px]`}>216088</div>
+                    {/* <div className={`flex flex-col justify-end `}>
+                      <div className={`${styles.sub_info} pt-[0px]`}>216088</div>
+                      <div className={`${styles.sub_info} pt-[0px]`}>代表取締役</div>
+                    </div> */}
                   </div>
                 </div>
               </div>

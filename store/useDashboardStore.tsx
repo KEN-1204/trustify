@@ -18,6 +18,7 @@ import {
   NewSearchProperty_Contact_CompanyParams,
   NewSearchQuotation_Contact_CompanyParams,
   Notification,
+  PeriodSDB,
   Product,
   Property_row_data,
   QuotationProductsDetail,
@@ -468,8 +469,8 @@ type State = {
   activeSectionSDB: string;
   setActiveSectionSDB: (payload: string) => void;
   // 月次・四半期・半期・年度ごとの期間データの範囲別
-  activePeriodSDB: { period: string; timeValue: number };
-  setActivePeriodSDB: (payload: { period: string; timeValue: number }) => void;
+  activePeriodSDB: PeriodSDB;
+  setActivePeriodSDB: (payload: PeriodSDB) => void;
 
   // トレロボード
   editedTaskCard: EditedCard;
@@ -1103,7 +1104,8 @@ const useDashboardStore = create<State>((set) => ({
   activeSectionSDB: "company",
   setActiveSectionSDB: (payload) => set({ activeSectionSDB: payload }),
   // 月次・四半期・半期・年度ごとの期間データの範囲別
-  activePeriodSDB: { period: "monthly", timeValue: 4 },
+  // 年度以外 半期20241, 四半期20244, 月度202403で保持
+  activePeriodSDB: { period: "monthly", timeValue: 202403 },
   setActivePeriodSDB: (payload) => set({ activePeriodSDB: payload }),
 
   // トレロボード

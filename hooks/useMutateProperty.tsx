@@ -84,6 +84,15 @@ export const useMutateProperty = () => {
         _property_business_office: newProperty.property_business_office,
         _property_member_name: newProperty.property_member_name,
         _property_date: newProperty.property_date,
+        // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
+        _property_quarter: newProperty.property_quarter,
+        _property_half_year: newProperty.property_half_year,
+        _expansion_half_year: newProperty.expansion_half_year,
+        _sales_half_year: newProperty.sales_half_year,
+        _property_fiscal_year: newProperty.property_fiscal_year,
+        _expansion_fiscal_year: newProperty.expansion_fiscal_year,
+        _sales_fiscal_year: newProperty.sales_fiscal_year,
+        // 🌠追加ここまで
         // -- 🔹activities関連
         _summary: newProperty.property_summary,
         _scheduled_follow_up_date: null,
@@ -280,6 +289,15 @@ export const useMutateProperty = () => {
         _property_business_office: newProperty.property_business_office,
         _property_member_name: newProperty.property_member_name,
         _property_date: newProperty.property_date,
+        // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
+        _property_quarter: newProperty.property_quarter,
+        _property_half_year: newProperty.property_half_year,
+        _expansion_half_year: newProperty.expansion_half_year,
+        _sales_half_year: newProperty.sales_half_year,
+        _property_fiscal_year: newProperty.property_fiscal_year,
+        _expansion_fiscal_year: newProperty.expansion_fiscal_year,
+        _sales_fiscal_year: newProperty.sales_fiscal_year,
+        // 🌠追加ここまで
         // -- 🔹activities関連
         _summary: newProperty.property_summary,
         // _scheduled_follow_up_date: null,
@@ -443,10 +461,22 @@ export const useMutateProperty = () => {
       id: string;
       yearMonth?: number | null;
       yearQuarter?: number | null;
+      yearHalf?: number | null;
+      fiscalYear?: number | null;
       discountRate?: string | null;
     }) => {
       // const { fieldName, value, id } = fieldData;
-      const { fieldName, fieldNameForSelectedRowData, newValue, id, yearMonth, yearQuarter, discountRate } = fieldData;
+      const {
+        fieldName,
+        fieldNameForSelectedRowData,
+        newValue,
+        id,
+        yearMonth,
+        yearQuarter,
+        yearHalf,
+        fiscalYear,
+        discountRate,
+      } = fieldData;
 
       console.log("updatePropertyFieldMutation受信 fieldData", fieldData);
 
@@ -460,7 +490,9 @@ export const useMutateProperty = () => {
             _column_name: fieldName,
             _json_value: jsonValue,
             _property_year_month: yearMonth,
-            // _property_quarter: null,
+            _property_quarter: yearQuarter,
+            _property_half_year: yearHalf,
+            _property_fiscal_year: fiscalYear,
           };
 
           console.log(
@@ -497,6 +529,8 @@ export const useMutateProperty = () => {
           expansion_date: newValue,
           expansion_quarter: yearQuarter,
           expansion_year_month: yearMonth,
+          expansion_half_year: yearHalf,
+          expansion_fiscal_year: fiscalYear,
         };
         console.log(
           "updatePropertyFieldMutation rpc実行 expansion_date四半期と年月度も同時に更新",
@@ -519,6 +553,8 @@ export const useMutateProperty = () => {
           sales_date: newValue,
           sales_quarter: yearQuarter,
           sales_year_month: yearMonth,
+          sales_half_year: yearHalf,
+          sales_fiscal_year: fiscalYear,
         };
         console.log(
           "updatePropertyFieldMutation rpc実行 🔹sales_date四半期と年月度も同時に更新",
@@ -596,7 +632,16 @@ export const useMutateProperty = () => {
         }
       }
 
-      return { fieldName, fieldNameForSelectedRowData, newValue, yearMonth, yearQuarter, discountRate };
+      return {
+        fieldName,
+        fieldNameForSelectedRowData,
+        newValue,
+        yearMonth,
+        yearQuarter,
+        yearHalf,
+        fiscalYear,
+        discountRate,
+      };
 
       // 活動履歴で面談タイプ 訪問・面談を作成
       // const newPropertyData = {
@@ -619,7 +664,16 @@ export const useMutateProperty = () => {
     },
     {
       onSuccess: async (data) => {
-        const { fieldName, fieldNameForSelectedRowData, newValue, yearMonth, yearQuarter, discountRate } = data;
+        const {
+          fieldName,
+          fieldNameForSelectedRowData,
+          newValue,
+          yearMonth,
+          yearQuarter,
+          yearHalf,
+          fiscalYear,
+          discountRate,
+        } = data;
         console.log(
           "✅✅✅✅✅✅✅updateMeetingFieldMutation実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 onSuccess ",
           "data",
@@ -647,10 +701,38 @@ export const useMutateProperty = () => {
         };
         const fieldNameQuarter = (field: string) => {
           switch (field) {
+            case "property_date":
+              return "property_quarter";
             case "expansion_date":
               return "expansion_quarter";
             case "sales_date":
               return "sales_quarter";
+            default:
+              return "";
+              break;
+          }
+        };
+        const fieldNameHalfYear = (field: string) => {
+          switch (field) {
+            case "property_date":
+              return "property_half_year";
+            case "expansion_date":
+              return "expansion_half_year";
+            case "sales_date":
+              return "sales_half_year";
+            default:
+              return "";
+              break;
+          }
+        };
+        const fieldNameFiscalYear = (field: string) => {
+          switch (field) {
+            case "property_date":
+              return "property_fiscal_year";
+            case "expansion_date":
+              return "expansion_fiscal_year";
+            case "sales_date":
+              return "sales_fiscal_year";
             default:
               return "";
               break;
@@ -666,6 +748,8 @@ export const useMutateProperty = () => {
               [fieldNameForSelectedRowData]: newValue,
               [fieldNameYearMonth(fieldName)]: yearMonth,
               [fieldNameQuarter(fieldName)]: yearQuarter,
+              [fieldNameHalfYear(fieldName)]: yearHalf,
+              [fieldNameFiscalYear(fieldName)]: fiscalYear,
             };
 
             setSelectedRowDataProperty(newRowDataProperty);
@@ -676,6 +760,9 @@ export const useMutateProperty = () => {
               ...selectedRowDataProperty,
               [fieldNameForSelectedRowData]: newValue,
               [fieldNameYearMonth(fieldName)]: yearMonth,
+              [fieldNameQuarter(fieldName)]: yearQuarter,
+              [fieldNameHalfYear(fieldName)]: yearHalf,
+              [fieldNameFiscalYear(fieldName)]: fiscalYear,
             };
 
             setSelectedRowDataProperty(newRowDataProperty);

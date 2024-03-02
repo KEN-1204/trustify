@@ -1242,12 +1242,26 @@ export type Property_row_data = {
   // discount_rate: number | null;
   discount_rate: string | null;
   sales_class: string | null;
+  // 日付
+  property_date: string | null;
   expansion_date: string | null;
   sales_date: string | null;
-  // expansion_quarter: string | null;
-  // sales_quarter: string | null;
+  // 年月度(会計基準の)
+  property_year_month: number | null;
+  expansion_year_month: number | null;
+  sales_year_month: number | null;
+  // 四半期(会計基準の)
+  property_quarter: number | null; // 🌠追加
   expansion_quarter: number | null;
   sales_quarter: number | null;
+  // 半期(会計基準の)
+  property_half_year: number | null; // 🌠追加
+  expansion_half_year: number | null; // 🌠追加
+  sales_half_year: number | null; // 🌠追加
+  // 年度(会計基準の)
+  property_fiscal_year: number | null; // 🌠追加
+  expansion_fiscal_year: number | null; // 🌠追加
+  sales_fiscal_year: number | null; // 🌠追加
   subscription_start_date: string | null;
   subscription_canceled_at: string | null;
   leasing_company: string | null;
@@ -1267,15 +1281,11 @@ export type Property_row_data = {
   // customer_budget: number | null;
   customer_budget: string | null;
   decision_maker_negotiation: string | null;
-  expansion_year_month: number | null;
-  sales_year_month: number | null;
   subscription_interval: string | null;
   competition_state: string | null;
-  property_year_month: number | null;
   property_department: string | null;
   property_business_office: string | null;
   property_member_name: string | null;
-  property_date: string | null;
   //🌠追加 事業部、係、事業所
   assigned_department_name: string | null;
   assigned_unit_name: string | null;
@@ -1598,12 +1608,26 @@ export type NewSearchProperty_Contact_CompanyParams = {
   discounted_price: string | null;
   discount_rate: string | null;
   sales_class: string | null;
+  // 日付(カレンダー)
+  property_date: string | null;
   expansion_date: string | null;
   sales_date: string | null;
-  // expansion_quarter: string | null;
-  // sales_quarter: string | null;
+  // 年月度(会計基準の)
+  property_year_month: number | null;
+  expansion_year_month: number | null;
+  sales_year_month: number | null;
+  // 四半期(会計基準の)
+  property_quarter: number | null; // 🌠追加
   expansion_quarter: number | null;
   sales_quarter: number | null;
+  // 半期(会計基準の)
+  property_half_year: number | null; // 🌠追加
+  expansion_half_year: number | null; // 🌠追加
+  sales_half_year: number | null; // 🌠追加
+  // 年度(会計基準の)
+  property_fiscal_year: number | null; // 🌠追加
+  expansion_fiscal_year: number | null; // 🌠追加
+  sales_fiscal_year: number | null; // 🌠追加
   subscription_start_date: string | null;
   subscription_canceled_at: string | null;
   leasing_company: string | null;
@@ -1623,15 +1647,11 @@ export type NewSearchProperty_Contact_CompanyParams = {
   // customer_budget: number | null;
   customer_budget: string | null;
   decision_maker_negotiation: string | null;
-  expansion_year_month: number | null;
-  sales_year_month: number | null;
   subscription_interval: string | null;
   competition_state: string | null;
-  property_year_month: number | null;
   property_department: string | null;
   property_business_office: string | null;
   property_member_name: string | null;
-  property_date: string | null;
 };
 
 // 活動 activitiesテーブル
@@ -1811,12 +1831,27 @@ export type Property = {
   discounted_price: string | null;
   discount_rate: string | null;
   sales_class: string | null;
+  // 日付(カレンダー)
+  property_date: string | null;
   expansion_date: string | null;
   sales_date: string | null;
-  // expansion_quarter: string | null;
-  // sales_quarter: string | null;
+  // 年月度(会計基準の)
+  property_year_month: number | null;
+  expansion_year_month: number | null;
+  sales_year_month: number | null;
+  // 四半期(会計基準の)
+  property_quarter: number | null; // 🌠追加
   expansion_quarter: number | null;
   sales_quarter: number | null;
+  // 半期(会計基準の)
+  property_half_year: number | null; // 🌠追加
+  expansion_half_year: number | null; // 🌠追加
+  sales_half_year: number | null; // 🌠追加
+  // 年度(会計基準の)
+  property_fiscal_year: number | null; // 🌠追加
+  expansion_fiscal_year: number | null; // 🌠追加
+  sales_fiscal_year: number | null; // 🌠追加
+  //
   subscription_start_date: string | null;
   subscription_canceled_at: string | null;
   leasing_company: string | null;
@@ -1836,15 +1871,11 @@ export type Property = {
   // customer_budget: number | null;
   customer_budget: string | null;
   decision_maker_negotiation: string | null;
-  expansion_year_month: number | null;
-  sales_year_month: number | null;
   subscription_interval: string | null;
   competition_state: string | null;
-  property_year_month: number | null;
   property_department: string | null;
   property_business_office: string | null;
   property_member_name: string | null;
-  property_date: string | null;
 };
 
 // モーダルのサイズ(ツールチップ計算用)
@@ -2361,3 +2392,6 @@ export type DealCardType = Property_row_data & {
 };
 
 export type EditedDealCard = DealCardType | null;
+
+// SDB 売上進捗 期間
+export type PeriodSDB = { period: string; timeValue: number };

@@ -1665,21 +1665,28 @@ export const periodList: SdbTabsListItem[] = [
   { title: "fiscalYear", name: { ja: "年度", en: "Fiscal Year" } },
   { title: "half", name: { ja: "半期", en: "Half" } },
   { title: "quarter", name: { ja: "四半期", en: "Quarter" } },
-  { title: "monthly", name: { ja: "月次", en: "Monthly" } },
+  { title: "monthly", name: { ja: "月度", en: "Monthly" } },
 ];
 export const mappingPeriodName: { [key: string]: { [key: string]: string } } = {
   fiscalYear: { ja: "年度", en: "Fiscal Year" },
   half: { ja: "半期", en: "Half" },
   quarter: { ja: "四半期", en: "Quarter" },
-  monthly: { ja: "月次", en: "Monthly" },
+  monthly: { ja: "月度", en: "Monthly" },
 };
 // 年度を選択した際の年度を2020年から現在の会計年度までの期間で選択肢を取得する関数
-type YearProps = {
+type FiscalYearProps = {
   fiscalYearEnd: string | Date | null;
-  language: string | Date | null;
   fiscalYearBasis: string;
 };
-export const getOptionsFiscalYear = ({ fiscalYearEnd, fiscalYearBasis }: YearProps) => {
+type CalendarYearProps = {
+  currentDate: Date;
+};
+export type PeriodOption = {
+  key: string;
+  value: string;
+  name: { [key: string]: string };
+};
+export const getOptionsFiscalYear = ({ fiscalYearEnd, fiscalYearBasis }: FiscalYearProps): PeriodOption[] => {
   const currentFiscalYear = calculateCurrentFiscalYear({
     fiscalYearEnd: fiscalYearEnd,
     fiscalYearBasis: fiscalYearBasis,
@@ -1690,38 +1697,50 @@ export const getOptionsFiscalYear = ({ fiscalYearEnd, fiscalYearBasis }: YearPro
   const initialYear = 2020;
   let yearList = [];
   for (let year = initialYear; year <= currentFiscalYear; year++) {
-    const yearOption = { title: year, name: { ja: `${year}年度`, en: "First Half of the Fiscal Year(H1)" } };
+    const yearOption = { key: `year${year}`, value: `${year}`, name: { ja: `${year}年`, en: `${year}` } };
+    yearList.push(yearOption);
+  }
+
+  return yearList;
+};
+// 会計年度ではないカレンダー年のオプション
+export const getOptionsCalendarYear = ({ currentDate }: CalendarYearProps): PeriodOption[] => {
+  const initialYear = 2020;
+  const currentCalendarYear = currentDate.getFullYear();
+  let yearList = [];
+  for (let year = initialYear; year <= currentCalendarYear; year++) {
+    const yearOption = { key: `calendarYear${year}`, value: `${year}`, name: { ja: `${year}年`, en: `${year}` } };
     yearList.push(yearOption);
   }
 
   return yearList;
 };
 // 半期を選択した際の上期、下期の配列
-export const optionsFiscalHalf = [
-  { title: 1, name: { ja: "上半期(H1)", en: "First Half of the Fiscal Year(H1)" } },
-  { title: 2, name: { ja: "下半期(H2)", en: "Second Half of the Fiscal Year(H2)" } },
+export const optionsFiscalHalf: PeriodOption[] = [
+  { key: `H1`, value: "1", name: { ja: "上半期（H1）", en: "First Half of the Fiscal Year（H1）" } },
+  { key: `H2`, value: "2", name: { ja: "下半期（H2）", en: "Second Half of the Fiscal Year（H2）" } },
 ];
 // 四半期を選択した際の選択肢
-export const optionsFiscalQuarter = [
-  { title: 1, name: { ja: "第一四半期(Q1)", en: "First Quarter(Q1)" } },
-  { title: 2, name: { ja: "第二四半期(Q2)", en: "Second Quarter(Q2)" } },
-  { title: 3, name: { ja: "第三四半期(Q3)", en: "Third Quarter(Q3)" } },
-  { title: 4, name: { ja: "第四四半期(Q4)", en: "Fourth Quarter(Q4)" } },
+export const optionsFiscalQuarter: PeriodOption[] = [
+  { key: `Q1`, value: "1", name: { ja: "第一四半期（Q1）", en: "First Quarter(Q1)" } },
+  { key: `Q2`, value: "2", name: { ja: "第二四半期（Q2）", en: "Second Quarter(Q2)" } },
+  { key: `Q3`, value: "3", name: { ja: "第三四半期（Q3）", en: "Third Quarter(Q3)" } },
+  { key: `Q4`, value: "4", name: { ja: "第四四半期（Q4）", en: "Fourth Quarter(Q4)" } },
 ];
-// 四半期を選択した際の選択肢
-export const optionsFiscalMonth = [
-  { title: 1, name: { ja: `1月`, en: `Jan.` } },
-  { title: 2, name: { ja: `2月`, en: `Feb.` } },
-  { title: 3, name: { ja: `3月`, en: `Mar.` } },
-  { title: 4, name: { ja: `4月`, en: `Apr.` } },
-  { title: 5, name: { ja: `5月`, en: `May` } },
-  { title: 6, name: { ja: `6月`, en: `Jun.` } },
-  { title: 7, name: { ja: `7月`, en: `Jul.` } },
-  { title: 8, name: { ja: `8月`, en: `Aug.` } },
-  { title: 9, name: { ja: `9月`, en: `Sep.` } },
-  { title: 10, name: { ja: `10月`, en: `Oct.` } },
-  { title: 11, name: { ja: `11月`, en: `Nov.` } },
-  { title: 12, name: { ja: `12月`, en: `Dec.` } },
+// 月度・月次を選択した際の選択肢
+export const optionsFiscalMonth: PeriodOption[] = [
+  { key: `month1`, value: "01", name: { ja: `1月度`, en: `Jan.` } },
+  { key: `month2`, value: "02", name: { ja: `2月度`, en: `Feb.` } },
+  { key: `month3`, value: "03", name: { ja: `3月度`, en: `Mar.` } },
+  { key: `month4`, value: "04", name: { ja: `4月度`, en: `Apr.` } },
+  { key: `month5`, value: "05", name: { ja: `5月度`, en: `May` } },
+  { key: `month6`, value: "06", name: { ja: `6月度`, en: `Jun.` } },
+  { key: `month7`, value: "07", name: { ja: `7月度`, en: `Jul.` } },
+  { key: `month8`, value: "08", name: { ja: `8月度`, en: `Aug.` } },
+  { key: `month9`, value: "09", name: { ja: `9月度`, en: `Sep.` } },
+  { key: `month10`, value: "10", name: { ja: `10月度`, en: `Oct.` } },
+  { key: `month11`, value: "11", name: { ja: `11月度`, en: `Nov.` } },
+  { key: `month12`, value: "12", name: { ja: `12月度`, en: `Dec.` } },
 ];
 
 // -------------------------- ✅SDB関連✅ --------------------------

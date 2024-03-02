@@ -619,6 +619,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-row-hover: #f0f0f0; */
   /* 🔹テーブル行ホバー */
   --color-table-row-hover: #f8f8f8;
+  /* --color-table-row-hover: #f7f7f7; */
   /* --color-table-row-hover: #f3f3f3; */
   /* --color-table-row-hover: #f1f9ff; */
   /* --color-table-row-hover: var(--color-bg-brand-f10); */
@@ -634,16 +635,26 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-bg-selected: #1c9ffd; */
   --color-table-bg-selected: #33aaff;
   --color-table-bg-selected: #0095ff;
+  --color-table-bg-selected: #2982ff;
   --color-table-color-selected: #fff;
   /* 🔹テーブル行偶数行カラーチェンジ */
   --color-table-even-color-changed-bg: #f7f7f7;
   --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f-hover-solid);
   /* --color-table-even-color-changed-bg-selected: var(--color-bg-brand-f); */
   /* --color-table-even-color-changed-bg-selected: #1c9ffd; */
-  --color-table-even-color-changed-bg-selected: #0095ff;
+  /* --color-table-even-color-changed-bg-selected: #0095ff; */
+  /* --color-table-even-color-changed-bg-selected: #23a4ff; */
+  /* --color-table-even-color-changed-bg-selected: #33aaff; */
+  --color-table-even-color-changed-bg-selected: #48b3ff;
+  /* --color-table-even-color-changed-bg-selected: #4a96ff; */
+  /* --color-table-even-color-changed-bg-selected: rgb(49, 125, 255); */
+  --color-table-even-color-changed-bg-selected: #2982ff;
+  /* --color-table-even-color-changed-bg-selected: #0095ff; */
+  /* --color-table-even-color-changed-bg-selected: #1ca0ff; */
   /* --color-table-even-color-changed-bg-selected: #0088ff; */
   /* --color-table-even-color-changed-bg-selected: #0088ffd9; */
   --color-table-even-color-changed-color-selected: #fff;
+  /* --color-table-even-color-changed-color-selected: var(--color-text-title); */
   --color-table-checkbox-outline: #ccc;
   --color-table-checkbox-focus-outline: #fff;
   --color-table-dragging-gradient: #2b7fff #acffff;
@@ -952,6 +963,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* アイコンカラー light */
   /* --color-icon: rgba(0, 0, 0, 0.9);  */
   --color-icon: #0d1216;
+  --color-icon-header: #333;
   --color-icon-home: #0d1216;
   --color-icon-sub: #5d5d5d;
   --color-icon-brand: #007be5;
@@ -1692,6 +1704,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* アイコン dark */
   --color-icon: rgba(255, 255, 255, 0.9); /* アイコンカラー */
+  --color-icon-header: rgba(255, 255, 255, 0.9);
   --color-icon-sub: #ccc;
   --color-icon-home: #eee;
   --color-icon-brand: #7cc4f8;
@@ -1925,7 +1938,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-palette-simple17: #171717;
   /* ------------- ✅ネタ表✅ ここまで dark ------------- */
   /* -------- 🌟案件詳細モーダルSDB🌟 dark -------- */
-  --color-detail-modal-bg: #000000ee;
+  /* --color-detail-modal-bg: #000000ee; */
+  /* --color-detail-modal-bg: #292929ee; */
+  /* --color-detail-modal-bg: #0f0f0fee; */
+  --color-detail-modal-bg: #121212ee;
   /* -------- ✅案件詳細モーダルSDB✅ dark -------- */
   /* -------- 🌟セッティングメニュー🌟 dark -------- */
   --color-settings-menu-bg: #242424;

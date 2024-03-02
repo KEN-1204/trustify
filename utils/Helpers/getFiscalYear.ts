@@ -39,7 +39,13 @@ type DayOfMonth =
   | 30
   | 31;
 
-export function getFiscalYear(date: Date, fiscalEndMonth: number, fiscalEndDate: number, language: string): number {
+// export function getFiscalYear(date: Date, fiscalEndMonth: number, fiscalEndDate: number, language: string): number {
+export function getFiscalYear(
+  date: Date,
+  fiscalEndMonth: number,
+  fiscalEndDate: number,
+  fiscalYearBasis: string
+): number {
   let year = date.getFullYear();
   let month = date.getMonth() + 1; // JavaScriptの月は0から始まるため、+1する
   let day = date.getDate();
@@ -49,7 +55,8 @@ export function getFiscalYear(date: Date, fiscalEndMonth: number, fiscalEndDate:
     year += 1;
   }
 
-  if (language === "ja") {
+  // if (language === "ja") {
+  if (fiscalYearBasis === "firstDayBasis") {
     // 日本語の場合、前年の年数に「年度」を付ける
     // return `${year - 1}年度`;
     return year - 1;

@@ -116,6 +116,8 @@
 }
 .entity_board_container .entity_detail_container .entity_detail_wrapper .sub_info {
   color: var(--color-text-sub);
+  /* font-size: 12px;
+  line-height: 15px; */
 }
 /* ---------------------------- ネタ表ボードここまで ---------------------------- */
 

@@ -258,11 +258,32 @@ export const columnNameToJapaneseProperty = (columnName: string) => {
     case "sales_date":
       return "売上日付";
       break;
+    case "property_quarter":
+      return "案件四半期";
+      break;
     case "expansion_quarter":
       return "展開四半期";
       break;
     case "sales_quarter":
       return "売上四半期";
+      break;
+    case "property_half_year":
+      return "案件半期";
+      break;
+    case "expansion_half_year":
+      return "展開半期";
+      break;
+    case "sales_half_year":
+      return "売上半期";
+      break;
+    case "property_fiscal_year":
+      return "案件年度";
+      break;
+    case "expansion_fiscal_year":
+      return "展開年度";
+      break;
+    case "sales_fiscal_year":
+      return "売上年度";
       break;
     case "subscription_start_date":
       return "サブスク開始日";

@@ -76,6 +76,21 @@ const descriptionCompressionRatio = [
 // 印刷サイズ
 type PrintSize = "A4" | "A5" | "A6" | "A7";
 const optionsPrintSize: PrintSize[] = ["A4", "A5", "A6", "A7"];
+// 印刷位置
+type PrintPosition = "center" | "flex-start";
+const optionsPrintPosition: PrintPosition[] = ["center", "flex-start"];
+const getPrintPositionName = (value: string, language: string) => {
+  switch (value) {
+    case "center":
+      return language === "ja" ? `中央` : `Center`;
+    case "flex-start":
+      return language === "ja" ? `左上` : `Upper left`;
+
+    default:
+      return language === "ja" ? `中央` : `Center`;
+      break;
+  }
+};
 
 const descriptionGuide = [
   {
@@ -85,12 +100,13 @@ const descriptionGuide = [
   },
   {
     title: "PDFダウンロード",
-    content: "登録した営業カレンダーは右側のダウンロードアイコンからPDF形式でダウンロードが可能です。",
+    content:
+      "登録した営業カレンダーは右側のダウンロードアイコンからPDF形式でダウンロードが可能です。\nサイズはA4〜A7サイズの範囲で変更が可能です。",
   },
   {
     title: "印刷",
     content:
-      "A7サイズで印刷して各メンバーの手帳に入れておくことで、お客様との商談で自社の営業締日ベースでのスケジュールの擦り合わせなどで活用頂けます。\n印刷サイズはA4〜A7サイズの範囲で変更が可能です。",
+      "営業カレンダーを印刷して各メンバーの手帳に入れておくことで、お客様との商談で自社の営業締日ベースでのスケジュールの擦り合わせなどで活用頂けます。\nサイズはA4〜A7サイズの範囲で変更が可能です。",
   },
 ];
 
@@ -247,6 +263,8 @@ const BusinessCalendarModalMemo = () => {
   const [isEditMode, setIsEditMode] = useState<string[]>([]); // エディットモード
   const [isOpenSettings, setIsOpenSettings] = useState(false); // セッティングメニュー
   const [printSize, setPrintSize] = useState<string>("A7"); // A4, A5, A6, A7
+  // A4以外を印刷する際に印刷位置を左上か中央揃えかを選択
+  const [printPosition, setPrintPosition] = useState("center");
   const [compressionRatio, setCompressionRatio] = useState<CompressionRatio>("FAST"); // 画像をPDF化する際の圧縮率3段階を指定
 
   // 編集モードポップアップ開閉
@@ -954,23 +972,100 @@ const BusinessCalendarModalMemo = () => {
       横: 74mm x (350 / 25.4) ≈ 1020 ピクセル
       縦: 105mm x (350 / 25.4) ≈ 1449 ピクセル
       */
+      /*
+      🔹DPI 96 dpiで計算した場合(画面表示用)
+      ウェブページを印刷する際には、通常、印刷物の解像度（dpi）ではなく、画面表示用の解像度（概ね96dpiが一般的）を基準にサイズを指定します。A4用紙のサイズをピクセルで指定する場合、約96dpiを基準にして計算すると、A4（210mm x 297mm）は概ねwidth: 794px; height: 1123px;に相当します。
+      A4サイズ
+      横: 210mm x (96 / 25.4) ≈ 794 ピクセル
+      縦: 297mm x (96 / 25.4) ≈ 1123 ピクセル
+      A5サイズ
+      横: 148mm x (96 / 25.4) ≈ 559 ピクセル
+      縦: 210mm x (96 / 25.4) ≈ 794 ピクセル
+      A6サイズ
+      横: 105mm x (96 / 25.4) ≈ 397 ピクセル
+      縦: 148mm x (96 / 25.4) ≈ 559 ピクセル
+      A7サイズ
+      横: 74mm x (96 / 25.4) ≈ 280 ピクセル
+      縦: 105mm x (96 / 25.4) ≈ 397 ピクセル
+      */
+      // *1 width: 794px; height: 1123px;
 
       const getPixels = () => {
-        // dpi 350 印刷用途
-        if (printSize === "A4") return { width: 2894, height: 4093 };
-        if (printSize === "A5") return { width: 2039, height: 2894 };
-        if (printSize === "A6") return { width: 1449, height: 2039 };
-        if (printSize === "A4") return { width: 1020, height: 1449 };
+        // dpi 350 印刷用途 ブラウザからの印刷の場合は実際の用紙サイズに合わせたスタイリングが必要なためバツ
+        // if (printSize === "A4") return { width: 2894, height: 4093 };
+        // if (printSize === "A5") return { width: 2039, height: 2894 };
+        // if (printSize === "A6") return { width: 1449, height: 2039 };
+        // if (printSize === "A7") return { width: 1020, height: 1449 };
+        // 実際のサイズ
+        if (printSize === "A4") return { width: 794, height: 1123 };
+        if (printSize === "A5") return { width: 559, height: 794 };
+        if (printSize === "A6") return { width: 397, height: 559 };
+        if (printSize === "A7") return { width: 280, height: 397 };
         return { width: 794, height: 1123 }; // dpi 96
       };
+
+      // width: 297px; /* A7の幅、約105mmをpxに換算 */
+      // height: 419px; /* A7の高さ、約74mmをpxに換算 */
+
       const printWidth = getPixels().width;
       const printHeight = getPixels().height;
 
-      // HTMLコンテンツを生成してiframeに挿入 *1 width: 794px; height: 1123px;
+      // HTMLコンテンツを生成してiframeに挿入
       iframeDoc.open();
+      // iframeDoc.write(
+      //   `<html>
+      //   <head>
+      //   <style>
+      //   @media print {
+      //     @page { size: A4; margin: 0; }
+      //     html, body { margin: 0; padding: 0; box-sizing: border-box; width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center;
+      //     }
+      //     .print-content {
+      //       width: 280px;
+      //       height: 397px;
+      //       background-color: red;
+      //       display: flex;
+      //       align-items: center;
+      //       justify-content: center;
+      //     }
+      //   }
+      //   </style>
+      //   </head>
+      //   <body>
+      //     <div class="print-content">
+      //       <img src="${image}" style="background-color: white; padding: 0; margin: 0; object-fit: cover; width: 100%; height: 100%;">
+      //     </div>
+      //   </body>
+      //   </html>`
+      // );
       iframeDoc.write(
-        `<html><head><style>@media print { html, body { margin: 0; padding: 0; box-sizing: border-box; width: 100%; height: 100%; }}</style></head><body style="background-color: red; padding: 0; margin: 0; border: 0; position: relative; width: ${printWidth}px; height: ${printHeight}px; position: relative; display: flex; align-items: center; justify-content: center;"><img src="${image}" style="background-color: white; padding: 0; margin: 0; object-fit: cover; width: 100%; height: 100%;"></body></html>`
+        `<html>
+        <head>
+        <style>
+        @media print { 
+          html, body { margin: 0; padding: 0; box-sizing: border-box; width: 100%; height: 100%; position: relative; display: flex; align-items: ${printPosition}; justify-content: ${printPosition};
+          }
+          .print-content {
+            width: ${printWidth}px;
+            height: ${printHeight}px;
+            background-color: red;
+            display: flex;
+            align-items: ${printPosition};
+            justify-content: ${printPosition};
+          }
+        }
+        </style>
+        </head>
+        <body>
+          <div class="print-content">
+            <img src="${image}" style="background-color: white; padding: 0; margin: 0; object-fit: cover; width: 100%; height: 100%;">
+          </div>
+        </body>
+        </html>`
       );
+      // iframeDoc.write(
+      //   `<html><head><style>@media print { html, body { margin: 0; padding: 0; box-sizing: border-box; width: 100%; height: 100%; }}</style></head><body style="background-color: red; padding: 0; margin: 0; border: 0; position: relative; width: ${printWidth}px; height: ${printHeight}px; position: relative; display: flex; align-items: center; justify-content: center;"><img src="${image}" style="background-color: white; padding: 0; margin: 0; object-fit: cover; width: 100%; height: 100%;"></body></html>`
+      // );
       // iframeDoc.write(
       //   `<html><head><style>@media print { html, body { margin: 0; padding: 0; box-sizing: border-box; width: 100%; height: 100%; }}</style></head><body style="background-color: red; padding: 0; margin: 0; border: 0; position: relative; width: 794px; height: 1123px; position: relative; display: flex; align-items: center; justify-content: center;"><img src="${image}" style="background-color: white; padding: 0; margin: 0; object-fit: cover; width: 100%; height: 100%;"></body></html>`
       // );
@@ -1735,7 +1830,7 @@ A7サイズ
   const FallbackBusinessCalendar = () => {
     return (
       <div className={`${styles.pdf} ${styles.loading}`} style={{ padding: "0px", backgroundColor: "#aaa" }}>
-        <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" />
+        <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" waveBg="var(--color-skeleton-bg-wave-light)" />
       </div>
     );
   };
@@ -2095,7 +2190,7 @@ A7サイズ
           )} */}
           {isLoadingSkeleton && (
             <div className={`${styles.pdf} ${styles.loading}`} style={{ padding: "0px", backgroundColor: "#aaa" }}>
-              <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" />
+              <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" waveBg="var(--color-skeleton-bg-wave-light)" />
             </div>
           )}
           {/* ----------------------------- ローディングフォールバック ----------------------------- */}
@@ -2943,7 +3038,7 @@ A7サイズ
                   <div className="pointer-events-none flex min-w-[130px] items-center">
                     <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
                     <div className="flex select-none items-center space-x-[2px]">
-                      <span className={`${styles.list_title}`}>印刷サイズ</span>
+                      <span className={`${styles.list_title}`}>サイズ</span>
                       <span className={``}>：</span>
                     </div>
                   </div>
@@ -2959,7 +3054,40 @@ A7サイズ
                     ))}
                   </select>
                 </li>
+
                 <hr className="min-h-[3px] w-full" />
+
+                <li
+                  className={`${styles.list}`}
+                  // onMouseEnter={(e) => {
+                  //   handleOpenPopupMenu({ e, title: "printSize", displayX: "right" });
+                  // }}
+                  // onMouseLeave={() => {
+                  //   if (openPopupMenu) handleClosePopupMenu();
+                  // }}
+                >
+                  <div className="pointer-events-none flex min-w-[130px] items-center">
+                    <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                    <div className="flex select-none items-center space-x-[2px]">
+                      <span className={`${styles.list_title}`}>印刷位置</span>
+                      <span className={``}>：</span>
+                    </div>
+                  </div>
+                  <select
+                    className={`${styles.select_box} truncate`}
+                    value={printPosition}
+                    onChange={(e) => setPrintPosition(e.target.value as PrintPosition)}
+                  >
+                    {optionsPrintPosition.map((value) => (
+                      <option key={value} value={value}>
+                        {getPrintPositionName(value, language)}
+                      </option>
+                    ))}
+                  </select>
+                </li>
+
+                <hr className="min-h-[3px] w-full" />
+
                 <li
                   className={`${styles.list}`}
                   onMouseEnter={(e) => {
@@ -3228,7 +3356,7 @@ A7サイズ
                   {openPopupMenu.title === "pdf" &&
                     "現在プレビューで表示されている見積書をPDFファイル形式でダウンロードします。ダウンロードに十数秒程度の時間がかかります。"}
                   {openPopupMenu.title === "printSize" &&
-                    "印刷・PDFサイズを「A4〜A7」の範囲で変更が可能です。それぞれサイズに応じた使用用途は下記の通りです。\n\n・A4：公的文書、ビジネスに用いられる資料、契約書\n・A5：雑誌、ノート\n・A6：文庫本、手帳\n・A7：ワイシャツの胸ポケットに入る小型のメモ帳・手帳の中に入れるカレンダー"}
+                    "印刷・PDFサイズを「A4〜A7」の範囲で変更が可能です。それぞれサイズに応じた使用用途は下記の通りです。\n\n・A4：公的文書、ビジネスに用いられる資料、契約書（210 × 297 mm）\n・A5：雑誌、ノート（148 × 210 mm）\n・A6：文庫本、手帳（105 × 148 mm）\n・A7：ワイシャツの胸ポケットに入る小型のメモ帳・手帳の中に入れるカレンダー（74 × 105 mm）"}
                   {openPopupMenu.title === "print" &&
                     "印刷ボタンクリック後に印刷ダイアログが開かれた後、「詳細設定」の「余白」を「なし」に切り替えることで綺麗に印刷ができます。また、「用紙サイズ」のそれぞれの選択肢については下記の通りです。"}
                 </p>

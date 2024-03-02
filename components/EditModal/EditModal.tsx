@@ -28,7 +28,7 @@ export const EditModal = () => {
       {/* オーバーレイ */}
       <div className={`flex-center ${styles.overlay}`} onClick={handleClickOverlay}></div>
       {/* モーダル */}
-      <div className={`${styles.modal_container} transition-base`} onClick={handleClickOverlay}>
+      <div className={`${styles.modal_container} transition-base fade02`} onClick={handleClickOverlay}>
         <div className={`${styles.contents} group relative !h-full w-full !bg-transparent`}>
           {/* <div className={`${styles.contents} group relative !h-full min-w-[70vw] !bg-transparent`}> */}
           {/* 保存キャンセルエリア */}

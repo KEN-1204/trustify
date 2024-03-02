@@ -102,7 +102,7 @@
 @keyframes fade_up5 {
   0% {
     opacity: 0;
-    transform: translateY(6%);
+    transform: translateY(5%);
   }
   100% {
     opacity: 1;
@@ -112,7 +112,7 @@
 @keyframes fade_down5 {
   0% {
     opacity: 0;
-    transform: translateY(-6%);
+    transform: translateY(-5%);
   }
   100% {
     opacity: 1;
@@ -154,9 +154,7 @@
 .settings_menu.edit_mode {
   z-index: 4500;
 }
-.settings_menu.fade_up {
-  animation: fade_up5 0.3s ease forwards;
-}
+
 .settings_menu .scroll_container {
   max-height: 39vh;
 }
@@ -285,6 +283,11 @@
   padding: 10px 20px 6px;
 }
 .settings_menu .section_title .underline {
+  min-height: 1px;
+  margin-top: 1px;
+  background-color: var(--color-bg-brand-f);
+}
+.settings_menu .section_underline {
   min-height: 1px;
   margin-top: 1px;
   background-color: var(--color-bg-brand-f);

@@ -251,6 +251,16 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputPropertyBusinessOffice, setInputPropertyBusinessOffice] = useState("");
   const [inputPropertyMemberName, setInputPropertyMemberName] = useState("");
   const [inputPropertyDate, setInputPropertyDate] = useState<Date | null>(null);
+  // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
+  const [inputPropertyQuarter, setInputPropertyQuarter] = useState<number | null>(null);
+  // 半期
+  const [inputPropertyHalfYear, setInputPropertyHalfYear] = useState<number | null>(null);
+  const [inputExpansionHalfYear, setInputExpansionHalfYear] = useState<number | null>(null);
+  const [inputSalesHalfYear, setInputSalesHalfYear] = useState<number | null>(null);
+  // 会計年度
+  const [inputPropertyFiscalYear, setInputPropertyFiscalYear] = useState<number | null>(null);
+  const [inputExpansionFiscalYear, setInputExpansionFiscalYear] = useState<number | null>(null);
+  const [inputSalesFiscalYear, setInputSalesFiscalYear] = useState<number | null>(null);
 
   // ================================ 🌟フィールドエディットモード関連state🌟 ================================
   const [inputExpectedOrderDateForFieldEditMode, setInputExpectedOrderDateForFieldEditMode] = useState<Date | null>(
@@ -589,6 +599,14 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
           ? new Date(newSearchProperty_Contact_CompanyParams.property_date)
           : null
       );
+      // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
+      setInputPropertyQuarter(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.property_quarter));
+      setInputPropertyHalfYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.property_half_year));
+      setInputExpansionHalfYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.expansion_half_year));
+      setInputSalesHalfYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.sales_half_year));
+      setInputPropertyFiscalYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.property_fiscal_year));
+      setInputExpansionFiscalYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.expansion_half_year));
+      setInputSalesFiscalYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.sales_half_year));
     } else if (!editSearchMode && searchMode) {
       console.log(
         "🔥Meetingメインコンテナー useEffect 新規サーチモード inputを初期化",
@@ -696,6 +714,14 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       if (!!inputPropertyBusinessOffice) setInputPropertyBusinessOffice("");
       if (!!inputPropertyMemberName) setInputPropertyMemberName("");
       if (!!inputPropertyDate) setInputPropertyDate(null);
+      // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
+      if (!!inputPropertyQuarter) setInputPropertyQuarter(null);
+      if (!!inputPropertyHalfYear) setInputPropertyHalfYear(null);
+      if (!!inputExpansionHalfYear) setInputExpansionHalfYear(null);
+      if (!!inputSalesHalfYear) setInputSalesHalfYear(null);
+      if (!!inputPropertyFiscalYear) setInputPropertyFiscalYear(null);
+      if (!!inputExpansionFiscalYear) setInputExpansionFiscalYear(null);
+      if (!!inputSalesFiscalYear) setInputSalesFiscalYear(null);
     }
   }, [editSearchMode, searchMode]);
 
@@ -838,6 +864,14 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     let _property_business_office = adjustFieldValue(inputPropertyBusinessOffice);
     let _property_member_name = adjustFieldValue(inputPropertyMemberName);
     let _property_date = inputPropertyDate ? inputPropertyDate.toISOString() : null;
+    // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
+    let _property_quarter = adjustFieldValueNumber(inputPropertyQuarter);
+    let _property_half_year = adjustFieldValueNumber(inputPropertyHalfYear);
+    let _expansion_half_year = adjustFieldValueNumber(inputExpansionHalfYear);
+    let _sales_half_year = adjustFieldValueNumber(inputSalesHalfYear);
+    let _property_fiscal_year = adjustFieldValueNumber(inputPropertyFiscalYear);
+    let _expansion_fiscal_year = adjustFieldValueNumber(inputExpansionFiscalYear);
+    let _sales_fiscal_year = adjustFieldValueNumber(inputSalesFiscalYear);
 
     const params = {
       "client_companies.name": _company_name,
@@ -940,6 +974,14 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       property_business_office: _property_business_office,
       property_member_name: _property_member_name,
       property_date: _property_date,
+      // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
+      property_quarter: _property_quarter,
+      property_half_year: _property_half_year,
+      expansion_half_year: _expansion_half_year,
+      sales_half_year: _sales_half_year,
+      property_fiscal_year: _property_fiscal_year,
+      expansion_fiscal_year: _expansion_fiscal_year,
+      sales_fiscal_year: _sales_fiscal_year,
     };
 
     // console.log("✅ 条件 params", params);
@@ -1046,6 +1088,14 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     setInputPropertyBusinessOffice("");
     setInputPropertyMemberName("");
     setInputPropertyDate(null);
+    // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
+    setInputPropertyQuarter(null);
+    setInputPropertyHalfYear(null);
+    setInputExpansionHalfYear(null);
+    setInputSalesHalfYear(null);
+    setInputPropertyFiscalYear(null);
+    setInputExpansionFiscalYear(null);
+    setInputSalesFiscalYear(null);
 
     // サーチモードオフ
     setSearchMode(false);
@@ -1542,11 +1592,39 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
             id: string;
             yearMonth?: number | null;
             yearQuarter?: number | null;
+            yearHalf?: number | null;
+            fiscalYear?: number | null;
           };
 
           // const fiscalYearMonth = calculateDateToYearMonth(new Date(newValue), closingDayRef.current);
+          // 年月度を取得
           const fiscalYearMonth = calculateDateToYearMonth(newDateObj, closingDayRef.current);
-          console.log("新たに生成された年月度", fiscalYearMonth, "fiedName", fieldName, "newValue", newValue);
+          console.log("新たに生成された年月度", fiscalYearMonth, "fieldName", fieldName, "newValue", newValue);
+
+          // ----------------- テスト -----------------
+          const fiscalBasis = userProfileState?.customer_fiscal_year_basis
+            ? userProfileState?.customer_fiscal_year_basis
+            : "firstDayBasis";
+          const fiscalEndDateObj = fiscalEndMonthObjRef.current;
+          if (!fiscalEndDateObj) return alert("エラー：決算日データが見つかりませんでした。");
+          const fiscalYear = getFiscalYear(
+            // newValue,
+            newDateObj,
+            fiscalEndDateObj.getMonth() + 1,
+            fiscalEndDateObj.getDate(),
+            fiscalBasis
+          );
+
+          const fiscalQuarter = getFiscalQuarterTest(fiscalEndDateObj, newDateObj);
+          const fiscalYearQuarter = fiscalYear * 10 + fiscalQuarter; // 2024年Q3 => 20243
+
+          // 四半期の20243から、年と四半期をそれぞれ取得して、半期の算出と年度を格納する
+          // const fiscalYearOnly = Number(fiscalYearQuarter.toString().slice(0, 4)); // 2024
+          const fiscalQuarterOnly = Number(fiscalYearQuarter.toString().slice(-1)); // 3
+          // 半期を算出
+          const fiscalHalf = [1, 2].includes(fiscalQuarterOnly) ? 1 : [3, 4].includes(fiscalQuarterOnly) ? 2 : null;
+          const fiscalHalfYear = Number(`${fiscalYear}${fiscalHalf}`);
+          // ----------------- テスト -----------------
 
           if (!fiscalYearMonth) return toast.error("日付の更新に失敗しました。");
 
@@ -1557,6 +1635,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               newValue: !!newValue ? newValue : null,
               id: id,
               yearMonth: fiscalYearMonth,
+              yearQuarter: fiscalYearQuarter,
+              yearHalf: fiscalHalfYear,
+              fiscalYear: fiscalYear,
             };
             // 入力変換確定状態でエンターキーが押された場合の処理
             console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
@@ -1564,19 +1645,20 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
           }
           // 展開日付と売上日付は四半期と年月度も同時にUPDATEする
           else if (fieldName === "expansion_date" || fieldName === "sales_date") {
-            if (!(newDateObj instanceof Date)) return console.log("Dateオブジェクトでないためリターン");
-            const fiscalEndDateObj = fiscalEndMonthObjRef.current;
-            if (!fiscalEndDateObj) return alert("エラー：決算日データが見つかりませんでした。");
-            const fiscalYear = getFiscalYear(
-              // newValue,
-              newDateObj,
-              fiscalEndDateObj.getMonth() + 1,
-              fiscalEndDateObj.getDate(),
-              language
-            );
-            // const fiscalQuarter = getFiscalQuarterTest(fiscalEndDateObj, newValue);
-            const fiscalQuarter = getFiscalQuarterTest(fiscalEndDateObj, newDateObj);
-            const fiscalYearQuarter = fiscalYear * 10 + fiscalQuarter;
+            // if (!(newDateObj instanceof Date)) return console.log("Dateオブジェクトでないためリターン");
+            // const fiscalEndDateObj = fiscalEndMonthObjRef.current;
+            // if (!fiscalEndDateObj) return alert("エラー：決算日データが見つかりませんでした。");
+            // const fiscalYear = getFiscalYear(
+            //   // newValue,
+            //   newDateObj,
+            //   fiscalEndDateObj.getMonth() + 1,
+            //   fiscalEndDateObj.getDate(),
+            //   fiscalBasis
+            // );
+
+            // const fiscalQuarter = getFiscalQuarterTest(fiscalEndDateObj, newDateObj);
+            // const fiscalYearQuarter = fiscalYear * 10 + fiscalQuarter;
+
             const updatePayload: UpdateObject = {
               fieldName: fieldName,
               fieldNameForSelectedRowData: fieldNameForSelectedRowData,
@@ -1584,6 +1666,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               id: id,
               yearMonth: fiscalYearMonth,
               yearQuarter: fiscalYearQuarter,
+              yearHalf: fiscalHalfYear,
+              fiscalYear: fiscalYear,
             };
             // 入力変換確定状態でエンターキーが押された場合の処理
             console.log(
@@ -2127,6 +2211,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         <textarea
                           cols={30}
                           // rows={10}
+                          autoFocus
                           placeholder=""
                           style={{ whiteSpace: "pre-wrap" }}
                           className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
@@ -9371,7 +9456,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         onChange={(e) => setInputIndustryType(e.target.value)}
                       >
                         <option value=""></option>
-                        <option value="機械要素・部品">機械要素・部品</option>
+                        {optionsIndustryType.map((option) => (
+                          <option key={option} value={option}>
+                            {mappingIndustryType[option][language]}
+                          </option>
+                        ))}
+                        {/* <option value="機械要素・部品">機械要素・部品</option>
                         <option value="自動車・輸送機器">自動車・輸送機器</option>
                         <option value="電子部品・半導体">電子部品・半導体</option>
                         <option value="製造・加工受託">製造・加工受託</option>
@@ -9422,7 +9512,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         <option value="商社・卸売">商社・卸売</option>
                         <option value="官公庁">官公庁</option>
                         <option value="個人">個人</option>
-                        <option value="不明">不明</option>
+                        <option value="不明">不明</option> */}
                       </select>
                     )}
                   </div>

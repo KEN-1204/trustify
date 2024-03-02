@@ -22,6 +22,7 @@ import { GridTableFooter } from "@/components/GridTable/GridTableFooter/GridTabl
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
 import {
+  getCompetitionState,
   getCurrentStatus,
   getDecisionMakerNegotiation,
   getLeaseDivision,
@@ -2704,11 +2705,26 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         }
         break;
 
-      // 展開四半期、売上四半期
+      // 案件半期、展開半期、売上半期
+      case "property_fiscal_year":
+      case "expansion_fiscal_year":
+      case "sales_fiscal_year":
+        if (!value) return null;
+        return language === "ja" ? `${value}年度` : `FY ${value}`;
+        break;
+      // 案件半期、展開半期、売上半期
+      case "property_half_year":
+      case "expansion_half_year":
+      case "sales_half_year":
+        if (!value) return null;
+        return `${value}H`;
+        break;
+      // 案件四半期、展開四半期、売上四半期
+      case "property_quarter":
       case "expansion_quarter":
       case "sales_quarter":
         if (!value) return null;
-        return value + "Q";
+        return `${value}Q`;
         break;
 
       // 面談開始(予定)、面談開始(結果)、面談終了(結果)
@@ -2813,6 +2829,11 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       case "current_status":
         if (!value) return null;
         return getCurrentStatus(value);
+
+      // 競合状況
+      case "competition_state":
+        if (!value) return null;
+        return getCompetitionState(value);
 
       // 業種
       case "industry_type_id":

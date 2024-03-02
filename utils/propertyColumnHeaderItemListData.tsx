@@ -79,18 +79,7 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  {
-    columnName: "property_date",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "property_year_month",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
+
   {
     columnName: "current_status",
     columnWidth: "100px",
@@ -211,6 +200,37 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // 🌠追加 案件四半期+半期(案件、展開、売上)+会計年度(案件、展開、売上)
+  {
+    columnName: "property_date",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "property_year_month",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "property_quarter",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "property_half_year",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "property_fiscal_year",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
   {
     columnName: "expansion_date",
     columnWidth: "100px",
@@ -218,7 +238,7 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "sales_date",
+    columnName: "expansion_year_month",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -230,11 +250,49 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
+    columnName: "expansion_half_year",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "expansion_fiscal_year",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "sales_date",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "sales_year_month",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
     columnName: "sales_quarter",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
+  {
+    columnName: "sales_half_year",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "sales_fiscal_year",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+
+  // 🌠追加 ここまで
   {
     columnName: "subscription_start_date",
     columnWidth: "100px",
@@ -331,18 +389,7 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  {
-    columnName: "expansion_year_month",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "sales_year_month",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
+
   {
     columnName: "subscription_interval",
     columnWidth: "100px",

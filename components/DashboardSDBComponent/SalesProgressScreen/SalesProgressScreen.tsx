@@ -1,12 +1,38 @@
-import { Dispatch, DragEvent, FormEvent, MouseEvent, SetStateAction, memo, useEffect, useRef, useState } from "react";
+import {
+  Dispatch,
+  DragEvent,
+  FormEvent,
+  MouseEvent,
+  SetStateAction,
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "./SalesProgressScreen.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { IoCaretDownOutline } from "react-icons/io5";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import { BsCheck2 } from "react-icons/bs";
 import useStore from "@/store";
-import { mappingSdbTabName, periodList, sdbTabsList, sectionList } from "@/utils/selectOptions";
+import {
+  PeriodOption,
+  getOptionsCalendarYear,
+  getOptionsFiscalYear,
+  mappingSdbTabName,
+  optionsFiscalHalf,
+  optionsFiscalMonth,
+  optionsFiscalQuarter,
+  periodList,
+  sdbTabsList,
+  sectionList,
+} from "@/utils/selectOptions";
 import { ScreenDealBoards } from "../ScreenDealBoards/ScreenDealBoards";
+import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
+import { PeriodSDB } from "@/types";
+import { ImInfo } from "react-icons/im";
+import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
 
 type SectionMenuParams = {
   // e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -28,12 +54,83 @@ type PopupDescMenuParams = {
 
 const SalesProgressScreenMemo = () => {
   const language = useStore((state) => state.language);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   const activeTabSDB = useDashboardStore((state) => state.activeTabSDB);
   const setActiveTabSDB = useDashboardStore((state) => state.setActiveTabSDB);
   const activeSectionSDB = useDashboardStore((state) => state.activeSectionSDB);
   const setActiveSectionSDB = useDashboardStore((state) => state.setActiveSectionSDB);
   const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
   const setActivePeriodSDB = useDashboardStore((state) => state.setActivePeriodSDB);
+  const [activePeriodSDBLocal, setActivePeriodSDBLocal] = useState<{ period: string; timeValue: number } | null>(null);
+
+  // infoアイコン
+  const infoIconProgressRef = useRef<HTMLDivElement | null>(null);
+
+  // --------------------------- 変数定義 ---------------------------
+  // 決算日を取得して変数に格納
+  const fiscalYearEndDate = useMemo(() => {
+    return userProfileState?.customer_fiscal_end_month
+      ? new Date(userProfileState.customer_fiscal_end_month)
+      : new Date(new Date().getFullYear(), 2, 31);
+  }, [userProfileState?.customer_fiscal_end_month]);
+
+  // 現在の会計年度(現在の日付からユーザーの会計年度を取得)
+  const currentFiscalYearDateObj = useMemo(() => {
+    return (
+      calculateFiscalYearStart({
+        fiscalYearEnd: fiscalYearEndDate,
+        fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+      }) ?? new Date()
+    );
+  }, [fiscalYearEndDate, userProfileState?.customer_fiscal_year_basis]);
+
+  // 月度用カレンダー年の選択年
+  const [selectedCalendarYear, setSelectedCalendarYear] = useState<number>(new Date().getFullYear());
+  // 四半期、半期用の会計年度の選択年
+  const [selectedFiscalYear, setSelectedFiscalYear] = useState<number>(currentFiscalYearDateObj.getFullYear());
+
+  // ユーザーの会計基準の現在の月度を初期値にセットする
+  useEffect(() => {
+    // 現在の日付からユーザーの財務サイクルに応じた年月度を取得(年月度の年はカレンダー年)
+    const currentFiscalYearMonth = calculateDateToYearMonth(new Date(), fiscalYearEndDate.getDate());
+    const newCurrentPeriod = { period: "monthly", timeValue: currentFiscalYearMonth } as PeriodSDB;
+    console.log("✅newCurrentPeriod", newCurrentPeriod, "決算日Date", fiscalYearEndDate);
+    setActivePeriodSDB(newCurrentPeriod);
+  }, []);
+
+  // 会計年度の選択肢
+  const optionsFiscalYear = useMemo(() => {
+    if (!userProfileState?.customer_fiscal_end_month) return [];
+    return getOptionsFiscalYear({
+      fiscalYearEnd: userProfileState.customer_fiscal_end_month,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+    });
+  }, [userProfileState?.customer_fiscal_end_month, userProfileState?.customer_fiscal_year_basis]);
+
+  // カレンダー年の選択肢
+  const optionsCalendarYear = useMemo(() => {
+    return getOptionsCalendarYear({ currentDate: new Date() });
+  }, []);
+
+  // 期間選択メニューの選択肢を期間タイプに応じて取得する関数
+  const getPeriodTimeValue = (period: string): PeriodOption[] => {
+    switch (period) {
+      case "fiscalYear":
+        return optionsFiscalYear;
+      case "half":
+        return optionsFiscalHalf;
+      case "quarter":
+        return optionsFiscalQuarter;
+      case "monthly":
+        return optionsFiscalMonth;
+
+      default:
+        return [];
+        break;
+    }
+  };
+
+  // --------------------------- 変数定義 ここまで ---------------------------
 
   const [openSectionMenu, setOpenSectionMenu] = useState<{
     x?: number;
@@ -103,7 +200,7 @@ const SalesProgressScreenMemo = () => {
   }, [openSectionMenu?.displayX]);
 
   // メニューを閉じる
-  const handleCloseSettings = () => {
+  const handleCloseSectionMenu = () => {
     setOpenSectionMenu(null);
   };
   // -------------------------- ✅セクションメニュー✅ --------------------------
@@ -204,13 +301,65 @@ const SalesProgressScreenMemo = () => {
   };
   // ==================================== ✅ツールチップ✅ ====================================
 
+  // ポップアップのフェードタイプ
   const getFadeTypeClass = (fadeType: string) => {
     if (fadeType === "fade_down") return styles.fade_down;
     if (fadeType === "fade_up") return styles.fade_up;
     if (fadeType === "fade") return styles.fade;
   };
 
-  console.log("activeTabSDB", activeTabSDB, "language", language, "mappingSdbTabName", mappingSdbTabName);
+  // 期間をメニューから適用ボタンで変更する関数
+  const handleChangePeriod = () => {
+    if (!activePeriodSDBLocal) return;
+    if (
+      activePeriodSDB.period === activePeriodSDBLocal.period &&
+      activePeriodSDB.timeValue === activePeriodSDBLocal.timeValue
+    )
+      return;
+    const newPeriod = { period: activePeriodSDBLocal.period, timeValue: activePeriodSDBLocal.timeValue };
+    setActivePeriodSDB(newPeriod);
+  };
+
+  const handleEnterInfoIcon = (
+    e: MouseEvent<HTMLDivElement, MouseEvent | globalThis.MouseEvent>,
+    infoIconRef: HTMLDivElement | null
+  ) => {
+    if (infoIconProgressRef.current && infoIconProgressRef.current.classList.contains(styles.animate_ping)) {
+      infoIconProgressRef.current.classList.remove(styles.animate_ping);
+    }
+  };
+
+  console.log(
+    "SalesProgressScreenコンポーネントレンダリング",
+    "ユーザーの現在の期首Dateオブジェクト",
+    currentFiscalYearDateObj,
+    "選択中のカレンダー年",
+    selectedCalendarYear,
+    "選択中の会計年度の年",
+    selectedFiscalYear,
+    "activeTabSDB",
+    activeTabSDB,
+    "activeSectionSDB",
+    activeSectionSDB,
+    "activePeriodSDB",
+    activePeriodSDB,
+    "activePeriodSDBLocal",
+    activePeriodSDBLocal,
+    "mappingSdbTabName",
+    mappingSdbTabName,
+    "optionsFiscalYear",
+    optionsFiscalYear,
+    "optionsFiscalHalf",
+    optionsFiscalHalf,
+    "optionsFiscalQuarter",
+    optionsFiscalQuarter,
+    "optionsFiscalMonth",
+    optionsFiscalMonth,
+    "activePeriodSDB.timeValue.toString().slice(0, 4)",
+    activePeriodSDB?.timeValue?.toString()?.slice(0, 4),
+    "activePeriodSDBLocal.timeValue.toString().slice(4)",
+    activePeriodSDBLocal?.timeValue?.toString()?.slice(4)
+  );
   return (
     <>
       {/* -------------------------------- 売上進捗スクリーン -------------------------------- */}
@@ -279,12 +428,24 @@ const SalesProgressScreenMemo = () => {
                 <div
                   className={`underline_area mb-[-1px] flex cursor-pointer flex-col hover:text-[var(--color-bg-brand-f)]`}
                   onClick={(e) => {
+                    console.log(
+                      "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 activePeriodSDB.timeValue.toString().slice(0, 4)",
+                      activePeriodSDB.timeValue.toString().slice(0, 4),
+                      activePeriodSDB
+                    );
+                    if (activePeriodSDB.period === "monthly" && activePeriodSDB.timeValue) {
+                      setSelectedCalendarYear(Number(activePeriodSDB.timeValue.toString().slice(0, 4)));
+                    }
+                    setActivePeriodSDBLocal({
+                      period: activePeriodSDB.period,
+                      timeValue: activePeriodSDB.timeValue,
+                    });
                     handleOpenSectionMenu({
                       e,
                       title: "period",
                       displayX: "center",
                       fadeType: "fade_down",
-                      maxWidth: 310,
+                      maxWidth: 330,
                     });
                     handleCloseTooltip();
                   }}
@@ -302,6 +463,19 @@ const SalesProgressScreenMemo = () => {
                 >
                   <span>2024 - 3月度</span>
                   <div className={`flow_underline brand_light one_px w-full`} />
+                </div>
+              </div>
+              <div className={`${styles.info_area} flex-center min-h-[36px] px-[6px] py-[6px]`}>
+                <div
+                  className="flex-center relative h-[18px] w-[18px] rounded-full"
+                  onMouseEnter={(e) => handleEnterInfoIcon(e, infoIconProgressRef.current)}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <div
+                    ref={infoIconProgressRef}
+                    className={`flex-center absolute left-0 top-0 h-[18px] w-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                  ></div>
+                  <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
                 </div>
               </div>
             </div>
@@ -328,7 +502,7 @@ const SalesProgressScreenMemo = () => {
         ></div>
         )} */}
       {/* クリック時のオーバーレイ */}
-      {openSectionMenu && <div className={`${styles.menu_overlay}`} onClick={handleCloseSettings}></div>}
+      {openSectionMenu && <div className={`${styles.menu_overlay}`} onClick={handleCloseSectionMenu}></div>}
       {openSectionMenu && (
         <div
           ref={sectionMenuRef}
@@ -353,7 +527,12 @@ const SalesProgressScreenMemo = () => {
         >
           {openSectionMenu.title === "dashboard" && (
             <>
-              <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>ダッシュボードメニュー</h3>
+              <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
+                <div className="flex max-w-max flex-col">
+                  <span>ダッシュボードメニュー</span>
+                  <div className={`${styles.section_underline} w-full`} />
+                </div>
+              </h3>
 
               <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
                 下記メニューから選択したダッシュボードを表示します。
@@ -407,7 +586,12 @@ const SalesProgressScreenMemo = () => {
           {/* ------------------------ エンティティ選択メニュー ------------------------ */}
           {openSectionMenu.title === "entity" && (
             <>
-              <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>セクションメニュー</h3>
+              <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
+                <div className="flex max-w-max flex-col">
+                  <span>セクションメニュー</span>
+                  <div className={`${styles.section_underline} w-full`} />
+                </div>
+              </h3>
 
               <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
                 下記メニューから「全社・事業部・係/チーム・メンバー個人」を変更することで、各セクションに応じたデータを反映します。
@@ -456,12 +640,12 @@ const SalesProgressScreenMemo = () => {
           {/* ------------------------ エンティティ選択メニュー ------------------------ */}
 
           {/* ------------------------ 期間選択メニュー ------------------------ */}
-          {openSectionMenu.title === "period" && (
+          {openSectionMenu.title === "period" && activePeriodSDBLocal && (
             <>
               <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
                 <div className="flex max-w-max flex-col">
                   <span>期間選択メニュー</span>
-                  <div className={`${styles.underline} w-full`} />
+                  <div className={`${styles.section_underline} w-full`} />
                 </div>
               </h3>
 
@@ -475,12 +659,22 @@ const SalesProgressScreenMemo = () => {
               <div className={`${styles.scroll_container} flex max-h-[240px] w-full flex-col overflow-y-auto`}>
                 <ul className={`flex h-full w-full flex-col`}>
                   {/* ------------------------------------ */}
-                  <li className={`${styles.section_title} min-h-max w-full font-bold`}>
+                  <li className={`${styles.section_title} flex min-h-max w-full font-bold`}>
                     <div className="flex max-w-max flex-col">
                       <span>会計年度</span>
                       <div className={`${styles.underline} w-full`} />
                     </div>
+                    {/* <div className="pointer-events-none flex min-w-[130px] items-center">
+                      <div className="flex max-w-max flex-col">
+                        <span>会計年度</span>
+                        <div className={`${styles.underline} w-full`} />
+                      </div>
+                    </div> */}
+                    {/* <div className="flex items-center">
+                      <span>{activePeriodSDBLocal.timeValue}</span>
+                    </div> */}
                   </li>
+                  {/* ------------------------------------ */}
                   <li
                     className={`${styles.list}`}
                     // onMouseEnter={(e) => {
@@ -499,10 +693,18 @@ const SalesProgressScreenMemo = () => {
                     </div>
                     <select
                       className={`${styles.select_box} truncate`}
-                      value={activePeriodSDB.period}
+                      value={activePeriodSDBLocal.period}
                       onChange={(e) => {
-                        setActivePeriodSDB({ ...activePeriodSDB, period: e.target.value });
-                        // if (openPopupMenu) handleClosePopupMenu();
+                        if (e.target.value === "monthly") {
+                          const newTimeValue = Number(`${selectedCalendarYear}${new Date().getMonth() + 1}`);
+                          setActivePeriodSDBLocal({ period: e.target.value, timeValue: newTimeValue });
+                        } else if (e.target.value === "fiscalYear") {
+                          setActivePeriodSDBLocal({ period: e.target.value, timeValue: selectedFiscalYear });
+                        } else {
+                          // 四半期と半期は両方1をセットして、1QとH1を初期値として更新する
+                          const newTimeValue = Number(`${selectedFiscalYear}1`);
+                          setActivePeriodSDBLocal({ period: e.target.value, timeValue: newTimeValue });
+                        }
                       }}
                     >
                       {periodList.map((option) => (
@@ -513,7 +715,148 @@ const SalesProgressScreenMemo = () => {
                     </select>
                   </li>
                   {/* ------------------------------------ */}
+                  {/* ------------------------------------ 年度以外は年を選択 */}
+                  {activePeriodSDBLocal.period !== "fiscalYear" && (
+                    <li className={`${styles.list}`}>
+                      <div className="pointer-events-none flex min-w-[130px] items-center">
+                        <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                        <div className="flex select-none items-center space-x-[2px]">
+                          <span className={`${styles.list_title}`}>年</span>
+                          <span className={``}>：</span>
+                        </div>
+                      </div>
+                      {activePeriodSDBLocal.period === "monthly" && (
+                        <select
+                          className={`${styles.select_box} truncate`}
+                          value={selectedCalendarYear.toString()}
+                          onChange={(e) => {
+                            setSelectedCalendarYear(Number(e.target.value));
+                            // 月度は202403の6桁なので-2
+                            const valueWithoutYear = activePeriodSDBLocal.timeValue.toString().slice(-2);
+                            // 年と現在の月度か四半期か半期の値を結合して数値型に変換
+                            const newTimeValue = Number(`${e.target.value}${valueWithoutYear}`);
+                            console.log("newTimeValue", newTimeValue, "valueWithoutYear", valueWithoutYear);
+                            setActivePeriodSDBLocal({ ...activePeriodSDBLocal, timeValue: newTimeValue });
+                          }}
+                        >
+                          {optionsCalendarYear.map((option) => (
+                            <option key={option.key} value={option.value}>
+                              {option.name[language]}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                      {["half", "quarter"].includes(activePeriodSDBLocal.period) && (
+                        <select
+                          className={`${styles.select_box} truncate`}
+                          value={selectedFiscalYear.toString()}
+                          onChange={(e) => {
+                            setSelectedFiscalYear(Number(e.target.value));
+                            // 四半期、半期は20243や20241の5桁なので-1
+                            const valueWithoutYear = activePeriodSDBLocal.timeValue.toString().slice(-1);
+                            // 年と現在の月度か四半期か半期の値を結合して数値型に変換
+                            const newTimeValue = Number(`${e.target.value}${valueWithoutYear}`);
+                            console.log("newTimeValue", newTimeValue, "valueWithoutYear", valueWithoutYear);
+                            setActivePeriodSDBLocal({ ...activePeriodSDBLocal, timeValue: newTimeValue });
+                          }}
+                        >
+                          {optionsFiscalYear.map((option) => (
+                            <option key={option.key} value={option.value}>
+                              {option.name[language]}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    </li>
+                  )}
+                  {/* ------------------------------------ */}
+                  {/* ------------------------------------ */}
+                  <li
+                    className={`${styles.list}`}
+                    // onMouseEnter={(e) => {
+                    //   handleOpenPopupMenu({ e, title: "displayFiscalYear", displayX: "right" });
+                    // }}
+                    // onMouseLeave={() => {
+                    //   if (openPopupMenu) handleClosePopupMenu();
+                    // }}
+                  >
+                    <div className="pointer-events-none flex min-w-[130px] items-center">
+                      <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                      <div className="flex select-none items-center space-x-[2px]">
+                        <span className={`${styles.list_title}`}>
+                          {activePeriodSDBLocal.period === "fiscalYear" && "年度"}
+                          {activePeriodSDBLocal.period === "half" && "半期"}
+                          {activePeriodSDBLocal.period === "quarter" && "四半期"}
+                          {activePeriodSDBLocal.period === "monthly" && "月度"}
+                        </span>
+                        <span className={``}>：</span>
+                      </div>
+                    </div>
+                    <select
+                      className={`${styles.select_box} truncate`}
+                      value={
+                        activePeriodSDBLocal.period === "fiscalYear"
+                          ? activePeriodSDBLocal.timeValue.toString().slice(0, 4)
+                          : activePeriodSDBLocal.timeValue.toString().slice(4)
+                      }
+                      onChange={(e) => {
+                        if (activePeriodSDBLocal.period === "fiscalYear") {
+                          setActivePeriodSDBLocal({ ...activePeriodSDBLocal, timeValue: Number(e.target.value) });
+                        } else {
+                          // 月度、四半期、半期は年と結合してstateを更新
+                          // 月度はカレンダー年の選択年と結合
+                          if (activePeriodSDBLocal.period === "monthly") {
+                            // 年と現在の月度の値を結合して数値型に変換
+                            const newTimeValue = Number(`${selectedCalendarYear}${e.target.value}`);
+                            console.log("newTimeValue", newTimeValue, "e.target.value", e.target.value);
+                            setActivePeriodSDBLocal({ ...activePeriodSDBLocal, timeValue: newTimeValue });
+                          } else {
+                            // 年と現在の四半期or半期の値を結合して数値型に変換
+                            const newTimeValue = Number(`${selectedFiscalYear}${e.target.value}`);
+                            console.log("newTimeValue", newTimeValue, "e.target.value", e.target.value);
+                            setActivePeriodSDBLocal({ ...activePeriodSDBLocal, timeValue: newTimeValue });
+                          }
+                        }
+                      }}
+                    >
+                      {getPeriodTimeValue(activePeriodSDBLocal.period).map((option) => (
+                        <option key={option.key} value={option.value}>
+                          {option.name[language]}
+                        </option>
+                      ))}
+                    </select>
+                  </li>
+                  {/* ------------------------------------ */}
                 </ul>
+              </div>
+              <div
+                className={`${styles.settings_menu} ${styles.edit_mode}  z-[3000] h-auto w-[330px] overflow-hidden rounded-[6px] ${styles.fade_up}`}
+                style={{
+                  position: "absolute",
+                  bottom: "-70px",
+                  left: 0,
+                  animationDelay: `0.2s`,
+                  animationDuration: `0.5s`,
+                }}
+              >
+                {/* ------------------------------------ */}
+                <li className={`${styles.list} ${styles.btn_area} space-x-[20px]`}>
+                  <div
+                    className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
+                    onClick={handleChangePeriod}
+                  >
+                    <span>適用</span>
+                  </div>
+                  <div
+                    className={`transition-bg02 ${styles.edit_btn} ${styles.cancel}`}
+                    onClick={() => {
+                      handleCloseSectionMenu();
+                    }}
+                  >
+                    <span>戻る</span>
+                  </div>
+                </li>
+                {/* ------------------------------------ */}
               </div>
             </>
           )}

@@ -725,12 +725,15 @@ const DetailPropertyModalMemo = () => {
             if (!(newDateObj instanceof Date)) return console.log("Dateオブジェクトでないためリターン");
             const fiscalEndDateObj = fiscalEndMonthObjRef.current;
             if (!fiscalEndDateObj) return alert("エラー：決算日データが見つかりませんでした。");
+            const fiscalBasis = userProfileState?.customer_fiscal_year_basis
+              ? userProfileState?.customer_fiscal_year_basis
+              : "firstDayBasis";
             const fiscalYear = getFiscalYear(
               // newValue,
               newDateObj,
               fiscalEndDateObj.getMonth() + 1,
               fiscalEndDateObj.getDate(),
-              language
+              fiscalBasis
             );
             // const fiscalQuarter = getFiscalQuarterTest(fiscalEndDateObj, newValue);
             const fiscalQuarter = getFiscalQuarterTest(fiscalEndDateObj, newDateObj);

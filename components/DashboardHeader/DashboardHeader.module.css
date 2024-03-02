@@ -390,6 +390,11 @@
   margin-top: 1px;
   background-color: var(--color-bg-brand-f);
 }
+.settings_menu .section_underline {
+  min-height: 1px;
+  margin-top: 1px;
+  background-color: var(--color-bg-brand-f);
+}
 .edit_btn {
   background-color: #484848;
   user-select: none;

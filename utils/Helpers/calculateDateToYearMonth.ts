@@ -16,5 +16,18 @@ export const calculateDateToYearMonth = (dateObj: Date, closingDay: number): num
   // 年月度を6桁の数値で表現
   const fiscalYearMonth = year * 100 + month;
 
+  console.log(
+    "✅年月度取得 fiscalYearMonth",
+    fiscalYearMonth,
+    "year",
+    year,
+    "month",
+    month,
+    "closingDay",
+    closingDay,
+    "dateObj",
+    dateObj
+  );
+
   return fiscalYearMonth;
 };
