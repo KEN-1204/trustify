@@ -322,6 +322,10 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         <title>{title}</title>
       </Head>
 
+      {/* <div className={`flex-center fixed inset-0 z-[5000]`}>
+        <SpinnerBrand bgColor="#090909" />
+      </div> */}
+
       {/* ============================ メインコンテンツ ============================ */}
       {/* ヘッダー */}
       <DashboardHeader />

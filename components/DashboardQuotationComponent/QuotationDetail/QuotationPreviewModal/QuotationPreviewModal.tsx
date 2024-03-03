@@ -38,6 +38,7 @@ import { TextareaModal } from "@/components/EditModal/TextareaModal";
 import { splitCompanyNameWithPosition } from "@/utils/Helpers/splitCompanyName";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 const amountTitleArray = ["合", "計", "金", "額"];
 const leaseTitleArray = ["月", "額", "リ", "ー", "ス", "料"];
@@ -156,7 +157,8 @@ const descriptionCompressionRatio = [
 ];
 
 const FallbackPreview = () => {
-  return <SpinnerComet w="56px" h="56px" s="5px" />;
+  // return <SpinnerComet w="56px" h="56px" s="5px" />;
+  return <SpinnerBrand />;
 };
 
 const QuotationPreviewModalMemo = () => {
@@ -1488,9 +1490,10 @@ const QuotationPreviewModalMemo = () => {
 
       {isLoading && (
         <div className={`${styles.loading_overlay}`}>
-          <div className={`${styles.loading_pdf} flex-center bg-[#fff]`}>
+          {/* <div className={`${styles.loading_pdf} flex-center bg-[#fff]`}>
             <SpinnerComet w="56px" h="56px" s="5px" />
-          </div>
+          </div> */}
+          <SpinnerBrand withShadow withBorder />
         </div>
       )}
 

@@ -36,6 +36,7 @@ import { toHalfWidthAndSpaceAndHyphen } from "@/utils/Helpers/toHalfWidthAndSpac
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { toHalfWidth } from "@/utils/Helpers/toHalfWidth";
 import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 const SettingProfileMemo = () => {
   const language = useStore((state) => state.language);
@@ -459,7 +460,8 @@ const SettingProfileMemo = () => {
         <div className={`${styles.loading_overlay_modal_outside}`}>
           <div className={`${styles.loading_overlay_modal_inside}`}>
             {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
-            <SpinnerComet w="50px" h="50px" s="5px" />
+            {/* <SpinnerComet w="50px" h="50px" s="5px" /> */}
+            <SpinnerBrand />
           </div>
         </div>
       )}

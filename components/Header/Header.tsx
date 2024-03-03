@@ -9,6 +9,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { LangMenu } from "../Parts/LangMenu/LangMenu";
+import { SpinnerBrand } from "../Parts/SpinnerBrand/SpinnerBrand";
 
 type Props = {
   lightModeColor?: string; // bgカラー(ライトモード)
@@ -169,8 +170,15 @@ export const Header: FC<Props> = ({
     theme === "light" ? `${lightTextBorderLine ? `${styles.navbarTextBlack}` : `${styles.navbarTextWhite}`}` : ``
   }`;
 
+  const [isLoading, setIsLoading] = useState(false);
+
   return (
     <>
+      {isLoading && (
+        <div className={`${styles.loading_overlay} flex-center fixed inset-0 z-[10000] bg-[#00000090]`}>
+          <SpinnerBrand withBorder withShadow />
+        </div>
+      )}
       <header
         className={`fixed left-0 top-0 z-[80] flex h-[100px] w-[100%] items-center justify-between  px-[22px] py-[30px] md:px-[10%]  ${
           theme === "dark" ? darkModeColor : lightModeColor
@@ -247,7 +255,14 @@ export const Header: FC<Props> = ({
               </Link>
             </li>
             <li className={`${styles.navList} ${switchLightTextColor}`}>
-              <Link href="/about" prefetch={true} className={`${styles.navbarItem}`}>
+              <Link
+                href="/about"
+                prefetch={true}
+                className={`${styles.navbarItem}`}
+                onClick={() => {
+                  setIsLoading(true);
+                }}
+              >
                 <span>
                   {language === "ja" && "企業"}
                   {language === "en" && "About"}

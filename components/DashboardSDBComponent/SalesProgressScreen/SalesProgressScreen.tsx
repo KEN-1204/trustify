@@ -33,6 +33,7 @@ import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMon
 import { PeriodSDB } from "@/types";
 import { ImInfo } from "react-icons/im";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 type SectionMenuParams = {
   // e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -362,6 +363,9 @@ const SalesProgressScreenMemo = () => {
   );
   return (
     <>
+      {/* <div className={`${styles.menu_overlay} flex-center`}>
+        <SpinnerBrand bgColor="#fff" />
+      </div> */}
       {/* -------------------------------- 売上進捗スクリーン -------------------------------- */}
       <div className={`${styles.sales_progress_screen}`}>
         {/* ------------------- セクションタイトル ------------------- */}

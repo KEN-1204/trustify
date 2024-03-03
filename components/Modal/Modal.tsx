@@ -12,6 +12,7 @@ import SpinnerD from "../Parts/SpinnerD/SpinnerD";
 import { useUpdateEffect } from "react-use";
 import { SpinnerX } from "../Parts/SpinnerX/SpinnerX";
 import { Spinner78 } from "../Parts/Spinner78/Spinner78";
+import { SpinnerBrand } from "../Parts/SpinnerBrand/SpinnerBrand";
 
 export const Modal: FC = () => {
   console.log("Modalコンポーネントレンダリング");
@@ -222,6 +223,12 @@ export const Modal: FC = () => {
       </div>
       {/* モーダル */}
       <div className={`${styles.modal_container} transition-base fade05`}>
+        {/* ローディングオーバーレイ */}
+        {isLoading && (
+          <div className={`${styles.loading_overlay} flex-center fixed inset-0 z-[10000] bg-[#00000090]`}>
+            <SpinnerBrand withBorder withShadow />
+          </div>
+        )}
         <div className="mb-[12px] flex h-[38px] w-full items-center justify-end pr-3">
           <button onClick={() => setIsOpenModal(false)} className="cursor-pointer">
             <MdClose className="fill-[#777] text-[24px]" />

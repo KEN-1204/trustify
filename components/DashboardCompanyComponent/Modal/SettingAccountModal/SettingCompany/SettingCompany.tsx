@@ -58,6 +58,7 @@ import { formatDateToYYYYMMDD } from "@/utils/Helpers/formatDateLocalToYYYYMMDD"
 import { calculateCurrentFiscalYear } from "@/utils/Helpers/calculateCurrentFiscalYear";
 import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurrentFiscalYearEndDate";
 import { GrPowerReset } from "react-icons/gr";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Stu"];
 const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
@@ -1270,7 +1271,8 @@ const SettingCompanyMemo = () => {
         <div className={`${styles.loading_overlay_modal_outside}`}>
           <div className={`${styles.loading_overlay_modal_inside}`}>
             {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
-            <SpinnerComet w="50px" h="50px" s="5px" />
+            {/* <SpinnerComet w="50px" h="50px" s="5px" /> */}
+            <SpinnerBrand />
           </div>
         </div>
       )}

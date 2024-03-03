@@ -35,6 +35,7 @@ import { ConfirmationModal } from "../ConfirmationModal/ConfirmationModal";
 import { BsCheck2 } from "react-icons/bs";
 import { GrPowerReset } from "react-icons/gr";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 // 解像度
 type CompressionRatio = "NONE" | "FAST" | "SLOW";
@@ -2152,9 +2153,10 @@ A7サイズ
       {/* ローディングオーバーレイ */}
       {(isLoading || isLoadingSkeleton) && (
         <div className={`${styles.loading_overlay}`}>
-          <div className={`${styles.loading_spinner_outside} flex-center bg-[#fff]`}>
+          {/* <div className={`${styles.loading_spinner_outside} flex-center bg-[#fff]`}>
             <SpinnerComet w="56px" h="56px" s="6px" />
-          </div>
+          </div> */}
+          <SpinnerBrand withBorder withShadow />
         </div>
       )}
       {/* ローディングオーバーレイ ここまで */}
