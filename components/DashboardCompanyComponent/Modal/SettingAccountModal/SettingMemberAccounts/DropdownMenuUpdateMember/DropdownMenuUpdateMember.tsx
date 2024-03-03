@@ -3,7 +3,15 @@ import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import styles from "./DropdownMenuUpdateMember.module.css";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import NextImage from "next/image";
-import { Department, Employee_id, MemberAccounts, Office, Unit, UserProfileCompanySubscription } from "@/types";
+import {
+  Department,
+  Employee_id,
+  MemberAccounts,
+  Office,
+  Section,
+  Unit,
+  UserProfileCompanySubscription,
+} from "@/types";
 import useStore from "@/store";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { useQueryClient } from "@tanstack/react-query";
@@ -17,6 +25,7 @@ type EditedMemberData = {
   // office_id: Office["id"] | null;
   // employee_id_name: Employee_id["id"] | null;
   department_id: Department["id"];
+  section_id: Section["id"];
   unit_id: Unit["id"];
   office_id: Office["id"];
   employee_id_name: Employee_id["id"];
@@ -52,14 +61,24 @@ Props) => {
 
   const menuRef = useRef<HTMLDivElement | null>(null);
 
+  // 課なしパターン
+  // const [editedMemberData, setEditedMemberData] = useState<EditedMemberData>({
+  //   department_id: memberAccount.assigned_department_id ? memberAccount.assigned_department_id : "",
+  //   unit_id: memberAccount.assigned_unit_id ? memberAccount.assigned_unit_id : "",
+  //   office_id: memberAccount.assigned_office_id ? memberAccount.assigned_office_id : "",
+  //   employee_id_name: memberAccount.assigned_employee_id_name ? memberAccount.assigned_employee_id_name : "",
+  // });
+  // 課ありパターン
   const [editedMemberData, setEditedMemberData] = useState<EditedMemberData>({
     department_id: memberAccount.assigned_department_id ? memberAccount.assigned_department_id : "",
+    section_id: memberAccount.assigned_section_id ? memberAccount.assigned_section_id : "",
     unit_id: memberAccount.assigned_unit_id ? memberAccount.assigned_unit_id : "",
     office_id: memberAccount.assigned_office_id ? memberAccount.assigned_office_id : "",
     employee_id_name: memberAccount.assigned_employee_id_name ? memberAccount.assigned_employee_id_name : "",
   });
 
   const cacheDepartmentsArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const cacheSectionsArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
   const cacheUnitsArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const cacheOfficesArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
 
@@ -86,20 +105,55 @@ Props) => {
     }
   }, []);
 
-  // ======================= 🌟現在の選択した事業部でチームを絞り込むuseEffect🌟 =======================
-  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // 課ありパターン
+  // ======================= 🌟現在の選択した事業部で課を絞り込むuseEffect🌟 =======================
+  const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
   useEffect(() => {
-    // 選択中の事業部が変化するか、cacheUnitsArrayの内容に変更があったら新たに絞り込んで更新する
-    if (cacheUnitsArray && cacheUnitsArray?.length >= 1 && !!editedMemberData.department_id) {
-      const filteredUnitArray = cacheUnitsArray.filter(
-        (unit) => unit.created_by_department_id === editedMemberData.department_id
+    // 選択中の事業部が変化するか、cacheSectionsArrayの内容に変更があったら新たに絞り込んで更新する
+    if (cacheSectionsArray && cacheSectionsArray?.length >= 1 && !!editedMemberData.department_id) {
+      const filteredSectionArray = cacheSectionsArray.filter(
+        (section) => section.created_by_department_id === editedMemberData.department_id
       );
-      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+      setFilteredSectionBySelectedDepartment(filteredSectionArray);
     }
-  }, [cacheUnitsArray, memberAccount?.assigned_department_id, editedMemberData.department_id]);
+  }, [cacheSectionsArray, memberAccount?.assigned_department_id, editedMemberData.department_id]);
+  // ======================= ✅現在の選択した事業部で課を絞り込むuseEffect✅ =======================
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した課で係を絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
+  useEffect(() => {
+    // 選択中の事業部・課が変化するか、cacheUnitsArrayの内容に変更があったら新たに絞り込んで更新する
+    if (cacheUnitsArray && cacheUnitsArray?.length >= 1 && !!editedMemberData.section_id) {
+      const filteredUnitArray = cacheUnitsArray.filter(
+        (unit) => unit.created_by_section_id === editedMemberData.section_id
+      );
+      setFilteredUnitBySelectedSection(filteredUnitArray);
+    }
+  }, [cacheUnitsArray, memberAccount?.assigned_section_id, editedMemberData.section_id]);
+  // ======================= ✅現在の選択した課で係を絞り込むuseEffect✅ =======================
+
+  // // 課なしパターン
+  // // ======================= 🌟現在の選択した事業部でチームを絞り込むuseEffect🌟 =======================
+  // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // useEffect(() => {
+  //   // 選択中の事業部が変化するか、cacheUnitsArrayの内容に変更があったら新たに絞り込んで更新する
+  //   if (cacheUnitsArray && cacheUnitsArray?.length >= 1 && !!editedMemberData.department_id) {
+  //     const filteredUnitArray = cacheUnitsArray.filter(
+  //       (unit) => unit.created_by_department_id === editedMemberData.department_id
+  //     );
+  //     setFilteredUnitBySelectedDepartment(filteredUnitArray);
+  //   }
+  // }, [cacheUnitsArray, memberAccount?.assigned_department_id, editedMemberData.department_id]);
+  // // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
   console.log(
-    "フィルターfilteredUnitBySelectedDepartment",
-    filteredUnitBySelectedDepartment,
+    "フィルター",
+    // "filteredUnitBySelectedDepartment",
+    // filteredUnitBySelectedDepartment,
+    "filteredSectionBySelectedDepartment",
+    filteredSectionBySelectedDepartment,
+    "filteredUnitBySelectedSection",
+    filteredUnitBySelectedSection,
     "cacheDepartmentsArray",
     cacheDepartmentsArray,
     "cacheUnitsArray",
@@ -107,7 +161,6 @@ Props) => {
     "cacheOfficesArray",
     cacheOfficesArray
   );
-  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   const handleUpdateSubmit = async () => {
     if (!userProfileState?.company_id) {
@@ -122,11 +175,12 @@ Props) => {
 
     // 現在のメンバーの値と全て変わらない場合はメニューを閉じる editedMemberDataの各値は空文字でmemberAccountの各所属関連情報がない場合にはnullなので、互いに二重否定でfalsyかをチェック
     const isMatchDepartment = getValueOrNull(editedMemberData.department_id) === memberAccount.assigned_department_id;
+    const isMatchSection = getValueOrNull(editedMemberData.section_id) === memberAccount.assigned_section_id;
     const isMatchUnit = getValueOrNull(editedMemberData.unit_id) === memberAccount.assigned_unit_id;
     const isMatchOffice = getValueOrNull(editedMemberData.office_id) === memberAccount.assigned_office_id;
     const isMatchEmployeeIdName =
       getValueOrNull(editedMemberData.employee_id_name) === memberAccount.assigned_employee_id_name;
-    if (isMatchDepartment && isMatchUnit && isMatchOffice && isMatchEmployeeIdName) {
+    if (isMatchDepartment && isMatchSection && isMatchUnit && isMatchOffice && isMatchEmployeeIdName) {
       console.log("全て同じためリターン");
       setIsOpenDropdownMenuUpdateMember(false);
       return;
@@ -142,6 +196,7 @@ Props) => {
     setIsLoadingUpsertMember(true);
 
     let newDepartmentId = null;
+    let newSectionId = null;
     let newUnitId = null;
     let newOfficeId = null;
     let newEmployeeIdName = null;
@@ -151,6 +206,11 @@ Props) => {
       // newDepartmentObj = cacheDepartmentsArray?.filter((departmentObj) => departmentObj.id === editedMemberData.department_id);
       newDepartmentId =
         editedMemberData.department_id !== memberAccount.assigned_department_id ? editedMemberData.department_id : null;
+    }
+    // 課・セクション
+    if (!!editedMemberData.section_id) {
+      newSectionId =
+        editedMemberData.section_id !== memberAccount.assigned_section_id ? editedMemberData.section_id : null;
     }
     // 係・チーム
     if (!!editedMemberData.unit_id) {
@@ -175,13 +235,29 @@ Props) => {
     }
     console.log("結果");
     console.log("newDepartmentId", newDepartmentId);
+    console.log("newSectionId", newSectionId);
     console.log("newUnitId", newUnitId);
     console.log("newOfficeId", newOfficeId);
     console.log("newEmployeeIdName", newEmployeeIdName);
 
+    // ------------------------------🔹課ありパターン ------------------------------
     try {
+      // 🔸既に課・セクションが存在していて、事業部変更により課・セクションが空になったらisExecuteをtrueにする
+      let isExecuteUpdateSection;
+      if (editedMemberData.section_id === "" && !!memberAccount.assigned_section_id && !newSectionId) {
+        console.log(
+          "既に課・セクションが存在していて、事業部変更により課・セクションが空になったらisExecuteをtrueにする",
+          newSectionId,
+          memberAccount.assigned_section_id
+        );
+        isExecuteUpdateSection = true;
+        newSectionId = null;
+      } else {
+        isExecuteUpdateSection = !!newSectionId;
+      }
+
+      // 🔸既に係が存在していて、事業部or課・セクション変更により係が空になったらisExecuteをtrueにする
       let isExecuteUpdateUnit;
-      // 既に係が存在していて、事業部変更により係が空になったらisExecuteをtrueにする
       if (editedMemberData.unit_id === "" && !!memberAccount.assigned_unit_id && !newUnitId) {
         console.log(
           "既に係が存在していて、事業部変更により係が空になったらisExecuteをtrueにする",
@@ -193,17 +269,20 @@ Props) => {
       } else {
         isExecuteUpdateUnit = !!newUnitId;
       }
+
       // 各テーブルの変数がnullの場合にはUPSERTは行わず、null以外のテーブルのみUPSERTを実行
       // unit_assignmentsテーブルのUPSERT有りルート
       const upsertPayload = {
         _user_id: memberAccount.id,
         _company_id: userProfileState.company_id,
         _department_id: newDepartmentId,
+        _section_id: newSectionId,
         _unit_id: newUnitId,
         _office_id: newOfficeId,
         _employee_id_name: newEmployeeIdName,
         _execute_department_upsert: !!newDepartmentId,
         // _execute_unit_upsert: !!newUnitId,
+        _execute_section_upsert: isExecuteUpdateSection,
         _execute_unit_upsert: isExecuteUpdateUnit,
         _execute_office_upsert: !!newOfficeId,
         _execute_employee_id_upsert: !!newEmployeeIdName,
@@ -244,6 +323,32 @@ Props) => {
               department: newDepartmentObj.department_name,
               assigned_department_id: newDepartmentObj.id,
               assigned_department_name: newDepartmentObj.department_name,
+            };
+          }
+        }
+
+        // 課・セクション
+        if (isExecuteUpdateSection) {
+          if (!!editedMemberData.section_id) {
+            const newSectionObj = cacheSectionsArray?.find(
+              (sectionObj) => sectionObj.id === editedMemberData.section_id
+            );
+            console.log("🔥🔥🔥🔥🔥", newSectionObj);
+            if (newSectionObj) {
+              changes = {
+                ...changes,
+                section: newSectionObj.section_name,
+                assigned_section_id: newSectionObj.id,
+                assigned_section_name: newSectionObj.section_name,
+              };
+            }
+          } else if (editedMemberData.section_id === "") {
+            console.log("🔥🔥🔥🔥🔥sectionを空にする");
+            changes = {
+              ...changes,
+              section: null,
+              assigned_section_id: null,
+              assigned_section_name: null,
             };
           }
         }
@@ -308,6 +413,138 @@ Props) => {
       // 自分以外のメンバーを更新したルート
       await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
       toast.success("メンバーの更新に成功しました🌟");
+      // ------------------------------🔹課ありパターン ------------------------------
+      // // ------------------------------🔹課なしパターン ------------------------------
+      // try {
+      //   let isExecuteUpdateUnit;
+      //   // 既に係が存在していて、事業部変更により係が空になったらisExecuteをtrueにする
+      //   if (editedMemberData.unit_id === "" && !!memberAccount.assigned_unit_id && !newUnitId) {
+      //     console.log(
+      //       "既に係が存在していて、事業部変更により係が空になったらisExecuteをtrueにする",
+      //       newUnitId,
+      //       memberAccount.assigned_unit_id
+      //     );
+      //     isExecuteUpdateUnit = true;
+      //     newUnitId = null;
+      //   } else {
+      //     isExecuteUpdateUnit = !!newUnitId;
+      //   }
+      //   // 各テーブルの変数がnullの場合にはUPSERTは行わず、null以外のテーブルのみUPSERTを実行
+      //   // unit_assignmentsテーブルのUPSERT有りルート
+      //   const upsertPayload = {
+      //     _user_id: memberAccount.id,
+      //     _company_id: userProfileState.company_id,
+      //     _department_id: newDepartmentId,
+      //     _unit_id: newUnitId,
+      //     _office_id: newOfficeId,
+      //     _employee_id_name: newEmployeeIdName,
+      //     _execute_department_upsert: !!newDepartmentId,
+      //     // _execute_unit_upsert: !!newUnitId,
+      //     _execute_unit_upsert: isExecuteUpdateUnit,
+      //     _execute_office_upsert: !!newOfficeId,
+      //     _execute_employee_id_upsert: !!newEmployeeIdName,
+      //   };
+      //   console.log("upsertPayload", upsertPayload);
+
+      //   const { data: new_employee_id, error } = await supabase.rpc("upsert_member_assignments", upsertPayload);
+
+      //   if (error) throw error;
+
+      //   console.log("事業部UPDATE成功 返り値new_employee_id", new_employee_id);
+      //   // UPSERT成功 自分の更新だった場合にはZustandのuserProfileStateを更新してmember_accountsキャッシュのみinValidate
+      //   // 自身の更新だった場合
+      //   if (memberAccount.id === userProfileState.id) {
+      //     // let newUserProfile = { ...userProfileState };
+
+      //     // 変更をまとめすためのオブジェクトを初期化
+      //     let changes = {};
+
+      //     // 事業部
+      //     if (!!newDepartmentId) {
+      //       //  const newDepartmentObj = cacheDepartmentsArray?.filter((departmentObj) => departmentObj.id === editedMemberData.department_id);
+      //       // const newDepartmentObj = cacheDepartmentsArray?.filter(
+      //       //   (departmentObj) => departmentObj.id === editedMemberData.department_id
+      //       // )[0];
+      //       const newDepartmentObj = cacheDepartmentsArray?.find(
+      //         (departmentObj) => departmentObj.id === editedMemberData.department_id
+      //       );
+      //       if (newDepartmentObj) {
+      //         // newUserProfile = {
+      //         //   ...newUserProfile,
+      //         //   department: newDepartmentObj.department_name,
+      //         //   assigned_department_id: newDepartmentObj.id,
+      //         //   assigned_department_name: newDepartmentObj.department_name,
+      //         // };
+      //         changes = {
+      //           ...changes,
+      //           department: newDepartmentObj.department_name,
+      //           assigned_department_id: newDepartmentObj.id,
+      //           assigned_department_name: newDepartmentObj.department_name,
+      //         };
+      //       }
+      //     }
+
+      //     // 係
+      //     if (isExecuteUpdateUnit) {
+      //       if (!!editedMemberData.unit_id) {
+      //         const newUnitObj = cacheUnitsArray?.find((unitObj) => unitObj.id === editedMemberData.unit_id);
+      //         console.log("🔥🔥🔥🔥🔥", newUnitObj);
+      //         if (newUnitObj) {
+      //           changes = {
+      //             ...changes,
+      //             unit: newUnitObj.unit_name,
+      //             assigned_unit_id: newUnitObj.id,
+      //             assigned_unit_name: newUnitObj.unit_name,
+      //           };
+      //         }
+      //       } else if (editedMemberData.unit_id === "") {
+      //         console.log("🔥🔥🔥🔥🔥unitを空にする");
+      //         changes = {
+      //           ...changes,
+      //           unit: null,
+      //           assigned_unit_id: null,
+      //           assigned_unit_name: null,
+      //         };
+      //       }
+      //     }
+
+      //     // オフィス
+      //     if (!!newOfficeId) {
+      //       const newOfficeObj = cacheOfficesArray?.find((officeObj) => officeObj.id === editedMemberData.office_id);
+      //       if (newOfficeObj) {
+      //         changes = {
+      //           ...changes,
+      //           office: newOfficeObj.office_name,
+      //           assigned_office_id: newOfficeObj.id,
+      //           assigned_office_name: newOfficeObj.office_name,
+      //         };
+      //       }
+      //     }
+
+      //     // 社員番号
+      //     if (!!newEmployeeIdName) {
+      //       changes = {
+      //         ...changes,
+      //         office: editedMemberData.employee_id_name,
+      //         // assigned_employee_id: Array.isArray(new_employee_id) ? new_employee_id[0] : new_employee_id,
+      //         assigned_employee_id: new_employee_id,
+      //         assigned_employee_id_name: editedMemberData.employee_id_name,
+      //       };
+      //     }
+
+      //     console.log("🔥🔥🔥🔥🔥 changes", changes);
+
+      //     // 新しいプロファイルオブジェクトを生成してZUstandの状態を更新
+      //     const newUserProfile = { ...userProfileState, ...changes };
+
+      //     // 自身のZustandを更新
+      //     setUserProfileState(newUserProfile);
+      //   } else {
+      //   }
+      //   // 自分以外のメンバーを更新したルート
+      //   await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+      //   toast.success("メンバーの更新に成功しました🌟");
+      //   // ------------------------------🔹課なしパターン ------------------------------
     } catch (e: any) {
       console.error("UPSERTエラー e", e);
       toast.error("メンバーの更新に失敗しました🙇‍♀️");
@@ -352,7 +589,7 @@ Props) => {
             </span>
           </h2>
           <p className="text-start text-[12px] text-[var(--color-text-title)]">
-            メンバーの「事業部」「係・チーム」「事業所・営業所」「社員番号・ID」の編集が可能です。メンバー編集は管理者以上の権限を持つユーザーのみ許可されます。
+            メンバーの「事業部」「課・セクション」「係・チーム」「事業所・営業所」「社員番号・ID」の編集が可能です。メンバー編集は管理者以上の権限を持つユーザーのみ許可されます。
           </p>
         </div>
 
@@ -381,10 +618,37 @@ Props) => {
                   // value={isFetchAllCompanies ? `All` : `Own`}
                   value={editedMemberData.department_id ? editedMemberData.department_id : ""}
                   onChange={(e) => {
-                    // setIsOpenDropdownMenuUpdateMember(false);
-                    // setIsFetchAllCompanies(e.target.value === "All");
+                    // --------------------- 🔹課ありパターン ---------------------
                     let newCondition: EditedMemberData;
-                    // unit_idが選択されてる状態で事業部が変更されたら、user_idを初期値に設定する
+                    // 1. section_idが選択されてる状態で事業部が変更されたら、section_idを初期値に設定する(事業部に合致する選択肢の1番目)
+                    // 2. unit_idが選択されてる状態で事業部が変更されたら、unit_idを初期値に設定する(事業部に合致する選択肢の1番目)
+
+                    // 1. section_idが選択されてる状態で事業部が変更されたら、section_idを初期値に設定する
+                    if (editedMemberData.section_id) {
+                      if (cacheSectionsArray && cacheSectionsArray?.length >= 1) {
+                        const firstSectionData = cacheSectionsArray.find(
+                          (section) => section.created_by_department_id === e.target.value
+                        );
+                        console.log("フィルターfirstSectionData", firstSectionData);
+                        // sectionsキャッシュに要素が1つ以上存在するならキャッシュの１番目を初期値として格納
+                        newCondition = {
+                          ...editedMemberData,
+                          department_id: e.target.value,
+                          section_id: firstSectionData?.id ?? "",
+                        };
+                      } else {
+                        // sectionsキャッシュに要素がundefinedか空なら、section_idに初期値の空文字をセットする
+                        newCondition = {
+                          ...editedMemberData,
+                          department_id: e.target.value,
+                          section_id: "",
+                        };
+                      }
+                    } else {
+                      newCondition = { ...editedMemberData, department_id: e.target.value };
+                    }
+
+                    // 2. unit_idが選択されてる状態で事業部が変更されたら、unit_idを初期値に設定する
                     if (editedMemberData.unit_id) {
                       if (cacheUnitsArray && cacheUnitsArray?.length >= 1) {
                         const firstUnitData = cacheUnitsArray.find(
@@ -410,6 +674,36 @@ Props) => {
                     }
 
                     setEditedMemberData(newCondition);
+                    // --------------------- 🔹課ありパターン ここまで ---------------------
+                    // // --------------------- 🔹課なしパターン ---------------------
+                    // let newCondition: EditedMemberData;
+                    // // unit_idが選択されてる状態で事業部が変更されたら、user_idを初期値に設定する
+                    // if (editedMemberData.unit_id) {
+                    //   if (cacheUnitsArray && cacheUnitsArray?.length >= 1) {
+                    //     const firstUnitData = cacheUnitsArray.find(
+                    //       (unit) => unit.created_by_department_id === e.target.value
+                    //     );
+                    //     console.log("フィルターfirstUnitData", firstUnitData);
+                    //     // unitsキャッシュに要素が1つ以上存在するならキャッシュの１番目を初期値として格納
+                    //     newCondition = {
+                    //       ...editedMemberData,
+                    //       department_id: e.target.value,
+                    //       unit_id: firstUnitData?.id ?? "",
+                    //     };
+                    //   } else {
+                    //     // unitsキャッシュに要素がundefinedか空なら、unit_idに初期値の空文字をセットする
+                    //     newCondition = {
+                    //       ...editedMemberData,
+                    //       department_id: e.target.value,
+                    //       unit_id: "",
+                    //     };
+                    //   }
+                    // } else {
+                    //   newCondition = { ...editedMemberData, department_id: e.target.value };
+                    // }
+
+                    // setEditedMemberData(newCondition);
+                    // // --------------------- 🔹課なしパターン ここまで ---------------------
                   }}
                 >
                   {/* <option value="">すべての事業部</option> */}
@@ -435,7 +729,96 @@ Props) => {
 
             {/* <hr className={`min-h-[1px] w-full bg-[var(--color-border-light)]`} /> */}
 
-            {/* 係・チーム */}
+            {/* -------------------- 課・セクション -------------------- */}
+            <li
+              className={`relative flex h-[40px] w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
+            >
+              <div className="flex min-w-[145px] items-center">
+                <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                <div className="flex select-none items-center space-x-[2px]">
+                  <span className={`${styles.list_title}`}>課・セクション</span>
+                  <span className={``}>：</span>
+                </div>
+              </div>
+              <div className={`${styles.list_right_area}`}>
+                {!editedMemberData.department_id && (
+                  <div className={`ml-auto h-full w-full min-w-[185px]`}>
+                    <p className={`text-[12px]`}>先に事業部を設定してください</p>
+                  </div>
+                )}
+                {!!editedMemberData.department_id && filteredSectionBySelectedDepartment?.length === 0 && (
+                  <div className={`ml-auto h-full w-full min-w-[185px]`}>
+                    <p className={`text-[12px]`}>課・セクションを作成してください</p>
+                  </div>
+                )}
+                {!!editedMemberData.department_id && filteredSectionBySelectedDepartment?.length >= 1 && (
+                  <select
+                    className={` ml-auto h-full w-full ${styles.select_box}`}
+                    value={editedMemberData.section_id ? editedMemberData.section_id : ""}
+                    onChange={(e) => {
+                      // const newCondition = { ...editedMemberData, section_id: e.target.value };
+                      // setEditedMemberData(newCondition);
+
+                      // --------------------- 🔹課ありパターン ---------------------
+                      let newCondition: EditedMemberData;
+                      // 1. unit_idが選択されてる状態で課・セクションが変更されたら、unit_idを初期値に設定する(課・セクションに合致する選択肢の1番目)
+
+                      // 1. unit_idが選択されてる状態で課・セクションが変更されたら、unit_idを初期値に設定する
+                      if (editedMemberData.unit_id) {
+                        if (cacheUnitsArray && cacheUnitsArray?.length >= 1) {
+                          const firstUnitData = cacheUnitsArray.find(
+                            (unit) => unit.created_by_section_id === e.target.value
+                          );
+                          console.log("フィルターfirstUnitData", firstUnitData);
+                          // unitsキャッシュに要素が1つ以上存在するならキャッシュの１番目を初期値として格納
+                          newCondition = {
+                            ...editedMemberData,
+                            section_id: e.target.value,
+                            unit_id: firstUnitData?.id ?? "",
+                          };
+                        } else {
+                          // unitsキャッシュに要素がundefinedか空なら、unit_idに初期値の空文字をセットする
+                          newCondition = {
+                            ...editedMemberData,
+                            section_id: e.target.value,
+                            unit_id: "",
+                          };
+                        }
+                      } else {
+                        newCondition = { ...editedMemberData, section_id: e.target.value };
+                      }
+
+                      setEditedMemberData(newCondition);
+                      // const newCondition = { ...editedMemberData, section_id: e.target.value };
+                      // setEditedMemberData(newCondition);
+                      // --------------------- 🔹課ありパターン ここまで ---------------------
+                    }}
+                  >
+                    {!memberAccount.assigned_section_id && <option value="">未設定</option>}
+                    {!!filteredSectionBySelectedDepartment &&
+                      [...filteredSectionBySelectedDepartment]
+                        .sort((a, b) => {
+                          if (a.section_name === null || b.section_name === null) return 0;
+                          return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en") ?? 0;
+                        })
+                        .map(
+                          (section, index) =>
+                            !!section &&
+                            section.section_name && (
+                              <option key={section.id} value={section.id}>
+                                {section.section_name}
+                              </option>
+                            )
+                        )}
+                  </select>
+                )}
+              </div>
+            </li>
+            {/* -------------------- 課・セクション ここまで -------------------- */}
+
+            {/* <hr className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`} /> */}
+
+            {/* -------------------- 係・チーム -------------------- */}
             <li
               className={`relative flex h-[40px] w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
             >
@@ -448,62 +831,57 @@ Props) => {
               </div>
               <div className={`${styles.list_right_area}`}>
                 {!editedMemberData.department_id && (
-                  <div className={`ml-auto h-full w-full min-w-[185px]`}>
+                  <div className={`ml-auto h-full w-full min-w-[215px]`}>
                     <p className={`text-[12px]`}>先に事業部を設定してください</p>
                   </div>
                 )}
-                {!!editedMemberData.department_id && filteredUnitBySelectedDepartment?.length === 0 && (
-                  <div className={`ml-auto h-full w-full min-w-[185px]`}>
-                    <p className={`text-[12px]`}>係を作成してください</p>
+                {!editedMemberData.section_id && (
+                  <div className={`ml-auto h-full w-full min-w-[215px]`}>
+                    <p className={`text-[12px]`}>先に課・セクションを設定してください</p>
                   </div>
                 )}
-                {!!editedMemberData.department_id && filteredUnitBySelectedDepartment?.length >= 1 && (
-                  <select
-                    className={` ml-auto h-full w-full ${styles.select_box}`}
-                    value={editedMemberData.unit_id ? editedMemberData.unit_id : ""}
-                    onChange={(e) => {
-                      // setIsOpenDropdownMenuUpdateMember(false);
-                      // setIsFetchAllCompanies(e.target.value === "All");
-                      const newCondition = { ...editedMemberData, unit_id: e.target.value };
-                      setEditedMemberData(newCondition);
-                    }}
-                  >
-                    {/* <option value="">すべての係・チーム</option> */}
-                    {!memberAccount.assigned_unit_id && <option value="">未設定</option>}
-                    {!!filteredUnitBySelectedDepartment &&
-                      [...filteredUnitBySelectedDepartment]
-                        .sort((a, b) => {
-                          if (a.unit_name === null || b.unit_name === null) return 0;
-                          return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en") ?? 0;
-                        })
-                        .map(
-                          (unit, index) =>
-                            !!unit &&
-                            unit.unit_name && (
-                              <option key={unit.id} value={unit.id}>
-                                {unit.unit_name}
-                              </option>
-                            )
-                        )}
-                    {/* {!!cacheUnitsArray &&
-                      [...cacheUnitsArray]
-                        .sort((a, b) => {
-                          if (a.unit_name === null || b.unit_name === null) return 0;
-                          return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en") ?? 0;
-                        })
-                        .map(
-                          (unit, index) =>
-                            !!unit &&
-                            unit.unit_name && (
-                              <option key={unit.id} value={unit.unit_id}>
-                                {unit.unit_name}
-                              </option>
-                            )
-                        )} */}
-                  </select>
-                )}
+                {!!editedMemberData.department_id &&
+                  !!editedMemberData.section_id &&
+                  filteredUnitBySelectedSection?.length === 0 && (
+                    <div className={`ml-auto h-full w-full min-w-[215px]`}>
+                      <p className={`text-[12px]`}>係・チームを作成してください</p>
+                    </div>
+                  )}
+                {!!editedMemberData.department_id &&
+                  !!editedMemberData.section_id &&
+                  filteredUnitBySelectedSection?.length >= 1 && (
+                    <select
+                      className={` ml-auto h-full w-full ${styles.select_box}`}
+                      value={editedMemberData.unit_id ? editedMemberData.unit_id : ""}
+                      onChange={(e) => {
+                        // setIsOpenDropdownMenuUpdateMember(false);
+                        // setIsFetchAllCompanies(e.target.value === "All");
+                        const newCondition = { ...editedMemberData, unit_id: e.target.value };
+                        setEditedMemberData(newCondition);
+                      }}
+                    >
+                      {/* <option value="">すべての係・チーム</option> */}
+                      {!memberAccount.assigned_unit_id && <option value="">未設定</option>}
+                      {!!filteredUnitBySelectedSection &&
+                        [...filteredUnitBySelectedSection]
+                          .sort((a, b) => {
+                            if (a.unit_name === null || b.unit_name === null) return 0;
+                            return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en") ?? 0;
+                          })
+                          .map(
+                            (unit, index) =>
+                              !!unit &&
+                              unit.unit_name && (
+                                <option key={unit.id} value={unit.id}>
+                                  {unit.unit_name}
+                                </option>
+                              )
+                          )}
+                    </select>
+                  )}
               </div>
             </li>
+            {/* -------------------- 係・チーム ここまで -------------------- */}
 
             {/* <hr className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`} /> */}
 

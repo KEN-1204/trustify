@@ -21,6 +21,7 @@ import {
   getOptionsCalendarYear,
   getOptionsFiscalYear,
   mappingSdbTabName,
+  mappingSectionName,
   optionsFiscalHalf,
   optionsFiscalMonth,
   optionsFiscalQuarter,
@@ -132,6 +133,12 @@ const SalesProgressScreenMemo = () => {
   };
 
   // --------------------------- 変数定義 ここまで ---------------------------
+  // --------------------------------- useQuery ---------------------------------
+  // -------------- 🌟エンティティのデータを取得🌟 => 係の場合は係のメンバー一覧、メンバーなら選択されたメンバー
+  // 1. D&Dボードは、係・メンバーの時のみ表示可能にする(事業部以上はメンバー数が多くなりすぎるため)
+  // -------------- ✅エンティティのデータを取得✅
+
+  // --------------------------------- useQuery ここまで ---------------------------------
 
   const [openSectionMenu, setOpenSectionMenu] = useState<{
     x?: number;
@@ -424,7 +431,7 @@ const SalesProgressScreenMemo = () => {
                   }}
                   onMouseLeave={handleCloseTooltip}
                 >
-                  <span>IMTK2</span>
+                  <span>{mappingSectionName[activeSectionSDB][language]}</span>
                   <div className={`flow_underline brand_light one_px w-full`} />
                 </div>
               </div>
@@ -639,6 +646,79 @@ const SalesProgressScreenMemo = () => {
                   {/* ------------------------------------ */}
                 </ul>
               </div>
+              {/* 適用・戻るエリア(エンティティメニュー) */}
+              <div
+                className={`${styles.settings_menu} ${styles.edit_mode}  z-[3000] h-auto w-[330px] overflow-hidden rounded-[6px] ${styles.fade_up}`}
+                style={{
+                  // position: "absolute",
+                  // bottom: "-168px",
+                  // left: 0,
+                  position: "absolute",
+                  ...(sectionMenuRef.current?.offsetWidth
+                    ? { bottom: "0px", left: sectionMenuRef.current?.offsetWidth + 10 }
+                    : { bottom: "-168px", left: 0 }),
+                  animationDelay: `0.2s`,
+                  animationDuration: `0.5s`,
+                  ...(openSectionMenu.maxWidth && { maxWidth: `${openSectionMenu.maxWidth}px` }),
+                }}
+              >
+                {/* ------------------------------------ */}
+                <li className={`${styles.section_title} flex min-h-max w-full font-bold`}>
+                  <div className="flex max-w-max flex-col">
+                    <span>{mappingSectionName[activeSectionSDB][language]}</span>
+                    <div className={`${styles.underline} w-full`} />
+                  </div>
+                </li>
+                {/* ------------------------------------ */}
+                {/* ------------------------------------ */}
+                <li
+                  className={`${styles.list}`}
+                  onMouseEnter={(e) => {
+                    handleOpenPopupMenu({ e, title: "compressionRatio" });
+                  }}
+                  onMouseLeave={handleClosePopupMenu}
+                >
+                  <div className="pointer-events-none flex min-w-[110px] items-center">
+                    <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                    <div className="flex select-none items-center space-x-[2px]">
+                      <span className={`${styles.list_title}`}>表示中</span>
+                      <span className={``}>：</span>
+                    </div>
+                  </div>
+                  {/* <select
+                      className={`${styles.select_box} truncate`}
+                      value={compressionRatio}
+                      onChange={(e) => setCompressionRatio(e.target.value as CompressionRatio)}
+                    >
+                      {optionsCompressionRatio.map((value) => (
+                        <option key={value} value={value}>
+                          {getCompressionRatio(value, language)}
+                        </option>
+                      ))}
+                    </select> */}
+                </li>
+                {/* ------------------------------------ */}
+                <hr className="min-h-[1px] w-full bg-[#999]" />
+                {/* ------------------------------------ */}
+                <li className={`${styles.list} ${styles.btn_area} space-x-[20px]`}>
+                  <div
+                    className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
+                    onClick={handleChangePeriod}
+                  >
+                    <span>適用</span>
+                  </div>
+                  <div
+                    className={`transition-bg02 ${styles.edit_btn} ${styles.cancel}`}
+                    onClick={() => {
+                      handleCloseSectionMenu();
+                    }}
+                  >
+                    <span>戻る</span>
+                  </div>
+                </li>
+                {/* ------------------------------------ */}
+              </div>
+              {/* 適用・戻るエリア(エンティティメニュー) */}
             </>
           )}
           {/* ------------------------ エンティティ選択メニュー ------------------------ */}
@@ -833,6 +913,7 @@ const SalesProgressScreenMemo = () => {
                   {/* ------------------------------------ */}
                 </ul>
               </div>
+              {/* 適用・戻るエリア(期間メニュー) */}
               <div
                 className={`${styles.settings_menu} ${styles.edit_mode}  z-[3000] h-auto w-[330px] overflow-hidden rounded-[6px] ${styles.fade_up}`}
                 style={{
@@ -841,6 +922,7 @@ const SalesProgressScreenMemo = () => {
                   left: 0,
                   animationDelay: `0.2s`,
                   animationDuration: `0.5s`,
+                  ...(openSectionMenu.maxWidth && { maxWidth: `${openSectionMenu.maxWidth}px` }),
                 }}
               >
                 {/* ------------------------------------ */}
@@ -862,6 +944,7 @@ const SalesProgressScreenMemo = () => {
                 </li>
                 {/* ------------------------------------ */}
               </div>
+              {/* 適用・戻るエリア(期間メニュー) */}
             </>
           )}
           {/* ------------------------ 期間選択メニュー ------------------------ */}

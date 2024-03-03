@@ -628,6 +628,12 @@
 .department_tag_container.inactive:hover .scroll_icon_area .scroll_icon {
   opacity: 0;
 }
+.section_tag_container:hover .scroll_icon_area .scroll_icon {
+  opacity: 1;
+}
+.section_tag_container.inactive:hover .scroll_icon_area .scroll_icon {
+  opacity: 0;
+}
 .unit_tag_container:hover .scroll_icon_area .scroll_icon {
   opacity: 1;
 }

@@ -491,8 +491,11 @@
   box-shadow: inset 0 0 0 1px var(--border-theme);
 }
 
-.grid_cell[aria-selected="true"] {
+/* .grid_cell[aria-selected="true"] {
   box-shadow: inset 0 0 0 1px var(--border-theme);
+} */
+.grid_row[aria-selected="true"] .grid_cell[aria-selected="true"] {
+  box-shadow: inset 0 0 0 1px var(--color-border-theme);
 }
 
 /* 列サイズ変更時のボーダーハイライト */

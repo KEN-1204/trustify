@@ -461,7 +461,7 @@ const SettingProfileMemo = () => {
           <div className={`${styles.loading_overlay_modal_inside}`}>
             {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
             {/* <SpinnerComet w="50px" h="50px" s="5px" /> */}
-            <SpinnerBrand />
+            <SpinnerBrand withBorder withShadow />
           </div>
         </div>
       )}

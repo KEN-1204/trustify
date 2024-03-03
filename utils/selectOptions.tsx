@@ -1647,13 +1647,13 @@ export const mappingSdbTabName: { [key: string]: { [key: string]: string } } = {
 export const sectionList: SdbTabsListItem[] = [
   { title: "company", name: { ja: "全社", en: "Company" } },
   { title: "department", name: { ja: "事業部", en: "Department" } },
-  { title: "section", name: { ja: "課", en: "Section" } },
+  { title: "section", name: { ja: "課・エリア", en: "Section" } },
   { title: "unit", name: { ja: "係・チーム", en: "Unit" } },
   { title: "member", name: { ja: "メンバー", en: "Member" } },
   { title: "office", name: { ja: "事業所", en: "Office" } },
 ];
 export const mappingSectionName: { [key: string]: { [key: string]: string } } = {
-  Company: { ja: "全社", en: "Company" },
+  company: { ja: "全社", en: "Company" },
   department: { ja: "事業部", en: "Department" },
   section: { ja: "課", en: "Section" },
   unit: { ja: "係・チーム", en: "Unit" },

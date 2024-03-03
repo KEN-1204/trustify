@@ -29,7 +29,8 @@
   cursor: pointer;
   transition: box-shadow 0.3s ease;
   min-height: 30px;
-  min-width: 185px;
+  /* min-width: 185px; */
+  min-width: 215px;
   max-width: 400px;
   width: 100%;
   overflow: hidden;

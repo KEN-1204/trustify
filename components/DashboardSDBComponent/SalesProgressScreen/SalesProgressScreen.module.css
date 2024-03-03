@@ -66,11 +66,12 @@
   font-size: 14px;
 }
 .section_container .section_wrapper .left_wrapper .entity_type {
-  padding: 6px 12px;
-  margin-left: 12px;
+  padding: 6px 6px;
+  margin-left: 18px;
 }
 .section_container .section_wrapper .left_wrapper .period_type {
-  padding: 6px 12px;
+  padding: 6px 6px;
+  margin: 0 6px 0 9px;
 }
 .section_container .section_wrapper .left_wrapper .entity_type.active,
 .section_container .section_wrapper .left_wrapper .period_type.active {

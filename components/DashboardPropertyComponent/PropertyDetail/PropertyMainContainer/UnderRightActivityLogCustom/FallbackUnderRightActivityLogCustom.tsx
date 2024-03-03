@@ -115,7 +115,8 @@ export const FallbackUnderRightActivityLogCustom = ({ isLoading = true }: Props)
               {
                 display: "grid",
                 // gridTemplateColumns: `1fr 3fr repeat(4, 1fr)`,
-                gridTemplateColumns: `1fr 2fr repeat(4, 1fr)`,
+                // gridTemplateColumns: `1fr 2fr repeat(4, 1fr)`,
+                gridTemplateColumns: `90px 1fr repeat(4, 90px)`,
                 minHeight: "25px",
                 // width: `100%`,
                 minWidth: `660px`,

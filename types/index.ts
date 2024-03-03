@@ -131,6 +131,7 @@ export type Profile = {
   first_time_login: boolean | null;
   office: string | null;
   unit: string | null;
+  section: string | null;
   usage: string | null;
   purpose_of_use: string | null;
 };
@@ -357,6 +358,7 @@ export type UserProfile = {
   first_time_login: boolean | null;
   office: string | null;
   unit: string | null;
+  section: string | null;
   usage: string | null;
   purpose_of_use: string | null;
 };
@@ -389,6 +391,7 @@ export type UserProfileCompanySubscription = {
   first_time_login: boolean | null;
   office: string | null;
   unit: string | null;
+  section: string | null;
   usage: string | null;
   purpose_of_use: string | null;
   // 🔹companiesテーブル
@@ -436,9 +439,11 @@ export type UserProfileCompanySubscription = {
   accounts_to_create: number | null;
   number_of_active_subscribed_accounts: number | null;
   cancel_at_period_end: boolean | null;
-  // 事業部、係、事業所、社員番号
+  // 事業部、課、係、事業所、社員番号
   assigned_department_id: string | null;
   assigned_department_name: string | null;
+  assigned_section_id: string | null;
+  assigned_section_name: string | null;
   assigned_unit_id: string | null;
   assigned_unit_name: string | null;
   assigned_office_id: string | null;
@@ -505,6 +510,7 @@ export type SubscribedAccount = {
 //   first_time_login: boolean | null;
 //   office: string | null;
 //   unit: string | null;
+// section: string | null;
 //   usage: string | null;
 //   purpose_of_use: string | null;
 //   subscribed_account_id: string | null;
@@ -543,6 +549,7 @@ export type MemberAccounts = {
   first_time_login: boolean | null;
   office: string | null;
   unit: string | null;
+  section: string | null;
   usage: string | null;
   purpose_of_use: string | null;
   subscribed_account_id: string | null;
@@ -550,9 +557,11 @@ export type MemberAccounts = {
   account_company_role: string | null;
   account_state: string | null;
   account_invited_email: string | null;
-  // 事業部、係、事業所、社員番号
+  // 事業部、課、係、事業所、社員番号
   assigned_department_id: string | null;
   assigned_department_name: string | null;
+  assigned_section_id: string | null;
+  assigned_section_name: string | null;
   assigned_unit_id: string | null;
   assigned_unit_name: string | null;
   assigned_office_id: string | null;
@@ -1771,12 +1780,21 @@ export type Department = {
   created_by_company_id: string | null;
   department_name: string | null;
 };
+// 課・セクションリストテーブル
+export type Section = {
+  id: string;
+  created_at: string;
+  created_by_company_id: string | null;
+  created_by_department_id: string | null;
+  section_name: string | null;
+};
 // 係・ユニットリストテーブル
 export type Unit = {
   id: string;
   created_at: string;
   created_by_company_id: string | null;
   created_by_department_id: string | null;
+  created_by_section_id: string | null;
   unit_name: string | null;
 };
 // 事業所・営業所リストテーブル

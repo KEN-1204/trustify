@@ -6,7 +6,15 @@ import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { useUploadAvatarImg } from "@/hooks/useUploadAvatarImg";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
-import { Department, Notification, Office, StatusClosingDays, Unit, UserProfileCompanySubscription } from "@/types";
+import {
+  Department,
+  Notification,
+  Office,
+  Section,
+  StatusClosingDays,
+  Unit,
+  UserProfileCompanySubscription,
+} from "@/types";
 import { MdClose } from "react-icons/md";
 import { teamIllustration } from "@/components/assets";
 import { ChangeTeamOwnerModal } from "./ChangeTeamOwnerModal/ChangeTeamOwnerModal";
@@ -24,7 +32,7 @@ import { FiRefreshCw } from "react-icons/fi";
 import { DatePickerCustomInputForSettings } from "@/utils/DatePicker/DatePickerCustomInputForSettings";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useMutateDepartment } from "@/hooks/useMutateDepartment";
-import { departmentTagIcons, departmentTagIconsTest, officeTagIcons, unitTagIcons } from "./data";
+import { departmentTagIcons, departmentTagIconsTest, officeTagIcons, sectionTagIcons, unitTagIcons } from "./data";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import SpinnerIDS3 from "@/components/Parts/SpinnerIDS/SpinnerIDS3";
 import useStore from "@/store";
@@ -59,6 +67,8 @@ import { calculateCurrentFiscalYear } from "@/utils/Helpers/calculateCurrentFisc
 import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurrentFiscalYearEndDate";
 import { GrPowerReset } from "react-icons/gr";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { useQuerySections } from "@/hooks/useQuerySections";
+import { useMutateSection } from "@/hooks/useMutateSection";
 
 const dayNamesEn = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Stu"];
 const dayNamesJa = ["日", "月", "火", "水", "木", "金", "土"];
@@ -347,6 +357,16 @@ const SettingCompanyMemo = () => {
   const originalDepartmentNameRef = useRef<string | null>(null);
   // const [activeDepartmentTagIndex, setActiveDepartmentTagIndex] = useState<number | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+  // 課セクション 追加・編集
+  const [insertSectionMode, setInsertSectionMode] = useState(false);
+  const [inputSectionName, setInputSectionName] = useState("");
+  const [editSectionMode, setEditSectionMode] = useState(false);
+  const [editedSection, setEditedSection] = useState<Omit<Section, "created_at"> | null>(null);
+  const originalSectionNameRef = useRef<Section | null>(null);
+  // const originalSectionNameRef = useRef<string | null>(null);
+  // const [activeSectionTagIndex, setActiveSectionTagIndex] = useState<number | null>(null);
+  const [selectedSection, setSelectedSection] = useState<Section | null>(null);
+  const [selectedDepartmentForSection, setSelectedDepartmentForSection] = useState<Department | null>(null);
   // 係ユニット 追加・編集
   const [insertUnitMode, setInsertUnitMode] = useState(false);
   const [inputUnitName, setInputUnitName] = useState("");
@@ -356,7 +376,8 @@ const SettingCompanyMemo = () => {
   // const originalUnitNameRef = useRef<string | null>(null);
   // const [activeUnitTagIndex, setActiveUnitTagIndex] = useState<number | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
-  const [selectedDepartmentForUnit, setSelectedDepartmentForUnit] = useState<Department | null>(null);
+  // const [selectedDepartmentForUnit, setSelectedDepartmentForUnit] = useState<Department | null>(null);
+  const [selectedSectionForUnit, setSelectedSectionForUnit] = useState<Section | null>(null);
   // 事業所・営業所 追加・編集
   const [insertOfficeMode, setInsertOfficeMode] = useState(false);
   const [inputOfficeName, setInputOfficeName] = useState("");
@@ -376,6 +397,7 @@ const SettingCompanyMemo = () => {
   const infoIconAddressRef = useRef<HTMLDivElement | null>(null);
   const infoIconLogoRef = useRef<HTMLDivElement | null>(null);
   const infoIconDepartmentRef = useRef<HTMLDivElement | null>(null);
+  const infoIconSectionRef = useRef<HTMLDivElement | null>(null);
   const infoIconUnitRef = useRef<HTMLDivElement | null>(null);
   const infoIconOfficeRef = useRef<HTMLDivElement | null>(null);
   const infoIconZipCodeRef = useRef<HTMLDivElement | null>(null);
@@ -425,6 +447,22 @@ const SettingCompanyMemo = () => {
   // useMutation
   const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟課・セクションリスト取得useQuery🌟 ================================
+  const {
+    data: sectionDataArray,
+    isLoading: isLoadingQuerySection,
+    refetch: refetchQUerySections,
+  } = useQuerySections(userProfileState?.company_id, true);
+  // } = useQuerySections(userProfileState?.company_id);
+
+  // useMutation
+  const {
+    createSectionMutation,
+    updateSectionFieldMutation,
+    updateMultipleSectionFieldsMutation,
+    deleteSectionMutation,
+  } = useMutateSection();
+  // ================================ ✅課・セクションリスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
   const {
     data: unitDataArray,
@@ -838,26 +876,173 @@ const SettingCompanyMemo = () => {
   };
   // ====================== ✅事業部タグをボタンクリックで左右にスクロールする関数✅ ======================
 
-  // ====================== 🌟選択した事業部でユニットを絞り込む関数🌟 ======================
-  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // 🌟課ありパターン
+  // ====================== 🌟選択した事業部で課を絞り込む関数🌟 ======================
+  const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
+
+  useEffect(() => {
+    // sectionが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!sectionDataArray && filteredSectionBySelectedDepartment.length >= 1)
+      return setFilteredSectionBySelectedDepartment([]);
+    // selectの選択中の事業部が空(全て)でsectionDataArrayが存在しているならsectionDataArrayをそのまま更新する
+    if (!selectedDepartmentForSection && sectionDataArray) {
+      setFilteredSectionBySelectedDepartment(sectionDataArray);
+      return;
+    }
+    // 選択中の事業部が変化するか、sectionDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (sectionDataArray && selectedDepartmentForSection) {
+      const filteredUnitArray = sectionDataArray.filter(
+        (unit) => unit.created_by_department_id === selectedDepartmentForSection.id
+      );
+      setFilteredSectionBySelectedDepartment(filteredUnitArray);
+    }
+  }, [selectedDepartmentForSection, sectionDataArray]);
+  // ====================== ✅選択した事業部でユニットを絞り込む関数✅ ======================
+
+  // 🌟課ありパターン
+  // ====================== 🌟選択した課で係を絞り込む関数🌟 ======================
+  const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
 
   useEffect(() => {
     // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
-    if (!unitDataArray && filteredUnitBySelectedDepartment.length >= 1) return setFilteredUnitBySelectedDepartment([]);
+    if (!unitDataArray && filteredUnitBySelectedSection.length >= 1) return setFilteredUnitBySelectedSection([]);
     // selectの選択中の事業部が空(全て)でunitDataArrayが存在しているならunitDataArrayをそのまま更新する
-    if (!selectedDepartmentForUnit && unitDataArray) {
-      setFilteredUnitBySelectedDepartment(unitDataArray);
+    if (!selectedSectionForUnit && unitDataArray) {
+      setFilteredUnitBySelectedSection(unitDataArray);
       return;
     }
     // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
-    if (unitDataArray && selectedDepartmentForUnit) {
+    if (unitDataArray && selectedSectionForUnit) {
       const filteredUnitArray = unitDataArray.filter(
-        (unit) => unit.created_by_department_id === selectedDepartmentForUnit.id
+        (unit) => unit.created_by_section_id === selectedSectionForUnit.id
       );
-      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+      setFilteredUnitBySelectedSection(filteredUnitArray);
     }
-  }, [selectedDepartmentForUnit, unitDataArray]);
+  }, [selectedSectionForUnit, unitDataArray]);
   // ====================== ✅選択した事業部でユニットを絞り込む関数✅ ======================
+
+  // // 🌟課なしパターン
+  // // ====================== 🌟選択した事業部でユニットを絞り込む関数🌟 ======================
+  // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+
+  // useEffect(() => {
+  //   // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+  //   if (!unitDataArray && filteredUnitBySelectedDepartment.length >= 1) return setFilteredUnitBySelectedDepartment([]);
+  //   // selectの選択中の事業部が空(全て)でunitDataArrayが存在しているならunitDataArrayをそのまま更新する
+  //   if (!selectedDepartmentForUnit && unitDataArray) {
+  //     setFilteredUnitBySelectedDepartment(unitDataArray);
+  //     return;
+  //   }
+  //   // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+  //   if (unitDataArray && selectedDepartmentForUnit) {
+  //     const filteredUnitArray = unitDataArray.filter(
+  //       (unit) => unit.created_by_department_id === selectedDepartmentForUnit.id
+  //     );
+  //     setFilteredUnitBySelectedDepartment(filteredUnitArray);
+  //   }
+  // }, [selectedDepartmentForUnit, unitDataArray]);
+  // // ====================== ✅選択した事業部でユニットを絞り込む関数✅ ======================
+
+  // ====================== 🌟課・セクションタグをボタンクリックで左右にスクロールする関数🌟 ======================
+  const rowSectionContainer = useRef<HTMLDivElement | null>(null);
+  const rowSectionRef = useRef<HTMLDivElement | null>(null);
+  const arrowIconSectionAreaLeft = useRef<HTMLDivElement | null>(null);
+  const arrowIconSectionAreaRight = useRef<HTMLDivElement | null>(null);
+  const [isMovedSection, setIsMovedSection] = useState(false);
+
+  // rowグループが親コンテナの横幅を超えてなければ、矢印エリアは非表示にする
+  useEffect(() => {
+    if (
+      !rowSectionContainer.current ||
+      !rowSectionRef.current ||
+      !arrowIconSectionAreaLeft.current ||
+      !arrowIconSectionAreaRight.current
+    )
+      return;
+    console.log(
+      "横幅",
+      // rowSectionRef.current.clientWidth,
+      rowSectionRef.current.scrollWidth,
+      rowSectionContainer.current.clientWidth,
+      // rowSectionContainer.current.scrollWidth,
+      rowSectionRef.current.scrollWidth < rowSectionContainer.current.clientWidth
+      // rowSectionRef.current.getBoundingClientRect().width,
+      // rowSectionContainer.current.getBoundingClientRect().width
+    );
+    console.log("left", rowSectionRef.current.scrollLeft);
+    if (rowSectionRef.current.scrollWidth <= rowSectionContainer.current.clientWidth) {
+      rowSectionContainer.current.classList.add(`${styles.inactive}`);
+      arrowIconSectionAreaLeft.current.style.opacity = "0";
+      arrowIconSectionAreaLeft.current.style.pointerEvents = "none";
+      arrowIconSectionAreaRight.current.style.opacity = "0";
+      arrowIconSectionAreaRight.current.style.pointerEvents = "none";
+    } else if (rowSectionRef.current.scrollWidth > rowSectionContainer.current.clientWidth) {
+      rowSectionContainer.current.classList.remove(`${styles.inactive}`);
+      let maxScrollableWidth = rowSectionRef.current.scrollWidth - rowSectionRef.current.clientWidth;
+      if (rowSectionRef.current.scrollLeft === 0) {
+        // 左端なら
+        arrowIconSectionAreaRight.current.style.opacity = "1";
+        arrowIconSectionAreaRight.current.style.pointerEvents = "auto";
+      } else if (rowSectionRef.current.scrollLeft === maxScrollableWidth) {
+        // 右端なら
+        arrowIconSectionAreaLeft.current.style.opacity = "1";
+        arrowIconSectionAreaLeft.current.style.pointerEvents = "auto";
+      } else {
+        // 真ん中なら
+        arrowIconSectionAreaRight.current.style.opacity = "1";
+        arrowIconSectionAreaRight.current.style.pointerEvents = "auto";
+        arrowIconSectionAreaLeft.current.style.opacity = "1";
+        arrowIconSectionAreaLeft.current.style.pointerEvents = "auto";
+      }
+    }
+  }, [sectionDataArray, editSectionMode, insertSectionMode, filteredSectionBySelectedDepartment]);
+
+  const handleClickScrollSection = (direction: string) => {
+    if (isMovedSection) return;
+    if (rowSectionRef.current) {
+      setIsMovedSection(true);
+      const { scrollLeft, clientWidth } = rowSectionRef.current;
+      console.log("scrollLeft", scrollLeft);
+      let scrollTo = direction === "left" ? scrollLeft - clientWidth : scrollLeft + clientWidth;
+      rowSectionRef.current.scrollTo({ left: scrollTo, behavior: "smooth" });
+
+      if (direction === "right" && arrowIconSectionAreaLeft?.current) {
+        arrowIconSectionAreaLeft.current.style.opacity = "1";
+        arrowIconSectionAreaLeft.current.style.pointerEvents = "auto";
+      }
+      if (direction === "left" && arrowIconSectionAreaRight?.current) {
+        arrowIconSectionAreaRight.current.style.opacity = "1";
+        arrowIconSectionAreaRight.current.style.pointerEvents = "auto";
+      }
+      setTimeout(() => {
+        if (arrowIconSectionAreaLeft.current && rowSectionRef?.current && arrowIconSectionAreaRight.current) {
+          const { scrollLeft: scrollLeftAfterEnd } = rowSectionRef.current;
+          // 左アイコンエリア
+          // arrowIconSectionAreaLeft.current.style.display = scrollLeftAfterEnd > 0 ? "flex" : "none";
+          arrowIconSectionAreaLeft.current.style.opacity = scrollLeftAfterEnd > 0 ? "1" : "0";
+          arrowIconSectionAreaLeft.current.style.pointerEvents = scrollLeftAfterEnd > 0 ? "auto" : "none";
+          // 右アイコンエリア
+          let maxScrollableWidth = rowSectionRef.current.scrollWidth - rowSectionRef.current.clientWidth;
+          // arrowIconSectionAreaRight.current.style.display = maxScrollableWidth > scrollLeftAfterEnd + 0 ? "flex" : "none";
+          arrowIconSectionAreaRight.current.style.opacity =
+            Math.round(maxScrollableWidth) > Math.round(scrollLeftAfterEnd) ? "1" : "0";
+          arrowIconSectionAreaRight.current.style.pointerEvents =
+            Math.round(maxScrollableWidth) > Math.round(scrollLeftAfterEnd) ? "auto" : "none";
+          console.log(
+            "scrollLeftAfterEnd",
+            scrollLeftAfterEnd,
+            "maxScrollableWidth",
+            maxScrollableWidth,
+            "maxScrollableWidth > scrollLeftAfterEnd ",
+            maxScrollableWidth > scrollLeftAfterEnd
+          );
+          setIsMovedSection(false);
+        }
+        // }, 500);
+      }, 680);
+    }
+  };
+  // ====================== ✅課・セクションタグをボタンクリックで左右にスクロールする関数✅ ======================
 
   // ====================== 🌟係・チームタグをボタンクリックで左右にスクロールする関数🌟 ======================
   const rowUnitContainer = useRef<HTMLDivElement | null>(null);
@@ -911,7 +1096,8 @@ const SettingCompanyMemo = () => {
         arrowIconUnitAreaLeft.current.style.pointerEvents = "auto";
       }
     }
-  }, [unitDataArray, editUnitMode, insertUnitMode, filteredUnitBySelectedDepartment]);
+  }, [unitDataArray, editUnitMode, insertUnitMode, filteredUnitBySelectedSection]);
+  // }, [unitDataArray, editUnitMode, insertUnitMode, filteredUnitBySelectedDepartment]);
 
   const handleClickScrollUnit = (direction: string) => {
     if (isMovedUnit) return;
@@ -958,7 +1144,7 @@ const SettingCompanyMemo = () => {
       }, 680);
     }
   };
-  // ====================== ✅事業部タグをボタンクリックで左右にスクロールする関数✅ ======================
+  // ====================== ✅係・チームタグをボタンクリックで左右にスクロールする関数✅ ======================
 
   // ====================== 🌟事業所・営業所タグをボタンクリックで左右にスクロールする関数🌟 ======================
   const rowOfficeContainer = useRef<HTMLDivElement | null>(null);
@@ -1256,8 +1442,14 @@ const SettingCompanyMemo = () => {
     calendarForFiscalBase,
     // "🌟カレンダーベースの営業日も追加した完全リストuseQuery🌟 calendarForCalendarBase",
     // calendarForCalendarBase,
-    "departmentDataArray",
-    departmentDataArray
+    "事業部 departmentDataArray",
+    departmentDataArray,
+    "課・セクション sectionDataArray",
+    sectionDataArray,
+    "係・チーム unitDataArray",
+    unitDataArray,
+    "事業所 officeDataArray",
+    officeDataArray
   );
 
   return (
@@ -2046,6 +2238,450 @@ const SettingCompanyMemo = () => {
 
           <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
 
+          {/* 課・セクションリスト */}
+          {/* <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}> */}
+          <div
+            className={`mt-[15px] flex w-full flex-col ${
+              !!sectionDataArray && sectionDataArray.length >= 1
+                ? insertSectionMode || editSectionMode
+                  ? `min-h-[calc(112px+15px)]`
+                  : `min-h-[112px]`
+                : insertSectionMode || editSectionMode
+                ? `min-h-[calc(112px+15px)]`
+                : `min-h-[112px]`
+            }`}
+          >
+            {/* セクションタイトルエリア */}
+            <div className="flex items-center space-x-4">
+              <div className={`${styles.section_title}`}>
+                <div
+                  className="flex max-w-max items-center space-x-[9px]"
+                  onMouseEnter={(e) => {
+                    if (
+                      infoIconSectionRef.current &&
+                      infoIconSectionRef.current.classList.contains(styles.animate_ping)
+                    ) {
+                      infoIconSectionRef.current.classList.remove(styles.animate_ping);
+                    }
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: "※事業部内に課・セクションを作成することで",
+                      content2: "課単位で商品、営業、売上データを管理できます。",
+                      marginTop: 33,
+                      // marginTop: 9,
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <span>課・セクション</span>
+                  <div className="flex-center relative h-[16px] w-[16px] rounded-full">
+                    <div
+                      ref={infoIconSectionRef}
+                      className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${
+                        !!sectionDataArray && sectionDataArray.length >= 1 ? `` : styles.animate_ping
+                      }`}
+                    ></div>
+                    <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                  </div>
+                </div>
+              </div>
+
+              <div className={`flex space-x-[6px] text-[13px] text-[var(--color-text-brand-f)]`}>
+                <select
+                  className={`${styles.language_btn} ${styles.btn_common} transition-bg02`}
+                  value={!!selectedDepartmentForSection ? selectedDepartmentForSection.id : ""}
+                  onChange={(e) => {
+                    // 課ありパターン
+                    if (!departmentDataArray) return;
+                    // すべての事業部を選択したらnullで更新する
+                    if (e.target.value === "") {
+                      setSelectedDepartmentForSection(null);
+                      return;
+                    }
+                    const selectedDepartmentObj = departmentDataArray.find((obj) => obj.id === e.target.value);
+                    console.log("e.target.value", e.target.value, "selectedDepartmentObj", selectedDepartmentObj);
+                    if (selectedDepartmentObj === undefined)
+                      return alert("エラー：事業部データの取得にエラーが発生しました。");
+                    setSelectedDepartmentForSection(selectedDepartmentObj);
+                  }}
+                >
+                  {/* 課ありパターン */}
+                  <option value="">すべての事業部</option>
+                  {!!departmentDataArray &&
+                    departmentDataArray.length >= 1 &&
+                    [...departmentDataArray]
+                      .sort((a, b) => {
+                        if (a.department_name === null) return 1; // null値をリストの最後に移動
+                        if (b.department_name === null) return -1;
+                        return a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en");
+                      })
+                      .map((department, index) => (
+                        <option key={department.id} value={department.id}>
+                          {department.department_name}
+                        </option>
+                      ))}
+                </select>
+              </div>
+              {/* <div className={`flex flex-col text-[13px] text-[var(--color-text-sub)]`}> */}
+              {/* <div className={`flex flex-col text-[13px] text-[var(--color-text-brand-f)]`}>
+                <p>※事業部内に課・セクションを作成することで係単位で商品、営業、売上データを管理できます。</p>
+              </div> */}
+            </div>
+
+            {/* 説明エリア */}
+            {/* {!insertSectionMode && !editSectionMode && (
+              <div className="mt-[5px] flex items-start space-x-4 pl-[100px] text-[13px] text-[var(--color-text-sub)]">
+                <p>※事業部内に課・セクションを作成することで係単位で商品、営業、売上データを管理できます。</p>
+              </div>
+            )} */}
+            {(insertSectionMode || editSectionMode) && (
+              <div className="mt-[15px] flex items-start space-x-4 text-[13px] text-[var(--color-text-brand-f)]">
+                <p>課・セクションが属する事業部を選択してから課・セクションを保存してください。</p>
+              </div>
+            )}
+
+            {/* コンテンツエリア通常 */}
+            {!editSectionMode && !insertSectionMode && (
+              <div
+                className={`flex h-full min-h-[84px] w-full items-center justify-between ${
+                  !!sectionDataArray && sectionDataArray.length >= 1 ? `mb-[0px] mt-[0px]` : `mt-[0px] `
+                }`}
+                // className={`flex h-full min-h-[59px] w-full items-start justify-between ${
+                //   !!sectionDataArray && sectionDataArray.length >= 1 ? `mb-[0px] mt-[25px]` : `mt-[15px] `
+                // }`}
+                // className={`flex h-full min-h-[59px] w-full items-start justify-between ${
+                //   !!sectionDataArray && sectionDataArray.length >= 1 ? `mb-[0px] mt-[24px]` : `mt-[15px] `
+                // }`}
+              >
+                {(!sectionDataArray || sectionDataArray.length === 0) && (
+                  <div className={`${styles.section_value}`}>未設定</div>
+                )}
+                {/* mapメソッドで事業部タグリストを展開 */}
+                {/* {true && ( */}
+                {!!sectionDataArray && sectionDataArray.length >= 1 && (
+                  <div
+                    ref={rowSectionContainer}
+                    className={`relative min-w-[calc(761px-78px-20px)] max-w-[calc(761px-78px-20px)] overflow-x-hidden ${styles.section_tag_container}`}
+                  >
+                    {/* 左矢印エリア(シャドウあり) */}
+                    <div
+                      ref={arrowIconSectionAreaLeft}
+                      className={`${styles.scroll_icon_area}`}
+                      // style={{ ...(isMoved && { display: "none" }) }}
+                    >
+                      <div
+                        className={`flex-center ${styles.scroll_icon}`}
+                        onClick={() => !isMovedSection && handleClickScrollSection("left")}
+                        // onClick={() => {
+                        //   if (tabPage === 1) return;
+                        //   setTabPage((prev) => {
+                        //     const newPage = prev - 1;
+                        //     return newPage;
+                        //   });
+                        // }}
+                      >
+                        <BsChevronLeft className="text-[var(--color-text-title)]" />
+                      </div>
+                    </div>
+                    {/* Rowグループ */}
+                    <div
+                      ref={rowSectionRef}
+                      className={`${styles.row_group} scrollbar-hide mr-[50px] flex items-center space-x-[12px] overflow-x-scroll `}
+                    >
+                      {[...filteredSectionBySelectedDepartment]
+                        .sort((a, b) => {
+                          if (a.section_name === null) return 1; // null値をリストの最後に移動
+                          if (b.section_name === null) return -1;
+                          return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                        })
+                        .map((sectionData, index) => (
+                          <div
+                            key={index}
+                            className={`transition-bg03 flex h-[35px] min-h-[35px] min-w-max max-w-[150px] cursor-pointer select-none items-center justify-center space-x-2 rounded-full border border-solid border-[#d6dbe0] px-[18px] text-[14px] hover:border-[var(--color-bg-brand-f)] ${
+                              selectedSection?.id === sectionData.id
+                                ? `border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-fd0)] text-[#fff]`
+                                : `text-[var(--color-text-title)]`
+                            }`}
+                            onClick={() => {
+                              if (selectedSection?.id === sectionData.id) return setSelectedSection(null);
+                              setSelectedSection(sectionData);
+                            }}
+                          >
+                            <Image
+                              // src="/assets/images/icons/business/icons8-businesswoman-94.png"
+                              src={sectionTagIcons[index % sectionTagIcons.length].iconURL}
+                              alt="tag"
+                              className="ml-[-4px] w-[22px]"
+                              width={22}
+                              height={22}
+                            />
+                            <span className="truncate text-[13px]">{sectionData.section_name}</span>
+                          </div>
+                        ))}
+                      {/* テストデータ */}
+                      {/* {Array(12)
+                        .fill(null)
+                        .map((_, index) => (
+                          <div
+                            key={index}
+                            className="transition-bg03 flex h-[35px] min-h-[35px] min-w-max max-w-[150px] cursor-pointer select-none items-center justify-center space-x-2 rounded-full border border-solid border-[#d6dbe0] px-[18px] text-[14px] text-[var(--color-text-title)] hover:border-[var(--color-bg-brand-f)]"
+                          >
+                            <Image
+                              src={sectionTagIcons[index % sectionTagIcons.length].iconURL}
+                              alt="tag"
+                              className="ml-[-4px] w-[22px]"
+                              width={22}
+                              height={22}
+                            />
+                            <span className="truncate text-[13px]">
+                              {sectionTagIcons[index % sectionTagIcons.length].name}
+                            </span>
+                          </div>
+                        ))} */}
+                    </div>
+
+                    {/* 右矢印エリア(シャドウあり) */}
+                    <div ref={arrowIconSectionAreaRight} className={`${styles.scroll_icon_area}`}>
+                      <div
+                        className={`flex-center ${styles.scroll_icon} ${isMovedSection && "opacity-0"}`}
+                        onClick={() => !isMovedSection && handleClickScrollSection("right")}
+                      >
+                        <BsChevronRight className="text-[var(--color-text-title)]" />
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className={`relative`}>
+                  {selectedSection !== null && !!sectionDataArray && (
+                    <>
+                      <div
+                        className={`${styles.section_title} ${styles.delete} ${styles.delete_btn}`}
+                        onClick={async () => {
+                          // setShowConfirmCancelModal(true);
+                          if (deleteSectionMutation.isLoading) return;
+                          // if (invertFalsyExcludeZero(activeSectionTagIndex)) return;
+                          if (!selectedSection) return;
+                          // if (!sectionDataArray[activeUnitTagIndex]) return;
+                          if (!selectedSection.id) return;
+
+                          await deleteSectionMutation.mutateAsync(selectedSection.id);
+                          setSelectedSection(null);
+                        }}
+                      >
+                        {!deleteSectionMutation.isLoading && <span>削除</span>}
+                        {deleteSectionMutation.isLoading && (
+                          <div className="h-full w-full">
+                            <SpinnerIDS3 fontSize={20} width={20} height={20} />
+                          </div>
+                        )}
+                      </div>
+                      <div
+                        className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} ${styles.active} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                        onClick={() => {
+                          if (deleteSectionMutation.isLoading) return;
+                          if (!selectedSection) return;
+
+                          // 課なしパターン
+                          const sectionPayload = {
+                            id: selectedSection.id,
+                            created_by_company_id: selectedSection.created_by_company_id,
+                            created_by_department_id: selectedSection.created_by_department_id,
+                            section_name: selectedSection.section_name,
+                          };
+                          originalSectionNameRef.current = selectedSection;
+                          console.log("sectionPayload", sectionPayload);
+                          setEditedSection(sectionPayload);
+                          setEditSectionMode(true);
+                        }}
+                      >
+                        編集
+                      </div>
+                    </>
+                  )}
+                  {selectedSection === null && (
+                    <div
+                      className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                      onClick={() => {
+                        setInsertSectionMode(true);
+                      }}
+                    >
+                      追加
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* INSERT 新たに課・セクションを作成するinputエリア */}
+            {insertSectionMode && (
+              <div className={`mt-[5px] flex h-full min-h-[59px] w-full items-start justify-between`}>
+                <input
+                  type="text"
+                  placeholder="課・セクション名を入力してください"
+                  required
+                  autoFocus
+                  className={`${styles.input_box}`}
+                  value={inputSectionName}
+                  onChange={(e) => setInputSectionName(e.target.value)}
+                  onBlur={() => setInputSectionName(toHalfWidthAndSpace(inputSectionName.trim()))}
+                  // onBlur={() => setInputSectionName(inputSectionName.trim())}
+                />
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      if (createSectionMutation.isLoading) return;
+                      setInputSectionName("");
+                      setInsertSectionMode(false);
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                    onClick={async () => {
+                      if (createSectionMutation.isLoading) return;
+                      // 課・セクションの編集
+                      if (inputSectionName === "") {
+                        setInputSectionName("");
+                        setInsertSectionMode(false);
+                        return;
+                      }
+                      if (!userProfileState?.company_id) {
+                        alert("エラー：データが見つかりませんでした。");
+                        setInputSectionName("");
+                        setInsertSectionMode(false);
+                        return;
+                      }
+
+                      if (!selectedDepartmentForSection || !selectedDepartmentForSection?.id) {
+                        alert("係・チームが属する事業部を選択してください。");
+                        return;
+                      }
+                      const insertFieldPayload = {
+                        created_by_company_id: userProfileState.company_id,
+                        created_by_department_id: selectedDepartmentForSection.id,
+                        section_name: inputSectionName,
+                      };
+                      console.log("insertFieldPayload", insertFieldPayload);
+
+                      await createSectionMutation.mutateAsync(insertFieldPayload);
+
+                      setInputSectionName("");
+                      setInsertSectionMode(false);
+                      setSelectedDepartmentForSection(null);
+                    }}
+                  >
+                    {!createSectionMutation.isLoading && <span>保存</span>}
+                    {createSectionMutation.isLoading && (
+                      <div className="relative h-full w-full">
+                        <SpinnerIDS3 fontSize={20} width={20} height={20} color="#fff" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* UPDATE/DELETE 既存の課・セクションを編集、更新するinputエリア */}
+            {editSectionMode && !!editedSection && (
+              <div className={`mt-[5px] flex h-full min-h-[59px] w-full items-start justify-between`}>
+                <input
+                  type="text"
+                  placeholder="課・セクション名を入力してください"
+                  required
+                  autoFocus
+                  className={`${styles.input_box}`}
+                  value={editedSection?.section_name ? editedSection.section_name : ""}
+                  onChange={(e) => setEditedSection({ ...editedSection, section_name: e.target.value })}
+                  onBlur={() => {
+                    if (!editedSection.section_name) return;
+                    const newName = toHalfWidthAndSpace(editedSection.section_name.trim());
+                    setEditedSection({ ...editedSection, section_name: newName });
+                  }}
+                />
+                <div className="flex">
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer whitespace-nowrap rounded-[8px] bg-[var(--setting-side-bg-select)] px-[20px] py-[10px] ${styles.section_title} hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      if (updateMultipleSectionFieldsMutation.isLoading) return;
+                      setEditedSection(null);
+                      setEditSectionMode(false);
+                      originalSectionNameRef.current = null;
+                      setSelectedSection(null);
+                    }}
+                  >
+                    キャンセル
+                  </div>
+                  <div
+                    className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${
+                      styles.save_section_title
+                    } text-[#fff]  ${
+                      updateMultipleSectionFieldsMutation.isLoading ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
+                    }`}
+                    onClick={async () => {
+                      if (updateMultipleSectionFieldsMutation.isLoading) return;
+                      // 事業部の編集
+                      // if (!editedSection || editedSection.section_name === originalSectionNameRef.current) {
+                      if (
+                        !editedSection ||
+                        (editedSection.section_name === originalSectionNameRef.current?.section_name &&
+                          editedSection.created_by_department_id === selectedDepartmentForSection?.id)
+                      ) {
+                        setEditedSection(null);
+                        setEditSectionMode(false);
+                        setSelectedSection(null);
+                        return;
+                      }
+                      if (editedSection.section_name === "") return alert(`課・セクション名を入力してください。`);
+                      if (
+                        !selectedDepartmentForSection ||
+                        !selectedDepartmentForSection?.id ||
+                        (editedSection.section_name === originalSectionNameRef.current?.section_name &&
+                          selectedDepartmentForSection === null)
+                      )
+                        return alert(`課・セクションが属する事業部を選択してください。`);
+
+                      const updateObject = {
+                        section_name: editedSection.section_name,
+                        created_by_department_id: selectedDepartmentForSection.id,
+                      };
+                      const updateProductCategoryLargePayload = {
+                        updateObject: updateObject,
+                        id: editedSection.id,
+                      };
+
+                      await updateMultipleSectionFieldsMutation.mutateAsync(updateProductCategoryLargePayload);
+
+                      if (!!originalSectionNameRef.current?.id) {
+                        originalSectionNameRef.current = {
+                          ...originalSectionNameRef.current,
+                          section_name: editedSection.section_name,
+                          created_by_department_id: selectedDepartmentForSection.id,
+                        };
+                      }
+
+                      setEditedSection(null);
+                      setEditSectionMode(false);
+                      setSelectedSection(null);
+                    }}
+                  >
+                    {!updateMultipleSectionFieldsMutation.isLoading && <span>保存</span>}
+                    {updateMultipleSectionFieldsMutation.isLoading && (
+                      <div className="relative h-full w-full">
+                        <SpinnerIDS3 fontSize={20} width={20} height={20} color="#fff" />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          {/* 課・セクションここまで */}
+
+          <div className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`}></div>
+
           {/* 係・チームリスト */}
           {/* <div className={`mt-[20px] flex min-h-[95px] w-full flex-col`}> */}
           <div
@@ -2054,6 +2690,8 @@ const SettingCompanyMemo = () => {
                 ? insertUnitMode || editUnitMode
                   ? `min-h-[calc(112px+15px)]`
                   : `min-h-[112px]`
+                : insertUnitMode || editUnitMode
+                ? `min-h-[calc(112px+15px)]`
                 : `min-h-[112px]`
               // !!unitDataArray && unitDataArray.length >= 1 ? `min-h-[135px]` : `min-h-115px]`
               // !!unitDataArray && unitDataArray.length >= 1 ? `min-h-[105px]` : `min-h-[95px]`
@@ -2073,7 +2711,7 @@ const SettingCompanyMemo = () => {
                     handleOpenTooltip({
                       e: e,
                       display: "top",
-                      content: "※事業部内に係・チームを作成することで",
+                      content: "※課・セクション内に係・チームを作成することで",
                       content2: "係単位で商品、営業、売上データを管理できます。",
                       marginTop: 33,
                       // marginTop: 9,
@@ -2097,29 +2735,53 @@ const SettingCompanyMemo = () => {
               <div className={`flex space-x-[6px] text-[13px] text-[var(--color-text-brand-f)]`}>
                 <select
                   className={`${styles.language_btn} ${styles.btn_common} transition-bg02`}
-                  value={!!selectedDepartmentForUnit ? selectedDepartmentForUnit.id : ""}
+                  // value={!!selectedDepartmentForUnit ? selectedDepartmentForUnit.id : ""}
+                  value={!!selectedSectionForUnit ? selectedSectionForUnit.id : ""}
                   onChange={(e) => {
-                    if (!departmentDataArray) return;
-                    // すべての事業部を閃t無くしてらnullで更新する
+                    // 課ありパターン
+                    if (!sectionDataArray) return;
+                    // すべての課を選択したらnullで更新する
                     if (e.target.value === "") {
-                      // if (!!originalUnitNameRef.current) {
-                      //   originalUnitNameRef.current = {
-                      //     ...originalUnitNameRef.current,
-                      //     created_by_department_id: "",
-                      //   };
-                      // }
-                      setSelectedDepartmentForUnit(null);
+                      setSelectedSectionForUnit(null);
                       return;
                     }
-                    const selectedDepartmentObj = departmentDataArray.find((obj) => obj.id === e.target.value);
-                    console.log("e.target.value", e.target.value, "selectedDepartmentObj", selectedDepartmentObj);
-                    if (selectedDepartmentObj === undefined)
+                    const selectedSectionObj = sectionDataArray.find((obj) => obj.id === e.target.value);
+                    console.log("e.target.value", e.target.value, "selectedSectionObj", selectedSectionObj);
+                    if (selectedSectionObj === undefined)
                       return alert("エラー：事業部データの取得にエラーが発生しました。");
-                    setSelectedDepartmentForUnit(selectedDepartmentObj);
+                    setSelectedSectionForUnit(selectedSectionObj);
+
+                    // 課なしパターン
+                    // if (!departmentDataArray) return;
+                    // // すべての事業部を選択したらnullで更新する
+                    // if (e.target.value === "") {
+                    //   setSelectedDepartmentForUnit(null);
+                    //   return;
+                    // }
+                    // const selectedDepartmentObj = departmentDataArray.find((obj) => obj.id === e.target.value);
+                    // console.log("e.target.value", e.target.value, "selectedDepartmentObj", selectedDepartmentObj);
+                    // if (selectedDepartmentObj === undefined)
+                    //   return alert("エラー：事業部データの取得にエラーが発生しました。");
+                    // setSelectedDepartmentForUnit(selectedDepartmentObj);
                   }}
                 >
-                  {/* <option value="1">すべての事業部すべての事業部すべての事業部すべての事業部</option> */}
-                  <option value="">すべての事業部</option>
+                  {/* 課ありパターン */}
+                  <option value="">すべての課・セクション</option>
+                  {!!sectionDataArray &&
+                    sectionDataArray.length >= 1 &&
+                    [...sectionDataArray]
+                      .sort((a, b) => {
+                        if (a.section_name === null) return 1; // null値をリストの最後に移動
+                        if (b.section_name === null) return -1;
+                        return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                      })
+                      .map((section, index) => (
+                        <option key={section.id} value={section.id}>
+                          {section.section_name}
+                        </option>
+                      ))}
+                  {/* 課なしパターン */}
+                  {/* <option value="">すべての事業部</option>
                   {!!departmentDataArray &&
                     departmentDataArray.length >= 1 &&
                     [...departmentDataArray]
@@ -2132,7 +2794,7 @@ const SettingCompanyMemo = () => {
                         <option key={department.id} value={department.id}>
                           {department.department_name}
                         </option>
-                      ))}
+                      ))} */}
                 </select>
               </div>
               {/* <div className={`flex flex-col text-[13px] text-[var(--color-text-sub)]`}> */}
@@ -2149,7 +2811,8 @@ const SettingCompanyMemo = () => {
             )} */}
             {(insertUnitMode || editUnitMode) && (
               <div className="mt-[15px] flex items-start space-x-4 text-[13px] text-[var(--color-text-brand-f)]">
-                <p>係・チームが属する事業部を選択してから係・チームを保存してください。</p>
+                {/* <p>係・チームが属する事業部を選択してから係・チームを保存してください。</p> */}
+                <p>係・チームが属する課・セクションを選択してから係・チームを保存してください。</p>
               </div>
             )}
 
@@ -2202,8 +2865,8 @@ const SettingCompanyMemo = () => {
                       className={`${styles.row_group} scrollbar-hide mr-[50px] flex items-center space-x-[12px] overflow-x-scroll `}
                     >
                       {
-                        // [...unitDataArray]
-                        [...filteredUnitBySelectedDepartment]
+                        // [...filteredUnitBySelectedDepartment]
+                        [...filteredUnitBySelectedSection]
                           .sort((a, b) => {
                             if (a.unit_name === null) return 1; // null値をリストの最後に移動
                             if (b.unit_name === null) return -1;
@@ -2295,13 +2958,21 @@ const SettingCompanyMemo = () => {
                         className={`transition-base01 min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] ${styles.section_title} ${styles.active} hover:bg-[var(--setting-side-bg-select-hover)]`}
                         onClick={() => {
                           if (deleteUnitMutation.isLoading) return;
-                          // if (invertFalsyExcludeZero(activeUnitTagIndex)) return;
                           if (!selectedUnit) return;
-                          // if (!unitDataArray[activeUnitTagIndex]) return;
+
+                          // // 課なしパターン
+                          // const unitPayload = {
+                          //   id: selectedUnit.id,
+                          //   created_by_company_id: selectedUnit.created_by_company_id,
+                          //   created_by_department_id: selectedUnit.created_by_department_id,
+                          //   unit_name: selectedUnit.unit_name,
+                          // };
+                          // 課なしパターン
                           const unitPayload = {
                             id: selectedUnit.id,
                             created_by_company_id: selectedUnit.created_by_company_id,
                             created_by_department_id: selectedUnit.created_by_department_id,
+                            created_by_section_id: selectedUnit.created_by_section_id,
                             unit_name: selectedUnit.unit_name,
                           };
                           // originalUnitNameRef.current = selectedUnit.unit_name;
@@ -2341,6 +3012,7 @@ const SettingCompanyMemo = () => {
                   value={inputUnitName}
                   onChange={(e) => setInputUnitName(e.target.value)}
                   onBlur={() => setInputUnitName(toHalfWidthAndSpace(inputUnitName.trim()))}
+                  // onBlur={() => setInputUnitName(inputUnitName.trim())}
                 />
                 <div className="flex">
                   <div
@@ -2357,7 +3029,7 @@ const SettingCompanyMemo = () => {
                     className={`transition-base01 ml-[10px] h-[40px] min-w-[78px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[20px] py-[10px] text-center ${styles.save_section_title} text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
                     onClick={async () => {
                       if (createUnitMutation.isLoading) return;
-                      // 事業部の編集
+                      // 係・チームの編集
                       if (inputUnitName === "") {
                         setInputUnitName("");
                         setInsertUnitMode(false);
@@ -2369,14 +3041,33 @@ const SettingCompanyMemo = () => {
                         setInsertUnitMode(false);
                         return;
                       }
-                      if (!selectedDepartmentForUnit || !selectedDepartmentForUnit?.id) {
-                        alert("係・チームが属する事業部を選択してください。");
+                      // // 課なしパターン
+                      // if (!selectedDepartmentForUnit || !selectedDepartmentForUnit?.id) {
+                      //   alert("係・チームが属する事業部を選択してください。");
+                      //   return;
+                      // }
+                      // const insertFieldPayload = {
+                      //   created_by_company_id: userProfileState.company_id,
+                      //   created_by_department_id: selectedDepartmentForUnit.id,
+                      //   unit_name: inputUnitName,
+                      // };
+                      // console.log("insertFieldPayload", insertFieldPayload);
+
+                      // await createUnitMutation.mutateAsync(insertFieldPayload);
+
+                      // setInputUnitName("");
+                      // setInsertUnitMode(false);
+                      // setSelectedDepartmentForUnit(null);
+
+                      // 課ありパターン
+                      if (!selectedSectionForUnit || !selectedSectionForUnit?.id) {
+                        alert("係・チームが属する課・セクションを選択してください。");
                         return;
                       }
-
                       const insertFieldPayload = {
                         created_by_company_id: userProfileState.company_id,
-                        created_by_department_id: selectedDepartmentForUnit.id,
+                        created_by_department_id: selectedSectionForUnit.created_by_department_id,
+                        created_by_section_id: selectedSectionForUnit.id,
                         unit_name: inputUnitName,
                       };
                       console.log("insertFieldPayload", insertFieldPayload);
@@ -2385,7 +3076,7 @@ const SettingCompanyMemo = () => {
 
                       setInputUnitName("");
                       setInsertUnitMode(false);
-                      setSelectedDepartmentForUnit(null);
+                      setSelectedSectionForUnit(null);
                     }}
                   >
                     {!createUnitMutation.isLoading && <span>保存</span>}
@@ -2436,13 +3127,13 @@ const SettingCompanyMemo = () => {
                       updateMultipleUnitFieldsMutation.isLoading ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
                     }`}
                     onClick={async () => {
+                      // 課ありパターン
                       if (updateMultipleUnitFieldsMutation.isLoading) return;
-                      // 事業部の編集
-                      // if (!editedUnit || editedUnit.unit_name === originalUnitNameRef.current) {
+                      // 課の編集
                       if (
                         !editedUnit ||
                         (editedUnit.unit_name === originalUnitNameRef.current?.unit_name &&
-                          editedUnit.created_by_department_id === selectedDepartmentForUnit?.id)
+                          editedUnit.created_by_section_id === selectedSectionForUnit?.id)
                       ) {
                         setEditedUnit(null);
                         setEditUnitMode(false);
@@ -2451,21 +3142,18 @@ const SettingCompanyMemo = () => {
                       }
                       if (editedUnit.unit_name === "") return alert(`係・チーム名を入力してください。`);
                       if (
-                        !selectedDepartmentForUnit ||
-                        !selectedDepartmentForUnit?.id ||
+                        !selectedSectionForUnit ||
+                        !selectedSectionForUnit?.created_by_department_id ||
+                        !selectedSectionForUnit?.id ||
                         (editedUnit.unit_name === originalUnitNameRef.current?.unit_name &&
-                          selectedDepartmentForUnit === null)
+                          selectedSectionForUnit === null)
                       )
                         return alert(`係・チームが属する事業部を選択してください。`);
 
-                      // const updateFieldPayload = {
-                      //   fieldName: "unit_name",
-                      //   value: editedUnit.unit_name,
-                      //   id: editedUnit.id,
-                      // };
                       const updateObject = {
                         unit_name: editedUnit.unit_name,
-                        created_by_department_id: selectedDepartmentForUnit.id,
+                        created_by_department_id: selectedSectionForUnit.created_by_department_id,
+                        created_by_section_id: selectedSectionForUnit.id,
                       };
                       const updateProductCategoryLargePayload = {
                         updateObject: updateObject,
@@ -2478,13 +3166,60 @@ const SettingCompanyMemo = () => {
                         originalUnitNameRef.current = {
                           ...originalUnitNameRef.current,
                           unit_name: editedUnit.unit_name,
-                          created_by_department_id: selectedDepartmentForUnit.id,
+                          created_by_department_id: selectedSectionForUnit.created_by_department_id,
+                          created_by_section_id: selectedSectionForUnit.id,
                         };
                       }
 
                       setEditedUnit(null);
                       setEditUnitMode(false);
                       setSelectedUnit(null);
+
+                      // 課なしパターン
+                      // if (updateMultipleUnitFieldsMutation.isLoading) return;
+                      // // 事業部の編集
+                      // // if (!editedUnit || editedUnit.unit_name === originalUnitNameRef.current) {
+                      // if (
+                      //   !editedUnit ||
+                      //   (editedUnit.unit_name === originalUnitNameRef.current?.unit_name &&
+                      //     editedUnit.created_by_department_id === selectedDepartmentForUnit?.id)
+                      // ) {
+                      //   setEditedUnit(null);
+                      //   setEditUnitMode(false);
+                      //   setSelectedUnit(null);
+                      //   return;
+                      // }
+                      // if (editedUnit.unit_name === "") return alert(`係・チーム名を入力してください。`);
+                      // if (
+                      //   !selectedDepartmentForUnit ||
+                      //   !selectedDepartmentForUnit?.id ||
+                      //   (editedUnit.unit_name === originalUnitNameRef.current?.unit_name &&
+                      //     selectedDepartmentForUnit === null)
+                      // )
+                      //   return alert(`係・チームが属する事業部を選択してください。`);
+
+                      // const updateObject = {
+                      //   unit_name: editedUnit.unit_name,
+                      //   created_by_department_id: selectedDepartmentForUnit.id,
+                      // };
+                      // const updateProductCategoryLargePayload = {
+                      //   updateObject: updateObject,
+                      //   id: editedUnit.id,
+                      // };
+
+                      // await updateMultipleUnitFieldsMutation.mutateAsync(updateProductCategoryLargePayload);
+
+                      // if (!!originalUnitNameRef.current?.id) {
+                      //   originalUnitNameRef.current = {
+                      //     ...originalUnitNameRef.current,
+                      //     unit_name: editedUnit.unit_name,
+                      //     created_by_department_id: selectedDepartmentForUnit.id,
+                      //   };
+                      // }
+
+                      // setEditedUnit(null);
+                      // setEditUnitMode(false);
+                      // setSelectedUnit(null);
                     }}
                   >
                     {!updateMultipleUnitFieldsMutation.isLoading && <span>保存</span>}

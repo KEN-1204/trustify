@@ -42,6 +42,9 @@ const ProductListTableMemo: FC<Props> = ({
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
+  // --------------- 🔹モード設定 ---------------
+  const evenRowColorChange = useDashboardStore((state) => state.evenRowColorChange);
+  // --------------- 🔹モード設定ここまで ---------------
 
   // 見積価格関連 価格合計・値引金額・値引率・合計金額の4つの計算が必要なグローバルstate
   const inputTotalPriceEdit = useDashboardStore((state) => state.inputTotalPriceEdit);
@@ -943,7 +946,7 @@ const ProductListTableMemo: FC<Props> = ({
                       tabIndex={-1}
                       aria-rowindex={rowIndex + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
                       aria-selected={clickActiveRow === rowIndex + 2}
-                      className={`${styles.grid_row}`}
+                      className={`${styles.grid_row} ${evenRowColorChange ? `${styles.even_color_change}` : ``}`}
                       style={
                         {
                           display: "grid",

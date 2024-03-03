@@ -79,6 +79,14 @@
 
   /* ビビッドカラー */
   --bright-green: #00d436;
+  --bright-greenf0: #00d436f0;
+  --bright-greene0: #00d436e0;
+  --bright-greend0: #00d436d0;
+  --bright-greend0: #00d436d0;
+  --bright-greenc0: #00d436c0;
+  --bright-greenb0: #00d436b0;
+  --bright-greena0: #00d436a0;
+  --bright-green90: #00d43690;
   --bright-green30: #00d43630;
   --bright-green29: #00d43629;
   --bright-green20: #00d43620;
@@ -367,6 +375,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   */
   /* light */
   --color-border-theme: #0d99ff;
+  --color-border-theme: var(--main-color-tk);
+
   --color-border-theme-text: var(--color-bg-brand-sub);
   --vivid-green: var(--bright-green);
   --hero-img: url("/assets/images/hero/slide_transparent3x.png");
@@ -1002,7 +1012,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --overlay: #00000060;
   --overlay-modal-bg: #ffffff60;
   /* --overlay-loading-modal-inside: #ffffff48; */
-  --overlay-loading-modal-inside: #00000056;
+  --overlay-loading-modal-inside: #00000066;
   /* ツールチップ */
   --color-tooltip-arrow: #282828;
   --color-tooltip-dark: #333;
@@ -1192,6 +1202,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   */
   /* dark */
   --color-border-theme: #0066ff;
+  --color-border-theme: var(--bright-green);
   --color-border-theme-text: #0085ff;
   --vivid-green: var(--vivid-green-dark);
   --hero-img: url("/assets/images/hero/slide_transparent3x.png");

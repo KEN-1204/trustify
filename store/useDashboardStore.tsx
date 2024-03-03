@@ -1101,7 +1101,7 @@ const useDashboardStore = create<State>((set) => ({
   activeTabSDB: "salesProgress",
   setActiveTabSDB: (payload) => set({ activeTabSDB: payload }),
   // 全社, 事業部, 係, メンバー個人ごとのデータの範囲別
-  activeSectionSDB: "company",
+  activeSectionSDB: "member",
   setActiveSectionSDB: (payload) => set({ activeSectionSDB: payload }),
   // 月次・四半期・半期・年度ごとの期間データの範囲別
   // 年度以外 半期20241, 四半期20244, 月度202403で保持

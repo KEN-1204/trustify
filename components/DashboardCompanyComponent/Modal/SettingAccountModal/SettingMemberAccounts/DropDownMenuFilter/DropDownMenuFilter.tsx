@@ -3,12 +3,13 @@ import { Dispatch, SetStateAction } from "react";
 import styles from "./DropDownMenuFilter.module.css";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import NextImage from "next/image";
-import { Department, Employee_id, Office, Unit } from "@/types";
+import { Department, Employee_id, Office, Section, Unit } from "@/types";
 import useStore from "@/store";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 
 type FilterCondition = {
   department: Department["department_name"] | null;
+  section: Section["section_name"] | null;
   unit: Unit["unit_name"] | null;
   office: Office["office_name"] | null;
   employee_id: Employee_id["employee_id_name"] | null;
@@ -17,6 +18,7 @@ type FilterCondition = {
 type Props = {
   setIsOpenDropdownMenuFilter: Dispatch<SetStateAction<boolean>>;
   departmentDataArray: Department[] | undefined;
+  sectionDataArray: Section[] | undefined;
   unitDataArray: Unit[] | undefined;
   officeDataArray: Office[] | undefined;
   filterCondition: FilterCondition;
@@ -27,6 +29,7 @@ type Props = {
 export const DropDownMenuFilter = ({
   setIsOpenDropdownMenuFilter,
   departmentDataArray,
+  sectionDataArray,
   unitDataArray,
   officeDataArray,
   filterCondition,
@@ -70,6 +73,7 @@ export const DropDownMenuFilter = ({
         {/* テーマ・アカウント設定エリア */}
         <div className="flex w-full flex-col">
           <ul className={`flex flex-col px-[1px] pb-[1px] text-[13px] text-[var(--color-text-title)]`}>
+            {/* ------------------------ 事業部 ------------------------ */}
             <li
               className={`relative flex h-[40px] w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
               //   onMouseEnter={() => setHoveredThemeMenu(true)}
@@ -114,9 +118,52 @@ export const DropDownMenuFilter = ({
                 </select>
               </div>
             </li>
+            {/* ------------------------ 事業部 ------------------------ */}
 
             {/* <hr className={`min-h-[1px] w-full bg-[var(--color-border-light)]`} /> */}
 
+            {/* ------------------------ 課・セクション ------------------------ */}
+            <li
+              className={`relative flex h-[40px] w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
+            >
+              <div className="flex min-w-[145px] items-center">
+                <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                <div className="flex select-none items-center space-x-[2px]">
+                  <span className={`${styles.list_title}`}>課・セクション</span>
+                  <span className={``}>：</span>
+                </div>
+              </div>
+              <div className={`${styles.list_right_area}`}>
+                <select
+                  className={` ml-auto h-full w-full ${styles.select_box}`}
+                  value={filterCondition.section ? filterCondition.section : ""}
+                  onChange={(e) => {
+                    const newCondition = { ...filterCondition, section: e.target.value };
+                    setFilterCondition(newCondition);
+                  }}
+                >
+                  <option value="">すべての課・セクション</option>
+                  {!!sectionDataArray &&
+                    [...sectionDataArray]
+                      .sort((a, b) => {
+                        if (a.section_name === null || b.section_name === null) return 0;
+                        return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en") ?? 0;
+                      })
+                      .map(
+                        (section, index) =>
+                          !!section &&
+                          section.section_name && (
+                            <option key={section.id} value={section.section_name}>
+                              {section.section_name}
+                            </option>
+                          )
+                      )}
+                </select>
+              </div>
+            </li>
+            {/* ------------------------ 課・セクション ------------------------ */}
+
+            {/* ------------------------ 係・チーム ------------------------ */}
             <li
               className={`relative flex h-[40px] w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
             >
@@ -157,9 +204,11 @@ export const DropDownMenuFilter = ({
                 </select>
               </div>
             </li>
+            {/* ------------------------ 係・チーム ------------------------ */}
 
             {/* <hr className={`min-h-[1px] w-full bg-[var(--color-border-deep)]`} /> */}
 
+            {/* ------------------------ 事業所・営業所 ------------------------ */}
             <li
               className={`relative flex h-[40px] w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
             >
@@ -200,7 +249,9 @@ export const DropDownMenuFilter = ({
                 </select>
               </div>
             </li>
+            {/* ------------------------ 事業所・営業所 ------------------------ */}
 
+            {/* ------------------------ 社員番号・ID ------------------------ */}
             <li
               className={`relative flex h-[40px] w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
             >
@@ -228,6 +279,7 @@ export const DropDownMenuFilter = ({
                 />
               </div>
             </li>
+            {/* ------------------------ 社員番号・ID ------------------------ */}
           </ul>
         </div>
       </div>

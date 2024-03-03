@@ -15,6 +15,9 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
+  // --------------- 🔹モード設定 ---------------
+  const evenRowColorChange = useDashboardStore((state) => state.evenRowColorChange);
+  // --------------- 🔹モード設定ここまで ---------------
 
   // ダブルクリックでセルの詳細を確認
   const setIsOpenEditModal = useDashboardStore((state) => state.setIsOpenEditModal);
@@ -298,7 +301,7 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
                     tabIndex={-1}
                     aria-rowindex={index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
                     aria-selected={false}
-                    className={`${styles.grid_row}`}
+                    className={`${styles.grid_row} ${evenRowColorChange ? `${styles.even_color_change}` : ``}`}
                     style={{
                       display: "grid",
                       gridTemplateColumns: `2fr 1fr repeat(5, 1fr)`,

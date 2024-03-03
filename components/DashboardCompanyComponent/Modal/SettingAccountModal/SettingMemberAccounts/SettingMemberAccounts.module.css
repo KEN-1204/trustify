@@ -1,3 +1,40 @@
+/* モーダル内でのローディング */
+.loading_overlay_modal_outside {
+  position: fixed;
+  z-index: 2100;
+  /* inset: 0; */
+  left: -50vw;
+  top: -50vh;
+  width: 200vw;
+  height: 200vh;
+  /* background: #ffffff42; */
+  /* background: #62afe642; */
+  /* background: #00000090; */
+  background: #00000033;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* border-radius: 8px; */
+}
+.loading_overlay_modal_inside {
+  position: fixed;
+  z-index: 2500;
+  /* inset: 0; */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vw;
+  height: 90vh;
+  max-width: 1150px;
+  max-height: 730px;
+  /* background: #ffffff48; */
+  background: var(--overlay-loading-modal-inside);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
 .left_container {
   /* background-color: var(--setting-side-bg); */
   /* background-image: url("/assets/images/beautiful/ocean2.jpg"); */
@@ -17,9 +54,10 @@
 .grid_row {
   display: grid;
   /* grid-template-columns: 200px 269px 150px 150px; */
-  grid-template-columns: 219px 250px 150px 150px;
-  grid-template-columns: 229px 240px 150px 150px;
-  grid-template-columns: 224px 245px 150px 150px;
+  /* grid-template-columns: 219px 250px 150px 150px; */
+  /* grid-template-columns: 229px 240px 150px 150px; */
+  /* grid-template-columns: 224px 245px 150px 150px; */
+  grid-template-columns: 254px 245px 120px 150px;
   grid-template-rows: 73px;
   height: 73px;
   /* grid-template-rows: 54px;
@@ -58,9 +96,10 @@
   word-break: break-all;
 }
 .grid_cell:first-of-type {
-  max-width: 200px;
-  max-width: 229px;
-  max-width: 224px;
+  /* max-width: 200px; */
+  /* max-width: 229px; */
+  /* max-width: 224px; */
+  max-width: 254px;
   /* cursor: pointer; */
 }
 

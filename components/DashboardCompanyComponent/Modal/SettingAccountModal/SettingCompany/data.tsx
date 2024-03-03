@@ -176,6 +176,18 @@ export const departmentTagIconsTest = [
   { name: "事業推進本部販売促進グループ", iconURL: "/assets/images/icons/business/icons8-bar-chart-94.png" },
   { name: "プロダクト開発本部", iconURL: "/assets/images/icons/business/icons8-fund-accounting-94.png" },
 ];
+export const sectionTagIcons = [
+  // { name: "1係", iconURL: "/assets/images/icons/business/icons8-mind-map-94.png" },
+  // { name: "1係", iconURL: "/assets/images/icons/business/icons8-people-94_3.png" },
+  { name: "1課", iconURL: "/assets/images/icons/business/icons8-combo-chart-94.png" },
+  // { name: "1係", iconURL: "/assets/images/icons/business/icons8-business-building-94.png" },
+  // { name: "1係", iconURL: "/assets/images/icons/business/icons8-administrator-male-94.png" },
+  // { name: "1係", iconURL: "/assets/images/icons/business/icons8-user-account-94_mens_b.png" },
+  // { name: "2係", iconURL: "/assets/images/icons/business/icons8-user-group-94_womans.png" },
+  // { name: "3係", iconURL: "/assets/images/icons/business/icons8-businesswoman-94_3.png" },
+  // { name: "4係", iconURL: "/assets/images/icons/business/icons8-online-support-94.png" },
+  // { name: "5係", iconURL: "/assets/images/icons/business/icons8-technical-support-94_black.png" },
+];
 export const unitTagIcons = [
   // { name: "1係", iconURL: "/assets/images/icons/business/icons8-mind-map-94.png" },
   // { name: "1係", iconURL: "/assets/images/icons/business/icons8-people-94_3.png" },

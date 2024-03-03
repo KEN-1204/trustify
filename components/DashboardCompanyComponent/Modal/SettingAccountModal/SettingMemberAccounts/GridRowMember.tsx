@@ -34,9 +34,16 @@ type Props = {
   checkedMembersArray: (MemberAccounts | null)[];
   setCheckedMembersArray: Dispatch<SetStateAction<(MemberAccounts | null)[]>>;
   index: number;
+  setUpdatedAt: Dispatch<SetStateAction<number>>;
 };
 
-export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArray, setCheckedMembersArray, index }) => {
+export const GridRowMemberMemo: FC<Props> = ({
+  memberAccount,
+  checkedMembersArray,
+  setCheckedMembersArray,
+  index,
+  setUpdatedAt,
+}) => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   const theme = useRootStore(useThemeStore, (state) => state.theme);
@@ -159,9 +166,11 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
     );
     previousMemberAccounts[index].account_company_role = data.company_role;
     console.log("更新後", previousMemberAccounts);
-    queryClient.setQueryData(["member_accounts"], [...previousMemberAccounts]);
+    // queryClient.setQueryData(["member_accounts"], [...previousMemberAccounts]);
+    await queryClient.invalidateQueries(["member_accounts"]);
     setRoleAtTeam(data.company_role);
     toast.success("役割の変更が完了しました!");
+    setUpdatedAt(Date.now());
   };
 
   // =============================== チームから削除する
@@ -457,7 +466,12 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               // className={`relative flex max-h-[73px] max-w-[140px] flex-col justify-center hover:underline ${
               //   isOpenDropdownMenuUpdateMember ? `cursor-default` : `cursor-pointer`
               // }`}
-              className={`relative flex max-h-[73px] max-w-[164px] flex-col justify-center ${
+              // className={`relative flex max-h-[73px] max-w-[164px] flex-col justify-center ${
+              //   isOpenDropdownMenuUpdateMember || !memberAccount.profile_name
+              //     ? `cursor-default`
+              //     : `cursor-pointer hover:underline`
+              // }`}
+              className={`relative flex max-h-[73px] w-full max-w-[183px] flex-col justify-center ${
                 isOpenDropdownMenuUpdateMember || !memberAccount.profile_name
                   ? `cursor-default`
                   : `cursor-pointer hover:underline`
@@ -469,9 +483,12 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                 //   y + 220 + 40 - 10 + (memberAccount.profile_name === null ? 43.5 : 0); // 40はmargin分 -10pxは微調整
                 // const clickedPositionPlusItemHeight = y + 340 + (memberAccount.profile_name === null ? 43.5 : 0); // 340はメニューの最低高さ 40はmargin分 -10pxは微調整
                 // const clickedPositionPlusItemHeight = y + 340 + 5; // 340はメニューの最低高さ 40はmargin分 -10pxは微調整
-                const clickedPositionPlusItemHeight = y + 400 + 5; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整
+                // const clickedPositionPlusItemHeight = y + 400 + 5; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整
+                // 🔹課ありパターン 400+52
+                const clickedPositionPlusItemHeight = y + 452 + 5; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整
                 // const clickedPositionMinusItemHeight = y - 400 - 5; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整
-                const clickedPositionMinusItemHeight = y - 400 + height - 25; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整 heightは名前エリア高さ分メニューを下げているため
+                // const clickedPositionMinusItemHeight = y - 400 + height - 25; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整 heightは名前エリア高さ分メニューを下げているため
+                const clickedPositionMinusItemHeight = y - 452 + height - 25; // 400はメニューの最低高さ 40はmargin分 -10pxは微調整 heightは名前エリア高さ分メニューを下げているため
                 // const modalHeight = window.innerHeight * 0.9;
                 const modalHeight = settingModalProperties?.height ?? window.innerHeight * 0.9;
                 const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
@@ -569,13 +586,14 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
               {memberAccount.profile_name && (
                 <span className="truncate text-[10px] text-[var(--color-text-sub)]">
                   {memberAccount.assigned_department_name ? memberAccount.assigned_department_name : "事業部未設定"}{" "}
-                  {memberAccount.assigned_unit_name ? memberAccount.assigned_unit_name : ""}
+                  {memberAccount.assigned_section_name ? memberAccount.assigned_section_name : ""}
                 </span>
               )}
               {memberAccount.profile_name && memberAccount.assigned_office_name && (
                 <span className="truncate text-[10px] text-[var(--color-text-sub)]">
-                  {memberAccount.assigned_employee_id_name ? memberAccount.assigned_employee_id_name : ""}{" "}
-                  {memberAccount.assigned_office_name ? memberAccount.assigned_office_name : ""}
+                  {memberAccount.assigned_unit_name ? memberAccount.assigned_unit_name : ""}{" "}
+                  {memberAccount.assigned_office_name ? memberAccount.assigned_office_name : ""}{" "}
+                  {memberAccount.assigned_employee_id_name ? memberAccount.assigned_employee_id_name : ""}
                 </span>
               )}
               {/* メンバーデータ編集ドロップダウンメニュー */}
@@ -611,6 +629,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
                 : "cursor-pointer"
             }`}
             onClick={(e) => {
+              if (memberAccount.account_company_role === "company_owner" || !memberAccount.account_company_role) return;
               // if (memberAccount.is_subscriber || !memberAccount.account_company_role) return;
               // if (memberAccount.account_company_role === "company_owner" || !memberAccount.account_company_role)
               //   return;
@@ -665,7 +684,7 @@ export const GridRowMemberMemo: FC<Props> = ({ memberAccount, checkedMembersArra
             </span>
             {/* {!memberAccount.is_subscriber && memberAccount.account_company_role && <BsChevronDown />} */}
             {memberAccount.account_company_role !== "company_owner" && memberAccount.account_company_role && (
-              <BsChevronDown />
+              <BsChevronDown className="min-h-[13px] min-w-[13px]" />
             )}
           </div>
 
