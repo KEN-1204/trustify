@@ -650,6 +650,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* 🔹テーブル行偶数行カラーチェンジ */
   --color-table-even-color-changed-bg: #f7f7f7;
   --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f-hover-solid);
+  /* --color-table-even-color-changed-bg-hover: #f1f9ff; */
   /* --color-table-even-color-changed-bg-selected: var(--color-bg-brand-f); */
   /* --color-table-even-color-changed-bg-selected: #1c9ffd; */
   /* --color-table-even-color-changed-bg-selected: #0095ff; */
@@ -1447,7 +1448,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* 🔹テーブル行偶数行カラーチェンジ */
   --color-table-even-color-changed-bg: #2d2d2d;
   /* --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f30); */
-  --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f-hover-solid);
+  /* --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f-hover-solid); */
+  /* --color-table-even-color-changed-bg-hover: #393939; */
+  /* --color-table-even-color-changed-bg-hover: #3e3e3e; */
+  --color-table-even-color-changed-bg-hover: #3f3f3f;
+  --color-table-even-color-changed-bg-hover: #424242;
   /* --color-table-even-color-changed-bg-selected: #0088ffa9; */
   --color-table-even-color-changed-bg-selected: #0b67b7;
   --color-table-even-color-changed-color-selected: #fff;

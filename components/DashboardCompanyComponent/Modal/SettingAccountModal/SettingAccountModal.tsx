@@ -297,12 +297,19 @@ export const SettingAccountModal = () => {
             {selectedSettingAccountMenu === "Member" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<FallbackSettingMemberAccounts />}>
-                  <div className="relative flex h-full w-full flex-col">
+                  <SettingMemberAccounts />
+                </Suspense>
+              </ErrorBoundary>
+            )}
+            {/* {selectedSettingAccountMenu === "Member" && (
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<FallbackSettingMemberAccounts />}>
+                  <div className="relative flex h-full w-full flex-col overflow-y-hidden">
                     <SettingMemberAccounts />
                   </div>
                 </Suspense>
               </ErrorBoundary>
-            )}
+            )} */}
             {/* {selectedSettingAccountMenu === "Member" && <FallbackSettingMemberAccounts />} */}
 
             {/* 右側サブエリア 閉じるボタンエリア w-[80px] */}

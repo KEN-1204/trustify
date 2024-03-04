@@ -829,7 +829,13 @@ const ContactUnderRightActivityLogMemo: FC = () => {
         {/* ================== Gridスクロールコンテナ ここまで ================== */}
         {/* =============== Gridフッター ここから スクロールコンテナと同列で配置 =============== */}
         {/* <ContactUnderRightGridTableFooter getItemCount={allRows.length} /> */}
-        <UnderRightGridTableFooter getItemCount={allRows.length} getTotalCount={data ? data.pages[0].count : 0} />
+        {/* <UnderRightGridTableFooter getItemCount={allRows.length} getTotalCount={data ? data.pages[0].count : 0} /> */}
+        <UnderRightGridTableFooter
+          getItemCount={allRows.length}
+          getTotalCount={
+            data?.pages[0]?.count !== null && data?.pages[0]?.count !== undefined ? data.pages[0].count : null
+          }
+        />
         {/* ================== Gridフッター ここまで ================== */}
       </div>
     </>

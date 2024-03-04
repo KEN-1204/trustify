@@ -34,6 +34,7 @@ import { FallbackInputBox } from "../InsertNewClientCompnayModal/FallbackInputBo
 import { InputBoxCity } from "../InsertNewClientCompnayModal/InputBoxCity";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { HiChevronDown } from "react-icons/hi2";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 export const UpdateClientCompanyModal = () => {
   const language = useStore((state) => state.language);
@@ -290,6 +291,7 @@ export const UpdateClientCompanyModal = () => {
         ? userProfileState?.assigned_department_id
         : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_section_of_user: userProfileState?.assigned_section_id ? userProfileState.assigned_section_id : null,
       created_by_unit_of_user: userProfileState?.assigned_unit_id ? userProfileState.assigned_unit_id : null,
       created_by_office_of_user: userProfileState?.assigned_office_id ? userProfileState.assigned_office_id : null,
       name: name,
@@ -739,9 +741,10 @@ export const UpdateClientCompanyModal = () => {
         {/* ローディングオーバーレイ */}
         {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
-            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
-            <SpinnerComet w="48px" h="48px" s="5px" />
-            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+            {/* <SpinnerComet w="48px" h="48px" s="5px" /> */}
+            <div className={`${styles.loading_overlay_modal_inside}`}>
+              <SpinnerBrand withBorder withShadow />
+            </div>
           </div>
         )}
         {/* 保存・タイトル・キャンセルエリア */}

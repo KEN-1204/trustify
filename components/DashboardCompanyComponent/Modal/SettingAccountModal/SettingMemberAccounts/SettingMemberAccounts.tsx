@@ -309,6 +309,9 @@ const SettingMemberAccountsMemo: FC = () => {
         const matchesDepartment = filterCondition.department
           ? member.assigned_department_name?.includes(filterCondition.department)
           : true;
+        const matchesSection = filterCondition.section
+          ? member.assigned_section_name?.includes(filterCondition.section)
+          : true;
         const matchesUnit = filterCondition.unit ? member.assigned_unit_name?.includes(filterCondition.unit) : true;
         // const matchesUnit = filterCondition.unit === member.assigned_unit_name;
         const matchesOffice = filterCondition.office
@@ -318,7 +321,7 @@ const SettingMemberAccountsMemo: FC = () => {
           ? member.assigned_employee_id_name?.includes(filterCondition.employee_id)
           : true;
 
-        return matchesDepartment && matchesUnit && matchesOffice && matchesEmployeeId;
+        return matchesDepartment && matchesSection && matchesUnit && matchesOffice && matchesEmployeeId;
       });
       console.log("🔥useEffect フィルター結果", filteredData);
       const sortedMemberAccountsArray = [...filteredData].sort((a, b) => compareAccounts(a, b, language));
@@ -376,11 +379,13 @@ const SettingMemberAccountsMemo: FC = () => {
   const handleChangeMemberDetailAllAtOnce = async ({
     title,
     departmentId,
+    sectionId,
     unitId,
     officeId,
   }: {
     title: string;
     departmentId?: string;
+    sectionId?: string;
     unitId?: string;
     officeId?: string;
   }) => {
@@ -410,6 +415,7 @@ const SettingMemberAccountsMemo: FC = () => {
         .filter((member): member is MemberAccounts => member !== null && member.id !== null)
         .map((member) => member.id);
 
+      // 事業部を一括更新
       if (title === "department") {
         if (!departmentId) return alert("エラー：事業部データが見つかりませんでした。");
         const upsertDepartmentPayload = {
@@ -426,12 +432,33 @@ const SettingMemberAccountsMemo: FC = () => {
 
         setSelectedDepartment(null); // 成功したらnullにリセット
       }
+      // 課・セクションを一括更新
+      if (title === "section") {
+        if (!departmentId) return alert("エラー：事業部データが見つかりませんでした。");
+        if (!sectionId) return alert("エラー：課・セクションデータが見つかりませんでした。");
+        // セクション
+        const upsertSectionPayload = {
+          _company_id: userProfileState.company_id, // UPSERTの未割り当てのユーザーINSERT用
+          _new_department_id: departmentId, // 事業部id
+          _new_section_id: sectionId, // 課・セクションid
+          _user_ids_to_update: updateProfileIdsArray, // 更新するuserのid
+        };
+
+        console.log("🌟チーム役割一括変更 upsertSectionPayload", upsertSectionPayload);
+
+        const { error } = await supabase.rpc("upsert_section_assignments_all_at_once", upsertSectionPayload);
+
+        if (error) throw error;
+      }
+      // 係を一括更新
       if (title === "unit") {
         if (!departmentId) return alert("エラー：事業部データが見つかりませんでした。");
+        if (!sectionId) return alert("エラー：課・セクションデータが見つかりませんでした。");
         if (!unitId) return alert("エラー：係・チームデータが見つかりませんでした。");
         const upsertUnitPayload = {
           _company_id: userProfileState.company_id, // UPSERTの未割り当てのユーザーINSERT用
           _new_department_id: departmentId, // 事業部id
+          _new_section_id: sectionId, // 課・セクションid
           _new_unit_id: unitId, // 係・チームid
           _user_ids_to_update: updateProfileIdsArray, // 更新するuserのid
         };
@@ -442,6 +469,7 @@ const SettingMemberAccountsMemo: FC = () => {
 
         if (error) throw error;
       }
+      // 事業所を一括更新
       if (title === "office") {
         if (!officeId) return alert("エラー：事業所・営業所データが見つかりませんでした。");
         const upsertOfficePayload = {
@@ -667,130 +695,132 @@ const SettingMemberAccountsMemo: FC = () => {
 
   return (
     <>
-      {/* オーバーレイ */}
-      {/* {loading && (
+      {/* 一括編集bottomメニュー開いた時に上下にスクロールしないようにrelativeでoverflow-y-hiddenをつける */}
+      <div className="relative flex h-full w-full flex-col overflow-y-hidden">
+        {/* オーバーレイ */}
+        {/* {loading && (
         <div className={`flex-center fixed inset-0 z-[3000] rounded bg-[#00000090]`}>
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
       )} */}
-      {loading && (
-        <div className={`${styles.loading_overlay_modal_outside}`}>
-          <div className={`${styles.loading_overlay_modal_inside}`}>
-            <SpinnerBrand />
+        {loading && (
+          <div className={`${styles.loading_overlay_modal_outside}`}>
+            <div className={`${styles.loading_overlay_modal_inside}`}>
+              <SpinnerBrand />
+            </div>
           </div>
-        </div>
-      )}
-      {/* 右側メインエリア メンバーアカウント */}
-      {selectedSettingAccountMenu === "Member" && (
-        <div className={`relative flex h-full w-full flex-col overflow-y-scroll pb-[20px] pl-[20px] pr-[80px]`}>
-          <h2 className={`mt-[20px] text-[18px] font-bold`}>
-            メンバーアカウント（<span>{userProfileState?.accounts_to_create}</span>）
-          </h2>
+        )}
+        {/* 右側メインエリア メンバーアカウント */}
+        {selectedSettingAccountMenu === "Member" && (
+          <div className={`relative flex h-full w-full flex-col overflow-y-scroll pb-[20px] pl-[20px] pr-[80px]`}>
+            <h2 className={`mt-[20px] text-[18px] font-bold`}>
+              メンバーアカウント（<span>{userProfileState?.accounts_to_create}</span>）
+            </h2>
 
-          <div className="mt-[20px] flex min-h-[168px] w-full items-center justify-between overflow-hidden rounded-[8px] bg-[var(--setting-bg-sub)]">
-            {/* <div className="sticky top-0 z-10 mt-[20px] flex min-h-[168px] w-full items-center justify-between overflow-hidden rounded-[8px] bg-[var(--setting-bg-sub)]"> */}
-            <div className="flex flex-col space-y-3 p-[24px] pr-[0px]">
-              <h4 className="font-bold">チーム全員がデータを残すかどうかが勝負の分かれ目</h4>
-              <p className="text-[13px]">
-                {/* <span>コラボレーションとデータサイエンスを駆使して、仕事を素早く終わらせましょう</span> */}
-                <span>コラボレーションとデータサイエンスを駆使して、付加価値を最大化させましょう</span>
-              </p>
-              <div className="w-full">
-                <button
-                  className={`transition-base01 flex-center max-h-[41px] w-[138px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff]  ${
-                    loading ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
-                  } mt-[10px]`}
-                  onClick={() => setIsOpenSettingInvitationModal(true)}
-                >
-                  <span>メンバーを招待</span>
-                  {loading && <SpinnerIDS scale={"scale-[0.4]"} />}
-                </button>
+            <div className="mt-[20px] flex min-h-[168px] w-full items-center justify-between overflow-hidden rounded-[8px] bg-[var(--setting-bg-sub)]">
+              {/* <div className="sticky top-0 z-10 mt-[20px] flex min-h-[168px] w-full items-center justify-between overflow-hidden rounded-[8px] bg-[var(--setting-bg-sub)]"> */}
+              <div className="flex flex-col space-y-3 p-[24px] pr-[0px]">
+                <h4 className="font-bold">チーム全員がデータを残すかどうかが勝負の分かれ目</h4>
+                <p className="text-[13px]">
+                  {/* <span>コラボレーションとデータサイエンスを駆使して、仕事を素早く終わらせましょう</span> */}
+                  <span>コラボレーションとデータサイエンスを駆使して、付加価値を最大化させましょう</span>
+                </p>
+                <div className="w-full">
+                  <button
+                    className={`transition-base01 flex-center max-h-[41px] w-[138px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff]  ${
+                      loading ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
+                    } mt-[10px]`}
+                    onClick={() => setIsOpenSettingInvitationModal(true)}
+                  >
+                    <span>メンバーを招待</span>
+                    {loading && <SpinnerIDS scale={"scale-[0.4]"} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* <div className={`flex-center h-full w-[30%]`}>
+              <Image src={`/assets/images/icons/icons8-share-64.png`} alt="share-icon" width={70} height={70} />
+            </div> */}
+              <div className={`flex h-full w-[30%] items-center`}>
+                <div className="ml-[10px]">{dataIllustration}</div>
               </div>
             </div>
 
-            {/* <div className={`flex-center h-full w-[30%]`}>
-              <Image src={`/assets/images/icons/icons8-share-64.png`} alt="share-icon" width={70} height={70} />
-            </div> */}
-            <div className={`flex h-full w-[30%] items-center`}>
-              <div className="ml-[10px]">{dataIllustration}</div>
-            </div>
-          </div>
-
-          {/* リフレッシュ・並び替えエリア mtの20px入れたらtop188px、mt覗くと168px hは43 */}
-          {/* <div className="relative z-0 mt-[20px] h-[50px] w-full border-b border-[var()] bg-red-100"></div> */}
-          <div
-            className={`sticky top-[0px] z-10 mt-[10px] flex w-full items-center border-b border-solid border-[var(--color-border-deep)] bg-[var(--color-edit-bg-solid)] py-[8px] pt-[18px]`}
-            // className={`sticky top-[168px] z-10 mt-[20px] flex w-full items-center border-b border-solid border-[var(--color-border-deep)] bg-[var(--color-edit-bg-solid)] py-[8px]`}
-          >
-            <button
-              className={`flex-center transition-bg03 relative  h-[26px] min-w-[110px]  cursor-pointer space-x-1  rounded-[4px] border border-solid border-transparent px-[6px] text-[12px] text-[var(--color-text-sub)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--setting-bg-sub)] hover:text-[var(--color-text)] ${styles.fh_text_btn}`}
-              onClick={async () => {
-                if (refetchLoading) return;
-                console.log("リフレッシュ クリック");
-                setRefetchLoading(true);
-                //   await queryClient.invalidateQueries({ queryKey: ["companies"] });
-                await refetchMemberAccounts();
-                setRefetchLoading(false);
-              }}
+            {/* リフレッシュ・並び替えエリア mtの20px入れたらtop188px、mt覗くと168px hは43 */}
+            {/* <div className="relative z-0 mt-[20px] h-[50px] w-full border-b border-[var()] bg-red-100"></div> */}
+            <div
+              className={`sticky top-[0px] z-10 mt-[10px] flex w-full items-center border-b border-solid border-[var(--color-border-deep)] bg-[var(--color-edit-bg-solid)] py-[8px] pt-[18px]`}
+              // className={`sticky top-[168px] z-10 mt-[20px] flex w-full items-center border-b border-solid border-[var(--color-border-deep)] bg-[var(--color-edit-bg-solid)] py-[8px]`}
             >
-              {/* <FiRefreshCw /> */}
-              {/* {!refetchLoading && <SpinnerIDS scale={"scale-[0.2]"} width={12} height={12} />} */}
-              {refetchLoading && (
-                <div className="relative">
-                  <div className="mr-[2px] h-[12px] w-[12px]"></div>
-                  <SpinnerIDS2 fontSize={20} width={20} height={20} />
-                </div>
-              )}
-              {!refetchLoading && (
-                <div className="flex-center mr-[2px]">
-                  <FiRefreshCw />
-                </div>
-              )}
-              <span className="whitespace-nowrap">リフレッシュ</span>
-            </button>
-            <button
-              className={`flex-center transition-bg03 relative  ml-[4px] h-[26px]  min-w-[100px]  space-x-1 rounded-[4px] border border-solid border-transparent px-[6px] text-[12px] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--setting-bg-sub)] ${
-                styles.fh_text_btn
-              } ${isOpenDropdownMenuFilter ? `cursor-default` : `cursor-pointer`} ${
-                isActiveFilter
-                  ? `text-[var(--color-text-brand-f)]`
-                  : `text-[var(--color-text-sub)] hover:text-[var(--color-text)]`
-              }`}
-              onClick={() => {
-                if (!isOpenDropdownMenuFilter) setIsOpenDropdownMenuFilter(true);
-              }}
-            >
-              {/* <FiRefreshCw /> */}
-              {/* {!refetchLoading && <SpinnerIDS scale={"scale-[0.2]"} width={12} height={12} />} */}
-              {refetchLoading && (
-                <div className="relative">
-                  <div className="mr-[2px] h-[12px] w-[12px]"></div>
-                  <SpinnerIDS2 fontSize={20} width={20} height={20} />
-                </div>
-              )}
-              {!refetchLoading && (
-                <div className="flex-center mr-[1px]">
-                  <CiFilter className="stroke-[0.5] text-[17px]" />
-                </div>
-              )}
-              <span className="whitespace-nowrap">フィルター</span>
-              {isOpenDropdownMenuFilter && (
-                <DropDownMenuFilter
-                  setIsOpenDropdownMenuFilter={setIsOpenDropdownMenuFilter}
-                  departmentDataArray={departmentDataArray}
-                  sectionDataArray={sectionDataArray}
-                  unitDataArray={unitDataArray}
-                  officeDataArray={officeDataArray}
-                  filterCondition={filterCondition}
-                  setFilterCondition={setFilterCondition}
-                  setIsComposing={setIsComposing}
-                />
-              )}
-              {/* {isActiveFilter && (
+              <button
+                className={`flex-center transition-bg03 relative  h-[26px] min-w-[110px]  cursor-pointer space-x-1  rounded-[4px] border border-solid border-transparent px-[6px] text-[12px] text-[var(--color-text-sub)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--setting-bg-sub)] hover:text-[var(--color-text)] ${styles.fh_text_btn}`}
+                onClick={async () => {
+                  if (refetchLoading) return;
+                  console.log("リフレッシュ クリック");
+                  setRefetchLoading(true);
+                  //   await queryClient.invalidateQueries({ queryKey: ["companies"] });
+                  await refetchMemberAccounts();
+                  setRefetchLoading(false);
+                }}
+              >
+                {/* <FiRefreshCw /> */}
+                {/* {!refetchLoading && <SpinnerIDS scale={"scale-[0.2]"} width={12} height={12} />} */}
+                {refetchLoading && (
+                  <div className="relative">
+                    <div className="mr-[2px] h-[12px] w-[12px]"></div>
+                    <SpinnerIDS2 fontSize={20} width={20} height={20} />
+                  </div>
+                )}
+                {!refetchLoading && (
+                  <div className="flex-center mr-[2px]">
+                    <FiRefreshCw />
+                  </div>
+                )}
+                <span className="whitespace-nowrap">リフレッシュ</span>
+              </button>
+              <button
+                className={`flex-center transition-bg03 relative  ml-[4px] h-[26px]  min-w-[100px]  space-x-1 rounded-[4px] border border-solid border-transparent px-[6px] text-[12px] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--setting-bg-sub)] ${
+                  styles.fh_text_btn
+                } ${isOpenDropdownMenuFilter ? `cursor-default` : `cursor-pointer`} ${
+                  isActiveFilter
+                    ? `text-[var(--color-text-brand-f)]`
+                    : `text-[var(--color-text-sub)] hover:text-[var(--color-text)]`
+                }`}
+                onClick={() => {
+                  if (!isOpenDropdownMenuFilter) setIsOpenDropdownMenuFilter(true);
+                }}
+              >
+                {/* <FiRefreshCw /> */}
+                {/* {!refetchLoading && <SpinnerIDS scale={"scale-[0.2]"} width={12} height={12} />} */}
+                {refetchLoading && (
+                  <div className="relative">
+                    <div className="mr-[2px] h-[12px] w-[12px]"></div>
+                    <SpinnerIDS2 fontSize={20} width={20} height={20} />
+                  </div>
+                )}
+                {!refetchLoading && (
+                  <div className="flex-center mr-[1px]">
+                    <CiFilter className="stroke-[0.5] text-[17px]" />
+                  </div>
+                )}
+                <span className="whitespace-nowrap">フィルター</span>
+                {isOpenDropdownMenuFilter && (
+                  <DropDownMenuFilter
+                    setIsOpenDropdownMenuFilter={setIsOpenDropdownMenuFilter}
+                    departmentDataArray={departmentDataArray}
+                    sectionDataArray={sectionDataArray}
+                    unitDataArray={unitDataArray}
+                    officeDataArray={officeDataArray}
+                    filterCondition={filterCondition}
+                    setFilterCondition={setFilterCondition}
+                    setIsComposing={setIsComposing}
+                  />
+                )}
+                {/* {isActiveFilter && (
                 <BsCheck2 className="pointer-events-none min-h-[17px] min-w-[17px] stroke-1 text-[17px] text-[#00d436]" />
               )} */}
-            </button>
-            {/* <RippleButton
+              </button>
+              {/* <RippleButton
               title={`リフレッシュ`}
               // bgColor="var(--color-btn-brand-f-re)"
               classText={`select-none`}
@@ -801,49 +831,52 @@ const SettingMemberAccountsMemo: FC = () => {
                 console.log("新規サーチ クリック");
               }}
             /> */}
-            <div className="ml-auto mr-[10px] text-[12px] text-[var(--color-text-sub)]">
-              {!!notSetAccounts.length && (
-                // <span className={`${!!notSetAndDeleteRequestedAccounts.length ? `mr-[40px]` : ``}`}>
-                <span className={`mr-[20px] ${!!notSetAndDeleteRequestedAccounts.length ? `mr-[40px]` : ``}`}>
-                  メンバー未設定アカウント数：{notSetAccounts.length}
-                </span>
-              )}
-
-              {!!notSetAndDeleteRequestedAccounts.length && (
-                <span className="">削除リクエスト済みアカウント数：{notSetAndDeleteRequestedAccounts.length}</span>
-              )}
-              {/* <span className="">削除リクエスト済みアカウント数：6</span> */}
-            </div>
-          </div>
-
-          {/* メンバーテーブル sticky mtありでtop231、なしで211 */}
-          <div className="z-5 relative mt-[0px] w-full">
-            <div role="grid" className="w-full">
-              {/* <div role="row" className={`${styles.grid_row} sticky top-[53px] z-10 bg-[var(--color-edit-bg-solid)]`}> */}
-              <div role="row" className={`${styles.grid_row} sticky top-[53px] z-[8] bg-[var(--color-edit-bg-solid)]`}>
-                {/* <div role="row" className={`${styles.grid_row} sticky top-[211px]`}> */}
-                <div role="columnheader" className={styles.column_header}>
-                  氏名
-                </div>
-                <div role="columnheader" className={styles.column_header}>
-                  メールアドレス
-                </div>
-                <div role="columnheader" className={styles.column_header}>
-                  チームでの役割
-                </div>
-                <div role="columnheader" className={styles.column_header}></div>
-              </div>
-              <div role="rowgroup" className="pb-[calc(74px*7)]">
-                {/* Row2 */}
-                {/* 並び替え有りバージョン */}
-                {/* {sortedMemberAccountsState &&
-                  sortedMemberAccountsState.map((account, index) => ( */}
-                {filteredMemberArray?.length === 0 && (
-                  <div className="flex-center h-[100px] w-full">
-                    <p className="text-[13px] text-[var(--color-text-sub)]">データが見つかりませんでした。</p>
-                  </div>
+              <div className="ml-auto mr-[10px] text-[12px] text-[var(--color-text-sub)]">
+                {!!notSetAccounts.length && (
+                  // <span className={`${!!notSetAndDeleteRequestedAccounts.length ? `mr-[40px]` : ``}`}>
+                  <span className={`mr-[20px] ${!!notSetAndDeleteRequestedAccounts.length ? `mr-[40px]` : ``}`}>
+                    メンバー未設定アカウント数：{notSetAccounts.length}
+                  </span>
                 )}
-                {/* {filteredMemberArray &&
+
+                {!!notSetAndDeleteRequestedAccounts.length && (
+                  <span className="">削除リクエスト済みアカウント数：{notSetAndDeleteRequestedAccounts.length}</span>
+                )}
+                {/* <span className="">削除リクエスト済みアカウント数：6</span> */}
+              </div>
+            </div>
+
+            {/* メンバーテーブル sticky mtありでtop231、なしで211 */}
+            <div className="z-5 relative mt-[0px] w-full">
+              <div role="grid" className="w-full">
+                {/* <div role="row" className={`${styles.grid_row} sticky top-[53px] z-10 bg-[var(--color-edit-bg-solid)]`}> */}
+                <div
+                  role="row"
+                  className={`${styles.grid_row} sticky top-[53px] z-[8] bg-[var(--color-edit-bg-solid)]`}
+                >
+                  {/* <div role="row" className={`${styles.grid_row} sticky top-[211px]`}> */}
+                  <div role="columnheader" className={styles.column_header}>
+                    氏名
+                  </div>
+                  <div role="columnheader" className={styles.column_header}>
+                    メールアドレス
+                  </div>
+                  <div role="columnheader" className={styles.column_header}>
+                    チームでの役割
+                  </div>
+                  <div role="columnheader" className={styles.column_header}></div>
+                </div>
+                <div role="rowgroup" className="pb-[calc(74px*7)]">
+                  {/* Row2 */}
+                  {/* 並び替え有りバージョン */}
+                  {/* {sortedMemberAccountsState &&
+                  sortedMemberAccountsState.map((account, index) => ( */}
+                  {filteredMemberArray?.length === 0 && (
+                    <div className="flex-center h-[100px] w-full">
+                      <p className="text-[13px] text-[var(--color-text-sub)]">データが見つかりませんでした。</p>
+                    </div>
+                  )}
+                  {/* {filteredMemberArray &&
                   filteredMemberArray.length >= 1 &&
                   filteredMemberArray.map((account, index) => (
                     <React.Fragment key={account.subscribed_account_id}>
@@ -855,21 +888,21 @@ const SettingMemberAccountsMemo: FC = () => {
                       />
                     </React.Fragment>
                   ))} */}
-                {filteredMemberArray &&
-                  filteredMemberArray.length >= 1 &&
-                  filteredMemberArray.map((account, index) => (
-                    <React.Fragment key={account.subscribed_account_id}>
-                      <GridRowMember
-                        memberAccount={account}
-                        checkedMembersArray={checkedMembersArray}
-                        setCheckedMembersArray={setCheckedMembersArray}
-                        index={index}
-                        setUpdatedAt={setUpdatedAt}
-                      />
-                    </React.Fragment>
-                  ))}
-                {/* 並び替え無しバージョン */}
-                {/* {memberAccountsDataArray &&
+                  {filteredMemberArray &&
+                    filteredMemberArray.length >= 1 &&
+                    filteredMemberArray.map((account, index) => (
+                      <React.Fragment key={account.subscribed_account_id}>
+                        <GridRowMember
+                          memberAccount={account}
+                          checkedMembersArray={checkedMembersArray}
+                          setCheckedMembersArray={setCheckedMembersArray}
+                          index={index}
+                          setUpdatedAt={setUpdatedAt}
+                        />
+                      </React.Fragment>
+                    ))}
+                  {/* 並び替え無しバージョン */}
+                  {/* {memberAccountsDataArray &&
                   memberAccountsDataArray.map((account, index) => (
                     <React.Fragment key={account.subscribed_account_id}>
                       <GridRowMember
@@ -880,8 +913,8 @@ const SettingMemberAccountsMemo: FC = () => {
                       />
                     </React.Fragment>
                   ))} */}
-                {/* <GridRowMember /> */}
-                {/* <TestRowData />
+                  {/* <GridRowMember /> */}
+                  {/* <TestRowData />
                 <TestRowData />
                 <TestRowData />
                 <TestRowData />
@@ -889,217 +922,229 @@ const SettingMemberAccountsMemo: FC = () => {
                 <TestRowData />
                 <TestRowData /> */}
 
-                {/* ここまで */}
+                  {/* ここまで */}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-      {/* 右側メインエリア プロフィール ここまで */}
-      {/* =================== チェックボックス選択時の一括変更エリア =================== */}
-      <div
-        // className={`shadow-top-md transition-base03 sticky bottom-0 left-0 z-[1000] flex h-[80px] w-full  origin-bottom items-center justify-between bg-[var(--color-edit-bg-solid)] px-[24px] py-[8px] text-[13px] ${
-        //   checkedMembersArray.includes(true) ? `scale-y-100` : `mb-[-80px] scale-y-0`
-        // } `}
-        className={`shadow-top-md transition-base03 sticky bottom-0 left-0 z-[1000] flex h-[80px] w-full  origin-bottom items-center justify-between bg-[var(--color-edit-bg-solid)] px-[24px] py-[8px] text-[13px] ${
-          checkedMembersArray.some((member) => member !== null) ? `scale-y-100` : `mb-[-80px] scale-y-0`
-        } `}
-        ref={modalContainerRef}
-      >
-        {/* 一括処理オーバーレイ */}
-        {(openChangeRoleTogetherMenu || openChangeMemberDetailMenu) && (
-          <div
-            className="fixed left-[-100vw] top-[-100vh] z-[100] h-[200vh] w-[200vw]"
-            onClick={() => {
-              if (openChangeRoleTogetherMenu) setOpenChangeRoleTogetherMenu(false);
-              if (openChangeMemberDetailMenu) setOpenChangeMemberDetailMenu(false);
-            }}
-          ></div>
         )}
-        {hoveredItemPosModal && <TooltipModal />}
-        <div className="flex items-center justify-start">
-          {/* <p>（{checkedMembersArray.filter((value) => value === true).length}件）選択済み</p> */}
-          <p>（{checkedMembersArray.filter((member) => member !== null).length}件）選択済み</p>
-        </div>
-        <div className="flex-center">
-          <div className="flex-center space-x-3">
-            {/* 部署変更アイコン */}
+        {/* 右側メインエリア プロフィール ここまで */}
+        {/* =================== チェックボックス選択時の一括変更エリア =================== */}
+        <div
+          // className={`shadow-top-md transition-base03 sticky bottom-0 left-0 z-[1000] flex h-[80px] w-full  origin-bottom items-center justify-between bg-[var(--color-edit-bg-solid)] px-[24px] py-[8px] text-[13px] ${
+          //   checkedMembersArray.includes(true) ? `scale-y-100` : `mb-[-80px] scale-y-0`
+          // } `}
+          className={`shadow-top-md transition-base03 sticky bottom-0 left-0 z-[1000] flex h-[80px] w-full  origin-bottom items-center justify-between bg-[var(--color-edit-bg-solid)] px-[24px] py-[8px] text-[13px] ${
+            checkedMembersArray.some((member) => member !== null) ? `scale-y-100` : `mb-[-80px] scale-y-0`
+          } `}
+          ref={modalContainerRef}
+        >
+          {/* 一括処理オーバーレイ */}
+          {(openChangeRoleTogetherMenu || openChangeMemberDetailMenu) && (
             <div
-              className={`flex-center relative h-[35px] w-[35px] cursor-pointer rounded-[4px] text-[20px] hover:bg-[var(--setting-bg-sub)] ${
-                openChangeMemberDetailMenu ? `bg-[var(--setting-bg-sub)]` : ``
-              }`}
-              data-text="事業部・課・係・部署を変更"
-              onMouseEnter={(e) => {
-                if (openChangeMemberDetailMenu) return;
-                handleOpenTooltip(e, "top");
+              className="fixed left-[-100vw] top-[-100vh] z-[100] h-[200vh] w-[200vw]"
+              onClick={() => {
+                if (openChangeRoleTogetherMenu) setOpenChangeRoleTogetherMenu(false);
+                if (openChangeMemberDetailMenu) setOpenChangeMemberDetailMenu(false);
               }}
-              onMouseLeave={handleCloseTooltip}
-              onClick={() => setOpenChangeMemberDetailMenu(true)}
-            >
-              <RxUpdate className="stroke-[0.1] text-[18px]" />
-              {/* 一括で事業部・係・事業所を変更するドロップダウンメニュー */}
-              {openChangeMemberDetailMenu && (
-                <>
-                  {/* 通常時 h-[px] 招待中時 */}
-                  <div className="shadow-all-md border-real-with-shadow  absolute left-[-calc(300px-50%)] top-[-253px] z-[2000] h-auto min-w-[300px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)]">
-                    <ul className={`flex flex-col py-[0px]`}>
-                      {/* ----------------- 事業部 ----------------- */}
-                      <li
-                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
-                        onClick={() => {
-                          // handleChangeMemberDetailAllAtOnce('department', );
-                          if (!departmentDataArray || departmentDataArray?.length === 0) {
-                            alert("事業部リストが未設定です。先に「会社・チーム」から事業部を作成してください。");
-                            return;
-                          }
-                          const firstDepartmentObj = [...departmentDataArray].sort((a, b) => {
-                            if (a.department_name === null) return 1; // null値をリストの最後に移動
-                            if (b.department_name === null) return -1;
-                            return a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en");
-                          })[0];
-                          setSelectedDepartment(firstDepartmentObj);
-                          setIsOpenConfirmUpsertModal("department");
-                        }}
-                      >
-                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
-                          事業部
-                        </span>
-                        <p className="select-none text-[12px]">選択したチームメンバーの事業部を一括で変更します。</p>
-                      </li>
-                      {/* ----------------- 事業部 ----------------- */}
-                      {/* ----------------- 課(課ありパターン) ----------------- */}
-                      <li
-                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
-                        onClick={() => {
-                          // handleChangeRoleTogether("company_manager");
-                          if (!departmentDataArray || departmentDataArray?.length === 0) {
-                            alert(
-                              "事業所・営業所リストがありません。先に「会社・チーム」から事業所・営業所を作成してください。"
-                            );
-                            return;
-                          }
-                          if (!sectionDataArray || sectionDataArray?.length === 0) {
-                            alert(
-                              "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
-                            );
-                            return;
-                          }
-                          // 🔹事業部の選択肢の１番目をstateにセット
-                          const firstDepartmentObj = [...departmentDataArray].sort((a, b) => {
-                            if (a.department_name === null) return 1; // null値をリストの最後に移動
-                            if (b.department_name === null) return -1;
-                            return a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en");
-                          })[0];
-                          setSelectedDepartment(firstDepartmentObj);
+            ></div>
+          )}
+          {hoveredItemPosModal && <TooltipModal />}
+          <div className="flex items-center justify-start">
+            {/* <p>（{checkedMembersArray.filter((value) => value === true).length}件）選択済み</p> */}
+            <p>（{checkedMembersArray.filter((member) => member !== null).length}件）選択済み</p>
+          </div>
+          <div className="flex-center">
+            <div className="flex-center space-x-3">
+              {/* 部署変更アイコン */}
+              <div
+                className={`flex-center relative h-[35px] w-[35px] cursor-pointer rounded-[4px] text-[20px] hover:bg-[var(--setting-bg-sub)] ${
+                  openChangeMemberDetailMenu ? `bg-[var(--setting-bg-sub)]` : ``
+                }`}
+                data-text="事業部・課・係・部署を変更"
+                onMouseEnter={(e) => {
+                  if (openChangeMemberDetailMenu) return;
+                  handleOpenTooltip(e, "top");
+                }}
+                onMouseLeave={handleCloseTooltip}
+                onClick={() => setOpenChangeMemberDetailMenu(true)}
+              >
+                <RxUpdate className="stroke-[0.1] text-[18px]" />
+                {/* 一括で事業部・係・事業所を変更するドロップダウンメニュー */}
+                {openChangeMemberDetailMenu && (
+                  <>
+                    {/* 通常時 h-[px] 招待中時 */}
+                    <div
+                      // className="shadow-all-md border-real-with-shadow  absolute left-[-calc(300px-50%)] top-[-253px] z-[2000] h-auto min-w-[300px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)]"
+                      className="shadow-all-md border-real-with-shadow  absolute left-[-calc(300px-50%)] top-[-334px] z-[2000] h-auto min-w-[300px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)]"
+                    >
+                      <ul className={`flex flex-col py-[0px]`}>
+                        {/* ----------------- 事業部 ----------------- */}
+                        <li
+                          className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                          onClick={() => {
+                            // handleChangeMemberDetailAllAtOnce('department', );
+                            if (!departmentDataArray || departmentDataArray?.length === 0) {
+                              alert("事業部リストが未設定です。先に「会社・チーム」から事業部を作成してください。");
+                              return;
+                            }
+                            const firstDepartmentObj = [...departmentDataArray].sort((a, b) => {
+                              if (a.department_name === null) return 1; // null値をリストの最後に移動
+                              if (b.department_name === null) return -1;
+                              return a.department_name.localeCompare(
+                                b.department_name,
+                                language === "ja" ? "ja" : "en"
+                              );
+                            })[0];
+                            setSelectedDepartment(firstDepartmentObj);
+                            setIsOpenConfirmUpsertModal("department");
+                          }}
+                        >
+                          <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                            事業部
+                          </span>
+                          <p className="select-none text-[12px]">選択したチームメンバーの事業部を一括で変更します。</p>
+                        </li>
+                        {/* ----------------- 事業部 ----------------- */}
+                        {/* ----------------- 課(課ありパターン) ----------------- */}
+                        <li
+                          className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                          onClick={() => {
+                            // handleChangeRoleTogether("company_manager");
+                            if (!departmentDataArray || departmentDataArray?.length === 0) {
+                              alert(
+                                "事業所・営業所リストがありません。先に「会社・チーム」から事業所・営業所を作成してください。"
+                              );
+                              return;
+                            }
+                            if (!sectionDataArray || sectionDataArray?.length === 0) {
+                              alert(
+                                "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                              );
+                              return;
+                            }
+                            // 🔹事業部の選択肢の１番目をstateにセット
+                            const firstDepartmentObj = [...departmentDataArray].sort((a, b) => {
+                              if (a.department_name === null) return 1; // null値をリストの最後に移動
+                              if (b.department_name === null) return -1;
+                              return a.department_name.localeCompare(
+                                b.department_name,
+                                language === "ja" ? "ja" : "en"
+                              );
+                            })[0];
+                            setSelectedDepartment(firstDepartmentObj);
 
-                          // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目をstateにセット
-                          const filteredSectionList = sectionDataArray.filter(
-                            (unit) => unit.created_by_department_id === firstDepartmentObj.id
-                          );
-                          setFilteredSectionBySelectedDepartment(filteredSectionList);
-                          if (!filteredSectionList || filteredSectionList?.length === 0) {
-                            alert(
-                              "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                            // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目をstateにセット
+                            const filteredSectionList = sectionDataArray.filter(
+                              (unit) => unit.created_by_department_id === firstDepartmentObj.id
                             );
-                            return;
-                          }
-                          const firstSectionObj = [...filteredSectionList].sort((a, b) => {
-                            if (a.section_name === null) return 1; // null値をリストの最後に移動
-                            if (b.section_name === null) return -1;
-                            return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
-                          })[0];
-                          setSelectedSection(firstSectionObj);
-                          setIsOpenConfirmUpsertModal("section");
-                        }}
-                      >
-                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
-                          課・セクション
-                        </span>
-                        <p className="select-none text-[12px]">
-                          選択したチームメンバーの課・セクションを一括で変更します。
-                        </p>
-                      </li>
-                      {/* ----------------- 課(課ありパターン)ここまで ----------------- */}
-                      {/* ----------------- 係(課ありパターン) ----------------- */}
-                      <li
-                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
-                        onClick={() => {
-                          // handleChangeRoleTogether("company_manager");
-                          if (!departmentDataArray || departmentDataArray?.length === 0) {
-                            alert(
-                              "事業所・営業所リストがありません。先に「会社・チーム」から事業所・営業所を作成してください。"
-                            );
-                            return;
-                          }
-                          if (!sectionDataArray || sectionDataArray?.length === 0) {
-                            alert(
-                              "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
-                            );
-                            return;
-                          }
-                          if (!unitDataArray || unitDataArray?.length === 0) {
-                            alert(
-                              "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
-                            );
-                            return;
-                          }
-                          // 🔹事業部の選択肢の１番目をstateにセット
-                          const firstDepartmentObj = [...departmentDataArray].sort((a, b) => {
-                            if (a.department_name === null) return 1; // null値をリストの最後に移動
-                            if (b.department_name === null) return -1;
-                            return a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en");
-                          })[0];
-                          setSelectedDepartment(firstDepartmentObj);
+                            setFilteredSectionBySelectedDepartment(filteredSectionList);
+                            if (!filteredSectionList || filteredSectionList?.length === 0) {
+                              alert(
+                                "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                              );
+                              return;
+                            }
+                            const firstSectionObj = [...filteredSectionList].sort((a, b) => {
+                              if (a.section_name === null) return 1; // null値をリストの最後に移動
+                              if (b.section_name === null) return -1;
+                              return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                            })[0];
+                            setSelectedSection(firstSectionObj);
+                            setIsOpenConfirmUpsertModal("section");
+                          }}
+                        >
+                          <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                            課・セクション
+                          </span>
+                          <p className="select-none text-[12px]">
+                            選択したチームメンバーの課・セクションを一括で変更します。
+                          </p>
+                        </li>
+                        {/* ----------------- 課(課ありパターン)ここまで ----------------- */}
+                        {/* ----------------- 係(課ありパターン) ----------------- */}
+                        <li
+                          className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                          onClick={() => {
+                            // handleChangeRoleTogether("company_manager");
+                            if (!departmentDataArray || departmentDataArray?.length === 0) {
+                              alert(
+                                "事業所・営業所リストがありません。先に「会社・チーム」から事業所・営業所を作成してください。"
+                              );
+                              return;
+                            }
+                            if (!sectionDataArray || sectionDataArray?.length === 0) {
+                              alert(
+                                "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                              );
+                              return;
+                            }
+                            if (!unitDataArray || unitDataArray?.length === 0) {
+                              alert(
+                                "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
+                              );
+                              return;
+                            }
+                            // 🔹事業部の選択肢の１番目をstateにセット
+                            const firstDepartmentObj = [...departmentDataArray].sort((a, b) => {
+                              if (a.department_name === null) return 1; // null値をリストの最後に移動
+                              if (b.department_name === null) return -1;
+                              return a.department_name.localeCompare(
+                                b.department_name,
+                                language === "ja" ? "ja" : "en"
+                              );
+                            })[0];
+                            setSelectedDepartment(firstDepartmentObj);
 
-                          // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目をstateにセット
-                          const filteredSectionList = sectionDataArray.filter(
-                            (unit) => unit.created_by_department_id === firstDepartmentObj.id
-                          );
-                          setFilteredSectionBySelectedDepartment(filteredSectionList);
-                          if (!filteredSectionList || filteredSectionList?.length === 0) {
-                            alert(
-                              "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                            // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目をstateにセット
+                            const filteredSectionList = sectionDataArray.filter(
+                              (unit) => unit.created_by_department_id === firstDepartmentObj.id
                             );
-                            return;
-                          }
-                          const firstSectionObj = [...filteredSectionList].sort((a, b) => {
-                            if (a.section_name === null) return 1; // null値をリストの最後に移動
-                            if (b.section_name === null) return -1;
-                            return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
-                          })[0];
-                          setSelectedSection(firstSectionObj);
+                            setFilteredSectionBySelectedDepartment(filteredSectionList);
+                            if (!filteredSectionList || filteredSectionList?.length === 0) {
+                              alert(
+                                "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                              );
+                              return;
+                            }
+                            const firstSectionObj = [...filteredSectionList].sort((a, b) => {
+                              if (a.section_name === null) return 1; // null値をリストの最後に移動
+                              if (b.section_name === null) return -1;
+                              return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                            })[0];
+                            setSelectedSection(firstSectionObj);
 
-                          // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目の課に紐づく係リストの１番目をstateにセット
-                          const filteredUnitList = unitDataArray.filter(
-                            (unit) => unit.created_by_section_id === firstSectionObj.id
-                          );
-                          setFilteredUnitBySelectedSection(filteredUnitList);
-                          //
-                          if (!filteredUnitList || filteredUnitList?.length === 0) {
-                            alert(
-                              "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
+                            // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目の課に紐づく係リストの１番目をstateにセット
+                            const filteredUnitList = unitDataArray.filter(
+                              (unit) => unit.created_by_section_id === firstSectionObj.id
                             );
-                            return;
-                          }
-                          const firstUnitObj = [...filteredUnitList].sort((a, b) => {
-                            if (a.unit_name === null) return 1; // null値をリストの最後に移動
-                            if (b.unit_name === null) return -1;
-                            return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
-                          })[0];
-                          setSelectedUnit(firstUnitObj);
-                          setIsOpenConfirmUpsertModal("unit");
-                        }}
-                      >
-                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
-                          係・チーム
-                        </span>
-                        <p className="select-none text-[12px]">
-                          選択したチームメンバーの係・チームを一括で変更します。
-                        </p>
-                      </li>
-                      {/* ----------------- 係(課ありパターン)ここまで ----------------- */}
-                      {/* ----------------- 係(課なしパターン) ----------------- */}
-                      {/* <li
+                            setFilteredUnitBySelectedSection(filteredUnitList);
+                            //
+                            if (!filteredUnitList || filteredUnitList?.length === 0) {
+                              alert(
+                                "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
+                              );
+                              return;
+                            }
+                            const firstUnitObj = [...filteredUnitList].sort((a, b) => {
+                              if (a.unit_name === null) return 1; // null値をリストの最後に移動
+                              if (b.unit_name === null) return -1;
+                              return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                            })[0];
+                            setSelectedUnit(firstUnitObj);
+                            setIsOpenConfirmUpsertModal("unit");
+                          }}
+                        >
+                          <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                            係・チーム
+                          </span>
+                          <p className="select-none text-[12px]">
+                            選択したチームメンバーの係・チームを一括で変更します。
+                          </p>
+                        </li>
+                        {/* ----------------- 係(課ありパターン)ここまで ----------------- */}
+                        {/* ----------------- 係(課なしパターン) ----------------- */}
+                        {/* <li
                         className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
                         onClick={() => {
                           // handleChangeRoleTogether("company_manager");
@@ -1148,310 +1193,281 @@ const SettingMemberAccountsMemo: FC = () => {
                           選択したチームメンバーの係・チームを一括で変更します。
                         </p>
                       </li> */}
-                      <li
-                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
-                        onClick={() => {
-                          // handleChangeRoleTogether("company_member");
-                          if (!officeDataArray || officeDataArray?.length === 0) {
-                            alert(
-                              "事業所・営業所リストが未設定です。先に「会社・チーム」から事業所・営業所を作成してください。"
-                            );
-                            return;
-                          }
-                          const firstOfficeObj = [...officeDataArray].sort((a, b) => {
-                            if (a.office_name === null) return 1; // null値をリストの最後に移動
-                            if (b.office_name === null) return -1;
-                            return a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en");
-                          })[0];
-                          setSelectedOffice(firstOfficeObj);
-                          setIsOpenConfirmUpsertModal("office");
-                        }}
-                      >
-                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
-                          事業所・営業所
-                        </span>
-                        <p className="select-none text-[12px]">
-                          選択したチームメンバーの事業所・営業所を一括で変更します。
-                        </p>
-                      </li>
-                    </ul>
-                  </div>
-                </>
-              )}
-            </div>
-            {/* チーム役割変更アイコン */}
-            <div
-              className={`flex-center relative h-[35px] w-[35px] cursor-pointer rounded-[4px] text-[20px] hover:bg-[var(--setting-bg-sub)] ${
-                openChangeRoleTogetherMenu ? `bg-[var(--setting-bg-sub)]` : ``
-              }`}
-              data-text="役割を変更"
-              onMouseEnter={(e) => {
-                if (openChangeRoleTogetherMenu) return;
-                handleOpenTooltip(e, "top");
-              }}
-              onMouseLeave={handleCloseTooltip}
-              onClick={() => setOpenChangeRoleTogetherMenu(true)}
-            >
-              <HiOutlineUsers className="stroke-2" />
-              {/* =============== まとめて役割変更ドロップダウンメニュー =============== */}
-              {openChangeRoleTogetherMenu && (
-                <>
-                  {/* <div
+                        <li
+                          className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                          onClick={() => {
+                            // handleChangeRoleTogether("company_member");
+                            if (!officeDataArray || officeDataArray?.length === 0) {
+                              alert(
+                                "事業所・営業所リストが未設定です。先に「会社・チーム」から事業所・営業所を作成してください。"
+                              );
+                              return;
+                            }
+                            const firstOfficeObj = [...officeDataArray].sort((a, b) => {
+                              if (a.office_name === null) return 1; // null値をリストの最後に移動
+                              if (b.office_name === null) return -1;
+                              return a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en");
+                            })[0];
+                            setSelectedOffice(firstOfficeObj);
+                            setIsOpenConfirmUpsertModal("office");
+                          }}
+                        >
+                          <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                            事業所・営業所
+                          </span>
+                          <p className="select-none text-[12px]">
+                            選択したチームメンバーの事業所・営業所を一括で変更します。
+                          </p>
+                        </li>
+                      </ul>
+                    </div>
+                  </>
+                )}
+              </div>
+              {/* チーム役割変更アイコン */}
+              <div
+                className={`flex-center relative h-[35px] w-[35px] cursor-pointer rounded-[4px] text-[20px] hover:bg-[var(--setting-bg-sub)] ${
+                  openChangeRoleTogetherMenu ? `bg-[var(--setting-bg-sub)]` : ``
+                }`}
+                data-text="役割を変更"
+                onMouseEnter={(e) => {
+                  if (openChangeRoleTogetherMenu) return;
+                  handleOpenTooltip(e, "top");
+                }}
+                onMouseLeave={handleCloseTooltip}
+                onClick={() => setOpenChangeRoleTogetherMenu(true)}
+              >
+                <HiOutlineUsers className="stroke-2" />
+                {/* =============== まとめて役割変更ドロップダウンメニュー =============== */}
+                {openChangeRoleTogetherMenu && (
+                  <>
+                    {/* <div
                     className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-red-100"
                     onClick={() => setOpenChangeRoleTogetherMenu(false)}
                   ></div> */}
 
-                  {/* 通常時 h-[152px] 招待中時 */}
-                  <div className="shadow-all-md border-real-with-shadow  absolute left-[-calc(200px-50%)] top-[-331px] z-[2000] h-auto min-w-[400px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)]">
-                    <ul className={`flex flex-col py-[0px]`}>
-                      <li
-                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
-                        onClick={() => {
-                          handleChangeRoleTogether("company_admin");
-                        }}
-                      >
-                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
-                          管理者
-                        </span>
-                        <p className="select-none text-[12px]">
-                          会社・チームの編集、メンバーの管理、招待、製品の追加、編集ができます。
-                        </p>
-                      </li>
-                      <li
-                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
-                        onClick={() => {
-                          handleChangeRoleTogether("company_manager");
-                        }}
-                      >
-                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
-                          マネージャー
-                        </span>
-                        <p className="select-none text-[12px]">
-                          製品の追加、編集、チーム全体の成果の確認、他メンバーの活動の編集、削除が可能です。
-                        </p>
-                      </li>
-                      <li
-                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
-                        onClick={() => {
-                          handleChangeRoleTogether("company_member");
-                        }}
-                      >
-                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
-                          メンバー
-                        </span>
-                        <p className="select-none text-[12px]">係、ユニット、メンバー自身の成果の確認が可能です。</p>
-                      </li>
-                      <li
-                        className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
-                        onClick={() => {
-                          handleChangeRoleTogether("guest");
-                        }}
-                      >
-                        <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
-                          ゲスト
-                        </span>
-                        <p className="select-none text-[12px]">
-                          通常の営業活動の記録、編集のみ行えます。一時的に営業活動に参画してもらう担当者に最適です。
-                        </p>
-                      </li>
-                      {/* <li className="flex-center h-[16px] w-full">
+                    {/* 通常時 h-[152px] 招待中時 */}
+                    <div className="shadow-all-md border-real-with-shadow  absolute left-[-calc(200px-50%)] top-[-331px] z-[2000] h-auto min-w-[400px] rounded-[8px] bg-[var(--color-bg-dropdown-menu)]">
+                      <ul className={`flex flex-col py-[0px]`}>
+                        <li
+                          className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                          onClick={() => {
+                            handleChangeRoleTogether("company_admin");
+                          }}
+                        >
+                          <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                            管理者
+                          </span>
+                          <p className="select-none text-[12px]">
+                            会社・チームの編集、メンバーの管理、招待、製品の追加、編集ができます。
+                          </p>
+                        </li>
+                        <li
+                          className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                          onClick={() => {
+                            handleChangeRoleTogether("company_manager");
+                          }}
+                        >
+                          <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                            マネージャー
+                          </span>
+                          <p className="select-none text-[12px]">
+                            製品の追加、編集、チーム全体の成果の確認、他メンバーの活動の編集、削除が可能です。
+                          </p>
+                        </li>
+                        <li
+                          className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                          onClick={() => {
+                            handleChangeRoleTogether("company_member");
+                          }}
+                        >
+                          <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                            メンバー
+                          </span>
+                          <p className="select-none text-[12px]">係、ユニット、メンバー自身の成果の確認が可能です。</p>
+                        </li>
+                        <li
+                          className={`${styles.dropdown_list_item} flex min-h-[78px] w-full cursor-pointer flex-col space-y-1 px-[14px] py-[10px] pr-[18px] text-[var(--color-text-title)] hover:bg-[var(--color-bg-sub)]`}
+                          onClick={() => {
+                            handleChangeRoleTogether("guest");
+                          }}
+                        >
+                          <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                            ゲスト
+                          </span>
+                          <p className="select-none text-[12px]">
+                            通常の営業活動の記録、編集のみ行えます。一時的に営業活動に参画してもらう担当者に最適です。
+                          </p>
+                        </li>
+                        {/* <li className="flex-center h-[16px] w-full">
                         <hr className="w-full border-t border-solid border-[var(--color-border-table)]" />
                       </li> */}
-                    </ul>
-                  </div>
-                </>
-              )}
-              {/* まとめて役割変更ドロップダウンメニュー ここまで */}
-            </div>
-            <div
-              className="flex-center relative h-[35px] w-[35px] cursor-pointer rounded-[4px] text-[20px] hover:bg-[var(--setting-bg-sub)]"
-              data-text="メンバーをチームから削除"
-              onMouseEnter={(e) => handleOpenTooltip(e, "top")}
-              onMouseLeave={handleCloseTooltip}
-              onClick={() => setOpenRemoveTeamTogetherModal(true)}
-            >
-              <FiTrash2 />
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center justify-end">
-          <div className="flex-center space-x-3">
-            <div className="flex-center h-[35px] w-[35px]">
+                      </ul>
+                    </div>
+                  </>
+                )}
+                {/* まとめて役割変更ドロップダウンメニュー ここまで */}
+              </div>
               <div
-                className={`${styles.grid_select_cell_header} ${styles.checked_area_input_cell}`}
-                // data-text="全てのメンバーを選択"
-                // data-text={`${
-                //   checkedMembersArray.includes(false) ? `全てのメンバーを選択` : `全てのメンバーのチェックを外す`
-                // }`}
-                data-text={`${
-                  checkedMembersArray.some((member) => member === null)
-                    ? `全メンバーを選択`
-                    : `全メンバーのチェックを外す`
-                }`}
+                className="flex-center relative h-[35px] w-[35px] cursor-pointer rounded-[4px] text-[20px] hover:bg-[var(--setting-bg-sub)]"
+                data-text="メンバーをチームから削除"
                 onMouseEnter={(e) => handleOpenTooltip(e, "top")}
                 onMouseLeave={handleCloseTooltip}
+                onClick={() => setOpenRemoveTeamTogetherModal(true)}
               >
-                <input
-                  type="checkbox"
-                  // checked={checkedMembersArray[index]}
-                  // onChange={() => {
-                  //   const newCheckedArray = [...checkedMembersArray];
-                  //   newCheckedArray[index] = !checkedMembersArray[index];
-                  //   setCheckedMembersArray(newCheckedArray);
-                  // defaultChecked={true}
-                  // checked={!checkedMembersArray.includes(false)}
-                  // checked={checkedMembersArray.some((id) => id !== null)}
-                  checked={checkedMembersArray.every((member) => member !== null)}
-                  onChange={() => {
-                    // if (checkedMembersArray.includes(false)) {
-                    //   const newCheckArray = checkedMembersArray.map((value) => true);
-                    //   console.log("全てをチェック", newCheckArray);
-                    //   setCheckedMembersArray(newCheckArray);
-                    // } else {
-                    //   const newCheckArray = checkedMembersArray.map((value) => false);
-                    //   console.log("全てのチェックを外す", newCheckArray);
-                    //   setCheckedMembersArray(newCheckArray);
-                    // }
-                    // チェックが
-                    // if (checkedMembersArray.some((id) => id !== null)) {
-                    if (!checkedMembersArray.every((member) => member !== null)) {
-                      // const newCheckArray = checkedMembersArray.map((value, index) => true);
-                      // console.log("全てをチェック", newCheckArray);
-                      // setCheckedMembersArray(newCheckArray);
-                      console.log("全てをチェック", allCheckedMemberIdsArray);
-                      setCheckedMembersArray(allCheckedMemberIdsArray);
-                    } else {
-                      // const newCheckArray = checkedMembersArray.map((value) => false);
-                      const newCheckArray = checkedMembersArray.map((member) => null);
-                      console.log("全てのチェックを外す", newCheckArray);
-                      setCheckedMembersArray(newCheckArray);
-                      if (openChangeRoleTogetherMenu) setOpenChangeRoleTogetherMenu(false);
-                      if (openChangeMemberDetailMenu) setOpenChangeMemberDetailMenu(false);
-                    }
-                  }}
-                  onClick={() => {}}
-                  // checked={checked}
-                  // onChange={() => setChecked(!checked)}
-                  className={`${styles.checked_area_input} relative`}
-                />
-                <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
-                </svg>
+                <FiTrash2 />
               </div>
             </div>
-            <div
-              className="flex-center h-[35px] w-[35px] cursor-pointer rounded-[4px] text-[24px] hover:bg-[var(--setting-bg-sub)]"
-              onClick={() => {
-                // const newCheckArray = checkedMembersArray.map((value) => false);
-                const newCheckArray = checkedMembersArray.map((member) => null);
-                console.log("クローズクリック", newCheckArray);
-                setCheckedMembersArray(newCheckArray);
-                if (openChangeRoleTogetherMenu) setOpenChangeRoleTogetherMenu(false);
-                if (openChangeMemberDetailMenu) setOpenChangeMemberDetailMenu(false);
-              }}
-            >
-              <MdClose className="" />
+          </div>
+          <div className="flex items-center justify-end">
+            <div className="flex-center space-x-3">
+              <div className="flex-center h-[35px] w-[35px]">
+                <div
+                  className={`${styles.grid_select_cell_header} ${styles.checked_area_input_cell}`}
+                  // data-text="全てのメンバーを選択"
+                  // data-text={`${
+                  //   checkedMembersArray.includes(false) ? `全てのメンバーを選択` : `全てのメンバーのチェックを外す`
+                  // }`}
+                  data-text={`${
+                    checkedMembersArray.some((member) => member === null)
+                      ? `全メンバーを選択`
+                      : `全メンバーのチェックを外す`
+                  }`}
+                  onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <input
+                    type="checkbox"
+                    // checked={checkedMembersArray[index]}
+                    // onChange={() => {
+                    //   const newCheckedArray = [...checkedMembersArray];
+                    //   newCheckedArray[index] = !checkedMembersArray[index];
+                    //   setCheckedMembersArray(newCheckedArray);
+                    // defaultChecked={true}
+                    // checked={!checkedMembersArray.includes(false)}
+                    // checked={checkedMembersArray.some((id) => id !== null)}
+                    checked={checkedMembersArray.every((member) => member !== null)}
+                    onChange={() => {
+                      // if (checkedMembersArray.includes(false)) {
+                      //   const newCheckArray = checkedMembersArray.map((value) => true);
+                      //   console.log("全てをチェック", newCheckArray);
+                      //   setCheckedMembersArray(newCheckArray);
+                      // } else {
+                      //   const newCheckArray = checkedMembersArray.map((value) => false);
+                      //   console.log("全てのチェックを外す", newCheckArray);
+                      //   setCheckedMembersArray(newCheckArray);
+                      // }
+                      // チェックが
+                      // if (checkedMembersArray.some((id) => id !== null)) {
+                      if (!checkedMembersArray.every((member) => member !== null)) {
+                        // const newCheckArray = checkedMembersArray.map((value, index) => true);
+                        // console.log("全てをチェック", newCheckArray);
+                        // setCheckedMembersArray(newCheckArray);
+                        console.log("全てをチェック", allCheckedMemberIdsArray);
+                        setCheckedMembersArray(allCheckedMemberIdsArray);
+                      } else {
+                        // const newCheckArray = checkedMembersArray.map((value) => false);
+                        const newCheckArray = checkedMembersArray.map((member) => null);
+                        console.log("全てのチェックを外す", newCheckArray);
+                        setCheckedMembersArray(newCheckArray);
+                        if (openChangeRoleTogetherMenu) setOpenChangeRoleTogetherMenu(false);
+                        if (openChangeMemberDetailMenu) setOpenChangeMemberDetailMenu(false);
+                      }
+                    }}
+                    onClick={() => {}}
+                    // checked={checked}
+                    // onChange={() => setChecked(!checked)}
+                    className={`${styles.checked_area_input} relative`}
+                  />
+                  <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
+                  </svg>
+                </div>
+              </div>
+              <div
+                className="flex-center h-[35px] w-[35px] cursor-pointer rounded-[4px] text-[24px] hover:bg-[var(--setting-bg-sub)]"
+                onClick={() => {
+                  // const newCheckArray = checkedMembersArray.map((value) => false);
+                  const newCheckArray = checkedMembersArray.map((member) => null);
+                  console.log("クローズクリック", newCheckArray);
+                  setCheckedMembersArray(newCheckArray);
+                  if (openChangeRoleTogetherMenu) setOpenChangeRoleTogetherMenu(false);
+                  if (openChangeMemberDetailMenu) setOpenChangeMemberDetailMenu(false);
+                }}
+              >
+                <MdClose className="" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      {/* ============================== 一括でチームから削除モーダル ============================== */}
-      {openRemoveTeamTogetherModal && (
-        <>
-          {/* オーバーレイ */}
-          <div
-            className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
-            onClick={() => {
-              console.log("オーバーレイ クリック");
-              setOpenRemoveTeamTogetherModal(false);
-              //   setNotificationDataState(null);
-            }}
-          ></div>
-          {/* <div className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-[284px] w-[40vw] max-w-[576px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]"> */}
-          <div className={`fade02 ${styles.confirm_modal}`}>
-            {loading && (
+        {/* ============================== 一括でチームから削除モーダル ============================== */}
+        {openRemoveTeamTogetherModal && (
+          <>
+            {/* オーバーレイ */}
+            <div
+              className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
+              onClick={() => {
+                console.log("オーバーレイ クリック");
+                setOpenRemoveTeamTogetherModal(false);
+                //   setNotificationDataState(null);
+              }}
+            ></div>
+            {/* <div className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-[284px] w-[40vw] max-w-[576px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]"> */}
+            <div className={`fade02 ${styles.confirm_modal}`}>
+              {/* {loading && (
               <div className={`flex-center fixed left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
                 <SpinnerIDS scale={"scale-[0.5]"} />
               </div>
-            )}
-            {/* クローズボタン */}
-            <button
-              className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
-              onClick={() => {
-                setOpenRemoveTeamTogetherModal(false);
-                // setNotificationDataState(null);
-              }}
-            >
-              <MdClose className="text-[20px] text-[#fff]" />
-            </button>
-            <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
-              選択したチームのメンバーを削除しますか？
-            </h3>
-            <section className={`mt-[20px] flex h-auto w-full flex-col text-[14px]`}>
-              <p>これらの人を削除すると、削除された人が保存したデータやコンテンツにアクセスできなくなります。</p>
-            </section>
-            <section className="flex w-full items-start justify-end">
-              <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
-                <button
-                  className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
-                  onClick={() => setOpenRemoveTeamTogetherModal(false)}
-                >
-                  キャンセル
-                </button>
-                <button
-                  className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
-                  onClick={handleRemoveFromTeamTogether}
-                >
-                  チームから削除する
-                </button>
-              </div>
-            </section>
-          </div>
-        </>
-      )}
-      {/* ============================== 一括でチームから削除モーダル ここまで ============================== */}
-      {/* ================ 一括でチームメンバーの事業部・係・事業所のどれかを変更するモーダル ================ */}
-      {isOpenConfirmUpsertModal && (
-        <>
-          {/* オーバーレイ */}
-          <div
-            className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
-            onClick={() => {
-              if (isLoadingUpsertMember) return;
-              setIsOpenConfirmUpsertModal(null);
-              setOpenChangeMemberDetailMenu(false);
-              if (selectedDepartment) setSelectedDepartment(null);
-              if (selectedSection) setSelectedSection(null);
-              if (selectedUnit) setSelectedUnit(null);
-              if (selectedOffice) setSelectedOffice(null);
-            }}
-          ></div>
-          {/* ローディングオーバーレイ */}
-          {/* {!isLoadingUpsertMember && (
-            <div className={`fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[#00000000]`}>
-              <SpinnerComet h="60px" w="60px" s="5px" />
-            </div>
-          )} */}
-          <div
-            className={`fade02 fixed left-[50%] top-[50%] z-[2000] h-auto w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] ${
-              (isOpenConfirmUpsertModal === "department" || isOpenConfirmUpsertModal === "office") && `max-h-[321px]`
-            } ${isOpenConfirmUpsertModal === "section" && `max-h-[421px]`} ${
-              isOpenConfirmUpsertModal === "unit" && `max-h-[371px]`
-            }`}
-          >
-            {isLoadingUpsertMember && (
-              <div
-                className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}
+            )} */}
+              {loading && (
+                <div className={`${styles.loading_overlay_modal_outside}`}>
+                  <div className={`${styles.loading_overlay_modal_inside}`}>
+                    <SpinnerBrand />
+                  </div>
+                </div>
+              )}
+              {/* クローズボタン */}
+              <button
+                className={`flex-center z-100 group absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+                onClick={() => {
+                  setOpenRemoveTeamTogetherModal(false);
+                  // setNotificationDataState(null);
+                }}
               >
-                {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
-                <SpinnerComet h="60px" w="60px" s="5px" />
-              </div>
-            )}
-            {/* クローズボタン */}
-            <button
-              className={`flex-center group absolute right-[-40px] top-0 z-[100] h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0] ${
-                isLoadingUpsertMember ? `cursor-not-allowed` : ``
-              }`}
+                <MdClose className="text-[20px] text-[#fff]" />
+              </button>
+              <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
+                選択したチームのメンバーを削除しますか？
+              </h3>
+              <section className={`mt-[20px] flex h-auto w-full flex-col text-[14px]`}>
+                <p>これらの人を削除すると、削除された人が保存したデータやコンテンツにアクセスできなくなります。</p>
+              </section>
+              <section className="flex w-full items-start justify-end">
+                <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
+                  <button
+                    className={`w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => setOpenRemoveTeamTogetherModal(false)}
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    className="w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-red-tk)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-red-tk-hover)]"
+                    onClick={handleRemoveFromTeamTogether}
+                  >
+                    チームから削除する
+                  </button>
+                </div>
+              </section>
+            </div>
+          </>
+        )}
+        {/* ============================== 一括でチームから削除モーダル ここまで ============================== */}
+        {/* ================ 一括でチームメンバーの事業部・係・事業所のどれかを変更するモーダル ================ */}
+        {isOpenConfirmUpsertModal && (
+          <>
+            {/* オーバーレイ */}
+            <div
+              className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
               onClick={() => {
                 if (isLoadingUpsertMember) return;
                 setIsOpenConfirmUpsertModal(null);
@@ -1461,289 +1477,338 @@ const SettingMemberAccountsMemo: FC = () => {
                 if (selectedUnit) setSelectedUnit(null);
                 if (selectedOffice) setSelectedOffice(null);
               }}
-              // onClick={clickEventClose}
+            ></div>
+            {/* ローディングオーバーレイ */}
+            {/* {!isLoadingUpsertMember && (
+            <div className={`fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[#00000000]`}>
+              <SpinnerComet h="60px" w="60px" s="5px" />
+            </div>
+          )} */}
+            <div
+              className={`fade02 fixed left-[50%] top-[50%] z-[2000] h-auto w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] ${
+                (isOpenConfirmUpsertModal === "department" || isOpenConfirmUpsertModal === "office") && `max-h-[321px]`
+              } ${isOpenConfirmUpsertModal === "section" && `max-h-[421px]`} ${
+                isOpenConfirmUpsertModal === "unit" && `max-h-[521px]`
+              }`}
             >
-              <MdClose className="text-[20px] text-[#fff]" />
-            </button>
-            <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
-              {isOpenConfirmUpsertModal === "department" && "どの事業部に変更しますか？"}
-              {isOpenConfirmUpsertModal === "section" && "どの課・セクションに変更しますか？"}
-              {isOpenConfirmUpsertModal === "unit" && "どの係・チームに変更しますか？"}
-              {isOpenConfirmUpsertModal === "office" && "どの事業所・営業所に変更しますか？"}
-            </h3>
-            <section className={`mt-[20px] flex h-auto min-h-max w-full flex-col space-y-2 text-[14px]`}>
-              <h1>
-                {isOpenConfirmUpsertModal === "department" && "変更先の事業部を選択してください。"}
-                {isOpenConfirmUpsertModal === "section" && "変更先の課・セクションを選択してください。"}
-                {isOpenConfirmUpsertModal === "unit" && "変更先の係・チームを選択してください。"}
-                {isOpenConfirmUpsertModal === "office" && "変更先の事業所・営業所を選択してください。"}
-              </h1>
-
+              {/* {isLoadingUpsertMember && (
               <div
-                className={`flex items-center justify-between space-x-[40px] ${
-                  (isOpenConfirmUpsertModal === "department" || isOpenConfirmUpsertModal === "office") && "!my-[30px]"
-                } ${(isOpenConfirmUpsertModal === "unit" || isOpenConfirmUpsertModal === "section") && "!mt-[30px]"}`}
+                className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}
               >
-                <div className="min-w-max">
-                  <span className="text-[15px] font-bold">
-                    {(isOpenConfirmUpsertModal === "department" ||
-                      isOpenConfirmUpsertModal === "section" ||
-                      isOpenConfirmUpsertModal === "unit") &&
-                      "変更先の事業部"}
-                    {isOpenConfirmUpsertModal === "office" && "変更先の事業所・営業所"}
-                  </span>
-                </div>
-                {/* --------------- 事業部の選択肢 --------------- */}
-                <div className="flex w-full justify-end">
-                  {(isOpenConfirmUpsertModal === "department" ||
-                    isOpenConfirmUpsertModal === "section" ||
-                    isOpenConfirmUpsertModal === "unit") && (
-                    <select
-                      className={`${styles.select_box} ${styles.confirm}`}
-                      value={!!selectedDepartment ? selectedDepartment.id : ""}
-                      onChange={(e) => {
-                        if (!departmentDataArray) return;
-                        const selectedDepartmentObj = departmentDataArray.find((obj) => obj.id === e.target.value);
-                        console.log("e.target.value", e.target.value, "selectedDepartmentObj", selectedDepartmentObj);
-                        if (selectedDepartmentObj === undefined) {
-                          return alert("エラー：事業部データの取得にエラーが発生しました。");
-                        }
-                        setSelectedDepartment(selectedDepartmentObj);
-
-                        // 課(課ありパターン)
-                        if (isOpenConfirmUpsertModal === "section") {
-                          // 取得済みの全ての課が0の場合は空の配列をセットしてリターン
-                          if (!sectionDataArray || sectionDataArray?.length === 0) {
-                            setFilteredSectionBySelectedDepartment([]);
-                            return;
-                          }
-                          // 全ての課から新たに選択した事業部に含まれる課のみの選択肢を生成して、1番目を選択中の課にセット
-                          const filteredSectionList = sectionDataArray.filter(
-                            (unit) => unit.created_by_department_id === selectedDepartmentObj.id
-                          );
-
-                          const sortedSectionList = [...filteredSectionList].sort((a, b) => {
-                            if (a.section_name === null) return 1; // null値をリストの最後に移動
-                            if (b.section_name === null) return -1;
-                            return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
-                          });
-
-                          const firstSectionObj = sortedSectionList?.length >= 1 ? sortedSectionList[0] : null;
-
-                          setFilteredSectionBySelectedDepartment(sortedSectionList);
-                          setSelectedSection(firstSectionObj);
-                        }
-                        // 係(課ありパターン) 変更後の事業部に含まれる１番目の課に含まれる係の選択肢の1番目をセット
-                        if (isOpenConfirmUpsertModal === "unit") {
-                          // 全ての係のデータが0ならリターン
-                          if (!unitDataArray || unitDataArray?.length === 0) {
-                            setFilteredUnitBySelectedSection([]);
-                            return;
-                          }
-                          // 全ての課のデータが0ならリターン
-                          if (!sectionDataArray || sectionDataArray?.length === 0) {
-                            setFilteredSectionBySelectedDepartment([]);
-                            return;
-                          }
-                          // 🔹1. 事業部変更に伴い課を更新
-                          const filteredSectionList = sectionDataArray.filter(
-                            (unit) => unit.created_by_department_id === selectedDepartmentObj.id
-                          );
-
-                          const sortedSectionList = [...filteredSectionList].sort((a, b) => {
-                            if (a.section_name === null) return 1; // null値をリストの最後に移動
-                            if (b.section_name === null) return -1;
-                            return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
-                          });
-
-                          const firstSectionObj = sortedSectionList?.length >= 1 ? sortedSectionList[0] : null;
-
-                          setFilteredSectionBySelectedDepartment(sortedSectionList);
-                          setSelectedSection(firstSectionObj);
-
-                          // 🔹2. 事業部変更に伴い課を更新し、その後に係を更新
-                          const filteredUnitList = unitDataArray.filter(
-                            (unit) => unit.created_by_department_id === selectedDepartmentObj.id
-                          );
-
-                          const sortedUnitList = [...filteredUnitList].sort((a, b) => {
-                            if (a.unit_name === null) return 1; // null値をリストの最後に移動
-                            if (b.unit_name === null) return -1;
-                            return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
-                          });
-
-                          const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
-
-                          setFilteredUnitBySelectedSection(sortedUnitList);
-                          setSelectedUnit(firstUnitObj);
-                        }
-                        // 係(課なしパターン)
-                        // if (isOpenConfirmUpsertModal === "unit") {
-                        //   if (!unitDataArray || unitDataArray?.length === 0) {
-                        //     setFilteredUnitBySelectedDepartment([]);
-                        //     return;
-                        //   }
-                        //   const filteredUnitList = unitDataArray.filter(
-                        //     (unit) => unit.created_by_department_id === selectedDepartmentObj.id
-                        //   );
-
-                        //   const sortedUnitList = [...filteredUnitList].sort((a, b) => {
-                        //     if (a.unit_name === null) return 1; // null値をリストの最後に移動
-                        //     if (b.unit_name === null) return -1;
-                        //     return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
-                        //   });
-
-                        //   const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
-
-                        //   setFilteredUnitBySelectedDepartment(sortedUnitList);
-                        //   setSelectedUnit(firstUnitObj);
-                        // }
-                      }}
-                    >
-                      {/* <option value="">すべての事業部</option> */}
-                      {!!departmentDataArray &&
-                        [...departmentDataArray]
-                          .sort((a, b) => {
-                            if (a.department_name === null) return -1; //null値をリストの最後に移動
-                            if (b.department_name === null) return 1;
-                            return a.department_name.localeCompare(b.department_name, language === "ja" ? "ja" : "en");
-                          })
-                          .map((department, index) => (
-                            <option key={department.id} value={department.id}>
-                              {department.department_name}
-                            </option>
-                          ))}
-                    </select>
-                  )}
-                  {isOpenConfirmUpsertModal === "office" && (
-                    <select
-                      className={`${styles.select_box} ${styles.confirm}`}
-                      value={!!selectedOffice ? selectedOffice.id : ""}
-                      onChange={(e) => {
-                        if (!officeDataArray) return;
-                        const selectedOfficeObj = officeDataArray.find((obj) => obj.id === e.target.value);
-                        console.log("e.target.value", e.target.value, "selectedOfficeObj", selectedOfficeObj);
-                        if (selectedOfficeObj === undefined) {
-                          return alert("エラー：事業部データの取得にエラーが発生しました。");
-                        }
-                        setSelectedOffice(selectedOfficeObj);
-                      }}
-                    >
-                      {/* <option value="">すべての事業部</option> */}
-                      {!!officeDataArray &&
-                        [...officeDataArray]
-                          .sort((a, b) => {
-                            if (a.office_name === null || b.office_name === null) return 0;
-                            return a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en") ?? 0;
-                          })
-                          .map((office, index) => (
-                            <option key={office.id} value={office.id}>
-                              {office.office_name}
-                            </option>
-                          ))}
-                    </select>
-                  )}
-                </div>
-                {/* --------------- 事業部の選択肢 --------------- */}
+                <SpinnerComet h="60px" w="60px" s="5px" />
               </div>
-
-              {/* --------------- 課の選択肢 --------------- */}
-              {(isOpenConfirmUpsertModal === "section" || isOpenConfirmUpsertModal === "unit") && (
-                <div className={`!mb-[30px] !mt-[20px] flex items-center justify-between space-x-[40px]`}>
-                  <div className="min-w-max">
-                    <span className="text-[15px] font-bold">変更先の課・セクション</span>
-                  </div>
-
-                  <div className="flex w-full justify-end">
-                    {filteredSectionBySelectedDepartment && filteredSectionBySelectedDepartment.length >= 1 && (
-                      <select
-                        className={`${styles.select_box} ${styles.confirm}`}
-                        value={!!selectedSection ? selectedSection.id : ""}
-                        onChange={(e) => {
-                          if (!filteredSectionBySelectedDepartment) return;
-                          const selectedSectionObj = filteredSectionBySelectedDepartment.find(
-                            (obj) => obj.id === e.target.value
-                          );
-                          console.log("e.target.value", e.target.value, "selectedSectionObj", selectedSectionObj);
-                          if (selectedSectionObj === undefined) {
-                            return alert("エラー：事業部データの取得にエラーが発生しました。");
-                          }
-                          setSelectedSection(selectedSectionObj);
-                        }}
-                      >
-                        {!!filteredSectionBySelectedDepartment &&
-                          filteredSectionBySelectedDepartment.map((section, index) => (
-                            <option key={section.id} value={section.id}>
-                              {section.section_name}
-                            </option>
-                          ))}
-                      </select>
-                    )}
-                    {(!filteredSectionBySelectedDepartment || filteredSectionBySelectedDepartment.length === 0) && (
-                      <div className="flex min-h-[30px] max-w-[307px] items-center text-[13px]">
-                        <p className="line-clamp-2">
-                          {selectedDepartment && <span>{selectedDepartment?.department_name ?? ""}には</span>}
-                          課・セクションが存在しません。
-                        </p>
-                      </div>
-                    )}
+            )} */}
+              {isLoadingUpsertMember && (
+                <div className={`${styles.loading_overlay_modal_outside}`}>
+                  <div className={`${styles.loading_overlay_modal_inside}`}>
+                    <SpinnerBrand />
                   </div>
                 </div>
               )}
-              {/* --------------- 課の選択肢 --------------- */}
-              {/* --------------- 係の選択肢 --------------- */}
-              {isOpenConfirmUpsertModal === "unit" && (
-                <div className={`!mb-[30px] !mt-[20px] flex items-center justify-between space-x-[40px]`}>
-                  <div className="min-w-max">
-                    <span className="text-[15px] font-bold">変更先の係・チーム</span>
-                  </div>
+              {/* クローズボタン */}
+              <button
+                className={`flex-center group absolute right-[-40px] top-0 z-[100] h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0] ${
+                  isLoadingUpsertMember ? `cursor-not-allowed` : ``
+                }`}
+                onClick={() => {
+                  if (isLoadingUpsertMember) return;
+                  setIsOpenConfirmUpsertModal(null);
+                  setOpenChangeMemberDetailMenu(false);
+                  if (selectedDepartment) setSelectedDepartment(null);
+                  if (selectedSection) setSelectedSection(null);
+                  if (selectedUnit) setSelectedUnit(null);
+                  if (selectedOffice) setSelectedOffice(null);
+                }}
+                // onClick={clickEventClose}
+              >
+                <MdClose className="text-[20px] text-[#fff]" />
+              </button>
+              <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>
+                {isOpenConfirmUpsertModal === "department" && "どの事業部に変更しますか？"}
+                {isOpenConfirmUpsertModal === "section" && "どの課・セクションに変更しますか？"}
+                {isOpenConfirmUpsertModal === "unit" && "どの係・チームに変更しますか？"}
+                {isOpenConfirmUpsertModal === "office" && "どの事業所・営業所に変更しますか？"}
+              </h3>
+              <section className={`mt-[20px] flex h-auto min-h-max w-full flex-col space-y-2 text-[14px]`}>
+                <h1>
+                  {isOpenConfirmUpsertModal === "department" && "変更先の事業部を選択してください。"}
+                  {isOpenConfirmUpsertModal === "section" && "変更先の課・セクションを選択してください。"}
+                  {isOpenConfirmUpsertModal === "unit" && "変更先の係・チームを選択してください。"}
+                  {isOpenConfirmUpsertModal === "office" && "変更先の事業所・営業所を選択してください。"}
+                </h1>
 
+                <div
+                  className={`flex items-center justify-between space-x-[40px] ${
+                    (isOpenConfirmUpsertModal === "department" || isOpenConfirmUpsertModal === "office") && "!my-[30px]"
+                  } ${(isOpenConfirmUpsertModal === "unit" || isOpenConfirmUpsertModal === "section") && "!mt-[30px]"}`}
+                >
+                  <div className="min-w-max">
+                    <span className="text-[15px] font-bold">
+                      {(isOpenConfirmUpsertModal === "department" ||
+                        isOpenConfirmUpsertModal === "section" ||
+                        isOpenConfirmUpsertModal === "unit") &&
+                        "変更先の事業部"}
+                      {isOpenConfirmUpsertModal === "office" && "変更先の事業所・営業所"}
+                    </span>
+                  </div>
+                  {/* --------------- 事業部の選択肢 --------------- */}
                   <div className="flex w-full justify-end">
-                    {filteredUnitBySelectedSection && filteredUnitBySelectedSection.length >= 1 && (
+                    {(isOpenConfirmUpsertModal === "department" ||
+                      isOpenConfirmUpsertModal === "section" ||
+                      isOpenConfirmUpsertModal === "unit") && (
                       <select
                         className={`${styles.select_box} ${styles.confirm}`}
-                        value={!!selectedUnit ? selectedUnit.id : ""}
+                        value={!!selectedDepartment ? selectedDepartment.id : ""}
                         onChange={(e) => {
-                          if (!filteredUnitBySelectedSection) return;
-                          const selectedUnitObj = filteredUnitBySelectedSection.find(
-                            (obj) => obj.id === e.target.value
-                          );
-                          console.log("e.target.value", e.target.value, "selectedUnitObj", selectedUnitObj);
-                          if (selectedUnitObj === undefined) {
+                          if (!departmentDataArray) return;
+                          const selectedDepartmentObj = departmentDataArray.find((obj) => obj.id === e.target.value);
+                          console.log("e.target.value", e.target.value, "selectedDepartmentObj", selectedDepartmentObj);
+                          if (selectedDepartmentObj === undefined) {
                             return alert("エラー：事業部データの取得にエラーが発生しました。");
                           }
-                          setSelectedUnit(selectedUnitObj);
+                          setSelectedDepartment(selectedDepartmentObj);
+
+                          // 課(課ありパターン)
+                          if (isOpenConfirmUpsertModal === "section") {
+                            // 取得済みの全ての課が0の場合は空の配列をセットしてリターン
+                            if (!sectionDataArray || sectionDataArray?.length === 0) {
+                              setFilteredSectionBySelectedDepartment([]);
+                              return;
+                            }
+                            // 全ての課から新たに選択した事業部に含まれる課のみの選択肢を生成して、1番目を選択中の課にセット
+                            const filteredSectionList = sectionDataArray.filter(
+                              (unit) => unit.created_by_department_id === selectedDepartmentObj.id
+                            );
+
+                            const sortedSectionList = [...filteredSectionList].sort((a, b) => {
+                              if (a.section_name === null) return 1; // null値をリストの最後に移動
+                              if (b.section_name === null) return -1;
+                              return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                            });
+
+                            const firstSectionObj = sortedSectionList?.length >= 1 ? sortedSectionList[0] : null;
+
+                            setFilteredSectionBySelectedDepartment(sortedSectionList);
+                            setSelectedSection(firstSectionObj);
+                          }
+                          // 係(課ありパターン) 変更後の事業部に含まれる１番目の課に含まれる係の選択肢の1番目をセット
+                          if (isOpenConfirmUpsertModal === "unit") {
+                            // 全ての係のデータが0ならリターン
+                            if (!unitDataArray || unitDataArray?.length === 0) {
+                              setFilteredUnitBySelectedSection([]);
+                              return;
+                            }
+                            // 全ての課のデータが0ならリターン
+                            if (!sectionDataArray || sectionDataArray?.length === 0) {
+                              setFilteredSectionBySelectedDepartment([]);
+                              return;
+                            }
+                            // 🔹1. 事業部変更に伴い課を更新
+                            const filteredSectionList = sectionDataArray.filter(
+                              (unit) => unit.created_by_department_id === selectedDepartmentObj.id
+                            );
+
+                            const sortedSectionList = [...filteredSectionList].sort((a, b) => {
+                              if (a.section_name === null) return 1; // null値をリストの最後に移動
+                              if (b.section_name === null) return -1;
+                              return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                            });
+
+                            const firstSectionObj = sortedSectionList?.length >= 1 ? sortedSectionList[0] : null;
+
+                            setFilteredSectionBySelectedDepartment(sortedSectionList);
+                            setSelectedSection(firstSectionObj);
+
+                            // 🔹2. 事業部変更に伴い課を更新し、その後に係を更新
+                            const filteredUnitList = unitDataArray.filter(
+                              (unit) => unit.created_by_department_id === selectedDepartmentObj.id
+                            );
+
+                            const sortedUnitList = [...filteredUnitList].sort((a, b) => {
+                              if (a.unit_name === null) return 1; // null値をリストの最後に移動
+                              if (b.unit_name === null) return -1;
+                              return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                            });
+
+                            const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
+
+                            setFilteredUnitBySelectedSection(sortedUnitList);
+                            setSelectedUnit(firstUnitObj);
+                          }
+                          // 係(課なしパターン)
+                          // if (isOpenConfirmUpsertModal === "unit") {
+                          //   if (!unitDataArray || unitDataArray?.length === 0) {
+                          //     setFilteredUnitBySelectedDepartment([]);
+                          //     return;
+                          //   }
+                          //   const filteredUnitList = unitDataArray.filter(
+                          //     (unit) => unit.created_by_department_id === selectedDepartmentObj.id
+                          //   );
+
+                          //   const sortedUnitList = [...filteredUnitList].sort((a, b) => {
+                          //     if (a.unit_name === null) return 1; // null値をリストの最後に移動
+                          //     if (b.unit_name === null) return -1;
+                          //     return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                          //   });
+
+                          //   const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
+
+                          //   setFilteredUnitBySelectedDepartment(sortedUnitList);
+                          //   setSelectedUnit(firstUnitObj);
+                          // }
                         }}
                       >
                         {/* <option value="">すべての事業部</option> */}
-                        {/* {!!filteredUnitBySelectedSection &&
+                        {!!departmentDataArray &&
+                          [...departmentDataArray]
+                            .sort((a, b) => {
+                              if (a.department_name === null) return -1; //null値をリストの最後に移動
+                              if (b.department_name === null) return 1;
+                              return a.department_name.localeCompare(
+                                b.department_name,
+                                language === "ja" ? "ja" : "en"
+                              );
+                            })
+                            .map((department, index) => (
+                              <option key={department.id} value={department.id}>
+                                {department.department_name}
+                              </option>
+                            ))}
+                      </select>
+                    )}
+                    {isOpenConfirmUpsertModal === "office" && (
+                      <select
+                        className={`${styles.select_box} ${styles.confirm}`}
+                        value={!!selectedOffice ? selectedOffice.id : ""}
+                        onChange={(e) => {
+                          if (!officeDataArray) return;
+                          const selectedOfficeObj = officeDataArray.find((obj) => obj.id === e.target.value);
+                          console.log("e.target.value", e.target.value, "selectedOfficeObj", selectedOfficeObj);
+                          if (selectedOfficeObj === undefined) {
+                            return alert("エラー：事業部データの取得にエラーが発生しました。");
+                          }
+                          setSelectedOffice(selectedOfficeObj);
+                        }}
+                      >
+                        {/* <option value="">すべての事業部</option> */}
+                        {!!officeDataArray &&
+                          [...officeDataArray]
+                            .sort((a, b) => {
+                              if (a.office_name === null || b.office_name === null) return 0;
+                              return a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en") ?? 0;
+                            })
+                            .map((office, index) => (
+                              <option key={office.id} value={office.id}>
+                                {office.office_name}
+                              </option>
+                            ))}
+                      </select>
+                    )}
+                  </div>
+                  {/* --------------- 事業部の選択肢 --------------- */}
+                </div>
+
+                {/* --------------- 課の選択肢 --------------- */}
+                {(isOpenConfirmUpsertModal === "section" || isOpenConfirmUpsertModal === "unit") && (
+                  <div
+                    className={`${
+                      isOpenConfirmUpsertModal === "section" ? `!mb-[30px]` : ``
+                    }  !mt-[20px] flex items-center justify-between space-x-[40px]`}
+                  >
+                    <div className="min-w-max">
+                      <span className="text-[15px] font-bold">変更先の課・セクション</span>
+                    </div>
+
+                    <div className="flex w-full justify-end">
+                      {filteredSectionBySelectedDepartment && filteredSectionBySelectedDepartment.length >= 1 && (
+                        <select
+                          className={`${styles.select_box} ${styles.confirm}`}
+                          value={!!selectedSection ? selectedSection.id : ""}
+                          onChange={(e) => {
+                            if (!filteredSectionBySelectedDepartment) return;
+                            const selectedSectionObj = filteredSectionBySelectedDepartment.find(
+                              (obj) => obj.id === e.target.value
+                            );
+                            console.log("e.target.value", e.target.value, "selectedSectionObj", selectedSectionObj);
+                            if (selectedSectionObj === undefined) {
+                              return alert("エラー：事業部データの取得にエラーが発生しました。");
+                            }
+                            setSelectedSection(selectedSectionObj);
+                          }}
+                        >
+                          {!!filteredSectionBySelectedDepartment &&
+                            filteredSectionBySelectedDepartment.map((section, index) => (
+                              <option key={section.id} value={section.id}>
+                                {section.section_name}
+                              </option>
+                            ))}
+                        </select>
+                      )}
+                      {(!filteredSectionBySelectedDepartment || filteredSectionBySelectedDepartment.length === 0) && (
+                        <div className="flex min-h-[30px] max-w-[307px] items-center text-[13px]">
+                          <p className="line-clamp-2">
+                            {selectedDepartment && <span>{selectedDepartment?.department_name ?? ""}には</span>}
+                            課・セクションが存在しません。
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {/* --------------- 課の選択肢 --------------- */}
+                {/* --------------- 係の選択肢 --------------- */}
+                {isOpenConfirmUpsertModal === "unit" && (
+                  <div className={`!mb-[30px] !mt-[20px] flex items-center justify-between space-x-[40px]`}>
+                    <div className="min-w-max">
+                      <span className="text-[15px] font-bold">変更先の係・チーム</span>
+                    </div>
+
+                    <div className="flex w-full justify-end">
+                      {filteredUnitBySelectedSection && filteredUnitBySelectedSection.length >= 1 && (
+                        <select
+                          className={`${styles.select_box} ${styles.confirm}`}
+                          value={!!selectedUnit ? selectedUnit.id : ""}
+                          onChange={(e) => {
+                            if (!filteredUnitBySelectedSection) return;
+                            const selectedUnitObj = filteredUnitBySelectedSection.find(
+                              (obj) => obj.id === e.target.value
+                            );
+                            console.log("e.target.value", e.target.value, "selectedUnitObj", selectedUnitObj);
+                            if (selectedUnitObj === undefined) {
+                              return alert("エラー：事業部データの取得にエラーが発生しました。");
+                            }
+                            setSelectedUnit(selectedUnitObj);
+                          }}
+                        >
+                          {/* <option value="">すべての事業部</option> */}
+                          {/* {!!filteredUnitBySelectedSection &&
                           [...filteredUnitBySelectedSection]
                             .sort((a, b) => {
                               if (a.unit_name === null || b.unit_name === null) return 0;
                               return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en") ?? 0;
                             }) */}
-                        {!!filteredUnitBySelectedSection &&
-                          filteredUnitBySelectedSection.map((unit, index) => (
-                            <option key={unit.id} value={unit.id}>
-                              {unit.unit_name}
-                            </option>
-                          ))}
-                      </select>
-                    )}
-                    {(!filteredUnitBySelectedSection || filteredUnitBySelectedSection.length === 0) && (
-                      <div className="flex min-h-[30px] max-w-[307px] items-center text-[13px]">
-                        <p className="line-clamp-2">
-                          {selectedSection && <span>{selectedSection?.section_name ?? ""}には</span>}
-                          係・チームが存在しません。
-                        </p>
-                      </div>
-                    )}
+                          {!!filteredUnitBySelectedSection &&
+                            filteredUnitBySelectedSection.map((unit, index) => (
+                              <option key={unit.id} value={unit.id}>
+                                {unit.unit_name}
+                              </option>
+                            ))}
+                        </select>
+                      )}
+                      {(!filteredUnitBySelectedSection || filteredUnitBySelectedSection.length === 0) && (
+                        <div className="flex min-h-[30px] max-w-[307px] items-center text-[13px]">
+                          <p className="line-clamp-2">
+                            {selectedSection && <span>{selectedSection?.section_name ?? ""}には</span>}
+                            係・チームが存在しません。
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              )}
-              {/* --------------- 係の選択肢 --------------- */}
-              {/* --------------- 係の選択肢(課なしパターン) --------------- */}
-              {/* {isOpenConfirmUpsertModal === "unit" && (
+                )}
+                {/* --------------- 係の選択肢 --------------- */}
+                {/* --------------- 係の選択肢(課なしパターン) --------------- */}
+                {/* {isOpenConfirmUpsertModal === "unit" && (
                 <div className={`!mb-[30px] !mt-[20px] flex items-center justify-between space-x-[40px]`}>
                   <div className="min-w-max">
                     <span className="text-[15px] font-bold">変更先の係・チーム</span>
@@ -1785,156 +1850,162 @@ const SettingMemberAccountsMemo: FC = () => {
                   </div>
                 </div>
               )} */}
-              {/* --------------- 係の選択肢(課なしパターン) --------------- */}
+                {/* --------------- 係の選択肢(課なしパターン) --------------- */}
 
-              {/* <p className="!mb-[30px] text-[13px] font-bold">
+                {/* <p className="!mb-[30px] text-[13px] font-bold">
                 注：この操作は変更するメンバーの人数によって少し時間がかかります。画面を閉じずにお待ちください。
               </p> */}
-            </section>
-            <section className="flex w-full flex-col items-start justify-end">
-              <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[0px]`}>
-                <button
-                  className={`transition-bg01 w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
-                  onClick={() => {
-                    if (isLoadingUpsertMember) return;
-                    setIsOpenConfirmUpsertModal(null);
-                    setOpenChangeMemberDetailMenu(false);
-                    if (selectedDepartment) setSelectedDepartment(null);
-                    if (selectedSection) setSelectedSection(null);
-                    if (selectedUnit) setSelectedUnit(null);
-                    if (selectedOffice) setSelectedOffice(null);
-                  }}
-                  // onClick={clickEventClose}
-                >
-                  戻る
-                </button>
-                <button
-                  className="transition-bg01 w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]"
-                  // onClick={clickEventSubmit}
-                  onClick={() => {
-                    if (isLoadingUpsertMember) return;
-                    if (isOpenConfirmUpsertModal === "department") {
-                      if (!selectedDepartment || !selectedDepartment?.id) {
-                        alert("エラー：事業部データが見つかりませんでした。");
-                        setIsOpenConfirmUpsertModal(null);
-                        setOpenChangeMemberDetailMenu(false);
-                        if (selectedDepartment) setSelectedDepartment(null);
-                        if (selectedSection) setSelectedSection(null);
-                        if (selectedUnit) setSelectedUnit(null);
-                        if (selectedOffice) setSelectedOffice(null);
-                        return;
-                      }
-                      const payload = {
-                        title: "department",
-                        departmentId: selectedDepartment.id,
-                      };
-                      handleChangeMemberDetailAllAtOnce(payload);
-                    }
-
-                    if (isOpenConfirmUpsertModal === "section") {
-                      if (!selectedDepartment || !selectedDepartment?.id || !selectedSection || !selectedSection?.id) {
-                        if (!selectedDepartment || !selectedDepartment?.id)
+              </section>
+              <section className="flex w-full flex-col items-start justify-end">
+                <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[0px]`}>
+                  <button
+                    className={`transition-bg01 w-[50%] cursor-pointer rounded-[8px] bg-[var(--setting-side-bg-select)] px-[15px] py-[10px] text-[14px] font-bold text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)]`}
+                    onClick={() => {
+                      if (isLoadingUpsertMember) return;
+                      setIsOpenConfirmUpsertModal(null);
+                      setOpenChangeMemberDetailMenu(false);
+                      if (selectedDepartment) setSelectedDepartment(null);
+                      if (selectedSection) setSelectedSection(null);
+                      if (selectedUnit) setSelectedUnit(null);
+                      if (selectedOffice) setSelectedOffice(null);
+                    }}
+                    // onClick={clickEventClose}
+                  >
+                    戻る
+                  </button>
+                  <button
+                    className="transition-bg01 w-[50%] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]"
+                    // onClick={clickEventSubmit}
+                    onClick={() => {
+                      if (isLoadingUpsertMember) return;
+                      if (isOpenConfirmUpsertModal === "department") {
+                        if (!selectedDepartment || !selectedDepartment?.id) {
                           alert("エラー：事業部データが見つかりませんでした。");
-                        if (!selectedSection || !selectedSection?.id)
-                          alert("エラー：課・セクションデータが見つかりませんでした。");
-                        setIsOpenConfirmUpsertModal(null);
-                        setOpenChangeMemberDetailMenu(false);
-                        if (selectedDepartment) setSelectedDepartment(null);
-                        if (selectedSection) setSelectedSection(null);
-                        if (selectedUnit) setSelectedUnit(null);
-                        if (selectedOffice) setSelectedOffice(null);
-                        return;
+                          setIsOpenConfirmUpsertModal(null);
+                          setOpenChangeMemberDetailMenu(false);
+                          if (selectedDepartment) setSelectedDepartment(null);
+                          if (selectedSection) setSelectedSection(null);
+                          if (selectedUnit) setSelectedUnit(null);
+                          if (selectedOffice) setSelectedOffice(null);
+                          return;
+                        }
+                        const payload = {
+                          title: "department",
+                          departmentId: selectedDepartment.id,
+                        };
+                        handleChangeMemberDetailAllAtOnce(payload);
                       }
-                      const payload = {
-                        title: "section",
-                        departmentId: selectedDepartment.id,
-                        sectionId: selectedSection.id,
-                      };
-                      handleChangeMemberDetailAllAtOnce(payload);
-                    }
-                    // 係(課ありパターン)
-                    if (isOpenConfirmUpsertModal === "unit") {
-                      if (
-                        !selectedDepartment ||
-                        !selectedDepartment?.id ||
-                        !selectedSection ||
-                        !selectedSection?.id ||
-                        !selectedUnit ||
-                        !selectedUnit?.id
-                      ) {
-                        if (!selectedDepartment || !selectedDepartment?.id)
-                          alert("エラー：事業部データが見つかりませんでした。");
-                        if (!selectedSection || !selectedSection?.id)
-                          alert("エラー：課・セクションデータが見つかりませんでした。");
-                        if (!selectedUnit || !selectedUnit?.id)
-                          alert("エラー：係・チームデータが見つかりませんでした。");
-                        setIsOpenConfirmUpsertModal(null);
-                        setOpenChangeMemberDetailMenu(false);
-                        if (selectedDepartment) setSelectedDepartment(null);
-                        if (selectedSection) setSelectedSection(null);
-                        if (selectedUnit) setSelectedUnit(null);
-                        if (selectedOffice) setSelectedOffice(null);
-                        return;
-                      }
-                      const payload = {
-                        title: "unit",
-                        departmentId: selectedDepartment.id,
-                        sectionId: selectedSection.id,
-                        unitId: selectedUnit.id,
-                      };
-                      handleChangeMemberDetailAllAtOnce(payload);
-                    }
-                    // // 係(課なしパターン)
-                    // if (isOpenConfirmUpsertModal === "unit") {
-                    //   if (!selectedDepartment || !selectedDepartment?.id || !selectedUnit || !selectedUnit?.id) {
-                    //     if (!selectedDepartment || !selectedDepartment?.id)
-                    //       alert("エラー：事業部データが見つかりませんでした。");
-                    //     if (!selectedUnit || !selectedUnit?.id)
-                    //       alert("エラー：係・チームデータが見つかりませんでした。");
-                    //     setIsOpenConfirmUpsertModal(null);
-                    //     setOpenChangeMemberDetailMenu(false);
-                    //     if (selectedDepartment) setSelectedDepartment(null);
-                    //     if (selectedUnit) setSelectedUnit(null);
-                    //     if (selectedOffice) setSelectedOffice(null);
-                    //     return;
-                    //   }
-                    //   const payload = {
-                    //     title: "unit",
-                    //     departmentId: selectedDepartment.id,
-                    //     unitId: selectedUnit.id,
-                    //   };
-                    //   handleChangeMemberDetailAllAtOnce(payload);
-                    // }
 
-                    if (isOpenConfirmUpsertModal === "office") {
-                      if (!selectedOffice || !selectedOffice?.id) {
-                        alert("エラー：事業所・営業所データが見つかりませんでした。");
-                        setIsOpenConfirmUpsertModal(null);
-                        setOpenChangeMemberDetailMenu(false);
-                        if (selectedDepartment) setSelectedDepartment(null);
-                        if (selectedUnit) setSelectedUnit(null);
-                        if (selectedOffice) setSelectedOffice(null);
-                        return;
+                      if (isOpenConfirmUpsertModal === "section") {
+                        if (
+                          !selectedDepartment ||
+                          !selectedDepartment?.id ||
+                          !selectedSection ||
+                          !selectedSection?.id
+                        ) {
+                          if (!selectedDepartment || !selectedDepartment?.id)
+                            alert("エラー：事業部データが見つかりませんでした。");
+                          if (!selectedSection || !selectedSection?.id)
+                            alert("エラー：課・セクションデータが見つかりませんでした。");
+                          setIsOpenConfirmUpsertModal(null);
+                          setOpenChangeMemberDetailMenu(false);
+                          if (selectedDepartment) setSelectedDepartment(null);
+                          if (selectedSection) setSelectedSection(null);
+                          if (selectedUnit) setSelectedUnit(null);
+                          if (selectedOffice) setSelectedOffice(null);
+                          return;
+                        }
+                        const payload = {
+                          title: "section",
+                          departmentId: selectedDepartment.id,
+                          sectionId: selectedSection.id,
+                        };
+                        handleChangeMemberDetailAllAtOnce(payload);
                       }
-                      const payload = {
-                        title: "office",
-                        officeId: selectedOffice.id,
-                      };
-                      handleChangeMemberDetailAllAtOnce(payload);
-                    }
-                  }}
-                >
-                  変更する
-                </button>
-              </div>
-              <p className="mt-[20px] text-[13px] font-bold">
-                注：この操作は変更するメンバーの人数によって少し時間がかかります。画面を閉じずにお待ちください。
-              </p>
-            </section>
-          </div>
-        </>
-      )}
-      {/* ================ 一括でチームメンバーの事業部・係・事業所のどれかを変更するモーダル ここまで ================ */}
+                      // 係(課ありパターン)
+                      if (isOpenConfirmUpsertModal === "unit") {
+                        if (
+                          !selectedDepartment ||
+                          !selectedDepartment?.id ||
+                          !selectedSection ||
+                          !selectedSection?.id ||
+                          !selectedUnit ||
+                          !selectedUnit?.id
+                        ) {
+                          if (!selectedDepartment || !selectedDepartment?.id)
+                            alert("エラー：事業部データが見つかりませんでした。");
+                          if (!selectedSection || !selectedSection?.id)
+                            alert("エラー：課・セクションデータが見つかりませんでした。");
+                          if (!selectedUnit || !selectedUnit?.id)
+                            alert("エラー：係・チームデータが見つかりませんでした。");
+                          setIsOpenConfirmUpsertModal(null);
+                          setOpenChangeMemberDetailMenu(false);
+                          if (selectedDepartment) setSelectedDepartment(null);
+                          if (selectedSection) setSelectedSection(null);
+                          if (selectedUnit) setSelectedUnit(null);
+                          if (selectedOffice) setSelectedOffice(null);
+                          return;
+                        }
+                        const payload = {
+                          title: "unit",
+                          departmentId: selectedDepartment.id,
+                          sectionId: selectedSection.id,
+                          unitId: selectedUnit.id,
+                        };
+                        handleChangeMemberDetailAllAtOnce(payload);
+                      }
+                      // // 係(課なしパターン)
+                      // if (isOpenConfirmUpsertModal === "unit") {
+                      //   if (!selectedDepartment || !selectedDepartment?.id || !selectedUnit || !selectedUnit?.id) {
+                      //     if (!selectedDepartment || !selectedDepartment?.id)
+                      //       alert("エラー：事業部データが見つかりませんでした。");
+                      //     if (!selectedUnit || !selectedUnit?.id)
+                      //       alert("エラー：係・チームデータが見つかりませんでした。");
+                      //     setIsOpenConfirmUpsertModal(null);
+                      //     setOpenChangeMemberDetailMenu(false);
+                      //     if (selectedDepartment) setSelectedDepartment(null);
+                      //     if (selectedUnit) setSelectedUnit(null);
+                      //     if (selectedOffice) setSelectedOffice(null);
+                      //     return;
+                      //   }
+                      //   const payload = {
+                      //     title: "unit",
+                      //     departmentId: selectedDepartment.id,
+                      //     unitId: selectedUnit.id,
+                      //   };
+                      //   handleChangeMemberDetailAllAtOnce(payload);
+                      // }
+
+                      if (isOpenConfirmUpsertModal === "office") {
+                        if (!selectedOffice || !selectedOffice?.id) {
+                          alert("エラー：事業所・営業所データが見つかりませんでした。");
+                          setIsOpenConfirmUpsertModal(null);
+                          setOpenChangeMemberDetailMenu(false);
+                          if (selectedDepartment) setSelectedDepartment(null);
+                          if (selectedUnit) setSelectedUnit(null);
+                          if (selectedOffice) setSelectedOffice(null);
+                          return;
+                        }
+                        const payload = {
+                          title: "office",
+                          officeId: selectedOffice.id,
+                        };
+                        handleChangeMemberDetailAllAtOnce(payload);
+                      }
+                    }}
+                  >
+                    変更する
+                  </button>
+                </div>
+                <p className="mt-[20px] text-[13px] font-bold">
+                  注：この操作は変更するメンバーの人数によって少し時間がかかります。画面を閉じずにお待ちください。
+                </p>
+              </section>
+            </div>
+          </>
+        )}
+        {/* ================ 一括でチームメンバーの事業部・係・事業所のどれかを変更するモーダル ここまで ================ */}
+      </div>
     </>
   );
 };

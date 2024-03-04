@@ -19,6 +19,7 @@ import { FallbackSideTableSearchMember } from "../UpdateMeetingModal/SideTableSe
 import { SideTableSearchMember } from "../UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
+import { useQuerySections } from "@/hooks/useQuerySections";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
@@ -27,6 +28,7 @@ import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { getActivityType, getPriorityName, optionsActivityType, optionsPriority } from "@/utils/selectOptions";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 // type ModalProperties = {
 //   left: number;
@@ -94,6 +96,7 @@ export const InsertNewActivityModal = () => {
     memberId: string | null;
     memberName: string | null;
     departmentId: string | null;
+    sectionId: string | null;
     unitId: string | null;
     officeId: string | null;
   };
@@ -102,6 +105,7 @@ export const InsertNewActivityModal = () => {
     memberId: userProfileState?.id ? userProfileState?.id : null,
     memberName: userProfileState?.profile_name ? userProfileState?.profile_name : null,
     departmentId: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+    sectionId: userProfileState?.assigned_section_id ? userProfileState?.assigned_section_id : null,
     unitId: userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null,
     officeId: userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null,
   };
@@ -133,6 +137,17 @@ export const InsertNewActivityModal = () => {
   // useMutation
   // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟課・セクションリスト取得useQuery🌟 ================================
+  const {
+    data: sectionDataArray,
+    isLoading: isLoadingQuerySection,
+    refetch: refetchQUerySections,
+  } = useQuerySections(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createSectionMutation, updateSectionFieldMutation, updateMultipleSectionFieldsMutation, deleteSectionMutation } =
+  // useMutateSection();
+  // ================================ ✅課・セクションリスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
   const {
     data: unitDataArray,
@@ -237,6 +252,7 @@ export const InsertNewActivityModal = () => {
       // 営業担当データ
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       // 営業担当データここまで
@@ -310,6 +326,7 @@ export const InsertNewActivityModal = () => {
       // 営業担当データ
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       // 営業担当データここまで
@@ -377,6 +394,7 @@ export const InsertNewActivityModal = () => {
       // 営業担当データ
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       // 営業担当データここまで
@@ -444,6 +462,7 @@ export const InsertNewActivityModal = () => {
       // 営業担当データ
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       // 営業担当データここまで
@@ -661,9 +680,10 @@ export const InsertNewActivityModal = () => {
         {/* ローディングオーバーレイ */}
         {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
-            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
-            <SpinnerComet w="48px" h="48px" />
-            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+            {/* <SpinnerComet w="48px" h="48px" s="5px" /> */}
+            <div className={`${styles.loading_overlay_modal_inside}`}>
+              <SpinnerBrand withBorder withShadow />
+            </div>
           </div>
         )}
         {/* 保存・タイトル・キャンセルエリア */}
@@ -981,44 +1001,6 @@ export const InsertNewActivityModal = () => {
             </div>
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 係・チーム */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} `}>係・チーム</span>
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.min}`}
-                      // value={unitId ? unitId : ""}
-                      // onChange={(e) => setUnitId(e.target.value)}
-                      value={memberObj.unitId ? memberObj.unitId : ""}
-                      onChange={(e) => {
-                        setMemberObj({ ...memberObj, unitId: e.target.value });
-                        setIsOpenConfirmationModal("change_member");
-                      }}
-                    >
-                      <option value=""></option>
-                      {unitDataArray &&
-                        unitDataArray.length >= 1 &&
-                        unitDataArray.map((unit) => (
-                          <option key={unit.id} value={unit.id}>
-                            {unit.unit_name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-            </div>
-
-            {/* 右ラッパーここまで */}
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* 所属事業所 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -1049,6 +1031,42 @@ export const InsertNewActivityModal = () => {
                         officeDataArray.map((office) => (
                           <option key={office.id} value={office.id}>
                             {office.office_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* 右ラッパーここまで */}
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 課・セクション */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>課・セクション</span>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={memberObj.sectionId ? memberObj.sectionId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, sectionId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
+                    >
+                      <option value=""></option>
+                      {sectionDataArray &&
+                        sectionDataArray.length >= 1 &&
+                        sectionDataArray.map((section) => (
+                          <option key={section.id} value={section.id}>
+                            {section.section_name}
                           </option>
                         ))}
                     </select>
@@ -1094,8 +1112,6 @@ export const InsertNewActivityModal = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-
-              {/* 右ラッパーここまで */}
             </div>
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
@@ -1104,6 +1120,40 @@ export const InsertNewActivityModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 係・チーム */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} `}>係・チーム</span>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.min}`}
+                      // value={unitId ? unitId : ""}
+                      // onChange={(e) => setUnitId(e.target.value)}
+                      value={memberObj.unitId ? memberObj.unitId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, unitId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
+                    >
+                      <option value=""></option>
+                      {unitDataArray &&
+                        unitDataArray.length >= 1 &&
+                        unitDataArray.map((unit) => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.unit_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
               {/* 活動年月度 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -1133,7 +1183,10 @@ export const InsertNewActivityModal = () => {
                       <span className={`mr-[9px]`}>●活動年月度</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
-                    <input
+                    <div className={`flex min-h-[35px] items-center`}>
+                      <p className={`pl-[5px] text-[14px] text-[var(--color-text-under-input)]`}>{activityYearMonth}</p>
+                    </div>
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box} pointer-events-none`}
@@ -1154,37 +1207,14 @@ export const InsertNewActivityModal = () => {
                           }
                         }
                       }}
-                    />
+                    /> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
 
-              {/* 左ラッパーここまで */}
+              {/* 右ラッパーここまで */}
             </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 自社担当 */}
-              {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>自社担当</span>
-                    <input
-                      type="text"
-                      placeholder="*入力必須"
-                      required
-                      className={`${styles.input_box}`}
-                      value={memberName}
-                      onChange={(e) => setMemberName(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div> */}
-            </div>
-            {/* 右ラッパーここまで */}
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
 
@@ -1203,7 +1233,7 @@ export const InsertNewActivityModal = () => {
           // titleText="面談データの自社担当を変更してもよろしいですか？"
           titleText={`データの所有者を変更してもよろしいですか？`}
           // titleText2={`データの所有者を変更しますか？`}
-          sectionP1="「自社担当」「事業部」「係・チーム」「事業所」を変更すると活動データの所有者が変更されます。"
+          sectionP1="「自社担当」「事業部」「課・セクション」「係・チーム」「事業所」を変更すると活動データの所有者が変更されます。"
           sectionP2="注：データの所有者を変更すると、この活動結果は変更先のメンバーの集計結果に移行され、分析結果が変更されます。"
           cancelText="戻る"
           submitText="変更する"

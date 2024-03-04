@@ -18,6 +18,7 @@ import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import { DropDownMenuUpdateMember } from "./DropdownMenuUpdateMember/DropdownMenuUpdateMember";
 import { CiEdit } from "react-icons/ci";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 // type Props = {
 //   id: string;
@@ -131,76 +132,72 @@ export const GridRowMemberMemo: FC<Props> = ({
   }, [memberAccount.account_company_role]);
 
   // =============================== 役割の変更
+  const [isLoadingRole, setIsLoadingRole] = useState(false);
   const handleChangeRole = async (companyRole: string) => {
-    // setLoadingGlobalState(true);
-    const { data, error } = await supabase
-      .from("subscribed_accounts")
-      .update({ company_role: companyRole })
-      .eq("id", memberAccount.subscribed_account_id)
-      .select("company_role")
-      .single();
+    setIsLoadingRole(true);
 
-    if (error) {
-      // setLoadingGlobalState(false);
-      // setEditNameMode(false);
+    try {
+      const { data, error } = await supabase
+        .from("subscribed_accounts")
+        .update({ company_role: companyRole })
+        .eq("id", memberAccount.subscribed_account_id)
+        .select("company_role")
+        .single();
+
+      if (error) throw error;
+
+      console.log("UPDATE成功 data", data);
+      console.log("UPDATE成功 data.company_role", data.company_role);
+      // アカウントと招待ユーザーの紐付け完了後はMemberAccountsキャッシュをリフレッシュ
+      // await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+      let previousMemberAccounts = queryClient.getQueryData<MemberAccounts[]>(["member_accounts"]);
+      if (typeof previousMemberAccounts === "undefined") throw new Error("役割データが見つかりませんでした。");
+      console.log(
+        "更新前アカウント",
+        previousMemberAccounts,
+        "更新対象 previousMemberAccounts[index].account_company_role",
+        previousMemberAccounts[index].account_company_role,
+        "更新後の値 data.company_role",
+        data.company_role
+      );
+      previousMemberAccounts[index].account_company_role = data.company_role;
+      console.log("更新後", previousMemberAccounts);
+      // queryClient.setQueryData(["member_accounts"], [...previousMemberAccounts]);
+      await queryClient.invalidateQueries(["member_accounts"]);
+      setRoleAtTeam(data.company_role);
+      toast.success("役割の変更が完了しました!🌟");
+      setUpdatedAt(Date.now());
+    } catch (error: any) {
       alert(error.message);
-      console.log("UPDATEエラー", error.message);
-      toast.error("役割の変更に失敗しました!");
-
-      return;
+      console.error("UPDATEエラー", error.message);
+      toast.error("役割の変更に失敗しました...🙇‍♀️");
     }
 
-    console.log("UPDATE成功 data", data);
-    console.log("UPDATE成功 data.company_role", data.company_role);
-    // アカウントと招待ユーザーの紐付け完了後はMemberAccountsキャッシュをリフレッシュ
-    // await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
-    let previousMemberAccounts = queryClient.getQueryData<MemberAccounts[]>(["member_accounts"]);
-    if (typeof previousMemberAccounts === "undefined") return;
-    console.log(
-      "更新前アカウント",
-      previousMemberAccounts,
-      "更新対象 previousMemberAccounts[index].account_company_role",
-      previousMemberAccounts[index].account_company_role,
-      "更新後の値 data.company_role",
-      data.company_role
-    );
-    previousMemberAccounts[index].account_company_role = data.company_role;
-    console.log("更新後", previousMemberAccounts);
-    // queryClient.setQueryData(["member_accounts"], [...previousMemberAccounts]);
-    await queryClient.invalidateQueries(["member_accounts"]);
-    setRoleAtTeam(data.company_role);
-    toast.success("役割の変更が完了しました!");
-    setUpdatedAt(Date.now());
+    setIsLoadingRole(false);
   };
 
   // =============================== チームから削除する
   const removeFromTeam = async () => {
     setLoading(true);
-    console.log("delete_from_team関数実行 削除するユーザーのid", memberAccount.id);
-    // subscribed_accountsのuser_idカラムをnullにして契約アカウントとの紐付けを解除して、削除対象のユーザーのprofilesテーブルのデータをリセット(stripe顧客idとprofile_nameを除く)
-    const { error: accountUpdateError } = await supabase.rpc("delete_from_team", {
-      delete_user_id: memberAccount.id,
-    });
 
-    // const { data: newAccountData, error: accountUpdateError } = await supabase
-    //   .from("subscribed_accounts")
-    //   .update({
-    //     user_id: null,
-    //     company_role: null,
-    //   })
-    //   .eq("id", memberAccount.subscribed_account_id)
-    //   .select();
+    try {
+      console.log("delete_from_team関数実行 削除するユーザーのid", memberAccount.id);
+      // subscribed_accountsのuser_idカラムをnullにして契約アカウントとの紐付けを解除して、削除対象のユーザーのprofilesテーブルのデータをリセット(stripe顧客idとprofile_nameを除く)
+      const { error: accountUpdateError } = await supabase.rpc("delete_from_team", {
+        delete_user_id: memberAccount.id,
+      });
 
-    if (accountUpdateError) {
-      console.log("アカウントのuser_idの解除に失敗", accountUpdateError);
+      if (accountUpdateError) throw accountUpdateError;
+
+      toast.success(`チームからメンバーの削除が完了しました!`);
+      console.log("チームから削除成功");
+
+      // アカウントとユーザーの紐付け解除完了後はMemberAccountsキャッシュをリフレッシュ
+      await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
+    } catch (error: any) {
+      console.error("アカウントのuser_idの解除に失敗", error);
       toast.error(`チームからメンバーの削除に失敗しました!`);
-      return;
     }
-    toast.success(`チームからメンバーの削除が完了しました!`);
-    console.log("チームから削除成功");
-
-    // アカウントとユーザーの紐付け解除完了後はMemberAccountsキャッシュをリフレッシュ
-    await queryClient.invalidateQueries({ queryKey: ["member_accounts"] });
 
     setLoading(false);
 
@@ -400,14 +397,20 @@ export const GridRowMemberMemo: FC<Props> = ({
           <div
             className={`flex-center fixed left-0 top-0 z-[6000] h-[100%] w-[100%] rounded-[8px] bg-[var(--overlay-relight)]`}
           >
-            <SpinnerComet h="60px" w="60px" s="5px" />
+            {/* <SpinnerComet h="60px" w="60px" s="5px" /> */}
+            <div className={`${styles.loading_overlay_modal_inside}`}>
+              <SpinnerBrand />
+            </div>
           </div>
         </div>
       )}
       {/* ローディング */}
       {loading && (
         <div className={`flex-center fixed left-0 top-0 z-[6000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
-          <SpinnerIDS scale={"scale-[0.5]"} />
+          {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+          <div className={`${styles.loading_overlay_modal_inside}`}>
+            <SpinnerBrand />
+          </div>
         </div>
       )}
       <div role="row" className={`${styles.grid_row} ${styles.grid_row_member}`}>
@@ -682,10 +685,13 @@ export const GridRowMemberMemo: FC<Props> = ({
               {/* {memberAccount.is_subscriber ? "所有者" : getCompanyRole(roleAtTeam)} */}
               {memberAccount.account_company_role === "company_owner" ? "所有者" : getCompanyRole(roleAtTeam)}
             </span>
-            {/* {!memberAccount.is_subscriber && memberAccount.account_company_role && <BsChevronDown />} */}
-            {memberAccount.account_company_role !== "company_owner" && memberAccount.account_company_role && (
-              <BsChevronDown className="min-h-[13px] min-w-[13px]" />
-            )}
+            {memberAccount.account_company_role !== "company_owner" &&
+              memberAccount.account_company_role &&
+              !isLoadingRole && <BsChevronDown className="min-h-[13px] min-w-[13px]" />}
+            {memberAccount.account_company_role !== "company_owner" &&
+              memberAccount.account_company_role &&
+              isLoadingRole && <SpinnerComet w="16px" h="16px" s="3px" />}
+            {/* {memberAccount.account_company_role === "company_manager" && <SpinnerComet w="16px" h="16px" s="3px" />} */}
           </div>
 
           {/* ==================== チームでの役割メニューポップアップ ==================== */}
@@ -921,7 +927,10 @@ export const GridRowMemberMemo: FC<Props> = ({
           <div className={`fade02 fixed ${styles.confirm_modal}`}>
             {loading && (
               <div className={`flex-center fixed left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
-                <SpinnerIDS scale={"scale-[0.5]"} />
+                {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+                <div className={`${styles.loading_overlay_modal_inside}`}>
+                  <SpinnerBrand />
+                </div>
               </div>
             )}
             {/* クローズボタン */}
@@ -980,7 +989,10 @@ export const GridRowMemberMemo: FC<Props> = ({
           <div className="fade02 fixed left-[50%] top-[50%] z-[5000] h-auto w-[40vw] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)]">
             {loadingCancel && (
               <div className={`flex-center fixed left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
-                <SpinnerIDS scale={"scale-[0.5]"} />
+                {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+                <div className={`${styles.loading_overlay_modal_inside}`}>
+                  <SpinnerBrand />
+                </div>
               </div>
             )}
             {/* クローズボタン */}

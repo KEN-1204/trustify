@@ -43,7 +43,16 @@ import {
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
-import { AttendeeInfo, Department, IntroducedProductsNames, Meeting, Meeting_row_data, Office, Unit } from "@/types";
+import {
+  AttendeeInfo,
+  Department,
+  IntroducedProductsNames,
+  Meeting,
+  Meeting_row_data,
+  Office,
+  Section,
+  Unit,
+} from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { getProductName } from "@/utils/Helpers/getProductName";
@@ -58,6 +67,7 @@ import { splitTime } from "@/utils/Helpers/splitTime";
 import { IoIosSend } from "react-icons/io";
 import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtn/InputSendAndCloseBtn";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import { useQuerySections } from "@/hooks/useQuerySections";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -172,6 +182,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputMeetingCreatedByCompanyId, setInputMeetingCreatedByCompanyId] = useState("");
   const [inputMeetingCreatedByUserId, setInputMeetingCreatedByUserId] = useState("");
   const [inputMeetingCreatedByDepartmentOfUser, setInputMeetingCreatedByDepartmentOfUser] = useState("");
+  const [inputMeetingCreatedBySectionOfUser, setInputMeetingCreatedBySectionOfUser] = useState("");
   const [inputMeetingCreatedByUnitOfUser, setInputMeetingCreatedByUnitOfUser] = useState("");
   const [inputMeetingCreatedByOfficeOfUser, setInputMeetingCreatedByOfficeOfUser] = useState("");
   const [inputMeetingType, setInputMeetingType] = useState("");
@@ -247,6 +258,17 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   // useMutation
   // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟課・セクションリスト取得useQuery🌟 ================================
+  const {
+    data: sectionDataArray,
+    isLoading: isLoadingQuerySection,
+    refetch: refetchQUerySections,
+  } = useQuerySections(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createSectionMutation, updateSectionFieldMutation, updateMultipleSectionFieldsMutation, deleteSectionMutation } =
+  // useMutateSection();
+  // ================================ ✅課・セクションリスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
   const {
     data: unitDataArray,
@@ -268,22 +290,60 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   // useMutation
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
-  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
-  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した事業部で課を絞り込むuseEffect🌟 =======================
+  const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
   useEffect(() => {
     // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
-    if (!unitDataArray || unitDataArray?.length === 0 || !inputMeetingCreatedByDepartmentOfUser)
-      return setFilteredUnitBySelectedDepartment([]);
+    if (!sectionDataArray || sectionDataArray?.length === 0 || !inputMeetingCreatedByDepartmentOfUser)
+      return setFilteredSectionBySelectedDepartment([]);
 
-    // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
-    if (unitDataArray && unitDataArray.length >= 1 && inputMeetingCreatedByDepartmentOfUser) {
-      const filteredUnitArray = unitDataArray.filter(
-        (unit) => unit.created_by_department_id === inputMeetingCreatedByDepartmentOfUser
+    // 選択中の事業部が変化するか、sectionDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (sectionDataArray && sectionDataArray.length >= 1 && inputMeetingCreatedByDepartmentOfUser) {
+      const filteredSectionArray = sectionDataArray.filter(
+        (section) => section.created_by_department_id === inputMeetingCreatedByDepartmentOfUser
       );
-      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+      setFilteredSectionBySelectedDepartment(filteredSectionArray);
     }
-  }, [unitDataArray, inputMeetingCreatedByDepartmentOfUser]);
-  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+  }, [sectionDataArray, inputMeetingCreatedByDepartmentOfUser]);
+  // ======================= ✅現在の選択した事業部で課を絞り込むuseEffect✅ =======================
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した課で係・チームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
+  useEffect(() => {
+    // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!unitDataArray || unitDataArray?.length === 0 || !inputMeetingCreatedBySectionOfUser)
+      return setFilteredUnitBySelectedSection([]);
+
+    // 選択中の課が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (unitDataArray && unitDataArray.length >= 1 && inputMeetingCreatedBySectionOfUser) {
+      const filteredUnitArray = unitDataArray.filter(
+        (unit) => unit.created_by_section_id === inputMeetingCreatedBySectionOfUser
+      );
+      setFilteredUnitBySelectedSection(filteredUnitArray);
+    }
+  }, [unitDataArray, inputMeetingCreatedBySectionOfUser]);
+  // ======================= ✅現在の選択した課で係・チームを絞り込むuseEffect✅ =======================
+
+  // 課なしパターン
+  // // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
+  // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // useEffect(() => {
+  //   // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+  //   if (!unitDataArray || unitDataArray?.length === 0 || !inputMeetingCreatedByDepartmentOfUser)
+  //     return setFilteredUnitBySelectedDepartment([]);
+
+  //   // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+  //   if (unitDataArray && unitDataArray.length >= 1 && inputMeetingCreatedByDepartmentOfUser) {
+  //     const filteredUnitArray = unitDataArray.filter(
+  //       (unit) => unit.created_by_department_id === inputMeetingCreatedByDepartmentOfUser
+  //     );
+  //     setFilteredUnitBySelectedDepartment(filteredUnitArray);
+  //   }
+  // }, [unitDataArray, inputMeetingCreatedByDepartmentOfUser]);
+  // // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // 検索タイプ
   const searchType = useDashboardStore((state) => state.searchType);
@@ -412,10 +472,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       setInputMeetingCreatedByDepartmentOfUser(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["meetings.created_by_department_of_user"])
       );
+      setInputMeetingCreatedBySectionOfUser(
+        beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["meetings.created_by_section_of_user"])
+      );
       setInputMeetingCreatedByUnitOfUser(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["meetings.created_by_unit_of_user"])
       );
-      setInputMeetingCreatedByUnitOfUser(
+      setInputMeetingCreatedByOfficeOfUser(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["meetings.created_by_office_of_user"])
       );
       setInputMeetingType(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.meeting_type));
@@ -549,6 +612,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       if (!!inputMeetingCreatedByCompanyId) setInputMeetingCreatedByCompanyId("");
       if (!!inputMeetingCreatedByUserId) setInputMeetingCreatedByUserId("");
       if (!!inputMeetingCreatedByDepartmentOfUser) setInputMeetingCreatedByDepartmentOfUser("");
+      if (!!inputMeetingCreatedBySectionOfUser) setInputMeetingCreatedBySectionOfUser("");
       if (!!inputMeetingCreatedByUnitOfUser) setInputMeetingCreatedByUnitOfUser("");
       if (!!inputMeetingCreatedByOfficeOfUser) setInputMeetingCreatedByOfficeOfUser("");
       if (!!inputMeetingType) setInputMeetingType("");
@@ -746,6 +810,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _meeting_created_by_company_id = adjustFieldValue(inputMeetingCreatedByCompanyId);
     let _meeting_created_by_user_id = adjustFieldValue(inputMeetingCreatedByUserId);
     let _meeting_created_by_department_of_user = adjustFieldValue(inputMeetingCreatedByDepartmentOfUser);
+    let _meeting_created_by_section_of_user = adjustFieldValue(inputMeetingCreatedBySectionOfUser);
     let _meeting_created_by_unit_of_user = adjustFieldValue(inputMeetingCreatedByUnitOfUser);
     let _meeting_created_by_office_of_user = adjustFieldValue(inputMeetingCreatedByOfficeOfUser);
     let _meeting_type = adjustFieldValue(inputMeetingType);
@@ -832,6 +897,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       "meetings.created_by_company_id": userProfileState.company_id,
       "meetings.created_by_user_id": _meeting_created_by_user_id,
       "meetings.created_by_department_of_user": _meeting_created_by_department_of_user,
+      "meetings.created_by_section_of_user": _meeting_created_by_section_of_user,
       "meetings.created_by_unit_of_user": _meeting_created_by_unit_of_user,
       "meetings.created_by_office_of_user": _meeting_created_by_office_of_user,
       meeting_type: _meeting_type,
@@ -915,6 +981,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     setInputMeetingCreatedByCompanyId("");
     setInputMeetingCreatedByUserId("");
     setInputMeetingCreatedByDepartmentOfUser("");
+    setInputMeetingCreatedBySectionOfUser("");
     setInputMeetingCreatedByUnitOfUser("");
     setInputMeetingCreatedByOfficeOfUser("");
     setInputMeetingType("");
@@ -2512,6 +2579,50 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
+              {/* 課セクション・自社担当 */}
+              <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} ${styles.min}`}>課・ｾｸｼｮﾝ</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataMeeting?.assigned_section_name
+                          ? selectedRowDataMeeting?.assigned_section_name
+                          : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title} ${styles.min}`}>自社担当</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : ""}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
               {/* 事業所・自社担当 */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
@@ -2540,7 +2651,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
+                  {/* <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title}`}>自社担当</span>
                     {!searchMode && (
                       <span
@@ -2555,9 +2666,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         {selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : ""}
                       </span>
                     )}
-                    {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
                   </div>
-                  <div className={`${styles.underline}`}></div>
+                  <div className={`${styles.underline}`}></div> */}
                 </div>
               </div>
 
@@ -6020,7 +6130,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <select
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputMeetingCreatedByDepartmentOfUser}
-                        onChange={(e) => setInputMeetingCreatedByDepartmentOfUser(e.target.value)}
+                        // onChange={(e) => setInputMeetingCreatedByDepartmentOfUser(e.target.value)}
+                        onChange={(e) => {
+                          setInputMeetingCreatedByDepartmentOfUser(e.target.value);
+                          // 課と係をリセットする
+                          setInputMeetingCreatedBySectionOfUser("");
+                          setInputMeetingCreatedByUnitOfUser("");
+                        }}
                       >
                         <option value=""></option>
                         {departmentDataArray &&
@@ -6036,21 +6152,72 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>係・ﾁｰﾑ</span>
-                    {searchMode && filteredUnitBySelectedDepartment && filteredUnitBySelectedDepartment.length >= 1 && (
+                    <span className={`${styles.title_search_mode}`}>係・ﾁｰﾑ</span>
+                    {searchMode && filteredUnitBySelectedSection && filteredUnitBySelectedSection.length >= 1 && (
                       <select
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputMeetingCreatedByUnitOfUser}
                         onChange={(e) => setInputMeetingCreatedByUnitOfUser(e.target.value)}
                       >
                         <option value=""></option>
-                        {filteredUnitBySelectedDepartment &&
-                          filteredUnitBySelectedDepartment.map((unit, index) => (
+                        {filteredUnitBySelectedSection &&
+                          filteredUnitBySelectedSection.map((unit, index) => (
                             <option key={unit.id} value={unit.id}>
                               {unit.unit_name}
                             </option>
                           ))}
                       </select>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 課セクション・自社担当 サーチ */}
+              <div
+                className={`${styles.row_area} ${
+                  searchMode ? `${styles.row_area_search_mode}` : ``
+                } flex h-[30px] w-full items-center`}
+              >
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title_search_mode}`}>課・ｾｸｼｮﾝ</span>
+
+                    {searchMode &&
+                      filteredSectionBySelectedDepartment &&
+                      filteredSectionBySelectedDepartment.length >= 1 && (
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
+                          value={inputMeetingCreatedBySectionOfUser}
+                          onChange={(e) => {
+                            setInputMeetingCreatedBySectionOfUser(e.target.value);
+                            // 係をリセットする
+                            setInputMeetingCreatedByUnitOfUser("");
+                          }}
+                        >
+                          <option value=""></option>
+                          {filteredSectionBySelectedDepartment &&
+                            filteredSectionBySelectedDepartment.map((section, index) => (
+                              <option key={section.id} value={section.id}>
+                                {section.section_name}
+                              </option>
+                            ))}
+                        </select>
+                      )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title_search_mode}`}>自社担当</span>
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        placeholder=""
+                        value={inputMeetingMemberName}
+                        onChange={(e) => setInputMeetingMemberName(e.target.value)}
+                      />
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -6088,7 +6255,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
+                  {/* <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_search_mode}`}>自社担当</span>
                     <input
                       type="text"
@@ -6098,7 +6265,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       onChange={(e) => setInputMeetingMemberName(e.target.value)}
                     />
                   </div>
-                  <div className={`${styles.underline}`}></div>
+                  <div className={`${styles.underline}`}></div> */}
                 </div>
               </div>
               {/* ============= 予定エリアここまで ============= */}

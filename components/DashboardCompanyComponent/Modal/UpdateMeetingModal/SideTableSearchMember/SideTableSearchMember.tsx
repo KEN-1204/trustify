@@ -4,7 +4,7 @@ import { Dispatch, FormEvent, SetStateAction, memo, useCallback, useEffect, useR
 import { BsChevronRight } from "react-icons/bs";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import styles from "../UpdateMeetingModal.module.css";
-import { Contact_row_data, Department, MemberAccounts, Office, Unit } from "@/types";
+import { Contact_row_data, Department, MemberAccounts, Office, Section, Unit } from "@/types";
 import { useMedia } from "react-use";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -21,6 +21,7 @@ type MemberObj = {
   memberId: string | null;
   memberName: string | null;
   departmentId: string | null;
+  sectionId: string | null;
   unitId: string | null;
   officeId: string | null;
   signature_stamp_id?: string | null;
@@ -56,6 +57,7 @@ type SearchMemberParams = {
   _user_name: string | null;
   _employee_id_name: string | null;
   _department_id: string | null;
+  _section_id: string | null;
   _unit_id: string | null;
   _office_id: string | null;
 };
@@ -103,6 +105,7 @@ Props) => {
     _user_name: null,
     _employee_id_name: null,
     _department_id: null,
+    _section_id: null,
     _unit_id: null,
     _office_id: null,
   };
@@ -114,6 +117,7 @@ Props) => {
   const [searchSelectedDepartmentId, setSearchSelectedDepartmentId] = useState<Department["id"] | null>(
     memberObj.departmentId ?? null
   ); //事業部id
+  const [searchSelectedSectionId, setSearchSelectedSectionId] = useState<Section["id"] | null>(null); //係id
   const [searchSelectedUnitId, setSearchSelectedUnitId] = useState<Unit["id"] | null>(null); //係id
   const [searchSelectedOfficeId, setSearchSelectedOfficeId] = useState<Office["id"] | null>(null); //事業所id
 
@@ -139,6 +143,12 @@ Props) => {
       setInputValue: setSearchSelectedDepartmentId,
     },
     {
+      key: "section",
+      title: "課・セクション",
+      inputValue: searchSelectedSectionId,
+      setInputValue: setSearchSelectedSectionId,
+    },
+    {
       key: "unit",
       title: "係・チーム",
       inputValue: searchSelectedUnitId,
@@ -161,25 +171,61 @@ Props) => {
 
   // ============================ 🌟事業部、係、事業所リスト取得useQuery🌟 ============================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ============================ ✅事業部、係、事業所リスト取得useQuery✅ ============================
-  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
-  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // 課ありパターン
+  // ======================= 🌟現在の選択した事業部で課を絞り込むuseEffect🌟 =======================
+  const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
   useEffect(() => {
     // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
-    if (!unitDataArray || unitDataArray?.length === 0 || !searchSelectedDepartmentId)
-      return setFilteredUnitBySelectedDepartment([]);
+    if (!sectionDataArray || sectionDataArray?.length === 0 || !searchSelectedDepartmentId)
+      return setFilteredSectionBySelectedDepartment([]);
 
-    // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
-    if (unitDataArray && unitDataArray.length >= 1 && searchSelectedDepartmentId) {
-      const filteredUnitArray = unitDataArray.filter(
+    // 選択中の事業部が変化するか、sectionDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (sectionDataArray && sectionDataArray.length >= 1 && searchSelectedDepartmentId) {
+      const filteredSectionArray = sectionDataArray.filter(
         (unit) => unit.created_by_department_id === searchSelectedDepartmentId
       );
-      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+      setFilteredSectionBySelectedDepartment(filteredSectionArray);
     }
-  }, [unitDataArray, searchSelectedDepartmentId]);
-  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+  }, [sectionDataArray, searchSelectedDepartmentId]);
+  // ======================= ✅現在の選択した事業部で課を絞り込むuseEffect✅ =======================
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した課で係・チームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
+  useEffect(() => {
+    // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!unitDataArray || unitDataArray?.length === 0 || !searchSelectedSectionId)
+      return setFilteredUnitBySelectedSection([]);
+
+    // 選択中の課が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (unitDataArray && unitDataArray.length >= 1 && searchSelectedSectionId) {
+      const filteredUnitArray = unitDataArray.filter((unit) => unit.created_by_section_id === searchSelectedSectionId);
+      setFilteredUnitBySelectedSection(filteredUnitArray);
+    }
+  }, [unitDataArray, searchSelectedSectionId]);
+  // ======================= ✅現在の選択した課で係・チームを絞り込むuseEffect✅ =======================
+
+  // 課なしパターン
+  // // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
+  // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // useEffect(() => {
+  //   // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+  //   if (!unitDataArray || unitDataArray?.length === 0 || !searchSelectedDepartmentId)
+  //     return setFilteredUnitBySelectedDepartment([]);
+
+  //   // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+  //   if (unitDataArray && unitDataArray.length >= 1 && searchSelectedDepartmentId) {
+  //     const filteredUnitArray = unitDataArray.filter(
+  //       (unit) => unit.created_by_department_id === searchSelectedDepartmentId
+  //     );
+  //     setFilteredUnitBySelectedDepartment(filteredUnitArray);
+  //   }
+  // }, [unitDataArray, searchSelectedDepartmentId]);
+  // // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // -------------------------- 🌟useInfiniteQuery無限スクロール🌟 --------------------------
   const supabase = useSupabaseClient();
@@ -207,6 +253,7 @@ Props) => {
       _user_name: adjustFieldValue(searchInputMemberName),
       _employee_id_name: adjustFieldValue(searchInputEmployeesIdName),
       _department_id: searchSelectedDepartmentId || null,
+      _section_id: searchSelectedSectionId || null,
       _unit_id: searchSelectedUnitId || null,
       _office_id: searchSelectedOfficeId || null,
     };
@@ -310,6 +357,8 @@ Props) => {
       .rpc("get_members_searched_name_employee_id_name", params, { count: "exact" })
       .range(from, to)
       .order("assigned_department_name", { ascending: true })
+      .order("assigned_section_name", { ascending: true })
+      .order("assigned_unit_name", { ascending: true })
       .order("profile_name", { ascending: true });
     // .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
 
@@ -346,6 +395,7 @@ Props) => {
       ["_user_name", searchMemberParams._user_name],
       ["_employee_id_name", searchMemberParams._employee_id_name],
       ["_department_id", searchMemberParams._department_id],
+      ["_section_id", searchMemberParams._section_id],
       ["_unit_id", searchMemberParams._unit_id],
       ["_office_id", searchMemberParams._office_id],
     ]
@@ -369,7 +419,12 @@ Props) => {
     queryKey: ["members", queryKeySearchParamsStringRef.current],
     // queryKey: ["contacts"],
     queryFn: async (ctx) => {
-      console.log("サーチフェッチメンバー queryFn✅✅✅ searchMemberParams", searchMemberParams);
+      console.log(
+        "サーチフェッチメンバー queryFn✅✅✅ searchMemberParams",
+        searchMemberParams,
+        "isEnableFetch",
+        isEnableFetch
+      );
       return fetchNewSearchServerPage(20, ctx.pageParam); // 20個ずつ取得
     },
     getNextPageParam: (lastGroup, allGroups) => {
@@ -413,11 +468,11 @@ Props) => {
 
   // ------------------------------- 🌟初回ブロックstateをtrueに🌟 -------------------------------
   // 初回マウント時に既に初期状態(入力なしで検索した全てのデータ)でRowsが存在するなら初回ブロックstateをtrueにする
-  useEffect(() => {
-    if (memberRows && memberRows.length > 0) {
-      if (!isEnableFetch) setIsEnableFetch(true);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (memberRows && memberRows.length > 0) {
+  //     if (!isEnableFetch) setIsEnableFetch(true);
+  //   }
+  // }, []);
   // ------------------------------- ✅初回ブロックstateをtrueに✅ -------------------------------
 
   console.log(
@@ -458,6 +513,7 @@ Props) => {
           memberId: selectedMemberObj.id,
           memberName: selectedMemberObj.profile_name,
           departmentId: selectedMemberObj.assigned_department_id ?? null,
+          sectionId: selectedMemberObj.assigned_section_id ?? null,
           unitId: selectedMemberObj.assigned_unit_id ?? null,
           officeId: selectedMemberObj.assigned_office_id ?? null,
           signature_stamp_id: selectedMemberObj.assigned_signature_stamp_id ?? null,
@@ -476,6 +532,7 @@ Props) => {
           memberId: selectedMemberObj.id,
           memberName: selectedMemberObj.profile_name,
           departmentId: selectedMemberObj.assigned_department_id ?? null,
+          sectionId: selectedMemberObj.assigned_section_id ?? null,
           unitId: selectedMemberObj.assigned_unit_id ?? null,
           officeId: selectedMemberObj.assigned_office_id ?? null,
         };
@@ -489,7 +546,7 @@ Props) => {
       // setIsChangeConfirmationModal(true)
 
       // 再度開いた時のフェッチを防ぐ
-      // setIsEnableFetch(false);
+      setIsEnableFetch(false);
 
       // サイドテーブルを閉じる
       setIsOpenSearchMemberSideTable(false);
@@ -509,6 +566,7 @@ Props) => {
       if (searchInputMemberName) setSearchInputMemberName("");
       if (searchInputEmployeesIdName) setSearchInputEmployeesIdName("");
       if (searchSelectedDepartmentId) setSearchSelectedDepartmentId(null);
+      if (searchSelectedSectionId) setSearchSelectedSectionId(null);
       if (searchSelectedUnitId) setSearchSelectedUnitId(null);
       if (searchSelectedOfficeId) setSearchSelectedOfficeId(null);
     }
@@ -643,6 +701,7 @@ Props) => {
     if (searchInputMemberName) setSearchInputMemberName("");
     if (searchInputEmployeesIdName) setSearchInputEmployeesIdName("");
     if (searchSelectedDepartmentId) setSearchSelectedDepartmentId(null);
+    if (searchSelectedSectionId) setSearchSelectedSectionId(null);
     if (searchSelectedUnitId) setSearchSelectedUnitId(null);
     if (searchSelectedOfficeId) setSearchSelectedOfficeId(null);
     // 閉じたら再度初回フェッチをブロックする
@@ -658,6 +717,8 @@ Props) => {
     }
   };
   // -------------------------- ✅サイドテーブルを閉じる✅ --------------------------
+
+  console.log("レンダリング isEnableFetch", isEnableFetch);
 
   return (
     <>
@@ -728,7 +789,7 @@ Props) => {
                     handleOpenTooltip({
                       e: e,
                       display: "",
-                      content: `○メンバーの名前、社員番号・ID名、事業部、係・チーム、事業所を条件に入力して検索してください。\n例えば、担当者名が「佐藤 礼司」で「マイクロスコープ事業部」という事業部の担当者を検索する場合は、「社員名」に「佐藤 礼司」または「佐藤＊」を入力し、「事業部」は「マイクロスコープ事業部」を選択して検索します。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○「社員名」「社員番号・ID」の最低どちらか一つの項目は入力して検索してください。`,
+                      content: `○メンバーの名前、社員番号・ID名、事業部、課・セクション、係・チーム、事業所を条件に入力して検索してください。\n例えば、担当者名が「佐藤 礼司」で「マイクロスコープ事業部」という事業部の担当者を検索する場合は、「社員名」に「佐藤 礼司」または「佐藤＊」を入力し、「事業部」は「マイクロスコープ事業部」を選択して検索します。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○「社員名」「社員番号・ID」の最低どちらか一つの項目は入力して検索してください。`,
                       // content2: "600万円と入力しても円単位に自動補完されます。",
                       // marginTop: 57,
                       marginTop: 39,
@@ -771,6 +832,7 @@ Props) => {
                   searchInputMemberName,
                   searchInputEmployeesIdName,
                   searchSelectedDepartmentId,
+                  searchSelectedSectionId,
                   searchSelectedUnitId,
                   searchSelectedOfficeId,
                 ].some((value) => value !== "" && value !== null) && (
@@ -808,6 +870,7 @@ Props) => {
                       if (searchInputMemberName) setSearchInputMemberName("");
                       if (searchInputEmployeesIdName) setSearchInputEmployeesIdName("");
                       if (searchSelectedDepartmentId) setSearchSelectedDepartmentId(null);
+                      if (searchSelectedSectionId) setSearchSelectedSectionId(null);
                       if (searchSelectedUnitId) setSearchSelectedUnitId(null);
                       if (searchSelectedOfficeId) setSearchSelectedOfficeId(null);
 
@@ -882,7 +945,18 @@ Props) => {
                   <select
                     className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.change_member}`}
                     value={item.inputValue ? item.inputValue : ""}
-                    onChange={(e) => item.setInputValue(e.target.value)}
+                    onChange={(e) => {
+                      if (item.key === "department") {
+                        // 事業部idを変更 => 課と係をnullに
+                        searchMemberSelectFields[1].setInputValue(null); // 課
+                        searchMemberSelectFields[2].setInputValue(null); // 係
+                      }
+                      if (item.key === "section") {
+                        // 課idを変更 => 係をnullに
+                        searchMemberSelectFields[2].setInputValue(null); // 係
+                      }
+                      item.setInputValue(e.target.value);
+                    }}
                   >
                     <option value=""></option>
                     {item.key === "department" &&
@@ -893,10 +967,18 @@ Props) => {
                           {department.department_name}
                         </option>
                       ))}
+                    {item.key === "section" &&
+                      filteredSectionBySelectedDepartment &&
+                      filteredSectionBySelectedDepartment.length >= 1 &&
+                      filteredSectionBySelectedDepartment.map((section) => (
+                        <option key={section.id} value={section.id}>
+                          {section.section_name}
+                        </option>
+                      ))}
                     {item.key === "unit" &&
-                      filteredUnitBySelectedDepartment &&
-                      filteredUnitBySelectedDepartment.length >= 1 &&
-                      filteredUnitBySelectedDepartment.map((unit) => (
+                      filteredUnitBySelectedSection &&
+                      filteredUnitBySelectedSection.length >= 1 &&
+                      filteredUnitBySelectedSection.map((unit) => (
                         <option key={unit.id} value={unit.id}>
                           {unit.unit_name}
                         </option>
@@ -1092,43 +1174,24 @@ Props) => {
                       <div
                         className={`${styles.attendees_list_item_lines_group} flex h-full flex-col space-y-[3px] pl-[5px] text-[12px]`}
                       >
-                        {/* 会社・部署 */}
+                        {/* 担当者名 */}
                         <div className={`${styles.attendees_list_item_line} flex text-[13px]`}>
                           {member.profile_name && <span className="mr-[4px]">{member.profile_name}</span>}
-                          {/* <span>{attendee.department_name ?? ""}</span> */}
                         </div>
-                        {/* <div className={`text-[var(--color-text-sub)]`}>{member.email ? member.email : ""}</div> */}
-                        {/* 役職・名前 */}
+                        {/* 事業部・課・係 */}
                         <div className={`${styles.attendees_list_item_line} flex`}>
-                          {/* {member.profile_name && (
-                          <>
-                            <span className="mr-[12px]">{member.profile_name}</span>
-                          </>
-                        )} */}
                           {member.assigned_department_name && (
                             <>
                               <span className="mr-[12px]">{member.assigned_department_name}</span>
-                              {/* {member.position_name && <span className="mr-[10px]">/</span>} */}
                             </>
+                          )}
+                          {member.assigned_section_name && (
+                            <span className="mr-[10px]">{member.assigned_section_name}</span>
                           )}
                           {member.assigned_unit_name && <span className="mr-[10px]">{member.assigned_unit_name}</span>}
                         </div>
-                        {/* 住所・Email・1600以上で直通TEL */}
+                        {/* 営業所・社員番号 */}
                         <div className={`${styles.attendees_list_item_line} flex`}>
-                          {/* {attendee.address && (
-                          <>
-                            <span className="mr-[10px] text-[#ccc]">{attendee.address}</span>
-                            {((isDesktopGTE1600 && attendee.direct_line) || attendee.contact_email) && (
-                              <span className="mr-[10px]">/</span>
-                            )}
-                          </>
-                        )} */}
-                          {/* {isDesktopGTE1600 && member.assigned_office_name && (
-                            <>
-                              <span className="mr-[10px] text-[#ccc]">{member.assigned_office_name}</span>
-                              {member.assigned_employee_id_name && <span className="mr-[10px]">/</span>}
-                            </>
-                          )} */}
                           {member.assigned_office_name && (
                             <span className="mr-[10px] text-[#ccc]">{member.assigned_office_name}</span>
                           )}

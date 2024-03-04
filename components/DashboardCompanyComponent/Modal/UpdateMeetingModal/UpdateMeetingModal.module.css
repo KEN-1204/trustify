@@ -29,6 +29,42 @@
   align-items: center;
   border-radius: 8px;
 }
+/* モーダル内でのローディング */
+.loading_overlay_modal_outside {
+  position: fixed;
+  z-index: 2100;
+  /* inset: 0; */
+  left: -50vw;
+  top: -50vh;
+  width: 200vw;
+  height: 200vh;
+  /* background: #ffffff42; */
+  /* background: #62afe642; */
+  /* background: #00000090; */
+  background: #00000033;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* border-radius: 8px; */
+}
+.loading_overlay_modal_inside {
+  position: fixed;
+  z-index: 2500;
+  /* inset: 0; */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vw;
+  height: 90vh;
+  max-width: 1150px;
+  max-height: 730px;
+  /* background: #ffffff48; */
+  background: var(--overlay-loading-modal-inside);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
 
 .container {
   position: fixed;

@@ -59,6 +59,7 @@ import {
   optionsSubscriptionInterval,
   optionsTermDivision,
 } from "@/utils/selectOptions";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 type ModalProperties = {
   left: number;
@@ -1288,9 +1289,10 @@ export const UpdatePropertyModal = () => {
         {/* ローディングオーバーレイ */}
         {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
-            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
-            <SpinnerComet w="48px" h="48px" />
-            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+            {/* <SpinnerComet w="48px" h="48px" s="5px" /> */}
+            <div className={`${styles.loading_overlay_modal_inside}`}>
+              <SpinnerBrand withBorder withShadow />
+            </div>
           </div>
         )}
         {/* 製品リスト編集ドロップダウンメニュー オーバーレイ */}

@@ -30,6 +30,7 @@ import {
   QuotationProductsDetail,
   Destination,
   QuotationProducts,
+  Section,
 } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
@@ -86,6 +87,7 @@ import { FallbackSideTableSearchContact } from "@/components/DashboardCompanyCom
 import { calculateLeaseMonthlyFee } from "@/utils/Helpers/calculateLeaseMonthlyFee";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import Decimal from "decimal.js";
+import { useQuerySections } from "@/hooks/useQuerySections";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -311,6 +313,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputQuotationCreatedByCompanyId, setInputQuotationCreatedByCompanyId] = useState("");
   const [inputQuotationCreatedByUserId, setInputQuotationCreatedByUserId] = useState("");
   const [inputQuotationCreatedByDepartmentOfUser, setInputQuotationCreatedByDepartmentOfUser] = useState("");
+  const [inputQuotationCreatedBySectionOfUser, setInputQuotationCreatedBySectionOfUser] = useState("");
   const [inputQuotationCreatedByUnitOfUser, setInputQuotationCreatedByUnitOfUser] = useState("");
   const [inputQuotationCreatedByOfficeOfUser, setInputQuotationCreatedByOfficeOfUser] = useState("");
 
@@ -319,6 +322,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     memberId: string | null;
     memberName: string | null;
     departmentId: string | null;
+    sectionId: string | null;
     unitId: string | null;
     officeId: string | null;
   };
@@ -327,6 +331,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     memberId: userProfileState?.id ? userProfileState?.id : null,
     memberName: userProfileState?.profile_name ? userProfileState?.profile_name : null,
     departmentId: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+    sectionId: userProfileState?.assigned_section_id ? userProfileState?.assigned_section_id : null,
     unitId: userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null,
     officeId: userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null,
   };
@@ -411,6 +416,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     memberId: string | null;
     memberName: string | null;
     departmentId: string | null;
+    sectionId: string | null;
     unitId: string | null;
     officeId: string | null;
     signature_stamp_id?: string | null | undefined;
@@ -421,6 +427,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     memberId: null,
     memberName: null,
     departmentId: null,
+    sectionId: null,
     unitId: null,
     officeId: null,
     signature_stamp_id: null,
@@ -568,6 +575,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       memberId: userProfileState?.id ? userProfileState?.id : null,
       memberName: userProfileState?.profile_name ? userProfileState?.profile_name : null,
       departmentId: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+      sectionId: userProfileState?.assigned_section_id ? userProfileState?.assigned_section_id : null,
       unitId: userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null,
       officeId: userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null,
     };
@@ -737,6 +745,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       memberId: row?.quotation_created_by_user_id ? row?.quotation_created_by_user_id : null,
       memberName: row?.quotation_member_name ? row?.quotation_member_name : null,
       departmentId: row?.quotation_created_by_department_of_user ? row?.quotation_created_by_department_of_user : null,
+      sectionId: row?.quotation_created_by_section_of_user ? row?.quotation_created_by_section_of_user : null,
       unitId: row?.quotation_created_by_unit_of_user ? row?.quotation_created_by_unit_of_user : null,
       officeId: row?.quotation_created_by_office_of_user ? row?.quotation_created_by_office_of_user : null,
     };
@@ -753,6 +762,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       memberId: row?.in_charge_user_id || null,
       memberName: row?.in_charge_user_name || null,
       departmentId: null,
+      sectionId: null,
       unitId: null,
       officeId: null,
       signature_stamp_id: row?.in_charge_stamp_id || null,
@@ -765,6 +775,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       memberId: row?.supervisor1_user_id || null,
       memberName: row?.supervisor1_user_name || null,
       departmentId: null,
+      sectionId: null,
       unitId: null,
       officeId: null,
       signature_stamp_id: row?.supervisor1_stamp_id || null,
@@ -777,6 +788,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       memberId: row?.supervisor2_user_id || null,
       memberName: row?.supervisor2_user_name || null,
       departmentId: null,
+      sectionId: null,
       unitId: null,
       officeId: null,
       signature_stamp_id: row?.supervisor2_stamp_id || null,
@@ -808,6 +820,17 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // useMutation
   // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟課・セクションリスト取得useQuery🌟 ================================
+  const {
+    data: sectionDataArray,
+    isLoading: isLoadingQuerySection,
+    refetch: refetchQUerySections,
+  } = useQuerySections(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createSectionMutation, updateSectionFieldMutation, updateMultipleSectionFieldsMutation, deleteSectionMutation } =
+  // useMutateSection();
+  // ================================ ✅課・セクションリスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
   const {
     data: unitDataArray,
@@ -830,23 +853,60 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
 
-  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
-  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // 課ありパターン
+  // ======================= 🌟現在の選択した事業部で課を絞り込むuseEffect🌟 =======================
+  const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
   useEffect(() => {
     // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
-    if (!unitDataArray || unitDataArray?.length === 0 || !inputQuotationCreatedByDepartmentOfUser)
-      return setFilteredUnitBySelectedDepartment([]);
+    if (!sectionDataArray || sectionDataArray?.length === 0 || !inputQuotationCreatedByDepartmentOfUser)
+      return setFilteredSectionBySelectedDepartment([]);
 
-    // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
-    if (unitDataArray && unitDataArray.length >= 1 && inputQuotationCreatedByDepartmentOfUser) {
-      const filteredUnitArray = unitDataArray.filter(
-        (unit) => unit.created_by_department_id === inputQuotationCreatedByDepartmentOfUser
+    // 選択中の事業部が変化するか、sectionDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (sectionDataArray && sectionDataArray.length >= 1 && inputQuotationCreatedByDepartmentOfUser) {
+      const filteredSectionArray = sectionDataArray.filter(
+        (section) => section.created_by_department_id === inputQuotationCreatedByDepartmentOfUser
       );
-      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+      setFilteredSectionBySelectedDepartment(filteredSectionArray);
     }
-  }, [unitDataArray, inputQuotationCreatedByDepartmentOfUser]);
-  // }, [unitDataArray, memberObj.departmentId]);
-  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+  }, [sectionDataArray, inputQuotationCreatedByDepartmentOfUser]);
+  // ======================= ✅現在の選択した事業部で課を絞り込むuseEffect✅ =======================
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した課で係・チームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
+  useEffect(() => {
+    // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!unitDataArray || unitDataArray?.length === 0 || !inputQuotationCreatedBySectionOfUser)
+      return setFilteredUnitBySelectedSection([]);
+
+    // 選択中の課が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (unitDataArray && unitDataArray.length >= 1 && inputQuotationCreatedBySectionOfUser) {
+      const filteredUnitArray = unitDataArray.filter(
+        (unit) => unit.created_by_section_id === inputQuotationCreatedBySectionOfUser
+      );
+      setFilteredUnitBySelectedSection(filteredUnitArray);
+    }
+  }, [unitDataArray, inputQuotationCreatedBySectionOfUser]);
+  // ======================= ✅現在の選択した課で係・チームを絞り込むuseEffect✅ =======================
+
+  // // 課なしパターン
+  // // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
+  // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // useEffect(() => {
+  //   // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+  //   if (!unitDataArray || unitDataArray?.length === 0 || !inputQuotationCreatedByDepartmentOfUser)
+  //     return setFilteredUnitBySelectedDepartment([]);
+
+  //   // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+  //   if (unitDataArray && unitDataArray.length >= 1 && inputQuotationCreatedByDepartmentOfUser) {
+  //     const filteredUnitArray = unitDataArray.filter(
+  //       (unit) => unit.created_by_department_id === inputQuotationCreatedByDepartmentOfUser
+  //     );
+  //     setFilteredUnitBySelectedDepartment(filteredUnitArray);
+  //   }
+  // }, [unitDataArray, inputQuotationCreatedByDepartmentOfUser]);
+  // // }, [unitDataArray, memberObj.departmentId]);
+  // // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // ----------------------- 🌟見積Noカスタム/自動をローカルストレージから取得🌟 -----------------------
   // カスタム/オート
@@ -970,10 +1030,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       setInputQuotationCreatedByDepartmentOfUser(
         beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.created_by_department_of_user"])
       );
+      setInputQuotationCreatedBySectionOfUser(
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.created_by_section_of_user"])
+      );
       setInputQuotationCreatedByUnitOfUser(
         beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.created_by_unit_of_user"])
       );
-      setInputQuotationCreatedByUnitOfUser(
+      setInputQuotationCreatedByOfficeOfUser(
         beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.created_by_office_of_user"])
       );
       setInputQuotationMemberName(
@@ -1046,6 +1109,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       if (!!inputQuotationCreatedByCompanyId) setInputQuotationCreatedByCompanyId("");
       if (!!inputQuotationCreatedByUserId) setInputQuotationCreatedByUserId("");
       if (!!inputQuotationCreatedByDepartmentOfUser) setInputQuotationCreatedByDepartmentOfUser("");
+      if (!!inputQuotationCreatedBySectionOfUser) setInputQuotationCreatedBySectionOfUser("");
       if (!!inputQuotationCreatedByUnitOfUser) setInputQuotationCreatedByUnitOfUser("");
       if (!!inputQuotationCreatedByOfficeOfUser) setInputQuotationCreatedByOfficeOfUser("");
       if (!!inputQuotationDate) setInputQuotationDate(null);
@@ -1126,6 +1190,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _quotation_created_by_company_id = userProfileState.company_id;
     let _quotation_created_by_user_id = adjustFieldValue(inputQuotationCreatedByUserId);
     let _quotation_created_by_department_of_user = adjustFieldValue(inputQuotationCreatedByDepartmentOfUser);
+    let _quotation_created_by_section_of_user = adjustFieldValue(inputQuotationCreatedBySectionOfUser);
     let _quotation_created_by_unit_of_user = adjustFieldValue(inputQuotationCreatedByUnitOfUser);
     let _quotation_created_by_office_of_user = adjustFieldValue(inputQuotationCreatedByOfficeOfUser);
     let _quotation_member_name = adjustFieldValue(inputQuotationMemberName);
@@ -1224,6 +1289,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       "q.created_by_company_id": _quotation_created_by_company_id,
       "q.created_by_user_id": _quotation_created_by_user_id,
       "q.created_by_department_of_user": _quotation_created_by_department_of_user,
+      "q.created_by_section_of_user": _quotation_created_by_section_of_user,
       "q.created_by_unit_of_user": _quotation_created_by_unit_of_user,
       "q.created_by_office_of_user": _quotation_created_by_office_of_user,
       quotation_member_name: _quotation_member_name,
@@ -1278,6 +1344,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setInputQuotationCreatedByCompanyId("");
     setInputQuotationCreatedByUserId("");
     setInputQuotationCreatedByDepartmentOfUser("");
+    setInputQuotationCreatedBySectionOfUser("");
     setInputQuotationCreatedByUnitOfUser("");
     setInputQuotationCreatedByOfficeOfUser("");
     setInputQuotationMemberName("");
@@ -2322,6 +2389,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           created_by_company_id: userProfileState.company_id,
           created_by_user_id: memberObj.memberId,
           created_by_department_of_user: memberObj.departmentId || null,
+          created_by_section_of_user: memberObj.sectionId || null,
           created_by_unit_of_user: memberObj.unitId || null,
           created_by_office_of_user: memberObj.officeId || null,
           client_company_id: inputCompanyId,
@@ -2447,6 +2515,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           created_by_company_id: userProfileState.company_id,
           created_by_user_id: memberObj.memberId,
           created_by_department_of_user: memberObj.departmentId || null,
+          created_by_section_of_user: memberObj.sectionId || null,
           created_by_unit_of_user: memberObj.unitId || null,
           created_by_office_of_user: memberObj.officeId || null,
           client_company_id: inputCompanyId,
@@ -6410,17 +6479,17 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         </div>
                         {/*  */}
 
-                        {/* 事業所・自社担当 */}
+                        {/* 課セクション・自社担当 */}
                         <div className={`${styles.row_area} flex w-full items-center`}>
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
-                              <span className={`${styles.title}`}>事業所</span>
+                              <span className={`${styles.title}`}>課・ｾｸｼｮﾝ</span>
                               {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                 <span
                                   className={`${styles.value}`}
                                   data-text={`${
-                                    selectedRowDataQuotation?.assigned_office_name
-                                      ? selectedRowDataQuotation?.assigned_office_name
+                                    selectedRowDataQuotation?.assigned_section_name
+                                      ? selectedRowDataQuotation?.assigned_section_name
                                       : ""
                                   }`}
                                   onMouseEnter={(e) => {
@@ -6433,8 +6502,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     if (hoveredItemPosWrap) handleCloseTooltip();
                                   }}
                                 >
-                                  {selectedRowDataQuotation?.assigned_office_name
-                                    ? selectedRowDataQuotation?.assigned_office_name
+                                  {selectedRowDataQuotation?.assigned_section_name
+                                    ? selectedRowDataQuotation?.assigned_section_name
                                     : ""}
                                 </span>
                               )}
@@ -6444,18 +6513,18 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 <>
                                   <select
                                     className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.upsert}`}
-                                    value={memberObj.officeId ? memberObj.officeId : ""}
+                                    value={memberObj.sectionId ? memberObj.sectionId : ""}
                                     onChange={(e) => {
-                                      setMemberObj({ ...memberObj, officeId: e.target.value });
+                                      setMemberObj({ ...memberObj, sectionId: e.target.value });
                                       setIsOpenConfirmationModal("change_member");
                                     }}
                                   >
                                     <option value=""></option>
-                                    {officeDataArray &&
-                                      officeDataArray.length >= 1 &&
-                                      officeDataArray.map((office) => (
-                                        <option key={office.id} value={office.id}>
-                                          {office.office_name}
+                                    {sectionDataArray &&
+                                      sectionDataArray.length >= 1 &&
+                                      sectionDataArray.map((section) => (
+                                        <option key={section.id} value={section.id}>
+                                          {section.section_name}
                                         </option>
                                       ))}
                                   </select>
@@ -6523,6 +6592,70 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               {/* ----------------- upsert ----------------- */}
                             </div>
                             <div className={`${styles.underline}`}></div>
+                          </div>
+                        </div>
+                        {/*  */}
+
+                        {/* 事業所・自社担当 */}
+                        <div className={`${styles.row_area} flex w-full items-center`}>
+                          <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                            <div className={`${styles.title_box} flex h-full items-center `}>
+                              <span className={`${styles.title}`}>事業所</span>
+                              {!searchMode && !(isInsertModeQuotation || isUpdateModeQuotation) && (
+                                <span
+                                  className={`${styles.value}`}
+                                  data-text={`${
+                                    selectedRowDataQuotation?.assigned_office_name
+                                      ? selectedRowDataQuotation?.assigned_office_name
+                                      : ""
+                                  }`}
+                                  onMouseEnter={(e) => {
+                                    e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                                    const el = e.currentTarget;
+                                    if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                                    if (hoveredItemPosWrap) handleCloseTooltip();
+                                  }}
+                                >
+                                  {selectedRowDataQuotation?.assigned_office_name
+                                    ? selectedRowDataQuotation?.assigned_office_name
+                                    : ""}
+                                </span>
+                              )}
+
+                              {/* ----------------- upsert ----------------- */}
+                              {!searchMode && (isInsertModeQuotation || isUpdateModeQuotation) && (
+                                <>
+                                  <select
+                                    className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.upsert}`}
+                                    value={memberObj.officeId ? memberObj.officeId : ""}
+                                    onChange={(e) => {
+                                      setMemberObj({ ...memberObj, officeId: e.target.value });
+                                      setIsOpenConfirmationModal("change_member");
+                                    }}
+                                  >
+                                    <option value=""></option>
+                                    {officeDataArray &&
+                                      officeDataArray.length >= 1 &&
+                                      officeDataArray.map((office) => (
+                                        <option key={office.id} value={office.id}>
+                                          {office.office_name}
+                                        </option>
+                                      ))}
+                                  </select>
+                                </>
+                              )}
+                              {/* ----------------- upsert ----------------- */}
+                            </div>
+                            <div className={`${styles.underline}`}></div>
+                          </div>
+                          <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                            {/* <div className={`${styles.title_box} flex h-full items-center`}>
+                              <span className={`${styles.title}`}>自社担当</span>
+                            </div>
+                            <div className={`${styles.underline}`}></div> */}
                           </div>
                         </div>
                         {/*  */}
@@ -6658,6 +6791,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                                 memberId: memberObjInCharge.memberId,
                                                 memberName: memberObjInCharge?.memberName ?? null,
                                                 departmentId: memberObjInCharge?.departmentId ?? null,
+                                                sectionId: memberObjInCharge?.sectionId ?? null,
                                                 unitId: memberObjInCharge?.unitId ?? null,
                                                 officeId: memberObjInCharge?.officeId ?? null,
                                                 signature_stamp_id: memberObjInCharge?.signature_stamp_id ?? null,
@@ -6900,6 +7034,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                                 memberId: memberObjSupervisor1.memberId,
                                                 memberName: memberObjSupervisor1?.memberName ?? null,
                                                 departmentId: memberObjSupervisor1?.departmentId ?? null,
+                                                sectionId: memberObjSupervisor1?.sectionId ?? null,
                                                 unitId: memberObjSupervisor1?.unitId ?? null,
                                                 officeId: memberObjSupervisor1?.officeId ?? null,
                                                 signature_stamp_id: memberObjSupervisor1?.signature_stamp_id ?? null,
@@ -7142,6 +7277,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                                 memberId: memberObjSupervisor2.memberId,
                                                 memberName: memberObjSupervisor2?.memberName ?? null,
                                                 departmentId: memberObjSupervisor2?.departmentId ?? null,
+                                                sectionId: memberObjSupervisor2?.sectionId ?? null,
                                                 unitId: memberObjSupervisor2?.unitId ?? null,
                                                 officeId: memberObjSupervisor2?.officeId ?? null,
                                                 signature_stamp_id: memberObjSupervisor2?.signature_stamp_id ?? null,
@@ -8893,7 +9029,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         <select
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputQuotationCreatedByDepartmentOfUser}
-                          onChange={(e) => setInputQuotationCreatedByDepartmentOfUser(e.target.value)}
+                          // onChange={(e) => setInputQuotationCreatedByDepartmentOfUser(e.target.value)}
+                          onChange={(e) => {
+                            setInputQuotationCreatedByDepartmentOfUser(e.target.value);
+                            // 課と係をリセットする
+                            setInputQuotationCreatedBySectionOfUser("");
+                            setInputQuotationCreatedByUnitOfUser("");
+                          }}
                         >
                           <option value=""></option>
                           {departmentDataArray &&
@@ -8909,21 +9051,65 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title_search_mode}`}>係・ﾁｰﾑ</span>
-                        {filteredUnitBySelectedDepartment && filteredUnitBySelectedDepartment.length >= 1 && (
+                        {filteredUnitBySelectedSection && filteredUnitBySelectedSection.length >= 1 && (
                           <select
                             className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                             value={inputQuotationCreatedByUnitOfUser}
                             onChange={(e) => setInputQuotationCreatedByUnitOfUser(e.target.value)}
                           >
                             <option value=""></option>
-                            {filteredUnitBySelectedDepartment &&
-                              filteredUnitBySelectedDepartment.map((unit, index) => (
+                            {filteredUnitBySelectedSection &&
+                              filteredUnitBySelectedSection.map((unit, index) => (
                                 <option key={unit.id} value={unit.id}>
                                   {unit.unit_name}
                                 </option>
                               ))}
                           </select>
                         )}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 課セクション・自社担当 サーチ */}
+                  <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title_search_mode}`}>課・ｾｸｼｮﾝ</span>
+                        {filteredSectionBySelectedDepartment && filteredSectionBySelectedDepartment.length >= 1 && (
+                          <select
+                            className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
+                            value={inputQuotationCreatedBySectionOfUser}
+                            // onChange={(e) => setInputQuotationCreatedBySectionOfUser(e.target.value)}
+                            onChange={(e) => {
+                              setInputQuotationCreatedBySectionOfUser(e.target.value);
+                              // 係をリセットする
+                              setInputQuotationCreatedByUnitOfUser("");
+                            }}
+                          >
+                            <option value=""></option>
+                            {filteredSectionBySelectedDepartment &&
+                              filteredSectionBySelectedDepartment.map((section, index) => (
+                                <option key={section.id} value={section.id}>
+                                  {section.section_name}
+                                </option>
+                              ))}
+                          </select>
+                        )}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.title_search_mode}`}>自社担当</span>
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputQuotationMemberName}
+                          onChange={(e) => setInputQuotationMemberName(e.target.value)}
+                        />
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
@@ -8952,7 +9138,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.underline}`}></div>
                     </div>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                      <div className={`${styles.title_box} flex h-full items-center`}>
+                      {/* <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title_search_mode}`}>自社担当</span>
                         <input
                           type="text"
@@ -8962,7 +9148,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           onChange={(e) => setInputQuotationMemberName(e.target.value)}
                         />
                       </div>
-                      <div className={`${styles.underline}`}></div>
+                      <div className={`${styles.underline}`}></div> */}
                     </div>
                   </div>
                   {/*  */}

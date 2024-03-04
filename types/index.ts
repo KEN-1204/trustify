@@ -146,6 +146,7 @@ export type Client_company = {
   created_by_company_id?: string | null;
   created_by_user_id?: string | null;
   created_by_department_of_user?: string | null;
+  created_by_section_of_user?: string | null;
   created_by_unit_of_user?: string | null;
   created_by_office_of_user?: string | null;
   name?: string;
@@ -228,6 +229,7 @@ export type Client_company_row_data = {
   created_by_company_id?: string | null;
   created_by_user_id?: string | null;
   created_by_department_of_user?: string | null;
+  created_by_section_of_user?: string | null;
   created_by_unit_of_user?: string | null;
   created_by_office_of_user?: string | null;
   department_contacts?: string | null;
@@ -672,6 +674,7 @@ export type Contact = {
   created_by_company_id: string | null;
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
+  created_by_section_of_user: string | null;
   created_by_unit_of_user: string | null;
   created_by_office_of_user: string | null;
 };
@@ -705,6 +708,7 @@ export type EditedContact = {
   created_by_company_id: string | null;
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
+  created_by_section_of_user: string | null;
   created_by_unit_of_user: string | null;
   created_by_office_of_user: string | null;
 };
@@ -766,6 +770,7 @@ export type Contact_row_data = {
   created_by_company_id: string | null;
   created_by_user_id: string | null;
   created_by_department_of_user: string | null; // 🌠追加
+  created_by_section_of_user: string | null;
   created_by_unit_of_user: string | null;
   created_by_office_of_user: string | null;
   call_careful_flag: boolean | null;
@@ -777,6 +782,7 @@ export type Contact_row_data = {
   claim: string | null;
   // 🌠追加 事業部、係、事業所
   assigned_department_name: string | null;
+  assigned_section_name: string | null;
   assigned_unit_name: string | null;
   assigned_office_name: string | null;
 };
@@ -838,6 +844,7 @@ export type Activity_row_data = {
   contact_created_by_company_id: string | null;
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
+  contact_created_by_section_of_user: string | null;
   contact_created_by_unit_of_user: string | null;
   contact_created_by_office_of_user: string | null; //🌠追加
   call_careful_flag: boolean | null;
@@ -853,6 +860,7 @@ export type Activity_row_data = {
   activity_created_by_company_id: string | null;
   activity_created_by_user_id: string | null;
   activity_created_by_department_of_user: string | null;
+  activity_created_by_section_of_user: string | null;
   activity_created_by_unit_of_user: string | null;
   activity_created_by_office_of_user: string | null; //🌠追加
   summary: string | null;
@@ -877,6 +885,7 @@ export type Activity_row_data = {
   quotation_id: string | null;
   //🌠追加 事業部、係、事業所
   assigned_department_name: string | null;
+  assigned_section_name: string | null;
   assigned_unit_name: string | null;
   assigned_office_name: string | null;
 };
@@ -965,6 +974,7 @@ export type Meeting_row_data = {
   contact_created_by_company_id: string | null;
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
+  contact_created_by_section_of_user: string | null;
   contact_created_by_unit_of_user: string | null;
   contact_created_by_office_of_user: string | null;
   call_careful_flag: boolean | null;
@@ -980,6 +990,7 @@ export type Meeting_row_data = {
   meeting_created_by_company_id: string | null;
   meeting_created_by_user_id: string | null;
   meeting_created_by_department_of_user: string | null;
+  meeting_created_by_section_of_user: string | null;
   meeting_created_by_unit_of_user: string | null;
   meeting_created_by_office_of_user: string | null; //🌠追加
   meeting_type: string | null;
@@ -1014,6 +1025,7 @@ export type Meeting_row_data = {
   meeting_year_month: number | null;
   //🌠追加 事業部、係、事業所
   assigned_department_name: string | null;
+  assigned_section_name: string | null;
   assigned_unit_name: string | null;
   assigned_office_name: string | null;
   // 🌠面談時の商品グループと同席者グループ
@@ -1086,6 +1098,7 @@ export type ValidMeeting = {
   contact_created_by_company_id: string | null;
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
+  contact_created_by_section_of_user: string | null;
   contact_created_by_unit_of_user: string | null;
   contact_created_by_office_of_user: string | null; //🌠追加
   call_careful_flag: boolean | null;
@@ -1101,6 +1114,7 @@ export type ValidMeeting = {
   meeting_created_by_company_id: string | null;
   meeting_created_by_user_id: string | null;
   meeting_created_by_department_of_user: string | null;
+  meeting_created_by_section_of_user: string | null;
   meeting_created_by_unit_of_user: string | null;
   meeting_created_by_office_of_user: string | null; //🌠追加
   meeting_type: string | null;
@@ -1135,6 +1149,7 @@ export type ValidMeeting = {
   meeting_year_month: number | null;
   //🌠追加 事業部、係、事業所
   assigned_department_name: string | null;
+  assigned_section_name: string | null;
   assigned_unit_name: string | null;
   assigned_office_name: string | null;
   // 🌠面談時の商品グループと同席者グループ
@@ -1207,6 +1222,7 @@ export type Property_row_data = {
   contact_created_by_company_id: string | null;
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
+  contact_created_by_section_of_user: string | null;
   contact_created_by_unit_of_user: string | null;
   contact_created_by_office_of_user: string | null; //🌠追加
   call_careful_flag: boolean | null;
@@ -1222,6 +1238,7 @@ export type Property_row_data = {
   property_created_by_company_id: string | null;
   property_created_by_user_id: string | null;
   property_created_by_department_of_user: string | null;
+  property_created_by_section_of_user: string | null;
   property_created_by_unit_of_user: string | null;
   property_created_by_office_of_user: string | null; //🌠追加
   client_contact_id: string | null;
@@ -1297,6 +1314,7 @@ export type Property_row_data = {
   property_member_name: string | null;
   //🌠追加 事業部、係、事業所
   assigned_department_name: string | null;
+  assigned_section_name: string | null;
   assigned_unit_name: string | null;
   assigned_office_name: string | null;
 };
@@ -1416,6 +1434,7 @@ export type NewSearchActivity_Contact_CompanyParams = {
   "activities.created_by_company_id": string | null;
   "activities.created_by_user_id": string | null;
   "activities.created_by_department_of_user": string | null;
+  "activities.created_by_section_of_user": string | null;
   "activities.created_by_unit_of_user": string | null;
   "activities.created_by_office_of_user": string | null; //🌠追加
   summary: string | null;
@@ -1496,6 +1515,7 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   "meetings.created_by_company_id": string | null;
   "meetings.created_by_user_id": string | null;
   "meetings.created_by_department_of_user": string | null;
+  "meetings.created_by_section_of_user": string | null;
   "meetings.created_by_unit_of_user": string | null;
   "meetings.created_by_office_of_user": string | null; //🌠追加
   meeting_type: string | null;
@@ -1589,6 +1609,7 @@ export type NewSearchProperty_Contact_CompanyParams = {
   "properties.created_by_company_id": string | null;
   "properties.created_by_user_id": string | null;
   "properties.created_by_department_of_user": string | null;
+  "properties.created_by_section_of_user": string | null;
   "properties.created_by_unit_of_user": string | null;
   "properties.created_by_office_of_user": string | null; //🌠追加
   current_status: string | null;
@@ -1671,6 +1692,7 @@ export type Activity = {
   created_by_company_id: string | null;
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
+  created_by_section_of_user: string | null;
   created_by_unit_of_user: string | null;
   created_by_office_of_user: string | null; //🌠追加
   client_contact_id: string | null;
@@ -1705,6 +1727,7 @@ export type Meeting = {
   created_by_company_id: string | null;
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
+  created_by_section_of_user: string | null;
   created_by_unit_of_user: string | null;
   created_by_office_of_user: string | null; //🌠追加
   client_contact_id: string | null;
@@ -1749,6 +1772,7 @@ export type Product = {
   created_by_company_id: string | null;
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
+  created_by_section_of_user: string | null;
   created_by_unit_of_user: string | null;
   created_by_office_of_user: string | null; //🌠追加
   product_name: string | null;
@@ -1764,6 +1788,7 @@ export type EditedProduct = {
   created_by_company_id: string;
   created_by_user_id: string;
   created_by_department_of_user: string;
+  created_by_section_of_user: string;
   created_by_unit_of_user: string;
   created_by_office_of_user: string; //🌠追加
   product_name: string;
@@ -1820,6 +1845,7 @@ export type Property = {
   created_by_company_id: string | null;
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
+  created_by_section_of_user: string | null;
   created_by_unit_of_user: string | null;
   created_by_office_of_user: string | null; //🌠追加
   client_contact_id: string | null;
@@ -1914,6 +1940,7 @@ export type ResultMeetingWithProductsAttendees = {
   created_by_company_id: string | null;
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
+  created_by_section_of_user: string | null;
   created_by_unit_of_user: string | null;
   created_by_office_of_user: string | null; //🌠追加
   client_contact_id: string | null;
@@ -1988,6 +2015,7 @@ export type Quotation = {
   created_by_company_id: string | null;
   created_by_user_id: string | null;
   created_by_department_of_user: string | null;
+  created_by_section_of_user: string | null;
   created_by_unit_of_user: string | null;
   created_by_office_of_user: string | null;
   client_company_id: string | null;
@@ -2089,6 +2117,7 @@ export type QuotationProductsDetail = {
   product_created_by_user_id: string | null;
   product_created_by_company_id: string | null;
   product_created_by_department_of_user: string | null;
+  product_created_by_section_of_user: string | null;
   product_created_by_unit_of_user: string | null;
   product_created_by_office_of_user: string | null;
   quotation_product_name: string | null;
@@ -2157,6 +2186,7 @@ export type Quotation_row_data = {
   contact_created_by_company_id: string | null;
   contact_created_by_user_id: string | null;
   contact_created_by_department_of_user: string | null;
+  contact_created_by_section_of_user: string | null;
   contact_created_by_unit_of_user: string | null;
   contact_created_by_office_of_user: string | null; //🌠追加
   call_careful_flag: boolean | null;
@@ -2196,6 +2226,7 @@ export type Quotation_row_data = {
   quotation_created_by_company_id: string | null;
   quotation_created_by_user_id: string | null;
   quotation_created_by_department_of_user: string | null;
+  quotation_created_by_section_of_user: string | null;
   quotation_created_by_unit_of_user: string | null;
   quotation_created_by_office_of_user: string | null;
   destination_company_id: string | null;
@@ -2239,6 +2270,7 @@ export type Quotation_row_data = {
   supervisor2_user_name: string | null;
   //🌠追加 事業部、係、事業所
   assigned_department_name: string | null;
+  assigned_section_name: string | null;
   assigned_unit_name: string | null;
   assigned_office_name: string | null;
   assigned_employee_id_name: string | null;
@@ -2313,6 +2345,7 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   "q.created_by_company_id": string | null;
   "q.created_by_user_id": string | null;
   "q.created_by_department_of_user": string | null;
+  "q.created_by_section_of_user": string | null;
   "q.created_by_unit_of_user": string | null;
   "q.created_by_office_of_user": string | null; //🌠追加
   // submission_class: string | null;

@@ -11,7 +11,7 @@ import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft } from "react-icons/bs";
-import { Department, Office, Unit } from "@/types";
+import { Department, Office, Section, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { ConfirmationModal } from "../SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { ErrorBoundary } from "react-error-boundary";
@@ -23,6 +23,7 @@ import { ImInfo } from "react-icons/im";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { getActivityType, getPriorityName, optionsActivityType, optionsPriority } from "@/utils/selectOptions";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 export const UpdateActivityModal = () => {
   const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
@@ -89,6 +90,7 @@ export const UpdateActivityModal = () => {
     memberId: string | null;
     memberName: string | null;
     departmentId: string | null;
+    sectionId: string | null;
     unitId: string | null;
     officeId: string | null;
   };
@@ -100,6 +102,9 @@ export const UpdateActivityModal = () => {
       : null,
     departmentId: selectedRowDataActivity?.activity_created_by_department_of_user
       ? selectedRowDataActivity?.activity_created_by_department_of_user
+      : null,
+    sectionId: selectedRowDataActivity?.activity_created_by_section_of_user
+      ? selectedRowDataActivity?.activity_created_by_section_of_user
       : null,
     unitId: selectedRowDataActivity?.activity_created_by_unit_of_user
       ? selectedRowDataActivity?.activity_created_by_unit_of_user
@@ -123,6 +128,7 @@ export const UpdateActivityModal = () => {
 
   // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
@@ -136,6 +142,9 @@ export const UpdateActivityModal = () => {
       : null;
     let _activity_created_by_department_of_user = selectedRowDataActivity.activity_created_by_department_of_user
       ? selectedRowDataActivity.activity_created_by_department_of_user
+      : null;
+    let _activity_created_by_section_of_user = selectedRowDataActivity.activity_created_by_section_of_user
+      ? selectedRowDataActivity.activity_created_by_section_of_user
       : null;
     let _activity_created_by_unit_of_user = selectedRowDataActivity.activity_created_by_unit_of_user
       ? selectedRowDataActivity.activity_created_by_unit_of_user
@@ -179,6 +188,9 @@ export const UpdateActivityModal = () => {
     let _department = selectedRowDataActivity.activity_created_by_department_of_user
       ? selectedRowDataActivity.activity_created_by_department_of_user
       : "";
+    let _section = selectedRowDataActivity.activity_created_by_section_of_user
+      ? selectedRowDataActivity.activity_created_by_section_of_user
+      : "";
     let _unit = selectedRowDataActivity.activity_created_by_unit_of_user
       ? selectedRowDataActivity.activity_created_by_unit_of_user
       : "";
@@ -210,6 +222,7 @@ export const UpdateActivityModal = () => {
       memberId: _activity_created_by_user_id,
       memberName: _member_name,
       departmentId: _activity_created_by_department_of_user,
+      sectionId: _activity_created_by_section_of_user,
       unitId: _activity_created_by_unit_of_user,
       officeId: _activity_created_by_office_of_user,
     };
@@ -288,7 +301,9 @@ export const UpdateActivityModal = () => {
       memberObj.memberId &&
       departmentDataArray.find((obj) => obj.id === memberObj.memberId)?.department_name;
     const officeName =
-      officeDataArray && memberObj.unitId && officeDataArray.find((obj) => obj.id === memberObj.unitId)?.office_name;
+      officeDataArray &&
+      memberObj.officeId &&
+      officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // 新規作成するデータをオブジェクトにまとめる
     const newActivity = {
@@ -305,6 +320,7 @@ export const UpdateActivityModal = () => {
 
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       //   created_by_user_id: selectedRowDataActivity?.activity_created_by_user_id
@@ -351,109 +367,6 @@ export const UpdateActivityModal = () => {
     // setIsOpenUpdateActivityModal(false);
   };
   // ------------------------ ✅更新実行✅ ------------------------
-
-  // // 全角文字を半角に変換する関数
-  // const toHalfWidth = (strVal: string) => {
-  //   // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-  //   return strVal.replace(/[！-～]/g, (match) => {
-  //     return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-  //   });
-  //   // .replace(/　/g, " "); // 全角スペースを半角スペースに
-  // };
-  // const toHalfWidthAndSpace = (strVal: string) => {
-  //   // 全角文字コードの範囲は65281 - 65374、スペースの全角文字コードは12288
-  //   return strVal
-  //     .replace(/[！-～]/g, (match) => {
-  //       return String.fromCharCode(match.charCodeAt(0) - 0xfee0);
-  //     })
-  //     .replace(/　/g, " "); // 全角スペースを半角スペースに
-  // };
-
-  // // 昭和や平成、令和の元号を西暦に変換する
-  // // const convertJapaneseEraToWesternYear = (value: string) => {
-  // //   const eraPatterns = [
-  // //     { era: "昭和", startYear: 1925 },
-  // //     { era: "平成", startYear: 1988 },
-  // //     { era: "令和", startYear: 2018 },
-  // //   ];
-
-  // //   for (let pattern of eraPatterns) {
-  // //     if (value.includes(pattern.era)) {
-  // //       const year = parseInt(value.replace(pattern.era, ""), 10);
-  // //       if (!isNaN(year)) {
-  // //         return pattern.startYear + year;
-  // //       }
-  // //     }
-  // //   }
-  // //   return value;
-  // // };
-
-  // type Era = "昭和" | "平成" | "令和";
-  // const eras = {
-  //   昭和: 1925, // 昭和の開始年 - 1
-  //   平成: 1988, // 平成の開始年 - 1
-  //   令和: 2018, // 令和の開始年 - 1
-  // };
-  // // 昭和や平成、令和の元号を西暦に変換する 例："平成4年12月" を "1992年12月" に変換
-  // function matchEraToYear(value: string): string {
-  //   const pattern = /(?<era>昭和|平成|令和)(?<year>\d+)(?:年)?(?<month>\d+)?/;
-  //   const match = pattern.exec(value);
-
-  //   if (!match) return value; // 元号の形式でなければ元の文字列をそのまま返す
-
-  //   const era: Era = match.groups?.era as Era;
-  //   const year = eras[era] + parseInt(match.groups?.year || "0", 10);
-  //   const month = match.groups?.month ? `${match.groups?.month}月` : "";
-
-  //   return `${year}年${month}`;
-  // }
-
-  // // 全角を半角に変換する関数
-  // function zenkakuToHankaku(str: string) {
-  //   const zen = ["０", "１", "２", "３", "４", "５", "６", "７", "８", "９"];
-  //   const han = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
-
-  //   for (let i = 0; i < zen.length; i++) {
-  //     const regex = new RegExp(zen[i], "g");
-  //     str = str.replace(regex, han[i]);
-  //   }
-
-  //   return str;
-  // }
-
-  // // 資本金 100万円の場合は100、18億9,190万円は189190、12,500,000円は1250、のように変換する方法
-  // function convertToNumber(inputString: string) {
-  //   // 全角数字を半角に変換
-  //   inputString = zenkakuToHankaku(inputString);
-
-  //   // 「億」「万」「円」がすべて含まれていなければ変換をスキップ
-  //   if (
-  //     !inputString.includes("億") &&
-  //     !inputString.includes("万") &&
-  //     !inputString.includes("円") &&
-  //     !inputString.includes(",")
-  //   ) {
-  //     return inputString;
-  //   }
-
-  //   // 億、万、円で分けてそれぞれの数値を取得
-  //   const billion = (inputString.includes("億") ? parseInt(inputString.split("億")[0].replace(/,/g, ""), 10) : 0) || 0;
-  //   const million =
-  //     (inputString.includes("万") && !inputString.includes("億")
-  //       ? parseInt(inputString.split("万")[0].replace(/,/g, ""), 10)
-  //       : inputString.includes("億") && inputString.includes("万")
-  //       ? parseInt(inputString.split("億")[1].split("万")[0].replace(/,/g, ""), 10)
-  //       : 0) || 0;
-  //   const thousand =
-  //     (!inputString.includes("万") && !inputString.includes("億")
-  //       ? Math.floor(parseInt(inputString.replace(/,/g, "").replace("円", ""), 10) / 10000)
-  //       : 0) || 0;
-
-  //   // 最終的な数値を計算
-  //   const total = billion * 10000 + million + thousand;
-
-  //   return total;
-  // }
 
   // ================================ ツールチップ ================================
   type TooltipParams = {
@@ -529,9 +442,10 @@ export const UpdateActivityModal = () => {
         {/* ローディングオーバーレイ */}
         {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
-            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
-            <SpinnerComet w="48px" h="48px" />
-            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+            {/* <SpinnerComet w="48px" h="48px" s="5px" /> */}
+            <div className={`${styles.loading_overlay_modal_inside}`}>
+              <SpinnerBrand withBorder withShadow />
+            </div>
           </div>
         )}
         {/* 保存・タイトル・キャンセルエリア */}
@@ -776,6 +690,7 @@ export const UpdateActivityModal = () => {
           </div>
           {/* --------- 横幅全部ラッパーここまで --------- */}
 
+          {/* 事業部・課・係・事業所・担当者名・活動年月度 */}
           {/* --------- 横幅全体ラッパー --------- */}
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
@@ -790,12 +705,14 @@ export const UpdateActivityModal = () => {
                       placeholder=""
                       required
                       className={`${styles.input_box}`}
-                      value={departmentId}
-                      onChange={(e) => setDepartmentId(e.target.value)}
+                      value={departmentName}
+                      onChange={(e) => setDepartmentName(e.target.value)}
                       // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
                     /> */}
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      // value={departmentId ? departmentId : ""}
+                      // onChange={(e) => setDepartmentId(e.target.value)}
                       // value={departmentId ? departmentId : ""}
                       // onChange={(e) => setDepartmentId(e.target.value)}
                       value={memberObj.departmentId ? memberObj.departmentId : ""}
@@ -822,44 +739,6 @@ export const UpdateActivityModal = () => {
             </div>
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 係・チーム */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} `}>係・チーム</span>
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      // value={unitId ? unitId : ""}
-                      // onChange={(e) => setUnitId(e.target.value)}
-                      value={memberObj.unitId ? memberObj.unitId : ""}
-                      onChange={(e) => {
-                        setMemberObj({ ...memberObj, unitId: e.target.value });
-                        setIsOpenConfirmationModal("change_member");
-                      }}
-                    >
-                      <option value=""></option>
-                      {unitDataArray &&
-                        unitDataArray.length >= 1 &&
-                        unitDataArray.map((unit) => (
-                          <option key={unit.id} value={unit.id}>
-                            {unit.unit_name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-            </div>
-
-            {/* 右ラッパーここまで */}
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* 所属事業所 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -897,6 +776,42 @@ export const UpdateActivityModal = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
+            </div>
+
+            {/* 右ラッパーここまで */}
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 課・セクション */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>課・セクション</span>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={memberObj.sectionId ? memberObj.sectionId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, sectionId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
+                    >
+                      <option value=""></option>
+                      {sectionDataArray &&
+                        sectionDataArray.length >= 1 &&
+                        sectionDataArray.map((section) => (
+                          <option key={section.id} value={section.id}>
+                            {section.section_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
 
               {/* 左ラッパーここまで */}
             </div>
@@ -922,15 +837,12 @@ export const UpdateActivityModal = () => {
                       }}
                       onKeyUp={() => {
                         if (prevMemberObj.memberName !== memberObj.memberName) {
-                          // alert("自社担当名が元のデータと異なります。データの所有者を変更しますか？");
-                          // setMeetingMemberName(selectedRowDataMeeting.meeting_member_name);
                           setIsOpenConfirmationModal("change_member");
                           return;
                         }
                       }}
                       onBlur={() => {
                         if (!memberObj.memberName) return;
-                        // setMeetingMemberName(toHalfWidthAndSpace(meetingMemberName.trim()));
                         setMemberObj({ ...memberObj, memberName: toHalfWidthAndSpace(memberObj.memberName.trim()) });
                       }}
                     />
@@ -938,8 +850,6 @@ export const UpdateActivityModal = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-
-              {/* 右ラッパーここまで */}
             </div>
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
@@ -948,6 +858,40 @@ export const UpdateActivityModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 係・チーム */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} `}>係・チーム</span>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.min}`}
+                      // value={unitId ? unitId : ""}
+                      // onChange={(e) => setUnitId(e.target.value)}
+                      value={memberObj.unitId ? memberObj.unitId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, unitId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
+                    >
+                      <option value=""></option>
+                      {unitDataArray &&
+                        unitDataArray.length >= 1 &&
+                        unitDataArray.map((unit) => (
+                          <option key={unit.id} value={unit.id}>
+                            {unit.unit_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
               {/* 活動年月度 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -959,15 +903,14 @@ export const UpdateActivityModal = () => {
                         handleOpenTooltip({
                           e: e,
                           display: "top",
-                          // content: "面談日(結果)を選択することで自動的に面談年月度は計算されます。",
                           content: "活動年月度は決算日の翌日(期首)から1ヶ月間を財務サイクルとして計算しています。",
                           content2: !!fiscalEndMonthObjRef.current
                             ? `活動日を選択することで活動年月度は自動計算されるため入力は不要です。`
                             : `決算日が未設定の場合は、デフォルトで3月31日が決算日として設定されます。`,
-                          // content3: "決算月が未設定の場合は、デフォルトで3月31日が決算月日として設定されます。",
                           content3:
                             "決算日の変更はダッシュボード右上のアカウント設定の「会社・チーム」から変更可能です。",
                           // marginTop: 57,
+                          // marginTop: 9,
                           marginTop: 12,
                           itemsPosition: "center",
                           whiteSpace: "nowrap",
@@ -975,10 +918,13 @@ export const UpdateActivityModal = () => {
                       }
                       onMouseLeave={handleCloseTooltip}
                     >
-                      <span className={`mr-[6px]`}>活動年月度</span>
+                      <span className={`mr-[9px]`}>●活動年月度</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
-                    <input
+                    <div className={`flex min-h-[35px] items-center`}>
+                      <p className={`pl-[5px] text-[14px] text-[var(--color-text-under-input)]`}>{activityYearMonth}</p>
+                    </div>
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box} pointer-events-none`}
@@ -999,39 +945,17 @@ export const UpdateActivityModal = () => {
                           }
                         }
                       }}
-                    />
+                    /> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
 
-              {/* 左ラッパーここまで */}
+              {/* 右ラッパーここまで */}
             </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 自社担当 */}
-              {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>自社担当</span>
-                    <input
-                      type="text"
-                      placeholder="*入力必須"
-                      required
-                      className={`${styles.input_box}`}
-                      value={memberName}
-                      onChange={(e) => setMemberName(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div> */}
-            </div>
-            {/* 右ラッパーここまで */}
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
+          {/* 事業部・課・係・事業所・担当者名・活動年月度ここまで */}
 
           {/* メインコンテンツ コンテナ ここまで */}
         </div>
@@ -1048,7 +972,7 @@ export const UpdateActivityModal = () => {
           // titleText="面談データの自社担当を変更してもよろしいですか？"
           titleText={`データの所有者を変更してもよろしいですか？`}
           // titleText2={`データの所有者を変更しますか？`}
-          sectionP1="「自社担当」「事業部」「係・チーム」「事業所」を変更すると活動データの所有者が変更されます。"
+          sectionP1="「自社担当」「事業部」「課・セクション」「係・チーム」「事業所」を変更すると活動データの所有者が変更されます。"
           sectionP2="注：データの所有者を変更すると、この活動結果は変更先のメンバーの集計結果に移行され、分析結果が変更されます。"
           cancelText="戻る"
           submitText="変更する"

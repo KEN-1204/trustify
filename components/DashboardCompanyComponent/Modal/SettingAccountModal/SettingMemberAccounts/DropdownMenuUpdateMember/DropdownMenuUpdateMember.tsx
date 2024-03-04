@@ -275,11 +275,16 @@ Props) => {
       const upsertPayload = {
         _user_id: memberAccount.id,
         _company_id: userProfileState.company_id,
-        _department_id: newDepartmentId,
-        _section_id: newSectionId,
-        _unit_id: newUnitId,
-        _office_id: newOfficeId,
-        _employee_id_name: newEmployeeIdName,
+        // _department_id: newDepartmentId,
+        // _section_id: newSectionId,
+        // _unit_id: newUnitId,
+        // _office_id: newOfficeId,
+        // _employee_id_name: newEmployeeIdName,
+        _department_id: editedMemberData.department_id,
+        _section_id: editedMemberData.section_id,
+        _unit_id: editedMemberData.unit_id,
+        _office_id: editedMemberData.office_id,
+        _employee_id_name: editedMemberData.employee_id_name,
         _execute_department_upsert: !!newDepartmentId,
         // _execute_unit_upsert: !!newUnitId,
         _execute_section_upsert: isExecuteUpdateSection,
@@ -554,7 +559,7 @@ Props) => {
     // メニューを閉じる
     setIsOpenDropdownMenuUpdateMember(false);
   };
-  console.log("edit", editedMemberData);
+  console.log("editedMemberData", editedMemberData);
 
   return (
     <>
@@ -624,11 +629,12 @@ Props) => {
                     // 2. unit_idが選択されてる状態で事業部が変更されたら、unit_idを初期値に設定する(事業部に合致する選択肢の1番目)
 
                     // 1. section_idが選択されてる状態で事業部が変更されたら、section_idを初期値に設定する
+                    let firstSectionData: Section | null = null;
                     if (editedMemberData.section_id) {
                       if (cacheSectionsArray && cacheSectionsArray?.length >= 1) {
-                        const firstSectionData = cacheSectionsArray.find(
-                          (section) => section.created_by_department_id === e.target.value
-                        );
+                        firstSectionData =
+                          cacheSectionsArray.find((section) => section.created_by_department_id === e.target.value) ??
+                          null;
                         console.log("フィルターfirstSectionData", firstSectionData);
                         // sectionsキャッシュに要素が1つ以上存在するならキャッシュの１番目を初期値として格納
                         newCondition = {
@@ -650,28 +656,29 @@ Props) => {
 
                     // 2. unit_idが選択されてる状態で事業部が変更されたら、unit_idを初期値に設定する
                     if (editedMemberData.unit_id) {
-                      if (cacheUnitsArray && cacheUnitsArray?.length >= 1) {
+                      if (cacheUnitsArray && cacheUnitsArray?.length >= 1 && firstSectionData) {
                         const firstUnitData = cacheUnitsArray.find(
-                          (unit) => unit.created_by_department_id === e.target.value
+                          (unit) => unit.created_by_section_id === firstSectionData?.id
                         );
                         console.log("フィルターfirstUnitData", firstUnitData);
                         // unitsキャッシュに要素が1つ以上存在するならキャッシュの１番目を初期値として格納
                         newCondition = {
-                          ...editedMemberData,
+                          ...newCondition,
                           department_id: e.target.value,
                           unit_id: firstUnitData?.id ?? "",
                         };
                       } else {
                         // unitsキャッシュに要素がundefinedか空なら、unit_idに初期値の空文字をセットする
                         newCondition = {
-                          ...editedMemberData,
+                          ...newCondition,
                           department_id: e.target.value,
                           unit_id: "",
                         };
                       }
                     } else {
-                      newCondition = { ...editedMemberData, department_id: e.target.value };
+                      newCondition = { ...newCondition, department_id: e.target.value };
                     }
+                    console.log("newCondition", newCondition);
 
                     setEditedMemberData(newCondition);
                     // --------------------- 🔹課ありパターン ここまで ---------------------

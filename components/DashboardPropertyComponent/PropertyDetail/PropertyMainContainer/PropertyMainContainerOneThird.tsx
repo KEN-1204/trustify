@@ -81,6 +81,7 @@ import { calculateDiscountRate } from "@/utils/Helpers/calculateDiscountRate";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { UnderRightActivityLogCustom } from "./UnderRightActivityLogCustom/UnderRightActivityLogCustom";
 import { FallbackUnderRightActivityLogCustom } from "./UnderRightActivityLogCustom/FallbackUnderRightActivityLogCustom";
+import { useQuerySections } from "@/hooks/useQuerySections";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -196,6 +197,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputPropertyCreatedByCompanyId, setInputPropertyCreatedByCompanyId] = useState("");
   const [inputPropertyCreatedByUserId, setInputPropertyCreatedByUserId] = useState("");
   const [inputPropertyCreatedByDepartmentOfUser, setInputPropertyCreatedByDepartmentOfUser] = useState("");
+  const [inputPropertyCreatedBySectionOfUser, setInputPropertyCreatedBySectionOfUser] = useState("");
   const [inputPropertyCreatedByUnitOfUser, setInputPropertyCreatedByUnitOfUser] = useState("");
   const [inputPropertyCreatedByOfficeOfUser, setInputPropertyCreatedByOfficeOfUser] = useState("");
   const [inputCurrentStatus, setInputCurrentStatus] = useState("");
@@ -312,6 +314,17 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   // useMutation
   // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟課・セクションリスト取得useQuery🌟 ================================
+  const {
+    data: sectionDataArray,
+    isLoading: isLoadingQuerySection,
+    refetch: refetchQUerySections,
+  } = useQuerySections(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createSectionMutation, updateSectionFieldMutation, updateMultipleSectionFieldsMutation, deleteSectionMutation } =
+  // useMutateSection();
+  // ================================ ✅課・セクションリスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
   const {
     data: unitDataArray,
@@ -333,22 +346,60 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   // useMutation
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
-  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
-  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した事業部で課を絞り込むuseEffect🌟 =======================
+  const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
   useEffect(() => {
     // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
-    if (!unitDataArray || unitDataArray?.length === 0 || !inputPropertyCreatedByDepartmentOfUser)
-      return setFilteredUnitBySelectedDepartment([]);
+    if (!sectionDataArray || sectionDataArray?.length === 0 || !inputPropertyCreatedByDepartmentOfUser)
+      return setFilteredSectionBySelectedDepartment([]);
 
-    // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
-    if (unitDataArray && unitDataArray.length >= 1 && inputPropertyCreatedByDepartmentOfUser) {
-      const filteredUnitArray = unitDataArray.filter(
-        (unit) => unit.created_by_department_id === inputPropertyCreatedByDepartmentOfUser
+    // 選択中の事業部が変化するか、sectionDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (sectionDataArray && sectionDataArray.length >= 1 && inputPropertyCreatedByDepartmentOfUser) {
+      const filteredSectionArray = sectionDataArray.filter(
+        (section) => section.created_by_department_id === inputPropertyCreatedByDepartmentOfUser
       );
-      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+      setFilteredSectionBySelectedDepartment(filteredSectionArray);
     }
-  }, [unitDataArray, inputPropertyCreatedByDepartmentOfUser]);
-  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+  }, [sectionDataArray, inputPropertyCreatedByDepartmentOfUser]);
+  // ======================= ✅現在の選択した事業部で課を絞り込むuseEffect✅ =======================
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した課で係・チームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
+  useEffect(() => {
+    // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!unitDataArray || unitDataArray?.length === 0 || !inputPropertyCreatedBySectionOfUser)
+      return setFilteredUnitBySelectedSection([]);
+
+    // 選択中の課が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (unitDataArray && unitDataArray.length >= 1 && inputPropertyCreatedBySectionOfUser) {
+      const filteredUnitArray = unitDataArray.filter(
+        (unit) => unit.created_by_section_id === inputPropertyCreatedBySectionOfUser
+      );
+      setFilteredUnitBySelectedSection(filteredUnitArray);
+    }
+  }, [unitDataArray, inputPropertyCreatedBySectionOfUser]);
+  // ======================= ✅現在の選択した課で係・チームを絞り込むuseEffect✅ =======================
+
+  // 課なしパターン
+  // // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
+  // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // useEffect(() => {
+  //   // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+  //   if (!unitDataArray || unitDataArray?.length === 0 || !inputPropertyCreatedByDepartmentOfUser)
+  //     return setFilteredUnitBySelectedDepartment([]);
+
+  //   // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+  //   if (unitDataArray && unitDataArray.length >= 1 && inputPropertyCreatedByDepartmentOfUser) {
+  //     const filteredUnitArray = unitDataArray.filter(
+  //       (unit) => unit.created_by_department_id === inputPropertyCreatedByDepartmentOfUser
+  //     );
+  //     setFilteredUnitBySelectedDepartment(filteredUnitArray);
+  //   }
+  // }, [unitDataArray, inputPropertyCreatedByDepartmentOfUser]);
+  // // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // 検索タイプ
   const searchType = useDashboardStore((state) => state.searchType);
@@ -480,6 +531,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       );
       setInputPropertyCreatedByDepartmentOfUser(
         beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams["properties.created_by_department_of_user"])
+      );
+      setInputPropertyCreatedBySectionOfUser(
+        beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams["properties.created_by_section_of_user"])
       );
       setInputPropertyCreatedByUnitOfUser(
         beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams["properties.created_by_unit_of_user"])
@@ -659,6 +713,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       if (!!inputPropertyCreatedByCompanyId) setInputPropertyCreatedByCompanyId("");
       if (!!inputPropertyCreatedByUserId) setInputPropertyCreatedByUserId("");
       if (!!inputPropertyCreatedByDepartmentOfUser) setInputPropertyCreatedByDepartmentOfUser("");
+      if (!!inputPropertyCreatedBySectionOfUser) setInputPropertyCreatedBySectionOfUser("");
       if (!!inputPropertyCreatedByUnitOfUser) setInputPropertyCreatedByUnitOfUser("");
       if (!!inputPropertyCreatedByOfficeOfUser) setInputPropertyCreatedByOfficeOfUser("");
       if (!!inputCurrentStatus) setInputCurrentStatus("");
@@ -797,6 +852,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     let _property_created_by_company_id = adjustFieldValue(inputPropertyCreatedByCompanyId);
     let _property_created_by_user_id = adjustFieldValue(inputPropertyCreatedByUserId);
     let _property_created_by_department_of_user = adjustFieldValue(inputPropertyCreatedByDepartmentOfUser);
+    let _property_created_by_section_of_user = adjustFieldValue(inputPropertyCreatedBySectionOfUser);
     let _property_created_by_unit_of_user = adjustFieldValue(inputPropertyCreatedByUnitOfUser);
     let _property_created_by_office_of_user = adjustFieldValue(inputPropertyCreatedByOfficeOfUser);
     let _current_status = adjustFieldValue(inputCurrentStatus);
@@ -923,6 +979,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       "properties.created_by_company_id": userProfileState.company_id,
       "properties.created_by_user_id": _property_created_by_user_id,
       "properties.created_by_department_of_user": _property_created_by_department_of_user,
+      "properties.created_by_section_of_user": _property_created_by_section_of_user,
       "properties.created_by_unit_of_user": _property_created_by_unit_of_user,
       "properties.created_by_office_of_user": _property_created_by_office_of_user,
       current_status: _current_status,
@@ -1033,6 +1090,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     setInputPropertyCreatedByCompanyId("");
     setInputPropertyCreatedByUserId("");
     setInputPropertyCreatedByDepartmentOfUser("");
+    setInputPropertyCreatedBySectionOfUser("");
     setInputPropertyCreatedByUnitOfUser("");
     setInputPropertyCreatedByOfficeOfUser("");
     setInputCurrentStatus("");
@@ -5921,6 +5979,52 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   </div>
                 </div>
 
+                {/* 課セクション・自社担当 通常 */}
+                <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title} ${styles.min}`}>課・ｾｸｼｮﾝ</span>
+                      {!searchMode && (
+                        <span
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {selectedRowDataProperty?.assigned_section_name
+                            ? selectedRowDataProperty?.assigned_section_name
+                            : ""}
+                        </span>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title} ${styles.min}`}>自社担当</span>
+                      {!searchMode && (
+                        <span
+                          className={`${styles.value}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          }}
+                        >
+                          {selectedRowDataProperty?.property_member_name
+                            ? selectedRowDataProperty?.property_member_name
+                            : ""}
+                        </span>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
                 {/* 事業所・自社担当 通常 */}
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
@@ -5941,12 +6045,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center`}>
+                    {/* <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>自社担当</span>
                       {!searchMode && (
                         <span
@@ -5963,9 +6066,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             : ""}
                         </span>
                       )}
-                      {searchMode && <input type="text" className={`${styles.input_box}`} />}
                     </div>
-                    <div className={`${styles.underline}`}></div>
+                    <div className={`${styles.underline}`}></div> */}
                   </div>
                 </div>
 
@@ -8290,7 +8392,13 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       <select
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputPropertyCreatedByDepartmentOfUser}
-                        onChange={(e) => setInputPropertyCreatedByDepartmentOfUser(e.target.value)}
+                        // onChange={(e) => setInputPropertyCreatedByDepartmentOfUser(e.target.value)}
+                        onChange={(e) => {
+                          setInputPropertyCreatedByDepartmentOfUser(e.target.value);
+                          // 課と係をリセットする
+                          setInputPropertyCreatedBySectionOfUser("");
+                          setInputPropertyCreatedByUnitOfUser("");
+                        }}
                       >
                         <option value=""></option>
                         {departmentDataArray &&
@@ -8307,20 +8415,71 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_search_mode}`}>係・ﾁｰﾑ</span>
-                    {searchMode && filteredUnitBySelectedDepartment && filteredUnitBySelectedDepartment.length >= 1 && (
+                    {searchMode && filteredUnitBySelectedSection && filteredUnitBySelectedSection.length >= 1 && (
                       <select
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputPropertyCreatedByUnitOfUser}
                         onChange={(e) => setInputPropertyCreatedByUnitOfUser(e.target.value)}
                       >
                         <option value=""></option>
-                        {filteredUnitBySelectedDepartment &&
-                          filteredUnitBySelectedDepartment.map((unit, index) => (
+                        {filteredUnitBySelectedSection &&
+                          filteredUnitBySelectedSection.map((unit, index) => (
                             <option key={unit.id} value={unit.id}>
                               {unit.unit_name}
                             </option>
                           ))}
                       </select>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 課セクション・自社担当 サーチ */}
+              <div
+                className={`${styles.row_area} ${
+                  searchMode ? `${styles.row_area_search_mode}` : ``
+                } flex h-[30px] w-full items-center`}
+              >
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title_search_mode}`}>課・ｾｸｼｮﾝ</span>
+
+                    {searchMode &&
+                      filteredSectionBySelectedDepartment &&
+                      filteredSectionBySelectedDepartment.length >= 1 && (
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
+                          value={inputPropertyCreatedBySectionOfUser}
+                          onChange={(e) => {
+                            setInputPropertyCreatedBySectionOfUser(e.target.value);
+                            // 係をリセットする
+                            setInputPropertyCreatedByUnitOfUser("");
+                          }}
+                        >
+                          <option value=""></option>
+                          {filteredSectionBySelectedDepartment &&
+                            filteredSectionBySelectedDepartment.map((section, index) => (
+                              <option key={section.id} value={section.id}>
+                                {section.section_name}
+                              </option>
+                            ))}
+                        </select>
+                      )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title_search_mode}`}>自社担当</span>
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        placeholder=""
+                        value={inputPropertyMemberName}
+                        onChange={(e) => setInputPropertyMemberName(e.target.value)}
+                      />
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
@@ -8351,7 +8510,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
+                  {/* <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_search_mode}`}>自社担当</span>
                     <input
                       type="text"
@@ -8361,7 +8520,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       onChange={(e) => setInputPropertyMemberName(e.target.value)}
                     />
                   </div>
-                  <div className={`${styles.underline}`}></div>
+                  <div className={`${styles.underline}`}></div> */}
                 </div>
               </div>
 

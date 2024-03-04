@@ -39,6 +39,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { FallbackInputBox } from "./FallbackInputBox";
 import { useQueryClient } from "@tanstack/react-query";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 export const InsertNewClientCompanyModal = () => {
   const language = useStore((state) => state.language);
@@ -366,6 +367,7 @@ export const InsertNewClientCompanyModal = () => {
         ? userProfileState.assigned_department_id
         : null,
       // created_by_unit_of_user: userProfileState?.unit ? userProfileState.unit : null,
+      created_by_section_of_user: userProfileState?.assigned_section_id ? userProfileState.assigned_section_id : null,
       created_by_unit_of_user: userProfileState?.assigned_unit_id ? userProfileState.assigned_unit_id : null,
       created_by_office_of_user: userProfileState?.assigned_office_id ? userProfileState.assigned_office_id : null,
       name: name,
@@ -763,20 +765,16 @@ export const InsertNewClientCompanyModal = () => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
-      {/* {loadingGlobalState && (
-        <div className={`${styles.loading_overlay} `}>
-          <SpinnerIDS scale={"scale-[0.5]"} />
-        </div>
-      )} */}
       <div className={`${styles.container} fade03`} ref={modalContainerRef}>
         {/* ツールチップ */}
         {hoveredItemPosModal && <TooltipModal />}
         {/* ローディングオーバーレイ */}
         {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
-            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
-            <SpinnerComet w="48px" h="48px" s="5px" />
-            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+            {/* <SpinnerComet w="48px" h="48px" s="5px" /> */}
+            <div className={`${styles.loading_overlay_modal_inside}`}>
+              <SpinnerBrand withBorder withShadow />
+            </div>
           </div>
         )}
         {/* 保存・タイトル・キャンセルエリア */}

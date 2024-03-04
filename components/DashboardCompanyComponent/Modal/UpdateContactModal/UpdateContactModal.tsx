@@ -16,6 +16,7 @@ import {
   optionsOccupation,
   optionsPositionsClass,
 } from "@/utils/selectOptions";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 export const UpdateContactModal = () => {
   //   const setIsOpenInsertNewContactModal = useDashboardStore((state) => state.setIsOpenInsertNewContactModal);
@@ -166,6 +167,9 @@ export const UpdateContactModal = () => {
       created_by_department_of_user: selectedRowDataContact?.created_by_department_of_user
         ? selectedRowDataContact.created_by_department_of_user
         : null,
+      created_by_section_of_user: selectedRowDataContact?.created_by_section_of_user
+        ? selectedRowDataContact.created_by_section_of_user
+        : null,
       created_by_unit_of_user: selectedRowDataContact?.created_by_unit_of_user
         ? selectedRowDataContact.created_by_unit_of_user
         : null,
@@ -192,11 +196,13 @@ export const UpdateContactModal = () => {
         </div>
       )} */}
       <div className={`${styles.container} fade03`}>
+        {/* ローディングオーバーレイ */}
         {loadingGlobalState && (
           <div className={`${styles.loading_overlay_modal} `}>
-            {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
-            <SpinnerComet w="48px" h="48px" />
-            {/* <SpinnerX w="w-[42px]" h="h-[42px]" /> */}
+            {/* <SpinnerComet w="48px" h="48px" s="5px" /> */}
+            <div className={`${styles.loading_overlay_modal_inside}`}>
+              <SpinnerBrand withBorder withShadow />
+            </div>
           </div>
         )}
         {/* 保存・タイトル・キャンセルエリア */}

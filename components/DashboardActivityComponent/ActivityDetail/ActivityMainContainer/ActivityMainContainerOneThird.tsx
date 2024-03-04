@@ -33,7 +33,7 @@ import {
   optionsSearchEmployeesClass,
 } from "@/utils/selectOptions";
 import { useMutateActivity } from "@/hooks/useMutateActivity";
-import { Activity, Activity_row_data, Department, Office, Unit } from "@/types";
+import { Activity, Activity_row_data, Department, Office, Section, Unit } from "@/types";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { isSameDateLocal } from "@/utils/Helpers/isSameDateLocal";
 // import { optionsActivityType, optionsPriority } from "./selectOptionsActivity";
@@ -49,6 +49,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import { useQuerySections } from "@/hooks/useQuerySections";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -168,6 +169,7 @@ const ActivityMainContainerOneThirdMemo = () => {
   const [inputActivityCreatedByCompanyId, setInputActivityCreatedByCompanyId] = useState("");
   const [inputActivityCreatedByUserId, setInputActivityCreatedByUserId] = useState("");
   const [inputActivityCreatedByDepartmentOfUser, setInputActivityCreatedByDepartmentOfUser] = useState("");
+  const [inputActivityCreatedBySectionOfUser, setInputActivityCreatedBySectionOfUser] = useState("");
   const [inputActivityCreatedByUnitOfUser, setInputActivityCreatedByUnitOfUser] = useState("");
   const [inputActivityCreatedByOfficeOfUser, setInputActivityCreatedByOfficeOfUser] = useState("");
   const [inputSummary, setInputSummary] = useState(""); //概要
@@ -228,6 +230,17 @@ const ActivityMainContainerOneThirdMemo = () => {
   // useMutation
   // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟課・セクションリスト取得useQuery🌟 ================================
+  const {
+    data: sectionDataArray,
+    isLoading: isLoadingQuerySection,
+    refetch: refetchQUerySections,
+  } = useQuerySections(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createSectionMutation, updateSectionFieldMutation, updateMultipleSectionFieldsMutation, deleteSectionMutation } =
+  // useMutateSection();
+  // ================================ ✅課・セクションリスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
   const {
     data: unitDataArray,
@@ -249,22 +262,60 @@ const ActivityMainContainerOneThirdMemo = () => {
   // useMutation
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
-  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
-  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した事業部で課を絞り込むuseEffect🌟 =======================
+  const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
   useEffect(() => {
     // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
-    if (!unitDataArray || unitDataArray?.length === 0 || !inputActivityCreatedByDepartmentOfUser)
-      return setFilteredUnitBySelectedDepartment([]);
+    if (!sectionDataArray || sectionDataArray?.length === 0 || !inputActivityCreatedByDepartmentOfUser)
+      return setFilteredSectionBySelectedDepartment([]);
 
-    // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
-    if (unitDataArray && unitDataArray.length >= 1 && inputActivityCreatedByDepartmentOfUser) {
-      const filteredUnitArray = unitDataArray.filter(
+    // 選択中の事業部が変化するか、sectionDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (sectionDataArray && sectionDataArray.length >= 1 && inputActivityCreatedByDepartmentOfUser) {
+      const filteredSectionArray = sectionDataArray.filter(
         (unit) => unit.created_by_department_id === inputActivityCreatedByDepartmentOfUser
       );
-      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+      setFilteredSectionBySelectedDepartment(filteredSectionArray);
     }
-  }, [unitDataArray, inputActivityCreatedByDepartmentOfUser]);
-  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+  }, [sectionDataArray, inputActivityCreatedByDepartmentOfUser]);
+  // ======================= ✅現在の選択した事業部で課を絞り込むuseEffect✅ =======================
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した課で係・チームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
+  useEffect(() => {
+    // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!unitDataArray || unitDataArray?.length === 0 || !inputActivityCreatedBySectionOfUser)
+      return setFilteredUnitBySelectedSection([]);
+
+    // 選択中の課が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (unitDataArray && unitDataArray.length >= 1 && inputActivityCreatedBySectionOfUser) {
+      const filteredUnitArray = unitDataArray.filter(
+        (unit) => unit.created_by_section_id === inputActivityCreatedBySectionOfUser
+      );
+      setFilteredUnitBySelectedSection(filteredUnitArray);
+    }
+  }, [unitDataArray, inputActivityCreatedBySectionOfUser]);
+  // ======================= ✅現在の選択した課で係・チームを絞り込むuseEffect✅ =======================
+
+  // 課なしパターン
+  // // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
+  // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // useEffect(() => {
+  //   // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+  //   if (!unitDataArray || unitDataArray?.length === 0 || !inputActivityCreatedByDepartmentOfUser)
+  //     return setFilteredUnitBySelectedDepartment([]);
+
+  //   // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+  //   if (unitDataArray && unitDataArray.length >= 1 && inputActivityCreatedByDepartmentOfUser) {
+  //     const filteredUnitArray = unitDataArray.filter(
+  //       (unit) => unit.created_by_department_id === inputActivityCreatedByDepartmentOfUser
+  //     );
+  //     setFilteredUnitBySelectedDepartment(filteredUnitArray);
+  //   }
+  // }, [unitDataArray, inputActivityCreatedByDepartmentOfUser]);
+  // // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // 検索タイプ
   const searchType = useDashboardStore((state) => state.searchType);
@@ -400,6 +451,9 @@ const ActivityMainContainerOneThirdMemo = () => {
       setInputActivityCreatedByDepartmentOfUser(
         beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["activities.created_by_department_of_user"])
       );
+      setInputActivityCreatedBySectionOfUser(
+        beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["activities.created_by_section_of_user"])
+      );
       setInputActivityCreatedByUnitOfUser(
         beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["activities.created_by_unit_of_user"])
       );
@@ -498,6 +552,7 @@ const ActivityMainContainerOneThirdMemo = () => {
       if (!!inputActivityCreatedByCompanyId) setInputActivityCreatedByCompanyId("");
       if (!!inputActivityCreatedByUserId) setInputActivityCreatedByUserId("");
       if (!!inputActivityCreatedByDepartmentOfUser) setInputActivityCreatedByDepartmentOfUser("");
+      if (!!inputActivityCreatedBySectionOfUser) setInputActivityCreatedBySectionOfUser("");
       if (!!inputActivityCreatedByUnitOfUser) setInputActivityCreatedByUnitOfUser("");
       if (!!inputActivityCreatedByOfficeOfUser) setInputActivityCreatedByOfficeOfUser("");
       if (!!inputSummary) setInputSummary("");
@@ -594,6 +649,7 @@ const ActivityMainContainerOneThirdMemo = () => {
     let _activity_created_by_company_id = adjustFieldValue(inputActivityCreatedByCompanyId);
     let _activity_created_by_user_id = adjustFieldValue(inputActivityCreatedByUserId);
     let _activity_created_by_department_of_user = adjustFieldValue(inputActivityCreatedByDepartmentOfUser);
+    let _activity_created_by_section_of_user = adjustFieldValue(inputActivityCreatedBySectionOfUser);
     let _activity_created_by_unit_of_user = adjustFieldValue(inputActivityCreatedByUnitOfUser);
     let _activity_created_by_office_of_user = adjustFieldValue(inputActivityCreatedByOfficeOfUser);
     let _summary = adjustFieldValue(inputSummary);
@@ -677,6 +733,7 @@ const ActivityMainContainerOneThirdMemo = () => {
       "activities.created_by_company_id": userProfileState.company_id,
       "activities.created_by_user_id": _activity_created_by_user_id,
       "activities.created_by_department_of_user": _activity_created_by_department_of_user,
+      "activities.created_by_section_of_user": _activity_created_by_section_of_user,
       "activities.created_by_unit_of_user": _activity_created_by_unit_of_user,
       "activities.created_by_office_of_user": _activity_created_by_office_of_user,
       summary: _summary,
@@ -747,6 +804,7 @@ const ActivityMainContainerOneThirdMemo = () => {
     setInputActivityCreatedByCompanyId("");
     setInputActivityCreatedByUserId("");
     setInputActivityCreatedByDepartmentOfUser("");
+    setInputActivityCreatedBySectionOfUser("");
     setInputActivityCreatedByUnitOfUser("");
     setInputActivityCreatedByOfficeOfUser("");
     setInputSummary("");
@@ -1311,6 +1369,8 @@ const ActivityMainContainerOneThirdMemo = () => {
     isDesktopGTE1600,
     "事業部useQuery",
     departmentDataArray,
+    "課useQuery",
+    sectionDataArray,
     "係useQuery",
     unitDataArray,
     "事業所useQuery",
@@ -2042,8 +2102,15 @@ const ActivityMainContainerOneThirdMemo = () => {
                       </span>
                     )}
                   </div>
-                  {/* <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} ${styles.min}`}>活動年月度</span>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 課セクション・自社担当 */}
+              <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} ${styles.min}`}>課・ｾｸｼｮﾝ</span>
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
@@ -2054,12 +2121,31 @@ const ActivityMainContainerOneThirdMemo = () => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
-                        {selectedRowDataActivity?.activity_year_month
-                          ? selectedRowDataActivity?.activity_year_month
+                        {selectedRowDataActivity?.assigned_section_name
+                          ? selectedRowDataActivity?.assigned_section_name
                           : ""}
                       </span>
                     )}
-                  </div> */}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title} ${styles.min}`}>自社担当</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataActivity?.member_name ? selectedRowDataActivity?.member_name : ""}
+                      </span>
+                    )}
+                  </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
@@ -2089,7 +2175,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center`}>
+                  {/* <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title} ${styles.min}`}>自社担当</span>
                     {!searchMode && (
                       <span
@@ -2106,7 +2192,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     )}
                     {searchMode && <input type="text" className={`${styles.input_box}`} />}
                   </div>
-                  <div className={`${styles.underline}`}></div>
+                  <div className={`${styles.underline}`}></div> */}
                 </div>
               </div>
 
@@ -5705,7 +5791,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                         <select
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputActivityCreatedByDepartmentOfUser}
-                          onChange={(e) => setInputActivityCreatedByDepartmentOfUser(e.target.value)}
+                          onChange={(e) => {
+                            setInputActivityCreatedByDepartmentOfUser(e.target.value);
+                            // 課と係をリセットする
+                            setInputActivityCreatedBySectionOfUser("");
+                            setInputActivityCreatedByUnitOfUser("");
+                          }}
                         >
                           <option value=""></option>
                           {departmentDataArray &&
@@ -5736,19 +5827,53 @@ const ActivityMainContainerOneThirdMemo = () => {
                           onChange={(e) => setInputDepartment(e.target.value)}
                         />
                       )} */}
+                      {searchMode && filteredUnitBySelectedSection && filteredUnitBySelectedSection.length >= 1 && (
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
+                          value={inputActivityCreatedByUnitOfUser}
+                          onChange={(e) => setInputActivityCreatedByUnitOfUser(e.target.value)}
+                        >
+                          <option value=""></option>
+                          {filteredUnitBySelectedSection &&
+                            filteredUnitBySelectedSection.map((unit, index) => (
+                              <option key={unit.id} value={unit.id}>
+                                {unit.unit_name}
+                              </option>
+                            ))}
+                        </select>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+
+                {/* 課セクション・自社担当 サーチ */}
+                <div
+                  className={`${styles.row_area} ${
+                    searchMode ? `${styles.row_area_search_mode}` : ``
+                  } flex h-[30px] w-full items-center`}
+                >
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>課・ｾｸｼｮﾝ</span>
+
                       {searchMode &&
-                        filteredUnitBySelectedDepartment &&
-                        filteredUnitBySelectedDepartment.length >= 1 && (
+                        filteredSectionBySelectedDepartment &&
+                        filteredSectionBySelectedDepartment.length >= 1 && (
                           <select
                             className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
-                            value={inputActivityCreatedByUnitOfUser}
-                            onChange={(e) => setInputActivityCreatedByUnitOfUser(e.target.value)}
+                            value={inputActivityCreatedBySectionOfUser}
+                            onChange={(e) => {
+                              setInputActivityCreatedBySectionOfUser(e.target.value);
+                              // 係をリセットする
+                              setInputActivityCreatedByUnitOfUser("");
+                            }}
                           >
                             <option value=""></option>
-                            {filteredUnitBySelectedDepartment &&
-                              filteredUnitBySelectedDepartment.map((unit, index) => (
-                                <option key={unit.id} value={unit.id}>
-                                  {unit.unit_name}
+                            {filteredSectionBySelectedDepartment &&
+                              filteredSectionBySelectedDepartment.map((section, index) => (
+                                <option key={section.id} value={section.id}>
+                                  {section.section_name}
                                 </option>
                               ))}
                           </select>
@@ -5756,9 +5881,24 @@ const ActivityMainContainerOneThirdMemo = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>自社担当</span>
+                      {searchMode && (
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputMemberName}
+                          onChange={(e) => setInputMemberName(e.target.value)}
+                        />
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
                 </div>
 
-                {/* 事業所・自社担当 サーチ */}
+                {/* 事業所 サーチ */}
                 <div
                   className={`${styles.row_area} ${
                     searchMode ? `${styles.row_area_search_mode}` : ``
@@ -5795,7 +5935,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.underline}`}></div>
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center`}>
+                    {/* <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>自社担当</span>
                       {searchMode && (
                         <input
@@ -5807,7 +5947,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         />
                       )}
                     </div>
-                    <div className={`${styles.underline}`}></div>
+                    <div className={`${styles.underline}`}></div> */}
                   </div>
                 </div>
 

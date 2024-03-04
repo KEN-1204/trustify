@@ -9,6 +9,7 @@ import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { convertToYen } from "@/utils/Helpers/convertToYen";
 import { Department, Office, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 export const InsertNewProductModal = () => {
   const setIsOpenInsertNewProductModal = useDashboardStore((state) => state.setIsOpenInsertNewProductModal);
@@ -198,9 +199,10 @@ export const InsertNewProductModal = () => {
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
       {/* ローディングオーバーレイ */}
       {loadingGlobalState && (
-        <div className={`${styles.loading_overlay_modal_outside}`}>
+        <div className={`${styles.loading_overlay_modal} `}>
+          {/* <SpinnerComet w="48px" h="48px" s="5px" /> */}
           <div className={`${styles.loading_overlay_modal_inside}`}>
-            <SpinnerIDS scale={"scale-[0.5]"} />
+            <SpinnerBrand withBorder withShadow />
           </div>
         </div>
       )}

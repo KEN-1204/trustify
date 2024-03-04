@@ -26,6 +26,9 @@ export const FallbackSideTableSearchMember = ({ isOpenSearchMemberSideTable, sea
       title: "事業部",
     },
     {
+      title: "課・セクション",
+    },
+    {
       title: "係・チーム",
     },
     {

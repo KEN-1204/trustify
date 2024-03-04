@@ -941,7 +941,7 @@ export const getActivityType = (value: string, language: string = "ja") => {
 };
 
 // 優先度
-export const optionsPriority = ["A High", "B Medium", "Low"];
+export const optionsPriority = ["A High", "B Medium", "C Low"];
 export const getPriorityName = (value: string, language: string = "ja") => {
   switch (value) {
     case "A High":

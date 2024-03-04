@@ -10,6 +10,7 @@ import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { convertToYen } from "@/utils/Helpers/convertToYen";
 import { useQueryClient } from "@tanstack/react-query";
 import { Department, Office, Unit } from "@/types";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 export const UpdateProductModal = () => {
   const setIsOpenUpdateProductModal = useDashboardStore((state) => state.setIsOpenUpdateProductModal);
@@ -189,9 +190,10 @@ export const UpdateProductModal = () => {
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
       {/* ローディングオーバーレイ */}
       {loadingGlobalState && (
-        <div className={`${styles.loading_overlay_modal_outside}`}>
+        <div className={`${styles.loading_overlay_modal} `}>
+          {/* <SpinnerComet w="48px" h="48px" s="5px" /> */}
           <div className={`${styles.loading_overlay_modal_inside}`}>
-            <SpinnerIDS scale={"scale-[0.5]"} />
+            <SpinnerBrand withBorder withShadow />
           </div>
         </div>
       )}
