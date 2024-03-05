@@ -301,7 +301,7 @@ export const columnNameToJapaneseQuotation = (columnName: string) => {
       return "所属事業所(自社)";
       break;
     case "quotation_member_name":
-      return "作成者";
+      return "作成者(自社)";
       break;
     // case "quotation_products_details":
     //   return "商品リスト";

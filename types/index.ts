@@ -130,8 +130,8 @@ export type Profile = {
   accept_notification: boolean | null;
   first_time_login: boolean | null;
   office: string | null;
-  unit: string | null;
   section: string | null;
+  unit: string | null;
   usage: string | null;
   purpose_of_use: string | null;
 };
@@ -550,8 +550,8 @@ export type MemberAccounts = {
   accept_notification: boolean | null;
   first_time_login: boolean | null;
   office: string | null;
-  unit: string | null;
   section: string | null;
+  unit: string | null;
   usage: string | null;
   purpose_of_use: string | null;
   subscribed_account_id: string | null;

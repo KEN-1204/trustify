@@ -26,6 +26,7 @@ import {
   optionsPositionsClassForCustomer,
   optionsUsageForCustomer,
 } from "@/utils/selectOptions";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 type Plans = {
   id: string;
@@ -332,13 +333,14 @@ export const FirstLoginSettingUserProfileCompanyModal = () => {
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
       {isLoadingSubmit && (
         <div className={`${styles.loading_overlay} `}>
-          <SpinnerIDS scale={"scale-[0.5]"} />
+          {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+          <SpinnerBrand withBorder withShadow />
         </div>
       )}
       {/* クローズボタン */}
       <button
         // className={`flex-center z-100 shadow-all-md absolute bottom-[-23px] right-[-60px] h-[35px] w-[35px] rounded-full bg-[var(--color-sign-out-bg)] hover:bg-[var(--color-sign-out-bg-hover)]`}
-        className={`flex-center shadow-all-md fixed bottom-[2%] right-[calc(2%+60px)] z-[20000] h-[35px] w-[35px] rounded-full bg-[var(--color-sign-out-bg)] hover:bg-[var(--color-sign-out-bg-hover)]`}
+        className={`flex-center shadow-all-md  fixed bottom-[2%] right-[calc(2%+60px)] z-[20000] h-[35px] w-[35px] rounded-full bg-[var(--color-sign-out-bg)] hover:bg-[var(--color-sign-out-bg-hover)]`}
         data-text="ログアウトする"
         onMouseEnter={(e) => handleOpenTooltip(e, "top")}
         onMouseLeave={handleCloseTooltip}

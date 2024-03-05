@@ -237,7 +237,7 @@ export const SubscriptionPlanModalForFreeUser = () => {
       >
         <IoLogOutOutline className="mr-[-3px] text-[20px] text-[#fff]" />
       </button>
-      <div className={`${styles.container} `} ref={modalContainerRef}>
+      <div className={`${styles.container}`} ref={modalContainerRef}>
         {hoveredItemPosModal && <TooltipModal />}
         {/* クローズボタン */}
         {/* <button
@@ -418,6 +418,7 @@ export const SubscriptionPlanModalForFreeUser = () => {
                   loading ? `cursor-wait` : `cursor-pointer hover:bg-[var(--color-bg-brand-f-deep)]`
                 }`}
                 onClick={() => {
+                  if (loading) return;
                   // if (!planBusiness || !planPremium) return console.log("Stripeプランなしのためリターン");
                   if (selectedRadioButton === "business_plan" && !!planBusiness)
                     processSubscription(planBusiness.id, accountQuantity);

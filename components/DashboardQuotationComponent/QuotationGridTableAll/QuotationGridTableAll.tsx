@@ -78,6 +78,7 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
   // 上テーブル検索条件変更用サーチモード用Zustand =================
   // 「自事業部・全事業部」「自係・全係」「自営業所・全営業所」の抽出条件を保持
   const isFetchAllDepartments = useDashboardStore((state) => state.isFetchAllDepartments);
+  const isFetchAllSections = useDashboardStore((state) => state.isFetchAllSections);
   const isFetchAllUnits = useDashboardStore((state) => state.isFetchAllUnits);
   const isFetchAllOffices = useDashboardStore((state) => state.isFetchAllOffices);
   const isFetchAllMembers = useDashboardStore((state) => state.isFetchAllMembers);
@@ -300,7 +301,9 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
     (state) => state.newSearchQuotation_Contact_CompanyParams
   );
 
-  const isFetchAll = isFetchAllDepartments && isFetchAllUnits && isFetchAllOffices && isFetchAllMembers;
+  // フィルターをアクティブ・非アクティブのスタイル変更のためにビジネスロジックで定義
+  const isFetchAll =
+    isFetchAllDepartments && isFetchAllSections && isFetchAllUnits && isFetchAllOffices && isFetchAllMembers;
 
   // ================== 🌟条件なしサーバーデータフェッチ用の関数🌟 ==================
   // 取得カウント保持用state
@@ -478,27 +481,33 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
       //   let params = newSearchCompanyParams;
 
       // ------------------------------- 🌟成功 切り替え有り🌟 -------------------------------
-      // サーチモード「事業部」「係」「営業所」の全、自の切り替え(自係は自事業部が選択されている時のみ)
+      // サーチモード「事業部」「課」「係」「営業所」の全、自の切り替え(自係は自事業部が選択されている時のみ)
       // const isFetchAll = isFetchAllDepartments && isFetchAllUnits && isFetchAllOffices && isFetchAllMembers;
-      const isFetchOwnD_AllUO = !isFetchAllDepartments && isFetchAllUnits && isFetchAllOffices;
-      const isFetchOwnDU_AllO = !isFetchAllDepartments && !isFetchAllUnits && isFetchAllOffices;
-      const isFetchOwnDO_AllU = !isFetchAllDepartments && isFetchAllUnits && !isFetchAllOffices;
-      const isFetchOwnO_AllDU = isFetchAllDepartments && isFetchAllUnits && !isFetchAllOffices;
-      const isFetchOwnDUO = !isFetchAllDepartments && !isFetchAllUnits && !isFetchAllOffices && isFetchAllMembers;
-      const isFetchMine = !isFetchAllDepartments && !isFetchAllUnits && !isFetchAllOffices && !isFetchAllMembers;
+      const isFetchOwnD_AllSUO = !isFetchAllDepartments && isFetchAllSections && isFetchAllUnits && isFetchAllOffices;
+      const isFetchOwnDS_AllUO = !isFetchAllDepartments && !isFetchAllSections && isFetchAllUnits && isFetchAllOffices;
+      const isFetchOwnDSU_AllO = !isFetchAllDepartments && !isFetchAllSections && !isFetchAllUnits && isFetchAllOffices;
+      const isFetchOwnDO_AllSU = !isFetchAllDepartments && isFetchAllSections && isFetchAllUnits && !isFetchAllOffices;
+      const isFetchOwnDSO_AllU = !isFetchAllDepartments && !isFetchAllSections && isFetchAllUnits && !isFetchAllOffices;
+      const isFetchOwnO_AllDSU = isFetchAllDepartments && isFetchAllSections && isFetchAllUnits && !isFetchAllOffices;
+      const isFetchOwnDSUO =
+        !isFetchAllDepartments && !isFetchAllSections && !isFetchAllUnits && !isFetchAllOffices && isFetchAllMembers;
+      const isFetchMine =
+        !isFetchAllDepartments && !isFetchAllSections && !isFetchAllUnits && !isFetchAllOffices && !isFetchAllMembers;
 
       let data;
       let error;
       let count;
 
       const departmentId = userProfileState.assigned_department_id;
+      const sectionId = userProfileState.assigned_section_id;
       const unitId = userProfileState.assigned_unit_id;
       const officeId = userProfileState.assigned_office_id;
       const userId = userProfileState.id;
 
-      // 自：事業部、 全：係、営業所
-      if (isFetchOwnD_AllUO && departmentId) {
-        let params = newSearchQuotation_Contact_CompanyParams;
+      let params = newSearchQuotation_Contact_CompanyParams;
+
+      // 🔹自：事業部  🔸全：課、係、営業所
+      if (isFetchOwnD_AllSUO && departmentId) {
         const {
           data: fetchData,
           error: fetchError,
@@ -516,9 +525,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
         error = fetchError;
         count = fetchCount;
       }
-      // 自：事業部、係、 全：営業所
-      else if (isFetchOwnDU_AllO && departmentId && unitId) {
-        let params = newSearchQuotation_Contact_CompanyParams;
+      // 🔹自：事業部、課  🔸全：係、営業所
+      else if (isFetchOwnDS_AllUO && departmentId && sectionId) {
         const {
           data: fetchData,
           error: fetchError,
@@ -528,6 +536,27 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
           .rpc(functionName, { params }, { count: "exact" })
           .eq("quotation_created_by_company_id", userProfileState.company_id)
           .eq("quotation_created_by_department_of_user", departmentId)
+          .eq("quotation_created_by_section_of_user", sectionId)
+          .range(from, to)
+          .order("quotation_date", { ascending: false }) //見積日
+          .order("quotation_created_at", { ascending: false }); //見積作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 🔹自：事業部、課、係  🔸全：営業所
+      else if (isFetchOwnDSU_AllO && departmentId && sectionId && unitId) {
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          // .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "exact" })
+          .eq("quotation_created_by_company_id", userProfileState.company_id)
+          .eq("quotation_created_by_department_of_user", departmentId)
+          .eq("quotation_created_by_section_of_user", sectionId)
           .eq("quotation_created_by_unit_of_user", unitId)
           .range(from, to)
           .order("quotation_date", { ascending: false }) //見積日
@@ -537,9 +566,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
         error = fetchError;
         count = fetchCount;
       }
-      // 自：事業部、事業所、 全：係
-      else if (isFetchOwnDO_AllU && departmentId && officeId) {
-        let params = newSearchQuotation_Contact_CompanyParams;
+      // 🔹自：事業部、営業所  🔸全：課、係
+      else if (isFetchOwnDO_AllSU && departmentId && officeId) {
         const {
           data: fetchData,
           error: fetchError,
@@ -558,29 +586,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
         error = fetchError;
         count = fetchCount;
       }
-      // 自：事業所、 全：事業部、係
-      else if (isFetchOwnO_AllDU && officeId) {
-        let params = newSearchQuotation_Contact_CompanyParams;
-        const {
-          data: fetchData,
-          error: fetchError,
-          count: fetchCount,
-        } = await supabase
-          // .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
-          .rpc(functionName, { params }, { count: "exact" })
-          .eq("quotation_created_by_company_id", userProfileState.company_id)
-          .eq("quotation_created_by_office_of_user", officeId)
-          .range(from, to)
-          .order("quotation_date", { ascending: false }) //見積日
-          .order("quotation_created_at", { ascending: false }); //見積作成日時
-
-        data = fetchData;
-        error = fetchError;
-        count = fetchCount;
-      }
-      // 自：事業所、係、 全：事業部、係
-      else if (isFetchOwnDUO && departmentId && unitId && officeId) {
-        let params = newSearchQuotation_Contact_CompanyParams;
+      // 🔹自：事業部、課、営業所  🔸全：係
+      else if (isFetchOwnDSO_AllU && departmentId && sectionId && officeId) {
         const {
           data: fetchData,
           error: fetchError,
@@ -590,6 +597,28 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
           .rpc(functionName, { params }, { count: "exact" })
           .eq("quotation_created_by_company_id", userProfileState.company_id)
           .eq("quotation_created_by_department_of_user", departmentId)
+          .eq("quotation_created_by_section_of_user", sectionId)
+          .eq("quotation_created_by_office_of_user", officeId)
+          .range(from, to)
+          .order("quotation_date", { ascending: false }) //見積日
+          .order("quotation_created_at", { ascending: false }); //見積作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 🔹自：事業部、課、係、営業所  🔸全：
+      else if (isFetchOwnDSO_AllU && departmentId && sectionId && unitId && officeId) {
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          // .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "exact" })
+          .eq("quotation_created_by_company_id", userProfileState.company_id)
+          .eq("quotation_created_by_department_of_user", departmentId)
+          .eq("quotation_created_by_section_of_user", sectionId)
           .eq("quotation_created_by_unit_of_user", unitId)
           .eq("quotation_created_by_office_of_user", officeId)
           .range(from, to)
@@ -600,9 +629,27 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
         error = fetchError;
         count = fetchCount;
       }
-      // 自分のデータのみ
+      // 🔹自：営業所  🔸全：事業部、課、係
+      else if (isFetchOwnO_AllDSU && officeId) {
+        const {
+          data: fetchData,
+          error: fetchError,
+          count: fetchCount,
+        } = await supabase
+          // .rpc("search_quotations_and_companies_and_contacts", { params }, { count: "exact" })
+          .rpc(functionName, { params }, { count: "exact" })
+          .eq("quotation_created_by_company_id", userProfileState.company_id)
+          .eq("quotation_created_by_office_of_user", officeId)
+          .range(from, to)
+          .order("quotation_date", { ascending: false }) //見積日
+          .order("quotation_created_at", { ascending: false }); //見積作成日時
+
+        data = fetchData;
+        error = fetchError;
+        count = fetchCount;
+      }
+      // 🔹自分のデータのみ
       else if (isFetchMine && userId) {
-        let params = newSearchQuotation_Contact_CompanyParams;
         const {
           data: fetchData,
           error: fetchError,
@@ -620,10 +667,8 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
         error = fetchError;
         count = fetchCount;
       }
-      // 全て もしくは該当のidが存在しない場合
-      // else if (isFetchAll || !departmentId || !unitId || !officeId || !userId) {
+      // 🔹もしくは該当のidが存在しない場合 全て isFetchAll
       else {
-        let params = newSearchQuotation_Contact_CompanyParams;
         const {
           data: fetchData,
           error: fetchError,
@@ -728,6 +773,7 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
         "quotations",
         newSearchParamsStringRef.current,
         isFetchAllDepartments,
+        isFetchAllSections,
         isFetchAllUnits,
         isFetchAllOffices,
         isFetchAllMembers,

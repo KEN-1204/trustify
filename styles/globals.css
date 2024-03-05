@@ -1014,6 +1014,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --overlay-modal-bg: #ffffff60;
   /* --overlay-loading-modal-inside: #ffffff48; */
   --overlay-loading-modal-inside: #00000066;
+  /* --overlay-loading-modal-inside: #00000090; */
   /* ツールチップ */
   --color-tooltip-arrow: #282828;
   --color-tooltip-dark: #333;
@@ -1754,6 +1755,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --overlay: #ffffff20;
   --overlay-modal-bg: #33333360;
   --overlay-loading-modal-inside: #00000066;
+  /* --overlay-loading-modal-inside: #00000090; */
 
   /* ツールチップ dark */
   --color-tooltip-arrow: #333;
@@ -1814,8 +1816,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-text-brand-shadow: #ffffff70;
 
   /* スケルトンローディング dark */
-  --color-skeleton-bg: #99999970;
-  --color-skeleton-bg-wave: #ffffff22;
+  /* --color-skeleton-bg: #99999970; */
+  --color-skeleton-bg: #99999966;
+  /* --color-skeleton-bg-wave: #ffffff22; */
+  /* --color-skeleton-bg-wave: #ffffff33; */
+  --color-skeleton-bg-wave: #ffffff42;
   /* --color-skeleton-bg-wave: #ffffff66; */
   --color-skeleton-bg-wave-light: #ffffff66;
 

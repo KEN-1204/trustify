@@ -130,7 +130,7 @@ const UnderRightActivityLogMemo: FC = () => {
       case "our_department":
         return "部署";
         break;
-      case "our_office":
+      case "our_business_office":
         return "事業所";
         break;
 
@@ -146,7 +146,8 @@ const UnderRightActivityLogMemo: FC = () => {
     "activity_date",
     "our_member_name",
     "our_department",
-    "our_office",
+    // "our_office",
+    "our_business_office",
   ];
 
   // ================== 🌟疑似的なサーバーデータフェッチ用の関数🌟 ==================

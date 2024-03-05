@@ -20,6 +20,7 @@ import {
   optionsOccupationForCustomer,
   optionsPositionsClassForCustomer,
 } from "@/utils/selectOptions";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 type Plans = {
   id: string;
@@ -157,7 +158,8 @@ export const FirstLoginSettingUserProfileAfterInvitationModal = () => {
       <div className={`${styles.overlay} `} />
       {isLoadingSubmit && (
         <div className={`${styles.loading_overlay} `}>
-          <SpinnerIDS scale={"scale-[0.5]"} />
+          {/* <SpinnerIDS scale={"scale-[0.5]"} /> */}
+          <SpinnerBrand withBorder withShadow />
         </div>
       )}
       <div className={`${styles.container} `}>

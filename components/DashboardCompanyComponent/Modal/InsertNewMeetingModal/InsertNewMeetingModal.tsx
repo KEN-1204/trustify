@@ -1105,7 +1105,7 @@ export const InsertNewMeetingModal = () => {
         {hoveredItemPosModal && <TooltipModal />}
         {/* ローディングオーバーレイ */}
         {loadingGlobalState && (
-          <div className={`${styles.loading_overlay_modal} `}>
+          <div className={`${styles.loading_overlay_modal_outside} `}>
             {/* <SpinnerComet w="48px" h="48px" s="5px" /> */}
             <div className={`${styles.loading_overlay_modal_inside}`}>
               <SpinnerBrand withBorder withShadow />

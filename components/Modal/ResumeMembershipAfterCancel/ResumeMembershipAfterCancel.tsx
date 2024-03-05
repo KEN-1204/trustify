@@ -419,6 +419,7 @@ const ResumeMembershipAfterCancelMemo = () => {
         _personal_cell_phone: userProfileState.personal_cell_phone,
         _occupation: userProfileState.occupation,
         _office: userProfileState.office,
+        _section: userProfileState.section,
         _unit: userProfileState.unit,
         _position_class: userProfileState.position_class,
       };

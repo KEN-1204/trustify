@@ -35,6 +35,7 @@ import { PeriodSDB } from "@/types";
 import { ImInfo } from "react-icons/im";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { FaExchangeAlt } from "react-icons/fa";
 
 type SectionMenuParams = {
   // e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -135,7 +136,7 @@ const SalesProgressScreenMemo = () => {
   // --------------------------- 変数定義 ここまで ---------------------------
   // --------------------------------- useQuery ---------------------------------
   // -------------- 🌟エンティティのデータを取得🌟 => 係の場合は係のメンバー一覧、メンバーなら選択されたメンバー
-  // 1. D&Dボードは、係・メンバーの時のみ表示可能にする(事業部以上はメンバー数が多くなりすぎるため)
+  // 1. D&Dボードは、係・メンバーの時のみだと、事業部のみ登録した中小企業にフィットしないため、初期はメンバーの自分を表示する(初期表示で事業部以上はメンバー数が多くなりすぎるため)
   // -------------- ✅エンティティのデータを取得✅
 
   // --------------------------------- useQuery ここまで ---------------------------------
@@ -646,7 +647,7 @@ const SalesProgressScreenMemo = () => {
                   {/* ------------------------------------ */}
                 </ul>
               </div>
-              {/* 適用・戻るエリア(エンティティメニュー) */}
+              {/* 右サイドエンティティ詳細メニュー 適用・戻るエリア */}
               <div
                 className={`${styles.settings_menu} ${styles.edit_mode}  z-[3000] h-auto w-[330px] overflow-hidden rounded-[6px] ${styles.fade_up}`}
                 style={{
@@ -654,8 +655,11 @@ const SalesProgressScreenMemo = () => {
                   // bottom: "-168px",
                   // left: 0,
                   position: "absolute",
+                  // ...(sectionMenuRef.current?.offsetWidth
+                  //   ? { bottom: "0px", left: sectionMenuRef.current?.offsetWidth + 10 }
+                  //   : { bottom: "-168px", left: 0 }),
                   ...(sectionMenuRef.current?.offsetWidth
-                    ? { bottom: "0px", left: sectionMenuRef.current?.offsetWidth + 10 }
+                    ? { top: "0px", left: sectionMenuRef.current?.offsetWidth + 10 }
                     : { bottom: "-168px", left: 0 }),
                   animationDelay: `0.2s`,
                   animationDuration: `0.5s`,
@@ -678,8 +682,8 @@ const SalesProgressScreenMemo = () => {
                   }}
                   onMouseLeave={handleClosePopupMenu}
                 >
-                  <div className="pointer-events-none flex min-w-[110px] items-center">
-                    <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                  <div className="pointer-events-none flex min-w-[70px] items-center">
+                    {/* <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" /> */}
                     <div className="flex select-none items-center space-x-[2px]">
                       <span className={`${styles.list_title}`}>表示中</span>
                       <span className={``}>：</span>
@@ -696,6 +700,59 @@ const SalesProgressScreenMemo = () => {
                         </option>
                       ))}
                     </select> */}
+
+                  <div className="flex w-full items-center justify-end">
+                    <div className="mb-[-1px] flex min-w-max  flex-col space-y-[3px]">
+                      <div className="flex max-w-[160px] items-center px-[12px]">
+                        <span
+                          className="truncate text-[14px]"
+                          onMouseEnter={(e) => {
+                            const el = e.currentTarget;
+                            if (el.offsetWidth < el.scrollWidth) {
+                              const tooltipContent = "伊藤 謙太";
+                              handleOpenTooltip({
+                                e: e,
+                                display: "top",
+                                content: tooltipContent,
+                                marginTop: 12,
+                                itemsPosition: "center",
+                                // whiteSpace: "nowrap",
+                              });
+                            }
+                          }}
+                          onMouseLeave={() => {
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
+                        >
+                          伊藤 謙太
+                        </span>
+                      </div>
+                      <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]" />
+                    </div>
+                    <div
+                      className={`${styles.icon_path_stroke} ${styles.icon_btn} flex-center transition-bg03 ml-[13px]`}
+                      onMouseEnter={(e) => {
+                        const tooltipContent = "メンバーを変更";
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: tooltipContent,
+                          marginTop: 12,
+                          itemsPosition: "center",
+                          // whiteSpace: "nowrap",
+                        });
+                      }}
+                      onMouseLeave={() => {
+                        if (hoveredItemPosWrap) handleCloseTooltip();
+                      }}
+                      // onClick={() => {
+                      //   setSelectedMemberObj(null);
+                      //   if (hoveredItemPosSideTable) handleCloseTooltip();
+                      // }}
+                    >
+                      <FaExchangeAlt className="text-[13px]" />
+                    </div>
+                  </div>
                 </li>
                 {/* ------------------------------------ */}
                 <hr className="min-h-[1px] w-full bg-[#999]" />
@@ -718,7 +775,7 @@ const SalesProgressScreenMemo = () => {
                 </li>
                 {/* ------------------------------------ */}
               </div>
-              {/* 適用・戻るエリア(エンティティメニュー) */}
+              {/* 右サイドエンティティ詳細メニュー 適用・戻るエリア */}
             </>
           )}
           {/* ------------------------ エンティティ選択メニュー ------------------------ */}

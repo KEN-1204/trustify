@@ -179,6 +179,7 @@
 }
 .grid_row.even_color_change:hover .grid_cell {
   background-color: var(--color-table-even-color-changed-bg-hover);
+  cursor: pointer;
 }
 .grid_row.even_color_change[aria-selected="true"] .grid_cell {
   background-color: var(--color-table-even-color-changed-bg-selected);

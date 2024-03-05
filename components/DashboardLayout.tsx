@@ -425,9 +425,11 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* ============================ 契約者用初回モーダルコンポーネント ============================ */}
       {/* 契約者用 初回契約した後のユーザー、会社情報入力用 */}
       {showFirstLoginSettingUserProfileCompanyModal && <FirstLoginSettingUserProfileCompanyModal />}
+      {/* <FirstLoginSettingUserProfileCompanyModal /> */}
       {/* ============================ 招待者用初回モーダルコンポーネント ============================ */}
       {/* 招待によって既に契約ずみアカウントに紐付けされていて招待メールで初めてログインした用 */}
       {showFirstLoginSettingUserProfileAfterInvitation && <FirstLoginSettingUserProfileAfterInvitationModal />}
+      {/* <FirstLoginSettingUserProfileAfterInvitationModal /> */}
 
       {/* ============================ サブスク解約後に表示するコンポーネント ============================ */}
       {/* チーム所有者、契約者に表示する「メンバーシップを再開しますか？」モーダル */}

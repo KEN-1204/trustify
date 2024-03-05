@@ -8,9 +8,10 @@ import { mappingPositionClass } from "@/utils/mappings";
 
 type Props = {
   attendeesArray: AttendeeInfo[];
+  isSelected: boolean;
 };
 
-const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
+const AttendeesListTableMemo: FC<Props> = ({ attendeesArray, isSelected }) => {
   const language = useStore((state) => state.language);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
@@ -202,7 +203,8 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
             style={
               {
                 display: "grid",
-                gridTemplateColumns: `2fr 1fr repeat(5, 1fr)`,
+                // gridTemplateColumns: `2fr 1fr repeat(5, 1fr)`,
+                gridTemplateColumns: `180px 1fr repeat(5, 1fr)`,
                 minHeight: "25px",
                 //   width: `100%`,
                 minWidth: `800px`,
@@ -304,7 +306,8 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
                     className={`${styles.grid_row} ${evenRowColorChange ? `${styles.even_color_change}` : ``}`}
                     style={{
                       display: "grid",
-                      gridTemplateColumns: `2fr 1fr repeat(5, 1fr)`,
+                      // gridTemplateColumns: `2fr 1fr repeat(5, 1fr)`,
+                      gridTemplateColumns: `180px 1fr repeat(5, 1fr)`,
                       minHeight: "25px",
                       width: `100%`,
                       top: ((index + 0) * 25).toString() + "px", // +1か0か
@@ -360,7 +363,8 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
                     className={`${styles.grid_row}`}
                     style={{
                       display: "grid",
-                      gridTemplateColumns: `2fr 1fr repeat(5, 1fr)`,
+                      // gridTemplateColumns: `2fr 1fr repeat(5, 1fr)`,
+                      gridTemplateColumns: `180px 1fr repeat(5, 1fr)`,
                       minHeight: "25px",
                       width: `100%`,
                       top: ((index + 0 + 0) * 25).toString() + "px", // +1か0か
@@ -406,13 +410,13 @@ const AttendeesListTableMemo: FC<Props> = ({ attendeesArray }) => {
                   <span className="truncate ">
                     {language === "ja" &&
                       `${
-                        attendeesArray.length !== null && attendeesArray.length !== undefined
+                        isSelected && attendeesArray.length !== null && attendeesArray.length !== undefined
                           ? attendeesArray.length
                           : `-`
                       } 人`}
                     {language === "en" &&
                       `${
-                        attendeesArray.length !== null && attendeesArray.length !== undefined
+                        isSelected && attendeesArray.length !== null && attendeesArray.length !== undefined
                           ? attendeesArray.length
                           : `-`
                       } rows`}

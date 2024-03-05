@@ -94,10 +94,13 @@ type State = {
   // 【「条件に一致する全ての会社をフェッチするか」、「条件に一致する自社で作成した会社のみをフェッチするか」の抽出条件を保持】
   isFetchAllCompanies: boolean;
   setIsFetchAllCompanies: (payload: boolean) => void;
-  // =================== 「活動」「面談」「案件」用、部署、係、事業所切り替えドロップダウンメニュー ===================
+  // =================== 「活動」「面談」「案件」用、部署、課、係、事業所切り替えドロップダウンメニュー ===================
   // 自事業部か、全事業部かを選択
   isFetchAllDepartments: boolean;
   setIsFetchAllDepartments: (payload: boolean) => void;
+  // 自課か全課か
+  isFetchAllSections: boolean;
+  setIsFetchAllSections: (payload: boolean) => void;
   // 自係か全係か
   isFetchAllUnits: boolean;
   setIsFetchAllUnits: (payload: boolean) => void;
@@ -616,6 +619,7 @@ const useDashboardStore = create<State>((set) => ({
     created_by_company_id: "",
     created_by_user_id: "",
     created_by_department_of_user: "",
+    created_by_section_of_user: "",
     created_by_unit_of_user: "",
     created_by_office_of_user: "",
     product_name: "",
@@ -698,10 +702,13 @@ const useDashboardStore = create<State>((set) => ({
   // 【「条件に一致する全ての会社をフェッチするか」、「条件に一致する自社で作成した会社のみをフェッチするか」の抽出条件を保持】
   isFetchAllCompanies: true,
   setIsFetchAllCompanies: (payload) => set({ isFetchAllCompanies: payload }),
-  // =================== 「活動」「面談」「案件」用、部署、係、事業所切り替えドロップダウンメニュー ===================
+  // =================== 「活動」「面談」「案件」用、部署、課、係、事業所切り替えドロップダウンメニュー ===================
   // 自事業部か、全事業部かを選択
   isFetchAllDepartments: true,
   setIsFetchAllDepartments: (payload) => set({ isFetchAllDepartments: payload }),
+  // 自課か全課か
+  isFetchAllSections: true,
+  setIsFetchAllSections: (payload) => set({ isFetchAllSections: payload }),
   // 自係か全係か
   isFetchAllUnits: true,
   setIsFetchAllUnits: (payload) => set({ isFetchAllUnits: payload }),

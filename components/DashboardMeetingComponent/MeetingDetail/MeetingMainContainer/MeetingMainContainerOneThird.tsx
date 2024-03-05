@@ -4558,13 +4558,23 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
 
               {/* 同席者エリア */}
-              {selectedRowDataMeeting &&
+              {/* {selectedRowDataMeeting &&
                 selectedRowDataMeeting.attendees_info &&
                 selectedRowDataMeeting.attendees_info.length > 0 && (
                   <div className={`mt-[10px]`}>
                     <AttendeesListTable attendeesArray={selectedRowDataMeeting.attendees_info} />
                   </div>
-                )}
+                )} */}
+              <div className={`mt-[10px]`}>
+                <AttendeesListTable
+                  attendeesArray={
+                    selectedRowDataMeeting?.attendees_info && selectedRowDataMeeting?.attendees_info.length > 0
+                      ? selectedRowDataMeeting.attendees_info
+                      : []
+                  }
+                  isSelected={!!selectedRowDataMeeting}
+                />
+              </div>
               {/* 同席者エリアここまで */}
 
               {/* 内線TEL・代表TEL */}
