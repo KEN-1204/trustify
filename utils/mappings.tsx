@@ -1,3 +1,16 @@
+// windowタブタイトル
+export const mappingTitle: { [key: string]: { [key: string]: string } } = {
+  HOME: { ja: "ホーム - TRUSTiFY", en: "Home - TRUSTiFY" },
+  Company: { ja: "会社 - TRUSTiFY", en: "Company - TRUSTiFY" },
+  Contacts: { ja: "担当者 - TRUSTiFY", en: "Contacts - TRUSTiFY" },
+  Activity: { ja: "活動 - TRUSTiFY", en: "Activity - TRUSTiFY" },
+  Meeting: { ja: "面談 - TRUSTiFY", en: "Meeting - TRUSTiFY" },
+  Property: { ja: "案件 - TRUSTiFY", en: "Case - TRUSTiFY" },
+  Calendar: { ja: "カレンダー - TRUSTiFY", en: "Calendar - TRUSTiFY" },
+  Quotation: { ja: "見積 - TRUSTiFY", en: "Quotation - TRUSTiFY" },
+  SDB: { ja: "セールスダッシュボード - TRUSTiFY", en: "Sales Dashboard - TRUSTiFY" },
+};
+
 interface LanguageTitles {
   [key: string]: string;
 }

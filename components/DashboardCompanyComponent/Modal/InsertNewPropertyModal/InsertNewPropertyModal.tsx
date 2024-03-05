@@ -20,7 +20,7 @@ import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 import { format } from "date-fns";
 import { getFiscalQuarterTest } from "@/utils/Helpers/getFiscalQuarterTest";
-import { Department, Office, Unit } from "@/types";
+import { Department, Office, Section, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
@@ -62,6 +62,7 @@ import {
 } from "@/utils/selectOptions";
 import { convertHalfWidthRoundNumOnly } from "@/utils/Helpers/convertHalfWidthRoundNumOnly";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { useQuerySections } from "@/hooks/useQuerySections";
 
 type ModalProperties = {
   left: number;
@@ -225,6 +226,7 @@ export const InsertNewPropertyModal = () => {
     memberId: string | null;
     memberName: string | null;
     departmentId: string | null;
+    sectionId: string | null;
     unitId: string | null;
     officeId: string | null;
   };
@@ -233,6 +235,7 @@ export const InsertNewPropertyModal = () => {
     memberId: userProfileState?.id ? userProfileState?.id : null,
     memberName: userProfileState?.profile_name ? userProfileState?.profile_name : null,
     departmentId: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+    sectionId: userProfileState?.assigned_section_id ? userProfileState?.assigned_section_id : null,
     unitId: userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null,
     officeId: userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null,
   };
@@ -262,6 +265,17 @@ export const InsertNewPropertyModal = () => {
   // useMutation
   // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟課・セクションリスト取得useQuery🌟 ================================
+  const {
+    data: sectionDataArray,
+    isLoading: isLoadingQuerySection,
+    refetch: refetchQUerySections,
+  } = useQuerySections(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createSectionMutation, updateSectionFieldMutation, updateMultipleSectionFieldsMutation, deleteSectionMutation } =
+  // useMutateSection();
+  // ================================ ✅課・セクションリスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
   const {
     data: unitDataArray,
@@ -287,6 +301,7 @@ export const InsertNewPropertyModal = () => {
   // ================================ 🌟商品リスト取得useQuery🌟 ================================
   type FilterCondition = {
     department_id: Department["id"] | null;
+    section_id: Section["id"] | null;
     unit_id: Unit["id"] | null;
     office_id: Office["id"] | null;
     //   employee_id_name: Employee_id["id"];
@@ -294,12 +309,14 @@ export const InsertNewPropertyModal = () => {
   // useQueryで事業部・係・事業所を絞ったフェッチをするかどうか(初回マウント時は自事業部のみで取得)
   const [filterCondition, setFilterCondition] = useState<FilterCondition>({
     department_id: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+    section_id: null,
     unit_id: null,
     office_id: null,
   });
   const { data: productDataArray, isLoading: isLoadingQueryProduct } = useQueryProducts({
     company_id: userProfileState?.company_id ? userProfileState?.company_id : null,
     departmentId: filterCondition.department_id,
+    sectionId: filterCondition.section_id,
     unitId: filterCondition.unit_id,
     officeId: filterCondition.office_id,
     isReady: true,
@@ -755,6 +772,7 @@ export const InsertNewPropertyModal = () => {
       // 営業担当データ
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       // 営業担当データここまで
@@ -945,6 +963,7 @@ export const InsertNewPropertyModal = () => {
       // 営業担当データ
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       // 営業担当データここまで
@@ -1123,6 +1142,7 @@ export const InsertNewPropertyModal = () => {
       // 営業担当データ
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       // 営業担当データここまで
@@ -1299,6 +1319,7 @@ export const InsertNewPropertyModal = () => {
       // 営業担当データ
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       // 営業担当データここまで
@@ -1753,7 +1774,7 @@ export const InsertNewPropertyModal = () => {
                         content3: "マーケティングの成果を正確に管理することが可能です。",
                         // marginTop: 57,
                         marginTop: 12,
-                        itemsPosition: "center",
+                        itemsPosition: "left",
                         whiteSpace: "nowrap",
                       })
                     }
@@ -1772,11 +1793,11 @@ export const InsertNewPropertyModal = () => {
                           "営業担当の訪問・Web面談から客先が今期、または来期に導入の可能性がある際に使用します。",
                         content2: "面談から展開率(どれだけ受注可能性のある案件に展開したか)を把握することが可能です。",
                         content3:
-                          "受注率、展開率、アポ率を把握することで目標達成に必要なプロセスと改善点が明確になります。",
+                          "展開の中に決裁者と商売の話まで行った「商談化」と、\n商売の話までは至らないが導入に向けて効果検証を行う「案件化」を両方含みます。",
                         // marginTop: 57,
                         marginTop: 12,
-                        itemsPosition: "center",
-                        whiteSpace: "nowrap",
+                        itemsPosition: "left",
+                        // whiteSpace: "nowrap",
                       })
                     }
                     onMouseLeave={handleCloseTooltip}
@@ -1791,10 +1812,10 @@ export const InsertNewPropertyModal = () => {
                         e: e,
                         display: "top",
                         content: "お客様が予算申請に上げていただいた際に使用します。",
-                        content2: "長期的な案件も予定通り取り切るために管理することができます。",
+                        content2: "長期的な案件も予定通り取り切るための管理に使用します。",
                         // marginTop: 36,
                         marginTop: 12,
-                        itemsPosition: "center",
+                        itemsPosition: "left",
                         whiteSpace: "nowrap",
                       })
                     }
@@ -1810,11 +1831,11 @@ export const InsertNewPropertyModal = () => {
                         e: e,
                         display: "top",
                         content: "案件を受注した際に使用します。",
-                        content2:
-                          "受注率、展開率、アポ率を把握することで目標達成に必要なプロセスと改善点が明確になります。",
+                        content2: "受注率、展開率、アポ率を把握することで",
+                        content3: "目標達成に必要なプロセスと改善点が明確になります。",
                         // marginTop: 36,
                         marginTop: 12,
-                        itemsPosition: "center",
+                        itemsPosition: "left",
                         whiteSpace: "nowrap",
                       })
                     }
@@ -4099,8 +4120,19 @@ export const InsertNewPropertyModal = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>事業部名</span>
+                    {/* <input
+                      type="text"
+                      placeholder=""
+                      required
+                      className={`${styles.input_box}`}
+                      value={departmentName}
+                      onChange={(e) => setDepartmentName(e.target.value)}
+                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                    /> */}
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      // value={departmentId ? departmentId : ""}
+                      // onChange={(e) => setDepartmentId(e.target.value)}
                       // value={departmentId ? departmentId : ""}
                       // onChange={(e) => setDepartmentId(e.target.value)}
                       value={memberObj.departmentId ? memberObj.departmentId : ""}
@@ -4127,6 +4159,125 @@ export const InsertNewPropertyModal = () => {
             </div>
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 所属事業所 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
+                    {/* <input
+                      type="text"
+                      placeholder=""
+                      required
+                      className={`${styles.input_box}`}
+                      value={businessOffice}
+                      onChange={(e) => setBusinessOffice(e.target.value)}
+                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                    /> */}
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      // value={officeId ? officeId : ""}
+                      // onChange={(e) => setOfficeId(e.target.value)}
+                      value={memberObj.officeId ? memberObj.officeId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, officeId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
+                    >
+                      <option value=""></option>
+                      {officeDataArray &&
+                        officeDataArray.length >= 1 &&
+                        officeDataArray.map((office) => (
+                          <option key={office.id} value={office.id}>
+                            {office.office_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* 右ラッパーここまで */}
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 課・セクション */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>課・セクション</span>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={memberObj.sectionId ? memberObj.sectionId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, sectionId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
+                    >
+                      <option value=""></option>
+                      {sectionDataArray &&
+                        sectionDataArray.length >= 1 &&
+                        sectionDataArray.map((section) => (
+                          <option key={section.id} value={section.id}>
+                            {section.section_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 自社担当 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●自社担当</span>
+                    <input
+                      type="text"
+                      placeholder="*入力必須"
+                      required
+                      className={`${styles.input_box}`}
+                      // value={memberName}
+                      // onChange={(e) => setMemberName(e.target.value)}
+                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                      value={memberObj.memberName ? memberObj.memberName : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, memberName: e.target.value });
+                      }}
+                      onKeyUp={() => {
+                        if (prevMemberObj.memberName !== memberObj.memberName) {
+                          setIsOpenConfirmationModal("change_member");
+                          return;
+                        }
+                      }}
+                      onBlur={() => {
+                        if (!memberObj.memberName) return;
+                        setMemberObj({ ...memberObj, memberName: toHalfWidthAndSpace(memberObj.memberName.trim()) });
+                      }}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* 係・チーム */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -4155,85 +4306,12 @@ export const InsertNewPropertyModal = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-            </div>
-
-            {/* 右ラッパーここまで */}
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 所属事業所 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      // value={officeId ? officeId : ""}
-                      // onChange={(e) => setOfficeId(e.target.value)}
-                      value={memberObj.officeId ? memberObj.officeId : ""}
-                      onChange={(e) => {
-                        setMemberObj({ ...memberObj, officeId: e.target.value });
-                        setIsOpenConfirmationModal("change_member");
-                      }}
-                    >
-                      <option value=""></option>
-                      {officeDataArray &&
-                        officeDataArray.length >= 1 &&
-                        officeDataArray.map((office) => (
-                          <option key={office.id} value={office.id}>
-                            {office.office_name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
 
               {/* 左ラッパーここまで */}
             </div>
 
             {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* ●自社担当 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●自社担当</span>
-                    <input
-                      type="text"
-                      placeholder="*入力必須"
-                      required
-                      className={`${styles.input_box}`}
-                      // value={PropertyMemberName}
-                      // onChange={(e) => setPropertyMemberName(e.target.value)}
-                      // onBlur={() => setPropertyMemberName(toHalfWidth(PropertyMemberName.trim()))}
-                      value={memberObj.memberName ? memberObj.memberName : ""}
-                      onChange={(e) => {
-                        setMemberObj({ ...memberObj, memberName: e.target.value });
-                      }}
-                      onKeyUp={() => {
-                        if (prevMemberObj.memberName !== memberObj.memberName) {
-                          setIsOpenConfirmationModal("change_member");
-                          return;
-                        }
-                      }}
-                      onBlur={() => {
-                        if (!memberObj.memberName) return;
-                        setMemberObj({ ...memberObj, memberName: toHalfWidthAndSpace(memberObj.memberName.trim()) });
-                      }}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>{/* 右ラッパーここまで */}</div>
           </div>
           {/* --------- 横幅全体ラッパーここまで --------- */}
 

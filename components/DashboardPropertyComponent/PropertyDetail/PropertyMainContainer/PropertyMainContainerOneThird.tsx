@@ -60,7 +60,7 @@ import {
   optionsTermDivision,
 } from "@/utils/selectOptions";
 import { generateYearQuarters } from "@/utils/Helpers/generateYearQuarters";
-import { Department, Office, Property, Property_row_data, Unit } from "@/types";
+import { Department, Office, Property, Property_row_data, Section, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMedia } from "react-use";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
@@ -2146,7 +2146,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -2324,11 +2325,17 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataProperty?.expected_product ? selectedRowDataProperty?.expected_product : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataProperty?.product_name ? selectedRowDataProperty?.product_name : ""} */}
@@ -2490,7 +2497,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth)
+                          if (el.scrollWidth > el.offsetWidth || isOpenSidebar)
                             handleOpenTooltip({
                               e: e,
                               display: "top",
@@ -2503,8 +2510,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleCloseTooltip();
+                          if (hoveredItemPosWrap || isOpenSidebar) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.expected_order_date
@@ -2603,9 +2609,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.expected_sales_price
@@ -2779,9 +2788,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.term_division
@@ -2868,11 +2880,17 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataProperty?.sold_product ? selectedRowDataProperty?.sold_product : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataProperty?.sold_product_name ? selectedRowDataProperty?.sold_product_name : ""} */}
@@ -3032,7 +3050,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3115,9 +3134,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {checkNotFalsyExcludeZero(selectedRowDataProperty?.sales_price)
@@ -3240,9 +3262,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {checkNotFalsyExcludeZero(selectedRowDataProperty?.discounted_price)
@@ -3383,9 +3408,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.sales_class
@@ -3489,9 +3517,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.subscription_interval
@@ -3598,7 +3629,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth)
+                          if (el.scrollWidth > el.offsetWidth || isOpenSidebar)
                             handleOpenTooltip({
                               e: e,
                               display: "top",
@@ -3718,21 +3749,15 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth)
+                          if (el.scrollWidth > el.offsetWidth || isOpenSidebar)
                             handleOpenTooltip({
                               e: e,
                               display: "top",
-                              // marginTop: 57,
-                              // marginTop: 38,
-                              // marginTop: 12,
-                              // itemsPosition: "center",
-                              // whiteSpace: "nowrap",
                             });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.subscription_canceled_at
@@ -3840,8 +3865,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.lease_division
@@ -3936,7 +3960,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4047,7 +4072,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth)
+                          if (el.scrollWidth > el.offsetWidth || isOpenSidebar)
                             handleOpenTooltip({
                               e: e,
                               display: "top",
@@ -4167,7 +4192,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth)
+                          if (el.scrollWidth > el.offsetWidth || isOpenSidebar)
                             handleOpenTooltip({
                               e: e,
                               display: "top",
@@ -4280,7 +4305,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth)
+                          if (el.scrollWidth > el.offsetWidth || isOpenSidebar)
                             handleOpenTooltip({
                               e: e,
                               display: "top",
@@ -4491,7 +4516,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth)
+                          if (el.scrollWidth > el.offsetWidth || isOpenSidebar)
                             handleOpenTooltip({
                               e: e,
                               display: "top",
@@ -4637,8 +4662,15 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                               ? getOrderCertaintyStartOfMonth(selectedRowDataProperty?.order_certainty_start_of_month)
                               : ""
                           }
-                          onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
-                          onMouseLeave={handleCloseTooltip}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
                             // if (!selectedRowDataMeeting?.activity_type) return;
@@ -4726,8 +4758,15 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                               ? getOrderCertaintyStartOfMonth(selectedRowDataProperty?.review_order_certainty)
                               : ""
                           }
-                          onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
-                          onMouseLeave={handleCloseTooltip}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (hoveredItemPosWrap) handleCloseTooltip();
+                          }}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
                             // if (!selectedRowDataMeeting?.activity_type) return;
@@ -5091,7 +5130,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth)
+                            if (el.scrollWidth > el.offsetWidth || isOpenSidebar)
                               handleOpenTooltip({
                                 e: e,
                                 display: "top",
@@ -5307,7 +5346,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e, display: "top" });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5418,7 +5458,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e, display: "top" });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5532,15 +5573,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({
-                              e: e,
-                              display: "top",
-                              // marginTop: 57,
-                              // marginTop: 38,
-                              // marginTop: 12,
-                              // itemsPosition: "center",
-                              // whiteSpace: "nowrap",
-                            });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5630,7 +5664,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e, display: "top" });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5738,9 +5773,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {checkNotFalsyExcludeZero(selectedRowDataProperty?.customer_budget)
@@ -5855,15 +5893,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({
-                              e: e,
-                              display: "top",
-                              // marginTop: 57,
-                              // marginTop: 38,
-                              // marginTop: 12,
-                              // itemsPosition: "center",
-                              // whiteSpace: "nowrap",
-                            });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5940,11 +5971,19 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataProperty?.assigned_department_name
+                              ? selectedRowDataProperty?.assigned_department_name
+                              : ""
+                          }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.assigned_department_name
@@ -5962,11 +6001,19 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataProperty?.assigned_unit_name
+                              ? selectedRowDataProperty?.assigned_unit_name
+                              : ""
+                          }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.assigned_unit_name
@@ -5987,11 +6034,19 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataProperty?.assigned_section_name
+                              ? selectedRowDataProperty?.assigned_section_name
+                              : ""
+                          }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.assigned_section_name
@@ -6008,11 +6063,19 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataProperty?.property_member_name
+                              ? selectedRowDataProperty?.property_member_name
+                              : ""
+                          }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.property_member_name
@@ -6033,11 +6096,19 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
+                          data-text={`${
+                            selectedRowDataProperty?.assigned_office_name
+                              ? selectedRowDataProperty?.assigned_office_name
+                              : ""
+                          }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.assigned_office_name
@@ -6134,11 +6205,17 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value} ${styles.value_highlight} ${styles.text_start} ${styles.editable_field} hover:text-[var(--color-bg-brand-f)]`}
+                        data-text={`${
+                          selectedRowDataProperty?.company_name ? selectedRowDataProperty?.company_name : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                         onClick={() => setIsOpenClientCompanyDetailModal(true)}
                       >
@@ -6168,11 +6245,19 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value} ${styles.text_start}`}
+                        data-text={`${
+                          selectedRowDataProperty?.company_department_name
+                            ? selectedRowDataProperty?.company_department_name
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataProperty?.department_name ? selectedRowDataProperty?.department_name : ""} */}
@@ -6203,11 +6288,17 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value} ${styles.editable_field} hover:text-[var(--color-bg-brand-f)]`}
+                        data-text={`${
+                          selectedRowDataProperty?.contact_name ? selectedRowDataProperty?.contact_name : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                         onClick={() => setIsOpenContactDetailModal(true)}
                       >
@@ -6483,11 +6574,17 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataProperty?.contact_email ? selectedRowDataProperty?.contact_email : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.contact_email ? selectedRowDataProperty?.contact_email : ""}
@@ -6600,7 +6697,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         data-text={selectedRowDataProperty?.position_name ? selectedRowDataProperty?.position_name : ""}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -6627,13 +6725,20 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataProperty?.position_class &&
+                          mappingPositionClass[selectedRowDataProperty.position_class]?.[language]
+                            ? mappingPositionClass[selectedRowDataProperty.position_class]?.[language]
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataProperty?.position_class ? selectedRowDataProperty?.position_class : ""} */}
@@ -6673,13 +6778,20 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataProperty?.occupation &&
+                          mappingOccupation[selectedRowDataProperty.occupation]?.[language]
+                            ? mappingOccupation[selectedRowDataProperty.occupation]?.[language]
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataProperty?.occupation ? selectedRowDataProperty?.occupation : ""} */}
@@ -6716,13 +6828,17 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataProperty?.approval_amount ? selectedRowDataProperty?.approval_amount : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.approval_amount ? selectedRowDataProperty?.approval_amount : ""}
@@ -6741,13 +6857,19 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataProperty?.number_of_employees_class
+                            ? getNumberOfEmployeesClass(selectedRowDataProperty?.number_of_employees_class)
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.number_of_employees_class
@@ -6859,13 +6981,19 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataProperty?.capital
+                            ? convertToJapaneseCurrencyFormat(selectedRowDataProperty.capital)
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
@@ -6936,7 +7064,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -6974,7 +7103,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         data-text={selectedRowDataProperty?.clients ? selectedRowDataProperty?.clients : ""}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -7008,7 +7138,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         data-text={`${selectedRowDataProperty?.supplier ? selectedRowDataProperty?.supplier : ""}`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -7043,7 +7174,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           data-text={`${selectedRowDataProperty?.facility ? selectedRowDataProperty?.facility : ""}`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e, display: "top" });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -7086,7 +7218,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -7118,7 +7251,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -7154,7 +7288,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          handleOpenTooltip({ e, display: "top" });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -7282,11 +7417,19 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataProperty?.industry_type_id
+                            ? mappingIndustryType[selectedRowDataProperty?.industry_type_id][language]
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.industry_type_id
@@ -7323,11 +7466,19 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataProperty?.product_category_large
+                            ? selectedRowDataProperty?.product_category_large
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.product_category_large
@@ -7370,11 +7521,19 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataProperty?.product_category_medium
+                            ? selectedRowDataProperty?.product_category_medium
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.product_category_medium

@@ -8,6 +8,7 @@ import { QuotationGridTableAll } from "./QuotationGridTableAll/QuotationGridTabl
 import { QuotationDetail } from "./QuotationDetail/QuotationDetail";
 import { SpinnerComet } from "../Parts/SpinnerComet/SpinnerComet";
 import { FallbackGridTableAllAMPQ } from "../Fallback/FallbackGridTableAllAMPQ/FallbackGridTableAllAMPQ";
+import { SpinnerBrand } from "../Parts/SpinnerBrand/SpinnerBrand";
 
 export const DashboardQuotationComponent: FC = () => {
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
@@ -32,7 +33,8 @@ export const DashboardQuotationComponent: FC = () => {
       {/* 見積Upsert用ローディング */}
       {isLoadingUpsertGlobal && (
         <div className="flex-center fixed left-0 top-0 z-[10000] h-full w-full bg-[var(--overlay-loading-modal-inside)]">
-          <SpinnerComet w="50px" h="50px" s="5px" />
+          {/* <SpinnerComet w="50px" h="50px" s="5px" /> */}
+          <SpinnerBrand withBorder withShadow />
         </div>
       )}
       {/* サイズメニュー切り替えタブ表示時中のオーバーレイ */}

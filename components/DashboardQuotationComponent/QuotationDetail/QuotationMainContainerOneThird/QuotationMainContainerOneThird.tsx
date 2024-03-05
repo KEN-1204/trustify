@@ -730,6 +730,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setInputSalesTaxRateEdit(row?.sales_tax_rate ? row.sales_tax_rate : "");
     setInputTotalPriceEdit(isValidNumber(row?.total_price) ? formatDisplayPrice(row.total_price!) : "");
     setInputDiscountAmountEdit(isValidNumber(row?.discount_amount) ? formatDisplayPrice(row.discount_amount!) : "");
+    // setInputDiscountAmountEdit(isValidNumber(row?.discount_amount) ? row.discount_amount.toLocaleString() : "");
     setInputDiscountRateEdit(isValidNumber(row?.discount_rate) ? new Decimal(row.discount_rate!).toFixed(2) : "");
     setInputTotalAmountEdit(isValidNumber(row?.total_amount) ? formatDisplayPrice(row.total_amount!) : "");
     setInputDiscountTitleEdit(row?.discount_title ? row.discount_title : "");
@@ -2592,7 +2593,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     inputTotalAmountEdit,
     "値引率inputDiscountRateEdit",
     inputDiscountRateEdit,
-    "selectedProductsArray",
+    "編集中商品リストselectedProductsArray",
     selectedProductsArray,
     "selectedRowDataQuotation.quotation_products_details",
     selectedRowDataQuotation?.quotation_products_details
@@ -4138,7 +4139,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     onMouseEnter={(e) => {
                                       e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                                       const el = e.currentTarget;
-                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                      if (el.scrollWidth > el.offsetWidth || isOpenSidebar)
+                                        handleOpenTooltip({ e, display: "top" });
                                     }}
                                     onMouseLeave={(e) => {
                                       e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4386,7 +4388,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     onMouseEnter={(e) => {
                                       e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                                       const el = e.currentTarget;
-                                      if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                                      if (el.scrollWidth > el.offsetWidth || isOpenSidebar)
+                                        handleOpenTooltip({ e, display: "top" });
                                     }}
                                     onMouseLeave={(e) => {
                                       e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5645,10 +5648,18 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       // 商品リストが存在しない、または、値引金額が0以外のfalsyならリターン
                                       if (
                                         selectedProductsArray?.length === 0 ||
-                                        !isValidNumber(inputDiscountAmountEdit)
+                                        !isValidNumber(inputDiscountAmountEdit.replace(/[^\d.]/g, ""))
                                       ) {
+                                        console.log(
+                                          "リターンinputDiscountAmountEdit",
+                                          inputDiscountAmountEdit,
+                                          !isValidNumber(inputDiscountAmountEdit),
+                                          // isNaN(inputDiscountAmountEdit),
+                                          selectedProductsArray?.length
+                                        );
                                         return;
                                       }
+                                      console.log("こここinputDiscountAmountEdit", inputDiscountAmountEdit);
                                       // フォーカス時は数字と小数点以外除去
                                       setInputDiscountAmountEdit(inputDiscountAmountEdit.replace(/[^\d.]/g, ""));
                                     }}
@@ -5684,6 +5695,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       }
                                       const newFormatDiscountAmount = formatDisplayPrice(convertedDiscountPrice || 0);
                                       setInputDiscountAmountEdit(newFormatDiscountAmount);
+                                      // setInputDiscountAmountEdit(
+                                      //   convertedDiscountPrice ? convertedDiscountPrice.toLocaleString() : "0"
+                                      // );
 
                                       // 合計金額を算出して更新
                                       const newTotalAmount = calculateTotalAmount(
@@ -8745,7 +8759,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   }}
                                   onMouseLeaveHandler={handleCloseTooltip}
                                 />
-                                {Object.values(editPosition).every((value) => value !== null) && (
+                                {!isEditingCell && Object.values(editPosition).every((value) => value !== null) && (
                                   <RippleButton
                                     title={`編集`}
                                     classText={`select-none ${isEditingCell ? ` cursor-not-allowed` : ``}`}

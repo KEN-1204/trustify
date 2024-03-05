@@ -4,7 +4,7 @@ import { Dispatch, FormEvent, SetStateAction, memo, useCallback, useEffect, useR
 import { BsChevronRight } from "react-icons/bs";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import styles from "../UpdateMeetingModal.module.css";
-import { Department, Product, Office, QuotationProductsDetail, Unit } from "@/types";
+import { Department, Product, Office, QuotationProductsDetail, Unit, Section } from "@/types";
 import { useMedia } from "react-use";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -33,6 +33,7 @@ type SearchProductParams = {
   _outside_short_name: string | null;
   _inside_short_name: string | null;
   _department_id: string | null;
+  _section_id: string | null;
   _unit_id: string | null;
   _office_id: string | null;
 };
@@ -68,6 +69,7 @@ const SideTableSearchProductMemo = ({
     _outside_short_name: null,
     _inside_short_name: null,
     _department_id: null,
+    _section_id: null,
     _unit_id: null,
     _office_id: null,
   };
@@ -80,6 +82,7 @@ const SideTableSearchProductMemo = ({
   const [searchSelectedDepartmentId, setSearchSelectedDepartmentId] = useState<Department["id"] | null>(
     selectedProductsArray[0]?.product_created_by_department_of_user ?? null
   ); //事業部id
+  const [searchSelectedSectionId, setSearchSelectedSectionId] = useState<Section["id"] | null>(null); //係id
   const [searchSelectedUnitId, setSearchSelectedUnitId] = useState<Unit["id"] | null>(null); //係id
   const [searchSelectedOfficeId, setSearchSelectedOfficeId] = useState<Office["id"] | null>(null); //事業所id
 
@@ -114,6 +117,12 @@ const SideTableSearchProductMemo = ({
       setInputValue: setSearchSelectedDepartmentId,
     },
     {
+      key: "section",
+      title: "課・セクション",
+      inputValue: searchSelectedSectionId,
+      setInputValue: setSearchSelectedSectionId,
+    },
+    {
       key: "unit",
       title: "係・チーム",
       inputValue: searchSelectedUnitId,
@@ -129,25 +138,62 @@ const SideTableSearchProductMemo = ({
 
   // ============================ 🌟事業部、係、事業所リスト取得useQuery🌟 ============================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ============================ ✅事業部、係、事業所リスト取得useQuery✅ ============================
-  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
-  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した事業部で課を絞り込むuseEffect🌟 =======================
+  const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
   useEffect(() => {
     // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
-    if (!unitDataArray || unitDataArray?.length === 0 || !searchSelectedDepartmentId)
-      return setFilteredUnitBySelectedDepartment([]);
+    if (!sectionDataArray || sectionDataArray?.length === 0 || !searchSelectedDepartmentId)
+      return setFilteredSectionBySelectedDepartment([]);
 
-    // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
-    if (unitDataArray && unitDataArray.length >= 1 && searchSelectedDepartmentId) {
-      const filteredUnitArray = unitDataArray.filter(
-        (unit) => unit.created_by_department_id === searchSelectedDepartmentId
+    // 選択中の事業部が変化するか、sectionDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (sectionDataArray && sectionDataArray.length >= 1 && searchSelectedDepartmentId) {
+      const filteredSectionArray = sectionDataArray.filter(
+        (section) => section.created_by_department_id === searchSelectedDepartmentId
       );
-      setFilteredUnitBySelectedDepartment(filteredUnitArray);
+      setFilteredSectionBySelectedDepartment(filteredSectionArray);
     }
-  }, [unitDataArray, searchSelectedDepartmentId]);
-  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+  }, [sectionDataArray, searchSelectedDepartmentId]);
+  // ======================= ✅現在の選択した事業部で課を絞り込むuseEffect✅ =======================
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した課で係・チームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
+  useEffect(() => {
+    // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!unitDataArray || unitDataArray?.length === 0 || !searchSelectedSectionId)
+      return setFilteredUnitBySelectedSection([]);
+
+    // 選択中の課が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (unitDataArray && unitDataArray.length >= 1 && searchSelectedSectionId) {
+      const filteredUnitArray = unitDataArray.filter((unit) => unit.created_by_section_id === searchSelectedSectionId);
+      setFilteredUnitBySelectedSection(filteredUnitArray);
+    }
+  }, [unitDataArray, searchSelectedSectionId]);
+  // ======================= ✅現在の選択した課で係・チームを絞り込むuseEffect✅ =======================
+
+  // // 課なしパターン
+  // // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
+  // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // useEffect(() => {
+  //   // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+  //   if (!unitDataArray || unitDataArray?.length === 0 || !searchSelectedDepartmentId)
+  //     return setFilteredUnitBySelectedDepartment([]);
+
+  //   // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+  //   if (unitDataArray && unitDataArray.length >= 1 && searchSelectedDepartmentId) {
+  //     const filteredUnitArray = unitDataArray.filter(
+  //       (unit) => unit.created_by_department_id === searchSelectedDepartmentId
+  //     );
+  //     setFilteredUnitBySelectedDepartment(filteredUnitArray);
+  //   }
+  // }, [unitDataArray, searchSelectedDepartmentId]);
+  // // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // -------------------------- 🌟useInfiniteQuery無限スクロール🌟 --------------------------
   const supabase = useSupabaseClient();
@@ -191,6 +237,7 @@ const SideTableSearchProductMemo = ({
       _outside_short_name: adjustFieldValue(searchInputOutsideName),
       _inside_short_name: adjustFieldValue(searchInputInsideName),
       _department_id: searchSelectedDepartmentId || null,
+      _section_id: searchSelectedSectionId || null,
       _unit_id: searchSelectedUnitId || null,
       _office_id: searchSelectedOfficeId || null,
     };
@@ -218,6 +265,13 @@ const SideTableSearchProductMemo = ({
     }
   };
   // ------------- ✅検索ボタンクリックかエンターでonSubmitイベント発火✅ -------------
+
+  // 検索タイプ(デフォルトは部分一致検索)
+  const searchType = useDashboardStore((state) => state.searchType);
+
+  // 検索タイプ オート検索/マニュアル検索
+  const functionName =
+    searchType === "partial_match" ? "get_products_searched_name_partial" : "get_products_searched_name";
 
   let fetchNewSearchServerPage: any;
 
@@ -256,16 +310,29 @@ const SideTableSearchProductMemo = ({
     // 商品名、型式は入力値をワイルドカードとILIKEで、事業部、係、事業所はidに一致で条件検索
     console.log("🔥rpc()実行", params);
 
+    // デフォルト部分一致検索あり、完全一致検索切り替えパターン
     const {
       data: rows,
       error,
       count,
     } = await supabase
-      .rpc("get_products_searched_name", params, { count: "exact" })
+      .rpc(functionName, params, { count: "exact" })
       .range(from, to)
       .order("created_by_department_of_user", { ascending: true })
       .order("product_name", { ascending: true });
     // .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
+
+    // デフォルト部分一致検索なしパターン
+    // const {
+    //   data: rows,
+    //   error,
+    //   count,
+    // } = await supabase
+    //   .rpc("get_products_searched_name", params, { count: "exact" })
+    //   .range(from, to)
+    //   .order("created_by_department_of_user", { ascending: true })
+    //   .order("product_name", { ascending: true });
+    // // .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
 
     if (error) {
       console.error("❌rpcエラー", error);
@@ -301,6 +368,7 @@ const SideTableSearchProductMemo = ({
       ["_outside_short_name", searchProductParams._outside_short_name],
       ["_inside_short_name", searchProductParams._inside_short_name],
       ["_department_id", searchProductParams._department_id],
+      ["_section_id", searchProductParams._section_id],
       ["_unit_id", searchProductParams._unit_id],
       ["_office_id", searchProductParams._office_id],
     ]
@@ -439,6 +507,7 @@ const SideTableSearchProductMemo = ({
           product_created_by_user_id: product.created_by_user_id,
           product_created_by_company_id: product.created_by_company_id,
           product_created_by_department_of_user: product.created_by_department_of_user,
+          product_created_by_section_of_user: product.created_by_section_of_user,
           product_created_by_unit_of_user: product.created_by_unit_of_user,
           product_created_by_office_of_user: product.created_by_office_of_user,
           quotation_product_name: product.product_name,
@@ -677,10 +746,14 @@ const SideTableSearchProductMemo = ({
                 <div
                   className="flex items-end space-x-[10px]"
                   onMouseEnter={(e) => {
+                    const contentTooltip =
+                      searchType === "partial_match"
+                        ? `○商品の名前、型式(顧客向け)、型式・略称(社内向け)、事業部、係・チーム、事業所を条件に入力して検索してください。\n例えば、商品名が「マイクロスコープ」で、その商品が「マイクロスコープ事業部」という事業部の商品なら、「商品名」に「マイクロスコープ」または「マイクロ」のキーワードを、「事業部」は「マイクロスコープ事業部」を選択して検索します。\n○お客様の現在の検索タイプは「部分一致検索」です。\n○「項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`
+                        : `○商品の名前、型式(顧客向け)、型式・略称(社内向け)、事業部、係・チーム、事業所を条件に入力して検索してください。\n例えば、商品名が「マイクロスコープ」で、その商品が「マイクロスコープ事業部」という事業部の商品なら、「商品名」に「マイクロスコープ」または「マイクロ＊」を入力し、「事業部」は「マイクロスコープ事業部」を選択して検索します。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n○「項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`;
                     handleOpenTooltip({
                       e: e,
                       display: "",
-                      content: `○商品の名前、型式(顧客向け)、型式・略称(社内向け)、事業部、係・チーム、事業所を条件に入力して検索してください。\n例えば、商品名が「マイクロスコープ」で、その商品が「マイクロスコープ事業部」という事業部の商品なら、「商品名」に「マイクロスコープ」または「マイクロ＊」を入力し、「事業部」は「マイクロスコープ事業部」を選択して検索します。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n○「項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`,
+                      content: contentTooltip,
                       // content2: "600万円と入力しても円単位に自動補完されます。",
                       // marginTop: 57,
                       marginTop: 39,
@@ -720,6 +793,7 @@ const SideTableSearchProductMemo = ({
                   searchInputInsideName,
                   searchInputOutsideName,
                   searchSelectedDepartmentId,
+                  searchSelectedSectionId,
                   searchSelectedUnitId,
                   searchSelectedOfficeId,
                 ].some((value) => value !== "" && value !== null) && (
@@ -747,6 +821,7 @@ const SideTableSearchProductMemo = ({
                       if (searchInputInsideName) setSearchInputInsideName("");
                       if (searchInputOutsideName) setSearchInputOutsideName("");
                       if (searchSelectedDepartmentId) setSearchSelectedDepartmentId(null);
+                      if (searchSelectedSectionId) setSearchSelectedSectionId(null);
                       if (searchSelectedUnitId) setSearchSelectedUnitId(null);
                       if (searchSelectedOfficeId) setSearchSelectedOfficeId(null);
 
@@ -817,7 +892,19 @@ const SideTableSearchProductMemo = ({
                   <select
                     className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box} ${styles.change_member}`}
                     value={item.inputValue ? item.inputValue : ""}
-                    onChange={(e) => item.setInputValue(e.target.value)}
+                    // onChange={(e) => item.setInputValue(e.target.value)}
+                    onChange={(e) => {
+                      if (item.key === "department") {
+                        // 事業部idを変更 => 課と係をnullに
+                        searchMemberSelectFields[1].setInputValue(null); // 課
+                        searchMemberSelectFields[2].setInputValue(null); // 係
+                      }
+                      if (item.key === "section") {
+                        // 課idを変更 => 係をnullに
+                        searchMemberSelectFields[2].setInputValue(null); // 係
+                      }
+                      item.setInputValue(e.target.value);
+                    }}
                   >
                     <option value=""></option>
                     {item.key === "department" &&
@@ -828,10 +915,18 @@ const SideTableSearchProductMemo = ({
                           {department.department_name}
                         </option>
                       ))}
+                    {item.key === "section" &&
+                      filteredSectionBySelectedDepartment &&
+                      filteredSectionBySelectedDepartment.length >= 1 &&
+                      filteredSectionBySelectedDepartment.map((section) => (
+                        <option key={section.id} value={section.id}>
+                          {section.section_name}
+                        </option>
+                      ))}
                     {item.key === "unit" &&
-                      filteredUnitBySelectedDepartment &&
-                      filteredUnitBySelectedDepartment.length >= 1 &&
-                      filteredUnitBySelectedDepartment.map((unit) => (
+                      filteredUnitBySelectedSection &&
+                      filteredUnitBySelectedSection.length >= 1 &&
+                      filteredUnitBySelectedSection.map((unit) => (
                         <option key={unit.id} value={unit.id}>
                           {unit.unit_name}
                         </option>

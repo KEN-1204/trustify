@@ -24,6 +24,7 @@ import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import useThemeStore from "@/store/useThemeStore";
 import { Profile, UserProfile, UserProfileCompanySubscription } from "@/types";
+import { mappingTitle } from "@/utils/mappings";
 import { Session, User, createServerSupabaseClient } from "@supabase/auth-helpers-nextjs";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
@@ -236,97 +237,12 @@ const DashboardHome = ({
   // const setTheme = useStore((state) => state.setTheme);
 
   // 言語別タイトル
-  let langTitle;
-  if (activeMenuTab === "HOME") {
-    switch (language) {
-      case "ja":
-        langTitle = "ホーム - TRUSTiFY";
-        break;
-      case "en":
-        langTitle = "Home - TRUSTiFY";
-        break;
-      default:
-        langTitle = "Home - TRUSTiFY";
-        break;
-    }
+  let langTitle = "";
+  if (activeMenuTab && language) {
+    langTitle = mappingTitle[activeMenuTab][language];
   }
-  if (activeMenuTab === "Company") {
-    switch (language) {
-      case "ja":
-        langTitle = "会社 - TRUSTiFY";
-        break;
-      case "en":
-        langTitle = "Company - TRUSTiFY";
-        break;
-      default:
-        langTitle = "Company - TRUSTiFY";
-        break;
-    }
-  }
-  if (activeMenuTab === "Contacts") {
-    switch (language) {
-      case "ja":
-        langTitle = "担当者 - TRUSTiFY";
-        break;
-      case "en":
-        langTitle = "Contacts - TRUSTiFY";
-        break;
-      default:
-        langTitle = "Contacts - TRUSTiFY";
-        break;
-    }
-  }
-  if (activeMenuTab === "Activity") {
-    switch (language) {
-      case "ja":
-        langTitle = "活動 - TRUSTiFY";
-        break;
-      case "en":
-        langTitle = "Activity - TRUSTiFY";
-        break;
-      default:
-        langTitle = "Activity - TRUSTiFY";
-        break;
-    }
-  }
-  if (activeMenuTab === "Meeting") {
-    switch (language) {
-      case "ja":
-        langTitle = "面談 - TRUSTiFY";
-        break;
-      case "en":
-        langTitle = "Meeting - TRUSTiFY";
-        break;
-      default:
-        langTitle = "Meeting - TRUSTiFY";
-        break;
-    }
-  }
-  if (activeMenuTab === "Property") {
-    switch (language) {
-      case "ja":
-        langTitle = "案件 - TRUSTiFY";
-        break;
-      case "en":
-        langTitle = "Case - TRUSTiFY";
-        break;
-      default:
-        langTitle = "Case - TRUSTiFY";
-        break;
-    }
-  }
-  if (activeMenuTab === "Calendar") {
-    switch (language) {
-      case "ja":
-        langTitle = "カレンダー - TRUSTiFY";
-        break;
-      case "en":
-        langTitle = "Calendar - TRUSTiFY";
-        break;
-      default:
-        langTitle = "Calendar - TRUSTiFY";
-        break;
-    }
+  if (!langTitle) {
+    langTitle = "TRUSTiFY";
   }
 
   // /companyページにいて、アクティブメニュータブがCompanyでない場合にはCompanyに変更する

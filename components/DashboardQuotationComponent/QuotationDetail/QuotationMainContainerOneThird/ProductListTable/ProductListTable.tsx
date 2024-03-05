@@ -194,6 +194,7 @@ const ProductListTableMemo: FC<Props> = ({
     | "product_created_by_user_id"
     | "product_created_by_company_id"
     | "product_created_by_department_of_user"
+    | "product_created_by_section_of_user"
     | "product_created_by_unit_of_user"
     | "product_created_by_office_of_user"
     | "quotation_inside_short_name"
@@ -486,8 +487,10 @@ const ProductListTableMemo: FC<Props> = ({
         setIsOverflow(true);
       }
 
+      if (!fieldName) return console.log("フィールド名が存在しないためリターン");
+
       // 🔹INSERTモード
-      if (isInsertMode && fieldName) {
+      if (isInsertMode) {
         let _newQuantity;
         let _newPrice;
         const updatedArray = productsArray.map((item) => {
@@ -528,32 +531,53 @@ const ProductListTableMemo: FC<Props> = ({
         ) {
           // 🔹価格合計
           const newTotalPrice = calculateTotalPriceProducts(updatedArray, language === "ja" ? 0 : 2);
-          setInputTotalPriceEdit(newTotalPrice);
-          // 🔹合計金額 = 価格合計 - 値引金額
-          // 値引価格の数字と小数点以外は除去
-          const replacedDiscountAmount = inputDiscountAmountEdit.replace(/[^\d.]/g, "");
-          const newTotalAmount = calculateTotalAmount(
-            Number(newTotalPrice),
-            Number(replacedDiscountAmount) || 0,
-            language === "ja" ? 0 : 2
+          console.log(
+            "🔥🔥🔥🔥🔥🔥🔥🔥🔥 価格合計newTotalPrice",
+            newTotalPrice,
+            "値引き合計inputDiscountAmountEdit",
+            inputDiscountAmountEdit
           );
-          setInputTotalAmountEdit(newTotalAmount);
-          // 🔹値引率
-          const result = calculateDiscountRate({
-            salesPriceStr: newTotalPrice,
-            discountPriceStr: replacedDiscountAmount || "0",
-            salesQuantityStr: "1",
-            showPercentSign: false,
-            decimalPlace: 2,
-          });
-          if (result.error) {
-            toast.error(`エラー：${result.error}🙇‍♀️`);
-            console.error("エラー：値引率の取得に失敗", result.error);
-            setInputDiscountRateEdit("");
-          } else if (result.discountRate) {
-            console.log("result.discountRate");
-            const newDiscountRate = result.discountRate;
-            setInputDiscountRateEdit(newDiscountRate);
+          // 🔸価格金額が0なら値引き金額を0に
+          if (Number(newTotalPrice) === 0) {
+            setInputDiscountAmountEdit("0");
+            setInputDiscountRateEdit("0");
+            setInputTotalPriceEdit(newTotalPrice);
+            setInputTotalAmountEdit(newTotalPrice);
+          }
+          // 🔸価格金額より値引き金額が上なら値引き金額を価格金額と同じにして、合計金額を0にする
+          else if (Number(newTotalPrice) < Number(inputDiscountAmountEdit.replace(/[^\d.]/g, ""))) {
+            setInputDiscountAmountEdit(newTotalPrice);
+            setInputDiscountRateEdit("100");
+            setInputTotalPriceEdit(newTotalPrice);
+            setInputTotalAmountEdit("0");
+          } else {
+            setInputTotalPriceEdit(newTotalPrice);
+            // 🔹合計金額 = 価格合計 - 値引金額
+            // 値引価格の数字と小数点以外は除去
+            const replacedDiscountAmount = inputDiscountAmountEdit.replace(/[^\d.]/g, "");
+            const newTotalAmount = calculateTotalAmount(
+              Number(newTotalPrice),
+              Number(replacedDiscountAmount) || 0,
+              language === "ja" ? 0 : 2
+            );
+            setInputTotalAmountEdit(newTotalAmount);
+            // 🔹値引率
+            const result = calculateDiscountRate({
+              salesPriceStr: newTotalPrice,
+              discountPriceStr: replacedDiscountAmount || "0",
+              salesQuantityStr: "1",
+              showPercentSign: false,
+              decimalPlace: 2,
+            });
+            if (result.error) {
+              toast.error(`エラー：${result.error}🙇‍♀️`);
+              console.error("エラー：値引率の取得に失敗", result.error);
+              setInputDiscountRateEdit("");
+            } else if (result.discountRate) {
+              console.log("result.discountRate");
+              const newDiscountRate = result.discountRate;
+              setInputDiscountRateEdit(newDiscountRate);
+            }
           }
         }
 
@@ -582,24 +606,101 @@ const ProductListTableMemo: FC<Props> = ({
         // 入力値が現在のvalueと同じであれば更新は不要なため閉じてリターン
         if (originalValue === newValue) {
           console.log("同じためリターン");
-          // setIsEditModeField(null); // エディットモードを終了
+          originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
           setIsEditingCell(false);
           setTextareaInput("");
           setEditPosition({ row: null, col: null });
           return;
         }
 
-        // const updatePayload = {
-        //   fieldName: fieldName,
-        //   fieldNameForSelectedRowData: fieldNameForSelectedRowData,
-        //   newValue: newValue,
-        //   id: id,
-        // };
-        // 入力変換確定状態でエンターキーが押された場合の処理
-        // console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
-        // await updateQuotationFieldMutation.mutateAsync(updatePayload);
+        let _newQuantity;
+        let _newPrice;
+        const updatedArray = productsArray.map((item) => {
+          if (item.product_id === selectedRowDataQuotationProduct?.product_id) {
+            if (["quotation_product_quantity"].includes(fieldName)) {
+              // 数量 0以外の整数値の場合のみ変更を許可
+              const parsedQuantity = parseInt(newValue, 10);
+              // 0の場合は元の値を返す
+              const newQuantity = !isNaN(parsedQuantity) && parsedQuantity !== 0 ? parsedQuantity : originalValue;
+              _newQuantity = newQuantity;
+              return { ...item, [fieldName]: newQuantity };
+            } else if (["quotation_product_unit_price"].includes(fieldName)) {
+              // 価格 0と小数点を許容(海外は小数点あり)
+              const convertedValue = checkNotFalsyExcludeZero(newValue) ? newValue : Number(originalValue);
+              _newPrice = convertedValue;
+              return { ...item, [fieldName]: convertedValue };
+            } else {
+              // それ以外の商品名と型式はそのままの値で変更
+              return { ...item, [fieldName]: newValue };
+            }
+          }
+          return item;
+        });
+
+        if (setSelectedProductsArray) {
+          setSelectedProductsArray(updatedArray);
+        }
+
+        //
+        // 価格合計・値引率・合計金額を算出(元の値と異なる新たな値なら再計算する)
+        // 🔹数量・価格の変更、かつ、元の値と異なる場合
+        if (
+          (fieldName === "quotation_product_quantity" && _newQuantity !== originalValue) ||
+          (fieldName === "quotation_product_unit_price" && _newPrice !== Number(originalValue))
+        ) {
+          // 🔹価格合計
+          const newTotalPrice = calculateTotalPriceProducts(updatedArray, language === "ja" ? 0 : 2);
+          console.log(
+            "🔥🔥🔥🔥🔥🔥🔥🔥🔥 価格合計newTotalPrice",
+            newTotalPrice,
+            "値引き合計inputDiscountAmountEdit",
+            inputDiscountAmountEdit
+          );
+          // 🔸価格金額が0なら値引き金額を0に
+          if (Number(newTotalPrice) === 0) {
+            setInputDiscountAmountEdit("0");
+            setInputDiscountRateEdit("0");
+            setInputTotalPriceEdit(newTotalPrice);
+            setInputTotalAmountEdit(newTotalPrice);
+          }
+          // 🔸価格金額より値引き金額が上なら値引き金額を価格金額と同じにして、合計金額を0にする
+          else if (Number(newTotalPrice) < Number(inputDiscountAmountEdit.replace(/[^\d.]/g, ""))) {
+            setInputDiscountAmountEdit(newTotalPrice);
+            setInputDiscountRateEdit("100");
+            setInputTotalPriceEdit(newTotalPrice);
+            setInputTotalAmountEdit("0");
+          } else {
+            setInputTotalPriceEdit(newTotalPrice);
+            // 🔹合計金額 = 価格合計 - 値引金額
+            // 値引価格の数字と小数点以外は除去
+            const replacedDiscountAmount = inputDiscountAmountEdit.replace(/[^\d.]/g, "");
+            const newTotalAmount = calculateTotalAmount(
+              Number(newTotalPrice),
+              Number(replacedDiscountAmount) || 0,
+              language === "ja" ? 0 : 2
+            );
+            setInputTotalAmountEdit(newTotalAmount);
+            // 🔹値引率
+            const result = calculateDiscountRate({
+              salesPriceStr: newTotalPrice,
+              discountPriceStr: replacedDiscountAmount || "0",
+              salesQuantityStr: "1",
+              showPercentSign: false,
+              decimalPlace: 2,
+            });
+            if (result.error) {
+              toast.error(`エラー：${result.error}🙇‍♀️`);
+              console.error("エラー：値引率の取得に失敗", result.error);
+              setInputDiscountRateEdit("");
+            } else if (result.discountRate) {
+              console.log("result.discountRate");
+              const newDiscountRate = result.discountRate;
+              setInputDiscountRateEdit(newDiscountRate);
+            }
+          }
+        }
+
         originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
-        // setIsEditModeField(null); // エディットモードを終了
         setIsEditingCell(false);
         setTextareaInput("");
         setEditPosition({ row: null, col: null });
@@ -764,7 +865,7 @@ const ProductListTableMemo: FC<Props> = ({
 
   console.log(
     "見積商品リストテーブルレンダリング",
-    "productsArray",
+    "商品リストproductsArray",
     productsArray,
     "clickActiveRow",
     clickActiveRow,

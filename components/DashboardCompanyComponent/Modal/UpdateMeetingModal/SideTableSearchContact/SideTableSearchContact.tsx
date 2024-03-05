@@ -218,6 +218,13 @@ export const SideTableSearchContactMemo = ({
   };
   // ------------- ✅検索ボタンクリックかエンターでonSubmitイベント発火✅ -------------
 
+  // 検索タイプ(デフォルトは部分一致検索)
+  const searchType = useDashboardStore((state) => state.searchType);
+
+  // 検索タイプ オート検索/マニュアル検索
+  const functionName =
+    searchType === "partial_match" ? "search_companies_and_contacts_partial" : "search_companies_and_contacts";
+
   let fetchNewSearchServerPage: any;
 
   fetchNewSearchServerPage = async (
@@ -250,18 +257,31 @@ export const SideTableSearchContactMemo = ({
 
     let params = searchParams;
 
-    // 会社名、部署名で並び替え
+    // デフォルト部分一致検索と完全一致検索切り替えパターン 会社名、部署名で並び替え
     const {
       data: rows,
       error,
       count,
     } = await supabase
-      .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+      .rpc(functionName, { params }, { count: "exact" })
       .eq("created_by_company_id", userProfileState.company_id)
       .range(from, to)
       .order("company_name", { ascending: true })
       .order("company_department_name", { ascending: true });
     // .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
+
+    // デフォルト部分一致検索なしパターン
+    // const {
+    //   data: rows,
+    //   error,
+    //   count,
+    // } = await supabase
+    //   .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+    //   .eq("created_by_company_id", userProfileState.company_id)
+    //   .range(from, to)
+    //   .order("company_name", { ascending: true })
+    //   .order("company_department_name", { ascending: true });
+    // // .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
 
     if (error) throw error;
 
@@ -585,10 +605,14 @@ export const SideTableSearchContactMemo = ({
                 <div
                   className="flex items-end space-x-[10px]"
                   onMouseEnter={(e) => {
+                    const contentTooltip =
+                      searchType === "partial_match"
+                        ? `○同席者が所属する会社名や部署名など条件を入力して検索してください。\n例えば、会社名が「株式会社データベース」で会社住所が「"東京都大田区"」の「"佐藤"」という担当者を検索する場合は、「会社名」に「株式会社データベース」または「データベース」、「住所」に「東京都大田区」、担当者名に「佐藤」などのキーワードを複数項目で入力してください。\n○お客様の検索タイプは現在デフォルトで「部分一致」となっているため、入力したキーワードを含むデータを全て抽出して取得します。\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`
+                        : `○同席者が所属する会社名や部署名など条件を入力して検索してください。\n例えば、会社名が「株式会社データベース」で会社住所が「"東京都大田区"」の「"佐藤"」という担当者を検索する場合は、「会社名」に「株式会社データベース」または「＊データベース＊」を入力し、「住所」に「東京都大田区※」と入力、担当者名に「＊佐藤＊」を入力してください。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n例えば、会社名に「"工業"」と付く会社を検索したい場合に、「※工業※」、「"製作所"」と付く会社は「※製作所※」と検索することで、指定した文字が付くデータを検索可能です\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`;
                     handleOpenTooltip({
                       e: e,
                       display: "",
-                      content: `○担当者が所属する会社名や部署名など条件を入力して検索してください。\n例えば、会社名で「株式会社データベース」で会社住所が「"東京都大田区"」の「"佐藤"」という担当者を検索する場合は、「会社名」に「株式会社データベース」または「＊データベース＊」を入力し、「住所」に「東京都大田区※」と入力、担当者名に「＊佐藤＊」を入力してください。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n例えば、会社名に「"工業"」と付く会社を検索したい場合に、「※工業※」、「"製作所"」と付く会社は「※製作所※」と検索することで、指定した文字が付くデータを検索可能です\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`,
+                      content: contentTooltip,
                       // content2: "600万円と入力しても円単位に自動補完されます。",
                       // marginTop: 57,
                       marginTop: 39,

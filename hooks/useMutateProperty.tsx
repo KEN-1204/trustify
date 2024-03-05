@@ -32,6 +32,7 @@ export const useMutateProperty = () => {
         _created_by_company_id: newProperty.created_by_company_id,
         _created_by_user_id: newProperty.created_by_user_id,
         _created_by_department_of_user: newProperty.created_by_department_of_user,
+        _created_by_section_of_user: newProperty.created_by_section_of_user,
         _created_by_unit_of_user: newProperty.created_by_unit_of_user,
         _created_by_office_of_user: newProperty.created_by_office_of_user,
         _client_contact_id: newProperty.client_contact_id,
@@ -132,6 +133,7 @@ export const useMutateProperty = () => {
       //   created_by_company_id: newProperty.created_by_company_id,
       //   created_by_user_id: newProperty.created_by_user_id,
       //   created_by_department_of_user: newProperty.created_by_department_of_user,
+      //   created_by_section_of_user: newProperty.created_by_section_of_user,
       //   created_by_unit_of_user: newProperty.created_by_unit_of_user,
       //   created_by_office_of_user: newProperty.created_by_office_of_user,
       //   client_contact_id: newProperty.client_contact_id,
@@ -203,7 +205,7 @@ export const useMutateProperty = () => {
         // alert(err.message);
         console.log("INSERTエラー", err.message);
         console.error("INSERTエラー", err.message);
-        toast.error("案件の作成に失敗しました!", {
+        toast.error("案件の作成に失敗しました...🙇‍♀️", {
           position: "top-right",
           autoClose: 1500,
         });
@@ -237,6 +239,7 @@ export const useMutateProperty = () => {
         // _created_by_company_id: newProperty.created_by_company_id,
         _created_by_user_id: newProperty.created_by_user_id,
         _created_by_department_of_user: newProperty.created_by_department_of_user,
+        _created_by_section_of_user: newProperty.created_by_section_of_user,
         _created_by_unit_of_user: newProperty.created_by_unit_of_user,
         _created_by_office_of_user: newProperty.created_by_office_of_user,
         // _client_contact_id: newProperty.client_contact_id,
@@ -342,6 +345,7 @@ export const useMutateProperty = () => {
       //   created_by_company_id: newProperty.created_by_company_id,
       //   created_by_user_id: newProperty.created_by_user_id,
       //   created_by_department_of_user: newProperty.created_by_department_of_user,
+      //   created_by_section_of_user: newProperty.created_by_section_of_user,
       //   created_by_unit_of_user: newProperty.created_by_unit_of_user,
       //   created_by_office_of_user: newProperty.created_by_office_of_user,
       //   client_contact_id: newProperty.client_contact_id,
@@ -418,7 +422,7 @@ export const useMutateProperty = () => {
         // setIsOpenUpdatePropertyModal(false);
         alert(err.message);
         console.log("UPDATEエラー", err.message);
-        toast.error("案件の更新に失敗しました!", {
+        toast.error("案件の更新に失敗しました...🙇‍♀️", {
           position: "top-right",
           autoClose: 1500,
           hideProgressBar: false,
@@ -829,7 +833,7 @@ export const useMutateProperty = () => {
         // if (loadingGlobalState) setLoadingGlobalState(false);
         console.error("フィールドエディットモード updateエラー", err);
         console.error(`Update failed properties field` + err.message);
-        toast.error("アップデートに失敗しました...", {
+        toast.error("アップデートに失敗しました...🙇‍♀️", {
           position: "top-right",
           autoClose: 1500,
         });
