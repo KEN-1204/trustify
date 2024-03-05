@@ -34,6 +34,7 @@ export const UpdateActivityModal = () => {
   // 確認モーダル(自社担当名、データ所有者変更確認)
   const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
   // 自社担当検索サイドテーブル開閉
+  const [isOpenSearchMemberSideTableBefore, setIsOpenSearchMemberSideTableBefore] = useState(false);
   const [isOpenSearchMemberSideTable, setIsOpenSearchMemberSideTable] = useState(false);
   // const theme = useThemeStore((state) => state.theme);
   // 上画面の選択中の列データ会社
@@ -979,26 +980,36 @@ export const UpdateActivityModal = () => {
           clickEventSubmit={() => {
             // setMemberObj(prevMemberObj);
             setIsOpenConfirmationModal(null);
-            setIsOpenSearchMemberSideTable(true);
+            // setIsOpenSearchMemberSideTable(true);
+            // モーダルを開く
+            // setIsOpenSearchMemberSideTable(true);
+            setIsOpenSearchMemberSideTableBefore(true);
+            setTimeout(() => {
+              setIsOpenSearchMemberSideTable(true);
+            }, 100);
           }}
         />
       )}
 
       {/* 「自社担当」変更サイドテーブル */}
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <Suspense
-          fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
-        >
-          <SideTableSearchMember
-            isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
-            setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
-            prevMemberObj={prevMemberObj}
-            setPrevMemberObj={setPrevMemberObj}
-            memberObj={memberObj}
-            setMemberObj={setMemberObj}
-          />
-        </Suspense>
-      </ErrorBoundary>
+      {isOpenSearchMemberSideTableBefore && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense
+            fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
+          >
+            <SideTableSearchMember
+              isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+              setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
+              isOpenSearchMemberSideTableBefore={isOpenSearchMemberSideTableBefore}
+              setIsOpenSearchMemberSideTableBefore={setIsOpenSearchMemberSideTableBefore}
+              prevMemberObj={prevMemberObj}
+              setPrevMemberObj={setPrevMemberObj}
+              memberObj={memberObj}
+              setMemberObj={setMemberObj}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
     </>
   );
 };

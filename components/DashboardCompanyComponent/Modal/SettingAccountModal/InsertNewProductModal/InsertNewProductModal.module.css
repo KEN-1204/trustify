@@ -141,6 +141,7 @@
   position: relative;
   padding-bottom: 5px;
   min-width: 80px;
+  min-height: 35px;
 }
 .title_box span {
   min-width: 80px;

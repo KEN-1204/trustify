@@ -1650,11 +1650,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth || isOpenSidebar) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.planned_date
@@ -1754,11 +1755,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.meeting_type
@@ -1846,11 +1848,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.planned_start_time
@@ -2030,11 +2033,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.web_tool ? getWebTool(selectedRowDataMeeting?.web_tool) : ""}
@@ -2123,11 +2127,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.planned_duration ? selectedRowDataMeeting?.planned_duration : ""}
@@ -2251,12 +2256,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
@@ -2542,11 +2546,19 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataMeeting?.assigned_department_name
+                            ? selectedRowDataMeeting?.assigned_department_name
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.assigned_department_name
@@ -2564,11 +2576,17 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataMeeting?.assigned_unit_name ? selectedRowDataMeeting?.assigned_unit_name : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.assigned_unit_name ? selectedRowDataMeeting?.assigned_unit_name : ""}
@@ -2587,11 +2605,19 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataMeeting?.assigned_section_name
+                            ? selectedRowDataMeeting?.assigned_section_name
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.assigned_section_name
@@ -2608,11 +2634,17 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.meeting_member_name ? selectedRowDataMeeting?.meeting_member_name : ""}
@@ -2631,18 +2663,26 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataMeeting?.assigned_office_name
+                            ? selectedRowDataMeeting?.assigned_office_name
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataMeeting?.meeting_business_office
                           ? selectedRowDataMeeting?.meeting_business_office
                           : ""} */}
-                        {selectedRowDataMeeting?.assigned_department_name
-                          ? selectedRowDataMeeting?.assigned_department_name
+                        {selectedRowDataMeeting?.assigned_office_name
+                          ? selectedRowDataMeeting?.assigned_office_name
                           : ""}
                       </span>
                     )}
@@ -2738,11 +2778,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth || isOpenSidebar) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataMeeting?.result_date
@@ -2866,11 +2907,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataMeeting?.result_start_time
@@ -3031,11 +3073,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataMeeting?.result_end_time
@@ -3204,11 +3247,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataMeeting?.result_duration ? selectedRowDataMeeting?.result_duration : null}
@@ -3323,11 +3367,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataMeeting?.result_number_of_meeting_participants
@@ -3567,11 +3612,23 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
+                          data-text={
+                            selectedRowDataMeeting
+                              ? getCustomProductName(
+                                  selectedRowDataMeeting.introduced_products_names,
+                                  4,
+                                  selectedRowDataMeeting?.result_presentation_product5
+                                )
+                              : ""
+                          }
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {/* {selectedRowDataMeeting?.result_presentation_product5
@@ -3596,11 +3653,18 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
+                          data-text={
+                            selectedRowDataMeeting &&
+                            getProductNamesAll(selectedRowDataMeeting.introduced_products_names)
+                          }
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {/* {selectedRowDataMeeting?.result_presentation_product5
@@ -3735,12 +3799,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // if (!isDesktopGTE1600) handleOpenTooltip(e);
-                            handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
                             if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                           // dangerouslySetInnerHTML={{
@@ -3840,12 +3903,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           // }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // if (!isDesktopGTE1600) handleOpenTooltip(e);
-                            // handleOpenTooltip(e);
+                            // const el = e.currentTarget;
+                            // if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            // if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
                             // if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
@@ -3943,13 +4005,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            if (!isDesktopGTE1600) handleOpenTooltip(e);
-                            // handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                            // if (hoveredItemPosWrap) handleCloseTooltip();
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataMeeting?.result_negotiate_decision_maker
@@ -4040,13 +4101,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            if (!isDesktopGTE1600) handleOpenTooltip(e);
-                            // handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                            // if (hoveredItemPosWrap) handleCloseTooltip();
+                            if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataMeeting?.meeting_participation_request
@@ -4250,13 +4310,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`${selectedRowDataMeeting?.direct_line ? selectedRowDataMeeting?.direct_line : ""}`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.direct_line ? selectedRowDataMeeting?.direct_line : ""}
@@ -4288,15 +4347,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600 && isOpenSidebar) {
-                            handleOpenTooltip(e);
-                          }
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
-                            handleCloseTooltip();
-                          }
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.position_name ? selectedRowDataMeeting?.position_name : ""}
@@ -4319,20 +4375,21 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
-                        // data-text={`${
-                        //   selectedRowDataMeeting?.position_name ? selectedRowDataMeeting?.position_name : ""
-                        // }`}
+                        data-text={`${
+                          selectedRowDataMeeting &&
+                          selectedRowDataMeeting?.position_class &&
+                          mappingPositionClass[selectedRowDataMeeting.position_class]?.[language]
+                            ? mappingPositionClass[selectedRowDataMeeting.position_class]?.[language]
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // if (!isDesktopGTE1600 && isOpenSidebar) {
-                          //   handleOpenTooltip(e);
-                          // }
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
-                          //   handleCloseTooltip();
-                          // }
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataMeeting?.position_class ? selectedRowDataMeeting?.position_class : ""} */}
@@ -4390,16 +4447,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // if (!isDesktopGTE1600 && isOpenSidebar) {
-                          //   handleOpenTooltip(e);
-                          // }
-                          handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
-                          //   handleCloseTooltip();
-                          // }
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
@@ -4471,20 +4523,18 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span
-                      className={`${styles.title}`} // data-text={`${selectedRowDataMeeting?.occupation ? selectedRowDataMeeting?.occupation : ""}`}
+                      className={`${styles.title}`}
+                      data-text={`${
+                        selectedRowDataMeeting?.contact_email ? selectedRowDataMeeting?.contact_email : ""
+                      }`}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                        // if (!isDesktopGTE1600 && isOpenSidebar) {
-                        //   handleOpenTooltip(e);
-                        // }
-                        // handleOpenTooltip(e);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                        // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
-                        //   handleCloseTooltip();
-                        // }
-                        // if (hoveredItemPosWrap) handleCloseTooltip();
+                        if (hoveredItemPosWrap) handleCloseTooltip();
                       }}
                     >
                       E-mail
@@ -4528,13 +4578,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`${selectedRowDataMeeting?.extension ? selectedRowDataMeeting?.extension : ""}`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.extension ? selectedRowDataMeeting?.extension : ""}
@@ -4563,13 +4612,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.main_phone_number ? selectedRowDataMeeting?.main_phone_number : ""}
@@ -4599,13 +4647,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`${selectedRowDataMeeting?.direct_fax ? selectedRowDataMeeting?.direct_fax : ""}`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.direct_fax ? selectedRowDataMeeting?.direct_fax : ""}
@@ -4632,13 +4679,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`${selectedRowDataMeeting?.main_fax ? selectedRowDataMeeting?.main_fax : ""}`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.main_fax ? selectedRowDataMeeting?.main_fax : ""}
@@ -4676,13 +4722,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.company_cell_phone ? selectedRowDataMeeting?.company_cell_phone : ""}
@@ -4710,13 +4755,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.personal_cell_phone ? selectedRowDataMeeting?.personal_cell_phone : ""}
@@ -4748,16 +4792,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         // }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // if (!isDesktopGTE1600 && isOpenSidebar) {
-                          //   handleOpenTooltip(e);
-                          // }
-                          // handleOpenTooltip(e);
+                          // const el = e.currentTarget;
+                          // if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
-                          //   handleCloseTooltip();
-                          // }
                           // if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
@@ -4844,17 +4883,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600 && isOpenSidebar) {
-                            handleOpenTooltip(e);
-                          }
-                          // handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
-                            handleCloseTooltip();
-                          }
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.number_of_employees_class
@@ -4894,16 +4928,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         //   }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          // if (!isDesktopGTE1600 && isOpenSidebar) {
-                          //   handleOpenTooltip(e);
-                          // }
-                          // handleOpenTooltip(e);
+                          // const el = e.currentTarget;
+                          // if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) {
-                          //   handleCloseTooltip();
-                          // }
                           // if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
@@ -5776,13 +5805,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
-                          // handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataMeeting?.corporate_number ? selectedRowDataMeeting?.corporate_number : ""}

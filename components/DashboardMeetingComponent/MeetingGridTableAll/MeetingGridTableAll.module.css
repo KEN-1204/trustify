@@ -700,6 +700,13 @@
   background-color: var(--checkbox-bg-color);
   border-radius: 3px;
 }
+.main_container
+  .grid_row[aria-selected="true"]
+  .grid_cell_resizable:not(.grid_cell[aria-readonly="true"])
+  input[type="checkbox"]:checked::before {
+  /* background-color: var(--color-border-theme); */
+  /* background-color: var(--bright-green); */
+}
 .main_container input[type="checkbox"]:focus::before {
   /* outline: 2px solid #fff; */
   outline: 2px solid var(--color-table-checkbox-focus-outline);

@@ -357,6 +357,9 @@ export const columnNameToJapaneseProperty = (columnName: string) => {
     case "assigned_department_name":
       return "事業部名(自社)";
       break;
+    case "assigned_section_name":
+      return "課・セクション(自社)";
+      break;
     case "assigned_unit_name":
       return "係・チーム(自社)";
       break;

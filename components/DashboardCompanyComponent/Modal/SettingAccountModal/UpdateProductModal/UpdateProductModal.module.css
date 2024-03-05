@@ -138,6 +138,8 @@
 .title_box {
   position: relative;
   padding-bottom: 5px;
+  min-width: 80px;
+  min-height: 35px;
 }
 .limited_lock_cover_half {
   position: absolute;

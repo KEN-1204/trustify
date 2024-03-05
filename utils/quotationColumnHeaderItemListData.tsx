@@ -129,6 +129,13 @@ const quotationColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // 自社課
+  {
+    columnName: "assigned_section_name",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: true,
+  },
   {
     columnName: "assigned_unit_name",
     columnWidth: "100px",

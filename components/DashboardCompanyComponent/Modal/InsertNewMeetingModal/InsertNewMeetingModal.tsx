@@ -16,7 +16,7 @@ import { ImInfo } from "react-icons/im";
 import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
-import { Department, Office, Unit } from "@/types";
+import { Department, Office, Section, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useQueryProducts } from "@/hooks/useQueryProducts";
 import NextImage from "next/image";
@@ -40,6 +40,7 @@ import {
   optionsWebTool,
 } from "@/utils/selectOptions";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { useQuerySections } from "@/hooks/useQuerySections";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -53,6 +54,7 @@ export const InsertNewMeetingModal = () => {
   // 確認モーダル(自社担当名、データ所有者変更確認)
   const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
   // 自社担当検索サイドテーブル開閉
+  const [isOpenSearchMemberSideTableBefore, setIsOpenSearchMemberSideTableBefore] = useState(false);
   const [isOpenSearchMemberSideTable, setIsOpenSearchMemberSideTable] = useState(false);
   // const theme = useThemeStore((state) => state.theme);
   // 上画面の選択中の列データ会社
@@ -128,6 +130,7 @@ export const InsertNewMeetingModal = () => {
     memberId: string | null;
     memberName: string | null;
     departmentId: string | null;
+    sectionId: string | null;
     unitId: string | null;
     officeId: string | null;
   };
@@ -136,6 +139,7 @@ export const InsertNewMeetingModal = () => {
     memberId: userProfileState?.id ? userProfileState?.id : null,
     memberName: userProfileState?.profile_name ? userProfileState?.profile_name : null,
     departmentId: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+    sectionId: userProfileState?.assigned_section_id ? userProfileState?.assigned_section_id : null,
     unitId: userProfileState?.assigned_unit_id ? userProfileState?.assigned_unit_id : null,
     officeId: userProfileState?.assigned_office_id ? userProfileState?.assigned_office_id : null,
   };
@@ -165,6 +169,17 @@ export const InsertNewMeetingModal = () => {
   // useMutation
   // const { createDepartmentMutation, updateDepartmentFieldMutation, deleteDepartmentMutation } = useMutateDepartment();
   // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟課・セクションリスト取得useQuery🌟 ================================
+  const {
+    data: sectionDataArray,
+    isLoading: isLoadingQuerySection,
+    refetch: refetchQUerySections,
+  } = useQuerySections(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createSectionMutation, updateSectionFieldMutation, updateMultipleSectionFieldsMutation, deleteSectionMutation } =
+  // useMutateSection();
+  // ================================ ✅課・セクションリスト取得useQuery✅ ================================
   // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
   const {
     data: unitDataArray,
@@ -189,19 +204,22 @@ export const InsertNewMeetingModal = () => {
   // ================================ 🌟商品リスト取得useQuery🌟 ================================
   type FilterCondition = {
     department_id: Department["id"] | null;
+    section_id: Section["id"] | null;
     unit_id: Unit["id"] | null;
     office_id: Office["id"] | null;
     //   employee_id_name: Employee_id["id"];
   };
-  // useQueryで事業部・係・事業所を絞ったフェッチをするかどうか(初回マウント時は自事業部のみで取得)
+  // useQueryで事業部・課・係・事業所を絞ったフェッチをするかどうか(初回マウント時は自事業部のみで取得)
   const [filterCondition, setFilterCondition] = useState<FilterCondition>({
     department_id: userProfileState?.assigned_department_id ? userProfileState?.assigned_department_id : null,
+    section_id: null,
     unit_id: null,
     office_id: null,
   });
   const { data: productDataArray, isLoading: isLoadingQueryProduct } = useQueryProducts({
     company_id: userProfileState?.company_id ? userProfileState?.company_id : null,
     departmentId: filterCondition.department_id,
+    sectionId: filterCondition.section_id,
     unitId: filterCondition.unit_id,
     officeId: filterCondition.office_id,
     isReady: true,
@@ -476,6 +494,7 @@ export const InsertNewMeetingModal = () => {
       // 営業担当データ
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       // 営業担当データここまで
@@ -589,6 +608,7 @@ export const InsertNewMeetingModal = () => {
       // 営業担当データ
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       // 営業担当データここまで
@@ -702,6 +722,7 @@ export const InsertNewMeetingModal = () => {
       // 営業担当データ
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       // 営業担当データここまで
@@ -815,6 +836,7 @@ export const InsertNewMeetingModal = () => {
       // 営業担当データ
       created_by_user_id: memberObj.memberId ? memberObj.memberId : null,
       created_by_department_of_user: memberObj.departmentId ? memberObj.departmentId : null,
+      created_by_section_of_user: memberObj.sectionId ? memberObj.sectionId : null,
       created_by_unit_of_user: memberObj.unitId ? memberObj.unitId : null,
       created_by_office_of_user: memberObj.officeId ? memberObj.officeId : null,
       // 営業担当データここまで
@@ -1499,17 +1521,42 @@ export const InsertNewMeetingModal = () => {
                       onClick={(e) => {
                         // 事業部、係、事業所をフィルターするか しない場合3つをnullにして全て取得する
                         if (isOpenDropdownMenuFilterProducts) return;
+                        if (!modalContainerRef.current) return;
                         const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-                        // const clickedPositionPlusItemHeight = y + 400 + 5; // 400はメニューの最低高さ 5はmargin
-                        // const clickedPositionMinusItemHeight = y - 400 + height - 25; // 400はメニューの最低高さ
-                        // const modalHeight = settingModalProperties?.height ?? window.innerHeight * 0.9;
-                        // const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
-                        // const modalBottomPosition =
-                        //   settingModalProperties?.bottom ?? window.innerHeight - halfBlankSpaceWithoutModal;
-                        // const modalTopPosition = settingModalProperties?.top ?? halfBlankSpaceWithoutModal;
-                        setClickedItemPosition({ displayPos: "down", clickedItemWidth: width });
+                        const {
+                          top: _modalTop,
+                          height: _modalHeight,
+                          bottom: _modalBottom,
+                        } = modalContainerRef.current.getBoundingClientRect();
+
+                        // ---------------- 🔹課ありパターン ----------------
+                        const clickedPositionPlusItemHeight = y + 412 + 5; // 412はメニューの最低高さ 40はmargin分 -10pxは微調整
+                        const clickedPositionMinusItemHeight = y - 412 + height - 25; // 412はメニューの最低高さ 40はmargin分 -10pxは微調整 heightは名前エリア高さ分メニューを下げているため
+                        const modalHeight = _modalHeight ?? window.innerHeight * 0.9;
+                        const halfBlankSpaceWithoutModal = (window.innerHeight - modalHeight) / 2;
+                        const modalBottomPosition = _modalBottom ?? window.innerHeight - halfBlankSpaceWithoutModal;
+                        const modalTopPosition = _modalTop ?? halfBlankSpaceWithoutModal;
+                        if (
+                          modalBottomPosition < clickedPositionPlusItemHeight &&
+                          modalTopPosition < clickedPositionMinusItemHeight
+                        ) {
+                          setClickedItemPosition({ displayPos: "up", clickedItemWidth: width });
+                        } else if (
+                          modalTopPosition > clickedPositionMinusItemHeight &&
+                          modalBottomPosition < clickedPositionPlusItemHeight
+                        ) {
+                          setClickedItemPosition({ displayPos: "center", clickedItemWidth: width });
+                        } else {
+                          setClickedItemPosition({ displayPos: "down", clickedItemWidth: width });
+                        }
+                        // setClickedItemPosition({ displayPos: "down", clickedItemWidth: width });
                         setIsOpenDropdownMenuFilterProducts(true);
                         handleCloseTooltip();
+
+                        // // ---------------- 🔹課なしパターン ----------------
+                        // setClickedItemPosition({ displayPos: "down", clickedItemWidth: width });
+                        // setIsOpenDropdownMenuFilterProducts(true);
+                        // handleCloseTooltip();
                       }}
                     >
                       {/* <span className={`mr-[9px]`}>紹介商品ﾒｲﾝ</span> */}
@@ -1576,6 +1623,16 @@ export const InsertNewMeetingModal = () => {
                         onBlur={() => {
                           // setPlannedProduct1(toHalfWidth(plannedProduct1.trim()));
                           if (!!resultRefs.current[0]) resultRefs.current[0].style.opacity = "0";
+                          // Blur時に候補が１つのみならその候補のidとNameをセット
+                          if (suggestedProductName[0].length === 1) {
+                            const matchProduct = suggestedProductName[0][0];
+                            setPlannedProduct1InputName(matchProduct.fullName);
+                            setPlannedProduct1(matchProduct.id);
+                            // 候補をリセット
+                            const newSuggestedProductName = [...suggestedProductName];
+                            newSuggestedProductName[0] = [];
+                            setSuggestedProductName(newSuggestedProductName);
+                          }
                         }}
                       />
                       {/* 予測変換結果 */}
@@ -1630,9 +1687,9 @@ export const InsertNewMeetingModal = () => {
                             content: "フィルターされた商品リストを表示します。",
                             content2: "アイコンをクリックしてフィルターの切り替えが可能です。",
                             content3: "商品紹介が無い面談の場合は「他」を選択してください。",
-                            marginTop: 57,
+                            // marginTop: 57,
                             // marginTop: 38,
-                            // marginTop: 12,
+                            marginTop: 12,
                             itemsPosition: "center",
                             whiteSpace: "nowrap",
                           });
@@ -1725,6 +1782,16 @@ export const InsertNewMeetingModal = () => {
                         onBlur={() => {
                           // setPlannedProduct2(toHalfWidth(plannedProduct1.trim()));
                           if (!!resultRefs.current[1]) resultRefs.current[1].style.opacity = "0";
+                          // Blur時に候補が１つのみならその候補のidとNameをセット
+                          if (suggestedProductName[1].length === 1) {
+                            const matchProduct = suggestedProductName[1][0];
+                            setPlannedProduct2InputName(matchProduct.fullName);
+                            setPlannedProduct2(matchProduct.id);
+                            // 候補をリセット
+                            const newSuggestedProductName = [...suggestedProductName];
+                            newSuggestedProductName[1] = [];
+                            setSuggestedProductName(newSuggestedProductName);
+                          }
                         }}
                       />
                       {/* 予測変換結果 */}
@@ -1778,9 +1845,9 @@ export const InsertNewMeetingModal = () => {
                             content: "フィルターされた商品リストを表示します。",
                             content2: "アイコンをクリックしてフィルターの切り替えが可能です。",
                             content3: "商品紹介が無い面談の場合は「他」を選択してください。",
-                            marginTop: 57,
+                            // marginTop: 57,
                             // marginTop: 38,
-                            // marginTop: 12,
+                            marginTop: 12,
                             itemsPosition: "center",
                             whiteSpace: "nowrap",
                           });
@@ -1863,12 +1930,14 @@ export const InsertNewMeetingModal = () => {
                       placeholder=""
                       required
                       className={`${styles.input_box}`}
-                      value={meetingDepartment}
-                      onChange={(e) => setMeetingDepartment(e.target.value)}
+                      value={departmentName}
+                      onChange={(e) => setDepartmentName(e.target.value)}
                       // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
                     /> */}
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      // value={departmentId ? departmentId : ""}
+                      // onChange={(e) => setDepartmentId(e.target.value)}
                       // value={departmentId ? departmentId : ""}
                       // onChange={(e) => setDepartmentId(e.target.value)}
                       value={memberObj.departmentId ? memberObj.departmentId : ""}
@@ -1895,6 +1964,125 @@ export const InsertNewMeetingModal = () => {
             </div>
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 所属事業所 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
+                    {/* <input
+                      type="text"
+                      placeholder=""
+                      required
+                      className={`${styles.input_box}`}
+                      value={businessOffice}
+                      onChange={(e) => setBusinessOffice(e.target.value)}
+                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                    /> */}
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      // value={officeId ? officeId : ""}
+                      // onChange={(e) => setOfficeId(e.target.value)}
+                      value={memberObj.officeId ? memberObj.officeId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, officeId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
+                    >
+                      <option value=""></option>
+                      {officeDataArray &&
+                        officeDataArray.length >= 1 &&
+                        officeDataArray.map((office) => (
+                          <option key={office.id} value={office.id}>
+                            {office.office_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            </div>
+
+            {/* 右ラッパーここまで */}
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 課・セクション */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>課・セクション</span>
+                    <select
+                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={memberObj.sectionId ? memberObj.sectionId : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, sectionId: e.target.value });
+                        setIsOpenConfirmationModal("change_member");
+                      }}
+                    >
+                      <option value=""></option>
+                      {sectionDataArray &&
+                        sectionDataArray.length >= 1 &&
+                        sectionDataArray.map((section) => (
+                          <option key={section.id} value={section.id}>
+                            {section.section_name}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 自社担当 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} !min-w-[140px]`}>自社担当</span>
+                    <input
+                      type="text"
+                      placeholder="*入力必須"
+                      required
+                      className={`${styles.input_box}`}
+                      // value={memberName}
+                      // onChange={(e) => setMemberName(e.target.value)}
+                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
+                      value={memberObj.memberName ? memberObj.memberName : ""}
+                      onChange={(e) => {
+                        setMemberObj({ ...memberObj, memberName: e.target.value });
+                      }}
+                      onKeyUp={() => {
+                        if (prevMemberObj.memberName !== memberObj.memberName) {
+                          setIsOpenConfirmationModal("change_member");
+                          return;
+                        }
+                      }}
+                      onBlur={() => {
+                        if (!memberObj.memberName) return;
+                        setMemberObj({ ...memberObj, memberName: toHalfWidthAndSpace(memberObj.memberName.trim()) });
+                      }}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* 係・チーム */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -1923,101 +2111,12 @@ export const InsertNewMeetingModal = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-            </div>
-
-            {/* 右ラッパーここまで */}
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 所属事業所 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>所属事業所</span>
-                    {/* <input
-                      type="text"
-                      placeholder=""
-                      required
-                      className={`${styles.input_box}`}
-                      value={meetingBusinessOffice}
-                      onChange={(e) => setMeetingBusinessOffice(e.target.value)}
-                      // onBlur={() => setDepartmentName(toHalfWidth(departmentName.trim()))}
-                    /> */}
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      // value={officeId ? officeId : ""}
-                      // onChange={(e) => setOfficeId(e.target.value)}
-                      value={memberObj.officeId ? memberObj.officeId : ""}
-                      onChange={(e) => {
-                        setMemberObj({ ...memberObj, officeId: e.target.value });
-                        setIsOpenConfirmationModal("change_member");
-                      }}
-                    >
-                      <option value=""></option>
-                      {officeDataArray &&
-                        officeDataArray.length >= 1 &&
-                        officeDataArray.map((office) => (
-                          <option key={office.id} value={office.id}>
-                            {office.office_name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
 
               {/* 左ラッパーここまで */}
             </div>
 
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* ●自社担当 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●自社担当</span>
-                    <input
-                      type="text"
-                      placeholder="*入力必須"
-                      required
-                      className={`${styles.input_box}`}
-                      // value={meetingMemberName}
-                      // onChange={(e) => setMeetingMemberName(e.target.value)}
-                      // onBlur={() => setMeetingMemberName(toHalfWidthAndSpace(meetingMemberName.trim()))}
-                      value={memberObj.memberName ? memberObj.memberName : ""}
-                      onChange={(e) => {
-                        setMemberObj({ ...memberObj, memberName: e.target.value });
-                      }}
-                      onKeyUp={() => {
-                        if (prevMemberObj.memberName !== memberObj.memberName) {
-                          setIsOpenConfirmationModal("change_member");
-                          return;
-                        }
-                      }}
-                      onBlur={() => {
-                        if (!memberObj.memberName) return;
-                        setMemberObj({ ...memberObj, memberName: toHalfWidthAndSpace(memberObj.memberName.trim()) });
-                      }}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* ●面談年月度 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -2046,7 +2145,10 @@ export const InsertNewMeetingModal = () => {
                       <span className={`mr-[9px]`}>●面談年月度</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
-                    <input
+                    <div className={`flex min-h-[35px] items-center`}>
+                      <p className={`pl-[5px] text-[14px] text-[var(--color-text-under-input)]`}>{meetingYearMonth}</p>
+                    </div>
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box} pointer-events-none`}
@@ -2068,33 +2170,11 @@ export const InsertNewMeetingModal = () => {
                           }
                         }
                       }}
-                    />
+                    /> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* ●自社担当 */}
-              {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●自社担当</span>
-                    <input
-                      type="text"
-                      placeholder="*入力必須"
-                      required
-                      className={`${styles.input_box}`}
-                      value={meetingMemberName}
-                      onChange={(e) => setMeetingMemberName(e.target.value)}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div> */}
 
               {/* 右ラッパーここまで */}
             </div>
@@ -2123,34 +2203,44 @@ export const InsertNewMeetingModal = () => {
           clickEventSubmit={() => {
             // setMemberObj(prevMemberObj);
             setIsOpenConfirmationModal(null);
-            setIsOpenSearchMemberSideTable(true);
+            // setIsOpenSearchMemberSideTable(true);
+            // モーダルを開く
+            // setIsOpenSearchMemberSideTable(true);
+            setIsOpenSearchMemberSideTableBefore(true);
+            setTimeout(() => {
+              setIsOpenSearchMemberSideTable(true);
+            }, 100);
           }}
         />
       )}
 
       {/* 「自社担当」変更サイドテーブル */}
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <Suspense
-          fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
-        >
-          <SideTableSearchMember
-            isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
-            setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
-            // currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
-            // currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
-            // currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
-            // setChangedMemberObj={setChangedMemberObj}
-            // currentMemberId={memberObj.memberId ?? ""}
-            // currentMemberName={memberObj.memberName ?? ""}
-            // currentMemberDepartmentId={memberObj.departmentId ?? null}
-            prevMemberObj={prevMemberObj}
-            setPrevMemberObj={setPrevMemberObj}
-            memberObj={memberObj}
-            setMemberObj={setMemberObj}
-            // setMeetingMemberName={setMeetingMemberName}
-          />
-        </Suspense>
-      </ErrorBoundary>
+      {isOpenSearchMemberSideTableBefore && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense
+            fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
+          >
+            <SideTableSearchMember
+              isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+              setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
+              isOpenSearchMemberSideTableBefore={isOpenSearchMemberSideTableBefore}
+              setIsOpenSearchMemberSideTableBefore={setIsOpenSearchMemberSideTableBefore}
+              // currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
+              // currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
+              // currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
+              // setChangedMemberObj={setChangedMemberObj}
+              // currentMemberId={memberObj.memberId ?? ""}
+              // currentMemberName={memberObj.memberName ?? ""}
+              // currentMemberDepartmentId={memberObj.departmentId ?? null}
+              prevMemberObj={prevMemberObj}
+              setPrevMemberObj={setPrevMemberObj}
+              memberObj={memberObj}
+              setMemberObj={setMemberObj}
+              // setMeetingMemberName={setMeetingMemberName}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
     </>
   );
 };

@@ -7,7 +7,7 @@ import { ImInfo } from "react-icons/im";
 import useStore from "@/store";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { convertToYen } from "@/utils/Helpers/convertToYen";
-import { Department, Office, Unit } from "@/types";
+import { Department, Office, Section, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
@@ -26,6 +26,7 @@ export const InsertNewProductModal = () => {
   const [insideShortName, setInsideShortName] = useState("");
   const [outsideShortName, setOutsideShortName] = useState("");
   const [createdByDepartment, setCreatedByDepartment] = useState("");
+  const [createdBySection, setCreatedBySection] = useState("");
   const [createdByUnit, setCreatedByUnit] = useState("");
   const [createdByOffice, setCreatedByOffice] = useState("");
 
@@ -34,25 +35,60 @@ export const InsertNewProductModal = () => {
 
   // ================================ 🌟事業部、係、事業所リスト取得useQuery🌟 ================================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ================================ ✅事業部、係、事業所リスト取得useQuery✅ ================================
-  // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
-  const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した事業部で課を絞り込むuseEffect🌟 =======================
+  const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
   useEffect(() => {
     // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
-    if (!unitDataArray || unitDataArray?.length === 0 || !createdByDepartment)
-      return setFilteredUnitBySelectedDepartment([]);
+    if (!sectionDataArray || sectionDataArray?.length === 0 || !createdByDepartment)
+      return setFilteredSectionBySelectedDepartment([]);
 
-    // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
-    if (unitDataArray && unitDataArray.length >= 1 && createdByDepartment) {
-      const filteredUnitArray = unitDataArray.filter((unit) => unit.created_by_department_id === createdByDepartment);
-      setFilteredUnitBySelectedDepartment(filteredUnitArray);
-      // 選択中の係が現在選択中の事業部と異なるなら係をリセットする
-      setCreatedByUnit("");
+    // 選択中の事業部が変化するか、sectionDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (sectionDataArray && sectionDataArray.length >= 1 && createdByDepartment) {
+      const filteredSectionArray = sectionDataArray.filter(
+        (section) => section.created_by_department_id === createdByDepartment
+      );
+      setFilteredSectionBySelectedDepartment(filteredSectionArray);
     }
-  }, [unitDataArray, createdByDepartment]);
-  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+  }, [sectionDataArray, createdByDepartment]);
+  // ======================= ✅現在の選択した事業部で課を絞り込むuseEffect✅ =======================
+
+  // 課ありパターン
+  // ======================= 🌟現在の選択した課で係・チームを絞り込むuseEffect🌟 =======================
+  const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
+  useEffect(() => {
+    // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+    if (!unitDataArray || unitDataArray?.length === 0 || !createdBySection) return setFilteredUnitBySelectedSection([]);
+
+    // 選択中の課が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+    if (unitDataArray && unitDataArray.length >= 1 && createdBySection) {
+      const filteredUnitArray = unitDataArray.filter((unit) => unit.created_by_section_id === createdBySection);
+      setFilteredUnitBySelectedSection(filteredUnitArray);
+    }
+  }, [unitDataArray, createdBySection]);
+  // ======================= ✅現在の選択した課で係・チームを絞り込むuseEffect✅ =======================
+  // // 課なしパターン
+  // // ======================= 🌟現在の選択した事業部で係・チームを絞り込むuseEffect🌟 =======================
+  // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // useEffect(() => {
+  //   // unitが存在せず、stateに要素が1つ以上存在しているなら空にする
+  //   if (!unitDataArray || unitDataArray?.length === 0 || !createdByDepartment)
+  //     return setFilteredUnitBySelectedDepartment([]);
+
+  //   // 選択中の事業部が変化するか、unitDataArrayの内容に変更があったら新たに絞り込んで更新する
+  //   if (unitDataArray && unitDataArray.length >= 1 && createdByDepartment) {
+  //     const filteredUnitArray = unitDataArray.filter((unit) => unit.created_by_department_id === createdByDepartment);
+  //     setFilteredUnitBySelectedDepartment(filteredUnitArray);
+  //     // 選択中の係が現在選択中の事業部と異なるなら係をリセットする
+  //     setCreatedByUnit("");
+  //   }
+  // }, [unitDataArray, createdByDepartment]);
+  // // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
@@ -74,6 +110,7 @@ export const InsertNewProductModal = () => {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
       created_by_department_of_user: createdByDepartment ? createdByDepartment : null,
+      created_by_section_of_user: createdBySection ? createdBySection : null,
       created_by_unit_of_user: createdByUnit ? createdByUnit : null,
       created_by_office_of_user: createdByOffice ? createdByOffice : null,
       product_name: productName,
@@ -214,7 +251,7 @@ export const InsertNewProductModal = () => {
           <div className="cursor-pointer select-none font-semibold hover:text-[#aaa]" onClick={handleCancelAndReset}>
             キャンセル
           </div>
-          <div className="-translate-x-[25px] select-none font-bold">自社商品 追加</div>
+          <div className="-translate-x-[25px] select-none font-bold">自社商品・サービス 追加</div>
 
           <div
             className={`cursor-pointer font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text} select-none`}
@@ -464,7 +501,7 @@ export const InsertNewProductModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 型式・名称(顧客向け) */}
+              {/* 事業部 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -489,7 +526,7 @@ export const InsertNewProductModal = () => {
                       }
                       onMouseLeave={handleCloseTooltip}
                     >
-                      <span className={`mr-[0px]`}>事業部</span>
+                      <span className={`mr-[8px] min-w-[80px]`}>事業部</span>
                       {/* <div className={`mr-[8px] flex flex-col text-[15px]`}>
                         <span className={``}>型式・名称</span>
                         <span className={``}>(顧客向け)</span>
@@ -499,7 +536,12 @@ export const InsertNewProductModal = () => {
                     <select
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={createdByDepartment ? createdByDepartment : ""}
-                      onChange={(e) => setCreatedByDepartment(e.target.value)}
+                      onChange={(e) => {
+                        setCreatedByDepartment(e.target.value);
+                        // 課・係リセット
+                        if (createdBySection) setCreatedBySection("");
+                        if (createdByUnit) setCreatedByUnit("");
+                      }}
                     >
                       <option value=""></option>
                       {departmentDataArray &&
@@ -520,7 +562,91 @@ export const InsertNewProductModal = () => {
 
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 略称(社内向け) */}
+              {/* 課・セクション */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
+                      <span>型式・略称</span>
+                      <span>(社内向け)</span>
+                    </div> */}
+                    <div
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          // content: "社内向け商品を略称で使用している場合に使用します。",
+                          content: "課・セクション別に商品を作成する場合に使用します。",
+                          // content2: "こちらを入力することでデータベース上での表記に使用されます。",
+                          // marginTop: 57,
+                          // marginTop: 39,
+                          // marginTop: 33,
+                          marginTop: 12,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      {/* <span className={`mr-[8px]`}>課・セクション</span> */}
+                      <div className={`mr-[8px] flex min-w-[80px] flex-col text-[15px]`}>
+                        <span className={``}>課・</span>
+                        <span className={``}>セクション</span>
+                      </div>
+                      <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
+                    </div>
+                    {filteredSectionBySelectedDepartment && filteredSectionBySelectedDepartment.length >= 1 && (
+                      <select
+                        className={`ml-auto h-full w-full rounded-[4px] ${styles.select_box} ${styles.min} ${
+                          !filteredSectionBySelectedDepartment || filteredSectionBySelectedDepartment?.length === 0
+                            ? `cursor-not-allowed`
+                            : `cursor-pointer`
+                        }`}
+                        value={createdBySection ? createdBySection : ""}
+                        onChange={(e) => {
+                          if (
+                            !filteredSectionBySelectedDepartment ||
+                            filteredSectionBySelectedDepartment?.length === 0
+                          ) {
+                            return;
+                          }
+                          setCreatedBySection(e.target.value);
+                          // 係リセット
+                          if (createdBySection) setCreatedBySection("");
+                        }}
+                      >
+                        {/* {(!filteredSectionBySelectedDepartment || filteredSectionBySelectedDepartment?.length === 0) && (
+                        <option value="">先に事業部を選択してください</option>
+                      )} */}
+                        {/* {filteredSectionBySelectedDepartment && filteredSectionBySelectedDepartment.length >= 1 && (
+                        <option value=""></option>
+                      )} */}
+                        <option value=""></option>
+                        {filteredSectionBySelectedDepartment &&
+                          filteredSectionBySelectedDepartment.length >= 1 &&
+                          filteredSectionBySelectedDepartment.map((section) => (
+                            <option key={section.id} value={section.id}>
+                              {section.section_name}
+                            </option>
+                          ))}
+                      </select>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 係・チーム */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -547,53 +673,53 @@ export const InsertNewProductModal = () => {
                       }
                       onMouseLeave={handleCloseTooltip}
                     >
-                      <span className={`mr-[8px]`}>係・チーム</span>
+                      <span className={`mr-[8px] min-w-[80px]`}>係・チーム</span>
                       {/* <div className={`mr-[8px] flex flex-col text-[15px]`}>
                         <span className={``}>型式・略称</span>
                         <span className={``}>(社内向け)</span>
                       </div> */}
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
-                    <select
-                      className={`ml-auto h-full w-full rounded-[4px] ${styles.select_box} ${styles.min} ${
-                        !filteredUnitBySelectedDepartment || filteredUnitBySelectedDepartment?.length === 0
-                          ? `cursor-not-allowed`
-                          : `cursor-pointer`
-                      }`}
-                      value={createdByUnit ? createdByUnit : ""}
-                      onChange={(e) => setCreatedByUnit(e.target.value)}
-                    >
-                      {/* {(!filteredUnitBySelectedDepartment || filteredUnitBySelectedDepartment?.length === 0) && (
+                    {filteredUnitBySelectedSection && filteredUnitBySelectedSection.length >= 1 && (
+                      <select
+                        className={`ml-auto h-full w-full rounded-[4px] ${styles.select_box} ${styles.min} ${
+                          !filteredUnitBySelectedSection || filteredUnitBySelectedSection?.length === 0
+                            ? `cursor-not-allowed`
+                            : `cursor-pointer`
+                        }`}
+                        value={createdByUnit ? createdByUnit : ""}
+                        onChange={(e) => {
+                          setCreatedByUnit(e.target.value);
+                        }}
+                      >
+                        {/* {(!filteredUnitBySelectedSection || filteredUnitBySelectedSection?.length === 0) && (
                         <option value="">先に事業部を選択してください</option>
                       )} */}
-                      {filteredUnitBySelectedDepartment && filteredUnitBySelectedDepartment.length >= 1 && (
+                        {/* {filteredUnitBySelectedSection && filteredUnitBySelectedSection.length >= 1 && (
                         <option value=""></option>
-                      )}
-                      {filteredUnitBySelectedDepartment &&
-                        filteredUnitBySelectedDepartment.length >= 1 &&
-                        filteredUnitBySelectedDepartment.map((unit) => (
-                          <option key={unit.id} value={unit.id}>
-                            {unit.unit_name}
-                          </option>
-                        ))}
-                    </select>
+                      )} */}
+                        <option value=""></option>
+                        {filteredUnitBySelectedSection &&
+                          filteredUnitBySelectedSection.length >= 1 &&
+                          filteredUnitBySelectedSection.map((unit) => (
+                            <option key={unit.id} value={unit.id}>
+                              {unit.unit_name}
+                            </option>
+                          ))}
+                      </select>
+                    )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-
-              {/* 右ラッパーここまで */}
+              {/* 左ラッパーここまで */}
             </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
 
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 型式・名称(顧客向け) */}
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 事業所 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className="flex h-full  w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     {/* <div className={`${styles.title} flex !min-w-[140px] flex-col !text-[15px]`}>
                       <span>型式・名称</span>
@@ -617,7 +743,7 @@ export const InsertNewProductModal = () => {
                       onMouseLeave={handleCloseTooltip}
                     >
                       {/* <span className={`mr-[8px]`}>事業所・営業所</span> */}
-                      <div className={`mr-[0px] flex flex-col text-[15px]`}>
+                      <div className={`mr-[8px] flex min-w-[80px] flex-col text-[15px]`}>
                         <span className={``}>事業所・</span>
                         <span className={``}>営業所</span>
                       </div>
@@ -641,20 +767,6 @@ export const InsertNewProductModal = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 略称(社内向け) */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}></div>
-                  {/* <div className={`${styles.underline}`}></div> */}
-                </div>
-              </div>
-
               {/* 右ラッパーここまで */}
             </div>
           </div>

@@ -256,7 +256,10 @@ const TooltipSideTableMemo = () => {
       }}
       ref={menuRef}
     >
-      <div className={`${styles.tooltip}`}>
+      <div
+        className={`${styles.tooltip}`}
+        // style={{ backgroundColor: "#fff" }}
+      >
         <div
           ref={tooltipItemRef}
           style={{

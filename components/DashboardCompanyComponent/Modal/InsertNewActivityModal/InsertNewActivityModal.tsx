@@ -51,6 +51,7 @@ export const InsertNewActivityModal = () => {
   // 確認モーダル(自社担当名、データ所有者変更確認)
   const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
   // 自社担当検索サイドテーブル開閉
+  const [isOpenSearchMemberSideTableBefore, setIsOpenSearchMemberSideTableBefore] = useState(false);
   const [isOpenSearchMemberSideTable, setIsOpenSearchMemberSideTable] = useState(false);
   // 紹介予定商品、実施商品選択時のドロップダウンメニュー用
   // const [modalProperties, setModalProperties] = useState<ModalProperties>();
@@ -1240,34 +1241,43 @@ export const InsertNewActivityModal = () => {
           clickEventSubmit={() => {
             // setMemberObj(prevMemberObj);
             setIsOpenConfirmationModal(null);
-            setIsOpenSearchMemberSideTable(true);
+            // モーダルを開く
+            // setIsOpenSearchMemberSideTable(true);
+            setIsOpenSearchMemberSideTableBefore(true);
+            setTimeout(() => {
+              setIsOpenSearchMemberSideTable(true);
+            }, 100);
           }}
         />
       )}
 
       {/* 「自社担当」変更サイドテーブル */}
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <Suspense
-          fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
-        >
-          <SideTableSearchMember
-            isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
-            setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
-            // currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
-            // currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
-            // currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
-            // setChangedMemberObj={setChangedMemberObj}
-            // currentMemberId={memberObj.memberId ?? ""}
-            // currentMemberName={memberObj.memberName ?? ""}
-            // currentMemberDepartmentId={memberObj.departmentId ?? null}
-            prevMemberObj={prevMemberObj}
-            setPrevMemberObj={setPrevMemberObj}
-            memberObj={memberObj}
-            setMemberObj={setMemberObj}
-            // setMeetingMemberName={setMeetingMemberName}
-          />
-        </Suspense>
-      </ErrorBoundary>
+      {isOpenSearchMemberSideTableBefore && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense
+            fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
+          >
+            <SideTableSearchMember
+              isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+              setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
+              isOpenSearchMemberSideTableBefore={isOpenSearchMemberSideTableBefore}
+              setIsOpenSearchMemberSideTableBefore={setIsOpenSearchMemberSideTableBefore}
+              // currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
+              // currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
+              // currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
+              // setChangedMemberObj={setChangedMemberObj}
+              // currentMemberId={memberObj.memberId ?? ""}
+              // currentMemberName={memberObj.memberName ?? ""}
+              // currentMemberDepartmentId={memberObj.departmentId ?? null}
+              prevMemberObj={prevMemberObj}
+              setPrevMemberObj={setPrevMemberObj}
+              memberObj={memberObj}
+              setMemberObj={setMemberObj}
+              // setMeetingMemberName={setMeetingMemberName}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
     </>
   );
 };

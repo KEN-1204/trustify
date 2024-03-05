@@ -4,7 +4,7 @@ import { Dispatch, FormEvent, SetStateAction, memo, useCallback, useEffect, useR
 import { BsChevronRight } from "react-icons/bs";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import styles from "../UpdateMeetingModal.module.css";
-import { AttendeeInfo, Contact_row_data } from "@/types";
+import { AttendeeInfo, Contact_row_data, Meeting_row_data } from "@/types";
 import { useMedia } from "react-use";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -20,6 +20,8 @@ import { toast } from "react-toastify";
 type Props = {
   isOpenSearchAttendeesSideTable: boolean;
   setIsOpenSearchAttendeesSideTable: Dispatch<SetStateAction<boolean>>;
+  isOpenSearchAttendeesSideTableBefore: boolean;
+  setIsOpenSearchAttendeesSideTableBefore: Dispatch<SetStateAction<boolean>>;
   // searchAttendeeFields: {
   //   title: string;
   //   inputValue: string;
@@ -29,6 +31,8 @@ type Props = {
   // setSelectedAttendeesArray: Dispatch<SetStateAction<Contact_row_data[]>>;
   selectedAttendeesArray: AttendeeInfo[];
   setSelectedAttendeesArray: Dispatch<SetStateAction<AttendeeInfo[]>>;
+  selectedRowData?: Meeting_row_data | null;
+  isSetInitialCompanyName?: boolean;
 };
 
 type SearchAttendeesParams = {
@@ -46,13 +50,18 @@ type SearchAttendeesParams = {
 export const SideTableSearchAttendeesMemo = ({
   isOpenSearchAttendeesSideTable,
   setIsOpenSearchAttendeesSideTable,
+  isOpenSearchAttendeesSideTableBefore,
+  setIsOpenSearchAttendeesSideTableBefore,
   // searchAttendeeFields,
   selectedAttendeesArray,
   setSelectedAttendeesArray,
+  selectedRowData,
+  isSetInitialCompanyName = false,
 }: Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // 説明アイコンホバーで非アクティブ化
   const [hasBeenHoveredIcon, setHasBeenHoveredIcon] = useState(false);
+
   // メディアクエリState
   // デスクトップモニター
   const isDesktopGTE1600Media = useMedia("(min-width: 1600px)", false);
@@ -87,6 +96,13 @@ export const SideTableSearchAttendeesMemo = ({
   // モーダルの同席者カードに追加前のテーブル内で選択中の同席者オブジェクトを保持するstate
   // const [selectedSearchAttendeesArray, setSelectedSearchAttendeesArray] = useState<Contact_row_data[]>([]);
   const [selectedSearchAttendeesArray, setSelectedSearchAttendeesArray] = useState<AttendeeInfo[]>([]);
+
+  // 初回マウント時に会社名のみ入力済みにしておく
+  useEffect(() => {
+    if (selectedRowData && selectedRowData.company_name && isSetInitialCompanyName) {
+      setSearchInputCompany(selectedRowData.company_name);
+    }
+  }, []);
 
   const searchAttendeeFields = [
     {
@@ -206,6 +222,13 @@ export const SideTableSearchAttendeesMemo = ({
   };
   // ------------- ✅検索ボタンクリックかエンターでonSubmitイベント発火✅ -------------
 
+  // 検索タイプ(デフォルトは部分一致検索)
+  const searchType = useDashboardStore((state) => state.searchType);
+
+  // 検索タイプ オート検索/マニュアル検索
+  const functionName =
+    searchType === "partial_match" ? "search_companies_and_contacts_partial" : "search_companies_and_contacts";
+
   let fetchNewSearchServerPage: any;
 
   fetchNewSearchServerPage = async (
@@ -238,18 +261,30 @@ export const SideTableSearchAttendeesMemo = ({
 
     let params = searchAttendeesParams;
 
-    // 会社名、部署名で並び替え
+    // 会社名、部署名で並び替え デフォルトで部分一致検索
     const {
       data: rows,
       error,
       count,
     } = await supabase
-      .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+      .rpc(functionName, { params }, { count: "exact" })
       .eq("created_by_company_id", userProfileState.company_id)
       .range(from, to)
       .order("company_name", { ascending: true })
       .order("company_department_name", { ascending: true });
     // .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
+    // // 会社名、部署名で並び替え
+    // const {
+    //   data: rows,
+    //   error,
+    //   count,
+    // } = await supabase
+    //   .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+    //   .eq("created_by_company_id", userProfileState.company_id)
+    //   .range(from, to)
+    //   .order("company_name", { ascending: true })
+    //   .order("company_department_name", { ascending: true });
+    // // .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
 
     if (error) throw error;
 
@@ -530,7 +565,14 @@ export const SideTableSearchAttendeesMemo = ({
     // 選択中のリスト配列をリセットする
     setSelectedSearchAttendeesArray([]);
     // サイドテーブルを閉じる
+    // setIsOpenSearchAttendeesSideTable(false);
+    // サイドテーブルを閉じる
     setIsOpenSearchAttendeesSideTable(false);
+    if (setIsOpenSearchAttendeesSideTableBefore && setIsOpenSearchAttendeesSideTableBefore) {
+      setTimeout(() => {
+        setIsOpenSearchAttendeesSideTableBefore(false);
+      }, 300);
+    }
   };
   // -------------------------- ✅サイドテーブルを閉じる✅ --------------------------
 
@@ -594,10 +636,14 @@ export const SideTableSearchAttendeesMemo = ({
                 <div
                   className="flex items-end space-x-[10px]"
                   onMouseEnter={(e) => {
+                    const contentTooltip =
+                      searchType === "partial_match"
+                        ? `○同席者が所属する会社名や部署名など条件を入力して検索してください。\n例えば、会社名が「株式会社データベース」で会社住所が「"東京都大田区"」の「"佐藤"」という担当者を検索する場合は、「会社名」に「株式会社データベース」または「データベース」、「住所」に「東京都大田区」、担当者名に「佐藤」などのキーワードを複数項目で入力してください。\n○お客様の検索タイプは現在デフォルトで「部分一致」となっているため、入力したキーワードを含むデータを全て抽出して取得します。\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`
+                        : `○同席者が所属する会社名や部署名など条件を入力して検索してください。\n例えば、会社名が「株式会社データベース」で会社住所が「"東京都大田区"」の「"佐藤"」という担当者を検索する場合は、「会社名」に「株式会社データベース」または「＊データベース＊」を入力し、「住所」に「東京都大田区※」と入力、担当者名に「＊佐藤＊」を入力してください。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n例えば、会社名に「"工業"」と付く会社を検索したい場合に、「※工業※」、「"製作所"」と付く会社は「※製作所※」と検索することで、指定した文字が付くデータを検索可能です\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`;
                     handleOpenTooltip({
                       e: e,
                       display: "",
-                      content: `○同席者が所属する会社名や部署名など条件を入力して検索してください。\n例えば、会社名で「株式会社データベース」で会社住所が「"東京都大田区"」の「"佐藤"」という担当者を検索する場合は、「会社名」に「株式会社データベース」または「＊データベース＊」を入力し、「住所」に「東京都大田区※」と入力、担当者名に「＊佐藤＊」を入力してください。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n例えば、会社名に「"工業"」と付く会社を検索したい場合に、「※工業※」、「"製作所"」と付く会社は「※製作所※」と検索することで、指定した文字が付くデータを検索可能です\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○最低一つの項目は入力して検索してください。`,
+                      content: contentTooltip,
                       // content2: "600万円と入力しても円単位に自動補完されます。",
                       // marginTop: 57,
                       marginTop: 39,
@@ -610,7 +656,7 @@ export const SideTableSearchAttendeesMemo = ({
                   }}
                   onMouseLeave={handleCloseTooltip}
                 >
-                  <span>条件を入力して同席者を検索</span>
+                  <span className="pointer-events-none">条件を入力して同席者を検索</span>
                   {/* <div className="min-h-[1px] w-auto bg-[#999]"></div> */}
                   {/* <RippleButton
                     title={`検索`}

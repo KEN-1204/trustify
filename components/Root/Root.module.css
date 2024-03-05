@@ -612,7 +612,8 @@
   /* transition: all 600ms cubic-bezier(0.25, 0.46, 0.45, 0.94) 0s; */
   /* -webkit-box-reflect: below 0 linear-gradient(transparent, transparent, #0005); */
   /* -webkit-box-reflect: below 0 linear-gradient(transparent, transparent, transparent, #00000015, #00000035); */
-  -webkit-box-reflect: below 0 linear-gradient(transparent, transparent, transparent, #00000010, #00000035);
+  /* -webkit-box-reflect: below 0 linear-gradient(transparent, transparent, transparent, #00000010, #00000035); */
+  -webkit-box-reflect: below 0 linear-gradient(transparent, transparent, transparent, #00000012, #00000036);
 }
 @media screen and (max-width: 1600px) {
   .light_back {

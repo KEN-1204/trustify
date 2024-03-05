@@ -99,6 +99,7 @@
   z-index: 1500;
   pointer-events: none;
   font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
+  /* background: #a6a6a6; */
 }
 .tooltip_over {
   /* top: 38px; */

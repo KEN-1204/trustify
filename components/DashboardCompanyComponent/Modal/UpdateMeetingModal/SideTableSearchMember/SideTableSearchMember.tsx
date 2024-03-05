@@ -282,6 +282,15 @@ Props) => {
   };
   // ------------- ✅検索ボタンクリックかエンターでonSubmitイベント発火✅ -------------
 
+  // 検索タイプ(デフォルトは部分一致検索)
+  const searchType = useDashboardStore((state) => state.searchType);
+
+  // 検索タイプ オート検索/マニュアル検索
+  const functionName =
+    searchType === "partial_match"
+      ? "get_members_searched_name_employee_id_name_partial"
+      : "get_members_searched_name_employee_id_name";
+
   let fetchNewSearchServerPage: any;
 
   fetchNewSearchServerPage = async (
@@ -349,18 +358,33 @@ Props) => {
     //   .range(from, to)
     //   .order("assigned_department_name", { ascending: true })
     //   .order("profile_name", { ascending: true });
+
+    // デフォルト部分一致検索あり切り替えパターン
     const {
       data: rows,
       error,
       count,
     } = await supabase
-      .rpc("get_members_searched_name_employee_id_name", params, { count: "exact" })
+      .rpc(functionName, params, { count: "exact" })
       .range(from, to)
       .order("assigned_department_name", { ascending: true })
       .order("assigned_section_name", { ascending: true })
       .order("assigned_unit_name", { ascending: true })
       .order("profile_name", { ascending: true });
     // .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
+    // // デフォルト部分一致検索なしパターン
+    // const {
+    //   data: rows,
+    //   error,
+    //   count,
+    // } = await supabase
+    //   .rpc("get_members_searched_name_employee_id_name", params, { count: "exact" })
+    //   .range(from, to)
+    //   .order("assigned_department_name", { ascending: true })
+    //   .order("assigned_section_name", { ascending: true })
+    //   .order("assigned_unit_name", { ascending: true })
+    //   .order("profile_name", { ascending: true });
+    // // .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
 
     if (error) {
       console.error("❌rpcエラー", error);
@@ -501,7 +525,8 @@ Props) => {
     if (!selectedMemberObj.id) return alert("エラー：メンバーデータが見つかりませんでした。");
     if (!selectedMemberObj.profile_name) return alert("エラー：メンバー名が見つかりませんでした。");
     // 現在の自社担当と同じidの場合はリターンする idはprofiles.id
-    const isEqualMember = selectedMemberObj.id === memberObj.memberId;
+    // const isEqualMember = selectedMemberObj.id === memberObj.memberId;
+    const isEqualMember = false;
     if (isEqualMember) {
       alert(`同じ担当者です。変更が不要な場合は右上の矢印ボタンかテーブル以外をクリックして戻ってください。`);
       return;
@@ -786,10 +811,14 @@ Props) => {
                 <div
                   className="flex items-end space-x-[10px]"
                   onMouseEnter={(e) => {
+                    const contentTooltip =
+                      searchType === "partial_match"
+                        ? `○メンバーの名前、社員番号・ID名、事業部、課・セクション、係・チーム、事業所を条件に入力して検索してください。\n例えば、担当者名が「佐藤 礼司」で「マイクロスコープ事業部」という事業部の担当者を検索する場合は、「社員名」に「佐藤 礼司」または「佐藤」を、「事業部」は「マイクロスコープ」などのキーワードを入力して検索します。\n○お客様の現在の検索タイプは「部分一致検索」です。\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○「社員名」「社員番号・ID」の最低どちらか一つの項目は入力して検索してください。`
+                        : `○メンバーの名前、社員番号・ID名、事業部、課・セクション、係・チーム、事業所を条件に入力して検索してください。\n例えば、担当者名が「佐藤 礼司」で「マイクロスコープ事業部」という事業部の担当者を検索する場合は、「社員名」に「佐藤 礼司」または「佐藤＊」を入力し、「事業部」は「マイクロスコープ事業部」を選択して検索します。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○「社員名」「社員番号・ID」の最低どちらか一つの項目は入力して検索してください。`;
                     handleOpenTooltip({
                       e: e,
                       display: "",
-                      content: `○メンバーの名前、社員番号・ID名、事業部、課・セクション、係・チーム、事業所を条件に入力して検索してください。\n例えば、担当者名が「佐藤 礼司」で「マイクロスコープ事業部」という事業部の担当者を検索する場合は、「社員名」に「佐藤 礼司」または「佐藤＊」を入力し、「事業部」は「マイクロスコープ事業部」を選択して検索します。\n○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します。\n○「○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します。\n○「社員名」「社員番号・ID」の最低どちらか一つの項目は入力して検索してください。`,
+                      content: contentTooltip,
                       // content2: "600万円と入力しても円単位に自動補完されます。",
                       // marginTop: 57,
                       marginTop: 39,
@@ -1102,8 +1131,7 @@ Props) => {
               {memberRows &&
                 memberRows.length > 0 &&
                 memberRows.map((member: MemberAccounts, index) => {
-                  // if (member.id === currentMemberId) return;
-                  if (member.id === memberObj.memberId) return;
+                  // if (member.id === memberObj.memberId) return;
                   return (
                     <li
                       key={member.id}
