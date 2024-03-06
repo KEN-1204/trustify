@@ -1636,7 +1636,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       else {
         console.log("日付チェック 新たな日付のためこのまま更新 newValue", newValue);
         // フィールドがproperty_date（案件日）は年月度も, expansion_date, sales_dateの場合は四半期と年月度も同時に更新
-        if (fieldName === "property_date" || fieldName === "expansion_date" || fieldName === "sales_date") {
+        if (
+          fieldName === "property_date" ||
+          fieldName === "expansion_date" ||
+          fieldName === "sales_date" ||
+          fieldName === "expected_order_date"
+        ) {
           if (!(newDateObj instanceof Date)) return console.log("Dateオブジェクトでないためリターン");
           if (!closingDayRef.current)
             return toast.error("決算日データが確認できないため、活動を更新できませんでした...🙇‍♀️");
@@ -1702,7 +1707,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
             await updatePropertyFieldMutation.mutateAsync(updatePayload);
           }
           // 展開日付と売上日付は四半期と年月度も同時にUPDATEする
-          else if (fieldName === "expansion_date" || fieldName === "sales_date") {
+          else if (
+            fieldName === "expansion_date" ||
+            fieldName === "sales_date" ||
+            fieldName === "expected_order_date"
+          ) {
             // if (!(newDateObj instanceof Date)) return console.log("Dateオブジェクトでないためリターン");
             // const fiscalEndDateObj = fiscalEndMonthObjRef.current;
             // if (!fiscalEndDateObj) return alert("エラー：決算日データが見つかりませんでした。");
@@ -2052,9 +2061,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             e,
                             field: "current_status",
                             dispatch: setInputCurrentStatus,
-                            dateValue: selectedRowDataProperty?.current_status
+                            selectedRowDataValue: selectedRowDataProperty?.current_status
                               ? selectedRowDataProperty.current_status
-                              : null,
+                              : "",
                           });
                         }}
                       >
@@ -2247,7 +2256,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             dispatch: setInputPropertySummary,
                             selectedRowDataValue: selectedRowDataProperty?.property_summary
                               ? selectedRowDataProperty?.property_summary
-                              : null,
+                              : "",
                           });
                         }}
                         onMouseEnter={(e) => {
@@ -2564,6 +2573,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                                 newValue: newDateUTCString,
                                 id: selectedRowDataProperty?.property_id,
                                 required: true,
+                                newDateObj: inputExpectedOrderDateForFieldEditMode,
                               });
                             }}
                           />
@@ -2778,6 +2788,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             e,
                             field: "term_division",
                             dispatch: setInputTermDivision,
+                            selectedRowDataValue: selectedRowDataProperty?.term_division ?? "",
                           });
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
@@ -3040,6 +3051,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             e,
                             field: "sales_contribution_category",
                             dispatch: setInputSalesContributionCategory,
+                            selectedRowDataValue: selectedRowDataProperty?.sales_contribution_category ?? "",
                           });
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
@@ -3398,6 +3410,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             e,
                             field: "sales_class",
                             dispatch: setInputSalesClass,
+                            selectedRowDataValue: selectedRowDataProperty?.sales_class ?? "",
                           });
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
@@ -3507,6 +3520,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             e,
                             field: "subscription_interval",
                             dispatch: setInputSubscriptionInterval,
+                            selectedRowDataValue: selectedRowDataProperty?.subscription_interval ?? "",
                           });
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
@@ -3850,6 +3864,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             e,
                             field: "lease_division",
                             dispatch: setInputLeaseDivision,
+                            selectedRowDataValue: selectedRowDataProperty?.lease_division ?? "",
                           });
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
@@ -5233,6 +5248,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                               e,
                               field: "competition_state",
                               dispatch: setInputCompetitionState,
+                              selectedRowDataValue: selectedRowDataProperty?.competition_state ?? "",
                             });
                             if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
@@ -5289,7 +5305,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             <option value=""></option>
                             {optionsCompetitionState.map((option) => (
                               <option key={option} value={option}>
-                                {option}
+                                {getCompetitionState(option)}
                               </option>
                             ))}
                             {/* <option value="今期">今期</option>
@@ -5563,6 +5579,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                               e,
                               field: "reason_class",
                               dispatch: setInputReasonClass,
+                              selectedRowDataValue: selectedRowDataProperty?.reason_class ?? "",
                             });
                             if (hoveredItemPosWrap) handleCloseTooltip();
                           }}
@@ -5883,6 +5900,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                               e,
                               field: "decision_maker_negotiation",
                               dispatch: setInputDecisionMakerNegotiation,
+                              selectedRowDataValue: selectedRowDataProperty?.decision_maker_negotiation ?? "",
                             });
                             if (hoveredItemPosWrap) handleCloseTooltip();
                           }}

@@ -87,6 +87,7 @@ export const UpdatePropertyModal = () => {
   // 確認モーダル(自社担当名、データ所有者変更確認)
   const [isOpenConfirmationModal, setIsOpenConfirmationModal] = useState<string | null>(null);
   // 自社担当検索サイドテーブル開閉
+  const [isOpenSearchMemberSideTableBefore, setIsOpenSearchMemberSideTableBefore] = useState(false);
   const [isOpenSearchMemberSideTable, setIsOpenSearchMemberSideTable] = useState(false);
   // 紹介予定商品、実施商品選択時のドロップダウンメニュー用
   const [modalProperties, setModalProperties] = useState<ModalProperties>();
@@ -138,7 +139,6 @@ export const UpdatePropertyModal = () => {
   const [expectedProductFullNameInput, setExpectedProductFullNameInput] = useState(""); //商品(予定)(フルネーム)
   // const [productSales, setProductSales] = useState<number | null>(null); //予定売上台数
   const [productSales, setProductSales] = useState<string>(""); //予定売上台数
-  const [expectedOrderDate, setExpectedOrderDate] = useState<Date | null>(null);
   // const [expectedSalesPrice, setExpectedSalesPrice] = useState<number | null>(null);
   const [expectedSalesPrice, setExpectedSalesPrice] = useState<string>(""); //予定売上価格
   const [termDivision, setTermDivision] = useState(""); //今期・来期
@@ -157,7 +157,7 @@ export const UpdatePropertyModal = () => {
   const [discountedRate, setDiscountedRate] = useState<string>(""); //値引率
   const [salesClass, setSalesClass] = useState(""); //導入分類
 
-  // ============================== 日付、年月度、四半期、半期、年度関連
+  // ============================== 🔹日付、年月度、四半期、半期、年度関連🔹
   // 案件日付
   const [propertyDate, setPropertyDate] = useState<Date | null>(
     selectedRowDataProperty && selectedRowDataProperty.property_date
@@ -186,9 +186,18 @@ export const UpdatePropertyModal = () => {
   const [salesQuarterSelectedYear, setSalesQuarterSelectedYear] = useState<number | null>(null);
   const [salesQuarterSelectedQuarter, setSalesQuarterSelectedQuarter] = useState<number | null>(null);
   const [salesQuarter, setSalesQuarter] = useState<number | null>(null);
+  // 🌠ネタ表抽出用 獲得予定関連
+  // 獲得予定日付
+  const [expectedOrderDate, setExpectedOrderDate] = useState<Date | null>(null);
+  // 獲得予定年月度
+  const [expectedOrderYearMonth, setExpectedOrderYearMonth] = useState<number | null>(null);
+  // 獲得予定四半期 1.selectタグで年度を保持  2.selectタグでQを保持  3.年とQを合体
+  const [expectedOrderQuarterSelectedYear, setExpectedOrderQuarterSelectedYear] = useState<number | null>(null); //1
+  const [expectedOrderQuarterSelectedQuarter, setExpectedOrderQuarterSelectedQuarter] = useState<number | null>(null); //2
+  const [expectedOrderQuarter, setExpectedOrderQuarter] = useState<number | null>(null); //3
   // 半期 => サブミット時に四半期から上・下半期を算出
   // 年度 => サブミット時に四半期から年度を算出
-  // ============================== 日付、年月度、四半期、半期、年度関連 ここまで
+  // ============================== 🔹日付、年月度、四半期、半期、年度関連🔹 ここまで
   const [subscriptionStartDate, setSubscriptionStartDate] = useState<Date | null>(null); //サブスク開始日
   const [subscriptionCanceledAt, setSubscriptionCanceledAt] = useState<Date | null>(null); //サブスク解約日
   const [leasingCompany, setLeasingCompany] = useState(""); //リース会社
@@ -558,6 +567,54 @@ export const UpdatePropertyModal = () => {
   }, [propertyDate]);
   // ---------------------------- ✅案件年月度・案件四半期✅ ----------------------------
 
+  // ---------------------------- 🌟獲得予定年月度, 獲得予定四半期🌟 ----------------------------
+  // 🌟展開日付から展開年月度、展開四半期を自動で計算、入力するuseEffect
+  useEffect(() => {
+    if (!expectedOrderDate || !closingDayRef.current || !fiscalEndMonthObjRef.current) {
+      setExpectedOrderYearMonth(null);
+      setExpectedOrderQuarterSelectedYear(null);
+      setExpectedOrderQuarterSelectedQuarter(null);
+      return;
+    }
+    // 面談日付からユーザーの財務サイクルに応じた面談年月度を取得
+    const fiscalYearMonth = calculateDateToYearMonth(expectedOrderDate, closingDayRef.current);
+    setExpectedOrderYearMonth(fiscalYearMonth);
+
+    // 四半期を自動で入力
+    // 四半期の年部分をセット 日本の場合、年度表示には期初が属す年をあて、米国では、FY表示に期末が属す年をあてる
+    // 日本：［2021年4月～2022年3月］を期間とする場合は2021年度
+    // アメリカ：［2021年4月～2022年3月］の期間であれば "FY 2022"
+    let newExpectedOrderQuarterSelectedYear: number | null;
+    // 🔹期首を会計年度基準とするルート
+    if (
+      userProfileState?.customer_fiscal_year_basis === "firstDayBasis" ||
+      !userProfileState?.customer_fiscal_year_basis
+    ) {
+      // newExpectedOrderQuarterSelectedYear = initialDate.getFullYear() ?? null;
+      const fiscalEnd = fiscalEndMonthObjRef.current;
+      newExpectedOrderQuarterSelectedYear =
+        getFiscalYear(expectedOrderDate, fiscalEnd.getMonth() + 1, fiscalEnd.getDate(), "firstDayBasis") ?? null;
+      setExpectedOrderQuarterSelectedYear(newExpectedOrderQuarterSelectedYear);
+    } else {
+      // 🔹期末を会計年度基準とするルート
+      // newExpectedOrderQuarterSelectedYear = expectedOrderDate.getFullYear() ?? null;
+      const fiscalEnd = fiscalEndMonthObjRef.current;
+      newExpectedOrderQuarterSelectedYear =
+        getFiscalYear(expectedOrderDate, fiscalEnd.getMonth() + 1, fiscalEnd.getDate(), "endDayBasis") ?? null;
+      setExpectedOrderQuarterSelectedYear(newExpectedOrderQuarterSelectedYear);
+    }
+    // 四半期のQ部分をセット
+    // const _expansionFiscalQuarter = getFiscalQuarter(fiscalEndMonthObjRef.current, expectedOrderDate);
+    const _expectedOrderFiscalQuarter = getFiscalQuarterTest(fiscalEndMonthObjRef.current, expectedOrderDate);
+    console.log("獲得予定四半期", _expectedOrderFiscalQuarter);
+    setExpectedOrderQuarterSelectedQuarter(_expectedOrderFiscalQuarter);
+    // 四半期を5桁の数値でセット
+    if (!newExpectedOrderQuarterSelectedYear) return;
+    const newExpectedOrderQuarter = newExpectedOrderQuarterSelectedYear * 10 + _expectedOrderFiscalQuarter;
+    setExpectedOrderQuarter(newExpectedOrderQuarter);
+  }, [expectedOrderDate]);
+  // ---------------------------- ✅獲得予定年月度, 獲得予定四半期✅ ----------------------------
+
   // ---------------------------- 🌟展開年月度, 展開四半期🌟 ----------------------------
   // 🌟展開日付から展開年月度、展開四半期を自動で計算、入力するuseEffect
   useEffect(() => {
@@ -728,9 +785,6 @@ export const UpdatePropertyModal = () => {
       : "";
     let _expected_product = selectedRowDataProperty.expected_product ? selectedRowDataProperty.expected_product : "";
     let _product_sales = selectedRowDataProperty.product_sales ? selectedRowDataProperty.product_sales.toString() : "";
-    let _expected_order_date = selectedRowDataProperty.expected_order_date
-      ? new Date(selectedRowDataProperty.expected_order_date)
-      : null;
     let _expected_sales_price = checkNotFalsyExcludeZero(selectedRowDataProperty.expected_sales_price)
       ? selectedRowDataProperty.expected_sales_price!.toLocaleString()
       : "";
@@ -755,14 +809,6 @@ export const UpdatePropertyModal = () => {
       ? selectedRowDataProperty.discount_rate!.toString()
       : "";
     let _sales_class = selectedRowDataProperty.sales_class ? selectedRowDataProperty.sales_class : "";
-    let _expansion_date = selectedRowDataProperty.expansion_date
-      ? new Date(selectedRowDataProperty.expansion_date)
-      : null;
-    let _sales_date = selectedRowDataProperty.sales_date ? new Date(selectedRowDataProperty.sales_date) : null;
-    let _expansion_quarter = selectedRowDataProperty.expansion_quarter
-      ? selectedRowDataProperty.expansion_quarter
-      : null;
-    let _sales_quarter = selectedRowDataProperty.sales_quarter ? selectedRowDataProperty.sales_quarter : null;
     let _subscription_start_date = selectedRowDataProperty.subscription_start_date
       ? new Date(selectedRowDataProperty.subscription_start_date)
       : null;
@@ -797,17 +843,42 @@ export const UpdatePropertyModal = () => {
     let _decision_maker_negotiation = selectedRowDataProperty.decision_maker_negotiation
       ? selectedRowDataProperty.decision_maker_negotiation
       : "";
-    let _expansion_year_month = selectedRowDataProperty.expansion_year_month
-      ? selectedRowDataProperty.expansion_year_month
-      : null;
-    let _sales_year_month = selectedRowDataProperty.sales_year_month ? selectedRowDataProperty.sales_year_month : null;
     let _subscription_interval = selectedRowDataProperty.subscription_interval
       ? selectedRowDataProperty.subscription_interval
       : "";
     let _competition_state = selectedRowDataProperty.competition_state ? selectedRowDataProperty.competition_state : "";
+
+    // ============================== 🔹日付、年月度、四半期、半期、年度関連🔹
+    // 日付
+    let _property_date = selectedRowDataProperty.property_date ? new Date(selectedRowDataProperty.property_date) : null;
+    let _expansion_date = selectedRowDataProperty.expansion_date
+      ? new Date(selectedRowDataProperty.expansion_date)
+      : null;
+    let _sales_date = selectedRowDataProperty.sales_date ? new Date(selectedRowDataProperty.sales_date) : null;
+    let _expected_order_date = selectedRowDataProperty.expected_order_date
+      ? new Date(selectedRowDataProperty.expected_order_date)
+      : null;
+    // 年月度
     let _property_year_month = selectedRowDataProperty.property_year_month
       ? selectedRowDataProperty.property_year_month
       : Number(selectedYearMonthInitialValue);
+    let _expansion_year_month = selectedRowDataProperty.expansion_year_month
+      ? selectedRowDataProperty.expansion_year_month
+      : null;
+    let _sales_year_month = selectedRowDataProperty.sales_year_month ? selectedRowDataProperty.sales_year_month : null;
+    let _expected_order_year_month = selectedRowDataProperty.expected_order_year_month
+      ? selectedRowDataProperty.expected_order_year_month
+      : null;
+    // 四半期
+    let _property_quarter = selectedRowDataProperty.property_quarter ? selectedRowDataProperty.property_quarter : null;
+    let _expansion_quarter = selectedRowDataProperty.expansion_quarter
+      ? selectedRowDataProperty.expansion_quarter
+      : null;
+    let _sales_quarter = selectedRowDataProperty.sales_quarter ? selectedRowDataProperty.sales_quarter : null;
+    let _expected_order_quarter = selectedRowDataProperty.expected_order_quarter
+      ? selectedRowDataProperty.expected_order_quarter
+      : null;
+    // ============================== 🔹日付、年月度、四半期、半期、年度関連🔹 ここまで
     let _property_department = selectedRowDataProperty.property_created_by_department_of_user
       ? selectedRowDataProperty.property_created_by_department_of_user
       : "";
@@ -823,7 +894,6 @@ export const UpdatePropertyModal = () => {
     let _property_member_name = selectedRowDataProperty.property_member_name
       ? selectedRowDataProperty.property_member_name
       : "";
-    let _property_date = selectedRowDataProperty.property_date ? new Date(selectedRowDataProperty.property_date) : null;
 
     // 🔹予定商品と売上商品、初回マウント時セット
     let _productName;
@@ -904,7 +974,6 @@ export const UpdatePropertyModal = () => {
     setSoldProductFullNameInput(soldProductFullName ?? "");
     //
     setProductSales(_product_sales);
-    setExpectedOrderDate(_expected_order_date);
     setExpectedSalesPrice(_expected_sales_price);
     setTermDivision(_term_division);
     // setSoldProductName(_sold_product_name);
@@ -915,10 +984,6 @@ export const UpdatePropertyModal = () => {
     setDiscountedPrice(_discounted_price);
     setDiscountedRate(_discount_rate);
     setSalesClass(_sales_class);
-    setExpansionDate(_expansion_date);
-    setSalesDate(_sales_date);
-    setExpansionQuarter(_expansion_quarter);
-    setSalesQuarter(_sales_quarter);
     setSubscriptionStartDate(_subscription_start_date);
     setSubscriptionCanceledAt(_subscription_canceled_at);
     setLeasingCompany(_leasing_company);
@@ -935,11 +1000,25 @@ export const UpdatePropertyModal = () => {
     setReasonDetail(_reason_detail);
     setCustomerBudget(_customer_budget);
     setDecisionMakerNegotiation(_decision_maker_negotiation);
-    setExpansionYearMonth(_expansion_year_month);
-    setSalesYearMonth(_sales_year_month);
     setSubscriptionInterval(_subscription_interval);
     setCompetitionState(_competition_state);
+    // ============================== 🔹日付、年月度、四半期、半期、年度関連🔹
+    // 日付
+    setPropertyDate(_property_date);
+    setExpansionDate(_expansion_date);
+    setSalesDate(_sales_date);
+    setExpectedOrderDate(_expected_order_date);
+    // 年月度
     setPropertyYearMonth(_property_year_month);
+    setExpansionYearMonth(_expansion_year_month);
+    setSalesYearMonth(_sales_year_month);
+    setExpectedOrderYearMonth(_expected_order_year_month);
+    // 四半期
+    setPropertyQuarter(_property_quarter);
+    setExpansionQuarter(_expansion_quarter);
+    setSalesQuarter(_sales_quarter);
+    setExpectedOrderQuarter(_expected_order_quarter);
+    // ============================== 🔹日付、年月度、四半期、半期、年度関連🔹 ここまで
     // setPropertyDepartment(_property_department);
     // setPropertyBusinessOffice(_property_business_office);
     // setDepartmentId(_property_department);
@@ -1032,10 +1111,19 @@ export const UpdatePropertyModal = () => {
           ? salesQuarterSelectedYear * 10 + 2
           : null
         : null;
+    const expectedOrderFiscalHalf =
+      expectedOrderQuarterSelectedQuarter && expectedOrderQuarterSelectedYear
+        ? [1, 2].includes(expectedOrderQuarterSelectedQuarter)
+          ? expectedOrderQuarterSelectedYear * 10 + 1
+          : [3, 4].includes(expectedOrderQuarterSelectedQuarter)
+          ? expectedOrderQuarterSelectedYear * 10 + 2
+          : null
+        : null;
     // 年度
     const propertyFiscalYear = propertyQuarterSelectedYear;
     const expansionFiscalYear = expansionQuarterSelectedYear;
     const salesFiscalYear = salesQuarterSelectedYear;
+    const expectedOrderFiscalYear = expectedOrderQuarterSelectedYear;
     // -------------------------- 半期と会計年度を算出(案件・展開・売上)ここまで --------------------------
 
     setLoadingGlobalState(true);
@@ -1074,7 +1162,6 @@ export const UpdatePropertyModal = () => {
       expected_product_id: expectedProductId ? expectedProductId : null,
       expected_product: expectedProductName ? expectedProductName : null,
       product_sales: !isNaN(parseInt(productSales, 10)) ? parseInt(productSales, 10) : null,
-      expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
       expected_sales_price: checkNotFalsyExcludeZero(expectedSalesPrice) ? expectedSalesPrice.replace(/,/g, "") : null,
       term_division: termDivision ? termDivision : null,
       // sold_product_name: soldProductName ? soldProductName : null,
@@ -1087,10 +1174,6 @@ export const UpdatePropertyModal = () => {
       discounted_price: checkNotFalsyExcludeZero(discountedPrice) ? discountedPrice.replace(/,/g, "") : null,
       discount_rate: checkNotFalsyExcludeZero(discountedRate) ? discountedRate.replace(/[%％]/g, "") : null,
       sales_class: salesClass ? salesClass : null,
-      expansion_date: expansionDate ? expansionDate.toISOString() : null,
-      sales_date: salesDate ? salesDate.toISOString() : null,
-      expansion_quarter: expansionQuarter ? expansionQuarter : null,
-      sales_quarter: salesQuarter ? salesQuarter : null,
       subscription_start_date: subscriptionStartDate ? subscriptionStartDate.toISOString() : null,
       subscription_canceled_at: subscriptionCanceledAt ? subscriptionCanceledAt.toISOString() : null,
       leasing_company: leasingCompany ? leasingCompany : null,
@@ -1111,23 +1194,39 @@ export const UpdatePropertyModal = () => {
       // customer_budget: !isNaN(parseInt(customerBudget, 10)) ? parseInt(customerBudget, 10) : null,
       customer_budget: checkNotFalsyExcludeZero(customerBudget) ? customerBudget.replace(/,/g, "") : null, // 0以外のfalsyならnullをセット 0円は許容
       decision_maker_negotiation: decisionMakerNegotiation ? decisionMakerNegotiation : null,
-      expansion_year_month: expansionYearMonth ? expansionYearMonth : null,
-      sales_year_month: salesYearMonth ? salesYearMonth : null,
       subscription_interval: subscriptionInterval ? subscriptionInterval : null,
       competition_state: competitionState ? competitionState : null,
-      property_year_month: PropertyYearMonth ? PropertyYearMonth : null,
       property_department: departmentName ? departmentName : null,
       property_business_office: officeName ? officeName : null,
       property_member_name: memberObj?.memberName ? memberObj?.memberName : null,
+      // 🔹案件四半期・半期(案件、展開、売上・獲得予定時期)・会計年度(案件、展開、売上・獲得予定時期)🔹
+      // 🌠追加
+      // 日付
       property_date: propertyDate ? propertyDate.toISOString() : null,
-      // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
-      property_quarter: propertyQuarter,
-      property_half_year: propertyFiscalHalf,
-      expansion_half_year: expansionFiscalHalf,
-      sales_half_year: salesFiscalHalf,
-      property_fiscal_year: propertyFiscalYear,
-      expansion_fiscal_year: expansionFiscalYear,
-      sales_fiscal_year: salesFiscalYear,
+      expansion_date: expansionDate ? expansionDate.toISOString() : null,
+      sales_date: salesDate ? salesDate.toISOString() : null,
+      expected_order_date: expectedOrderDate ? expectedOrderDate.toISOString() : null,
+      // 年月度
+      property_year_month: PropertyYearMonth ? PropertyYearMonth : null,
+      expansion_year_month: expansionYearMonth ? expansionYearMonth : null,
+      sales_year_month: salesYearMonth ? salesYearMonth : null,
+      expected_order_year_month: expectedOrderYearMonth ? expectedOrderYearMonth : null, // 獲得予定年月度
+      // 四半期
+      property_quarter: propertyQuarter ? propertyQuarter : null,
+      expansion_quarter: expansionQuarter ? expansionQuarter : null,
+      sales_quarter: salesQuarter ? salesQuarter : null,
+      expected_order_quarter: expectedOrderQuarter, // 獲得予定四半期
+      // 半期
+      property_half_year: propertyFiscalHalf ? propertyFiscalHalf : null,
+      expansion_half_year: expansionFiscalHalf ? expansionFiscalHalf : null,
+      sales_half_year: salesFiscalHalf ? salesFiscalHalf : null,
+      expected_order_half_year: expectedOrderFiscalHalf ? expectedOrderFiscalHalf : null,
+      // 年度
+      property_fiscal_year: propertyFiscalYear ? propertyFiscalYear : null,
+      expansion_fiscal_year: expansionFiscalYear ? expansionFiscalYear : null,
+      sales_fiscal_year: salesFiscalYear ? salesFiscalYear : null,
+      expected_order_fiscal_year: expectedOrderFiscalYear ? expectedOrderFiscalYear : null,
+      // 🔹案件四半期・半期(案件、展開、売上・獲得予定時期)・会計年度(案件、展開、売上・獲得予定時期)🔹ここまで
     };
 
     console.log("案件 新規作成 newProperty", newProperty);
@@ -1288,8 +1387,18 @@ export const UpdatePropertyModal = () => {
     "soldProductFullNameInput",
     soldProductFullNameInput,
     "suggestedProductIdNameArray",
-    suggestedProductIdNameArray
-    // !isNaN(parseInt(unitSales, 10)) ? parseInt(unitSales, 10) : null
+    suggestedProductIdNameArray,
+    "✅獲得予定関連",
+    "expectedOrderDate",
+    expectedOrderDate,
+    "expectedOrderYearMonth",
+    expectedOrderYearMonth,
+    "expectedOrderQuarter",
+    expectedOrderQuarter,
+    "expectedOrderQuarterSelectedYear",
+    expectedOrderQuarterSelectedYear,
+    "expectedOrderQuarterSelectedQuarter",
+    expectedOrderQuarterSelectedQuarter
   );
 
   return (
@@ -3979,34 +4088,44 @@ export const UpdatePropertyModal = () => {
           clickEventSubmit={() => {
             // setMemberObj(prevMemberObj);
             setIsOpenConfirmationModal(null);
-            setIsOpenSearchMemberSideTable(true);
+            // setIsOpenSearchMemberSideTable(true);
+            // モーダルを開く
+            // setIsOpenSearchMemberSideTable(true);
+            setIsOpenSearchMemberSideTableBefore(true);
+            setTimeout(() => {
+              setIsOpenSearchMemberSideTable(true);
+            }, 100);
           }}
         />
       )}
 
       {/* 「自社担当」変更サイドテーブル */}
-      <ErrorBoundary FallbackComponent={ErrorFallback}>
-        <Suspense
-          fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
-        >
-          <SideTableSearchMember
-            isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
-            setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
-            // currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
-            // currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
-            // currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
-            // setChangedMemberObj={setChangedMemberObj}
-            // currentMemberId={memberObj.memberId ?? ""}
-            // currentMemberName={memberObj.memberName ?? ""}
-            // currentMemberDepartmentId={memberObj.departmentId ?? null}
-            prevMemberObj={prevMemberObj}
-            setPrevMemberObj={setPrevMemberObj}
-            memberObj={memberObj}
-            setMemberObj={setMemberObj}
-            // setMeetingMemberName={setMeetingMemberName}
-          />
-        </Suspense>
-      </ErrorBoundary>
+      {isOpenSearchMemberSideTableBefore && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense
+            fallback={<FallbackSideTableSearchMember isOpenSearchMemberSideTable={isOpenSearchMemberSideTable} />}
+          >
+            <SideTableSearchMember
+              isOpenSearchMemberSideTable={isOpenSearchMemberSideTable}
+              setIsOpenSearchMemberSideTable={setIsOpenSearchMemberSideTable}
+              isOpenSearchMemberSideTableBefore={isOpenSearchMemberSideTableBefore}
+              setIsOpenSearchMemberSideTableBefore={setIsOpenSearchMemberSideTableBefore}
+              // currentMemberId={selectedRowDataMeeting?.meeting_created_by_user_id ?? ""}
+              // currentMemberName={selectedRowDataMeeting?.meeting_member_name ?? ""}
+              // currentMemberDepartmentId={selectedRowDataMeeting?.meeting_created_by_department_of_user ?? null}
+              // setChangedMemberObj={setChangedMemberObj}
+              // currentMemberId={memberObj.memberId ?? ""}
+              // currentMemberName={memberObj.memberName ?? ""}
+              // currentMemberDepartmentId={memberObj.departmentId ?? null}
+              prevMemberObj={prevMemberObj}
+              setPrevMemberObj={setPrevMemberObj}
+              memberObj={memberObj}
+              setMemberObj={setMemberObj}
+              // setMeetingMemberName={setMeetingMemberName}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
     </>
   );
 };

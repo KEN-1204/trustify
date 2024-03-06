@@ -26,7 +26,12 @@ export const getFiscalQuarterTest = (fiscalYearEnd: DateInput, date: DateInput):
   let isLeapYear = false;
 
   // 四半期の開始日を計算
-  console.log(`🌟決算月`, format(end, "yyyy年MM月dd日 HH:mm:ss"));
+  console.log(
+    `🌟決算月`,
+    format(end, "yyyy年MM月dd日 HH:mm:ss SSS"),
+    "チェックする日付",
+    format(checkDate, "yyyy年MM月dd日 HH:mm:ss SSS")
+  );
   const quarterStartDates = [];
   for (let i = 0; i < 4; i++) {
     // let year = end.getFullYear();

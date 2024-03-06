@@ -5,7 +5,7 @@ type Props = {
   size: number;
   name: string;
   textSize?: number;
-  imgUrl?: string;
+  imgUrl?: string | null;
   bgColor?: string;
   withCircle?: boolean;
   hoverEffect?: boolean;

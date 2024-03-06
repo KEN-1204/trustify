@@ -1252,7 +1252,6 @@ export type Property_row_data = {
   expected_product_id: string | null;
   expected_product: string | null;
   product_sales: number | null;
-  expected_order_date: string | null;
   // expected_sales_price: number | null;
   expected_sales_price: string | null;
   term_division: string | null;
@@ -1268,26 +1267,33 @@ export type Property_row_data = {
   // discount_rate: number | null;
   discount_rate: string | null;
   sales_class: string | null;
+  // 🔹年度・半期・四半期・月度関連
   // 日付
   property_date: string | null;
   expansion_date: string | null;
   sales_date: string | null;
+  expected_order_date: string | null;
   // 年月度(会計基準の)
   property_year_month: number | null;
   expansion_year_month: number | null;
   sales_year_month: number | null;
+  expected_order_year_month: number | null;
   // 四半期(会計基準の)
   property_quarter: number | null; // 🌠追加
   expansion_quarter: number | null;
   sales_quarter: number | null;
+  expected_order_quarter: number | null;
   // 半期(会計基準の)
   property_half_year: number | null; // 🌠追加
   expansion_half_year: number | null; // 🌠追加
   sales_half_year: number | null; // 🌠追加
+  expected_order_half_year: number | null; // 🌠追加
   // 年度(会計基準の)
   property_fiscal_year: number | null; // 🌠追加
   expansion_fiscal_year: number | null; // 🌠追加
   sales_fiscal_year: number | null; // 🌠追加
+  expected_order_fiscal_year: number | null; // 🌠追加
+  // 🔹年度・半期・四半期・月度関連ここまで
   subscription_start_date: string | null;
   subscription_canceled_at: string | null;
   leasing_company: string | null;
@@ -1859,7 +1865,6 @@ export type Property = {
   expected_product_id: string | null;
   expected_product: string | null;
   product_sales: number | null; //🌟変更
-  expected_order_date: string | null;
   // expected_sales_price: number | null;
   expected_sales_price: string | null;
   term_division: string | null;
@@ -1875,27 +1880,33 @@ export type Property = {
   discounted_price: string | null;
   discount_rate: string | null;
   sales_class: string | null;
+  // 🔹年度・半期・四半期・月度関連
   // 日付(カレンダー)
   property_date: string | null;
   expansion_date: string | null;
   sales_date: string | null;
+  expected_order_date: string | null; // 🌠追加
   // 年月度(会計基準の)
   property_year_month: number | null;
   expansion_year_month: number | null;
   sales_year_month: number | null;
+  expected_order_year_month: number | null;
   // 四半期(会計基準の)
   property_quarter: number | null; // 🌠追加
   expansion_quarter: number | null;
   sales_quarter: number | null;
+  expected_order_quarter: number | null;
   // 半期(会計基準の)
   property_half_year: number | null; // 🌠追加
   expansion_half_year: number | null; // 🌠追加
   sales_half_year: number | null; // 🌠追加
+  expected_order_half_year: number | null; // 🌠追加
   // 年度(会計基準の)
   property_fiscal_year: number | null; // 🌠追加
   expansion_fiscal_year: number | null; // 🌠追加
   sales_fiscal_year: number | null; // 🌠追加
-  //
+  expected_order_fiscal_year: number | null; // 🌠追加
+  // 🔹年度・半期・四半期・月度関連ここまで
   subscription_start_date: string | null;
   subscription_canceled_at: string | null;
   leasing_company: string | null;
@@ -2445,4 +2456,17 @@ export type DealCardType = Property_row_data & {
 export type EditedDealCard = DealCardType | null;
 
 // SDB 売上進捗 期間
-export type PeriodSDB = { period: string; timeValue: number };
+export type PeriodSDB = { periodType: string; period: number };
+
+// SDB セクション関連
+// メンバーセクション 選択中のメンバー
+// export type MemberObj = {
+//   memberId: string | null;
+//   memberName: string | null;
+//   departmentId: string | null;
+//   sectionId: string | null;
+//   unitId: string | null;
+//   officeId: string | null;
+//   signature_stamp_id?: string | null;
+//   signature_stamp_url?: string | null;
+// };

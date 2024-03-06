@@ -142,12 +142,6 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "expected_order_date",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
     columnName: "expected_sales_price",
     columnWidth: "100px",
     isFrozen: false,
@@ -208,6 +202,36 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   // 🌠追加 案件四半期+半期(案件、展開、売上)+会計年度(案件、展開、売上)
+  {
+    columnName: "expected_order_date",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "expected_order_year_month",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "expected_order_quarter",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "expected_order_half_year",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "expected_order_fiscal_year",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
   {
     columnName: "property_date",
     columnWidth: "100px",

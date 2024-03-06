@@ -45,7 +45,6 @@ export const useMutateProperty = () => {
         _expected_product_id: newProperty.expected_product_id,
         _expected_product: newProperty.expected_product,
         _product_sales: newProperty.product_sales,
-        _expected_order_date: newProperty.expected_order_date,
         _expected_sales_price: newProperty.expected_sales_price,
         _term_division: newProperty.term_division,
         _sold_product_id: newProperty.sold_product_id,
@@ -56,10 +55,6 @@ export const useMutateProperty = () => {
         _discounted_price: newProperty.discounted_price,
         _discount_rate: newProperty.discount_rate,
         _sales_class: newProperty.sales_class,
-        _expansion_date: newProperty.expansion_date,
-        _sales_date: newProperty.sales_date,
-        _expansion_quarter: newProperty.expansion_quarter,
-        _sales_quarter: newProperty.sales_quarter,
         _subscription_start_date: newProperty.subscription_start_date,
         _subscription_canceled_at: newProperty.subscription_canceled_at,
         _leasing_company: newProperty.leasing_company,
@@ -76,23 +71,37 @@ export const useMutateProperty = () => {
         _reason_detail: newProperty.reason_detail,
         _customer_budget: newProperty.customer_budget,
         _decision_maker_negotiation: newProperty.decision_maker_negotiation,
-        _expansion_year_month: newProperty.expansion_year_month,
-        _sales_year_month: newProperty.sales_year_month,
         _subscription_interval: newProperty.subscription_interval,
         _competition_state: newProperty.competition_state,
-        _property_year_month: newProperty.property_year_month,
         _property_department: newProperty.property_department,
         _property_business_office: newProperty.property_business_office,
         _property_member_name: newProperty.property_member_name,
-        _property_date: newProperty.property_date,
         // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
+        // 日付
+        _property_date: newProperty.property_date,
+        _expansion_date: newProperty.expansion_date,
+        _sales_date: newProperty.sales_date,
+        _expected_order_date: newProperty.expected_order_date,
+        // 年月度
+        _property_year_month: newProperty.property_year_month,
+        _expansion_year_month: newProperty.expansion_year_month,
+        _sales_year_month: newProperty.sales_year_month,
+        _expected_order_year_month: newProperty.expected_order_year_month,
+        // 四半期
         _property_quarter: newProperty.property_quarter,
+        _expansion_quarter: newProperty.expansion_quarter,
+        _sales_quarter: newProperty.sales_quarter,
+        _expected_order_quarter: newProperty.expected_order_quarter,
+        // 半期
         _property_half_year: newProperty.property_half_year,
         _expansion_half_year: newProperty.expansion_half_year,
         _sales_half_year: newProperty.sales_half_year,
+        _expected_order_half_year: newProperty.expected_order_half_year,
+        // 年度
         _property_fiscal_year: newProperty.property_fiscal_year,
         _expansion_fiscal_year: newProperty.expansion_fiscal_year,
         _sales_fiscal_year: newProperty.sales_fiscal_year,
+        _expected_order_fiscal_year: newProperty.expected_order_fiscal_year,
         // 🌠追加ここまで
         // -- 🔹activities関連
         _summary: newProperty.property_summary,
@@ -252,7 +261,6 @@ export const useMutateProperty = () => {
         _expected_product_id: newProperty.expected_product_id,
         _expected_product: newProperty.expected_product,
         _product_sales: newProperty.product_sales,
-        _expected_order_date: newProperty.expected_order_date,
         _expected_sales_price: newProperty.expected_sales_price,
         _term_division: newProperty.term_division,
         _sold_product_id: newProperty.sold_product_id,
@@ -263,10 +271,6 @@ export const useMutateProperty = () => {
         _discounted_price: newProperty.discounted_price,
         _discount_rate: newProperty.discount_rate,
         _sales_class: newProperty.sales_class,
-        _expansion_date: newProperty.expansion_date,
-        _sales_date: newProperty.sales_date,
-        _expansion_quarter: newProperty.expansion_quarter,
-        _sales_quarter: newProperty.sales_quarter,
         _subscription_start_date: newProperty.subscription_start_date,
         _subscription_canceled_at: newProperty.subscription_canceled_at,
         _leasing_company: newProperty.leasing_company,
@@ -283,23 +287,37 @@ export const useMutateProperty = () => {
         _reason_detail: newProperty.reason_detail,
         _customer_budget: newProperty.customer_budget,
         _decision_maker_negotiation: newProperty.decision_maker_negotiation,
-        _expansion_year_month: newProperty.expansion_year_month,
-        _sales_year_month: newProperty.sales_year_month,
         _subscription_interval: newProperty.subscription_interval,
         _competition_state: newProperty.competition_state,
-        _property_year_month: newProperty.property_year_month,
         _property_department: newProperty.property_department,
         _property_business_office: newProperty.property_business_office,
         _property_member_name: newProperty.property_member_name,
-        _property_date: newProperty.property_date,
         // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
+        // 日付
+        _property_date: newProperty.property_date,
+        _expansion_date: newProperty.expansion_date,
+        _sales_date: newProperty.sales_date,
+        _expected_order_date: newProperty.expected_order_date,
+        // 年月度
+        _property_year_month: newProperty.property_year_month,
+        _expansion_year_month: newProperty.expansion_year_month,
+        _sales_year_month: newProperty.sales_year_month,
+        _expected_order_year_month: newProperty.expected_order_year_month,
+        // 四半期
         _property_quarter: newProperty.property_quarter,
+        _expansion_quarter: newProperty.expansion_quarter,
+        _sales_quarter: newProperty.sales_quarter,
+        _expected_order_quarter: newProperty.expected_order_quarter,
+        // 半期
         _property_half_year: newProperty.property_half_year,
         _expansion_half_year: newProperty.expansion_half_year,
         _sales_half_year: newProperty.sales_half_year,
+        _expected_order_half_year: newProperty.expected_order_half_year,
+        // 年度
         _property_fiscal_year: newProperty.property_fiscal_year,
         _expansion_fiscal_year: newProperty.expansion_fiscal_year,
         _sales_fiscal_year: newProperty.sales_fiscal_year,
+        _expected_order_fiscal_year: newProperty.expected_order_fiscal_year,
         // 🌠追加ここまで
         // -- 🔹activities関連
         _summary: newProperty.property_summary,
@@ -543,11 +561,7 @@ export const useMutateProperty = () => {
           "updatePayload",
           updatePayload
         );
-        const { data: newPropertyArray, error } = await supabase
-          .from("properties")
-          .update(updatePayload)
-          .eq("id", id)
-          .select();
+        const { error } = await supabase.from("properties").update(updatePayload).eq("id", id);
 
         if (error) throw error;
       }
@@ -567,11 +581,27 @@ export const useMutateProperty = () => {
           "updatePayload",
           updatePayload
         );
-        const { data: newPropertyArray, error } = await supabase
-          .from("properties")
-          .update(updatePayload)
-          .eq("id", id)
-          .select();
+        const { error } = await supabase.from("properties").update(updatePayload).eq("id", id);
+
+        if (error) throw error;
+      }
+      // 🔹expected_order_date
+      else if (fieldName === "expected_order_date") {
+        const updatePayload = {
+          expected_order_date: newValue,
+          expected_order_quarter: yearQuarter,
+          expected_order_year_month: yearMonth,
+          expected_order_half_year: yearHalf,
+          expected_order_fiscal_year: fiscalYear,
+        };
+        console.log(
+          "updatePropertyFieldMutation rpc実行 🔹expected_order_date四半期と年月度も同時に更新",
+          "カラム名",
+          fieldName,
+          "updatePayload",
+          updatePayload
+        );
+        const { error } = await supabase.from("properties").update(updatePayload).eq("id", id);
 
         if (error) throw error;
       }
@@ -698,6 +728,8 @@ export const useMutateProperty = () => {
               return "expansion_year_month";
             case "sales_date":
               return "sales_year_month";
+            case "expected_order_date":
+              return "expected_order_year_month";
             default:
               return "";
               break;
@@ -711,6 +743,8 @@ export const useMutateProperty = () => {
               return "expansion_quarter";
             case "sales_date":
               return "sales_quarter";
+            case "expected_order_date":
+              return "expected_order_quarter";
             default:
               return "";
               break;
@@ -724,6 +758,8 @@ export const useMutateProperty = () => {
               return "expansion_half_year";
             case "sales_date":
               return "sales_half_year";
+            case "expected_order_date":
+              return "expected_order_half_year";
             default:
               return "";
               break;
@@ -737,6 +773,8 @@ export const useMutateProperty = () => {
               return "expansion_fiscal_year";
             case "sales_date":
               return "sales_fiscal_year";
+            case "expected_order_date":
+              return "expected_order_fiscal_year";
             default:
               return "";
               break;

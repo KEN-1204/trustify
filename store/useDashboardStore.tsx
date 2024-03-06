@@ -475,6 +475,13 @@ type State = {
   activePeriodSDB: PeriodSDB;
   setActivePeriodSDB: (payload: PeriodSDB) => void;
 
+  // 選択中のコンテンツ(どの事業部か、どの係か、どのメンバーか)
+  // セクション関連
+  // メンバーセクション 選択中のメンバー
+  // エンティティidとディスプレイ個別メンバー配列(中小だと全社のみで良い企業もあるため、全社でも個別メンバーのネタ表を表示できるようにする)
+  selectedObjSectionSDBMember: MemberAccounts | null;
+  setSelectedObjSectionSDBMember: (payload: MemberAccounts | null) => void;
+
   // トレロボード
   editedTaskCard: EditedCard;
   setEditedTaskCard: (payload: EditedCard) => void;
@@ -1112,8 +1119,16 @@ const useDashboardStore = create<State>((set) => ({
   setActiveSectionSDB: (payload) => set({ activeSectionSDB: payload }),
   // 月次・四半期・半期・年度ごとの期間データの範囲別
   // 年度以外 半期20241, 四半期20244, 月度202403で保持
-  activePeriodSDB: { period: "monthly", timeValue: 202403 },
+  // monthly, quarter, half, fiscalYear
+  activePeriodSDB: { periodType: "monthly", period: 0 },
   setActivePeriodSDB: (payload) => set({ activePeriodSDB: payload }),
+
+  // 選択中のコンテンツ(どの事業部か、どの係か、どのメンバーか)
+  // セクション関連
+  // メンバーセクション 選択中のメンバー
+  // エンティティidとディスプレイ個別メンバー配列(中小だと全社のみで良い企業もあるため、全社でも個別メンバーのネタ表を表示できるようにする)
+  selectedObjSectionSDBMember: null,
+  setSelectedObjSectionSDBMember: (payload) => set({ selectedObjSectionSDBMember: payload }),
 
   // トレロボード
   editedTaskCard: null,

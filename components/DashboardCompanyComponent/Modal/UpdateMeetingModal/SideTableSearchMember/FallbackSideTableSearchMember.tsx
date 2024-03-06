@@ -41,7 +41,8 @@ export const FallbackSideTableSearchMember = ({ isOpenSearchMemberSideTable, sea
       {/* オーバーレイ */}
       <div
         // className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00800030]`}
-        className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000000]`}
+        // className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[#00000000]`}
+        className={`absolute left-0 top-0 z-[1100] h-full w-full bg-[var(--color-sidetable-overlay)]`}
         //   onClick={() => setIsOpenSearchAttendeesSideTable(false)}
       ></div>
       {/* サイドテーブル */}

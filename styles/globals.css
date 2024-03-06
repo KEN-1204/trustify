@@ -1015,6 +1015,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --overlay-loading-modal-inside: #ffffff48; */
   --overlay-loading-modal-inside: #00000066;
   /* --overlay-loading-modal-inside: #00000090; */
+  /* サイドテーブルオーバーレイ light */
+  --color-sidetable-overlay: #00000066;
   /* ツールチップ */
   --color-tooltip-arrow: #282828;
   --color-tooltip-dark: #333;
@@ -1756,6 +1758,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --overlay-modal-bg: #33333360;
   --overlay-loading-modal-inside: #00000066;
   /* --overlay-loading-modal-inside: #00000090; */
+  /* サイドテーブルオーバーレイ dark */
+  --color-sidetable-overlay: #00000039;
 
   /* ツールチップ dark */
   --color-tooltip-arrow: #333;

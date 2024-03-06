@@ -2755,6 +2755,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       case "property_fiscal_year":
       case "expansion_fiscal_year":
       case "sales_fiscal_year":
+      case "expected_order_fiscal_year":
         if (!value) return null;
         return language === "ja" ? `${value}年度` : `FY ${value}`;
         break;
@@ -2762,6 +2763,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       case "property_half_year":
       case "expansion_half_year":
       case "sales_half_year":
+      case "expected_order_half_year":
         if (!value) return null;
         return `${value}H`;
         break;
@@ -2769,6 +2771,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       case "property_quarter":
       case "expansion_quarter":
       case "sales_quarter":
+      case "expected_order_quarter":
         if (!value) return null;
         return `${value}Q`;
         break;

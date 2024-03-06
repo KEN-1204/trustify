@@ -219,9 +219,6 @@ export const columnNameToJapaneseProperty = (columnName: string) => {
     case "product_sales":
       return "予定台数";
       break;
-    case "expected_order_date":
-      return "獲得予定時期";
-      break;
     case "expected_sales_price":
       return "予定売上価格";
       break;
@@ -251,6 +248,21 @@ export const columnNameToJapaneseProperty = (columnName: string) => {
       break;
     case "sales_class":
       return "導入分類";
+      break;
+    case "expected_order_date":
+      return "獲得予定時期";
+      break;
+    case "expected_order_year_month":
+      return "獲得予定年月度";
+      break;
+    case "expected_order_quarter":
+      return "獲得予定四半期";
+      break;
+    case "expected_order_half_year":
+      return "獲得予定半期";
+      break;
+    case "expected_order_fiscal_year":
+      return "獲得予定年度";
       break;
     case "expansion_date":
       return "展開日付";

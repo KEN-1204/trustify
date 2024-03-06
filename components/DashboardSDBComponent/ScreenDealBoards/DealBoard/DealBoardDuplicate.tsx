@@ -30,8 +30,6 @@ import { DealCardType } from "@/types";
 import { companyColumnHeaderItemListData } from "@/utils/companyColumnHeaderItemListData";
 import { SEED_CARDS } from "./data";
 import { format } from "date-fns";
-import { useQueryDealCards } from "@/hooks/useQueryDealCards";
-import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 type ColumnSizeInfo = {
   prevColumnHeight: number;
@@ -86,98 +84,22 @@ const mappingColumnIndexToTitle: { [key: number]: number } = {
 
 // 担当者idや事業部idなどのエンティティのidとタイプをPropsで受け取る
 type Props = {
-  companyId: string;
   userId: string;
-  periodType: string;
-  period: number;
 };
 
-const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
+const DealBoardDuplicateMemo = () => {
   const language = useStore((state) => state.language);
   // const [cards, setCards] = useState<DealCardType[]>([]);
 
   // ---------------------------- useQuery ----------------------------
-  // 🔸Propsで受け取ったuserIdを使ってuseQueryで指定された期間のネタリストを取得し、useEffectでcardsのローカルstateに格納
+  // 🔸Propsで受け取ったuserIdを使ってuseQueryで指定された期間のネタリストを取得し、cardsのローカルstateに格納
   // cards変更の度にDBを更新とともにqueryClient.setQueryDataでキャッシュを更新していく
   // useQueryで指定された期間とエンティティのネタを取得してローカルstateに格納
 
-  // ・メンバー：userId
-  // ・現ステータス：「展開・申請・受注」
-  // ・期間：period「年月度」 or 「四半期」 or 「半期」 or 「年度」
-  const {
-    data,
-    error,
-    isLoading: isLoadingQuery,
-    isSuccess,
-  } = useQueryDealCards({
-    companyId,
-    userId,
-    periodType,
-    period,
-    isReady: true,
-  });
-
-  if (error) return null;
-
-  const [cards, setCards] = useState<DealCardType[]>([]);
-  const [isMountedQuery, setIsMountedQuery] = useState(false);
-  // ローカルstateに格納
-  useEffect(() => {
-    if (isMountedQuery) return; // 既にマウント済みの場合はリターン
-
-    const initialCards = !!data?.length
-      ? data.map((obj, index) => {
-          const newColumnTitleNum = !!obj?.review_order_certainty
-            ? obj.review_order_certainty
-            : !!obj?.order_certainty_start_of_month
-            ? obj.order_certainty_start_of_month
-            : null;
-          if (newColumnTitleNum === null) return null;
-          const newCard = { column_title_num: newColumnTitleNum, ...obj };
-          console.log(
-            "mapメソッド内 newColumnTitleNum",
-            newColumnTitleNum,
-            "obj.review_order_certainty",
-            obj.review_order_certainty,
-            "obj.order_certainty_start_of_month",
-            obj.order_certainty_start_of_month
-          );
-          return newCard;
-        })
-      : [];
-    const filteredCards = initialCards.filter((obj) => obj && obj.column_title_num !== null) as DealCardType[];
-    console.log("ローカルstateにネタカードを格納 initialCards", initialCards, "filteredCards", filteredCards);
-
-    setCards(filteredCards);
-  }, []);
-
-  // useQueryの取得中とcardsの初期値がまだセットされていない場合はローディングを返す
-  if (isLoadingQuery || !isMountedQuery) {
-    return (
-      <div className="flex-center h-[50dvh] w-[100vw]">
-        <SpinnerBrand bgColor="var(--color-sdb-bg)" />
-      </div>
-    );
-  }
   // ---------------------------- useQueryここまで ----------------------------
 
-  // 🔸マウント時のアニメーション
-  const [animate, setAnimate] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    // コンポーネントがマウントされたらアニメーションを開始
-    setAnimate(true);
-
-    // 2秒後にはフェードアニメーションを削除
-    setTimeout(() => {
-      setIsMounted(true);
-      setAnimate(false);
-    }, 2000);
-  }, []);
-
+  const [cards, setCards] = useState<DealCardType[]>(SEED_CARDS);
   // const [hasChecked, setHasChecked] = useState(false);
-  // const [cards, setCards] = useState<DealCardType[]>(SEED_CARDS);
   const hasCheckedRef = useRef(false);
   // 編集モーダル
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
@@ -1587,6 +1509,20 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
 
   const getCardStyle = () => {};
 
+  const [animate, setAnimate] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    // コンポーネントがマウントされたらアニメーションを開始
+    setAnimate(true);
+
+    // 2秒後にはフェードアニメーションを削除
+    setTimeout(() => {
+      setIsMounted(true);
+      setAnimate(false);
+    }, 2000);
+  }, []);
+
   return (
     <>
       {/* ------------------------ ボード ------------------------ */}
@@ -1867,4 +1803,4 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   );
 };
 
-export const DealBoard = memo(DealBoardMemo);
+export const DealBoardDuplicate = memo(DealBoardDuplicateMemo);
