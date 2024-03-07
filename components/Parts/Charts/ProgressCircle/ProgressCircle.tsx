@@ -17,6 +17,7 @@ type Props = {
   easeFn?: "Cubic" | "Quartic" | "Quintic" | "Sextic";
   isReady?: boolean;
   fade?: string;
+  withShadow?: boolean;
 };
 
 // https://chat.openai.com/chat?model=gpt-4 // こちらを確認
@@ -40,6 +41,7 @@ const ProgressCircleMemo = ({
   easeFn = "Cubic",
   isReady = true,
   fade,
+  withShadow = true,
 }: Props) => {
   // プログレスアニメーション用state
   const [animatedProgress, setAnimatedProgress] = useState(0);
@@ -182,110 +184,133 @@ const ProgressCircleMemo = ({
   }
 
   return (
-    <svg
-      width={size}
-      height={size}
-      className={`${fade && !isReady ? `opacity-0` : ``} ${isReady && fade ? `${fade}` : ``} `}
-    >
-      {/* サークル */}
-      <defs>
-        {!notGrad && (
-          <linearGradient id={`circleLinearGradient_${circleId}`} x1={x1} y1={y1} x2={x2} y2={y2}>
-            {/* //   <linearGradient id="circleLinearGradient" x1={x1} y1={y1} x2={x2} y2={y2}> */}
-            <stop offset="6%" stopColor="#ffffffe9" />
-            <stop offset="18%" stopColor="#cffcfde9" />
-            <stop offset="33%" stopColor="#0affffe9" />
-            <stop offset="56%" stopColor="#0abeffe9" />
-            <stop offset="87%" stopColor="#0066ffe9" />
-            {/* <stop offset="0%" stopColor="#a445b2" />
+    <>
+      {/* shadowグラデーション */}
+      {withShadow && (
+        <div
+          className={`absolute left-[50%] top-[50%] ${fade && !isReady ? `opacity-0` : ``} ${
+            isReady && fade ? `${fade}` : ``
+          } ${fade ? `opacity-0` : ``}`}
+          style={{
+            width: `${size}px`,
+            height: `${size}px`,
+            borderRadius: `50%`,
+            // background: ``,
+            transform: `translate(-50%, -50%)`,
+            filter: `blur(5px)`,
+            // border: `${strokeWidth}px solid var(--color-bg-brand)`,
+            // boxShadow: `0 0 1px 1px #ffffff90, 0 0 3px 2px #fff, 0 0 3px 3px var(--color-bg-brand)`,
+            boxShadow: `var(--color-progress-chart-shadow)`,
+            ...(isReady && { opacity: `0.9` }),
+          }}
+        ></div>
+      )}
+      {/* ProgressCIrcle */}
+      <svg
+        width={size}
+        height={size}
+        className={`${fade && !isReady ? `opacity-0` : ``} ${isReady && fade ? `${fade}` : ``}`}
+      >
+        {/* サークル */}
+        <defs>
+          {!notGrad && (
+            <linearGradient id={`circleLinearGradient_${circleId}`} x1={x1} y1={y1} x2={x2} y2={y2}>
+              {/* //   <linearGradient id="circleLinearGradient" x1={x1} y1={y1} x2={x2} y2={y2}> */}
+              <stop offset="6%" stopColor="#ffffffe9" />
+              <stop offset="18%" stopColor="#cffcfde9" />
+              <stop offset="33%" stopColor="#0affffe9" />
+              <stop offset="56%" stopColor="#0abeffe9" />
+              <stop offset="87%" stopColor="#0066ffe9" />
+              {/* <stop offset="0%" stopColor="#a445b2" />
           <stop offset="100%" stopColor="#fa4299" /> */}
-            {/* インスタカラー */}
-            {/* <stop offset="10%" stopColor="#ffd600" />
+              {/* インスタカラー */}
+              {/* <stop offset="10%" stopColor="#ffd600" />
           <stop offset="35%" stopColor="#ff7a00" />
           <stop offset="60%" stopColor="#ff0069" />
           <stop offset="90%" stopColor="#d300c5" />
           <stop offset="100%" stopColor="#7638fa" /> */}
-            {/*  */}
-            {/* <stop offset="10%" stopColor="#12b7e9" />
+              {/*  */}
+              {/* <stop offset="10%" stopColor="#12b7e9" />
           <stop offset="50%" stopColor="#c471ed" />
           <stop offset="90%" stopColor="#f64f59" />
           <stop offset="100%" stopColor="#f6894f" /> */}
-            {/* <stop offset="6%" stopColor="#fff" />
+              {/* <stop offset="6%" stopColor="#fff" />
           <stop offset="9%" stopColor="#cffcfd" />
           <stop offset="30%" stopColor="#0affff" />
           <stop offset="56%" stopColor="#0abeff" />
           <stop offset="88%" stopColor="#0066ff" /> */}
-          </linearGradient>
-        )}
-        {notGrad && (
-          <linearGradient id={`circleLinearGradient_${circleId}`} x1={x1} y1={y1} x2={x2} y2={y2}>
-            <stop offset="56%" stopColor={oneColor} />
-          </linearGradient>
-        )}
-      </defs>
-      {/* <circle cx={size / 2} cy={size / 2} r={radius} strokeWidth={strokeWidth} stroke="lightgray" fill="none" /> */}
-      <circle cx={size / 2} cy={size / 2} r={radius} strokeWidth={strokeWidth} stroke={strokeBg} fill="none" />
-      <circle
-        cx={size / 2}
-        cy={size / 2}
-        r={radius}
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-        // stroke="url(#circleLinearGradient)"
-        stroke={`url(#circleLinearGradient_${circleId})`}
-        // stroke="blue"
-        fill="none"
-        strokeDasharray={circumference}
-        strokeDashoffset={offset}
-        style={{
-          transform: "rotate(-90deg)",
-          transformOrigin: "center",
-        }}
-      />
-      {/* 中央テキスト */}
-      <defs>
-        {!textVerticalDirReverse && !notGrad && (
-          <linearGradient id={`textLinearGradient_${textId}`} x1={x2} y1={y1} x2={x1} y2={y2}>
-            <stop offset="6%" stopColor="#fff" />
-            <stop offset="18%" stopColor="#cffcfd" />
-            <stop offset="33%" stopColor="#0affff" />
-            <stop offset="56%" stopColor="#0abeff" />
-            <stop offset="87%" stopColor="#0066ff" />
-          </linearGradient>
-        )}
-        {textVerticalDirReverse && !notGrad && (
-          <linearGradient id={`textLinearGradient_${textId}`} x1={x2} y1={y2} x2={x1} y2={y1}>
-            {/* <stop offset="6%" stopColor="#fff" />
+            </linearGradient>
+          )}
+          {notGrad && (
+            <linearGradient id={`circleLinearGradient_${circleId}`} x1={x1} y1={y1} x2={x2} y2={y2}>
+              <stop offset="56%" stopColor={oneColor} />
+            </linearGradient>
+          )}
+        </defs>
+        {/* <circle cx={size / 2} cy={size / 2} r={radius} strokeWidth={strokeWidth} stroke="lightgray" fill="none" /> */}
+        <circle cx={size / 2} cy={size / 2} r={radius} strokeWidth={strokeWidth} stroke={strokeBg} fill="none" />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          strokeWidth={strokeWidth}
+          strokeLinecap="round"
+          // stroke="url(#circleLinearGradient)"
+          stroke={`url(#circleLinearGradient_${circleId})`}
+          // stroke="blue"
+          fill="none"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          style={{
+            transform: "rotate(-90deg)",
+            transformOrigin: "center",
+          }}
+        />
+        {/* 中央テキスト */}
+        <defs>
+          {!textVerticalDirReverse && !notGrad && (
+            <linearGradient id={`textLinearGradient_${textId}`} x1={x2} y1={y1} x2={x1} y2={y2}>
+              <stop offset="6%" stopColor="#fff" />
+              <stop offset="18%" stopColor="#cffcfd" />
+              <stop offset="33%" stopColor="#0affff" />
+              <stop offset="56%" stopColor="#0abeff" />
+              <stop offset="87%" stopColor="#0066ff" />
+            </linearGradient>
+          )}
+          {textVerticalDirReverse && !notGrad && (
+            <linearGradient id={`textLinearGradient_${textId}`} x1={x2} y1={y2} x2={x1} y2={y1}>
+              {/* <stop offset="6%" stopColor="#fff" />
             <stop offset="18%" stopColor="#cffcfd" />
             <stop offset="33%" stopColor="#0affff" />
             <stop offset="56%" stopColor="#0abeff" />
             <stop offset="87%" stopColor="#0066ff" /> */}
-            <stop offset="6%" stopColor="#fff" />
-            <stop offset="9%" stopColor="#cffcfd" />
-            <stop offset="30%" stopColor="#0affff" />
-            <stop offset="56%" stopColor="#0abeff" />
-            <stop offset="88%" stopColor="#0066ff" />
-          </linearGradient>
-        )}
-        {notGrad && (
-          <linearGradient id={`textLinearGradient_${textId}`} x1={x2} y1={y2} x2={x1} y2={y1}>
-            <stop offset="100%" stopColor={oneColor} />
-          </linearGradient>
-        )}
-      </defs>
-      <text
-        x={size / 2}
-        y={size / 2}
-        textAnchor="middle"
-        dy=".3em" // テキストを垂直方向に少し下げるオプション（調整が必要な場合）
-        fontSize={fontSize} // フォントサイズ（必要に応じて調整）
-        fontWeight={600}
-        fontFamily="sans-serif"
-        fill={`${textColor ? textColor : `url(#textLinearGradient_${textId})`}`}
-      >
-        {displayProgress}%
-      </text>
-    </svg>
+              <stop offset="6%" stopColor="#fff" />
+              <stop offset="9%" stopColor="#cffcfd" />
+              <stop offset="30%" stopColor="#0affff" />
+              <stop offset="56%" stopColor="#0abeff" />
+              <stop offset="88%" stopColor="#0066ff" />
+            </linearGradient>
+          )}
+          {notGrad && (
+            <linearGradient id={`textLinearGradient_${textId}`} x1={x2} y1={y2} x2={x1} y2={y1}>
+              <stop offset="100%" stopColor={oneColor} />
+            </linearGradient>
+          )}
+        </defs>
+        <text
+          x={size / 2}
+          y={size / 2}
+          textAnchor="middle"
+          dy=".3em" // テキストを垂直方向に少し下げるオプション（調整が必要な場合）
+          fontSize={fontSize} // フォントサイズ（必要に応じて調整）
+          fontWeight={600}
+          fontFamily="sans-serif"
+          fill={`${textColor ? textColor : `url(#textLinearGradient_${textId})`}`}
+        >
+          {displayProgress}%
+        </text>
+      </svg>
+    </>
   );
 };
 

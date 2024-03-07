@@ -1128,6 +1128,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-fifty: rgb(30, 209, 102);
   --color-thirty: #0d82ff;
   --color-award-icon: rgb(252, 70, 204);
+  --color-award-icon: #0ab5ff;
+  /* --color-award-icon: rgb(255, 242, 0); */
+  /* --color-award-icon: var(--color-bg-brand-f); */
   --color-award-icon-bg: var(--color-card-bg);
   --color-star-icon: rgb(228, 239, 31);
   --color-star-icon-bg: var(--color-bg-brand-fc0);
@@ -1205,6 +1208,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* ProgressCircle */
   /* 背景 */
   --color-progress-chart-bg: #ddd;
+  --color-progress-chart-shadow: 0 0 3px 1px var(--color-bg-brand-light);
   /* -------- ✅グラフ・チャート関連✅ light -------- */
 }
 
@@ -1978,7 +1982,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-gradient-modal-btn-cancel-bg-hover: #555;
   --color-gradient-modal-header-bg: rgb(51 51 51 / 0.5);
   --color-gradient-modal-border-inner: #33333300;
-  --color-gradient-modal-border-real-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000,
+  /* --color-gradient-modal-border-real-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000,
+    0 4px 15px 4px #ffffff56; */
+  --color-gradient-modal-border-real-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 3px 1px #fff,
     0 4px 15px 4px #ffffff56;
   /* テーマカラーパレット */
   /* --color-palette-brand-f: linear-gradient(60deg, #cffcfd, #7de2eb, #0ab5ff, #0066ff); */
@@ -2026,6 +2032,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* ProgressCircle */
   /* 背景 */
   --color-progress-chart-bg: #333;
+  /* --color-progress-chart-shadow: 0 0 1px 1px #ffffff90, 0 0 3px 2px #fff, 0 0 3px 3px var(--color-bg-brand); */
+  --color-progress-chart-shadow: 0 0 1px 1px #ffffff90, 0 0 3px 2px #0ab5ff, 0 0 3px 3px var(--color-bg-brand);
   /* -------- ✅グラフ・チャート関連✅ dark -------- */
 }
 
@@ -3001,6 +3009,7 @@ textarea {
   color: var(--color-text-brand-f);
 }
 
+/* ベータアイコンBeta */
 .beta_icon {
   background-image: var(--background-image-cursor-btnc0);
   /* box-shadow: var(--box-shadow-cursor-btn-ring-shadow); */
@@ -3009,6 +3018,9 @@ textarea {
   /* box-shadow: 0 0 5px 0.8px var(--color-bg-brand-f); */
   /* box-shadow: 0 0 3px 1px var(--color-bg-brand-f);
   box-shadow: 0 0 4px 1px var(--color-bg-brand-f); */
+  box-shadow: var(--box-shadow-brand-f);
+}
+.shadow_f {
   box-shadow: var(--box-shadow-brand-f);
 }
 
