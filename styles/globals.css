@@ -376,6 +376,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* light */
   --color-border-theme: #0d99ff;
   --color-border-theme: var(--main-color-tk);
+  --color-border-theme-hovering: #0d99ff;
 
   --color-border-theme-text: var(--color-bg-brand-sub);
   --vivid-green: var(--bright-green);
@@ -1179,6 +1180,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-settings-menu-bg: #ffffffde; */
   --color-settings-menu-bg: #242424;
   /* -------- ✅セッティングメニュー✅ light -------- */
+  /* -------- 🌠グラフ・チャート関連🌠 light -------- */
+  /* ProgressCircle */
+  /* 背景 */
+  --color-progress-chart-bg: #ddd;
+  /* -------- ✅グラフ・チャート関連✅ light -------- */
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -1207,6 +1213,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* dark */
   --color-border-theme: #0066ff;
   --color-border-theme: var(--bright-green);
+  /* --color-border-theme-hovering: #0d99ff; */
+  --color-border-theme-hovering: #0066ff;
   --color-border-theme-text: #0085ff;
   --vivid-green: var(--vivid-green-dark);
   --hero-img: url("/assets/images/hero/slide_transparent3x.png");
@@ -1972,6 +1980,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* -------- 🌟セッティングメニュー🌟 dark -------- */
   --color-settings-menu-bg: #242424;
   /* -------- ✅セッティングメニュー✅ dark -------- */
+  /* -------- 🌠グラフ・チャート関連🌠 dark -------- */
+  /* ProgressCircle */
+  /* 背景 */
+  --color-progress-chart-bg: #333;
+  /* -------- ✅グラフ・チャート関連✅ dark -------- */
 }
 
 /* html {

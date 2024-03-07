@@ -85,55 +85,10 @@ const SalesProgressScreenMemo = () => {
     return newIdList;
   }, [selectedObjSectionSDBMember]);
 
-  // 決算日を取得して変数に格納
-  const fiscalYearEndDate = useMemo(() => {
-    return userProfileState?.customer_fiscal_end_month
-      ? new Date(userProfileState.customer_fiscal_end_month)
-      : new Date(new Date().getFullYear(), 2, 31);
-  }, [userProfileState?.customer_fiscal_end_month]);
-
-  // 現在の会計年度(現在の日付からユーザーの会計年度を取得)
-  const currentFiscalYearDateObj = useMemo(() => {
-    return (
-      calculateFiscalYearStart({
-        fiscalYearEnd: fiscalYearEndDate,
-        fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
-      }) ?? new Date()
-    );
-  }, [fiscalYearEndDate, userProfileState?.customer_fiscal_year_basis]);
-
-  // 月度用カレンダー年の選択年
-  const [selectedCalendarYear, setSelectedCalendarYear] = useState<number>(new Date().getFullYear());
-  // 四半期、半期用の会計年度の選択年
-  const [selectedFiscalYear, setSelectedFiscalYear] = useState<number>(currentFiscalYearDateObj.getFullYear());
-
-  // ユーザーの会計基準の現在の月度を初期値にセットする
-  useEffect(() => {
-    // 現在の日付からユーザーの財務サイクルに応じた年月度を取得(年月度の年はカレンダー年)
-    const currentFiscalYearMonth = calculateDateToYearMonth(new Date(), fiscalYearEndDate.getDate());
-    const newCurrentPeriod = { periodType: "monthly", period: currentFiscalYearMonth } as PeriodSDB;
-    console.log("✅newCurrentPeriod", newCurrentPeriod, "決算日Date", fiscalYearEndDate);
-    setActivePeriodSDB(newCurrentPeriod);
-  }, []);
-
-  // 会計年度の選択肢
-  const optionsFiscalYear = useMemo(() => {
-    if (!userProfileState?.customer_fiscal_end_month) return [];
-    return getOptionsFiscalYear({
-      fiscalYearEnd: userProfileState.customer_fiscal_end_month,
-      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
-    });
-  }, [userProfileState?.customer_fiscal_end_month, userProfileState?.customer_fiscal_year_basis]);
-
-  // カレンダー年の選択肢
-  const optionsCalendarYear = useMemo(() => {
-    return getOptionsCalendarYear({ currentDate: new Date() });
-  }, []);
-
   // メンバーエンティティの選択中のメンバーの初期値をユーザー自身にセットする
   useEffect(() => {
     // 既にセット済みでnullでない場合はリターン
-    if (!selectedObjSectionSDBMember) return;
+    if (selectedObjSectionSDBMember) return;
     if (!userProfileState) return;
     // ユーザー自身を初期値にセット
     const u = userProfileState;
@@ -187,6 +142,51 @@ const SalesProgressScreenMemo = () => {
       assigned_signature_stamp_url: u.assigned_signature_stamp_url,
     } as MemberAccounts;
     setSelectedObjSectionSDBMember(initialMemberObj);
+  }, []);
+
+  // 決算日を取得して変数に格納
+  const fiscalYearEndDate = useMemo(() => {
+    return userProfileState?.customer_fiscal_end_month
+      ? new Date(userProfileState.customer_fiscal_end_month)
+      : new Date(new Date().getFullYear(), 2, 31);
+  }, [userProfileState?.customer_fiscal_end_month]);
+
+  // 現在の会計年度(現在の日付からユーザーの会計年度を取得)
+  const currentFiscalYearDateObj = useMemo(() => {
+    return (
+      calculateFiscalYearStart({
+        fiscalYearEnd: fiscalYearEndDate,
+        fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+      }) ?? new Date()
+    );
+  }, [fiscalYearEndDate, userProfileState?.customer_fiscal_year_basis]);
+
+  // 月度用カレンダー年の選択年
+  const [selectedCalendarYear, setSelectedCalendarYear] = useState<number>(new Date().getFullYear());
+  // 四半期、半期用の会計年度の選択年
+  const [selectedFiscalYear, setSelectedFiscalYear] = useState<number>(currentFiscalYearDateObj.getFullYear());
+
+  // ユーザーの会計基準の現在の月度を初期値にセットする
+  useEffect(() => {
+    // 現在の日付からユーザーの財務サイクルに応じた年月度を取得(年月度の年はカレンダー年)
+    const currentFiscalYearMonth = calculateDateToYearMonth(new Date(), fiscalYearEndDate.getDate());
+    const newCurrentPeriod = { periodType: "monthly", period: currentFiscalYearMonth } as PeriodSDB;
+    console.log("✅newCurrentPeriod", newCurrentPeriod, "決算日Date", fiscalYearEndDate);
+    setActivePeriodSDB(newCurrentPeriod);
+  }, []);
+
+  // 会計年度の選択肢
+  const optionsFiscalYear = useMemo(() => {
+    if (!userProfileState?.customer_fiscal_end_month) return [];
+    return getOptionsFiscalYear({
+      fiscalYearEnd: userProfileState.customer_fiscal_end_month,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+    });
+  }, [userProfileState?.customer_fiscal_end_month, userProfileState?.customer_fiscal_year_basis]);
+
+  // カレンダー年の選択肢
+  const optionsCalendarYear = useMemo(() => {
+    return getOptionsCalendarYear({ currentDate: new Date() });
   }, []);
 
   // 期間選択メニューの選択肢を期間タイプに応じて取得する関数
@@ -573,9 +573,9 @@ const SalesProgressScreenMemo = () => {
                 >
                   <div
                     ref={infoIconProgressRef}
-                    className={`flex-center absolute left-0 top-0 h-[18px] w-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                    className={`flex-center absolute left-0 top-0 h-[18px] w-[18px] rounded-full border border-solid border-[var(--color-bg-brand-sub)] ${styles.animate_ping}`}
                   ></div>
-                  <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
+                  <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-sub)]`} />
                 </div>
               </div>
             </div>
@@ -587,7 +587,7 @@ const SalesProgressScreenMemo = () => {
 
         {/* ------------------- 売上目標+現売実績ホワイトボード ここまで ------------------- */}
 
-        {/* ------------------- ネタ表ボードスクリーン ------------------- */}
+        {/* ------------------- 🌟ネタ表ボードスクリーン🌟 ------------------- */}
         {activeTabSDB === "salesProgress" && activePeriodSDB.period !== 0 && (
           <ScreenDealBoards
             memberList={memberListSectionMember}
@@ -595,7 +595,7 @@ const SalesProgressScreenMemo = () => {
             period={activePeriodSDB.period}
           />
         )}
-        {/* ------------------- ネタ表ボードスクリーン ここまで ------------------- */}
+        {/* ------------------- ✅ネタ表ボードスクリーン✅ ここまで ------------------- */}
       </div>
       {/* -------------------------------- 売上進捗スクリーン ここまで -------------------------------- */}
 

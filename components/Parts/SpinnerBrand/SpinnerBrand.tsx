@@ -3,6 +3,7 @@ import styles from "./SpinnerBrand.module.css";
 
 type Props = {
   bgColor?: string;
+  bgTransition?: string;
   containerSize?: string;
   size?: string;
   isLarge?: boolean;
@@ -12,6 +13,7 @@ type Props = {
 
 export const SpinnerBrand = ({
   bgColor = `#151515`,
+  bgTransition,
   containerSize = "156px",
   size = "80px",
   isLarge = false,
@@ -22,7 +24,7 @@ export const SpinnerBrand = ({
     <div
       className={`${styles.container} ${isLarge ? styles.is_large : ``} ${withShadow ? styles.with_shadow : ``} ${
         withBorder ? styles.with_border : ``
-      } flex-center`}
+      } flex-center ${bgTransition ? bgTransition : ``}`}
       style={
         {
           ...(bgColor && { backgroundColor: `${bgColor}`, "--bg-color": `${bgColor}` }),
@@ -32,10 +34,10 @@ export const SpinnerBrand = ({
       }
     >
       <div className={`${styles.loader}`}>
-        <span></span>
+        <span className={`${bgTransition ? bgTransition : ``}`}></span>
       </div>
       <div className={`${styles.loader}`}>
-        <span></span>
+        <span className={`${bgTransition ? bgTransition : ``}`}></span>
       </div>
       <div className={`${styles.loader}`}>
         <i></i>

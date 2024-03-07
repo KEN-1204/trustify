@@ -37,7 +37,11 @@ type TableDataType = {
 //   office: string;
 // };
 
-const UnderRightActivityLogMemo: FC = () => {
+type Props = {
+  isHoverableBorder?: boolean;
+};
+
+const UnderRightActivityLogMemo = ({ isHoverableBorder = false }: Props) => {
   const language = useStore((state) => state.language);
   //   const language = useRootStore(useStore, (state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
@@ -860,6 +864,8 @@ const UnderRightActivityLogMemo: FC = () => {
                             displayValue = format(new Date(value), formatMapping[columnName]);
                           }
                           displayValue = formatDisplayValue(columnName, displayValue);
+
+                          const isHovering = isHoverableBorder && columnHeaderList[index] === "summary";
                           return (
                             <div
                               key={"row" + virtualRow.index.toString() + index.toString()}
@@ -867,7 +873,9 @@ const UnderRightActivityLogMemo: FC = () => {
                               aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
                               aria-selected={false}
                               tabIndex={-1}
-                              className={`${styles.grid_cell} ${styles.grid_cell_resizable}`}
+                              className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${
+                                isHovering ? `${styles.hovering_active}` : ``
+                              }`}
                               style={{
                                 gridColumnStart: index + 1,
                                 ...(columnHeaderList[index] === "summary" && { cursor: "pointer" }),

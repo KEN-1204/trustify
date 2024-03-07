@@ -6205,7 +6205,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.section_title} !text-[17px]`}>会社情報</span>
+                    <span className={`${styles.section_title} !text-[15px]`}>会社情報</span>
 
                     {/* <span className={`${styles.value} ${styles.value_highlight}`}>
                         {selectedRowDataProperty?.company_name ? selectedRowDataProperty?.company_name : ""}

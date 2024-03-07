@@ -183,6 +183,11 @@
 }
 /* 🔹偶数行カラーチェンジここまで */
 
+.grid_row .grid_cell.hovering_active:hover {
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px var(--color-border-theme-hovering);
+}
+
 .grid_column_header_all {
   /* background: var(--color-table-header); */
   background: var(--color-bg-under-header);

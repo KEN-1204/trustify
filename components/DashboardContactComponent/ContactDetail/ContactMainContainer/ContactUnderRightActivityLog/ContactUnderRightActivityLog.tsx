@@ -30,7 +30,11 @@ type TableDataType = {
   our_office: string;
 };
 
-const ContactUnderRightActivityLogMemo: FC = () => {
+type Props = {
+  isHoverableBorder?: boolean;
+};
+
+const ContactUnderRightActivityLogMemo = ({ isHoverableBorder = false }: Props) => {
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   //   const language = useRootStore(useStore, (state) => state.language);
@@ -775,6 +779,8 @@ const ContactUnderRightActivityLogMemo: FC = () => {
                             displayValue = format(new Date(value), formatMapping[columnName]);
                           }
                           displayValue = formatDisplayValue(columnName, displayValue);
+
+                          const isHovering = isHoverableBorder && columnHeaderList[index] === "summary";
                           return (
                             <div
                               key={"row" + virtualRow.index.toString() + index.toString()}
@@ -782,7 +788,9 @@ const ContactUnderRightActivityLogMemo: FC = () => {
                               aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
                               aria-selected={false}
                               tabIndex={-1}
-                              className={`${styles.grid_cell} ${styles.grid_cell_resizable}`}
+                              className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${
+                                isHovering ? `${styles.hovering_active}` : ``
+                              }`}
                               style={{
                                 gridColumnStart: index + 1,
                                 ...(columnHeaderList[index] === "summary" && { cursor: "pointer" }),

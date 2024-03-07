@@ -31,7 +31,9 @@ const AvatarIconMemo = ({
           }`}
           style={{ height: `${size}px`, width: `${size}px`, ...(bgColor && { backgroundColor: `${bgColor}` }) }}
         >
-          <span className={`text-[15px]`}>{getInitial(name)}</span>
+          <span className={`pointer-events-none`} style={{ fontSize: `${textSize}px`, lineHeight: `${textSize}px` }}>
+            {getInitial(name)}
+          </span>
         </div>
       )}
       {!imgUrl && withCircle && (
@@ -58,7 +60,7 @@ const AvatarIconMemo = ({
             >
               <div className="absolute left-0 top-0 z-[10] h-full w-full rounded-full hover:bg-[#00000020]" />
               <span
-                className={`pointer-events-none text-[16px]`}
+                className={`pointer-events-none`}
                 style={{ fontSize: `${textSize}px`, lineHeight: `${textSize}px` }}
               >
                 {getInitial(name)}

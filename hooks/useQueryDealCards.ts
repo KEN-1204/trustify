@@ -51,11 +51,21 @@ export const useQueryDealCards = ({ companyId, userId, periodType, period, isRea
       };
     }
 
+    console.log(
+      "🔥useQueryDealCards getDealCards関数実行",
+      "periodType",
+      periodType,
+      "period",
+      period,
+      "params",
+      params
+    );
+
     const { data, error } = await supabase
       .rpc("search_properties_and_companies_and_contacts", { params })
-      .eq("property_created_by_company_id", companyId)
-      .eq("created_by_user_id", userId)
       .order("order_certainty_start_of_month", { ascending: true }); // ボードで並び替えるため不要かも
+    // .eq("property_created_by_company_id", companyId)
+    // .eq("property_created_by_user_id", userId)
     // const { data, error, count } = await supabase
     //   .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
     //   .eq("property_created_by_company_id", companyId)
@@ -71,7 +81,9 @@ export const useQueryDealCards = ({ companyId, userId, periodType, period, isRea
     }
 
     // // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
-    // await new Promise((resolve) => setTimeout(resolve, 800));
+    await new Promise((resolve) => setTimeout(resolve, 300));
+    // await new Promise((resolve) => setTimeout(resolve, 600));
+    // await new Promise((resolve) => setTimeout(resolve, 1300));
 
     return data as Property_row_data[];
     // return data as Product[];
@@ -84,6 +96,6 @@ export const useQueryDealCards = ({ companyId, userId, periodType, period, isRea
     onError: (error) => {
       console.error("error:", error);
     },
-    enabled: !!companyId && !!userId && isReady,
+    enabled: !!companyId && !!userId && isReady && !!periodType && !!period,
   });
 };

@@ -32,7 +32,11 @@ type TableDataType = {
 
 type SelectedRowData = Contact_row_data | Property_row_data | DealCardType;
 
-const UnderRightActivityLogCustomMemo: FC = () => {
+type Props = {
+  isHoverableBorder?: boolean;
+};
+
+const UnderRightActivityLogCustomMemo = ({ isHoverableBorder = false }: Props) => {
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   //   const language = useRootStore(useStore, (state) => state.language);
@@ -163,7 +167,7 @@ const UnderRightActivityLogCustomMemo: FC = () => {
       case "our_department":
         return "部署";
         break;
-      case "our_office":
+      case "our_business_office":
         return "事業所";
         break;
 
@@ -179,7 +183,7 @@ const UnderRightActivityLogCustomMemo: FC = () => {
     "activity_date",
     "our_member_name",
     "our_department",
-    "our_office",
+    "our_business_office",
   ];
 
   // ================== 🌟疑似的なサーバーデータフェッチ用の関数🌟 ==================
@@ -840,6 +844,8 @@ const UnderRightActivityLogCustomMemo: FC = () => {
                             displayValue = format(new Date(value), formatMapping[columnName]);
                           }
                           displayValue = formatDisplayValue(columnName, displayValue);
+
+                          const isHovering = isHoverableBorder && columnHeaderList[index] === "summary";
                           return (
                             <div
                               key={"row" + virtualRow.index.toString() + index.toString()}
@@ -847,7 +853,9 @@ const UnderRightActivityLogCustomMemo: FC = () => {
                               aria-colindex={index + 1} // カラムヘッダーの列StateのcolumnIndexと一致させる
                               aria-selected={false}
                               tabIndex={-1}
-                              className={`${styles.grid_cell} ${styles.grid_cell_resizable}`}
+                              className={`${styles.grid_cell} ${styles.grid_cell_resizable} ${
+                                isHovering ? `${styles.hovering_active}` : ``
+                              }`}
                               style={{
                                 gridColumnStart: index + 1,
                                 ...(columnHeaderList[index] === "summary" && { cursor: "pointer" }),

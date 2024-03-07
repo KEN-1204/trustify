@@ -4011,7 +4011,7 @@ const CompanyMainContainerMemo: FC = () => {
                   fallback={<FallbackUnderRightActivityLog />}
                   // fallback={<Fallback className="min-h-[calc(100vh-100vh/3-var(--header-height)/3--20px-22px-40px)]" />}
                 >
-                  <UnderRightActivityLog />
+                  <UnderRightActivityLog isHoverableBorder={true} />
                 </Suspense>
               </ErrorBoundary>
               {/* <FallbackUnderRightActivityLog /> */}

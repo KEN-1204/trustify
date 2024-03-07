@@ -171,6 +171,30 @@
   pointer-events: none;
   stroke-width: 1;
 }
+.column.award .column_lane .row_card .star_icon_single path {
+  /* fill: #ffeb49; */
+}
+.column.award .column_lane .row_card .star_icon_up {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--color-award-icon);
+  pointer-events: none;
+  stroke-width: 1;
+  opacity: 0;
+  animation: fadeSizeUp 0.3s 0.5s ease forwards;
+}
+@keyframes fadeSizeUp {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.5);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
 .column .column_lane .row_card:hover {
   border-color: var(--color-bg-brand-f);
   background-color: var(--color-bg-brand-f20);

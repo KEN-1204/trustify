@@ -13,7 +13,7 @@ import {
 import { BurnBarrel } from "./BurnBarel";
 import styles from "./DealBoard.module.css";
 import { FiPlus, FiTrash } from "react-icons/fi";
-import { FaFire, FaRegStar } from "react-icons/fa";
+import { FaFire, FaRegStar, FaStar } from "react-icons/fa";
 import { AddCard } from "./AddCard";
 import { EditModalDealCard } from "../EditModalDealCard/EditModalDealCard";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -32,6 +32,8 @@ import { SEED_CARDS } from "./data";
 import { format } from "date-fns";
 import { useQueryDealCards } from "@/hooks/useQueryDealCards";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 type ColumnSizeInfo = {
   prevColumnHeight: number;
@@ -96,6 +98,9 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   const language = useStore((state) => state.language);
   // const [cards, setCards] = useState<DealCardType[]>([]);
 
+  const queryClient = useQueryClient();
+  const supabase = useSupabaseClient();
+
   // ---------------------------- useQuery ----------------------------
   // 🔸Propsで受け取ったuserIdを使ってuseQueryで指定された期間のネタリストを取得し、useEffectでcardsのローカルstateに格納
   // cards変更の度にDBを更新とともにqueryClient.setQueryDataでキャッシュを更新していく
@@ -104,6 +109,13 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   // ・メンバー：userId
   // ・現ステータス：「展開・申請・受注」
   // ・期間：period「年月度」 or 「四半期」 or 「半期」 or 「年度」
+
+  const [cards, setCards] = useState<DealCardType[]>([]);
+  const [isMountedQuery, setIsMountedQuery] = useState(false);
+
+  // 現在のクエリキー キャッシュ更新時に使用
+  const currentQueryKey = ["deals", userId, periodType, period];
+
   const {
     data,
     error,
@@ -119,46 +131,39 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
 
   if (error) return null;
 
-  const [cards, setCards] = useState<DealCardType[]>([]);
-  const [isMountedQuery, setIsMountedQuery] = useState(false);
   // ローカルstateに格納
   useEffect(() => {
     if (isMountedQuery) return; // 既にマウント済みの場合はリターン
 
-    const initialCards = !!data?.length
-      ? data.map((obj, index) => {
-          const newColumnTitleNum = !!obj?.review_order_certainty
-            ? obj.review_order_certainty
-            : !!obj?.order_certainty_start_of_month
-            ? obj.order_certainty_start_of_month
-            : null;
-          if (newColumnTitleNum === null) return null;
-          const newCard = { column_title_num: newColumnTitleNum, ...obj };
-          console.log(
-            "mapメソッド内 newColumnTitleNum",
-            newColumnTitleNum,
-            "obj.review_order_certainty",
-            obj.review_order_certainty,
-            "obj.order_certainty_start_of_month",
-            obj.order_certainty_start_of_month
-          );
-          return newCard;
-        })
-      : [];
-    const filteredCards = initialCards.filter((obj) => obj && obj.column_title_num !== null) as DealCardType[];
-    console.log("ローカルstateにネタカードを格納 initialCards", initialCards, "filteredCards", filteredCards);
+    if (isSuccess) {
+      const initialCards = !!data?.length
+        ? data.map((obj, index) => {
+            const newColumnTitleNum = !!obj?.review_order_certainty
+              ? obj.review_order_certainty
+              : !!obj?.order_certainty_start_of_month
+              ? obj.order_certainty_start_of_month
+              : null;
+            if (newColumnTitleNum === null) return null;
+            const newCard = { column_title_num: newColumnTitleNum, ...obj };
+            console.log(
+              "mapメソッド内 newColumnTitleNum",
+              newColumnTitleNum,
+              "obj.review_order_certainty",
+              obj.review_order_certainty,
+              "obj.order_certainty_start_of_month",
+              obj.order_certainty_start_of_month
+            );
+            return newCard;
+          })
+        : [];
+      const filteredCards = initialCards.filter((obj) => obj && obj.column_title_num !== null) as DealCardType[];
+      console.log("ローカルstateにネタカードを格納 initialCards", initialCards, "filteredCards", filteredCards);
 
-    setCards(filteredCards);
-  }, []);
+      setCards(filteredCards);
+      setIsMountedQuery(true);
+    }
+  }, [isSuccess]);
 
-  // useQueryの取得中とcardsの初期値がまだセットされていない場合はローディングを返す
-  if (isLoadingQuery || !isMountedQuery) {
-    return (
-      <div className="flex-center h-[50dvh] w-[100vw]">
-        <SpinnerBrand bgColor="var(--color-sdb-bg)" />
-      </div>
-    );
-  }
   // ---------------------------- useQueryここまで ----------------------------
 
   // 🔸マウント時のアニメーション
@@ -166,6 +171,7 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    if (!isMountedQuery) return; // まだクエリ後のcardsセットが終わってない場合はリターン
     // コンポーネントがマウントされたらアニメーションを開始
     setAnimate(true);
 
@@ -174,7 +180,7 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
       setIsMounted(true);
       setAnimate(false);
     }, 2000);
-  }, []);
+  }, [isMountedQuery]);
 
   // const [hasChecked, setHasChecked] = useState(false);
   // const [cards, setCards] = useState<DealCardType[]>(SEED_CARDS);
@@ -1582,10 +1588,29 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
     "categorizedCardsMapObj",
     categorizedCardsMapObj,
     "dealColumnList",
-    dealColumnList
+    dealColumnList,
+    "✅ボード isLoadingQuery",
+    isLoadingQuery,
+    "isMountedQuery",
+    isMountedQuery,
+    "isSuccess",
+    isSuccess,
+    "data",
+    data,
+    "cards",
+    cards
   );
 
   const getCardStyle = () => {};
+
+  // useQueryの取得中とcardsの初期値がまだセットされていない場合はローディングを返す
+  if (isLoadingQuery || !isMountedQuery) {
+    return (
+      <div className="flex-center h-[50dvh] w-[100vw]">
+        <SpinnerBrand bgColor="var(--color-sdb-bg)" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -1728,10 +1753,20 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
                           </div>
                         )}
                         {columnIndex === 0 && (
+                          <div className="relative ml-[-3px] mr-[6px]">
+                            <FaStar
+                              className={` ${styles.star_icon_up} z-[10]  min-h-[15px] min-w-[15px] text-[15px]`}
+                            />
+                            <FaRegStar
+                              className={`${styles.star_icon_single} z-0 min-h-[15px] min-w-[15px] text-[15px]`}
+                            />
+                          </div>
+                        )}
+                        {/* {columnIndex === 0 && (
                           <FaRegStar
                             className={`${styles.star_icon_single} ml-[-3px] mr-[6px] min-h-[15px] min-w-[15px] text-[15px]`}
                           />
-                        )}
+                        )} */}
                         {/* {columnIndex === 0 && (
                           <div className={`${styles.star_icon_wrapper} flex-center`}>
                             <FaRegStar className={`${styles.star_icon}  min-h-[15px] min-w-[15px] text-[15px]`} />

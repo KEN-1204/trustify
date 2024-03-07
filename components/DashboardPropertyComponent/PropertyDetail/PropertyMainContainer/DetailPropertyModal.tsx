@@ -4917,12 +4917,12 @@ const DetailPropertyModalMemo = () => {
                 </div>
               </div>
 
-              <div className={`${styles.spacer} h-[5px] w-full`}></div>
+              <div className={`${styles.spacer} min-h-[5px] w-full`}></div>
 
               {/* 活動履歴 */}
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<FallbackUnderRightActivityLogCustom />}>
-                  <UnderRightActivityLogCustom />
+                  <UnderRightActivityLogCustom isHoverableBorder={true} />
                 </Suspense>
               </ErrorBoundary>
               {/* <FallbackUnderRightActivityLogCustom /> */}
@@ -4931,7 +4931,7 @@ const DetailPropertyModalMemo = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.section_title} !text-[17px]`}>会社情報</span>
+                    <span className={`${styles.section_title} !text-[15px]`}>会社情報</span>
 
                     {/* <span className={`${styles.value} ${styles.value_highlight}`}>
                         {selectedRowDataProperty?.company_name ? selectedRowDataProperty?.company_name : ""}
