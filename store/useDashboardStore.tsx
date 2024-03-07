@@ -7,7 +7,6 @@ import {
   Contact_row_data,
   EditPosition,
   EditedCard,
-  EditedDealCard,
   EditedProduct,
   Meeting_row_data,
   MemberAccounts,
@@ -23,6 +22,7 @@ import {
   Property_row_data,
   QuotationProductsDetail,
   Quotation_row_data,
+  SelectedDealCard,
   SettingModalProperties,
   StampObj,
   StatusClosingDays,
@@ -482,11 +482,15 @@ type State = {
   selectedObjSectionSDBMember: MemberAccounts | null;
   setSelectedObjSectionSDBMember: (payload: MemberAccounts | null) => void;
 
-  // トレロボード
+  // --------- D&Dボード ---------
   editedTaskCard: EditedCard;
   setEditedTaskCard: (payload: EditedCard) => void;
-  editedDealCard: EditedDealCard;
-  setEditedDealCard: (payload: EditedDealCard) => void;
+  // 選択中のカード
+  selectedDealCard: SelectedDealCard;
+  setSelectedDealCard: (payload: SelectedDealCard) => void;
+  // 受注済みに変更後の売上入力モーダル
+  isRequiredInputSoldProduct: boolean;
+  setIsRequiredInputSoldProduct: (payload: boolean) => void;
 
   // テーマカラー
   activeThemeColor: string;
@@ -1130,11 +1134,15 @@ const useDashboardStore = create<State>((set) => ({
   selectedObjSectionSDBMember: null,
   setSelectedObjSectionSDBMember: (payload) => set({ selectedObjSectionSDBMember: payload }),
 
-  // トレロボード
+  // --------- D&Dボード ---------
   editedTaskCard: null,
   setEditedTaskCard: (payload) => set({ editedTaskCard: payload }),
-  editedDealCard: null,
-  setEditedDealCard: (payload) => set({ editedDealCard: payload }),
+  // 選択中のカード
+  selectedDealCard: null,
+  setSelectedDealCard: (payload) => set({ selectedDealCard: payload }),
+  // 受注済みに変更後の売上入力モーダル
+  isRequiredInputSoldProduct: false,
+  setIsRequiredInputSoldProduct: (payload) => set({ isRequiredInputSoldProduct: payload }),
 
   // テーマカラー
   activeThemeColor: "theme-brand-f",

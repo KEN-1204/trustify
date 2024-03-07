@@ -1390,7 +1390,7 @@ export const getLeaseDivision = (value: string, language: string = "ja") => {
   }
 };
 
-// 月初確度 order_certainty_start_of_month ネタ読みの精度も確認するため
+// 月初確度と中間見直確度 order_certainty_start_of_month ネタ読みの精度も確認するため
 // 最初のネタ確度から受注、ペンディング、没のアクティビティを担当者毎に記録する
 // 各確度ごとの獲得率を算出して可視化することで、正確な売上予測と過分な製造、在庫管理によるコストを削減、利益最大化を図る
 export const optionsOrderCertaintyStartOfMonth = [1, 2, 3, 4];

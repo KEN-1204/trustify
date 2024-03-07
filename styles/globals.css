@@ -1159,6 +1159,21 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-barrel-bg-active: rgba(255, 117, 117, 0.2);
   --color-barrel-border-active: rgb(239 68 68 / 1);
   --color-drop-indicator-active: #ff3b5b;
+  /* 受注後のグラデーションモーダル */
+  --color-gradient-modal: linear-gradient(
+    180deg,
+    #ffffff 3%,
+    #cffcfdd0 15%,
+    #0affffa0 30%,
+    #0abeffa0 56%,
+    #0066ffa0 88%
+  );
+  --color-gradient-modal-text: #0d99ff;
+  --color-gradient-modal-bg: #fcfcfc;
+  --color-gradient-modal-header-bg: var(--color-bg-sub);
+  --color-gradient-modal-border-inner: #ccc;
+  --color-gradient-modal-border-real-shadow: inset 0px 0px 0px 1px #999999c0, 0px 0px 0px 1px #33333360,
+    0 4px 12px 5px #00000039;
   /* テーマカラーパレット */
   --color-palette-brand-f: radial-gradient(
     64.18% 64.18% at 71.16% 35.69%,
@@ -1938,6 +1953,21 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-barrel-text-active: rgb(239 68 68 / 1);
   --color-barrel-border-active: rgb(153 27 27 / 1);
   --color-drop-indicator-active: #00ff40;
+  /* 受注後のグラデーションモーダル */
+  --color-gradient-modal: linear-gradient(
+    180deg,
+    #ffffffd0 9%,
+    #cffcfdd0 18%,
+    #0affffd0 33%,
+    #0abeffd0 66%,
+    #0066ffd0 88%
+  );
+  --color-gradient-modal-bg: #121212;
+  --color-gradient-modal-text: #fff;
+  --color-gradient-modal-header-bg: rgb(51 51 51 / 0.5);
+  --color-gradient-modal-border-inner: #33333300;
+  --color-gradient-modal-border-real-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000,
+    0 4px 15px 4px #ffffff56;
   /* テーマカラーパレット */
   /* --color-palette-brand-f: linear-gradient(60deg, #cffcfd, #7de2eb, #0ab5ff, #0066ff); */
   --color-palette-brand-f: radial-gradient(

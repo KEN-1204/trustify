@@ -6,6 +6,7 @@ import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/Dash
 import { FallbackDashboardHomeComponent } from "@/components/DashboardHomeComponent/FallbackDashboardHomeComponent";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { DashboardMeetingComponent } from "@/components/DashboardMeetingComponent/DashboardMeetingComponent";
+import { DashboardPreApprovalComponent } from "@/components/DashboardPreApprovalComponent/DashboardPreApprovalComponent";
 import { DashboardPropertyComponent } from "@/components/DashboardPropertyComponent/DashboardPropertyComponent";
 import { DashboardQuotationComponent } from "@/components/DashboardQuotationComponent/DashboardQuotationComponent";
 import { DashboardSDBComponent } from "@/components/DashboardSDBComponent/DashboardSDBComponent";
@@ -274,6 +275,7 @@ const DashboardHome = ({
       {activeMenuTab === "Calendar" && <DashboardCalendarComponent />}
       {activeMenuTab === "Quotation" && <DashboardQuotationComponent />}
       {activeMenuTab === "SDB" && <DashboardSDBComponent />}
+      {activeMenuTab === "PreApproval" && <DashboardPreApprovalComponent />}
       {/* {activeMenuTab === "Contacts" && <div className="flex-center w-screen h-screen bg-red-100">あい</div>} */}
     </DashboardLayout>
   );

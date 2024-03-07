@@ -20,6 +20,11 @@ export const useMutateProperty = () => {
   const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
   const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
 
+  // -------------------------- ネタ表からの売上入力用 --------------------------
+  const isRequiredInputSoldProduct = useDashboardStore((state) => state.isRequiredInputSoldProduct);
+  const setIsRequiredInputSoldProduct = useDashboardStore((state) => state.setIsRequiredInputSoldProduct);
+  // -------------------------- ネタ表からの売上入力用 ここまで --------------------------
+
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
 
@@ -409,31 +414,30 @@ export const useMutateProperty = () => {
         setIsUpdateRequiredForLatestSelectedRowDataProperty(true);
 
         if (loadingGlobalState) setLoadingGlobalState(false);
+
+        // 更新モーダルを閉じる
         setIsOpenUpdatePropertyModal(false);
-        toast.success("案件の更新が完了しました🌟", {
-          position: "top-right",
-          autoClose: 1500,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: `${theme === "light" ? "light" : "dark"}`,
-        });
-        // setTimeout(() => {
-        //   if (loadingGlobalState) setLoadingGlobalState(false);
-        //   setIsOpenUpdatePropertyModal(false);
-        //   toast.success("案件の更新完了しました!", {
-        //     position: "top-right",
-        //     autoClose: 1500,
-        //     hideProgressBar: false,
-        //     closeOnClick: true,
-        //     pauseOnHover: true,
-        //     draggable: true,
-        //     progress: undefined,
-        //     theme: `${theme === "light" ? "light" : "dark"}`,
-        //   });
-        // }, 500);
+
+        // -------------------------- ネタ表からの売上入力用 --------------------------
+        if (isRequiredInputSoldProduct) {
+          // ネタ表からの売上入力が完了したら、rowDataを空にしてisRequiredInputSoldProductをfalseにする
+          setSelectedRowDataProperty(null);
+          setIsRequiredInputSoldProduct(false);
+          toast.success("売上入力が完了しました🌟");
+        }
+        // -------------------------- ネタ表からの売上入力用 ここまで --------------------------
+        else {
+          toast.success("案件の更新が完了しました🌟", {
+            position: "top-right",
+            autoClose: 1500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: `${theme === "light" ? "light" : "dark"}`,
+          });
+        }
       },
       onError: (err: any) => {
         if (loadingGlobalState) setLoadingGlobalState(false);

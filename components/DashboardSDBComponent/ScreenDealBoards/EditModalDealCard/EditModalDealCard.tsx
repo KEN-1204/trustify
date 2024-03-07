@@ -12,8 +12,8 @@ import useStore from "@/store";
 // const EditModalDealCardMemo = ({ setIsOpenEditModal }: Props) => {
 const EditModalDealCardMemo = () => {
   const language = useStore((state) => state.language);
-  const editedDealCard = useDashboardStore((state) => state.editedDealCard);
-  const setEditedDealCard = useDashboardStore((state) => state.setEditedDealCard);
+  const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
+  const setSelectedDealCard = useDashboardStore((state) => state.setSelectedDealCard);
   const setIsOpenPropertyDetailModal = useDashboardStore((state) => state.setIsOpenPropertyDetailModal);
   const [isEditText, setIsEditText] = useState(false);
   const [text, setText] = useState("");
@@ -31,15 +31,15 @@ const EditModalDealCardMemo = () => {
     console.log(detail.offsetHeight, detail.scrollHeight, detail.offsetHeight < detail.scrollHeight);
   }, []);
 
-  if (!editedDealCard) return null;
+  if (!selectedDealCard) return null;
 
   // 閉じる
   const handleClose = () => {
-    setEditedDealCard(null);
+    setSelectedDealCard(null);
   };
 
-  const isRejected = editedDealCard.rejected_flag;
-  const isPending = editedDealCard.pending_flag;
+  const isRejected = selectedDealCard.rejected_flag;
+  const isPending = selectedDealCard.pending_flag;
 
   const handleClickPending = () => {
     // まだペンディングではない場合はペンディングに変更
@@ -58,7 +58,7 @@ const EditModalDealCardMemo = () => {
     setIsOpenPropertyDetailModal(true);
   };
 
-  console.log("EditModalDealCardレンダリング editedDealCard", editedDealCard);
+  console.log("EditModalDealCardレンダリング selectedDealCard", selectedDealCard);
   return (
     <>
       <div className={`${styles.edit_modal_overlay} fade05`} onClick={handleClose}></div>
@@ -75,11 +75,11 @@ const EditModalDealCardMemo = () => {
               </div>
             </div>
             <div className={`${styles.contents_area} min-w-[600px] bg-[aqua]/[0]`}>
-              <h2 className={`${styles.title} text-[22px] font-bold`}>{editedDealCard.company_name}</h2>
+              <h2 className={`${styles.title} text-[22px] font-bold`}>{selectedDealCard.company_name}</h2>
               <div className={`${styles.sub_title} flex items-center space-x-[6px] text-[13px] `}>
                 <span>確度:</span>
                 <span className={`${styles.list_name}`}>
-                  {mappingOrderCertaintyStartOfMonthToast[editedDealCard.column_title_num][language]}
+                  {mappingOrderCertaintyStartOfMonthToast[selectedDealCard.column_title_num][language]}
                 </span>
               </div>
             </div>
@@ -100,11 +100,11 @@ const EditModalDealCardMemo = () => {
                   <div
                     className={`${styles.edit_textarea}`}
                     onClick={() => {
-                      setText(editedDealCard.property_summary ?? "");
+                      setText(selectedDealCard.property_summary ?? "");
                       setIsEditText(true);
                     }}
                   >
-                    {editedDealCard.property_summary ?? ""}
+                    {selectedDealCard.property_summary ?? ""}
                     {/* <span>
                       Lorem ipsum dolor sit amet consectetur, adipisicing elit. Id, aspernatur fugit. Reiciendis
                       praesentium dolorum dolor tempore officia ullam blanditiis numquam eius obcaecati, quos ipsum

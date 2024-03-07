@@ -49,7 +49,7 @@ import {
   optionsTermDivision,
 } from "@/utils/selectOptions";
 import { generateYearQuarters } from "@/utils/Helpers/generateYearQuarters";
-import { Department, EditedDealCard, Office, Property, Property_row_data, Unit } from "@/types";
+import { Department, SelectedDealCard, Office, Property, Property_row_data, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMedia } from "react-use";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
@@ -81,8 +81,8 @@ const DetailPropertyModalMemo = () => {
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
   // 選択中の列データ会社
-  const editedDealCard = useDashboardStore((state) => state.editedDealCard);
-  let selectedRowDataProperty: EditedDealCard = editedDealCard;
+  const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
+  let selectedRowDataProperty: SelectedDealCard = selectedDealCard;
   // const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
   // モーダルを閉じる
   const setIsOpenPropertyDetailModal = useDashboardStore((state) => state.setIsOpenPropertyDetailModal);

@@ -98,6 +98,11 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   const language = useStore((state) => state.language);
   // const [cards, setCards] = useState<DealCardType[]>([]);
 
+  // 受注済み変更後に売上入力モーダルへの遷移のためのグローバルstate
+  const setIsRequiredInputSoldProduct = useDashboardStore((state) => state.setIsRequiredInputSoldProduct);
+  const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
+  const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
+
   const queryClient = useQueryClient();
   const supabase = useSupabaseClient();
 
@@ -113,11 +118,11 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   const [cards, setCards] = useState<DealCardType[]>([]);
   const [isMountedQuery, setIsMountedQuery] = useState(false);
 
-  // 現在のクエリキー キャッシュ更新時に使用
+  // 現在のクエリキー(queryKey) キャッシュ更新時に使用
   const currentQueryKey = ["deals", userId, periodType, period];
 
   const {
-    data,
+    data: queryData,
     error,
     isLoading: isLoadingQuery,
     isSuccess,
@@ -136,8 +141,8 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
     if (isMountedQuery) return; // 既にマウント済みの場合はリターン
 
     if (isSuccess) {
-      const initialCards = !!data?.length
-        ? data.map((obj, index) => {
+      const initialCards = !!queryData?.length
+        ? queryData.map((obj, index) => {
             const newColumnTitleNum = !!obj?.review_order_certainty
               ? obj.review_order_certainty
               : !!obj?.order_certainty_start_of_month
@@ -187,8 +192,8 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   const hasCheckedRef = useRef(false);
   // 編集モーダル
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
-  const editedDealCard = useDashboardStore((state) => state.editedDealCard);
-  const setEditedDealCard = useDashboardStore((state) => state.setEditedDealCard);
+  const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
+  const setSelectedDealCard = useDashboardStore((state) => state.setSelectedDealCard);
 
   // useEffect(() => {
   //   hasCheckedRef.current && localStorage.setItem("cards", JSON.stringify(cards));
@@ -1129,7 +1134,7 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   };
   // ---------------------------- ✅受カード Leaveホバー✅ ----------------------------
   // ---------------------------- 🌟主カード End🌟 ----------------------------
-  const handleDragEndCard = ({
+  const handleDragEndCard = async ({
     e,
     card,
     columnTitleNum,
@@ -1374,6 +1379,8 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
     //   return newCards;
     // });
 
+    // スプレッドでシャローコピーをしておけば、spliceの破壊的なメソッドをnewCardsに加えてもprevCardsはcardsの内容を保持する
+    const prevCards = [...cards]; // 更新失敗時にリセットする用
     const newCards = [...cards];
     // ドラッグしてるカードを削除して、ドロップした位置に挿入
     const deleteAt = newCards.findIndex((card) => card.property_id === draggingCardObj.property_id);
@@ -1397,14 +1404,82 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
         newCards.splice(insertAt, 0, newInsertCard);
       }
     }
+
+    // 🔹カラムが変更された場合 中間見直確度が存在するなら中間見直確度を更新 なければ月初確度を更新
+    if (dropColumnIndex !== originDragColumnIndex) {
+      if (!!newInsertCard.review_order_certainty) {
+        newInsertCard.review_order_certainty = newInsertCard.column_title_num;
+      } else if (newInsertCard.order_certainty_start_of_month) {
+        newInsertCard.order_certainty_start_of_month = newInsertCard.column_title_num;
+      } else {
+        return console.error("❌エラー：月初確度、中間見直確度ともにデータが見つかりませんでした。");
+      }
+    }
+    console.log("🌠更新後のカードと配列", newInsertCard, newCards, "🌠元々のカードの配列", prevCards);
+
+    // 🔹先にローカルstateを更新してブラウザに反映
     setCards(newCards);
     setUpdateCardsMapTrigger(Date.now()); // メモ化したMapオブジェクトを再計算して生成
 
-    // カラムが異なる場合はトーストを表示
+    // 🔹カラムが異なる場合はトーストを表示
     if (dropColumnIndex !== originDragColumnIndex) {
-      toast.success(
-        `${deleteCard.company_name}を${mappingOrderCertaintyStartOfMonthToast[dropColumnTitle][language]}に変更しました🌟`
-      );
+      try {
+        // カラムが異なる場合はDBの確度を変更
+        // 中間見直確度が存在するなら中間見直確度を更新 なければ月初確度を更新
+        const updatePayload: { [key: string]: number } = {};
+        if (!!newInsertCard.review_order_certainty) {
+          updatePayload.review_order_certainty = newInsertCard.column_title_num;
+        } else if (newInsertCard.order_certainty_start_of_month) {
+          updatePayload.order_certainty_start_of_month = newInsertCard.column_title_num;
+        } else {
+          throw new Error("❌エラー：月初確度、中間見直確度ともにデータが見つかりませんでした。");
+        }
+        console.log("🚀ネタの確度を更新 updatePayload", updatePayload);
+        const { data, error } = await supabase
+          .from("properties")
+          .update(updatePayload)
+          .eq("id", newInsertCard.property_id)
+          .select();
+
+        if (error) throw error;
+        if (data?.length !== 1) {
+          console.log("❌data", data);
+          throw new Error("エラー：正常に更新できませんでした...");
+        }
+
+        console.log("✅supabase確度更新成功 data", data);
+
+        // DBの更新成功 => 更新結果をキャッシュにも反映
+        queryClient.setQueryData(currentQueryKey, [...newCards]);
+
+        toast.success(
+          `${deleteCard.company_name}を${mappingOrderCertaintyStartOfMonthToast[dropColumnTitle][language]}に変更しました🌟`
+        );
+
+        // 🔹🔸売上商品・売上価格・売上日付の３つが全て入力されていない場合は、モーダル表示入力画面に遷移させるオプションを表示
+        if (
+          !newInsertCard.sales_date ||
+          !newInsertCard.sales_year_month ||
+          !newInsertCard.sales_quarter ||
+          !newInsertCard.sales_half_year ||
+          !newInsertCard.sales_fiscal_year ||
+          !newInsertCard.product_sales ||
+          !newInsertCard.sales_price
+        ) {
+          // 新たな売物件をZustandに格納 分割代入の残余演算子の組み合わせで、DealCardType型からcolumn_title_numプロパティを除いた残りのプロパティ全て(Property_row_data型)をpropertyRowData変数に格納 column_title_numプロパティはcolumn_title_num変数に格納(除去用なので使用はしない)
+          const { column_title_num, ...propertyRowData } = newInsertCard;
+          setSelectedRowDataProperty(propertyRowData);
+          setIsRequiredInputSoldProduct(true);
+          // setIsOpenUpdatePropertyModal(true); // 売上入力するオプションモーダルで入力を選択した時に編集モーダルを開く
+        }
+      } catch (error: any) {
+        console.error("エラー", error);
+        // DBへの更新が失敗した場合は、prevCardsを使ってローカルstateを元々の確度に戻す
+        setCards(prevCards);
+        toast.success(
+          `${deleteCard.company_name}の${mappingOrderCertaintyStartOfMonthToast[dropColumnTitle][language]}への更新に失敗しました...🙇‍♀️`
+        );
+      }
     }
 
     /**
@@ -1595,8 +1670,8 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
     isMountedQuery,
     "isSuccess",
     isSuccess,
-    "data",
-    data,
+    "queryData",
+    queryData,
     "cards",
     cards
   );
@@ -1700,7 +1775,7 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
                         } ${isRejected ? `${styles.rejected}` : ``} ${isPending ? `${styles.pending}` : ``}`}
                         style={{ ...(animate && { animationDelay: `${(rowIndex + 1) * 0.3}s` }) }} // 各カードのアニメーションの遅延を設定
                         onClick={() => {
-                          setEditedDealCard(card);
+                          setSelectedDealCard(card);
                           setIsOpenEditModal(true);
                         }}
                         onDragStart={(e) =>
@@ -1894,7 +1969,7 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
         </div>
         {/* ------------------- ゴミ箱レーン ここまで ------------------- */}
         {/* ------------------- 編集モーダル ------------------- */}
-        {/* {isOpenEditModal && editedDealCard && <EditModalDealCard setIsOpenEditModal={setIsOpenEditModal} />} */}
+        {/* {isOpenEditModal && selectedDealCard && <EditModalDealCard setIsOpenEditModal={setIsOpenEditModal} />} */}
         {/* ------------------- 編集モーダル ここまで ------------------- */}
       </div>
       {/* ------------------------ ボード ここまで ------------------------ */}

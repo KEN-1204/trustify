@@ -1,0 +1,147 @@
+.card {
+  /* 375px 横幅 * 80vw = 300 250px 0.83倍 */
+  /* width: 190px;
+  height: 254px;
+  background: #07182E;
+  position: relative; */
+  display: flex;
+  place-content: center;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 20px;
+  /* color: var(--color-text-title); */
+  /* color: var(--color-bg-brand-f); */
+  /* color: #0d99ff; */
+  color: var(--color-gradient-modal-text, #0d99ff);
+  box-shadow: var(--color-gradient-modal-border-real-shadow);
+}
+
+/* .card::before {
+  content: "";
+  position: absolute;
+  width: 120%;
+  background-image: linear-gradient(180deg, #fff 6%, #cffcfd 9%, #0affff 30%, #0abeff 56%, #0066ff 88%);
+  height: 290px;
+  animation: rotBGimg 3s linear infinite;
+  transition: all 0.3s linear;
+} */
+.card::before {
+  content: "";
+  position: absolute;
+  /* top: 10%;
+  left: 50%; */
+  /* width: 250px; */
+  /* width: 660px; */
+  /* width: 120%;
+  height: 290px; */
+  width: 130%;
+  height: 230%;
+  /* background-image: linear-gradient(180deg, #ffffffd0 9%, #cffcfdd0 13%, #0affffd0 30%, #0abeffd0 56%, #0066ffd0 88%); */
+  background-image: var(--color-gradient-modal);
+
+  /* width: 100px; */
+  /* background-image: linear-gradient(180deg, #ff0050, #00f2ea); */
+  /* background-image: linear-gradient(180deg, #0affff, #0abeff, #0066ff); */
+  /* background-image: linear-gradient(180deg, rgb(0, 183, 255), rgb(255, 48, 255)); */
+  /* height: 130%; */
+  /* height: 360px; */
+  animation: rotBGimg 3s linear infinite;
+  transition: all 0.3s linear;
+  /* #FF3B5B #0DF6F1 */
+}
+
+@keyframes rotBGimg {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.card_after {
+  position: absolute;
+  z-index: 0;
+  /* inset: 5px; */
+  inset: 6px;
+  /* background: #121212; */
+  background: var(--color-gradient-modal-bg);
+  /* background: #07182e; */
+  /* border-radius: 15px; */
+  border-radius: 16px;
+  box-shadow: 0 0 0 1px var(--color-gradient-modal-border-inner);
+}
+
+.rotate-animation {
+  animation: rotBGimg 3s linear infinite;
+  transition: all 0.2s linear;
+}
+
+.clip-animation {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: transparent;
+  -webkit-text-stroke: 1px #fff;
+  background-image: linear-gradient(#fff, #fff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  background-position: -100px 0;
+  animation: clipBackColor 5s linear infinite alternate;
+}
+
+@keyframes clipBackColor {
+  100% {
+    background-position: 0 0;
+  }
+}
+
+.plus-clip-animation {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: transparent;
+  background-clip: text;
+  /* -webkit-text-stroke: 1px #fff; */
+  stroke-width: 1px;
+  stop-color: #fff;
+}
+
+.heart-icon-animation {
+  animation: OpacityAnimation 1s linear;
+  animation-delay: 2s;
+}
+
+@keyframes OpacityAnimation {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.clip-bg {
+  width: 300px;
+  height: 300px;
+  border-radius: 16px;
+  background-color: white;
+  clip-path: url(#clip1);
+  animation: FocusPlusAnime 0.6s linear infinite alternate;
+}
+
+@keyframes FocusPlusAnime {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
+
+.clip-bg-background {
+  clip-path: url(#clip2);
+}

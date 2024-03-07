@@ -9,6 +9,7 @@ export const mappingTitle: { [key: string]: { [key: string]: string } } = {
   Calendar: { ja: "カレンダー - TRUSTiFY", en: "Calendar - TRUSTiFY" },
   Quotation: { ja: "見積 - TRUSTiFY", en: "Quotation - TRUSTiFY" },
   SDB: { ja: "セールスダッシュボード - TRUSTiFY", en: "Sales Dashboard - TRUSTiFY" },
+  PreApproval: { ja: "事前承認 - TRUSTiFY", en: "Pre Approval - TRUSTiFY" },
 };
 
 interface LanguageTitles {

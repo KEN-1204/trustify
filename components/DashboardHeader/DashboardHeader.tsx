@@ -1248,8 +1248,8 @@ export const DashboardHeaderMemo: FC = () => {
                 <div
                   // href="/home"
                   // prefetch={false}
-                  className={`${styles.navbarItem} ${activeMenuTab === "Pre-approval" ? styles.active : ""} `}
-                  // onClick={() => setActiveMenuTab("Pre-approval")}
+                  className={`${styles.navbarItem} ${activeMenuTab === "PreApproval" ? styles.active : ""} `}
+                  onClick={() => setActiveMenuTab("PreApproval")}
                 >
                   <div
                     className={`${styles.navbarItemInner} cursor-not-allowed`}
@@ -1259,12 +1259,12 @@ export const DashboardHeaderMemo: FC = () => {
                   >
                     <span>
                       {language === "ja" && "事前承認"}
-                      {language === "en" && "Pre-approval"}
+                      {language === "en" && "PreApproval"}
                     </span>
                     {/* {!isLT1440 && (
                     <span>
                       {language === "ja" && "事前承認"}
-                      {language === "en" && "Pre-approval"}
+                      {language === "en" && "PreApproval"}
                     </span>
                   )}
                   {isLT1440 && (

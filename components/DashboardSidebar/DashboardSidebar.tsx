@@ -643,7 +643,7 @@ export const DashboardSidebarMemo: FC = () => {
                 className={`${styles.menu_item} ${
                   activeMenuTab === "Pre-approval" ? styles.active : ""
                 } !cursor-not-allowed`}
-                // onClick={() => switchActiveTab("Pre-approval")}
+                onClick={() => switchActiveTab("PreApproval")}
               >
                 <div
                   className={styles.menu_item_inner}

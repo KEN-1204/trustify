@@ -61,6 +61,7 @@ import {
   optionsTermDivision,
 } from "@/utils/selectOptions";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 
 type ModalProperties = {
   left: number;
@@ -73,8 +74,8 @@ type ModalProperties = {
 
 export const UpdatePropertyModal = () => {
   const language = useStore((state) => state.language);
-  const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
-  const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
+  // const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
+  // const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
   const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
   // const [isLoading, setIsLoading] = useState(false);
@@ -97,6 +98,12 @@ export const UpdatePropertyModal = () => {
   // const [isOpenDropdownMenuFilterProductsArray, setIsOpenDropdownMenuFilterProductsArray] = useState(
   //   Array(1).fill(false)
   // );
+
+  // -------------- 🔹ネタ表から受注済みに移行された時の売上入力関連🔹 --------------
+  const isRequiredInputSoldProduct = useDashboardStore((state) => state.isRequiredInputSoldProduct);
+  const setIsRequiredInputSoldProduct = useDashboardStore((state) => state.setIsRequiredInputSoldProduct);
+  // -------------- 🔹ネタ表から受注済みに移行された時の売上入力関連🔹 ここまで --------------
+
   // ドロップダウンメニューの表示位置
   type ClickedItemPos = { displayPos: "up" | "center" | "down"; clickedItemWidth: number | null };
   const [clickedItemPosition, setClickedItemPosition] = useState<ClickedItemPos>({
@@ -773,7 +780,6 @@ export const UpdatePropertyModal = () => {
     let _property_created_by_office_of_user = selectedRowDataProperty.property_created_by_office_of_user
       ? selectedRowDataProperty.property_created_by_office_of_user
       : null;
-    // let _activity_date = selectedRowDataActivity.activity_date ? new Date(selectedRowDataActivity.activity_date) : null;
     let _current_status = selectedRowDataProperty.current_status ? selectedRowDataProperty.current_status : "";
     let _property_name = selectedRowDataProperty.property_name ? selectedRowDataProperty.property_name : "";
     let _property_summary = selectedRowDataProperty.property_summary ? selectedRowDataProperty.property_summary : "";
@@ -1049,9 +1055,18 @@ export const UpdatePropertyModal = () => {
   // ------------------ 🌟キャンセルでモーダルを閉じる🌟 ------------------
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
+    // -------------------------- ネタ表からの売上入力用 --------------------------
+    // ネタ表からの売上入力で売上データを未入力の状態で閉じようとする場合確認モーダルを表示する
+    if (isRequiredInputSoldProduct) {
+      setIsOpenConfirmationModal("input_sold_product_for_deal_board");
+    }
+    // -------------------------- ネタ表からの売上入力用 ここまで --------------------------
+
     if (loadingGlobalState) return;
     setIsOpenUpdatePropertyModal(false);
   };
+  // ------------------ ✅キャンセルでモーダルを閉じる✅ ------------------
+  // ------------------ 🌟受注済みへの変更時の売上入力中断🌟 ------------------
   // ------------------ ✅キャンセルでモーダルを閉じる✅ ------------------
 
   // ----------------------------- 🌟サブミット🌟 -----------------------------
@@ -1067,6 +1082,24 @@ export const UpdatePropertyModal = () => {
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
+
+    // -------------------------- ネタ表からの売上入力用 --------------------------
+    // 売上商品・売上価格・売上日付が未入力の状態でサブミットされた場合はリターンする
+    if (isRequiredInputSoldProduct) {
+      if (!soldProductId || !soldProductName)
+        return alert(
+          '"売上商品が未入力です。 売上商品・売上価格・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。'
+        );
+      if (salesPrice === null || salesPrice === undefined || salesPrice === "")
+        return alert(
+          "売上価格が未入力です。 売上商品・売上価格・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。"
+        );
+      if (!salesDate)
+        return alert(
+          '"売上日付が未入力です。 売上商品・売上価格・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。'
+        );
+    }
+    // -------------------------- ネタ表からの売上入力用 ここまで --------------------------
 
     // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
@@ -1372,10 +1405,7 @@ export const UpdatePropertyModal = () => {
     !userProfileState?.customer_fiscal_year_basis || userProfileState?.customer_fiscal_year_basis === "firstDayBasis";
 
   console.log(
-    "面談予定作成モーダル selectedRowDataContact",
-    selectedRowDataContact,
-    "selectedRowDataActivity",
-    selectedRowDataActivity,
+    "案件編集モーダル",
     "selectedRowDataProperty",
     selectedRowDataProperty,
     "expectedProductName",
@@ -4069,6 +4099,30 @@ export const UpdatePropertyModal = () => {
           {/* メインコンテンツ コンテナ ここまで */}
         </div>
       </div>
+
+      {/* // -------------------------- ネタ表からの売上入力用 キャンセル確認 -------------------------- */}
+      {isOpenConfirmationModal === "input_sold_product_for_deal_board" && (
+        <ConfirmationModal
+          clickEventClose={() => {
+            setIsOpenConfirmationModal(null); // キャンセル確認モーダルを閉じる
+          }}
+          // titleText="面談データの自社担当を変更してもよろしいですか？"
+          titleText={`売上入力を中断しますか？`}
+          // titleText2={`データの所有者を変更しますか？`}
+          sectionP1="売上商品・売上価格・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。"
+          sectionP2="注：現在の入力データは破棄されます。"
+          cancelText="戻る"
+          submitText="中断する"
+          clickEventSubmit={() => {
+            // setMemberObj(prevMemberObj);
+            setIsOpenConfirmationModal(null); // キャンセル確認モーダルを閉じる
+            setIsOpenUpdatePropertyModal(false); // モーダルを閉じる
+            setSelectedRowDataProperty(null); // 選択中の売り物件を空にする
+            setIsRequiredInputSoldProduct(false); // ネタ表の受注ずみ売り入力をfalseに変更
+          }}
+        />
+      )}
+      {/* // -------------------------- ネタ表からの売上入力用 キャンセル確認 -------------------------- */}
 
       {/* 「自社担当」変更確認モーダル */}
       {isOpenConfirmationModal === "change_member" && (

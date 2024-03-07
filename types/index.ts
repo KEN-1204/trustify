@@ -2453,7 +2453,7 @@ export type DealCardType = Property_row_data & {
   column_title_num: number; // 月初確度 or 中間確度 中間確度があればこちらを優先
 };
 
-export type EditedDealCard = DealCardType | null;
+export type SelectedDealCard = DealCardType | null;
 
 // SDB 売上進捗 期間
 export type PeriodSDB = { periodType: string; period: number };
