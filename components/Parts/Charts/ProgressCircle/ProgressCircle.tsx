@@ -4,7 +4,7 @@ type Props = {
   circleId: string;
   textId: string;
   progress?: number;
-  ms?: number;
+  duration?: number;
   size?: number;
   strokeWidth?: number;
   fontSize?: number;
@@ -14,6 +14,9 @@ type Props = {
   notGrad?: boolean;
   oneColor?: string;
   textColor?: string;
+  easeFn?: "Cubic" | "Quartic" | "Quintic" | "Sextic";
+  isReady?: boolean;
+  fade?: string;
 };
 
 // https://chat.openai.com/chat?model=gpt-4 // こちらを確認
@@ -24,7 +27,7 @@ const ProgressCircleMemo = ({
   circleId,
   textId,
   progress = 75,
-  ms = 4000,
+  duration = 3000,
   size = 150,
   strokeWidth = 12,
   fontSize = 34,
@@ -34,6 +37,9 @@ const ProgressCircleMemo = ({
   notGrad = false,
   oneColor = "#0abeff",
   textColor,
+  easeFn = "Cubic",
+  isReady = true,
+  fade,
 }: Props) => {
   // プログレスアニメーション用state
   const [animatedProgress, setAnimatedProgress] = useState(0);
@@ -60,18 +66,41 @@ const ProgressCircleMemo = ({
   //   }, [progress, animatedProgress]);
 
   useEffect(() => {
-    const duration = ms; // アニメーションの所要時間（ミリ秒）
+    if (!isReady) return;
+    // const duration = ms; // アニメーションの所要時間（ミリ秒）
     const start = performance.now(); // アニメーションの開始時刻を取得
 
+    // イージング関数
+    // 3次関数: "Ease Out Cubic"
     function easeOutCubic(t: number) {
       return 1 - Math.pow(1 - t, 3);
     }
+
+    // 4次関数: "Ease Out Quartic"
+    function easeOutQuart(t: number): number {
+      return 1 - Math.pow(1 - t, 4);
+    }
+
+    // 5次関数: "Ease Out Quintic"
+    function easeOutQuint(t: number): number {
+      return 1 - Math.pow(1 - t, 5);
+    }
+    // 6次関数: "Ease Out Sextic"
+    function easeOutSextic(t: number): number {
+      return 1 - Math.pow(1 - t, 5);
+    }
+
+    let easeFunction = easeOutCubic;
+    if (easeFn === "Quartic") easeFunction = easeOutQuart;
+    if (easeFn === "Quintic") easeFunction = easeOutQuint;
+    if (easeFn === "Sextic") easeFunction = easeOutSextic;
 
     function animate(timestamp: number) {
       const elapsedTime = timestamp - start;
       const t = Math.min(elapsedTime / duration, 1); // アニメーションの進行度（0 から 1）
 
-      const easedProgress = easeOutCubic(t) * progress; // 目標のprogress値に到達するまでイージングを適用
+      //   const easedProgress = easeOutCubic(t) * progress; // 目標のprogress値に到達するまでイージングを適用
+      const easedProgress = easeFunction(t) * progress; // 目標のprogress値に到達するまでイージングを適用
 
       // Math.round()に入れない状態でstate更新、レンダリングをするやり方(レンダリング回数270回)
       //   setAnimatedProgress(easedProgress);
@@ -94,7 +123,7 @@ const ProgressCircleMemo = ({
     return () => {
       cancelAnimationFrame(animationId);
     };
-  }, [progress]);
+  }, [progress, isReady]);
 
   // プログレスバーの各変数を定義
   const radius = (size - strokeWidth) / 2;
@@ -153,17 +182,21 @@ const ProgressCircleMemo = ({
   }
 
   return (
-    <svg width={size} height={size}>
+    <svg
+      width={size}
+      height={size}
+      className={`${fade && !isReady ? `opacity-0` : ``} ${isReady && fade ? `${fade}` : ``} `}
+    >
       {/* サークル */}
       <defs>
         {!notGrad && (
           <linearGradient id={`circleLinearGradient_${circleId}`} x1={x1} y1={y1} x2={x2} y2={y2}>
             {/* //   <linearGradient id="circleLinearGradient" x1={x1} y1={y1} x2={x2} y2={y2}> */}
-            <stop offset="6%" stopColor="#fff" />
-            <stop offset="18%" stopColor="#cffcfd" />
-            <stop offset="33%" stopColor="#0affff" />
-            <stop offset="56%" stopColor="#0abeff" />
-            <stop offset="87%" stopColor="#0066ff" />
+            <stop offset="6%" stopColor="#ffffffe9" />
+            <stop offset="18%" stopColor="#cffcfde9" />
+            <stop offset="33%" stopColor="#0affffe9" />
+            <stop offset="56%" stopColor="#0abeffe9" />
+            <stop offset="87%" stopColor="#0066ffe9" />
             {/* <stop offset="0%" stopColor="#a445b2" />
           <stop offset="100%" stopColor="#fa4299" /> */}
             {/* インスタカラー */}

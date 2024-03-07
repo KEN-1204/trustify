@@ -2303,6 +2303,18 @@ textarea {
 .fade01 {
   animation: fade 0.1s;
 }
+.fade05_forward {
+  opacity: 0;
+  animation: fade 0.5s ease forwards;
+}
+.fade08_forward {
+  opacity: 0;
+  animation: fade 0.8s ease forwards;
+}
+.fade10_forward {
+  opacity: 0;
+  animation: fade 1s ease forwards;
+}
 @keyframes fade {
   0% {
     opacity: 0;

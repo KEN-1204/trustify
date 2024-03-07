@@ -8,6 +8,7 @@ import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/ProgressCircle";
+import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/ProgressNumber";
 
 type Props = {
   memberList: MemberAccounts[];
@@ -51,7 +52,7 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
       setTimeout(() => {
         setIsRenderProgress(true);
         console.log("ProgressCircleレンダリング");
-      }, 1800);
+      }, 1500);
     }
   }, []);
 
@@ -98,9 +99,9 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                       <div className={`${styles.sub_info} pt-[0px]`}>216088</div>
                       <div className={`${styles.sub_info} pt-[0px]`}>代表取締役</div>
                     </div> */}
-                    {isRenderProgress && (
+                    {/* {isRenderProgress && (
                       <div className={`fade05 relative h-[33px] w-[33px]`} style={{ marginLeft: `24px` }}>
-                        <div className="absolute bottom-[-10px] left-0">
+                        <div className="absolute bottom-[-4px] left-0">
                           <ProgressCircle
                             circleId="1"
                             textId="1"
@@ -113,7 +114,134 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                           />
                         </div>
                       </div>
-                    )}
+                    )} */}
+                    <div
+                      className={`relative !ml-[18px] !mr-[12px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}
+                    >
+                      <div className="flex h-full min-w-[140px] items-end justify-end">
+                        {/* <span className="mb-[-3px] text-[27px]">68,000</span> */}
+                        <ProgressNumber
+                          // targetNumber={11000000}
+                          targetNumber={110000}
+                          // targetNumber={0}
+                          // startNumber={Math.round(68000 / 2)}
+                          // startNumber={Number((68000 * 0.1).toFixed(0))}
+                          startNumber={0}
+                          duration={4500}
+                          easeFn="Quartic"
+                          fontSize={27}
+                          margin="0 0 -3px 0"
+                          isReady={isRenderProgress}
+                          fade={`fade08_forward`}
+                          // fade={`fade10_forward`}
+                        />
+                      </div>
+                      {/* <div className="h-full min-w-[33px] opacity-0"></div> */}
+                      <div className="relative h-full min-w-[33px]">
+                        <div className="absolute left-[66%] top-[68%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[white]"></div>
+                      </div>
+                      {/* <div className="absolute left-[58%] top-[68%]  min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[white]"></div> */}
+                      {/* <div className="flex h-full min-w-[82px] items-end justify-start"> */}
+                      <div className="mr-[12px] flex h-full min-w-max items-end justify-start">
+                        {/* <span className="text-[16px]">12,000,000</span> */}
+                        <span className="text-[16px]">900,000</span>
+                        {/* <span className="text-[16px]">10,000</span> */}
+                      </div>
+                    </div>
+                    <div className={`relative h-[56px] w-[66px]`} style={{ margin: `0` }}>
+                      <div className="absolute bottom-[-6px] right-0">
+                        <ProgressCircle
+                          circleId="1"
+                          textId="1"
+                          progress={78}
+                          // progress={0}
+                          duration={4000}
+                          easeFn="Quartic"
+                          size={66}
+                          strokeWidth={7}
+                          fontSize={14}
+                          textColor="var(--color-text-title)"
+                          isReady={isRenderProgress}
+                          fade={`fade08_forward`}
+                          // fade={`fade10_forward`}
+                        />
+                      </div>
+                    </div>
+                    {/* {isRenderProgress && (
+                      <div
+                        className={`${styles.progress_circle} relative h-[56px] w-[66px]`}
+                        // style={{ marginLeft: `24px` }}
+                      >
+                        <div className="absolute bottom-[-6px] right-0">
+                          <ProgressCircle
+                            circleId="1"
+                            textId="1"
+                            progress={78}
+                            duration={4000}
+                            easeFn="Quartic"
+                            size={66}
+                            strokeWidth={7}
+                            fontSize={14}
+                            // progress={78}
+                            // size={56}
+                            // strokeWidth={6}
+                            // fontSize={12}
+                            // textVerticalDirReverse={true}
+                            textColor="var(--color-text-title)"
+                            isReady={isRenderProgress}
+                            fade={`fade08-forward`}
+                          />
+                        </div>
+                      </div>
+                    )} */}
+                  </div>
+                </div>
+                <div className={`${styles.status_col_wrapper}`}>
+                  <div className={`${styles.status_flex_wrapper}`}>
+                    {/* <div className={`relative mr-[12px] flex h-full w-auto items-end bg-[red]/[0]`}>
+                      <span
+                        className={`absolute left-[30%] top-[36%] translate-x-[-50%] translate-y-[-50%] text-[27px] `}
+                      >
+                        6,800,000
+                      </span>
+                      <span className="text-[27px] opacity-0">6,800,000</span>
+                      <div className="h-full min-w-[39px] opacity-0"></div>
+                      <div className="absolute left-[62%] top-[50%]  min-h-[2px] w-[56px] translate-x-[-50%] translate-y-[-50%] rotate-[139deg] bg-[white]"></div>
+                      <span className={`absolute right-[0%] top-[70%] translate-y-[-50%] text-[16px] `}>
+                        12,000,000
+                      </span>
+                      <span className="text-[16px] opacity-0">12,000,000</span>
+                    </div> */}
+                    {/* <div className={`relative mr-[24px] flex h-full w-auto items-end bg-[red]/[0]`}>
+                      <span className="mb-[-3px] text-[27px] ">6,800,000</span>
+                      <div className="h-full min-w-[33px] opacity-0"></div>
+                      <div className="absolute left-[60%] top-[68%]  min-h-[2px] w-[33px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[white]"></div>
+                      <span className="text-[16px] ">12,000,000</span>
+                    </div>
+                    {isRenderProgress && (
+                      <div
+                        className={`fade05 relative h-[56px] w-[66px]`}
+                        // style={{ marginLeft: `24px` }}
+                      >
+                        <div className="absolute bottom-[-6px] right-0">
+                          <ProgressCircle
+                            circleId="1"
+                            textId="1"
+                            progress={78}
+                            size={66}
+                            strokeWidth={7}
+                            fontSize={14}
+                            // progress={78}
+                            // size={56}
+                            // strokeWidth={6}
+                            // fontSize={12}
+                            // textVerticalDirReverse={true}
+                            textColor="var(--color-text-title)"
+                          />
+                        </div>
+                      </div>
+                    )} */}
+                    <div className={`${styles.right_spacer}`}></div>
                   </div>
                 </div>
               </div>
