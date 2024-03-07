@@ -1,29 +1,82 @@
 import { memo } from "react";
 import styles from "./GradientModal.module.css";
+import { winnersIllustration } from "@/components/assets";
+import { FaStar } from "react-icons/fa";
+
+type Props = {
+  handleClickActive: () => void;
+  handleClickCancel: () => void;
+};
 
 const GradientModalMemo = () => {
   return (
     <>
-      <div className={`${styles.card}  relative z-0 flex h-[400px] w-[660px] flex-col items-center justify-start`}>
+      {/* オーバーレイ */}
+      <div className={`${styles.modal_overlay}`}></div>
+      <div className={`${styles.card}  flex h-[400px] w-[660px] flex-col items-center justify-start`}>
         <div className=" z-2 flex h-[400px] w-[660px] items-center justify-center"></div>
         <div className=" z-2 h-[400px] w-[660px] overflow-hidden"></div>
         <div className={`${styles.card_after} overflow-hidden `}>
           <div
             // className="  flex h-[80px] max-h-[80px]  w-[660px] flex-col items-center justify-center bg-[#333333]/[0.5] "
-            className="  flex h-[80px] max-h-[80px]  w-[660px] flex-col items-center justify-center bg-[var(--color-gradient-modal-header-bg)]"
+            className="flex h-[80px] max-h-[80px]  w-[660px] flex-col items-center justify-center bg-[var(--color-gradient-modal-header-bg)] text-[18px] font-[800] text-[var(--color-text-title)]"
           >
             <div>
-              <span className="text-[16px] font-[800]">受注おめでとう🎉</span>
+              <span className="">受注おめでとう🎉</span>
             </div>
             <div>
-              <span className="text-[16px] font-[800]">ダッシュボードに売上を反映させましょう！</span>
+              <span className="">ダッシュボードに売上を反映させましょう！</span>
+            </div>
+            <div className={`${styles.star_icon_wrapper} flex-center`}>
+              <FaStar className={`${styles.star_icon} `} />
             </div>
           </div>
           <div
             //   className="h-[400px] w-[660px]  overflow-hidden bg-[#121212] "
-            className="h-[400px] w-[660px]  overflow-hidden bg-[var(--color-gradient-modal-bg)] "
+            className="flex h-[308px] w-[660px] overflow-hidden bg-[var(--color-gradient-modal-bg)] "
             //   onClick={togglePlay}
           >
+            <div
+              // className={`relative flex h-full min-h-[450px] max-w-[400px] flex-col items-center justify-center ${
+              //   activeNotificationTab === "ToDo"
+              //     ? `transition-base-opacity1 opacity-100`
+              //     : `transition-base-opacity04 opacity-0`
+              // }`}
+              className={`transition-base-opacity1 relative flex h-full w-[50%] flex-col items-center justify-center opacity-100`}
+            >
+              <div className="z-1 absolute left-[48%] top-[46%] h-[210px] w-[210px] translate-x-[-50%] translate-y-[-50%] rounded-full bg-[var(--color-bg-brand-f90)]"></div>
+              <div className="z-10 mb-[25px] mt-[-10px]">{winnersIllustration("180")}</div>
+              <div className={`flex-center z-0 max-w-[300px] text-[14px] text-[var(--color-text-title)]`}>
+                <p className="w-full text-center">{`受注おめでとうございます！`}</p>
+              </div>
+            </div>
+            <div className={`flex-center relative flex h-full w-[50%] text-[var(--color-text-title)]`}>
+              <div className="flex h-full w-full flex-col justify-between pb-[20px] pr-[33px] pt-[50px]">
+                <div className="flex w-full flex-col">
+                  <div className={`beta_icon flex-center relative  h-[24px] w-[52px] rounded-full px-[16px] py-[4px]`}>
+                    <span className="whitespace-nowrap text-[12px] font-bold text-[#efefef]">受注</span>
+                    <span className="absolute -bottom-[0px] left-[10px] h-[1.5px] w-[32px] bg-gradient-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
+                  </div>
+                  <div className="mt-[10px] flex flex-col bg-[red]/[0] text-[13px] leading-[24px]">
+                    <p>
+                      受注済みの案件に「売上商品・売上価格・売上日付」を記録することでダッシュボード上に売上実績と達成率が反映されます。
+                    </p>
+                  </div>
+                </div>
+                <div className={`${styles.btn_area} mb-[40px] flex w-full space-x-[20px] bg-[red]/[0]`}>
+                  <div
+                    className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
+                    // onClick={handleChangePeriod}
+                  >
+                    <span>反映する</span>
+                  </div>
+                  <div className={`transition-bg02 ${styles.edit_btn} ${styles.cancel}`}>
+                    <span>閉じる</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* <video
                       src={downloadURLVideo}
                       className="h-full w-full bg-[#000] object-contain"

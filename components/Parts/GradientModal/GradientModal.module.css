@@ -1,4 +1,24 @@
+/* 編集モーダル */
+.modal_overlay {
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  /* backdrop-filter: blur(0px); */
+  /* background-color: #00000000; */
+  backdrop-filter: blur(2px);
+  /* background-color: #00000033; */
+  /* background-color: #ffffff09; */
+  /* background-color: #ff0000; */
+}
+
 .card {
+  position: fixed;
+  z-index: 2500;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   /* 375px 横幅 * 80vw = 300 250px 0.83倍 */
   /* width: 190px;
   height: 254px;
@@ -78,70 +98,90 @@
   transition: all 0.2s linear;
 }
 
-.clip-animation {
+.btn_area {
+  /* padding: 0px 0px; */
+  min-height: 50px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.btn_area:hover {
+  background-color: transparent;
+}
+.btn_area .edit_btn {
+  background-color: #484848;
+  user-select: none;
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 7px 22px;
+  border-radius: 8px;
+  width: 50%;
+  font-size: 14px;
+  display: flex;
+  justify-content: center;
+}
+.btn_area .edit_btn.brand {
+  color: #999;
+  background-color: #393939;
+  cursor: not-allowed;
+}
+.btn_area .edit_btn.brand:hover {
+  box-shadow: none;
+}
+.btn_area .edit_btn.cancel {
+  color: #fff;
+  background-color: var(--color-gradient-modal-btn-cancel-bg);
+}
+.btn_area .edit_btn.cancel:hover {
+  background-color: #555;
+  background-color: var(--color-gradient-modal-btn-cancel-bg-hover);
+}
+.btn_area .edit_btn.brand.active {
+  color: #fff;
+  /* background-color: var(--color-bg-brand-f90); */
+  background-color: var(--color-gradient-modal-btn-active-bg);
+  box-shadow: inset 0 0 0 1px var(--color-bg-brand-f);
+  cursor: pointer;
+}
+.btn_area .edit_btn.brand.active:hover {
+  color: #fff;
+  /* background-color: var(--color-bg-brand-f); */
+  background-color: var(--color-gradient-modal-btn-active-bg-hover);
+  box-shadow: inset 0 0 0 1px var(--color-bg-brand-f);
+}
+
+/*  */
+.star_icon_wrapper {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: transparent;
-  -webkit-text-stroke: 1px #fff;
-  background-image: linear-gradient(#fff, #fff);
-  background-clip: text;
-  -webkit-background-clip: text;
-  background-position: -100px 0;
-  animation: clipBackColor 5s linear infinite alternate;
+  top: 20px;
+  left: 20px;
+  transform: translate(3px, 3px);
+  /* top: 50%;
+  left: -18px; */
+  /* transform: translate(3px, -50%); */
+  z-index: 10;
+  width: 33px;
+  height: 33px;
+  border: 1px solid var(--color-star-icon);
+  /* border: 1px solid rgb(228, 239, 31); */
+  /* border: 1px solid rgb(228, 239, 31); */
+  background-color: var(--color-star-icon-bg);
+  /* background-color: var(--color-bg-brand-f60); */
+  /* background-color: var(--color-card-bg); */
+  border-radius: 50%;
 }
+.star_icon {
+  /* color: #00d436; */
+  /* color: rgb(30, 209, 102); */
+  /* color: rgb(200, 209, 30); */
+  /* color: rgb(228, 239, 31); */
+  color: var(--color-star-icon);
+  /* color: rgb(223, 235, 0); */
 
-@keyframes clipBackColor {
-  100% {
-    background-position: 0 0;
-  }
-}
-
-.plus-clip-animation {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: transparent;
-  background-clip: text;
-  /* -webkit-text-stroke: 1px #fff; */
-  stroke-width: 1px;
-  stop-color: #fff;
-}
-
-.heart-icon-animation {
-  animation: OpacityAnimation 1s linear;
-  animation-delay: 2s;
-}
-
-@keyframes OpacityAnimation {
-  0% {
-    opacity: 0;
-  }
-  100% {
-    opacity: 1;
-  }
-}
-
-.clip-bg {
-  width: 300px;
-  height: 300px;
-  border-radius: 16px;
-  background-color: white;
-  clip-path: url(#clip1);
-  animation: FocusPlusAnime 0.6s linear infinite alternate;
-}
-
-@keyframes FocusPlusAnime {
-  0% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0.2;
-  }
-}
-
-.clip-bg-background {
-  clip-path: url(#clip2);
+  pointer-events: none;
+  stroke-width: 1;
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
 }

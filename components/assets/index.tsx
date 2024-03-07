@@ -5313,14 +5313,22 @@ export const neonMoonIcon = (
   </svg>
 );
 
-export const winnersIllustration = (
+/**
+ * export const neonSearchIcon = (size: string = "500") => (
+  // <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg width={size} height={size} viewBox="0 0 48 48"
+ */
+
+export const winnersIllustration = (size: string = "220") => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     data-name="Layer1"
     // width="280"
     // height="280"
-    width="220"
-    height="220"
+    // width="220"
+    // height="220"
+    width={size}
+    height={size}
     viewBox="0 0 670.71277 675.70154"
     // width="670.71277"
     // height="675.70154"

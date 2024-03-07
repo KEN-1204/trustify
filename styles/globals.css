@@ -1129,6 +1129,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-thirty: #0d82ff;
   --color-award-icon: rgb(252, 70, 204);
   --color-award-icon-bg: var(--color-card-bg);
+  --color-star-icon: rgb(228, 239, 31);
+  --color-star-icon-bg: var(--color-bg-brand-fc0);
   /* --color-award-icon-bg: rgb(255, 243, 252); */
   /* --color-award-icon: rgb(228, 239, 31); */
   /* --color-award-icon-bg: rgb(56, 56, 8); */
@@ -1170,6 +1172,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   );
   --color-gradient-modal-text: #0d99ff;
   --color-gradient-modal-bg: #fcfcfc;
+  --color-gradient-modal-btn-active-bg: var(--color-bg-brand-fc0);
+  --color-gradient-modal-btn-active-bg-hover: var(--color-bg-brand-f);
+  --color-gradient-modal-btn-cancel-bg: #565656;
+  --color-gradient-modal-btn-cancel-bg-hover: #666;
   --color-gradient-modal-header-bg: var(--color-bg-sub);
   --color-gradient-modal-border-inner: #ccc;
   --color-gradient-modal-border-real-shadow: inset 0px 0px 0px 1px #999999c0, 0px 0px 0px 1px #33333360,
@@ -1928,6 +1934,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-thirty: #0d82ff;
   --color-award-icon: rgb(228, 239, 31);
   --color-award-icon-bg: rgb(56, 56, 8);
+  --color-star-icon: rgb(228, 239, 31);
+  --color-star-icon-bg: rgb(56, 56, 8);
   --color-column-bg: transparent;
   --color-column-lane-active: rgb(38 38 38 / 0.6);
   --color-column-border-active: inset 0px 0px 0px 1px #063c13, 0px 0px 0px 1px #00ff40;
@@ -1964,6 +1972,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   );
   --color-gradient-modal-bg: #121212;
   --color-gradient-modal-text: #fff;
+  --color-gradient-modal-btn-active-bg: var(--color-bg-brand-f90);
+  --color-gradient-modal-btn-active-bg-hover: var(--color-bg-brand-f);
+  --color-gradient-modal-btn-cancel-bg: #484848;
+  --color-gradient-modal-btn-cancel-bg-hover: #555;
   --color-gradient-modal-header-bg: rgb(51 51 51 / 0.5);
   --color-gradient-modal-border-inner: #33333300;
   --color-gradient-modal-border-real-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000,
