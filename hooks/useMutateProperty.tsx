@@ -192,6 +192,7 @@ export const useMutateProperty = () => {
         // キャッシュのデータを再取得
         await queryClient.invalidateQueries({ queryKey: ["properties"] });
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
+        await queryClient.invalidateQueries({ queryKey: ["deals"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
 
@@ -462,11 +463,13 @@ export const useMutateProperty = () => {
           setIsRequiredInputSoldProduct(false);
           toast.success("売上入力が完了しました🌟");
         }
-
         // -------------------------- ネタ表からの売上入力用 ここまで --------------------------
         else {
           // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataPropertyを最新状態にする
           setIsUpdateRequiredForLatestSelectedRowDataProperty(true);
+
+          // ネタ表からの受注後の売上入力でない場合
+          await queryClient.invalidateQueries({ queryKey: ["deals"] });
 
           if (loadingGlobalState) setLoadingGlobalState(false);
 
@@ -900,6 +903,10 @@ export const useMutateProperty = () => {
             // 獲得予定日を更新すると順番が入れ替わり、選択中の行がメインテーブルの内容と異なるためリセット
             console.log("プロパティにexpected_order_dateが含まれているため選択中の行をリセット");
             setSelectedRowDataProperty(null);
+            if (!isRequiredInputSoldProduct) {
+              // ネタ表からの受注後の売上入力でない場合
+              await queryClient.invalidateQueries({ queryKey: ["deals"] });
+            }
           }
           // それ以外は単一のカラムを更新
           else {

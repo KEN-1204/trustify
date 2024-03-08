@@ -1518,7 +1518,7 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
             const { column_title_num, ...propertyRowData } = newInsertCard;
             setSelectedRowDataProperty(propertyRowData); // 案件RowData
             setIsOpenCongratulationsModal(true);
-          }, 1000);
+          }, 900);
           // setIsOpenUpdatePropertyModal(true); // 売上入力するオプションモーダルで入力を選択した時に編集モーダルを開く
         }
       } catch (error: any) {

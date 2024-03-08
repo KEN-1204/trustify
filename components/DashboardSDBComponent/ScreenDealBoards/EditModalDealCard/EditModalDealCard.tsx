@@ -15,6 +15,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 import { format } from "date-fns";
+import { formatDisplayPrice } from "@/utils/Helpers/formatDisplayPrice";
 
 // const EditModalDealCardMemo = ({ setIsOpenEditModal }: Props) => {
 const EditModalDealCardMemo = () => {
@@ -195,18 +196,6 @@ const EditModalDealCardMemo = () => {
     setIsOpenPropertyDetailModal(true);
   };
 
-  const formatDisplayPrice = (price: number | string): string => {
-    switch (language) {
-      case "ja":
-        const priceNum = typeof price === "number" ? price : Number(price);
-        return formatToJapaneseYen(priceNum, true, false);
-        break;
-      default:
-        return typeof price === "number" ? price.toString() : price;
-        break;
-    }
-  };
-
   const dealCard = selectedDealCard.dealCard;
   // 案件詳細アクティビティ
   const detailArray = [
@@ -214,7 +203,7 @@ const EditModalDealCardMemo = () => {
     { field: `○商品：`, value: dealCard.expected_product ? `${dealCard.expected_product}` : "" },
     {
       field: `○予定売上：`,
-      value: dealCard.expected_sales_price ? `${formatDisplayPrice(dealCard.expected_sales_price)}` : "",
+      value: dealCard.expected_sales_price ? `${formatDisplayPrice(dealCard.expected_sales_price, language)}` : "",
     },
     { field: `○予定台数：`, value: dealCard.product_sales ? `${dealCard.product_sales}` : "" },
     {

@@ -429,6 +429,7 @@
   color: var(--color-text);
   /* padding: 120px 16%; */
   padding: 120px 10%;
+  overflow: hidden;
 
   /* スクロールスナップ🌟 */
   scroll-snap-align: center;

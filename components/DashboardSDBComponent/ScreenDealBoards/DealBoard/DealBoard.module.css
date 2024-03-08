@@ -1,13 +1,17 @@
 .board {
   min-height: max-content;
   display: flex;
-  justify-content: center;
+  /* justify-content: center; */
+  justify-content: flex-start;
   width: 100%;
   /* overflow-x: hidden; */
   overflow-y: auto;
   /* padding: 48px; */
   /* padding: 24px 48px; */
   padding: 12px 48px;
+  /* テスト */
+  padding: 12px 24px;
+  /* テスト */
 }
 
 .column {
@@ -22,8 +26,12 @@
   /* background-color: var(--color-column-bg); */
   padding: 0 15px;
   /* min-width: 254px; */
-  max-width: 275px;
-  width: 100%;
+  /* max-width: 275px; */
+  /* 1392 -24*2(px) - 224px(ゴミ箱) - 2*4(border) /4 = 1112 / 4 = 278px */
+  /* max-width: calc(1169px / 4); */
+  /* width: 100%; */
+  /* width: calc((1440px - 48px - 48px - 224px - 8px) / 4); */
+  min-width: 277px;
   border-left: 2px solid var(--color-border-base);
   transition: all 0.3s ease;
   /* box-shadow: var(--color-column-border-active); */

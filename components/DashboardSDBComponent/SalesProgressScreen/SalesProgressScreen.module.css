@@ -9,6 +9,9 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
+  /* テスト */
+  padding: 0 24px;
+  /* テスト */
 }
 
 /* ------------------- セクションタイトル関連 ------------------- */
@@ -28,7 +31,11 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  padding: 0 48px;
+  /* padding: 0 48px; */
+  /* テスト */
+  padding: 0 24px;
+
+  /* テスト */
   /* background-color: #0000ff30; */
 }
 .section_container .section_wrapper .left_wrapper {

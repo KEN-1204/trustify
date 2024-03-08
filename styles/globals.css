@@ -1123,6 +1123,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sdb-section-title-border: var(--color-bg-brand-sub-hover-light);
   --color-sdb-section-title-text: #fff;
   --color-table-text: var(--color-text-title);
+  --color-deal-board-bg: #ffffff66;
   --color-award: rgb(252, 70, 204);
   --color-eighty: var(--main-color-tk);
   --color-fifty: rgb(30, 209, 102);
@@ -1928,6 +1929,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sdb-section-title-text: #fff;
   --color-sdb-section-title-border: var(--color-bg-brand);
   --color-sdb-text: #fafafa;
+  --color-deal-board-bg: #00000099;
   /* --color-award: rgb(236 72 153 / 1);
   --color-eighty: var(--main-color-tk);
   --color-fifty: rgb(16 185 129 / 1);
@@ -3250,3 +3252,28 @@ textarea {
 }
 
 /* -------------- 🌟SDB🌟 -------------- */
+
+/* リフレッシュアイコン */
+.refresh_icon {
+  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */
+  border-radius: 50%;
+  /* background-color: var(--color-bg-brand-f30); */
+  cursor: pointer;
+  transform: scale(-1, 1);
+}
+.refresh_icon path {
+  /* stroke: #ffffffd0; */
+  stroke: var(--color-bg-brand-f);
+}
+.refresh_icon path,
+.refresh_icon svg {
+  pointer-events: none;
+}
+.refresh_icon:hover {
+  /* background-color: var(--color-bg-brand-f); */
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  background-color: var(--color-bg-brand-f90);
+}
+.refresh_icon:hover path {
+  stroke: #ffffff;
+}

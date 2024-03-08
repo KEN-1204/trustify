@@ -1,3 +1,5 @@
+import { formatDisplayPrice } from "@/utils/Helpers/formatDisplayPrice";
+import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 import { memo, useEffect, useState } from "react";
 
 type Props = {
@@ -104,7 +106,8 @@ const ProgressNumberMemo = ({
       }}
       className={`${fade && !isReady ? `opacity-0` : ``} ${isReady && fade ? `${fade}` : ``}`}
     >
-      {animatedProgress.toLocaleString()}
+      {/* {animatedProgress.toLocaleString()} */}
+      {formatToJapaneseYen(animatedProgress)}
     </span>
   );
 };

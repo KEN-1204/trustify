@@ -1,4 +1,15 @@
-import { Dispatch, DragEvent, FormEvent, MouseEvent, SetStateAction, Suspense, memo, useEffect, useState } from "react";
+import {
+  Dispatch,
+  DragEvent,
+  FormEvent,
+  Fragment,
+  MouseEvent,
+  SetStateAction,
+  Suspense,
+  memo,
+  useEffect,
+  useState,
+} from "react";
 import styles from "./ScreenDealBoards.module.css";
 import { DealBoard } from "./DealBoard/DealBoard";
 import { AvatarIcon } from "@/components/Parts/AvatarIcon/AvatarIcon";
@@ -11,6 +22,7 @@ import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/Progres
 import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/ProgressNumber";
 import { GradientModal } from "@/components/Parts/GradientModal/GradientModal";
 import { EditModalDealCard } from "./EditModalDealCard/EditModalDealCard";
+import { formatDisplayPrice } from "@/utils/Helpers/formatDisplayPrice";
 
 type Props = {
   memberList: MemberAccounts[];
@@ -100,29 +112,35 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
         {/* ------------------- ネタ表ボード ------------------- */}
         {memberList.map((memberObj, index) => {
           return (
-            <div key={`${index}_board`} className={`${styles.entity_board_container} bg-[red]/[0]`}>
-              <div className={`${styles.entity_detail_container} bg-[green]/[0]`}>
-                <div className={`${styles.entity_detail_wrapper}`}>
-                  <div className={`${styles.entity_detail} space-x-[12px] text-[12px]`}>
-                    <AvatarIcon
-                      // size={33}
-                      size={36}
-                      name={memberObj.profile_name ?? "未設定"}
-                      withCircle={false}
-                      hoverEffect={false}
-                      textSize={16}
-                      // imgUrl={memberObj.avatar_url ?? null}
-                    />
-                    <div className={`${styles.entity_name} text-[19px] font-bold`}>
-                      <span>{memberObj.profile_name}</span>
-                    </div>
-                    <div className={`${styles.sub_info} pt-[6px]`}>{memberObj.position_name ?? "役職未設定"}</div>
-                    <div className={`${styles.sub_info} pt-[6px]`}>{memberObj.assigned_employee_id_name ?? ""}</div>
-                    {/* <div className={`flex flex-col justify-end `}>
+            <Fragment key={`${index}_board`}>
+              <div
+                // className={`${styles.entity_board_container} bg-[red]/[0]`}
+                className={`${styles.entity_board_container} bg-[red]/[0] ${
+                  isRenderProgress ? `${styles.fade_bg}` : ``
+                }`}
+              >
+                <div className={`${styles.entity_detail_container} bg-[green]/[0]`}>
+                  <div className={`${styles.entity_detail_wrapper}`}>
+                    <div className={`${styles.entity_detail} space-x-[12px] text-[12px]`}>
+                      <AvatarIcon
+                        // size={33}
+                        size={36}
+                        name={memberObj.profile_name ?? "未設定"}
+                        withCircle={false}
+                        hoverEffect={false}
+                        textSize={16}
+                        // imgUrl={memberObj.avatar_url ?? null}
+                      />
+                      <div className={`${styles.entity_name} text-[19px] font-bold`}>
+                        <span>{memberObj.profile_name}</span>
+                      </div>
+                      <div className={`${styles.sub_info} pt-[6px]`}>{memberObj.position_name ?? "役職未設定"}</div>
+                      <div className={`${styles.sub_info} pt-[6px]`}>{memberObj.assigned_employee_id_name ?? ""}</div>
+                      {/* <div className={`flex flex-col justify-end `}>
                       <div className={`${styles.sub_info} pt-[0px]`}>216088</div>
                       <div className={`${styles.sub_info} pt-[0px]`}>代表取締役</div>
                     </div> */}
-                    {/* {isRenderProgress && (
+                      {/* {isRenderProgress && (
                       <div className={`fade05 relative h-[33px] w-[33px]`} style={{ marginLeft: `24px` }}>
                         <div className="absolute bottom-[-4px] left-0">
                           <ProgressCircle
@@ -138,56 +156,56 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                         </div>
                       </div>
                     )} */}
-                    <div
-                      className={`relative !ml-[18px] !mr-[12px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}
-                    >
-                      <div className="flex h-full min-w-[140px] items-end justify-end">
-                        {/* <span className="mb-[-3px] text-[27px]">12,000,000,000</span> */}
-                        <ProgressNumber
-                          // targetNumber={12000000000}
-                          targetNumber={110000}
-                          // targetNumber={0}
-                          // startNumber={Math.round(68000 / 2)}
-                          // startNumber={Number((68000 * 0.1).toFixed(0))}
-                          startNumber={0}
-                          duration={4000}
-                          // easeFn="Quartic"
-                          easeFn="Quintic"
-                          fontSize={27}
-                          margin="0 0 -3px 0"
-                          isReady={isRenderProgress}
-                          fade={`fade08_forward`}
-                          // fade={`fade10_forward`}
-                        />
+                      <div
+                        className={`relative !ml-[24px] !mr-[12px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}
+                      >
+                        <div className="flex h-full min-w-[150px] items-end justify-end">
+                          {/* <span className="mb-[-3px] text-[27px]">12,000,000,000</span> */}
+                          <ProgressNumber
+                            // targetNumber={12000000000}
+                            targetNumber={6200000}
+                            // targetNumber={0}
+                            // startNumber={Math.round(68000 / 2)}
+                            // startNumber={Number((68000 * 0.1).toFixed(0))}
+                            startNumber={0}
+                            duration={4000}
+                            // easeFn="Quartic"
+                            easeFn="Quintic"
+                            fontSize={27}
+                            margin="0 0 -3px 0"
+                            isReady={isRenderProgress}
+                            fade={`fade08_forward`}
+                            // fade={`fade10_forward`}
+                          />
+                        </div>
+                        <div className="relative h-full min-w-[33px]">
+                          <div className="absolute left-[66%] top-[68%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[var(--color-text-title)]"></div>
+                        </div>
+                        <div className="mr-[12px] flex h-full min-w-max items-end justify-start">
+                          <span className="text-[16px]">9,000,000</span>
+                          {/* <span className="text-[16px]">12,000,000,000</span> */}
+                        </div>
                       </div>
-                      <div className="relative h-full min-w-[33px]">
-                        <div className="absolute left-[66%] top-[68%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[var(--color-text-title)]"></div>
+                      <div className={`relative h-[56px] w-[66px]`} style={{ margin: `0` }}>
+                        <div className="absolute bottom-[-6px] right-0">
+                          <ProgressCircle
+                            circleId="1"
+                            textId="1"
+                            progress={78}
+                            // progress={0}
+                            duration={4000}
+                            easeFn="Quartic"
+                            size={66}
+                            strokeWidth={7}
+                            fontSize={14}
+                            textColor="var(--color-text-title)"
+                            isReady={isRenderProgress}
+                            fade={`fade08_forward`}
+                            // fade={`fade10_forward`}
+                          />
+                        </div>
                       </div>
-                      <div className="mr-[12px] flex h-full min-w-max items-end justify-start">
-                        <span className="text-[16px]">900,000</span>
-                        {/* <span className="text-[16px]">12,000,000,000</span> */}
-                      </div>
-                    </div>
-                    <div className={`relative h-[56px] w-[66px]`} style={{ margin: `0` }}>
-                      <div className="absolute bottom-[-6px] right-0">
-                        <ProgressCircle
-                          circleId="1"
-                          textId="1"
-                          progress={78}
-                          // progress={0}
-                          duration={4000}
-                          easeFn="Quartic"
-                          size={66}
-                          strokeWidth={7}
-                          fontSize={14}
-                          textColor="var(--color-text-title)"
-                          isReady={isRenderProgress}
-                          fade={`fade08_forward`}
-                          // fade={`fade10_forward`}
-                        />
-                      </div>
-                    </div>
-                    {/* {isRenderProgress && (
+                      {/* {isRenderProgress && (
                       <div
                         className={`${styles.progress_circle} relative h-[56px] w-[66px]`}
                         // style={{ marginLeft: `24px` }}
@@ -214,11 +232,11 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                         </div>
                       </div>
                     )} */}
+                    </div>
                   </div>
-                </div>
-                <div className={`${styles.status_col_wrapper}`}>
-                  <div className={`${styles.status_flex_wrapper}`}>
-                    {/* <div className={`relative mr-[12px] flex h-full w-auto items-end bg-[red]/[0]`}>
+                  <div className={`${styles.status_col_wrapper}`}>
+                    <div className={`${styles.status_flex_wrapper}`}>
+                      {/* <div className={`relative mr-[12px] flex h-full w-auto items-end bg-[red]/[0]`}>
                       <span
                         className={`absolute left-[30%] top-[36%] translate-x-[-50%] translate-y-[-50%] text-[27px] `}
                       >
@@ -232,7 +250,7 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                       </span>
                       <span className="text-[16px] opacity-0">12,000,000</span>
                     </div> */}
-                    {/* <div className={`relative mr-[24px] flex h-full w-auto items-end bg-[red]/[0]`}>
+                      {/* <div className={`relative mr-[24px] flex h-full w-auto items-end bg-[red]/[0]`}>
                       <span className="mb-[-3px] text-[27px] ">6,800,000</span>
                       <div className="h-full min-w-[33px] opacity-0"></div>
                       <div className="absolute left-[60%] top-[68%]  min-h-[2px] w-[33px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[white]"></div>
@@ -261,23 +279,30 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                         </div>
                       </div>
                     )} */}
-                    <div className={`${styles.right_spacer}`}></div>
+                      <div className={`${styles.right_spacer}`}></div>
+                    </div>
                   </div>
                 </div>
+                <ErrorBoundary FallbackComponent={ErrorFallback}>
+                  <Suspense fallback={<FallbackDealBoard />}>
+                    <DealBoard
+                      companyId={userProfileState.company_id!}
+                      userId={memberObj.id}
+                      periodType={periodType}
+                      period={period}
+                    />
+                  </Suspense>
+                </ErrorBoundary>
               </div>
-              <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<FallbackDealBoard />}>
-                  <DealBoard
-                    companyId={userProfileState.company_id!}
-                    userId={memberObj.id}
-                    periodType={periodType}
-                    period={period}
-                  />
-                </Suspense>
-              </ErrorBoundary>
-            </div>
+              {/* {isRenderProgress && (
+                <div className="flex-center fade08_forward my-[12px] w-full px-[24px]">
+                  <hr className="min-h-[1px] w-full bg-[var(--color-border-base)]" />
+                </div>
+              )} */}
+            </Fragment>
           );
         })}
+
         {/* ------------------- ネタ表ボードここまで ------------------- */}
 
         {/* ------------------- テスト ------------------- */}

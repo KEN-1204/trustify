@@ -21,6 +21,7 @@ import { FallbackSettingPaymentAndPlan } from "./SettingPaymentAndPlan/FallbackS
 import { FallbackSettingMemberAccounts } from "./SettingMemberAccounts/FallbackSettingMemberAccounts";
 import { SettingProfile } from "./SettingProfile/SettingProfile";
 import { FallbackSettingProfile } from "./SettingProfile/FallbackSettingProfile";
+import { BiTargetLock } from "react-icons/bi";
 
 export const SettingAccountModal = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -223,6 +224,25 @@ export const SettingAccountModal = () => {
                 <IoSettingsOutline className="text-[22px]" />
               </div>
               <span>サービス・商品</span>
+            </div>
+            <div
+              className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
+                selectedSettingAccountMenu === "SalesTargets" ? `bg-[var(--setting-side-bg-select)]` : ``
+              }`}
+              onClick={() => {
+                if (
+                  userProfileState?.account_company_role === "company_member" ||
+                  userProfileState?.account_company_role === "guest"
+                ) {
+                  return alert("マネージャー以上の権限を持つユーザーのみアクセス可能です");
+                }
+                setSelectedSettingAccountMenu("SalesTargets");
+              }}
+            >
+              <div className="flex-center mr-[15px] h-[24px] w-[24px]">
+                <BiTargetLock className="text-[22px]" />
+              </div>
+              <span>売上目標</span>
             </div>
             <div
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${

@@ -36,6 +36,7 @@ import { ImInfo } from "react-icons/im";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { FaExchangeAlt } from "react-icons/fa";
+import { GrPowerReset } from "react-icons/gr";
 
 type SectionMenuParams = {
   // e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -573,9 +574,27 @@ const SalesProgressScreenMemo = () => {
                 >
                   <div
                     ref={infoIconProgressRef}
-                    className={`flex-center absolute left-0 top-0 h-[18px] w-[18px] rounded-full border border-solid border-[var(--color-bg-brand-sub)] ${styles.animate_ping}`}
+                    className={`flex-center absolute left-0 top-0 h-[18px] w-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
                   ></div>
-                  <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-sub)]`} />
+                  <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
+                </div>
+              </div>
+
+              <div className={`flex-center ml-[6px] min-h-[36px] min-w-[36px]`}>
+                <div
+                  className={`refresh_icon flex-center transition-bg02 ml-[6px] min-h-[27px] min-w-[27px]`}
+                  onMouseEnter={(e) => {
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: `リフレッシュ`,
+                    });
+                  }}
+                  onMouseLeave={() => {
+                    if (hoveredItemPosWrap) handleCloseTooltip();
+                  }}
+                >
+                  <GrPowerReset className="" />
                 </div>
               </div>
             </div>
