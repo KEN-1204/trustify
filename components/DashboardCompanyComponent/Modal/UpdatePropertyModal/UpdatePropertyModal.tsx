@@ -1,4 +1,13 @@
-import React, { CSSProperties, KeyboardEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  CSSProperties,
+  ChangeEvent,
+  KeyboardEvent,
+  Suspense,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "./UpdatePropertyModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -77,6 +86,7 @@ export const UpdatePropertyModal = () => {
   // const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   // const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
   const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
+  const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
   const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
   // const [isLoading, setIsLoading] = useState(false);
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
@@ -147,7 +157,7 @@ export const UpdatePropertyModal = () => {
   // const [productSales, setProductSales] = useState<number | null>(null); //予定売上台数
   const [productSales, setProductSales] = useState<string>(""); //予定売上台数
   // const [expectedSalesPrice, setExpectedSalesPrice] = useState<number | null>(null);
-  const [expectedSalesPrice, setExpectedSalesPrice] = useState<string>(""); //予定売上価格
+  const [expectedSalesPrice, setExpectedSalesPrice] = useState<string>(""); //予定売上合計
   const [termDivision, setTermDivision] = useState(""); //今期・来期
   // const [soldProductName, setSoldProductName] = useState(""); //売上商品(ID)
   const [soldProductId, setSoldProductId] = useState(""); //売上商品(ID)
@@ -156,8 +166,8 @@ export const UpdatePropertyModal = () => {
   // const [unitSales, setUnitSales] = useState<number | null>(null); //売上台数
   const [unitSales, setUnitSales] = useState<string>(""); //売上台数
   const [salesContributionCategory, setSalesContributionCategory] = useState(""); //売上貢献区分
-  // const [salesPrice, setSalesPrice] = useState<number | null>(null); // 売上価格
-  const [salesPrice, setSalesPrice] = useState<string>(""); // 売上価格
+  // const [salesPrice, setSalesPrice] = useState<number | null>(null); // 売上合計
+  const [salesPrice, setSalesPrice] = useState<string>(""); // 売上合計
   // const [discountedPrice, setDiscountedPrice] = useState<number | null>(null); //値引き価格
   const [discountedPrice, setDiscountedPrice] = useState<string>(""); //値引き価格
   // const [discountedRate, setDiscountedRate] = useState<number | null>(null);
@@ -533,6 +543,7 @@ export const UpdatePropertyModal = () => {
       setPropertyYearMonth(null);
       setPropertyQuarterSelectedYear(null);
       setPropertyQuarterSelectedQuarter(null);
+      setPropertyQuarter(null);
       return;
     }
     // 案件発生日付からユーザーの財務サイクルに応じた面談年月度を取得
@@ -581,6 +592,7 @@ export const UpdatePropertyModal = () => {
       setExpectedOrderYearMonth(null);
       setExpectedOrderQuarterSelectedYear(null);
       setExpectedOrderQuarterSelectedQuarter(null);
+      setExpectedOrderQuarter(null);
       return;
     }
     // 面談日付からユーザーの財務サイクルに応じた面談年月度を取得
@@ -630,6 +642,7 @@ export const UpdatePropertyModal = () => {
       setExpansionYearMonth(null);
       setExpansionQuarterSelectedYear(null);
       setExpansionQuarterSelectedQuarter(null);
+      setExpansionQuarter(null);
       return;
     }
     // const year = expansionDate.getFullYear(); // 例: 2023
@@ -678,6 +691,7 @@ export const UpdatePropertyModal = () => {
       setSalesYearMonth(null);
       setSalesQuarterSelectedYear(null);
       setSalesQuarterSelectedQuarter(null);
+      setSalesQuarter(null);
       return;
     }
     // const year = salesDate.getFullYear(); // 例: 2023
@@ -729,7 +743,7 @@ export const UpdatePropertyModal = () => {
       if (discountedRate !== "") setDiscountedRate("");
     }
     if (!!salesPrice && !!discountedPrice && !!unitSales && !isComposing) {
-      // 売上価格が0円の場合は、値引価格と値引率を0にする
+      // 売上合計が0円の場合は、値引価格と値引率を0にする
       if (salesPrice === "0") {
         if (discountedPrice !== "0") setDiscountedPrice("0");
         if (discountedRate !== "0") setDiscountedRate("0");
@@ -1055,18 +1069,17 @@ export const UpdatePropertyModal = () => {
   // ------------------ 🌟キャンセルでモーダルを閉じる🌟 ------------------
   // キャンセルでモーダルを閉じる
   const handleCancelAndReset = () => {
-    // -------------------------- ネタ表からの売上入力用 --------------------------
+    // ----------------- ネタ表からの売上入力用
     // ネタ表からの売上入力で売上データを未入力の状態で閉じようとする場合確認モーダルを表示する
     if (isRequiredInputSoldProduct) {
       setIsOpenConfirmationModal("input_sold_product_for_deal_board");
+      return;
     }
-    // -------------------------- ネタ表からの売上入力用 ここまで --------------------------
+    // ----------------- ネタ表からの売上入力用 ここまで
 
     if (loadingGlobalState) return;
     setIsOpenUpdatePropertyModal(false);
   };
-  // ------------------ ✅キャンセルでモーダルを閉じる✅ ------------------
-  // ------------------ 🌟受注済みへの変更時の売上入力中断🌟 ------------------
   // ------------------ ✅キャンセルでモーダルを閉じる✅ ------------------
 
   // ----------------------------- 🌟サブミット🌟 -----------------------------
@@ -1084,19 +1097,19 @@ export const UpdatePropertyModal = () => {
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
     // -------------------------- ネタ表からの売上入力用 --------------------------
-    // 売上商品・売上価格・売上日付が未入力の状態でサブミットされた場合はリターンする
+    // 売上商品・売上合計・売上日付が未入力の状態でサブミットされた場合はリターンする
     if (isRequiredInputSoldProduct) {
+      if (!salesDate || !salesYearMonth || !salesQuarter)
+        return alert(
+          '"売上日付が未入力です。 売上商品・売上合計・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。'
+        );
       if (!soldProductId || !soldProductName)
         return alert(
-          '"売上商品が未入力です。 売上商品・売上価格・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。'
+          '"売上商品が未入力です。 売上商品・売上合計・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。'
         );
       if (salesPrice === null || salesPrice === undefined || salesPrice === "")
         return alert(
-          "売上価格が未入力です。 売上商品・売上価格・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。"
-        );
-      if (!salesDate)
-        return alert(
-          '"売上日付が未入力です。 売上商品・売上価格・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。'
+          "売上合計が未入力です。 売上商品・売上合計・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。"
         );
     }
     // -------------------------- ネタ表からの売上入力用 ここまで --------------------------
@@ -1400,9 +1413,27 @@ export const UpdatePropertyModal = () => {
   };
   // ============================================================================================
 
+  // 🌟selectタグで担当者変更時のサイドテーブル表示確認する関数
+  type ChangeMemberProps = {
+    e: ChangeEvent<HTMLSelectElement>;
+    fieldName: string;
+    entityId: string;
+  };
+  const handleChangeMemberSelect = ({ e, fieldName, entityId }: ChangeMemberProps) => {
+    if (isRequiredInputSoldProduct)
+      return alert(
+        "受注時の売上入力では担当者同士の売上実績の不一致を防ぐため担当者データを変更できません。一度案件画面に戻ってから修正してください。"
+      );
+    setMemberObj({ ...memberObj, [entityId]: e.target.value });
+    setIsOpenConfirmationModal("change_member");
+  };
+
   // 会計年度基準
   const isFirstDayFiscalBasis =
     !userProfileState?.customer_fiscal_year_basis || userProfileState?.customer_fiscal_year_basis === "firstDayBasis";
+
+  // 受注後の売上入力モードのisRequiredクラス付与
+  const isRequired = isRequiredInputSoldProduct ? `${styles.is_required}` : ``;
 
   console.log(
     "案件編集モーダル",
@@ -1428,7 +1459,13 @@ export const UpdatePropertyModal = () => {
     "expectedOrderQuarterSelectedYear",
     expectedOrderQuarterSelectedYear,
     "expectedOrderQuarterSelectedQuarter",
-    expectedOrderQuarterSelectedQuarter
+    expectedOrderQuarterSelectedQuarter,
+    "salesDate",
+    salesDate,
+    "salesYearMonth",
+    salesYearMonth,
+    "salesQuarter",
+    salesQuarter
   );
 
   return (
@@ -1811,6 +1848,23 @@ export const UpdatePropertyModal = () => {
                         onBlur={() => {
                           // setPlannedProduct1(toHalfWidth(plannedProduct1.trim()));
                           if (!!resultRefs.current[0]) resultRefs.current[0].style.opacity = "0";
+                          // Blur時に候補が１つのみならその候補のidとNameをセット
+                          if (suggestedProductName[0].length === 1) {
+                            const matchProduct = suggestedProductName[0][0];
+                            const _productName = matchProduct.product_name;
+                            const _productInsideName = matchProduct.inside_short_name;
+                            const _productOutsideName = matchProduct.outside_short_name;
+                            const productName = _productInsideName
+                              ? _productInsideName
+                              : (_productName ?? "") + " " + (_productOutsideName ?? "");
+                            setExpectedProductFullNameInput(matchProduct.fullName);
+                            setExpectedProductName(productName);
+                            setExpectedProductId(matchProduct.id);
+                            // 候補をリセット
+                            const newSuggestedProductName = [...suggestedProductName];
+                            newSuggestedProductName[0] = [];
+                            setSuggestedProductName(newSuggestedProductName);
+                          }
                         }}
                       />
                       {/* 予測変換結果 */}
@@ -2016,11 +2070,11 @@ export const UpdatePropertyModal = () => {
 
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 予定売上価格 */}
+              {/* 予定売上合計 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    {/* <span className={`${styles.title} !min-w-[140px]`}>予定売上価格</span> */}
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>予定売上合計</span> */}
                     <div
                       className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
                       onMouseEnter={(e) =>
@@ -2040,9 +2094,9 @@ export const UpdatePropertyModal = () => {
                     >
                       {/* <div className={`mr-[8px] flex flex-col text-[15px]`}>
                         <span className={``}>予定</span>
-                        <span className={``}>売上価格(円)</span>
+                        <span className={``}>売上合計(円)</span>
                       </div> */}
-                      <span className={`mr-[9px]`}>売上価格(予定)</span>
+                      <span className={`mr-[9px]`}>売上合計(予定)</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     {/* <input
@@ -2458,7 +2512,7 @@ export const UpdatePropertyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>売上日付</span>
+                    <span className={`${styles.title} !min-w-[140px] ${isRequired}`}>売上日付</span>
                     <DatePickerCustomInput
                       startDate={salesDate}
                       setStartDate={setSalesDate}
@@ -2468,7 +2522,7 @@ export const UpdatePropertyModal = () => {
                       minHeight="min-h-[32px]"
                     />
                   </div>
-                  <div className={`${styles.underline}`}></div>
+                  <div className={`${styles.underline} ${isRequired}`}></div>
                 </div>
               </div>
 
@@ -2653,7 +2707,7 @@ export const UpdatePropertyModal = () => {
                         styles.title
                       } cursor-pointer hover:text-[var(--color-text-brand-f)] ${
                         isOpenDropdownMenuFilterProductsSold ? `!text-[var(--color-text-brand-f)]` : ``
-                      }`}
+                      } ${isRequired}`}
                       onMouseEnter={(e) => {
                         if (isOpenDropdownMenuFilterProductsSold) return;
                         handleOpenTooltip({
@@ -2723,6 +2777,7 @@ export const UpdatePropertyModal = () => {
                         type="text"
                         placeholder="キーワード入力後、商品を選択してください"
                         required
+                        autoFocus={isRequiredInputSoldProduct ? true : false}
                         className={`${styles.input_box}`}
                         value={soldProductFullNameInput}
                         onChange={(e) => setSoldProductFullNameInput(e.target.value)}
@@ -2736,6 +2791,23 @@ export const UpdatePropertyModal = () => {
                         onBlur={() => {
                           // setPlannedProduct1(toHalfWidth(plannedProduct1.trim()));
                           if (!!resultRefs.current[1]) resultRefs.current[1].style.opacity = "0";
+                          // Blur時に候補が１つのみならその候補のidとNameをセット
+                          if (suggestedProductName[1].length === 1) {
+                            const matchProduct = suggestedProductName[1][0];
+                            const _productName = matchProduct.product_name;
+                            const _productInsideName = matchProduct.inside_short_name;
+                            const _productOutsideName = matchProduct.outside_short_name;
+                            const productName = _productInsideName
+                              ? _productInsideName
+                              : (_productName ?? "") + " " + (_productOutsideName ?? "");
+                            setSoldProductFullNameInput(matchProduct.fullName);
+                            setSoldProductName(productName);
+                            setSoldProductId(matchProduct.id);
+                            // 候補をリセット
+                            const newSuggestedProductName = [...suggestedProductName];
+                            newSuggestedProductName[1] = [];
+                            setSuggestedProductName(newSuggestedProductName);
+                          }
                         }}
                       />
                       {/* 予測変換結果 */}
@@ -2837,7 +2909,7 @@ export const UpdatePropertyModal = () => {
                     </div>
                     {/* 予測変換input セレクトと組み合わせ ここまで */}
                   </div>
-                  <div className={`${styles.underline}`}></div>
+                  <div className={`${styles.underline} ${isRequired}`}></div>
                 </div>
               </div>
 
@@ -2933,13 +3005,13 @@ export const UpdatePropertyModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 売上価格 */}
+              {/* 売上合計 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上価格</span> */}
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上合計</span> */}
                     <div
-                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
+                      className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)] ${isRequired}`}
                       onMouseEnter={(e) =>
                         handleOpenTooltip({
                           e: e,
@@ -2955,8 +3027,8 @@ export const UpdatePropertyModal = () => {
                       }
                       onMouseLeave={handleCloseTooltip}
                     >
-                      {/* <span className={`mr-[8px] `}>売上価格(円)</span> */}
-                      <span className={`mr-[9px] `}>売上価格</span>
+                      {/* <span className={`mr-[8px] `}>売上合計(円)</span> */}
+                      <span className={`mr-[9px] `}>売上合計</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     <input
@@ -3021,7 +3093,7 @@ export const UpdatePropertyModal = () => {
                       </div>
                     )} */}
                   </div>
-                  <div className={`${styles.underline}`}></div>
+                  <div className={`${styles.underline} ${isRequired}`}></div>
                 </div>
               </div>
 
@@ -3202,7 +3274,7 @@ export const UpdatePropertyModal = () => {
                         handleOpenTooltip({
                           e: e,
                           display: "top",
-                          content: "売上価格と売上台数、値引価格を入力することで",
+                          content: "売上合計と売上台数、値引価格を入力することで",
                           content2: "値引率は自動計算されます。",
                           // marginTop: 57,
                           // marginTop: 39,
@@ -3705,7 +3777,7 @@ export const UpdatePropertyModal = () => {
                     >
                       {/* <div className={`mr-[8px] flex flex-col text-[15px]`}>
                         <span className={``}>予定</span>
-                        <span className={``}>売上価格(円)</span>
+                        <span className={``}>売上合計(円)</span>
                       </div> */}
                       <span className={`mr-[9px]`}>客先予算</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
@@ -3918,8 +3990,13 @@ export const UpdatePropertyModal = () => {
                       // onChange={(e) => setDepartmentId(e.target.value)}
                       value={memberObj.departmentId ? memberObj.departmentId : ""}
                       onChange={(e) => {
-                        setMemberObj({ ...memberObj, departmentId: e.target.value });
-                        setIsOpenConfirmationModal("change_member");
+                        handleChangeMemberSelect({ e, fieldName: "departmentId", entityId: e.target.value });
+                        // if (isRequiredInputSoldProduct)
+                        //   return alert(
+                        //     "受注時の売上入力では担当者同士の売上実績の不一致を防ぐため担当者データを変更できません。一度案件画面に戻ってから修正してください。"
+                        //   );
+                        // setMemberObj({ ...memberObj, departmentId: e.target.value });
+                        // setIsOpenConfirmationModal("change_member");
                       }}
                     >
                       <option value=""></option>
@@ -3960,8 +4037,13 @@ export const UpdatePropertyModal = () => {
                       // onChange={(e) => setOfficeId(e.target.value)}
                       value={memberObj.officeId ? memberObj.officeId : ""}
                       onChange={(e) => {
-                        setMemberObj({ ...memberObj, officeId: e.target.value });
-                        setIsOpenConfirmationModal("change_member");
+                        handleChangeMemberSelect({ e, fieldName: "officeId", entityId: e.target.value });
+                        // if (isRequiredInputSoldProduct)
+                        //   return alert(
+                        //     "受注時の売上入力では担当者同士の売上実績の不一致を防ぐため担当者データを変更できません。一度案件画面に戻ってから修正してください。"
+                        //   );
+                        // setMemberObj({ ...memberObj, officeId: e.target.value });
+                        // setIsOpenConfirmationModal("change_member");
                       }}
                     >
                       <option value=""></option>
@@ -3996,8 +4078,9 @@ export const UpdatePropertyModal = () => {
                       className={`ml-auto h-full w-full cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={memberObj.sectionId ? memberObj.sectionId : ""}
                       onChange={(e) => {
-                        setMemberObj({ ...memberObj, sectionId: e.target.value });
-                        setIsOpenConfirmationModal("change_member");
+                        handleChangeMemberSelect({ e, fieldName: "sectionId", entityId: e.target.value });
+                        // setMemberObj({ ...memberObj, sectionId: e.target.value });
+                        // setIsOpenConfirmationModal("change_member");
                       }}
                     >
                       <option value=""></option>
@@ -4037,6 +4120,10 @@ export const UpdatePropertyModal = () => {
                         setMemberObj({ ...memberObj, memberName: e.target.value });
                       }}
                       onKeyUp={() => {
+                        if (isRequiredInputSoldProduct)
+                          return alert(
+                            "受注時の売上入力では担当者同士の売上実績の不一致を防ぐため担当者データを変更できません。一度案件画面に戻ってから修正してください。"
+                          );
                         if (prevMemberObj.memberName !== memberObj.memberName) {
                           setIsOpenConfirmationModal("change_member");
                           return;
@@ -4070,8 +4157,9 @@ export const UpdatePropertyModal = () => {
                       // onChange={(e) => setUnitId(e.target.value)}
                       value={memberObj.unitId ? memberObj.unitId : ""}
                       onChange={(e) => {
-                        setMemberObj({ ...memberObj, unitId: e.target.value });
-                        setIsOpenConfirmationModal("change_member");
+                        handleChangeMemberSelect({ e, fieldName: "unitId", entityId: e.target.value });
+                        // setMemberObj({ ...memberObj, unitId: e.target.value });
+                        // setIsOpenConfirmationModal("change_member");
                       }}
                     >
                       <option value=""></option>
@@ -4109,7 +4197,7 @@ export const UpdatePropertyModal = () => {
           // titleText="面談データの自社担当を変更してもよろしいですか？"
           titleText={`売上入力を中断しますか？`}
           // titleText2={`データの所有者を変更しますか？`}
-          sectionP1="売上商品・売上価格・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。"
+          sectionP1="売上商品・売上合計・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。"
           sectionP2="注：現在の入力データは破棄されます。"
           cancelText="戻る"
           submitText="中断する"

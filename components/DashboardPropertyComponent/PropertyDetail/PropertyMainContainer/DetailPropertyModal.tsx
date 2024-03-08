@@ -11,7 +11,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import productCategoriesM, { moduleCategoryM } from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { format } from "date-fns";
-import { MdClose } from "react-icons/md";
+import { MdClose, MdOutlineClose } from "react-icons/md";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
@@ -49,7 +49,7 @@ import {
   optionsTermDivision,
 } from "@/utils/selectOptions";
 import { generateYearQuarters } from "@/utils/Helpers/generateYearQuarters";
-import { Department, SelectedDealCard, Office, Property, Property_row_data, Unit } from "@/types";
+import { Department, SelectedDealCard, Office, Property, Property_row_data, Unit, DealCardType } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMedia } from "react-use";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
@@ -80,14 +80,21 @@ const DetailPropertyModalMemo = () => {
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
-  // 選択中の列データ会社
-  const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
-  let selectedRowDataProperty: SelectedDealCard = selectedDealCard;
-  // const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
   // モーダルを閉じる
   const setIsOpenPropertyDetailModal = useDashboardStore((state) => state.setIsOpenPropertyDetailModal);
   // チェックボックスクリックで案件編集モーダルオープン
   const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
+  // --------------------- 🌠選択中の列データ会社 ---------------------
+  const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
+  if (!selectedDealCard || !selectedDealCard?.dealCard) {
+    console.log("モーダル selectedDealCardなしリターン", selectedDealCard);
+    setIsOpenPropertyDetailModal(false);
+    return;
+  }
+  // 選択中のネタを選択中の物件に格納
+  let selectedRowDataProperty: DealCardType = selectedDealCard.dealCard;
+  // --------------------- 🌠選択中の列データ会社 ---------------------
+  // const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
 
   // 各フィールドの編集モード => ダブルクリックで各フィールド名をstateに格納し、各フィールドをエディットモードへ
   const isEditModeField = useDashboardStore((state) => state.isEditModeField);
@@ -158,16 +165,16 @@ const DetailPropertyModalMemo = () => {
   const [inputProductName, setInputProductName] = useState(""); // 商品
   const [inputProductSales, setInputProductSales] = useState<number | null>(null); // 予定売上台数
   const [inputExpectedOrderDate, setInputExpectedOrderDate] = useState<Date | null>(null); // 獲得予定時期
-  // const [inputExpectedSalesPrice, setInputExpectedSalesPrice] = useState<number | null>(null); // 予定売上価格
-  const [inputExpectedSalesPrice, setInputExpectedSalesPrice] = useState<string>(""); // 予定売上価格
+  // const [inputExpectedSalesPrice, setInputExpectedSalesPrice] = useState<number | null>(null); // 予定売上合計
+  const [inputExpectedSalesPrice, setInputExpectedSalesPrice] = useState<string>(""); // 予定売上合計
   const [inputTermDivision, setInputTermDivision] = useState(""); // 今・来期
   const [inputSoldProductName, setInputSoldProductName] = useState(""); // 売上商品
   const [inputUnitSales, setInputUnitSales] = useState<number | null>(null); // 売上台数
   const [inputSalesContributionCategory, setInputSalesContributionCategory] = useState(""); // 売上貢献区分
-  // const [inputSalesPrice, setInputSalesPrice] = useState<number | null>(null); // 売上価格
+  // const [inputSalesPrice, setInputSalesPrice] = useState<number | null>(null); // 売上合計
   // const [inputDiscountedPrice, setInputDiscountedPrice] = useState<number | null>(null); // 値引価格
   // const [inputDiscountRate, setInputDiscountRate] = useState<number | null>(null);
-  const [inputSalesPrice, setInputSalesPrice] = useState<string>(""); // 売上価格
+  const [inputSalesPrice, setInputSalesPrice] = useState<string>(""); // 売上合計
   const [inputDiscountedPrice, setInputDiscountedPrice] = useState<string>(""); // 値引価格
   const [inputDiscountRate, setInputDiscountRate] = useState<string>(""); // 値引率
   const [inputSalesClass, setInputSalesClass] = useState("");
@@ -493,7 +500,7 @@ const DetailPropertyModalMemo = () => {
         return;
       }
 
-      // 売上台数unit_sales, 売上価格sales_price, 値引価格discount_priceを変更する場合で
+      // 売上台数unit_sales, 売上合計sales_price, 値引価格discount_priceを変更する場合で
       // かつ値引率も同時に変更する
       if (
         ["unit_sales", "sales_price", "discounted_price"].includes(fieldName) &&
@@ -502,7 +509,7 @@ const DetailPropertyModalMemo = () => {
         checkNotFalsyExcludeZero(selectedRowDataProperty.unit_sales) &&
         checkNotFalsyExcludeZero(selectedRowDataProperty.discounted_price)
       ) {
-        // 売上台数、売上価格、値引価格のどれかがnullなら値引率をnullにする
+        // 売上台数、売上合計、値引価格のどれかがnullなら値引率をnullにする
         if (newValue === null) {
           const updatePayload = {
             fieldName: fieldName,
@@ -519,7 +526,7 @@ const DetailPropertyModalMemo = () => {
 
           await updatePropertyFieldMutation.mutateAsync(updatePayload);
         }
-        // 売上台数、売上価格が0円の場合
+        // 売上台数、売上合計が0円の場合
         else if (["unit_sales", "sales_price"].includes(fieldName) && ["0", "０", 0].includes(newValue)) {
           const updatePayload = {
             fieldName: fieldName,
@@ -777,7 +784,7 @@ const DetailPropertyModalMemo = () => {
       return;
     }
 
-    // 🔹売上台数、売上価格、値引価格の値引率同時更新ルート
+    // 🔹売上台数、売上合計、値引価格の値引率同時更新ルート
     if (
       ["unit_sales", "sales_price", "discounted_price"].includes(fieldName) &&
       selectedRowDataProperty &&
@@ -785,7 +792,7 @@ const DetailPropertyModalMemo = () => {
       checkNotFalsyExcludeZero(selectedRowDataProperty.unit_sales) &&
       checkNotFalsyExcludeZero(selectedRowDataProperty.discounted_price)
     ) {
-      // 売上台数、売上価格、値引価格のどれかがnullなら値引率をnullにする
+      // 売上台数、売上合計、値引価格のどれかがnullなら値引率をnullにする
       if (newValue === null) {
         const updatePayload = {
           fieldName: fieldName,
@@ -802,7 +809,7 @@ const DetailPropertyModalMemo = () => {
 
         await updatePropertyFieldMutation.mutateAsync(updatePayload);
       }
-      // 売上台数、売上価格が0円の場合
+      // 売上台数、売上合計が0円の場合
       else if (["unit_sales", "sales_price"].includes(fieldName) && ["0", "０", 0].includes(newValue)) {
         const updatePayload = {
           fieldName: fieldName,
@@ -975,7 +982,15 @@ const DetailPropertyModalMemo = () => {
         className={` fixed inset-0 z-[3900] h-[100vh] w-[100vw] bg-[#00000033] backdrop-blur-[6px]`}
         onClick={handleCloseDetailModalProperty}
       ></div>
+
       <div className={`${styles.main_container} ${styles.detail_modal} border-real-with-shadow fade05 w-full`}>
+        {/* バツボタン */}
+        <div
+          className={`flex-center absolute right-[18px] top-[18px] z-[10] cursor-pointer`}
+          onClick={handleCloseDetailModalProperty}
+        >
+          <MdOutlineClose className={`text-[24px] text-[var(--color-text-title)] hover:text-[#999]`} />
+        </div>
         {/* ------------------------- スクロールコンテナ ------------------------- */}
         <div
           className={`${styles.scroll_container} ${styles.detail_modal} relative flex w-full overflow-y-auto pl-[10px]`}
@@ -1887,7 +1902,7 @@ const DetailPropertyModalMemo = () => {
                 </div>
               </div>
 
-              {/* 売上貢献区分・売上価格 通常 */}
+              {/* 売上貢献区分・売上合計 通常 */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -1984,7 +1999,7 @@ const DetailPropertyModalMemo = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} text-[12px]`}>売上価格</span>
+                    <span className={`${styles.title} text-[12px]`}>売上合計</span>
                     {isEditModeField !== "sales_price" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}

@@ -34,6 +34,7 @@ import { useQueryDealCards } from "@/hooks/useQueryDealCards";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { runFireworks } from "@/utils/confetti";
 
 type ColumnSizeInfo = {
   prevColumnHeight: number;
@@ -99,9 +100,14 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   // const [cards, setCards] = useState<DealCardType[]>([]);
 
   // 受注済み変更後に売上入力モーダルへの遷移のためのグローバルstate
-  const setIsRequiredInputSoldProduct = useDashboardStore((state) => state.setIsRequiredInputSoldProduct);
-  const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
+  const setIsOpenCongratulationsModal = useDashboardStore((state) => state.setIsOpenCongratulationsModal);
+  // const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
   const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
+  // ローカルstateをリフレッシュ(選択中のカードの最新状態を反映)
+  const isRequiredRefreshDealCards = useDashboardStore((state) => state.isRequiredRefreshDealCards);
+  const setIsRequiredRefreshDealCards = useDashboardStore((state) => state.setIsRequiredRefreshDealCards);
+  const isRequiredInputSoldProduct = useDashboardStore((state) => state.isRequiredInputSoldProduct);
+  const isOpenDealCardModal = useDashboardStore((state) => state.isOpenDealCardModal);
 
   const queryClient = useQueryClient();
   const supabase = useSupabaseClient();
@@ -136,7 +142,7 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
 
   if (error) return null;
 
-  // ローカルstateに格納
+  // 🌟ローカルstateに格納
   useEffect(() => {
     if (isMountedQuery) return; // 既にマウント済みの場合はリターン
 
@@ -169,6 +175,32 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
     }
   }, [isSuccess]);
 
+  // 🌟ローカルstateをリフレッシュ(選択中のカードの最新状態を反映)
+  useEffect(() => {
+    if (!isRequiredRefreshDealCards) return;
+    if (selectedDealCard) {
+      // mapメソッドでローカルの現在のカード順を崩さずに選択中のカードの内容のみ更新
+      const newDealCards: DealCardType[] = cards.map((obj) => {
+        if (obj.property_id === selectedDealCard.dealCard.property_id) {
+          return selectedDealCard.dealCard;
+        } else {
+          return obj;
+        }
+      });
+      console.log(
+        "🔥ローカルstateを最新状態に更新 新たなネタカード配列",
+        newDealCards,
+        "選択中のカード",
+        selectedDealCard
+      );
+      setCards(newDealCards);
+    }
+    // ローカルstateの更新が完了したらfalseにして、選択中のカードを空にする
+    setIsRequiredRefreshDealCards(false);
+    // ネタカードの詳細モーダルを開いていなければ選択中のカードを空にする => useMutateで売上入力後、state反映後に空にする
+    if (!isOpenDealCardModal) setSelectedDealCard(null);
+  }, [isRequiredRefreshDealCards]);
+
   // ---------------------------- useQueryここまで ----------------------------
 
   // 🔸マウント時のアニメーション
@@ -191,9 +223,10 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   // const [cards, setCards] = useState<DealCardType[]>(SEED_CARDS);
   const hasCheckedRef = useRef(false);
   // 編集モーダル
-  const [isOpenEditModal, setIsOpenEditModal] = useState(false);
   const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
   const setSelectedDealCard = useDashboardStore((state) => state.setSelectedDealCard);
+  // ネタカードクリック時に表示するネタ概要モーダル
+  const setIsOpenDealCardModal = useDashboardStore((state) => state.setIsOpenDealCardModal);
 
   // useEffect(() => {
   //   hasCheckedRef.current && localStorage.setItem("cards", JSON.stringify(cards));
@@ -1447,29 +1480,45 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
           throw new Error("エラー：正常に更新できませんでした...");
         }
 
+        // DBの更新成功 => 更新結果をキャッシュにも反映
+        // column_title_numを除いたProperty_row_data型で格納
+        const newCachePropertyArray = newCards.map((obj) => {
+          // 分割代入と残余演算子でcolumn_title_numを除いたキャッシュ更新用を作成
+          const { column_title_num, ...newPropertyRowData } = obj;
+          return newPropertyRowData;
+        });
+
         console.log("✅supabase確度更新成功 data", data);
 
-        // DBの更新成功 => 更新結果をキャッシュにも反映
-        queryClient.setQueryData(currentQueryKey, [...newCards]);
+        queryClient.setQueryData(currentQueryKey, [...newCachePropertyArray]);
 
         toast.success(
           `${deleteCard.company_name}を${mappingOrderCertaintyStartOfMonthToast[dropColumnTitle][language]}に変更しました🌟`
         );
 
-        // 🔹🔸売上商品・売上価格・売上日付の３つが全て入力されていない場合は、モーダル表示入力画面に遷移させるオプションを表示
-        if (
-          !newInsertCard.sales_date ||
-          !newInsertCard.sales_year_month ||
-          !newInsertCard.sales_quarter ||
-          !newInsertCard.sales_half_year ||
-          !newInsertCard.sales_fiscal_year ||
-          !newInsertCard.product_sales ||
-          !newInsertCard.sales_price
-        ) {
+        // 🔹🔸受注済みに変更、かつ、売上商品・売上価格・売上日付の３つが全て入力されていない場合は、モーダル表示入力画面に遷移させるオプションを表示
+        // if (
+        //   newInsertCard.column_title_num === 1 &&
+        //   (!newInsertCard.sales_date ||
+        //     !newInsertCard.sales_year_month ||
+        //     !newInsertCard.sales_quarter ||
+        //     !newInsertCard.sales_half_year ||
+        //     !newInsertCard.sales_fiscal_year ||
+        //     !newInsertCard.product_sales ||
+        //     !newInsertCard.sales_price)
+        // ) {
+        if (newInsertCard.column_title_num === 1) {
           // 新たな売物件をZustandに格納 分割代入の残余演算子の組み合わせで、DealCardType型からcolumn_title_numプロパティを除いた残りのプロパティ全て(Property_row_data型)をpropertyRowData変数に格納 column_title_numプロパティはcolumn_title_num変数に格納(除去用なので使用はしない)
-          const { column_title_num, ...propertyRowData } = newInsertCard;
-          setSelectedRowDataProperty(propertyRowData);
-          setIsRequiredInputSoldProduct(true);
+          // 花吹雪の後に1秒後に開く
+          // setTimeout(() => {
+          // }, 1000);
+          setTimeout(() => {
+            runFireworks();
+            setSelectedDealCard({ ownerId: userId, dealCard: newInsertCard }); // column_title_numありのネタカード
+            const { column_title_num, ...propertyRowData } = newInsertCard;
+            setSelectedRowDataProperty(propertyRowData); // 案件RowData
+            setIsOpenCongratulationsModal(true);
+          }, 1000);
           // setIsOpenUpdatePropertyModal(true); // 売上入力するオプションモーダルで入力を選択した時に編集モーダルを開く
         }
       } catch (error: any) {
@@ -1481,26 +1530,6 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
         );
       }
     }
-
-    /**
-     *  console.log(
-        "🌟🌟🌟🌟更新",
-        "prev",
-        prev,
-        "newCards",
-        newCards,
-        "deleteAt",
-        deleteAt,
-        "deleteCard",
-        deleteCard,
-        "insertAt",
-        insertAt,
-        "dropCardObj",
-        dropCardObj,
-        "draggingCardObj",
-        draggingCardObj
-      );
-     */
   };
   // ---------------------------- ✅主カード End✅ ----------------------------
 
@@ -1585,7 +1614,7 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   // --------------- ゴミ箱 受 Leave ここまで ---------------
 
   // --------------- ゴミ箱 受 Drop ---------------
-  const handleDropTrash = () => {
+  const handleDropTrash = async () => {
     console.log("ゴミ箱ドロップ🌟");
 
     // インジケータのactiveクラスを全て削除
@@ -1636,8 +1665,9 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
     if (!cardObjToUpdate) return;
     const cardIdToUpdate = cardObjToUpdate.property_id;
 
-    // 既存のcards配列からMapオブジェクトを作成
+    // 既存のcards配列からMapオブジェクトを作成 key:idとvalue:obj本体
     const cardIdsMapObj = new Map(cards.map((obj) => [obj.property_id, obj]));
+    const prevCards = [...Array.from(cardIdsMapObj.values())]; // 更新失敗時のリセット用 シャローコピー
 
     // 特定のオブジェクトを取得し、プロパティを更新
     if (cardIdsMapObj.has(cardIdToUpdate)) {
@@ -1646,12 +1676,44 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
       cardIdsMapObj.set(cardIdToUpdate, updatedCardObj);
     }
     // Mapオブジェクトから新しい配列を生成し、stateを更新
-    setCards(Array.from(cardIdsMapObj.values()));
+    const newCardsArray = Array.from(cardIdsMapObj.values());
+    setCards(newCardsArray);
 
     // -------------- 🔹rejectedをtrueにしてdraggableをfalseで置き物に変更🔹 --------------
 
-    // トーストを表示
-    toast.success(`${cardObjToUpdate.company_name}を案件没に変更しました。`);
+    // -------------- 🔹DBを案件没に更新🔹 --------------
+    try {
+      const { data, error } = await supabase
+        .from("properties")
+        .update({ rejected_flag: true })
+        .eq("id", cardIdToUpdate)
+        .select();
+
+      if (error) throw error;
+      if (data?.length !== 1) {
+        console.log("❌data", data);
+        throw new Error("エラー：正常に更新できませんでした...");
+      }
+
+      console.log("✅supabase確度更新成功 data", data);
+
+      // DBの更新成功 => 更新結果をキャッシュにも反映
+      // column_title_numを除いたProperty_row_data型で格納
+      const newCachePropertyArray = newCardsArray.map((obj) => {
+        const { column_title_num, ...newPropertyRowData } = obj;
+        return newPropertyRowData;
+      });
+      queryClient.setQueryData(currentQueryKey, [...newCachePropertyArray]);
+
+      // トーストを表示
+      toast.success(`${cardObjToUpdate.company_name}を案件没に変更しました。`);
+    } catch (error: any) {
+      console.error("エラー", error);
+      // DBへの更新が失敗した場合は、prevCardsを使ってローカルstateを元々の確度に戻す
+      setCards(prevCards);
+      toast.success(`${cardObjToUpdate.company_name}の案件没への更新に失敗しました...🙇‍♀️`);
+    }
+    // -------------- 🔹DBを案件没に更新🔹 --------------
   };
   // --------------- ゴミ箱 受 Drop ここまで ---------------
   /* ---------------------------------- ✅ゴミ箱✅ ---------------------------------- */
@@ -1673,7 +1735,13 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
     "queryData",
     queryData,
     "cards",
-    cards
+    cards,
+    "selectedDealCard",
+    selectedDealCard,
+    "isRequiredRefreshDealCards",
+    isRequiredRefreshDealCards,
+    "isRequiredInputSoldProduct",
+    isRequiredInputSoldProduct
   );
 
   const getCardStyle = () => {};
@@ -1775,8 +1843,11 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
                         } ${isRejected ? `${styles.rejected}` : ``} ${isPending ? `${styles.pending}` : ``}`}
                         style={{ ...(animate && { animationDelay: `${(rowIndex + 1) * 0.3}s` }) }} // 各カードのアニメーションの遅延を設定
                         onClick={() => {
-                          setSelectedDealCard(card);
-                          setIsOpenEditModal(true);
+                          setSelectedDealCard({
+                            ownerId: userId,
+                            dealCard: card,
+                          });
+                          setIsOpenDealCardModal(true);
                         }}
                         onDragStart={(e) =>
                           handleDragStartCard({ e: e, card: card, columnIndex: columnIndex, rowIndex: rowIndex })
@@ -1817,14 +1888,24 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
                           })
                         }
                       >
-                        {isPending && (
+                        {isPending && !isRejected && (
                           <div className={`${styles.pending_icon}`}>
                             <MdOutlineMoreTime className="text-[18px] text-[#fff]" />
                           </div>
                         )}
-                        {isRejected && (
+                        {isRejected && !isPending && (
                           <div className={`${styles.rejected_icon}`}>
                             <BsFire className="text-[18px]" />
+                          </div>
+                        )}
+                        {isRejected && isPending && (
+                          <div>
+                            <div className={`${styles.rejected_icon}`}>
+                              <div className="flex space-x-[12px] ">
+                                <BsFire className="text-[18px]" />
+                                <MdOutlineMoreTime className="text-[18px]" />
+                              </div>
+                            </div>
                           </div>
                         )}
                         {columnIndex === 0 && (
@@ -1866,11 +1947,11 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
                                 {/* <span className={``}>2024/04~</span> */}
                                 <span className={``}>
                                   {card.expansion_date
-                                    ? `${`${format(new Date(card.expansion_date), "yyyy/MM")}〜`}`
+                                    ? `${`${format(new Date(card.expansion_date), "yyyy/M/d")}〜`}`
                                     : "展開日付不明"}
                                   {columnIndex === 0
                                     ? card.sales_date
-                                      ? `${format(new Date(card.sales_date), "yyyy/MM")}`
+                                      ? `${format(new Date(card.sales_date), "yyyy/M/d")}`
                                       : `売上日付不明`
                                     : ``}
                                 </span>

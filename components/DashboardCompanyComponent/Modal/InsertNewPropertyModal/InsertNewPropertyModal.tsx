@@ -143,8 +143,8 @@ export const InsertNewPropertyModal = () => {
   // const [productSales, setProductSales] = useState<number | null>(null); //予定売上台数
   const [productSales, setProductSales] = useState<string>(""); //予定売上台数
 
-  // const [expectedSalesPrice, setExpectedSalesPrice] = useState<number | null>(null); //予定売上価格
-  const [expectedSalesPrice, setExpectedSalesPrice] = useState<string>(""); //予定売上価格
+  // const [expectedSalesPrice, setExpectedSalesPrice] = useState<number | null>(null); //予定売上合計
+  const [expectedSalesPrice, setExpectedSalesPrice] = useState<string>(""); //予定売上合計
   const [termDivision, setTermDivision] = useState(""); //今期・来期
   // const [soldProductName, setSoldProductName] = useState(""); //売上商品(ID)
   const [soldProductId, setSoldProductId] = useState(""); //売上商品(ID)
@@ -153,8 +153,8 @@ export const InsertNewPropertyModal = () => {
   // const [unitSales, setUnitSales] = useState<number | null>(null); //売上台数
   const [unitSales, setUnitSales] = useState<string>(""); //売上台数
   const [salesContributionCategory, setSalesContributionCategory] = useState(""); //売上貢献区分
-  // const [salesPrice, setSalesPrice] = useState<number | null>(null); //売上価格
-  const [salesPrice, setSalesPrice] = useState<string>(""); //売上価格
+  // const [salesPrice, setSalesPrice] = useState<number | null>(null); //売上合計
+  const [salesPrice, setSalesPrice] = useState<string>(""); //売上合計
   // const [discountedPrice, setDiscountedPrice] = useState<number | null>(null); //値引き価格
   const [discountedPrice, setDiscountedPrice] = useState<string>(""); //値引き価格
   // const [discountedRate, setDiscountedRate] = useState<number | null>(null); //値引率
@@ -720,7 +720,7 @@ export const InsertNewPropertyModal = () => {
       if (discountedRate !== "") setDiscountedRate("");
     }
     if (!!salesPrice && !!discountedPrice && !!unitSales && !isComposing) {
-      // 売上価格が0円の場合は、値引価格と値引率を0にする
+      // 売上合計が0円の場合は、値引価格と値引率を0にする
       if (salesPrice === "0") {
         if (discountedPrice !== "0") setDiscountedPrice("0");
         if (discountedRate !== "0") setDiscountedRate("0");
@@ -2353,11 +2353,11 @@ export const InsertNewPropertyModal = () => {
 
             {/* --------- 右ラッパー --------- */}
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 予定売上価格 */}
+              {/* 予定売上合計 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上価格(予定)</span> */}
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上合計(予定)</span> */}
                     <div
                       className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
                       onMouseEnter={(e) =>
@@ -2375,7 +2375,7 @@ export const InsertNewPropertyModal = () => {
                       }
                       onMouseLeave={handleCloseTooltip}
                     >
-                      <span className={`mr-[6px]`}>売上価格(予定)</span>
+                      <span className={`mr-[6px]`}>売上合計(予定)</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     {/* <input
@@ -3287,11 +3287,11 @@ export const InsertNewPropertyModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 売上価格 */}
+              {/* 売上合計 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上価格</span> */}
+                    {/* <span className={`${styles.title} !min-w-[140px]`}>売上合計</span> */}
                     <div
                       className={`relative flex !min-w-[140px] items-center ${styles.title} hover:text-[var(--color-text-brand-f)]`}
                       onMouseEnter={(e) =>
@@ -3309,8 +3309,8 @@ export const InsertNewPropertyModal = () => {
                       }
                       onMouseLeave={handleCloseTooltip}
                     >
-                      {/* <span className={`mr-[8px] `}>売上価格(円)</span> */}
-                      <span className={`mr-[9px] `}>売上価格</span>
+                      {/* <span className={`mr-[8px] `}>売上合計(円)</span> */}
+                      <span className={`mr-[9px] `}>売上合計</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />
                     </div>
                     <input
@@ -3557,7 +3557,7 @@ export const InsertNewPropertyModal = () => {
                         handleOpenTooltip({
                           e: e,
                           display: "top",
-                          content: "売上価格と売上台数、値引価格を入力することで",
+                          content: "売上合計と売上台数、値引価格を入力することで",
                           content2: "値引率は自動計算されます。",
                           // marginTop: 57,
                           // marginTop: 39,
@@ -4073,7 +4073,7 @@ export const InsertNewPropertyModal = () => {
                     >
                       {/* <div className={`mr-[8px] flex flex-col text-[15px]`}>
                         <span className={``}>予定</span>
-                        <span className={``}>売上価格(円)</span>
+                        <span className={``}>売上合計(円)</span>
                       </div> */}
                       <span className={`mr-[9px]`}>客先予算</span>
                       <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-text-brand-f)]`} />

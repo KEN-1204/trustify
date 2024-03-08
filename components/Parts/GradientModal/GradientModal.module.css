@@ -82,6 +82,7 @@
   width: 130%;
   height: 230%;
   /* background-image: linear-gradient(180deg, #ffffffd0 9%, #cffcfdd0 13%, #0affffd0 30%, #0abeffd0 56%, #0066ffd0 88%); */
+  /* background-image: linear-gradient(180deg, rgb(228, 239, 31), #0abeffd0, #0066ffd0); */
   background-image: var(--color-gradient-modal);
   /* background: #fff; */
 

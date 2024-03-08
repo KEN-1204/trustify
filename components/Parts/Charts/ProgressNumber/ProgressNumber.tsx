@@ -41,6 +41,18 @@ const ProgressNumberMemo = ({
     function easeOutQuart(t: number): number {
       return 1 - Math.pow(1 - t, 4);
     }
+    // ４次関数 90%を超えたタイミングで、さらに増加量をゆっくりにする
+    // function easeOutQuart(t: number): number {
+    //   if (t < 0.5) {
+    //     // 90%まではEase Out Quarticを使用
+    //     return 1 - Math.pow(1 - t, 2);
+    //   } else {
+    //     // 90%を超えた場合、さらにゆっくりさせる
+    //     const post90 = (t - 0.9) / 0.1; // 0.9を超えた部分を0から1の範囲に正規化
+    //     // この部分では変化をさらにゆっくりさせるために、たとえば指数をさらに高くするなどの処理を追加
+    //     return 0.9 + 0.1 * (1 - Math.pow(1 - post90, 10)); // 90%から100%の間をゆっくりと
+    //   }
+    // }
 
     // 5次関数: "Ease Out Quintic"
     function easeOutQuint(t: number): number {

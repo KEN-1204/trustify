@@ -309,8 +309,6 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const isOpenPropertyDetailModal = useDashboardStore((state) => state.isOpenPropertyDetailModal);
 
   // -------------------------------- SDB関連 --------------------------------
-  // ネタ表 詳細・編集モーダル
-  const editedDealCard = useDashboardStore((state) => state.editedDealCard);
 
   const [hoveredThemeIcon, setHoveredThemeIcon] = useState(false);
   const hoveredThemeIconRef = useRef<HTMLDivElement | null>(null);
@@ -702,8 +700,6 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       )}
 
       {/* --------------------------- SDB関連 --------------------------- */}
-      {/* ネタ表 詳細・編集モーダル */}
-      {editedDealCard && <EditModalDealCard />}
 
       {/* ==================== お知らせ所有者変更モーダル ==================== */}
       {openNotificationChangeTeamOwnerModal && notificationDataState !== null && <ChangeTeamOwnerConfirmationModal />}

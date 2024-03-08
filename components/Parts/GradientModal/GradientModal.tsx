@@ -32,7 +32,7 @@ const GradientModalMemo = ({
     <>
       {/* オーバーレイ */}
       <div className={`${styles.modal_overlay}`} onClick={handleClickCancel}></div>
-      <div className={`${styles.card}  flex h-[400px] w-[660px] flex-col items-center justify-start`}>
+      <div className={`${styles.card} fade1 flex h-[400px] w-[660px] flex-col items-center justify-start`}>
         {/* <div className=" z-2 flex h-[400px] w-[660px] items-center justify-center"></div> */}
         {/* <div className=" z-2 h-[400px] w-[660px] overflow-hidden"></div> */}
         <div className={`${styles.card_after} overflow-hidden `}>

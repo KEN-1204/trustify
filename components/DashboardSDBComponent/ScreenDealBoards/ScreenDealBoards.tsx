@@ -9,6 +9,8 @@ import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/ProgressCircle";
 import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/ProgressNumber";
+import { GradientModal } from "@/components/Parts/GradientModal/GradientModal";
+import { EditModalDealCard } from "./EditModalDealCard/EditModalDealCard";
 
 type Props = {
   memberList: MemberAccounts[];
@@ -19,6 +21,15 @@ type Props = {
 // 🌠各メンバーのネタ表を一覧で表示するコンポーネント
 const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const isOpenCongratulationsModal = useDashboardStore((state) => state.isOpenCongratulationsModal);
+  const setIsOpenCongratulationsModal = useDashboardStore((state) => state.setIsOpenCongratulationsModal);
+  const setIsRequiredInputSoldProduct = useDashboardStore((state) => state.setIsRequiredInputSoldProduct);
+  const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
+  const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
+  // 選択中のネタカード
+  const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
+  // ネタカードクリック時に表示する概要モーダル
+  const isOpenDealCardModal = useDashboardStore((state) => state.isOpenDealCardModal);
 
   if (!userProfileState || !userProfileState?.company_id) return null;
 
@@ -70,6 +81,18 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
     );
   };
 
+  // 受注済みに変更後に表示するモーダルの「反映する」ボタンクリック時に実行される関数
+  const handleClickActiveSoldModal = () => {
+    setIsOpenUpdatePropertyModal(true); // 案件編集モーダルを開く
+    setIsRequiredInputSoldProduct(true); // 案件編集モーダルに受注後売上入力ステータスを渡す
+    setIsOpenCongratulationsModal(false); // お祝いモーダルを閉じる
+  };
+  // 受注済みに変更後に表示するモーダルの「反映する」ボタンクリック時に実行される関数
+  const handleClickCancelSoldModal = () => {
+    setSelectedRowDataProperty(null); // 選択中のRowDataをリセット
+    setIsOpenCongratulationsModal(false); // お祝いモーダルを閉じる
+  };
+
   return (
     <>
       {/* <section className={`${styles.company_table_screen} h-screen w-full bg-neutral-900 text-neutral-50`}> */}
@@ -119,16 +142,17 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                       className={`relative !ml-[18px] !mr-[12px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}
                     >
                       <div className="flex h-full min-w-[140px] items-end justify-end">
-                        {/* <span className="mb-[-3px] text-[27px]">68,000</span> */}
+                        {/* <span className="mb-[-3px] text-[27px]">12,000,000,000</span> */}
                         <ProgressNumber
-                          // targetNumber={11000000}
+                          // targetNumber={12000000000}
                           targetNumber={110000}
                           // targetNumber={0}
                           // startNumber={Math.round(68000 / 2)}
                           // startNumber={Number((68000 * 0.1).toFixed(0))}
                           startNumber={0}
                           duration={4000}
-                          easeFn="Quartic"
+                          // easeFn="Quartic"
+                          easeFn="Quintic"
                           fontSize={27}
                           margin="0 0 -3px 0"
                           isReady={isRenderProgress}
@@ -136,16 +160,12 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                           // fade={`fade10_forward`}
                         />
                       </div>
-                      {/* <div className="h-full min-w-[33px] opacity-0"></div> */}
                       <div className="relative h-full min-w-[33px]">
-                        <div className="absolute left-[66%] top-[68%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[white]"></div>
+                        <div className="absolute left-[66%] top-[68%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[var(--color-text-title)]"></div>
                       </div>
-                      {/* <div className="absolute left-[58%] top-[68%]  min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[white]"></div> */}
-                      {/* <div className="flex h-full min-w-[82px] items-end justify-start"> */}
                       <div className="mr-[12px] flex h-full min-w-max items-end justify-start">
-                        {/* <span className="text-[16px]">12,000,000</span> */}
                         <span className="text-[16px]">900,000</span>
-                        {/* <span className="text-[16px]">10,000</span> */}
+                        {/* <span className="text-[16px]">12,000,000,000</span> */}
                       </div>
                     </div>
                     <div className={`relative h-[56px] w-[66px]`} style={{ margin: `0` }}>
@@ -282,6 +302,28 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
           ))} */}
         {/* ------------------- テストここまで ------------------- */}
       </section>
+      {/* ------------------- ネタ表 詳細・編集モーダル ------------------- */}
+      {isOpenDealCardModal && selectedDealCard && <EditModalDealCard />}
+      {/* ------------------- ネタ表 詳細・編集モーダル ここまで ------------------- */}
+      {/* ------------------- 受注済みに変更後の売上入力モーダル ------------------- */}
+      {isOpenCongratulationsModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackDealBoard />}>
+            <GradientModal
+              title1="受注おめでとう🎉"
+              title2="ダッシュボードに売上を反映させましょう！"
+              tagText="受注"
+              contentText="受注済みの案件に「売上商品・売上価格・売上日付」を記録することでダッシュボード上に売上実績と達成率が反映されます。"
+              btnActiveText="反映する"
+              btnCancelText="閉じる"
+              illustText="受注おめでとうございます！"
+              handleClickActive={handleClickActiveSoldModal}
+              handleClickCancel={handleClickCancelSoldModal}
+            />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* ------------------- 受注済みに変更後の売上入力モーダル ここまで ------------------- */}
     </>
   );
 };

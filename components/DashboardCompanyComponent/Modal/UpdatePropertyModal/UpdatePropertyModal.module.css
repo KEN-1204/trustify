@@ -187,6 +187,12 @@
 .required_title {
   color: var(--main-color-tk);
 }
+.title.is_required {
+  color: var(--bright-green);
+}
+.underline.is_required {
+  background-color: var(--bright-green);
+}
 
 .title_min {
   color: var(--color-text-brand-f);

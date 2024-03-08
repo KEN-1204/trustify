@@ -208,16 +208,16 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputProductName, setInputProductName] = useState(""); // 商品
   const [inputProductSales, setInputProductSales] = useState<number | null>(null); // 予定売上台数
   const [inputExpectedOrderDate, setInputExpectedOrderDate] = useState<Date | null>(null); // 獲得予定時期
-  // const [inputExpectedSalesPrice, setInputExpectedSalesPrice] = useState<number | null>(null); // 予定売上価格
-  const [inputExpectedSalesPrice, setInputExpectedSalesPrice] = useState<string>(""); // 予定売上価格
+  // const [inputExpectedSalesPrice, setInputExpectedSalesPrice] = useState<number | null>(null); // 予定売上合計
+  const [inputExpectedSalesPrice, setInputExpectedSalesPrice] = useState<string>(""); // 予定売上合計
   const [inputTermDivision, setInputTermDivision] = useState(""); // 今・来期
   const [inputSoldProductName, setInputSoldProductName] = useState(""); // 売上商品
   const [inputUnitSales, setInputUnitSales] = useState<number | null>(null); // 売上台数
   const [inputSalesContributionCategory, setInputSalesContributionCategory] = useState(""); // 売上貢献区分
-  // const [inputSalesPrice, setInputSalesPrice] = useState<number | null>(null); // 売上価格
+  // const [inputSalesPrice, setInputSalesPrice] = useState<number | null>(null); // 売上合計
   // const [inputDiscountedPrice, setInputDiscountedPrice] = useState<number | null>(null); // 値引価格
   // const [inputDiscountRate, setInputDiscountRate] = useState<number | null>(null);
-  const [inputSalesPrice, setInputSalesPrice] = useState<string>(""); // 売上価格
+  const [inputSalesPrice, setInputSalesPrice] = useState<string>(""); // 売上合計
   const [inputDiscountedPrice, setInputDiscountedPrice] = useState<string>(""); // 値引価格
   const [inputDiscountRate, setInputDiscountRate] = useState<string>(""); // 値引率
   const [inputSalesClass, setInputSalesClass] = useState("");
@@ -1443,7 +1443,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
         return;
       }
 
-      // 売上台数unit_sales, 売上価格sales_price, 値引価格discount_priceを変更する場合で
+      // 売上台数unit_sales, 売上合計sales_price, 値引価格discount_priceを変更する場合で
       // かつ値引率も同時に変更する
       if (
         ["unit_sales", "sales_price", "discounted_price"].includes(fieldName) &&
@@ -1452,7 +1452,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
         checkNotFalsyExcludeZero(selectedRowDataProperty.unit_sales) &&
         checkNotFalsyExcludeZero(selectedRowDataProperty.discounted_price)
       ) {
-        // 売上台数、売上価格、値引価格のどれかがnullなら値引率をnullにする
+        // 売上台数、売上合計、値引価格のどれかがnullなら値引率をnullにする
         if (newValue === null) {
           const updatePayload = {
             fieldName: fieldName,
@@ -1469,7 +1469,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
 
           await updatePropertyFieldMutation.mutateAsync(updatePayload);
         }
-        // 売上台数、売上価格が0円の場合
+        // 売上台数、売上合計が0円の場合
         else if (["unit_sales", "sales_price"].includes(fieldName) && ["0", "０", 0].includes(newValue)) {
           const updatePayload = {
             fieldName: fieldName,
@@ -1767,7 +1767,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       return;
     }
 
-    // 🔹売上台数、売上価格、値引価格の値引率同時更新ルート
+    // 🔹売上台数、売上合計、値引価格の値引率同時更新ルート
     if (
       ["unit_sales", "sales_price", "discounted_price"].includes(fieldName) &&
       selectedRowDataProperty &&
@@ -1775,7 +1775,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       checkNotFalsyExcludeZero(selectedRowDataProperty.unit_sales) &&
       checkNotFalsyExcludeZero(selectedRowDataProperty.discounted_price)
     ) {
-      // 売上台数、売上価格、値引価格のどれかがnullなら値引率をnullにする
+      // 売上台数、売上合計、値引価格のどれかがnullなら値引率をnullにする
       if (newValue === null) {
         const updatePayload = {
           fieldName: fieldName,
@@ -1792,7 +1792,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
 
         await updatePropertyFieldMutation.mutateAsync(updatePayload);
       }
-      // 売上台数、売上価格が0円の場合
+      // 売上台数、売上合計が0円の場合
       else if (["unit_sales", "sales_price"].includes(fieldName) && ["0", "０", 0].includes(newValue)) {
         const updatePayload = {
           fieldName: fieldName,
@@ -2471,7 +2471,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
-              {/* 獲得予定時期・予定売上 通常 */}
+              {/* 獲得予定時期・合計 通常 */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -2596,7 +2596,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>予定売上</span>
+                    {/* <span className={`${styles.title}`}>予定売上合計</span> */}
+                    <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                      <span>予定売上</span>
+                      <span>合計</span>
+                    </div>
                     {!searchMode && isEditModeField !== "expected_sales_price" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
@@ -3029,7 +3033,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
-              {/* 売上貢献区分・売上価格 通常 */}
+              {/* 売上貢献区分・売上合計 通常 */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -3125,7 +3129,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} text-[12px]`}>売上価格</span>
+                    <span className={`${styles.title} text-[12px]`}>売上合計</span>
                     {!searchMode && isEditModeField !== "sales_price" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
@@ -6196,7 +6200,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               {/* 活動履歴 */}
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<FallbackUnderRightActivityLogCustom />}>
-                  <UnderRightActivityLogCustom />
+                  <UnderRightActivityLogCustom isHoverableBorder={true} />
                 </Suspense>
               </ErrorBoundary>
               {/* <FallbackUnderRightActivityLogCustom /> */}
@@ -7815,7 +7819,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
-              {/* 獲得予定時期・予定売上価格 サーチ */}
+              {/* 獲得予定時期・予定売上合計 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -7830,7 +7834,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title_search_mode}`}>予定売上価格</span>
+                    <span className={`${styles.title_search_mode}`}>予定売上合計</span>
+
                     <input
                       type="text"
                       // placeholder="例：600万円 → 6000000　※半角で入力"
@@ -7982,7 +7987,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
-              {/* 売上貢献区分・売上価格 サーチ */}
+              {/* 売上貢献区分・売上合計 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -8016,7 +8021,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title_search_mode} text-[12px]`}>売上価格</span>
+                    <span className={`${styles.title_search_mode} text-[12px]`}>売上合計</span>
                     <input
                       type="text"
                       // placeholder="例：600万円 → 6000000　※半角で入力"
@@ -8215,7 +8220,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   {/* <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} text-[12px]`}>売上価格</span>
+                    <span className={`${styles.title} text-[12px]`}>売上合計</span>
                     {!searchMode && (
                       <span className={`${styles.value}`}>
                         {selectedRowDataProperty?.sales_price ? selectedRowDataProperty?.sales_price : ""}

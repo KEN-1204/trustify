@@ -37,7 +37,8 @@ export const ConfirmationModal: FC<Props> = ({
     <>
       {/* オーバーレイ */}
       <div
-        className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
+        // className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
+        className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[#00000033] backdrop-blur-sm"
         style={{ ...(zIndexOverlay && { zIndex: zIndexOverlay }) }}
         // onClick={() => {
         //   setShowConfirmCancelModal(null);

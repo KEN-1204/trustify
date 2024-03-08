@@ -482,13 +482,22 @@ type State = {
   selectedObjSectionSDBMember: MemberAccounts | null;
   setSelectedObjSectionSDBMember: (payload: MemberAccounts | null) => void;
 
-  // --------- D&Dボード ---------
+  // --------- ネタ表ボード ---------
   editedTaskCard: EditedCard;
   setEditedTaskCard: (payload: EditedCard) => void;
   // 選択中のカード
   selectedDealCard: SelectedDealCard;
   setSelectedDealCard: (payload: SelectedDealCard) => void;
-  // 受注済みに変更後の売上入力モーダル
+  // 選択中のネタカードの概要確認モーダル
+  isOpenDealCardModal: boolean;
+  setIsOpenDealCardModal: (payload: boolean) => void;
+  // ローカルネタ表カードリフレッシュ mapメソッドで選択中のカードを更新
+  isRequiredRefreshDealCards: boolean;
+  setIsRequiredRefreshDealCards: (payload: boolean) => void;
+
+  // 受注済みに変更後の売上入力モーダルと編集モーダルに渡すstate
+  isOpenCongratulationsModal: boolean;
+  setIsOpenCongratulationsModal: (payload: boolean) => void;
   isRequiredInputSoldProduct: boolean;
   setIsRequiredInputSoldProduct: (payload: boolean) => void;
 
@@ -1134,13 +1143,22 @@ const useDashboardStore = create<State>((set) => ({
   selectedObjSectionSDBMember: null,
   setSelectedObjSectionSDBMember: (payload) => set({ selectedObjSectionSDBMember: payload }),
 
-  // --------- D&Dボード ---------
+  // --------- ネタ表ボード ---------
   editedTaskCard: null,
   setEditedTaskCard: (payload) => set({ editedTaskCard: payload }),
   // 選択中のカード
   selectedDealCard: null,
   setSelectedDealCard: (payload) => set({ selectedDealCard: payload }),
-  // 受注済みに変更後の売上入力モーダル
+  // 選択中のネタカードの概要確認モーダル
+  isOpenDealCardModal: false,
+  setIsOpenDealCardModal: (payload) => set({ isOpenDealCardModal: payload }),
+  // ローカルネタ表カードリフレッシュ mapメソッドで選択中のカードを更新
+  isRequiredRefreshDealCards: false,
+  setIsRequiredRefreshDealCards: (payload) => set({ isRequiredRefreshDealCards: payload }),
+
+  // 受注済みに変更後の売上入力モーダルと編集モーダルに渡すstate
+  isOpenCongratulationsModal: false,
+  setIsOpenCongratulationsModal: (payload) => set({ isOpenCongratulationsModal: payload }),
   isRequiredInputSoldProduct: false,
   setIsRequiredInputSoldProduct: (payload) => set({ isRequiredInputSoldProduct: payload }),
 

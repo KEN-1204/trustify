@@ -1984,7 +1984,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-gradient-modal-border-inner: #33333300;
   /* --color-gradient-modal-border-real-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000,
     0 4px 15px 4px #ffffff56; */
-  --color-gradient-modal-border-real-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 3px 1px #fff,
+  --color-gradient-modal-border-real-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 6px 1px #fff,
     0 4px 15px 4px #ffffff56;
   /* テーマカラーパレット */
   /* --color-palette-brand-f: linear-gradient(60deg, #cffcfd, #7de2eb, #0ab5ff, #0066ff); */

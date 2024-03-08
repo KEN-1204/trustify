@@ -23,6 +23,13 @@ export const useMutateProperty = () => {
   // -------------------------- ネタ表からの売上入力用 --------------------------
   const isRequiredInputSoldProduct = useDashboardStore((state) => state.isRequiredInputSoldProduct);
   const setIsRequiredInputSoldProduct = useDashboardStore((state) => state.setIsRequiredInputSoldProduct);
+  // ネタ表のクエリキー
+  const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
+  // 選択中のネタカード(ローカルのネタカードを最新状態に更新する用)
+  const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
+  const setSelectedDealCard = useDashboardStore((state) => state.setSelectedDealCard);
+  // ローカルstateのネタカードを更新するトリガー
+  const setIsRequiredRefreshDealCards = useDashboardStore((state) => state.setIsRequiredRefreshDealCards);
   // -------------------------- ネタ表からの売上入力用 ここまで --------------------------
 
   const supabase = useSupabaseClient();
@@ -403,30 +410,69 @@ export const useMutateProperty = () => {
       // if (errorProperty) throw new Error(errorProperty.message);
     },
     {
-      onSuccess: async () => {
+      onSuccess: async (data, variables) => {
+        const newProperty = variables;
         // キャッシュのデータを再取得
         await queryClient.invalidateQueries({ queryKey: ["properties"] });
         await queryClient.invalidateQueries({ queryKey: ["activities"] });
         // TanStack Queryでデータの変更に合わせて別のデータを再取得する
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
 
-        // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataPropertyを最新状態にする
-        setIsUpdateRequiredForLatestSelectedRowDataProperty(true);
-
-        if (loadingGlobalState) setLoadingGlobalState(false);
-
-        // 更新モーダルを閉じる
-        setIsOpenUpdatePropertyModal(false);
-
         // -------------------------- ネタ表からの売上入力用 --------------------------
-        if (isRequiredInputSoldProduct) {
+        if (isRequiredInputSoldProduct && selectedDealCard && selectedDealCard.dealCard) {
+          // キャッシュを更新
+          // const currentQueryKey = ["deals", userId, periodType, period];
+          // const userId = newProperty.created_by_user_id;
+          const currentQueryKey = [
+            "deal",
+            selectedDealCard.ownerId,
+            activePeriodSDB.periodType,
+            activePeriodSDB.period,
+          ];
+          const prevCacheDeals: Property_row_data[] | undefined = queryClient.getQueryData(currentQueryKey);
+          // キャッシュの配列から今回更新した案件idのオブジェクトのみ更新してキャッシュを更新
+          if (!!prevCacheDeals?.length) {
+            const newDeals = prevCacheDeals.map((obj) => {
+              return obj.property_id === newProperty.id ? newProperty : obj;
+            });
+            console.log("キャッシュを更新", newDeals, "前のキャッシュ", prevCacheDeals);
+            queryClient.setQueryData(currentQueryKey, newDeals);
+          }
+
+          // Zustandの選択中のカードも更新して、ローカルstateのネタカードも同時更新してUIに反映
+          console.log("🔥Zustandも更新 { ...selectedDealCard.dealCard, ...updatePayload }", {
+            ...selectedDealCard.dealCard,
+            ...newProperty,
+          });
+          setSelectedDealCard({
+            ownerId: selectedDealCard.ownerId,
+            dealCard: { ...selectedDealCard.dealCard, ...newProperty },
+          });
+
+          // ローカルstateを更新するためのトリガーをON
+          setIsRequiredRefreshDealCards(true);
+
+          if (loadingGlobalState) setLoadingGlobalState(false);
+
+          // 更新モーダルを閉じる
+          setIsOpenUpdatePropertyModal(false);
+
           // ネタ表からの売上入力が完了したら、rowDataを空にしてisRequiredInputSoldProductをfalseにする
           setSelectedRowDataProperty(null);
           setIsRequiredInputSoldProduct(false);
           toast.success("売上入力が完了しました🌟");
         }
+
         // -------------------------- ネタ表からの売上入力用 ここまで --------------------------
         else {
+          // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataPropertyを最新状態にする
+          setIsUpdateRequiredForLatestSelectedRowDataProperty(true);
+
+          if (loadingGlobalState) setLoadingGlobalState(false);
+
+          // 更新モーダルを閉じる
+          setIsOpenUpdatePropertyModal(false);
+
           toast.success("案件の更新が完了しました🌟", {
             position: "top-right",
             autoClose: 1500,

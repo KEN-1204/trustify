@@ -59,7 +59,7 @@ const UnderRightActivityLogCustomMemo = ({ isHoverableBorder = false }: Props) =
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
   // 選択中の列データ会社
-  const editedDealCard = useDashboardStore((state) => state.editedDealCard);
+  const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
   // 選択中の行データのid保持用state => 行切り替え(selectedRowDataContact更新)後に前と今でidが異なるかチェック
   const [currentRowDataContactId, setCurrentRowDataContactId] = useState<string | null>(null);
   // デバウンスとenableと組み合わせてqueryFnの実行を遅延させる
@@ -93,11 +93,11 @@ const UnderRightActivityLogCustomMemo = ({ isHoverableBorder = false }: Props) =
   // if (!selectedRowDataContact && !selectedRowDataProperty)
   //   return ;
 
-  // let selectedData: SelectedRowData | null;
-  // if (selectedRowDataContact) selectedData = selectedRowDataContact;
+  // ------------------ 🌠各コンポーネントで選択中のデータをselectedDataに格納 ------------------
   let selectedData: SelectedRowData = selectedRowDataContact as Contact_row_data;
   if (selectedRowDataProperty) selectedData = selectedRowDataProperty as Property_row_data;
-  if (activeMenuTab === "SDB" && !!editedDealCard) selectedData = editedDealCard as DealCardType;
+  if (activeMenuTab === "SDB" && !!selectedDealCard && selectedDealCard.dealCard)
+    selectedData = selectedDealCard.dealCard as DealCardType;
 
   console.log(
     "UnderRightActivityLogCustomコンポーネントレンダリング selectedData",
@@ -106,8 +106,8 @@ const UnderRightActivityLogCustomMemo = ({ isHoverableBorder = false }: Props) =
     selectedRowDataContact,
     "selectedRowDataProperty",
     selectedRowDataProperty,
-    "editedDealCard",
-    editedDealCard
+    "selectedDealCard",
+    selectedDealCard
   );
   if (activeMenuTab === "SDB" && (!selectedData?.contact_id || selectedData?.contact_id?.length < 5)) {
     console.log("UnderRightActivityLogCustomコンポーネント リターン selectedData.contact_id", selectedData.contact_id);
