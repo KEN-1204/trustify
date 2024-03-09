@@ -80,7 +80,7 @@
 .entity_board_container.fade_bg {
   background-color: #00000000;
   box-shadow: 0 0 0 1px transparent;
-  animation: fadeBg 0.8s ease forwards;
+  animation: fadeBg 1.5s ease forwards;
 }
 @keyframes fadeBg {
   0% {

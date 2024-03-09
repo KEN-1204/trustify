@@ -723,7 +723,9 @@ const SettingMemberAccountsMemo: FC = () => {
                 <h4 className="font-bold">チーム全員がデータを残すかどうかが勝負の分かれ目</h4>
                 <p className="text-[13px]">
                   {/* <span>コラボレーションとデータサイエンスを駆使して、仕事を素早く終わらせましょう</span> */}
-                  <span>コラボレーションとデータサイエンスを駆使して、付加価値を最大化させましょう</span>
+                  <span>
+                    データサイエンスを駆使して、商品価値・営業価値を最大化させ、顧客・自社共に発展させましょう
+                  </span>
                 </p>
                 <div className="w-full">
                   <button

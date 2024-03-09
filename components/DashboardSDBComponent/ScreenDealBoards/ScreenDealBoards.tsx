@@ -168,7 +168,7 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                             // startNumber={Math.round(68000 / 2)}
                             // startNumber={Number((68000 * 0.1).toFixed(0))}
                             startNumber={0}
-                            duration={4000}
+                            duration={3000}
                             // easeFn="Quartic"
                             easeFn="Quintic"
                             fontSize={27}
@@ -193,7 +193,7 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                             textId="1"
                             progress={78}
                             // progress={0}
-                            duration={4000}
+                            duration={5000}
                             easeFn="Quartic"
                             size={66}
                             strokeWidth={7}

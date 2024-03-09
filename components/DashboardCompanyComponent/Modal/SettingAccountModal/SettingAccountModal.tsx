@@ -22,6 +22,7 @@ import { FallbackSettingMemberAccounts } from "./SettingMemberAccounts/FallbackS
 import { SettingProfile } from "./SettingProfile/SettingProfile";
 import { FallbackSettingProfile } from "./SettingProfile/FallbackSettingProfile";
 import { BiTargetLock } from "react-icons/bi";
+import { SettingSalesTargets } from "./SettingSalesTargets/SettingSalesTargets";
 
 export const SettingAccountModal = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -282,6 +283,17 @@ export const SettingAccountModal = () => {
             )} */}
             {/* 右側メインエリア プロフィール ここまで */}
 
+            {/* 右側メインエリア 会社・チーム */}
+            {/* {selectedSettingAccountMenu === "Company" && <SettingCompany />} */}
+            {/* {selectedSettingAccountMenu === "Company" && <FallbackSettingProfile title="会社・チーム" />} */}
+            {selectedSettingAccountMenu === "Company" && (
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<FallbackSettingProfile title="会社・チーム" />}>
+                  <SettingCompany />
+                </Suspense>
+              </ErrorBoundary>
+            )}
+
             {/* 右側メインエリア サービス・製品 */}
             {/* {selectedSettingAccountMenu === "Products" && <SettingProducts />} */}
             {selectedSettingAccountMenu === "Products" && (
@@ -293,16 +305,17 @@ export const SettingAccountModal = () => {
               </ErrorBoundary>
             )}
 
-            {/* 右側メインエリア 会社・チーム */}
-            {/* {selectedSettingAccountMenu === "Company" && <SettingCompany />} */}
-            {/* {selectedSettingAccountMenu === "Company" && <FallbackSettingProfile title="会社・チーム" />} */}
-            {selectedSettingAccountMenu === "Company" && (
+            {/* 右側メインエリア 売上目標 */}
+            {/* {selectedSettingAccountMenu === "SalesTargets" && <SettingSalesTargets />} */}
+            {selectedSettingAccountMenu === "SalesTargets" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
-                <Suspense fallback={<FallbackSettingProfile title="会社・チーム" />}>
-                  <SettingCompany />
+                {/* <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}> */}
+                <Suspense fallback={<Fallback className="min-h-[calc(100vh/3-var(--header-height)/3)]" />}>
+                  <SettingSalesTargets />
                 </Suspense>
               </ErrorBoundary>
             )}
+
             {/* 右側メインエリア 支払い・プラン */}
             {selectedSettingAccountMenu === "PaymentAndPlan" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
