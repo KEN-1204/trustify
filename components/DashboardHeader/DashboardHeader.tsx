@@ -173,6 +173,7 @@ export const DashboardHeaderMemo: FC = () => {
   const setActiveThemeColor = useDashboardStore((state) => state.setActiveThemeColor);
   const mappingPaletteStyle: { [key: string]: string } = {
     "theme-brand-f": "var(--color-palette-brand-f)",
+    "theme-brand-f-gradient": "var(--color-palette-brand-f-gradient)",
     "theme-black-gradient": "var(--color-palette-black-gradient)",
     "theme-simple12": "var(--color-palette-simple12)",
     "theme-simple17": "var(--color-palette-simple17)",

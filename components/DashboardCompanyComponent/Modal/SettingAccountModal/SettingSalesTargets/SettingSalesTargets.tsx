@@ -7,7 +7,7 @@ import useThemeStore from "@/store/useThemeStore";
 import { Department, Office, Product, Section, Unit } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { FC, Fragment, memo, useEffect, useState } from "react";
+import { CSSProperties, FC, Fragment, memo, useEffect, useMemo, useState } from "react";
 import styles from "./SettingSalesTargets.module.css";
 import NextImage from "next/image";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
@@ -16,24 +16,93 @@ import { officeTagIcons, unitTagIcons } from "../SettingCompany/data";
 import { useQuerySections } from "@/hooks/useQuerySections";
 import { dataIllustration, winnersIllustration } from "@/components/assets";
 import { RxDot } from "react-icons/rx";
+import { IoCaretDownOutline } from "react-icons/io5";
+import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
+import { SalesTargetGridContainer, SalesTargetGridContainerForMonthly } from "./SalesTargetGridContainer";
+
+const colorsArray = [
+  "bg-rose-500",
+  "bg-emerald-500",
+  "bg-blue-500",
+  "bg-indigo-500",
+  "bg-fuchsia-500",
+  "bg-amber-500",
+  "bg-pink-500",
+  "bg-sky-500",
+  "bg-violet-500",
+  "bg-purple-500",
+  "bg-lime-500",
+];
+
+const monthlySaleTargetData = Array(12)
+  .fill(null)
+  .map((_, index) => {
+    let year = 2024;
+    let month = index + 4; // 4月スタート
+    let displayMonth = ``;
+    // 9月まで
+    if (month < 10) {
+      displayMonth = `0${month}`;
+    } else if (month > 12) {
+      year += 1;
+      displayMonth = `0${month - 12}`;
+    } else {
+      displayMonth = `${month}`;
+    }
+
+    console.log("year", year, "month", month, "displayMonth", displayMonth);
+
+    const initialObj = {
+      sales_target_period_value: Number(`${year}${displayMonth}`),
+      sales_target: 123000000,
+      sales_target_last_year: 113000000,
+      sales_target_two_year_ago: 103000000,
+    };
+    return initialObj;
+  });
 
 const SettingSalesTargetsMemo: FC = () => {
-  const theme = useThemeStore((state) => state.theme);
+  // const theme = useThemeStore((state) => state.theme);
   const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
   const selectedSettingAccountMenu = useDashboardStore((state) => state.selectedSettingAccountMenu);
   const setSelectedSettingAccountMenu = useDashboardStore((state) => state.setSelectedSettingAccountMenu);
-  const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
-  const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
+  // const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
+  // const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
   // 上画面の選択中の列データ会社
   const userProfileState = useDashboardStore((state) => state.userProfileState);
-  const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
-  // 製品追加・編集モーダル
-  const setIsOpenInsertNewProductModal = useDashboardStore((state) => state.setIsOpenInsertNewProductModal);
-  const setIsOpenUpdateProductModal = useDashboardStore((state) => state.setIsOpenUpdateProductModal);
-  const setEditedProduct = useDashboardStore((state) => state.setEditedProduct);
+  // const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
+  const [activeTargetTab, setActiveTargetTab] = useState("Sales");
+
+  // 決算日を取得して変数に格納
+  const fiscalYearEndDate = useMemo(() => {
+    return userProfileState?.customer_fiscal_end_month
+      ? new Date(userProfileState.customer_fiscal_end_month)
+      : new Date(new Date().getFullYear(), 2, 31);
+  }, [userProfileState?.customer_fiscal_end_month]);
+
+  // 現在の会計年度(現在の日付からユーザーの会計年度を取得)
+  const currentFiscalYearDateObj = useMemo(() => {
+    return (
+      calculateFiscalYearStart({
+        fiscalYearEnd: fiscalYearEndDate,
+        fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+      }) ?? new Date()
+    );
+  }, [fiscalYearEndDate, userProfileState?.customer_fiscal_year_basis]);
+
+  const initialTabs = useMemo(() => {
+    return {
+      year: fiscalYearEndDate,
+      section: "company",
+      periodType: "fiscalYear",
+    };
+  }, []);
+
+  // 「年度」・「年度+半期」・「半期+四半期+月度」
+  const [activeSectionTabs, setActiveSectionTabs] = useState(initialTabs);
+
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
-  const { deleteProductMutation } = useMutateProduct();
 
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
   const {
@@ -136,8 +205,18 @@ const SettingSalesTargetsMemo: FC = () => {
     "✅unitIdToNameMap",
     unitIdToNameMap,
     "✅officeIdToNameMap",
-    officeIdToNameMap
+    officeIdToNameMap,
+    "タブ初期値",
+    initialTabs,
+    "アクティブタブ",
+    activeSectionTabs
   );
+
+  const getUnderline = (tab: string): CSSProperties => {
+    if (tab === "Sales") return { left: 0, width: `60px` };
+    if (tab === "Process") return { left: 80, width: `90px` };
+    return { left: 0, width: `60px` };
+  };
 
   type TagProps = {
     entityName: string | null;
@@ -164,9 +243,43 @@ const SettingSalesTargetsMemo: FC = () => {
       {/* 右側メインエリア プロフィール */}
       {selectedSettingAccountMenu === "SalesTargets" && (
         <div
-          className={`flex h-full w-full flex-col overflow-x-hidden overflow-y-scroll px-[20px] pb-[20px] pr-[80px]`}
+          className={`flex h-full w-full flex-col overflow-x-hidden overflow-y-scroll px-[20px] pb-[20px] pr-[80px] text-[var(--color-text-title)]`}
         >
-          <h2 className={`mt-[20px] text-[18px] font-bold`}>売上目標</h2>
+          <h2 className={`mt-[20px] flex flex-col text-[15px] font-bold`}>
+            <div className="mb-[6px] flex gap-[20px]">
+              <div
+                className={`relative flex w-max min-w-max flex-col items-center hover:text-[var(--color-text-title)] ${
+                  activeTargetTab === "Sales"
+                    ? `text-[var(--color-text-title)]`
+                    : `cursor-pointer text-[var(--color-text-sub)]`
+                }`}
+                onClick={() => {
+                  if (activeTargetTab !== "Sales") setActiveTargetTab("Sales");
+                }}
+              >
+                <span className={``}>売上目標</span>
+              </div>
+              <div
+                className={`relative flex w-max min-w-max flex-col items-center hover:text-[var(--color-text-title)] ${
+                  activeTargetTab === "Process"
+                    ? `text-[var(--color-text-title)]`
+                    : `cursor-pointer text-[var(--color-text-sub)]`
+                }`}
+                onClick={() => {
+                  if (activeTargetTab !== "Process") setActiveTargetTab("Process");
+                }}
+              >
+                <span className={``}>プロセス目標</span>
+              </div>
+            </div>
+            <div className="relative min-h-[2px] w-full bg-[var(--color-bg-sub)]">
+              <div
+                className={`${styles.section_title_underline} absolute left-0 top-0 min-h-[2px] w-[60px] bg-[var(--color-bg-brand-f)]`}
+                style={{ ...(activeTargetTab && getUnderline(activeTargetTab)) }}
+                // style={{ ...(activeTargetTab && { left: 80, width: `90px` }) }}
+              />
+            </div>
+          </h2>
 
           <div className="mt-[15px] flex min-h-[168px] w-full items-center justify-between overflow-hidden rounded-[8px] bg-[var(--setting-bg-sub)]">
             <div className="flex flex-col space-y-3 p-[24px] pr-[0px]">
@@ -181,10 +294,10 @@ const SettingSalesTargetsMemo: FC = () => {
                   //   className={`transition-base01 flex-center max-h-[41px] w-[138px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff]  ${
                   //     loading ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
                   //   } mt-[10px]`}
-                  className={`transition-base01 flex-center mt-[10px] max-h-[41px] w-[138px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                  className={`transition-bg02 flex-center mt-[10px] max-h-[41px] w-[138px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)] `}
                   //   onClick={() => setIsOpenSettingInvitationModal(true)}
                 >
-                  <span>メンバーを招待</span>
+                  <span>目標を設定</span>
                   {/* {loading && <SpinnerIDS scale={"scale-[0.4]"} />} */}
                 </button>
               </div>
@@ -195,9 +308,74 @@ const SettingSalesTargetsMemo: FC = () => {
             </div>
           </div>
 
-          <ul className="mt-[10px]">
+          {/* ---------------------------- 年度切り替えヘッダー ---------------------------- */}
+          <div
+            className={`sticky top-0 z-[50] flex min-h-[49px] w-full justify-between bg-[var(--color-edit-bg-solid)] pb-[10px]`}
+          >
+            <div className={`flex h-auto items-end `}>
+              <div className={`flex-center mr-[12px] flex h-[25px] pb-[1px] text-[13px] text-[var(--color-text-sub)]`}>
+                <span>年度</span>
+              </div>
+              <div
+                className={`transition-bg02 group mr-[12px] flex cursor-pointer flex-col text-[var(--color-text-title)] hover:text-[var(--color-text-brand-f)]`}
+              >
+                <div className={`flex pl-[1px] text-[15px]`}>
+                  <span className="mr-[6px]">2024年度</span>
+                  <div className={`flex-center h-[24px] text-[14px]`}>
+                    <IoCaretDownOutline className={``} />
+                  </div>
+                </div>
+                <div
+                  className={`${styles.underline} min-h-[1px] w-full bg-[var(--color-border-light)] group-hover:bg-[var(--color-bg-brand-f)]`}
+                />
+              </div>
+
+              <div className={`flex-center mr-[12px] flex h-[25px] pb-[1px] text-[13px] text-[var(--color-text-sub)]`}>
+                <span>区分</span>
+              </div>
+
+              <div
+                className={`transition-bg02 group mr-[12px] flex cursor-pointer flex-col text-[var(--color-text-title)] hover:text-[var(--color-text-brand-f)]`}
+              >
+                <div className={`flex pl-[1px] text-[15px]`}>
+                  <span className="mr-[6px]">全社</span>
+                  {/* <span className="mr-[6px]">-</span>
+                  <span className="mr-[6px]">事業部</span> */}
+                  <div className={`flex-center h-[24px] text-[14px]`}>
+                    <IoCaretDownOutline className={``} />
+                  </div>
+                </div>
+                <div
+                  className={`${styles.underline} min-h-[1px] w-full bg-[var(--color-border-light)] group-hover:bg-[var(--color-bg-brand-f)]`}
+                />
+              </div>
+
+              <div className={`flex-center mr-[12px] flex h-[25px] pb-[1px] text-[13px] text-[var(--color-text-sub)]`}>
+                <span>期間区分</span>
+              </div>
+
+              <div
+                className={`transition-bg02 group flex cursor-pointer flex-col text-[var(--color-text-title)] hover:text-[var(--color-text-brand-f)]`}
+              >
+                <div className={`flex pl-[1px] text-[15px]`}>
+                  <span className="mr-[6px]">年度</span>
+                  <div className={`flex-center h-[24px] text-[14px]`}>
+                    <IoCaretDownOutline className={``} />
+                  </div>
+                </div>
+                <div
+                  className={`${styles.underline} min-h-[1px] w-full bg-[var(--color-border-light)] group-hover:bg-[var(--color-bg-brand-f)]`}
+                />
+              </div>
+            </div>
+            <div className={`flex items-center justify-end`}></div>
+          </div>
+          {/* ---------------------------- 年度切り替えヘッダー ここまで ---------------------------- */}
+
+          {/* ---------------------------- エンティティ別目標一覧 ---------------------------- */}
+          <ul className="mt-[14px]">
             <li className={`${styles.list_item_department}`}>
-              <h3 className={`mb-[20px] flex items-center font-bold text-[var(--color-text-title)]`}>
+              <h3 className={`mb-[0px] flex items-center font-bold text-[var(--color-text-title)]`}>
                 <div className="flex min-w-max flex-col space-y-[3px]">
                   <div className="flex min-w-max items-center space-x-[10px]">
                     <NextImage
@@ -212,20 +390,140 @@ const SettingSalesTargetsMemo: FC = () => {
                   <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]" />
                 </div>
               </h3>
-              <ul></ul>
+              <div className="relative flex h-auto min-h-[30px] w-full pl-[12px]">
+                <div
+                  className={`${styles.vertical_line} ${styles.main} absolute left-[12px] top-[7px] h-[calc(100%-7px)] min-w-[1px] bg-[var(--color-bg-brand-f)]`}
+                  style={{ animationDelay: `0.6s` }}
+                ></div>
+                <div
+                  className={`flex flex-col pb-[15px] pl-[22px] ${styles.list_container}`}
+                  style={{ animationDelay: `0.6s` }}
+                >
+                  {/* <div role="grid" className={`w-full ${styles.grid_container_target}`}>
+                    <div role="row" aria-rowindex={1} className={`${styles.row} w-full`}>
+                      <div role="rowheader" aria-colindex={1} className={`${styles.row_title}`}>
+                        年度
+                      </div>
+                      <div role="gridcell" aria-colindex={2} className={`${styles.col_title}`}>
+                        2024
+                      </div>
+                    </div>
+                    <div role="row" aria-rowindex={2} className={`${styles.row_contents} w-full`}>
+                      <div role="rowheader" aria-colindex={1} className={`${styles.row_title}`}>
+                        目標
+                      </div>
+                      <div role="gridcell" aria-colindex={2} className={`${styles.cell_value}`}>
+                        404.2億
+                      </div>
+                      <div role="gridcell" aria-colindex={3} className={`${styles.row_title}`}>
+                        前年比
+                      </div>
+                      <div role="gridcell" aria-colindex={4} className={`${styles.cell_value}`}>
+                        24.7%
+                      </div>
+                      <div role="gridcell" aria-colindex={5} className={`${styles.row_title}`}>
+                        前年伸び実績
+                      </div>
+                      <div role="gridcell" aria-colindex={6} className={`${styles.cell_value}`}>
+                        25.0%
+                      </div>
+                    </div>
+                  </div> */}
+
+                  {/* {["fiscalYear", "half", "quarter"].includes(activeSectionTabs.periodType) && (
+                    <SalesTargetGridContainer
+                      periodType="fiscalYear"
+                      periodValue={2024}
+                      salesTargetValue={404200000}
+                      yearOnYear={0.274}
+                      growthResultLastYearOnLastYear={0.25}
+                    />
+                  )} */}
+                  <SalesTargetGridContainer
+                    periodType="quarter"
+                    periodValue={20243}
+                    salesTargetValue={1230000000000}
+                    yearOnYear={0.274}
+                    growthResultLastYearOnLastYear={0.25}
+                  />
+
+                  <div className={`mt-[10px] flex min-h-[25px] min-w-max max-w-max flex-col text-[13px]`}>
+                    <span className={`mr-[9px]`}>月度</span>
+                    <div className={`min-h-[1px] w-full bg-[var(--color-border-light)]`}></div>
+                  </div>
+
+                  {["monthly"].includes("monthly") && (
+                    <SalesTargetGridContainerForMonthly
+                      periodType={"monthly"}
+                      monthlySalesTargetsArray={monthlySaleTargetData}
+                    />
+                  )}
+
+                  {/* -------------------------- 月度 -------------------------- */}
+                  {/* 月度タイトル 12ヶ月間 */}
+                  {/* <div className={`mt-[10px] flex min-h-[25px] min-w-max max-w-max flex-col text-[13px]`}>
+                    <span className={`mx-[6px]`}>月度</span>
+                    <div className={`min-h-[2px] w-full bg-[var(--color-bg-brand-f)]`}></div>
+                  </div>
+                  
+                  <div role="grid" className={`w-full ${styles.grid_container_target}`}>
+                    <div role="row" aria-rowindex={2} className={`${styles.row_contents} w-full`}>
+                      <div role="rowheader" aria-colindex={1} className={`${styles.row_title}`}>
+                        4月
+                      </div>
+                      <div role="gridcell" aria-colindex={2} className={`${styles.cell_value}`}>
+                        404.2億
+                      </div>
+                      <div role="gridcell" aria-colindex={3} className={`${styles.row_title}`}>
+                        前年比
+                      </div>
+                      <div role="gridcell" aria-colindex={4} className={`${styles.cell_value}`}>
+                        24.7%
+                      </div>
+                      <div role="gridcell" aria-colindex={5} className={`${styles.row_title}`}>
+                        前年伸び実績
+                      </div>
+                      <div role="gridcell" aria-colindex={6} className={`${styles.cell_value}`}>
+                        25.0%
+                      </div>
+                    </div>
+                    <div role="row" aria-rowindex={2} className={`${styles.row_contents} w-full`}>
+                      <div role="rowheader" aria-colindex={1} className={`${styles.row_title}`}>
+                        5月
+                      </div>
+                      <div role="gridcell" aria-colindex={2} className={`${styles.cell_value}`}>
+                        404.2億
+                      </div>
+                      <div role="gridcell" aria-colindex={3} className={`${styles.row_title}`}>
+                        前年比
+                      </div>
+                      <div role="gridcell" aria-colindex={4} className={`${styles.cell_value}`}>
+                        24.7%
+                      </div>
+                      <div role="gridcell" aria-colindex={5} className={`${styles.row_title}`}>
+                        前年伸び実績
+                      </div>
+                      <div role="gridcell" aria-colindex={6} className={`${styles.cell_value}`}>
+                        25.0%
+                      </div>
+                    </div>
+                  </div> */}
+                  {/* -------------------------- 月度 ここまで -------------------------- */}
+                </div>
+              </div>
             </li>
             {departmentDataArray &&
               departmentDataArray.map((obj, index) => {
                 return (
                   <Fragment key={obj.id}>
-                    {index === 0 && (
+                    {/* {index === 0 && (
                       <div className="relative flex h-[30px] min-h-[30px] w-full pl-[12px]">
                         <div
                           className={`${styles.vertical_line} absolute left-[12px] top-[-13px] h-[calc(100%+13px)] min-w-[1px] bg-[var(--color-bg-brand-f)]`}
                           style={{ animationDelay: `0.6s` }}
                         ></div>
                       </div>
-                    )}
+                    )} */}
                     <li className="relative flex flex-col">
                       {/* <div className="relative flex h-[30px] min-h-[30px] w-full pl-[12px]">
                       <div
@@ -237,7 +535,7 @@ const SettingSalesTargetsMemo: FC = () => {
                     ></div> */}
                       <div className={`${styles.list_item_department}`}>
                         <h3
-                          className={`${styles.list_title} mb-[0px] flex items-center font-bold text-[var(--color-text-title)]`}
+                          className={`${styles.list_title_row} mb-[0px] flex items-center font-bold text-[var(--color-text-title)]`}
                           style={{ animationDelay: `${0.3 * index + 1}s` }}
                         >
                           <div className="flex min-w-max flex-col space-y-[3px]">
@@ -255,46 +553,162 @@ const SettingSalesTargetsMemo: FC = () => {
                               <div className="relative mr-[5px] h-full w-[15px] min-w-[15px]">
                                 <div className="absolute left-[0px] top-[50%] min-h-[1px] w-[calc(100%)] translate-y-[-50%] bg-[var(--color-bg-brand-f)]"></div>
                               </div>
-                              <div className="relative flex h-full min-w-max flex-col">
-                                <div className="flex min-w-max items-center px-[3px]">
-                                  <NextImage
+                              <div
+                                className={`${styles.list_title} relative flex h-full min-w-max flex-col`}
+                                style={{ animationDelay: `${0.5 * index + 1}s` }}
+                              >
+                                <div className="flex min-w-max items-center px-[0px]">
+                                  {/* <NextImage
                                     width={24}
                                     height={24}
                                     src={`/assets/images/icons/business/icons8-process-94.png`}
                                     alt="setting"
                                     className={`${styles.title_icon} mb-[2px] mr-[10px]`}
-                                  />
+                                  /> */}
+                                  <div className="flex-center h-[24px] w-[24px]">
+                                    <div
+                                      className={`h-[10px] w-[10px] rounded-[4px] ${
+                                        colorsArray[index % colorsArray.length]
+                                      }`}
+                                    ></div>
+                                  </div>
                                   <span className="">{obj.department_name}</span>
                                 </div>
                                 {/* <span className="px-[3px]">{obj.department_name}</span> */}
-                                <div className="absolute bottom-[-2px] left-[-2px] min-h-[1px] w-[calc(100%+6px)] bg-[var(--color-bg-brand-f)]" />
+                                {/* <div className="absolute bottom-[-2px] left-[-2px] min-h-[1px] w-[calc(100%+6px)] bg-[var(--color-bg-brand-f)]" /> */}
+                                <div
+                                  className={`absolute bottom-[-2px] left-[-2px] min-h-[1px] w-[calc(100%+6px)] ${
+                                    colorsArray[index % colorsArray.length]
+                                  }`}
+                                />
                               </div>
                             </div>
                           </div>
                         </h3>
-                        <div className="relative flex h-[30px] min-h-[30px] w-full pl-[12px]">
+                        <div className="relative flex h-auto min-h-[30px] w-full pl-[12px]">
                           {departmentDataArray.length - 1 !== index && (
                             <div
                               className={`${styles.vertical_line} ${styles.under} absolute left-[12px] top-[-1px] h-[calc(100%+1px)] min-w-[1px] bg-[var(--color-bg-brand-f)]`}
                               style={{ animationDelay: `${0.3 * index + 1}s` }}
                             ></div>
                           )}
+                          <div
+                            // className={`pl-[27px] ${styles.list_container}`}
+                            className={`pl-[40px] ${styles.list_container}`}
+                            // className={`pl-[70px] ${styles.list_container}`}
+                            style={{ animationDelay: `${0.5 * index + 1}s` }}
+                          >
+                            <div className="py-[12px] text-[12px]">
+                              <div role="grid" className={`w-full ${styles.grid_container_target}`}>
+                                <div role="row" aria-rowindex={1} className={`${styles.row} w-full`}>
+                                  <div role="rowheader" aria-colindex={1} className={`${styles.row_title}`}>
+                                    年度
+                                  </div>
+                                  <div role="gridcell" aria-colindex={2} className={`${styles.col_title}`}>
+                                    2024
+                                  </div>
+                                </div>
+                                <div
+                                  role="row"
+                                  aria-rowindex={2}
+                                  className={`${styles.row_contents} ${styles.with_share} w-full`}
+                                >
+                                  <div role="rowheader" aria-colindex={1} className={`${styles.row_title}`}>
+                                    目標
+                                  </div>
+                                  <div role="gridcell" aria-colindex={2} className={`${styles.cell_value}`}>
+                                    404.2億
+                                  </div>
+                                  <div role="gridcell" aria-colindex={3} className={`${styles.row_title}`}>
+                                    シェア
+                                  </div>
+                                  <div role="gridcell" aria-colindex={4} className={`${styles.cell_value}`}>
+                                    25.0%
+                                  </div>
+                                  <div role="gridcell" aria-colindex={5} className={`${styles.row_title}`}>
+                                    前年比
+                                  </div>
+                                  <div role="gridcell" aria-colindex={6} className={`${styles.cell_value}`}>
+                                    24.7%
+                                  </div>
+                                  <div role="gridcell" aria-colindex={7} className={`${styles.row_title}`}>
+                                    前年伸び実績
+                                  </div>
+                                  <div role="gridcell" aria-colindex={8} className={`${styles.cell_value}`}>
+                                    25.0%
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        {/* <ul>
-                        <li className="pl-[48px]">
-                          <p>
-                            Lorem ipsum dolor sit, amet consectetur adipisicing elit. Porro ea neque sapiente et!
-                            Reiciendis distinctio repellendus animi provident voluptate nobis, iste vel sequi veniam
-                            alias ipsam, magnam pariatur architecto enim!
-                          </p>
-                        </li>
-                      </ul> */}
                       </div>
                     </li>
                   </Fragment>
                 );
               })}
           </ul>
+
+          {/* ---------------------------- エンティティ別目標一覧 ここまで ---------------------------- */}
+
+          {/* テスト */}
+          {Array(5)
+            .fill(null)
+            .map((_, index) => {
+              return (
+                <Fragment key={index.toString() + "テストデータ"}>
+                  {index === 0 && (
+                    <div className="relative flex h-[30px] min-h-[30px] w-full pl-[12px]">
+                      <div
+                        className={`${styles.vertical_line} absolute left-[12px] top-[-13px] h-[calc(100%+13px)] min-w-[1px] bg-[var(--color-bg-brand-f)]`}
+                        style={{ animationDelay: `0.3s` }}
+                      ></div>
+                    </div>
+                  )}
+                  <li className="relative flex flex-col">
+                    <div className={`${styles.list_item_department}`}>
+                      <h3
+                        className={`${styles.list_title_row} mb-[0px] flex items-center font-bold text-[var(--color-text-title)]`}
+                        style={{ animationDelay: `${1 * index + 1}s` }}
+                      >
+                        <div className="flex min-w-max flex-col space-y-[3px]">
+                          <div className="flex min-w-max items-center">
+                            <div className={`flex-center mb-[2px] min-h-[24px] min-w-[24px]`}>
+                              <RxDot className="text-[22px] text-[var(--color-bg-brand-f)]" />
+                            </div>
+                            <div className="relative mr-[5px] h-full w-[15px] min-w-[15px]">
+                              <div className="absolute left-[0px] top-[50%] min-h-[1px] w-[calc(100%)] translate-y-[-50%] bg-[var(--color-bg-brand-f)]"></div>
+                            </div>
+                            <div className={`${styles.list_title} relative flex h-full min-w-max flex-col`}>
+                              <div className="flex min-w-max items-center px-[3px]">
+                                <NextImage
+                                  width={24}
+                                  height={24}
+                                  src={`/assets/images/icons/business/icons8-process-94.png`}
+                                  alt="setting"
+                                  className={`${styles.title_icon} mb-[2px] mr-[10px]`}
+                                />
+                                <span className="">マイクロスコープ事業部</span>
+                              </div>
+                              <div className="absolute bottom-[-2px] left-[-2px] min-h-[1px] w-[calc(100%+6px)] bg-[var(--color-bg-brand-f)]" />
+                            </div>
+                          </div>
+                        </div>
+                      </h3>
+                      <div className="relative flex h-[30px] min-h-[30px] w-full pl-[12px]">
+                        {Array(5).fill(null).length - 1 !== index && (
+                          <div
+                            className={`${styles.vertical_line} ${styles.under} absolute left-[12px] top-[-1px] h-[calc(100%+1px)] min-w-[1px] bg-[var(--color-bg-brand-f)]`}
+                            style={{ animationDelay: `${1 * index + 1}s` }}
+                          ></div>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                </Fragment>
+              );
+            })}
+          {/* テスト */}
 
           {isLoadingQueryDepartment && (
             <div className={`flex-center mt-[20px] flex min-h-[95px] w-[calc(100%+73px)]`}>
@@ -305,7 +719,7 @@ const SettingSalesTargetsMemo: FC = () => {
           <div className={`flex-center mt-[20px] min-h-[55px] w-[calc(100%+73px)]`}>
             <div
               className={`transition-base01 flex-center min-w-[78px] cursor-pointer space-x-1 rounded-[8px] bg-[var(--setting-side-bg-select)] px-[25px] py-[10px] text-[14px] font-bold  !text-[var(--color-text-title)] hover:bg-[var(--setting-side-bg-select-hover)] hover:text-[var(--color-bg-brand-f)]`}
-              onClick={() => setIsOpenInsertNewProductModal(true)}
+              // onClick={() => setIsOpenInsertNewProductModal(true)}
             >
               <span>＋</span>
               <span>商品追加</span>

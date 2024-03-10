@@ -1621,7 +1621,13 @@ export const optionsSalesTaxRate = [
 // -------------------------- 🌟SDB関連🌟 --------------------------
 
 // 🔹テーマパレットカラー
-export const optionsColorPalette = ["theme-brand-f", "theme-black-gradient", "theme-simple12", "theme-simple17"];
+export const optionsColorPalette = [
+  "theme-brand-f",
+  "theme-brand-f-gradient",
+  "theme-black-gradient",
+  "theme-simple12",
+  "theme-simple17",
+];
 
 export type SdbTabsListItem = {
   title: string;

@@ -159,7 +159,9 @@ export const SettingAccountModal = () => {
             </div>
             <div
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
-                selectedSettingAccountMenu === "Profile" ? `bg-[var(--setting-side-bg-select)]` : ``
+                selectedSettingAccountMenu === "Profile"
+                  ? `bg-[var(--setting-side-bg-select-active)] text-[var(--color-text-brand-f)]`
+                  : ``
               }`}
               onClick={() => setSelectedSettingAccountMenu("Profile")}
             >
@@ -170,7 +172,9 @@ export const SettingAccountModal = () => {
             </div>
             <div
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
-                selectedSettingAccountMenu === "Company" ? `bg-[var(--setting-side-bg-select)]` : ``
+                selectedSettingAccountMenu === "Company"
+                  ? `bg-[var(--setting-side-bg-select-active)] text-[var(--color-text-brand-f)]`
+                  : ``
               }`}
               onClick={async () => {
                 if (
@@ -190,7 +194,9 @@ export const SettingAccountModal = () => {
             </div>
             <div
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
-                selectedSettingAccountMenu === "Member" ? `bg-[var(--setting-side-bg-select)]` : ``
+                selectedSettingAccountMenu === "Member"
+                  ? `bg-[var(--setting-side-bg-select-active)] text-[var(--color-text-brand-f)]`
+                  : ``
               }`}
               onClick={() => {
                 if (
@@ -209,7 +215,9 @@ export const SettingAccountModal = () => {
             </div>
             <div
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
-                selectedSettingAccountMenu === "Products" ? `bg-[var(--setting-side-bg-select)]` : ``
+                selectedSettingAccountMenu === "Products"
+                  ? `bg-[var(--setting-side-bg-select-active)] text-[var(--color-text-brand-f)]`
+                  : ``
               }`}
               onClick={() => {
                 if (
@@ -228,7 +236,9 @@ export const SettingAccountModal = () => {
             </div>
             <div
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
-                selectedSettingAccountMenu === "SalesTargets" ? `bg-[var(--setting-side-bg-select)]` : ``
+                selectedSettingAccountMenu === "SalesTargets"
+                  ? `bg-[var(--setting-side-bg-select-active)] text-[var(--color-text-brand-f)]`
+                  : ``
               }`}
               onClick={() => {
                 if (
@@ -243,11 +253,13 @@ export const SettingAccountModal = () => {
               <div className="flex-center mr-[15px] h-[24px] w-[24px]">
                 <BiTargetLock className="text-[22px]" />
               </div>
-              <span>売上目標</span>
+              <span>売上・プロセス目標</span>
             </div>
             <div
               className={`rounded-[4px]] mb-[3px] flex h-[40px] w-full cursor-pointer select-none items-center truncate rounded-[4px] px-[10px] py-[6px] font-bold hover:bg-[var(--setting-side-bg-select)] ${
-                selectedSettingAccountMenu === "PaymentAndPlan" ? `bg-[var(--setting-side-bg-select)]` : ``
+                selectedSettingAccountMenu === "PaymentAndPlan"
+                  ? `bg-[var(--setting-side-bg-select-active)] text-[var(--color-text-brand-f)]`
+                  : ``
               }`}
               onClick={() => {
                 if (

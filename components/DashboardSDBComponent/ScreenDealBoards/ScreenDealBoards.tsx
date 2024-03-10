@@ -115,10 +115,15 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
             <Fragment key={`${index}_board`}>
               <div
                 // className={`${styles.entity_board_container} bg-[red]/[0]`}
-                className={`${styles.entity_board_container} bg-[red]/[0] ${
-                  isRenderProgress ? `${styles.fade_bg}` : ``
+                className={`${styles.entity_board_container} bg-[red]/[0] ${isRenderProgress ? `${styles.fade_bg}` : ``}
+                 ${activeThemeColor === "theme-brand-f" ? `` : ``} 
+                 ${activeThemeColor === "theme-brand-f-gradient" ? `${styles.theme_f_gradient}` : ``} 
+                 ${activeThemeColor === "theme-black-gradient" ? `${styles.theme_black}` : ``} 
+                ${activeThemeColor === "theme-simple17" ? `${styles.theme_simple17}` : ``} ${
+                  activeThemeColor === "theme-simple12" ? `${styles.theme_simple12}` : ``
                 }`}
               >
+                {activeThemeColor === "theme-black-gradient" && <div className={`${styles.bg_black}`}></div>}
                 <div className={`${styles.entity_detail_container} bg-[green]/[0]`}>
                   <div className={`${styles.entity_detail_wrapper}`}>
                     <div className={`${styles.entity_detail} space-x-[12px] text-[12px]`}>

@@ -1162,7 +1162,7 @@ const useDashboardStore = create<State>((set) => ({
   isRequiredInputSoldProduct: false,
   setIsRequiredInputSoldProduct: (payload) => set({ isRequiredInputSoldProduct: payload }),
 
-  // テーマカラー
+  // テーマカラー theme-brand-f, theme-black-gradient, theme-simple12, theme-simple17
   activeThemeColor: "theme-brand-f",
   setActiveThemeColor: (payload) => set({ activeThemeColor: payload }),
 }));

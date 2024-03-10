@@ -165,6 +165,7 @@
 .navbarItem.active .navbarItemInner span {
   font-weight: 700;
   color: var(--color-dashboard-header-text);
+  /* color: var(--color-text-title); */
   /* animation: appearanceText 0.1s forwards; */
 }
 @keyframes appearanceText {

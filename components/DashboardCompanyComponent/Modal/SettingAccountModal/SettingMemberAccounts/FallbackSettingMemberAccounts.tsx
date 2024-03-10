@@ -14,9 +14,9 @@ export const FallbackSettingMemberAccounts = () => {
         <div className="mt-[20px] flex min-h-[168px] w-full items-center justify-between overflow-hidden rounded-[8px] bg-[var(--setting-bg-sub)]">
           {/* <div className="sticky top-0 z-10 mt-[20px] flex min-h-[168px] w-full items-center justify-between overflow-hidden rounded-[8px] bg-[var(--setting-bg-sub)]"> */}
           <div className="flex flex-col space-y-3 p-[24px] pr-[0px]">
-            <h4 className="font-bold">チーム全員がデータを残すかどうかが勝負の分かれ目</h4>
+            <h4 className="font-bold">チーム全員がデータ(資産)を残すかどうかが勝負の分かれ目</h4>
             <p className="text-[13px]">
-              <span>コラボレーションとデータサイエンスを駆使して、付加価値を最大化させましょう</span>
+              <span>データサイエンスを駆使して、商品価値・営業価値を最大化させ、顧客・自社共に発展させましょう</span>
             </p>
             <div className="w-full">
               <button

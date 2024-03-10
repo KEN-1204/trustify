@@ -31,6 +31,8 @@ export const DashboardSDBComponent = () => {
     switch (activeThemeColor) {
       case "theme-brand-f":
         return styles.brand_f;
+      case "theme-brand-f-gradient":
+        return styles.brand_f;
       case "theme-black-gradient":
         return styles.black_gradient;
       case "theme-simple12":
@@ -48,7 +50,7 @@ export const DashboardSDBComponent = () => {
   return (
     <>
       <div className={`flex-center ${styles.app_main_container} transition-bg05 relative ${getThemeBG()}`}>
-        {activeThemeColor === "theme-brand-f" && <DotsGradient />}
+        {["theme-brand-f", "theme-brand-f-gradient"].includes(activeThemeColor) && <DotsGradient />}
         {/* サイドバー表示時オーバーレイ */}
         {isOpenSidebar && <div className={`${styles.sidebar_overlay}`} onClick={() => setIsOpenSidebar(false)}></div>}
         <div className={`${styles.main_contents_wrapper} `}>

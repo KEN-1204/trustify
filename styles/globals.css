@@ -398,6 +398,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --setting-side-bg: #eee;
   /* --setting-side-bg-select: #00000013; */
   --setting-side-bg-select: #40576d12;
+  --setting-side-bg-select-active: var(--color-bg-brand-f20);
   /* Canva サブ背景 rgba(64,87,109,.07) */
   --canva-sub-rgba: rgba(64, 87, 109, 0.07);
   --canva-sub: #40576d12;
@@ -649,7 +650,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-bg-selected: #2982ff;
   --color-table-color-selected: #fff;
   /* 🔹テーブル行偶数行カラーチェンジ */
-  --color-table-even-color-changed-bg: #f7f7f7;
+  /* --color-table-even-color-changed-bg: #f7f7f7; */
+  /* --color-table-even-color-changed-bg: #f3f6f8; */
+  --color-table-even-color-changed-bg: #f5f6f7;
   --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f-hover-solid);
   /* --color-table-even-color-changed-bg-hover: #f1f9ff; */
   /* --color-table-even-color-changed-bg-selected: var(--color-bg-brand-f); */
@@ -1124,6 +1127,14 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sdb-section-title-text: #fff;
   --color-table-text: var(--color-text-title);
   --color-deal-board-bg: #ffffff66;
+  --color-deal-board-bg-black-gradient: #ffffff66;
+  --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 4px #999;
+  --color-deal-board-theme-simple17-bg: linear-gradient(
+    90deg,
+    rgba(240, 240, 240, 0.33) 1.21%,
+    rgba(255, 255, 255, 0.56) 49.45%,
+    rgba(240, 240, 240, 0.33) 90.83%
+  );
   --color-award: rgb(252, 70, 204);
   --color-eighty: var(--main-color-tk);
   --color-fifty: rgb(30, 209, 102);
@@ -1186,6 +1197,15 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     0 4px 12px 5px #00000039;
   /* テーマカラーパレット */
   --color-palette-brand-f: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd 0.89%,
+    #bef3f5 17.23%,
+    #7de2eb 42.04%,
+    #7dc8eb 55.12%,
+    #0ab5ff 71.54%,
+    #0066ff 100% /* rgb(0, 136, 255) 100% */
+  );
+  --color-palette-brand-f-gradient: radial-gradient(
     64.18% 64.18% at 71.16% 35.69%,
     #cffcfd 0.89%,
     #bef3f5 17.23%,
@@ -1259,6 +1279,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --select-menu-bg: #3c3c3c;
   --setting-side-bg: #333;
   --setting-side-bg-select: #ffffff20;
+  --setting-side-bg-select-active: var(--color-bg-brand-f30);
   --setting-bg-sub: #3f3f3f;
   --setting-bg-sub-hover: #555;
   --setting-bg-second: #3f3f3f;
@@ -1930,6 +1951,25 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sdb-section-title-border: var(--color-bg-brand);
   --color-sdb-text: #fafafa;
   --color-deal-board-bg: #00000099;
+  /* --color-deal-board-bg-black-gradient: linear-gradient(
+    90deg,
+    rgba(15, 15, 15, 0.33) 1.21%,
+    rgba(53, 53, 53, 0.56) 49.45%,
+    rgba(15, 15, 15, 0.33) 90.83%
+  ); */
+  --color-deal-board-bg-black-gradient: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.56) 1.21%,
+    rgba(53, 53, 53, 0.56) 49.45%,
+    rgba(0, 0, 0, 0.56) 90.83%
+  );
+  --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 3px #999999;
+  --color-deal-board-theme-simple17-bg: linear-gradient(
+    90deg,
+    rgba(15, 15, 15, 0.33) 1.21%,
+    rgba(53, 53, 53, 0.56) 49.45%,
+    rgba(15, 15, 15, 0.33) 90.83%
+  );
   /* --color-award: rgb(236 72 153 / 1);
   --color-eighty: var(--main-color-tk);
   --color-fifty: rgb(16 185 129 / 1);
@@ -2000,6 +2040,15 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     #0066ff 100% /* rgb(0, 136, 255) 100% */
   );
   --color-palette-brand-f: -webkit-linear-gradient(33deg, #cffcfd 10%, #7de2eb 30%, #121212 50%, #0066ff 82%);
+  --color-palette-brand-f-gradient: -webkit-linear-gradient(
+    33deg,
+    #cffcfd 10%,
+    #7de2eb 20%,
+    #121212 40%,
+    #666 50%,
+    #121212 60%,
+    #0066ff 82%
+  );
   /* --color-palette-brand-f: radial-gradient(
     64.18% 64.18% at 71.16% 35.69%,
     #cffcfd 0.89%,
@@ -3277,3 +3326,38 @@ textarea {
 .refresh_icon:hover path {
   stroke: #ffffff;
 }
+
+/* 適用ボタン・編集ボタン アクティブ */
+/* .edit_btn {
+  background-color: #484848;
+  user-select: none;
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 7px 22px;
+  border-radius: 8px;
+  width: 50%;
+  display: flex;
+  justify-content: center;
+}
+.edit_btn.brand {
+  color: #999;
+  background-color: #393939;
+  cursor: not-allowed;
+}
+.edit_btn.brand:hover {
+  box-shadow: none;
+}
+.edit_btn.cancel:hover {
+  background-color: #555;
+}
+.edit_btn.brand.active {
+  color: #fff;
+  background-color: var(--color-bg-brand-f90);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  cursor: pointer;
+}
+.edit_btn.brand.active:hover {
+  color: #fff;
+  background-color: var(--color-bg-brand-f);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+} */
