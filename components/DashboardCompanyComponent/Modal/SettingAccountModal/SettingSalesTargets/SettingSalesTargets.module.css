@@ -1,5 +1,8 @@
 .list_item_department {
   /* margin-top: 30px; */
+  /* background-color: #f43f5e; */
+  /* background-color: #f43f5e;
+  background-color: #10b981; */
 }
 
 .list_item_department:first-of-type {
@@ -10,6 +13,12 @@
 }
 .list_item_product:first-of-type {
   /* margin-top: 0px; */
+}
+
+.list_section_container {
+  position: relative;
+}
+.list_section_container.first {
 }
 
 @keyframes fade {
@@ -168,6 +177,10 @@
   grid-template-rows: repeat(2, 25px);
   row-gap: 5px;
   margin-top: 10px;
+}
+.grid_container_target.second {
+  grid-template-rows: repeat(1, 25px);
+  margin-bottom: 10px;
 }
 .grid_container_target.monthly {
   row-gap: 8px;

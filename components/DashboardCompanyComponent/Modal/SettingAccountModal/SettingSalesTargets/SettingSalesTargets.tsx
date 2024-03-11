@@ -19,47 +19,11 @@ import { RxDot } from "react-icons/rx";
 import { IoCaretDownOutline } from "react-icons/io5";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
 import { SalesTargetGridContainer, SalesTargetGridContainerForMonthly } from "./SalesTargetGridContainer";
-
-const colorsArray = [
-  "bg-rose-500",
-  "bg-emerald-500",
-  "bg-blue-500",
-  "bg-indigo-500",
-  "bg-fuchsia-500",
-  "bg-amber-500",
-  "bg-pink-500",
-  "bg-sky-500",
-  "bg-violet-500",
-  "bg-purple-500",
-  "bg-lime-500",
-];
-
-const monthlySaleTargetData = Array(12)
-  .fill(null)
-  .map((_, index) => {
-    let year = 2024;
-    let month = index + 4; // 4月スタート
-    let displayMonth = ``;
-    // 9月まで
-    if (month < 10) {
-      displayMonth = `0${month}`;
-    } else if (month > 12) {
-      year += 1;
-      displayMonth = `0${month - 12}`;
-    } else {
-      displayMonth = `${month}`;
-    }
-
-    console.log("year", year, "month", month, "displayMonth", displayMonth);
-
-    const initialObj = {
-      sales_target_period_value: Number(`${year}${displayMonth}`),
-      sales_target: 123000000,
-      sales_target_last_year: 113000000,
-      sales_target_two_year_ago: 103000000,
-    };
-    return initialObj;
-  });
+import { Cell, Pie, PieChart, ResponsiveContainer, Sector } from "recharts";
+import { dataPie } from "@/components/Parts/Charts/Seeds/seedData";
+import { PieSectorDataItem } from "recharts/types/polar/Pie";
+import { formatSalesTarget } from "@/utils/Helpers/formatSalesTarget";
+import { renderActiveShape } from "@/components/Parts/Charts/renderActiveShape/renderActiveShape";
 
 const SettingSalesTargetsMemo: FC = () => {
   // const theme = useThemeStore((state) => state.theme);
@@ -72,6 +36,110 @@ const SettingSalesTargetsMemo: FC = () => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // const setUserProfileState = useDashboardStore((state) => state.setUserProfileState);
   const [activeTargetTab, setActiveTargetTab] = useState("Sales");
+
+  const colorsArray = [
+    "bg-rose-500", // #f43f5e
+    "bg-emerald-500", // #10b981
+    "bg-blue-500", // #3d82f6
+    "bg-indigo-500", // #6366f1
+    "bg-fuchsia-500", // #d946ef
+    "bg-amber-500", // #f59e0b
+    "bg-pink-500", // #ec4899
+    "bg-sky-500", // #0ea5e9
+    "bg-violet-500", // #8b5cf6
+    "bg-purple-500", // #a855f7
+    "bg-lime-500", // #84cc16
+    "bg-orange-500", // #f97316
+    "bg-green-500", // #22c55e
+    "bg-red-500", // #ef4444
+  ];
+
+  const COLORS = ["#f43f5e", "#10b981", "#3d82f6", "#6366f1", "#d946ef"];
+
+  const monthlySaleTargetData = useMemo(() => {
+    return Array(12)
+      .fill(null)
+      .map((_, index) => {
+        let year = 2024;
+        let month = index + 4; // 4月スタート
+        let displayMonth = ``;
+        // 9月まで
+        if (month < 10) {
+          displayMonth = `0${month}`;
+        } else if (month > 12) {
+          year += 1;
+          displayMonth = `0${month - 12}`;
+        } else {
+          displayMonth = `${month}`;
+        }
+
+        console.log("year", year, "month", month, "displayMonth", displayMonth);
+
+        const initialObj = {
+          sales_target_period_value: Number(`${year}${displayMonth}`),
+          sales_target: 123000000,
+          sales_target_last_year: 113000000,
+          sales_target_two_year_ago: 103000000,
+        };
+        return initialObj;
+      });
+  }, []);
+  const monthlySaleTargetDataFirstHalf = useMemo(() => {
+    return Array(6)
+      .fill(null)
+      .map((_, index) => {
+        let year = 2024;
+        let month = index + 4; // 4月スタート
+        let displayMonth = ``;
+        // 9月まで
+        if (month < 10) {
+          displayMonth = `0${month}`;
+        } else if (month > 12) {
+          year += 1;
+          displayMonth = `0${month - 12}`;
+        } else {
+          displayMonth = `${month}`;
+        }
+
+        console.log("year", year, "month", month, "displayMonth", displayMonth);
+
+        const initialObj = {
+          sales_target_period_value: Number(`${year}${displayMonth}`),
+          sales_target: 123000000,
+          sales_target_last_year: 113000000,
+          sales_target_two_year_ago: 103000000,
+        };
+        return initialObj;
+      });
+  }, []);
+  const monthlySaleTargetDataLastHalf = useMemo(() => {
+    return Array(6)
+      .fill(null)
+      .map((_, index) => {
+        let year = 2024;
+        let month = index + 10; // 4月スタート
+        let displayMonth = ``;
+        // 9月まで
+        if (month < 10) {
+          displayMonth = `0${month}`;
+        } else if (month > 12) {
+          year += 1;
+          displayMonth = `0${month - 12}`;
+        } else {
+          displayMonth = `${month}`;
+        }
+
+        console.log("year", year, "month", month, "displayMonth", displayMonth);
+
+        const initialObj = {
+          sales_target_period_value: Number(`${year}${displayMonth}`),
+          sales_target: 123000000,
+          sales_target_last_year: 113000000,
+          sales_target_two_year_ago: 103000000,
+        };
+        return initialObj;
+      });
+  }, []);
 
   // 決算日を取得して変数に格納
   const fiscalYearEndDate = useMemo(() => {
@@ -95,6 +163,7 @@ const SettingSalesTargetsMemo: FC = () => {
       year: fiscalYearEndDate,
       section: "company",
       periodType: "fiscalYear",
+      // periodType: "firstHalf",
     };
   }, []);
 
@@ -198,6 +267,9 @@ const SettingSalesTargetsMemo: FC = () => {
     }
   }, [unitDataArray, officeDataArray]);
 
+  // パイチャート
+  const dataChart = dataPie;
+
   console.log(
     "SettingSalesTargetsコンポーネントレンダリング",
     "✅sectionIdToNameMap",
@@ -236,6 +308,48 @@ const SettingSalesTargetsMemo: FC = () => {
         <span className="truncate text-[12px] font-normal">{entityName ?? ""}</span>
       </div>
     );
+  };
+
+  type CustomizedLabelProps = {
+    cx: number;
+    cy: number;
+    midAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+    percent: number;
+    index: number;
+  };
+  // パイチャート用カスタムラベル
+  const RADIAN = Math.PI / 180;
+  const renderCustomizedLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+    index,
+  }: CustomizedLabelProps) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    // return (
+    //   <text x={x} y={y} fill="white" textAnchor={x > cx ? "start" : "end"} dominantBaseline="central">
+    //     {`${(percent * 100).toFixed(0)}%`}
+    //   </text>
+    // );
+    return (
+      <text x={x} y={y} dy={15} fill="black" fontSize="10px" textAnchor={"middle"}>
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
+  const [activeIndex, setActiveIndex] = useState<number>(0);
+
+  const onPieEnter = (_: void, index: number) => {
+    setActiveIndex(index);
   };
 
   return (
@@ -326,7 +440,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   </div>
                 </div>
                 <div
-                  className={`${styles.underline} min-h-[1px] w-full bg-[var(--color-border-light)] group-hover:bg-[var(--color-bg-brand-f)]`}
+                  className={`${styles.underline} transition-bg02 min-h-[1px] w-full bg-[var(--color-border-light)] group-hover:bg-[var(--color-bg-brand-f)]`}
                 />
               </div>
 
@@ -346,7 +460,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   </div>
                 </div>
                 <div
-                  className={`${styles.underline} min-h-[1px] w-full bg-[var(--color-border-light)] group-hover:bg-[var(--color-bg-brand-f)]`}
+                  className={`${styles.underline} transition-bg02 min-h-[1px] w-full bg-[var(--color-border-light)] group-hover:bg-[var(--color-bg-brand-f)]`}
                 />
               </div>
 
@@ -364,7 +478,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   </div>
                 </div>
                 <div
-                  className={`${styles.underline} min-h-[1px] w-full bg-[var(--color-border-light)] group-hover:bg-[var(--color-bg-brand-f)]`}
+                  className={`${styles.underline} transition-bg02 min-h-[1px] w-full bg-[var(--color-border-light)] group-hover:bg-[var(--color-bg-brand-f)]`}
                 />
               </div>
             </div>
@@ -374,7 +488,7 @@ const SettingSalesTargetsMemo: FC = () => {
 
           {/* ---------------------------- エンティティ別目標一覧 ---------------------------- */}
           <ul className="mt-[14px]">
-            <li className={`${styles.list_item_department}`}>
+            <li className={`${styles.list_section_container}`}>
               <h3 className={`mb-[0px] flex items-center font-bold text-[var(--color-text-title)]`}>
                 <div className="flex min-w-max flex-col space-y-[3px]">
                   <div className="flex min-w-max items-center space-x-[10px]">
@@ -430,33 +544,56 @@ const SettingSalesTargetsMemo: FC = () => {
                     </div>
                   </div> */}
 
-                  {/* {["fiscalYear", "half", "quarter"].includes(activeSectionTabs.periodType) && (
+                  {["fiscalYear"].includes(activeSectionTabs.periodType) && (
                     <SalesTargetGridContainer
                       periodType="fiscalYear"
                       periodValue={2024}
-                      salesTargetValue={404200000}
+                      // salesTargetValue={404200000}
+                      salesTargetValue={1234500}
                       yearOnYear={0.274}
                       growthResultLastYearOnLastYear={0.25}
                     />
-                  )} */}
-                  <SalesTargetGridContainer
-                    periodType="quarter"
-                    periodValue={20243}
-                    salesTargetValue={1230000000000}
-                    yearOnYear={0.274}
-                    growthResultLastYearOnLastYear={0.25}
-                  />
+                  )}
 
-                  <div className={`mt-[10px] flex min-h-[25px] min-w-max max-w-max flex-col text-[13px]`}>
-                    <span className={`mr-[9px]`}>月度</span>
-                    <div className={`min-h-[1px] w-full bg-[var(--color-border-light)]`}></div>
-                  </div>
+                  {/* 半期の場合は、「上半期・ */}
+                  {["firstHalf", "lastHalf"].includes(activeSectionTabs.periodType) && (
+                    <>
+                      <SalesTargetGridContainer
+                        periodType="half"
+                        periodValue={20241}
+                        salesTargetValue={123000000000}
+                        yearOnYear={0.274}
+                        growthResultLastYearOnLastYear={0.25}
+                      />
+                      <SalesTargetGridContainer
+                        periodType="quarter"
+                        periodValue={20241}
+                        salesTargetValue={123000000000 / 2}
+                        yearOnYear={0.274}
+                        growthResultLastYearOnLastYear={0.25}
+                      />
+                      <SalesTargetGridContainer
+                        periodType="quarter"
+                        periodValue={20242}
+                        salesTargetValue={123000000000 / 2}
+                        yearOnYear={0.274}
+                        growthResultLastYearOnLastYear={0.25}
+                      />
 
-                  {["monthly"].includes("monthly") && (
-                    <SalesTargetGridContainerForMonthly
-                      periodType={"monthly"}
-                      monthlySalesTargetsArray={monthlySaleTargetData}
-                    />
+                      <div className={`mt-[10px] flex min-h-[25px] min-w-max max-w-max flex-col text-[13px]`}>
+                        <span className={`mr-[9px]`}>月度</span>
+                        <div className={`min-h-[1px] w-full bg-[var(--color-border-light)]`}></div>
+                      </div>
+
+                      <SalesTargetGridContainerForMonthly
+                        periodType={"monthly"}
+                        monthlySalesTargetsArray={
+                          activeSectionTabs.periodType === "firstHalf"
+                            ? monthlySaleTargetDataFirstHalf
+                            : monthlySaleTargetDataLastHalf
+                        }
+                      />
+                    </>
                   )}
 
                   {/* -------------------------- 月度 -------------------------- */}
@@ -511,6 +648,46 @@ const SettingSalesTargetsMemo: FC = () => {
                   {/* -------------------------- 月度 ここまで -------------------------- */}
                 </div>
               </div>
+              {/* -------------------------- パイチャート -------------------------- */}
+              <div
+                className={`flex-center absolute bottom-[-40px] right-0 z-[100] h-[210px] w-[300px] overflow-visible bg-[gray]/[0.3]`}
+              >
+                <div className={`flex-center h-[210px] w-[300px] overflow-visible bg-[red]/[0.2]`}>
+                  {/* <div className={`h-[160px] w-[160px] rounded-full bg-pink-100`}></div> */}
+                  <ResponsiveContainer style={{ overflow: `visible` }}>
+                    <PieChart style={{ overflow: `visible` }}>
+                      <Pie
+                        data={dataChart}
+                        // 四隅に5pxずつpaddingあり、サイズは160ではなく、150のため75が中心
+                        // cx={75}
+                        // cy={75}
+                        // innerRadius={60}
+                        // outerRadius={80}
+                        // cx={110}
+                        // cy={70}
+                        cx={140}
+                        cy={100}
+                        innerRadius={45}
+                        outerRadius={65}
+                        // fill="#8884d8"
+                        paddingAngle={5}
+                        dataKey="value"
+                        // label
+                        // label={renderCustomizedLabel}
+                        // labelLine={false}
+                        activeIndex={activeIndex}
+                        activeShape={renderActiveShape}
+                        onMouseEnter={onPieEnter}
+                      >
+                        {dataChart.map((entry, index) => (
+                          <Cell key={`cell_${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              {/* -------------------------- パイチャート ここまで -------------------------- */}
             </li>
             {departmentDataArray &&
               departmentDataArray.map((obj, index) => {
@@ -533,7 +710,7 @@ const SettingSalesTargetsMemo: FC = () => {
                       {/* <div
                       className={`absolute left-[12px] top-[calc(-50%-3px)] h-[calc(100%-9px)] min-w-[1px] bg-[var(--color-bg-brand-f)]`}
                     ></div> */}
-                      <div className={`${styles.list_item_department}`}>
+                      <div className={`${styles.list_section_container}`}>
                         <h3
                           className={`${styles.list_title_row} mb-[0px] flex items-center font-bold text-[var(--color-text-title)]`}
                           style={{ animationDelay: `${0.3 * index + 1}s` }}
@@ -585,7 +762,8 @@ const SettingSalesTargetsMemo: FC = () => {
                             </div>
                           </div>
                         </h3>
-                        <div className="relative flex h-auto min-h-[30px] w-full pl-[12px]">
+                        {/* <div className="relative flex h-auto min-h-[30px] w-full pl-[12px]"> */}
+                        <div className="relative flex h-auto w-full pl-[12px]">
                           {departmentDataArray.length - 1 !== index && (
                             <div
                               className={`${styles.vertical_line} ${styles.under} absolute left-[12px] top-[-1px] h-[calc(100%+1px)] min-w-[1px] bg-[var(--color-bg-brand-f)]`}
@@ -598,16 +776,16 @@ const SettingSalesTargetsMemo: FC = () => {
                             // className={`pl-[70px] ${styles.list_container}`}
                             style={{ animationDelay: `${0.5 * index + 1}s` }}
                           >
-                            <div className="py-[12px] text-[12px]">
-                              <div role="grid" className={`w-full ${styles.grid_container_target}`}>
-                                <div role="row" aria-rowindex={1} className={`${styles.row} w-full`}>
+                            <div className="pb-[12px] pt-[5px] text-[12px]">
+                              <div role="grid" className={`w-full ${styles.grid_container_target} ${styles.second}`}>
+                                {/* <div role="row" aria-rowindex={1} className={`${styles.row} w-full`}>
                                   <div role="rowheader" aria-colindex={1} className={`${styles.row_title}`}>
                                     年度
                                   </div>
                                   <div role="gridcell" aria-colindex={2} className={`${styles.col_title}`}>
                                     2024
                                   </div>
-                                </div>
+                                </div> */}
                                 <div
                                   role="row"
                                   aria-rowindex={2}
@@ -666,7 +844,7 @@ const SettingSalesTargetsMemo: FC = () => {
                     </div>
                   )}
                   <li className="relative flex flex-col">
-                    <div className={`${styles.list_item_department}`}>
+                    <div className={`${styles.list_section_container}`}>
                       <h3
                         className={`${styles.list_title_row} mb-[0px] flex items-center font-bold text-[var(--color-text-title)]`}
                         style={{ animationDelay: `${1 * index + 1}s` }}

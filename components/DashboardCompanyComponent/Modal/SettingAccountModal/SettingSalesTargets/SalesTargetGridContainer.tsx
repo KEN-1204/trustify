@@ -1,77 +1,40 @@
 import { memo } from "react";
 import styles from "./SettingSalesTargets.module.css";
+import { formatSalesTarget } from "@/utils/Helpers/formatSalesTarget";
 
-function formatSalesTarget(num: number): string {
-  let unit = "";
-  let dividedNum = num;
+// function formatSalesTarget(num: number): string {
+//   let unit = "";
+//   let dividedNum = num;
 
-  if (num >= 1000000000000) {
-    dividedNum = num / 1000000000000;
-    unit = "兆";
-  } else if (num >= 100000000) {
-    dividedNum = num / 100000000;
-    unit = "億";
-  } else if (num >= 10000) {
-    dividedNum = num / 10000;
-    unit = "万";
-  } else {
-    return num.toString();
-  }
+//   if (num >= 1000000000000) {
+//     dividedNum = num / 1000000000000;
+//     unit = "兆";
+//   } else if (num >= 100000000) {
+//     dividedNum = num / 100000000;
+//     unit = "億";
+//   } else if (num >= 10000) {
+//     dividedNum = num / 10000;
+//     unit = "万";
+//   } else {
+//     return num.toString();
+//   }
 
-  let formattedNumber = dividedNum.toFixed(3); // 小数点以下3桁まで保持する
-  // 末尾の不要な0を削除
-  const formattedNumberWithoutZero = parseFloat(formattedNumber).toString();
+//   let formattedNumber = dividedNum.toFixed(3); // 小数点以下3桁まで保持する
+//   // 末尾の不要な0を削除
+//   const formattedNumberWithoutZero = parseFloat(formattedNumber).toString();
 
-  console.log(
-    "formattedNumber",
-    formattedNumber,
-    "formattedNumberWithoutZero",
-    formattedNumberWithoutZero,
-    "dividedNum",
-    dividedNum
-  );
+//   console.log(
+//     "formattedNumber",
+//     formattedNumber,
+//     "formattedNumberWithoutZero",
+//     formattedNumberWithoutZero,
+//     "dividedNum",
+//     dividedNum
+//   );
 
-  return `${formattedNumberWithoutZero}${unit}`;
-  //   return `${formattedNumber}${unit}`;
-}
-
-const formatPeriodType = (periodType: string) => {
-  switch (periodType) {
-    case "fiscalYear":
-      return "年度";
-    case "half":
-      return "半期";
-    case "quarter":
-      return "四半期";
-    case "monthly":
-      return "月度";
-    default:
-      break;
-  }
-};
-const formatPeriodValue = (periodType: string, periodValue: number) => {
-  let displayValue = periodValue.toString();
-  switch (periodType) {
-    case "fiscalYear":
-      return displayValue;
-    case "half":
-      let yearH = displayValue.substring(0, 4);
-      let half = displayValue.substring(4);
-      return `${yearH}H${half}`;
-    case "quarter":
-      let yearQ = displayValue.substring(0, 4);
-      let quarter = displayValue.substring(4);
-      return `${yearQ}Q${quarter}`;
-    case "monthly":
-      // let yearM = displayValue.substring(0, 4);
-      let month = displayValue.substring(4);
-      month = month[0] === "0" ? month.substring(1) : month;
-      return `${month}月`;
-
-    default:
-      break;
-  }
-};
+//   return `${formattedNumberWithoutZero}${unit}`;
+//   //   return `${formattedNumber}${unit}`;
+// }
 
 type Props = {
   periodType: string;
@@ -88,12 +51,50 @@ const SalesTargetGridContainerMemo = ({
   yearOnYear,
   growthResultLastYearOnLastYear,
 }: Props) => {
+  const formatPeriodType = (periodType: string) => {
+    switch (periodType) {
+      case "fiscalYear":
+        return "年度";
+      case "half":
+        return "半期";
+      case "quarter":
+        return "四半期";
+      case "monthly":
+        return "月度";
+      default:
+        break;
+    }
+  };
+  const formatPeriodValue = (periodType: string, periodValue: number) => {
+    let displayValue = periodValue.toString();
+    switch (periodType) {
+      case "fiscalYear":
+        return displayValue;
+      case "half":
+        let yearH = displayValue.substring(0, 4);
+        let half = displayValue.substring(4);
+        return `${yearH}H${half}`;
+      case "quarter":
+        let yearQ = displayValue.substring(0, 4);
+        let quarter = displayValue.substring(4);
+        return `${yearQ}Q${quarter}`;
+      case "monthly":
+        // let yearM = displayValue.substring(0, 4);
+        let month = displayValue.substring(4);
+        month = month[0] === "0" ? month.substring(1) : month;
+        return `${month}月`;
+
+      default:
+        break;
+    }
+  };
+
   // 期間タイプ
   const displayPeriodType = formatPeriodType(periodType);
   // 期間
   const displayPeriodValue = formatPeriodValue(periodType, periodValue);
   // 売上目標値
-  const displaySalesTargetValue = formatSalesTarget(salesTargetValue);
+  const displaySalesTargetValue = formatSalesTarget(salesTargetValue, "floor");
   // 前年伸び
   const displayYearOnYear = `${(yearOnYear * 100).toFixed(2)}%`;
   // 前年伸び実績
@@ -153,11 +154,49 @@ type MonthlyProps = {
 };
 
 const formatMonths = (periodType: string, monthlySalesTargetsArray: MonthlySalesTarget[]) => {
+  const formatPeriodType = (periodType: string) => {
+    switch (periodType) {
+      case "fiscalYear":
+        return "年度";
+      case "half":
+        return "半期";
+      case "quarter":
+        return "四半期";
+      case "monthly":
+        return "月度";
+      default:
+        break;
+    }
+  };
+  const formatPeriodValue = (periodType: string, periodValue: number) => {
+    let displayValue = periodValue.toString();
+    switch (periodType) {
+      case "fiscalYear":
+        return displayValue;
+      case "half":
+        let yearH = displayValue.substring(0, 4);
+        let half = displayValue.substring(4);
+        return `${yearH}H${half}`;
+      case "quarter":
+        let yearQ = displayValue.substring(0, 4);
+        let quarter = displayValue.substring(4);
+        return `${yearQ}Q${quarter}`;
+      case "monthly":
+        // let yearM = displayValue.substring(0, 4);
+        let month = displayValue.substring(4);
+        month = month[0] === "0" ? month.substring(1) : month;
+        return `${month}月`;
+
+      default:
+        break;
+    }
+  };
+
   const monthsArray = monthlySalesTargetsArray.map((obj) => {
     // 期間
     const displayPeriodValue = formatPeriodValue(periodType, obj.sales_target_period_value);
     // 売上目標値
-    const displaySalesTargetValue = formatSalesTarget(obj.sales_target);
+    const displaySalesTargetValue = formatSalesTarget(obj.sales_target, "floor");
     // 前年伸び
     const displayYearOnYear = `${(obj.sales_target_last_year * 100).toFixed(2)}%`;
     // 前年伸び実績
