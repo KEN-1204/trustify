@@ -1241,6 +1241,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-progress-chart-bg: #ddd;
   --color-progress-chart-shadow: 0 0 3px 1px var(--color-bg-brand-light);
   /* パイチャート */
+  --color-pie-chart-stroke-line: #565656;
+  --color-pie-chart-stroke-line: #666;
 
   /* チャートカラー */
   --color-chart-fill-rose: #f43f5e;
@@ -2143,6 +2145,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-progress-chart-shadow: 0 0 1px 1px #ffffff90, 0 0 3px 2px #0ab5ff, 0 0 3px 3px var(--color-bg-brand);
 
   /* パイチャート */
+  --color-pie-chart-stroke-line: #ddd;
+
+  /* チャートカラー */
   --color-chart-fill-rose: #f43f5e;
   --color-chart-fill-rose-sheer: #f43f5eb9;
   --color-chart-fill-emerald: #10b981;
@@ -2496,6 +2501,10 @@ textarea {
 }
 .fade01 {
   animation: fade 0.1s;
+}
+.fade03_forward {
+  opacity: 0;
+  animation: fade 0.3s ease forwards;
 }
 .fade05_forward {
   opacity: 0;

@@ -233,11 +233,6 @@ const SettingSalesTargetsMemo: FC = () => {
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
 
-  // const [departmentSpecificProducts, setDepartmentSpecificProducts] = useState<({ [x: string]: Product[] } | null)[]>(
-  // const [sectionIdToObjMap, setSectionIdToObjMap] = useState<{ [key: string]: string } | null>(null);
-  // const [unitIdToObjMap, setUnitIdToObjMap] = useState<{ [key: string]: string } | null>(null);
-  // const [officeIdToObjMap, setOfficeIdToObjMap] = useState<{ [key: string]: string } | null>(null);
-
   // 「事業部」「課・セクション」「係・チーム」「事業所」のid to objectオブジェクトマップ生成
   // 事業部マップ {id: 事業部オブジェクト}
   const departmentIdToObjMap = useMemo(() => {
@@ -264,24 +259,181 @@ const SettingSalesTargetsMemo: FC = () => {
     return officeMap;
   }, [officeDataArray]);
 
-  // パイチャート
-  const dataChart = dataPie;
+  // ======================= 🌟現在の選択した事業部で課・セクションを絞り込むuseEffect🌟 =======================
+  const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
+  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+  // ======================= 🌟現在の選択した事業部で課・セクションを絞り込むuseEffect🌟 =======================
+  // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
+  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
-  console.log(
-    "SettingSalesTargetsコンポーネントレンダリング",
-    "✅departmentIdToObjMap",
-    departmentIdToObjMap,
-    "✅sectionIdToObjMap",
-    sectionIdToObjMap,
-    "✅unitIdToObjMap",
-    unitIdToObjMap,
-    "✅officeIdToObjMap",
-    officeIdToObjMap,
-    "タブ初期値",
-    initialTabs,
-    "アクティブタブ",
-    activeDisplayTabs
-  );
+  // 表示するメインとサブツリー
+  type DisplaySalesTarget = {
+    entity_id: string | null;
+    entity_name: string | null;
+    sales_target: number | null;
+    year_on_year: number | null;
+    growth_result_last_year: number | null;
+  };
+  const mainEntitySalesTarget = useMemo(() => {
+    let newMainEntity: DisplaySalesTarget = {
+      entity_id: userProfileState?.company_id ?? "companyId",
+      entity_name: "company",
+      sales_target: 404200000,
+      year_on_year: 0.274,
+      growth_result_last_year: 0.25,
+    };
+    switch (activeDisplayTabs.entity) {
+      case "department":
+        newMainEntity = {
+          entity_id: activeDisplayTabs.entityId,
+          entity_name: activeDisplayTabs.entityName,
+          sales_target: null,
+          year_on_year: null,
+          growth_result_last_year: null,
+        };
+        break;
+      case "section":
+        newMainEntity = {
+          entity_id: activeDisplayTabs.entityId,
+          entity_name: activeDisplayTabs.entityName,
+          sales_target: null,
+          year_on_year: null,
+          growth_result_last_year: null,
+        };
+        break;
+      case "unit":
+        newMainEntity = {
+          entity_id: activeDisplayTabs.entityId,
+          entity_name: activeDisplayTabs.entityName,
+          sales_target: null,
+          year_on_year: null,
+          growth_result_last_year: null,
+        };
+        break;
+      case "office":
+        newMainEntity = {
+          entity_id: activeDisplayTabs.entityId,
+          entity_name: activeDisplayTabs.entityName,
+          sales_target: null,
+          year_on_year: null,
+          growth_result_last_year: null,
+        };
+        break;
+      default:
+        break;
+    }
+    return newMainEntity;
+  }, [activeDisplayTabs]);
+
+  // サブツリー
+  const subTreeSalesTargetList = useMemo(() => {
+    let subList: DisplaySalesTarget[] = [];
+    console.log("activeDisplayTabs.entity", activeDisplayTabs.entity);
+    switch (activeDisplayTabs.entity) {
+      case "company":
+        if (!!departmentDataArray?.length) {
+          departmentDataArray.forEach((obj) => {
+            subList.push({
+              entity_id: obj.id,
+              entity_name: obj.department_name,
+              sales_target: null,
+              year_on_year: null,
+              growth_result_last_year: null,
+            });
+          });
+        }
+        break;
+      case "department":
+        if (!!filteredSectionBySelectedDepartment?.length) {
+          filteredSectionBySelectedDepartment.forEach((obj) => {
+            subList.push({
+              entity_id: obj.id,
+              entity_name: obj.section_name,
+              sales_target: null,
+              year_on_year: null,
+              growth_result_last_year: null,
+            });
+          });
+        }
+        break;
+      case "section":
+        if (!!filteredUnitBySelectedSection?.length) {
+          filteredUnitBySelectedSection.forEach((obj) => {
+            subList.push({
+              entity_id: obj.id,
+              entity_name: obj.unit_name,
+              sales_target: null,
+              year_on_year: null,
+              growth_result_last_year: null,
+            });
+          });
+        }
+        break;
+      case "unit":
+        // 選択した係のメンバーリスト
+        // if (!!filteredUnitBySelectedSection?.length) {
+        //   filteredUnitBySelectedSection.forEach((obj) => {
+        //     subList.push({
+        //       entity_name: obj.unit_name,
+        //       sales_target: null,
+        //       year_on_year: null,
+        //       growth_result_last_year: null,
+        //     });
+        //   });
+        // }
+        break;
+      case "office":
+        console.log("officeルート activeDisplayTabs.entity", activeDisplayTabs.entity);
+        if (!!officeDataArray?.length) {
+          officeDataArray.forEach((obj) => {
+            subList.push({
+              entity_id: obj.id,
+              entity_name: obj.office_name,
+              sales_target: null,
+              year_on_year: null,
+              growth_result_last_year: null,
+            });
+          });
+        }
+        break;
+      default:
+        break;
+    }
+    return subList;
+  }, [activeDisplayTabs]);
+
+  // パイチャート
+  type PieChartData =
+    | ({
+        name: string | null;
+        value: number | null;
+      } | null)[]
+    | null;
+  const chartArray = useMemo(() => {
+    let newArray: PieChartData = subTreeSalesTargetList
+      ? subTreeSalesTargetList.map((obj) => {
+          if (obj.sales_target === null || obj.sales_target === undefined) return null;
+          return {
+            name: obj.entity_name,
+            value: obj.sales_target,
+          };
+        })
+      : [];
+    newArray = newArray.filter((obj) => obj !== null);
+    if (!newArray || newArray?.length === 0) {
+      if (activeDisplayTabs.entity === "company") {
+        newArray = [{ name: language === "ja" ? "全社" : "company", value: 404200000 }];
+      } else {
+        newArray = null;
+      }
+      return newArray;
+    } else {
+      return newArray;
+    }
+  }, [subTreeSalesTargetList]);
+  // const dataChart = dataPie;
+  // chartArray;
 
   // 売上目標とプロセス目標のアクティブ時のアンダーラインの位置
   const getUnderline = (tab: string): CSSProperties => {
@@ -297,41 +449,6 @@ const SettingSalesTargetsMemo: FC = () => {
     section: { ja: "課・セクション", en: "Section" },
     unit: { ja: "係・ユニット", en: "Unit" },
     office: { ja: "事業所", en: "Office" },
-  };
-
-  // エンティティ区分選択時にエンティティ名の初期値としてセットする関数
-  const getFirstEntityOption = (entityType: string): { entityName: string | null; entityId: string | null } => {
-    let newObj: { entityName: string | null; entityId: string | null } = { entityName: null, entityId: null };
-    switch (entityType) {
-      case "department":
-        newObj = {
-          entityName: departmentDataArray ? departmentDataArray[0].department_name : null,
-          entityId: departmentDataArray ? departmentDataArray[0].id : null,
-        };
-        return newObj;
-      case "section":
-        newObj = {
-          entityName: sectionDataArray ? sectionDataArray[0].section_name : null,
-          entityId: sectionDataArray ? sectionDataArray[0].id : null,
-        };
-        return newObj;
-      case "unit":
-        newObj = {
-          entityName: unitDataArray ? unitDataArray[0].unit_name : null,
-          entityId: unitDataArray ? unitDataArray[0].id : null,
-        };
-        return newObj;
-      case "office":
-        newObj = {
-          entityName: officeDataArray ? officeDataArray[0].office_name : null,
-          entityId: officeDataArray ? officeDataArray[0].id : null,
-        };
-        return newObj;
-
-      default:
-        return newObj;
-        break;
-    }
   };
 
   // -------------------------- 🌟パイチャート関連🌟 --------------------------
@@ -527,6 +644,45 @@ const SettingSalesTargetsMemo: FC = () => {
   };
   // ==================================================================================
 
+  // サブツリーの各シェアを算出する関数
+  const calculateShare = (totalNum: number, subNum: number) => {
+    const newShare = (subNum / totalNum).toFixed(2);
+    console.log("シェア", newShare);
+    return newShare;
+  };
+
+  console.log(
+    "SettingSalesTargetsコンポーネントレンダリング",
+    //  "✅departmentIdToObjMap",
+    //  departmentIdToObjMap,
+    //  "✅sectionIdToObjMap",
+    //  sectionIdToObjMap,
+    //  "✅unitIdToObjMap",
+    //  unitIdToObjMap,
+    //  "✅officeIdToObjMap",
+    //  officeIdToObjMap,
+    "タブ初期値",
+    initialTabs,
+    "アクティブタブ",
+    activeDisplayTabs,
+    "ローカルアクティブタブ",
+    activeEntityLocal,
+    "selectedDepartment",
+    selectedDepartment,
+    "selectedSection",
+    selectedSection,
+    "selectedUnit",
+    selectedUnit,
+    "selectedOffice",
+    selectedOffice,
+    "mainEntitySalesTarget",
+    mainEntitySalesTarget,
+    "subTreeSalesTargetList",
+    subTreeSalesTargetList,
+    "chartArray",
+    chartArray
+  );
+
   return (
     <>
       {/* 右側メインエリア プロフィール */}
@@ -607,7 +763,7 @@ const SettingSalesTargetsMemo: FC = () => {
                 <span>年度</span>
               </div>
               <div
-                className={`transition-bg02 group mr-[12px] flex cursor-pointer flex-col text-[var(--color-text-title)] hover:text-[var(--color-text-brand-f)]`}
+                className={`transition-bg02 group mr-[12px] flex min-w-[91px] cursor-pointer flex-col text-[var(--color-text-title)] hover:text-[var(--color-text-brand-f)]`}
               >
                 <div
                   className={`flex pl-[1px] text-[15px]`}
@@ -627,7 +783,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   {/* <span className="mr-[6px]">2024年度</span> */}
                   {/* {activeDisplayTabs.year && <span className="mr-[6px]">{activeDisplayTabs.year}年度</span>} */}
                   <select
-                    className={`${styles.select_text} ${styles.arrow_none} mr-[6px] truncate`}
+                    className={`${styles.select_text} ${styles.arrow_none} fade03_forward mr-[6px] truncate`}
                     value={activeDisplayTabs.year}
                     onChange={(e) => {
                       setActiveDisplayTabs({ ...activeDisplayTabs, year: Number(e.target.value) });
@@ -654,7 +810,7 @@ const SettingSalesTargetsMemo: FC = () => {
               </div>
 
               <div
-                className={`transition-bg02 group mr-[12px] flex cursor-pointer flex-col text-[var(--color-text-title)] hover:text-[var(--color-text-brand-f)]`}
+                className={`transition-bg02 group mr-[12px] flex min-w-[51px] cursor-pointer flex-col text-[var(--color-text-title)] hover:text-[var(--color-text-brand-f)]`}
               >
                 <div
                   className={`flex pl-[1px] text-[15px]`}
@@ -669,7 +825,7 @@ const SettingSalesTargetsMemo: FC = () => {
                       title: "entity",
                       displayX: "center",
                       fadeType: "fade_up",
-                      maxWidth: 310,
+                      maxWidth: 320,
                     });
                     handleCloseTooltip();
                   }}
@@ -700,7 +856,7 @@ const SettingSalesTargetsMemo: FC = () => {
               </div>
 
               <div
-                className={`transition-bg02 group flex cursor-pointer flex-col text-[var(--color-text-title)] hover:text-[var(--color-text-brand-f)]`}
+                className={`transition-bg02 group flex min-w-[51px] cursor-pointer flex-col text-[var(--color-text-title)] hover:text-[var(--color-text-brand-f)]`}
               >
                 <div className={`flex pl-[1px] text-[15px]`}>
                   {activeDisplayTabs.periodType === "fiscalYear" && <span className="mr-[6px]">年度</span>}
@@ -731,7 +887,15 @@ const SettingSalesTargetsMemo: FC = () => {
                       alt="setting"
                       className={`${styles.title_icon} mb-[2px]`}
                     />
-                    <span className="pr-[9px]">全社</span>
+                    {/* <span className="pr-[9px]">全社</span> */}
+                    <span className="pr-[9px]">
+                      {activeDisplayTabs.entity === "company" && mainEntitySalesTarget?.entity_name
+                        ? mappingEntityName[mainEntitySalesTarget.entity_name][language]
+                        : ""}
+                      {activeDisplayTabs.entity !== "company" && mainEntitySalesTarget?.entity_name
+                        ? mainEntitySalesTarget.entity_name
+                        : ""}
+                    </span>
                   </div>
                   <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]" />
                 </div>
@@ -780,7 +944,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   {["fiscalYear"].includes(activeDisplayTabs.periodType) && (
                     <SalesTargetGridContainer
                       periodType="fiscalYear"
-                      periodValue={2024}
+                      periodValue={activeDisplayTabs.year}
                       salesTargetValue={404200000}
                       // salesTargetValue={1234500}
                       yearOnYear={0.274}
@@ -887,91 +1051,106 @@ const SettingSalesTargetsMemo: FC = () => {
               >
                 <div className={`flex-center h-[210px] w-[360px] overflow-visible bg-[red]/[0]`}>
                   {/* <div className={`h-[160px] w-[160px] rounded-full bg-pink-100`}></div> */}
-                  <ResponsiveContainer style={{ overflow: `visible` }}>
-                    <PieChart style={{ overflow: `visible` }}>
-                      <Pie
-                        data={dataChart}
-                        // 四隅に5pxずつpaddingあり、サイズは160ではなく、150のため75が中心
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={45}
-                        outerRadius={60}
-                        // fill="#8884d8"
-                        paddingAngle={5}
-                        dataKey="value"
-                        label={(props: CustomizedLabelProps) => {
-                          // console.log("らべる props", props);
-                          return renderCustomizeLabel({
-                            props,
-                            customProps: {
-                              isHovering: activeIndex !== 100,
-                              fillColor: COLORS[props.index],
-                              labelName:
-                                departmentDataArray && departmentDataArray[props.index]?.department_name
-                                  ? departmentDataArray[props.index].department_name ?? ""
-                                  : "",
-                            },
-                          });
-                          // renderCustomizedLabel(PieLabel, {
-                          //   isHovering: activeIndex !== 100,
-                          // })
-                        }}
-                        labelLine={false}
-                        activeIndex={activeIndex}
-                        activeShape={(props: PieSectorDataItem) =>
-                          renderActiveShapeWithBg({
-                            props: props,
-                            customProps: {
-                              mainEntity: activeDisplayTabs.entity,
-                              mainSalesTarget: 404200000,
-                              isHovering: activeIndex !== 100,
-                            },
-                          })
-                        }
-                        onMouseEnter={onPieEnter}
-                        onMouseLeave={onPieLeave}
-                      >
-                        {dataChart.map((entry, index) => (
-                          <Cell
-                            key={`cell_${index}`}
-                            fill={
-                              activeIndex === index
-                                ? COLORS[index % COLORS.length]
-                                : COLORS_SHEER[index % COLORS_SHEER.length]
-                            }
-                            stroke={COLORS[index % COLORS.length]}
-                            // stroke={"#666"}
-                            strokeWidth={`1px`}
-                          />
-                        ))}
-                      </Pie>
-                      {/* 中央にテキストを表示するためのカスタムSVG要素 */}
-                      {activeIndex === 100 && (
-                        <text
-                          ref={textSalesChartRef}
-                          x="50%"
-                          y="50%"
-                          fontSize="13px"
-                          fontWeight={700}
-                          textAnchor="middle"
-                          dominantBaseline="central"
-                          // fill={`var(--color-text-title)`}
-                          fill={`var(--main-color-f)`}
-                          className={`${isMountedChart ? `fade05` : `fade_chart05_d2`}`}
+                  {chartArray && (
+                    <ResponsiveContainer style={{ overflow: `visible` }}>
+                      <PieChart style={{ overflow: `visible` }}>
+                        <Pie
+                          // data={dataChart}
+                          data={chartArray}
+                          // 四隅に5pxずつpaddingあり、サイズは160ではなく、150のため75が中心
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={45}
+                          outerRadius={60}
+                          // fill="#8884d8"
+                          paddingAngle={chartArray?.length === 1 ? 0 : 5}
+                          dataKey="value"
+                          label={(props: CustomizedLabelProps) => {
+                            // console.log("らべる props", props);
+                            return renderCustomizeLabel({
+                              props,
+                              customProps: {
+                                isHovering: activeIndex !== 100,
+                                fillColor:
+                                  activeDisplayTabs.entity === "company" && chartArray?.length === 1
+                                    ? "var(--main-color-f)"
+                                    : COLORS[props.index],
+                                labelName:
+                                  chartArray && chartArray[props.index]?.name
+                                    ? chartArray[props.index]?.name ?? ""
+                                    : "",
+                                // labelName:
+                                //   departmentDataArray && departmentDataArray[props.index]?.department_name
+                                //     ? departmentDataArray[props.index].department_name ?? ""
+                                //     : "",
+                              },
+                            });
+                            // renderCustomizedLabel(PieLabel, {
+                            //   isHovering: activeIndex !== 100,
+                            // })
+                          }}
+                          labelLine={false}
+                          activeIndex={activeIndex}
+                          activeShape={(props: PieSectorDataItem) =>
+                            renderActiveShapeWithBg({
+                              props: props,
+                              customProps: {
+                                mainEntity: activeDisplayTabs.entity,
+                                mainSalesTarget: 404200000,
+                                isHovering: activeIndex !== 100,
+                              },
+                            })
+                          }
+                          onMouseEnter={onPieEnter}
+                          onMouseLeave={onPieLeave}
                         >
-                          {`￥${formatSalesTarget(404200000)}`}
-                        </text>
-                      )}
-                    </PieChart>
-                  </ResponsiveContainer>
+                          {chartArray.map((entry, index) => (
+                            <Cell
+                              key={`cell_${index}`}
+                              fill={
+                                activeDisplayTabs.entity === "company" && chartArray?.length === 1
+                                  ? "var(--main-color-f)"
+                                  : activeIndex === index
+                                  ? COLORS[index % COLORS.length]
+                                  : COLORS_SHEER[index % COLORS_SHEER.length]
+                              }
+                              // stroke={COLORS[index % COLORS.length]}
+                              // stroke={"#666"}
+                              // stroke={"#ddd"}
+                              stroke={"var(--color-pie-chart-stroke-line)"}
+                              strokeWidth={`1px`}
+                            />
+                          ))}
+                        </Pie>
+                        {/* 中央にテキストを表示するためのカスタムSVG要素 */}
+                        {activeIndex === 100 && (
+                          <text
+                            ref={textSalesChartRef}
+                            x="50%"
+                            y="50%"
+                            fontSize="13px"
+                            fontWeight={700}
+                            textAnchor="middle"
+                            dominantBaseline="central"
+                            fill={`var(--color-text-title)`}
+                            // fill={`var(--main-color-f)`}
+                            className={`${isMountedChart ? `fade05` : `fade_chart05_d2`}`}
+                          >
+                            {`￥${formatSalesTarget(404200000)}`}
+                          </text>
+                        )}
+                      </PieChart>
+                    </ResponsiveContainer>
+                  )}
                 </div>
               </div>
               {/* -------------------------- パイチャート ここまで -------------------------- */}
             </li>
-            {departmentDataArray &&
-              departmentDataArray.map((obj, index) => {
+            {subTreeSalesTargetList &&
+              subTreeSalesTargetList?.length > 0 &&
+              subTreeSalesTargetList.map((obj, index) => {
                 return (
-                  <Fragment key={obj.id}>
+                  <Fragment key={obj.entity_id}>
                     {/* {index === 0 && (
                       <div className="relative flex h-[30px] min-h-[30px] w-full pl-[12px]">
                         <div
@@ -1028,7 +1207,7 @@ const SettingSalesTargetsMemo: FC = () => {
                                       }`}
                                     ></div>
                                   </div>
-                                  <span className="">{obj.department_name}</span>
+                                  <span className="">{obj.entity_name}</span>
                                 </div>
                                 {/* <span className="px-[3px]">{obj.department_name}</span> */}
                                 {/* <div className="absolute bottom-[-2px] left-[-2px] min-h-[1px] w-[calc(100%+6px)] bg-[var(--color-bg-brand-f)]" /> */}
@@ -1043,7 +1222,8 @@ const SettingSalesTargetsMemo: FC = () => {
                         </h3>
                         {/* <div className="relative flex h-auto min-h-[30px] w-full pl-[12px]"> */}
                         <div className="relative flex h-auto w-full pl-[12px]">
-                          {departmentDataArray.length - 1 !== index && (
+                          {/* {departmentDataArray.length - 1 !== index && ( */}
+                          {subTreeSalesTargetList.length - 1 !== index && (
                             <div
                               className={`${styles.vertical_line} ${styles.under} absolute left-[12px] top-[-1px] h-[calc(100%+1px)] min-w-[1px] bg-[var(--color-bg-brand-f)]`}
                               style={{ animationDelay: `${0.3 * index + 1}s` }}
@@ -1074,25 +1254,33 @@ const SettingSalesTargetsMemo: FC = () => {
                                     目標
                                   </div>
                                   <div role="gridcell" aria-colindex={2} className={`${styles.cell_value}`}>
-                                    404.2億
+                                    {/* 404.2億 */}
+                                    {obj.sales_target ? formatSalesTarget(obj.sales_target) : "-"}
                                   </div>
                                   <div role="gridcell" aria-colindex={3} className={`${styles.row_title}`}>
                                     シェア
                                   </div>
                                   <div role="gridcell" aria-colindex={4} className={`${styles.cell_value}`}>
-                                    25.0%
+                                    {/* 25.0% */}
+                                    {mainEntitySalesTarget.sales_target && obj.sales_target
+                                      ? `${calculateShare(mainEntitySalesTarget.sales_target, obj.sales_target)}%`
+                                      : "-%"}
                                   </div>
                                   <div role="gridcell" aria-colindex={5} className={`${styles.row_title}`}>
                                     前年比
                                   </div>
                                   <div role="gridcell" aria-colindex={6} className={`${styles.cell_value}`}>
-                                    24.7%
+                                    {/* 24.7% */}
+                                    {obj.year_on_year ? `${(obj.year_on_year * 100).toFixed(2)}%` : "-%"}
                                   </div>
                                   <div role="gridcell" aria-colindex={7} className={`${styles.row_title}`}>
                                     前年伸び実績
                                   </div>
                                   <div role="gridcell" aria-colindex={8} className={`${styles.cell_value}`}>
-                                    25.0%
+                                    {/* 25.0% */}
+                                    {obj.growth_result_last_year
+                                      ? `${(obj.growth_result_last_year * 100).toFixed(2)}%`
+                                      : "-%"}
                                   </div>
                                 </div>
                               </div>
@@ -1247,33 +1435,143 @@ const SettingSalesTargetsMemo: FC = () => {
                           }
                           // 事業部~事業所までは、エンティティ区分タイプ+表示するエンティティ名が必要なため、一旦ローカルstateに区分タイプを保存して、右側の選択エリアでエンティティ名をセレクトで選択してもらう
                           else {
-                            const { entityId, entityName } = getFirstEntityOption(obj.title);
-                            setActiveEntityLocal({
-                              entityType: obj.title,
-                              entityName: entityName ?? "",
-                              entityId: entityId ?? "",
-                            });
+                            // const { entityId, entityName } = getFirstEntityOption(obj.title);
                             if (obj.title === "department") {
+                              if (!departmentDataArray || departmentDataArray?.length === 0) {
+                                alert("事業部リストがありません。先に「会社・チーム」から事業部を作成してください。");
+                                return;
+                              }
                               const departmentId = departmentDataArray ? departmentDataArray[0].id : "";
-                              setSelectedDepartment(departmentIdToObjMap?.get(departmentId) ?? null);
+                              const newDepartment = departmentIdToObjMap?.get(departmentId);
+                              setSelectedDepartment(newDepartment ?? null);
+                              setActiveEntityLocal({
+                                entityType: obj.title,
+                                entityName: newDepartment?.department_name ?? "",
+                                entityId: newDepartment?.id ?? "",
+                              });
                             }
                             if (obj.title === "section") {
+                              if (!departmentDataArray || departmentDataArray?.length === 0) {
+                                alert("事業部リストがありません。先に「会社・チーム」から事業部を作成してください。");
+                                return;
+                              }
+                              if (!sectionDataArray || sectionDataArray?.length === 0) {
+                                alert(
+                                  "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                                );
+                                return;
+                              }
                               const departmentId = departmentDataArray ? departmentDataArray[0].id : "";
                               setSelectedDepartment(departmentIdToObjMap?.get(departmentId) ?? null);
-                              const sectionId = sectionDataArray ? sectionDataArray[0].id : "";
-                              setSelectedSection(sectionIdToObjMap?.get(sectionId) ?? null);
+                              // departmentIdに一致するセクションのみ絞り込んで選択肢リストを作成
+                              // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目をstateにセット
+                              const filteredSectionList = sectionDataArray.filter(
+                                (unit) => unit.created_by_department_id === departmentId
+                              );
+                              // 選択肢を１番目の事業部のidで絞り込み
+                              setFilteredSectionBySelectedDepartment(filteredSectionList);
+                              if (!filteredSectionList || filteredSectionList?.length === 0) {
+                                alert(
+                                  "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                                );
+                                setSelectedSection(null);
+                                return;
+                              }
+                              const firstSectionObj = [...filteredSectionList].sort((a, b) => {
+                                if (a.section_name === null) return 1; // null値をリストの最後に移動
+                                if (b.section_name === null) return -1;
+                                return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                              })[0];
+                              setSelectedSection(firstSectionObj);
+                              setActiveEntityLocal({
+                                entityType: obj.title,
+                                entityName: firstSectionObj?.section_name ?? "",
+                                entityId: firstSectionObj?.id ?? "",
+                              });
+                              // const sectionId = sectionDataArray ? sectionDataArray[0].id : "";
+                              // setSelectedSection(sectionIdToObjMap?.get(sectionId) ?? null);
                             }
                             if (obj.title === "unit") {
+                              if (!departmentDataArray || departmentDataArray?.length === 0) {
+                                alert("事業部リストがありません。先に「会社・チーム」から事業部を作成してください。");
+                                return;
+                              }
+                              if (!sectionDataArray || sectionDataArray?.length === 0) {
+                                alert(
+                                  "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                                );
+                                return;
+                              }
+                              if (!unitDataArray || unitDataArray?.length === 0) {
+                                alert(
+                                  "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
+                                );
+                                return;
+                              }
                               const departmentId = departmentDataArray ? departmentDataArray[0].id : "";
                               setSelectedDepartment(departmentIdToObjMap?.get(departmentId) ?? null);
-                              const sectionId = sectionDataArray ? sectionDataArray[0].id : "";
-                              setSelectedSection(sectionIdToObjMap?.get(sectionId) ?? null);
-                              const unitId = unitDataArray ? unitDataArray[0].id : "";
-                              setSelectedUnit(unitIdToObjMap?.get(unitId) ?? null);
+                              // departmentIdに一致するセクションのみ絞り込んで選択肢リストを作成
+                              // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目をstateにセット
+                              const filteredSectionList = sectionDataArray.filter(
+                                (unit) => unit.created_by_department_id === departmentId
+                              );
+                              // 選択肢を１番目の事業部のidで絞り込み
+                              setFilteredSectionBySelectedDepartment(filteredSectionList);
+                              if (!filteredSectionList || filteredSectionList?.length === 0) {
+                                alert(
+                                  "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                                );
+                                setSelectedSection(null);
+                                return;
+                              }
+                              const firstSectionObj = [...filteredSectionList].sort((a, b) => {
+                                if (a.section_name === null) return 1; // null値をリストの最後に移動
+                                if (b.section_name === null) return -1;
+                                return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                              })[0];
+                              setSelectedSection(firstSectionObj);
+
+                              // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目の課に紐づく係リストの１番目をstateにセット
+                              const filteredUnitList = unitDataArray.filter(
+                                (unit) => unit.created_by_section_id === firstSectionObj.id
+                              );
+                              setFilteredUnitBySelectedSection(filteredUnitList);
+                              //
+                              if (!filteredUnitList || filteredUnitList?.length === 0) {
+                                alert(
+                                  "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
+                                );
+                                return;
+                              }
+                              const firstUnitObj = [...filteredUnitList].sort((a, b) => {
+                                if (a.unit_name === null) return 1; // null値をリストの最後に移動
+                                if (b.unit_name === null) return -1;
+                                return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                              })[0];
+                              setSelectedUnit(firstUnitObj);
+                              setActiveEntityLocal({
+                                entityType: obj.title,
+                                entityName: firstUnitObj?.unit_name ?? "",
+                                entityId: firstUnitObj?.id ?? "",
+                              });
+                              // setIsOpenConfirmUpsertModal("unit");
+
+                              // const unitId = unitDataArray ? unitDataArray[0].id : "";
+                              // setSelectedUnit(unitIdToObjMap?.get(unitId) ?? null);
                             }
                             if (obj.title === "office") {
+                              if (!officeDataArray || officeDataArray?.length === 0) {
+                                alert("事業所リストがありません。先に「会社・チーム」から事業所を作成してください。");
+                                return;
+                              }
                               const officeId = officeDataArray ? officeDataArray[0].id : "";
-                              setSelectedOffice(officeIdToObjMap?.get(officeId) ?? null);
+                              const newOffice = officeIdToObjMap?.get(officeId);
+                              setSelectedOffice(newOffice ?? null);
+                              setActiveEntityLocal({
+                                entityType: obj.title,
+                                entityName: newOffice?.office_name ?? "",
+                                entityId: newOffice?.id ?? "",
+                              });
                             }
                           }
                           // handleClosePopupMenu();
@@ -1324,7 +1622,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   {/* ------------------------ 事業部 ------------------------ */}
                   {activeEntityLocal.entityType !== "office" && (
                     <li
-                      className={`relative flex  w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
+                      className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
                       <div className="pointer-events-none flex min-w-[70px] items-center">
                         <div className="flex select-none items-center space-x-[2px]">
@@ -1332,11 +1630,13 @@ const SettingSalesTargetsMemo: FC = () => {
                           <span className={``}>：</span>
                         </div>
                       </div>
-                      <div>
-                        {(!selectedDepartment || !departmentIdToObjMap) && <span>事業部が見つかりません</span>}
+                      <div className={`${styles.list_item_content}`}>
+                        {(!selectedDepartment || !departmentIdToObjMap) && (
+                          <span className={`${styles.empty_text}`}>事業部が見つかりません</span>
+                        )}
                         {selectedDepartment && departmentIdToObjMap && (
                           <select
-                            className={` ml-auto h-full w-full ${styles.select_box} truncate`}
+                            className={`h-full ${styles.select_box} truncate`}
                             value={selectedDepartment.id}
                             onChange={(e) => {
                               const departmentId = e.target.value;
@@ -1344,9 +1644,92 @@ const SettingSalesTargetsMemo: FC = () => {
                                 ? departmentIdToObjMap.get(departmentId)
                                 : null;
                               setSelectedDepartment(newDepartment ?? null);
+
+                              if (activeEntityLocal.entityType === "department") {
+                                setActiveEntityLocal({
+                                  ...activeEntityLocal,
+                                  entityId: departmentId,
+                                  entityName: newDepartment?.department_name ?? "",
+                                });
+                              }
+
+                              // 課・セクションの場合は、課をリセット
+                              if (["section", "unit"].includes(activeEntityLocal.entityType)) {
+                                if (!sectionDataArray || sectionDataArray?.length === 0) {
+                                  alert(
+                                    "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                                  );
+                                  return;
+                                }
+                                // 全ての課から新たに選択した事業部に含まれる課のみの選択肢を生成して、1番目を選択中の課にセット
+                                const filteredSectionList = sectionDataArray.filter(
+                                  (unit) => unit.created_by_department_id === departmentId
+                                );
+
+                                const sortedSectionList = [...filteredSectionList].sort((a, b) => {
+                                  if (a.section_name === null) return 1; // null値をリストの最後に移動
+                                  if (b.section_name === null) return -1;
+                                  return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                                });
+                                setFilteredSectionBySelectedDepartment(sortedSectionList);
+
+                                const firstSectionObj = sortedSectionList?.length >= 1 ? sortedSectionList[0] : null;
+                                setSelectedSection(firstSectionObj);
+                                if (activeEntityLocal.entityType === "section") {
+                                  setActiveEntityLocal({
+                                    ...activeEntityLocal,
+                                    entityId: firstSectionObj?.id ?? "",
+                                    entityName: firstSectionObj?.section_name ?? "",
+                                  });
+                                }
+
+                                if (activeEntityLocal.entityType === "unit") {
+                                  if (!unitDataArray || unitDataArray?.length === 0) {
+                                    alert(
+                                      "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
+                                    );
+                                    return;
+                                  }
+                                  if (!firstSectionObj) {
+                                    setSelectedUnit(null);
+                                    return;
+                                  }
+                                  // 全ての課から新たに選択した事業部に含まれる課のみの選択肢を生成して、1番目を選択中の課にセット
+                                  const filteredUnitList = unitDataArray.filter(
+                                    (unit) => unit.created_by_section_id === firstSectionObj.id
+                                  );
+
+                                  const sortedUnitList = [...filteredUnitList].sort((a, b) => {
+                                    if (a.unit_name === null) return 1; // null値をリストの最後に移動
+                                    if (b.unit_name === null) return -1;
+                                    return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                                  });
+                                  setFilteredUnitBySelectedSection(sortedUnitList);
+
+                                  const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
+                                  setSelectedUnit(firstUnitObj);
+                                  if (activeEntityLocal.entityType === "unit") {
+                                    setActiveEntityLocal({
+                                      ...activeEntityLocal,
+                                      entityId: firstUnitObj?.id ?? "",
+                                      entityName: firstUnitObj?.unit_name ?? "",
+                                    });
+                                  }
+                                }
+                              }
                             }}
                           >
-                            {!!departmentDataArray &&
+                            {!!departmentDataArray?.length &&
+                              departmentDataArray.map(
+                                (department, index) =>
+                                  !!department &&
+                                  department.department_name && (
+                                    <option key={department.id} value={department.id}>
+                                      {department.department_name}
+                                    </option>
+                                  )
+                              )}
+                            {/* {!!departmentDataArray &&
                               [...departmentDataArray]
                                 .sort((a, b) => {
                                   if (a.department_name === null || b.department_name === null) return 0;
@@ -1365,7 +1748,7 @@ const SettingSalesTargetsMemo: FC = () => {
                                         {department.department_name}
                                       </option>
                                     )
-                                )}
+                                )} */}
                           </select>
                         )}
                       </div>
@@ -1375,7 +1758,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   {/* ------------------------ 課・セクション ------------------------ */}
                   {["section", "unit"].includes(activeEntityLocal.entityType) && (
                     <li
-                      className={`relative flex  w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
+                      className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
                       <div className="pointer-events-none flex min-w-[70px] items-center">
                         <div className="flex select-none items-center space-x-[2px]">
@@ -1383,31 +1766,70 @@ const SettingSalesTargetsMemo: FC = () => {
                           <span className={``}>：</span>
                         </div>
                       </div>
-                      <div>
-                        {!selectedSection && <span>課・セクションが見つかりません</span>}
-                        {selectedSection && (
+                      <div className={`${styles.list_item_content}`}>
+                        {!selectedSection && (
+                          <span className={`${styles.empty_text}`}>課・セクションが見つかりません</span>
+                        )}
+                        {selectedSection && sectionIdToObjMap && (
                           <select
-                            className={` ml-auto h-full w-full ${styles.select_box} truncate`}
+                            className={` ${styles.select_box} truncate`}
                             value={selectedSection.id}
-                            onChange={(e) => {}}
-                          >
-                            {!!sectionDataArray &&
-                              [...sectionDataArray]
-                                .sort((a, b) => {
-                                  if (a.section_name === null || b.section_name === null) return 0;
-                                  return (
-                                    a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en") ?? 0
+                            onChange={(e) => {
+                              const sectionId = e.target.value;
+                              const newSection = sectionIdToObjMap.has(sectionId)
+                                ? sectionIdToObjMap.get(sectionId)
+                                : null;
+                              setSelectedSection(newSection ?? null);
+
+                              if (activeEntityLocal.entityType === "section") {
+                                setActiveEntityLocal({
+                                  ...activeEntityLocal,
+                                  entityId: sectionId,
+                                  entityName: newSection?.section_name ?? "",
+                                });
+                              }
+
+                              if (activeEntityLocal.entityType === "unit") {
+                                if (!unitDataArray || unitDataArray?.length === 0) {
+                                  alert(
+                                    "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
                                   );
-                                })
-                                .map(
-                                  (section, index) =>
-                                    !!section &&
-                                    section.section_name && (
-                                      <option key={section.id} value={section.id}>
-                                        {section.section_name}
-                                      </option>
-                                    )
-                                )}
+                                  return;
+                                }
+                                // 全ての課から新たに選択した事業部に含まれる課のみの選択肢を生成して、1番目を選択中の課にセット
+                                const filteredUnitList = unitDataArray.filter(
+                                  (unit) => unit.created_by_section_id === sectionId
+                                );
+
+                                const sortedUnitList = [...filteredUnitList].sort((a, b) => {
+                                  if (a.unit_name === null) return 1; // null値をリストの最後に移動
+                                  if (b.unit_name === null) return -1;
+                                  return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                                });
+                                setFilteredUnitBySelectedSection(sortedUnitList);
+
+                                const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
+                                setSelectedUnit(firstUnitObj);
+                                if (activeEntityLocal.entityType === "unit") {
+                                  setActiveEntityLocal({
+                                    ...activeEntityLocal,
+                                    entityId: firstUnitObj?.id ?? "",
+                                    entityName: firstUnitObj?.unit_name ?? "",
+                                  });
+                                }
+                              }
+                            }}
+                          >
+                            {!!filteredSectionBySelectedDepartment?.length &&
+                              filteredSectionBySelectedDepartment.map(
+                                (section, index) =>
+                                  !!section &&
+                                  section.section_name && (
+                                    <option key={section.id} value={section.id}>
+                                      {section.section_name}
+                                    </option>
+                                  )
+                              )}
                           </select>
                         )}
                       </div>
@@ -1415,9 +1837,9 @@ const SettingSalesTargetsMemo: FC = () => {
                   )}
                   {/* ------------------------ 課・セクション ------------------------ */}
                   {/* ------------------------ 係・チーム ------------------------ */}
-                  {["unit"].includes(activeEntityLocal.entityType) && (
+                  {activeEntityLocal.entityType === "unit" && (
                     <li
-                      className={`relative flex  w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
+                      className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
                       <div className="pointer-events-none flex min-w-[70px] items-center">
                         <div className="flex select-none items-center space-x-[2px]">
@@ -1425,29 +1847,34 @@ const SettingSalesTargetsMemo: FC = () => {
                           <span className={``}>：</span>
                         </div>
                       </div>
-                      <div>
-                        {!selectedUnit && <span>係・チームが見つかりません</span>}
-                        {selectedUnit && (
+                      <div className={`${styles.list_item_content}`}>
+                        {!selectedUnit && <span className={`${styles.empty_text}`}>係・チームが見つかりません</span>}
+                        {selectedUnit && unitIdToObjMap && (
                           <select
-                            className={` ml-auto h-full w-full ${styles.select_box} truncate`}
+                            className={`${styles.select_box} truncate`}
                             value={selectedUnit.id}
-                            onChange={(e) => {}}
+                            onChange={(e) => {
+                              const unitId = e.target.value;
+                              const newUnit = unitIdToObjMap.has(unitId) ? unitIdToObjMap.get(unitId) : null;
+                              setSelectedUnit(newUnit ?? null);
+
+                              setActiveEntityLocal({
+                                ...activeEntityLocal,
+                                entityId: unitId,
+                                entityName: newUnit?.unit_name ?? "",
+                              });
+                            }}
                           >
-                            {!!unitDataArray &&
-                              [...unitDataArray]
-                                .sort((a, b) => {
-                                  if (a.unit_name === null || b.unit_name === null) return 0;
-                                  return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en") ?? 0;
-                                })
-                                .map(
-                                  (unit, index) =>
-                                    !!unit &&
-                                    unit.unit_name && (
-                                      <option key={unit.id} value={unit.id}>
-                                        {unit.unit_name}
-                                      </option>
-                                    )
-                                )}
+                            {!!filteredUnitBySelectedSection?.length &&
+                              filteredUnitBySelectedSection.map(
+                                (unit, index) =>
+                                  !!unit &&
+                                  unit.unit_name && (
+                                    <option key={unit.id} value={unit.id}>
+                                      {unit.unit_name}
+                                    </option>
+                                  )
+                              )}
                           </select>
                         )}
                       </div>
@@ -1457,7 +1884,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   {/* ------------------------ 事業所 ------------------------ */}
                   {activeEntityLocal.entityType === "office" && (
                     <li
-                      className={`relative flex  w-full min-w-max items-center justify-between space-x-[30px] px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
+                      className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
                       <div className="pointer-events-none flex min-w-[70px] items-center">
                         <div className="flex select-none items-center space-x-[2px]">
@@ -1465,31 +1892,34 @@ const SettingSalesTargetsMemo: FC = () => {
                           <span className={``}>：</span>
                         </div>
                       </div>
-                      <div>
-                        {!selectedOffice && <span>事業所が見つかりません</span>}
-                        {selectedOffice && (
+                      <div className={`${styles.list_item_content}`}>
+                        {!selectedOffice && <span className={`${styles.empty_text}`}>事業所が見つかりません</span>}
+                        {selectedOffice && officeIdToObjMap && (
                           <select
-                            className={` ml-auto h-full w-full ${styles.select_box} truncate`}
+                            className={` ${styles.select_box} truncate`}
                             value={selectedOffice.id}
-                            onChange={(e) => {}}
+                            onChange={(e) => {
+                              const officeId = e.target.value;
+                              const newOffice = officeIdToObjMap.has(officeId) ? officeIdToObjMap.get(officeId) : null;
+                              setSelectedOffice(newOffice ?? null);
+
+                              setActiveEntityLocal({
+                                ...activeEntityLocal,
+                                entityId: officeId,
+                                entityName: newOffice?.office_name ?? "",
+                              });
+                            }}
                           >
-                            {!!officeDataArray &&
-                              [...officeDataArray]
-                                .sort((a, b) => {
-                                  if (a.office_name === null || b.office_name === null) return 0;
-                                  return (
-                                    a.office_name.localeCompare(b.office_name, language === "ja" ? "ja" : "en") ?? 0
-                                  );
-                                })
-                                .map(
-                                  (office, index) =>
-                                    !!office &&
-                                    office.office_name && (
-                                      <option key={office.id} value={office.id}>
-                                        {office.office_name}
-                                      </option>
-                                    )
-                                )}
+                            {!!officeDataArray?.length &&
+                              officeDataArray.map(
+                                (office, index) =>
+                                  !!office &&
+                                  office.office_name && (
+                                    <option key={office.id} value={office.id}>
+                                      {office.office_name}
+                                    </option>
+                                  )
+                              )}
                           </select>
                         )}
                       </div>
@@ -1503,11 +1933,41 @@ const SettingSalesTargetsMemo: FC = () => {
                       className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
                       onClick={() => {
                         if (!activeEntityLocal) return;
+                        if (openSectionMenu.title === "entity") {
+                          // 選択、確定するエンティティの子の配列をフィルター
+                          if (activeEntityLocal.entityType === "department") {
+                            const departmentId = activeEntityLocal.entityId;
+                            if (sectionDataArray && sectionDataArray.length > 0) {
+                              const filteredSectionList = sectionDataArray.filter(
+                                (section) => section.created_by_department_id === departmentId
+                              );
+                              // 選択肢を１番目の事業部のidで絞り込み
+                              setFilteredSectionBySelectedDepartment(filteredSectionList);
+                            }
+                          }
+                          if (activeEntityLocal.entityType === "section") {
+                            const sectionId = activeEntityLocal.entityId;
+                            if (unitDataArray && unitDataArray.length > 0) {
+                              const filteredUnitList = unitDataArray.filter(
+                                (unit) => unit.created_by_section_id === sectionId
+                              );
+                              // 選択肢を１番目の事業部のidで絞り込み
+                              setFilteredUnitBySelectedSection(filteredUnitList);
+                            }
+                          }
+                          // 係・チームを選択した場合はメンバーリストをuseQueryで取得する
+                          if (activeEntityLocal.entityType === "unit") {
+                          }
+                          // 事業所を選択した場合はメンバーリストをuseQueryで取得する
+                          if (activeEntityLocal.entityType === "office") {
+                          }
+                        }
+
                         setActiveDisplayTabs({
                           ...activeDisplayTabs,
                           entity: activeEntityLocal.entityType,
-                          entityName: activeEntityLocal.entityName,
-                          entityId: activeEntityLocal.entityId,
+                          entityName: activeEntityLocal.entityName || null,
+                          entityId: activeEntityLocal.entityId || null,
                         });
                         setOpenSectionMenu(null);
                       }}
