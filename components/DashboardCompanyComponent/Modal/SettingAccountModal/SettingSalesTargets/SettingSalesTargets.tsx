@@ -31,7 +31,12 @@ import { monthlySaleTargetDataFirstHalf, monthlySaleTargetDataLastHalf } from ".
 import { calculateCurrentFiscalYear } from "@/utils/Helpers/calculateCurrentFiscalYear";
 import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurrentFiscalYearEndDate";
 import { format, isWithinInterval, subMonths } from "date-fns";
-import { mappingSectionName, sectionListForSalesTarget } from "@/utils/selectOptions";
+import {
+  mappingPeriodSalesTarget,
+  mappingSectionName,
+  optionsPeriodSalesTarget,
+  sectionListForSalesTarget,
+} from "@/utils/selectOptions";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import { BsCheck2 } from "react-icons/bs";
 import { FaExchangeAlt } from "react-icons/fa";
@@ -371,6 +376,7 @@ const SettingSalesTargetsMemo: FC = () => {
         }
         break;
       case "unit":
+        subList = [];
         // 選択した係のメンバーリスト
         // if (!!filteredUnitBySelectedSection?.length) {
         //   filteredUnitBySelectedSection.forEach((obj) => {
@@ -384,18 +390,7 @@ const SettingSalesTargetsMemo: FC = () => {
         // }
         break;
       case "office":
-        console.log("officeルート activeDisplayTabs.entity", activeDisplayTabs.entity);
-        if (!!officeDataArray?.length) {
-          officeDataArray.forEach((obj) => {
-            subList.push({
-              entity_id: obj.id,
-              entity_name: obj.office_name,
-              sales_target: null,
-              year_on_year: null,
-              growth_result_last_year: null,
-            });
-          });
-        }
+        subList = [];
         break;
       default:
         break;
@@ -858,9 +853,37 @@ const SettingSalesTargetsMemo: FC = () => {
               <div
                 className={`transition-bg02 group flex min-w-[51px] cursor-pointer flex-col text-[var(--color-text-title)] hover:text-[var(--color-text-brand-f)]`}
               >
-                <div className={`flex pl-[1px] text-[15px]`}>
-                  {activeDisplayTabs.periodType === "fiscalYear" && <span className="mr-[6px]">年度</span>}
-                  {activeDisplayTabs.periodType === "half" && <span className="mr-[6px]">半期〜月度</span>}
+                <div
+                  className={`flex pl-[1px] text-[15px]`}
+                  onMouseEnter={(e) => {
+                    const tooltipText = `売上目標は「年度」と「上半期~月度」\n「下半期~月度」の範囲で確認が可能です。`;
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: tooltipText,
+                      // marginTop: 48,
+                      marginTop: 33,
+                      // marginTop: 9,
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  {/* {activeDisplayTabs.periodType === "fiscalYear" && <span className="mr-[6px]">年度</span>}
+                  {activeDisplayTabs.periodType === "half" && <span className="mr-[6px]">半期〜月度</span>} */}
+                  <select
+                    className={`${styles.select_text} ${styles.arrow_none} fade03_forward mr-[6px] truncate`}
+                    value={activeDisplayTabs.periodType}
+                    onChange={(e) => {
+                      setActiveDisplayTabs({ ...activeDisplayTabs, periodType: e.target.value });
+                    }}
+                    onClick={handleCloseTooltip}
+                  >
+                    {optionsPeriodSalesTarget.map((option) => (
+                      <option key={option} value={option}>
+                        {mappingPeriodSalesTarget[option][language]}
+                      </option>
+                    ))}
+                  </select>
                   <div className={`flex-center h-[24px] text-[14px]`}>
                     <IoCaretDownOutline className={``} />
                   </div>
@@ -953,7 +976,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   )}
 
                   {/* 半期の場合は、「上半期・下半期」 */}
-                  {["firstHalf", "lastHalf"].includes(activeDisplayTabs.periodType) && (
+                  {["firstHalf", "secondHalf"].includes(activeDisplayTabs.periodType) && (
                     <>
                       <SalesTargetGridContainer
                         periodType="half"

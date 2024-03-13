@@ -1756,4 +1756,14 @@ export const optionsFiscalMonth: PeriodOption[] = [
   { key: `month12`, value: "12", name: { ja: `12月度`, en: `Dec.` } },
 ];
 
+// 売上目標
+// 期間区分 「年度 or 上半期 ~ 月度 or 下半期 ~ 月度」
+export const optionsPeriodSalesTarget = ["fiscalYear", "firstHalf", "secondHalf"];
+
+export const mappingPeriodSalesTarget: { [key: string]: { [key: string]: string } } = {
+  fiscalYear: { ja: "年度", en: "Fiscal Year" },
+  firstHalf: { ja: "上半期", en: "First Half" },
+  secondHalf: { ja: "下半期", en: "Second Year" },
+};
+
 // -------------------------- ✅SDB関連✅ --------------------------
