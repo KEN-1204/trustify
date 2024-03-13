@@ -35,6 +35,7 @@
   --caret-color-red: #ff3b5b;
   /* 現在のメインロゴ: #2B7FFF
   現在のメインロゴ: #0AFFFF */
+  --main-color-f: #0d99ff;
   --main-color-blue: #2b7fff;
   --main-color-blue-rgb: 43, 127, 255;
   --main-color-light: #0affff;
@@ -1029,6 +1030,13 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-tooltip-light: #585858; */
   --color-tooltip-light: #525252;
   --color-tooltip-light: #505050;
+  --color-tooltip-gradient-black: linear-gradient(
+    to bottom left,
+    #666666f9 0%,
+    #565656f9 30%,
+    #333333f9 70%,
+    #121212f9 100%
+  );
   /* アラートポップアップ alert_popup */
   --color-alert-popup-bg: #fff6f8;
   /* --color-alert-popup-bg: #fff; */
@@ -1089,6 +1097,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* ツールチップのボーダーからー light */
   --box-shadow-tooltip-border: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390;
+  --box-shadow-tooltip-border-inside: #cccccc90;
+  --box-shadow-tooltip-border-outside: #33333390;
   --box-shadow-tooltip-border-brand: inset 0px 0px 0px 1px var(--color-bg-brand-f60),
     0px 0px 0px 1px var(--color-bg-brand-f);
   --shadow-dropdown-menu: 0 4px 6px 2px #00000033;
@@ -1230,7 +1240,44 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* 背景 */
   --color-progress-chart-bg: #ddd;
   --color-progress-chart-shadow: 0 0 3px 1px var(--color-bg-brand-light);
+  /* パイチャート */
+
+  /* チャートカラー */
+  --color-chart-fill-rose: #f43f5e;
+  --color-chart-fill-rose-sheer: #f43f5e;
+  --color-chart-fill-emerald: #10b981;
+  --color-chart-fill-emerald-sheer: #10b981;
+  --color-chart-fill-blue: #3b82f6;
+  --color-chart-fill-blue-sheer: #3d82f6;
+  --color-chart-fill-indigo: #6366f1;
+  --color-chart-fill-indigo-sheer: #6366f1;
+  --color-chart-fill-fuchsia: #d946ef;
+  --color-chart-fill-fuchsia-sheer: #d946ef;
+  --color-chart-fill-amber: #f59e0b;
+  --color-chart-fill-amber-sheer: #f59e0b;
+  --color-chart-fill-pink: #ec4899;
+  --color-chart-fill-pink-sheer: #ec4899;
+  --color-chart-fill-sky: #0ea5e9;
+  --color-chart-fill-sky-sheer: #0ea5e9;
+  --color-chart-fill-cyan: #06b6d4;
+  --color-chart-fill-cyan-sheer: #06b6d4;
+  --color-chart-fill-violet: #8b5cf6;
+  --color-chart-fill-violet-sheer: #8b5cf6;
+  --color-chart-fill-purple: #a855f7;
+  --color-chart-fill-purple-sheer: #a855f7;
+  --color-chart-fill-lime: #84cc16;
+  --color-chart-fill-lime-sheer: #84cc16;
+  --color-chart-fill-orange: #f97316;
+  --color-chart-fill-orange-sheer: #f97316;
+  --color-chart-fill-green: #22c55e;
+  --color-chart-fill-green-sheer: #22c55e;
+  --color-chart-fill-red: #ef4444;
+  --color-chart-fill-red-sheer: #ef4444;
   /* -------- ✅グラフ・チャート関連✅ light -------- */
+  /* -------- 🌟セッティングメニュー🌟 light -------- */
+  --color-setting-menu-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390,
+    0 4px 10px 3px #00000066;
+  /* -------- ✅セッティングメニュー✅ -------- */
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -1821,6 +1868,13 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-tooltip-dark: #282828;
   /* --color-tooltip-light: #333; */
   --color-tooltip-light: #393939;
+  --color-tooltip-gradient-black: linear-gradient(
+    to bottom left,
+    #666666d0 0%,
+    #484848d0 30%,
+    #333333d0 70%,
+    #121212d0 100%
+  );
   /* アラートポップアップ alert_popup */
   --color-alert-popup-bg: #555;
   --color-alert-popup-text: #fff;
@@ -1898,6 +1952,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* ツールチップのボーダーからー */
 
   --box-shadow-tooltip-border: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000;
+  --box-shadow-tooltip-border-inside: #ffffff70;
+  --box-shadow-tooltip-border-outside: #000;
   --box-shadow-tooltip-border-brand: inset 0px 0px 0px 1px var(--color-bg-brand-f-deep),
     0px 0px 0px 1px var(--color-bg-brand-f);
   --shadow-dropdown-menu: 0 4px 10px 2px #ffffff33;
@@ -2007,7 +2063,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-barrel-text-active: rgb(239 68 68 / 1);
   --color-barrel-border-active: rgb(153 27 27 / 1);
   --color-drop-indicator-active: #00ff40;
-  /* 受注後のグラデーションモーダル */
+  /* -------------- 受注後のグラデーションモーダル */
   --color-gradient-modal: linear-gradient(
     180deg,
     #ffffffd0 9%,
@@ -2085,7 +2141,44 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-progress-chart-bg: #333;
   /* --color-progress-chart-shadow: 0 0 1px 1px #ffffff90, 0 0 3px 2px #fff, 0 0 3px 3px var(--color-bg-brand); */
   --color-progress-chart-shadow: 0 0 1px 1px #ffffff90, 0 0 3px 2px #0ab5ff, 0 0 3px 3px var(--color-bg-brand);
+
+  /* パイチャート */
+  --color-chart-fill-rose: #f43f5e;
+  --color-chart-fill-rose-sheer: #f43f5eb9;
+  --color-chart-fill-emerald: #10b981;
+  --color-chart-fill-emerald-sheer: #10b981b9;
+  --color-chart-fill-blue: #3b82f6;
+  --color-chart-fill-blue-sheer: #3d82f6b9;
+  --color-chart-fill-indigo: #6366f1;
+  --color-chart-fill-indigo-sheer: #6366f1b9;
+  --color-chart-fill-fuchsia: #d946ef;
+  --color-chart-fill-fuchsia-sheer: #d946efb9;
+  --color-chart-fill-amber: #f59e0b;
+  --color-chart-fill-amber-sheer: #f59e0bb9;
+  --color-chart-fill-pink: #ec4899;
+  --color-chart-fill-pink-sheer: #ec4899b9;
+  --color-chart-fill-sky: #0ea5e9;
+  --color-chart-fill-sky-sheer: #0ea5e9b9;
+  --color-chart-fill-cyan: #06b6d4;
+  --color-chart-fill-cyan-sheer: #06b6d4b9;
+  --color-chart-fill-violet: #8b5cf6;
+  --color-chart-fill-violet-sheer: #8b5cf6b9;
+  --color-chart-fill-purple: #a855f7;
+  --color-chart-fill-purple-sheer: #a855f7b9;
+  --color-chart-fill-lime: #84cc16;
+  --color-chart-fill-lime-sheer: #84cc16b9;
+  --color-chart-fill-orange: #f97316;
+  --color-chart-fill-orange-sheer: #f97316b9;
+  --color-chart-fill-green: #22c55e;
+  --color-chart-fill-green-sheer: #22c55eb9;
+  --color-chart-fill-red: #ef4444;
+  --color-chart-fill-red-sheer: #ef4444b9;
   /* -------- ✅グラフ・チャート関連✅ dark -------- */
+
+  /* -------- 🌟セッティングメニュー🌟 -------- */
+  --color-setting-menu-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390,
+    0 4px 10px 2px #ffffff33;
+  /* -------- ✅セッティングメニュー✅ -------- */
 }
 
 /* html {
@@ -2446,6 +2539,19 @@ textarea {
   100% {
     opacity: 0.9;
   }
+}
+/* チャート用フェード */
+.fade_chart05_d03 {
+  opacity: 0;
+  animation: fade 0.5s 0.3s ease forwards;
+}
+.fade_chart05_d05 {
+  opacity: 0;
+  animation: fade 0.5s 0.5s ease forwards;
+}
+.fade_chart05_d2 {
+  opacity: 0;
+  animation: fade 0.5s 2s ease forwards;
 }
 
 /* クリア オーバーレイ absolute z-indexは個別につける */

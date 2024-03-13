@@ -70,5 +70,12 @@ interface NumberOfEmployeesClassTitles {
 // export mappingNumberOfEmployeesClass
 
 // --------------------------- 🌟SDB関連🌟 ---------------------------
+// アクティブエンティティ名 activeEntityTabs メンバーは係のサブツリーとして同時に表示
+export const mappingEntityName: { [key: string]: { [key: string]: string } } = {
+  company: { ja: "全社", en: "Company" },
+  department: { ja: "事業部", en: "Department" },
+  section: { ja: "課・セクション", en: "Section" },
+  unit: { ja: "係・ユニット", en: "Unit" },
+};
 
 // --------------------------- ✅SDB関連✅ ---------------------------

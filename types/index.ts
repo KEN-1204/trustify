@@ -2462,14 +2462,40 @@ export type SelectedDealCard = {
 export type PeriodSDB = { periodType: string; period: number };
 
 // SDB セクション関連
-// メンバーセクション 選択中のメンバー
-// export type MemberObj = {
-//   memberId: string | null;
-//   memberName: string | null;
-//   departmentId: string | null;
-//   sectionId: string | null;
-//   unitId: string | null;
-//   officeId: string | null;
-//   signature_stamp_id?: string | null;
-//   signature_stamp_url?: string | null;
-// };
+export type SectionMenuParams = {
+  // e: React.MouseEvent<HTMLElement, MouseEvent>;
+  e: React.MouseEvent<HTMLElement, globalThis.MouseEvent | MouseEvent>;
+  title: string;
+  displayX?: string;
+  maxWidth?: number;
+  fadeType?: string;
+};
+
+// パイチャート
+// らべる
+export type CustomizedLabelProps = {
+  cornerRadius: any;
+  cx: number;
+  cy: number;
+  endAngle: number;
+  fill: string;
+  index: number;
+  innerRadius: number;
+  maxRadius: number;
+  midAngle: number;
+  middleRadius: number;
+  name: string;
+  outerRadius: number;
+  paddingAngle: number;
+  payload: { [key: string]: any };
+  percent: number;
+  startAngle: number;
+  stroke: string;
+  strokeWidth: string;
+  textAnchor: string;
+  tooltipPayload: any[];
+  tooltipPosition: { x: number; y: number };
+  value: number;
+  x: number;
+  y: number;
+};

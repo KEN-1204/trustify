@@ -791,7 +791,7 @@ const SalesProgressScreenMemo = () => {
                 <li
                   className={`${styles.list}`}
                   onMouseEnter={(e) => {
-                    handleOpenPopupMenu({ e, title: "compressionRatio" });
+                    // handleOpenPopupMenu({ e, title: "compressionRatio" });
                   }}
                   onMouseLeave={handleClosePopupMenu}
                 >
@@ -873,7 +873,7 @@ const SalesProgressScreenMemo = () => {
                 <li className={`${styles.list} ${styles.btn_area} space-x-[20px]`}>
                   <div
                     className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
-                    onClick={handleChangePeriod}
+                    // onClick={handleChangePeriod}
                   >
                     <span>適用</span>
                   </div>

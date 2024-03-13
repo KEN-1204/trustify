@@ -12,6 +12,8 @@
   /* z-index: 1500; */
   font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
   /* background: #000; */
+  /* backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px); */
 }
 .tooltip {
   /* position: absolute; */
@@ -30,8 +32,9 @@
   /* background: #282828f0; */
   background: var(--color-tooltip-arrow);
   background: var(--color-tooltip-light);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: var(--color-tooltip-gradient-black);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   transition-delay: 0.5s;
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
@@ -92,6 +95,9 @@
   transform: translateX(-50%);
   background: #282828;
   background: var(--color-tooltip-light);
+  background: var(--color-tooltip-gradient-black);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   transition-delay: 0.5s;
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
