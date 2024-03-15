@@ -36,6 +36,10 @@ import { contactColumnHeaderItemListData } from "@/utils/contactColumnHeaderItem
 import { meetingColumnHeaderItemListData } from "@/utils/meetingColumnHeaderItemListData";
 import { propertyColumnHeaderItemListData } from "@/utils/propertyColumnHeaderItemListData";
 import { quotationColumnHeaderItemListData } from "@/utils/quotationColumnHeaderItemListData";
+import {
+  salesTargetColumnHeaderItemListData,
+  salesTargetWithYoYColumnHeaderItemListData,
+} from "@/utils/salesTargetColumnHeaderItemListData";
 // import { Session } from "@supabase/supabase-js";
 import { ReactNode } from "react";
 import Stripe from "stripe";
@@ -450,6 +454,10 @@ type State = {
   // プロフィール用見積書プレビューモーダル
   isOpenQuotationPreviewForProfile: boolean;
   setIsOpenQuotationPreviewForProfile: (payload: boolean) => void;
+
+  // =================== 売上目標テーブル ヘッダーリスト保持用state関連 ===================
+  salesTargetColumnHeaderItemList: ColumnHeaderItemList[];
+  setSalesTargetColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1109,6 +1117,11 @@ const useDashboardStore = create<State>((set) => ({
   // プロフィール用見積書プレビューモーダル
   isOpenQuotationPreviewForProfile: false,
   setIsOpenQuotationPreviewForProfile: (payload) => set({ isOpenQuotationPreviewForProfile: payload }),
+
+  // =================== 売上目標テーブル ヘッダーリスト保持用state関連 ===================
+  // salesTargetColumnHeaderItemList: salesTargetColumnHeaderItemListData,
+  salesTargetColumnHeaderItemList: salesTargetWithYoYColumnHeaderItemListData,
+  setSalesTargetColumnHeaderItemList: (payload) => set({ salesTargetColumnHeaderItemList: payload }),
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: false,

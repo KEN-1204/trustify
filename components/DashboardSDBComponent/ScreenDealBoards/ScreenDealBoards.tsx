@@ -197,6 +197,7 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                             circleId="1"
                             textId="1"
                             progress={78}
+                            // progress={100}
                             // progress={0}
                             duration={5000}
                             easeFn="Quartic"

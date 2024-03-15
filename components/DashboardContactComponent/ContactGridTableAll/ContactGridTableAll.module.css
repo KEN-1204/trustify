@@ -511,6 +511,9 @@
 .grid_cell.is_dragging_hover {
   border-right-color: var(--border-theme);
 }
+.grid_column_header_all:active {
+  cursor: grabbing;
+}
 /* カラム順番入れ替え中のスタイル変更 ドラッグ中の色を付ける */
 .grid_column_header_all.dragging_change_order {
   opacity: 0.3;

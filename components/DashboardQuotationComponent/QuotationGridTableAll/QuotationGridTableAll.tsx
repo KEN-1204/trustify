@@ -282,9 +282,9 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
   const supabase = useSupabaseClient();
 
   // 表示するカラム
-  const columnNamesObj = [...quotationColumnHeaderItemList]
-    .map((item, index) => item.columnName as keyof Client_company)
-    .join(", "); // columnNameのみの配列を取得
+  // const columnNamesObj = [...quotationColumnHeaderItemList]
+  //   .map((item, index) => item.columnName as keyof Client_company)
+  //   .join(", "); // columnNameのみの配列を取得
 
   // 検索タイプ オート検索/マニュアル検索 デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
   const functionName =

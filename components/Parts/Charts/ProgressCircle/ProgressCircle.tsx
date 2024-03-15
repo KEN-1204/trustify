@@ -18,6 +18,7 @@ type Props = {
   isReady?: boolean;
   fade?: string;
   withShadow?: boolean;
+  hiddenCenterText?: boolean;
 };
 
 // https://chat.openai.com/chat?model=gpt-4 // こちらを確認
@@ -42,6 +43,7 @@ const ProgressCircleMemo = ({
   isReady = true,
   fade,
   withShadow = true,
+  hiddenCenterText = false,
 }: Props) => {
   // プログレスアニメーション用state
   const [animatedProgress, setAnimatedProgress] = useState(0);
@@ -216,8 +218,10 @@ const ProgressCircleMemo = ({
           {!notGrad && (
             <linearGradient id={`circleLinearGradient_${circleId}`} x1={x1} y1={y1} x2={x2} y2={y2}>
               {/* //   <linearGradient id="circleLinearGradient" x1={x1} y1={y1} x2={x2} y2={y2}> */}
-              <stop offset="6%" stopColor="#ffffffe9" />
-              <stop offset="18%" stopColor="#cffcfde9" />
+              {/* <stop offset="6%" stopColor="#ffffffe9" /> */}
+              {/* <stop offset="18%" stopColor="#cffcfde9" /> */}
+              <stop offset="3%" stopColor="#ffffffe9" />
+              <stop offset="12%" stopColor="#cffcfde9" />
               <stop offset="33%" stopColor="#0affffe9" />
               <stop offset="56%" stopColor="#0abeffe9" />
               <stop offset="87%" stopColor="#0066ffe9" />
@@ -266,49 +270,53 @@ const ProgressCircleMemo = ({
             transformOrigin: "center",
           }}
         />
-        {/* 中央テキスト */}
-        <defs>
-          {!textVerticalDirReverse && !notGrad && (
-            <linearGradient id={`textLinearGradient_${textId}`} x1={x2} y1={y1} x2={x1} y2={y2}>
-              <stop offset="6%" stopColor="#fff" />
-              <stop offset="18%" stopColor="#cffcfd" />
-              <stop offset="33%" stopColor="#0affff" />
-              <stop offset="56%" stopColor="#0abeff" />
-              <stop offset="87%" stopColor="#0066ff" />
-            </linearGradient>
-          )}
-          {textVerticalDirReverse && !notGrad && (
-            <linearGradient id={`textLinearGradient_${textId}`} x1={x2} y1={y2} x2={x1} y2={y1}>
-              {/* <stop offset="6%" stopColor="#fff" />
+        {!hiddenCenterText && (
+          <>
+            {/* 中央テキスト */}
+            <defs>
+              {!textVerticalDirReverse && !notGrad && (
+                <linearGradient id={`textLinearGradient_${textId}`} x1={x2} y1={y1} x2={x1} y2={y2}>
+                  <stop offset="6%" stopColor="#fff" />
+                  <stop offset="18%" stopColor="#cffcfd" />
+                  <stop offset="33%" stopColor="#0affff" />
+                  <stop offset="56%" stopColor="#0abeff" />
+                  <stop offset="87%" stopColor="#0066ff" />
+                </linearGradient>
+              )}
+              {textVerticalDirReverse && !notGrad && (
+                <linearGradient id={`textLinearGradient_${textId}`} x1={x2} y1={y2} x2={x1} y2={y1}>
+                  {/* <stop offset="6%" stopColor="#fff" />
             <stop offset="18%" stopColor="#cffcfd" />
             <stop offset="33%" stopColor="#0affff" />
             <stop offset="56%" stopColor="#0abeff" />
             <stop offset="87%" stopColor="#0066ff" /> */}
-              <stop offset="6%" stopColor="#fff" />
-              <stop offset="9%" stopColor="#cffcfd" />
-              <stop offset="30%" stopColor="#0affff" />
-              <stop offset="56%" stopColor="#0abeff" />
-              <stop offset="88%" stopColor="#0066ff" />
-            </linearGradient>
-          )}
-          {notGrad && (
-            <linearGradient id={`textLinearGradient_${textId}`} x1={x2} y1={y2} x2={x1} y2={y1}>
-              <stop offset="100%" stopColor={oneColor} />
-            </linearGradient>
-          )}
-        </defs>
-        <text
-          x={size / 2}
-          y={size / 2}
-          textAnchor="middle"
-          dy=".3em" // テキストを垂直方向に少し下げるオプション（調整が必要な場合）
-          fontSize={fontSize} // フォントサイズ（必要に応じて調整）
-          fontWeight={600}
-          fontFamily="sans-serif"
-          fill={`${textColor ? textColor : `url(#textLinearGradient_${textId})`}`}
-        >
-          {displayProgress}%
-        </text>
+                  <stop offset="6%" stopColor="#fff" />
+                  <stop offset="9%" stopColor="#cffcfd" />
+                  <stop offset="30%" stopColor="#0affff" />
+                  <stop offset="56%" stopColor="#0abeff" />
+                  <stop offset="88%" stopColor="#0066ff" />
+                </linearGradient>
+              )}
+              {notGrad && (
+                <linearGradient id={`textLinearGradient_${textId}`} x1={x2} y1={y2} x2={x1} y2={y1}>
+                  <stop offset="100%" stopColor={oneColor} />
+                </linearGradient>
+              )}
+            </defs>
+            <text
+              x={size / 2}
+              y={size / 2}
+              textAnchor="middle"
+              dy=".3em" // テキストを垂直方向に少し下げるオプション（調整が必要な場合）
+              fontSize={fontSize} // フォントサイズ（必要に応じて調整）
+              fontWeight={600}
+              fontFamily="sans-serif"
+              fill={`${textColor ? textColor : `url(#textLinearGradient_${textId})`}`}
+            >
+              {displayProgress}%
+            </text>
+          </>
+        )}
       </svg>
     </>
   );

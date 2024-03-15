@@ -637,11 +637,14 @@ export const DashboardHeaderMemo: FC = () => {
   };
   // 管理者クリック 会社管理画面オープン
   const openSettingInvitation = () => {
-    if (userProfileState?.account_company_role !== ("company_owner" || "company_admin"))
-      return alert("管理者権限が必要です。");
-    setLoadingGlobalState(false);
-    setIsOpenSettingAccountModal(true);
-    setSelectedSettingAccountMenu("Company");
+    // if (userProfileState?.account_company_role !== ("company_owner" || "company_admin"))
+    //   return alert("管理者権限が必要です。");
+    // setIsOpenSettingAccountModal(true);
+    // setSelectedSettingAccountMenu("Company");
+    if (loadingGlobalState) setLoadingGlobalState(false);
+    setIsOpenSidebar(false);
+    setActiveMenuTab("SalesTarget");
+    handleCloseTooltip();
   };
 
   // タブ名によって選択中のRowデータをリセットする関数
@@ -1208,18 +1211,22 @@ export const DashboardHeaderMemo: FC = () => {
                 <div
                   // href="/home"
                   // prefetch={false}
-                  className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
+                  // className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
+                  className={`${styles.navbarItem} ${activeMenuTab === "SalesTarget" ? styles.active : ""} `}
                   onClick={openSettingInvitation}
                 >
                   <div
                     className={`${styles.navbarItemInner}`}
-                    data-text="管理者専用スペース"
+                    // data-text="管理者専用スペース"
+                    data-text="売上・プロセス目標"
                     onMouseEnter={(e) => handleOpenTooltip(e, "center")}
                     onMouseLeave={handleCloseTooltip}
                   >
                     <span>
-                      {language === "ja" && "管理者"}
-                      {language === "en" && "Admin"}
+                      {/* {language === "ja" && "管理者"}
+                      {language === "en" && "Admin"} */}
+                      {language === "ja" && "目標"}
+                      {language === "en" && "Target"}
                     </span>
                     {/* {!isLT1440 && (
                     <span>

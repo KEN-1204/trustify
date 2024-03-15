@@ -6,7 +6,7 @@ import { MdOutlineLeaderboard, MdOutlineAdminPanelSettings } from "react-icons/m
 import { HiOutlineBuildingOffice2, HiOutlineChatBubbleLeftRight, HiOutlineInboxArrowDown } from "react-icons/hi2";
 import { FaLink, FaTelegramPlane } from "react-icons/fa";
 import { AiOutlineMoneyCollect } from "react-icons/ai";
-import { BiMoneyWithdraw } from "react-icons/bi";
+import { BiMoneyWithdraw, BiTargetLock } from "react-icons/bi";
 import {
   BsTelephonePlus,
   BsCalendarDate,
@@ -78,10 +78,14 @@ export const DashboardSidebarMemo: FC = () => {
   };
 
   const openSettingInvitation = () => {
-    if (userProfileState?.account_company_role !== ("company_owner" || "company_admin"))
-      return alert("管理者権限が必要です。");
-    setIsOpenSettingAccountModal(true);
-    setSelectedSettingAccountMenu("Company");
+    // if (userProfileState?.account_company_role !== ("company_owner" || "company_admin"))
+    //   return alert("管理者権限が必要です。");
+    // setIsOpenSettingAccountModal(true);
+    // setSelectedSettingAccountMenu("Company");
+
+    setIsOpenSidebar(false);
+    setActiveMenuTab("SalesTarget");
+    handleCloseTooltip();
   };
 
   // タブ名によって選択中のRowデータをリセットする関数
@@ -607,13 +611,15 @@ export const DashboardSidebarMemo: FC = () => {
               <div
                 // href="/home"
                 // prefetch={false}
-                className={`${styles.menu_item} ${activeMenuTab === "Admin" ? styles.active : ""} `}
+                // className={`${styles.menu_item} ${activeMenuTab === "Admin" ? styles.active : ""} `}
+                className={`${styles.menu_item} ${activeMenuTab === "SalesTarget" ? styles.active : ""} `}
                 // onClick={() => switchActiveTab("Admin")}
                 onClick={openSettingInvitation}
               >
                 <div
                   className={styles.menu_item_inner}
-                  data-text="管理者"
+                  // data-text="管理者"
+                  data-text="売上・プロセス目標"
                   onMouseEnter={(e) => {
                     if (isOpenSidebar) return;
                     handleOpenTooltip(e, "left");
@@ -624,16 +630,18 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    <MdOutlineAdminPanelSettings
+                    {/* <MdOutlineAdminPanelSettings
                       className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`}
-                    />
+                    /> */}
+                    <BiTargetLock className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`} />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
                       isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
                     }`}
                   >
-                    <span>管理者</span>
+                    {/* <span>管理者</span> */}
+                    <span>売上・プロセス目標</span>
                   </div>
                 </div>
               </div>

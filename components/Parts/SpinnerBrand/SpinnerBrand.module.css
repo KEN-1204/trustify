@@ -116,7 +116,7 @@
   /* inset: 10px; */
   inset: 9px;
   /* background-color: #000; */
-  background-color: var(--bg-color);
+  background: var(--bg-color);
   border-radius: 50%;
   z-index: 1;
 }

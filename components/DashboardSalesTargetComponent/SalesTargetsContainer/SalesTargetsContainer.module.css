@@ -1,0 +1,42 @@
+.contents_area {
+  width: 100%;
+  max-width: 100%;
+  padding: 20px 32px 20px 30px;
+  display: grid;
+  row-gap: 20px;
+}
+.contents_area .grid_row {
+  width: 100%;
+  max-width: calc(100vw - 72px - 62px);
+  display: grid;
+  grid-template-columns: 1fr;
+  column-gap: 20px;
+}
+.contents_area .grid_row.col1 {
+  grid-template-columns: 1fr;
+}
+.contents_area .grid_row.col2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+.contents_area .grid_row.col3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+.contents_area .grid_row .grid_content_card {
+  /* min-height: 300px; */
+  min-height: max-content;
+  width: 100%;
+  max-width: calc(100vw - 72px - 62px);
+  background: var(--color-sales-card-bg);
+  box-shadow: var(--color-sales-card-border);
+  border-radius: 12px;
+}
+.contents_area .grid_row .grid_content_card .card_title_area {
+  padding: 15px 24px 5px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+.contents_area .grid_row .grid_content_card .card_title_area .card_title {
+  font-size: 18px;
+  font-weight: 600;
+}

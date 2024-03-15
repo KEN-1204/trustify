@@ -59,7 +59,7 @@
 }
 .theme_f_light:global {
   --border-theme: #0d99ff;
-  /* --border-theme-text: #0d99ff; */
+  --border-theme-text: #0d99ff;
   --border-theme-text: var(--color-bg-brand);
   --border-theme-text: var(--color-bg-brand-sub);
   /* --border-theme: #2b7fff; */
@@ -115,234 +115,29 @@
 }
 
 .main_container {
-  width: 100%;
-  /* height: calc(100vh - var(--header-height)); */
-  /* max-height: calc(100vh / 3 - var(--header-height) / 3); */
-  /* min-height: calc(100vh / 3 - var(--header-height) / 3); */
-  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
-  /* 🌟全体に表示 Header 56px grid-header 22px */
-  /* max-height: calc(100vh - var(--header-height) - 22px); */
-  /* 🌟HomeComponentのスクリーンにpadding 上下20px有りの場合 */
-  max-height: calc(100vh - var(--header-height) - 22px - 20px);
-
-  /* 全体に表示 ファンクションヘッダー有り height: 45px; */
-  /* ヘッダー56px */
-
   position: relative;
   display: flex;
   flex-direction: column;
-  flex: 1 1 0%;
-  /* overflow: hidden; */
-  /* overflow-x: hidden; */
-  /* background: transparent; */
-  background-color: var(--color-bg-base);
-  /* box-shadow: 0 0px 20px rgba(12, 12, 12, 0.5); */
-  color: var(--color-text);
-  color: var(--color-text-title);
-  /* box-shadow: 0 0px 5px rgba(12, 12, 12, 0.3); */
-  /* margin-top: 5px; */
-}
-.main_container_half {
-  /* 全体に表示 Header 56px grid-header 22px */
-  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
-  max-height: calc(100vh / 2 - var(--header-height) / 2);
-  /* max-height: calc(100vh - var(--header-height)); */
-  /* 全体に表示 ファンクションヘッダー有り height: 45px; */
-  /* ヘッダー56px */
-}
-.main_container_one_third {
-  /* 全体に表示 Header 56px grid-header 22px */
-  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
-  max-height: calc(100vh / 3 - var(--header-height) / 3);
-  /* 全体に表示 ファンクションヘッダー有り height: 45px; */
-  /* ヘッダー56px */
-}
-/* 🌟テーブルヘッダー タブエリア */
-.grid_header {
-  /* height: 35px;
-  min-height: 35px; */
-  height: 22px;
+  /* flex: 1 1 0%; */
+  /* padding: 0px 15px 12px; */
+  padding: 0px 15px 0px;
   width: 100%;
-  /* border-bottom: 1px solid var(--color-border-deep); */
-  background-color: transparent;
-  /* background-color: var(--color-bg-table-header); */
-  display: flex;
-  justify-content: space-between;
-  /* padding-left: 1px; */
-}
-.table_tab {
-  background: var(--color-bg-brand-table-tab);
-  min-width: 80px;
-  /* min-height: 22px; */
-  height: 100%;
-  width: 100%;
-  padding: 0 15px;
-  /* 全体に表示 */
-  font-size: 12px;
-  user-select: none;
-  color: #fcfcfc;
-  font-weight: 500;
-  box-shadow: inset 0px 0px 0px 1px var(--color-border-deep);
-  /* box-shadow: 0 0 5px 0px rgba(12, 12, 12, 0.3); */
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-
-  /* 丸み */
-  border-top-left-radius: 4px;
-  border-top-right-radius: 4px;
-}
-/* 🌟gridメインコンテナ */
-.grid_main_container {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  border: 1px solid var(--color-border-deep);
-  border-top: 0px;
-  /* box-shadow: 0 0 5px 0px rgba(12, 12, 12, 0.3); */
-  /* border-bottom-left-radius: 4px; */
-  /* 全体に表示 */
-  /* border-bottom-left-radius: 4px;は無し */
-  /* border-bottom-right-radius: 4px; */
-  /* 丸み */
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
-}
-/* 🌟ファンクションヘッダー */
-.grid_function_header {
-  /* border: 1px solid var(--border-color); */
-  /* border-bottom: none; */
-  /* overflow: visible;
-  z-index: 0;
-  position: relative; */
-  background: var(--color-table-header);
-  border-bottom: 1px solid var(--color-border-table-deep);
-  /* border-bottom: 1px solid var(--border-color); */
-  display: flex;
-  min-height: 40px;
-  width: 100%;
-  /* height: 45px; */
-  padding: 0px 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.fh_text_btn {
-  /* border: 1px solid var(--color-bg-brand-f); */
-  min-height: 25px;
-  max-height: 25px;
-}
-.fh_text_btn:hover {
-  /* border: 1px solid var(--color-bg-brand-f); */
-  /* border: 1px solid #6ae67d; */
-  /* background: var(--color-bg-brand-f-deep); */
-  /* background: var(--color-function-header-text-btn-hover); */
-  background: var(--color-btn-brand-f);
-  /* background: var(--color-bg-brand-f); */
-  box-shadow: 0 0 0 1px var(--color-btn-brand-f-hover);
-  color: #fff;
-}
-.fh_text_btn:active {
-  /* background: var(--color-btn-brand-f); */
-  background: var(--color-function-header-text-btn-active);
+  /* height: calc(300px - 47px); */
+  height: max-content;
+  overflow: auto;
 }
 
-.page_transition_button {
-  font-size: 14px;
-  color: var(--color-text);
-  color: var(--color-text-title);
-}
-/* 🌟スクロールコンテナ overflow: auto */
-/* position relative */
-/* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
 .grid_scroll_container {
-  /* height: 100%; */
-  /* -22pxはテーブルヘッダーの高さ */
-  /* max-height: calc(100vh / 3 - var(--header-height) / 3 - 22px); */
-  /* 全体に表示 ファンクションヘッダー無し */
-  /* max-height: calc(100vh - var(--header-height) - 30px); */
-  /* 全体に表示 ファンクションヘッダー有り height: 40px; footer: 30px */
-  /* ファンクションヘッダー:-30px、フッター:-40px */
-  /* max-height: calc(100vh - var(--header-height) - 30px); */
-  /* max-height: calc(100vh - var(--header-height) - 30px) - 40px; */
-  /* 🌟HomeComponentのスクリーンにpadding無しで全体を表示する場合 */
-  /* max-height: calc(100vh - var(--header-height) - 30px - 40px); */
-  /* 🌟HomeComponentのスクリーンにpadding 上下20px有りの場合 */
-  max-height: calc(100vh - var(--header-height) - 30px - 40px - 20px);
-  /* テスト */
-  min-height: calc(100vh / 3 - var(--header-height) / 3 - 40px - 22px - 9px);
-  /* テスト */
+  /* min-height: calc(100vh / 3 - var(--header-height) / 3 - 40px - 22px - 9px); */
   width: 100%;
+  max-height: 183px;
   overflow: auto;
   position: relative;
   padding-right: 30vw;
-}
-.grid_scroll_container_half {
-  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
-  max-height: calc(100vh / 2 - var(--header-height) / 2 - 30px - 40px);
-}
-.grid_scroll_container_one_third {
-  /* // 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 高さ 🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟 */
-  max-height: calc(100vh / 3 - var(--header-height) / 3 - 30px - 40px);
-}
-/* ====================== 🌠ラージ、ミディアム切り替え用で追加🌠 ====================== */
-/* ミディアム  */
-.main_container_half.medium {
-  max-height: calc(100vh / 2 - var(--header-height) / 2 + 1px);
-}
-.grid_scroll_container.medium {
-  min-height: calc(50vh - var(--header-height) / 2 - 30px - 40px);
-}
-/* ラージ ラージの時はpaddingが上下につくため20pxではなく0px */
-.grid_scroll_container.all {
-  min-height: calc(100vh - var(--header-height) - 0px - 22px - 40px - 30px - 30px);
-}
-/* ====================== 🌠ラージ、ミディアム切り替え用で追加🌠 ====================== */
-/* サーチモード中の仮想化Rowグループ代わりのコンテナ ヘッダー30pxも引く */
-.search_mode_container_one_third {
-  min-height: calc(100vh / 3 - var(--header-height) / 3 - 30px - 40px - 30px);
-  /* background: #ccc; */
-  width: calc(100vw - var(--sidebar-width) - 20px);
-}
-.search_mode_container_half {
-  min-height: calc(100vh / 2 - var(--header-height) / 2 - 30px - 40px - 30px);
-  /* background: #ccc; */
-  width: calc(100vw - var(--sidebar-width) - 20px);
-}
-.search_mode_container_all {
-  min-height: calc(100vh - var(--header-height) - 30px - 40px - 30px);
-  /* background: #ccc; */
-  width: calc(100vw - var(--sidebar-width) - 20px);
-}
-.searching_row {
-  /* border-top: 1px solid #ccc; */
-  border-bottom: 1px solid var(--border-color);
-  width: 100%;
-  height: 30px;
-  animation: shine-lines 1.6s infinite linear;
-}
-.searching_row::after {
-}
-@keyframes shine-lines {
-  0% {
-    background-position: -100px;
-  }
-  40%,
-  100% {
-    background-position: 140px;
-  }
+  padding-bottom: 24px;
+  /* padding-bottom: 36px; */
 }
 
-/* 仮想化Rowグループコンテナ */
-.grid_rowgroup_virtualized_container {
-  position: relative;
-  /* --header-row-height: 35px; */
-  --header-row-height: 30px;
-  /* --row-width: 0px; */
-  /* テスト */
-  min-height: calc(100vh / 3 - var(--header-height) / 3 - 30px - 40px - 30px - 1px);
-  /* テスト */
-}
 .grid_header_row {
   position: sticky;
   z-index: 10;
@@ -354,41 +149,25 @@
   user-select: none;
   outline: none;
   font-weight: 700;
-  contain: layout size style;
-  height: var(--header-row-height);
-  width: var(--row-width);
-  box-sizing: content-box;
-  border-bottom: 1px solid var(--color-border);
-  /* border-bottom: 1px solid var(--color-border-table-deep); */
-}
-
-/* テスト */
-.grid_header_row {
-  display: grid;
-  grid-template-columns: var(--template-columns);
-  grid-template-rows: var(--header-row-height);
-  position: sticky;
-  z-index: 10;
-  top: 0;
-  user-select: none;
-  border-style: none;
-  outline: none;
-  font-weight: 700;
+  /* contain: layout size style; */
   contain: size layout style paint;
   height: var(--header-row-height);
   width: var(--row-width);
-  /* background-color: var(--color-bg-base-sub); */
+  box-sizing: content-box;
+  /* border-bottom: 1px solid var(--color-border); */
+  border-bottom: 1px solid var(--color-border-table-deep);
 }
 
 .grid_row {
   display: grid;
   grid-template-columns: var(--template-columns);
-  grid-template-rows: var(--header-row-height);
-  height: var(--header-row-height);
+  grid-template-rows: var(--grid-row-height);
+  height: var(--grid-row-height);
   width: var(--row-width);
   contain: size layout style paint;
   left: 0;
   position: absolute;
+  border-bottom: 1px solid var(--color-border);
 }
 /* 🔹偶数行カラーチェンジ */
 .grid_row.even_color_change:nth-of-type(even) .grid_cell {
@@ -415,17 +194,19 @@
 }
 /* 🔹偶数行カラーチェンジここまで */
 .grid_row[aria-selected="true"] .grid_cell.checkbox_cell {
-  background: var(--color-table-cell-bg);
+  /* background: var(--color-table-cell-bg); */
 }
 .grid_row[aria-selected="true"] .grid_cell.checkbox_cell {
-  background-color: var(--color-table-even-color-changed-bg);
+  /* background-color: var(--color-table-even-color-changed-bg); */
 }
 
 .grid_column_header_all {
-  color: var(--color-text);
-  color: var(--color-text-title);
+  /* color: var(--color-text); */
+  /* color: var(--color-text-title); */
+  color: var(--color-text-sub);
 
-  background: var(--color-table-header);
+  /* background: var(--color-table-header); */
+  backdrop-filter: blur(12px);
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -435,8 +216,11 @@
   font-size: 13px;
 
   /* border-bottom: 1px solid var(--border-color); */
-  border-bottom: 1px solid var(--color-border-table-deep);
-  border-right: 1px solid var(--border-color);
+  /* border-bottom: 1px solid var(--color-border-table-deep); */
+  /* border-right: 1px solid var(--border-color); */
+  /* border: 1px solid transparent; */
+  /* border-bottom: 1px solid transparent; */
+  /* border-right: 1px solid transparent; */
   contain: size layout style paint;
   outline: none;
   padding: 0 8px;
@@ -446,15 +230,18 @@
 .grid_column_header_all:nth-of-type(1),
 .grid_column_header_all:nth-of-type(2) {
   /* background-color: #232323; */
-  background-color: var(--color-table-header);
+  /* background-color: var(--color-table-header); */
 }
 
 .grid_cell {
   color: var(--color-text);
   color: var(--color-text-title);
   /* background: var(--color-bg-base); */
-  background: var(--color-table-cell-bg);
   /* background-color: #232323; */
+  /* テスト */
+  /* background: var(--color-table-cell-bg); */
+  backdrop-filter: blur(12px);
+  /* テスト */
 
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -464,24 +251,31 @@
   align-items: center;
   font-size: 13px;
 
-  border-bottom: 1px solid var(--border-color);
-  border-right: 1px solid var(--border-color);
+  /* border-bottom: 1px solid var(--border-color); */
+  /* border-right: 1px solid var(--border-color); */
+  border-bottom: 1px solid transparent;
+  border-right: 1px solid transparent;
   contain: size layout style paint;
   outline: none;
   padding: 0 8px;
+  /* border: 1px solid transparent; */
 }
-
 .grid_cell.company_highlight {
-  color: var(--color-company-highlight);
+  /* color: var(--color-company-highlight); */
   font-family: sans-serif;
 }
 .grid_row:hover .grid_cell {
   background-color: var(--color-table-row-hover);
   /* background-color: var(--color-table-bg-selected); */
 }
+.grid_row .grid_cell.share {
+  padding: 0;
+}
 .grid_row[aria-selected="true"] .grid_cell {
-  background-color: var(--color-table-bg-selected);
-  color: var(--color-table-color-selected);
+  /* background-color: var(--color-table-bg-selected);
+  color: var(--color-table-color-selected); */
+  /* background-color: #1c9ffd; */
+  /* background-color: #33aaff; */
   /* background-color: var(--color-table-row-hover); */
   /* color: var(--border-theme-text); */
   /* color: var(--selected-text); */
@@ -489,28 +283,37 @@
 
 .grid_column_header_all[aria-selected="true"] {
   box-shadow: inset 0 0 0 1px var(--border-theme);
+  /* border: 1px solid var(--border-theme); */
 }
 
 /* .grid_cell[aria-selected="true"] {
   box-shadow: inset 0 0 0 1px var(--border-theme);
 } */
 .grid_row[aria-selected="true"] .grid_cell[aria-selected="true"] {
-  box-shadow: inset 0 0 0 1px var(--color-border-theme);
+  /* box-shadow: inset 0 0 0 1px var(--color-border-theme); */
+  /* border: 1px solid var(--color-border-theme); */
 }
 
 /* 列サイズ変更時のボーダーハイライト */
+.grid_cell.is_dragging,
+.grid_cell.is_dragging_hover,
+.grid_column_header_all.is_dragging_hover,
 .grid_column_header_all.is_dragging {
   border-right-color: var(--border-theme);
+  border-right: 1px solid var(--border-theme-dark);
+  border-right: 1px solid var(--border-theme);
 }
-.grid_column_header_all.is_dragging_hover {
-  border-right-color: var(--border-theme);
+.grid_cell.is_dragging_hover.grid_cell_frozen_last,
+.grid_column_header_all.is_dragging_hover.grid_cell_frozen_last {
+  border-right: 4px solid var(--border-theme-dark);
+  border-right: 4px solid var(--border-theme);
 }
-.grid_cell.is_dragging {
+/* .grid_cell.is_dragging {
   border-right-color: var(--border-theme);
 }
 .grid_cell.is_dragging_hover {
   border-right-color: var(--border-theme);
-}
+} */
 .grid_column_header_all:active {
   cursor: grabbing;
 }
@@ -584,12 +387,15 @@
   text-overflow: ellipsis;
   font-size: 0.75rem;
   line-height: 1rem;
-  color: var(--color-text);
-  color: var(--color-text-title);
+  /* color: var(--color-text);
+  color: var(--color-text-title); */
   overflow: hidden;
 
   /* -webkit-user-select: none;
   user-select: none; */
+}
+.grid_column_header_all .grid_column_header_inner_name {
+  color: var(--color-text-sub);
 }
 
 .grid_footer {
@@ -621,6 +427,11 @@
   align-items: center;
   justify-content: center;
 }
+.grid_column_header_checkbox_column.share {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
 .grid_select_cell_header {
   position: relative;
   display: flex;
@@ -634,6 +445,9 @@
   height: 16px;
 }
 
+.grid_header_cell_share span {
+  font-size: 12px;
+}
 .main_container input[type="checkbox"] {
   appearance: none;
   -webkit-appearance: none;
@@ -672,7 +486,7 @@
   width: 1rem;
   /* top: 9px;
   left: 14px; */
-  top: 51%;
+  /* top: 51%; */
   top: 54%;
   left: 50%;
   transform: translate(-50%, -50%);

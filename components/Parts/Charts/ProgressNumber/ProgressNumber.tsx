@@ -12,7 +12,10 @@ type Props = {
   padding?: string;
   easeFn?: "Cubic" | "Quartic" | "Quintic" | "Sextic";
   isReady?: boolean;
+  isPrice?: boolean;
+  isPercent?: boolean;
   fade?: string;
+  customClass?: string;
 };
 
 const ProgressNumberMemo = ({
@@ -25,7 +28,10 @@ const ProgressNumberMemo = ({
   padding,
   easeFn = "Cubic",
   isReady = true,
+  isPrice = true,
+  isPercent = false,
   fade,
+  customClass,
 }: Props) => {
   const [animatedProgress, setAnimatedProgress] = useState(startNumber);
 
@@ -104,10 +110,12 @@ const ProgressNumberMemo = ({
         color: `${textColor}`,
         ...(margin && { margin: `${margin}`, ...(padding && { padding: `${padding}` }) }),
       }}
-      className={`${fade && !isReady ? `opacity-0` : ``} ${isReady && fade ? `${fade}` : ``}`}
+      className={`${fade && !isReady ? `opacity-0` : ``} ${isReady && fade ? `${fade}` : ``} ${customClass}`}
     >
       {/* {animatedProgress.toLocaleString()} */}
-      {formatToJapaneseYen(animatedProgress)}
+      {isPrice && formatToJapaneseYen(animatedProgress)}
+      {!isPrice && animatedProgress}
+      {isPercent && `%`}
     </span>
   );
 };

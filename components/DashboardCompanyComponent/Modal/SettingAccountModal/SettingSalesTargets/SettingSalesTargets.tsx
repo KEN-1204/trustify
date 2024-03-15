@@ -18,7 +18,10 @@ import { dataIllustration, winnersIllustration } from "@/components/assets";
 import { RxDot } from "react-icons/rx";
 import { IoCaretDownOutline } from "react-icons/io5";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
-import { SalesTargetGridContainer, SalesTargetGridContainerForMonthly } from "./SalesTargetGridContainer";
+import {
+  SettingSalesTargetGridContainer,
+  SettingSalesTargetGridContainerForMonthly,
+} from "./SettingSalesTargetGridContainer";
 import { Cell, Pie, PieChart, ResponsiveContainer, Sector } from "recharts";
 import { COLORS, COLORS_SHEER, colorsArray, dataPie } from "@/components/Parts/Charts/Seeds/seedData";
 import { PieLabelRenderProps, PieSectorDataItem } from "recharts/types/polar/Pie";
@@ -47,6 +50,7 @@ const SettingSalesTargetsMemo: FC = () => {
   // const theme = useRootStore(useThemeStore, (state) => state.theme);
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
   const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
   const selectedSettingAccountMenu = useDashboardStore((state) => state.selectedSettingAccountMenu);
   const setSelectedSettingAccountMenu = useDashboardStore((state) => state.setSelectedSettingAccountMenu);
@@ -736,7 +740,11 @@ const SettingSalesTargetsMemo: FC = () => {
                   //     loading ? `` : `hover:bg-[var(--color-bg-brand-f-deep)]`
                   //   } mt-[10px]`}
                   className={`transition-bg02 flex-center mt-[10px] max-h-[41px] w-[138px] cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[14px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)] `}
-                  //   onClick={() => setIsOpenSettingInvitationModal(true)}
+                  onClick={() => {
+                    // setSelectedSettingAccountMenu("Profile");
+                    setIsOpenSettingAccountModal(false);
+                    setActiveMenuTab("SalesTarget");
+                  }}
                 >
                   <span>目標を設定</span>
                   {/* {loading && <SpinnerIDS scale={"scale-[0.4]"} />} */}
@@ -868,8 +876,6 @@ const SettingSalesTargetsMemo: FC = () => {
                   }}
                   onMouseLeave={handleCloseTooltip}
                 >
-                  {/* {activeDisplayTabs.periodType === "fiscalYear" && <span className="mr-[6px]">年度</span>}
-                  {activeDisplayTabs.periodType === "half" && <span className="mr-[6px]">半期〜月度</span>} */}
                   <select
                     className={`${styles.select_text} ${styles.arrow_none} fade03_forward mr-[6px] truncate`}
                     value={activeDisplayTabs.periodType}
@@ -965,7 +971,7 @@ const SettingSalesTargetsMemo: FC = () => {
 
                   {/* 年度 */}
                   {["fiscalYear"].includes(activeDisplayTabs.periodType) && (
-                    <SalesTargetGridContainer
+                    <SettingSalesTargetGridContainer
                       periodType="fiscalYear"
                       periodValue={activeDisplayTabs.year}
                       salesTargetValue={404200000}
@@ -978,21 +984,21 @@ const SettingSalesTargetsMemo: FC = () => {
                   {/* 半期の場合は、「上半期・下半期」 */}
                   {["firstHalf", "secondHalf"].includes(activeDisplayTabs.periodType) && (
                     <>
-                      <SalesTargetGridContainer
+                      <SettingSalesTargetGridContainer
                         periodType="half"
                         periodValue={20241}
                         salesTargetValue={123000000000}
                         yearOnYear={0.274}
                         growthResultLastYearOnLastYear={0.25}
                       />
-                      <SalesTargetGridContainer
+                      <SettingSalesTargetGridContainer
                         periodType="quarter"
                         periodValue={20241}
                         salesTargetValue={123000000000 / 2}
                         yearOnYear={0.274}
                         growthResultLastYearOnLastYear={0.25}
                       />
-                      <SalesTargetGridContainer
+                      <SettingSalesTargetGridContainer
                         periodType="quarter"
                         periodValue={20242}
                         salesTargetValue={123000000000 / 2}
@@ -1005,7 +1011,7 @@ const SettingSalesTargetsMemo: FC = () => {
                         <div className={`min-h-[1px] w-full bg-[var(--color-border-light)]`}></div>
                       </div>
 
-                      <SalesTargetGridContainerForMonthly
+                      <SettingSalesTargetGridContainerForMonthly
                         periodType={"monthly"}
                         monthlySalesTargetsArray={
                           activeDisplayTabs.periodType === "firstHalf"
@@ -1075,95 +1081,105 @@ const SettingSalesTargetsMemo: FC = () => {
                 <div className={`flex-center h-[210px] w-[360px] overflow-visible bg-[red]/[0]`}>
                   {/* <div className={`h-[160px] w-[160px] rounded-full bg-pink-100`}></div> */}
                   {chartArray && (
-                    <ResponsiveContainer style={{ overflow: `visible` }}>
-                      <PieChart style={{ overflow: `visible` }}>
-                        <Pie
-                          // data={dataChart}
-                          data={chartArray}
-                          // 四隅に5pxずつpaddingあり、サイズは160ではなく、150のため75が中心
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={45}
-                          outerRadius={60}
-                          // fill="#8884d8"
-                          paddingAngle={chartArray?.length === 1 ? 0 : 5}
-                          dataKey="value"
-                          label={(props: CustomizedLabelProps) => {
-                            // console.log("らべる props", props);
-                            return renderCustomizeLabel({
-                              props,
-                              customProps: {
-                                isHovering: activeIndex !== 100,
-                                fillColor:
+                    <>
+                      <div
+                        className={`absolute left-[15px] top-[10px] h-[calc(100%-20px)] w-[calc(100%-30px)] rounded-[9px] border border-solid border-[var(--color-border-base)] bg-[var(--color-bg-sub)]`}
+                      >
+                        <div className="px-[10px] py-[10px] text-[13px] font-bold text-[var(--color-text-title)]">
+                          売上目標シェア
+                        </div>
+                      </div>
+
+                      <ResponsiveContainer style={{ overflow: `visible` }}>
+                        <PieChart style={{ overflow: `visible` }}>
+                          <Pie
+                            // data={dataChart}
+                            data={chartArray}
+                            // 四隅に5pxずつpaddingあり、サイズは160ではなく、150のため75が中心
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={45}
+                            outerRadius={60}
+                            // fill="#8884d8"
+                            paddingAngle={chartArray?.length === 1 ? 0 : 5}
+                            dataKey="value"
+                            label={(props: CustomizedLabelProps) => {
+                              // console.log("らべる props", props);
+                              return renderCustomizeLabel({
+                                props,
+                                customProps: {
+                                  isHovering: activeIndex !== 100,
+                                  fillColor:
+                                    activeDisplayTabs.entity === "company" && chartArray?.length === 1
+                                      ? "var(--main-color-f)"
+                                      : COLORS[props.index],
+                                  labelName:
+                                    chartArray && chartArray[props.index]?.name
+                                      ? chartArray[props.index]?.name ?? ""
+                                      : "",
+                                  // labelName:
+                                  //   departmentDataArray && departmentDataArray[props.index]?.department_name
+                                  //     ? departmentDataArray[props.index].department_name ?? ""
+                                  //     : "",
+                                },
+                              });
+                              // renderCustomizedLabel(PieLabel, {
+                              //   isHovering: activeIndex !== 100,
+                              // })
+                            }}
+                            labelLine={false}
+                            activeIndex={activeIndex}
+                            activeShape={(props: PieSectorDataItem) =>
+                              renderActiveShapeWithBg({
+                                props: props,
+                                customProps: {
+                                  mainEntity: activeDisplayTabs.entity,
+                                  mainSalesTarget: 404200000,
+                                  isHovering: activeIndex !== 100,
+                                },
+                              })
+                            }
+                            onMouseEnter={onPieEnter}
+                            onMouseLeave={onPieLeave}
+                          >
+                            {chartArray.map((entry, index) => (
+                              <Cell
+                                key={`cell_${index}`}
+                                fill={
                                   activeDisplayTabs.entity === "company" && chartArray?.length === 1
                                     ? "var(--main-color-f)"
-                                    : COLORS[props.index],
-                                labelName:
-                                  chartArray && chartArray[props.index]?.name
-                                    ? chartArray[props.index]?.name ?? ""
-                                    : "",
-                                // labelName:
-                                //   departmentDataArray && departmentDataArray[props.index]?.department_name
-                                //     ? departmentDataArray[props.index].department_name ?? ""
-                                //     : "",
-                              },
-                            });
-                            // renderCustomizedLabel(PieLabel, {
-                            //   isHovering: activeIndex !== 100,
-                            // })
-                          }}
-                          labelLine={false}
-                          activeIndex={activeIndex}
-                          activeShape={(props: PieSectorDataItem) =>
-                            renderActiveShapeWithBg({
-                              props: props,
-                              customProps: {
-                                mainEntity: activeDisplayTabs.entity,
-                                mainSalesTarget: 404200000,
-                                isHovering: activeIndex !== 100,
-                              },
-                            })
-                          }
-                          onMouseEnter={onPieEnter}
-                          onMouseLeave={onPieLeave}
-                        >
-                          {chartArray.map((entry, index) => (
-                            <Cell
-                              key={`cell_${index}`}
-                              fill={
-                                activeDisplayTabs.entity === "company" && chartArray?.length === 1
-                                  ? "var(--main-color-f)"
-                                  : activeIndex === index
-                                  ? COLORS[index % COLORS.length]
-                                  : COLORS_SHEER[index % COLORS_SHEER.length]
-                              }
-                              // stroke={COLORS[index % COLORS.length]}
-                              // stroke={"#666"}
-                              // stroke={"#ddd"}
-                              stroke={"var(--color-pie-chart-stroke-line)"}
-                              strokeWidth={`1px`}
-                            />
-                          ))}
-                        </Pie>
-                        {/* 中央にテキストを表示するためのカスタムSVG要素 */}
-                        {activeIndex === 100 && (
-                          <text
-                            ref={textSalesChartRef}
-                            x="50%"
-                            y="50%"
-                            fontSize="13px"
-                            fontWeight={700}
-                            textAnchor="middle"
-                            dominantBaseline="central"
-                            fill={`var(--color-text-title)`}
-                            // fill={`var(--main-color-f)`}
-                            className={`${isMountedChart ? `fade05` : `fade_chart05_d2`}`}
-                          >
-                            {`￥${formatSalesTarget(404200000)}`}
-                          </text>
-                        )}
-                      </PieChart>
-                    </ResponsiveContainer>
+                                    : activeIndex === index
+                                    ? COLORS[index % COLORS.length]
+                                    : COLORS_SHEER[index % COLORS_SHEER.length]
+                                }
+                                stroke={COLORS[index % COLORS.length]}
+                                // stroke={"#666"}
+                                // stroke={"#ddd"}
+                                // stroke={"var(--color-pie-chart-stroke-line)"}
+                                strokeWidth={`1px`}
+                              />
+                            ))}
+                          </Pie>
+                          {/* 中央にテキストを表示するためのカスタムSVG要素 */}
+                          {activeIndex === 100 && (
+                            <text
+                              ref={textSalesChartRef}
+                              x="50%"
+                              y="50%"
+                              fontSize="13px"
+                              fontWeight={700}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              fill={`var(--color-text-title)`}
+                              // fill={`var(--main-color-f)`}
+                              className={`${isMountedChart ? `fade05` : `fade_chart05_d2`}`}
+                            >
+                              {`￥${formatSalesTarget(404200000)}`}
+                            </text>
+                          )}
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </>
                   )}
                 </div>
               </div>

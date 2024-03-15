@@ -44,7 +44,7 @@ type Props = {
   growthResultLastYearOnLastYear: number;
 };
 
-const SalesTargetGridContainerMemo = ({
+const SettingSalesTargetGridContainerMemo = ({
   periodType,
   periodValue,
   salesTargetValue,
@@ -216,7 +216,7 @@ const formatMonths = (periodType: string, monthlySalesTargetsArray: MonthlySales
   return monthsArray;
 };
 
-const SalesTargetGridContainerForMonthlyMemo = ({ periodType, monthlySalesTargetsArray }: MonthlyProps) => {
+const SettingSalesTargetGridContainerForMonthlyMemo = ({ periodType, monthlySalesTargetsArray }: MonthlyProps) => {
   console.log("monthlySalesTargetsArray", monthlySalesTargetsArray);
   const monthlySalesTargetsForDisplay = formatMonths(periodType, monthlySalesTargetsArray);
 
@@ -305,5 +305,5 @@ const SalesTargetGridContainerForMonthlyMemo = ({ periodType, monthlySalesTarget
   );
 };
 
-export const SalesTargetGridContainer = memo(SalesTargetGridContainerMemo);
-export const SalesTargetGridContainerForMonthly = memo(SalesTargetGridContainerForMonthlyMemo);
+export const SettingSalesTargetGridContainer = memo(SettingSalesTargetGridContainerMemo);
+export const SettingSalesTargetGridContainerForMonthly = memo(SettingSalesTargetGridContainerForMonthlyMemo);

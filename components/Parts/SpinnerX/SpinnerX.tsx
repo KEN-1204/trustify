@@ -5,14 +5,19 @@ type Props = {
   fill?: string;
   bgColor?: string;
   bgColorDark?: string;
+  isConvert?: boolean;
   h?: string;
   w?: string;
 };
 
 export const SpinnerX: FC<Props> = ({
-  fill = "fill-[var(--color-bg-brand-f)]",
-  bgColor = "text-gray-200",
-  bgColorDark = "text-gray-600",
+  // fill = "fill-[var(--color-bg-brand-f)]",
+  fill = "var(--color-bg-brand-f)",
+  // bgColor = "text-gray-200",
+  // bgColorDark = "text-gray-600",
+  bgColor = "var(--color-spinner-x-bg)",
+  bgColorDark = "var(--color-spinner-x-bg)",
+  isConvert = false,
   h = "h-[32px]",
   w = "w-[32px]",
 }) => {
@@ -20,7 +25,7 @@ export const SpinnerX: FC<Props> = ({
     <div role="status">
       <svg
         aria-hidden="true"
-        className={`${h} ${w} animate-spin ${fill} ${bgColor} dark:${bgColorDark}`}
+        className={`${h} ${w} animate-spin fill-[var(--color-spinner-x-bg)] text-[var(--color-bg-brand-f)]`}
         viewBox="0 0 100 101"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

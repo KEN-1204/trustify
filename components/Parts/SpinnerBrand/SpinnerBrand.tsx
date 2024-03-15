@@ -27,7 +27,7 @@ export const SpinnerBrand = ({
       } flex-center ${bgTransition ? bgTransition : ``}`}
       style={
         {
-          ...(bgColor && { backgroundColor: `${bgColor}`, "--bg-color": `${bgColor}` }),
+          ...(bgColor && { background: `${bgColor}`, "--bg-color": `${bgColor}` }),
           ...(containerSize && { width: `${containerSize}`, height: `${containerSize}` }),
           ...(size && { "--spinner-size": `${size}` }),
         } as CSSProperties
