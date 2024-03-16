@@ -262,7 +262,12 @@ export const DashboardHomeComponent = () => {
                 {/* 背景アイコンエリアここまで */}
 
                 {/* 背景X */}
-                <div className={`${styles.bg_container}`}></div>
+                {/* <div className={`${styles.bg_container}`}>
+                  <div className={`${styles.triangle_top}`}></div>
+                  <div className={`${styles.triangle_left}`}></div>
+                  <div className={`${styles.triangle_right}`}></div>
+                  <div className={`${styles.triangle_bottom}`}></div>
+                </div> */}
                 {/* 背景X ここまで */}
 
                 <div className="flex h-[70dvh] w-[40%] flex-col items-center rounded-[4px] ">

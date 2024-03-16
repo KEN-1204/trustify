@@ -288,3 +288,86 @@
   height: calc(100vh - 56px);
   /* background-color: red; */
 }
+
+.triangle_top {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  top: -1px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-right: calc((100vw - var(--sidebar-width)) / 2 - 0px) solid transparent;
+  border-left: calc((100vw - var(--sidebar-width)) / 2 - 0px) solid transparent;
+  border-bottom: calc((100vh - 56px) / 2 - 0px) solid #555555;
+  border-top: 0;
+}
+.triangle_bottom {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  bottom: -2px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-right: calc((100vw - var(--sidebar-width)) / 2 - 0px) solid transparent;
+  border-left: calc((100vw - var(--sidebar-width)) / 2 - 0px) solid transparent;
+  border-top: calc((100vh - 56px) / 2 - 2px) solid #555555;
+  border-bottom: 0;
+}
+.triangle_right {
+  position: absolute;
+  z-index: 0;
+  right: -1px;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-left: calc((100vw - var(--sidebar-width)) - 0px) solid transparent;
+  border-top: calc((100vh - 56px) - 0px) solid #555555;
+  border-bottom: calc((100vh - 56px) - 0px) solid #555555;
+  /* border-bottom: calc((100vh - 56px) / 2 - 1px) solid #555555; */
+  border-right: 0;
+}
+.triangle_left {
+  position: absolute;
+  z-index: 0;
+  left: -1px;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-right: calc((100vw - var(--sidebar-width)) - 0px) solid transparent;
+  border-top: calc((100vh - 56px) - 0px) solid #555555;
+  border-bottom: calc((100vh - 56px) - 0px) solid #555555;
+  /* border-bottom: calc((100vh - 56px) / 2 - 1px) solid #555555; */
+  border-left: 0;
+}
+/* .triangle_right {
+  position: absolute;
+  z-index: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-left: calc((100vw - var(--sidebar-width)) / 2 - 1px) solid transparent;
+  border-top: calc((100vh - 56px) / 2 - 1px) solid #555555;
+  border-bottom: calc((100vh - 56px) / 2 - 1px) solid #555555;
+  border-right: 0;
+}
+.triangle_left {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-right: calc((100vw - var(--sidebar-width)) / 2 - 1px) solid transparent;
+  border-top: calc((100vh - 56px) / 2 - 1px) solid #555555;
+  border-bottom: calc((100vh - 56px) / 2 - 1px) solid #555555;
+  border-left: 0;
+} */

@@ -40,3 +40,12 @@
   font-size: 18px;
   font-weight: 600;
 }
+
+.main_container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0px 15px 0px;
+  min-height: calc(300px - 47px);
+  overflow: auto;
+}

@@ -20,7 +20,7 @@ const SalesTargetsContainerMemo = () => {
 
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
-  const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["units"]);
+  const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
@@ -100,6 +100,7 @@ const SalesTargetsContainerMemo = () => {
               </div>
             </div>
             {/* コンテンツエリア */}
+            <div className={`${styles.main_container}`}></div>
           </div>
           <div className={`${styles.grid_content_card}`}>
             {/* タイトルエリア */}
@@ -109,6 +110,7 @@ const SalesTargetsContainerMemo = () => {
               </div>
             </div>
             {/* コンテンツエリア */}
+            <div className={`${styles.main_container}`}></div>
           </div>
           <div className={`${styles.grid_content_card}`}>
             {/* タイトルエリア */}
@@ -118,6 +120,7 @@ const SalesTargetsContainerMemo = () => {
               </div>
             </div>
             {/* コンテンツエリア */}
+            <div className={`${styles.main_container}`}></div>
           </div>
         </div>
         {/* ---------- */}
@@ -165,6 +168,26 @@ const SalesTargetsContainerMemo = () => {
         {/* ---------- */}
 
         {/* ---------- */}
+        <div className={`${styles.grid_row} ${styles.col1}`}>
+          <div className={`${styles.grid_content_card}`}>
+            <div className={`${styles.card_title_area}`}>
+              <div className={`${styles.card_title}`}>
+                <span>スローガン・重点方針</span>
+              </div>
+            </div>
+            <div className={`${styles.main_container}`}></div>
+          </div>
+        </div>
+        <div className={`${styles.grid_row} ${styles.col1}`}>
+          <div className={`${styles.grid_content_card}`}>
+            <div className={`${styles.card_title_area}`}>
+              <div className={`${styles.card_title}`}>
+                <span>スローガン・重点方針</span>
+              </div>
+            </div>
+            <div className={`${styles.main_container}`}></div>
+          </div>
+        </div>
         {/* <div className={`${styles.grid_row} ${styles.col1}`}>
           <div className={`${styles.grid_content_card}`}>
             <div className={`${styles.card_title_area}`}>

@@ -64,7 +64,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
 
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
-  const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["units"]);
+  const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
@@ -2085,7 +2085,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
 
   // -------------------------- 🌟セクションメニュー🌟 --------------------------
   // モーダルのtop, left, width, height
-  const settingModalProperties = useDashboardStore((state) => state.settingModalProperties);
+  // const settingModalProperties = useDashboardStore((state) => state.settingModalProperties);
   const [openSectionMenu, setOpenSectionMenu] = useState<{
     x?: number;
     y: number;
@@ -2119,10 +2119,10 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
   const sectionMenuRef = useRef<HTMLDivElement | null>(null);
 
   // centerで位置が調整された時用のopacity
-  const [isAdjustedMenu, setIsAdjustedMenu] = useState(true);
+  // const [isAdjustedMenu, setIsAdjustedMenu] = useState(true);
 
   const handleOpenSectionMenu = ({ e, title, displayX, maxWidth, minWidth, fadeType }: SectionMenuParams) => {
-    if (!settingModalProperties) return;
+    // if (!settingModalProperties) return;
     if (!displayX || displayX === "center") {
       const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
       let positionY = y + height + 6;
@@ -2133,8 +2133,8 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
       // positionY -= settingModalProperties.top;
       // positionX -= settingModalProperties.left;
 
-      // centerの場合には位置の調整が入るため一旦透明にして調整後にopacityを1にする
-      setIsAdjustedMenu(false);
+      // // centerの場合には位置の調整が入るため一旦透明にして調整後にopacityを1にする
+      // setIsAdjustedMenu(false);
 
       console.log("クリック", y, x, positionX);
       setOpenSectionMenu({
@@ -2156,13 +2156,19 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
       } else if (displayX === "bottom_left") {
         positionX = window.innerWidth - x - width;
         positionY = y + height + 6;
+      } else if (displayX === "bottom_right") {
+        positionX = x;
+        positionY = y + height + 6;
+      } else if (displayX === "top_right") {
+        positionX = x;
+        positionY = window.innerHeight - y + 6;
       }
       // positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : 0;
       // positionX = displayX === "left" ? window.innerWidth - x : 0;
 
       // let positionY = y - settingModalProperties.top;
       // positionX -= settingModalProperties.left;
-      console.log("クリック", displayX, e, x, y, width, height);
+      console.log("クリック", displayX, positionY, x, y, width, height);
 
       setOpenSectionMenu({
         x: positionX,
@@ -2213,7 +2219,30 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
   ); // columnNameのみの配列を取得
 
   console.log(
-    "✅ 全てのカラムcolsRef",
+    "✅SalesTargetGridTableコンポーネントレンダリング",
+    "mainEntityTarget",
+    mainEntityTarget,
+    "filteredSectionBySelectedDepartment",
+    filteredSectionBySelectedDepartment,
+    "filteredUnitBySelectedSection",
+    filteredUnitBySelectedSection,
+    "departmentDataArray",
+    departmentDataArray,
+    "sectionDataArray",
+    sectionDataArray,
+    "unitDataArray",
+    unitDataArray,
+    "officeDataArray",
+    officeDataArray,
+    "departmentIdToObjMap",
+    departmentIdToObjMap,
+    "sectionIdToObjMap",
+    sectionIdToObjMap,
+    "unitIdToObjMap",
+    unitIdToObjMap,
+    "officeIdToObjMap",
+    officeIdToObjMap,
+    "全てのカラムcolsRef",
     colsRef,
     "checkedRows個数, checkedRows",
     Object.keys(checkedRows).length,
@@ -2298,17 +2327,48 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                     entityName: mainEntityTarget.entityName ?? "",
                     entityId: mainEntityTarget.entityId ?? "",
                   });
+                  // クリックした位置が上半分か下半分かで上下表示方向を出し分ける
+                  const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+
+                  // const isTopHalf = window.innerHeight / 2 > y;
+                  const isUp = window.innerHeight < y + height + 386;
+                  console.log(
+                    // "上半分",
+                    // isTopHalf,
+                    "isUp",
+                    isUp,
+                    "window.innerHeight",
+                    window.innerHeight,
+                    "(window.innerHeight / 2)",
+                    window.innerHeight / 2,
+                    "y",
+                    y
+                  );
+
                   const sectionWidth = 330;
-                  handleOpenSectionMenu({
-                    e,
-                    title: "entity",
-                    // displayX: "right",
-                    displayX: "bottom_right",
-                    fadeType: "fade_up",
-                    maxWidth: sectionWidth,
-                    minWidth: sectionWidth,
-                  });
-                  setOpenSubMenu({ display: "bottom", fadeType: "fade_down", sectionMenuWidth: sectionWidth });
+                  if (!isUp) {
+                    handleOpenSectionMenu({
+                      e,
+                      title: "entity",
+                      // displayX: "right",
+                      displayX: "bottom_right",
+                      fadeType: "fade_up",
+                      maxWidth: sectionWidth,
+                      minWidth: sectionWidth,
+                    });
+                  } else {
+                    handleOpenSectionMenu({
+                      e,
+                      title: "entity",
+                      // displayX: "right",
+                      displayX: "top_right",
+                      fadeType: "fade_up",
+                      maxWidth: sectionWidth,
+                      minWidth: sectionWidth,
+                    });
+                  }
+
+                  setOpenSubMenu({ display: "right", fadeType: "fade_down", sectionMenuWidth: sectionWidth });
                   handleCloseTooltip();
                 }}
               >
@@ -2860,20 +2920,31 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
           ref={sectionMenuRef}
           className={`${styles.settings_menu} fixed z-[3000] h-auto rounded-[6px] ${
             openSectionMenu.fadeType ? getFadeTypeClass(openSectionMenu.fadeType) : ``
-          } ${!isAdjustedMenu ? `${styles.disappear}` : ``}`}
+          }`}
           style={{
-            top: `${openSectionMenu.y}px`,
+            ...(openSectionMenu.maxWidth && { maxWidth: `${openSectionMenu.maxWidth}px` }),
+            ...(openSectionMenu.minWidth && { minWidth: `${openSectionMenu.minWidth}px` }),
             ...((openSectionMenu.displayX === "center" || !openSectionMenu.displayX) && {
               left: `${openSectionMenu.x}px`,
-              maxWidth: `${openSectionMenu.maxWidth}px`,
+              top: `${openSectionMenu.y}px`,
             }),
-            ...(openSectionMenu.displayX === "right" && {
-              right: `${openSectionMenu.x}px`,
-              maxWidth: `${openSectionMenu.maxWidth}px`,
+            ...(openSectionMenu?.displayX &&
+              ["left", "bottom_left"].includes(openSectionMenu?.displayX) && {
+                right: `${openSectionMenu?.x ?? 0}px`,
+                top: `${openSectionMenu.y}px`,
+              }),
+            ...(openSectionMenu?.displayX &&
+              ["right", "bottom_right"].includes(openSectionMenu?.displayX) && {
+                left: `${openSectionMenu?.x ?? 0}px`,
+                top: `${openSectionMenu.y}px`,
+              }),
+            ...(openSectionMenu?.displayX === "top_left" && {
+              right: `${openSectionMenu?.x ?? 0}px`,
+              bottom: `${openSectionMenu.y}px`,
             }),
-            ...(openSectionMenu.displayX === "left" && {
-              right: `${openSectionMenu.x}px`,
-              maxWidth: `${openSectionMenu.maxWidth}px`,
+            ...(openSectionMenu?.displayX === "top_right" && {
+              left: `${openSectionMenu?.x ?? 0}px`,
+              bottom: `${openSectionMenu.y}px`,
             }),
           }}
         >
@@ -2882,13 +2953,13 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
             <>
               <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
                 <div className="flex max-w-max flex-col">
-                  <span>表示区分設定メニュー</span>
+                  <span>メイン目標</span>
                   <div className={`${styles.section_underline} w-full`} />
                 </div>
               </h3>
 
               <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
-                下記メニューから「全社・事業部・課/セクション・係/チーム・事業所」を変更することで、各区分に応じた目標を表示します。
+                下記メニューから「全社・事業部・課/セクション・係/チーム・事業所」を変更することで、各区分に応じたメイン目標を表示します。
               </p>
 
               <hr className="min-h-[1px] w-full bg-[#999]" />
@@ -2959,7 +3030,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                               const firstSectionObj = [...filteredSectionList].sort((a, b) => {
                                 if (a.section_name === null) return 1; // null値をリストの最後に移動
                                 if (b.section_name === null) return -1;
-                                return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                                return a.section_name?.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
                               })[0];
                               setSelectedSection(firstSectionObj);
                               setActiveEntityLocal({
@@ -3006,7 +3077,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                               const firstSectionObj = [...filteredSectionList].sort((a, b) => {
                                 if (a.section_name === null) return 1; // null値をリストの最後に移動
                                 if (b.section_name === null) return -1;
-                                return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                                return a.section_name?.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
                               })[0];
                               setSelectedSection(firstSectionObj);
 
@@ -3025,7 +3096,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                               const firstUnitObj = [...filteredUnitList].sort((a, b) => {
                                 if (a.unit_name === null) return 1; // null値をリストの最後に移動
                                 if (b.unit_name === null) return -1;
-                                return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                                return a.unit_name?.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
                               })[0];
                               setSelectedUnit(firstUnitObj);
                               setActiveEntityLocal({
@@ -3076,7 +3147,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                   {/* ------------------------------------ */}
                 </ul>
               </div>
-              {/* サイドエンティティ詳細メニュー 適用・戻るエリア 全社以外で表示 */}
+              {/* ------------------ 🌟サイドエンティティ詳細メニュー🌟 適用・戻るエリア 全社以外で表示 */}
               {activeEntityLocal && activeEntityLocal.entityType !== "company" && openSubMenu && (
                 <div
                   className={`${styles.settings_menu} ${
@@ -3086,18 +3157,15 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                   }`}
                   style={{
                     position: "absolute",
-                    // ...(sectionMenuRef.current?.offsetWidth
-                    //   ? { top: "0px", left: sectionMenuRef.current?.offsetWidth + 10 }
-                    //   : { bottom: "-168px", left: 0 }),
+                    ...(openSectionMenu.maxWidth && { maxWidth: `${openSectionMenu.maxWidth}px` }),
+                    ...(openSectionMenu.minWidth && { minWidth: `${openSectionMenu.minWidth}px` }),
                     ...(openSubMenu.display === "bottom" && { bottom: "-150px", left: 0 }),
-                    ...(openSubMenu.display === "right" &&
-                      openSubMenu.sectionMenuWidth && {
-                        top: "0px",
-                        left: openSubMenu.sectionMenuWidth + 10,
-                      }),
+                    ...(openSubMenu.display === "right" && {
+                      top: "0px",
+                      left: (openSubMenu.sectionMenuWidth ?? 0) + 10,
+                    }),
                     animationDelay: `0.2s`,
                     animationDuration: `0.5s`,
-                    ...(openSectionMenu.maxWidth && { maxWidth: `${openSectionMenu.maxWidth}px` }),
                   }}
                 >
                   {/* ------------------------------------ */}
@@ -3113,7 +3181,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                     <li
                       className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
-                      <div className="pointer-events-none flex min-w-[70px] items-center">
+                      <div className={`${styles.list_title_wrapper}`}>
                         <div className="flex select-none items-center space-x-[2px]">
                           <span className={`${styles.list_title}`}>事業部</span>
                           <span className={``}>：</span>
@@ -3218,26 +3286,6 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                                     </option>
                                   )
                               )}
-                            {/* {!!departmentDataArray &&
-                              [...departmentDataArray]
-                                .sort((a, b) => {
-                                  if (a.department_name === null || b.department_name === null) return 0;
-                                  return (
-                                    a.department_name.localeCompare(
-                                      b.department_name,
-                                      language === "ja" ? "ja" : "en"
-                                    ) ?? 0
-                                  );
-                                })
-                                .map(
-                                  (department, index) =>
-                                    !!department &&
-                                    department.department_name && (
-                                      <option key={department.id} value={department.id}>
-                                        {department.department_name}
-                                      </option>
-                                    )
-                                )} */}
                           </select>
                         )}
                       </div>
@@ -3249,8 +3297,8 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                     <li
                       className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
-                      <div className="pointer-events-none flex min-w-[70px] items-center">
-                        <div className="flex select-none items-center space-x-[2px]">
+                      <div className={`${styles.list_title_wrapper}`}>
+                        <div className="flex min-w-max select-none items-center space-x-[2px]">
                           <span className={`${styles.list_title}`}>課・セクション</span>
                           <span className={``}>：</span>
                         </div>
@@ -3315,7 +3363,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                                   !!section &&
                                   section.section_name && (
                                     <option key={section.id} value={section.id}>
-                                      {section.section_name}
+                                      {section.section_name}マイクロスコープ事業部マイクロスコープ事業部
                                     </option>
                                   )
                               )}
@@ -3330,7 +3378,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                     <li
                       className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
-                      <div className="pointer-events-none flex min-w-[70px] items-center">
+                      <div className={`${styles.list_title_wrapper}`}>
                         <div className="flex select-none items-center space-x-[2px]">
                           <span className={`${styles.list_title}`}>係・チーム</span>
                           <span className={``}>：</span>
@@ -3375,7 +3423,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                     <li
                       className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
-                      <div className="pointer-events-none flex min-w-[70px] items-center">
+                      <div className={`${styles.list_title_wrapper}`}>
                         <div className="flex select-none items-center space-x-[2px]">
                           <span className={`${styles.list_title}`}>事業所</span>
                           <span className={``}>：</span>

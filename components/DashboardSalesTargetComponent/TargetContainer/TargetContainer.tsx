@@ -341,7 +341,7 @@ export const TargetContainer = () => {
     minWidth?: number;
     fadeType?: string;
     isHoverable?: boolean;
-    sectionMenuWidth?: boolean;
+    sectionMenuWidth?: number;
   } | null>(null);
 
   const handleOpenPopupMenu = ({
