@@ -1134,8 +1134,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sidebar-open-overlay-dark: #00000024;
   /* --color-table-bg: #fdfdfd; */
   --color-sdb-bg: #fff;
-  --color-sdb-bg-black-gradient: #fff;
-  --color-sdb-bg-simple12: #fff;
+  /* --color-sdb-bg-black-gradient: #fff; */
+  --color-sdb-bg-black-gradient: var(--color-bg-dashboard);
+  --color-sdb-bg-simple12: var(--color-bg-dashboard);
   --color-sdb-bg-simple17: #fff;
   --color-sdb-section-title-bg: var(--color-bg-brand-subf0);
   --color-sdb-section-title-bg-hover: var(--color-bg-brand-sub-hover-light);
@@ -1143,8 +1144,14 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sdb-section-title-text: #fff;
   --color-table-text: var(--color-text-title);
   --color-deal-board-bg: #ffffff66;
-  --color-deal-board-bg-black-gradient: #ffffff66;
-  --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 4px #999;
+  /* --color-deal-board-bg-black-gradient: #ffffff66; */
+  --color-deal-board-bg-black-gradient: #ffffff;
+  --color-deal-board--bg-theme-black: var(--color-sales-card-bg);
+  --color-deal-board--bg-theme-simple12: var(--color-sales-card-bg);
+  /* --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 4px #999; */
+  --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 2px 9px 3px #99999990;
+  --color-deal-board-theme-simple12-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 2px 12px 3px #99999990;
+  --color-deal-board-theme-simple12-border: 0 1px 2px 1px #cccccc60;
   --color-deal-board-theme-simple17-bg: linear-gradient(
     90deg,
     rgba(240, 240, 240, 0.33) 1.21%,
@@ -1287,14 +1294,20 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     0 4px 10px 3px #00000066;
   /* -------- ✅セッティングメニュー✅ -------- */
   /* -------- 🌟売上目標🌟 light -------- */
-  --color-bg-dashboard: #40576d12;
+  /* --color-bg-dashboard: #40576d12; */
+  --color-bg-dashboard: #f2f3f4;
   --color-tab-underline: rgba(57, 76, 96, 0.15);
   --color-btn-basic-bg: #fff;
+  --color-btn-basic-bg-hover: #ececec;
+  --color-btn-basic-bg-on-card: #fff;
+  --color-btn-basic-bg-on-card-hover: #ececec;
+  --color-btn-basic-text-hover: #565656;
   --color-sales-card-bg: #fff;
   --color-sales-card-border: transparent;
   --color-sales-card-border: 0 1px 2px 1px #cccccc60;
   /* --color-sales-card-border: 0 0 0 1px #cccccc90; */
   /* --color-sales-card-border: 0 0 0 1px transparent; */
+  --color-target-table-header-bg: #fff;
   /* -------- ✅売上目標✅ light -------- */
 }
 
@@ -2041,7 +2054,13 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     rgba(53, 53, 53, 0.56) 49.45%,
     rgba(0, 0, 0, 0.56) 90.83%
   );
+  --color-deal-board--bg-theme-black: transparent;
+  /* --color-deal-board--bg-theme-simple12: var(--color-deal-board-bg); */
+  --color-deal-board--bg-theme-simple12: var(--color-sales-card-bg);
+  /* --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 3px #999999; */
   --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 3px #999999;
+  /* --color-deal-board-theme-simple12-border: 0 0 0 1px #ffffffd0, 0 0 12px 2px var(--color-bg-brand-f); */
+  --color-deal-board-theme-simple12-border: var(--color-sales-card-border);
   --color-deal-board-theme-simple17-bg: linear-gradient(
     90deg,
     rgba(15, 15, 15, 0.33) 1.21%,
@@ -2209,9 +2228,14 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-dashboard: #121212;
   --color-tab-underline: #383838;
   --color-btn-basic-bg: #333;
+  --color-btn-basic-bg-hover: #666;
+  --color-btn-basic-bg-on-card: #424242;
+  --color-btn-basic-bg-on-card-hover: #666;
+  --color-btn-basic-text-hover: var(--color-text-title);
   --color-sales-card-bg: linear-gradient(to bottom left, #2d2d2d 0%, #292929 33%, #222 66%, #1c1c1c 100%);
   /* --color-sales-card-bg: linear-gradient(to bottom left, #2c2c2c 0%, #2d2d2d 33%, #222 66%, #1c1c1c 100%); */
   --color-sales-card-border: 0 0 0 1px #333;
+  --color-target-table-header-bg: transparent;
   /* -------- ✅売上目標✅ dark -------- */
 }
 

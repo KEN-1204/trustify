@@ -118,38 +118,42 @@
 }
 .entity_board_container.fade_bg.theme_simple12 {
   /* background: var(--color-deal-board-bg); */
-  background: #00000000;
+  /* background: #00000000; */
+  background: var(--color-deal-board--bg-theme-simple12);
   animation: fadeBg12 1.5s ease forwards;
 }
 @keyframes fadeBg12 {
   0% {
-    background-color: #00000000;
+    /* background: #00000000; */
+    background: var(--color-deal-board--bg-theme-simple12);
     box-shadow: 0 0 0 1px transparent, 0 0 9px 2px transparent;
   }
   100% {
-    background: var(--color-deal-board-bg);
+    /* background: var(--color-deal-board-bg); */
+    background: var(--color-deal-board--bg-theme-simple12);
     /* box-shadow: 0 0 0 1px var(--color-bg-brand-f), 0 0 6px 2px #ffffffd0; */
-    box-shadow: 0 0 0 1px #ffffffd0, 0 0 12px 2px var(--color-bg-brand-f);
+    /* box-shadow: 0 0 0 1px #ffffffd0, 0 0 12px 2px var(--color-bg-brand-f); */
     /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */
     /* border: 1px solid var(--color-bg-brand-f); */
+    box-shadow: var(--color-deal-board-theme-simple12-border);
   }
 }
 .entity_board_container.theme_black {
-  background: #00000000;
+  background: var(--color-deal-board--bg-theme-black);
   box-shadow: 0 0 0 1px transparent;
 }
 .entity_board_container.fade_bg.theme_black {
-  background: #00000000;
+  background: var(--color-deal-board--bg-theme-black);
   box-shadow: 0 0 0 1px transparent;
   animation: fadeBgBlack 1.5s ease forwards;
 }
 @keyframes fadeBgBlack {
   0% {
-    background: #00000000;
+    background: var(--color-deal-board--bg-theme-black);
     box-shadow: 0 0 0 1px transparent, 0 0 9px 2px transparent;
   }
   100% {
-    background: #00000000;
+    background: var(--color-deal-board--bg-theme-black);
     /* box-shadow: 0 0 0 1px #ffffffd0, 0 0 12px 2px #999; */
     /* box-shadow: 0 0 0 1px #565656, 0 0 0 2px #fff, 0 0 12px 4px #999;
     box-shadow: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 4px #999; */

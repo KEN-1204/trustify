@@ -2468,7 +2468,20 @@ export type SectionMenuParams = {
   title: string;
   displayX?: string;
   maxWidth?: number;
+  minWidth?: number;
   fadeType?: string;
+};
+
+export type PopupDescMenuParams = {
+  // e: React.MouseEvent<HTMLElement, MouseEvent>;
+  e: React.MouseEvent<HTMLElement, globalThis.MouseEvent | MouseEvent>;
+  title: string;
+  displayX?: string;
+  maxWidth?: number;
+  minWidth?: number;
+  fadeType?: string;
+  isHoverable?: boolean;
+  sectionMenuWidth?: number;
 };
 
 // パイチャート
@@ -2500,8 +2513,24 @@ export type CustomizedLabelProps = {
   y: number;
 };
 
-// 売上目標
 // 売上目標テーブル
+export type SalesTargets = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  created_by_company_id: string | null;
+  created_by_department_id: string | null;
+  created_by_section_id: string | null;
+  created_by_unit_id: string | null;
+  created_by_user_id: string | null;
+  created_by_office_id: string | null;
+  entity_type: string | null;
+  period_type: string | null;
+  period: number | null;
+  sales_target: number | null;
+};
+
+// 売上目標 SELECT時 エイリアス
 export type SalesTargetWithYoYTableDataType = {
   entity_id: string;
   entity_name: string | null;
@@ -2583,4 +2612,11 @@ export type SalesTargetWithYoYTableDataType = {
   December_last_year_sales: number | null;
   December_yoy_comparison: number | null;
   December_Yo2Y_sales_growth: number | null;
+};
+
+// 売上目標画面のメインエンティティ
+export type MainEntityTarget = {
+  entityType: string;
+  entityId: string;
+  entityName: string;
 };

@@ -114,6 +114,55 @@
   --gradient-color-sb: #3ecf8e, #3ecf8e, #3ecfb2;
 }
 
+/* --------------------- タイトルエリア ---------------------  */
+.card_title_area {
+  padding: 15px 24px 5px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+.card_title_area .title_left_wrapper {
+  display: flex;
+  align-items: center;
+}
+.card_title_area .title_right_wrapper {
+  display: flex;
+  align-items: center;
+}
+.card_title_area .card_title {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 600;
+}
+.card_title_area .btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.card_title_area .btn.basic {
+  background-color: var(--color-btn-basic-bg-on-card);
+  box-shadow: 0 0 0 1px var(--color-border-base);
+}
+.card_title_area .btn.basic:hover {
+  background-color: var(--color-btn-basic-bg-on-card-hover);
+  color: var(--color-btn-basic-text-hover);
+}
+.card_title_area .btn.brand {
+  /* box-shadow: 0 0 0 1px var(--color-border-base); */
+  background-color: var(--color-bg-brand-f);
+  color: #fff;
+}
+.card_title_area .btn.brand:hover {
+  background-color: var(--color-bg-brand-f-deep);
+}
+/* --------------------- コンテンツエリア(GridTable) ---------------------  */
+
 .main_container {
   position: relative;
   display: flex;
@@ -206,6 +255,7 @@
   color: var(--color-text-sub);
 
   /* background: var(--color-table-header); */
+  background: var(--color-target-table-header-bg);
   backdrop-filter: blur(12px);
   white-space: nowrap;
   text-overflow: ellipsis;
@@ -679,4 +729,16 @@
   z-index: 20;
   inset: 0;
   /* background-color: #ffffff10; */
+}
+
+/* 説明アイコン用ping */
+@keyframes ping {
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+.animate_ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }

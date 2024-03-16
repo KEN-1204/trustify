@@ -8,6 +8,7 @@ import {
   EditPosition,
   EditedCard,
   EditedProduct,
+  MainEntityTarget,
   Meeting_row_data,
   MemberAccounts,
   NewSearchActivity_Contact_CompanyParams,
@@ -456,8 +457,12 @@ type State = {
   setIsOpenQuotationPreviewForProfile: (payload: boolean) => void;
 
   // =================== 売上目標テーブル ヘッダーリスト保持用state関連 ===================
+  // テーブルカラムヘッダー
   salesTargetColumnHeaderItemList: ColumnHeaderItemList[];
   setSalesTargetColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
+  // 現在表示しているメイン目標
+  mainEntityTarget: MainEntityTarget | null;
+  setMainEntityTarget: (payload: MainEntityTarget | null) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1119,9 +1124,13 @@ const useDashboardStore = create<State>((set) => ({
   setIsOpenQuotationPreviewForProfile: (payload) => set({ isOpenQuotationPreviewForProfile: payload }),
 
   // =================== 売上目標テーブル ヘッダーリスト保持用state関連 ===================
+  // テーブルカラムヘッダー
   // salesTargetColumnHeaderItemList: salesTargetColumnHeaderItemListData,
   salesTargetColumnHeaderItemList: salesTargetWithYoYColumnHeaderItemListData,
   setSalesTargetColumnHeaderItemList: (payload) => set({ salesTargetColumnHeaderItemList: payload }),
+  // 現在表示しているメイン目標
+  mainEntityTarget: null,
+  setMainEntityTarget: (payload) => set({ mainEntityTarget: payload }),
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: false,

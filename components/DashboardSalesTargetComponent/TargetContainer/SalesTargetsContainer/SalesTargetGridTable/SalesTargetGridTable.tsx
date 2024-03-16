@@ -3,7 +3,15 @@ import styles from "./SalesTargetGridTable.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { columnNameToJapaneseSalesTarget } from "@/utils/columnNameToJapaneseSalesTarget";
 import useStore from "@/store";
-import { ColumnHeaderItemList, SalesTargetWithYoYTableDataType } from "@/types";
+import {
+  ColumnHeaderItemList,
+  Department,
+  Office,
+  SalesTargetWithYoYTableDataType,
+  Section,
+  SectionMenuParams,
+  Unit,
+} from "@/types";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -14,14 +22,22 @@ import useRootStore from "@/store/useRootStore";
 import useThemeStore from "@/store/useThemeStore";
 import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/ProgressCircle";
 import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/ProgressNumber";
+import { IoCaretDownOutline, IoChevronDownOutline } from "react-icons/io5";
+import { FaChevronDown } from "react-icons/fa";
+import { ImInfo } from "react-icons/im";
+import { MdOutlineDataSaverOff } from "react-icons/md";
+import { BsCheck2 } from "react-icons/bs";
+import { mappingSectionName } from "@/utils/selectOptions";
 
 // entityType: company / department...
 type Props = {
+  title: string;
   entityType: string;
   fiscalYear: number;
+  isMain: boolean;
 };
 
-const SalesTargetGridTableMemo = ({ entityType, fiscalYear }: Props) => {
+const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Props) => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   const language = useStore((state) => state.language);
@@ -29,6 +45,88 @@ const SalesTargetGridTableMemo = ({ entityType, fiscalYear }: Props) => {
   //
   const salesTargetColumnHeaderItemList = useDashboardStore((state) => state.salesTargetColumnHeaderItemList);
   const setSalesTargetColumnHeaderItemList = useDashboardStore((state) => state.setSalesTargetColumnHeaderItemList);
+  const mainEntityTarget = useDashboardStore((state) => state.mainEntityTarget);
+  const setMainEntityTarget = useDashboardStore((state) => state.setMainEntityTarget);
+
+  // 事業部~事業所までは変更する際に、エンティティ名を選択した後にactiveDisplayTabsを更新するため一旦ローカルでエンティティタイプを保持するためのstate
+  const [activeEntityLocal, setActiveEntityLocal] = useState<{
+    entityType: string;
+    entityName: string;
+    entityId: string;
+  } | null>(null);
+
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+  const [selectedSection, setSelectedSection] = useState<Section | null>(null);
+  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
+  const [selectedOffice, setSelectedOffice] = useState<Office | null>(null);
+
+  if (isMain && !mainEntityTarget) return null;
+
+  // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["units"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
+
+  // 「事業部」「課・セクション」「係・チーム」「事業所」のid to objectオブジェクトマップ生成
+  // 事業部マップ {id: 事業部オブジェクト}
+  const departmentIdToObjMap = useMemo(() => {
+    if (!departmentDataArray?.length) return null;
+    const departmentMap = new Map(departmentDataArray.map((obj) => [obj.id, obj]));
+    return departmentMap;
+  }, [departmentDataArray]);
+  // 課・セクションマップ {id: 課・セクションオブジェクト}
+  const sectionIdToObjMap = useMemo(() => {
+    if (!sectionDataArray?.length) return null;
+    const sectionMap = new Map(sectionDataArray.map((obj) => [obj.id, obj]));
+    return sectionMap;
+  }, [sectionDataArray]);
+  // 係マップ {id: 係オブジェクト}
+  const unitIdToObjMap = useMemo(() => {
+    if (!unitDataArray?.length) return null;
+    const unitMap = new Map(unitDataArray.map((obj) => [obj.id, obj]));
+    return unitMap;
+  }, [unitDataArray]);
+  // 事業所マップ {id: 事業所オブジェクト}
+  const officeIdToObjMap = useMemo(() => {
+    if (!officeDataArray?.length) return null;
+    const officeMap = new Map(officeDataArray.map((obj) => [obj.id, obj]));
+    return officeMap;
+  }, [officeDataArray]);
+
+  // 🔹ユーザーが作成したエンティティのみのセクションリストを再生成
+  const mainEntityTypeList: {
+    title: string;
+    name: {
+      [key: string]: string;
+    };
+  }[] = useMemo(() => {
+    let newEntityList = [{ title: "company", name: { ja: "全社", en: "Company" } }];
+    if (departmentDataArray && departmentDataArray.length > 0) {
+      newEntityList.push({ title: "department", name: { ja: "事業部", en: "Department" } });
+    }
+    if (sectionDataArray && sectionDataArray.length > 0) {
+      newEntityList.push({ title: "section", name: { ja: "課・セクション", en: "Section" } });
+    }
+    if (unitDataArray && unitDataArray.length > 0) {
+      newEntityList.push({ title: "unit", name: { ja: "係・チーム", en: "Unit" } });
+    }
+    // メンバーエンティティはサブ目標で表示するためメインエンティティリストには追加せず
+    // newEntityList.push({ title: "member", name: { ja: "メンバー", en: "Member" } });
+    if (officeDataArray && officeDataArray.length > 0) {
+      newEntityList.push({ title: "office", name: { ja: "事業所", en: "Office" } });
+    }
+    return newEntityList;
+  }, [departmentDataArray, sectionDataArray, unitDataArray, officeDataArray]);
+
+  // ======================= 🌟現在の選択した事業部で課・セクションを絞り込むuseEffect🌟 =======================
+  const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
+  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+  // ======================= 🌟現在の選択した事業部で課・セクションを絞り込むuseEffect🌟 =======================
+  // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
+  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // 🔹 ------------------------------------------ 🔹ローカルstate関連🔹 ------------------------------------------
   // 🌟売上目標テーブル専用
@@ -81,6 +179,9 @@ const SalesTargetGridTableMemo = ({ entityType, fiscalYear }: Props) => {
   // GridセルDOM
   const gridRowTracksRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  // infoアイコン
+  const infoIconTitleRef = useRef<HTMLDivElement | null>(null);
+
   // 🔹 ------------------------------------------ 🔹変数関連🔹 ------------------------------------------
   // propsで受け取った会計年度の昨年度
   const lastFiscalYear = useMemo(() => fiscalYear - 1, [fiscalYear]);
@@ -113,6 +214,28 @@ const SalesTargetGridTableMemo = ({ entityType, fiscalYear }: Props) => {
     //   };
     //   return newData;
     // });
+    const quantity = () => {
+      switch (entityType) {
+        case "company":
+          return 1;
+          break;
+        case "department":
+          return 4;
+          break;
+        case "section":
+          return 4;
+          break;
+        case "unit":
+          return 6;
+          break;
+        case "":
+          return 1;
+          break;
+
+        default:
+          break;
+      }
+    };
     const rows = testRowData("company", 1);
     const count = 300;
     const isLastPage = true;
@@ -1960,6 +2083,130 @@ const SalesTargetGridTableMemo = ({ entityType, fiscalYear }: Props) => {
   };
   // ==================================================================================
 
+  // -------------------------- 🌟セクションメニュー🌟 --------------------------
+  // モーダルのtop, left, width, height
+  const settingModalProperties = useDashboardStore((state) => state.settingModalProperties);
+  const [openSectionMenu, setOpenSectionMenu] = useState<{
+    x?: number;
+    y: number;
+    title?: string;
+    displayX?: string;
+    maxWidth?: number;
+    minWidth?: number;
+    fadeType?: string;
+  } | null>(null);
+
+  // 適用、戻るメニュー
+  const [openSubMenu, setOpenSubMenu] = useState<{
+    display: string;
+    fadeType: string;
+    sectionMenuWidth?: number;
+  } | null>(null);
+
+  // 説明メニュー(onClickイベントで開いてホバー可能な状態はisHoverableをtrueにする)
+  const [openPopupMenu, setOpenPopupMenu] = useState<{
+    x?: number;
+    y: number;
+    title: string;
+    displayX?: string;
+    maxWidth?: number;
+    minWidth?: number;
+    fadeType?: string;
+    isHoverable?: boolean;
+    sectionMenuWidth?: number;
+  } | null>(null);
+
+  const sectionMenuRef = useRef<HTMLDivElement | null>(null);
+
+  // centerで位置が調整された時用のopacity
+  const [isAdjustedMenu, setIsAdjustedMenu] = useState(true);
+
+  const handleOpenSectionMenu = ({ e, title, displayX, maxWidth, minWidth, fadeType }: SectionMenuParams) => {
+    if (!settingModalProperties) return;
+    if (!displayX || displayX === "center") {
+      const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+      let positionY = y + height + 6;
+      let positionX = x;
+      if (displayX === "center") positionX = x + width / 2;
+
+      // モーダルのtopとleftを考慮
+      // positionY -= settingModalProperties.top;
+      // positionX -= settingModalProperties.left;
+
+      // centerの場合には位置の調整が入るため一旦透明にして調整後にopacityを1にする
+      setIsAdjustedMenu(false);
+
+      console.log("クリック", y, x, positionX);
+      setOpenSectionMenu({
+        y: positionY,
+        x: positionX,
+        title: title,
+        displayX: displayX,
+        fadeType: fadeType,
+        maxWidth: maxWidth,
+      });
+    } else {
+      const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+      let positionX = 0;
+      let positionY = y;
+      if (displayX === "right") {
+        positionX = -18 - 50 - (maxWidth ?? 400);
+      } else if (displayX === "left") {
+        positionX = window.innerWidth - x;
+      } else if (displayX === "bottom_left") {
+        positionX = window.innerWidth - x - width;
+        positionY = y + height + 6;
+      }
+      // positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : 0;
+      // positionX = displayX === "left" ? window.innerWidth - x : 0;
+
+      // let positionY = y - settingModalProperties.top;
+      // positionX -= settingModalProperties.left;
+      console.log("クリック", displayX, e, x, y, width, height);
+
+      setOpenSectionMenu({
+        x: positionX,
+        y: positionY,
+        title: title,
+        displayX: displayX,
+        maxWidth: maxWidth,
+        minWidth: minWidth,
+        fadeType: fadeType,
+      });
+    }
+  };
+
+  // useEffect(() => {
+  //   if (!openSectionMenu?.displayX || openSectionMenu?.displayX !== "center") return;
+  //   if (openSectionMenu?.displayX === "center" && sectionMenuRef.current && openSectionMenu.x) {
+  //     const menuWith = sectionMenuRef.current.getBoundingClientRect().width;
+  //     const newX = openSectionMenu.x - menuWith / 2;
+  //     console.log("🔥newX", newX, menuWith, openSectionMenu.x);
+  //     setOpenSectionMenu({ ...openSectionMenu, x: newX });
+
+  //     // centerの場合には位置の調整が入るため一旦透明にして調整後にopacityを1にする
+  //     setIsAdjustedMenu(true);
+  //   }
+  // }, [openSectionMenu?.displayX]);
+
+  // メニューを閉じる
+  const handleCloseSectionMenu = () => {
+    if (openSectionMenu && openSectionMenu.title === "entity") {
+      setActiveEntityLocal(null);
+    }
+
+    setOpenSectionMenu(null);
+    if (openSectionMenu) setOpenSectionMenu(null);
+  };
+
+  // ポップアップのフェードタイプ
+  const getFadeTypeClass = (fadeType: string) => {
+    if (fadeType === "fade_down") return styles.fade_down;
+    if (fadeType === "fade_up") return styles.fade_up;
+    if (fadeType === "fade") return styles.fade;
+  };
+  // -------------------------- 🌟セクションメニュー🌟 ここまで --------------------------
+
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
   const columnOrder = [...salesTargetColumnHeaderItemList].map(
     (item, index) => item.columnName as keyof Omit<SalesTargetWithYoYTableDataType, "entity_id">
@@ -2021,6 +2268,91 @@ const SalesTargetGridTableMemo = ({ entityType, fiscalYear }: Props) => {
 
   return (
     <>
+      {/* タイトルエリア */}
+      <div className={`${styles.card_title_area}`}>
+        <div className={`${styles.title_left_wrapper}`}>
+          {isMain && mainEntityTarget && (
+            <>
+              <div
+                className={`${styles.card_title} relative z-[2000] space-x-[3px]`}
+                onMouseEnter={(e) => {
+                  const icon = infoIconTitleRef.current;
+                  if (icon && icon.classList.contains(styles.animate_ping)) {
+                    icon.classList.remove(styles.animate_ping);
+                  }
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `メイン目標の表示切り替えが可能です。`,
+                    marginTop: 9,
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+                onClick={(e) => {
+                  if (mainEntityTypeList.length < 2)
+                    return alert(
+                      "区分が２つ以上の時のみメイン目標の表示切り替えが可能です。 事業部・課/セクション・係/チーム・事業所の区分は設定画面の「会社・チーム」から作成・編集が可能です。"
+                    );
+                  setActiveEntityLocal({
+                    entityType: mainEntityTarget.entityType,
+                    entityName: mainEntityTarget.entityName ?? "",
+                    entityId: mainEntityTarget.entityId ?? "",
+                  });
+                  const sectionWidth = 330;
+                  handleOpenSectionMenu({
+                    e,
+                    title: "entity",
+                    // displayX: "right",
+                    displayX: "bottom_right",
+                    fadeType: "fade_up",
+                    maxWidth: sectionWidth,
+                    minWidth: sectionWidth,
+                  });
+                  setOpenSubMenu({ display: "bottom", fadeType: "fade_down", sectionMenuWidth: sectionWidth });
+                  handleCloseTooltip();
+                }}
+              >
+                {/* <div className={`absolute left-0 top-[100%] z-[2000] h-[500px] w-[300px] bg-red-100`}></div> */}
+                <span>{title}</span>
+                {/* <select
+                  className={`${styles.select_text} ${styles.arrow_none} fade03_forward mr-[6px] truncate`}
+                  value={mainEntityTarget.entityId}
+                  onChange={(e) => {
+                    setActiveDisplayTabs({ ...activeDisplayTabs, year: Number(e.target.value) });
+                  }}
+                  onClick={handleCloseTooltip}
+                >
+                  {optionsFiscalYear.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select> */}
+                <IoChevronDownOutline className={` text-[18px]`} />
+                <div className="flex-center relative !ml-[9px] h-[16px] w-[16px] rounded-full">
+                  <div
+                    ref={infoIconTitleRef}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                  ></div>
+                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                </div>
+              </div>
+            </>
+          )}
+          {!isMain && (
+            <div className={`${styles.card_title}`}>
+              <span>{title}</span>
+            </div>
+          )}
+        </div>
+        <div className={`${styles.title_right_wrapper}`}>
+          <div className={`${styles.btn} ${styles.basic} space-x-[3px]`}>
+            <span>全て</span>
+            <IoCaretDownOutline className={``} />
+          </div>
+        </div>
+      </div>
+      {/* コンテンツエリア */}
       <div
         className={`${styles.main_container} ${
           theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
@@ -2519,6 +2851,643 @@ const SalesTargetGridTableMemo = ({ entityType, fiscalYear }: Props) => {
           )}
         </div>
       </div>
+
+      {/* ---------------------------- 🌟セッティングメニュー🌟 ---------------------------- */}
+      {/* クリック時のオーバーレイ */}
+      {openSectionMenu && <div className={`${styles.menu_overlay}`} onClick={handleCloseSectionMenu}></div>}
+      {openSectionMenu && (
+        <div
+          ref={sectionMenuRef}
+          className={`${styles.settings_menu} fixed z-[3000] h-auto rounded-[6px] ${
+            openSectionMenu.fadeType ? getFadeTypeClass(openSectionMenu.fadeType) : ``
+          } ${!isAdjustedMenu ? `${styles.disappear}` : ``}`}
+          style={{
+            top: `${openSectionMenu.y}px`,
+            ...((openSectionMenu.displayX === "center" || !openSectionMenu.displayX) && {
+              left: `${openSectionMenu.x}px`,
+              maxWidth: `${openSectionMenu.maxWidth}px`,
+            }),
+            ...(openSectionMenu.displayX === "right" && {
+              right: `${openSectionMenu.x}px`,
+              maxWidth: `${openSectionMenu.maxWidth}px`,
+            }),
+            ...(openSectionMenu.displayX === "left" && {
+              right: `${openSectionMenu.x}px`,
+              maxWidth: `${openSectionMenu.maxWidth}px`,
+            }),
+          }}
+        >
+          {/* ------------------------ エンティティ選択メニュー ------------------------ */}
+          {openSectionMenu.title === "entity" && mainEntityTarget && (
+            <>
+              <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
+                <div className="flex max-w-max flex-col">
+                  <span>表示区分設定メニュー</span>
+                  <div className={`${styles.section_underline} w-full`} />
+                </div>
+              </h3>
+
+              <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
+                下記メニューから「全社・事業部・課/セクション・係/チーム・事業所」を変更することで、各区分に応じた目標を表示します。
+              </p>
+
+              <hr className="min-h-[1px] w-full bg-[#999]" />
+
+              {/* -------- メニューコンテンツエリア -------- */}
+              <div className={`${styles.scroll_container} flex max-h-[240px] w-full flex-col overflow-y-auto`}>
+                <ul className={`flex h-full w-full flex-col`}>
+                  {/* ------------------------------------ */}
+                  {mainEntityTypeList.map((obj, index) => {
+                    const isActive = obj.title === activeEntityLocal?.entityType;
+                    return (
+                      <li
+                        key={obj.title}
+                        className={`${styles.list} ${styles.select_list} ${isActive ? styles.active : ``}`}
+                        onClick={(e) => {
+                          if (isActive) return console.log("リターン ", isActive, obj);
+                          // 全社の場合は、そのまま区分を変更
+                          if (obj.title === "company") {
+                            // setActiveDisplayTabs({ ...activeDisplayTabs, entity: obj.title });
+                            setMainEntityTarget({ ...mainEntityTarget, entityType: obj.title });
+                            setActiveEntityLocal(null);
+                            setOpenSectionMenu(null);
+                          }
+                          // 事業部~事業所までは、エンティティ区分タイプ+表示するエンティティ名が必要なため、一旦ローカルstateに区分タイプを保存して、右側の選択エリアでエンティティ名をセレクトで選択してもらう
+                          else {
+                            // const { entityId, entityName } = getFirstEntityOption(obj.title);
+                            if (obj.title === "department") {
+                              if (!departmentDataArray || departmentDataArray?.length === 0) {
+                                alert("事業部リストがありません。先に「会社・チーム」から事業部を作成してください。");
+                                return;
+                              }
+                              const departmentId = departmentDataArray ? departmentDataArray[0].id : "";
+                              const newDepartment = departmentIdToObjMap?.get(departmentId);
+                              setSelectedDepartment(newDepartment ?? null);
+                              setActiveEntityLocal({
+                                entityType: obj.title,
+                                entityName: newDepartment?.department_name ?? "",
+                                entityId: newDepartment?.id ?? "",
+                              });
+                            }
+                            if (obj.title === "section") {
+                              if (!departmentDataArray || departmentDataArray?.length === 0) {
+                                alert("事業部リストがありません。先に「会社・チーム」から事業部を作成してください。");
+                                return;
+                              }
+                              if (!sectionDataArray || sectionDataArray?.length === 0) {
+                                alert(
+                                  "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                                );
+                                return;
+                              }
+                              const departmentId = departmentDataArray ? departmentDataArray[0].id : "";
+                              setSelectedDepartment(departmentIdToObjMap?.get(departmentId) ?? null);
+                              // departmentIdに一致するセクションのみ絞り込んで選択肢リストを作成
+                              // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目をstateにセット
+                              const filteredSectionList = sectionDataArray.filter(
+                                (unit) => unit.created_by_department_id === departmentId
+                              );
+                              // 選択肢を１番目の事業部のidで絞り込み
+                              setFilteredSectionBySelectedDepartment(filteredSectionList);
+                              if (!filteredSectionList || filteredSectionList?.length === 0) {
+                                alert(
+                                  "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                                );
+                                setSelectedSection(null);
+                                return;
+                              }
+                              const firstSectionObj = [...filteredSectionList].sort((a, b) => {
+                                if (a.section_name === null) return 1; // null値をリストの最後に移動
+                                if (b.section_name === null) return -1;
+                                return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                              })[0];
+                              setSelectedSection(firstSectionObj);
+                              setActiveEntityLocal({
+                                entityType: obj.title,
+                                entityName: firstSectionObj?.section_name ?? "",
+                                entityId: firstSectionObj?.id ?? "",
+                              });
+                              // const sectionId = sectionDataArray ? sectionDataArray[0].id : "";
+                              // setSelectedSection(sectionIdToObjMap?.get(sectionId) ?? null);
+                            }
+                            if (obj.title === "unit") {
+                              if (!departmentDataArray || departmentDataArray?.length === 0) {
+                                alert("事業部リストがありません。先に「会社・チーム」から事業部を作成してください。");
+                                return;
+                              }
+                              if (!sectionDataArray || sectionDataArray?.length === 0) {
+                                alert(
+                                  "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                                );
+                                return;
+                              }
+                              if (!unitDataArray || unitDataArray?.length === 0) {
+                                alert(
+                                  "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
+                                );
+                                return;
+                              }
+                              const departmentId = departmentDataArray ? departmentDataArray[0].id : "";
+                              setSelectedDepartment(departmentIdToObjMap?.get(departmentId) ?? null);
+                              // departmentIdに一致するセクションのみ絞り込んで選択肢リストを作成
+                              // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目をstateにセット
+                              const filteredSectionList = sectionDataArray.filter(
+                                (unit) => unit.created_by_department_id === departmentId
+                              );
+                              // 選択肢を１番目の事業部のidで絞り込み
+                              setFilteredSectionBySelectedDepartment(filteredSectionList);
+                              if (!filteredSectionList || filteredSectionList?.length === 0) {
+                                alert(
+                                  "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                                );
+                                setSelectedSection(null);
+                                return;
+                              }
+                              const firstSectionObj = [...filteredSectionList].sort((a, b) => {
+                                if (a.section_name === null) return 1; // null値をリストの最後に移動
+                                if (b.section_name === null) return -1;
+                                return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                              })[0];
+                              setSelectedSection(firstSectionObj);
+
+                              // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目の課に紐づく係リストの１番目をstateにセット
+                              const filteredUnitList = unitDataArray.filter(
+                                (unit) => unit.created_by_section_id === firstSectionObj.id
+                              );
+                              setFilteredUnitBySelectedSection(filteredUnitList);
+                              //
+                              if (!filteredUnitList || filteredUnitList?.length === 0) {
+                                alert(
+                                  "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
+                                );
+                                return;
+                              }
+                              const firstUnitObj = [...filteredUnitList].sort((a, b) => {
+                                if (a.unit_name === null) return 1; // null値をリストの最後に移動
+                                if (b.unit_name === null) return -1;
+                                return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                              })[0];
+                              setSelectedUnit(firstUnitObj);
+                              setActiveEntityLocal({
+                                entityType: obj.title,
+                                entityName: firstUnitObj?.unit_name ?? "",
+                                entityId: firstUnitObj?.id ?? "",
+                              });
+                              // setIsOpenConfirmUpsertModal("unit");
+
+                              // const unitId = unitDataArray ? unitDataArray[0].id : "";
+                              // setSelectedUnit(unitIdToObjMap?.get(unitId) ?? null);
+                            }
+                            if (obj.title === "office") {
+                              if (!officeDataArray || officeDataArray?.length === 0) {
+                                alert("事業所リストがありません。先に「会社・チーム」から事業所を作成してください。");
+                                return;
+                              }
+                              const officeId = officeDataArray ? officeDataArray[0].id : "";
+                              const newOffice = officeIdToObjMap?.get(officeId);
+                              setSelectedOffice(newOffice ?? null);
+                              setActiveEntityLocal({
+                                entityType: obj.title,
+                                entityName: newOffice?.office_name ?? "",
+                                entityId: newOffice?.id ?? "",
+                              });
+                            }
+                          }
+                          // handleClosePopupMenu();
+                        }}
+                      >
+                        <div className="pointer-events-none flex min-w-[110px] items-center">
+                          <MdOutlineDataSaverOff
+                            className={`${styles.list_icon} mr-[16px] min-h-[20px] min-w-[20px] text-[20px]`}
+                          />
+                          <div className="flex select-none items-center space-x-[2px]">
+                            <span className={`${styles.select_item}`}>{obj.name[language]}</span>
+                            {/* <span className={``}>：</span> */}
+                          </div>
+                        </div>
+                        {isActive && (
+                          <div className={`${styles.icon_container}`}>
+                            <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                  {/* ------------------------------------ */}
+                </ul>
+              </div>
+              {/* サイドエンティティ詳細メニュー 適用・戻るエリア 全社以外で表示 */}
+              {activeEntityLocal && activeEntityLocal.entityType !== "company" && openSubMenu && (
+                <div
+                  className={`${styles.settings_menu} ${
+                    styles.edit_mode
+                  } left-[320px] z-[3000] h-auto w-full min-w-[330px] max-w-max overflow-hidden rounded-[6px] ${
+                    openSubMenu.display === "fade_up" ? styles.fade_up : `${styles.fade_down}`
+                  }`}
+                  style={{
+                    position: "absolute",
+                    // ...(sectionMenuRef.current?.offsetWidth
+                    //   ? { top: "0px", left: sectionMenuRef.current?.offsetWidth + 10 }
+                    //   : { bottom: "-168px", left: 0 }),
+                    ...(openSubMenu.display === "bottom" && { bottom: "-150px", left: 0 }),
+                    ...(openSubMenu.display === "right" &&
+                      openSubMenu.sectionMenuWidth && {
+                        top: "0px",
+                        left: openSubMenu.sectionMenuWidth + 10,
+                      }),
+                    animationDelay: `0.2s`,
+                    animationDuration: `0.5s`,
+                    ...(openSectionMenu.maxWidth && { maxWidth: `${openSectionMenu.maxWidth}px` }),
+                  }}
+                >
+                  {/* ------------------------------------ */}
+                  <li className={`${styles.section_title} flex min-h-max w-full font-bold`}>
+                    <div className="flex max-w-max flex-col">
+                      <span>{mappingSectionName[activeEntityLocal.entityType][language]}</span>
+                      <div className={`${styles.underline} w-full`} />
+                    </div>
+                  </li>
+                  {/* ------------------------------------ */}
+                  {/* ------------------------ 事業部 ------------------------ */}
+                  {activeEntityLocal.entityType !== "office" && (
+                    <li
+                      className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
+                    >
+                      <div className="pointer-events-none flex min-w-[70px] items-center">
+                        <div className="flex select-none items-center space-x-[2px]">
+                          <span className={`${styles.list_title}`}>事業部</span>
+                          <span className={``}>：</span>
+                        </div>
+                      </div>
+                      <div className={`${styles.list_item_content}`}>
+                        {(!selectedDepartment || !departmentIdToObjMap) && (
+                          <span className={`${styles.empty_text}`}>事業部が見つかりません</span>
+                        )}
+                        {selectedDepartment && departmentIdToObjMap && (
+                          <select
+                            className={`h-full ${styles.select_box} truncate`}
+                            value={selectedDepartment.id}
+                            onChange={(e) => {
+                              const departmentId = e.target.value;
+                              const newDepartment = departmentIdToObjMap.has(departmentId)
+                                ? departmentIdToObjMap.get(departmentId)
+                                : null;
+                              setSelectedDepartment(newDepartment ?? null);
+
+                              if (activeEntityLocal.entityType === "department") {
+                                setActiveEntityLocal({
+                                  ...activeEntityLocal,
+                                  entityId: departmentId,
+                                  entityName: newDepartment?.department_name ?? "",
+                                });
+                              }
+
+                              // 課・セクションの場合は、課をリセット
+                              if (["section", "unit"].includes(activeEntityLocal.entityType)) {
+                                if (!sectionDataArray || sectionDataArray?.length === 0) {
+                                  alert(
+                                    "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
+                                  );
+                                  return;
+                                }
+                                // 全ての課から新たに選択した事業部に含まれる課のみの選択肢を生成して、1番目を選択中の課にセット
+                                const filteredSectionList = sectionDataArray.filter(
+                                  (unit) => unit.created_by_department_id === departmentId
+                                );
+
+                                const sortedSectionList = [...filteredSectionList].sort((a, b) => {
+                                  if (a.section_name === null) return 1; // null値をリストの最後に移動
+                                  if (b.section_name === null) return -1;
+                                  return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
+                                });
+                                setFilteredSectionBySelectedDepartment(sortedSectionList);
+
+                                const firstSectionObj = sortedSectionList?.length >= 1 ? sortedSectionList[0] : null;
+                                setSelectedSection(firstSectionObj);
+                                if (activeEntityLocal.entityType === "section") {
+                                  setActiveEntityLocal({
+                                    ...activeEntityLocal,
+                                    entityId: firstSectionObj?.id ?? "",
+                                    entityName: firstSectionObj?.section_name ?? "",
+                                  });
+                                }
+
+                                if (activeEntityLocal.entityType === "unit") {
+                                  if (!unitDataArray || unitDataArray?.length === 0) {
+                                    alert(
+                                      "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
+                                    );
+                                    return;
+                                  }
+                                  if (!firstSectionObj) {
+                                    setSelectedUnit(null);
+                                    return;
+                                  }
+                                  // 全ての課から新たに選択した事業部に含まれる課のみの選択肢を生成して、1番目を選択中の課にセット
+                                  const filteredUnitList = unitDataArray.filter(
+                                    (unit) => unit.created_by_section_id === firstSectionObj.id
+                                  );
+
+                                  const sortedUnitList = [...filteredUnitList].sort((a, b) => {
+                                    if (a.unit_name === null) return 1; // null値をリストの最後に移動
+                                    if (b.unit_name === null) return -1;
+                                    return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                                  });
+                                  setFilteredUnitBySelectedSection(sortedUnitList);
+
+                                  const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
+                                  setSelectedUnit(firstUnitObj);
+                                  if (activeEntityLocal.entityType === "unit") {
+                                    setActiveEntityLocal({
+                                      ...activeEntityLocal,
+                                      entityId: firstUnitObj?.id ?? "",
+                                      entityName: firstUnitObj?.unit_name ?? "",
+                                    });
+                                  }
+                                }
+                              }
+                            }}
+                          >
+                            {!!departmentDataArray?.length &&
+                              departmentDataArray.map(
+                                (department, index) =>
+                                  !!department &&
+                                  department.department_name && (
+                                    <option key={department.id} value={department.id}>
+                                      {department.department_name}
+                                    </option>
+                                  )
+                              )}
+                            {/* {!!departmentDataArray &&
+                              [...departmentDataArray]
+                                .sort((a, b) => {
+                                  if (a.department_name === null || b.department_name === null) return 0;
+                                  return (
+                                    a.department_name.localeCompare(
+                                      b.department_name,
+                                      language === "ja" ? "ja" : "en"
+                                    ) ?? 0
+                                  );
+                                })
+                                .map(
+                                  (department, index) =>
+                                    !!department &&
+                                    department.department_name && (
+                                      <option key={department.id} value={department.id}>
+                                        {department.department_name}
+                                      </option>
+                                    )
+                                )} */}
+                          </select>
+                        )}
+                      </div>
+                    </li>
+                  )}
+                  {/* ------------------------ 事業部 ------------------------ */}
+                  {/* ------------------------ 課・セクション ------------------------ */}
+                  {["section", "unit"].includes(activeEntityLocal.entityType) && (
+                    <li
+                      className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
+                    >
+                      <div className="pointer-events-none flex min-w-[70px] items-center">
+                        <div className="flex select-none items-center space-x-[2px]">
+                          <span className={`${styles.list_title}`}>課・セクション</span>
+                          <span className={``}>：</span>
+                        </div>
+                      </div>
+                      <div className={`${styles.list_item_content}`}>
+                        {!selectedSection && (
+                          <span className={`${styles.empty_text}`}>課・セクションが見つかりません</span>
+                        )}
+                        {selectedSection && sectionIdToObjMap && (
+                          <select
+                            className={` ${styles.select_box} truncate`}
+                            value={selectedSection.id}
+                            onChange={(e) => {
+                              const sectionId = e.target.value;
+                              const newSection = sectionIdToObjMap.has(sectionId)
+                                ? sectionIdToObjMap.get(sectionId)
+                                : null;
+                              setSelectedSection(newSection ?? null);
+
+                              if (activeEntityLocal.entityType === "section") {
+                                setActiveEntityLocal({
+                                  ...activeEntityLocal,
+                                  entityId: sectionId,
+                                  entityName: newSection?.section_name ?? "",
+                                });
+                              }
+
+                              if (activeEntityLocal.entityType === "unit") {
+                                if (!unitDataArray || unitDataArray?.length === 0) {
+                                  alert(
+                                    "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
+                                  );
+                                  return;
+                                }
+                                // 全ての課から新たに選択した事業部に含まれる課のみの選択肢を生成して、1番目を選択中の課にセット
+                                const filteredUnitList = unitDataArray.filter(
+                                  (unit) => unit.created_by_section_id === sectionId
+                                );
+
+                                const sortedUnitList = [...filteredUnitList].sort((a, b) => {
+                                  if (a.unit_name === null) return 1; // null値をリストの最後に移動
+                                  if (b.unit_name === null) return -1;
+                                  return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
+                                });
+                                setFilteredUnitBySelectedSection(sortedUnitList);
+
+                                const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
+                                setSelectedUnit(firstUnitObj);
+                                if (activeEntityLocal.entityType === "unit") {
+                                  setActiveEntityLocal({
+                                    ...activeEntityLocal,
+                                    entityId: firstUnitObj?.id ?? "",
+                                    entityName: firstUnitObj?.unit_name ?? "",
+                                  });
+                                }
+                              }
+                            }}
+                          >
+                            {!!filteredSectionBySelectedDepartment?.length &&
+                              filteredSectionBySelectedDepartment.map(
+                                (section, index) =>
+                                  !!section &&
+                                  section.section_name && (
+                                    <option key={section.id} value={section.id}>
+                                      {section.section_name}
+                                    </option>
+                                  )
+                              )}
+                          </select>
+                        )}
+                      </div>
+                    </li>
+                  )}
+                  {/* ------------------------ 課・セクション ------------------------ */}
+                  {/* ------------------------ 係・チーム ------------------------ */}
+                  {activeEntityLocal.entityType === "unit" && (
+                    <li
+                      className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
+                    >
+                      <div className="pointer-events-none flex min-w-[70px] items-center">
+                        <div className="flex select-none items-center space-x-[2px]">
+                          <span className={`${styles.list_title}`}>係・チーム</span>
+                          <span className={``}>：</span>
+                        </div>
+                      </div>
+                      <div className={`${styles.list_item_content}`}>
+                        {!selectedUnit && <span className={`${styles.empty_text}`}>係・チームが見つかりません</span>}
+                        {selectedUnit && unitIdToObjMap && (
+                          <select
+                            className={`${styles.select_box} truncate`}
+                            value={selectedUnit.id}
+                            onChange={(e) => {
+                              const unitId = e.target.value;
+                              const newUnit = unitIdToObjMap.has(unitId) ? unitIdToObjMap.get(unitId) : null;
+                              setSelectedUnit(newUnit ?? null);
+
+                              setActiveEntityLocal({
+                                ...activeEntityLocal,
+                                entityId: unitId,
+                                entityName: newUnit?.unit_name ?? "",
+                              });
+                            }}
+                          >
+                            {!!filteredUnitBySelectedSection?.length &&
+                              filteredUnitBySelectedSection.map(
+                                (unit, index) =>
+                                  !!unit &&
+                                  unit.unit_name && (
+                                    <option key={unit.id} value={unit.id}>
+                                      {unit.unit_name}
+                                    </option>
+                                  )
+                              )}
+                          </select>
+                        )}
+                      </div>
+                    </li>
+                  )}
+                  {/* ------------------------ 係・チーム ------------------------ */}
+                  {/* ------------------------ 事業所 ------------------------ */}
+                  {activeEntityLocal.entityType === "office" && (
+                    <li
+                      className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
+                    >
+                      <div className="pointer-events-none flex min-w-[70px] items-center">
+                        <div className="flex select-none items-center space-x-[2px]">
+                          <span className={`${styles.list_title}`}>事業所</span>
+                          <span className={``}>：</span>
+                        </div>
+                      </div>
+                      <div className={`${styles.list_item_content}`}>
+                        {!selectedOffice && <span className={`${styles.empty_text}`}>事業所が見つかりません</span>}
+                        {selectedOffice && officeIdToObjMap && (
+                          <select
+                            className={` ${styles.select_box} truncate`}
+                            value={selectedOffice.id}
+                            onChange={(e) => {
+                              const officeId = e.target.value;
+                              const newOffice = officeIdToObjMap.has(officeId) ? officeIdToObjMap.get(officeId) : null;
+                              setSelectedOffice(newOffice ?? null);
+
+                              setActiveEntityLocal({
+                                ...activeEntityLocal,
+                                entityId: officeId,
+                                entityName: newOffice?.office_name ?? "",
+                              });
+                            }}
+                          >
+                            {!!officeDataArray?.length &&
+                              officeDataArray.map(
+                                (office, index) =>
+                                  !!office &&
+                                  office.office_name && (
+                                    <option key={office.id} value={office.id}>
+                                      {office.office_name}
+                                    </option>
+                                  )
+                              )}
+                          </select>
+                        )}
+                      </div>
+                    </li>
+                  )}
+                  {/* ------------------------ 事業所 ------------------------ */}
+                  <hr className="mt-[3px] min-h-[1px] w-full bg-[#999]" />
+                  {/* ------------------------------------ */}
+                  <li className={`${styles.list} ${styles.btn_area} space-x-[20px]`}>
+                    <div
+                      className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
+                      onClick={() => {
+                        if (!activeEntityLocal) return;
+                        if (!activeEntityLocal.entityName) return;
+                        if (!activeEntityLocal.entityId) return;
+                        if (openSectionMenu.title === "entity") {
+                          // 選択、確定するエンティティの子の配列をフィルター
+                          if (activeEntityLocal.entityType === "department") {
+                            const departmentId = activeEntityLocal.entityId;
+                            if (sectionDataArray && sectionDataArray.length > 0) {
+                              const filteredSectionList = sectionDataArray.filter(
+                                (section) => section.created_by_department_id === departmentId
+                              );
+                              // 選択肢を１番目の事業部のidで絞り込み
+                              setFilteredSectionBySelectedDepartment(filteredSectionList);
+                            }
+                          }
+                          if (activeEntityLocal.entityType === "section") {
+                            const sectionId = activeEntityLocal.entityId;
+                            if (unitDataArray && unitDataArray.length > 0) {
+                              const filteredUnitList = unitDataArray.filter(
+                                (unit) => unit.created_by_section_id === sectionId
+                              );
+                              // 選択肢を１番目の事業部のidで絞り込み
+                              setFilteredUnitBySelectedSection(filteredUnitList);
+                            }
+                          }
+                          // 係・チームを選択した場合はメンバーリストをuseQueryで取得する
+                          if (activeEntityLocal.entityType === "unit") {
+                          }
+                          // 事業所を選択した場合はメンバーリストをuseQueryで取得する
+                          if (activeEntityLocal.entityType === "office") {
+                          }
+                        }
+
+                        // setActiveDisplayTabs({
+                        //   ...activeDisplayTabs,
+                        //   entity: activeEntityLocal.entityType,
+                        //   entityName: activeEntityLocal.entityName || null,
+                        //   entityId: activeEntityLocal.entityId || null,
+                        // });
+                        setMainEntityTarget({
+                          entityType: activeEntityLocal.entityType,
+                          entityName: activeEntityLocal.entityName,
+                          entityId: activeEntityLocal.entityId,
+                        });
+                        setOpenSectionMenu(null);
+                      }}
+                    >
+                      <span>適用</span>
+                    </div>
+                    <div
+                      className={`transition-bg02 ${styles.edit_btn} ${styles.cancel}`}
+                      onClick={() => {
+                        handleCloseSectionMenu();
+                      }}
+                    >
+                      <span>戻る</span>
+                    </div>
+                  </li>
+                  {/* ------------------------------------ */}
+                </div>
+              )}
+              {/* 右サイドエンティティ詳細メニュー 適用・戻るエリア */}
+            </>
+          )}
+          {/* ------------------------ エンティティ選択メニュー ------------------------ */}
+        </div>
+      )}
     </>
   );
 };

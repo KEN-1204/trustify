@@ -31,30 +31,12 @@ import {
 } from "@/utils/selectOptions";
 import { ScreenDealBoards } from "../ScreenDealBoards/ScreenDealBoards";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
-import { MemberAccounts, PeriodSDB } from "@/types";
+import { MemberAccounts, PeriodSDB, PopupDescMenuParams, SectionMenuParams } from "@/types";
 import { ImInfo } from "react-icons/im";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { FaExchangeAlt } from "react-icons/fa";
 import { GrPowerReset } from "react-icons/gr";
-
-type SectionMenuParams = {
-  // e: React.MouseEvent<HTMLElement, MouseEvent>;
-  e: React.MouseEvent<HTMLElement, globalThis.MouseEvent | MouseEvent>;
-  title: string;
-  displayX?: string;
-  maxWidth?: number;
-  fadeType?: string;
-};
-type PopupDescMenuParams = {
-  // e: React.MouseEvent<HTMLElement, MouseEvent>;
-  e: React.MouseEvent<HTMLElement, globalThis.MouseEvent | MouseEvent>;
-  title: string;
-  displayX?: string;
-  maxWidth?: number;
-  fadeType?: string;
-  isHoverable?: boolean;
-};
 
 const SalesProgressScreenMemo = () => {
   const language = useStore((state) => state.language);

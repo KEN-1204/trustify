@@ -277,3 +277,14 @@
   /* filter: drop-shadow(0 0 0.3rem #ffffff70); */
   filter: drop-shadow(0 0 0.3rem var(--color-text-brand-shadow));
 }
+
+/* 背景 */
+.bg_container {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  top: 0;
+  width: calc(100vw - var(--sidebar-width));
+  height: calc(100vh - 56px);
+  /* background-color: red; */
+}

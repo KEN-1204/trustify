@@ -135,8 +135,6 @@ const ProgressCircleMemo = ({
   const offset = circumference - (animatedProgress / 100) * circumference;
   const displayProgress = Math.round(animatedProgress);
 
-  console.log("🌟animatedProgress", animatedProgress);
-
   // svgのdefsで定義するlinearGradientの角度
   // 左から右(0度) : x1="0%" y1="0%" x2="100%" y2="0%"
   // 上から下(90度) : x1="0%" y1="0%" x2="0%" y2="100%"
