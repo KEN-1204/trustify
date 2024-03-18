@@ -21,7 +21,8 @@
   min-height: fit-content;
   padding: 3px 7px;
   /* background: #282828; */
-  background: var(--color-tooltip-light);
+  /* background: var(--color-tooltip-light); */
+  background: var(--color-tooltip-gradient-black);
   transition-delay: 0.5s;
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;

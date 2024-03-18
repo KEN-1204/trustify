@@ -50,6 +50,7 @@ const SettingSalesTargetsMemo: FC = () => {
   // const theme = useRootStore(useThemeStore, (state) => state.theme);
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
   const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
   const setIsOpenSettingAccountModal = useDashboardStore((state) => state.setIsOpenSettingAccountModal);
   const selectedSettingAccountMenu = useDashboardStore((state) => state.selectedSettingAccountMenu);
@@ -744,6 +745,7 @@ const SettingSalesTargetsMemo: FC = () => {
                     // setSelectedSettingAccountMenu("Profile");
                     setIsOpenSettingAccountModal(false);
                     setActiveMenuTab("SalesTarget");
+                    setIsOpenSidebar(false);
                   }}
                 >
                   <span>目標を設定</span>

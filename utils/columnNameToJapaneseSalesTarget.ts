@@ -260,61 +260,61 @@ export const columnNameToJapaneseSalesTarget = (
       return `前年比/12月度`;
       break;
     // 前年伸び実績
-    case "fiscal_year_Yo2Y_sales_growth":
+    case "fiscal_year_yo2y_sales_growth":
       return `前年伸び実績/年度`;
       break;
-    case "first_half_Yo2Y_sales_growth":
+    case "first_half_yo2y_sales_growth":
       return `前年伸び実績/H1`;
       break;
-    case "second_half_Yo2Y_sales_growth":
+    case "second_half_yo2y_sales_growth":
       return `前年伸び実績/H2`;
       break;
-    case "first_quarter_Yo2Y_sales_growth":
+    case "first_quarter_yo2y_sales_growth":
       return `前年伸び実績/Q1`;
       break;
-    case "second_quarter_Yo2Y_sales_growth":
+    case "second_quarter_yo2y_sales_growth":
       return `前年伸び実績/Q2`;
       break;
-    case "third_quarter_Yo2Y_sales_growth":
+    case "third_quarter_yo2y_sales_growth":
       return `前年伸び実績/Q3`;
       break;
-    case "fourth_quarter_Yo2Y_sales_growth":
+    case "fourth_quarter_yo2y_sales_growth":
       return `前年伸び実績/Q4`;
       break;
-    case "January_Yo2Y_sales_growth":
+    case "January_yo2y_sales_growth":
       return `前年伸び実績/1月度`;
       break;
-    case "February_Yo2Y_sales_growth":
+    case "February_yo2y_sales_growth":
       return `前年伸び実績/2月度`;
       break;
-    case "March_Yo2Y_sales_growth":
+    case "March_yo2y_sales_growth":
       return `前年伸び実績/3月度`;
       break;
-    case "April_Yo2Y_sales_growth":
+    case "April_yo2y_sales_growth":
       return `前年伸び実績/4月度`;
       break;
-    case "May_Yo2Y_sales_growth":
+    case "May_yo2y_sales_growth":
       return `前年伸び実績/5月度`;
       break;
-    case "June_Yo2Y_sales_growth":
+    case "June_yo2y_sales_growth":
       return `前年伸び実績/6月度`;
       break;
-    case "July_Yo2Y_sales_growth":
+    case "July_yo2y_sales_growth":
       return `前年伸び実績/7月度`;
       break;
-    case "August_Yo2Y_sales_growth":
+    case "August_yo2y_sales_growth":
       return `前年伸び実績/8月度`;
       break;
-    case "September_Yo2Y_sales_growth":
+    case "September_yo2y_sales_growth":
       return `前年伸び実績/9月度`;
       break;
-    case "October_Yo2Y_sales_growth":
+    case "October_yo2y_sales_growth":
       return `前年伸び実績/10月度`;
       break;
-    case "November_Yo2Y_sales_growth":
+    case "November_yo2y_sales_growth":
       return `前年伸び実績/11月度`;
       break;
-    case "December_Yo2Y_sales_growth":
+    case "December_yo2y_sales_growth":
       return `前年伸び実績/12月度`;
       break;
     default:

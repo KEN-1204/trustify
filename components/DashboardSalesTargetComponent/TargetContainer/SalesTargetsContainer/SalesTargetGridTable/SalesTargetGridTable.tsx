@@ -35,9 +35,11 @@ type Props = {
   entityType: string;
   fiscalYear: number;
   isMain: boolean;
+  companyId: string;
+  entityId: string;
 };
 
-const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Props) => {
+const SalesTargetGridTableMemo = ({ title, entityType, entityId, companyId, fiscalYear, isMain }: Props) => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   const language = useStore((state) => state.language);
@@ -47,6 +49,11 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
   const setSalesTargetColumnHeaderItemList = useDashboardStore((state) => state.setSalesTargetColumnHeaderItemList);
   const mainEntityTarget = useDashboardStore((state) => state.mainEntityTarget);
   const setMainEntityTarget = useDashboardStore((state) => state.setMainEntityTarget);
+  // 現在表示中の会計年度
+  const selectedFiscalYearTarget = useDashboardStore((state) => state.selectedFiscalYearTarget);
+  const setSelectedFiscalYearTarget = useDashboardStore((state) => state.setSelectedFiscalYearTarget);
+  // 会計年度の選択肢 2020年度から現在まで
+  const optionsFiscalYear = useDashboardStore((state) => state.optionsFiscalYear);
 
   // 事業部~事業所までは変更する際に、エンティティ名を選択した後にactiveDisplayTabsを更新するため一旦ローカルでエンティティタイプを保持するためのstate
   const [activeEntityLocal, setActiveEntityLocal] = useState<{
@@ -214,8 +221,8 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
     //   };
     //   return newData;
     // });
-    const quantity = () => {
-      switch (entityType) {
+    const quantity = (_entityType: string) => {
+      switch (_entityType) {
         case "company":
           return 1;
           break;
@@ -233,11 +240,13 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
           break;
 
         default:
+          return 1;
           break;
       }
     };
-    const rows = testRowData("company", 1);
-    const count = 300;
+    // const rows = testRowData("company", 1);
+    const rows = testRowData("company", quantity(entityType));
+    const count = quantity(entityType);
     const isLastPage = true;
 
     // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
@@ -270,7 +279,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
     count: number | null;
   }>;
   // ユーザーのcompany_idが見つからない、もしくは、上テーブルで行を選択していない場合には、右下活動テーブルは行データ無しでnullを返す
-  if (!entityType || !fiscalYear) {
+  if (!entityType || !fiscalYear || !entityId) {
     fetchServerPage = async (
       limit: number,
       offset: number = 0
@@ -294,7 +303,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
     };
   }
   // 通常のフェッチ 選択中の会社への自社営業担当者の活動履歴のみ
-  if (!!entityType && !!fiscalYear) {
+  else {
     fetchServerPage = async (
       limit: number,
       offset: number = 0
@@ -312,38 +321,53 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
       let isLastPage = false;
       let count = null;
       try {
-        // company, departmentの種別によって、そのエンティティの売上目標一覧を取得する
-        const payload = {
-          _entity_type: entityType,
-          _fiscal_year: fiscalYear,
-        };
-        const {
-          data,
-          error,
-          count: fetchCount,
-        } = await supabase
-          .rpc("get_sales_targets", payload, { count: "exact" })
-          .range(from, to)
-          .order("entity_name", { ascending: true });
+        // 🔹メイン目標 特定のエンティティIDのみ取得
+        if (isMain) {
+          // 売上目標と指定した会計年度+前2年の計2年分の売上データを取得してからresolve関数内で前年比、前年実績を算出して返す
+          const payload = {
+            _entity_type: entityType,
+            _entity_id: entityId,
+            _fiscal_year: fiscalYear,
+          };
+          const {
+            data,
+            error,
+            count: fetchCount,
+          } = await supabase
+            .rpc("get_sales_targets_main", payload, { count: "exact" })
+            .eq("created_by_company_id", companyId)
+            .range(from, to);
 
-        if (error) throw error;
+          if (error) throw error;
 
-        rows = ensureClientCompanies(data);
-        isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-        count = fetchCount;
-        console.log(
-          "fetchServerPage関数フェッチ後 count data",
-          count,
-          data,
-          "offset, limit",
-          offset,
-          limit,
-          "from, to",
-          from,
-          to,
-          "rows",
-          rows
-        );
+          rows = ensureClientCompanies(data);
+          isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+          count = fetchCount;
+        }
+        // 🔹サブ目標 メイン目標を100%として構成する個別のエンティティの目標
+        else {
+          // company, departmentの種別によって、そのエンティティの売上目標一覧を取得する
+          const payload = {
+            _entity_type: entityType,
+            _entity_id: entityId,
+            _fiscal_year: fiscalYear,
+          };
+          const {
+            data,
+            error,
+            count: fetchCount,
+          } = await supabase
+            .rpc("get_sales_targets_sub", payload, { count: "exact" })
+            .eq("created_by_company_id", companyId)
+            .range(from, to)
+            .order("entity_name", { ascending: true });
+
+          if (error) throw error;
+
+          rows = ensureClientCompanies(data);
+          isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+          count = fetchCount;
+        }
       } catch (e: any) {
         console.error(`fetchServerPage関数 DBからデータ取得に失敗、エラー: `, e);
         rows = null;
@@ -376,6 +400,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
       },
       staleTime: Infinity,
       // enabled: isFetchingEnabled && fetchEnabledRef.current, // デバウンス後にフェッチを有効化(選択行が変更後3秒経過したらフェッチ許可)
+      enabled: !!entityId && !!entityType,
     });
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
 
@@ -2312,7 +2337,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                   handleOpenTooltip({
                     e: e,
                     display: "top",
-                    content: `メイン目標の表示切り替えが可能です。`,
+                    content: `メイン目標の変更`,
                     marginTop: 9,
                   });
                 }}
@@ -2332,18 +2357,6 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
 
                   // const isTopHalf = window.innerHeight / 2 > y;
                   const isUp = window.innerHeight < y + height + 386;
-                  console.log(
-                    // "上半分",
-                    // isTopHalf,
-                    "isUp",
-                    isUp,
-                    "window.innerHeight",
-                    window.innerHeight,
-                    "(window.innerHeight / 2)",
-                    window.innerHeight / 2,
-                    "y",
-                    y
-                  );
 
                   const sectionWidth = 330;
                   if (!isUp) {
@@ -2374,28 +2387,65 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
               >
                 {/* <div className={`absolute left-0 top-[100%] z-[2000] h-[500px] w-[300px] bg-red-100`}></div> */}
                 <span>{title}</span>
-                {/* <select
-                  className={`${styles.select_text} ${styles.arrow_none} fade03_forward mr-[6px] truncate`}
-                  value={mainEntityTarget.entityId}
-                  onChange={(e) => {
-                    setActiveDisplayTabs({ ...activeDisplayTabs, year: Number(e.target.value) });
-                  }}
-                  onClick={handleCloseTooltip}
-                >
-                  {optionsFiscalYear.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select> */}
                 <IoChevronDownOutline className={` text-[18px]`} />
-                <div className="flex-center relative !ml-[9px] h-[16px] w-[16px] rounded-full">
-                  <div
-                    ref={infoIconTitleRef}
-                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
-                  ></div>
-                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+              </div>
+              {optionsFiscalYear && selectedFiscalYearTarget && (
+                <div
+                  className={`${styles.select_text} !ml-[9px] flex pl-[1px] text-[15px]`}
+                  onMouseEnter={(e) => {
+                    const tooltipText = `選択中の会計年度の目標を表示します。\n会計年度は2020年から現在まで選択可能で、翌年度はお客様の決算日から\n現在の日付が3ヶ月を切ると表示、設定、編集が可能となります。`;
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: tooltipText,
+                      marginTop: 56,
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  <select
+                    className={`${styles.arrow_none} mr-[3px] truncate`}
+                    // className={`${styles.select_text} mr-[6px] truncate`}
+                    value={selectedFiscalYearTarget ?? ""}
+                    onChange={(e) => {
+                      setSelectedFiscalYearTarget(Number(e.target.value));
+                    }}
+                    onClick={handleCloseTooltip}
+                  >
+                    {optionsFiscalYear.map((year) => (
+                      <option key={year} value={year}>
+                        {language === "en" ? `FY ` : ``}
+                        {year}
+                        {language === "ja" ? `年度` : ``}
+                      </option>
+                    ))}
+                  </select>
+                  <div className={`flex-center h-[24px] text-[14px]`}>
+                    <IoChevronDownOutline className={` text-[14px]`} />
+                  </div>
                 </div>
+              )}
+              <div
+                className="flex-center relative !ml-[9px] h-[16px] w-[16px] rounded-full"
+                onMouseEnter={(e) => {
+                  const icon = infoIconTitleRef.current;
+                  if (icon && icon.classList.contains(styles.animate_ping)) {
+                    icon.classList.remove(styles.animate_ping);
+                  }
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `下矢印からメイン目標の区分や会計年度の切り替えが可能です。`,
+                    marginTop: 22,
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <div
+                  ref={infoIconTitleRef}
+                  className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                ></div>
+                <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
               </div>
             </>
           )}
@@ -3363,7 +3413,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, fiscalYear, isMain }: Pro
                                   !!section &&
                                   section.section_name && (
                                     <option key={section.id} value={section.id}>
-                                      {section.section_name}マイクロスコープ事業部マイクロスコープ事業部
+                                      {section.section_name}
                                     </option>
                                   )
                               )}

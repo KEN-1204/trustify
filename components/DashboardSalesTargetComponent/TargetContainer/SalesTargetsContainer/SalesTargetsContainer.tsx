@@ -18,6 +18,8 @@ const SalesTargetsContainerMemo = () => {
   // メイン目標
   const mainEntityTarget = useDashboardStore((state) => state.mainEntityTarget);
 
+  if (!userProfileState?.company_id) return null;
+
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
   const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
@@ -139,7 +141,9 @@ const SalesTargetsContainerMemo = () => {
                 <Suspense fallback={<FallbackScrollContainer title={getTitle()} />}>
                   <SalesTargetGridTable
                     title={getTitle()}
+                    companyId={userProfileState.company_id}
                     entityType={mainEntityTarget.entityType}
+                    entityId={userProfileState.company_id}
                     fiscalYear={2023}
                     isMain={true}
                   />
@@ -172,7 +176,7 @@ const SalesTargetsContainerMemo = () => {
           <div className={`${styles.grid_content_card}`}>
             <div className={`${styles.card_title_area}`}>
               <div className={`${styles.card_title}`}>
-                <span>スローガン・重点方針</span>
+                <span>事業部別</span>
               </div>
             </div>
             <div className={`${styles.main_container}`}></div>

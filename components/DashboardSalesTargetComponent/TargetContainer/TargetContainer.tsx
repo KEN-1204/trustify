@@ -24,8 +24,12 @@ import { mappingDescriptions, mappingPopupTitle } from "./dataTarget";
 export const TargetContainer = () => {
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+  // メイン目標のエンティティ
   const mainEntityTarget = useDashboardStore((state) => state.mainEntityTarget);
   const setMainEntityTarget = useDashboardStore((state) => state.setMainEntityTarget);
+  // 表示中の会計年度
+  const selectedFiscalYearTarget = useDashboardStore((state) => state.selectedFiscalYearTarget);
+  const setSelectedFiscalYearTarget = useDashboardStore((state) => state.setSelectedFiscalYearTarget);
 
   // ハーフとallの時はheight指定を無しにして、コンテンツ全体を表示できるようにする
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
@@ -33,19 +37,6 @@ export const TargetContainer = () => {
 
   // 売上目標・プロセス目標
   const [activeTargetTab, setActiveTargetTab] = useState("Sales");
-
-  // メイン目標をセット
-  useEffect(() => {
-    if (mainEntityTarget !== null) return;
-    if (!userProfileState) return;
-    if (!userProfileState.company_id) return;
-    if (!userProfileState.customer_name) return;
-    setMainEntityTarget({
-      entityId: userProfileState.company_id,
-      entityName: userProfileState.customer_name,
-      entityType: "company",
-    });
-  }, []);
 
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
   const {
@@ -168,7 +159,9 @@ export const TargetContainer = () => {
   }, [fiscalYearEndDate, userProfileState?.customer_fiscal_year_basis]);
 
   // 選択年オプション(現在の年から3年遡る, 1年後は決算日まで３ヶ月を切った場合は選択肢に入れる)
-  const [optionsFiscalYear, setOptionsFiscalYear] = useState<{ label: string; value: number }[]>([]);
+  // const [optionsFiscalYear, setOptionsFiscalYear] = useState<{ label: string; value: number }[]>([]);
+  const optionsFiscalYear = useDashboardStore((state) => state.optionsFiscalYear);
+  const setOptionsFiscalYear = useDashboardStore((state) => state.setOptionsFiscalYear);
 
   // 選択中の会計年度ローカルstate
   const [selectedFiscalYear, setSelectedFiscalYear] = useState(currentFiscalYearDateObj.getFullYear());
@@ -199,15 +192,16 @@ export const TargetContainer = () => {
     });
     if (!currentFiscalYearEndDate) {
       // 年度を選択肢として指定
-      const yearOptions = years.map((year) => ({
-        label: `${year}年度`,
-        value: year,
-      }));
+      // const yearOptions = years.map((year) => ({
+      //   label: `${year}年度`,
+      //   value: year,
+      // }));
 
-      console.log("yearOptions", yearOptions);
+      // console.log("yearOptions", yearOptions);
 
       // stateにオプションを追加
-      setOptionsFiscalYear(yearOptions);
+      // setOptionsFiscalYear(yearOptions);
+      setOptionsFiscalYear(years);
       return;
     }
 
@@ -230,17 +224,39 @@ export const TargetContainer = () => {
     }
 
     // 年度を選択肢として指定
-    const yearOptions = years.map((year) => ({
-      label: `${year}年度`,
-      value: year,
-    }));
+    // const yearOptions = years.map((year) => ({
+    //   label: `${year}年度`,
+    //   value: year,
+    // }));
 
-    console.log("yearOptions", yearOptions);
+    // console.log("yearOptions", yearOptions);
 
     // stateにオプションを追加
-    setOptionsFiscalYear(yearOptions);
+    // setOptionsFiscalYear(yearOptions);
+    setOptionsFiscalYear(years);
   }, []);
   // -------------------------- ✅年度の選択肢を作成✅ --------------------------
+
+  // -------------------------- Zustandメイン目標をセット --------------------------
+  useEffect(() => {
+    if (mainEntityTarget !== null) return;
+    if (!userProfileState) return;
+    if (!userProfileState.company_id) return;
+    if (!userProfileState.customer_name) return;
+    setMainEntityTarget({
+      entityId: userProfileState.company_id,
+      entityName: userProfileState.customer_name,
+      entityType: "company",
+    });
+  }, []);
+  // -------------------------- Zustandメイン目標をセット ここまで --------------------------
+  // -------------------------- Zustand会計年度をセット --------------------------
+  // 会計年度をセット
+  useEffect(() => {
+    if (selectedFiscalYearTarget !== null) return;
+    setSelectedFiscalYearTarget(currentFiscalYearDateObj.getFullYear());
+  }, []);
+  // -------------------------- Zustand会計年度をセット ここまで --------------------------
   // ---------------------- 変数 ここまで ----------------------
 
   // ---------------------- 関数 ----------------------
@@ -644,9 +660,11 @@ export const TargetContainer = () => {
                     if (openPopupMenu) handleClosePopupMenu();
                   }}
                 >
-                  {optionsFiscalYear.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
+                  {optionsFiscalYear.map((year) => (
+                    <option key={year} value={year}>
+                      {language === "en" ? `FY ` : ``}
+                      {year}
+                      {language === "ja" ? `年度` : ``}
                     </option>
                   ))}
                 </select>

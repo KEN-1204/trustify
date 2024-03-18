@@ -136,6 +136,19 @@
   font-size: 18px;
   font-weight: 600;
 }
+.select_text {
+  background-color: transparent;
+  cursor: pointer;
+}
+.select_text .arrow_none {
+  appearance: none;
+}
+.card_title_area .card_title:hover,
+.card_title_area .card_title:hover svg,
+.card_title_area .select_text:hover,
+.card_title_area .select_text:hover svg {
+  color: var(--color-text-brand-f);
+}
 .card_title_area .btn {
   padding: 4px 12px;
   font-size: 12px;

@@ -460,9 +460,15 @@ type State = {
   // テーブルカラムヘッダー
   salesTargetColumnHeaderItemList: ColumnHeaderItemList[];
   setSalesTargetColumnHeaderItemList: (payload: ColumnHeaderItemList[]) => void;
-  // 現在表示しているメイン目標
+  // 現在表示しているメイン目標のエンティティ
   mainEntityTarget: MainEntityTarget | null;
   setMainEntityTarget: (payload: MainEntityTarget | null) => void;
+  // 現在表示中の会計年度
+  selectedFiscalYearTarget: number | null;
+  setSelectedFiscalYearTarget: (payload: number | null) => void;
+  // 会計年度の選択肢 2020年度から現在の会計年度まで
+  optionsFiscalYear: number[];
+  setOptionsFiscalYear: (payload: number[]) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1128,9 +1134,15 @@ const useDashboardStore = create<State>((set) => ({
   // salesTargetColumnHeaderItemList: salesTargetColumnHeaderItemListData,
   salesTargetColumnHeaderItemList: salesTargetWithYoYColumnHeaderItemListData,
   setSalesTargetColumnHeaderItemList: (payload) => set({ salesTargetColumnHeaderItemList: payload }),
-  // 現在表示しているメイン目標
+  // 現在表示しているメイン目標のエンティティ
   mainEntityTarget: null,
   setMainEntityTarget: (payload) => set({ mainEntityTarget: payload }),
+  // 現在表示中の会計年度
+  selectedFiscalYearTarget: null,
+  setSelectedFiscalYearTarget: (payload) => set({ selectedFiscalYearTarget: payload }),
+  // 会計年度の選択肢 2020年度から現在の会計年度まで
+  optionsFiscalYear: [],
+  setOptionsFiscalYear: (payload) => set({ optionsFiscalYear: payload }),
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: false,

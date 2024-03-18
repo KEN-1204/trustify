@@ -277,7 +277,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "fiscal_year_Yo2Y_sales_growth",
+    columnName: "fiscal_year_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -290,7 +290,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "first_half_Yo2Y_sales_growth",
+    columnName: "first_half_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -303,7 +303,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "second_half_Yo2Y_sales_growth",
+    columnName: "second_half_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -316,7 +316,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "first_quarter_Yo2Y_sales_growth",
+    columnName: "first_quarter_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -329,7 +329,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "second_quarter_Yo2Y_sales_growth",
+    columnName: "second_quarter_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -342,7 +342,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "third_quarter_Yo2Y_sales_growth",
+    columnName: "third_quarter_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -355,7 +355,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "fourth_quarter_Yo2Y_sales_growth",
+    columnName: "fourth_quarter_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -368,7 +368,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "January_Yo2Y_sales_growth",
+    columnName: "January_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -381,7 +381,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "February_Yo2Y_sales_growth",
+    columnName: "February_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -394,7 +394,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "March_Yo2Y_sales_growth",
+    columnName: "March_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -407,7 +407,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "April_Yo2Y_sales_growth",
+    columnName: "April_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -420,7 +420,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "May_Yo2Y_sales_growth",
+    columnName: "May_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -433,7 +433,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "June_Yo2Y_sales_growth",
+    columnName: "June_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -446,7 +446,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "July_Yo2Y_sales_growth",
+    columnName: "July_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -459,7 +459,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "August_Yo2Y_sales_growth",
+    columnName: "August_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -472,7 +472,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "September_Yo2Y_sales_growth",
+    columnName: "September_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -485,7 +485,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "October_Yo2Y_sales_growth",
+    columnName: "October_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -498,7 +498,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "November_Yo2Y_sales_growth",
+    columnName: "November_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -511,7 +511,7 @@ const salesTargetWithYoYColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "December_Yo2Y_sales_growth",
+    columnName: "December_yo2y_sales_growth",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
