@@ -5,6 +5,7 @@ import {
   Client_company_row_data,
   ColumnHeaderItemList,
   Contact_row_data,
+  DisplayKeys,
   EditPosition,
   EditedCard,
   EditedProduct,
@@ -469,6 +470,12 @@ type State = {
   // 会計年度の選択肢 2020年度から現在の会計年度まで
   optionsFiscalYear: number[];
   setOptionsFiscalYear: (payload: number[]) => void;
+  // ユーザーの会計年度の期首と期末の年月(カレンダー年月)
+  fiscalYearStartEndDate: { startDate: Date; endDate: Date } | null;
+  setFiscalYearStartEndDate: (payload: { startDate: Date; endDate: Date } | null) => void;
+  // テーブルに表示するデータセットキー「売上目標・前年度売上・前年比」
+  displayKeys: DisplayKeys[];
+  setDisplayKeys: (payload: DisplayKeys[]) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1132,7 +1139,7 @@ const useDashboardStore = create<State>((set) => ({
   // =================== 売上目標テーブル ヘッダーリスト保持用state関連 ===================
   // テーブルカラムヘッダー
   // salesTargetColumnHeaderItemList: salesTargetColumnHeaderItemListData,
-  salesTargetColumnHeaderItemList: salesTargetWithYoYColumnHeaderItemListData,
+  salesTargetColumnHeaderItemList: salesTargetColumnHeaderItemListData,
   setSalesTargetColumnHeaderItemList: (payload) => set({ salesTargetColumnHeaderItemList: payload }),
   // 現在表示しているメイン目標のエンティティ
   mainEntityTarget: null,
@@ -1143,6 +1150,12 @@ const useDashboardStore = create<State>((set) => ({
   // 会計年度の選択肢 2020年度から現在の会計年度まで
   optionsFiscalYear: [],
   setOptionsFiscalYear: (payload) => set({ optionsFiscalYear: payload }),
+  // ユーザーの会計年度の期首と期末の年月(カレンダー年月)
+  fiscalYearStartEndDate: null,
+  setFiscalYearStartEndDate: (payload) => set({ fiscalYearStartEndDate: payload }),
+  // テーブルに表示するデータセットキー「売上目標・前年度売上・前年比」
+  displayKeys: ["salesTargets", "yoyGrowth", "lastYearSales"],
+  setDisplayKeys: (payload) => set({ displayKeys: payload }),
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: false,

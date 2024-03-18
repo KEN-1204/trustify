@@ -141,11 +141,13 @@ export const TargetContainer = () => {
     return newEntityList;
   }, [departmentDataArray, sectionDataArray, unitDataArray, officeDataArray]);
 
-  // 決算日を取得して変数に格納
+  // 決算日Date(現在の会計年度の決算日Date) 決算日を取得して変数に格納
   const fiscalYearEndDate = useMemo(() => {
-    return userProfileState?.customer_fiscal_end_month
-      ? new Date(userProfileState.customer_fiscal_end_month)
-      : new Date(new Date().getFullYear(), 2, 31);
+    return (
+      calculateCurrentFiscalYearEndDate({
+        fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+      }) ?? new Date(new Date().getFullYear(), 2, 31)
+    );
   }, [userProfileState?.customer_fiscal_end_month]);
 
   // 現在の会計年度(現在の日付からユーザーの会計年度を取得)
@@ -157,6 +159,24 @@ export const TargetContainer = () => {
       }) ?? new Date()
     );
   }, [fiscalYearEndDate, userProfileState?.customer_fiscal_year_basis]);
+
+  // ユーザーの会計年度の期首と期末の年月(カレンダー年月)
+  const setFiscalYearStartEndDate = useDashboardStore((state) => state.setFiscalYearStartEndDate);
+
+  useEffect(() => {
+    console.log(
+      "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 ",
+      "start",
+      currentFiscalYearDateObj,
+      "end",
+      fiscalYearEndDate,
+      "決算日年月",
+      fiscalYearEndDate.getFullYear() * 100 + fiscalYearEndDate.getMonth() + 1,
+      format(currentFiscalYearDateObj, "yyy/MM/dd HH:mm:ss"),
+      format(fiscalYearEndDate, "yyy/MM/dd HH:mm:ss")
+    );
+    setFiscalYearStartEndDate({ startDate: currentFiscalYearDateObj, endDate: fiscalYearEndDate });
+  }, []);
 
   // 選択年オプション(現在の年から3年遡る, 1年後は決算日まで３ヶ月を切った場合は選択肢に入れる)
   // const [optionsFiscalYear, setOptionsFiscalYear] = useState<{ label: string; value: number }[]>([]);

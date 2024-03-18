@@ -99,6 +99,7 @@ const SalesTargetsContainerMemo = () => {
             <div className={`${styles.card_title_area}`}>
               <div className={`${styles.card_title}`}>
                 <span>売上目標</span>
+                {/* <span>売上目標・スローガン・重点方針</span> */}
               </div>
             </div>
             {/* コンテンツエリア */}
@@ -108,17 +109,18 @@ const SalesTargetsContainerMemo = () => {
             {/* タイトルエリア */}
             <div className={`${styles.card_title_area}`}>
               <div className={`${styles.card_title}`}>
+                <span>売上推移</span>
+              </div>
+            </div>
+            {/* コンテンツエリア */}
+            <div className={`${styles.main_container}`}></div>
+          </div>
+          <div className={`${styles.grid_content_card}`}>
+            {/* タイトルエリア */}
+            <div className={`${styles.card_title_area}`}>
+              <div className={`${styles.card_title}`}>
+                {/* <span>スローガン・重点方針</span> */}
                 <span>売上目標シェア</span>
-              </div>
-            </div>
-            {/* コンテンツエリア */}
-            <div className={`${styles.main_container}`}></div>
-          </div>
-          <div className={`${styles.grid_content_card}`}>
-            {/* タイトルエリア */}
-            <div className={`${styles.card_title_area}`}>
-              <div className={`${styles.card_title}`}>
-                <span>スローガン・重点方針</span>
               </div>
             </div>
             {/* コンテンツエリア */}

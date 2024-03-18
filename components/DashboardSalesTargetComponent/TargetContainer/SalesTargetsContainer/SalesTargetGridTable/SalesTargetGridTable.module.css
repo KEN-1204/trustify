@@ -136,18 +136,22 @@
   font-size: 18px;
   font-weight: 600;
 }
-.select_text {
+.select_text_wrapper {
+}
+.select_text_wrapper .select_text {
   background-color: transparent;
   cursor: pointer;
 }
-.select_text .arrow_none {
+.select_text_wrapper .select_text.arrow_none {
+  background-color: transparent;
   appearance: none;
 }
 .card_title_area .card_title:hover,
 .card_title_area .card_title:hover svg,
-.card_title_area .select_text:hover,
-.card_title_area .select_text:hover svg {
+.card_title_area .select_text_wrapper:hover,
+.card_title_area .select_text_wrapper:hover svg {
   color: var(--color-text-brand-f);
+  cursor: pointer;
 }
 .card_title_area .btn {
   padding: 4px 12px;
@@ -192,7 +196,9 @@
 .grid_scroll_container {
   /* min-height: calc(100vh / 3 - var(--header-height) / 3 - 40px - 22px - 9px); */
   width: 100%;
-  max-height: 183px;
+  /* max-height: 183px; */
+  /* ヘッダー36px １行48px ３行全て表示で204px */
+  max-height: 204px;
   overflow: auto;
   position: relative;
   padding-right: 30vw;

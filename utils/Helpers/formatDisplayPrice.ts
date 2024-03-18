@@ -7,7 +7,8 @@ export const formatDisplayPrice = (price: number | string, language: string = "j
       return formatToJapaneseYen(priceNum, true, false);
       break;
     default:
-      return typeof price === "number" ? price.toString() : price;
+      // return typeof price === "number" ? price.toString() : price;
+      return typeof price === "number" ? `$${price.toLocaleString()}` : `$${Number(price).toLocaleString()}`;
       break;
   }
 };

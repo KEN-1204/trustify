@@ -2513,6 +2513,13 @@ export type CustomizedLabelProps = {
   y: number;
 };
 
+// 売上目標画面のメインエンティティ
+export type MainEntityTarget = {
+  entityType: string;
+  entityId: string;
+  entityName: string;
+};
+
 // 売上目標テーブル
 export type SalesTargets = {
   id: string;
@@ -2530,8 +2537,78 @@ export type SalesTargets = {
   sales_target: number | null;
 };
 
-// 売上目標 SELECT時 エイリアス
-export type SalesTargetWithYoYTableDataType = {
+// 売上目標 売上目標テーブルからFUNCTIONで取得
+// export type SalesTargetFYRowData = {
+//   entity_id: string;
+//   entity_type: string | null;
+//   entity_name: string | null;
+//   // 紐付け関連
+//   created_by_company_id: string | null;
+//   created_by_department_id: string | null;
+//   created_by_section_id: string | null;
+//   created_by_unit_id: string | null;
+//   created_by_user_id: string | null;
+//   created_by_office_id: string | null;
+//   // 当年度売上目標
+//   fiscal_year_sales_target: number | null;
+//   first_half_sales_target: number | null;
+//   second_half_sales_target: number | null;
+//   first_quarter_sales_target: number | null;
+//   second_quarter_sales_target: number | null;
+//   third_quarter_sales_target: number | null;
+//   fourth_quarter_sales_target: number | null;
+//   January_sales_target: number | null;
+//   February_sales_target: number | null;
+//   March_sales_target: number | null;
+//   April_sales_target: number | null;
+//   May_sales_target: number | null;
+//   June_sales_target: number | null;
+//   July_sales_target: number | null;
+//   August_sales_target: number | null;
+//   September_sales_target: number | null;
+//   October_sales_target: number | null;
+//   November_sales_target: number | null;
+//   December_sales_target: number | null;
+// };
+
+// 売上目標 売上目標テーブルからFUNCTIONで取得
+export type SalesTargetFYRowData = {
+  share: number | null;
+  dataset_type: string;
+  entity_id: string;
+  entity_type: string | null;
+  entity_name: string | null;
+  created_by_company_id: string | null;
+  created_by_department_id: string | null;
+  created_by_section_id: string | null;
+  created_by_unit_id: string | null;
+  created_by_user_id: string | null;
+  created_by_office_id: string | null;
+  fiscal_year: number | null;
+  first_half: number | null;
+  second_half: number | null;
+  first_quarter: number | null;
+  second_quarter: number | null;
+  third_quarter: number | null;
+  fourth_quarter: number | null;
+  January: number | null;
+  February: number | null;
+  March: number | null;
+  April: number | null;
+  May: number | null;
+  June: number | null;
+  July: number | null;
+  August: number | null;
+  September: number | null;
+  October: number | null;
+  November: number | null;
+  December: number | null;
+};
+
+// 前年度売上実績 案件テーブルからFUNCTIONで取得
+export type LastYearSalesRowData = {
+  share: number | null;
+  dataset_type: string;
   entity_id: string;
   entity_type: string | null;
   entity_name: string | null;
@@ -2542,89 +2619,140 @@ export type SalesTargetWithYoYTableDataType = {
   created_by_unit_id: string | null;
   created_by_user_id: string | null;
   created_by_office_id: string | null;
-  // 当年度売上目標
-  fiscal_year_sales_target: number | null;
-  first_half_sales_target: number | null;
-  second_half_sales_target: number | null;
-  first_quarter_sales_target: number | null;
-  second_quarter_sales_target: number | null;
-  third_quarter_sales_target: number | null;
-  fourth_quarter_sales_target: number | null;
-  January_sales_target: number | null;
-  February_sales_target: number | null;
-  March_sales_target: number | null;
-  April_sales_target: number | null;
-  May_sales_target: number | null;
-  June_sales_target: number | null;
-  July_sales_target: number | null;
-  August_sales_target: number | null;
-  September_sales_target: number | null;
-  October_sales_target: number | null;
-  November_sales_target: number | null;
-  December_sales_target: number | null;
-  // 昨年実績と前年比
-  fiscal_year_last_year_sales: number | null;
-  fiscal_year_yoy_comparison: number | null;
-  fiscal_year_yo2y_sales_growth: number | null;
-  first_half_last_year_sales: number | null;
-  first_half_yoy_comparison: number | null;
-  first_half_yo2y_sales_growth: number | null;
-  second_half_last_year_sales: number | null;
-  second_half_yoy_comparison: number | null;
-  second_half_yo2y_sales_growth: number | null;
-  first_quarter_last_year_sales: number | null;
-  first_quarter_yoy_comparison: number | null;
-  first_quarter_yo2y_sales_growth: number | null;
-  second_quarter_last_year_sales: number | null;
-  second_quarter_yoy_comparison: number | null;
-  second_quarter_yo2y_sales_growth: number | null;
-  third_quarter_last_year_sales: number | null;
-  third_quarter_yoy_comparison: number | null;
-  third_quarter_yo2y_sales_growth: number | null;
-  fourth_quarter_last_year_sales: number | null;
-  fourth_quarter_yoy_comparison: number | null;
-  fourth_quarter_yo2y_sales_growth: number | null;
-  January_last_year_sales: number | null;
-  January_yoy_comparison: number | null;
-  January_yo2y_sales_growth: number | null;
-  February_last_year_sales: number | null;
-  February_yoy_comparison: number | null;
-  February_yo2y_sales_growth: number | null;
-  March_last_year_sales: number | null;
-  March_yoy_comparison: number | null;
-  March_yo2y_sales_growth: number | null;
-  April_last_year_sales: number | null;
-  April_yoy_comparison: number | null;
-  April_yo2y_sales_growth: number | null;
-  May_last_year_sales: number | null;
-  May_yoy_comparison: number | null;
-  May_yo2y_sales_growth: number | null;
-  June_last_year_sales: number | null;
-  June_yoy_comparison: number | null;
-  June_yo2y_sales_growth: number | null;
-  July_last_year_sales: number | null;
-  July_yoy_comparison: number | null;
-  July_yo2y_sales_growth: number | null;
-  August_last_year_sales: number | null;
-  August_yoy_comparison: number | null;
-  August_yo2y_sales_growth: number | null;
-  September_last_year_sales: number | null;
-  September_yoy_comparison: number | null;
-  September_yo2y_sales_growth: number | null;
-  October_last_year_sales: number | null;
-  October_yoy_comparison: number | null;
-  October_yo2y_sales_growth: number | null;
-  November_last_year_sales: number | null;
-  November_yoy_comparison: number | null;
-  November_yo2y_sales_growth: number | null;
-  December_last_year_sales: number | null;
-  December_yoy_comparison: number | null;
-  December_yo2y_sales_growth: number | null;
+  // 前年度売上実績
+  fiscal_year: number | null;
+  first_half: number | null;
+  second_half: number | null;
+  first_quarter: number | null;
+  second_quarter: number | null;
+  third_quarter: number | null;
+  fourth_quarter: number | null;
+  January: number | null;
+  February: number | null;
+  March: number | null;
+  April: number | null;
+  May: number | null;
+  June: number | null;
+  July: number | null;
+  August: number | null;
+  September: number | null;
+  October: number | null;
+  November: number | null;
+  December: number | null;
 };
 
-// 売上目標画面のメインエンティティ
-export type MainEntityTarget = {
-  entityType: string;
-  entityId: string;
-  entityName: string;
+// 前々年度売上実績 案件テーブルからFUNCTIONで取得
+export type LastLastYearSalesRowData = {
+  share: number | null;
+  dataset_type: string;
+  entity_id: string;
+  entity_type: string | null;
+  entity_name: string | null;
+  // 紐付け関連
+  created_by_company_id: string | null;
+  created_by_department_id: string | null;
+  created_by_section_id: string | null;
+  created_by_unit_id: string | null;
+  created_by_user_id: string | null;
+  created_by_office_id: string | null;
+  // 前々年度売上実績
+  fiscal_year: number | null;
+  first_half: number | null;
+  second_half: number | null;
+  first_quarter: number | null;
+  second_quarter: number | null;
+  third_quarter: number | null;
+  fourth_quarter: number | null;
+  January: number | null;
+  February: number | null;
+  March: number | null;
+  April: number | null;
+  May: number | null;
+  June: number | null;
+  July: number | null;
+  August: number | null;
+  September: number | null;
+  October: number | null;
+  November: number | null;
+  December: number | null;
 };
+
+// 前年比 売上目標と前年度売上実績からクライアントサイドで算出
+export type YoYGrowthRowData = {
+  dataset_type: string;
+  entity_id: string;
+  entity_type: string | null;
+  entity_name: string | null;
+  // 紐付け関連
+  created_by_company_id: string | null;
+  created_by_department_id: string | null;
+  created_by_section_id: string | null;
+  created_by_unit_id: string | null;
+  created_by_user_id: string | null;
+  created_by_office_id: string | null;
+  // 前年比
+  fiscal_year: number | null;
+  first_half: number | null;
+  second_half: number | null;
+  first_quarter: number | null;
+  second_quarter: number | null;
+  third_quarter: number | null;
+  fourth_quarter: number | null;
+  January: number | null;
+  February: number | null;
+  March: number | null;
+  April: number | null;
+  May: number | null;
+  June: number | null;
+  July: number | null;
+  August: number | null;
+  September: number | null;
+  October: number | null;
+  November: number | null;
+  December: number | null;
+};
+
+// 前年度前年伸び率実績
+export type Yo2YGrowthRowData = {
+  dataset_type: string;
+  entity_id: string;
+  entity_type: string | null;
+  entity_name: string | null;
+  // 紐付け関連
+  created_by_company_id: string | null;
+  created_by_department_id: string | null;
+  created_by_section_id: string | null;
+  created_by_unit_id: string | null;
+  created_by_user_id: string | null;
+  created_by_office_id: string | null;
+  // 前年比
+  fiscal_year: number | null;
+  first_half: number | null;
+  second_half: number | null;
+  first_quarter: number | null;
+  second_quarter: number | null;
+  third_quarter: number | null;
+  fourth_quarter: number | null;
+  January: number | null;
+  February: number | null;
+  March: number | null;
+  April: number | null;
+  May: number | null;
+  June: number | null;
+  July: number | null;
+  August: number | null;
+  September: number | null;
+  October: number | null;
+  November: number | null;
+  December: number | null;
+};
+
+// 「売上目標・前年度売上・前年比」の３つのデータセットをqueryFnで取得した３つの結果をオブジェクトにまとめたデータ型
+export type SalesTargetsRowDataWithYoY = {
+  salesTargets: SalesTargetFYRowData;
+  lastYearSales: SalesTargetFYRowData;
+  yoyGrowth: SalesTargetFYRowData;
+};
+
+// ３行１セットデータ型
+export type DisplayKeys = "salesTargets" | "lastYearSales" | "yoyGrowth";
