@@ -32,8 +32,8 @@ export const testRowData = (entityType: string | null, quantity: number = 1): Sa
       }
       return {
         share: null,
-        dataset_type: `sales_target`,
-        entity_id: `${index}_sales_target`,
+        dataset_type: `sales_targets`,
+        entity_id: `${index}_sales_targets`,
         entity_name: entityName ?? null,
         entity_type: entityType,
         // 紐付け関連
@@ -135,8 +135,8 @@ export const testRowDataLastYear = (
       }
       return {
         share: null,
-        dataset_type: `last_year_Sales`,
-        entity_id: `${index}_last_year_Sales`,
+        dataset_type: `last_year_sales`,
+        entity_id: `${index}_last_year_sales`,
         entity_name: entityName ?? null,
         entity_type: entityType,
         // 紐付け関連

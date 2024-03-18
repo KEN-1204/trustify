@@ -6,6 +6,7 @@ import useStore from "@/store";
 import {
   ColumnHeaderItemList,
   Department,
+  DisplayKeys,
   Office,
   SalesTargetFYRowData,
   SalesTargetsRowDataWithYoY,
@@ -260,9 +261,9 @@ const SalesTargetGridTableMemo = ({ title, entityType, entityId, companyId, fisc
     const isLastPage = true;
 
     const rows = salesTargets.map((target, index) => ({
-      salesTargets: target,
-      lastYearSales: lastYearSales[index],
-      yoyGrowth: yoyGrowths[index],
+      sales_targets: target,
+      last_year_sales: lastYearSales[index],
+      yoy_growth: yoyGrowths[index],
     })) as SalesTargetsRowDataWithYoY[];
 
     // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
@@ -2366,9 +2367,9 @@ const SalesTargetGridTableMemo = ({ title, entityType, entityId, companyId, fisc
   // ユーザーがデータセットを「売上目標・前年度売上・前年比・前々年度売上・前年度前年伸び率実績」の5行１セットからそれぞれの
   // ユーザーがデータセットを「売上目標・前年度売上・前年比」の3行１セットから前年度売上、前年比を表示するか否かを選択できるようにして、displayKeysで管理し、rowの表示はdisplayKeys.map(key => {})でrow[key]とすることでプロパティからインデックスシグネチャで表示するプロパティを指定して１回で最大３行を表示する
   // 取り出したrow[key]のそれぞれのデータセットのフォーマット方法に応じて通貨、％フォーマットを使い分けるようにformatDisplayValue関数にdisplayKeyを引数で受け取って、それぞれのデータセットに応じたフォーマットを行なってセルに表示する
-  const formatDisplayValue = (displayKey: string, columnName: string, value: any) => {
+  const formatDisplayValue = (displayKey: DisplayKeys, columnName: string, value: any) => {
     // 売上目標 or 前年度売上データセット用フォーマット
-    if (displayKey === "salesTargets" || displayKey === "lastYearSales") {
+    if (displayKey === "sales_targets" || displayKey === "last_year_sales") {
       switch (columnName) {
         case "share":
           if (!isValidNumber(value)) return null;
@@ -2378,12 +2379,19 @@ const SalesTargetGridTableMemo = ({ title, entityType, entityId, companyId, fisc
           return value ?? null;
           break;
         case "dataset_type":
-          if (displayKey === "salesTargets") return "売上目標";
-          if (displayKey === "lastYearSales")
+          if (displayKey === "sales_targets") return "売上目標";
+          if (displayKey === "last_year_sales")
             return (
               <div className={`mb-[-3px] flex h-full w-full flex-col justify-center`}>
                 <span>前年度売上</span>
                 <span className={`text-[11px]`}>{fiscalYear - 1}年度</span>
+              </div>
+            );
+          if (displayKey === "last_last_year_sales")
+            return (
+              <div className={`mb-[-3px] flex h-full w-full flex-col justify-center`}>
+                <span>前々年度売上</span>
+                <span className={`text-[11px]`}>{fiscalYear - 2}年度</span>
               </div>
             );
           break;
@@ -2395,7 +2403,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, entityId, companyId, fisc
       }
     }
     // 前年比データセット用フォーマット
-    if (displayKey === "yoyGrowth" || displayKey === "yo2yGrowth") {
+    if (displayKey === "yoy_growth" || displayKey === "yo2y_growth") {
       switch (columnName) {
         case "share":
           return null;
@@ -2404,8 +2412,8 @@ const SalesTargetGridTableMemo = ({ title, entityType, entityId, companyId, fisc
           return value ?? null;
           break;
         case "dataset_type":
-          if (displayKey === "yoyGrowth") return "前年比";
-          if (displayKey === "yo2yGrowth") return "前年度前年伸び率実績";
+          if (displayKey === "yoy_growth") return "前年比";
+          if (displayKey === "yo2y_growth") return "前年度前年比伸び率実績";
           break;
 
         default:
@@ -2826,7 +2834,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, entityId, companyId, fisc
 
                   /* ======================== Grid列トラック Row ======================== */
 
-                  // ========= 🌠表示するキーに対応するデータセット展開🌠 =========
+                  // ========= 🌠各データセットを展開するためのループ🌠 =========
                   // 最大３行１セットで展開(売上目標・前年度売上・前年比)
                   return (
                     <Fragment key={"row" + virtualRow.index.toString()}>
@@ -2834,37 +2842,27 @@ const SalesTargetGridTableMemo = ({ title, entityType, entityId, companyId, fisc
                         // 選択されたキーに対応するデータを展開
                         const displayRowData = rowData[displayKey];
 
-                        // 行の実際のtop位置を計算
+                        // 各行の実際のtop位置を動的に計算
                         // 仮想化した1行 * データセットの個数 * データセットのindex * １行の高さ
                         // 仮想化した1行の中にデータセットの個数分の行が展開される
                         const top = (virtualRow.index * displayKeys.length + displayIndex) * rowHeight;
+                        const ariaRowIndex = virtualRow.index * displayKeys.length + 2 + displayIndex;
 
-                        console.log(
-                          "displayRowData",
-                          displayRowData,
-                          "displayKey",
-                          displayKey,
-                          "displayIndex",
-                          displayIndex,
-                          "virtualRow.index",
-                          virtualRow.index,
-                          "top",
-                          (virtualRow.index + displayIndex + 1 + 0) * 48 * (displayIndex + 1)
-                        );
                         return (
                           <div
                             key={"row" + virtualRow.index.toString() + displayKey}
                             role="row"
                             tabIndex={-1}
-                            aria-rowindex={virtualRow.index * (displayIndex + 1) + 2 + displayIndex} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
+                            // aria-rowindex={virtualRow.index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
+                            aria-rowindex={ariaRowIndex} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
                             // aria-selected={false}
                             // チェックが入っているか、もしくは列内のセルがクリックされアクティブになっていた場合には該当のrowのaria-selectedをtrueにする
                             // aria-selected={
                             //   checkedRows[virtualRow.index.toString()] || clickedActiveRow === virtualRow.index + 2
                             // }
                             aria-selected={
-                              checkedRows[(virtualRow.index * (displayIndex + 1) + displayIndex).toString()] ||
-                              clickedActiveRow === virtualRow.index * (displayIndex + 1) + 2 + displayIndex
+                              checkedRows[(virtualRow.index * displayKeys.length + displayIndex).toString()] ||
+                              clickedActiveRow === virtualRow.index * displayKeys.length + 2 + displayIndex
                             }
                             // className={`${styles.grid_row} ${evenRowColorChange ? `${styles.even_color_change}` : ``}`}
                             className={`${styles.grid_row}`}
@@ -2887,7 +2885,7 @@ const SalesTargetGridTableMemo = ({ title, entityType, entityId, companyId, fisc
                               style={{ gridColumnStart: 1, left: "0px" }}
                               onClick={(e) => handleClickGridCell(e)}
                             >
-                              {(displayKey === "salesTargets" || displayKey === "lastYearSales") && (
+                              {(displayKey === "sales_targets" || displayKey === "last_year_sales") && (
                                 <div
                                   className={`${styles.grid_header_cell_share} flex-center relative h-full w-full pb-[6px]`}
                                 >

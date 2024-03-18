@@ -2749,10 +2749,16 @@ export type Yo2YGrowthRowData = {
 
 // 「売上目標・前年度売上・前年比」の３つのデータセットをqueryFnで取得した３つの結果をオブジェクトにまとめたデータ型
 export type SalesTargetsRowDataWithYoY = {
-  salesTargets: SalesTargetFYRowData;
-  lastYearSales: SalesTargetFYRowData;
-  yoyGrowth: SalesTargetFYRowData;
+  sales_targets: SalesTargetFYRowData;
+  last_year_sales: SalesTargetFYRowData;
+  yoy_growth: SalesTargetFYRowData;
 };
 
-// ３行１セットデータ型
-export type DisplayKeys = "salesTargets" | "lastYearSales" | "yoyGrowth";
+// ３行１セットデータ型 FUNCTIONで取得するdataset_typeではスネークケースのため、Zustandもスネークケースで定義
+export type DisplayKeys = "sales_targets" | "last_year_sales" | "yoy_growth";
+// 🔹前年度の前年比伸び率実績(前年度の前年比)と前々年度売上あり
+// export type DisplayKeys = "sales_targets" | "last_year_sales" | "yoy_growth" | "last_last_year_sales" | "yo2y_growth";
+
+// export type DisplayKeys = "salesTargets" | "lastYearSales" | "yoyGrowth";
+// yo2y_growth：前年度の前年比の伸び率実績(前年度の前年比)Year Over Two Years
+// yoy: Year Over Year

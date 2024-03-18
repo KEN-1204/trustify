@@ -1154,7 +1154,7 @@ const useDashboardStore = create<State>((set) => ({
   fiscalYearStartEndDate: null,
   setFiscalYearStartEndDate: (payload) => set({ fiscalYearStartEndDate: payload }),
   // テーブルに表示するデータセットキー「売上目標・前年度売上・前年比」
-  displayKeys: ["salesTargets", "yoyGrowth", "lastYearSales"],
+  displayKeys: ["sales_targets", "yoy_growth", "last_year_sales"],
   setDisplayKeys: (payload) => set({ displayKeys: payload }),
 
   // =================== 営業カレンダー ===================
