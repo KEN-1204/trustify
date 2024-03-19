@@ -1,12 +1,30 @@
+import { mappingMonthEnToJa } from "./mappings";
+
 // lastFiscalYear：下２桁
 export const columnNameToJapaneseSalesTarget = (
   columnName: string,
   entityType: string = "company",
-  fiscalYear: string | number,
-  lastFiscalYear: string | number,
-  lastFiscalYear2Digits: string | number,
-  lastLastFiscalYear: string | number,
-  lastLastFiscalYear2Digits: string | number
+  // fiscal_start_month: number,
+  fiscal_months_array: (
+    | "January"
+    | "February"
+    | "March"
+    | "April"
+    | "May"
+    | "June"
+    | "July"
+    | "August"
+    | "September"
+    | "October"
+    | "November"
+    | "December"
+  )[],
+  language: string = "ja"
+  // fiscalYear: string | number,
+  // lastFiscalYear: string | number,
+  // lastFiscalYear2Digits: string | number,
+  // lastLastFiscalYear: string | number,
+  // lastLastFiscalYear2Digits: string | number
 ) => {
   switch (columnName) {
     case "id":
@@ -51,42 +69,90 @@ export const columnNameToJapaneseSalesTarget = (
     case "fourth_quarter":
       return "第4四半期";
       break;
-    case "January":
-      return "1月度";
+    case "month_01":
+      if (language === "ja") return `${mappingMonthEnToJa[fiscal_months_array[0]]}月度`;
+      return fiscal_months_array[0];
       break;
-    case "February":
-      return "2月度";
+    case "month_02":
+      if (language === "ja") return `${mappingMonthEnToJa[fiscal_months_array[1]]}月度`;
+      return fiscal_months_array[1];
       break;
-    case "March":
-      return "3月度";
+    case "month_03":
+      if (language === "ja") return `${mappingMonthEnToJa[fiscal_months_array[2]]}月度`;
+      return fiscal_months_array[2];
       break;
-    case "April":
-      return "4月度";
+    case "month_04":
+      if (language === "ja") return `${mappingMonthEnToJa[fiscal_months_array[3]]}月度`;
+      return fiscal_months_array[3];
       break;
-    case "May":
-      return "5月度";
+    case "month_05":
+      if (language === "ja") return `${mappingMonthEnToJa[fiscal_months_array[4]]}月度`;
+      return fiscal_months_array[4];
       break;
-    case "June":
-      return "6月度";
+    case "month_06":
+      if (language === "ja") return `${mappingMonthEnToJa[fiscal_months_array[5]]}月度`;
+      return fiscal_months_array[5];
       break;
-    case "July":
-      return "7月度";
+    case "month_07":
+      if (language === "ja") return `${mappingMonthEnToJa[fiscal_months_array[6]]}月度`;
+      return fiscal_months_array[6];
       break;
-    case "August":
-      return "8月度";
+    case "month_08":
+      if (language === "ja") return `${mappingMonthEnToJa[fiscal_months_array[7]]}月度`;
+      return fiscal_months_array[7];
       break;
-    case "September":
-      return "9月度";
+    case "month_09":
+      if (language === "ja") return `${mappingMonthEnToJa[fiscal_months_array[8]]}月度`;
+      return fiscal_months_array[8];
       break;
-    case "October":
-      return "10月度";
+    case "month_10":
+      if (language === "ja") return `${mappingMonthEnToJa[fiscal_months_array[9]]}月度`;
+      return fiscal_months_array[9];
       break;
-    case "November":
-      return "11月度";
+    case "month_11":
+      if (language === "ja") return `${mappingMonthEnToJa[fiscal_months_array[10]]}月度`;
+      return fiscal_months_array[10];
       break;
-    case "December":
-      return "12月度";
+    case "month_12":
+      if (language === "ja") return `${mappingMonthEnToJa[fiscal_months_array[11]]}月度`;
+      return fiscal_months_array[11];
       break;
+    // case "January":
+    //   return "1月度";
+    //   break;
+    // case "February":
+    //   return "2月度";
+    //   break;
+    // case "March":
+    //   return "3月度";
+    //   break;
+    // case "April":
+    //   return "4月度";
+    //   break;
+    // case "May":
+    //   return "5月度";
+    //   break;
+    // case "June":
+    //   return "6月度";
+    //   break;
+    // case "July":
+    //   return "7月度";
+    //   break;
+    // case "August":
+    //   return "8月度";
+    //   break;
+    // case "September":
+    //   return "9月度";
+    //   break;
+    // case "October":
+    //   return "10月度";
+    //   break;
+    // case "November":
+    //   return "11月度";
+    //   break;
+    // case "December":
+    //   return "12月度";
+    //   break;
     // // 前年売上、前年比、前年伸び実績
     // // 前年売上
     // case "fiscal_year_last_year_sales":

@@ -2591,18 +2591,30 @@ export type SalesTargetFYRowData = {
   second_quarter: number | null;
   third_quarter: number | null;
   fourth_quarter: number | null;
-  January: number | null;
-  February: number | null;
-  March: number | null;
-  April: number | null;
-  May: number | null;
-  June: number | null;
-  July: number | null;
-  August: number | null;
-  September: number | null;
-  October: number | null;
-  November: number | null;
-  December: number | null;
+  month_01: number | null;
+  month_02: number | null;
+  month_03: number | null;
+  month_04: number | null;
+  month_05: number | null;
+  month_06: number | null;
+  month_07: number | null;
+  month_08: number | null;
+  month_09: number | null;
+  month_10: number | null;
+  month_11: number | null;
+  month_12: number | null;
+  // January: number | null;
+  // February: number | null;
+  // March: number | null;
+  // April: number | null;
+  // May: number | null;
+  // June: number | null;
+  // July: number | null;
+  // August: number | null;
+  // September: number | null;
+  // October: number | null;
+  // November: number | null;
+  // December: number | null;
 };
 
 // 前年度売上実績 案件テーブルからFUNCTIONで取得
@@ -2627,18 +2639,30 @@ export type LastYearSalesRowData = {
   second_quarter: number | null;
   third_quarter: number | null;
   fourth_quarter: number | null;
-  January: number | null;
-  February: number | null;
-  March: number | null;
-  April: number | null;
-  May: number | null;
-  June: number | null;
-  July: number | null;
-  August: number | null;
-  September: number | null;
-  October: number | null;
-  November: number | null;
-  December: number | null;
+  month_01: number | null;
+  month_02: number | null;
+  month_03: number | null;
+  month_04: number | null;
+  month_05: number | null;
+  month_06: number | null;
+  month_07: number | null;
+  month_08: number | null;
+  month_09: number | null;
+  month_10: number | null;
+  month_11: number | null;
+  month_12: number | null;
+  // January: number | null;
+  // February: number | null;
+  // March: number | null;
+  // April: number | null;
+  // May: number | null;
+  // June: number | null;
+  // July: number | null;
+  // August: number | null;
+  // September: number | null;
+  // October: number | null;
+  // November: number | null;
+  // December: number | null;
 };
 
 // 前々年度売上実績 案件テーブルからFUNCTIONで取得
@@ -2663,18 +2687,30 @@ export type LastLastYearSalesRowData = {
   second_quarter: number | null;
   third_quarter: number | null;
   fourth_quarter: number | null;
-  January: number | null;
-  February: number | null;
-  March: number | null;
-  April: number | null;
-  May: number | null;
-  June: number | null;
-  July: number | null;
-  August: number | null;
-  September: number | null;
-  October: number | null;
-  November: number | null;
-  December: number | null;
+  month_01: number | null;
+  month_02: number | null;
+  month_03: number | null;
+  month_04: number | null;
+  month_05: number | null;
+  month_06: number | null;
+  month_07: number | null;
+  month_08: number | null;
+  month_09: number | null;
+  month_10: number | null;
+  month_11: number | null;
+  month_12: number | null;
+  // January: number | null;
+  // February: number | null;
+  // March: number | null;
+  // April: number | null;
+  // May: number | null;
+  // June: number | null;
+  // July: number | null;
+  // August: number | null;
+  // September: number | null;
+  // October: number | null;
+  // November: number | null;
+  // December: number | null;
 };
 
 // 前年比 売上目標と前年度売上実績からクライアントサイドで算出
@@ -2698,18 +2734,30 @@ export type YoYGrowthRowData = {
   second_quarter: number | null;
   third_quarter: number | null;
   fourth_quarter: number | null;
-  January: number | null;
-  February: number | null;
-  March: number | null;
-  April: number | null;
-  May: number | null;
-  June: number | null;
-  July: number | null;
-  August: number | null;
-  September: number | null;
-  October: number | null;
-  November: number | null;
-  December: number | null;
+  month_01: number | null;
+  month_02: number | null;
+  month_03: number | null;
+  month_04: number | null;
+  month_05: number | null;
+  month_06: number | null;
+  month_07: number | null;
+  month_08: number | null;
+  month_09: number | null;
+  month_10: number | null;
+  month_11: number | null;
+  month_12: number | null;
+  // January: number | null;
+  // February: number | null;
+  // March: number | null;
+  // April: number | null;
+  // May: number | null;
+  // June: number | null;
+  // July: number | null;
+  // August: number | null;
+  // September: number | null;
+  // October: number | null;
+  // November: number | null;
+  // December: number | null;
 };
 
 // 前年度前年伸び率実績
@@ -2749,9 +2797,9 @@ export type Yo2YGrowthRowData = {
 
 // 「売上目標・前年度売上・前年比」の３つのデータセットをqueryFnで取得した３つの結果をオブジェクトにまとめたデータ型
 export type SalesTargetsRowDataWithYoY = {
-  sales_targets: SalesTargetFYRowData;
-  last_year_sales: SalesTargetFYRowData;
-  yoy_growth: SalesTargetFYRowData;
+  sales_targets: SalesTargetFYRowData & { share: number | null };
+  last_year_sales: SalesTargetFYRowData & { share: number | null };
+  yoy_growth: SalesTargetFYRowData & { share: number | null };
 };
 
 // ３行１セットデータ型 FUNCTIONで取得するdataset_typeではスネークケースのため、Zustandもスネークケースで定義
@@ -2762,3 +2810,29 @@ export type DisplayKeys = "sales_targets" | "last_year_sales" | "yoy_growth";
 // export type DisplayKeys = "salesTargets" | "lastYearSales" | "yoyGrowth";
 // yo2y_growth：前年度の前年比の伸び率実績(前年度の前年比)Year Over Two Years
 // yoy: Year Over Year
+
+// 売上目標・前年度売上フェッチ時の年月度の12ヶ月分の配列
+export type FiscalYearMonthKey =
+  | "month_01"
+  | "month_02"
+  | "month_03"
+  | "month_04"
+  | "month_05"
+  | "month_06"
+  | "month_07"
+  | "month_08"
+  | "month_09"
+  | "month_10"
+  | "month_11"
+  | "month_12";
+// マップされた型（Mapped Types）*1
+export type FiscalYearMonthObjForTarget = { [K in FiscalYearMonthKey]: number };
+
+/**
+*1
+[K in FiscalYearMonthKey]: number;はマップされた型を表し、FiscalYearMonthKeyで定義された各ユニオンメンバー（"month_01"、"month_02"、...）をキーとし、それぞれのキーにnumber型の値を割り当てます。
+
+この方法により、FiscalYearMonthObjForTarget型を使用してオブジェクトを定義すると、"month_01"から"month_12"までの各キーに対して数値を割り当てることができます。そして、これらのキー以外のものを使用しようとすると、TypeScriptの型チェックによってエラーが発生します。
+
+マップされた型は、既存の型を新しい型に変換する強力な方法を提供し、型の再利用性と柔軟性を向上させます。この機能を活用することで、より型安全で保守しやすいコードを書くことができます。
+ */

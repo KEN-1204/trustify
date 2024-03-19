@@ -77,15 +77,17 @@ const SalesTargetsContainerMemo = () => {
   };
 
   console.log(
-    "SalesTargetsContainerコンポーネントレンダリング",
+    "🌟SalesTargetsContainerコンポーネントレンダリング",
     "mainEntityTarget",
     mainEntityTarget,
-    "entityTypeList",
-    entityTypeList,
-    departmentDataArray,
-    sectionDataArray,
-    unitDataArray,
-    officeDataArray
+    "getTitle()",
+    getTitle()
+    // "entityTypeList",
+    // entityTypeList,
+    // departmentDataArray,
+    // sectionDataArray,
+    // unitDataArray,
+    // officeDataArray
   );
 
   return (
@@ -142,7 +144,7 @@ const SalesTargetsContainerMemo = () => {
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<FallbackScrollContainer title={getTitle()} />}>
                   <SalesTargetGridTable
-                    title={getTitle()}
+                    entityNameTitle={getTitle()}
                     companyId={userProfileState.company_id}
                     entityType={mainEntityTarget.entityType}
                     entityId={userProfileState.company_id}

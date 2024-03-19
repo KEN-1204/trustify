@@ -20,23 +20,15 @@ import { useQuerySections } from "@/hooks/useQuerySections";
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { RxDot } from "react-icons/rx";
 import { mappingDescriptions, mappingPopupTitle } from "./dataTarget";
+import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
+import { calculateMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
 
 export const TargetContainer = () => {
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
-  // メイン目標のエンティティ
-  const mainEntityTarget = useDashboardStore((state) => state.mainEntityTarget);
-  const setMainEntityTarget = useDashboardStore((state) => state.setMainEntityTarget);
-  // 表示中の会計年度
-  const selectedFiscalYearTarget = useDashboardStore((state) => state.selectedFiscalYearTarget);
-  const setSelectedFiscalYearTarget = useDashboardStore((state) => state.setSelectedFiscalYearTarget);
-
   // ハーフとallの時はheight指定を無しにして、コンテンツ全体を表示できるようにする
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
-
-  // 売上目標・プロセス目標
-  const [activeTargetTab, setActiveTargetTab] = useState("Sales");
 
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
   const {
@@ -115,6 +107,15 @@ export const TargetContainer = () => {
   const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
   // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
+  // 🔹メイン目標のエンティティ
+  const mainEntityTarget = useDashboardStore((state) => state.mainEntityTarget);
+  const setMainEntityTarget = useDashboardStore((state) => state.setMainEntityTarget);
+  // 🔹表示中の会計年度
+  const selectedFiscalYearTarget = useDashboardStore((state) => state.selectedFiscalYearTarget);
+  const setSelectedFiscalYearTarget = useDashboardStore((state) => state.setSelectedFiscalYearTarget);
+  // 🔹売上目標・プロセス目標
+  const [activeTargetTab, setActiveTargetTab] = useState("Sales");
+
   // ---------------------- 変数 ----------------------
   // 🔹ユーザーが作成したエンティティのみのセクションリストを再生成
   const entityTypeList: {
@@ -141,42 +142,92 @@ export const TargetContainer = () => {
     return newEntityList;
   }, [departmentDataArray, sectionDataArray, unitDataArray, officeDataArray]);
 
-  // 決算日Date(現在の会計年度の決算日Date) 決算日を取得して変数に格納
+  // 現在の会計年度
+  const currentFiscalYear = useMemo(
+    () =>
+      calculateCurrentFiscalYear({
+        fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+        fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
+      }),
+    []
+  );
+
+  // 🔹決算日Date(現在の会計年度の決算日Date) 決算日を取得して変数に格納
   const fiscalYearEndDate = useMemo(() => {
     return (
       calculateCurrentFiscalYearEndDate({
         fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+        selectedYear: selectedFiscalYearTarget ?? currentFiscalYear,
       }) ?? new Date(new Date().getFullYear(), 2, 31)
     );
-  }, [userProfileState?.customer_fiscal_end_month]);
+  }, [userProfileState?.customer_fiscal_end_month, selectedFiscalYearTarget]);
 
-  // 現在の会計年度(現在の日付からユーザーの会計年度を取得)
+  // 🔹現在の会計年度(現在の日付からユーザーの会計年度を取得)
   const currentFiscalYearDateObj = useMemo(() => {
     return (
       calculateFiscalYearStart({
         fiscalYearEnd: fiscalYearEndDate,
         fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+        selectedYear: selectedFiscalYearTarget ?? currentFiscalYear,
       }) ?? new Date()
     );
   }, [fiscalYearEndDate, userProfileState?.customer_fiscal_year_basis]);
 
-  // ユーザーの会計年度の期首と期末の年月(カレンダー年月)
+  // 🔹ユーザーの会計年度の期首と期末の年月(カレンダー年月)
+  const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
   const setFiscalYearStartEndDate = useDashboardStore((state) => state.setFiscalYearStartEndDate);
+  // 🔹現在の顧客の会計年月度 202303
+  const currentFiscalStartYearMonth = useDashboardStore((state) => state.currentFiscalStartYearMonth);
+  const setCurrentFiscalStartYearMonth = useDashboardStore((state) => state.setCurrentFiscalStartYearMonth);
+  // 🔹売上目標・前年度売上フェッチ時の年月度の12ヶ月分の配列
+  const annualFiscalMonths = useDashboardStore((state) => state.annualFiscalMonths);
+  const setAnnualFiscalMonths = useDashboardStore((state) => state.setAnnualFiscalMonths);
+  const setLastAnnualFiscalMonths = useDashboardStore((state) => state.setLastAnnualFiscalMonths);
 
+  // 🌟Zustandにセット 顧客の期首と期末のDateオブジェクト + 顧客の開始年月度 + 会計年度をセット🌟
   useEffect(() => {
-    console.log(
-      "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 ",
-      "start",
-      currentFiscalYearDateObj,
-      "end",
-      fiscalYearEndDate,
-      "決算日年月",
-      fiscalYearEndDate.getFullYear() * 100 + fiscalYearEndDate.getMonth() + 1,
-      format(currentFiscalYearDateObj, "yyy/MM/dd HH:mm:ss"),
-      format(fiscalYearEndDate, "yyy/MM/dd HH:mm:ss")
-    );
-    setFiscalYearStartEndDate({ startDate: currentFiscalYearDateObj, endDate: fiscalYearEndDate });
-  }, []);
+    // 🔹🔹ユーザーの会計年度の期首と期末の年月がまだ未セットか、現在の会計年度が変更されたら
+    if (
+      fiscalYearStartEndDate === null ||
+      currentFiscalYearDateObj.getTime() !== fiscalYearStartEndDate.startDate.getTime()
+    ) {
+      // 🔸顧客の期首と期末のDateオブジェクトをセット
+      setFiscalYearStartEndDate({ startDate: currentFiscalYearDateObj, endDate: fiscalYearEndDate });
+
+      // 🔸会計年度をセット
+      setSelectedFiscalYearTarget(currentFiscalYearDateObj.getFullYear());
+
+      // 🔸顧客の選択している会計年度の開始年月度
+      const newStartYearMonth = calculateDateToYearMonth(currentFiscalYearDateObj, fiscalYearEndDate.getDate());
+      setCurrentFiscalStartYearMonth(newStartYearMonth);
+
+      // 🔸年度初めから12ヶ月分の年月度の配列
+      const fiscalMonths = calculateMonths(newStartYearMonth);
+      setAnnualFiscalMonths(fiscalMonths);
+      // 🔸前年度の年度初めから12ヶ月分の年月度の配列
+      const lastStartYearMonth = newStartYearMonth - 100;
+      const lastFiscalMonths = calculateMonths(lastStartYearMonth);
+      setLastAnnualFiscalMonths(lastFiscalMonths);
+
+      console.log(
+        "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 ",
+        "🔹現在の会計年度(現在の日付からユーザーの会計年度を取得)start",
+        format(currentFiscalYearDateObj, "yyy/MM/dd HH:mm:ss"),
+        "🔹決算日Date(現在の会計年度の決算日Date)end",
+        format(fiscalYearEndDate, "yyy/MM/dd HH:mm:ss"),
+        "決算日年月",
+        fiscalYearEndDate.getFullYear() * 100 + fiscalYearEndDate.getMonth() + 1,
+        "現在の会計年度の年月度 newStartYearMonth",
+        newStartYearMonth,
+        "1年分の年月度 fiscalMonths",
+        fiscalMonths,
+        "前年度の1年分の年月度 lastStartYearMonth",
+        lastStartYearMonth,
+        "前年度の12ヶ月分",
+        lastFiscalMonths
+      );
+    }
+  }, [currentFiscalYearDateObj]);
 
   // 選択年オプション(現在の年から3年遡る, 1年後は決算日まで３ヶ月を切った場合は選択肢に入れる)
   // const [optionsFiscalYear, setOptionsFiscalYear] = useState<{ label: string; value: number }[]>([]);
@@ -270,13 +321,6 @@ export const TargetContainer = () => {
     });
   }, []);
   // -------------------------- Zustandメイン目標をセット ここまで --------------------------
-  // -------------------------- Zustand会計年度をセット --------------------------
-  // 会計年度をセット
-  useEffect(() => {
-    if (selectedFiscalYearTarget !== null) return;
-    setSelectedFiscalYearTarget(currentFiscalYearDateObj.getFullYear());
-  }, []);
-  // -------------------------- Zustand会計年度をセット ここまで --------------------------
   // ---------------------- 変数 ここまで ----------------------
 
   // ---------------------- 関数 ----------------------

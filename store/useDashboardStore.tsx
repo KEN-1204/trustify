@@ -9,6 +9,7 @@ import {
   EditPosition,
   EditedCard,
   EditedProduct,
+  FiscalYearMonthObjForTarget,
   MainEntityTarget,
   Meeting_row_data,
   MemberAccounts,
@@ -476,6 +477,15 @@ type State = {
   // テーブルに表示するデータセットキー「売上目標・前年度売上・前年比」
   displayKeys: DisplayKeys[];
   setDisplayKeys: (payload: DisplayKeys[]) => void;
+  // 現在の会計年月度 202303
+  currentFiscalStartYearMonth: number | null;
+  setCurrentFiscalStartYearMonth: (payload: number | null) => void;
+  // 売上目標フェッチ時の年月度の12ヶ月分の配列
+  annualFiscalMonths: FiscalYearMonthObjForTarget | null;
+  setAnnualFiscalMonths: (payload: FiscalYearMonthObjForTarget | null) => void;
+  // 前年度売上の12ヶ月分の年月度配列
+  lastAnnualFiscalMonths: FiscalYearMonthObjForTarget | null;
+  setLastAnnualFiscalMonths: (payload: FiscalYearMonthObjForTarget | null) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1156,6 +1166,15 @@ const useDashboardStore = create<State>((set) => ({
   // テーブルに表示するデータセットキー「売上目標・前年度売上・前年比」
   displayKeys: ["sales_targets", "yoy_growth", "last_year_sales"],
   setDisplayKeys: (payload) => set({ displayKeys: payload }),
+  // 現在の会計年月度 202303
+  currentFiscalStartYearMonth: null,
+  setCurrentFiscalStartYearMonth: (payload) => set({ currentFiscalStartYearMonth: payload }),
+  // 売上目標フェッチ時の年月度の12ヶ月分の配列
+  annualFiscalMonths: null,
+  setAnnualFiscalMonths: (payload) => set({ annualFiscalMonths: payload }),
+  // 前年度売上の12ヶ月分の年月度配列
+  lastAnnualFiscalMonths: null,
+  setLastAnnualFiscalMonths: (payload) => set({ lastAnnualFiscalMonths: payload }),
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: false,

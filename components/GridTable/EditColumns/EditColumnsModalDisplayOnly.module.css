@@ -138,6 +138,10 @@
   background: var(--color-bg-brand-f);
   color: #fff;
 }
+.item_right svg:active,
+.item_right:active {
+  cursor: grabbing;
+}
 .item_right.dragging {
   /* background: #000;
   color: #0affff; */
