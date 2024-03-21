@@ -158,6 +158,10 @@
   cursor: pointer;
   color: var(--color-text-sub);
 }
+.menu_item.active {
+  /* pointer-events: none; */
+  cursor: unset;
+}
 .menu_item:hover::after {
   content: "";
   position: absolute;

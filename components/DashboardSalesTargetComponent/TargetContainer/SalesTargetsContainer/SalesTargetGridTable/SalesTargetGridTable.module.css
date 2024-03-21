@@ -840,6 +840,8 @@
 
 .settings_menu .scroll_container {
   max-height: 39vh;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
 .settings_menu .list {
   padding: 0px 20px;
@@ -848,6 +850,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+.settings_menu .list:last-of-type {
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
 .settings_menu .list.select_list {
   min-height: 50px;

@@ -71,17 +71,72 @@ const About = () => {
     setStartAnimationFeature3(false);
     setStartAnimationFeature4(false);
   }, []);
+
+  const [showBg, setShowBg] = useState(() => (Math.random() < 0.5 ? "polkaDots" : "gradientBg"));
+
+  const polkaDotsBgsRef = useRef<HTMLDivElement | null>(null);
+  const gradientBgRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (showBg === "polkaDots") return;
+    if (!gradientBgRef.current) return;
+    const elements = gradientBgRef.current.querySelectorAll(".uoufRc");
+    let currentIndex = 0; // 現在の要素のインデックス
+
+    function updateClass() {
+      if (!elements || elements.length === 0) return;
+      // すべての要素から.bTSbJdクラスを削除
+      elements.forEach((el) => {
+        el.classList.remove("bTSbJd");
+        el.classList.remove("qs41qe");
+      });
+
+      // 現在の要素に.bTSbJdクラスを追加
+      elements[currentIndex]?.classList.add("bTSbJd");
+
+      // .qs41qeクラスを付ける次の要素のインデックスを計算
+      const nextIndex = (currentIndex + 1) % elements.length;
+      // 次の要素に.qs41qeクラスを追加
+      elements[nextIndex]?.classList.add("bTSbJd");
+
+      // インデックスを更新（次の要素、または最初に戻る）
+      currentIndex = nextIndex;
+      // currentIndex = (currentIndex + 1) % elements.length;
+    }
+
+    // 初回実行 最初の要素にクラスを追加
+    updateClass();
+
+    // 3秒ごとにクラスを更新
+    const intervalId = setInterval(updateClass, 6000);
+
+    // コンポーネントのアンマウント時にインターバルをクリア
+    return () => clearInterval(intervalId);
+  }, []);
+
   return (
     <Layout title={langTitle}>
       {/* シャドウグラデーション */}
       {/* <div className="shadow-gradient-tb-lg absolute inset-0 z-[0]"></div> */}
       {/* 水玉グラデーション */}
-      <div className="absolute inset-0 z-[0] overflow-hidden">
-        <div className="bg-gradient-brand1 z-1 absolute bottom-[-300px] left-[-400px] h-[500px] w-[500px] rounded-full"></div>
-        <div className="bg-gradient-brand2 z-1 absolute left-[39%] top-[-900px] h-[1120px] w-[1120px] rounded-full"></div>
-        {/* <div className="polka_dot_border3"></div> */}
-        <div className="bg-gradient-brand3 z-1 absolute bottom-[-200px] right-[-100px] h-[300px] w-[300px] rounded-full"></div>
-      </div>
+      {showBg === "polkaDots" && (
+        <div ref={polkaDotsBgsRef} className="absolute inset-0 z-[0] overflow-hidden">
+          <div className="bg-gradient-brand1  z-1 absolute bottom-[-300px] left-[-400px] h-[500px] w-[500px] rounded-full"></div>
+          <div className="bg-gradient-brand2  z-1 absolute left-[39%] top-[-900px] h-[1120px] w-[1120px] rounded-full"></div>
+          <div className="bg-gradient-brand3  z-1 absolute bottom-[-200px] right-[-100px] h-[300px] w-[300px] rounded-full"></div>
+        </div>
+      )}
+      {/* グラデーション背景 */}
+      {showBg === "gradientBg" && (
+        <div ref={gradientBgRef} className="absolute inset-0 z-[0] overflow-hidden">
+          <div className="uoufRc Uqnnld"></div>
+          <div className="uoufRc KOf8oc bTSbJd"></div>
+          <div className="uoufRc mXVwnd qs41qe"></div>
+          {/* <div className="uoufRc ueTdxc"></div>
+          <div className="uoufRc wwsywc"></div>
+          <div className="uoufRc a1Jil"></div> */}
+        </div>
+      )}
       <div
         className="relative flex h-screen w-full flex-col items-center px-[10%] py-[5%] text-[var(--color-text)]"
         style={{ fontFamily: "var(--font-family-discord)" }}

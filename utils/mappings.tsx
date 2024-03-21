@@ -93,6 +93,8 @@ export const mappingEntityName: { [key: string]: { [key: string]: string } } = {
   department: { ja: "事業部", en: "Department" },
   section: { ja: "課・セクション", en: "Section" },
   unit: { ja: "係・ユニット", en: "Unit" },
+  member: { ja: "メンバー", en: "Member" },
+  office: { ja: "事業所", en: "Office" },
 };
 
 // --------------------------- ✅SDB関連✅ ---------------------------

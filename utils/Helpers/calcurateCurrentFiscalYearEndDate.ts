@@ -34,7 +34,8 @@ export const calculateCurrentFiscalYearEndDate = ({ fiscalYearEnd: fiscalYearEnd
     const fiscalYearEndMonth = fiscalYearEndDate.getMonth();
     const fiscalYearEndDay = fiscalYearEndDate.getDate();
     // 現在の年で月と日付は決算日のDateオブジェクトを生成
-    const fiscalYearEndDateThisYear = new Date(currentYear, fiscalYearEndMonth, fiscalYearEndDay);
+    // const fiscalYearEndDateThisYear = new Date(currentYear, fiscalYearEndMonth, fiscalYearEndDay);
+    const fiscalYearEndDateThisYear = new Date(currentYear, fiscalYearEndMonth, fiscalYearEndDay, 23, 59, 59, 999);
     // 12月末日決算の場合のみ特別なチェック*1
     // const fiscalYearEndDateDec = new Date(currentYear, 0, 0);
     const isDecemberYearEnd = fiscalYearEndDate.getMonth() === 11 && fiscalYearEndDate.getDate() === 31;
@@ -47,7 +48,8 @@ export const calculateCurrentFiscalYearEndDate = ({ fiscalYearEnd: fiscalYearEnd
         ? currentYear + 1
         : currentYear;
 
-    currentFiscalYearEndDate = new Date(fiscalYear, fiscalYearEndMonth, fiscalYearEndDay);
+    // currentFiscalYearEndDate = new Date(fiscalYear, fiscalYearEndMonth, fiscalYearEndDay);
+    currentFiscalYearEndDate = new Date(fiscalYear, fiscalYearEndMonth, fiscalYearEndDay, 23, 59, 59, 999);
     // console.log(
     //   "現在の年度チェック",
     //   "fiscalYearEnd",

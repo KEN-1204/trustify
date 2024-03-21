@@ -67,6 +67,12 @@ export const DashboardHeaderMemo: FC = () => {
   // リフェッチローディング
   const [refetchLoading, setRefetchLoading] = useState(false);
   // 各タブの選択しているRowデータをタブ移動ごとにリセットする
+  const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
+  const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
+  const selectedRowDataActivity = useDashboardStore((state) => state.selectedRowDataActivity);
+  const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
+  const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
+  const selectedRowDataQuotation = useDashboardStore((state) => state.selectedRowDataQuotation);
   const setSelectedRowDataCompany = useDashboardStore((state) => state.setSelectedRowDataCompany);
   const setSelectedRowDataContact = useDashboardStore((state) => state.setSelectedRowDataContact);
   const setSelectedRowDataActivity = useDashboardStore((state) => state.setSelectedRowDataActivity);
@@ -636,7 +642,8 @@ export const DashboardHeaderMemo: FC = () => {
     setSelectedSettingAccountMenu("Profile");
   };
   // 管理者クリック 会社管理画面オープン
-  const openSettingInvitation = () => {
+  const openSalesTarget = () => {
+    if (activeMenuTab === "SalesTarget") return;
     // if (userProfileState?.account_company_role !== ("company_owner" || "company_admin"))
     //   return alert("管理者権限が必要です。");
     // setIsOpenSettingAccountModal(true);
@@ -651,18 +658,19 @@ export const DashboardHeaderMemo: FC = () => {
   const resetSelectedRowData = (newTabName: string, currentTabName: string) => {
     // 現在のタブと違うタブに移動する場合には全てのselectedRowDataをリセット
     if (newTabName !== currentTabName) {
-      setSelectedRowDataCompany(null);
-      setSelectedRowDataContact(null);
-      setSelectedRowDataActivity(null);
-      setSelectedRowDataMeeting(null);
-      setSelectedRowDataProperty(null);
-      setSelectedRowDataQuotation(null);
+      if (!!selectedRowDataCompany) setSelectedRowDataCompany(null);
+      if (!!selectedRowDataContact) setSelectedRowDataContact(null);
+      if (!!selectedRowDataActivity) setSelectedRowDataActivity(null);
+      if (!!selectedRowDataMeeting) setSelectedRowDataMeeting(null);
+      if (!!selectedRowDataProperty) setSelectedRowDataProperty(null);
+      if (!!selectedRowDataQuotation) setSelectedRowDataQuotation(null);
     }
     // 現在のタブと一緒なら選択中のRowデータはリセットしない
   };
 
   // タブ切り替えでサーチモードをfalseに
   const switchActiveTab = (tabName: string) => {
+    if (activeMenuTab === tabName) return;
     if (searchMode) setSearchMode(false);
     if (editSearchMode) setEditSearchMode(false);
     if (loadingGlobalState) setLoadingGlobalState(false);
@@ -1213,7 +1221,7 @@ export const DashboardHeaderMemo: FC = () => {
                   // prefetch={false}
                   // className={`${styles.navbarItem} ${activeMenuTab === "Admin" ? styles.active : ""} `}
                   className={`${styles.navbarItem} ${activeMenuTab === "SalesTarget" ? styles.active : ""} `}
-                  onClick={openSettingInvitation}
+                  onClick={openSalesTarget}
                 >
                   <div
                     className={`${styles.navbarItemInner}`}

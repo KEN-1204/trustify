@@ -103,6 +103,7 @@ export const DashboardSidebarMemo: FC = () => {
 
   // タブ切り替えでサーチモードをfalseに
   const switchActiveTab = (tabName: string) => {
+    if (activeMenuTab === tabName) return;
     if (searchMode) setSearchMode(false);
     if (editSearchMode) setEditSearchMode(false);
     // if (loadingGlobalState) setLoadingGlobalState(false);

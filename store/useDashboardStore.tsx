@@ -30,6 +30,7 @@ import {
   StampObj,
   StatusClosingDays,
   StripeSchedule,
+  UpsertTargetObj,
   UserProfile,
   UserProfileCompanySubscription,
 } from "@/types";
@@ -486,6 +487,15 @@ type State = {
   // 前年度売上の12ヶ月分の年月度配列
   lastAnnualFiscalMonths: FiscalYearMonthObjForTarget | null;
   setLastAnnualFiscalMonths: (payload: FiscalYearMonthObjForTarget | null) => void;
+  // 目標設定モード
+  isUpsertTargetMode: boolean;
+  setIsUpsertTargetMode: (payload: boolean) => void;
+  // 目標設定時のエンティティ・年度オブジェクト
+  upsertTargetObj: UpsertTargetObj | null;
+  setUpsertTargetObj: (payload: UpsertTargetObj | null) => void;
+  // ユーザーのエンティティの中でメンバーの親に当たる末端のエンティティ
+  // endEntity: string;
+  // setEndEntity: (payload: string) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1175,6 +1185,15 @@ const useDashboardStore = create<State>((set) => ({
   // 前年度売上の12ヶ月分の年月度配列
   lastAnnualFiscalMonths: null,
   setLastAnnualFiscalMonths: (payload) => set({ lastAnnualFiscalMonths: payload }),
+  // 目標設定モード
+  isUpsertTargetMode: false,
+  setIsUpsertTargetMode: (payload) => set({ isUpsertTargetMode: payload }),
+  // 目標設定時のエンティティ・年度オブジェクト
+  upsertTargetObj: null,
+  setUpsertTargetObj: (payload) => set({ upsertTargetObj: payload }),
+  // ユーザーのエンティティの中でメンバーの親に当たる末端のエンティティ
+  // endEntity: "company",
+  // setEndEntity: (payload) => set({ endEntity: payload }),
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: false,

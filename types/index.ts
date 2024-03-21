@@ -2836,3 +2836,24 @@ export type FiscalYearMonthObjForTarget = { [K in FiscalYearMonthKey]: number };
 
 マップされた型は、既存の型を新しい型に変換する強力な方法を提供し、型の再利用性と柔軟性を向上させます。この機能を活用することで、より型安全で保守しやすいコードを書くことができます。
  */
+
+// =========営業担当データ
+export type MemberObj = {
+  memberId: string | null;
+  memberName: string | null;
+  departmentId: string | null;
+  sectionId: string | null;
+  unitId: string | null;
+  officeId: string | null;
+  signature_stamp_id?: string | null;
+  signature_stamp_url?: string | null;
+};
+
+// 目標設定用 年度・エンティティ関連オブジェクト
+export type UpsertTargetObj = {
+  fiscalYear: number;
+  entityType: string; // 全社・事業部
+  entityId: string; // 設定するエンティティid
+  entityName: string;
+  childEntityType: string;
+};

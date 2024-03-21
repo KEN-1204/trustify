@@ -446,7 +446,7 @@ export const Root: FC = () => {
         >
           <video
             ref={featureBgVideoRef1}
-            autoPlay={true}
+            // autoPlay={true}
             muted={true}
             playsInline={true}
             loop={true}
@@ -499,8 +499,16 @@ export const Root: FC = () => {
             <div
               ref={FeatureDivRef1}
               className={`${styles.wrap}`}
-              onMouseEnter={() => setHoveredFeature1(true)}
-              onMouseLeave={() => setHoveredFeature1(false)}
+              onMouseEnter={() => {
+                setHoveredFeature1(true);
+                if (featureContentVideoRef1.current) featureContentVideoRef1.current.play();
+                if (featureBgVideoRef1.current) featureBgVideoRef1.current.play();
+              }}
+              onMouseLeave={() => {
+                setHoveredFeature1(false);
+                if (featureContentVideoRef1.current) featureContentVideoRef1.current.pause();
+                if (featureBgVideoRef1.current) featureBgVideoRef1.current.pause();
+              }}
             >
               <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
               <Image
@@ -519,7 +527,7 @@ export const Root: FC = () => {
               />
               <video
                 ref={featureContentVideoRef1}
-                autoPlay={true}
+                // autoPlay={true}
                 loop={true}
                 playsInline={true}
                 muted={true}
@@ -574,7 +582,7 @@ export const Root: FC = () => {
         >
           <video
             ref={featureBgVideoRef2}
-            autoPlay={true}
+            // autoPlay={true}
             muted={true}
             playsInline={true}
             loop={true}
@@ -638,8 +646,16 @@ export const Root: FC = () => {
             <div
               ref={FeatureDivRef2}
               className={`${styles.wrap}`}
-              onMouseEnter={() => setHoveredFeature2(true)}
-              onMouseLeave={() => setHoveredFeature2(false)}
+              onMouseEnter={() => {
+                setHoveredFeature2(true);
+                if (featureContentVideoRef2.current) featureContentVideoRef2.current.play();
+                if (featureBgVideoRef2.current) featureBgVideoRef2.current.play();
+              }}
+              onMouseLeave={() => {
+                setHoveredFeature2(false);
+                if (featureContentVideoRef2.current) featureContentVideoRef2.current.pause();
+                if (featureBgVideoRef2.current) featureBgVideoRef2.current.pause();
+              }}
             >
               <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
               <Image
@@ -657,7 +673,7 @@ export const Root: FC = () => {
               />
               <video
                 ref={featureContentVideoRef2}
-                autoPlay={true}
+                // autoPlay={true}
                 loop={true}
                 playsInline={true}
                 muted={true}
@@ -709,7 +725,7 @@ export const Root: FC = () => {
         >
           <video
             ref={featureBgVideoRef3}
-            autoPlay={true}
+            // autoPlay={true}
             muted={true}
             playsInline={true}
             loop={true}
@@ -776,8 +792,16 @@ export const Root: FC = () => {
             <div
               ref={FeatureDivRef3}
               className={`${styles.wrap}`}
-              onMouseEnter={() => setHoveredFeature3(true)}
-              onMouseLeave={() => setHoveredFeature3(false)}
+              onMouseEnter={() => {
+                setHoveredFeature3(true);
+                // if (featureContentVideoRef3.current) featureContentVideoRef3.current.play();
+                if (featureBgVideoRef3.current) featureBgVideoRef3.current.play();
+              }}
+              onMouseLeave={() => {
+                setHoveredFeature3(false);
+                // if (featureContentVideoRef3.current) featureContentVideoRef3.current.pause();
+                if (featureBgVideoRef3.current) featureBgVideoRef3.current.pause();
+              }}
             >
               <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
               <Image
@@ -838,7 +862,7 @@ export const Root: FC = () => {
         >
           <video
             ref={featureBgVideoRef4}
-            autoPlay={true}
+            // autoPlay={true}
             muted={true}
             playsInline={true}
             loop={true}
@@ -894,8 +918,16 @@ export const Root: FC = () => {
             <div
               ref={FeatureDivRef4}
               className={`${styles.wrap}`}
-              onMouseEnter={() => setHoveredFeature4(true)}
-              onMouseLeave={() => setHoveredFeature4(false)}
+              onMouseEnter={() => {
+                setHoveredFeature4(true);
+                // if (featureContentVideoRef4.current) featureContentVideoRef4.current.play();
+                if (featureBgVideoRef4.current) featureBgVideoRef4.current.play();
+              }}
+              onMouseLeave={() => {
+                setHoveredFeature4(false);
+                // if (featureContentVideoRef4.current) featureContentVideoRef4.current.pause();
+                if (featureBgVideoRef4.current) featureBgVideoRef4.current.pause();
+              }}
             >
               <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
               <Image
@@ -940,7 +972,7 @@ export const Root: FC = () => {
         >
           <video
             ref={featureBgVideoRef5}
-            autoPlay={true}
+            // autoPlay={true}
             muted={true}
             playsInline={true}
             loop={true}
@@ -984,8 +1016,16 @@ export const Root: FC = () => {
             <div
               ref={FeatureDivRef5}
               className={`${styles.wrap}`}
-              onMouseEnter={() => setHoveredFeature5(true)}
-              onMouseLeave={() => setHoveredFeature5(false)}
+              onMouseEnter={() => {
+                setHoveredFeature5(true);
+                // if (featureContentVideoRef5.current) featureContentVideoRef5.current.play();
+                if (featureBgVideoRef5.current) featureBgVideoRef5.current.play();
+              }}
+              onMouseLeave={() => {
+                setHoveredFeature5(false);
+                // if (featureContentVideoRef5.current) featureContentVideoRef5.current.pause();
+                if (featureBgVideoRef5.current) featureBgVideoRef5.current.pause();
+              }}
             >
               <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
               <Image

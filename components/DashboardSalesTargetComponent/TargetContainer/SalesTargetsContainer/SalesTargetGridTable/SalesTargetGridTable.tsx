@@ -208,6 +208,8 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
   const prevSelectedGridCellRef = useRef<HTMLDivElement | null>(null);
   // GridセルDOM
   const gridRowTracksRefs = useRef<(HTMLDivElement | null)[]>([]);
+  // 年度select Ref
+  const selectPeriodRef = useRef<HTMLSelectElement | null>(null);
 
   // infoアイコン
   const infoIconTitleRef = useRef<HTMLDivElement | null>(null);
@@ -2678,7 +2680,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
               </div>
               {optionsFiscalYear && selectedFiscalYearTarget && (
                 <div
-                  className={`${styles.select_text_wrapper} !ml-[9px] flex pl-[1px] text-[15px]`}
+                  className={`${styles.select_text_wrapper} !ml-[15px] flex pl-[1px] text-[15px]`}
                   onMouseEnter={(e) => {
                     const tooltipText = `選択中の会計年度の目標を表示します。\n会計年度は2020年から現在まで選択可能で、翌年度はお客様の決算日から\n現在の日付が3ヶ月を切ると表示、設定、編集が可能となります。`;
                     handleOpenTooltip({
@@ -2691,6 +2693,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                   onMouseLeave={handleCloseTooltip}
                 >
                   <select
+                    ref={selectPeriodRef}
                     className={`${styles.select_text} ${styles.arrow_none} mr-[3px] truncate`}
                     // className={`${styles.select_text} mr-[6px] truncate`}
                     value={selectedFiscalYearTarget ?? ""}
@@ -2713,7 +2716,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                 </div>
               )}
               <div
-                className="flex-center relative !ml-[9px] h-[16px] w-[16px] rounded-full"
+                className="flex-center relative !ml-[15px] h-[16px] w-[16px] rounded-full"
                 onMouseEnter={(e) => {
                   const icon = infoIconTitleRef.current;
                   if (icon && icon.classList.contains(styles.animate_ping)) {
