@@ -780,7 +780,7 @@
   display: grid;
   row-gap: 20px;
 }
-.contents_area.upsert {
+.contents_area.upsert:first-of-type {
   padding: 6px 32px 20px 30px;
 }
 .contents_area .grid_row {
@@ -882,9 +882,14 @@
 .grid_column_header_inner_name {
   user-select: text;
   text-overflow: ellipsis;
-  font-size: 0.75rem;
+  font-size: 12px;
   line-height: 1rem;
   overflow: hidden;
+}
+.grid_column_header_inner_name.sales_target {
+  font-size: 13px;
+  color: var(--color-text-brand-f);
+  /* color: var(--color-text-title); */
 }
 
 .grid_scroll_container .row {

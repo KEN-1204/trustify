@@ -17,6 +17,8 @@ const SalesTargetsContainerMemo = () => {
   const queryClient = useQueryClient();
   // メイン目標
   const mainEntityTarget = useDashboardStore((state) => state.mainEntityTarget);
+  // 選択中の会計年度
+  const selectedFiscalYearTarget = useDashboardStore((state) => state.selectedFiscalYearTarget);
 
   if (!userProfileState?.company_id) return null;
 
@@ -140,7 +142,7 @@ const SalesTargetsContainerMemo = () => {
               </div>
             </div> */}
             {/* コンテンツエリア */}
-            {mainEntityTarget && (
+            {mainEntityTarget && selectedFiscalYearTarget && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<FallbackScrollContainer title={getTitle()} />}>
                   <SalesTargetGridTable
@@ -148,7 +150,7 @@ const SalesTargetsContainerMemo = () => {
                     companyId={userProfileState.company_id}
                     entityType={mainEntityTarget.entityType}
                     entityId={userProfileState.company_id}
-                    fiscalYear={2023}
+                    fiscalYear={selectedFiscalYearTarget}
                     isMain={true}
                   />
                 </Suspense>

@@ -709,9 +709,11 @@ export const TargetContainer = () => {
     "entityTypeList",
     entityTypeList,
     "決算日",
-    fiscalYearEndDate,
+    format(fiscalYearEndDate, "yyyy/MM/dd HH:mm:ss"),
     "現在の会計年度Date",
-    currentFiscalYearDateObj
+    format(currentFiscalYearDateObj, "yyyy/MM/dd HH:mm:ss"),
+    "現在選択中の会計年度",
+    selectedFiscalYearTarget
   );
 
   return (
@@ -833,7 +835,11 @@ export const TargetContainer = () => {
           {/* ----------------- １画面目 上画面 ここまで ----------------- */}
 
           {/* ----------------- ２画面目 下画面 ----------------- */}
-          {activeTargetTab === "Sales" && (
+
+          {/* 選択年がまだセットされていない場合はローディングを表示 */}
+          {!selectedFiscalYearTarget && <FallbackContainerSalesTarget />}
+
+          {activeTargetTab === "Sales" && selectedFiscalYearTarget && (
             <section className={`${styles.main_section_area} fade08_forward`}>
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<FallbackContainerSalesTarget />}>
@@ -843,7 +849,7 @@ export const TargetContainer = () => {
             </section>
           )}
 
-          {activeTargetTab === "Process" && (
+          {activeTargetTab === "Process" && selectedFiscalYearTarget && (
             <section className={`${styles.main_section_area} fade08_forward`}>
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense fallback={<FallbackContainerSalesTarget />}>
