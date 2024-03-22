@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 
 export const useQueryNotifications = (user_id: string, isReady: boolean) => {
   const supabase = useSupabaseClient();
-  console.log("useQueryNotificationsカスタムフック実行 user_id", user_id, "isReady", isReady);
+  // console.log("useQueryNotificationsカスタムフック実行 user_id", user_id, "isReady", isReady);
 
   const getMyNotifications = async () => {
     // console.log("useQueryNotificationsカスタムフック実行🔥 user_id", userProfileState?.id, "isReady", isReady);

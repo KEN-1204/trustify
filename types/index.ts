@@ -2857,3 +2857,12 @@ export type UpsertTargetObj = {
   entityName: string;
   childEntityType: string;
 };
+
+// 目標設定時の「年度・半期」の「過去3年分の売上」と「前年度の前年伸び率実績」 useQuery
+export type SalesSummaryYearHalf = {
+  period_type: string; // 年度・上半期・下半期(fiscal_year, first_half, second_half)
+  last_year_sales: number;
+  two_years_ago_sales: number;
+  three_years_ago_sales: number;
+  growth_rate: number;
+};

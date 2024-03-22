@@ -54,15 +54,40 @@ export const formatColumnName = (column: string, year: number): { ja: string; en
   }
 };
 
-export const rowHeaderListTarget = ["fiscal_year", "first_half_year", "second_half_year"];
+// Rowリスト 年度・上半期・下半期
+export const rowHeaderListTarget = ["fiscal_year", "first_half", "second_half"];
+// Rowリスト 上半期・Q1~Q2・01~06 isEndEntityの場合のみ使用 「末端エンティティ + メンバーエンティティ」
+export const rowHeaderListTargetFirstHalf = [
+  "first_half",
+  "first_quarter",
+  "second_quarter",
+  "month_01",
+  "month_02",
+  "month_03",
+  "month_04",
+  "month_05",
+  "month_06",
+];
+// Rowリスト 下半期・Q3~Q4・07~12 isEndEntityの場合のみ使用 「末端エンティティ + メンバーエンティティ」
+export const rowHeaderListTargetSecondHalf = [
+  "second_half",
+  "third_quarter",
+  "fourth_quarter",
+  "month_07",
+  "month_08",
+  "month_09",
+  "month_10",
+  "month_11",
+  "month_12",
+];
 export const formatRowName = (row: string, year: number): { ja: string; en: string; [key: string]: string } => {
   switch (row) {
     case "fiscal_year":
       // return { ja: `${year}年度`, en: `FY${year}` };
       return { ja: `年度`, en: `FY${year}` };
-    case "first_half_year":
+    case "first_half":
       return { ja: `上半期`, en: `${year}H1` };
-    case "second_half_year":
+    case "second_half":
       return { ja: `下半期`, en: `${year}H2` };
 
     default:
@@ -74,9 +99,9 @@ export const formatRowNameShort = (row: string, year: number): { ja: string; en:
   switch (row) {
     case "fiscal_year":
       return { ja: `FY${year}`, en: `FY${year}` };
-    case "first_half_year":
+    case "first_half":
       return { ja: `${year}H1`, en: `${year}H1` };
-    case "second_half_year":
+    case "second_half":
       return { ja: `${year}H2`, en: `${year}H2` };
 
     default:
@@ -118,6 +143,10 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
 
   if (!upsertTargetObj) return null;
 
+  // -------------------------- state関連 --------------------------
+  // stickyを付与するrow
+  const [stickyRow, setStickyRow] = useState<string | null>(null);
+
   const isEndEntity = endEntity === upsertTargetObj.entityType;
 
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
@@ -151,7 +180,7 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
           // className={`${styles.company_screen} space-y-[20px] ${
           className={`${styles.company_table_screen}`}
         >
-          <div className={`${styles.title_area} flex w-full justify-between`}>
+          <div className={`${styles.title_area} ${styles.upsert} flex w-full justify-between`}>
             <h1 className={`${styles.title}`}>
               <span>目標設定</span>
             </h1>
@@ -174,12 +203,26 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
         </section>
         {/* ----------------- ２画面目 下画面 ----------------- */}
         <section className={`${styles.main_section_area} fade08_forward`}>
-          <ErrorBoundary FallbackComponent={ErrorFallback}>
-            <Suspense fallback={<FallbackScrollContainer title={upsertTargetObj.entityName} />}>
-              <UpsertTargetGridTable />
-            </Suspense>
-          </ErrorBoundary>
+          {/* ------------------ コンテンツエリア ------------------ */}
+          <div className={`${styles.contents_area} ${styles.upsert}`}>
+            <ErrorBoundary FallbackComponent={ErrorFallback}>
+              <Suspense fallback={<FallbackScrollContainer title={upsertTargetObj.entityName} />}>
+                <div className={`${stickyRow === upsertTargetObj.entityId ? styles.sticky_row : ``}`}>
+                  <UpsertTargetGridTable
+                    entityId={upsertTargetObj.entityId}
+                    entityNameTitle={upsertTargetObj.entityName}
+                    stickyRow={stickyRow}
+                    setStickyRow={setStickyRow}
+                  />
+                </div>
+              </Suspense>
+            </ErrorBoundary>
+
+            <div className="h-[200vh] w-full bg-[red]/[0.1]"></div>
+          </div>
+          {/* ------------------ コンテンツエリア ここまで ------------------ */}
         </section>
+
         {/* ----------------- ２画面目 下画面 ここまで ----------------- */}
       </div>
       {/* ===================== スクロールコンテナ ここまで ===================== */}

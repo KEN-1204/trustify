@@ -505,6 +505,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     if (selectedRowDataActivity) selectedData = selectedRowDataActivity;
     if (selectedRowDataMeeting) selectedData = selectedRowDataMeeting;
     if (selectedRowDataProperty) selectedData = selectedRowDataProperty;
+    if (selectedRowDataQuotation) selectedData = selectedRowDataQuotation;
 
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear(); // 例: 2023

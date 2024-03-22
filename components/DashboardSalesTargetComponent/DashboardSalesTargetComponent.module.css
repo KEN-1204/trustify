@@ -773,6 +773,9 @@
 /* ---------------------------- 説明メニュー ここまで ---------------------------- */
 
 /* ---------------------------- UpsertTarget ---------------------------- */
+.title_area.upsert {
+  padding: 20px 0 0;
+}
 .contents_area {
   width: 100%;
   max-width: 100%;
@@ -780,15 +783,26 @@
   display: grid;
   row-gap: 20px;
 }
-.contents_area.upsert:first-of-type {
-  padding: 6px 32px 20px 30px;
+.contents_area.upsert {
+  /* padding: 12px 32px 20px 30px; */
+  padding: 0px 32px 20px 30px;
 }
+.sticky_row {
+  position: sticky;
+  top: 0;
+  display: flex;
+  /* padding-top: 12px; */
+}
+
 .contents_area .grid_row {
   width: 100%;
   max-width: calc(100vw - 72px - 62px);
   display: grid;
   grid-template-columns: 1fr;
   column-gap: 20px;
+}
+.contents_area .grid_row:first-of-type {
+  padding-top: 12px;
 }
 .contents_area .grid_row.col1 {
   grid-template-columns: 1fr;
@@ -813,11 +827,48 @@
   width: 100%;
   display: flex;
   justify-content: space-between;
+  align-items: flex-end;
+}
+.contents_area .grid_row .grid_content_card .card_title_area .card_title_wrapper {
+  display: flex;
+  /* align-items: center; */
+  align-items: flex-end;
 }
 .contents_area .grid_row .grid_content_card .card_title_area .card_title {
+  position: relative;
+  display: flex;
   font-size: 18px;
   font-weight: 600;
 }
+
+.card_title_area .btn {
+  /* min-height: 36px; */
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.card_title_area .btn.basic {
+  background-color: var(--color-btn-basic-bg);
+  box-shadow: 0 0 0 1px var(--color-border-base);
+}
+.card_title_area .btn.basic:hover {
+  background-color: var(--color-btn-basic-bg-hover);
+  color: var(--color-btn-basic-text-hover);
+}
+.card_title_area .btn.brand {
+  /* box-shadow: 0 0 0 1px var(--color-border-base); */
+  background-color: var(--color-bg-brand-f);
+  color: #fff;
+}
+.card_title_area .btn.brand:hover {
+  background-color: var(--color-bg-brand-f-deep);
+}
+
 /* --------- コンテンツエリア(GridTable) ---------  */
 .main_container {
   position: relative;

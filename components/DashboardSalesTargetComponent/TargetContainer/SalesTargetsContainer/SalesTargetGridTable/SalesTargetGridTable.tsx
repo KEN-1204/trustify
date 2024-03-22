@@ -36,6 +36,7 @@ import { format } from "date-fns";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 import Decimal from "decimal.js";
 import { calculateGrowth } from "@/utils/Helpers/PercentHelpers/calculateGrowth";
+import { calculateYearOverYear } from "@/utils/Helpers/PercentHelpers/calculateYearOverYear";
 
 // entityType: company / department...
 type Props = {
@@ -488,25 +489,44 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
               share: null,
               dataset_type: "yoy_growth",
               // 前年比(伸び率) 25.7%の小数点第1位までの数値部分で算出してセット
-              fiscal_year: calculateGrowth(target?.fiscal_year, lySales?.fiscal_year, 1), // 年度
-              first_half: calculateGrowth(target?.first_half, lySales?.first_half, 1),
-              second_half: calculateGrowth(target?.second_half, lySales?.second_half, 1),
-              first_quarter: calculateGrowth(target?.first_quarter, lySales?.first_quarter, 1),
-              second_quarter: calculateGrowth(target?.second_quarter, lySales?.second_quarter, 1),
-              third_quarter: calculateGrowth(target?.third_quarter, lySales?.third_quarter, 1),
-              fourth_quarter: calculateGrowth(target?.fourth_quarter, lySales?.fourth_quarter, 1),
-              month_01: calculateGrowth(target?.month_01, lySales?.month_01, 1),
-              month_02: calculateGrowth(target?.month_02, lySales?.month_02, 1),
-              month_03: calculateGrowth(target?.month_03, lySales?.month_03, 1),
-              month_04: calculateGrowth(target?.month_04, lySales?.month_04, 1),
-              month_05: calculateGrowth(target?.month_05, lySales?.month_05, 1),
-              month_06: calculateGrowth(target?.month_06, lySales?.month_06, 1),
-              month_07: calculateGrowth(target?.month_07, lySales?.month_07, 1),
-              month_08: calculateGrowth(target?.month_08, lySales?.month_08, 1),
-              month_09: calculateGrowth(target?.month_09, lySales?.month_09, 1),
-              month_10: calculateGrowth(target?.month_10, lySales?.month_10, 1),
-              month_11: calculateGrowth(target?.month_11, lySales?.month_11, 1),
-              month_12: calculateGrowth(target?.month_12, lySales?.month_12, 1),
+              fiscal_year: calculateYearOverYear(target?.fiscal_year, lySales?.fiscal_year, 1).yearOverYear, // 年度
+              first_half: calculateYearOverYear(target?.first_half, lySales?.first_half, 1).yearOverYear,
+              second_half: calculateYearOverYear(target?.second_half, lySales?.second_half, 1).yearOverYear,
+              first_quarter: calculateYearOverYear(target?.first_quarter, lySales?.first_quarter, 1).yearOverYear,
+              second_quarter: calculateYearOverYear(target?.second_quarter, lySales?.second_quarter, 1).yearOverYear,
+              third_quarter: calculateYearOverYear(target?.third_quarter, lySales?.third_quarter, 1).yearOverYear,
+              fourth_quarter: calculateYearOverYear(target?.fourth_quarter, lySales?.fourth_quarter, 1).yearOverYear,
+              month_01: calculateYearOverYear(target?.month_01, lySales?.month_01, 1).yearOverYear,
+              month_02: calculateYearOverYear(target?.month_02, lySales?.month_02, 1).yearOverYear,
+              month_03: calculateYearOverYear(target?.month_03, lySales?.month_03, 1).yearOverYear,
+              month_04: calculateYearOverYear(target?.month_04, lySales?.month_04, 1).yearOverYear,
+              month_05: calculateYearOverYear(target?.month_05, lySales?.month_05, 1).yearOverYear,
+              month_06: calculateYearOverYear(target?.month_06, lySales?.month_06, 1).yearOverYear,
+              month_07: calculateYearOverYear(target?.month_07, lySales?.month_07, 1).yearOverYear,
+              month_08: calculateYearOverYear(target?.month_08, lySales?.month_08, 1).yearOverYear,
+              month_09: calculateYearOverYear(target?.month_09, lySales?.month_09, 1).yearOverYear,
+              month_10: calculateYearOverYear(target?.month_10, lySales?.month_10, 1).yearOverYear,
+              month_11: calculateYearOverYear(target?.month_11, lySales?.month_11, 1).yearOverYear,
+              month_12: calculateYearOverYear(target?.month_12, lySales?.month_12, 1).yearOverYear,
+              // fiscal_year: calculateGrowth(target?.fiscal_year, lySales?.fiscal_year, 1), // 年度
+              // first_half: calculateGrowth(target?.first_half, lySales?.first_half, 1),
+              // second_half: calculateGrowth(target?.second_half, lySales?.second_half, 1),
+              // first_quarter: calculateGrowth(target?.first_quarter, lySales?.first_quarter, 1),
+              // second_quarter: calculateGrowth(target?.second_quarter, lySales?.second_quarter, 1),
+              // third_quarter: calculateGrowth(target?.third_quarter, lySales?.third_quarter, 1),
+              // fourth_quarter: calculateGrowth(target?.fourth_quarter, lySales?.fourth_quarter, 1),
+              // month_01: calculateGrowth(target?.month_01, lySales?.month_01, 1),
+              // month_02: calculateGrowth(target?.month_02, lySales?.month_02, 1),
+              // month_03: calculateGrowth(target?.month_03, lySales?.month_03, 1),
+              // month_04: calculateGrowth(target?.month_04, lySales?.month_04, 1),
+              // month_05: calculateGrowth(target?.month_05, lySales?.month_05, 1),
+              // month_06: calculateGrowth(target?.month_06, lySales?.month_06, 1),
+              // month_07: calculateGrowth(target?.month_07, lySales?.month_07, 1),
+              // month_08: calculateGrowth(target?.month_08, lySales?.month_08, 1),
+              // month_09: calculateGrowth(target?.month_09, lySales?.month_09, 1),
+              // month_10: calculateGrowth(target?.month_10, lySales?.month_10, 1),
+              // month_11: calculateGrowth(target?.month_11, lySales?.month_11, 1),
+              // month_12: calculateGrowth(target?.month_12, lySales?.month_12, 1),
             } as SalesTargetFYRowData;
           });
 
@@ -2313,7 +2333,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPos(null);
+    if (hoveredItemPos) setHoveredItemPos(null);
   };
   // ==================================================================================
 
@@ -2628,7 +2648,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                   handleOpenTooltip({
                     e: e,
                     display: "top",
-                    content: `メイン目標の変更`,
+                    content: `総合目標の変更`,
                     marginTop: 9,
                   });
                 }}
@@ -2636,7 +2656,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                 onClick={(e) => {
                   if (mainEntityTypeList.length < 2)
                     return alert(
-                      "区分が２つ以上の時のみメイン目標の表示切り替えが可能です。 事業部・課/セクション・係/チーム・事業所の区分は設定画面の「会社・チーム」から作成・編集が可能です。"
+                      "区分が２つ以上の時のみ総合目標の表示切り替えが可能です。 事業部・課/セクション・係/チーム・事業所の区分は設定画面の「会社・チーム」から作成・編集が可能です。"
                     );
                   setActiveEntityLocal({
                     entityType: mainEntityTarget.entityType,
@@ -2680,6 +2700,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                 <span>{entityNameTitle}</span>
                 <IoChevronDownOutline className={` text-[18px]`} />
               </div>
+
               {optionsFiscalYear && selectedFiscalYearTarget && (
                 <div
                   className={`${styles.select_text_wrapper} !ml-[15px] flex pl-[1px] text-[15px]`}
@@ -2724,10 +2745,11 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                   if (icon && icon.classList.contains(styles.animate_ping)) {
                     icon.classList.remove(styles.animate_ping);
                   }
+                  if (!isMain) return;
                   handleOpenTooltip({
                     e: e,
                     display: "top",
-                    content: `下矢印からメイン目標の区分や会計年度の切り替えが可能です。`,
+                    content: isMain ? `下矢印から総合目標の区分や会計年度の切り替えが可能です。` : ``,
                     marginTop: 22,
                   });
                 }}
