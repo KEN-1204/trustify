@@ -132,24 +132,29 @@ export const useQuerySalesSummaryAndGrowth = ({
 
     // 売上推移カラムを追加
     if (Array.isArray(responseData) && responseData.length > 0) {
-      responseData = responseData.map((row: SalesSummaryYearHalf, index) => {
-        let _date = fiscalYear - index - 1;
-        if (row.period_type === "fiscal_year") _date = fiscalYear - index - 1;
-        if (row.period_type === "first_half") _date = (fiscalYear - index - 1) * 10 + 1;
-        if (row.period_type === "second_half") _date = (fiscalYear - index - 1) * 10 + 2;
+      responseData = responseData.map((row: SalesSummaryYearHalf, rowIndex) => {
         return {
           ...row,
           sales_trend: {
             title: formatRowNameShort(row.period_type, fiscalYear - 1)[language],
-            subTitle: "伸び率",
+            subTitle: "前年度伸び率",
             mainValue: row.last_year_sales ?? null,
             growthRate: row.yo2y_growth ? row.yo2y_growth : null,
             data: Array(3)
               .fill(null)
-              .map((_, index) => ({
-                date: _date,
-                value: row.last_year_sales,
-              })),
+              .map((_, index) => {
+                let _date = fiscalYear - 3 + index;
+                if (row.period_type === "fiscal_year") _date = fiscalYear - 3 + index;
+                if (row.period_type === "first_half") _date = (fiscalYear - 3 + index) * 10 + 1;
+                if (row.period_type === "second_half") _date = (fiscalYear - 3 + index) * 10 + 2;
+                let salesValue = row.three_years_ago_sales;
+                if (index === 1) salesValue = row.two_years_ago_sales;
+                if (index === 2) salesValue = row.last_year_sales;
+                return {
+                  date: _date,
+                  value: salesValue,
+                };
+              }),
           },
         } as SalesSummaryYearHalf & { sales_trend: SparkChartObj };
       });

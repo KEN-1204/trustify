@@ -29,9 +29,6 @@ export const columnHeaderListTarget = [
   "last_year_sales",
   "two_years_ago_sales",
   "three_years_ago_sales",
-  // "ly_sales",
-  // "lly_sales",
-  // "llly_sales",
   "sales_trend", // 売上推移(スパークチャート)
 ];
 export const formatColumnName = (column: string, year: number): { ja: string; en: string; [key: string]: string } => {
@@ -46,11 +43,11 @@ export const formatColumnName = (column: string, year: number): { ja: string; en
       return { ja: "前年比", en: "YoY Growth" };
     case "yo2y_growth":
       return { ja: "前年度前年伸び率実績", en: "Yo2Y Growth" };
-    case "ly_sales":
+    case "last_year_sales":
       return { ja: `${year - 1}年度`, en: `FY${year - 1}` };
-    case "lly_sales":
+    case "two_years_ago_sales":
       return { ja: `${year - 2}年度`, en: `FY${year - 2}` };
-    case "llly_sales":
+    case "three_years_ago_sales":
       return { ja: `${year - 3}年度`, en: `FY${year - 3}` };
     case "sales_trend":
       return { ja: `売上推移`, en: `Sales Trend` };
@@ -303,7 +300,7 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
             {/* ----------- 部門別シェア ３列エリア ----------- */}
             {/* タイトルエリア */}
             <div className={`${styles.section_title_area} flex w-full items-end justify-between`}>
-              <h1 className={`${styles.title}`}>
+              <h1 className={`${styles.title} ${styles.upsert}`}>
                 <span>部門別</span>
               </h1>
 
@@ -324,7 +321,7 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
             </div>
             {/* タイトルエリア */}
 
-            <div className={`${styles.grid_row} ${styles.col3}`}>
+            <div className={`${styles.grid_row} ${styles.col3} fade08_forward`}>
               <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
                 {/* タイトルエリア */}
                 <div className={`${styles.card_title_area}`}>

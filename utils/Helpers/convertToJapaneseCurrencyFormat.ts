@@ -1,4 +1,4 @@
-export function convertToJapaneseCurrencyFormat(number: number): string {
+export function convertToJapaneseCurrencyFormat(number: number, showCurrencySign: boolean = true): string {
   // 兆、億、万の単位で分割
   const trillion = Math.floor(number / 100000000); // 1兆 = 100,000,000万
   const billion = Math.floor((number % 100000000) / 10000); // 1億 = 10,000万
@@ -17,7 +17,7 @@ export function convertToJapaneseCurrencyFormat(number: number): string {
     formattedString += `${million.toLocaleString()}万`;
   }
 
-  formattedString = `${formattedString}円`;
+  formattedString = `${formattedString}${showCurrencySign ? `円` : ``}`;
 
   return formattedString;
 }

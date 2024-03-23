@@ -274,11 +274,11 @@ Props) => {
         return formatDisplayPrice(row[column]);
 
       case "yoy_growth":
-        if (row.period_type === "fiscal_year") return inputYoYGrowthYear ? `${inputYoYGrowthYear}%` : null;
-        if (row.period_type === "first_half") return inputYoYGrowthFirstHalf ? `${inputYoYGrowthFirstHalf}%` : null;
-        if (row.period_type === "second_half") return inputYoYGrowthSecondHalf ? `${inputYoYGrowthSecondHalf}%` : null;
+        if (row.period_type === "fiscal_year") return inputYoYGrowthYear ? `${inputYoYGrowthYear}%` : `- %`;
+        if (row.period_type === "first_half") return inputYoYGrowthFirstHalf ? `${inputYoYGrowthFirstHalf}%` : `- %`;
+        if (row.period_type === "second_half") return inputYoYGrowthSecondHalf ? `${inputYoYGrowthSecondHalf}%` : `- %`;
       case "yo2y_growth":
-        if (row.yo2y_growth === null) return null;
+        if (row.yo2y_growth === null) return `- %`;
         return `${row.yo2y_growth.toFixed(1)}%`;
 
       default:
@@ -317,7 +317,7 @@ Props) => {
 
   return (
     <>
-      <div className={`${styles.grid_row} ${styles.col1}`}>
+      <div className={`${styles.grid_row} ${styles.col1} fade08_forward`}>
         <div className={`${styles.grid_content_card}`}>
           <div className={`${styles.card_title_area}`}>
             {/* <div className={`${styles.card_title_wrapper} space-x-[24px]`}>
@@ -561,8 +561,9 @@ Props) => {
                               )}
                               {["yoy_growth", "yo2y_growth"].includes(column) && (
                                 <div className="flex h-full w-full items-center whitespace-pre-wrap">
-                                  {column === "yoy_growth" && <span>23.5%</span>}
-                                  {column === "yo2y_growth" && <span>18.2%</span>}
+                                  <span>{displayCellValue}</span>
+                                  {/* {column === "yoy_growth" && <span>23.5%</span>}
+                                  {column === "yo2y_growth" && <span>18.2%</span>} */}
                                 </div>
                               )}
                               {["last_year_sales", "two_years_ago_sales", "three_years_ago_sales"].includes(column) && (

@@ -1,3 +1,4 @@
+import { convertToJapaneseCurrencyFormatInYen } from "@/utils/Helpers/Currency/convertToJapaneseCurrencyFormatInYen";
 import { formatSalesTarget } from "@/utils/Helpers/formatSalesTarget";
 import { subDays } from "date-fns";
 import { memo, useEffect, useMemo, useState } from "react";
@@ -58,10 +59,15 @@ Props) => {
   //   }
   //   return data;
   // }, []);
+
+  // メインvalueフォーマット
   const displayMainValue = useMemo(() => {
     if (mainValue === null) return null;
     if (requireFormat4Letter) {
-      const _value = formatSalesTarget(mainValue, "round");
+      // const _value = formatSalesTarget(mainValue, "round");
+      const _value = convertToJapaneseCurrencyFormatInYen(mainValue, false, true);
+      // const _value = convertToJapaneseCurrencyFormatInYen(42005000, false, true);
+      console.log("🔥🔥🔥🔥🔥🔥 スパークチャート", "_value", _value, "mainValue", mainValue, "data", data);
       return _value;
     } else {
       return mainValue;
@@ -70,9 +76,28 @@ Props) => {
 
   // 前々年から前年が上昇傾向かどうか取得
   const isUpwardTrend = useMemo(() => {
+    console.log("✅✅チャート growthRate", growthRate, "data.length", data.length);
     if (growthRate !== undefined) {
-      if (growthRate === null) return null;
-      if (growthRate > 0) {
+      if (growthRate === null) {
+        if (data.length >= 2) {
+          const lastValue = data[data.length - 1].value;
+          const lastLastValue = data[data.length - 2].value;
+          console.log("✅✅チャート lastValue", lastValue, "lastLastValue", lastLastValue);
+          if (lastLastValue === 0 && lastValue && lastValue > 0) {
+            return true;
+          } else if (lastLastValue === null || lastValue === null) {
+            return null;
+          } else if (lastLastValue < lastLastValue) {
+            return true;
+          } else if (lastLastValue > lastLastValue) {
+            return false;
+          } else {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      } else if (growthRate > 0) {
         return true;
       } else {
         return false;
@@ -91,13 +116,13 @@ Props) => {
         return null; // 同じ場合
       }
     }
-  }, []);
+  }, [growthRate, data]);
 
   const trendColor = isUpwardTrend
     ? `var(--bright-green)`
     : isUpwardTrend === false
     ? `var(--bright-red)`
-    : `var(--color-bg-brand-sub)`;
+    : `var(--color-bg-brand-f)`;
 
   // チャート マウントを0.6s遅らせる
   const [isMounted, setIsMounted] = useState(delay ? false : true);
@@ -107,6 +132,8 @@ Props) => {
       setIsMounted(true);
     }, delay);
   }, []);
+
+  console.log("チャート ", "isUpwardTrend", isUpwardTrend, "growthRate", growthRate, "data", data);
 
   return (
     <>
@@ -140,9 +167,9 @@ Props) => {
                 </AreaChart>
               </ResponsiveContainer>
             )}
-            {!data?.length && <div>データがありません</div>}
+            {!data?.length && <div className={`text-[9px]`}>データがありません</div>}
           </div>
-          <div className={`ml-[6px] flex flex-col items-end justify-center`}>
+          <div className={`flex min-w-[48px]  flex-col items-end justify-center`}>
             {/* <span className={`text-[12px] font-bold text-[var(--color-text-title)]`}>123.26億</span> */}
             <span className={`text-[12px] font-bold text-[var(--color-text-title)]`}>{displayMainValue}</span>
             {/* <pre>{JSON.stringify(data, null,2)}</pre> */}
@@ -156,14 +183,14 @@ Props) => {
               }}
             >
               {growthRate === undefined && isUpwardTrend !== null && <span>{isUpwardTrend ? `+` : `-`}1.72%</span>}
-              {growthRate === undefined && isUpwardTrend === null && <span>-</span>}
+              {growthRate === undefined && isUpwardTrend === null && <span>- %</span>}
               {growthRate !== undefined && growthRate !== null && isUpwardTrend !== null && (
                 <span>
                   {isUpwardTrend ? `+` : `-`}
                   {growthRate.toFixed(1)}
                 </span>
               )}
-              {growthRate !== undefined && growthRate === null && <span>-</span>}
+              {growthRate !== undefined && growthRate === null && <span>- %</span>}
             </div>
           </div>
         </div>

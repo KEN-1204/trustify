@@ -227,9 +227,7 @@
   font-size: 24px;
   font-weight: 700;
 }
-.title_area .title.upsert {
-  font-size: 22px;
-}
+
 .title_area .btn {
   /* min-height: 36px; */
   padding: 6px 12px;
@@ -778,6 +776,9 @@
 /* ---------------------------- UpsertTarget ---------------------------- */
 .title_area.upsert {
   padding: 20px 0 0;
+}
+.title.upsert {
+  font-size: 21px;
 }
 .contents_area {
   width: 100%;
