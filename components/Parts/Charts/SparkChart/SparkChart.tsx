@@ -1,3 +1,4 @@
+import { formatSalesTarget } from "@/utils/Helpers/formatSalesTarget";
 import { subDays } from "date-fns";
 import { memo, useEffect, useMemo, useState } from "react";
 import { ResponsiveContainer, AreaChart, XAxis, YAxis, Area, Tooltip, CartesianGrid } from "recharts";
@@ -10,6 +11,9 @@ type Props = {
   id: string | number;
   title?: string;
   subTitle?: string;
+  mainValue: number | null;
+  growthRate?: number | null;
+  data: { date: string | number | null; value: number | null }[];
   height: number;
   width: number;
   chartHeight?: number;
@@ -17,12 +21,16 @@ type Props = {
   //   stroke?: string;
   borderColor?: string;
   delay?: number;
+  requireFormat4Letter?: boolean;
 };
 
 const SparkChartMemo = ({
   id,
   title = "売上",
   subTitle = "前年比",
+  mainValue,
+  growthRate,
+  data,
   height = 68,
   width = 270,
   //   chartHeight = 33,
@@ -31,37 +39,57 @@ const SparkChartMemo = ({
   chartWidth = 100,
   borderColor = "var(--color-border-base)",
   delay,
+  requireFormat4Letter = true,
 }: //   stroke = "var(--bright-green)",
 Props) => {
-  const data = useMemo(() => {
-    const data: { [K in "date" | "value"]: any }[] = [];
-    // for (let num = 30; num >= 0; num--) {
-    //   data.push({
-    //     date: subDays(new Date(), num).toISOString().substring(0, 10),
-    //     value: 1 + Math.random(),
-    //   });
-    // }
-    for (let num = 4; num >= 0; num--) {
-      data.push({
-        date: subDays(new Date(), num).toISOString().substring(0, 10),
-        value: 1 + Math.random(),
-      });
+  // const _data = useMemo(() => {
+  //   const data: { [K in "date" | "value"]: any }[] = [];
+  //   // for (let num = 30; num >= 0; num--) {
+  //   //   data.push({
+  //   //     date: subDays(new Date(), num).toISOString().substring(0, 10),
+  //   //     value: 1 + Math.random(),
+  //   //   });
+  //   // }
+  //   for (let num = 4; num >= 0; num--) {
+  //     data.push({
+  //       date: subDays(new Date(), num).toISOString().substring(0, 10),
+  //       value: 1 + Math.random(),
+  //     });
+  //   }
+  //   return data;
+  // }, []);
+  const displayMainValue = useMemo(() => {
+    if (mainValue === null) return null;
+    if (requireFormat4Letter) {
+      const _value = formatSalesTarget(mainValue, "round");
+      return _value;
+    } else {
+      return mainValue;
     }
-    return data;
-  }, []);
+  }, [mainValue]);
 
   // 前々年から前年が上昇傾向かどうか取得
   const isUpwardTrend = useMemo(() => {
-    // 2つ以下ならnull
-    if (data.length < 2) return null;
-    const lastValue = data[data.length - 1].value;
-    const lastLastValue = data[data.length - 2].value;
-    if (lastValue > lastLastValue) {
-      return true;
-    } else if (lastValue < lastLastValue) {
-      return false;
+    if (growthRate !== undefined) {
+      if (growthRate === null) return null;
+      if (growthRate > 0) {
+        return true;
+      } else {
+        return false;
+      }
     } else {
-      return null; // 同じ場合
+      // 2つ以下ならnull
+      if (data.length < 2) return null;
+      const lastValue = data[data.length - 1].value;
+      const lastLastValue = data[data.length - 2].value;
+      if (lastValue === null || lastLastValue === null) return null;
+      if (lastValue > lastLastValue) {
+        return true;
+      } else if (lastValue < lastLastValue) {
+        return false;
+      } else {
+        return null; // 同じ場合
+      }
     }
   }, []);
 
@@ -95,7 +123,7 @@ Props) => {
             className={`relative flex h-full min-h-[40px] w-full min-w-[120px] items-center`}
             style={{ minWidth: `${chartWidth}px`, maxWidth: `${chartWidth}px` }}
           >
-            {isMounted && (
+            {isMounted && !!data?.length && (
               <ResponsiveContainer width="100%" height={chartHeight}>
                 <AreaChart data={data} margin={{ top: 0, bottom: 0, right: 0, left: 0 }}>
                   <defs>
@@ -112,9 +140,11 @@ Props) => {
                 </AreaChart>
               </ResponsiveContainer>
             )}
+            {!data?.length && <div>データがありません</div>}
           </div>
           <div className={`ml-[6px] flex flex-col items-end justify-center`}>
-            <span className={`text-[12px] font-bold text-[var(--color-text-title)]`}>123.26億</span>
+            {/* <span className={`text-[12px] font-bold text-[var(--color-text-title)]`}>123.26億</span> */}
+            <span className={`text-[12px] font-bold text-[var(--color-text-title)]`}>{displayMainValue}</span>
             {/* <pre>{JSON.stringify(data, null,2)}</pre> */}
             <div
               className={`flex-center max-w-max rounded-[4px] bg-[var(--bright-green)] px-[5px] py-[1px] text-[8px] text-[#fff]`}
@@ -125,8 +155,15 @@ Props) => {
                 // ...(isUpwardTrend === null && { background: `var(--color-bg-brand-sub)` }),
               }}
             >
-              {isUpwardTrend !== null && <span>{isUpwardTrend ? `+` : `-`}1.72%</span>}
-              {isUpwardTrend === null && <span>-</span>}
+              {growthRate === undefined && isUpwardTrend !== null && <span>{isUpwardTrend ? `+` : `-`}1.72%</span>}
+              {growthRate === undefined && isUpwardTrend === null && <span>-</span>}
+              {growthRate !== undefined && growthRate !== null && isUpwardTrend !== null && (
+                <span>
+                  {isUpwardTrend ? `+` : `-`}
+                  {growthRate.toFixed(1)}
+                </span>
+              )}
+              {growthRate !== undefined && growthRate === null && <span>-</span>}
             </div>
           </div>
         </div>

@@ -31,7 +31,7 @@ import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { RxDot } from "react-icons/rx";
 import { mappingDescriptions, mappingPopupTitle } from "./dataTarget";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
-import { calculateMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
+import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
 import { mappingEntityName } from "@/utils/mappings";
 import { BsCheck2 } from "react-icons/bs";
 import { FallbackSideTableSearchMember } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchMember/FallbackSideTableSearchMember";
@@ -311,11 +311,11 @@ export const TargetContainer = () => {
       setCurrentFiscalStartYearMonth(newStartYearMonth);
 
       // 🔸年度初めから12ヶ月分の年月度の配列
-      const fiscalMonths = calculateMonths(newStartYearMonth);
+      const fiscalMonths = calculateFiscalYearMonths(newStartYearMonth);
       setAnnualFiscalMonths(fiscalMonths);
       // 🔸前年度の年度初めから12ヶ月分の年月度の配列
       const lastStartYearMonth = newStartYearMonth - 100;
-      const lastFiscalMonths = calculateMonths(lastStartYearMonth);
+      const lastFiscalMonths = calculateFiscalYearMonths(lastStartYearMonth);
       setLastAnnualFiscalMonths(lastFiscalMonths);
 
       console.log(

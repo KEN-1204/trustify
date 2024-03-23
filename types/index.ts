@@ -2864,5 +2864,27 @@ export type SalesSummaryYearHalf = {
   last_year_sales: number;
   two_years_ago_sales: number;
   three_years_ago_sales: number;
-  growth_rate: number;
+  // growth_rate: number;
+  yo2y_growth: number; // 前年度前年伸び率実績(2年前から1年前の成長率)
+};
+
+export type SparkChartObj = {
+  title: string;
+  subTitle: string;
+  mainValue: number | null;
+  growthRate: number | null;
+  data: { date: string | number | null; value: number | null }[];
+};
+
+// 売上目標設定時のカラム
+export type SalesTargetUpsertColumns = {
+  period_type: string;
+  sales_target: number | string | null;
+  share: number | null;
+  yoy_growth: number | null;
+  yo2y_growth: number | null;
+  last_year_sales: number | null;
+  two_years_ago_sales: number | null;
+  three_years_ago_sales: number | null;
+  sales_trend: SparkChartObj;
 };

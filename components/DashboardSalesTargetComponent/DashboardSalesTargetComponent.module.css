@@ -227,6 +227,9 @@
   font-size: 24px;
   font-weight: 700;
 }
+.title_area .title.upsert {
+  font-size: 22px;
+}
 .title_area .btn {
   /* min-height: 36px; */
   padding: 6px 12px;
@@ -834,13 +837,21 @@
   /* align-items: center; */
   align-items: flex-end;
 }
+
 .contents_area .grid_row .grid_content_card .card_title_area .card_title {
   position: relative;
   display: flex;
   font-size: 18px;
   font-weight: 600;
 }
+.section_title_area .title {
+  position: relative;
+  display: flex;
+  font-size: 22px;
+  font-weight: 600;
+}
 
+.section_title_area .btn,
 .card_title_area .btn {
   /* min-height: 36px; */
   padding: 6px 12px;
@@ -852,19 +863,23 @@
   cursor: pointer;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+.section_title_area .btn.basic,
 .card_title_area .btn.basic {
   background-color: var(--color-btn-basic-bg);
   box-shadow: 0 0 0 1px var(--color-border-base);
 }
+.section_title_area .btn.basic:hover,
 .card_title_area .btn.basic:hover {
   background-color: var(--color-btn-basic-bg-hover);
   color: var(--color-btn-basic-text-hover);
 }
+.section_title_area .btn.brand,
 .card_title_area .btn.brand {
   /* box-shadow: 0 0 0 1px var(--color-border-base); */
   background-color: var(--color-bg-brand-f);
   color: #fff;
 }
+.section_title_area .btn.brand:hover,
 .card_title_area .btn.brand:hover {
   background-color: var(--color-bg-brand-f-deep);
 }

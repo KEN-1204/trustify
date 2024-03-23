@@ -3,7 +3,7 @@
 import { FiscalYearMonthKey, FiscalYearMonthObjForTarget } from "@/types";
 
 // 開始年月から12ヶ月分の年月を計算する例 startYearMonth: 202304
-export function calculateMonths(startYearMonth: number): FiscalYearMonthObjForTarget {
+export function calculateFiscalYearMonths(startYearMonth: number): FiscalYearMonthObjForTarget {
   let year = Math.floor(startYearMonth / 100); // 202304 -> 2023
   let month = startYearMonth % 100; // 202304 -> 4
   let months: FiscalYearMonthObjForTarget = {} as FiscalYearMonthObjForTarget;

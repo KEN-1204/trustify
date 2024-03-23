@@ -1,4 +1,4 @@
-import { CSSProperties, Dispatch, SetStateAction, memo, useEffect, useState } from "react";
+import { CSSProperties, Dispatch, SetStateAction, memo, useEffect, useMemo, useState } from "react";
 import styles from "../../../DashboardSalesTargetComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import {
@@ -18,6 +18,9 @@ import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZe
 import { convertToYen } from "@/utils/Helpers/convertToYen";
 import { calculateYearOverYear } from "@/utils/Helpers/PercentHelpers/calculateYearOverYear";
 import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
+import { FiscalYearMonthObjForTarget, SalesSummaryYearHalf, SalesTargetUpsertColumns, SparkChartObj } from "@/types";
+import { useQuerySalesSummaryAndGrowth } from "@/hooks/useQuerySalesSummaryAndGrowth";
+import { FallbackScrollContainer } from "../../SalesTargetsContainer/SalesTargetGridTable/FallbackScrollContainer";
 
 /**
  *   "period_type",
@@ -25,32 +28,76 @@ import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
   "share",
   "yoy_growth",
   "yo2y_growth",
-  "ly_sales",
-  "lly_sales",
-  "llly_sales",
+  "last_year_sales",
+  "two_years_ago_sales",
+  "three_years_ago_sales",
   "sales_trend",
  */
 
 type Props = {
+  isEndEntity: boolean;
+  entityType: string;
   entityNameTitle: string;
   entityId: string;
   stickyRow: string | null;
   setStickyRow: Dispatch<SetStateAction<string | null>>;
+  // fiscalYearMonthsForThreeYear: {
+  //   lastYear: FiscalYearMonthObjForTarget;
+  //   twoYearsAgo: FiscalYearMonthObjForTarget;
+  //   threeYearsAgo: FiscalYearMonthObjForTarget;
+  // } | null;
+  annualFiscalMonths: FiscalYearMonthObjForTarget | null;
+  isFirstHalf: boolean | undefined;
+  // startYearMonth: number | undefined;
+  // endYearMonth: number | undefined;
 };
 
-const UpsertTargetGridTableMemo = ({ entityNameTitle, entityId, stickyRow, setStickyRow }: Props) => {
+const UpsertTargetGridTableMemo = ({
+  isEndEntity,
+  entityType,
+  entityNameTitle,
+  entityId,
+  stickyRow,
+  setStickyRow,
+  // fiscalYearMonthsForThreeYear,
+  annualFiscalMonths,
+  isFirstHalf,
+}: // startYearMonth,
+// endYearMonth,
+Props) => {
   const language = useStore((state) => state.language);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   const upsertTargetObj = useDashboardStore((state) => state.upsertTargetObj);
-  if (!upsertTargetObj) return;
+  if (!upsertTargetObj || !userProfileState || !userProfileState.company_id) return;
 
-  // ---------------- useQuery ----------------
-  // 前年度売上
+  // 「半期〜月度」
+  if (isEndEntity && !annualFiscalMonths) return null;
+
+  // --------------------- 🌟過去3年分の売上と前年度の前年伸び率実績を取得するuseQuery🌟 ---------------------
+  const {
+    data: salesSummaryRowData,
+    error: salesSummaryError,
+    isLoading: isLoadingQuery,
+  } = useQuerySalesSummaryAndGrowth({
+    companyId: userProfileState.company_id,
+    entityType: entityType,
+    entityId: entityId,
+    periodType: isEndEntity ? `half_monthly` : `year_half`,
+    fiscalYear: upsertTargetObj.fiscalYear,
+    isFirstHalf: isFirstHalf,
+    annualFiscalMonths: annualFiscalMonths,
+  });
+  // --------------------- 🌟過去3年分の売上と前年度の前年伸び率実績を取得するuseQuery🌟 ここまで ---------------------
 
   // ---------------- ローカルstate ----------------
   // 売上目標input 「年度・上半期・下半期」
   const [inputSalesTargetYear, setInputSalesTargetYear] = useState("");
   const [inputSalesTargetFirstHalf, setInputSalesTargetFirstHalf] = useState("");
   const [inputSalesTargetSecondHalf, setInputSalesTargetSecondHalf] = useState("");
+  // 前年比input 「年度・上半期・下半期」
+  const [inputYoYGrowthYear, setInputYoYGrowthYear] = useState<number | null>(null);
+  const [inputYoYGrowthFirstHalf, setInputYoYGrowthFirstHalf] = useState<number | null>(null);
+  const [inputYoYGrowthSecondHalf, setInputYoYGrowthSecondHalf] = useState<number | null>(null);
   // 上半期のシェア
   const [shareFirstHalf, setShareFirstHalf] = useState<number>(0);
   // 下半期のシェア
@@ -78,22 +125,88 @@ const UpsertTargetGridTableMemo = ({ entityNameTitle, entityId, stickyRow, setSt
   ];
 
   // ---------------- 変数 ----------------
-
-  // ---------------- 関数 ----------------
-  // rowの値に応じて適切なシェアを返す関数
-  const getShare = (row: string) => {
-    switch (row) {
-      case "fiscal_year":
-        return 100;
-      case "first_half":
-        return shareFirstHalf;
-      case "second_half":
-        return shareSecondHalf;
-      default:
-        return 0;
-        break;
-    }
-  };
+  // 🌟各行データのカラムを補完して再生成するパターン
+  // const allRows = useMemo(() => {
+  //   return salesSummaryRowData
+  //     ? salesSummaryRowData.map((row, index) => {
+  //         let _share = 100;
+  //         let _yoy_growth = inputYoYGrowthYear;
+  //         let _sales_target = inputSalesTargetYear;
+  //         let _sales_trend: SparkChartObj = {
+  //           title: "売上",
+  //           subTitle: "伸び率",
+  //           mainValue: row.last_year_sales,
+  //           growthRate: row.yo2y_growth ? row.yo2y_growth.toFixed(1) : null,
+  //           data: [],
+  //         };
+  //         if (!isEndEntity) {
+  //           if (row.period_type === "fiscal_year") {
+  //             _share = 100;
+  //             _yoy_growth = inputYoYGrowthYear;
+  //             _sales_target = inputSalesTargetYear;
+  //             _sales_trend = {
+  //               ..._sales_trend,
+  //               data: Array(3)
+  //                 .fill(null)
+  //                 .map((_, index) => {
+  //                   let sales = row.last_year_sales;
+  //                   if (index === 1) sales = row.two_years_ago_sales;
+  //                   if (index === 2) sales = row.three_years_ago_sales;
+  //                   return {
+  //                     date: upsertTargetObj.fiscalYear - index - 1,
+  //                     value: sales,
+  //                   };
+  //                 }),
+  //             };
+  //           }
+  //           if (row.period_type === "first_half") {
+  //             _share = shareFirstHalf;
+  //             _yoy_growth = inputYoYGrowthFirstHalf;
+  //             _sales_target = inputSalesTargetFirstHalf;
+  //             _sales_trend = {
+  //               ..._sales_trend,
+  //               data: Array(3)
+  //                 .fill(null)
+  //                 .map((_, index) => {
+  //                   let sales = row.last_year_sales;
+  //                   if (index === 1) sales = row.two_years_ago_sales;
+  //                   if (index === 2) sales = row.three_years_ago_sales;
+  //                   return {
+  //                     date: (upsertTargetObj.fiscalYear - index - 1) * 10 + 1,
+  //                     value: sales,
+  //                   };
+  //                 }),
+  //             };
+  //           } else if (row.period_type === "second_half") {
+  //             _share = shareSecondHalf;
+  //             _yoy_growth = inputYoYGrowthSecondHalf;
+  //             _sales_target = inputSalesTargetSecondHalf;
+  //             _sales_trend = {
+  //               ..._sales_trend,
+  //               data: Array(3)
+  //                 .fill(null)
+  //                 .map((_, index) => {
+  //                   let sales = row.last_year_sales;
+  //                   if (index === 1) sales = row.two_years_ago_sales;
+  //                   if (index === 2) sales = row.three_years_ago_sales;
+  //                   return {
+  //                     date: (upsertTargetObj.fiscalYear - index - 1) * 10 + 2,
+  //                     value: sales,
+  //                   };
+  //                 }),
+  //             };
+  //           }
+  //         }
+  //         return {
+  //           ...row,
+  //           share: _share,
+  //           yoy_growth: _yoy_growth,
+  //           sales_target: _sales_target,
+  //           sales_trend: _sales_trend
+  //         } as SalesTargetUpsertColumns;
+  //       })
+  //     : [];
+  // }, [salesSummaryRowData])
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
@@ -136,6 +249,43 @@ const UpsertTargetGridTableMemo = ({ entityNameTitle, entityId, stickyRow, setSt
   };
   // ==================================================================================
 
+  // ---------------- 関数 ----------------
+  // rowの値に応じて適切なシェアを返す関数
+  const getShare = (row: string) => {
+    switch (row) {
+      case "fiscal_year":
+        return 100;
+      case "first_half":
+        return shareFirstHalf;
+      case "second_half":
+        return shareSecondHalf;
+      default:
+        return 0;
+        break;
+    }
+  };
+
+  // 行ヘッダーの値(期間タイプ)とと列ヘッダーの値に応じて表示する値をフォーマットする
+  const formatDisplayValue = (row: SalesSummaryYearHalf, column: string) => {
+    switch (column) {
+      case "last_year_sales":
+      case "two_years_ago_sales":
+      case "three_years_ago_sales":
+        return formatDisplayPrice(row[column]);
+
+      case "yoy_growth":
+        if (row.period_type === "fiscal_year") return inputYoYGrowthYear ? `${inputYoYGrowthYear}%` : null;
+        if (row.period_type === "first_half") return inputYoYGrowthFirstHalf ? `${inputYoYGrowthFirstHalf}%` : null;
+        if (row.period_type === "second_half") return inputYoYGrowthSecondHalf ? `${inputYoYGrowthSecondHalf}%` : null;
+      case "yo2y_growth":
+        if (row.yo2y_growth === null) return null;
+        return `${row.yo2y_growth.toFixed(1)}%`;
+
+      default:
+        break;
+    }
+  };
+
   // チャート マウントを0.6s遅らせる
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
@@ -144,6 +294,26 @@ const UpsertTargetGridTableMemo = ({ entityNameTitle, entityId, stickyRow, setSt
       setIsMounted(true);
     }, 600);
   }, []);
+
+  console.log(
+    "UpsertTargetGridTableコンポーネントレンダリング",
+    "entityType",
+    entityType,
+    "entityNameTitle",
+    entityNameTitle,
+    "annualFiscalMonths",
+    annualFiscalMonths,
+    "isFirstHalf",
+    isFirstHalf,
+    "salesSummaryRowData",
+    salesSummaryRowData,
+    "salesSummaryError",
+    salesSummaryError,
+    "isLoadingQuery",
+    isLoadingQuery
+  );
+
+  if (isLoadingQuery) return <FallbackScrollContainer title={entityNameTitle} />;
 
   return (
     <>
@@ -255,163 +425,172 @@ const UpsertTargetGridTableMemo = ({ entityNameTitle, entityId, stickyRow, setSt
               {/* ----------- rowgroup ----------- */}
               <div role="rowgroup">
                 {/* ----------- Row 年度・半期リスト ----------- */}
-                {rowHeaderListTarget.map((row, rowIndex) => {
-                  const rowHeaderName = formatRowName(row, upsertTargetObj.fiscalYear)[language];
-                  return (
-                    <div key={`grid_row_${rowIndex}`} role="row" className={`${styles.row}`}>
-                      {columnHeaderListTarget.map((column, colIndex) => {
-                        // let displayValue = formatRowCell(column, upsertTargetObj.fiscalYear)[language];
-                        const inputSalesTarget = inputSalesTargetsList[rowIndex].inputValue;
-                        const setInputSalesTarget = inputSalesTargetsList[rowIndex].setInputValue;
-                        return (
-                          <div
-                            key={colIndex}
-                            role="gridcell"
-                            aria-colindex={colIndex + 1}
-                            aria-selected={false}
-                            tabIndex={-1}
-                            className={`${styles.grid_cell}`}
-                            style={{
-                              gridColumnStart: colIndex + 1,
-                              ...(column === "share" && { padding: `0px` }),
-                            }}
-                          >
-                            {column === "period_type" && <span>{rowHeaderName}</span>}
-                            {column === "sales_target" && row !== "second_half" && (
-                              <input
-                                type="text"
-                                // placeholder="例：600万円 → 6000000　※半角で入力"
-                                className={`${styles.input_box} ${styles.upsert}`}
-                                // value={inputDiscountAmountEdit ? inputDiscountAmountEdit : ""}
-                                value={inputSalesTarget ? inputSalesTarget : ""}
-                                onChange={(e) => {
-                                  setInputSalesTarget(e.target.value);
-                                }}
-                                onFocus={() => {
-                                  // 売上目標が0以外のfalsyならリターン
-                                  if (!isValidNumber(inputSalesTarget.replace(/[^\d.]/g, ""))) {
-                                    console.log(
-                                      "リターンinputSalesTarget",
-                                      inputSalesTarget,
-                                      !isValidNumber(inputSalesTarget)
-                                    );
-                                    return;
-                                  }
-                                  console.log("こここinputSalesTarget", inputSalesTarget);
-                                  // フォーカス時は数字と小数点以外除去
-                                  setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
-                                }}
-                                // onBlur={() => {
-                                //   // 現在の売上目標金額
-                                //   const replacedTotalPrice = inputSalesTarget.replace(/[^\d.]/g, "");
-                                //   // 商品リストが存在しない場合、価格合計が空文字の場合はリターンする
-                                //   if (!checkNotFalsyExcludeZero(replacedTotalPrice)) {
-                                //     return;
-                                //   }
-                                //   // フォーマット後の目標金額
-                                //   const convertedDiscountPrice = checkNotFalsyExcludeZero(inputSalesTarget)
-                                //     ? convertToYen(inputSalesTarget.trim())
-                                //     : null;
-                                //   const newFormatDiscountAmount = formatDisplayPrice(convertedDiscountPrice || 0);
-                                //   setInputSalesTarget(newFormatDiscountAmount);
-                                //   // 上半期、下半期のシェアを再計算してstateを更新
-                                //   const result = calculateYearOverYear(inputSalesTarget);
-                                //   const result = calculateDiscountRate({
-                                //     salesPriceStr: inputTotalPriceEdit,
-                                //     discountPriceStr: (convertedDiscountPrice || 0).toString(),
-                                //     salesQuantityStr: "1",
-                                //     showPercentSign: false,
-                                //     decimalPlace: 2,
-                                //   });
-                                //   if (result.error) {
-                                //     toast.error(`エラー：${result.error}🙇‍♀️`);
-                                //     console.error("エラー：値引率の取得に失敗", result.error);
-                                //     setInputDiscountRateEdit("");
-                                //   } else if (result.discountRate) {
-                                //     const newDiscountRate = result.discountRate;
-                                //     setInputDiscountRateEdit(newDiscountRate);
-                                //   }
-                                // }}
-                              />
-                            )}
-                            {column === "sales_target" && row !== "second_half" && (
-                              <span>{inputSalesTargetSecondHalf ?? ""}</span>
-                            )}
-                            {column === "share" && (
-                              <>
-                                <div
-                                  className={`${styles.grid_header_cell_share} flex-center relative h-full w-full pb-[12px]`}
-                                >
-                                  {isMounted && (
-                                    <>
-                                      <ProgressCircle
-                                        circleId="3"
-                                        textId="3"
-                                        progress={getShare(row)}
-                                        // progress={0}
-                                        duration={5000}
-                                        easeFn="Quartic"
-                                        size={24}
-                                        strokeWidth={3}
-                                        hiddenCenterText={true}
-                                        oneColor="var(--main-color-f)"
-                                        notGrad={true}
-                                        isReady={true}
-                                        withShadow={false}
-                                        fade={`fade03_forward`}
-                                      />
-                                      <ProgressNumber
-                                        targetNumber={getShare(row)}
-                                        // startNumber={Math.round(68000 / 2)}
-                                        // startNumber={Number((68000 * 0.1).toFixed(0))}
-                                        startNumber={0}
-                                        duration={5000}
-                                        // easeFn="Quartic"
-                                        easeFn="Quartic"
-                                        fontSize={9}
-                                        margin="0 0 0 0"
-                                        isReady={true}
-                                        isPrice={false}
-                                        isPercent={true}
-                                        fade={`fade03_forward`}
-                                        customClass={`absolute bottom-[7px] left-[50%] translate-x-[-50%] text-[5px]`}
-                                        textColor={`var(--color-text-sub)`}
-                                      />
-                                    </>
-                                  )}
+                {/* {rowHeaderListTarget.map((row, rowIndex) => { */}
+                {salesSummaryRowData &&
+                  salesSummaryRowData.map((row, rowIndex) => {
+                    // const rowHeaderName = formatRowName(row, upsertTargetObj.fiscalYear)[language];
+                    const rowHeaderName = formatRowName(row.period_type, upsertTargetObj.fiscalYear)[language];
+                    return (
+                      <div key={`grid_row_${rowIndex}`} role="row" className={`${styles.row}`}>
+                        {columnHeaderListTarget.map((column, colIndex) => {
+                          // let displayValue = formatRowCell(column, upsertTargetObj.fiscalYear)[language];
+                          // 売上目標
+                          const inputSalesTarget = inputSalesTargetsList[rowIndex].inputValue;
+                          const setInputSalesTarget = inputSalesTargetsList[rowIndex].setInputValue;
+
+                          // 行の期間タイプとカラムの値に応じて表示するデータをフォーマット
+                          const displayCellValue = formatDisplayValue(row, column);
+                          return (
+                            <div
+                              key={colIndex}
+                              role="gridcell"
+                              aria-colindex={colIndex + 1}
+                              aria-selected={false}
+                              tabIndex={-1}
+                              className={`${styles.grid_cell}`}
+                              style={{
+                                gridColumnStart: colIndex + 1,
+                                ...(column === "share" && { padding: `0px` }),
+                              }}
+                            >
+                              {column === "period_type" && <span>{rowHeaderName}</span>}
+                              {column === "sales_target" && row.period_type !== "second_half" && (
+                                <input
+                                  type="text"
+                                  // placeholder="例：600万円 → 6000000　※半角で入力"
+                                  className={`${styles.input_box} ${styles.upsert}`}
+                                  // value={inputDiscountAmountEdit ? inputDiscountAmountEdit : ""}
+                                  value={inputSalesTarget ? inputSalesTarget : ""}
+                                  onChange={(e) => {
+                                    setInputSalesTarget(e.target.value);
+                                  }}
+                                  onFocus={() => {
+                                    // 売上目標が0以外のfalsyならリターン
+                                    if (!isValidNumber(inputSalesTarget.replace(/[^\d.]/g, ""))) {
+                                      console.log(
+                                        "リターンinputSalesTarget",
+                                        inputSalesTarget,
+                                        !isValidNumber(inputSalesTarget)
+                                      );
+                                      return;
+                                    }
+                                    console.log("こここinputSalesTarget", inputSalesTarget);
+                                    // フォーカス時は数字と小数点以外除去
+                                    setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
+                                  }}
+                                  // onBlur={() => {
+                                  //   // 現在の売上目標金額
+                                  //   const replacedTotalPrice = inputSalesTarget.replace(/[^\d.]/g, "");
+                                  //   // 商品リストが存在しない場合、価格合計が空文字の場合はリターンする
+                                  //   if (!checkNotFalsyExcludeZero(replacedTotalPrice)) {
+                                  //     return;
+                                  //   }
+                                  //   // フォーマット後の目標金額
+                                  //   const convertedDiscountPrice = checkNotFalsyExcludeZero(inputSalesTarget)
+                                  //     ? convertToYen(inputSalesTarget.trim())
+                                  //     : null;
+                                  //   const newFormatDiscountAmount = formatDisplayPrice(convertedDiscountPrice || 0);
+                                  //   setInputSalesTarget(newFormatDiscountAmount);
+                                  //   // 上半期、下半期のシェアを再計算してstateを更新
+                                  //   const result = calculateYearOverYear(inputSalesTarget);
+                                  //   const result = calculateDiscountRate({
+                                  //     salesPriceStr: inputTotalPriceEdit,
+                                  //     discountPriceStr: (convertedDiscountPrice || 0).toString(),
+                                  //     salesQuantityStr: "1",
+                                  //     showPercentSign: false,
+                                  //     decimalPlace: 2,
+                                  //   });
+                                  //   if (result.error) {
+                                  //     toast.error(`エラー：${result.error}🙇‍♀️`);
+                                  //     console.error("エラー：値引率の取得に失敗", result.error);
+                                  //     setInputDiscountRateEdit("");
+                                  //   } else if (result.discountRate) {
+                                  //     const newDiscountRate = result.discountRate;
+                                  //     setInputDiscountRateEdit(newDiscountRate);
+                                  //   }
+                                  // }}
+                                />
+                              )}
+                              {column === "sales_target" && row.period_type !== "second_half" && (
+                                <span>{inputSalesTargetSecondHalf ?? ""}</span>
+                              )}
+                              {column === "share" && (
+                                <>
+                                  <div
+                                    className={`${styles.grid_header_cell_share} flex-center relative h-full w-full pb-[12px]`}
+                                  >
+                                    {isMounted && (
+                                      <>
+                                        <ProgressCircle
+                                          circleId="3"
+                                          textId="3"
+                                          progress={getShare(row.period_type)}
+                                          // progress={0}
+                                          duration={5000}
+                                          easeFn="Quartic"
+                                          size={24}
+                                          strokeWidth={3}
+                                          hiddenCenterText={true}
+                                          oneColor="var(--main-color-f)"
+                                          notGrad={true}
+                                          isReady={true}
+                                          withShadow={false}
+                                          fade={`fade03_forward`}
+                                        />
+                                        <ProgressNumber
+                                          targetNumber={getShare(row.period_type)}
+                                          // startNumber={Math.round(68000 / 2)}
+                                          // startNumber={Number((68000 * 0.1).toFixed(0))}
+                                          startNumber={0}
+                                          duration={5000}
+                                          // easeFn="Quartic"
+                                          easeFn="Quartic"
+                                          fontSize={9}
+                                          margin="0 0 0 0"
+                                          isReady={true}
+                                          isPrice={false}
+                                          isPercent={true}
+                                          fade={`fade03_forward`}
+                                          customClass={`absolute bottom-[7px] left-[50%] translate-x-[-50%] text-[5px]`}
+                                          textColor={`var(--color-text-sub)`}
+                                        />
+                                      </>
+                                    )}
+                                  </div>
+                                </>
+                              )}
+                              {["yoy_growth", "yo2y_growth"].includes(column) && (
+                                <div className="flex h-full w-full items-center whitespace-pre-wrap">
+                                  {column === "yoy_growth" && <span>23.5%</span>}
+                                  {column === "yo2y_growth" && <span>18.2%</span>}
                                 </div>
-                              </>
-                            )}
-                            {["yoy_growth", "yo2y_growth"].includes(column) && (
-                              <div className="flex h-full w-full items-center whitespace-pre-wrap">
-                                {column === "yoy_growth" && <span>23.5%</span>}
-                                {column === "yo2y_growth" && <span>18.2%</span>}
-                              </div>
-                            )}
-                            {["ly_sales", "lly_sales", "llly_sales"].includes(column) && (
-                              <div className="flex h-full w-full items-center whitespace-pre-wrap">
-                                {/* 10兆5256億2430万2100円 */}
-                                {column === "ly_sales" && formatDisplayPrice(1525624302100)}
-                                {column === "lly_sales" && formatDisplayPrice(1525624302100)}
-                                {column === "llly_sales" && formatDisplayPrice(1525624302100)}
-                              </div>
-                            )}
-                            {column === "sales_trend" && (
-                              <SparkChart
-                                id={`${colIndex}${rowIndex}`}
-                                title={formatRowNameShort(row, upsertTargetObj.fiscalYear)[language]}
-                                // title={`${upsertTargetObj.fiscalYear - rowIndex}年度`}
-                                height={48}
-                                width={270}
-                                delay={600}
-                              />
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  );
-                })}
+                              )}
+                              {["last_year_sales", "two_years_ago_sales", "three_years_ago_sales"].includes(column) && (
+                                <div className="flex h-full w-full items-center whitespace-pre-wrap">
+                                  {/* 10兆5256億2430万2100円 */}
+                                  {displayCellValue}
+                                </div>
+                              )}
+                              {column === "sales_trend" && (
+                                <SparkChart
+                                  id={`${colIndex}${rowIndex}`}
+                                  title={row.sales_trend.title}
+                                  subTitle={row.sales_trend.subTitle}
+                                  mainValue={row.sales_trend.mainValue} // COALESCE関数で売上がなくても0が入るためnumber型になる
+                                  growthRate={row.sales_trend.growthRate}
+                                  data={row.sales_trend.data}
+                                  // title={`${upsertTargetObj.fiscalYear - rowIndex}年度`}
+                                  height={48}
+                                  width={270}
+                                  delay={600}
+                                />
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
                 {/* ----------- Row 年度・半期リスト ここまで ----------- */}
               </div>
               {/* ----------- rowgroup ここまで ----------- */}

@@ -1,7 +1,7 @@
 import useStore from "@/store";
 import styles from "../../DashboardSalesTargetComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
-import { CSSProperties, Suspense, memo, useEffect, useState } from "react";
+import { CSSProperties, Suspense, memo, useEffect, useMemo, useState } from "react";
 import { FaSave } from "react-icons/fa";
 import { IoIosSave } from "react-icons/io";
 import { MdSaveAlt } from "react-icons/md";
@@ -15,17 +15,24 @@ import { ErrorBoundary } from "react-error-boundary";
 import { FallbackScrollContainer } from "../SalesTargetsContainer/SalesTargetGridTable/FallbackScrollContainer";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { UpsertTargetGridTable } from "./UpsertTargetGridTable/UpsertTargetGridTable";
+import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
+import { toast } from "react-toastify";
+import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
+import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
 
 export const columnHeaderListTarget = [
   "period_type",
   "sales_target",
-  "share",
-  "yoy_growth",
-  "yo2y_growth",
-  "ly_sales",
-  "lly_sales",
-  "llly_sales",
-  "sales_trend",
+  "share", // 「年度に対する上期・下期のシェア」、「半期に対する各月度のシェア」
+  "yoy_growth", // 前年度の売上に対する売上目標の成長率
+  "yo2y_growth", // 前年度前年伸び率実績(2年前から1年前の成長率)
+  "last_year_sales",
+  "two_years_ago_sales",
+  "three_years_ago_sales",
+  // "ly_sales",
+  // "lly_sales",
+  // "llly_sales",
+  "sales_trend", // 売上推移(スパークチャート)
 ];
 export const formatColumnName = (column: string, year: number): { ja: string; en: string; [key: string]: string } => {
   switch (column) {
@@ -137,17 +144,82 @@ type Props = {
 const UpsertTargetMemo = ({ endEntity }: Props) => {
   const queryClient = useQueryClient();
   const language = useStore((state) => state.language);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setIsUpsertTargetMode = useDashboardStore((state) => state.setIsUpsertTargetMode);
+  // メイン目標設定対象
   const upsertTargetObj = useDashboardStore((state) => state.upsertTargetObj);
   const setUpsertTargetObj = useDashboardStore((state) => state.setUpsertTargetObj);
+  // ユーザーの会計年度の期首と期末のDateオブジェクト
+  const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
 
-  if (!upsertTargetObj) return null;
+  // 目標設定モードを終了
+  const handleCancelUpsert = () => {
+    setIsUpsertTargetMode(false);
+    setUpsertTargetObj(null);
+  };
+
+  if (!userProfileState || !upsertTargetObj || !fiscalYearStartEndDate) {
+    handleCancelUpsert();
+    toast.error("エラー：会計年度データの取得に失敗しました...🙇‍♀️");
+    return null;
+  }
 
   // -------------------------- state関連 --------------------------
   // stickyを付与するrow
   const [stickyRow, setStickyRow] = useState<string | null>(null);
 
   const isEndEntity = endEntity === upsertTargetObj.entityType;
+
+  // isEndEntityの場合の上期か下期か
+  const [isFirstHalf, setIsFirstHalf] = useState(isEndEntity ? true : undefined);
+
+  // -------------------------- 変数関連 --------------------------
+  // 🔸ユーザーが選択した会計年度の期首
+  const currentFiscalYearDateObj = useMemo(() => {
+    return calculateFiscalYearStart({
+      fiscalYearEnd: fiscalYearStartEndDate.endDate,
+      fiscalYearBasis: userProfileState.customer_fiscal_year_basis ?? "firstDayBasis",
+      selectedYear: upsertTargetObj.fiscalYear,
+    });
+  }, [fiscalYearStartEndDate.endDate, userProfileState.customer_fiscal_year_basis]);
+
+  if (!currentFiscalYearDateObj) {
+    handleCancelUpsert();
+    toast.error("エラー：会計年度データの取得に失敗しました...🙇‍♀️");
+    return null;
+  }
+
+  // 🔸ユーザーの選択中の会計年度の開始年月度
+  const fiscalStartYearMonth = useMemo(
+    () => calculateDateToYearMonth(currentFiscalYearDateObj, fiscalYearStartEndDate.endDate.getDate()),
+    [currentFiscalYearDateObj]
+  );
+
+  // 🔸ユーザーが選択した売上目標の会計年度の前年度12ヶ月分の年月度の配列(isEndEntityでない場合はスルー)
+  const annualFiscalMonthsUpsert = useMemo(() => {
+    // 末端のエンティティでない場合は、月度の目標入力は不要のためリターン
+    if (!isEndEntity) return null;
+    // ユーザーが選択した会計月度基準で過去3年分の年月度を生成
+    const fiscalMonths = calculateFiscalYearMonths(fiscalStartYearMonth);
+
+    return fiscalMonths;
+  }, [fiscalStartYearMonth]);
+
+  // ユーザーが選択した売上目標の会計年度を基準にした前年度から過去3年分の年月度の配列(isEndEntityでない場合はスルー)
+  // const fiscalYearMonthsForThreeYear = useMemo(() => {
+  //   // 末端のエンティティでない場合は、月度の目標入力は不要のためリターン
+  //   if (!isEndEntity) return null;
+  //   // ユーザーが選択した会計月度基準で過去3年分の年月度を生成
+  //   const fiscalMonthsLastYear = calculateFiscalYearMonths(fiscalStartYearMonth - 100);
+  //   const fiscalMonthsTwoYearsAgo = calculateFiscalYearMonths(fiscalStartYearMonth - 200);
+  //   const fiscalMonthsThreeYearsAgo = calculateFiscalYearMonths(fiscalStartYearMonth - 300);
+
+  //   return {
+  //     lastYear: fiscalMonthsLastYear,
+  //     twoYearsAgo: fiscalMonthsTwoYearsAgo,
+  //     threeYearsAgo: fiscalMonthsThreeYearsAgo,
+  //   };
+  // }, []);
 
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
@@ -157,11 +229,6 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
 
   // -------------------------- 関数 --------------------------
-  // 目標設定モードを終了
-  const handleCancelUpsert = () => {
-    setIsUpsertTargetMode(false);
-    setUpsertTargetObj(null);
-  };
 
   console.log(
     "UpsertTargetコンポーネントレンダリング isEndEntity",
@@ -181,7 +248,7 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
           className={`${styles.company_table_screen}`}
         >
           <div className={`${styles.title_area} ${styles.upsert} flex w-full justify-between`}>
-            <h1 className={`${styles.title}`}>
+            <h1 className={`${styles.title} ${styles.upsert}`}>
               <span>目標設定</span>
             </h1>
             <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>
@@ -209,16 +276,89 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
               <Suspense fallback={<FallbackScrollContainer title={upsertTargetObj.entityName} />}>
                 <div className={`${stickyRow === upsertTargetObj.entityId ? styles.sticky_row : ``}`}>
                   <UpsertTargetGridTable
+                    isEndEntity={isEndEntity}
+                    entityType={upsertTargetObj.entityType}
                     entityId={upsertTargetObj.entityId}
                     entityNameTitle={upsertTargetObj.entityName}
                     stickyRow={stickyRow}
                     setStickyRow={setStickyRow}
+                    annualFiscalMonths={annualFiscalMonthsUpsert}
+                    // fiscalYearMonthsForThreeYear={fiscalYearMonthsForThreeYear}
+                    isFirstHalf={isFirstHalf}
+                    // startYearMonth={
+                    //   fiscalYearMonthsForThreeYear && fiscalYearMonthsForThreeYear.threeYearsAgo?.month_01
+                    //     ? fiscalYearMonthsForThreeYear.threeYearsAgo.month_01
+                    //     : undefined
+                    // }
+                    // endYearMonth={
+                    //   fiscalYearMonthsForThreeYear && fiscalYearMonthsForThreeYear.lastYear?.month_12
+                    //     ? fiscalYearMonthsForThreeYear.lastYear.month_12
+                    //     : undefined
+                    // }
                   />
                 </div>
               </Suspense>
             </ErrorBoundary>
 
-            <div className="h-[200vh] w-full bg-[red]/[0.1]"></div>
+            {/* ----------- 部門別シェア ３列エリア ----------- */}
+            {/* タイトルエリア */}
+            <div className={`${styles.section_title_area} flex w-full items-end justify-between`}>
+              <h1 className={`${styles.title}`}>
+                <span>部門別</span>
+              </h1>
+
+              <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>
+                {/* <div className={`${styles.btn} ${styles.basic}`}>
+                  <span>戻る</span>
+                </div> */}
+                {/* <div
+                  className={`${styles.btn} ${styles.brand} space-x-[3px]`}
+                  onClick={(e) => {
+                    console.log("クリック");
+                  }}
+                >
+                  <MdSaveAlt className={`text-[14px] text-[#fff]`} />
+                  <span>保存</span>
+                </div> */}
+              </div>
+            </div>
+            {/* タイトルエリア */}
+
+            <div className={`${styles.grid_row} ${styles.col3}`}>
+              <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                {/* タイトルエリア */}
+                <div className={`${styles.card_title_area}`}>
+                  <div className={`${styles.card_title}`}>
+                    <span>売上目標シェア {upsertTargetObj.fiscalYear}年度</span>
+                    {/* <span>売上目標・スローガン・重点方針</span> */}
+                  </div>
+                </div>
+                {/* コンテンツエリア */}
+                <div className={`${styles.main_container}`}></div>
+              </div>
+              <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                {/* タイトルエリア */}
+                <div className={`${styles.card_title_area}`}>
+                  <div className={`${styles.card_title}`}>
+                    <span>売上シェア {upsertTargetObj.fiscalYear - 1}年度</span>
+                  </div>
+                </div>
+                {/* コンテンツエリア */}
+                <div className={`${styles.main_container}`}></div>
+              </div>
+              <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                {/* タイトルエリア */}
+                <div className={`${styles.card_title_area}`}>
+                  <div className={`${styles.card_title}`}>
+                    {/* <span>スローガン・重点方針</span> */}
+                    <span>売上シェア {upsertTargetObj.fiscalYear - 2}年度</span>
+                  </div>
+                </div>
+                {/* コンテンツエリア */}
+                <div className={`${styles.main_container}`}></div>
+              </div>
+            </div>
+            {/* ----------- 部門別シェア ３列エリア ここまで ----------- */}
           </div>
           {/* ------------------ コンテンツエリア ここまで ------------------ */}
         </section>
