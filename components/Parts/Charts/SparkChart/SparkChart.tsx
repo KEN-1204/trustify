@@ -59,22 +59,21 @@ const SparkChartMemo = ({
   requireFormat4Letter = true,
 }: //   stroke = "var(--bright-green)",
 Props) => {
-  const [chartData, setChartData] = useState(data);
+  // const [chartData, setChartData] = useState(data);
 
-  useEffect(() => {
-    // 配列内のオブジェクトのdateプロパティかvalueプロパティが変更されたことをdataUpdateAtのタイムスタンプで検知
-    // 通常は配列内の各オブジェクトの要素を全てJSON文字列化して深い監視を行うが、これだとプロパティ数や要素数が多くなった場合にパフォーマンスが低下する可能性があるので、タイムスタンプで変更時に手動で最新のタイムスタンプに更新する形で運用する
-    console.log("🔥🔥🔥🔥🔥🔥 スパークチャート変更検知", "data", data, "dataUpdateAt", dataUpdateAt);
-    setChartData(data);
-  }, [dataUpdateAt]);
+  // useEffect(() => {
+  //   // 配列内のオブジェクトのdateプロパティかvalueプロパティが変更されたことをdataUpdateAtのタイムスタンプで検知
+  //   // 通常は配列内の各オブジェクトの要素を全てJSON文字列化して深い監視を行うが、これだとプロパティ数や要素数が多くなった場合にパフォーマンスが低下する可能性があるので、タイムスタンプで変更時に手動で最新のタイムスタンプに更新する形で運用する
+  //   console.log("🔥🔥🔥🔥🔥🔥 スパークチャート変更検知", "data", data, "dataUpdateAt", dataUpdateAt);
+  //   setChartData(data);
+  // }, [dataUpdateAt]);
 
   // メインvalueフォーマット
   const displayMainValue = useMemo(() => {
     if (mainValue === null) return null;
     if (requireFormat4Letter) {
-      // const _value = formatSalesTarget(mainValue, "round");
-      const _value = convertToJapaneseCurrencyFormatInYen(mainValue, false, true);
-      // const _value = convertToJapaneseCurrencyFormatInYen(42005000, false, true);
+      const _value = formatSalesTarget(mainValue, "round");
+      // const _value = convertToJapaneseCurrencyFormatInYen(mainValue, false, true);
       console.log("🔥🔥🔥🔥🔥🔥 スパークチャート", "_value", _value, "mainValue", mainValue, "data", data);
       return _value;
     } else {
@@ -145,7 +144,7 @@ Props) => {
     }, delay);
   }, []);
 
-  console.log("チャート ", "isUpwardTrend", isUpwardTrend, "growthRate", growthRate, "data", data);
+  // console.log("チャート ", "isUpwardTrend", isUpwardTrend, "growthRate", growthRate, "data", data);
 
   return (
     <>
@@ -162,9 +161,9 @@ Props) => {
             className={`relative flex h-full min-h-[40px] w-full min-w-[120px] items-center`}
             style={{ minWidth: `${chartWidth}px`, maxWidth: `${chartWidth}px` }}
           >
-            {isMounted && !!chartData?.length && (
+            {isMounted && !!data?.length && (
               <ResponsiveContainer width="100%" height={chartHeight}>
-                <AreaChart data={chartData} margin={{ top: 0, bottom: 0, right: 0, left: 0 }}>
+                <AreaChart data={data} margin={{ top: 0, bottom: 0, right: 0, left: 0 }}>
                   <defs>
                     <linearGradient id={`spark_chart_gradient_${id}`} x1="0" y1="0" x2="0" y2="1">
                       {/* <stop offset="0%" stopColor={trendColor} stopOpacity={0.5} />

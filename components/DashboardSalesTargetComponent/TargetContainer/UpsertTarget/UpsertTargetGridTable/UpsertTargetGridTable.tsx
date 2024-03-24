@@ -538,8 +538,6 @@ Props) => {
                           const salesTrends = inputSalesTargetsList[rowIndex].salesTrends;
                           const setSalesTrends = inputSalesTargetsList[rowIndex].setSalesTrends;
 
-                          console.log("salesTrends", salesTrends);
-
                           // 行の期間タイプとカラムの値に応じて表示するデータをフォーマット
                           const displayCellValue = formatDisplayValue(row, column);
                           return (
@@ -592,6 +590,19 @@ Props) => {
                                         ...salesSummaryRowData[rowIndex].sales_trend,
                                         updateAt: Date.now(),
                                       });
+                                      // 年度の売上目標が空文字になった場合には、上期と下期のシェアと売上推移をリセット
+                                      // 下期の売上目標をリセット
+                                      setInputSalesTargetSecondHalf("");
+                                      // 下期の売上推移をリセット
+                                      setSalesTrendsSecondHalf({
+                                        ...salesSummaryRowData[2].sales_trend,
+                                        updateAt: Date.now(),
+                                      });
+                                      // 下期の前年比をリセット
+                                      setInputYoYGrowthSecondHalf("");
+                                      // 上期下期のシェアをリセット
+                                      setShareFirstHalf(0);
+                                      setShareSecondHalf(0);
                                       return;
                                     }
                                     // フォーマット後の目標金額
@@ -627,7 +638,7 @@ Props) => {
                                     if (salesTrends) {
                                       // ディープコピー
                                       let newTrend = cloneDeep(salesTrends) as SparkChartObj;
-                                      let newDataArray = newTrend.data;
+                                      let newDataArray = [...newTrend.data];
                                       const newDate =
                                         row.period_type === "fiscal_year"
                                           ? upsertTargetObj.fiscalYear
@@ -665,7 +676,7 @@ Props) => {
                                       setSalesTrends({ ...newTrend, updateAt: Date.now() });
                                     }
 
-                                    // 上半期の入力の場合には、同時にシェア、下半期も計算して更新する
+                                    // 同時にシェア、下半期も計算して更新する
                                     if (row.period_type === "first_half" || row.period_type === "fiscal_year") {
                                       const convertedTotalTargetYear = inputSalesTargetYear.replace(/[^\d.]/g, "");
                                       const convertedFirstHalfTarget = inputSalesTargetFirstHalf.replace(/[^\d.]/g, "");
@@ -680,6 +691,7 @@ Props) => {
                                           convertedFirstHalfTarget !== "0")
                                       ) {
                                         try {
+                                          // 年度と上期の売上目標 Decimalオブジェクトの生成
                                           const totalTargetDecimal = new Decimal(
                                             row.period_type === "first_half"
                                               ? convertedTotalTargetYear
@@ -690,6 +702,60 @@ Props) => {
                                               ? convertedSalesTarget!
                                               : convertedFirstHalfTarget
                                           );
+                                          // 🔸上半期が年度を上回っていた場合は、他方をリセット
+                                          // 年度入力で年度が上半期を下回った場合は上半期をリセット
+                                          if (
+                                            row.period_type === "fiscal_year" &&
+                                            totalTargetDecimal.lessThan(firstHalfTargetDecimal)
+                                          ) {
+                                            // 上期・下期 売上目標をリセット
+                                            setInputSalesTargetFirstHalf("");
+                                            setInputSalesTargetSecondHalf("");
+                                            // 上期・下期 シェアをリセット
+                                            setShareFirstHalf(0);
+                                            setShareSecondHalf(0);
+                                            // 上期・下期 前年比をリセット
+                                            setInputYoYGrowthFirstHalf("");
+                                            setInputYoYGrowthSecondHalf("");
+                                            // 上期・下期 売上推移をリセット
+                                            setSalesTrendsFirstHalf({
+                                              ...salesSummaryRowData[1].sales_trend,
+                                              updateAt: Date.now(),
+                                            });
+                                            setSalesTrendsSecondHalf({
+                                              ...salesSummaryRowData[2].sales_trend,
+                                              updateAt: Date.now(),
+                                            });
+                                            // 年度が上期を下回った場合にはここでリターン
+                                            return;
+                                          }
+                                          // 上期入力で上期が年度を上回っていた場合は年度をリセット
+                                          else if (
+                                            row.period_type === "first_half" &&
+                                            totalTargetDecimal.lessThan(firstHalfTargetDecimal)
+                                          ) {
+                                            // 年度・下期 売上目標をリセット
+                                            setInputSalesTargetYear("");
+                                            setInputSalesTargetSecondHalf("");
+                                            // 上期・下期 シェアをリセット(上期は年度売上目標がリセットされるためシェアもリセット)
+                                            setShareFirstHalf(0);
+                                            setShareSecondHalf(0);
+                                            // 年度・下期 前年比をリセット
+                                            setInputYoYGrowthYear("");
+                                            setInputYoYGrowthSecondHalf("");
+                                            // 年度・下期 売上推移をリセット
+                                            setSalesTrendsYear({
+                                              ...salesSummaryRowData[0].sales_trend,
+                                              updateAt: Date.now(),
+                                            });
+                                            setSalesTrendsSecondHalf({
+                                              ...salesSummaryRowData[2].sales_trend,
+                                              updateAt: Date.now(),
+                                            });
+                                            // 年度が上期を下回った場合にはここでリターン
+                                            return;
+                                          }
+
                                           // 上期シェアを計算し、整数に丸める
                                           const firstHalfShare = firstHalfTargetDecimal
                                             .dividedBy(totalTargetDecimal)
@@ -725,6 +791,40 @@ Props) => {
                                             setInputYoYGrowthSecondHalf("");
                                           } else if (secondHalfResult.yearOverYear) {
                                             setInputYoYGrowthSecondHalf(secondHalfResult.yearOverYear);
+                                          }
+
+                                          // 下期の売上推移に追加
+                                          if (salesTrendsSecondHalf && isValidNumber(newSecondHalfTarget)) {
+                                            // ディープコピー
+                                            let newTrend = cloneDeep(salesTrendsSecondHalf) as SparkChartObj;
+                                            let newDataArray = [...newTrend.data];
+                                            const newDate = upsertTargetObj.fiscalYear * 10 + 2; // 下期
+                                            const newData = {
+                                              date: newDate,
+                                              value: newSecondHalfTarget,
+                                            };
+                                            if (newDataArray.length === 3) {
+                                              newDataArray.push(newData);
+                                            } else if (newDataArray.length === 4) {
+                                              newDataArray.splice(-1, 1, newData);
+                                            }
+                                            const newTitle = `${upsertTargetObj.fiscalYear}H2`;
+                                            newTrend = {
+                                              ...newTrend,
+                                              title: newTitle,
+                                              mainValue: newSecondHalfTarget,
+                                              growthRate: secondHalfResult.yearOverYear
+                                                ? parseFloat(secondHalfResult.yearOverYear.replace(/%/g, ""))
+                                                : null,
+                                              data: newDataArray,
+                                            };
+                                            console.log(
+                                              "ここ🔥🔥🔥🔥🔥🔥 newTrend",
+                                              newTrend,
+                                              "row.period_type ",
+                                              row.period_type
+                                            );
+                                            setSalesTrendsSecondHalf({ ...newTrend, updateAt: Date.now() });
                                           }
                                         } catch (error: any) {
                                           toast.error("エラー：シェアの算出に失敗しました...🙇‍♀️");
