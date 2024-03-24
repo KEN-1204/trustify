@@ -489,25 +489,33 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
               share: null,
               dataset_type: "yoy_growth",
               // 前年比(伸び率) 25.7%の小数点第1位までの数値部分で算出してセット
-              fiscal_year: calculateYearOverYear(target?.fiscal_year, lySales?.fiscal_year, 1).yearOverYear, // 年度
-              first_half: calculateYearOverYear(target?.first_half, lySales?.first_half, 1).yearOverYear,
-              second_half: calculateYearOverYear(target?.second_half, lySales?.second_half, 1).yearOverYear,
-              first_quarter: calculateYearOverYear(target?.first_quarter, lySales?.first_quarter, 1).yearOverYear,
-              second_quarter: calculateYearOverYear(target?.second_quarter, lySales?.second_quarter, 1).yearOverYear,
-              third_quarter: calculateYearOverYear(target?.third_quarter, lySales?.third_quarter, 1).yearOverYear,
-              fourth_quarter: calculateYearOverYear(target?.fourth_quarter, lySales?.fourth_quarter, 1).yearOverYear,
-              month_01: calculateYearOverYear(target?.month_01, lySales?.month_01, 1).yearOverYear,
-              month_02: calculateYearOverYear(target?.month_02, lySales?.month_02, 1).yearOverYear,
-              month_03: calculateYearOverYear(target?.month_03, lySales?.month_03, 1).yearOverYear,
-              month_04: calculateYearOverYear(target?.month_04, lySales?.month_04, 1).yearOverYear,
-              month_05: calculateYearOverYear(target?.month_05, lySales?.month_05, 1).yearOverYear,
-              month_06: calculateYearOverYear(target?.month_06, lySales?.month_06, 1).yearOverYear,
-              month_07: calculateYearOverYear(target?.month_07, lySales?.month_07, 1).yearOverYear,
-              month_08: calculateYearOverYear(target?.month_08, lySales?.month_08, 1).yearOverYear,
-              month_09: calculateYearOverYear(target?.month_09, lySales?.month_09, 1).yearOverYear,
-              month_10: calculateYearOverYear(target?.month_10, lySales?.month_10, 1).yearOverYear,
-              month_11: calculateYearOverYear(target?.month_11, lySales?.month_11, 1).yearOverYear,
-              month_12: calculateYearOverYear(target?.month_12, lySales?.month_12, 1).yearOverYear,
+              fiscal_year: Number(calculateYearOverYear(target?.fiscal_year, lySales?.fiscal_year, 1).yearOverYear), // 年度
+              first_half: Number(calculateYearOverYear(target?.first_half, lySales?.first_half, 1).yearOverYear),
+              second_half: Number(calculateYearOverYear(target?.second_half, lySales?.second_half, 1).yearOverYear),
+              first_quarter: Number(
+                calculateYearOverYear(target?.first_quarter, lySales?.first_quarter, 1).yearOverYear
+              ),
+              second_quarter: Number(
+                calculateYearOverYear(target?.second_quarter, lySales?.second_quarter, 1).yearOverYear
+              ),
+              third_quarter: Number(
+                calculateYearOverYear(target?.third_quarter, lySales?.third_quarter, 1).yearOverYear
+              ),
+              fourth_quarter: Number(
+                calculateYearOverYear(target?.fourth_quarter, lySales?.fourth_quarter, 1).yearOverYear
+              ),
+              month_01: Number(calculateYearOverYear(target?.month_01, lySales?.month_01, 1).yearOverYear),
+              month_02: Number(calculateYearOverYear(target?.month_02, lySales?.month_02, 1).yearOverYear),
+              month_03: Number(calculateYearOverYear(target?.month_03, lySales?.month_03, 1).yearOverYear),
+              month_04: Number(calculateYearOverYear(target?.month_04, lySales?.month_04, 1).yearOverYear),
+              month_05: Number(calculateYearOverYear(target?.month_05, lySales?.month_05, 1).yearOverYear),
+              month_06: Number(calculateYearOverYear(target?.month_06, lySales?.month_06, 1).yearOverYear),
+              month_07: Number(calculateYearOverYear(target?.month_07, lySales?.month_07, 1).yearOverYear),
+              month_08: Number(calculateYearOverYear(target?.month_08, lySales?.month_08, 1).yearOverYear),
+              month_09: Number(calculateYearOverYear(target?.month_09, lySales?.month_09, 1).yearOverYear),
+              month_10: Number(calculateYearOverYear(target?.month_10, lySales?.month_10, 1).yearOverYear),
+              month_11: Number(calculateYearOverYear(target?.month_11, lySales?.month_11, 1).yearOverYear),
+              month_12: Number(calculateYearOverYear(target?.month_12, lySales?.month_12, 1).yearOverYear),
               // fiscal_year: calculateGrowth(target?.fiscal_year, lySales?.fiscal_year, 1), // 年度
               // first_half: calculateGrowth(target?.first_half, lySales?.first_half, 1),
               // second_half: calculateGrowth(target?.second_half, lySales?.second_half, 1),

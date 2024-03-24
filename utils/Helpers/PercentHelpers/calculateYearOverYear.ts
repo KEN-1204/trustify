@@ -25,22 +25,22 @@ function createDecimal(value: string | number): { result: Decimal | null; error:
   try {
     return { result: new Decimal(value), error: null };
   } catch (error) {
-    console.error(`入力値"${value}"が無効です。`);
+    console.log(`❌入力値"${value}"が無効です。`);
     return { result: null, error: `入力値"${value}"が無効です。` };
   }
 }
 
 interface YearOverYearResult {
-  yearOverYear: string | number | null;
+  yearOverYear: string | null;
   isPositive: boolean;
   error: string | null;
 }
-
+// 前年比(成長率・伸び率)を算出する関数
 export function calculateYearOverYear(
   thisYearTarget: string | number | null | undefined,
   lastYearSales: string | number | null | undefined,
   decimalPlace: number = 2,
-  numResponse: boolean = true, // number型でレスポンスするか否か
+  // numResponse: boolean = true, // number型でレスポンスするか否か
   showPercentSign: boolean = false,
   showNegativeSign: boolean = false
 ): YearOverYearResult {
@@ -51,12 +51,14 @@ export function calculateYearOverYear(
     lastYearSales === null ||
     lastYearSales === undefined
   ) {
+    const errMsg = `${!thisYearTarget ? `❌売上目標が無効な値です。` : ``} ${
+      !lastYearSales ? `❌前年度売上が無効な値です。` : ``
+    }`;
+    console.log(errMsg);
     return {
       yearOverYear: null,
       isPositive: false,
-      error: `${!thisYearTarget ? `売上目標が無効な値です。` : ``} ${
-        !lastYearSales ? `前年度売上が無効な値です。` : ``
-      }`,
+      error: errMsg,
     };
   }
   const { result: lastYearSalesDecimal, error: lastYearSalesError } = createDecimal(lastYearSales);
@@ -69,7 +71,7 @@ export function calculateYearOverYear(
 
   // 前年度の売上が0の場合はエラー
   if (lastYearSalesDecimal.isZero()) {
-    console.error("前年度の売上が0の場合、前年比は算出できません。");
+    console.log("❌前年度の売上が0の場合、前年比は算出できません。");
     return { yearOverYear: null, isPositive: false, error: "前年度の売上が0の場合、前年比は算出できません。" };
   }
 
@@ -78,13 +80,13 @@ export function calculateYearOverYear(
   // 前年比が正の値かどうかチェック
   const isPositive = yearOverYear.greaterThan(0);
 
-  if (numResponse) {
-    return {
-      yearOverYear: Number(yearOverYear.toFixed(decimalPlace, Decimal.ROUND_HALF_UP)),
-      isPositive,
-      error: null,
-    };
-  }
+  // if (numResponse) {
+  //   return {
+  //     yearOverYear: Number(yearOverYear.toFixed(decimalPlace, Decimal.ROUND_HALF_UP)),
+  //     isPositive,
+  //     error: null,
+  //   };
+  // }
 
   // 結果のフォーマット
   const formattedResult = `${showNegativeSign && !isPositive ? "-" : ""}${yearOverYear.toFixed(

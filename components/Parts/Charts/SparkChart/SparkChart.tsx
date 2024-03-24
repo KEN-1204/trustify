@@ -4,9 +4,22 @@ import { subDays } from "date-fns";
 import { memo, useEffect, useMemo, useState } from "react";
 import { ResponsiveContainer, AreaChart, XAxis, YAxis, Area, Tooltip, CartesianGrid } from "recharts";
 
-/*
-
-*/
+// const _data = useMemo(() => {
+//   const data: { [K in "date" | "value"]: any }[] = [];
+//   // for (let num = 30; num >= 0; num--) {
+//   //   data.push({
+//   //     date: subDays(new Date(), num).toISOString().substring(0, 10),
+//   //     value: 1 + Math.random(),
+//   //   });
+//   // }
+//   for (let num = 4; num >= 0; num--) {
+//     data.push({
+//       date: subDays(new Date(), num).toISOString().substring(0, 10),
+//       value: 1 + Math.random(),
+//     });
+//   }
+//   return data;
+// }, []);
 
 type Props = {
   id: string | number;
@@ -15,6 +28,7 @@ type Props = {
   mainValue: number | null;
   growthRate?: number | null;
   data: { date: string | number | null; value: number | null }[];
+  dataUpdateAt: number;
   height: number;
   width: number;
   chartHeight?: number;
@@ -25,6 +39,7 @@ type Props = {
   requireFormat4Letter?: boolean;
 };
 
+// export const SparkChart = ({
 const SparkChartMemo = ({
   id,
   title = "売上",
@@ -32,6 +47,7 @@ const SparkChartMemo = ({
   mainValue,
   growthRate,
   data,
+  dataUpdateAt,
   height = 68,
   width = 270,
   //   chartHeight = 33,
@@ -43,22 +59,14 @@ const SparkChartMemo = ({
   requireFormat4Letter = true,
 }: //   stroke = "var(--bright-green)",
 Props) => {
-  // const _data = useMemo(() => {
-  //   const data: { [K in "date" | "value"]: any }[] = [];
-  //   // for (let num = 30; num >= 0; num--) {
-  //   //   data.push({
-  //   //     date: subDays(new Date(), num).toISOString().substring(0, 10),
-  //   //     value: 1 + Math.random(),
-  //   //   });
-  //   // }
-  //   for (let num = 4; num >= 0; num--) {
-  //     data.push({
-  //       date: subDays(new Date(), num).toISOString().substring(0, 10),
-  //       value: 1 + Math.random(),
-  //     });
-  //   }
-  //   return data;
-  // }, []);
+  const [chartData, setChartData] = useState(data);
+
+  useEffect(() => {
+    // 配列内のオブジェクトのdateプロパティかvalueプロパティが変更されたことをdataUpdateAtのタイムスタンプで検知
+    // 通常は配列内の各オブジェクトの要素を全てJSON文字列化して深い監視を行うが、これだとプロパティ数や要素数が多くなった場合にパフォーマンスが低下する可能性があるので、タイムスタンプで変更時に手動で最新のタイムスタンプに更新する形で運用する
+    console.log("🔥🔥🔥🔥🔥🔥 スパークチャート変更検知", "data", data, "dataUpdateAt", dataUpdateAt);
+    setChartData(data);
+  }, [dataUpdateAt]);
 
   // メインvalueフォーマット
   const displayMainValue = useMemo(() => {
@@ -85,11 +93,13 @@ Props) => {
           console.log("✅✅チャート lastValue", lastValue, "lastLastValue", lastLastValue);
           if (lastLastValue === 0 && lastValue && lastValue > 0) {
             return true;
+          } else if (lastLastValue === lastValue) {
+            return null;
           } else if (lastLastValue === null || lastValue === null) {
             return null;
-          } else if (lastLastValue < lastLastValue) {
+          } else if (lastLastValue < lastValue) {
             return true;
-          } else if (lastLastValue > lastLastValue) {
+          } else if (lastLastValue > lastValue) {
             return false;
           } else {
             return null;
@@ -99,8 +109,10 @@ Props) => {
         }
       } else if (growthRate > 0) {
         return true;
-      } else {
+      } else if (growthRate < 0) {
         return false;
+      } else {
+        return null;
       }
     } else {
       // 2つ以下ならnull
@@ -150,18 +162,20 @@ Props) => {
             className={`relative flex h-full min-h-[40px] w-full min-w-[120px] items-center`}
             style={{ minWidth: `${chartWidth}px`, maxWidth: `${chartWidth}px` }}
           >
-            {isMounted && !!data?.length && (
+            {isMounted && !!chartData?.length && (
               <ResponsiveContainer width="100%" height={chartHeight}>
-                <AreaChart data={data} margin={{ top: 0, bottom: 0, right: 0, left: 0 }}>
+                <AreaChart data={chartData} margin={{ top: 0, bottom: 0, right: 0, left: 0 }}>
                   <defs>
                     <linearGradient id={`spark_chart_gradient_${id}`} x1="0" y1="0" x2="0" y2="1">
                       {/* <stop offset="0%" stopColor={trendColor} stopOpacity={0.5} />
                     <stop offset="78%" stopColor={trendColor} stopOpacity={0.05} /> */}
-                      <stop offset="5%" stopColor={trendColor} stopOpacity={0.4} />
-                      <stop offset="95%" stopColor={trendColor} stopOpacity={0} />
+                      {/* <stop offset="5%" stopColor={trendColor} stopOpacity={0.4} />
+                      <stop offset="95%" stopColor={trendColor} stopOpacity={0} /> */}
+                      <stop offset="12%" stopColor={trendColor} stopOpacity={0.4} />
+                      <stop offset="98%" stopColor={trendColor} stopOpacity={0} />
                     </linearGradient>
                   </defs>
-                  <Area dataKey="value" stroke={trendColor} fill={`url(#spark_chart_gradient_${id})`} />
+                  <Area dataKey={`value`} stroke={trendColor} fill={`url(#spark_chart_gradient_${id})`} />
                   {/* <XAxis dataKey="date" /> */}
                   {/* <YAxis dataKey="value" /> */}
                 </AreaChart>
@@ -186,11 +200,16 @@ Props) => {
               {growthRate === undefined && isUpwardTrend === null && <span>- %</span>}
               {growthRate !== undefined && growthRate !== null && isUpwardTrend !== null && (
                 <span>
-                  {isUpwardTrend ? `+` : `-`}
-                  {growthRate.toFixed(1)}
+                  {isUpwardTrend && !growthRate.toString().includes("+")
+                    ? `+`
+                    : !growthRate.toString().includes("-")
+                    ? `-`
+                    : ``}
+                  {growthRate.toFixed(1)}%
                 </span>
               )}
               {growthRate !== undefined && growthRate === null && <span>- %</span>}
+              {growthRate === 0 && <span>{growthRate}%</span>}
             </div>
           </div>
         </div>
