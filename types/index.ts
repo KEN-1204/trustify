@@ -134,6 +134,7 @@ export type Profile = {
   unit: string | null;
   usage: string | null;
   purpose_of_use: string | null;
+  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
 };
 
 //supabaseのprofilesテーブルのフィールド内容にデータ型を定義 初回登録時はsupabaseから取得の際にundefinedで返ってきて登録になるので、データ型はユニオン型で定義
@@ -441,6 +442,7 @@ export type UserProfileCompanySubscription = {
   accounts_to_create: number | null;
   number_of_active_subscribed_accounts: number | null;
   cancel_at_period_end: boolean | null;
+  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
   // 事業部、課、係、事業所、社員番号
   assigned_department_id: string | null;
   assigned_department_name: string | null;
@@ -554,6 +556,7 @@ export type MemberAccounts = {
   unit: string | null;
   usage: string | null;
   purpose_of_use: string | null;
+  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
   subscribed_account_id: string | null;
   account_created_at: string | null;
   account_company_role: string | null;
@@ -1810,6 +1813,7 @@ export type Department = {
   created_at: string;
   created_by_company_id: string | null;
   department_name: string | null;
+  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
 };
 // 課・セクションリストテーブル
 export type Section = {
@@ -1818,6 +1822,7 @@ export type Section = {
   created_by_company_id: string | null;
   created_by_department_id: string | null;
   section_name: string | null;
+  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
 };
 // 係・ユニットリストテーブル
 export type Unit = {
@@ -1827,6 +1832,7 @@ export type Unit = {
   created_by_department_id: string | null;
   created_by_section_id: string | null;
   unit_name: string | null;
+  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
 };
 // 事業所・営業所リストテーブル
 export type Office = {
@@ -1834,6 +1840,7 @@ export type Office = {
   created_at: string;
   created_by_company_id: string | null;
   office_name: string | null;
+  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
 };
 export type Employee_id = {
   id: string;

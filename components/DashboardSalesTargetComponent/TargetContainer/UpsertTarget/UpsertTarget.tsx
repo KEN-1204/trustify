@@ -1,14 +1,14 @@
 import useStore from "@/store";
 import styles from "../../DashboardSalesTargetComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
-import { CSSProperties, Suspense, memo, useEffect, useMemo, useState } from "react";
+import { CSSProperties, Fragment, Suspense, memo, useEffect, useMemo, useState } from "react";
 import { FaSave } from "react-icons/fa";
 import { IoIosSave } from "react-icons/io";
 import { MdSaveAlt } from "react-icons/md";
 import { RiSave3Fill } from "react-icons/ri";
 import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/ProgressCircle";
 import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/ProgressNumber";
-import { Department, Office, Section, Unit } from "@/types";
+import { Department, MemberAccounts, Office, Section, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { SparkChart } from "@/components/Parts/Charts/SparkChart/SparkChart";
 import { ErrorBoundary } from "react-error-boundary";
@@ -19,6 +19,9 @@ import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearSta
 import { toast } from "react-toastify";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
+import { useQueryMemberAccountsFilteredByEntity } from "@/hooks/useQueryMemberAccountsFilteredByEntity";
+import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
+import { FallbackTargetTable } from "./UpsertTargetGridTable/FallbackTargetTable";
 
 export const columnHeaderListTarget = [
   "period_type",
@@ -110,6 +113,29 @@ export const formatRowNameShort = (row: string, year: number): { ja: string; en:
 
     default:
       return { ja: row, en: row };
+      break;
+  }
+};
+
+export const getSubTargetTitle = (
+  // entityType: 'department' | 'section' | 'unit' | 'office' | 'member',
+  entityType: string,
+  obj: Department | Section | Unit | Office | MemberAccounts
+) => {
+  switch (entityType) {
+    case "department":
+      return (obj as Department).department_name ?? "-";
+    case "section":
+      return (obj as Section).section_name ?? "-";
+    case "unit":
+      return (obj as Unit).unit_name ?? "-";
+    case "office":
+      return (obj as Office).office_name ?? "-";
+    case "member":
+      return (obj as MemberAccounts).profile_name ?? "-";
+
+    default:
+      return "-";
       break;
   }
 };
@@ -225,14 +251,107 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
 
-  // -------------------------- 関数 --------------------------
+  // ========================= 🌟メンバーリスト取得useQuery キャッシュ🌟 =========================
+  const {
+    data: memberDataArray,
+    error: memberDataError,
+    isLoading: isLoadingMember,
+  } = useQueryMemberAccountsFilteredByEntity({
+    entityType: upsertTargetObj.entityType,
+    entityId: upsertTargetObj.entityId,
+    isReady: upsertTargetObj.entityType === "member", // memberの時のみフェッチを許可
+  });
+  // ========================= 🌟メンバーリスト取得useQuery キャッシュ🌟 =========================
+
+  // -------------------------- 部門別目標の配列 --------------------------
+  // 初期値は子エンティティの全てのリストを追加し、後から不要な事業部などは外してもらう(売上目標に不要な開発や業務系の事業部など)
+  const [subTargetList, setSubTargetList] = useState(() => {
+    switch (upsertTargetObj.childEntityType) {
+      case "department":
+        const filteredDepartment = departmentDataArray
+          ? departmentDataArray.filter((obj) => obj.target_type === "sales_target")
+          : [];
+        return filteredDepartment;
+      case "section":
+        const filteredSection = sectionDataArray
+          ? sectionDataArray.filter((obj) => obj.target_type === "sales_target")
+          : [];
+        return filteredSection;
+      case "unit":
+        const filteredUnit = unitDataArray ? unitDataArray.filter((obj) => obj.target_type === "sales_target") : [];
+        return filteredUnit;
+      case "office":
+        const filteredOffice = officeDataArray
+          ? officeDataArray.filter((obj) => obj.target_type === "sales_target")
+          : [];
+        return filteredOffice;
+      case "member":
+        const filteredMember = memberDataArray
+          ? memberDataArray.filter((obj) => obj.target_type === "sales_target")
+          : [];
+        return filteredMember;
+      default:
+        return [];
+        break;
+    }
+  });
+  // -------------------------- 部門別目標の配列 ここまで --------------------------
+
+  // 部門別の名称
+  const getDivName = () => {
+    switch (upsertTargetObj.childEntityType) {
+      case "department":
+        return language === "ja" ? `事業部別` : `Departments`;
+      case "section":
+        return language === "ja" ? `課・セクション別` : `Sections`;
+      case "unit":
+        return language === "ja" ? `係・チーム別` : `Units`;
+      case "office":
+        return language === "ja" ? `事業所別` : `Offices`;
+      case "member":
+        return language === "ja" ? `メンバー別` : `Members`;
+      default:
+        return language === "ja" ? `部門別` : `Division`;
+        break;
+    }
+  };
+
+  // 子コンポーネントを順番にフェッチさせる
+  const [currentActiveIndex, setCurrentActiveIndex] = useState(0); // 順番にフェッチを許可
+  const [allFetched, setAllFetched] = useState(false); // サブ目標コンポーネントのフェッチが全て完了したらtrueに変更
+
+  // 全子コンポーネントがフェッチ完了したかを監視
+  useEffect(() => {
+    // サブ目標リストよりactiveIndexが大きくなった場合、全てフェッチが完了
+    if (currentActiveIndex >= subTargetList.length) {
+      setAllFetched(true);
+    }
+  }, [currentActiveIndex]);
+
+  // 各サブ目標コンポーネントでフェッチ完了通知を受け取る関数
+  const onFetchComplete = (tableIndex: number) => {
+    // 既に現在のテーブルのindexよりcurrentActiveIndexが大きければリターン
+    if (tableIndex < currentActiveIndex || allFetched) return;
+    console.log(
+      "onFetchComplete関数実行 tableIndex",
+      tableIndex,
+      "currentActiveIndex",
+      currentActiveIndex,
+      tableIndex < currentActiveIndex
+    );
+    setCurrentActiveIndex((prevIndex) => prevIndex + 1); // activeIndexを+1して次のコンポーネントのフェッチを許可
+  };
 
   console.log(
     "UpsertTargetコンポーネントレンダリング isEndEntity",
     isEndEntity,
     "endEntity",
     endEntity,
-    upsertTargetObj
+    upsertTargetObj,
+    "サブ目標リスト",
+    subTargetList,
+    "memberDataArray",
+    memberDataArray
   );
 
   return (
@@ -269,9 +388,23 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
         <section className={`${styles.main_section_area} fade08_forward`}>
           {/* ------------------ コンテンツエリア ------------------ */}
           <div className={`${styles.contents_area} ${styles.upsert}`}>
+            {/* ---------- 総合目標 ---------- */}
             <ErrorBoundary FallbackComponent={ErrorFallback}>
-              <Suspense fallback={<FallbackScrollContainer title={upsertTargetObj.entityName} />}>
-                <div className={`${stickyRow === upsertTargetObj.entityId ? styles.sticky_row : ``}`}>
+              <Suspense
+                fallback={
+                  <FallbackTargetTable
+                    title={upsertTargetObj.entityName}
+                    isSettingYearHalf={!isEndEntity}
+                    hiddenBg={true}
+                    hiddenTitle={true}
+                  />
+                }
+              >
+                <div
+                  className={`${styles.row_container} ${
+                    stickyRow === upsertTargetObj.entityId ? styles.sticky_row : ``
+                  }`}
+                >
                   <UpsertTargetGridTable
                     isEndEntity={isEndEntity}
                     entityType={upsertTargetObj.entityType}
@@ -280,28 +413,25 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
                     stickyRow={stickyRow}
                     setStickyRow={setStickyRow}
                     annualFiscalMonths={annualFiscalMonthsUpsert}
-                    // fiscalYearMonthsForThreeYear={fiscalYearMonthsForThreeYear}
                     isFirstHalf={isFirstHalf}
-                    // startYearMonth={
-                    //   fiscalYearMonthsForThreeYear && fiscalYearMonthsForThreeYear.threeYearsAgo?.month_01
-                    //     ? fiscalYearMonthsForThreeYear.threeYearsAgo.month_01
-                    //     : undefined
-                    // }
-                    // endYearMonth={
-                    //   fiscalYearMonthsForThreeYear && fiscalYearMonthsForThreeYear.lastYear?.month_12
-                    //     ? fiscalYearMonthsForThreeYear.lastYear.month_12
-                    //     : undefined
-                    // }
+                    isMainTarget={true}
                   />
                 </div>
               </Suspense>
             </ErrorBoundary>
+            {/* <FallbackTargetTable
+              title={upsertTargetObj.entityName}
+              isSettingYearHalf={!isEndEntity}
+              hiddenBg={true}
+              hiddenTitle={true}
+            /> */}
+            {/* ---------- 総合目標 ここまで ---------- */}
 
-            {/* ----------- 部門別シェア ３列エリア ----------- */}
-            {/* タイトルエリア */}
+            {/* ----------- タイトルエリア ----------- */}
             <div className={`${styles.section_title_area} flex w-full items-end justify-between`}>
               <h1 className={`${styles.title} ${styles.upsert}`}>
-                <span>部門別</span>
+                {/* <span>部門別</span> */}
+                <span>{getDivName()}</span>
               </h1>
 
               <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>
@@ -319,43 +449,109 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
                 </div> */}
               </div>
             </div>
-            {/* タイトルエリア */}
+            {/* ----------- タイトルエリア ここまで ----------- */}
 
-            <div className={`${styles.grid_row} ${styles.col3} fade08_forward`}>
-              <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
-                {/* タイトルエリア */}
-                <div className={`${styles.card_title_area}`}>
-                  <div className={`${styles.card_title}`}>
-                    <span>売上目標シェア {upsertTargetObj.fiscalYear}年度</span>
-                    {/* <span>売上目標・スローガン・重点方針</span> */}
-                  </div>
-                </div>
-                {/* コンテンツエリア */}
-                <div className={`${styles.main_container}`}></div>
+            {/* ----------- 部門別シェア ３列エリア ----------- */}
+            {!allFetched && (
+              <div className={`flex-center fade08_forward h-full max-h-[225px] min-h-[225px] w-full`}>
+                <SpinnerX />
               </div>
-              <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
-                {/* タイトルエリア */}
-                <div className={`${styles.card_title_area}`}>
-                  <div className={`${styles.card_title}`}>
-                    <span>売上シェア {upsertTargetObj.fiscalYear - 1}年度</span>
+            )}
+            {allFetched && (
+              <div className={`${styles.grid_row} ${styles.col3} fade08_forward`}>
+                <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                  <div className={`${styles.card_title_area}`}>
+                    <div className={`${styles.card_title}`}>
+                      <span>売上目標シェア {upsertTargetObj.fiscalYear}年度</span>
+                    </div>
                   </div>
+                  <div className={`${styles.main_container}`}></div>
                 </div>
-                {/* コンテンツエリア */}
-                <div className={`${styles.main_container}`}></div>
-              </div>
-              <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
-                {/* タイトルエリア */}
-                <div className={`${styles.card_title_area}`}>
-                  <div className={`${styles.card_title}`}>
-                    {/* <span>スローガン・重点方針</span> */}
-                    <span>売上シェア {upsertTargetObj.fiscalYear - 2}年度</span>
+                <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                  <div className={`${styles.card_title_area}`}>
+                    <div className={`${styles.card_title}`}>
+                      <span>売上シェア {upsertTargetObj.fiscalYear - 1}年度</span>
+                    </div>
                   </div>
+                  <div className={`${styles.main_container}`}></div>
                 </div>
-                {/* コンテンツエリア */}
-                <div className={`${styles.main_container}`}></div>
+                <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                  <div className={`${styles.card_title_area}`}>
+                    <div className={`${styles.card_title}`}>
+                      <span>売上シェア {upsertTargetObj.fiscalYear - 2}年度</span>
+                    </div>
+                  </div>
+                  <div className={`${styles.main_container}`}></div>
+                </div>
               </div>
-            </div>
+            )}
             {/* ----------- 部門別シェア ３列エリア ここまで ----------- */}
+
+            {/* ---------- 部門別目標 ---------- */}
+            {subTargetList &&
+              subTargetList.length > 0 &&
+              subTargetList.map((obj, tableIndex) => {
+                const childEntityType = upsertTargetObj.childEntityType;
+                const targetTitle = getSubTargetTitle(childEntityType, obj);
+                // currentActiveIndexより大きいindexのテーブルはローディングを表示しておく
+                if (tableIndex > currentActiveIndex) {
+                  console.log(
+                    "部門別目標 ローディング中🙇 tableIndex",
+                    tableIndex,
+                    "currentActiveIndex",
+                    currentActiveIndex,
+                    "targetTitle",
+                    targetTitle
+                  );
+                  // return <FallbackScrollContainer title={targetTitle} />;
+                  return (
+                    <Fragment key={`${obj.id}_${childEntityType}_${targetTitle}`}>
+                      {/* <FallbackTargetTable title={targetTitle} /> */}
+                      <FallbackTargetTable
+                        title={upsertTargetObj.entityName}
+                        isSettingYearHalf={!isEndEntity}
+                        hiddenBg={true}
+                        hiddenTitle={true}
+                      />
+                    </Fragment>
+                  );
+                }
+                console.log(
+                  "部門別目標 アクティブマウント🔥 tableIndex",
+                  tableIndex,
+                  "currentActiveIndex",
+                  currentActiveIndex,
+                  "targetTitle",
+                  targetTitle,
+                  "childEntityType",
+                  childEntityType
+                );
+
+                return (
+                  <Fragment key={`${obj.id}_${childEntityType}_${targetTitle}`}>
+                    <ErrorBoundary FallbackComponent={ErrorFallback}>
+                      <Suspense fallback={<FallbackTargetTable title={targetTitle} />}>
+                        <div className={`${styles.row_container} ${stickyRow === obj.id ? styles.sticky_row : ``}`}>
+                          <UpsertTargetGridTable
+                            isEndEntity={isEndEntity}
+                            entityType={childEntityType}
+                            entityId={obj.id}
+                            entityNameTitle={targetTitle}
+                            stickyRow={stickyRow}
+                            setStickyRow={setStickyRow}
+                            annualFiscalMonths={annualFiscalMonthsUpsert}
+                            isFirstHalf={isFirstHalf}
+                            isMainTarget={false}
+                            fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
+                            onFetchComplete={() => onFetchComplete(tableIndex)}
+                          />
+                        </div>
+                      </Suspense>
+                    </ErrorBoundary>
+                  </Fragment>
+                );
+              })}
+            {/* ---------- 部門別目標 ここまで ---------- */}
           </div>
           {/* ------------------ コンテンツエリア ここまで ------------------ */}
         </section>

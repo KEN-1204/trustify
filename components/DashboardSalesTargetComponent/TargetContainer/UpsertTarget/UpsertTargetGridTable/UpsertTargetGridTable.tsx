@@ -44,15 +44,11 @@ type Props = {
   entityId: string;
   stickyRow: string | null;
   setStickyRow: Dispatch<SetStateAction<string | null>>;
-  // fiscalYearMonthsForThreeYear: {
-  //   lastYear: FiscalYearMonthObjForTarget;
-  //   twoYearsAgo: FiscalYearMonthObjForTarget;
-  //   threeYearsAgo: FiscalYearMonthObjForTarget;
-  // } | null;
   annualFiscalMonths: FiscalYearMonthObjForTarget | null;
   isFirstHalf: boolean | undefined;
-  // startYearMonth: number | undefined;
-  // endYearMonth: number | undefined;
+  isMainTarget: boolean; // メイン目標かどうか
+  fetchEnabled?: boolean; // メイン目標でない場合はfetchEnabledがtrueに変更されたらフェッチを許可する
+  onFetchComplete?: () => void;
 };
 
 const UpsertTargetGridTableMemo = ({
@@ -65,6 +61,9 @@ const UpsertTargetGridTableMemo = ({
   // fiscalYearMonthsForThreeYear,
   annualFiscalMonths,
   isFirstHalf,
+  isMainTarget = false,
+  fetchEnabled,
+  onFetchComplete,
 }: // startYearMonth,
 // endYearMonth,
 Props) => {
@@ -81,6 +80,8 @@ Props) => {
     data: salesSummaryRowData,
     error: salesSummaryError,
     isLoading: isLoadingQuery,
+    isSuccess: isSuccessQuery,
+    isError: isErrorQuery,
   } = useQuerySalesSummaryAndGrowth({
     companyId: userProfileState.company_id,
     entityType: entityType,
@@ -89,8 +90,16 @@ Props) => {
     fiscalYear: upsertTargetObj.fiscalYear,
     isFirstHalf: isFirstHalf,
     annualFiscalMonths: annualFiscalMonths,
+    fetchEnabled: isMainTarget ? true : fetchEnabled, // メイン目標はtrue, でなければfetchEnabledに従う
   });
   // --------------------- 🌟過去3年分の売上と前年度の前年伸び率実績を取得するuseQuery🌟 ここまで ---------------------
+
+  // ---------------- useQueryでフェッチが完了したら ----------------
+  useEffect(() => {
+    if (isSuccessQuery || isErrorQuery) {
+      if (onFetchComplete) onFetchComplete();
+    }
+  }, [isSuccessQuery, isErrorQuery]);
 
   // ---------------- ローカルstate ----------------
   // 売上目標input 「年度・上半期・下半期」
@@ -434,8 +443,11 @@ Props) => {
                   handleOpenTooltip({
                     e: e,
                     display: "top",
-                    content: stickyRow === entityId ? `固定を解除` : `画面上部に固定`,
+                    content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
                     marginTop: 9,
+                    // content: stickyRow === entityId ? `固定を解除` : `スクロール時`,
+                    // content2: stickyRow === entityId ? `` : `画面内に固定`,
+                    // marginTop: stickyRow === entityId ? 9 : 24,
                   });
                 }}
                 onMouseLeave={handleCloseTooltip}

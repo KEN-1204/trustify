@@ -12,7 +12,7 @@ type Props = {
   fiscalYear: number;
   isFirstHalf?: boolean | undefined;
   annualFiscalMonths?: FiscalYearMonthObjForTarget | undefined | null;
-  isReady?: boolean;
+  fetchEnabled?: boolean;
 };
 
 // 過去3年分の売上実績と前年度の伸び率実績を取得するuseQuery
@@ -24,7 +24,7 @@ export const useQuerySalesSummaryAndGrowth = ({
   fiscalYear, // 現在選択中の会計年度(FUNCTION側で-1)
   isFirstHalf,
   annualFiscalMonths,
-  isReady = true,
+  fetchEnabled = true,
 }: Props) => {
   const language = useStore((state) => state.language);
   const supabase = useSupabaseClient();
@@ -175,6 +175,6 @@ export const useQuerySalesSummaryAndGrowth = ({
     onError: (error) => {
       console.error("useQueryDepartments error:", error);
     },
-    enabled: !!companyId && !!entityType && !!entityId && !!periodType && !!fiscalYear,
+    enabled: !!companyId && !!entityType && !!entityId && !!periodType && !!fiscalYear && fetchEnabled,
   });
 };

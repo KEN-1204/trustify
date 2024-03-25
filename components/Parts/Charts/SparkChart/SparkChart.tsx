@@ -74,7 +74,7 @@ Props) => {
     if (requireFormat4Letter) {
       const _value = formatSalesTarget(mainValue, "round");
       // const _value = convertToJapaneseCurrencyFormatInYen(mainValue, false, true);
-      console.log("🔥🔥🔥🔥🔥🔥 スパークチャート", "_value", _value, "mainValue", mainValue, "data", data);
+      console.log("スパークチャート displayMainValue useMemo", "_value", _value, "mainValue", mainValue, "data", data);
       return _value;
     } else {
       return mainValue;
@@ -83,13 +83,12 @@ Props) => {
 
   // 前々年から前年が上昇傾向かどうか取得
   const isUpwardTrend = useMemo(() => {
-    console.log("✅✅チャート growthRate", growthRate, "data.length", data.length);
+    console.log("スパークチャート isUpwardTrend useMemo growthRate", growthRate, "data.length", data.length);
     if (growthRate !== undefined) {
       if (growthRate === null) {
         if (data.length >= 2) {
           const lastValue = data[data.length - 1].value;
           const lastLastValue = data[data.length - 2].value;
-          console.log("✅✅チャート lastValue", lastValue, "lastLastValue", lastLastValue);
           if (lastLastValue === 0 && lastValue && lastValue > 0) {
             return true;
           } else if (lastLastValue === lastValue) {
