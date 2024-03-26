@@ -1109,15 +1109,18 @@
   background: var(--color-edit-item-bg);
   cursor: pointer;
 }
-.switch_container .sortable_list .item.active_left {
+.switch_container .sortable_list .item:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.switch_container .sortable_list .item.add {
   box-shadow: 0 0 0 1px var(--color-edit-left-active);
   background-color: var(--color-edit-left-active-bg);
 }
-.switch_container .sortable_list .item.active_right {
-  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
-  background-color: var(--color-bg-brand-f30);
-  /* box-shadow: 0 0 0 1px var(--color-edit-right-active);
-  background-color: var(--color-edit-right-active-bg); */
+.switch_container .sortable_list .item.remove {
+  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  background-color: var(--color-bg-brand-f30); */
+  box-shadow: 0 0 0 1px var(--color-edit-remove);
+  background-color: var(--color-edit-remove-hover);
 }
 .switch_container .item .details {
   display: flex;
@@ -1153,7 +1156,7 @@
 }
 .item_right svg:active,
 .switch_container .item_right:active {
-  cursor: grabbing;
+  /* cursor: grabbing; */
 }
 .switch_container .item_right.dragging {
   /* background: #000;
@@ -1173,6 +1176,34 @@
 .switch_container .icon_button {
   background-color: var(--color-edit-arrow-disable-bg-onlist);
   color: var(--color-edit-arrow-disable-color);
+}
+.switch_container .icon_button.add {
+  background-color: var(--color-edit-add50);
+  /* box-shadow: 0 0 0 1px var(--color-edit-add); */
+  box-shadow: 0 0 0 1px var(--bright-green);
+  color: var(--bright-green);
+  cursor: pointer;
+}
+.switch_container .icon_button.remove {
+  background-color: var(--color-edit-remove-hover);
+  box-shadow: 0 0 0 1px var(--color-edit-remove);
+  color: var(--main-color-tk);
+  cursor: pointer;
+}
+.switch_container .icon_button.inactive {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+.switch_container .icon_button.arrow_right_reset_active {
+  background-color: var(--color-bg-brand-f);
+  color: #fff;
+  cursor: pointer;
+}
+.arrow_right_reset_active svg path {
+  stroke: #fff;
+}
+.arrow_right_reset_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
 }
 .switch_container /* .icon_button svg {
   background-color: var(--color-edit-arrow-disable-bg-onlist);

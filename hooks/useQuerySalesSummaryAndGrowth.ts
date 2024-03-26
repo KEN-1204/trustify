@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 
 type Props = {
   companyId: string;
-  entityType: string;
+  entityLevel: string;
   entityId: string;
   periodType: string;
   fiscalYear: number;
@@ -18,7 +18,7 @@ type Props = {
 // 過去3年分の売上実績と前年度の伸び率実績を取得するuseQuery
 export const useQuerySalesSummaryAndGrowth = ({
   companyId,
-  entityType,
+  entityLevel,
   entityId,
   periodType, // 「year_half」と「half_monthly」
   fiscalYear, // 現在選択中の会計年度(FUNCTION側で-1)
@@ -41,7 +41,7 @@ export const useQuerySalesSummaryAndGrowth = ({
     // 1. 「年度・上半期・下半期」の3年分の売上
     if (periodType === "year_half") {
       const payload = {
-        _entity_type: entityType, // エンティティタイプの割り当て
+        _entity_level: entityLevel, // エンティティタイプの割り当て
         _entity_id: entityId, // エンティティid
         _fiscal_year: fiscalYear, // 現在の会計年度
       };
@@ -71,7 +71,7 @@ export const useQuerySalesSummaryAndGrowth = ({
       // 2. 「上半期・Q1, Q2・01~06」の3年分の売上
       if (isFirstHalf == true) {
         const payload = {
-          _entity_type: entityType, // エンティティタイプの割り当て
+          _entity_level: entityLevel, // エンティティタイプの割り当て
           _entity_id: entityId, // エンティティid
           _fiscal_year: fiscalYear, // 現在の会計年度
           _start_year_month: annualFiscalMonths.month_01,
@@ -101,7 +101,7 @@ export const useQuerySalesSummaryAndGrowth = ({
       // 3. 「下半期・Q3, Q4・07~12」の3年分の売上
       else {
         const payload = {
-          _entity_type: entityType, // エンティティタイプの割り当て
+          _entity_level: entityLevel, // エンティティタイプの割り当て
           _entity_id: entityId, // エンティティid
           _fiscal_year: fiscalYear, // 現在の会計年度
           _start_year_month: annualFiscalMonths.month_07,
@@ -169,12 +169,12 @@ export const useQuerySalesSummaryAndGrowth = ({
   };
 
   return useQuery({
-    queryKey: ["sales_summary_and_growth", entityType, entityId, periodType, fiscalYear, isFirstHalf],
+    queryKey: ["sales_summary_and_growth", entityLevel, entityId, periodType, fiscalYear, isFirstHalf],
     queryFn: getSalesSummaryAndGrowth,
     staleTime: Infinity,
     onError: (error) => {
       console.error("useQueryDepartments error:", error);
     },
-    enabled: !!companyId && !!entityType && !!entityId && !!periodType && !!fiscalYear && fetchEnabled,
+    enabled: !!companyId && !!entityLevel && !!entityId && !!periodType && !!fiscalYear && fetchEnabled,
   });
 };

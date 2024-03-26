@@ -117,7 +117,7 @@ const SettingSalesTargetsMemo: FC = () => {
   }>(initialTabs);
   // 事業部~事業所までは変更する際に、エンティティ名を選択した後にactiveDisplayTabsを更新するため一旦ローカルでエンティティタイプを保持するためのstate
   const [activeEntityLocal, setActiveEntityLocal] = useState<{
-    entityType: string;
+    entityLevel: string;
     entityName: string;
     entityId: string;
   } | null>(null);
@@ -821,7 +821,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   className={`flex pl-[1px] text-[15px]`}
                   onClick={(e) => {
                     setActiveEntityLocal({
-                      entityType: activeDisplayTabs.entity,
+                      entityLevel: activeDisplayTabs.entity,
                       entityName: activeDisplayTabs.entityName ?? "",
                       entityId: activeDisplayTabs.entityId ?? "",
                     });
@@ -1461,7 +1461,7 @@ const SettingSalesTargetsMemo: FC = () => {
                 <ul className={`flex h-full w-full flex-col`}>
                   {/* ------------------------------------ */}
                   {sectionListForSalesTarget.map((obj, index) => {
-                    const isActive = obj.title === activeEntityLocal?.entityType;
+                    const isActive = obj.title === activeEntityLocal?.entityLevel;
                     return (
                       <li
                         key={obj.title}
@@ -1486,7 +1486,7 @@ const SettingSalesTargetsMemo: FC = () => {
                               const newDepartment = departmentIdToObjMap?.get(departmentId);
                               setSelectedDepartment(newDepartment ?? null);
                               setActiveEntityLocal({
-                                entityType: obj.title,
+                                entityLevel: obj.title,
                                 entityName: newDepartment?.department_name ?? "",
                                 entityId: newDepartment?.id ?? "",
                               });
@@ -1525,7 +1525,7 @@ const SettingSalesTargetsMemo: FC = () => {
                               })[0];
                               setSelectedSection(firstSectionObj);
                               setActiveEntityLocal({
-                                entityType: obj.title,
+                                entityLevel: obj.title,
                                 entityName: firstSectionObj?.section_name ?? "",
                                 entityId: firstSectionObj?.id ?? "",
                               });
@@ -1591,7 +1591,7 @@ const SettingSalesTargetsMemo: FC = () => {
                               })[0];
                               setSelectedUnit(firstUnitObj);
                               setActiveEntityLocal({
-                                entityType: obj.title,
+                                entityLevel: obj.title,
                                 entityName: firstUnitObj?.unit_name ?? "",
                                 entityId: firstUnitObj?.id ?? "",
                               });
@@ -1609,7 +1609,7 @@ const SettingSalesTargetsMemo: FC = () => {
                               const newOffice = officeIdToObjMap?.get(officeId);
                               setSelectedOffice(newOffice ?? null);
                               setActiveEntityLocal({
-                                entityType: obj.title,
+                                entityLevel: obj.title,
                                 entityName: newOffice?.office_name ?? "",
                                 entityId: newOffice?.id ?? "",
                               });
@@ -1639,7 +1639,7 @@ const SettingSalesTargetsMemo: FC = () => {
                 </ul>
               </div>
               {/* 右サイドエンティティ詳細メニュー 適用・戻るエリア 全社以外で表示 */}
-              {activeEntityLocal && activeEntityLocal.entityType !== "company" && (
+              {activeEntityLocal && activeEntityLocal.entityLevel !== "company" && (
                 <div
                   className={`${styles.settings_menu} ${styles.edit_mode} left-[320px] z-[3000] h-auto w-full min-w-[330px] max-w-max overflow-hidden rounded-[6px] ${styles.fade_up}`}
                   style={{
@@ -1655,13 +1655,13 @@ const SettingSalesTargetsMemo: FC = () => {
                   {/* ------------------------------------ */}
                   <li className={`${styles.section_title} flex min-h-max w-full font-bold`}>
                     <div className="flex max-w-max flex-col">
-                      <span>{mappingSectionName[activeEntityLocal.entityType][language]}</span>
+                      <span>{mappingSectionName[activeEntityLocal.entityLevel][language]}</span>
                       <div className={`${styles.underline} w-full`} />
                     </div>
                   </li>
                   {/* ------------------------------------ */}
                   {/* ------------------------ 事業部 ------------------------ */}
-                  {activeEntityLocal.entityType !== "office" && (
+                  {activeEntityLocal.entityLevel !== "office" && (
                     <li
                       className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
@@ -1686,7 +1686,7 @@ const SettingSalesTargetsMemo: FC = () => {
                                 : null;
                               setSelectedDepartment(newDepartment ?? null);
 
-                              if (activeEntityLocal.entityType === "department") {
+                              if (activeEntityLocal.entityLevel === "department") {
                                 setActiveEntityLocal({
                                   ...activeEntityLocal,
                                   entityId: departmentId,
@@ -1695,7 +1695,7 @@ const SettingSalesTargetsMemo: FC = () => {
                               }
 
                               // 課・セクションの場合は、課をリセット
-                              if (["section", "unit"].includes(activeEntityLocal.entityType)) {
+                              if (["section", "unit"].includes(activeEntityLocal.entityLevel)) {
                                 if (!sectionDataArray || sectionDataArray?.length === 0) {
                                   alert(
                                     "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
@@ -1716,7 +1716,7 @@ const SettingSalesTargetsMemo: FC = () => {
 
                                 const firstSectionObj = sortedSectionList?.length >= 1 ? sortedSectionList[0] : null;
                                 setSelectedSection(firstSectionObj);
-                                if (activeEntityLocal.entityType === "section") {
+                                if (activeEntityLocal.entityLevel === "section") {
                                   setActiveEntityLocal({
                                     ...activeEntityLocal,
                                     entityId: firstSectionObj?.id ?? "",
@@ -1724,7 +1724,7 @@ const SettingSalesTargetsMemo: FC = () => {
                                   });
                                 }
 
-                                if (activeEntityLocal.entityType === "unit") {
+                                if (activeEntityLocal.entityLevel === "unit") {
                                   if (!unitDataArray || unitDataArray?.length === 0) {
                                     alert(
                                       "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
@@ -1749,7 +1749,7 @@ const SettingSalesTargetsMemo: FC = () => {
 
                                   const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
                                   setSelectedUnit(firstUnitObj);
-                                  if (activeEntityLocal.entityType === "unit") {
+                                  if (activeEntityLocal.entityLevel === "unit") {
                                     setActiveEntityLocal({
                                       ...activeEntityLocal,
                                       entityId: firstUnitObj?.id ?? "",
@@ -1797,7 +1797,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   )}
                   {/* ------------------------ 事業部 ------------------------ */}
                   {/* ------------------------ 課・セクション ------------------------ */}
-                  {["section", "unit"].includes(activeEntityLocal.entityType) && (
+                  {["section", "unit"].includes(activeEntityLocal.entityLevel) && (
                     <li
                       className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
@@ -1822,7 +1822,7 @@ const SettingSalesTargetsMemo: FC = () => {
                                 : null;
                               setSelectedSection(newSection ?? null);
 
-                              if (activeEntityLocal.entityType === "section") {
+                              if (activeEntityLocal.entityLevel === "section") {
                                 setActiveEntityLocal({
                                   ...activeEntityLocal,
                                   entityId: sectionId,
@@ -1830,7 +1830,7 @@ const SettingSalesTargetsMemo: FC = () => {
                                 });
                               }
 
-                              if (activeEntityLocal.entityType === "unit") {
+                              if (activeEntityLocal.entityLevel === "unit") {
                                 if (!unitDataArray || unitDataArray?.length === 0) {
                                   alert(
                                     "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
@@ -1851,7 +1851,7 @@ const SettingSalesTargetsMemo: FC = () => {
 
                                 const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
                                 setSelectedUnit(firstUnitObj);
-                                if (activeEntityLocal.entityType === "unit") {
+                                if (activeEntityLocal.entityLevel === "unit") {
                                   setActiveEntityLocal({
                                     ...activeEntityLocal,
                                     entityId: firstUnitObj?.id ?? "",
@@ -1878,7 +1878,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   )}
                   {/* ------------------------ 課・セクション ------------------------ */}
                   {/* ------------------------ 係・チーム ------------------------ */}
-                  {activeEntityLocal.entityType === "unit" && (
+                  {activeEntityLocal.entityLevel === "unit" && (
                     <li
                       className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
@@ -1923,7 +1923,7 @@ const SettingSalesTargetsMemo: FC = () => {
                   )}
                   {/* ------------------------ 係・チーム ------------------------ */}
                   {/* ------------------------ 事業所 ------------------------ */}
-                  {activeEntityLocal.entityType === "office" && (
+                  {activeEntityLocal.entityLevel === "office" && (
                     <li
                       className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
@@ -1976,7 +1976,7 @@ const SettingSalesTargetsMemo: FC = () => {
                         if (!activeEntityLocal) return;
                         if (openSectionMenu.title === "entity") {
                           // 選択、確定するエンティティの子の配列をフィルター
-                          if (activeEntityLocal.entityType === "department") {
+                          if (activeEntityLocal.entityLevel === "department") {
                             const departmentId = activeEntityLocal.entityId;
                             if (sectionDataArray && sectionDataArray.length > 0) {
                               const filteredSectionList = sectionDataArray.filter(
@@ -1986,7 +1986,7 @@ const SettingSalesTargetsMemo: FC = () => {
                               setFilteredSectionBySelectedDepartment(filteredSectionList);
                             }
                           }
-                          if (activeEntityLocal.entityType === "section") {
+                          if (activeEntityLocal.entityLevel === "section") {
                             const sectionId = activeEntityLocal.entityId;
                             if (unitDataArray && unitDataArray.length > 0) {
                               const filteredUnitList = unitDataArray.filter(
@@ -1997,16 +1997,16 @@ const SettingSalesTargetsMemo: FC = () => {
                             }
                           }
                           // 係・チームを選択した場合はメンバーリストをuseQueryで取得する
-                          if (activeEntityLocal.entityType === "unit") {
+                          if (activeEntityLocal.entityLevel === "unit") {
                           }
                           // 事業所を選択した場合はメンバーリストをuseQueryで取得する
-                          if (activeEntityLocal.entityType === "office") {
+                          if (activeEntityLocal.entityLevel === "office") {
                           }
                         }
 
                         setActiveDisplayTabs({
                           ...activeDisplayTabs,
-                          entity: activeEntityLocal.entityType,
+                          entity: activeEntityLocal.entityLevel,
                           entityName: activeEntityLocal.entityName || null,
                           entityId: activeEntityLocal.entityId || null,
                         });

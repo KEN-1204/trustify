@@ -2522,7 +2522,7 @@ export type CustomizedLabelProps = {
 
 // 売上目標画面のメインエンティティ
 export type MainEntityTarget = {
-  entityType: string;
+  entityLevel: string;
   entityId: string;
   entityName: string;
 };
@@ -2538,7 +2538,7 @@ export type SalesTargets = {
   created_by_unit_id: string | null;
   created_by_user_id: string | null;
   created_by_office_id: string | null;
-  entity_type: string | null;
+  entity_level: string | null;
   period_type: string | null;
   period: number | null;
   sales_target: number | null;
@@ -2547,7 +2547,7 @@ export type SalesTargets = {
 // 売上目標 売上目標テーブルからFUNCTIONで取得
 // export type SalesTargetFYRowData = {
 //   entity_id: string;
-//   entity_type: string | null;
+//   entity_level: string | null;
 //   entity_name: string | null;
 //   // 紐付け関連
 //   created_by_company_id: string | null;
@@ -2583,7 +2583,7 @@ export type SalesTargetFYRowData = {
   share: number | null;
   dataset_type: string;
   entity_id: string;
-  entity_type: string | null;
+  entity_level: string | null;
   entity_name: string | null;
   created_by_company_id: string | null;
   created_by_department_id: string | null;
@@ -2629,7 +2629,7 @@ export type LastYearSalesRowData = {
   share: number | null;
   dataset_type: string;
   entity_id: string;
-  entity_type: string | null;
+  entity_level: string | null;
   entity_name: string | null;
   // 紐付け関連
   created_by_company_id: string | null;
@@ -2677,7 +2677,7 @@ export type LastLastYearSalesRowData = {
   share: number | null;
   dataset_type: string;
   entity_id: string;
-  entity_type: string | null;
+  entity_level: string | null;
   entity_name: string | null;
   // 紐付け関連
   created_by_company_id: string | null;
@@ -2724,7 +2724,7 @@ export type LastLastYearSalesRowData = {
 export type YoYGrowthRowData = {
   dataset_type: string;
   entity_id: string;
-  entity_type: string | null;
+  entity_level: string | null;
   entity_name: string | null;
   // 紐付け関連
   created_by_company_id: string | null;
@@ -2771,7 +2771,7 @@ export type YoYGrowthRowData = {
 export type Yo2YGrowthRowData = {
   dataset_type: string;
   entity_id: string;
-  entity_type: string | null;
+  entity_level: string | null;
   entity_name: string | null;
   // 紐付け関連
   created_by_company_id: string | null;
@@ -2859,10 +2859,10 @@ export type MemberObj = {
 // 目標設定用 年度・エンティティ関連オブジェクト
 export type UpsertTargetObj = {
   fiscalYear: number;
-  entityType: string; // 全社・事業部
+  entityLevel: string; // 全社・事業部
   entityId: string; // 設定するエンティティid
   entityName: string;
-  childEntityType: string;
+  childEntityLevel: string;
 };
 
 // 目標設定時の「年度・半期」の「過去3年分の売上」と「前年度の前年伸び率実績」 useQuery

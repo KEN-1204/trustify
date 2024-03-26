@@ -4,12 +4,12 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 
 type Props = {
-  entityType?: string;
+  entityLevel?: string;
   entityId?: string;
   isReady?: boolean;
 };
 
-export const useQueryMemberAccountsFilteredByEntity = ({ entityType, entityId, isReady = true }: Props) => {
+export const useQueryMemberAccountsFilteredByEntity = ({ entityLevel, entityId, isReady = true }: Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const supabase = useSupabaseClient();
 
@@ -30,7 +30,7 @@ export const useQueryMemberAccountsFilteredByEntity = ({ entityType, entityId, i
     let rows: MemberAccounts[] = [];
     let error;
 
-    if (!entityType) {
+    if (!entityLevel) {
       // メンバーのプロフィールとアカウントと事業部、係、事業所、社員番号も同時に取得
       // const { data: memberAccountsData, error } = await supabase
       const { data: memberAccountsData, error } = await supabase
@@ -49,7 +49,7 @@ export const useQueryMemberAccountsFilteredByEntity = ({ entityType, entityId, i
         .rpc("get_member_accounts_filtered_by_entity", {
           _subscription_id: userProfileState.subscription_id,
           _company_id: userProfileState.company_id,
-          _entity_type: entityType,
+          _entity_level: entityLevel,
           _entity_id: entityId,
         })
         .order("profile_name", { ascending: true });
@@ -68,7 +68,7 @@ export const useQueryMemberAccountsFilteredByEntity = ({ entityType, entityId, i
   };
 
   return useQuery({
-    queryKey: ["member_accounts", entityType ?? "", entityId ?? ""],
+    queryKey: ["member_accounts", entityLevel ?? "", entityId ?? ""],
     queryFn: getMemberAccountsFilteredByEntity,
     staleTime: Infinity,
     onError: (error: any) => {
@@ -76,6 +76,6 @@ export const useQueryMemberAccountsFilteredByEntity = ({ entityType, entityId, i
       console.error("useQueryMemberAccountsカスタムフック error:", error);
       return [];
     },
-    enabled: !!entityType ? isReady : true,
+    enabled: !!entityLevel ? isReady : true,
   });
 };

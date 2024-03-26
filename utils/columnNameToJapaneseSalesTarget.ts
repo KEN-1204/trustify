@@ -3,7 +3,7 @@ import { mappingMonthEnToJa } from "./mappings";
 // lastFiscalYear：下２桁
 export const columnNameToJapaneseSalesTarget = (
   columnName: string,
-  entityType: string = "company",
+  entityLevel: string = "company",
   // fiscal_start_month: number,
   fiscal_months_array: (
     | "January"
@@ -37,12 +37,12 @@ export const columnNameToJapaneseSalesTarget = (
       return "更新日時";
       break;
     case "entity_name":
-      if (entityType === "company") return "区分";
-      if (entityType === "department") return "事業部";
-      if (entityType === "section") return "課・セクション";
-      if (entityType === "unit") return "係・チーム";
-      if (entityType === "member") return "メンバー";
-      if (entityType === "office") return "事業所";
+      if (entityLevel === "company") return "区分";
+      if (entityLevel === "department") return "事業部";
+      if (entityLevel === "section") return "課・セクション";
+      if (entityLevel === "unit") return "係・チーム";
+      if (entityLevel === "member") return "メンバー";
+      if (entityLevel === "office") return "事業所";
       return "";
       break;
     case "dataset_type":

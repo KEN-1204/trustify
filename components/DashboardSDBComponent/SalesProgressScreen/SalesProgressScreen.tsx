@@ -474,7 +474,9 @@ const SalesProgressScreenMemo = () => {
                 </div>
               </div>
 
-              <div className={`${styles.entity_type} ${openSectionMenu?.title === "entity" ? `${styles.active}` : ``}`}>
+              <div
+                className={`${styles.entity_level} ${openSectionMenu?.title === "entity" ? `${styles.active}` : ``}`}
+              >
                 <div
                   className={`underline_area mb-[-1px] flex cursor-pointer flex-col hover:text-[var(--color-bg-brand-f)]`}
                   onClick={(e) => {

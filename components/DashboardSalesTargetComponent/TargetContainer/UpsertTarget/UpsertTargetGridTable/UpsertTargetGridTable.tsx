@@ -53,7 +53,7 @@ import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 
 type Props = {
   isEndEntity: boolean;
-  entityType: string;
+  entityLevel: string;
   entityNameTitle: string;
   entityId: string;
   stickyRow: string | null;
@@ -69,7 +69,7 @@ type Props = {
 
 const UpsertTargetGridTableMemo = ({
   isEndEntity,
-  entityType,
+  entityLevel,
   entityNameTitle,
   entityId,
   stickyRow,
@@ -107,7 +107,7 @@ Props) => {
     isError: isErrorQuery,
   } = useQuerySalesSummaryAndGrowth({
     companyId: userProfileState.company_id,
-    entityType: entityType,
+    entityLevel: entityLevel,
     entityId: entityId,
     periodType: isEndEntity ? `half_monthly` : `year_half`,
     fiscalYear: upsertTargetObj.fiscalYear,
@@ -416,12 +416,12 @@ Props) => {
     if (!setSubTargetList) return;
     // エンティティタイプからupdateするテーブルを確定
     let updatedTable = "";
-    if (entityType === "department") updatedTable = "departments";
-    if (entityType === "section") updatedTable = "sections";
-    if (entityType === "unit") updatedTable = "units";
-    if (entityType === "office") updatedTable = "offices";
-    if (entityType === "member") updatedTable = "profiles";
-    if (entityType === "") return alert("部門データが見つかりませんでした。");
+    if (entityLevel === "department") updatedTable = "departments";
+    if (entityLevel === "section") updatedTable = "sections";
+    if (entityLevel === "unit") updatedTable = "units";
+    if (entityLevel === "office") updatedTable = "offices";
+    if (entityLevel === "member") updatedTable = "profiles";
+    if (entityLevel === "") return alert("部門データが見つかりませんでした。");
 
     const updatedPayload = { target_type: null };
 
@@ -436,15 +436,15 @@ Props) => {
       // キャッシュのサブ目標リストから部門を削除
       // const periodType = isEndEntity ? `half_monthly` : `year_half`;
       // const fiscalYear = upsertTargetObj.fiscalYear;
-      // const queryKey = ["sales_summary_and_growth", entityType, entityId, periodType, fiscalYear, isFirstHalf];
+      // const queryKey = ["sales_summary_and_growth", entityLevel, entityId, periodType, fiscalYear, isFirstHalf];
 
       // キャッシュの部門からsales_targetをnullに更新する
       let queryKey = "departments";
-      if (entityType === "department") queryKey = "departments";
-      if (entityType === "section") queryKey = "sections";
-      if (entityType === "unit") queryKey = "units";
-      if (entityType === "office") queryKey = "offices";
-      if (entityType === "member") queryKey = "member_accounts";
+      if (entityLevel === "department") queryKey = "departments";
+      if (entityLevel === "section") queryKey = "sections";
+      if (entityLevel === "unit") queryKey = "units";
+      if (entityLevel === "office") queryKey = "offices";
+      if (entityLevel === "member") queryKey = "member_accounts";
       const prevCache = queryClient.getQueryData([queryKey]) as
         | Department[]
         | Section[]
@@ -496,8 +496,8 @@ Props) => {
     "UpsertTargetGridTableコンポーネントレンダリング",
     "entityNameTitle",
     entityNameTitle
-    // "entityType",
-    // entityType,
+    // "entityLevel",
+    // entityLevel,
     // "annualFiscalMonths",
     // annualFiscalMonths,
     // "isFirstHalf",

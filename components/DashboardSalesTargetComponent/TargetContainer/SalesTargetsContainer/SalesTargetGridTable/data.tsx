@@ -1,6 +1,6 @@
 import { LastYearSalesRowData, SalesTargetFYRowData, YoYGrowthRowData } from "@/types";
 
-export const testRowData = (entityType: string | null, quantity: number = 1): SalesTargetFYRowData[] => {
+export const testRowData = (entityLevel: string | null, quantity: number = 1): SalesTargetFYRowData[] => {
   const companyArray = ["全社"];
   const departmentArray = ["マイクロスコープ事業部", "メトロロジ事業部", "センサ事業部", "アプリセンサ事業部"];
   const sectionArray = ["IMエリア", "XMエリア", "WMエリア", "VLエリア"];
@@ -10,7 +10,7 @@ export const testRowData = (entityType: string | null, quantity: number = 1): Sa
     .fill(null)
     .map((_, index) => {
       let entityName = companyArray[index % companyArray.length];
-      switch (entityType) {
+      switch (entityLevel) {
         case "company":
           entityName = companyArray[index % companyArray.length];
           break;
@@ -35,7 +35,7 @@ export const testRowData = (entityType: string | null, quantity: number = 1): Sa
         dataset_type: `sales_targets`,
         entity_id: `${index}_sales_targets`,
         entity_name: entityName ?? null,
-        entity_type: entityType,
+        entity_level: entityLevel,
         // 紐付け関連
         created_by_company_id: null,
         created_by_department_id: null,
@@ -80,7 +80,7 @@ export const testRowData = (entityType: string | null, quantity: number = 1): Sa
       //   dataset_type: `sales_target`,
       //   entity_id: `${index}_sales_target`,
       //   entity_name: `${entityName}`,
-      //   entity_type: entityType,
+      //   entity_level: entityLevel,
       //   // 紐付け関連
       //   created_by_company_id: null,
       //   created_by_department_id: null,
@@ -112,8 +112,8 @@ export const testRowData = (entityType: string | null, quantity: number = 1): Sa
     });
 };
 export const testRowDataLastYear = (
-  // entityType: "company" | "department" | "section" | "unit" | "member" | "office",
-  entityType: string | null,
+  // entityLevel: "company" | "department" | "section" | "unit" | "member" | "office",
+  entityLevel: string | null,
   quantity: number = 1
 ): SalesTargetFYRowData[] => {
   const companyArray = ["全社"];
@@ -125,7 +125,7 @@ export const testRowDataLastYear = (
     .fill(null)
     .map((_, index) => {
       let entityName = companyArray[index % companyArray.length];
-      switch (entityType) {
+      switch (entityLevel) {
         case "company":
           entityName = companyArray[index % companyArray.length];
           break;
@@ -150,7 +150,7 @@ export const testRowDataLastYear = (
         dataset_type: `last_year_sales`,
         entity_id: `${index}_last_year_sales`,
         entity_name: entityName ?? null,
-        entity_type: entityType,
+        entity_level: entityLevel,
         // 紐付け関連
         created_by_company_id: null,
         created_by_department_id: null,
@@ -193,7 +193,7 @@ export const testRowDataLastYear = (
       };
     });
 };
-export const testRowDataPercent = (entityType: string | null, quantity: number = 1): SalesTargetFYRowData[] => {
+export const testRowDataPercent = (entityLevel: string | null, quantity: number = 1): SalesTargetFYRowData[] => {
   const companyArray = ["全社"];
   const departmentArray = ["マイクロスコープ事業部", "メトロロジ事業部", "センサ事業部", "アプリセンサ事業部"];
   const sectionArray = ["IMエリア", "XMエリア", "WMエリア", "VLエリア"];
@@ -203,7 +203,7 @@ export const testRowDataPercent = (entityType: string | null, quantity: number =
     .fill(null)
     .map((_, index) => {
       let entityName = companyArray[index % companyArray.length];
-      switch (entityType) {
+      switch (entityLevel) {
         case "company":
           entityName = companyArray[index % companyArray.length];
           break;
@@ -228,7 +228,7 @@ export const testRowDataPercent = (entityType: string | null, quantity: number =
         dataset_type: `yoy_growth`,
         entity_id: `${index}_yoy_growth`,
         entity_name: entityName ?? null,
-        entity_type: entityType,
+        entity_level: entityLevel,
         // 紐付け関連
         created_by_company_id: null,
         created_by_department_id: null,

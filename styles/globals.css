@@ -871,6 +871,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-edit-add: #abffa2; */
   --color-edit-add: #7fff70;
   --color-edit-add-hover: #7fff7090;
+  --color-edit-add50: #7fff7050;
   /* --color-edit-remove: #ff8585; */
   --color-edit-remove: #ff7d7d;
   --color-edit-remove-hover: #ff7d7d90;

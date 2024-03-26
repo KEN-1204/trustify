@@ -31,7 +31,7 @@ const SalesTargetsContainerMemo = () => {
 
   // ---------------------- 変数 ----------------------
   // 🔹ユーザーが作成したエンティティのみのセクションリストを再生成
-  const entityTypeList: {
+  const entityLevelList: {
     title: string;
     name: {
       [key: string]: string;
@@ -57,8 +57,8 @@ const SalesTargetsContainerMemo = () => {
 
   // 目標カードのタイトルを割り当てる関数
   const getTitle = () => {
-    if (!mainEntityTarget || mainEntityTarget?.entityType === "company") return language === "ja" ? `全社` : "Company";
-    switch (mainEntityTarget.entityType) {
+    if (!mainEntityTarget || mainEntityTarget?.entityLevel === "company") return language === "ja" ? `全社` : "Company";
+    switch (mainEntityTarget.entityLevel) {
       case "department":
         return mainEntityTarget.entityName || "事業部";
         break;
@@ -84,8 +84,8 @@ const SalesTargetsContainerMemo = () => {
     mainEntityTarget,
     "getTitle()",
     getTitle()
-    // "entityTypeList",
-    // entityTypeList,
+    // "entityLevelList",
+    // entityLevelList,
     // departmentDataArray,
     // sectionDataArray,
     // unitDataArray,
@@ -148,7 +148,7 @@ const SalesTargetsContainerMemo = () => {
                   <SalesTargetGridTable
                     entityNameTitle={getTitle()}
                     companyId={userProfileState.company_id}
-                    entityType={mainEntityTarget.entityType}
+                    entityLevel={mainEntityTarget.entityLevel}
                     entityId={userProfileState.company_id}
                     fiscalYear={selectedFiscalYearTarget}
                     isMain={true}
@@ -162,13 +162,13 @@ const SalesTargetsContainerMemo = () => {
         {/* ---------- */}
 
         {/* ---------- */}
-        {/* {!!entityTypeList?.length && entityTypeList.map((obj) => {
+        {/* {!!entityLevelList?.length && entityLevelList.map((obj) => {
           return (
             <div key={`${obj.title}_row_card`} className={`${styles.grid_row} ${styles.col1}`}>
               <div className={`${styles.grid_content_card}`}>
                 <ErrorBoundary FallbackComponent={ErrorFallback}>
                   <Suspense fallback={<FallbackScrollContainer title={obj.name[language]} />}>
-                    <SalesTargetGridTable title={obj.name[language]} entityType={obj.title} fiscalYear={2023} isMain={false} />
+                    <SalesTargetGridTable title={obj.name[language]} entityLevel={obj.title} fiscalYear={2023} isMain={false} />
                   </Suspense>
                 </ErrorBoundary>
               </div>

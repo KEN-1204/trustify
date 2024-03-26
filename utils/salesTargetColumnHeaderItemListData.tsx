@@ -14,7 +14,7 @@ const salesTargetColumnHeaderItemListArray: Obj[] = [
   //   isFrozen: false,
   //   isOverflow: false,
   // },
-  // 事業部名・課名・係名・メンバー名など entity_typeがcompanyの場合は全社
+  // 事業部名・課名・係名・メンバー名など entity_levelがcompanyの場合は全社
   {
     columnName: "entity_name",
     columnWidth: "100px",

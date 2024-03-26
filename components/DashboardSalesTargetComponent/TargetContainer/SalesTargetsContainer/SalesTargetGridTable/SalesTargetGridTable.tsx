@@ -38,17 +38,17 @@ import Decimal from "decimal.js";
 import { calculateGrowth } from "@/utils/Helpers/PercentHelpers/calculateGrowth";
 import { calculateYearOverYear } from "@/utils/Helpers/PercentHelpers/calculateYearOverYear";
 
-// entityType: company / department...
+// entityLevel: company / department...
 type Props = {
   entityNameTitle: string;
-  entityType: string;
+  entityLevel: string;
   fiscalYear: number;
   isMain: boolean;
   companyId: string;
   entityId: string;
 };
 
-const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, companyId, fiscalYear, isMain }: Props) => {
+const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, companyId, fiscalYear, isMain }: Props) => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   const language = useStore((state) => state.language);
@@ -77,7 +77,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
 
   // 事業部~事業所までは変更する際に、エンティティ名を選択した後にactiveDisplayTabsを更新するため一旦ローカルでエンティティタイプを保持するためのstate
   const [activeEntityLocal, setActiveEntityLocal] = useState<{
-    entityType: string;
+    entityLevel: string;
     entityName: string;
     entityId: string;
   } | null>(null);
@@ -127,7 +127,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
   }, [officeDataArray]);
 
   // 🔹ユーザーが作成したエンティティのみのセクションリストを再生成
-  const mainEntityTypeList: {
+  const mainEntityLevelList: {
     title: string;
     name: {
       [key: string]: string;
@@ -257,8 +257,8 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
     //   };
     //   return newData;
     // });
-    const quantity = (_entityType: string) => {
-      switch (_entityType) {
+    const quantity = (_entityLevel: string) => {
+      switch (_entityLevel) {
         case "company":
           return 1;
           break;
@@ -281,10 +281,10 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
       }
     };
     // const rows = testRowData("company", 1);
-    const salesTargets = testRowData("company", quantity(entityType));
-    const lastYearSales = testRowDataLastYear("company", quantity(entityType));
-    const yoyGrowths = testRowDataPercent("company", quantity(entityType));
-    const count = quantity(entityType);
+    const salesTargets = testRowData("company", quantity(entityLevel));
+    const lastYearSales = testRowDataLastYear("company", quantity(entityLevel));
+    const yoyGrowths = testRowDataPercent("company", quantity(entityLevel));
+    const count = quantity(entityLevel);
     const isLastPage = true;
 
     const rows = salesTargets.map((target, index) => ({
@@ -336,7 +336,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
     count: number | null;
   }>;
   // ユーザーのcompany_idが見つからない、もしくは、上テーブルで行を選択していない場合には、右下活動テーブルは行データ無しでnullを返す
-  if (!entityType || !fiscalYear || !entityId) {
+  if (!entityLevel || !fiscalYear || !entityId) {
     fetchServerPage = async (
       limit: number,
       offset: number = 0
@@ -351,8 +351,8 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
       const count = null;
 
       console.log(
-        "queryFn関数実行 fetchServerPage entityType",
-        entityType,
+        "queryFn関数実行 fetchServerPage entityLevel",
+        entityLevel,
         "entityId",
         entityId,
         "fiscalYear",
@@ -392,7 +392,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
         if (isMain) {
           // 🔸売上目標を取得するFUNCTIONの実行
           const payload = {
-            _entity_type: entityType, // エンティティタイプ
+            _entity_level: entityLevel, // エンティティタイプ
             _entity_id: entityId, // エンティティのid
             _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
             _fiscal_year: fiscalYear, // 選択した会計年度
@@ -416,8 +416,8 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
           console.log(
             "🔥 queryFn関数実行 fetchServerPage get_sales_targets_for_fiscal_year_all実行 payload",
             payload,
-            "entityType",
-            entityType,
+            "entityLevel",
+            entityLevel,
             "entityId",
             entityId,
             "fiscalYear",
@@ -440,7 +440,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
 
           // 🔸前年度売上を取得するFUNCTIONの実行
           const lastYearPayload = {
-            _entity_type: entityType, // エンティティタイプ
+            _entity_level: entityLevel, // エンティティタイプ
             _entity_id: entityId, // エンティティのid
             _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
             _fiscal_year: fiscalYear - 1, // 選択した会計年度の前年度
@@ -571,7 +571,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
         else {
           // 🔸売上目標を取得するFUNCTIONの実行
           const payload = {
-            _entity_type: entityType,
+            _entity_level: entityLevel,
             _entity_id: entityId,
             _fiscal_year: fiscalYear,
           };
@@ -618,7 +618,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
   // ================== 🌟活動履歴を取得する関数🌟 ここまで ==================
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, isLoading } =
     useInfiniteQuery({
-      queryKey: ["sales_targets", entityType ?? null, `${fiscalYear}`],
+      queryKey: ["sales_targets", entityLevel ?? null, `${fiscalYear}`],
       queryFn: async (ctx) => {
         console.log("🔥queryFn実行");
         const nextPage = await fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
@@ -633,7 +633,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
       },
       staleTime: Infinity,
       // enabled: isFetchingEnabled && fetchEnabledRef.current, // デバウンス後にフェッチを有効化(選択行が変更後3秒経過したらフェッチ許可)
-      enabled: !!entityId && !!entityType,
+      enabled: !!entityId && !!entityLevel,
     });
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
 
@@ -777,7 +777,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
 
     // ========================= 🔥テスト ローカルストレージ ルート =========================
     const localStorageColumnHeaderItemListJSON = localStorage.getItem(
-      `grid_columns_sales_target_${entityType}_${fiscalYear}`
+      `grid_columns_sales_target_${entityLevel}_${fiscalYear}`
     );
     // const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_contacts");
     if (localStorageColumnHeaderItemListJSON) {
@@ -885,7 +885,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
     newColsWidths.fill("48px", 0, 1); // 1列目を48pxに変更
     // newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更 id
     // companyの場合は100、それ以外は150
-    if (entityType === "company") {
+    if (entityLevel === "company") {
       newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更 id
     } else {
       newColsWidths.fill("150px", 1, 2); // 2列目を100pxに変更 id
@@ -996,7 +996,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
 
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const salesTargetColumnHeaderItemListJSON = JSON.stringify(firstColumnItemListArray);
-    localStorage.setItem(`grid_columns_sales_target_${entityType}_${fiscalYear}`, salesTargetColumnHeaderItemListJSON);
+    localStorage.setItem(`grid_columns_sales_target_${entityLevel}_${fiscalYear}`, salesTargetColumnHeaderItemListJSON);
     // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
   }, [gotData]); // gotDataのstateがtrueになったら再度実行
@@ -1122,7 +1122,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const salesTargetColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
       localStorage.setItem(
-        `grid_columns_sales_target_${entityType}_${fiscalYear}`,
+        `grid_columns_sales_target_${entityLevel}_${fiscalYear}`,
         salesTargetColumnHeaderItemListJSON
       );
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
@@ -2038,7 +2038,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
     console.log("Drop✅");
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const salesTargetColumnHeaderItemListJSON = JSON.stringify(salesTargetColumnHeaderItemList);
-    localStorage.setItem(`grid_columns_sales_target_${entityType}_${fiscalYear}`, salesTargetColumnHeaderItemListJSON);
+    localStorage.setItem(`grid_columns_sales_target_${entityLevel}_${fiscalYear}`, salesTargetColumnHeaderItemListJSON);
     // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
@@ -2128,7 +2128,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const salesTargetColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
       localStorage.setItem(
-        `grid_columns_sales_target_${entityType}_${fiscalYear}`,
+        `grid_columns_sales_target_${entityLevel}_${fiscalYear}`,
         salesTargetColumnHeaderItemListJSON
       );
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
@@ -2235,7 +2235,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const salesTargetColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
       localStorage.setItem(
-        `grid_columns_sales_target_${entityType}_${fiscalYear}`,
+        `grid_columns_sales_target_${entityLevel}_${fiscalYear}`,
         salesTargetColumnHeaderItemListJSON
       );
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
@@ -2481,7 +2481,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
       item.columnName as keyof Omit<
         SalesTargetFYRowData,
         | "entity_id"
-        | "entity_type"
+        | "entity_level"
         | "share"
         | "created_by_company_id"
         | "created_by_department_id"
@@ -2662,12 +2662,12 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                 }}
                 onMouseLeave={handleCloseTooltip}
                 onClick={(e) => {
-                  if (mainEntityTypeList.length < 2)
+                  if (mainEntityLevelList.length < 2)
                     return alert(
                       "区分が２つ以上の時のみ総合目標の表示切り替えが可能です。 事業部・課/セクション・係/チーム・事業所の区分は設定画面の「会社・チーム」から作成・編集が可能です。"
                     );
                   setActiveEntityLocal({
-                    entityType: mainEntityTarget.entityType,
+                    entityLevel: mainEntityTarget.entityLevel,
                     entityName: mainEntityTarget.entityName ?? "",
                     entityId: mainEntityTarget.entityId ?? "",
                   });
@@ -2854,7 +2854,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                     data-handler-id={`T${key.columnId}${key.columnName}`}
                     data-text={`${columnNameToJapaneseSalesTarget(
                       key.columnName,
-                      entityType,
+                      entityLevel,
                       fiscalStartMonthsArray,
                       language
                       // fiscalYearStartEndDate.startDate.getMonth() + 1 // 開始月
@@ -2892,7 +2892,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                           display: "top",
                           content: columnNameToJapaneseSalesTarget(
                             key.columnName,
-                            entityType,
+                            entityLevel,
                             fiscalStartMonthsArray,
                             language
                             // fiscalYearStartEndDate.startDate.getMonth() + 1 // 開始月
@@ -2947,7 +2947,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                             {language === "ja" &&
                               columnNameToJapaneseSalesTarget(
                                 key.columnName,
-                                entityType,
+                                entityLevel,
                                 fiscalStartMonthsArray,
                                 language
                                 // fiscalYear,
@@ -3371,8 +3371,8 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
               <div className={`${styles.scroll_container} flex max-h-[240px] w-full flex-col overflow-y-auto`}>
                 <ul className={`flex h-full w-full flex-col`}>
                   {/* ------------------------------------ */}
-                  {mainEntityTypeList.map((obj, index) => {
-                    const isActive = obj.title === activeEntityLocal?.entityType;
+                  {mainEntityLevelList.map((obj, index) => {
+                    const isActive = obj.title === activeEntityLocal?.entityLevel;
                     return (
                       <li
                         key={obj.title}
@@ -3382,7 +3382,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                           // 全社の場合は、そのまま区分を変更
                           if (obj.title === "company") {
                             // setActiveDisplayTabs({ ...activeDisplayTabs, entity: obj.title });
-                            setMainEntityTarget({ ...mainEntityTarget, entityType: obj.title });
+                            setMainEntityTarget({ ...mainEntityTarget, entityLevel: obj.title });
                             setActiveEntityLocal(null);
                             setOpenSectionMenu(null);
                           }
@@ -3398,7 +3398,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                               const newDepartment = departmentIdToObjMap?.get(departmentId);
                               setSelectedDepartment(newDepartment ?? null);
                               setActiveEntityLocal({
-                                entityType: obj.title,
+                                entityLevel: obj.title,
                                 entityName: newDepartment?.department_name ?? "",
                                 entityId: newDepartment?.id ?? "",
                               });
@@ -3437,7 +3437,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                               })[0];
                               setSelectedSection(firstSectionObj);
                               setActiveEntityLocal({
-                                entityType: obj.title,
+                                entityLevel: obj.title,
                                 entityName: firstSectionObj?.section_name ?? "",
                                 entityId: firstSectionObj?.id ?? "",
                               });
@@ -3503,7 +3503,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                               })[0];
                               setSelectedUnit(firstUnitObj);
                               setActiveEntityLocal({
-                                entityType: obj.title,
+                                entityLevel: obj.title,
                                 entityName: firstUnitObj?.unit_name ?? "",
                                 entityId: firstUnitObj?.id ?? "",
                               });
@@ -3521,7 +3521,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                               const newOffice = officeIdToObjMap?.get(officeId);
                               setSelectedOffice(newOffice ?? null);
                               setActiveEntityLocal({
-                                entityType: obj.title,
+                                entityLevel: obj.title,
                                 entityName: newOffice?.office_name ?? "",
                                 entityId: newOffice?.id ?? "",
                               });
@@ -3551,7 +3551,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                 </ul>
               </div>
               {/* ------------------ 🌟サイドエンティティ詳細メニュー🌟 適用・戻るエリア 全社以外で表示 */}
-              {activeEntityLocal && activeEntityLocal.entityType !== "company" && openSubMenu && (
+              {activeEntityLocal && activeEntityLocal.entityLevel !== "company" && openSubMenu && (
                 <div
                   className={`${styles.settings_menu} ${
                     styles.edit_mode
@@ -3574,13 +3574,13 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                   {/* ------------------------------------ */}
                   <li className={`${styles.section_title} flex min-h-max w-full font-bold`}>
                     <div className="flex max-w-max flex-col">
-                      <span>{mappingSectionName[activeEntityLocal.entityType][language]}</span>
+                      <span>{mappingSectionName[activeEntityLocal.entityLevel][language]}</span>
                       <div className={`${styles.underline} w-full`} />
                     </div>
                   </li>
                   {/* ------------------------------------ */}
                   {/* ------------------------ 事業部 ------------------------ */}
-                  {activeEntityLocal.entityType !== "office" && (
+                  {activeEntityLocal.entityLevel !== "office" && (
                     <li
                       className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
@@ -3605,7 +3605,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                                 : null;
                               setSelectedDepartment(newDepartment ?? null);
 
-                              if (activeEntityLocal.entityType === "department") {
+                              if (activeEntityLocal.entityLevel === "department") {
                                 setActiveEntityLocal({
                                   ...activeEntityLocal,
                                   entityId: departmentId,
@@ -3614,7 +3614,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                               }
 
                               // 課・セクションの場合は、課をリセット
-                              if (["section", "unit"].includes(activeEntityLocal.entityType)) {
+                              if (["section", "unit"].includes(activeEntityLocal.entityLevel)) {
                                 if (!sectionDataArray || sectionDataArray?.length === 0) {
                                   alert(
                                     "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
@@ -3635,7 +3635,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
 
                                 const firstSectionObj = sortedSectionList?.length >= 1 ? sortedSectionList[0] : null;
                                 setSelectedSection(firstSectionObj);
-                                if (activeEntityLocal.entityType === "section") {
+                                if (activeEntityLocal.entityLevel === "section") {
                                   setActiveEntityLocal({
                                     ...activeEntityLocal,
                                     entityId: firstSectionObj?.id ?? "",
@@ -3643,7 +3643,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                                   });
                                 }
 
-                                if (activeEntityLocal.entityType === "unit") {
+                                if (activeEntityLocal.entityLevel === "unit") {
                                   if (!unitDataArray || unitDataArray?.length === 0) {
                                     alert(
                                       "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
@@ -3668,7 +3668,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
 
                                   const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
                                   setSelectedUnit(firstUnitObj);
-                                  if (activeEntityLocal.entityType === "unit") {
+                                  if (activeEntityLocal.entityLevel === "unit") {
                                     setActiveEntityLocal({
                                       ...activeEntityLocal,
                                       entityId: firstUnitObj?.id ?? "",
@@ -3696,7 +3696,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                   )}
                   {/* ------------------------ 事業部 ------------------------ */}
                   {/* ------------------------ 課・セクション ------------------------ */}
-                  {["section", "unit"].includes(activeEntityLocal.entityType) && (
+                  {["section", "unit"].includes(activeEntityLocal.entityLevel) && (
                     <li
                       className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
@@ -3721,7 +3721,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                                 : null;
                               setSelectedSection(newSection ?? null);
 
-                              if (activeEntityLocal.entityType === "section") {
+                              if (activeEntityLocal.entityLevel === "section") {
                                 setActiveEntityLocal({
                                   ...activeEntityLocal,
                                   entityId: sectionId,
@@ -3729,7 +3729,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                                 });
                               }
 
-                              if (activeEntityLocal.entityType === "unit") {
+                              if (activeEntityLocal.entityLevel === "unit") {
                                 if (!unitDataArray || unitDataArray?.length === 0) {
                                   alert(
                                     "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
@@ -3750,7 +3750,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
 
                                 const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
                                 setSelectedUnit(firstUnitObj);
-                                if (activeEntityLocal.entityType === "unit") {
+                                if (activeEntityLocal.entityLevel === "unit") {
                                   setActiveEntityLocal({
                                     ...activeEntityLocal,
                                     entityId: firstUnitObj?.id ?? "",
@@ -3777,7 +3777,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                   )}
                   {/* ------------------------ 課・セクション ------------------------ */}
                   {/* ------------------------ 係・チーム ------------------------ */}
-                  {activeEntityLocal.entityType === "unit" && (
+                  {activeEntityLocal.entityLevel === "unit" && (
                     <li
                       className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
@@ -3822,7 +3822,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                   )}
                   {/* ------------------------ 係・チーム ------------------------ */}
                   {/* ------------------------ 事業所 ------------------------ */}
-                  {activeEntityLocal.entityType === "office" && (
+                  {activeEntityLocal.entityLevel === "office" && (
                     <li
                       className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
                     >
@@ -3877,7 +3877,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                         if (!activeEntityLocal.entityId) return;
                         if (openSectionMenu.title === "entity") {
                           // 選択、確定するエンティティの子の配列をフィルター
-                          if (activeEntityLocal.entityType === "department") {
+                          if (activeEntityLocal.entityLevel === "department") {
                             const departmentId = activeEntityLocal.entityId;
                             if (sectionDataArray && sectionDataArray.length > 0) {
                               const filteredSectionList = sectionDataArray.filter(
@@ -3887,7 +3887,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                               setFilteredSectionBySelectedDepartment(filteredSectionList);
                             }
                           }
-                          if (activeEntityLocal.entityType === "section") {
+                          if (activeEntityLocal.entityLevel === "section") {
                             const sectionId = activeEntityLocal.entityId;
                             if (unitDataArray && unitDataArray.length > 0) {
                               const filteredUnitList = unitDataArray.filter(
@@ -3898,21 +3898,21 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityType, entityId, compa
                             }
                           }
                           // 係・チームを選択した場合はメンバーリストをuseQueryで取得する
-                          if (activeEntityLocal.entityType === "unit") {
+                          if (activeEntityLocal.entityLevel === "unit") {
                           }
                           // 事業所を選択した場合はメンバーリストをuseQueryで取得する
-                          if (activeEntityLocal.entityType === "office") {
+                          if (activeEntityLocal.entityLevel === "office") {
                           }
                         }
 
                         // setActiveDisplayTabs({
                         //   ...activeDisplayTabs,
-                        //   entity: activeEntityLocal.entityType,
+                        //   entity: activeEntityLocal.entityLevel,
                         //   entityName: activeEntityLocal.entityName || null,
                         //   entityId: activeEntityLocal.entityId || null,
                         // });
                         setMainEntityTarget({
-                          entityType: activeEntityLocal.entityType,
+                          entityLevel: activeEntityLocal.entityLevel,
                           entityName: activeEntityLocal.entityName,
                           entityId: activeEntityLocal.entityId,
                         });

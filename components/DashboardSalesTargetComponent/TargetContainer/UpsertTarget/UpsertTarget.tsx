@@ -26,6 +26,8 @@ import { HiOutlineSwitchHorizontal } from "react-icons/hi";
 import { GrPowerReset } from "react-icons/gr";
 import { BsChevronLeft } from "react-icons/bs";
 import { IoAddOutline } from "react-icons/io5";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 export const columnHeaderListTarget = [
   "period_type",
@@ -122,11 +124,11 @@ export const formatRowNameShort = (row: string, year: number): { ja: string; en:
 };
 
 export const getSubTargetTitle = (
-  // entityType: 'department' | 'section' | 'unit' | 'office' | 'member',
-  entityType: string,
+  // entityLevel: 'department' | 'section' | 'unit' | 'office' | 'member',
+  entityLevel: string,
   obj: Department | Section | Unit | Office | MemberAccounts
 ) => {
-  switch (entityType) {
+  switch (entityLevel) {
     case "department":
       return (obj as Department).department_name ?? "-";
     case "section":
@@ -170,6 +172,7 @@ type Props = {
 
 const UpsertTargetMemo = ({ endEntity }: Props) => {
   const queryClient = useQueryClient();
+  const supabase = useSupabaseClient();
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const setIsUpsertTargetMode = useDashboardStore((state) => state.setIsUpsertTargetMode);
@@ -183,12 +186,18 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
   const [isOpenEditSubListModal, setIsOpenEditSubListModal] = useState(false);
   // サブ目標リスト編集 表示リスト
   const [editSubList, setEditSubList] = useState<MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]>([]);
-  const [selectedActiveItems, setSelectedActiveItems] = useState<
-    MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]
-  >([]);
-  const [selectedInactiveItems, setSelectedInactiveItems] = useState<
-    MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]
-  >([]);
+  // const [editSelectMode, setEditSelectMode] = useState<boolean | null>(null)
+  // const [selectedActiveItemIds, setSelectedActiveItemIds] = useState<string[]>([]);
+  // const [selectedInactiveItemIds, setSelectedInactiveItemIds] = useState<string[]>([]);
+  const [selectedActiveItemIdsMap, setSelectedActiveItemIdsMap] = useState<
+    Map<string, Department | Section | Unit | Office | MemberAccounts>
+  >(new Map());
+  const [selectedInactiveItemIdsMap, setSelectedInactiveItemIdsMap] = useState<
+    Map<string, Department | Section | Unit | Office | MemberAccounts>
+  >(new Map());
+
+  // ローディング
+  const [isLoading, setIsLoading] = useState(false);
 
   // 目標設定モードを終了
   const handleCancelUpsert = () => {
@@ -206,7 +215,7 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
   // stickyを付与するrow
   const [stickyRow, setStickyRow] = useState<string | null>(null);
 
-  const isEndEntity = endEntity === upsertTargetObj.entityType;
+  const isEndEntity = endEntity === upsertTargetObj.entityLevel;
 
   // isEndEntityの場合の上期か下期か
   const [isFirstHalf, setIsFirstHalf] = useState(isEndEntity ? true : undefined);
@@ -272,16 +281,16 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
     error: memberDataError,
     isLoading: isLoadingMember,
   } = useQueryMemberAccountsFilteredByEntity({
-    entityType: upsertTargetObj.entityType,
+    entityLevel: upsertTargetObj.entityLevel,
     entityId: upsertTargetObj.entityId,
-    isReady: upsertTargetObj.entityType === "member", // memberの時のみフェッチを許可
+    isReady: upsertTargetObj.entityLevel === "member", // memberの時のみフェッチを許可
   });
   // ========================= 🌟メンバーリスト取得useQuery キャッシュ🌟 =========================
 
   // -------------------------- 部門別目標の配列 --------------------------
   // 初期値は子エンティティの全てのリストを追加し、後から不要な事業部などは外してもらう(売上目標に不要な開発や業務系の事業部など)
   const [subTargetList, setSubTargetList] = useState(() => {
-    switch (upsertTargetObj.childEntityType) {
+    switch (upsertTargetObj.childEntityLevel) {
       case "department":
         const filteredDepartment = departmentDataArray
           ? departmentDataArray.filter((obj) => obj.target_type === "sales_target")
@@ -314,7 +323,7 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
 
   // 部門別の名称
   const getDivName = () => {
-    switch (upsertTargetObj.childEntityType) {
+    switch (upsertTargetObj.childEntityLevel) {
       case "department":
         return language === "ja" ? `事業部別` : `Departments`;
       case "section":
@@ -360,7 +369,7 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
   // サブ目標リスト編集モーダルを開く
   const handleOpenEditSubListModal = () => {
     const getSubListArray = () => {
-      switch (upsertTargetObj.childEntityType) {
+      switch (upsertTargetObj.childEntityLevel) {
         case "department":
           return departmentDataArray ? [...departmentDataArray] : [];
         case "section":
@@ -383,9 +392,146 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
   // サブ目標リスト編集モーダルを閉じる
   const handleCloseEditSubListModal = () => {
     setEditSubList([]);
-    if (!!selectedActiveItems.length) setSelectedActiveItems([]);
-    if (!!selectedInactiveItems.length) setSelectedInactiveItems([]);
+    if (selectedActiveItemIdsMap.size > 0) setSelectedActiveItemIdsMap(new Map());
+    if (selectedInactiveItemIdsMap.size > 0) setSelectedInactiveItemIdsMap(new Map());
     setIsOpenEditSubListModal(false);
+  };
+
+  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
+  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    marginTop = 0,
+    itemsPosition = "center",
+  }: TooltipParams) => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+
+    setHoveredItemPos({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: content,
+      content2: content2,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    if (hoveredItemPos) setHoveredItemPos(null);
+  };
+  // ==================================================================================
+
+  const handleUpdateSubList = async (updateType: "add" | "remove") => {
+    // エンティティタイプからupdateするテーブルを確定
+    const entityLevel = upsertTargetObj.childEntityLevel;
+    let updatedTable = "";
+    if (entityLevel === "department") updatedTable = "departments";
+    if (entityLevel === "section") updatedTable = "sections";
+    if (entityLevel === "unit") updatedTable = "units";
+    if (entityLevel === "office") updatedTable = "offices";
+    if (entityLevel === "member") updatedTable = "profiles";
+    if (entityLevel === "") return alert("部門データが見つかりませんでした。");
+
+    const newTargetType = updateType === "add" ? "sales_target" : null;
+    const updatedPayload = { target_type: newTargetType };
+    // idのみの配列を生成
+    const updatedEntityIds =
+      updateType === "add" ? [...selectedInactiveItemIdsMap.keys()] : [...selectedActiveItemIdsMap.keys()];
+    // 今回更新するMapオブジェクトを代入
+    const updatedEntityIdsMap = updateType === "add" ? selectedInactiveItemIdsMap : selectedActiveItemIdsMap;
+
+    setIsLoading(true); // ローディング開始
+
+    try {
+      console.log(
+        "削除実行🔥 updatedTable",
+        updatedTable,
+        updatedPayload,
+        "updatedEntityIds",
+        updatedEntityIds,
+        "selectedInactiveItemIdsMap",
+        selectedInactiveItemIdsMap,
+        "selectedActiveItemIdsMap",
+        selectedActiveItemIdsMap
+      );
+      const { error } = await supabase.from(updatedTable).update(updatedPayload).in("id", updatedEntityIds);
+
+      if (error) throw error;
+
+      // キャッシュの部門からsales_targetをnullに更新する
+      let queryKey = "departments";
+      if (entityLevel === "department") queryKey = "departments";
+      if (entityLevel === "section") queryKey = "sections";
+      if (entityLevel === "unit") queryKey = "units";
+      if (entityLevel === "office") queryKey = "offices";
+      if (entityLevel === "member") queryKey = "member_accounts";
+      const prevCache = queryClient.getQueryData([queryKey]) as
+        | Department[]
+        | Section[]
+        | Unit[]
+        | Office[]
+        | MemberAccounts[];
+      let newCache = [...prevCache]; // キャッシュのシャローコピーを作成
+      // 更新対象のオブジェクトのtarget_typeをsales_target or nullに変更
+      newCache = newCache.map((obj) =>
+        updatedEntityIdsMap.has(obj.id) ? { ...obj, target_type: newTargetType } : obj
+      );
+      console.log("キャッシュを更新 newCache", newCache);
+      queryClient.setQueryData([queryKey], newCache); // キャッシュを更新
+
+      if (updateType === "remove") {
+        // 固定していた場合は固定を解除
+        if (!!stickyRow && updatedEntityIdsMap.has(stickyRow)) {
+          setStickyRow(null);
+        }
+      }
+
+      setIsLoading(false); // ローディング終了
+
+      // サブ目標リストを更新
+      const newList = newCache.filter((obj) => obj.target_type === "sales_target") as
+        | Department[]
+        | Section[]
+        | Unit[]
+        | Office[]
+        | MemberAccounts[];
+      setSubTargetList(newList);
+
+      // モーダル内のリストを更新
+      setEditSubList(newCache as MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]);
+
+      const successMsg = updateType === "add" ? `目標リストに追加しました🌟` : `目標リストから削除しました🌟`;
+      toast.success(successMsg);
+
+      // リセット
+      if (updateType === "add") {
+        setSelectedInactiveItemIdsMap(new Map());
+      } else {
+        setSelectedActiveItemIdsMap(new Map());
+      }
+    } catch (error: any) {
+      console.error("エラー：", error);
+      const errorMsg =
+        updateType === "add" ? `目標リストへの追加に失敗しました...🙇‍♀️` : "目標リストからの削除に失敗しました...🙇‍♀️";
+      toast.error(errorMsg);
+    }
   };
 
   console.log(
@@ -404,6 +550,14 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
 
   return (
     <>
+      {/* ローディング */}
+      {isLoading && (
+        <div
+          className={`flex-center fixed left-0 top-0 z-[5000] h-full w-full bg-[var(--overlay-loading-modal-inside)]`}
+        >
+          <SpinnerBrand withBorder withShadow />
+        </div>
+      )}
       {/* ===================== スクロールコンテナ ここから ===================== */}
       <div className={`${styles.main_contents_container}`}>
         {/* ----------------- １画面目 上画面 ----------------- */}
@@ -455,7 +609,7 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
                 >
                   <UpsertTargetGridTable
                     isEndEntity={isEndEntity}
-                    entityType={upsertTargetObj.entityType}
+                    entityLevel={upsertTargetObj.entityLevel}
                     entityId={upsertTargetObj.entityId}
                     entityNameTitle={upsertTargetObj.entityName}
                     stickyRow={stickyRow}
@@ -540,8 +694,8 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
             {subTargetList &&
               subTargetList.length > 0 &&
               subTargetList.map((obj, tableIndex) => {
-                const childEntityType = upsertTargetObj.childEntityType;
-                const targetTitle = getSubTargetTitle(childEntityType, obj);
+                const childEntityLevel = upsertTargetObj.childEntityLevel;
+                const targetTitle = getSubTargetTitle(childEntityLevel, obj);
                 // currentActiveIndexより大きいindexのテーブルはローディングを表示しておく
                 if (tableIndex > currentActiveIndex) {
                   // console.log(
@@ -553,7 +707,7 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
                   //   targetTitle
                   // );
                   return (
-                    <Fragment key={`${obj.id}_${childEntityType}_${targetTitle}_fallback`}>
+                    <Fragment key={`${obj.id}_${childEntityLevel}_${targetTitle}_fallback`}>
                       <FallbackTargetTable
                         title={upsertTargetObj.entityName}
                         isSettingYearHalf={!isEndEntity}
@@ -573,13 +727,13 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
                 // );
 
                 return (
-                  <Fragment key={`${obj.id}_${childEntityType}_${targetTitle}`}>
+                  <Fragment key={`${obj.id}_${childEntityLevel}_${targetTitle}`}>
                     <ErrorBoundary FallbackComponent={ErrorFallback}>
                       <Suspense fallback={<FallbackTargetTable title={targetTitle} />}>
                         <div className={`${styles.row_container} ${stickyRow === obj.id ? styles.sticky_row : ``}`}>
                           <UpsertTargetGridTable
                             isEndEntity={isEndEntity}
-                            entityType={childEntityType}
+                            entityLevel={childEntityLevel}
                             entityId={obj.id}
                             entityNameTitle={targetTitle}
                             stickyRow={stickyRow}
@@ -627,10 +781,48 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
               <div className="select-none font-bold">目標リスト編集</div>
               {/* <div className="-translate-x-[25px] font-bold">カラム並び替え・追加/削除</div> */}
               <div
-                className={`min-w-[125px] cursor-pointer select-none text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
-                // onClick={handleSaveAndClose}
+                className={`min-w-[125px] cursor-pointer select-none text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${
+                  styles.save_text
+                } ${
+                  selectedActiveItemIdsMap.size === 0 && selectedInactiveItemIdsMap.size === 0
+                    ? `!text-[color-text-sub]`
+                    : ``
+                } ${selectedInactiveItemIdsMap.size > 0 ? `!text-[var(--bright-green)]` : ``} ${
+                  selectedActiveItemIdsMap.size > 0 ? `!text-[var(--main-color-tk)]` : ``
+                }`}
+                onClick={async () => {
+                  if (selectedActiveItemIdsMap.size === 0 && selectedInactiveItemIdsMap.size === 0) return;
+                  // 売上目標に追加
+                  if (selectedInactiveItemIdsMap.size > 0 && selectedActiveItemIdsMap.size === 0) {
+                    handleUpdateSubList("add");
+                  }
+                  // 売上目標から削除
+                  if (selectedActiveItemIdsMap.size > 0 && selectedInactiveItemIdsMap.size === 0) {
+                    handleUpdateSubList("remove");
+                  }
+                }}
               >
-                保存
+                <span
+                  onMouseEnter={(e) => {
+                    if (selectedActiveItemIdsMap.size === 0 && selectedInactiveItemIdsMap.size === 0) return;
+                    const text =
+                      selectedInactiveItemIdsMap.size > 0
+                        ? `選択したアイテムをリストに追加`
+                        : selectedActiveItemIdsMap.size > 0
+                        ? `選択したアイテムをリストから削除`
+                        : ``;
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: text,
+                      marginTop: 12,
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  {selectedInactiveItemIdsMap.size > 0 && selectedActiveItemIdsMap.size === 0 && `追加`}
+                  {selectedActiveItemIdsMap.size > 0 && selectedInactiveItemIdsMap.size === 0 && `削除`}
+                </span>
               </div>
             </div>
             {/* メインコンテンツ コンテナ */}
@@ -638,36 +830,96 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
               {/* 右コンテンツボックス */}
               <div className={`flex h-full  basis-5/12 flex-col items-center ${styles.content_box}`}>
                 {/* タイトルエリア */}
-                <div className={`${styles.title} w-full space-x-4 text-[var(--color-edit-arrow-disable-color)]`}>
-                  {/* <span className="text-[#0D99FF]">表示</span> */}
+                <div className={`${styles.title} w-full space-x-[12px] text-[var(--color-edit-arrow-disable-color)]`}>
                   <div
-                    // ref={downArrowRef}
-                    className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full ${styles.icon_button}`}
-                    // onClick={handleMoveLast}
-                    data-text="選択したカラムを一番下に移動する"
-                    // onMouseEnter={(e) => handleOpenTooltip(e, "top")}
-                    // onMouseLeave={handleCloseTooltip}
+                    className={`flex-center h-[30px] cursor-not-allowed rounded-[9px] px-[12px] ${styles.icon_button} ${
+                      selectedActiveItemIdsMap.size > 0 ? `${styles.inactive}` : ``
+                    } ${selectedInactiveItemIdsMap.size > 0 ? `${styles.add}` : ``}`}
+                    onMouseEnter={(e) => {
+                      const text =
+                        selectedInactiveItemIdsMap.size > 0
+                          ? `選択したアイテムをリストに追加`
+                          : `目標リストに追加するアイテムを選択してください`;
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: text,
+                        marginTop: 6,
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                    onClick={async () => {
+                      if (selectedActiveItemIdsMap.size > 0) return;
+                      // 売上目標に追加
+                      if (selectedInactiveItemIdsMap.size > 0) {
+                        handleUpdateSubList("add");
+                      }
+                    }}
                   >
-                    <IoAddOutline className="pointer-events-none text-[16px]" />
-                    {selectedActiveItems.length > 0 && <span>削除</span>}
-                    {selectedInactiveItems.length > 0 && <span>追加</span>}
+                    <span className="text-[12px]">追加</span>
                   </div>
                   <div
+                    className={`flex-center h-[30px] cursor-not-allowed rounded-[9px] px-[12px] ${styles.icon_button} ${
+                      selectedActiveItemIdsMap.size > 0 ? `${styles.remove}` : ``
+                    } ${selectedInactiveItemIdsMap.size > 0 ? `${styles.inactive}` : ``}`}
+                    onMouseEnter={(e) => {
+                      const text =
+                        selectedActiveItemIdsMap.size > 0
+                          ? `選択したアイテムをリストから削除`
+                          : `目標リストから削除するアイテムを選択してください`;
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: text,
+                        marginTop: 6,
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                    onClick={() => {
+                      if (selectedInactiveItemIdsMap.size > 0) return;
+                      if (selectedActiveItemIdsMap.size > 0) {
+                        handleUpdateSubList("remove");
+                      }
+                    }}
+                  >
+                    <span className="text-[12px]">削除</span>
+                  </div>
+
+                  <div
                     // ref={resetRightRef}
-                    className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full  ${styles.icon_button}`}
-                    // onClick={handleMoveFirst}
-                    data-text="選択したカラムをリセットする"
-                    // onMouseEnter={(e) => handleOpenTooltip(e, "top")}
-                    // onMouseLeave={handleCloseTooltip}
-                    // onClick={handleResetRight}
+                    className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full  ${styles.icon_button} ${
+                      !!selectedActiveItemIdsMap.size || !!selectedInactiveItemIdsMap.size
+                        ? `${styles.arrow_right_reset_active}`
+                        : ``
+                    }`}
+                    onMouseEnter={(e) => {
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: `リセット`,
+                        marginTop: 6,
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                    onClick={() => {
+                      if (selectedActiveItemIdsMap.size > 0) setSelectedActiveItemIdsMap(new Map());
+                      if (selectedInactiveItemIdsMap.size > 0) setSelectedInactiveItemIdsMap(new Map());
+                    }}
                   >
                     <GrPowerReset className="pointer-events-none text-[16px]" />
                   </div>
-                  {(!!selectedActiveItems.length || !!selectedInactiveItems.length) && (
+                  {(!!selectedActiveItemIdsMap.size || !!selectedInactiveItemIdsMap.size) && (
                     <div className="ml-auto flex h-full w-fit flex-1 items-center justify-end">
-                      <span className={`text-[14px] text-[var(--color-text-brand-f)]`}>
-                        {selectedActiveItems.length}件選択中
-                      </span>
+                      {selectedActiveItemIdsMap.size > 0 && (
+                        <span className={`text-[14px] text-[var(--color-text-brand-f)]`}>
+                          {selectedActiveItemIdsMap.size}件選択中
+                        </span>
+                      )}
+                      {selectedInactiveItemIdsMap.size > 0 && (
+                        <span className={`text-[14px] text-[var(--color-text-brand-f)]`}>
+                          {selectedInactiveItemIdsMap.size}件選択中
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>
@@ -678,11 +930,45 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
                       key={`right_${item.id}_${item.target_type}`}
                       className={`${styles.item} ${styles.item_right} ${
                         item.target_type !== "sales_target" ? `${styles.inactive}` : ``
+                      } ${selectedActiveItemIdsMap.has(item.id) ? `${styles.remove}` : ``} ${
+                        selectedInactiveItemIdsMap.has(item.id) ? `${styles.add}` : ``
                       }`}
-                      // onClick={(e) => handleClickActiveRight(e, item.columnId)}
+                      onClick={() => {
+                        // 表示中のitemをクリック
+                        if (item.target_type === "sales_target") {
+                          if (selectedInactiveItemIdsMap.size > 0) setSelectedInactiveItemIdsMap(new Map()); // 非表示選択リストはリセット
+
+                          const newMap = new Map(selectedActiveItemIdsMap); // 現在のMapのシャローコピーを作成
+
+                          if (newMap.has(item.id)) {
+                            // 既に入っている場合は取り除く
+                            newMap.delete(item.id);
+                          } else {
+                            // 含まれていない場合は追加する
+                            newMap.set(item.id, item);
+                          }
+
+                          setSelectedActiveItemIdsMap(newMap);
+                        }
+                        // 非表示のitem
+                        else {
+                          if (selectedActiveItemIdsMap.size > 0) setSelectedActiveItemIdsMap(new Map()); // 表示中選択リストはリセット
+
+                          const newMap = new Map(selectedInactiveItemIdsMap);
+
+                          if (newMap.has(item.id)) {
+                            // 既に入っている場合は取り除く
+                            newMap.delete(item.id);
+                          } else {
+                            // 含まれていない場合は追加する
+                            newMap.set(item.id, item);
+                          }
+                          setSelectedInactiveItemIdsMap(newMap);
+                        }
+                      }}
                     >
                       <div className={styles.details}>
-                        <span className="truncate">{getSubTargetTitle(upsertTargetObj.childEntityType, item)}</span>
+                        <span className="truncate">{getSubTargetTitle(upsertTargetObj.childEntityLevel, item)}</span>
                         {/* <MdOutlineDragIndicator className="fill-[var(--color-text)]" /> */}
                       </div>
                       {item.target_type === "sales_target" && (
