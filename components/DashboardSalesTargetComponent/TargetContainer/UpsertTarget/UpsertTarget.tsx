@@ -22,6 +22,10 @@ import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calcu
 import { useQueryMemberAccountsFilteredByEntity } from "@/hooks/useQueryMemberAccountsFilteredByEntity";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { FallbackTargetTable } from "./UpsertTargetGridTable/FallbackTargetTable";
+import { HiOutlineSwitchHorizontal } from "react-icons/hi";
+import { GrPowerReset } from "react-icons/gr";
+import { BsChevronLeft } from "react-icons/bs";
+import { IoAddOutline } from "react-icons/io5";
 
 export const columnHeaderListTarget = [
   "period_type",
@@ -174,6 +178,17 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
   const setUpsertTargetObj = useDashboardStore((state) => state.setUpsertTargetObj);
   // ユーザーの会計年度の期首と期末のDateオブジェクト
   const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
+
+  // サブ目標リスト編集モード
+  const [isOpenEditSubListModal, setIsOpenEditSubListModal] = useState(false);
+  // サブ目標リスト編集 表示リスト
+  const [editSubList, setEditSubList] = useState<MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]>([]);
+  const [selectedActiveItems, setSelectedActiveItems] = useState<
+    MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]
+  >([]);
+  const [selectedInactiveItems, setSelectedInactiveItems] = useState<
+    MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]
+  >([]);
 
   // 目標設定モードを終了
   const handleCancelUpsert = () => {
@@ -342,6 +357,37 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
     setCurrentActiveIndex((prevIndex) => prevIndex + 1); // activeIndexを+1して次のコンポーネントのフェッチを許可
   };
 
+  // サブ目標リスト編集モーダルを開く
+  const handleOpenEditSubListModal = () => {
+    const getSubListArray = () => {
+      switch (upsertTargetObj.childEntityType) {
+        case "department":
+          return departmentDataArray ? [...departmentDataArray] : [];
+        case "section":
+          return sectionDataArray ? [...sectionDataArray] : [];
+        case "unit":
+          return unitDataArray ? [...unitDataArray] : [];
+        case "office":
+          return officeDataArray ? [...officeDataArray] : [];
+        case "member":
+          return memberDataArray ? [...memberDataArray] : [];
+        default:
+          return [];
+          break;
+      }
+    };
+    setEditSubList(getSubListArray() as MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]);
+    setIsOpenEditSubListModal(true);
+  };
+
+  // サブ目標リスト編集モーダルを閉じる
+  const handleCloseEditSubListModal = () => {
+    setEditSubList([]);
+    if (!!selectedActiveItems.length) setSelectedActiveItems([]);
+    if (!!selectedInactiveItems.length) setSelectedInactiveItems([]);
+    setIsOpenEditSubListModal(false);
+  };
+
   console.log(
     "UpsertTargetコンポーネントレンダリング isEndEntity",
     isEndEntity,
@@ -351,7 +397,9 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
     "サブ目標リスト",
     subTargetList,
     "memberDataArray",
-    memberDataArray
+    memberDataArray,
+    "editSubList",
+    editSubList
   );
 
   return (
@@ -434,10 +482,11 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
                 <span>{getDivName()}</span>
               </h1>
 
-              <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>
-                {/* <div className={`${styles.btn} ${styles.basic}`}>
-                  <span>戻る</span>
-                </div> */}
+              <div className={`${styles.btn_area} flex h-full items-center space-x-[12px]`}>
+                <div className={`${styles.btn} ${styles.basic} space-x-[6px]`} onClick={handleOpenEditSubListModal}>
+                  <HiOutlineSwitchHorizontal className={`text-[14px] `} />
+                  <span>部門リスト編集</span>
+                </div>
                 {/* <div
                   className={`${styles.btn} ${styles.brand} space-x-[3px]`}
                   onClick={(e) => {
@@ -495,18 +544,16 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
                 const targetTitle = getSubTargetTitle(childEntityType, obj);
                 // currentActiveIndexより大きいindexのテーブルはローディングを表示しておく
                 if (tableIndex > currentActiveIndex) {
-                  console.log(
-                    "部門別目標 ローディング中🙇 tableIndex",
-                    tableIndex,
-                    "currentActiveIndex",
-                    currentActiveIndex,
-                    "targetTitle",
-                    targetTitle
-                  );
-                  // return <FallbackScrollContainer title={targetTitle} />;
+                  // console.log(
+                  //   "部門別目標 ローディング中🙇 tableIndex",
+                  //   tableIndex,
+                  //   "currentActiveIndex",
+                  //   currentActiveIndex,
+                  //   "targetTitle",
+                  //   targetTitle
+                  // );
                   return (
-                    <Fragment key={`${obj.id}_${childEntityType}_${targetTitle}`}>
-                      {/* <FallbackTargetTable title={targetTitle} /> */}
+                    <Fragment key={`${obj.id}_${childEntityType}_${targetTitle}_fallback`}>
                       <FallbackTargetTable
                         title={upsertTargetObj.entityName}
                         isSettingYearHalf={!isEndEntity}
@@ -516,16 +563,14 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
                     </Fragment>
                   );
                 }
-                console.log(
-                  "部門別目標 アクティブマウント🔥 tableIndex",
-                  tableIndex,
-                  "currentActiveIndex",
-                  currentActiveIndex,
-                  "targetTitle",
-                  targetTitle,
-                  "childEntityType",
-                  childEntityType
-                );
+                // console.log(
+                //   "部門別目標 アクティブマウント🔥 tableIndex",
+                //   tableIndex,
+                //   "currentActiveIndex",
+                //   currentActiveIndex,
+                //   "targetTitle",
+                //   targetTitle
+                // );
 
                 return (
                   <Fragment key={`${obj.id}_${childEntityType}_${targetTitle}`}>
@@ -544,6 +589,8 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
                             isMainTarget={false}
                             fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
                             onFetchComplete={() => onFetchComplete(tableIndex)}
+                            subTargetList={subTargetList}
+                            setSubTargetList={setSubTargetList}
                           />
                         </div>
                       </Suspense>
@@ -559,6 +606,98 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
         {/* ----------------- ２画面目 下画面 ここまで ----------------- */}
       </div>
       {/* ===================== スクロールコンテナ ここまで ===================== */}
+
+      {isOpenEditSubListModal && (
+        <>
+          <div
+            className={`fade03_forward fixed left-0 top-0 z-[100] h-[100vh] w-[100vw] bg-[#00000030] backdrop-blur-[6px]`}
+            onClick={handleCloseEditSubListModal}
+          ></div>
+          <div className={`${styles.switch_container} fade05_forward`}>
+            {/* 保存キャンセルエリア */}
+            <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
+              <div
+                className="relative flex min-w-[125px] cursor-pointer select-none items-center pl-[10px] text-start font-semibold hover:text-[#aaa]"
+                onClick={handleCloseEditSubListModal}
+              >
+                {/* <span>キャンセル</span> */}
+                <BsChevronLeft className="z-1 absolute  left-[-25px] top-[50%] translate-y-[-50%] text-[24px]" />
+                <span>戻る</span>
+              </div>
+              <div className="select-none font-bold">目標リスト編集</div>
+              {/* <div className="-translate-x-[25px] font-bold">カラム並び替え・追加/削除</div> */}
+              <div
+                className={`min-w-[125px] cursor-pointer select-none text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${styles.save_text}`}
+                // onClick={handleSaveAndClose}
+              >
+                保存
+              </div>
+            </div>
+            {/* メインコンテンツ コンテナ */}
+            <div className={`${styles.edit_contents_container}`}>
+              {/* 右コンテンツボックス */}
+              <div className={`flex h-full  basis-5/12 flex-col items-center ${styles.content_box}`}>
+                {/* タイトルエリア */}
+                <div className={`${styles.title} w-full space-x-4 text-[var(--color-edit-arrow-disable-color)]`}>
+                  {/* <span className="text-[#0D99FF]">表示</span> */}
+                  <div
+                    // ref={downArrowRef}
+                    className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full ${styles.icon_button}`}
+                    // onClick={handleMoveLast}
+                    data-text="選択したカラムを一番下に移動する"
+                    // onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+                    // onMouseLeave={handleCloseTooltip}
+                  >
+                    <IoAddOutline className="pointer-events-none text-[16px]" />
+                    {selectedActiveItems.length > 0 && <span>削除</span>}
+                    {selectedInactiveItems.length > 0 && <span>追加</span>}
+                  </div>
+                  <div
+                    // ref={resetRightRef}
+                    className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full  ${styles.icon_button}`}
+                    // onClick={handleMoveFirst}
+                    data-text="選択したカラムをリセットする"
+                    // onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+                    // onMouseLeave={handleCloseTooltip}
+                    // onClick={handleResetRight}
+                  >
+                    <GrPowerReset className="pointer-events-none text-[16px]" />
+                  </div>
+                  {(!!selectedActiveItems.length || !!selectedInactiveItems.length) && (
+                    <div className="ml-auto flex h-full w-fit flex-1 items-center justify-end">
+                      <span className={`text-[14px] text-[var(--color-text-brand-f)]`}>
+                        {selectedActiveItems.length}件選択中
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {/* カラムリストエリア */}
+                <ul className={`${styles.sortable_list}`}>
+                  {editSubList.map((item, index) => (
+                    <li
+                      key={`right_${item.id}_${item.target_type}`}
+                      className={`${styles.item} ${styles.item_right} ${
+                        item.target_type !== "sales_target" ? `${styles.inactive}` : ``
+                      }`}
+                      // onClick={(e) => handleClickActiveRight(e, item.columnId)}
+                    >
+                      <div className={styles.details}>
+                        <span className="truncate">{getSubTargetTitle(upsertTargetObj.childEntityType, item)}</span>
+                        {/* <MdOutlineDragIndicator className="fill-[var(--color-text)]" /> */}
+                      </div>
+                      {item.target_type === "sales_target" && (
+                        <span className="min-w-max text-[10px] text-[var(--color-text-brand-f)]">表示中</span>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                {/* <span ref={scrollBottomRef}></span> */}
+              </div>
+            </div>
+            {/* {hoveredItemPosModal && <TooltipModal />} */}
+          </div>
+        </>
+      )}
     </>
   );
 };

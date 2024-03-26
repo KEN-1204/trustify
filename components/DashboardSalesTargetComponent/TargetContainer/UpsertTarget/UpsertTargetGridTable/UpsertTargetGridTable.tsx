@@ -18,12 +18,26 @@ import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZe
 import { convertToYen } from "@/utils/Helpers/convertToYen";
 import { calculateYearOverYear } from "@/utils/Helpers/PercentHelpers/calculateYearOverYear";
 import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
-import { FiscalYearMonthObjForTarget, SalesSummaryYearHalf, SalesTargetUpsertColumns, SparkChartObj } from "@/types";
+import {
+  Department,
+  FiscalYearMonthObjForTarget,
+  MemberAccounts,
+  Office,
+  SalesSummaryYearHalf,
+  SalesTargetUpsertColumns,
+  Section,
+  SparkChartObj,
+  Unit,
+} from "@/types";
 import { useQuerySalesSummaryAndGrowth } from "@/hooks/useQuerySalesSummaryAndGrowth";
 import { FallbackScrollContainer } from "../../SalesTargetsContainer/SalesTargetGridTable/FallbackScrollContainer";
 import { toast } from "react-toastify";
 import Decimal from "decimal.js";
 import { cloneDeep } from "lodash";
+import { HiOutlineSwitchHorizontal } from "react-icons/hi";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 
 /**
  *   "period_type",
@@ -49,6 +63,8 @@ type Props = {
   isMainTarget: boolean; // メイン目標かどうか
   fetchEnabled?: boolean; // メイン目標でない場合はfetchEnabledがtrueに変更されたらフェッチを許可する
   onFetchComplete?: () => void;
+  subTargetList?: Department[] | Section[] | Unit[] | Office[] | MemberAccounts[];
+  setSubTargetList?: Dispatch<SetStateAction<Department[] | Section[] | Unit[] | Office[] | MemberAccounts[]>>;
 };
 
 const UpsertTargetGridTableMemo = ({
@@ -64,12 +80,19 @@ const UpsertTargetGridTableMemo = ({
   isMainTarget = false,
   fetchEnabled,
   onFetchComplete,
+  subTargetList,
+  setSubTargetList,
 }: // startYearMonth,
 // endYearMonth,
 Props) => {
+  const queryClient = useQueryClient();
+  const supabase = useSupabaseClient();
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const upsertTargetObj = useDashboardStore((state) => state.upsertTargetObj);
+
+  const [isLoading, setIsLoading] = useState(false);
+
   if (!upsertTargetObj || !userProfileState || !userProfileState.company_id) return;
 
   // 「半期〜月度」
@@ -387,6 +410,79 @@ Props) => {
     }
   };
 
+  // サブ目標リストから部門エンティティを削除(target_typeをnullに変更)
+  const handleRemoveFromTargetList = async () => {
+    if (!subTargetList) return;
+    if (!setSubTargetList) return;
+    // エンティティタイプからupdateするテーブルを確定
+    let updatedTable = "";
+    if (entityType === "department") updatedTable = "departments";
+    if (entityType === "section") updatedTable = "sections";
+    if (entityType === "unit") updatedTable = "units";
+    if (entityType === "office") updatedTable = "offices";
+    if (entityType === "member") updatedTable = "profiles";
+    if (entityType === "") return alert("部門データが見つかりませんでした。");
+
+    const updatedPayload = { target_type: null };
+
+    setIsLoading(true); // ローディング開始
+
+    try {
+      console.log("削除実行🔥 updatedTable", updatedTable, entityId);
+      const { error } = await supabase.from(updatedTable).update(updatedPayload).eq("id", entityId);
+
+      if (error) throw error;
+
+      // キャッシュのサブ目標リストから部門を削除
+      // const periodType = isEndEntity ? `half_monthly` : `year_half`;
+      // const fiscalYear = upsertTargetObj.fiscalYear;
+      // const queryKey = ["sales_summary_and_growth", entityType, entityId, periodType, fiscalYear, isFirstHalf];
+
+      // キャッシュの部門からsales_targetをnullに更新する
+      let queryKey = "departments";
+      if (entityType === "department") queryKey = "departments";
+      if (entityType === "section") queryKey = "sections";
+      if (entityType === "unit") queryKey = "units";
+      if (entityType === "office") queryKey = "offices";
+      if (entityType === "member") queryKey = "member_accounts";
+      const prevCache = queryClient.getQueryData([queryKey]) as
+        | Department[]
+        | Section[]
+        | Unit[]
+        | Office[]
+        | MemberAccounts[];
+      const newCache = [...prevCache]; // キャッシュのシャローコピーを作成
+      // 更新対象のオブジェクトのtarget_typeをnullに変更
+      const updateIndex = newCache.findIndex((obj) => obj.id === entityId);
+      if (updateIndex !== -1) {
+        // 更新対象の配列内のインデックスを変えずに対象のプロパティのみ変更
+        newCache.splice(updateIndex, 1, { ...prevCache[updateIndex], target_type: null });
+        queryClient.setQueryData([queryKey], newCache); // キャッシュを更新
+      }
+
+      // 固定していた場合は固定を解除
+      if (stickyRow === entityId) {
+        setStickyRow(null);
+      }
+
+      setIsLoading(false); // ローディング終了
+
+      // サブ目標リストから削除
+      const newList = [...subTargetList].filter((obj) => obj.id !== entityId) as
+        | Department[]
+        | Section[]
+        | Unit[]
+        | Office[]
+        | MemberAccounts[];
+      setSubTargetList(newList);
+
+      toast.success(`${entityNameTitle}を目標リストから削除しました🌟`);
+    } catch (error: any) {
+      console.error("エラー：", error);
+      toast.error("目標リストからの削除に失敗しました...🙇‍♀️");
+    }
+  };
+
   // チャート マウントを0.6s遅らせる
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
@@ -398,22 +494,22 @@ Props) => {
 
   console.log(
     "UpsertTargetGridTableコンポーネントレンダリング",
-    "entityType",
-    entityType,
     "entityNameTitle",
-    entityNameTitle,
-    "annualFiscalMonths",
-    annualFiscalMonths,
-    "isFirstHalf",
-    isFirstHalf,
-    "salesSummaryRowData",
-    salesSummaryRowData,
-    "inputSalesTargetsList",
-    inputSalesTargetsList,
-    "salesSummaryError",
-    salesSummaryError,
-    "isLoadingQuery",
-    isLoadingQuery
+    entityNameTitle
+    // "entityType",
+    // entityType,
+    // "annualFiscalMonths",
+    // annualFiscalMonths,
+    // "isFirstHalf",
+    // isFirstHalf,
+    // "salesSummaryRowData",
+    // salesSummaryRowData,
+    // "inputSalesTargetsList",
+    // inputSalesTargetsList,
+    // "salesSummaryError",
+    // salesSummaryError,
+    // "isLoadingQuery",
+    // isLoadingQuery
   );
 
   if (isLoadingQuery) return <FallbackScrollContainer title={entityNameTitle} />;
@@ -421,7 +517,12 @@ Props) => {
   return (
     <>
       <div className={`${styles.grid_row} ${styles.col1} fade08_forward`}>
-        <div className={`${styles.grid_content_card}`}>
+        <div className={`${styles.grid_content_card} relative`}>
+          {isLoading && (
+            <div className={`flex-center absolute left-0 top-0 z-[50] h-full w-full rounded-[12px] bg-[#00000090]`}>
+              <SpinnerX />
+            </div>
+          )}
           <div className={`${styles.card_title_area}`}>
             {/* <div className={`${styles.card_title_wrapper} space-x-[24px]`}>
                 <div className={`${styles.card_title}`}>
@@ -437,6 +538,24 @@ Props) => {
             </div>
 
             <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>
+              {!isMainTarget && (
+                <div
+                  className={`${styles.btn} ${styles.basic} space-x-[4px]`}
+                  onMouseEnter={(e) => {
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: `目標リストから削除`,
+                      marginTop: 9,
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                  onClick={handleRemoveFromTargetList}
+                >
+                  <HiOutlineSwitchHorizontal />
+                  <span>削除</span>
+                </div>
+              )}
               <div
                 className={`${styles.btn} ${styles.basic} space-x-[4px]`}
                 onMouseEnter={(e) => {
@@ -445,9 +564,6 @@ Props) => {
                     display: "top",
                     content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
                     marginTop: 9,
-                    // content: stickyRow === entityId ? `固定を解除` : `スクロール時`,
-                    // content2: stickyRow === entityId ? `` : `画面内に固定`,
-                    // marginTop: stickyRow === entityId ? 9 : 24,
                   });
                 }}
                 onMouseLeave={handleCloseTooltip}

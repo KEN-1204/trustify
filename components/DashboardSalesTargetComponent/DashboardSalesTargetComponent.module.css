@@ -1038,4 +1038,225 @@
   font-size: 12px;
 }
 
+/* 🌟サブ目標リスト編集モーダル🌟 */
+.switch_container {
+  position: fixed;
+  z-index: 300;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  /* width: 40vw; */
+  height: 90vh;
+  min-width: 577px;
+  /* max-width: 577px; */
+  max-height: 732px;
+  background-color: var(--color-edit-bg);
+  box-shadow: var(--color-edit-border-with-shadow);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px 40px;
+}
+.edit_contents_container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding: 0px 0 20px 0;
+  display: flex;
+  /* justify-content: space-between; */
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+.switch_container .content_box {
+  background: var(--color-bg-sub);
+  border-radius: 6px;
+}
+.switch_container .title {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  height: 50px;
+  width: 100%;
+  padding-left: 25px;
+  padding-right: 25px;
+  padding-top: 5px;
+  font-weight: 700;
+  font-size: 18px;
+}
+.switch_container .sortable_list {
+  /* background: var(--color-bg-sub); */
+  /* width: 445px; */
+  width: 100%;
+  height: 100%;
+  border-radius: 6px;
+  padding: 5px 25px 20px;
+  overflow-y: scroll;
+}
+.switch_container .sortable_list .item {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* border: 1px solid #ccc; */
+  box-shadow: var(--color-edit-item-border);
+  border-radius: 4px;
+  /* margin-bottom: 6px; */
+  margin-bottom: 11px;
+  /* padding: 10px 13px; */
+  padding: 6px 13px;
+  background: var(--color-edit-item-bg);
+  cursor: pointer;
+}
+.switch_container .sortable_list .item.active_left {
+  box-shadow: 0 0 0 1px var(--color-edit-left-active);
+  background-color: var(--color-edit-left-active-bg);
+}
+.switch_container .sortable_list .item.active_right {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  background-color: var(--color-bg-brand-f30);
+  /* box-shadow: 0 0 0 1px var(--color-edit-right-active);
+  background-color: var(--color-edit-right-active-bg); */
+}
+.switch_container .item .details {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.switch_container .item .details span {
+  font-size: 12px;
+  width: 290px;
+}
+.switch_container .item.inactive .details span {
+  text-decoration: line-through;
+  color: var(--color-text-sub);
+}
+.switch_container .item svg {
+  color: #474747;
+  font-size: 1.2rem;
+  cursor: grab;
+  user-select: none;
+}
+
+.switch_container .item.dragging :where(.details, svg) {
+  /* opacity: 0; */
+  /* opacity: 0.3; */
+}
+.switch_container .item_left.dragging {
+  /* background: #000;
+  color: #0affff; */
+  opacity: 0.3;
+  /* background: var(--color-edit-add); */
+  background: var(--color-bg-brand-f);
+  color: #fff;
+}
+.item_right svg:active,
+.switch_container .item_right:active {
+  cursor: grabbing;
+}
+.switch_container .item_right.dragging {
+  /* background: #000;
+  color: #0affff; */
+  opacity: 0.3;
+  /* background: var(--bright-red); */
+  background: var(--color-bg-brand-f);
+  color: #fff;
+}
+
+.switch_container .title svg {
+  /* color: var(--color-sub-text); */
+}
+.switch_container .title svg path {
+  stroke: var(--color-edit-arrow-disable-color);
+}
+.switch_container .icon_button {
+  background-color: var(--color-edit-arrow-disable-bg-onlist);
+  color: var(--color-edit-arrow-disable-color);
+}
+.switch_container /* .icon_button svg {
+  background-color: var(--color-edit-arrow-disable-bg-onlist);
+  color: var(--color-sub-text);
+  fill: var(--color-sub-text);
+} */
+/* 追加 */
+.switch_container .arrow_add_active {
+  background-color: var(--color-edit-add);
+  color: var(--color-text);
+  cursor: pointer;
+  color: #fff;
+}
+.switch_container .arrow_add_active:hover {
+  background-color: var(--color-edit-add-hover);
+}
+/* 削除 */
+.switch_container .arrow_remove_active {
+  background-color: var(--color-edit-remove);
+  /* color: var(--color-text); */
+  color: #fff;
+  cursor: pointer;
+}
+.switch_container .arrow_remove_active:hover {
+  background-color: var(--color-edit-remove-hover);
+}
+/* 最上部 */
+.switch_container .arrow_up_active {
+  background-color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  cursor: pointer;
+  color: #fff;
+}
+.switch_container .arrow_up_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
+}
+/* 最下部 */
+.switch_container .arrow_down_active {
+  background-color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  color: #fff;
+  cursor: pointer;
+}
+.switch_container .arrow_down_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
+}
+/* 右側リセット */
+.switch_container .arrow_right_reset_active {
+  background-color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  color: #fff;
+  cursor: pointer;
+}
+.switch_container .arrow_right_reset_active svg path {
+  stroke: #fff;
+}
+.switch_container .arrow_right_reset_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
+}
+/* 左側リセット */
+.switch_container .arrow_left_reset_active {
+  background-color: var(--color-bg-brand-f);
+  /* color: var(--color-text); */
+  color: #fff;
+  cursor: pointer;
+}
+.switch_container .arrow_left_reset_active svg path {
+  stroke: #fff;
+}
+.switch_container .arrow_left_reset_active:hover {
+  background-color: var(--color-bg-brand-f-hover);
+}
+
+.switch_container .sortable_list .frozen {
+  background-color: var(--color-edit-frozen-bg);
+  color: var(--color-edit-frozen-text);
+  box-shadow: var(--color-edit-border-frozen);
+  cursor: default;
+  pointer-events: none;
+}
+.switch_container .sortable_list .frozen svg {
+  fill: var(--color-edit-frozen-text);
+  cursor: default;
+}
+
+/* 🌟サブ目標リスト編集モーダル🌟 ここまで */
 /* ---------------------------- UpsertTarget ここまで ---------------------------- */
