@@ -67,41 +67,81 @@ const ResumeMembershipAfterCancelMemo = () => {
   // 未設定アカウントの削除が必要かどうかを保持するState(メンバーアカウントより先に未設定アカウントを削除する)
   // const [isRequiredDeletion, setIsRequiredDeletion] = useState(true);
 
-  // ================================ ツールチップ ================================
-  const modalContainerRef = useRef<HTMLDivElement | null>(null);
-  const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
-  const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
-    // モーダルコンテナのleftを取得する
-    if (!modalContainerRef.current) return;
-    const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
-    const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+  // // ================================ ツールチップ ================================
+  // const modalContainerRef = useRef<HTMLDivElement | null>(null);
+  // const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
+  // const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
+  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+  //   // モーダルコンテナのleftを取得する
+  //   if (!modalContainerRef.current) return;
+  //   const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
+  //   const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+  //   // ホバーしたアイテムにツールチップを表示
+  //   const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+  //   // console.log("ツールチップx, y width , height", x, y, width, height);
+  //   const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+  //     ? ((e.target as HTMLDivElement).dataset.text2 as string)
+  //     : "";
+  //   const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+  //     ? ((e.target as HTMLDivElement).dataset.text3 as string)
+  //     : "";
+  //   setHoveredItemPosModal({
+  //     x: x - containerLeft,
+  //     y: y - containerTop,
+  //     itemWidth: width,
+  //     itemHeight: height,
+  //     content: (e.target as HTMLDivElement).dataset.text as string,
+  //     content2: content2,
+  //     content3: content3,
+  //     display: display,
+  //   });
+  // };
+  // // ============================================================================================
+  // // ================================ ツールチップを非表示 ================================
+  // const handleCloseTooltip = () => {
+  //   setHoveredItemPosModal(null);
+  // };
+  // // ============================================================================================
+  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
+  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    marginTop = 0,
+    itemsPosition = "center",
+  }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
-      ? ((e.target as HTMLDivElement).dataset.text2 as string)
-      : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
-      ? ((e.target as HTMLDivElement).dataset.text3 as string)
-      : "";
-    setHoveredItemPosModal({
-      x: x - containerLeft,
-      y: y - containerTop,
+
+    setHoveredItemPos({
+      x: x,
+      y: y,
       itemWidth: width,
       itemHeight: height,
-      content: (e.target as HTMLDivElement).dataset.text as string,
+      content: content,
       content2: content2,
-      content3: content3,
       display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
     });
   };
-  // ============================================================================================
-  // ================================ ツールチップを非表示 ================================
+  // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPosModal(null);
+    if (hoveredItemPos) setHoveredItemPos(null);
   };
-  // ============================================================================================
+  // ==================================================================================
 
   // ============================ メンバーアカウントを全て取得 ============================
   // 未設定アカウントを保持するグローバルState
@@ -622,19 +662,30 @@ const ResumeMembershipAfterCancelMemo = () => {
 
   if (!userProfileState || useQueryIsLoading) return <FallbackResumeMembershipAfterCancel />;
 
+  // <div className={`fixed inset-0 z-[2000] ${styles.bg_image}`} ref={modalContainerRef}>
   return (
-    <div className={`fixed inset-0 z-[2000] ${styles.bg_image}`} ref={modalContainerRef}>
+    <div className={`fixed inset-0 z-[2000] ${styles.bg_image}`}>
       {(isLoadingReset || isLoadingSubmit) && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
         </div>
       )}
-      {hoveredItemPosModal && <TooltipModal />}
+      {/* {hoveredItemPosModal && <TooltipModal />} */}
       <button
         className={`flex-center shadow-all-md transition-base03 fixed bottom-[2%] right-[calc(2%+60px)] z-[3000] h-[35px] w-[35px] rounded-full bg-[#555] hover:bg-[#999]`}
         // className={`flex-center z-100 group absolute right-[-45px] top-[5px] h-[35px] w-[35px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
         data-text="ログアウトする"
-        onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+        // onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+        onMouseEnter={(e) => {
+          handleOpenTooltip({
+            e: e,
+            display: "top",
+            content: "ログアウトする",
+            marginTop: 0,
+            itemsPosition: "center",
+            // whiteSpace: "nowrap",
+          });
+        }}
         onMouseLeave={handleCloseTooltip}
         onClick={handleSignOut}
       >
@@ -732,7 +783,17 @@ const ResumeMembershipAfterCancelMemo = () => {
                 <div
                   className="flex-center absolute left-[20px] top-[20px] z-50 h-[35px] w-[35px] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]"
                   data-text="戻る"
-                  onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+                  // onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+                  onMouseEnter={(e) => {
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: "戻る",
+                      marginTop: 0,
+                      itemsPosition: "center",
+                      // whiteSpace: "nowrap",
+                    });
+                  }}
                   onMouseLeave={handleCloseTooltip}
                   onClick={() => {
                     if (requiredDeletionMemberAccounts) {

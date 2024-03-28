@@ -175,7 +175,7 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
   const supabase = useSupabaseClient();
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
-  const setIsUpsertTargetMode = useDashboardStore((state) => state.setIsUpsertTargetMode);
+  const setUpsertTargetMode = useDashboardStore((state) => state.setUpsertTargetMode);
   // メイン目標設定対象
   const upsertTargetObj = useDashboardStore((state) => state.upsertTargetObj);
   const setUpsertTargetObj = useDashboardStore((state) => state.setUpsertTargetObj);
@@ -201,7 +201,8 @@ const UpsertTargetMemo = ({ endEntity }: Props) => {
 
   // 目標設定モードを終了
   const handleCancelUpsert = () => {
-    setIsUpsertTargetMode(false);
+    // setUpsertTargetMode(false);
+    setUpsertTargetMode(null);
     setUpsertTargetObj(null);
   };
 

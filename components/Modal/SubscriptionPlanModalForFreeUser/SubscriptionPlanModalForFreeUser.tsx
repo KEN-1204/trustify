@@ -151,41 +151,101 @@ export const SubscriptionPlanModalForFreeUser = () => {
     await stripe?.redirectToCheckout({ sessionId: response.data.id });
   };
 
-  // ================================ ツールチップ ================================
-  const modalContainerRef = useRef<HTMLDivElement | null>(null);
-  const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
-  const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
-    // モーダルコンテナのleftを取得する
-    if (!modalContainerRef.current) return;
-    const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
-    const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+  // // ================================ ツールチップ ================================
+  // type TooltipParams = {
+  //   e: React.MouseEvent<HTMLElement, MouseEvent>;
+  //   display: string;
+  //   content: string;
+  //   content2?: string | undefined | null;
+  //   content3?: string | undefined | null;
+  //   marginTop?: number;
+  //   itemsPosition?: string;
+  //   whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+  // };
+  // const modalContainerRef = useRef<HTMLDivElement | null>(null);
+  // const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
+  // const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
+  // const handleOpenTooltip = ({
+  //   e,
+  //   display,
+  //   content,
+  //   content2,
+  //   content3,
+  //   marginTop,
+  //   itemsPosition = "center",
+  //   whiteSpace,
+  // }: TooltipParams) => {
+  //   // モーダルコンテナのleftを取得する
+  //   if (!modalContainerRef.current) return;
+  //   const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
+  //   const containerTop = modalContainerRef.current?.getBoundingClientRect().top;
+  //   // ホバーしたアイテムにツールチップを表示
+  //   const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+  //   // console.log("ツールチップx, y width , height", x, y, width, height);
+  //   // const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+  //   //   ? ((e.target as HTMLDivElement).dataset.text2 as string)
+  //   //   : "";
+  //   // const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+  //   //   ? ((e.target as HTMLDivElement).dataset.text3 as string)
+  //   //   : "";
+  //   setHoveredItemPosModal({
+  //     x: x - containerLeft,
+  //     y: y - containerTop,
+  //     itemWidth: width,
+  //     itemHeight: height,
+  //     content: (e.target as HTMLDivElement).dataset.text as string,
+  //     content2: content2,
+  //     content3: content3,
+  //     display: display,
+  //   });
+  // };
+  // // ============================================================================================
+  // // ================================ ツールチップを非表示 ================================
+  // const handleCloseTooltip = () => {
+  //   setHoveredItemPosModal(null);
+  // };
+  // // ============================================================================================
+
+  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
+  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    marginTop = 0,
+    itemsPosition = "center",
+  }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
-      ? ((e.target as HTMLDivElement).dataset.text2 as string)
-      : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
-      ? ((e.target as HTMLDivElement).dataset.text3 as string)
-      : "";
-    setHoveredItemPosModal({
-      x: x - containerLeft,
-      y: y - containerTop,
+
+    setHoveredItemPos({
+      x: x,
+      y: y,
       itemWidth: width,
       itemHeight: height,
-      content: (e.target as HTMLDivElement).dataset.text as string,
+      content: content,
       content2: content2,
-      content3: content3,
       display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
     });
   };
-  // ============================================================================================
-  // ================================ ツールチップを非表示 ================================
+  // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPosModal(null);
+    if (hoveredItemPos) setHoveredItemPos(null);
   };
-  // ============================================================================================
+  // ==================================================================================
 
   // ログアウト関数
   const handleSignOut = async () => {
@@ -231,14 +291,25 @@ export const SubscriptionPlanModalForFreeUser = () => {
         className={`flex-center shadow-all-md fixed bottom-[2%] right-[calc(2%+60px)] z-[20000] h-[35px] w-[35px] rounded-full bg-[var(--color-sign-out-bg)] hover:bg-[var(--color-sign-out-bg-hover)]`}
         // className={`flex-center z-100 group absolute right-[-45px] top-[5px] h-[35px] w-[35px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
         data-text="ログアウトする"
-        onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+        // onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+        onMouseEnter={(e) => {
+          handleOpenTooltip({
+            e: e,
+            display: "top",
+            content: "ログアウトする",
+            marginTop: 0,
+            itemsPosition: "center",
+            // whiteSpace: "nowrap",
+          });
+        }}
         onMouseLeave={handleCloseTooltip}
         onClick={handleSignOut}
       >
         <IoLogOutOutline className="mr-[-3px] text-[20px] text-[#fff]" />
       </button>
-      <div className={`${styles.container}`} ref={modalContainerRef}>
-        {hoveredItemPosModal && <TooltipModal />}
+      {/* <div className={`${styles.container}`} ref={modalContainerRef}> */}
+      <div className={`${styles.container}`}>
+        {/* {hoveredItemPosModal && <TooltipModal />} */}
         {/* クローズボタン */}
         {/* <button
           className={`flex-center z-100 shadow-all-md absolute bottom-[-23px] right-[-60px] h-[35px] w-[35px] rounded-full bg-[var(--color-sign-out-bg)] hover:bg-[var(--color-sign-out-bg-hover)]`}

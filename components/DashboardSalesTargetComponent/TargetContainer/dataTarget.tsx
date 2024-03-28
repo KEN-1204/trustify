@@ -26,4 +26,5 @@ export const mappingDescriptions: { [key: string]: { [key: string]: string }[] }
 export const mappingPopupTitle: { [key: string]: { [key: string]: string } } = {
   notes: { en: "Notes", ja: "説明" },
   settingSalesTarget: { en: "Sales Target", ja: "売上目標" },
+  settingSalesTargetEntity: { en: "Fiscal Year", ja: "会計年度" },
 };

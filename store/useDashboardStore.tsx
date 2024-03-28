@@ -488,8 +488,8 @@ type State = {
   lastAnnualFiscalMonths: FiscalYearMonthObjForTarget | null;
   setLastAnnualFiscalMonths: (payload: FiscalYearMonthObjForTarget | null) => void;
   // 目標設定モード
-  isUpsertTargetMode: boolean;
-  setIsUpsertTargetMode: (payload: boolean) => void;
+  upsertTargetMode: string | null;
+  setUpsertTargetMode: (payload: string | null) => void;
   // 目標設定時のエンティティ・年度オブジェクト
   upsertTargetObj: UpsertTargetObj | null;
   setUpsertTargetObj: (payload: UpsertTargetObj | null) => void;
@@ -1185,9 +1185,9 @@ const useDashboardStore = create<State>((set) => ({
   // 前年度売上の12ヶ月分の年月度配列
   lastAnnualFiscalMonths: null,
   setLastAnnualFiscalMonths: (payload) => set({ lastAnnualFiscalMonths: payload }),
-  // 目標設定モード
-  isUpsertTargetMode: false,
-  setIsUpsertTargetMode: (payload) => set({ isUpsertTargetMode: payload }),
+  // 目標設定モード エンティティ設定モード、売上設定モード
+  upsertTargetMode: null,
+  setUpsertTargetMode: (payload) => set({ upsertTargetMode: payload }),
   // 目標設定時のエンティティ・年度オブジェクト
   upsertTargetObj: null,
   setUpsertTargetObj: (payload) => set({ upsertTargetObj: payload }),

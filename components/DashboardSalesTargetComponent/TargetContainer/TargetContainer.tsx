@@ -38,6 +38,7 @@ import { FallbackSideTableSearchMember } from "@/components/DashboardCompanyComp
 import { SideTableSearchMember } from "@/components/DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchMember/SideTableSearchMember";
 import { UpsertTarget } from "./UpsertTarget/UpsertTarget";
 import { FallbackTargetContainer } from "./FallbackTargetContainer";
+import { UpsertTargetEntity } from "./UpsertTargetEntity/UpsertTargetEntity";
 
 export const TargetContainer = () => {
   const language = useStore((state) => state.language);
@@ -46,8 +47,8 @@ export const TargetContainer = () => {
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   // 目標設定モード
-  const isUpsertTargetMode = useDashboardStore((state) => state.isUpsertTargetMode);
-  const setIsUpsertTargetMode = useDashboardStore((state) => state.setIsUpsertTargetMode);
+  const upsertTargetMode = useDashboardStore((state) => state.upsertTargetMode);
+  const setUpsertTargetMode = useDashboardStore((state) => state.setUpsertTargetMode);
   // 目標設定時の年度・エンティティオブジェクト
   const upsertTargetObj = useDashboardStore((state) => state.upsertTargetObj);
   const setUpsertTargetObj = useDashboardStore((state) => state.setUpsertTargetObj);
@@ -556,7 +557,7 @@ export const TargetContainer = () => {
       if (displayX === "right") {
         positionX = -18 - 50 - (maxWidth ?? 400);
       } else if (displayX === "left") {
-        positionX = window.innerWidth - x;
+        positionX = window.innerWidth - x + 6;
       } else if (displayX === "bottom_left" && sectionMenuWidth) {
         positionX = window.innerWidth - x - width + sectionMenuWidth + 6;
         positionY = y + height + 6;
@@ -584,7 +585,7 @@ export const TargetContainer = () => {
   };
   // --------------------- ポップアップメニュー関連 ここまで ---------------------
   // --------------------- メニュー liコンテンツ挿入用 ---------------------
-  type DescriptionProps = { title?: string; content: string; content2: string; withDiv?: boolean };
+  type DescriptionProps = { title?: string; content: string; content2?: string; withDiv?: boolean };
   const DescriptionList = ({ title, content, content2, withDiv = true }: DescriptionProps) => {
     return (
       <>
@@ -695,12 +696,28 @@ export const TargetContainer = () => {
       childEntityLevel: _childEntityLevel,
     });
 
-    setIsUpsertTargetMode(true);
+    // setUpsertTargetMode(true);
+    setUpsertTargetMode("settingTarget");
+  };
+
+  const handleStartUpsertEntityMode = () => {
+    // セクション・サブメニュー閉じる
+    handleCloseSectionMenu();
+
+    setUpsertTargetObj({
+      fiscalYear: selectedFiscalYearLocal,
+      entityLevel: "",
+      entityId: "",
+      entityName: "",
+      childEntityLevel: "",
+    });
+    setUpsertTargetMode("settingEntity");
   };
 
   // 目標設定モードを終了
   const handleCancelUpsert = () => {
-    setIsUpsertTargetMode(false);
+    // setUpsertTargetMode(false);
+    setUpsertTargetMode(null);
     setUpsertTargetObj(null);
   };
 
@@ -719,7 +736,7 @@ export const TargetContainer = () => {
   return (
     <>
       {/* ===================== 通常時スクロールコンテナ ここから ===================== */}
-      {!isUpsertTargetMode && (
+      {upsertTargetMode === null && (
         <div className={`${styles.main_contents_container}`}>
           {/* ----------------- １画面目 上画面 ----------------- */}
           <section
@@ -756,21 +773,22 @@ export const TargetContainer = () => {
                     const sectionWidth = 330;
                     handleOpenSectionMenu({
                       e,
-                      title: "settingSalesTarget",
+                      title: "settingSalesTargetEntity",
                       displayX: "bottom_left",
                       fadeType: "fade_down",
                       maxWidth: sectionWidth,
                       minWidth: sectionWidth,
                     });
                     setOpenSubMenu({ display: "left", fadeType: "fade_down", sectionMenuWidth: sectionWidth });
-                    // handleOpenPopupMenu({
+                    // handleOpenSectionMenu({
                     //   e,
                     //   title: "settingSalesTarget",
                     //   displayX: "bottom_left",
-                    //   fadeType: `fade_up`,
-                    //   maxWidth: 360,
-                    //   sectionMenuWidth: sectionWidth,
+                    //   fadeType: "fade_down",
+                    //   maxWidth: sectionWidth,
+                    //   minWidth: sectionWidth,
                     // });
+                    // setOpenSubMenu({ display: "left", fadeType: "fade_down", sectionMenuWidth: sectionWidth });
                   }}
                 >
                   <FiPlus className={`stroke-[3] text-[12px] text-[#fff]`} />
@@ -863,7 +881,16 @@ export const TargetContainer = () => {
       )}
       {/* ===================== 通常時スクロールコンテナ ここまで ===================== */}
       {/* ===================== Upsert目標設定時スクロールコンテナ ここから ===================== */}
-      {isUpsertTargetMode && upsertTargetObj && (
+      {upsertTargetMode === "settingEntity" && upsertTargetObj && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackTargetContainer isUpsert={true} />}>
+            <UpsertTargetEntity />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* ===================== Upsert目標設定時スクロールコンテナ ここまで ===================== */}
+      {/* ===================== Upsert目標設定時スクロールコンテナ ここから ===================== */}
+      {upsertTargetMode === "settingTarget" && upsertTargetObj && (
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<FallbackTargetContainer isUpsert={true} />}>
             <UpsertTarget endEntity={endEntity} />
@@ -899,6 +926,77 @@ export const TargetContainer = () => {
           }}
         >
           {/* ------------------------ エンティティ選択メニュー ------------------------ */}
+          {/* ------------- 売上目標 年度のみ選択 ------------- */}
+          {openSectionMenu.title === "settingSalesTargetEntity" && (
+            <>
+              <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
+                <div className="flex max-w-max flex-col">
+                  <span>目標設定メニュー</span>
+                  <div className={`${styles.section_underline} w-full`} />
+                </div>
+              </h3>
+              <DescriptionList content={`目標設定を行う会計年度を選択してください。`} />
+              {/* ------------------------------------ */}
+              <li
+                className={`${styles.list} ${styles.not_hoverable}`}
+                onMouseEnter={(e) => {
+                  handleOpenPopupMenu({ e, title: "settingSalesTargetEntity", displayX: "left" });
+                }}
+                onMouseLeave={() => {
+                  if (openPopupMenu) handleClosePopupMenu();
+                }}
+              >
+                <div className="pointer-events-none flex min-w-[130px] items-center">
+                  <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                  <div className="flex select-none items-center space-x-[2px]">
+                    <span className={`${styles.list_title}`}>会計年度</span>
+                    <span className={``}>：</span>
+                  </div>
+                </div>
+                <select
+                  className={`${styles.select_box} truncate`}
+                  value={selectedFiscalYearLocal}
+                  onChange={(e) => {
+                    setSelectedFiscalYearLocal(Number(e.target.value));
+                    if (openPopupMenu) handleClosePopupMenu();
+                  }}
+                >
+                  {optionsFiscalYear.map((year) => (
+                    <option key={year} value={year}>
+                      {language === "en" ? `FY ` : ``}
+                      {year}
+                      {language === "ja" ? `年度` : ``}
+                    </option>
+                  ))}
+                </select>
+              </li>
+              {/* ------------------------------------ */}
+              <hr className="min-h-[1px] w-full bg-[#999]" />
+              {/* ------------------------ 適用・戻る ------------------------ */}
+              <li className={`${styles.list} ${styles.btn_area} space-x-[20px]`}>
+                <div
+                  className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
+                  onClick={() => {
+                    handleStartUpsertEntityMode();
+                  }}
+                >
+                  <span>作成・編集</span>
+                </div>
+                <div
+                  className={`transition-bg02 ${styles.edit_btn} ${styles.cancel}`}
+                  onClick={() => {
+                    handleCloseSectionMenu();
+                  }}
+                >
+                  <span>戻る</span>
+                </div>
+              </li>
+              {/* ------------------------ 適用・戻る ここまで ------------------------ */}
+            </>
+          )}
+          {/* ------------- 売上目標 年度のみ選択 ここまで ------------- */}
+
+          {/* ------------- 売上目標 年度とエンティティレベルとエンティティ選択 ------------- */}
           {openSectionMenu.title === "settingSalesTarget" && (
             <>
               <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
@@ -1713,6 +1811,8 @@ export const TargetContainer = () => {
             {!["guide"].includes(openPopupMenu.title) && (
               <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
                 <p className="select-none whitespace-pre-wrap text-[12px] leading-[20px]">
+                  {openPopupMenu.title === "settingSalesTargetEntity" &&
+                    "選択中の会計年度の目標を表示します。\n会計年度は2020年から現在まで選択可能で、翌年度はお客様の決算日から現在の日付が3ヶ月を切ると表示、設定、編集が可能となります。"}
                   {openPopupMenu.title === "settingSalesTarget" &&
                     "下記メニューから「全社・事業部・課/セクション・係/チーム・メンバー個人・事業所」を選択して、各グループに応じた目標設定が可能です。\n目標設定は、各グループ毎に親のグループの目標が確定している状態で設定が可能となるため、最上位グループから設定してください。"}
                   {openPopupMenu.title === "edit_mode" &&
@@ -1778,7 +1878,7 @@ export const TargetContainer = () => {
           </ErrorBoundary>
         </div>
       )}
-      {isUpsertTargetMode && (
+      {upsertTargetMode !== null && (
         <>
           <div className={`fixed left-0 top-0 z-[2000] h-[56px] w-full bg-[red]/[0]`} onClick={handleCancelUpsert} />
           <div className={`fixed left-0 top-0 z-[2000] h-full w-[72px] bg-[red]/[0]`} onClick={handleCancelUpsert} />

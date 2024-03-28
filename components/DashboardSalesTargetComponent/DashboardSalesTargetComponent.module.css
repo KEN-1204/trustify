@@ -36,6 +36,7 @@
   /* width: calc(100% - var(--sidebar-open-width)); */
   /* width: 100%; */
   width: calc(100vw - 72px);
+  /* width: 100vw; */
   height: 100vh;
   display: flex;
   flex-direction: column;
@@ -316,6 +317,7 @@
 /* メインエリア */
 .main_section_container {
   width: calc(100vw - 72px);
+  /* width: 100vw; */
   overflow-x: hidden;
   transition: margin 0.5s ease;
 }
@@ -797,6 +799,7 @@
 .contents_area .grid_row {
   width: 100%;
   max-width: calc(100vw - 72px - 62px);
+  /* max-width: calc(100vw - 62px); */
   display: grid;
   grid-template-columns: 1fr;
   /* column-gap: 20px; */
@@ -824,6 +827,7 @@
   min-height: max-content;
   width: 100%;
   max-width: calc(100vw - 72px - 62px);
+  /* max-width: calc(100vw - 62px); */
   background: var(--color-sales-card-bg);
   box-shadow: var(--color-sales-card-border);
   border-radius: 12px;
@@ -1185,6 +1189,7 @@
   cursor: pointer;
 }
 .switch_container .icon_button.remove {
+  /* background-color: var(--color-edit-remove-hover); */
   background-color: var(--color-edit-remove-hover);
   box-shadow: 0 0 0 1px var(--color-edit-remove);
   color: var(--main-color-tk);
@@ -1291,3 +1296,84 @@
 
 /* 🌟サブ目標リスト編集モーダル🌟 ここまで */
 /* ---------------------------- UpsertTarget ここまで ---------------------------- */
+/* ---------------------------- UpsertTargetEntity ---------------------------- */
+.main_container_entity {
+  width: 100%;
+  height: calc(100vh - var(--header-height));
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  background-color: var(--color-bg-dashboard);
+  color: var(--color-text-title);
+
+  /* padding: 20px 32px 20px 30px;
+    display: grid;
+    row-gap: 20px; */
+}
+.main_container_entity .title_area {
+  min-height: 66px;
+  padding: 20px 20px 0px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.main_container_entity .title_area .title {
+  display: flex;
+  align-items: center;
+}
+.main_container_entity .contents_area_entity {
+  width: 100%;
+  height: calc(100vh - var(--header-height) - 66px);
+  display: flex;
+}
+.main_container_entity .contents_area_entity .left_container {
+  width: 260px;
+  height: calc(100vh - var(--header-height) - 66px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow-y: scroll;
+  overflow-x: inherit;
+  padding: 0px 0px 16px 16px;
+}
+.main_container_entity .contents_area_entity .right_container {
+  width: calc(100vw - 72px - 260px);
+  height: calc(100vh - var(--header-height) - 66px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  overflow-y: scroll;
+  overflow-x: auto;
+}
+.main_container_entity .contents_area_entity .left_container .step_container {
+  width: 100%;
+  height: 100%;
+  background: var(--color-sales-card-bg);
+  box-shadow: var(--color-sales-card-border);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+.main_container_entity .contents_area_entity .left_container .step_container .description {
+  transform-origin: top;
+  transform: scaleY(0);
+  opacity: 0;
+  height: 0;
+  margin-top: 0px;
+  transition: transform 0.3s ease, margin 0.3s ease;
+}
+.main_container_entity .contents_area_entity .left_container .step_container .description.open {
+  transform: scaleY(1);
+  opacity: 1;
+  height: 100%;
+  margin-top: 12px;
+}
+
+/*
+background: var(--color-sales-card-bg);
+    box-shadow: var(--color-sales-card-border);
+    border-radius: 12px;
+*/
+/* ---------------------------- UpsertTargetEntity ここまで ---------------------------- */

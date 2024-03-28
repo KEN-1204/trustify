@@ -8,6 +8,7 @@
 .contents_area .grid_row {
   width: 100%;
   max-width: calc(100vw - 72px - 62px);
+  /* max-width: calc(100vw - 62px); */
   display: grid;
   grid-template-columns: 1fr;
   column-gap: 20px;
@@ -26,6 +27,7 @@
   min-height: max-content;
   width: 100%;
   max-width: calc(100vw - 72px - 62px);
+  /* max-width: calc(100vw - 62px); */
   background: var(--color-sales-card-bg);
   box-shadow: var(--color-sales-card-border);
   border-radius: 12px;
