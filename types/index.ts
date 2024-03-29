@@ -2527,22 +2527,76 @@ export type MainEntityTarget = {
   entityName: string;
 };
 
-// 売上目標テーブル
-export type SalesTargets = {
+// ------------- 🌠売上目標DB関連🌠 -------------
+// 目標設定済み年度
+export type FiscalYears = {
   id: string;
   created_at: string;
-  updated_at: string | null;
+  fiscal_year: number;
+  period_start: string | null;
+  period_end: string | null;
+  created_by_company_id: string | null;
+  target_type: string | null;
+  is_confirmed_first_half_details: boolean;
+  is_confirmed_second_half_details: boolean;
+};
+// エンティティレベル
+export type EntityLevelStructures = {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  fiscal_year_id: string;
+  created_by_company_id: string;
+  entity_level: string;
+  is_confirmed_annual_half: boolean;
+  is_confirmed_first_half_details: boolean;
+  is_confirmed_second_half_details: boolean;
+  target_type: string;
+};
+// レベル内の各エンティティ
+export type EntityStructures = {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  fiscal_year_id: string | null;
+  entity_level_id: string | null;
+  parent_entity_level_id: string | null;
+  target_type: string | null;
   created_by_company_id: string | null;
   created_by_department_id: string | null;
   created_by_section_id: string | null;
   created_by_unit_id: string | null;
   created_by_user_id: string | null;
   created_by_office_id: string | null;
-  entity_level: string | null;
+  parent_created_by_company_id: string | null;
+  parent_created_by_department_id: string | null;
+  parent_created_by_section_id: string | null;
+  parent_created_by_unit_id: string | null;
+  parent_created_by_user_id: string | null;
+  parent_created_by_office_id: string | null;
+  is_confirmed_annual_half: boolean;
+  is_confirmed_first_half_details: boolean;
+  is_confirmed_second_half_details: boolean;
+};
+// 売上目標テーブル
+export type SalesTargets = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  fiscal_year_id: string | null;
+  entity_level_id: string | null;
+  entity_id: string | null;
+  created_by_company_id: string | null;
+  created_by_department_id: string | null;
+  created_by_section_id: string | null;
+  created_by_unit_id: string | null;
+  created_by_user_id: string | null;
+  created_by_office_id: string | null;
   period_type: string | null;
   period: number | null;
   sales_target: number | null;
 };
+// ------------- 🌠売上目標DB関連🌠 -------------
 
 // 売上目標 売上目標テーブルからFUNCTIONで取得
 // export type SalesTargetFYRowData = {

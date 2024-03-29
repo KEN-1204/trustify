@@ -39,6 +39,7 @@ import { SideTableSearchMember } from "@/components/DashboardCompanyComponent/Mo
 import { UpsertTarget } from "./UpsertTarget/UpsertTarget";
 import { FallbackTargetContainer } from "./FallbackTargetContainer";
 import { UpsertTargetEntity } from "./UpsertTargetEntity/UpsertTargetEntity";
+import { useQueryFiscalYears } from "@/hooks/useQueryFiscalYears";
 
 export const TargetContainer = () => {
   const language = useStore((state) => state.language);
@@ -82,6 +83,21 @@ export const TargetContainer = () => {
 
   if (!userProfileState) return;
   if (!userProfileState.company_id) return;
+
+  // ================================ 🌟設定済み年度useQuery🌟 ================================
+  const {
+    data: targetFiscalYears,
+    isLoading: isLoadingQueryFiscalYears,
+    isError: isErrorQueryFiscalYear,
+  } = useQueryFiscalYears(userProfileState?.company_id, "sales_target", true);
+  // key: 年度、value: オブジェクトのMapオブジェクト
+  const targetFiscalYearsMap = useMemo(() => {
+    if (!targetFiscalYears || targetFiscalYears?.length === 0) return null;
+    return new Map(targetFiscalYears.map((obj) => [obj.fiscal_year, obj]));
+  }, [targetFiscalYears]);
+  // console.log("🌃🌃🌃🌃🌃🌃targetFiscalYearsMap", targetFiscalYearsMap, "targetFiscalYears", targetFiscalYears);
+
+  // ================================ 🌟設定済み年度useQuery🌟 ================================
 
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
   const {
@@ -721,8 +737,17 @@ export const TargetContainer = () => {
     setUpsertTargetObj(null);
   };
 
+  // ---------------------変数---------------------
+  const isConfirmedSelectedFY =
+    targetFiscalYearsMap &&
+    targetFiscalYearsMap.has(selectedFiscalYearLocal) &&
+    (targetFiscalYearsMap.get(selectedFiscalYearLocal)?.is_confirmed_first_half_details ||
+      targetFiscalYearsMap.get(selectedFiscalYearLocal)?.is_confirmed_second_half_details);
+
+  // ---------------------変数 ここまで---------------------
+
   console.log(
-    "売上目標コンポーネントレンダリング",
+    "TargetContainerコンポーネントレンダリング",
     "entityLevelList",
     entityLevelList,
     "決算日",
@@ -946,8 +971,9 @@ export const TargetContainer = () => {
                   if (openPopupMenu) handleClosePopupMenu();
                 }}
               >
-                <div className="pointer-events-none flex min-w-[130px] items-center">
-                  <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                {/* <div className="pointer-events-none flex min-w-[130px] items-center"> */}
+                <div className="pointer-events-none flex min-w-[90px] items-center">
+                  {/* <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" /> */}
                   <div className="flex select-none items-center space-x-[2px]">
                     <span className={`${styles.list_title}`}>会計年度</span>
                     <span className={``}>：</span>
@@ -958,7 +984,7 @@ export const TargetContainer = () => {
                   value={selectedFiscalYearLocal}
                   onChange={(e) => {
                     setSelectedFiscalYearLocal(Number(e.target.value));
-                    if (openPopupMenu) handleClosePopupMenu();
+                    // if (openPopupMenu) handleClosePopupMenu();
                   }}
                 >
                   {optionsFiscalYear.map((year) => (
@@ -969,6 +995,15 @@ export const TargetContainer = () => {
                     </option>
                   ))}
                 </select>
+                <div className={`ml-[16px] flex items-center space-x-[3px] whitespace-nowrap`}>
+                  {isConfirmedSelectedFY && (
+                    <>
+                      <span className={`text-[#00d436]`}>設定済み</span>
+                      <BsCheck2 className="pointer-events-none min-h-[18px] min-w-[18px] stroke-1 text-[18px] text-[#00d436]" />
+                    </>
+                  )}
+                  {!isConfirmedSelectedFY && <span className={`text-[var(--main-color-tk)]`}>未設定</span>}
+                </div>
               </li>
               {/* ------------------------------------ */}
               <hr className="min-h-[1px] w-full bg-[#999]" />
@@ -1034,7 +1069,7 @@ export const TargetContainer = () => {
                   value={selectedFiscalYearLocal}
                   onChange={(e) => {
                     setSelectedFiscalYearLocal(Number(e.target.value));
-                    if (openPopupMenu) handleClosePopupMenu();
+                    // if (openPopupMenu) handleClosePopupMenu();
                   }}
                 >
                   {optionsFiscalYear.map((year) => (
