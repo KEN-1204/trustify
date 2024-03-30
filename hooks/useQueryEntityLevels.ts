@@ -8,7 +8,7 @@ export const useQueryEntityLevels = (
   fiscalYear: number | null | undefined,
   targetType: string | null | undefined,
   isReady: boolean = true
-): (EntityLevelStructures & { fiscal_year: number })[] => {
+) => {
   const supabase = useSupabaseClient();
 
   const getEntityLevels = async () => {
@@ -22,13 +22,8 @@ export const useQueryEntityLevels = (
       _fiscal_year: fiscalYear,
       _target_type: targetType,
     };
+    console.log("🔥useQueryEntityLevels実行 payload: ", payload);
     const { data, error } = await supabase.rpc("get_entity_levels_by_company_and_fiscal_year", payload);
-    // const { data, error } = await supabase
-    //   .from("fiscal_years")
-    //   .select("*")
-    //   .eq("created_by_company_id", company_id)
-    //   .eq("target_type", targetType)
-    //   .order("fiscal_year", { ascending: false });
 
     if (error) {
       console.log("❌getEntityLevelsエラー発生", error.message);
@@ -52,15 +47,23 @@ export const useQueryEntityLevels = (
   });
 };
 
-// const entityStructuresResponse = [
-//   { companyLevelId: [companyEntity1] },
-//   { departmentLevelId: [{ companyEntityId: [departmentEntity1, departmentEntity2] }] },
-//   {
-//     sectionLevelId: [
-//       {
-//         departmentEntityId1: [sectionEntity1, sectionEntity2],
-//         departmentEntityId2: [sectionEntity3, sectionEntity4],
-//       },
+// const entityStructuresResponse = {
+//   会社レベルid: [{上位エンティティId1: [
+//     {id: エンティティID, entity_name: エンティティ名, ...}
+//   ]}],
+//   事業部レベルid: [{上位エンティティId1: [
+//     {id: エンティティID, entity_name: エンティティ名, ...},
+//     {id: エンティティID, entity_name: エンティティ名, ...}
+//   ]}],
+//   課レベルid: [
+//         {上位エンティティId1: [
+//           {id: エンティティID, entity_name: エンティティ名, ...},
+//           {id: エンティティID, entity_name: エンティティ名, ...}
+//         ]},
+//         {上位エンティティId2: [
+//           {id: エンティティID, entity_name: エンティティ名, ...},
+//           {id: エンティティID, entity_name: エンティティ名, ...}
+//         ]},
 //     ],
+//   係レベルid: [...]
 //   },
-// ];

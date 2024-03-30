@@ -2354,7 +2354,12 @@ const CompanyMainContainerMemo: FC = () => {
                       onChange={(e) => setInputProductL(e.target.value)}
                     >
                       <option value=""></option>
-                      <option value="電子部品・モジュール">電子部品・モジュール</option>
+                      {optionsIndustryType.map((option) => (
+                        <option key={option} value={option.toString()}>
+                          {mappingIndustryType[option][language]}
+                        </option>
+                      ))}
+                      {/* <option value="電子部品・モジュール">電子部品・モジュール</option>
                       <option value="機械部品">機械部品</option>
                       <option value="製造・加工機械">製造・加工機械</option>
                       <option value="科学・理化学機器">科学・理化学機器</option>
@@ -2368,7 +2373,7 @@ const CompanyMainContainerMemo: FC = () => {
                       <option value="オフィス">オフィス</option>
                       <option value="業務支援サービス">業務支援サービス</option>
                       <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
-                      <option value="その他">その他</option>
+                      <option value="その他">その他</option> */}
                     </select>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}

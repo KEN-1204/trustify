@@ -1,15 +1,22 @@
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
-import { memo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import styles from "../../DashboardSalesTargetComponent.module.css";
 import { MdOutlineDataSaverOff, MdSaveAlt } from "react-icons/md";
 import useDashboardStore from "@/store/useDashboardStore";
 import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
 import useStore from "@/store";
-import { dataIllustration } from "@/components/assets";
+import { addTaskIllustration, dataIllustration } from "@/components/assets";
 import { BsCheck2 } from "react-icons/bs";
 import NextImage from "next/image";
+import { useQueryEntityLevels } from "@/hooks/useQueryEntityLevels";
+import { useQueryEntities } from "@/hooks/useQueryEntities";
+import { Department, Office, Section, Unit } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 const UpsertTargetEntityMemo = () => {
+  const queryClient = useQueryClient();
+  const language = useStore((state) => state.language);
+  const userProfileState = useDashboardStore((state) => state.userProfileState);
   const upsertTargetObj = useDashboardStore((state) => state.upsertTargetObj);
   const setUpsertTargetObj = useDashboardStore((state) => state.setUpsertTargetObj);
   const setUpsertTargetMode = useDashboardStore((state) => state.setUpsertTargetMode);
@@ -20,14 +27,117 @@ const UpsertTargetEntityMemo = () => {
   const [isStickySidebar, setIsStickySidebar] = useState(false);
   const [isStickyHeader, setIsStickyHeader] = useState(false);
 
-  if (!upsertTargetObj) return;
+  if (!userProfileState) return null;
+  if (!userProfileState.company_id) return null;
+  if (!upsertTargetObj) return null;
+  if (!upsertTargetObj.fiscalYear) return null;
 
-  // 目標設定モードを終了
+  // // 選択中の会計年度ローカルstate
+  // const [selectedFiscalYearLocal, setSelectedFiscalYearLocal] = useState(upsertTargetObj.fiscalYear);
+  // // 年度オプション選択肢
+  // const optionsFiscalYear = useDashboardStore((state) => state.optionsFiscalYear);
+  // const setOptionsFiscalYear = useDashboardStore((state) => state.setOptionsFiscalYear);
+
+  // ===================== 🌠エンティティレベルuseQuery🌠 =====================
+  const {
+    data: entityLevelsQueryData,
+    isLoading: isLoadingQueryLevel,
+    isError: isErrorQueryLevel,
+  } = useQueryEntityLevels(userProfileState.company_id, upsertTargetObj.fiscalYear, "sales_target", true);
+  // ===================== 🌠エンティティレベルuseQuery🌠 =====================
+
+  // ===================== 🌠エンティティuseQuery🌠 =====================
+  // エンティティレベルのidのみで配列を作成(エンティティuseQuery用)
+  const entityLevelIds = useMemo(() => {
+    if (!entityLevelsQueryData) return [];
+    return entityLevelsQueryData.map((obj) => obj.id);
+  }, [entityLevelsQueryData]);
+
+  const {
+    data: entitiesQueryData,
+    isLoading: isLoadingQueryEntities,
+    isError: isErrorQueryEntities,
+  } = useQueryEntities(userProfileState.company_id, upsertTargetObj.fiscalYear, "sales_target", entityLevelIds, true);
+  // ===================== 🌠エンティティuseQuery🌠 =====================
+
+  // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
+  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
+  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
+
+  // エンティティレベルMap key: レベル名, value: オブジェクトのMapオブジェクトを生成
+  const entityLevelsMap = useMemo(() => {
+    if (!entityLevelsQueryData || entityLevelsQueryData?.length === 0) return null;
+    return new Map(entityLevelsQueryData.map((obj) => [obj.entity_level, obj]));
+  }, [entityLevelsQueryData]);
+
+  // ===================== 🌟ユーザーが作成したエンティティのみのセクションリストを再生成🌟 =====================
+  const entityLevelList: {
+    title: string;
+    name: {
+      [key: string]: string;
+    };
+  }[] = useMemo(() => {
+    let newEntityList = [{ title: "company", name: { ja: "全社", en: "Company" } }];
+    if (departmentDataArray && departmentDataArray.length > 0) {
+      newEntityList.push({ title: "department", name: { ja: "事業部", en: "Department" } });
+    }
+    if (sectionDataArray && sectionDataArray.length > 0) {
+      newEntityList.push({ title: "section", name: { ja: "課・セクション", en: "Section" } });
+    }
+    if (unitDataArray && unitDataArray.length > 0) {
+      newEntityList.push({ title: "unit", name: { ja: "係・チーム", en: "Unit" } });
+    }
+    // メンバーは必ず追加
+    newEntityList.push({ title: "member", name: { ja: "メンバー", en: "Member" } });
+    // 事業所は一旦見合わせ
+    // if (officeDataArray && officeDataArray.length > 0) {
+    //   newEntityList.push({ title: "office", name: { ja: "事業所", en: "Office" } });
+    // }
+
+    // まだ一つもレベルが追加されていない場合は全てのレベルの選択肢を返す
+    if (!entityLevelsMap || entityLevelsMap.size === 0) return newEntityList;
+
+    // 既に指定年度の売上目標を構成するレベルが追加されている場合、追加済みの末端レベルの下位レベルに当たるレベル以降を選択肢としてフィルターして返す
+    if (entityLevelsMap.has("member")) return [];
+    if (entityLevelsMap.has("unit")) return [{ title: "member", name: { ja: "メンバー", en: "Member" } }];
+    if (entityLevelsMap.has("section")) {
+      return newEntityList.filter((obj) => ["unit", "member"].includes(obj.title));
+    }
+    if (entityLevelsMap.has("department")) {
+      return newEntityList.filter((obj) => ["section", "unit", "member"].includes(obj.title));
+    }
+    if (entityLevelsMap.has("company")) {
+      return newEntityList.filter((obj) => ["department", "section", "unit", "member"].includes(obj.title));
+    }
+    return [];
+  }, [departmentDataArray, sectionDataArray, unitDataArray, officeDataArray]);
+  // ===================== 🌟ユーザーが作成したエンティティのみのセクションリストを再生成🌟 =====================
+
+  // =====================初回のエンティティレベルの選択肢=====================
+  const [selectedEntityLevel, setSelectedEntityLevel] = useState(() => {
+    // 既に追加済みのレベルの下位レベルを選択済みにする
+    if (!entityLevelsMap || entityLevelsMap.size === 0) return "company";
+    if (entityLevelsMap.has("member")) return "";
+    if (entityLevelsMap.has("unit")) return "member";
+    if (entityLevelsMap.has("section")) return entityLevelsMap.has("unit") ? "unit" : "member";
+    if (entityLevelsMap.has("department")) {
+      if (entityLevelsMap.has("section")) entityLevelsMap.has("unit") ? "unit" : "member";
+      return "member";
+    }
+    return "company";
+  });
+
+  // ===================== 関数 =====================
+  // 🌟目標設定モードを終了
   const handleCancelUpsert = () => {
     // setUpsertTargetMode(false);
     setUpsertTargetMode(null);
     setUpsertTargetObj(null);
   };
+  // ===================== 関数 =====================
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
@@ -82,7 +192,17 @@ const UpsertTargetEntityMemo = () => {
   const getActiveDesc = (num: number) =>
     step === num ? `text-[var(--color-text-title)]` : `text-[var(--color-text-disabled)]`;
 
-  console.log("UpsertTargetEntityコンポーネントレンダリング", "upsertTargetObj", upsertTargetObj);
+  console.log(
+    "UpsertTargetEntityコンポーネントレンダリング",
+    "upsertTargetObj",
+    upsertTargetObj,
+    "entityLevelsQueryData",
+    entityLevelsQueryData,
+    "entityLevelIds",
+    entityLevelIds,
+    "entitiesQueryData",
+    entitiesQueryData
+  );
   return (
     <>
       {/* ローディング */}
@@ -284,12 +404,31 @@ const UpsertTargetEntityMemo = () => {
                           各メンバーは一つ上のレイヤーで決めた売上目標と半期の売上目標シェアを割り振り、現在の保有している案件と来期の売上見込みを基に「半期〜月次」の売上目標を設定してください。 */}
                         </p>
                       </div>
-                      <button
-                        className={`transition-bg01 flex-center mt-[20px] max-w-max cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[13px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`}
-                        // onClick={() => setIsOpenSettingInvitationModal(true)}
-                      >
-                        <span>レイヤーを追加</span>
-                      </button>
+                      <div className={`mt-[20px] flex items-center`}>
+                        {selectedEntityLevel !== "" && (
+                          <select
+                            className={`${styles.select_box} ${styles.both} mr-[20px] truncate`}
+                            style={{ maxWidth: `150px` }}
+                            value={selectedEntityLevel}
+                            onChange={(e) => {
+                              setSelectedEntityLevel(e.target.value);
+                              // if (openPopupMenu) handleClosePopupMenu();
+                            }}
+                          >
+                            {entityLevelList.map((obj) => (
+                              <option key={obj.title} value={obj.title}>
+                                {obj.name[language]}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                        <button
+                          className={`transition-bg01 flex-center max-w-max cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[13px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-hover)]`}
+                          // onClick={() => setIsOpenSettingInvitationModal(true)}
+                        >
+                          <span>レイヤーを追加</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -344,72 +483,90 @@ const UpsertTargetEntityMemo = () => {
                   </li>
                 </ul>
               </div> */}
-              <div className={`${styles.col}`}>
-                <div className={`flex w-full justify-between`}>
-                  <h4 className={`text-[19px] font-bold`}>課・セクション</h4>
+              {!entityLevelsQueryData?.length && (
+                <div
+                  className={`flex-col-center h-[calc(100vh-56px-66px-168px-32px)] w-[calc(100vw-72px-260px-32px)]  p-[16px] text-[13px]`}
+                >
+                  <div className={`flex-col-center relative mt-[-56px]`}>
+                    {addTaskIllustration()}
+                    <div className={`flex-col-center absolute bottom-[0] z-10`}>
+                      <p>データがありません。</p>
+                      <p>レイヤーを追加してください。</p>
+                    </div>
+                  </div>
                 </div>
-                <ul className={`flex w-full flex-col`}>
-                  {Array(2)
-                    .fill(null)
-                    .map((_, index) => (
-                      <li key={`section_${index}`} className="mb-[6px] mt-[16px] flex w-full flex-col">
-                        <h3 className={`mb-[0px] flex min-h-[30px] items-center justify-between font-bold`}>
-                          <div className="flex min-w-max flex-col space-y-[3px]">
-                            <div className="flex min-w-max items-center space-x-[6px] pr-[9px] text-[15px]">
-                              <NextImage
-                                width={21}
-                                height={21}
-                                src={`/assets/images/icons/business/icons8-process-94.png`}
-                                alt="setting"
-                                className={`${styles.title_icon} mb-[2px]`}
-                              />
-                              <span className="max-w-[270px] truncate">マイクロスコープ事業部</span>
-                              {/* <BsCheck2 className="pointer-events-none min-h-[20px] min-w-[20px] stroke-1 text-[20px] text-[#00d436]" /> */}
-                            </div>
-                            <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]" />
-                          </div>
-                          <div
-                            className={`${styles.btn} ${styles.brand} truncate font-normal`}
-                            onClick={() => {
-                              console.log("item.unit_price");
-                            }}
-                          >
-                            {/* 編集 */}
-                            設定
-                          </div>
-                        </h3>
-                        <ul className={`w-full`}>
-                          {Array(3)
-                            .fill(null)
-                            .map((_, index) => (
-                              <li
-                                key={`list_${index}`}
-                                className={`flex w-full items-center justify-between border-b border-solid border-[var(--color-border-light)] pb-[10px] pt-[16px]`}
-                              >
-                                <div className={`flex max-w-[290px] items-center`}>
-                                  {/* <div className={`mr-[6px] min-w-max`}>
+              )}
+              {!!entityLevelsQueryData?.length &&
+                entityLevelsQueryData.map((obj) => {
+                  return (
+                    <div key={`column_${obj.id}`} className={`${styles.col}`}>
+                      <div className={`flex w-full justify-between`}>
+                        <h4 className={`text-[19px] font-bold`}>課・セクション</h4>
+                      </div>
+                      <ul className={`flex w-full flex-col`}>
+                        {Array(2)
+                          .fill(null)
+                          .map((_, index) => (
+                            <li key={`section_${index}`} className="mb-[6px] mt-[16px] flex w-full flex-col">
+                              <h3 className={`mb-[0px] flex min-h-[30px] items-center justify-between font-bold`}>
+                                <div className="flex min-w-max flex-col space-y-[3px]">
+                                  <div className="flex min-w-max items-center space-x-[6px] pr-[9px] text-[15px]">
+                                    <NextImage
+                                      width={21}
+                                      height={21}
+                                      src={`/assets/images/icons/business/icons8-process-94.png`}
+                                      alt="setting"
+                                      className={`${styles.title_icon} mb-[2px]`}
+                                    />
+                                    <span className="max-w-[270px] truncate">マイクロスコープ事業部</span>
+                                    {/* <BsCheck2 className="pointer-events-none min-h-[20px] min-w-[20px] stroke-1 text-[20px] text-[#00d436]" /> */}
+                                  </div>
+                                  <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]" />
+                                </div>
+                                <div
+                                  className={`${styles.btn} ${styles.brand} truncate font-normal`}
+                                  onClick={() => {
+                                    console.log("item.unit_price");
+                                  }}
+                                >
+                                  {/* 編集 */}
+                                  設定
+                                </div>
+                              </h3>
+                              <ul className={`w-full`}>
+                                {Array(3)
+                                  .fill(null)
+                                  .map((_, index) => (
+                                    <li
+                                      key={`list_${index}`}
+                                      className={`flex w-full items-center justify-between border-b border-solid border-[var(--color-border-light)] pb-[10px] pt-[16px]`}
+                                    >
+                                      <div className={`flex max-w-[290px] items-center`}>
+                                        {/* <div className={`mr-[6px] min-w-max`}>
                                     <MdOutlineDataSaverOff
                                       className={`${styles.list_icon} min-h-[18px] min-w-[18px] text-[18px]`}
                                     />
                                   </div> */}
-                                  <div className={`max-w-[290px] truncate text-[14px] font-bold`}>
-                                    マイクロスコープ事業部
-                                  </div>
-                                </div>
-                                <div className={`flex min-h-[30px] items-center`}>
-                                  <span className="text-[14px] text-[var(--color-text-sub)]">未設定</span>
-                                  {/* <div className={`flex items-center space-x-[6px]`}>
+                                        <div className={`max-w-[290px] truncate text-[14px] font-bold`}>
+                                          マイクロスコープ事業部
+                                        </div>
+                                      </div>
+                                      <div className={`flex min-h-[30px] items-center`}>
+                                        <span className="text-[14px] text-[var(--color-text-sub)]">未設定</span>
+                                        {/* <div className={`flex items-center space-x-[6px]`}>
                                     <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
                                     <span className="text-[14px] text-[var(--color-text-brand-f)]">設定済み</span>
                                   </div> */}
-                                </div>
-                              </li>
-                            ))}
-                        </ul>
-                      </li>
-                    ))}
-                </ul>
-              </div>
+                                      </div>
+                                    </li>
+                                  ))}
+                              </ul>
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  );
+                })}
               {/* <div className={`${styles.col}`}></div>
               <div className={`${styles.col}`}></div>
               <div className={`${styles.col}`}></div>

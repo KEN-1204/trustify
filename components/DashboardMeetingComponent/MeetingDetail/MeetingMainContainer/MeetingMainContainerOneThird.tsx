@@ -7518,58 +7518,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         onChange={(e) => setInputIndustryType(e.target.value)}
                       >
                         <option value=""></option>
-                        <option value="機械要素・部品">機械要素・部品</option>
-                        <option value="自動車・輸送機器">自動車・輸送機器</option>
-                        <option value="電子部品・半導体">電子部品・半導体</option>
-                        <option value="製造・加工受託">製造・加工受託</option>
-                        <option value="産業用機械">産業用機械</option>
-                        <option value="産業用電気機器">産業用電気機器</option>
-                        <option value="IT・情報通信">IT・情報通信</option>
-                        <option value="ソフトウェア">ソフトウェア</option>
-                        <option value="医薬品・バイオ">医薬品・バイオ</option>
-                        <option value="樹脂・プラスチック">樹脂・プラスチック</option>
-                        <option value="ゴム製品">ゴム製品</option>
-                        <option value="鉄/非鉄金属">鉄/非鉄金属</option>
-                        <option value="民生用電気機器">民生用電気機器</option>
-                        <option value="航空・宇宙">航空・宇宙</option>
-                        <option value="CAD/CAM">CAD/CAM</option>
-                        <option value="建材・資材・什器">建材・資材・什器</option>
-                        <option value="小売">小売</option>
-                        <option value="飲食料品">飲食料品</option>
-                        <option value="飲食店・宿泊業">飲食店・宿泊業</option>
-                        <option value="公益・特殊・独立行政法人">公益・特殊・独立行政法人</option>
-                        <option value="水産・農林業">水産・農林業</option>
-                        <option value="繊維">繊維</option>
-                        <option value="ガラス・土石製品">ガラス・土石製品</option>
-                        <option value="造船・重機">造船・重機</option>
-                        <option value="環境">環境</option>
-                        <option value="印刷業">印刷業</option>
-                        <option value="運輸業">運輸業</option>
-                        <option value="金融・証券・保険業">金融・証券・保険業</option>
-                        <option value="警察・消防・自衛隊">警察・消防・自衛隊</option>
-                        <option value="鉱業">鉱業</option>
-                        <option value="紙・バルブ">紙・バルブ</option>
-                        <option value="木材">木材</option>
-                        <option value="ロボット">ロボット</option>
-                        <option value="試験・分析・測定">試験・分析・測定</option>
-                        <option value="エネルギー">エネルギー</option>
-                        <option value="電気・ガス・水道業">電気・ガス・水道業</option>
-                        <option value="医療・福祉">医療・福祉</option>
-                        <option value="サービス業">サービス業</option>
-                        <option value="その他">その他</option>
-                        <option value="化学">化学</option>
-                        <option value="セラミックス">セラミックス</option>
-                        <option value="食品機械">食品機械</option>
-                        <option value="光学機器">光学機器</option>
-                        <option value="医療機器">医療機器</option>
-                        <option value="その他製造">その他製造</option>
-                        <option value="倉庫・運輸関連業">倉庫・運輸関連業</option>
-                        <option value="教育・研究機関">教育・研究機関</option>
-                        <option value="石油・石炭製品">石油・石炭製品</option>
-                        <option value="商社・卸売">商社・卸売</option>
-                        <option value="官公庁">官公庁</option>
-                        <option value="個人">個人</option>
-                        <option value="不明">不明</option>
+                        {optionsIndustryType.map((option) => (
+                          <option key={option} value={option}>
+                            {mappingIndustryType[option][language]}
+                          </option>
+                        ))}
                       </select>
                     )}
                   </div>
