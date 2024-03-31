@@ -1384,7 +1384,8 @@
   transition: transform 0.3s ease, margin 0.3s ease; */
   height: 100%;
   margin-top: 12px;
-  color: var(--color-text-sub);
+  /* color: var(--color-text-sub); */
+  color: var(--color-text-disabled);
   white-space: pre-wrap;
 }
 .main_container_entity .contents_area_entity .left_container .step_container .description.open {

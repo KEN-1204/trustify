@@ -2580,6 +2580,20 @@ export type EntityStructures = {
   entity_name: string | null;
   parent_entity_name: string | null;
 };
+// SELECTで取得する時用のEntityLevel
+export type EntityLevels = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  fiscal_year_id: string;
+  created_by_company_id: string;
+  entity_level: string;
+  is_confirmed_annual_half: boolean;
+  is_confirmed_first_half_details: boolean;
+  is_confirmed_second_half_details: boolean;
+  target_type: string;
+  fiscal_year: number; //fiscal_yearsテーブルから
+};
 // SELECTで取得する時用のEntity
 export type Entity = {
   id: string;
@@ -2624,11 +2638,16 @@ export type SalesTargets = {
 // レベル内の各エンティティをFUNCTIONで取得するデータ型
 //  {レベル名: [{上位エンティティid: [obj, obj, ...]}, {上位エンティティid: [obj, obj, ...]}]}
 // エンティティレベル名
-export type EntityLevelNames = "company" | "department" | "section" | "member" | "office";
 // 各レベル名をkeyとして割り当てられるvalueの配列
 // [{上位エンティティid: [エンティティobj, エンティティobj, ...]}, {上位エンティティid: [obj, obj, ...]}]
-export type EntityGroupByParent = Record<string, Entity>;
-export type EntitiesHierarchy = Record<EntityLevelNames, EntityGroupByParent>;
+export type EntityLevelNames = "company" | "department" | "section" | "unit" | "member" | "office";
+export type EntityGroupByParent = {
+  parent_entity_id: string;
+  parent_entity_name: string;
+  entities: Entity[];
+};
+// export type EntitiesHierarchy = Record<EntityLevelNames, EntityGroupByParent[]>;
+export type EntitiesHierarchy = { [K in EntityLevelNames]: EntityGroupByParent[] };
 // ------------- 🌠売上目標DB関連🌠 -------------
 
 // 売上目標 売上目標テーブルからFUNCTIONで取得

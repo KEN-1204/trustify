@@ -1,4 +1,4 @@
-import { EntityLevelStructures } from "@/types";
+import { EntityLevelStructures, EntityLevels } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -33,7 +33,8 @@ export const useQueryEntityLevels = (
     // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    return data as (EntityLevelStructures & { fiscal_year: number })[];
+    // return data as (EntityLevelStructures & { fiscal_year: number })[];
+    return data as EntityLevels[];
   };
 
   return useQuery({
@@ -48,22 +49,33 @@ export const useQueryEntityLevels = (
 };
 
 // const entityStructuresResponse = {
-//   会社レベルid: [{上位エンティティId1: [
-//     {id: エンティティID, entity_name: エンティティ名, ...}
-//   ]}],
-//   事業部レベルid: [{上位エンティティId1: [
+//   company: [{
+//     parent_entity_name: 'root',
+//     parent_entity_id: 'root',
+//     entities: [
+//     {id: エンティティID, entity_name: エンティティ名, ...},
+//   ]},],
+//   department: [{
+//     parent_entity_name: 上位エンティティ名,
+//     parent_entity_id: 上位エンティティId1,
+//     entities: [
 //     {id: エンティティID, entity_name: エンティティ名, ...},
 //     {id: エンティティID, entity_name: エンティティ名, ...}
 //   ]}],
-//   課レベルid: [
-//         {上位エンティティId1: [
-//           {id: エンティティID, entity_name: エンティティ名, ...},
-//           {id: エンティティID, entity_name: エンティティ名, ...}
-//         ]},
-//         {上位エンティティId2: [
-//           {id: エンティティID, entity_name: エンティティ名, ...},
-//           {id: エンティティID, entity_name: エンティティ名, ...}
-//         ]},
-//     ],
-//   係レベルid: [...]
-//   },
+//   section: [
+//   {
+//     parent_entity_name: 上位エンティティ名,
+//     parent_entity_id: 上位エンティティId1,
+//     entities: [
+//     {id: エンティティID, entity_name: エンティティ名, ...},
+//     {id: エンティティID, entity_name: エンティティ名, ...}
+//   ]},
+//   {
+//     parent_entity_name: 上位エンティティ名,
+//     parent_entity_id: 上位エンティティId2,
+//     entities: [
+//     {id: エンティティID, entity_name: エンティティ名, ...},
+//     {id: エンティティID, entity_name: エンティティ名, ...}
+//   ]}],
+//   unit: [...]
+// },

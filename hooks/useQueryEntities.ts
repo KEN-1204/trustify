@@ -15,11 +15,11 @@ export const useQueryEntities = (
   const entityLevelIdsStr = entityLevelIds?.length > 0 ? entityLevelIds.join(", ") : "";
 
   const getEntities = async () => {
-    if (!company_id) return [];
-    if (!fiscalYear) return [];
-    if (!targetType) return [];
-    if (!entityLevelIds || entityLevelIds?.length === 0) return [];
-    if (targetType !== "sales_target") return [];
+    if (!company_id) return null;
+    if (!fiscalYear) return null;
+    if (!targetType) return null;
+    if (!entityLevelIds || entityLevelIds?.length === 0) return null;
+    if (targetType !== "sales_target") return null;
 
     const payload = {
       _company_id: company_id,
@@ -53,22 +53,33 @@ export const useQueryEntities = (
 };
 
 // const entityStructuresResponse = {
-//   会社レベルid: [{上位エンティティId1: [
-//     {id: エンティティID, entity_name: エンティティ名, ...}
-//   ]}],
-//   事業部レベルid: [{上位エンティティId1: [
+//   company: [{
+//     parent_entity_name: 'root',
+//     parent_entity_id: 'root',
+//     entities: [
+//     {id: エンティティID, entity_name: エンティティ名, ...},
+//   ]},],
+//   department: [{
+//     parent_entity_name: 上位エンティティ名,
+//     parent_entity_id: 上位エンティティId1,
+//     entities: [
 //     {id: エンティティID, entity_name: エンティティ名, ...},
 //     {id: エンティティID, entity_name: エンティティ名, ...}
 //   ]}],
-//   課レベルid: [
-//         {上位エンティティId1: [
-//           {id: エンティティID, entity_name: エンティティ名, ...},
-//           {id: エンティティID, entity_name: エンティティ名, ...}
-//         ]},
-//         {上位エンティティId2: [
-//           {id: エンティティID, entity_name: エンティティ名, ...},
-//           {id: エンティティID, entity_name: エンティティ名, ...}
-//         ]},
-//     ],
-//   係レベルid: [...]
-//   },
+//   section: [
+//   {
+//     parent_entity_name: 上位エンティティ名,
+//     parent_entity_id: 上位エンティティId1,
+//     entities: [
+//     {id: エンティティID, entity_name: エンティティ名, ...},
+//     {id: エンティティID, entity_name: エンティティ名, ...}
+//   ]},
+//   {
+//     parent_entity_name: 上位エンティティ名,
+//     parent_entity_id: 上位エンティティId2,
+//     entities: [
+//     {id: エンティティID, entity_name: エンティティ名, ...},
+//     {id: エンティティID, entity_name: エンティティ名, ...}
+//   ]}],
+//   unit: [...]
+// },

@@ -1,3 +1,5 @@
+import { EntityLevelNames } from "@/types";
+
 // windowタブタイトル
 export const mappingTitle: { [key: string]: { [key: string]: string } } = {
   HOME: { ja: "ホーム - TRUSTiFY", en: "Home - TRUSTiFY" },
@@ -88,6 +90,7 @@ export const mappingMonthEnToJa = {
 
 // --------------------------- 🌟SDB関連🌟 ---------------------------
 // アクティブエンティティ名 activeEntityTabs メンバーは係のサブツリーとして同時に表示
+// export const mappingEntityName: { [K in EntityLevelNames]: { [key: string]: string } } = {
 export const mappingEntityName: { [key: string]: { [key: string]: string } } = {
   company: { ja: "全社", en: "Company" },
   department: { ja: "事業部", en: "Department" },
