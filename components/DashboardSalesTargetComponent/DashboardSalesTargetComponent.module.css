@@ -1376,23 +1376,30 @@
   box-shadow: var(--color-sales-card-border-sticky);
 }
 .main_container_entity .contents_area_entity .left_container .step_container .description {
-  /* transform-origin: top;
+  /*  */
+  transform-origin: top;
   transform: scaleY(0);
   opacity: 0;
   height: 0;
   margin-top: 0px;
-  transition: transform 0.3s ease, margin 0.3s ease; */
-  height: 100%;
-  margin-top: 12px;
+  transition: transform 0.3s ease, margin 0.3s ease;
+  margin-top: 6px;
+  /*  */
+  /* height: 100%;
+  margin-top: 12px; */
+  /*  */
   /* color: var(--color-text-sub); */
   color: var(--color-text-disabled);
   white-space: pre-wrap;
 }
 .main_container_entity .contents_area_entity .left_container .step_container .description.open {
-  /* transform: scaleY(1);
+  /*  */
+  transform: scaleY(1);
   opacity: 1;
   height: 100%;
-  margin-top: 12px; */
+  margin-top: 12px;
+  margin-bottom: 6px;
+  /*  */
   color: var(--color-text-title);
 }
 .main_container_entity .contents_area_entity .right_container .step_header_wrapper {

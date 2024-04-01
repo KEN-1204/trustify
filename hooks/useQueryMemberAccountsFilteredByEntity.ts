@@ -5,11 +5,18 @@ import { useQuery } from "@tanstack/react-query";
 
 type Props = {
   entityLevel?: string;
-  entityId?: string;
+  entityIds?: string[];
+  entityIdsStr?: string;
   isReady?: boolean;
 };
 
-export const useQueryMemberAccountsFilteredByEntity = ({ entityLevel, entityId, isReady = true }: Props) => {
+// 上位エンティティidに紐づくエンティティを全て抽出
+export const useQueryMemberAccountsFilteredByEntity = ({
+  entityLevel,
+  entityIds,
+  entityIdsStr,
+  isReady = true,
+}: Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const supabase = useSupabaseClient();
 
@@ -50,7 +57,7 @@ export const useQueryMemberAccountsFilteredByEntity = ({ entityLevel, entityId, 
           _subscription_id: userProfileState.subscription_id,
           _company_id: userProfileState.company_id,
           _entity_level: entityLevel,
-          _entity_id: entityId,
+          _entity_ids: entityIds,
         })
         .order("profile_name", { ascending: true });
       if (error) {
@@ -68,7 +75,7 @@ export const useQueryMemberAccountsFilteredByEntity = ({ entityLevel, entityId, 
   };
 
   return useQuery({
-    queryKey: ["member_accounts", entityLevel ?? "", entityId ?? ""],
+    queryKey: ["member_accounts", entityLevel ?? "", entityIdsStr ?? ""],
     queryFn: getMemberAccountsFilteredByEntity,
     staleTime: Infinity,
     onError: (error: any) => {

@@ -30,6 +30,7 @@ import {
   StampObj,
   StatusClosingDays,
   StripeSchedule,
+  UpsertSettingEntitiesObj,
   UpsertTargetObj,
   UserProfile,
   UserProfileCompanySubscription,
@@ -493,6 +494,9 @@ type State = {
   // 目標設定時のエンティティ・年度オブジェクト
   upsertTargetObj: UpsertTargetObj | null;
   setUpsertTargetObj: (payload: UpsertTargetObj | null) => void;
+  // 目標設定時の上位エンティティと紐づく設定対象の下位エンティティ配列・年度オブジェクト
+  upsertSettingEntitiesObj: UpsertSettingEntitiesObj | null;
+  setUpsertSettingEntitiesObj: (payload: UpsertSettingEntitiesObj | null) => void;
   // ユーザーのエンティティの中でメンバーの親に当たる末端のエンティティ
   // endEntity: string;
   // setEndEntity: (payload: string) => void;
@@ -1191,6 +1195,10 @@ const useDashboardStore = create<State>((set) => ({
   // 目標設定時のエンティティ・年度オブジェクト
   upsertTargetObj: null,
   setUpsertTargetObj: (payload) => set({ upsertTargetObj: payload }),
+  // 目標設定時の上位エンティティと紐づく設定対象の下位エンティティ配列・年度オブジェクト
+  upsertSettingEntitiesObj: null,
+  setUpsertSettingEntitiesObj: (payload) => set({ upsertSettingEntitiesObj: payload }),
+
   // ユーザーのエンティティの中でメンバーの親に当たる末端のエンティティ
   // endEntity: "company",
   // setEndEntity: (payload) => set({ endEntity: payload }),

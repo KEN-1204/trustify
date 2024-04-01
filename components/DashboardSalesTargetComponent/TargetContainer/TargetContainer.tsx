@@ -53,6 +53,9 @@ export const TargetContainer = () => {
   // 目標設定時の年度・エンティティオブジェクト
   const upsertTargetObj = useDashboardStore((state) => state.upsertTargetObj);
   const setUpsertTargetObj = useDashboardStore((state) => state.setUpsertTargetObj);
+  // 目標設定時の上位エンティティと紐づく設定対象の下位エンティティ配列・年度オブジェクト
+  const upsertSettingEntitiesObj = useDashboardStore((state) => state.upsertSettingEntitiesObj);
+  const setUpsertSettingEntitiesObj = useDashboardStore((state) => state.setUpsertSettingEntitiesObj);
 
   // 自社担当検索サイドテーブル開閉
   const [isOpenSearchMemberSideTableBefore, setIsOpenSearchMemberSideTableBefore] = useState(false);
@@ -680,7 +683,7 @@ export const TargetContainer = () => {
     if (fadeType === "fade") return styles.fade;
   };
 
-  // 目標設定モード開始(作成・編集ボタンクリック)
+  // 目標設定モード開始(作成・編集ボタンクリック)❌一旦中止
   const handleStartUpsertMode = () => {
     if (!activeEntityLocal) return alert("エラー：グループデータが見つかりませんでした。");
     // セクション・サブメニュー閉じる
@@ -716,6 +719,7 @@ export const TargetContainer = () => {
     setUpsertTargetMode("settingTarget");
   };
 
+  // 目標設定モード開始 エンティティレベルとエンティティの追加から ✅こちらを使用
   const handleStartUpsertEntityMode = () => {
     // セクション・サブメニュー閉じる
     handleCloseSectionMenu();
@@ -727,6 +731,14 @@ export const TargetContainer = () => {
       entityName: "",
       childEntityLevel: "",
     });
+    setUpsertSettingEntitiesObj({
+      fiscalYear: selectedFiscalYearLocal,
+      entityLevel: "",
+      entities: [],
+      parentEntityLevel: "",
+      parentEntityId: "",
+      parentEntityName: "",
+    });
     setUpsertTargetMode("settingEntity");
   };
 
@@ -735,6 +747,7 @@ export const TargetContainer = () => {
     // setUpsertTargetMode(false);
     setUpsertTargetMode(null);
     setUpsertTargetObj(null);
+    setUpsertSettingEntitiesObj(null);
   };
 
   // ---------------------変数---------------------
@@ -906,7 +919,7 @@ export const TargetContainer = () => {
       )}
       {/* ===================== 通常時スクロールコンテナ ここまで ===================== */}
       {/* ===================== Upsert目標設定時スクロールコンテナ ここから ===================== */}
-      {upsertTargetMode === "settingEntity" && upsertTargetObj && (
+      {upsertTargetMode === "settingEntity" && upsertSettingEntitiesObj && (
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<FallbackTargetContainer isUpsert={true} />}>
             <UpsertTargetEntity />

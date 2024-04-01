@@ -932,6 +932,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-text-sub-deep: rgba(25, 23, 17, 0.6); /* #19171199 */
   --color-text-sub-light: rgba(25, 23, 17, 0.5); /* #19171199 */
   --color-text-disabled: #bcbcbc;
+  --color-text-disabled-on-brand: #fff;
   --color-text-third: #333;
   --color-text-secondary: rgba(0, 0, 0, 0.5); /* テキストサブカラー or #7d7d7d */
   --color-text-secondary-hover: rgba(0, 0, 0, 0.9);
@@ -1811,6 +1812,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-text-sub-deep: #ddd;
   --color-text-sub-light: #ccccccd0;
   --color-text-disabled: #999;
+  --color-text-disabled-on-brand: #999;
   --color-text-third: #eee;
   --color-text-secondary: rgba(255, 255, 255, 0.7); /* テキストサブカラー or #7d7d7d */
   --color-text-secondary-hover: rgba(255, 255, 255, 1);
