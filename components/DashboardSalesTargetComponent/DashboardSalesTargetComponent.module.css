@@ -883,7 +883,7 @@
   font-size: 22px;
   font-weight: 600;
   padding-top: 10px;
-  padding-bottom: 10px;
+  /* padding-bottom: 10px; */
 }
 
 .section_title_area .btn,

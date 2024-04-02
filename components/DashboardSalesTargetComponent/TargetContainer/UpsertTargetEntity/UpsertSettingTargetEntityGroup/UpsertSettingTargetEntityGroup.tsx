@@ -8,7 +8,7 @@ import { MdSaveAlt } from "react-icons/md";
 import { RiSave3Fill } from "react-icons/ri";
 import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/ProgressCircle";
 import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/ProgressNumber";
-import { Department, MemberAccounts, Office, Section, Unit } from "@/types";
+import { Department, EntityLevelNames, MemberAccounts, Office, Section, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { SparkChart } from "@/components/Parts/Charts/SparkChart/SparkChart";
 import { ErrorBoundary } from "react-error-boundary";
@@ -28,7 +28,8 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { FallbackTargetTable } from "../../UpsertTarget/UpsertTargetGridTable/FallbackTargetTable";
 import { UpsertSettingTargetGridTable } from "./UpsertSettingTargetGridTable/UpsertSettingTargetGridTable";
 import { mappingEntityName } from "@/utils/mappings";
-import { AreaChartComponent } from "@/components/Parts/Charts/AreaChart/AreaChart";
+import { AreaChartComponent, LabelValue } from "@/components/Parts/Charts/AreaChart/AreaChart";
+import { AreaChartTrend } from "./AreaChartTrend/AreaChartTrend";
 
 export const columnHeaderListTarget = [
   "period_type",
@@ -363,7 +364,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     }
   };
 
-  const mappingDivName = {
+  const mappingDivName: { [K in EntityLevelNames]: { [key: string]: string } } = {
     company: { ja: "会社", en: "Company" },
     department: { ja: "事業部", en: "Department" },
     section: { ja: "課・セクション", en: "Section" },
@@ -566,6 +567,19 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     }
   };
 
+  // エリアチャート用labelValueArray メインターゲット用
+  const labelValueArrayMain = useMemo(() => {
+    return upsertSettingEntitiesObj.entities.map(
+      (obj) =>
+        ({
+          id: obj.entity_id,
+          // value: obj.
+          value: 1230000,
+          label: obj.entity_name,
+        } as LabelValue)
+    );
+  }, [upsertSettingEntitiesObj.entities]);
+
   console.log(
     "UpsertTargetコンポーネントレンダリング isEndEntity",
     isEndEntity,
@@ -686,7 +700,9 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                 {upsertSettingEntitiesObj.entityLevel !== "company" && (
                   <div className={`${styles.btn} ${styles.basic} space-x-[6px]`} onClick={handleOpenEditSubListModal}>
                     <HiOutlineSwitchHorizontal className={`text-[14px] `} />
-                    <span>{mappingDivName[upsertSettingEntitiesObj.entityLevel][language]}リスト編集</span>
+                    <span>
+                      {mappingDivName[upsertSettingEntitiesObj.entityLevel as EntityLevelNames][language]}リスト編集
+                    </span>
                   </div>
                 )}
                 {/* <div
@@ -728,11 +744,16 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                       </div>
                     </div>
                   </div>
-                  <div className={`${styles.area_chart_container} mt-[16px] h-[288px] w-full`}>
-                    {/* エリアチャート */}
-                    <AreaChartComponent id={Math.random()} />
-                    {/* エリアチャート ここまで */}
-                  </div>
+
+                  <AreaChartTrend />
+                  {/* <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
+                    <SpinnerX />
+                  </div> */}
+                  {/* <div
+                    className={`${styles.area_chart_container}  w-full bg-[red]/[0]`}
+                  >
+                    <AreaChartComponent labelType="" labelValueArray={labelValueArrayMain} delay={600} />
+                  </div> */}
                 </div>
                 <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
                   <div className={`${styles.card_title_area}`}>

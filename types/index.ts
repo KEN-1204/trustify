@@ -2990,12 +2990,24 @@ export type SalesSummaryYearHalf = {
   yo2y_growth: number; // 前年度前年伸び率実績(2年前から1年前の成長率)
 };
 
+// スパークチャート
 export type SparkChartObj = {
   title: string;
   subTitle: string;
   mainValue: number | null;
   growthRate: number | null;
   data: { date: string | number | null; value: number | null }[];
+};
+
+// エリアチャート
+export type LabelValue = {
+  id: string;
+  label: string;
+  value: any;
+  growthRate?: number | null | undefined; // 前年伸びはオプショナル
+};
+export type AreaChartObj = {
+  data: { date: string | number | null; value: number | null; [key: string]: string | number | null }[];
 };
 
 // 売上目標設定時のカラム

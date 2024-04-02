@@ -36,6 +36,15 @@
   /* 現在のメインロゴ: #2B7FFF
   現在のメインロゴ: #0AFFFF */
   --main-color-f: #0d99ff;
+  --main-color-f10: #0d99ff;
+  --main-color-f20: #0d99ff;
+  --main-color-f30: #0d99ff;
+  --main-color-f60: #0d99ff;
+  --main-color-f90: #0d99ff;
+  --main-color-fc0: #0d99ff;
+  --main-color-fd0: #0d99ff;
+  --main-color-fe0: #0d99ff;
+  --main-color-ff0: #0d99ff;
   --main-color-blue: #2b7fff;
   --main-color-blue-rgb: 43, 127, 255;
   --main-color-light: #0affff;
@@ -1045,7 +1054,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     #121212f9 100%
   );
   --color-chart-tooltip-bg: #fff;
-  --color-chart-tooltip-shadow: 0 0 0 1px var(--color-border-light), 0 2px 6px 2px #00000030;
+  --color-chart-tooltip-shadow: 0 0 0 1px var(--color-border-light), 0 7px 12px 2px #00000024;
   /* アラートポップアップ alert_popup */
   --color-alert-popup-bg: #fff6f8;
   /* --color-alert-popup-bg: #fff; */
@@ -1296,6 +1305,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-chart-fill-green-sheer: #22c55e;
   --color-chart-fill-red: #ef4444;
   --color-chart-fill-red-sheer: #ef4444;
+
+  --color-chart-dot-stroke: #fff;
   /* -------- ✅グラフ・チャート関連✅ light -------- */
 
   /* -------- 🌟売上目標🌟 light -------- */
@@ -2231,6 +2242,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-chart-fill-green-sheer: #22c55eb9;
   --color-chart-fill-red: #ef4444;
   --color-chart-fill-red-sheer: #ef4444b9;
+
+  --color-chart-dot-stroke: #565656;
   /* -------- ✅グラフ・チャート関連✅ dark -------- */
 
   /* -------- 🌟売上目標🌟 dark -------- */
@@ -2583,12 +2596,36 @@ textarea {
   opacity: 0;
   animation: fade 1s ease forwards;
 }
+.fadeout03_forward {
+  opacity: 0;
+  animation: fadeOut 0.3s ease forwards;
+}
+.fadeout05_forward {
+  opacity: 0;
+  animation: fadeOut 0.5s ease forwards;
+}
+.fadeout08_forward {
+  opacity: 0;
+  animation: fadeOut 0.8s ease forwards;
+}
+.fadeout10_forward {
+  opacity: 0;
+  animation: fadeOut 1s ease forwards;
+}
 @keyframes fade {
   0% {
     opacity: 0;
   }
   100% {
     opacity: 1;
+  }
+}
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
   }
 }
 .fade05-op09 {
