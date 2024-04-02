@@ -28,6 +28,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { FallbackTargetTable } from "../../UpsertTarget/UpsertTargetGridTable/FallbackTargetTable";
 import { UpsertSettingTargetGridTable } from "./UpsertSettingTargetGridTable/UpsertSettingTargetGridTable";
 import { mappingEntityName } from "@/utils/mappings";
+import { AreaChartComponent } from "@/components/Parts/Charts/AreaChart/AreaChart";
 
 export const columnHeaderListTarget = [
   "period_type",
@@ -203,17 +204,25 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // ローディング
   const [isLoading, setIsLoading] = useState(false);
 
-  // 目標設定モードを終了
-  const handleCancelUpsert = () => {
+  if (!userProfileState || !upsertSettingEntitiesObj || !fiscalYearStartEndDate) {
     setIsSettingTargetMode(false);
     setUpsertSettingEntitiesObj(null);
-  };
-
-  if (!userProfileState || !upsertSettingEntitiesObj || !fiscalYearStartEndDate) {
-    handleCancelUpsert();
     toast.error("エラー：会計年度データの取得に失敗しました...🙇‍♀️");
     return null;
   }
+
+  // 目標設定モードを終了
+  const handleCancelUpsert = () => {
+    setIsSettingTargetMode(false);
+    setUpsertSettingEntitiesObj({
+      ...upsertSettingEntitiesObj,
+      entityLevel: "",
+      entities: [],
+      parentEntityId: "",
+      parentEntityLevel: "",
+      parentEntityName: "",
+    });
+  };
 
   // 🌟エンティティid配列をSetオブジェクトに変換
   const entityIdsSet = useMemo(
@@ -336,6 +345,8 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // 部門別の名称
   const getDivName = () => {
     switch (upsertSettingEntitiesObj.entityLevel) {
+      case "company":
+        return language === "ja" ? `全社 - 部門別` : `Company - Sections`;
       case "department":
         return language === "ja" ? `事業部別` : `Departments`;
       case "section":
@@ -350,6 +361,15 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
         return language === "ja" ? `部門別` : `Division`;
         break;
     }
+  };
+
+  const mappingDivName = {
+    company: { ja: "会社", en: "Company" },
+    department: { ja: "事業部", en: "Department" },
+    section: { ja: "課・セクション", en: "Section" },
+    unit: { ja: "係・チーム", en: "Unit" },
+    member: { ja: "メンバー", en: "Member" },
+    office: { ja: "事業所", en: "Office" },
   };
 
   // 子コンポーネントを順番にフェッチさせる
@@ -618,17 +638,32 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                     stickyRow === upsertSettingEntitiesObj.parentEntityId ? styles.sticky_row : ``
                   }`}
                 >
-                  <UpsertSettingTargetGridTable
-                    isEndEntity={isEndEntity}
-                    entityLevel={upsertSettingEntitiesObj.parentEntityLevel}
-                    entityId={upsertSettingEntitiesObj.parentEntityId}
-                    entityNameTitle={upsertSettingEntitiesObj.parentEntityName}
-                    stickyRow={stickyRow}
-                    setStickyRow={setStickyRow}
-                    annualFiscalMonths={annualFiscalMonthsUpsert}
-                    isFirstHalf={isFirstHalf}
-                    isMainTarget={true}
-                  />
+                  {upsertSettingEntitiesObj.entityLevel === "company" && (
+                    <UpsertSettingTargetGridTable
+                      isEndEntity={isEndEntity}
+                      entityLevel={upsertSettingEntitiesObj.entityLevel}
+                      entityId={upsertSettingEntitiesObj.entities[0].entity_id}
+                      entityNameTitle={upsertSettingEntitiesObj.entities[0].entity_name}
+                      stickyRow={stickyRow}
+                      setStickyRow={setStickyRow}
+                      annualFiscalMonths={annualFiscalMonthsUpsert}
+                      isFirstHalf={isFirstHalf}
+                      isMainTarget={true}
+                    />
+                  )}
+                  {upsertSettingEntitiesObj.entityLevel !== "company" && (
+                    <UpsertSettingTargetGridTable
+                      isEndEntity={isEndEntity}
+                      entityLevel={upsertSettingEntitiesObj.parentEntityLevel}
+                      entityId={upsertSettingEntitiesObj.parentEntityId}
+                      entityNameTitle={upsertSettingEntitiesObj.parentEntityName}
+                      stickyRow={stickyRow}
+                      setStickyRow={setStickyRow}
+                      annualFiscalMonths={annualFiscalMonthsUpsert}
+                      isFirstHalf={isFirstHalf}
+                      isMainTarget={true}
+                    />
+                  )}
                 </div>
               </Suspense>
             </ErrorBoundary>
@@ -644,14 +679,16 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
             <div className={`${styles.section_title_area} flex w-full items-end justify-between`}>
               <h1 className={`${styles.title} ${styles.upsert}`}>
                 {/* <span>部門別</span> */}
-                <span>{getDivName()}</span>
+                {<span>{getDivName()}</span>}
               </h1>
 
               <div className={`${styles.btn_area} flex h-full items-center space-x-[12px]`}>
-                <div className={`${styles.btn} ${styles.basic} space-x-[6px]`} onClick={handleOpenEditSubListModal}>
-                  <HiOutlineSwitchHorizontal className={`text-[14px] `} />
-                  <span>部門リスト編集</span>
-                </div>
+                {upsertSettingEntitiesObj.entityLevel !== "company" && (
+                  <div className={`${styles.btn} ${styles.basic} space-x-[6px]`} onClick={handleOpenEditSubListModal}>
+                    <HiOutlineSwitchHorizontal className={`text-[14px] `} />
+                    <span>{mappingDivName[upsertSettingEntitiesObj.entityLevel][language]}リスト編集</span>
+                  </div>
+                )}
                 {/* <div
                   className={`${styles.btn} ${styles.brand} space-x-[3px]`}
                   onClick={(e) => {
@@ -671,8 +708,52 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                 <SpinnerX />
               </div>
             )}
-            {allFetched && (
-              <div className={`${styles.grid_row} ${styles.col3} fade08_forward`}>
+            {/* 🌟全社レベル🌟 */}
+            {allFetched && upsertSettingEntitiesObj.entityLevel === "company" && (
+              <div className={`${styles.grid_row} ${styles.col2} fade08_forward`}>
+                <div className={`${styles.grid_content_card}`} style={{ minHeight: `369px` }}>
+                  <div className={`${styles.card_title_area}`}>
+                    <div className={`${styles.card_title}`}>
+                      {/* <div className={`flex items-end`}> */}
+                      <div className={`flex flex-col`}>
+                        <span>売上推移 全社</span>
+                        {/* <span className={`mb-[3px] ml-[6px] text-[13px] text-[var(--color-text-sub)]`}>
+                          {upsertSettingEntitiesObj.fiscalYear - 3} ~ {upsertSettingEntitiesObj.fiscalYear - 1}
+                          年度
+                        </span> */}
+                        <span className={`text-[12px] text-[var(--color-text-sub)]`}>
+                          {upsertSettingEntitiesObj.fiscalYear - 3} ~ {upsertSettingEntitiesObj.fiscalYear - 1}
+                          年度
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`${styles.area_chart_container} mt-[16px] h-[288px] w-full`}>
+                    {/* エリアチャート */}
+                    <AreaChartComponent id={Math.random()} />
+                    {/* エリアチャート ここまで */}
+                  </div>
+                </div>
+                <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                  <div className={`${styles.card_title_area}`}>
+                    <div className={`${styles.card_title}`}>
+                      <div className={`flex flex-col`}>
+                        <span>売上推移 部門別</span>
+                        <span className={`text-[12px] text-[var(--color-text-sub)]`}>
+                          {upsertSettingEntitiesObj.fiscalYear - 3} ~ {upsertSettingEntitiesObj.fiscalYear - 1}
+                          年度
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`${styles.main_container}`}></div>
+                </div>
+              </div>
+            )}
+            {/* 🌟全社レベル🌟 */}
+            {/* 🌟事業〜メンバーレベル🌟 */}
+            {allFetched && upsertSettingEntitiesObj.entityLevel !== "company" && (
+              <div className={`${styles.grid_row} ${styles.col2} fade08_forward`}>
                 <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
                   <div className={`${styles.card_title_area}`}>
                     <div className={`${styles.card_title}`}>
@@ -684,25 +765,22 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                 <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
                   <div className={`${styles.card_title_area}`}>
                     <div className={`${styles.card_title}`}>
-                      <span>売上シェア {upsertSettingEntitiesObj.fiscalYear - 1}年度</span>
-                    </div>
-                  </div>
-                  <div className={`${styles.main_container}`}></div>
-                </div>
-                <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
-                  <div className={`${styles.card_title_area}`}>
-                    <div className={`${styles.card_title}`}>
-                      <span>売上シェア {upsertSettingEntitiesObj.fiscalYear - 2}年度</span>
+                      <span>
+                        売上推移 {upsertSettingEntitiesObj.fiscalYear - 3} ~ {upsertSettingEntitiesObj.fiscalYear - 1}
+                        年度
+                      </span>
                     </div>
                   </div>
                   <div className={`${styles.main_container}`}></div>
                 </div>
               </div>
             )}
+            {/* 🌟事業〜メンバーレベル🌟 */}
             {/* ----------- 部門別シェア ３列エリア ここまで ----------- */}
 
             {/* ---------- 部門別目標 ---------- */}
-            {subTargetList &&
+            {upsertSettingEntitiesObj.entityLevel !== "company" &&
+              subTargetList &&
               subTargetList.length > 0 &&
               subTargetList.map((obj, tableIndex) => {
                 const childEntityLevel = upsertSettingEntitiesObj.entityLevel;

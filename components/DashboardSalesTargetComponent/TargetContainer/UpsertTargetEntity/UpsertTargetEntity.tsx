@@ -594,6 +594,7 @@ const UpsertTargetEntityMemo = () => {
 
   // エンティティ目標設定モード終了
   const handleCloseSettingEntitiesTarget = () => {
+    // return console.log("リターン");
     setUpsertSettingEntitiesObj({
       ...upsertSettingEntitiesObj,
       parentEntityLevel: "",
@@ -763,11 +764,11 @@ const UpsertTargetEntityMemo = () => {
         <>
           {/* オーバーレイ */}
           <div
-            className={`spacer-left-overlay fixed left-0 top-0 z-[200] h-[100vh] min-w-[72px] bg-[red]/[0]`}
+            className={`spacer-left-overlay fixed left-0 top-0 z-[4500] h-[100vh] min-w-[72px] bg-[red]/[0]`}
             onClick={handleCloseSettingEntitiesTarget}
           ></div>
           <div
-            className={`spacer-top-overlay fixed left-0 top-0 z-[200] min-h-[56px] w-[100vw] bg-[green]/[0]`}
+            className={`spacer-top-overlay fixed left-0 top-0 z-[4500] min-h-[56px] w-[100vw] bg-[green]/[0]`}
             onClick={handleCloseSettingEntitiesTarget}
           ></div>
           <div className={`setting_target_container fixed left-0 top-0 z-[80] h-[100vh] w-[100vw] bg-[red]/[0]`}>

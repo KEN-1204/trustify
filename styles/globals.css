@@ -1044,6 +1044,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     #333333f9 70%,
     #121212f9 100%
   );
+  --color-chart-tooltip-bg: #fff;
+  --color-chart-tooltip-shadow: 0 0 0 1px var(--color-border-light), 0 2px 6px 2px #00000030;
   /* アラートポップアップ alert_popup */
   --color-alert-popup-bg: #fff6f8;
   /* --color-alert-popup-bg: #fff; */
@@ -1914,6 +1916,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     #333333d0 70%,
     #121212d0 100%
   );
+  --color-chart-tooltip-bg: var(--color-tooltip-gradient-black);
+  --color-chart-tooltip-shadow: 0 0 0 1px var(--color-border-light), 0 3px 9px 3px #00000030;
   /* アラートポップアップ alert_popup */
   --color-alert-popup-bg: #555;
   --color-alert-popup-text: #fff;

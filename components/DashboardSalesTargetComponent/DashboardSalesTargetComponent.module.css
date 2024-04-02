@@ -1490,3 +1490,10 @@ background: var(--color-sales-card-bg);
     border-radius: 12px;
 */
 /* ---------------------------- UpsertTargetEntity ここまで ---------------------------- */
+
+/* エリアチャート */
+/* ２列 */
+.area_chart_container {
+  /* padding: 0px 24px 5px 6px; */
+  padding: 0px 24px 16px 6px;
+}
