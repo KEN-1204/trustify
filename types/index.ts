@@ -2999,15 +2999,40 @@ export type SparkChartObj = {
   data: { date: string | number | null; value: number | null }[];
 };
 
-// エリアチャート
+// エリアチャート value1, value2 ...
+export type AreaChartObj = {
+  date: string | number;
+  value1: number;
+  [key: string]: string | number;
+};
 export type LabelValue = {
   id: string;
   label: string;
   value: any;
+  prevValue?: number | null | undefined; // 前年伸びが存在する時の前年度の売上や値
   growthRate?: number | null | undefined; // 前年伸びはオプショナル
 };
-export type AreaChartObj = {
-  data: { date: string | number | null; value: number | null; [key: string]: string | number | null }[];
+
+// 売上推移 useQueryのqueryFn内のFUNCTIONのレスポンスデータ
+export type SalesTrendResponse = {
+  entity_id: string;
+  entity_name: string;
+  entity_level: string;
+  period: number;
+  period_type: string;
+  current_sales: number;
+  previous_sales: number | null;
+  growth_rate: number | null;
+};
+
+// 🌠最終的にuseQueryで返すレスポンスデータ(整形後) 売上推移
+export type SalesTrendYearHalf = {
+  data: AreaChartObj[];
+  labelValue: LabelValue[];
+  sales_trends: SalesTrendResponse[];
+  labelType: string; // dateやsales_periodなど
+  period_type: string; // 期間タイプ
+  entity_level: string; // エンティティレベル
 };
 
 // 売上目標設定時のカラム

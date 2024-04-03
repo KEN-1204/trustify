@@ -865,7 +865,10 @@ const UpsertTargetEntityMemo = () => {
             </div>
           </div>
         </div>
+
+        {/* -------------------------------- コンテンツエリア -------------------------------- */}
         <div className={`${styles.contents_area_entity}`}>
+          {/* -------------------------------- 左コンテナ手順 -------------------------------- */}
           <div className={`${styles.left_container} bg-[red]/[0] ${isStickySidebar ? `${styles.sticky_side}` : ``}`}>
             <div className={`${styles.step_container} space-y-[12px]`}>
               <div className={`flex w-full justify-between`}>
@@ -994,8 +997,15 @@ const UpsertTargetEntityMemo = () => {
               {/* ------------- */}
             </div>
           </div>
+          {/* -------------------------------- 左コンテナ手順 ここまで -------------------------------- */}
+          {/* -------------------------------- 右コンテナ -------------------------------- */}
           <div className={`${styles.right_container} bg-[green]/[0]`}>
-            <div className={`${styles.step_header_wrapper} flex w-full ${isStickyHeader ? `sticky top-[8px]` : ``}`}>
+            {/* ------------------------ 右コンテナ 上ステップヘッダー ------------------------ */}
+            <div
+              className={`${styles.step_header_wrapper} fade08_forward flex w-full ${
+                isStickyHeader ? `sticky top-[8px]` : ``
+              }`}
+            >
               <div
                 className={`${styles.step_header} ${
                   isStickyHeader ? (isStickySidebar ? `${styles.sticky_with_side}` : `${styles.sticky_header}`) : ``
@@ -1132,6 +1142,8 @@ const UpsertTargetEntityMemo = () => {
                 </div>
               </div>
             </div>
+            {/* ------------------------ 右コンテナ 上ステップヘッダー ここまで ------------------------ */}
+            {/* ------------------------ 右コンテナ 上エンティティレベルコンテナ ------------------------ */}
             <div className={`${styles.contents_container_rb} flex h-full w-full`}>
               {/* <div className={`${styles.col}`}>
                 <div className={`flex w-full justify-between`}>
@@ -1171,7 +1183,7 @@ const UpsertTargetEntityMemo = () => {
                       ? entityHierarchyLocal[entityLevel as EntityLevelNames]
                       : null;
                   return (
-                    <div key={`column_${levelObj.id}`} className={`${styles.col}`}>
+                    <div key={`column_${levelObj.id}`} className={`${styles.col} fade08_forward`}>
                       <div className={`flex w-full justify-between`}>
                         <h4 className={`text-[19px] font-bold`}>{mappingEntityName[entityLevel][language]}</h4>
                         <div className={`flex items-center text-[13px]`}>
@@ -1322,13 +1334,12 @@ const UpsertTargetEntityMemo = () => {
                     </div>
                   );
                 })}
-              {/* <div className={`${styles.col}`}></div>
-              <div className={`${styles.col}`}></div>
-              <div className={`${styles.col}`}></div>
-              <div className={`${styles.col}`}></div> */}
             </div>
+            {/* ------------------------ 右コンテナ 上エンティティレベルコンテナ ここまで ------------------------ */}
           </div>
+          {/* -------------------------------- 右コンテナ ここまで -------------------------------- */}
         </div>
+        {/* -------------------------------- コンテンツエリア ここまで -------------------------------- */}
       </div>
       {/* ===================== スクロールコンテナ ここまで ===================== */}
     </>
