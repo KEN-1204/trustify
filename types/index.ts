@@ -2972,6 +2972,7 @@ export type UpsertTargetObj = {
 // 目標設定用 年度・エンティティ関連オブジェクト
 export type UpsertSettingEntitiesObj = {
   fiscalYear: number;
+  periodType: string; // 期間タイプ(fiscal_year, first_half_detail, second_half_details)
   entityLevel: string; // 全社・事業部
   entities: Entity[]; // 設定するエンティティid配列
   // entityName: string;
@@ -2988,6 +2989,19 @@ export type SalesSummaryYearHalf = {
   three_years_ago_sales: number;
   // growth_rate: number;
   yo2y_growth: number; // 前年度前年伸び率実績(2年前から1年前の成長率)
+};
+
+// 売上目標設定時のカラム
+export type SalesTargetUpsertColumns = {
+  period_type: string;
+  sales_target: number | string | null;
+  share: number | null;
+  yoy_growth: number | null;
+  yo2y_growth: number | null;
+  last_year_sales: number | null;
+  two_years_ago_sales: number | null;
+  three_years_ago_sales: number | null;
+  sales_trend: SparkChartObj;
 };
 
 // スパークチャート
@@ -3009,8 +3023,18 @@ export type LabelValue = {
   id: string;
   label: string;
   value: any;
-  prevValue?: number | null | undefined; // 前年伸びが存在する時の前年度の売上や値
-  growthRate?: number | null | undefined; // 前年伸びはオプショナル
+  prev_value?: number | null | undefined; // 前年伸びが存在する時の前年度の売上や値
+  growth_rate?: number | null | undefined; // 前年伸びはオプショナル
+};
+
+export type LabelValueGroupByPeriod = {
+  date: string | number;
+  label_list: LabelValue[];
+};
+
+export type LegendNameId = {
+  entity_id: string;
+  entity_name: string;
 };
 
 // 売上推移 useQueryのqueryFn内のFUNCTIONのレスポンスデータ
@@ -3027,23 +3051,12 @@ export type SalesTrendResponse = {
 
 // 🌠最終的にuseQueryで返すレスポンスデータ(整形後) 売上推移
 export type SalesTrendYearHalf = {
-  data: AreaChartObj[];
-  labelValue: LabelValue[];
-  sales_trends: SalesTrendResponse[];
+  chartData: AreaChartObj[];
+  labelValueGroupByPeriod: LabelValueGroupByPeriod[];
+  salesTrends: SalesTrendResponse[];
+  legendList: LegendNameId[];
+  groupedByPeriod: { [key: number | string]: SalesTrendResponse[] };
   labelType: string; // dateやsales_periodなど
-  period_type: string; // 期間タイプ
-  entity_level: string; // エンティティレベル
-};
-
-// 売上目標設定時のカラム
-export type SalesTargetUpsertColumns = {
-  period_type: string;
-  sales_target: number | string | null;
-  share: number | null;
-  yoy_growth: number | null;
-  yo2y_growth: number | null;
-  last_year_sales: number | null;
-  two_years_ago_sales: number | null;
-  three_years_ago_sales: number | null;
-  sales_trend: SparkChartObj;
+  periodType: string; // 期間タイプ
+  entityLevel: string; // エンティティレベル
 };

@@ -18,97 +18,65 @@ import styles from "./AreaChart.module.css";
 import { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { ja } from "date-fns/locale";
 import useStore from "@/store";
-import { LabelValue } from "@/types";
+import { AreaChartObj, LabelValue, LabelValueGroupByPeriod, LegendNameId } from "@/types";
+import { colorsHEXTrend } from "../Seeds/seedData";
 
 type Props = {
   //   data: { date: string | number | null; value: number | null }[];
   //   dataUpdateAt: number;
   //   height: number;
   //   width: number;
-  chartHeight?: number;
   //   chartWidth?: number;
   //   borderColor?: string;
-  delay?: number;
   //   requireFormat4Letter?: boolean;
+  chartHeight?: number;
+  delay?: number;
+  chartData: AreaChartObj[];
   labelType: string;
-  labelValueArray: LabelValue[];
+  labelValueGroupByPeriod: LabelValueGroupByPeriod[];
+  legendList: LegendNameId[];
 };
 
-const colorsArrayHEX = [
-  "var(--main-color-f)", // stripe
-  "#14b8a6", // teal
-  "#625afa", // stripe
-  //   "rgba(98, 90, 250)", // stripe
-  //   "#6366f1",
-  "#d946ef",
-  "#f43f5e",
-  "#f59e0b",
-  "#10b981",
-  "#3b82f6",
-  "#a855f7",
-  "#0ea5e9",
-  "#ec4899",
-  "#8b5cf6",
-  "#f97316",
-  "#22c55e",
-  "#ef4444",
-  "#84cc16",
-];
-const colorsArrayHEXSheer = [
-  "var(--main-color-f90)", // stripe
-  "#14b8a690", // teal
-  "#625afa90", // stripe
-  "#d946ef90",
-  "#f43f5e90",
-  "#f59e0b90",
-  "#10b98190",
-  "#3b82f690",
-  "#a855f790",
-  "#0ea5e990",
-  "#ec489990",
-  "#8b5cf690",
-  "#f9731690",
-  "#22c55e90",
-  "#ef444490",
-  "#84cc1690",
-];
-
 const AreaChartComponentMemo = ({
-  // chartHeight = 288,
-  //   chartHeight = 270,
   chartHeight = 286,
   delay,
+  chartData,
   labelType = "date",
-  labelValueArray,
+  labelValueGroupByPeriod,
+  legendList,
 }: Props) => {
   const language = useStore((state) => state.language);
-  const _data = useMemo(() => {
-    const data: { [key: string]: any }[] = [];
-    for (let num = 30; num >= 0; num--) {
-      data.push({
-        date: subDays(new Date(), num).toISOString().substring(0, 10),
-        // value: 1 + Math.random(),
-        value1: 1 + Math.random(),
-        value2: 1 + Math.random(),
-      });
-    }
-    // for (let num = 4; num >= 0; num--) {
-    //   data.push({
-    //     date: subDays(new Date(), num).toISOString().substring(0, 10),
-    //     value: 1 + Math.random(),
-    //   });
-    // }
-    return data;
-  }, []);
 
-  // dateを除いた全てのvalueを配列にまとめてAreaコンポーネントにmapで展開して渡す
-  //   const valueQuantityArray = useMemo(() => {
-  //     if (!_data) return [];
-  //     // dateプロパティを除いたvalueの個数分で配列を生成
-  //     return Array(Object.keys(_data[0]).length - 1).fill(null);
-  //   }, [_data]);
+  // ------------------------- テストデータ -------------------------
+  // const _data = useMemo(() => {
+  //   const data: { [key: string]: any }[] = [];
+  //   for (let num = 30; num >= 0; num--) {
+  //     data.push({
+  //       date: subDays(new Date(), num).toISOString().substring(0, 10),
+  //       // value: 1 + Math.random(),
+  //       value1: 1 + Math.random(),
+  //       value2: 1 + Math.random(),
+  //     });
+  //   }
+  //   // for (let num = 4; num >= 0; num--) {
+  //   //   data.push({
+  //   //     date: subDays(new Date(), num).toISOString().substring(0, 10),
+  //   //     value: 1 + Math.random(),
+  //   //   });
+  //   // }
+  //   return data;
+  // }, []);
+  // ------------------------- テストデータ ここまで -------------------------
+
+  // if (!chartData || !!chartData?.length) return null;
+
+  // 🔹期間ごとのlabel(ツールチップ用)のMapオブジェクトを作成
+  const periodToLabelValueMap = useMemo(() => {
+    return new Map(labelValueGroupByPeriod.map((obj) => [obj.date, obj.label_list]));
+  }, [labelValueGroupByPeriod]);
 
   const isUpwardTrend = useMemo(() => {
+    const _data = chartData;
     // 2つ以下ならnull
     if (_data.length < 2) return null;
     const lastValue = _data[_data.length - 1].value;
@@ -161,23 +129,23 @@ const AreaChartComponentMemo = ({
 
   return (
     <>
-      {isMounted && !!_data?.length && (
+      {isMounted && !!chartData?.length && (
         <ResponsiveContainer width="100%" height={chartHeight}>
-          <AreaChart data={_data} margin={{ top: 0, bottom: 0, right: 0, left: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 0, bottom: 0, right: 0, left: 0 }}>
             {/* <Area dataKey={`value`} stroke={trendColor} fill={`url(#spark_chart_gradient_${id})`} /> */}
-            {labelValueArray.map((obj, index) => (
-              <Fragment key={`value_${obj.id}`}>
+            {legendList.map((obj, index) => (
+              <Fragment key={`value_${obj.entity_id}`}>
                 <defs>
-                  <linearGradient id={`area_chart_gradient_${obj.id}_${index}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="12%" stopColor={colorsArrayHEX[index]} stopOpacity={0.4} />
-                    <stop offset="98%" stopColor={colorsArrayHEX[index]} stopOpacity={0} />
+                  <linearGradient id={`area_chart_gradient_${obj.entity_id}_${index}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="12%" stopColor={colorsHEXTrend[index]} stopOpacity={0.4} />
+                    <stop offset="98%" stopColor={colorsHEXTrend[index]} stopOpacity={0} />
                   </linearGradient>
                 </defs>
 
                 <Area
                   dataKey={`value${index + 1}`}
-                  stroke={colorsArrayHEX[index]}
-                  fill={`url(#area_chart_gradient_${obj.id}_${index})`}
+                  stroke={colorsHEXTrend[index]}
+                  fill={`url(#area_chart_gradient_${obj.entity_id}_${index})`}
                   activeDot={{ strokeWidth: 2, r: 5, stroke: `var(--color-chart-dot-stroke)` }}
                 />
               </Fragment>
@@ -200,7 +168,8 @@ const AreaChartComponentMemo = ({
                   props={props}
                   labelType={labelType}
                   language={language}
-                  labelValueArray={labelValueArray}
+                  labelValueGroupByPeriod={labelValueGroupByPeriod}
+                  periodToLabelValueMap={periodToLabelValueMap}
                   trendColor={trendColor}
                 />
               )}
@@ -210,12 +179,7 @@ const AreaChartComponentMemo = ({
               verticalAlign="top"
               height={36}
               content={(props) => (
-                <CustomLegend
-                  props={props}
-                  labelType={labelType}
-                  language={language}
-                  labelValueArray={labelValueArray}
-                />
+                <CustomLegend props={props} labelType={labelType} language={language} legendList={legendList} />
               )}
             />
 
@@ -234,15 +198,27 @@ type TooltipCustomProps = {
   props: TooltipProps<ValueType, NameType>;
   labelType: string;
   language: string;
-  labelValueArray: LabelValue[];
+  labelValueGroupByPeriod: LabelValueGroupByPeriod[];
+  periodToLabelValueMap: Map<string | number, LabelValue[]>;
   trendColor: string | null;
 };
 
-export const CustomTooltip = ({ props, labelType, language, labelValueArray, trendColor }: TooltipCustomProps) => {
+export const CustomTooltip = ({
+  props,
+  labelType,
+  language,
+  labelValueGroupByPeriod,
+  periodToLabelValueMap,
+  trendColor,
+}: TooltipCustomProps) => {
   const { active, payload, label } = props;
   if (!active) return null;
   if (payload === undefined) return null;
   if (payload[0].value === undefined) return null;
+
+  const labelValueGroup = periodToLabelValueMap.has(label) ? periodToLabelValueMap.get(label) : null;
+
+  if (!labelValueGroup) return null;
 
   return (
     <div className={`${styles.tooltip} pointer-events-none min-w-[240px]`}>
@@ -260,22 +236,22 @@ export const CustomTooltip = ({ props, labelType, language, labelValueArray, tre
       <hr className={`min-h-[1px] w-full bg-[var(--color-border-light)]`} />
 
       <ul className={`flex flex-col space-y-[4px]`}>
-        {!!labelValueArray?.length &&
-          labelValueArray.map((obj, index) => {
-            const growthRate = obj.growthRate;
+        {!!labelValueGroup?.length &&
+          labelValueGroup.map((obj, index) => {
+            const growthRate = obj.growth_rate;
             return (
               <li
                 key={`area_chart_tooltip_${obj.id}_${index}`}
                 className={`flex items-center justify-between px-[12px] text-[13px]`}
                 style={{
                   ...(index === 0 && { paddingTop: `6px` }),
-                  ...(labelValueArray.length - 1 === index && { paddingBottom: `6px` }),
+                  ...(labelValueGroup.length - 1 === index && { paddingBottom: `6px` }),
                 }}
               >
                 <div className={`mr-[24px] flex items-center`}>
                   <div
                     className={`mr-[6px] h-[8px] w-[8px] rounded-full`}
-                    style={{ background: `${colorsArrayHEX[index]}` }}
+                    style={{ background: `${colorsHEXTrend[index]}` }}
                   />
                   {/* <span>$ {Number(payload[index].value).toFixed(2)} CAD</span> */}
                   <span>{obj.label}</span>
@@ -323,10 +299,10 @@ type LegendCustomProps = {
   props: DefaultLegendContentProps;
   labelType: string;
   language: string;
-  labelValueArray: LabelValue[];
+  legendList: LegendNameId[];
 };
 
-export const CustomLegend = ({ props, labelType, language, labelValueArray }: LegendCustomProps) => {
+export const CustomLegend = ({ props, labelType, language, legendList }: LegendCustomProps) => {
   const { payload } = props;
 
   const [isHoveringLegend, setIsHoveringLegend] = useState(false);
@@ -384,7 +360,7 @@ export const CustomLegend = ({ props, labelType, language, labelValueArray }: Le
               >
                 <div
                   className={`mr-[6px] min-h-[8px] min-w-[8px] rounded-full`}
-                  style={{ background: `${colorsArrayHEX[index]}` }}
+                  style={{ background: `${colorsHEXTrend[index]}` }}
                 />
                 {/* <span>$ {Number(payload[index].value).toFixed(2)} CAD</span> */}
                 <span className={`truncate`}>マイクロスコープ事業部</span>
@@ -411,7 +387,7 @@ export const CustomLegend = ({ props, labelType, language, labelValueArray }: Le
             >
               <div
                 className={`mr-[6px] min-h-[8px] min-w-[8px] rounded-full`}
-                style={{ background: `${colorsArrayHEX[index]}` }}
+                style={{ background: `${colorsHEXTrend[index]}` }}
               />
               {/* <span>$ {Number(payload[index].value).toFixed(2)} CAD</span> */}
               {/* <span className={`${isOverflow ? `truncate` : `whitespace-nowrap`}`}>マイクロスコープ事業部</span> */}

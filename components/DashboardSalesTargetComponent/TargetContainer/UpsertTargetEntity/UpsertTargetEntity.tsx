@@ -18,7 +18,9 @@ import {
   EntityLevelNames,
   EntityLevels,
   Office,
+  PopupDescMenuParams,
   Section,
+  SectionMenuParams,
   Unit,
   UpsertSettingEntitiesObj,
 } from "@/types";
@@ -31,6 +33,9 @@ import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { FallbackTargetContainer } from "../FallbackTargetContainer";
 import { FiPlus } from "react-icons/fi";
+import { IoTriangleOutline } from "react-icons/io5";
+import { RxDot } from "react-icons/rx";
+import { mappingDescriptions, mappingPopupTitle } from "./dataSettingTarget";
 
 /*
 🌠上位エンティティグループに対して紐付ける方法のメリットとデメリット
@@ -71,6 +76,13 @@ const UpsertTargetEntityMemo = () => {
   const [step, setStep] = useState(1);
   // 目標設定を行う上位エンティティグループ()
   const [isSettingTargetMode, setIsSettingTargetMode] = useState(false);
+  // メンバーレベル時の「目標設定」クリックした選択中のメンバーエンティティと上期、下期どちらを選択しているか
+  const [selectedMemberAndPeriodType, setSelectedMemberAndPeriodType] = useState<{
+    memberGroupObjByParent: EntityGroupByParent;
+    periodType: string;
+    isConfirmFirstHalf: boolean;
+    isConfirmSecondHalf: boolean;
+  } | null>(null);
   // sticky
   const [isStickySidebar, setIsStickySidebar] = useState(false);
   const [isStickyHeader, setIsStickyHeader] = useState(false);
@@ -607,6 +619,183 @@ const UpsertTargetEntityMemo = () => {
   };
   // ===================== 関数 =====================
 
+  // --------------------- ポップアップメニュー関連 ---------------------
+  const sectionMenuRef = useRef<HTMLDivElement | null>(null);
+
+  // ---------------------🔹ポップアップメニュー
+  const [openSectionMenu, setOpenSectionMenu] = useState<{
+    x?: number;
+    y: number;
+    title?: string;
+    displayX?: string;
+    maxWidth?: number;
+    minWidth?: number;
+    fadeType?: string;
+  } | null>(null);
+  // 適用、戻るメニュー
+  const [openSubMenu, setOpenSubMenu] = useState<{
+    display: string;
+    fadeType: string;
+    sectionMenuWidth?: number;
+  } | null>(null);
+
+  const handleOpenSectionMenu = ({ e, title, displayX, maxWidth, minWidth, fadeType }: SectionMenuParams) => {
+    if (!displayX || displayX === "center") {
+      const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+      const positionY = y + height + 6;
+      let positionX = x;
+      if (displayX === "center") positionX = x + width / 2;
+      console.log("クリック", y, x, positionX);
+      setOpenSectionMenu({
+        y: positionY,
+        x: positionX,
+        title: title,
+        displayX: displayX,
+        fadeType: fadeType,
+        maxWidth: maxWidth,
+        minWidth: minWidth,
+      });
+    } else {
+      const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+      let positionX = 0;
+      let positionY = y;
+      if (displayX === "right") {
+        positionX = -18 - 50 - (maxWidth ?? 400);
+      } else if (displayX === "left") {
+        positionX = window.innerWidth - x;
+      } else if (displayX === "bottom_left") {
+        positionX = window.innerWidth - x - width;
+        positionY = y + height + 6;
+      }
+      // positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : 0;
+      // positionX = displayX === "left" ? window.innerWidth - x : 0;
+      // positionX = displayX === "bottom_left" ? window.innerWidth - x - width : 0;
+      // positionY = displayX === "bottom_left" ? y + height : y;
+      console.log("クリック", displayX, e, x, y, width, height);
+
+      setOpenSectionMenu({
+        x: positionX,
+        y: positionY,
+        title: title,
+        displayX: displayX,
+        maxWidth: maxWidth,
+        minWidth: minWidth,
+        fadeType: fadeType,
+      });
+    }
+  };
+  // メニューを閉じる
+  const handleCloseSectionMenu = () => {
+    if (openSectionMenu?.title === "settingSalesTarget") {
+      setOpenPopupMenu(null);
+      setOpenSubMenu(null);
+      // setActiveEntityLocal(null);
+    }
+
+    setOpenSectionMenu(null);
+  };
+
+  // ---------------------🔹説明メニュー
+  // 説明メニュー(onClickイベントで開いてホバー可能な状態はisHoverableをtrueにする)
+  const [openPopupMenu, setOpenPopupMenu] = useState<{
+    x?: number;
+    y: number;
+    title: string;
+    displayX?: string;
+    maxWidth?: number;
+    minWidth?: number;
+    fadeType?: string;
+    isHoverable?: boolean;
+    sectionMenuWidth?: number;
+  } | null>(null);
+
+  const handleOpenPopupMenu = ({
+    e,
+    title,
+    displayX,
+    maxWidth,
+    minWidth,
+    fadeType,
+    isHoverable,
+    sectionMenuWidth,
+  }: PopupDescMenuParams) => {
+    if (!displayX) {
+      const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+      const positionY = y + height + 6;
+      const positionCenter = x;
+      console.log("クリック", y);
+      setOpenPopupMenu({
+        y: positionY,
+        x: positionCenter,
+        title: title,
+        fadeType: fadeType,
+        isHoverable: isHoverable,
+      });
+    } else {
+      const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+      let positionX = 0;
+      let positionY = y;
+      if (displayX === "right") {
+        positionX = -18 - 50 - (maxWidth ?? 400);
+      } else if (displayX === "left") {
+        positionX = window.innerWidth - x + 6;
+      } else if (displayX === "bottom_left" && sectionMenuWidth) {
+        positionX = window.innerWidth - x - width + sectionMenuWidth + 6;
+        positionY = y + height + 6;
+      }
+      // positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : 0;
+      // positionX = displayX === "left" ? window.innerWidth - x : 0;
+      console.log("クリック", displayX, e, x, y, width, height);
+
+      setOpenPopupMenu({
+        x: positionX,
+        y: positionY,
+        title: title,
+        displayX: displayX,
+        maxWidth: maxWidth,
+        minWidth: minWidth,
+        fadeType: fadeType,
+        isHoverable: isHoverable,
+      });
+    }
+  };
+
+  // メニューを閉じる
+  const handleClosePopupMenu = () => {
+    setOpenPopupMenu(null);
+  };
+
+  // ポップアップのフェードタイプ
+  const getFadeTypeClass = (fadeType: string) => {
+    if (fadeType === "fade_down") return styles.fade_down;
+    if (fadeType === "fade_up") return styles.fade_up;
+    if (fadeType === "fade") return styles.fade;
+  };
+  // --------------------- ポップアップメニュー関連 ここまで ---------------------
+  // --------------------- メニュー liコンテンツ挿入用 ---------------------
+  type DescriptionProps = { title?: string; content: string; content2?: string; withDiv?: boolean };
+  const DescriptionList = ({ title, content, content2, withDiv = true }: DescriptionProps) => {
+    return (
+      <>
+        {title && (
+          <li className={`${styles.description_section_title} flex min-h-max w-full font-bold`}>
+            <div className="flex max-w-max flex-col">
+              <span>{title}</span>
+              <div className={`${styles.underline} w-full`} />
+            </div>
+          </li>
+        )}
+        <li className={`${styles.description_list_item} flex  w-full flex-col space-y-1 `}>
+          <p className="select-none whitespace-pre-wrap text-[12px] leading-[20px]">{content}</p>
+          {content2 && <p className="select-none whitespace-pre-wrap text-[12px] leading-[20px]">{content2}</p>}
+        </li>
+
+        {withDiv && <hr className="min-h-[1px] w-full bg-[#999]" />}
+      </>
+    );
+  };
+  // --------------------- メニュー liコンテンツ挿入用 ここまで ---------------------
+
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
   const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
@@ -969,7 +1158,7 @@ const UpsertTargetEntityMemo = () => {
                   <span>ステップ1~3を繰り返し、目標に関わる全メンバーの目標を設定する</span>
                 </div>
                 <div className={`${styles.description} w-full text-[12px] ${step === 4 ? `${styles.open}` : ``}`}>
-                  <p>{`「全社、メンバー」レイヤーの間の「事業部・課/セクション・係/チーム」はお客様ごとに独自の組織構成に合わせて全ての組織レイヤーを追加し、最後は目標に関わる全メンバーの目標を設定してください。`}</p>
+                  <p>{`「全社、メンバー」レイヤーの間の「事業部・課/セクション・係/チーム」はお客様ごとに独自の組織構成に合わせて全ての組織階層・レイヤーを追加し、最後は目標に関わる全メンバーの目標を設定してください。`}</p>
                 </div>
               </li>
               {/* ------------- */}
@@ -1243,22 +1432,58 @@ const UpsertTargetEntityMemo = () => {
                                         display: `none`,
                                       }),
                                     }}
-                                    onClick={() => {
+                                    onClick={(e) => {
                                       if (step === 3) {
                                         if (!entityGroupObj.entities?.length)
                                           return alert("グループ内に１つ以上の部門・メンバーを追加してください。");
-                                        // 上位エンティティ内の全てのエンティティ配列をグローバルstateに追加する
-                                        const newParentEntityGroup = {
-                                          fiscalYear: upsertSettingEntitiesObj.fiscalYear,
-                                          parentEntityLevel: parentEntityLevel,
-                                          parentEntityId: entityGroupObj.parent_entity_id,
-                                          parentEntityName: entityGroupObj.parent_entity_name,
-                                          entityLevel: currentLevel,
-                                          entities: entityGroupObj.entities,
-                                        } as UpsertSettingEntitiesObj;
 
-                                        setUpsertSettingEntitiesObj(newParentEntityGroup);
-                                        setIsSettingTargetMode(true);
+                                        // 全社〜係レベルまでは年度
+                                        if (currentLevel !== "member") {
+                                          // 上位エンティティ内の全てのエンティティ配列をグローバルstateに追加する
+                                          const newParentEntityGroup = {
+                                            fiscalYear: upsertSettingEntitiesObj.fiscalYear,
+                                            periodType: "fiscal_year", // レベルに合わせた目標の期間タイプ、売上推移用
+                                            parentEntityLevel: parentEntityLevel,
+                                            parentEntityId: entityGroupObj.parent_entity_id,
+                                            parentEntityName: entityGroupObj.parent_entity_name,
+                                            entityLevel: currentLevel,
+                                            entities: entityGroupObj.entities,
+                                          } as UpsertSettingEntitiesObj;
+
+                                          setUpsertSettingEntitiesObj(newParentEntityGroup);
+                                          setIsSettingTargetMode(true);
+                                        }
+                                        // メンバーレベルは上期か下期どちらを設定するか選択
+                                        else {
+                                          // 上半期と下半期それぞれでグループ内のエンティティ全てのis_confirmがtrueかチェック
+                                          const isConfirmFirstHalf = entityGroupObj.entities.every(
+                                            (entity) => entity.is_confirmed_first_half_details
+                                          );
+                                          const isConfirmSecondHalf = entityGroupObj.entities.every(
+                                            (entity) => entity.is_confirmed_second_half_details
+                                          );
+                                          setSelectedMemberAndPeriodType({
+                                            memberGroupObjByParent: entityGroupObj,
+                                            periodType: "first_half", // 上期~月度
+                                            isConfirmFirstHalf: isConfirmFirstHalf,
+                                            isConfirmSecondHalf: isConfirmSecondHalf,
+                                          });
+
+                                          const sectionWidth = 330;
+                                          handleOpenSectionMenu({
+                                            e,
+                                            title: "selectTargetPeriodTypeForMember",
+                                            displayX: "bottom_left",
+                                            fadeType: "fade_down",
+                                            maxWidth: sectionWidth,
+                                            minWidth: sectionWidth,
+                                          });
+                                          // setOpenSubMenu({
+                                          //   display: "left",
+                                          //   fadeType: "fade_down",
+                                          //   sectionMenuWidth: sectionWidth,
+                                          // });
+                                        }
                                       }
                                     }}
                                   >
@@ -1297,11 +1522,6 @@ const UpsertTargetEntityMemo = () => {
                                           className={`flex w-full items-center justify-between border-b border-solid border-[var(--color-border-light)] pb-[10px] pt-[16px]`}
                                         >
                                           <div className={`flex max-w-[290px] items-center`}>
-                                            {/* <div className={`mr-[6px] min-w-max`}>
-                                    <MdOutlineDataSaverOff
-                                      className={`${styles.list_icon} min-h-[18px] min-w-[18px] text-[18px]`}
-                                    />
-                                  </div> */}
                                             <div className={`max-w-[290px] truncate text-[14px] font-bold`}>
                                               {/* マイクロスコープ事業部 */}
                                               {entityObj.entity_name}
@@ -1313,12 +1533,17 @@ const UpsertTargetEntityMemo = () => {
                                             )}
                                             {settingState !== "notSet" && (
                                               <div className={`flex items-center space-x-[6px]`}>
-                                                <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                                {settingState === "setAll" && (
+                                                  <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                                )}
+                                                {settingState !== "setAll" && (
+                                                  <IoTriangleOutline className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                                )}
                                                 <span className="text-[13px] text-[var(--color-text-brand-f)]">
-                                                  設定済み
-                                                  {settingState === "setAnnualHalfOnly" && `(年度)`}
-                                                  {settingState === "setAnnualHalfOnly" && `(上半期)`}
-                                                  {settingState === "setAnnualHalfOnly" && `(下半期)`}
+                                                  {settingState === "setAll" && `設定済み`}
+                                                  {settingState === "setAnnualHalfOnly" && `設定済み(年度)`}
+                                                  {settingState === "setFirstHalf" && `設定済み(上期)`}
+                                                  {settingState === "setSecondHalf" && `設定済み(下期)`}
                                                 </span>
                                               </div>
                                             )}
@@ -1342,6 +1567,204 @@ const UpsertTargetEntityMemo = () => {
         {/* -------------------------------- コンテンツエリア ここまで -------------------------------- */}
       </div>
       {/* ===================== スクロールコンテナ ここまで ===================== */}
+
+      {/* ---------------------------- 🌟セッティングメニュー🌟 ---------------------------- */}
+      {/* クリック時のオーバーレイ */}
+      {openSectionMenu && <div className={`${styles.menu_overlay}`} onClick={handleCloseSectionMenu}></div>}
+      {openSectionMenu && (
+        <div
+          ref={sectionMenuRef}
+          className={`${styles.settings_menu} fixed z-[3000] h-auto rounded-[6px] ${
+            openSectionMenu.fadeType ? getFadeTypeClass(openSectionMenu.fadeType) : ``
+          }`}
+          style={{
+            top: `${openSectionMenu.y}px`,
+            ...(openSectionMenu.minWidth && { minWidth: `${openSectionMenu.minWidth}px` }),
+            ...(openSectionMenu.maxWidth && { maxWidth: `${openSectionMenu.maxWidth}px` }),
+            ...((openSectionMenu.displayX === "center" || !openSectionMenu.displayX) && {
+              left: `${openSectionMenu.x}px`,
+            }),
+            ...(openSectionMenu.displayX === "right" && {
+              right: `${openSectionMenu.x}px`,
+            }),
+            ...(openSectionMenu.displayX === "left" && {
+              right: `${openSectionMenu.x}px`,
+            }),
+            ...(openSectionMenu.displayX === "bottom_left" && {
+              right: `${openSectionMenu.x}px`,
+            }),
+          }}
+        >
+          {/* ------------------------ 選択メニュー ------------------------ */}
+          {/* ------------- メンバーレベル時 目標の期間タイプ選択 ------------- */}
+          {openSectionMenu.title === "selectTargetPeriodTypeForMember" && !!selectedMemberAndPeriodType && (
+            <>
+              <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
+                <div className="flex max-w-max flex-col">
+                  <span>目標設定メニュー</span>
+                  <div className={`${styles.section_underline} w-full`} />
+                </div>
+              </h3>
+              <DescriptionList content={`目標設定を行う期間を選択してください。`} />
+              {/* ------------------------------------ */}
+              <li
+                className={`${styles.list} ${styles.not_hoverable}`}
+                onMouseEnter={(e) => {
+                  handleOpenPopupMenu({ e, title: "settingSalesTargetEntity", displayX: "left" });
+                }}
+                onMouseLeave={() => {
+                  if (openPopupMenu) handleClosePopupMenu();
+                }}
+              >
+                {/* <div className="pointer-events-none flex min-w-[130px] items-center"> */}
+                <div className="pointer-events-none flex min-w-[90px] items-center">
+                  {/* <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" /> */}
+                  <div className="flex select-none items-center space-x-[2px]">
+                    <span className={`${styles.list_title}`}>期間</span>
+                    <span className={``}>：</span>
+                  </div>
+                </div>
+                <select
+                  className={`${styles.select_box} truncate`}
+                  value={selectedMemberAndPeriodType.periodType}
+                  onChange={(e) => {
+                    setSelectedMemberAndPeriodType({ ...selectedMemberAndPeriodType, periodType: e.target.value });
+                    // if (openPopupMenu) handleClosePopupMenu();
+                  }}
+                >
+                  <option value={`first_half`}>上半期〜月次</option>
+                  <option value={`second_half`}>下半期〜月次</option>
+                </select>
+                <div className={`ml-[16px] flex items-center space-x-[3px] whitespace-nowrap`}>
+                  {((selectedMemberAndPeriodType.periodType === "first_half" &&
+                    selectedMemberAndPeriodType.isConfirmFirstHalf) ||
+                    (selectedMemberAndPeriodType.periodType === "second_half" &&
+                      selectedMemberAndPeriodType.isConfirmSecondHalf)) && (
+                    <>
+                      <span className={`text-[#00d436]`}>設定済み</span>
+                      <BsCheck2 className="pointer-events-none min-h-[18px] min-w-[18px] stroke-1 text-[18px] text-[#00d436]" />
+                    </>
+                  )}
+                  {!(
+                    (selectedMemberAndPeriodType.periodType === "first_half" &&
+                      selectedMemberAndPeriodType.isConfirmFirstHalf) ||
+                    (selectedMemberAndPeriodType.periodType === "second_half" &&
+                      selectedMemberAndPeriodType.isConfirmSecondHalf)
+                  ) && <span className={`text-[var(--main-color-tk)]`}>未設定</span>}
+                </div>
+              </li>
+              {/* ------------------------------------ */}
+              <hr className="min-h-[1px] w-full bg-[#999]" />
+              {/* ------------------------ 適用・戻る ------------------------ */}
+              <li className={`${styles.list} ${styles.btn_area} space-x-[20px]`}>
+                <div
+                  className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
+                  onClick={() => {
+                    // 上位エンティティ内の全てのエンティティ配列をグローバルstateに追加する
+                    const newParentEntityGroup = {
+                      fiscalYear: upsertSettingEntitiesObj.fiscalYear,
+                      periodType: selectedMemberAndPeriodType.periodType, // レベルに合わせた目標の期間タイプ、売上推移用
+                      parentEntityLevel: parentEntityLevel,
+                      parentEntityId: selectedMemberAndPeriodType.memberGroupObjByParent.parent_entity_id,
+                      parentEntityName: selectedMemberAndPeriodType.memberGroupObjByParent.parent_entity_name,
+                      entityLevel: currentLevel,
+                      entities: selectedMemberAndPeriodType.memberGroupObjByParent.entities,
+                    } as UpsertSettingEntitiesObj;
+
+                    setUpsertSettingEntitiesObj(newParentEntityGroup);
+                    setIsSettingTargetMode(true);
+                  }}
+                >
+                  <span>作成・編集</span>
+                </div>
+                <div
+                  className={`transition-bg02 ${styles.edit_btn} ${styles.cancel}`}
+                  onClick={() => {
+                    setSelectedMemberAndPeriodType(null);
+                    handleCloseSectionMenu();
+                  }}
+                >
+                  <span>戻る</span>
+                </div>
+              </li>
+              {/* ------------------------ 適用・戻る ここまで ------------------------ */}
+            </>
+          )}
+          {/* ------------- メンバーレベル時 目標の期間タイプ選択 ここまで ------------- */}
+          {/* ------------------------ 選択メニュー ------------------------ */}
+        </div>
+      )}
+      {/* ---------------------------- 🌟セッティングメニュー🌟 ここまで ---------------------------- */}
+
+      {/* ---------------------------- 🌟説明ポップアップ🌟 ---------------------------- */}
+      {openPopupMenu && (
+        <div
+          className={`${styles.description_menu} shadow-all-md border-real-with-shadow pointer-events-none fixed z-[3500] flex min-h-max flex-col rounded-[6px]`}
+          style={{
+            top: `${openPopupMenu.y}px`,
+            ...(openPopupMenu.maxWidth && { maxWidth: `${openPopupMenu.maxWidth}px` }),
+            ...(openPopupMenu.minWidth && { minWidth: `${openPopupMenu.minWidth}px` }),
+            ...(openPopupMenu?.displayX === "right" && {
+              left: `${openPopupMenu.x}px`,
+            }),
+            ...(openPopupMenu?.displayX === "left" && {
+              right: `${openPopupMenu.x}px`,
+            }),
+            ...(openPopupMenu?.displayX === "bottom_left" && {
+              right: `${openPopupMenu.x}px`,
+            }),
+            ...(["settingSalesTarget"].includes(openSectionMenu?.title ?? "") && {
+              animationDelay: `0.2s`,
+              animationDuration: `0.5s`,
+            }),
+          }}
+        >
+          <div className={`min-h-max w-full font-bold ${styles.title}`}>
+            <div className="flex max-w-max flex-col">
+              <span>{mappingPopupTitle[openPopupMenu.title][language]}</span>
+              <div className={`${styles.underline} w-full`} />
+            </div>
+          </div>
+
+          <ul className={`flex flex-col rounded-[6px] ${styles.u_list}`}>
+            {["guide"].includes(openPopupMenu.title) &&
+              mappingDescriptions[openPopupMenu.title].map((item, index) => (
+                <li
+                  key={item.title + index.toString()}
+                  className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}
+                  style={{ ...(openPopupMenu.title === "printTips" && { padding: "3px 14px" }) }}
+                >
+                  <div className="flex min-w-max items-center space-x-[3px]">
+                    <RxDot className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                    <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                      {item.title}
+                    </span>
+                  </div>
+                  <p className="select-none text-[12px]" style={{ whiteSpace: "pre-wrap" }}>
+                    {item.content}
+                  </p>
+                </li>
+              ))}
+            {!["guide"].includes(openPopupMenu.title) && (
+              <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
+                <p className="select-none whitespace-pre-wrap text-[12px] leading-[20px]">
+                  {openPopupMenu.title === "settingSalesTargetEntity" &&
+                    "選択中の会計年度の目標を表示します。\n会計年度は2020年から現在まで選択可能で、翌年度はお客様の決算日から現在の日付が3ヶ月を切ると表示、設定、編集が可能となります。"}
+                </p>
+              </li>
+            )}
+            {openPopupMenu.title === "print" && <hr className="mb-[6px] min-h-[1px] w-full bg-[#666]" />}
+            {/* {openPopupMenu.title === "print" &&
+              descriptionPrintTips.map((obj, index) => (
+                <li key={obj.title} className={`flex w-full space-x-[3px] px-[14px] py-[3px] text-[12px]`}>
+                  <span className="min-w-[80px] max-w-[80px] font-bold">・{obj.title}：</span>
+                  <p className="whitespace-pre-wrap">{obj.content}</p>
+                </li>
+              ))} */}
+          </ul>
+        </div>
+      )}
+      {/* ---------------------------- 🌟説明ポップアップ🌟 ここまで ---------------------------- */}
     </>
   );
 };

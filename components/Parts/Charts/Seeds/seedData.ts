@@ -29,6 +29,29 @@ export const dataPie = [
   background-color: rgb(59 130 246);
   background-color: #3b82f6;
  */
+
+// エリアチャート用
+export const colorsHEXTrend = [
+  "var(--main-color-f)", // stripe
+  "#14b8a6", // teal
+  "#625afa", // stripe
+  //   "rgba(98, 90, 250)", // stripe
+  "#d946ef",
+  "#f43f5e",
+  "#f59e0b",
+  "#10b981",
+  "#3b82f6",
+  "#a855f7",
+  "#0ea5e9",
+  "#ec4899",
+  "#8b5cf6",
+  "#f97316",
+  "#22c55e",
+  "#ef4444",
+  "#84cc16",
+];
+
+// パイチャート用
 export const colorsArrayHEX = [
   "#f43f5e",
   "#10b981",

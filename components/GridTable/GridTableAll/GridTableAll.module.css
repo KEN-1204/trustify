@@ -9,6 +9,7 @@
   --border-color2: #2e2e2e;
   /* --border-color: #393939; */
   --border-color: var(--color-border-table);
+  /* --border-color: transparent; */
   --border-color4: #444;
   --colors-scale5: #2e2e2e;
   --button-bg-color: #2b825b;

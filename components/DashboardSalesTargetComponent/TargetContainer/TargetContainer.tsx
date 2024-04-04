@@ -733,6 +733,7 @@ export const TargetContainer = () => {
     });
     setUpsertSettingEntitiesObj({
       fiscalYear: selectedFiscalYearLocal,
+      periodType: "",
       entityLevel: "",
       entities: [],
       parentEntityLevel: "",

@@ -28,7 +28,6 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { FallbackTargetTable } from "../../UpsertTarget/UpsertTargetGridTable/FallbackTargetTable";
 import { UpsertSettingTargetGridTable } from "./UpsertSettingTargetGridTable/UpsertSettingTargetGridTable";
 import { mappingEntityName } from "@/utils/mappings";
-import { AreaChartComponent, LabelValue } from "@/components/Parts/Charts/AreaChart/AreaChart";
 import { AreaChartTrend } from "./AreaChartTrend/AreaChartTrend";
 
 export const columnHeaderListTarget = [
@@ -205,14 +204,20 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // ローディング
   const [isLoading, setIsLoading] = useState(false);
 
-  if (!userProfileState || !upsertSettingEntitiesObj || !fiscalYearStartEndDate) {
+  if (!userProfileState || !userProfileState.company_id || !upsertSettingEntitiesObj || !fiscalYearStartEndDate) {
     setIsSettingTargetMode(false);
     setUpsertSettingEntitiesObj(null);
     toast.error("エラー：会計年度データの取得に失敗しました...🙇‍♀️");
     return null;
   }
 
-  // 目標設定モードを終了
+  // 🌟エンティティid配列をSetオブジェクトに変換
+  const entityIdsSet = useMemo(
+    () => new Set(upsertSettingEntitiesObj.entities.map((obj) => obj.entity_id)),
+    [upsertSettingEntitiesObj.entities]
+  );
+
+  // 🌟目標設定モードを終了
   const handleCancelUpsert = () => {
     setIsSettingTargetMode(false);
     setUpsertSettingEntitiesObj({
@@ -224,12 +229,6 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
       parentEntityName: "",
     });
   };
-
-  // 🌟エンティティid配列をSetオブジェクトに変換
-  const entityIdsSet = useMemo(
-    () => new Set(upsertSettingEntitiesObj.entities.map((obj) => obj.entity_id)),
-    [upsertSettingEntitiesObj.entities]
-  );
 
   // -------------------------- state関連 --------------------------
   // stickyを付与するrow
@@ -272,21 +271,22 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     return fiscalMonths;
   }, [fiscalStartYearMonth]);
 
-  // ユーザーが選択した売上目標の会計年度を基準にした前年度から過去3年分の年月度の配列(isEndEntityでない場合はスルー)
-  // const fiscalYearMonthsForThreeYear = useMemo(() => {
-  //   // 末端のエンティティでない場合は、月度の目標入力は不要のためリターン
-  //   if (!isEndEntity) return null;
-  //   // ユーザーが選択した会計月度基準で過去3年分の年月度を生成
-  //   const fiscalMonthsLastYear = calculateFiscalYearMonths(fiscalStartYearMonth - 100);
-  //   const fiscalMonthsTwoYearsAgo = calculateFiscalYearMonths(fiscalStartYearMonth - 200);
-  //   const fiscalMonthsThreeYearsAgo = calculateFiscalYearMonths(fiscalStartYearMonth - 300);
-
-  //   return {
-  //     lastYear: fiscalMonthsLastYear,
-  //     twoYearsAgo: fiscalMonthsTwoYearsAgo,
-  //     threeYearsAgo: fiscalMonthsThreeYearsAgo,
-  //   };
-  // }, []);
+  // 🌟売上推移で表示するperiodType(期間タイプ: fiscal_year, half_year, quarter, year_month)
+  const [periodTypeTrend, setPeriodTypeTrend] = useState(upsertSettingEntitiesObj.periodType);
+  const [selectedPeriodTrend, setSelectedPeriodTrend] = useState(() => {
+    if (upsertSettingEntitiesObj.entityLevel !== "member") {
+      // メンバーレベルでない場合は年度を初期表示にする -1で来期目標の1年前から遡って表示する
+      return upsertSettingEntitiesObj.fiscalYear - 1;
+    } else {
+      // メンバーレベルの場合は選択肢した半期（上期か下期）を表示する
+      if (upsertSettingEntitiesObj.periodType === "first_half") {
+        //
+        return (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 1; // 1が上期、2が下期
+      } else {
+        return (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 2; // 1が上期、2が下期
+      }
+    }
+  });
 
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
@@ -567,19 +567,6 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     }
   };
 
-  // エリアチャート用labelValueArray メインターゲット用
-  const labelValueArrayMain = useMemo(() => {
-    return upsertSettingEntitiesObj.entities.map(
-      (obj) =>
-        ({
-          id: obj.entity_id,
-          // value: obj.
-          value: 1230000,
-          label: obj.entity_name,
-        } as LabelValue)
-    );
-  }, [upsertSettingEntitiesObj.entities]);
-
   console.log(
     "UpsertTargetコンポーネントレンダリング isEndEntity",
     isEndEntity,
@@ -745,7 +732,25 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                     </div>
                   </div>
 
-                  <AreaChartTrend />
+                  <ErrorBoundary FallbackComponent={ErrorFallback}>
+                    <Suspense
+                      fallback={
+                        <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
+                          <SpinnerX />
+                        </div>
+                      }
+                    >
+                      <AreaChartTrend
+                        companyId={userProfileState.company_id}
+                        entityLevel={upsertSettingEntitiesObj.entityLevel}
+                        entityIdsArray={Array.from(entityIdsSet)}
+                        periodType={periodTypeTrend}
+                        basePeriod={selectedPeriodTrend}
+                        yearsBack={3} // デフォルトは過去3年分を表示する
+                        fetchEnabled={true}
+                      />
+                    </Suspense>
+                  </ErrorBoundary>
                   {/* <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
                     <SpinnerX />
                   </div> */}

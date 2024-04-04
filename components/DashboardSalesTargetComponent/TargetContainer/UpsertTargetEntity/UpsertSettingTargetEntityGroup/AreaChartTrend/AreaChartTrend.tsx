@@ -1,34 +1,90 @@
-import { AreaChartComponent, LabelValue } from "@/components/Parts/Charts/AreaChart/AreaChart";
-import useDashboardStore from "@/store/useDashboardStore";
+import { AreaChartComponent } from "@/components/Parts/Charts/AreaChart/AreaChart";
 import styles from "../../../../DashboardSalesTargetComponent.module.css";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
+import { useQuerySalesTrends } from "@/hooks/useQuerySalesTrends";
+import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 
-export const AreaChartTrend = () => {
-  const upsertSettingEntitiesObj = useDashboardStore((state) => state.upsertSettingEntitiesObj);
+type Props = {
+  companyId: string;
+  entityLevel: string;
+  entityIdsArray: string[];
+  periodType: string;
+  basePeriod: number;
+  yearsBack: number;
+  fetchEnabled?: boolean;
+  fallbackHeight?: string;
+  fallbackPadding?: string;
+  fontSize?: string;
+  errorText?: string;
+  noDataText?: string;
+};
 
-  if (!upsertSettingEntitiesObj) return;
-  if (!upsertSettingEntitiesObj.fiscalYear) return;
+export const AreaChartTrendMemo = ({
+  companyId,
+  entityLevel,
+  entityIdsArray,
+  periodType,
+  basePeriod,
+  yearsBack,
+  fetchEnabled,
+  fallbackHeight = "302px",
+  fallbackPadding = `0px 0px 6px`,
+  fontSize = `13px`,
+  errorText = `エラーが発生しました`,
+  noDataText = `データがありません`,
+}: Props) => {
+  // キャッシュ用エンティティidをstringに
+  const entityIdsStrKey = useMemo(() => {
+    return !!entityIdsArray?.length ? entityIdsArray.join(", ") : "";
+  }, []);
+  const { data, isLoading, isError } = useQuerySalesTrends({
+    companyId,
+    entityLevel,
+    entityIdsArray,
+    entityIdsStrKey, // キャッシュ用エンティティidをstringに
+    periodType,
+    basePeriod,
+    yearsBack,
+    fetchEnabled: fetchEnabled,
+  });
 
-  // エリアチャート用labelValueArray メインターゲット用
-  const labelValueArrayMain = useMemo(() => {
-    return upsertSettingEntitiesObj.entities.map(
-      (obj) =>
-        ({
-          id: obj.entity_id,
-          // value: obj.
-          value: 1230000,
-          label: obj.entity_name,
-        } as LabelValue)
+  if (isLoading)
+    return (
+      <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
+        <SpinnerX />
+      </div>
     );
-  }, [upsertSettingEntitiesObj.entities]);
+
+  if (!data || isError)
+    return (
+      <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
+        <span style={{ fontSize: fontSize }}>
+          {(!data || !data.chartData?.length) && !isError && noDataText}
+          {isError && errorText}
+        </span>
+      </div>
+    );
+
+  // useQueryで取得した結果を分割代入
+  const { chartData, labelValueGroupByPeriod, salesTrends, legendList, groupedByPeriod, labelType } = data;
+
   return (
     <div
       // className={`${styles.area_chart_container} mt-[16px] h-[288px] w-full bg-[red]/[0]`}
       className={`${styles.area_chart_container}  w-full bg-[red]/[0]`}
     >
       {/* エリアチャート */}
-      <AreaChartComponent labelType="" labelValueArray={labelValueArrayMain} delay={600} />
+      <AreaChartComponent
+        chartHeight={286}
+        delay={600}
+        chartData={chartData}
+        labelType={labelType}
+        labelValueGroupByPeriod={labelValueGroupByPeriod}
+        legendList={legendList}
+      />
       {/* エリアチャート ここまで */}
     </div>
   );
 };
+
+export const AreaChartTrend = memo(AreaChartTrendMemo);
