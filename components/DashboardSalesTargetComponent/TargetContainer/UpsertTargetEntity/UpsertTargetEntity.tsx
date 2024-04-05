@@ -1264,7 +1264,7 @@ const UpsertTargetEntityMemo = () => {
                           </select>
                         )}
                         <button
-                          className={`transition-bg01 flex-center max-w-max rounded-[8px] px-[15px] py-[10px] text-[13px] font-bold ${styleStepNextBtn()}`}
+                          className={`transition-bg01 flex-center max-h-[36px] max-w-max rounded-[8px] px-[15px] py-[10px] text-[13px] font-bold ${styleStepNextBtn()}`}
                           onMouseEnter={(e) => {
                             if (step !== 3) return;
                             handleOpenTooltip({
@@ -1288,7 +1288,7 @@ const UpsertTargetEntityMemo = () => {
                             }
                           }}
                         >
-                          <span>
+                          <span className="select-none">
                             {step === 1 && `レイヤーを追加`}
                             {step === 2 && `次へ`}
                             {step === 3 && getTextStepBtn3()}

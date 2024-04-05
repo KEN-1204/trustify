@@ -1497,3 +1497,18 @@ background: var(--color-sales-card-bg);
   /* padding: 0px 24px 5px 6px; */
   padding: 0px 24px 16px 6px;
 }
+
+/* セレクトボタン用の上下アイコン */
+.select_arrow {
+  position: absolute;
+  right: 1px;
+  top: 50%;
+  z-index: 100;
+  transform: translateY(-50%);
+  width: 25px;
+  height: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}

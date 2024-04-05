@@ -47,12 +47,28 @@ export const useQuerySalesTrends = ({
     // 指定した年度から指定した年数分遡った期間の
     // 「現年度売上、前年度売上、成長率、エンティティid、エンティティ名」を渡したエンティティの数分取得する
 
+    // yearsBackの遡る年数を売上推移の場合は期間タイプに応じて桁を対応する形に変換する
+    let formattedYearsBack = yearsBack;
+    switch (periodType) {
+      case "fiscal_year":
+        formattedYearsBack = yearsBack;
+        break;
+      case "half_year":
+      case "quarter":
+        formattedYearsBack = yearsBack * 10;
+        break;
+      case "year_month":
+        formattedYearsBack = yearsBack * 100;
+      default:
+        break;
+    }
+
     const payload = {
       _company_id: companyId, // 会社id
       _entity_ids: entityIdsArray, // エンティティid
       _entity_level: entityLevel, // エンティティレベルの割り当て
       _base_period: basePeriod, // 起点となる時点
-      _years_back: yearsBack, // 遡る年数
+      _years_back: formattedYearsBack, // 遡る年数
       _period_type: periodType, // 期間タイプ
     };
 

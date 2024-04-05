@@ -39,6 +39,7 @@ type Props = {
   labelType: string;
   labelValueGroupByPeriod: LabelValueGroupByPeriod[];
   legendList: LegendNameId[];
+  tickCount?: number;
 };
 
 const AreaChartComponentMemo = ({
@@ -49,6 +50,7 @@ const AreaChartComponentMemo = ({
   labelType = "date",
   labelValueGroupByPeriod,
   legendList,
+  tickCount = 5,
 }: Props) => {
   const language = useStore((state) => state.language);
 
@@ -140,6 +142,36 @@ const AreaChartComponentMemo = ({
   //   }
   // };
 
+  // dataで受け取った全てのエンティティの中でのvalueの最大値を取得してyAxisのdomainのmax値を取得してセット
+  // max値が0の場合は1000万をセット
+  const yAxisMax = useMemo(() => {
+    // 各オブジェクトから date を除いた残りのプロパティの最大値を見つけ、
+    // それらの最大値の中での最大値を全体の最大値として取得する
+    const maxOfValues = chartData
+      .map(({ date, ...values }) => Math.max(...Object.values(values as { [key: string]: number })))
+      .reduce((max, current) => Math.max(max, current), -Infinity);
+    // reduceメソッドの第二引数に-Infinityを指定する理由は、数値の中で最も小さい値を初期値として設定することで、配列の最初の要素から安全に最大値の探索を開始できるようにするためです。-InfinityはJavaScriptで表現可能な最小の数値であり、任意の実数よりも小さいため、最初の比較で必ずcurrentの値がmaxになります。
+
+    if (maxOfValues !== 0) {
+      return maxOfValues;
+    } else {
+      // 0の場合は1000億をセット
+      return 300000000000;
+      // return 100000000000;
+    }
+  }, [chartData]);
+
+  // カスタムticks
+  const customTicks = useMemo(() => {
+    // 目盛りの間隔を計算
+    const interval = yAxisMax / (tickCount - 1); // デフォルトでtickCountは5つ
+
+    // 目盛りの値の配列を生成
+    const ticks = Array.from({ length: tickCount }, (v, i) => i * interval);
+
+    return ticks;
+  }, [yAxisMax]);
+
   // チャート マウントを0.6s遅らせる
   const [isMounted, setIsMounted] = useState(delay ? false : true);
   useEffect(() => {
@@ -186,11 +218,26 @@ const AreaChartComponentMemo = ({
 
             <YAxis
               dataKey="value1"
+              type="number"
               axisLine={false}
               tickLine={false}
-              tickCount={5}
+              tickCount={tickCount}
               tickFormatter={yAxisFormatter}
-              fontSize={13}
+              fontSize={12}
+              domain={([dataMin, dataMax]) => {
+                return [0, yAxisMax];
+                // return [0, dataMax];
+                // return [0, dataMax * 2];
+              }}
+              ticks={customTicks} // 0から最大値までをtickCount数で均等に分割した配列をセット
+              // interval={0}
+              // domain={[0, yAxisMax]}
+              // domain={([dataMin, dataMax]) => {
+              //   // const absMax = Math.max(Math.abs(dataMin), Math.abs(dataMax));
+              //   // return [-absMax, absMax];
+              //   // 🔹value1のdataKeyだけでなく、全てのエンティティのvalueから最大値をセット
+              //   return [0, yAxisMax];
+              // }}
             />
 
             <Tooltip

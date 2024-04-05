@@ -9,7 +9,11 @@ console.log(formatNumber(123000000000)); // "1230億"
  */
 
 //
-export function formatSalesTarget(num: number, rounding: "round" | "floor" = "round"): string {
+export function formatSalesTarget(
+  num: number,
+  rounding: "round" | "floor" = "round",
+  isInteger: boolean = false
+): string {
   let unit = "";
   let dividedNum = num;
 
@@ -66,8 +70,17 @@ export function formatSalesTarget(num: number, rounding: "round" | "floor" = "ro
     dividedNum
   );
 
+  // isIntegerの場合は小数点ではなく、四捨五入して整数を返す
+  if (isInteger) {
+    const integerNum = Number(formattedNumberWithoutZero).toFixed();
+    return integerNum.length === 4 ? `${Number(integerNum).toLocaleString()}${unit}` : `${integerNum}${unit}`;
+  }
+
   // 1.204億, 12.2億, 12.24億, 1234万, 123.4万 の形で小数点を含めずに4文字以内の金額に整形
-  return `${formattedNumberWithoutZero}${unit}`;
+  // 1234万や1234億のように整数で4桁の場合は区切り文字を付ける
+  return formattedNumberWithoutZero.length === 4
+    ? `${Number(formattedNumberWithoutZero).toLocaleString()}${unit}`
+    : `${formattedNumberWithoutZero}${unit}`;
   //   return `${formattedNumber}${unit}`;
 }
 
