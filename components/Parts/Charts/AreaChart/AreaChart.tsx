@@ -20,6 +20,9 @@ import { ja } from "date-fns/locale";
 import useStore from "@/store";
 import { AreaChartObj, LabelValue, LabelValueGroupByPeriod, LegendNameId } from "@/types";
 import { colorsHEXTrend } from "../Seeds/seedData";
+import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import { xAxisDateFormatter } from "../ChartFormatters/dateFormatter";
 
 type Props = {
   //   data: { date: string | number | null; value: number | null }[];
@@ -32,6 +35,7 @@ type Props = {
   chartHeight?: number;
   delay?: number;
   chartData: AreaChartObj[];
+  periodType?: string;
   labelType: string;
   labelValueGroupByPeriod: LabelValueGroupByPeriod[];
   legendList: LegendNameId[];
@@ -41,6 +45,7 @@ const AreaChartComponentMemo = ({
   chartHeight = 286,
   delay,
   chartData,
+  periodType,
   labelType = "date",
   labelValueGroupByPeriod,
   legendList,
@@ -107,16 +112,33 @@ const AreaChartComponentMemo = ({
     // return formattedNum
   };
 
-  // X軸 日付時のフォーマット関数 Feb, 7 May, 21 など 7日刻み
-  const xAxisFormatter = (str: string) => {
-    const date = parseISO(str);
-    // console.log("date", date, "date.getDate()", date.getDate(), 'format(date, "MMM, d")', format(date, "MMM, d"));
-    // console.log(date.getDate() % 7 === 0 ? format(date, "MMM, d") : ``);
-    if (date.getDate() % 7 === 0) {
-      return format(date, "MMM, d");
-    }
-    return format(date, "MMM, d");
-  };
+  // // X軸 日付時のフォーマット関数 Feb, 7 May, 21 など 7日刻み
+  // const xAxisFormatter = (value: string | number) => {
+  //   const str = typeof value === "number" ? value.toString() : value;
+  //   if (labelType === "sales_period") {
+  //     if (!periodType) return str;
+  //     if (periodType === "fiscal_year") {
+  //       return `${str}年`;
+  //     } else if (["half_year", "quarter", "year_month"].includes(periodType)) {
+  //       const year = str.substring(0, 4); // 1文字目から4文字目
+  //       const period = str.substring(4); // 5文字目以降
+  //       if (periodType === "half_year") return `${year}H${period}`;
+  //       if (periodType === "quarter") return `${year}Q${period}`;
+  //       if (periodType === "year_month") return `${Number(period)}月, ${year}`;
+  //       return str;
+  //     } else {
+  //       return str;
+  //     }
+  //   } else {
+  //     const date = parseISO(str);
+  //     // console.log("date", date, "date.getDate()", date.getDate(), 'format(date, "MMM, d")', format(date, "MMM, d"));
+  //     // console.log(date.getDate() % 7 === 0 ? format(date, "MMM, d") : ``);
+  //     if (date.getDate() % 7 === 0) {
+  //       return format(date, "MMM, d");
+  //     }
+  //     return format(date, "MMM, d");
+  //   }
+  // };
 
   // チャート マウントを0.6s遅らせる
   const [isMounted, setIsMounted] = useState(delay ? false : true);
@@ -130,7 +152,7 @@ const AreaChartComponentMemo = ({
   return (
     <>
       {isMounted && !!chartData?.length && (
-        <ResponsiveContainer width="100%" height={chartHeight}>
+        <ResponsiveContainer width="100%" height={chartHeight} className={`fade08_forward`}>
           <AreaChart data={chartData} margin={{ top: 0, bottom: 0, right: 0, left: 0 }}>
             {/* <Area dataKey={`value`} stroke={trendColor} fill={`url(#spark_chart_gradient_${id})`} /> */}
             {legendList.map((obj, index) => (
@@ -151,7 +173,16 @@ const AreaChartComponentMemo = ({
               </Fragment>
             ))}
 
-            <XAxis dataKey="date" axisLine={false} tickLine={false} tickFormatter={xAxisFormatter} fontSize={12} />
+            <XAxis
+              dataKey="date"
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={(value) =>
+                xAxisDateFormatter({ value: value, labelType: labelType, periodType: periodType })
+              }
+              fontSize={12}
+              dy={3}
+            />
 
             <YAxis
               dataKey="value1"
@@ -167,6 +198,7 @@ const AreaChartComponentMemo = ({
                 <CustomTooltip
                   props={props}
                   labelType={labelType}
+                  periodType={periodType}
                   language={language}
                   labelValueGroupByPeriod={labelValueGroupByPeriod}
                   periodToLabelValueMap={periodToLabelValueMap}
@@ -183,7 +215,12 @@ const AreaChartComponentMemo = ({
               )}
             />
 
-            <CartesianGrid opacity={0.5} vertical={false} />
+            <CartesianGrid
+              opacity={0.5}
+              vertical={false}
+              // horizontalFill={["#555555", "#444444"]}
+              stroke="var(--color-border-chart)"
+            />
           </AreaChart>
         </ResponsiveContainer>
       )}
@@ -197,6 +234,7 @@ export const AreaChartComponent = memo(AreaChartComponentMemo);
 type TooltipCustomProps = {
   props: TooltipProps<ValueType, NameType>;
   labelType: string;
+  periodType?: string;
   language: string;
   labelValueGroupByPeriod: LabelValueGroupByPeriod[];
   periodToLabelValueMap: Map<string | number, LabelValue[]>;
@@ -206,6 +244,7 @@ type TooltipCustomProps = {
 export const CustomTooltip = ({
   props,
   labelType,
+  periodType,
   language,
   labelValueGroupByPeriod,
   periodToLabelValueMap,
@@ -216,22 +255,25 @@ export const CustomTooltip = ({
   if (payload === undefined) return null;
   if (payload[0].value === undefined) return null;
 
-  const labelValueGroup = periodToLabelValueMap.has(label) ? periodToLabelValueMap.get(label) : null;
+  // labelは下の日付ラベル
+  const dateLabel = label;
+
+  const labelValueGroup = periodToLabelValueMap.has(dateLabel) ? periodToLabelValueMap.get(dateLabel) : null;
 
   if (!labelValueGroup) return null;
 
   return (
     <div className={`${styles.tooltip} pointer-events-none min-w-[240px]`}>
-      {labelType === "date" && (
-        <h4 className={`px-[12px] pb-[4px] pt-[6px] text-[14px] font-bold`}>
-          {label
+      <h4 className={`px-[12px] pb-[4px] pt-[6px] text-[14px] font-bold`}>
+        {labelType === "date" &&
+          (dateLabel
             ? language === "ja"
-              ? format(parseISO(label), "yyyy年M月d日 (E)", { locale: ja })
-              : format(parseISO(label), "eeee, d MMM, yyyy")
-            : "-"}
-        </h4>
-      )}
-      {labelType !== "date" && <h4 className={`px-[12px] pb-[4px] pt-[6px] text-[14px] font-bold`}>{label}</h4>}
+              ? format(parseISO(dateLabel), "yyyy年M月d日 (E)", { locale: ja })
+              : format(parseISO(dateLabel), "eeee, d MMM, yyyy")
+            : "-")}
+        {labelType === "sales_period" &&
+          xAxisDateFormatter({ value: dateLabel, labelType: labelType, periodType: periodType, fyFullName: true })}
+      </h4>
 
       <hr className={`min-h-[1px] w-full bg-[var(--color-border-light)]`} />
 
@@ -253,11 +295,22 @@ export const CustomTooltip = ({
                     className={`mr-[6px] h-[8px] w-[8px] rounded-full`}
                     style={{ background: `${colorsHEXTrend[index]}` }}
                   />
-                  {/* <span>$ {Number(payload[index].value).toFixed(2)} CAD</span> */}
-                  <span>{obj.label}</span>
+                  <span className="label_name">{obj.label}</span>
                 </div>
 
                 <div className={`flex items-center`}>
+                  {(growthRate === null || growthRate === undefined) && (
+                    <div
+                      className={`flex-center mr-[6px] max-w-max rounded-[4px] bg-[var(--bright-green)] px-[5px] py-[1px] text-[8px] text-[#fff]`}
+                      style={{
+                        ...(trendColor && {
+                          background: trendColor,
+                        }),
+                      }}
+                    >
+                      <span>-%</span>
+                    </div>
+                  )}
                   {growthRate !== null && growthRate !== undefined && (
                     <div
                       className={`flex-center mr-[6px] max-w-max rounded-[4px] bg-[var(--bright-green)] px-[5px] py-[1px] text-[8px] text-[#fff]`}
@@ -280,9 +333,12 @@ export const CustomTooltip = ({
                       {growthRate === 0 && <span>{growthRate}%</span>}
                     </div>
                   )}
-                  <div className={`font-bold`}>
-                    <span>$ {Number(payload[index].value).toFixed(2)}</span>
-                  </div>
+                  {isValidNumber(Number(payload[index].value)) && (
+                    <div className={`font-bold`}>
+                      {/* <span>$ {Number(payload[index].value).toFixed(2)}</span> */}
+                      <span>{formatToJapaneseYen(Number(payload[index].value), true)}</span>
+                    </div>
+                  )}
                 </div>
               </li>
             );
@@ -306,9 +362,11 @@ export const CustomLegend = ({ props, labelType, language, legendList }: LegendC
   const { payload } = props;
 
   const [isHoveringLegend, setIsHoveringLegend] = useState(false);
-  const [isOverflow, setIsOverflow] = useState(false);
+  // const [isOverflow, setIsOverflow] = useState(false);
   const legendsRef = useRef<HTMLDivElement | null>(null);
   const legendUListRef = useRef<HTMLUListElement | null>(null);
+
+  console.log("レジェンド", "props", props, "labelType", labelType, "legendList", legendList);
 
   //   useEffect(() => {
   //     if (legendUListRef.current) {
@@ -347,7 +405,52 @@ export const CustomLegend = ({ props, labelType, language, legendList }: LegendC
       {isHoveringLegend && (
         <div
           ref={legendsRef}
-          className={`${styles.list_legends} fade08_forward absolute left-[60px] top-[0] z-10 flex  max-w-[calc(100vw-72px-62px-6px-24px)] flex-wrap items-center justify-start leading-[24px]`}
+          className={`${styles.list_legends} fade08_forward absolute left-[60px] right-[0px] top-[0] z-10 flex  max-w-[calc(100vw-72px-62px-6px-24px)] flex-wrap items-center justify-end leading-[24px]`}
+          onMouseLeave={handleLeaveLegend}
+        >
+          {legendList.map((obj, index) => (
+            <li
+              key={`legend-item-${obj.entity_id}_${index}_hovered`}
+              className={`ml-[18px] flex items-center truncate text-[13px]`}
+              style={{ gridColumnStart: `${index + 1}` }}
+            >
+              <div
+                className={`mr-[6px] min-h-[8px] min-w-[8px] rounded-full`}
+                style={{ background: `${colorsHEXTrend[index]}` }}
+              />
+              <span className={`truncate`}>{obj.entity_name}</span>
+            </li>
+          ))}
+        </div>
+      )}
+      <ul
+        ref={legendUListRef}
+        className={`w-full  overflow-x-hidden ${styles.ul_flex} justify-end`}
+        // style={{ gridTemplateColumns: `repeat(auto-fit, minmax(max-content, 1fr))` }}
+        // style={{ gridTemplateColumns: `repeat(4, 1fr)` }}
+        onMouseEnter={handleEnterLegend}
+      >
+        {legendList.map((obj, index) => (
+          <li
+            key={`legend-item-${obj.entity_id}_${index}`}
+            //   className={`mr-[18px] flex items-center text-[13px] ${isOverflow ? `truncate` : `whitespace-nowrap`}`}
+            className={`ml-[18px] flex items-center truncate text-[13px]`}
+            style={{ gridColumnStart: `${index + 1}` }}
+          >
+            <div
+              className={`mr-[6px] min-h-[8px] min-w-[8px] rounded-full`}
+              style={{ background: `${colorsHEXTrend[index]}` }}
+            />
+            <span className={`truncate`}>{obj.entity_name}</span>
+          </li>
+        ))}
+      </ul>
+      {/* ------------------------ テスト ------------------------ */}
+      {/* {isHoveringLegend && (
+        <div
+          ref={legendsRef}
+          // className={`${styles.list_legends} fade08_forward absolute left-[60px] top-[0] z-10 flex  max-w-[calc(100vw-72px-62px-6px-24px)] flex-wrap items-center justify-start leading-[24px]`}
+          className={`${styles.list_legends} fade08_forward absolute left-[60px] right-[0px] top-[0] z-10 flex  max-w-[calc(100vw-72px-62px-6px-24px)] flex-wrap items-center justify-end leading-[24px]`}
           onMouseLeave={handleLeaveLegend}
         >
           {Array(8)
@@ -355,14 +458,13 @@ export const CustomLegend = ({ props, labelType, language, legendList }: LegendC
             .map((_, index) => (
               <li
                 key={`legend-item-${index}`}
-                className={`mr-[18px] flex items-center truncate text-[13px]`}
+                className={`ml-[18px] flex items-center truncate text-[13px]`}
                 style={{ gridColumnStart: `${index + 1}` }}
               >
                 <div
                   className={`mr-[6px] min-h-[8px] min-w-[8px] rounded-full`}
                   style={{ background: `${colorsHEXTrend[index]}` }}
                 />
-                {/* <span>$ {Number(payload[index].value).toFixed(2)} CAD</span> */}
                 <span className={`truncate`}>マイクロスコープ事業部</span>
               </li>
             ))}
@@ -370,31 +472,26 @@ export const CustomLegend = ({ props, labelType, language, legendList }: LegendC
       )}
       <ul
         ref={legendUListRef}
-        className={`w-full  overflow-x-hidden ${styles.ul_flex}`}
-        // style={{ gridTemplateColumns: `repeat(auto-fit, minmax(max-content, 1fr))` }}
-        // style={{ gridTemplateColumns: `repeat(4, 1fr)` }}
+        className={`w-full  overflow-x-hidden ${styles.ul_flex} justify-end`}
         onMouseEnter={handleEnterLegend}
       >
-        {/* {payload && payload.map((entry, index) => <li key={`legend-item-${index}`}>{entry.value}</li>)} */}
         {Array(8)
           .fill(null)
           .map((_, index) => (
             <li
               key={`legend-item-${index}`}
-              //   className={`mr-[18px] flex items-center text-[13px] ${isOverflow ? `truncate` : `whitespace-nowrap`}`}
-              className={`mr-[18px] flex items-center truncate text-[13px]`}
+              className={`ml-[18px] flex items-center truncate text-[13px]`}
               style={{ gridColumnStart: `${index + 1}` }}
             >
               <div
                 className={`mr-[6px] min-h-[8px] min-w-[8px] rounded-full`}
                 style={{ background: `${colorsHEXTrend[index]}` }}
               />
-              {/* <span>$ {Number(payload[index].value).toFixed(2)} CAD</span> */}
-              {/* <span className={`${isOverflow ? `truncate` : `whitespace-nowrap`}`}>マイクロスコープ事業部</span> */}
               <span className={`truncate`}>マイクロスコープ事業部</span>
             </li>
           ))}
-      </ul>
+      </ul> */}
+      {/* ------------------------ テスト ------------------------ */}
     </div>
   );
 };

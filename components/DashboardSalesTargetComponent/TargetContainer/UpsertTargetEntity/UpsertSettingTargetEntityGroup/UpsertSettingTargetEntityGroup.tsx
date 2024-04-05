@@ -271,8 +271,17 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     return fiscalMonths;
   }, [fiscalStartYearMonth]);
 
-  // 🌟売上推移で表示するperiodType(期間タイプ: fiscal_year, half_year, quarter, year_month)
-  const [periodTypeTrend, setPeriodTypeTrend] = useState(upsertSettingEntitiesObj.periodType);
+  // 🌟売上推移で表示するperiodType
+  // デフォルト：(期間タイプ: fiscal_year, half_year, quarter, year_month),
+  //
+  const [periodTypeTrend, setPeriodTypeTrend] = useState(() => {
+    // UpsertTargetEntity側では半期を上期と下期で分けるが、ここではselectedPeriodTrendの識別用として上下を使い、periodTypeは年度、半期、四半期、月次のみで区別する
+    if (upsertSettingEntitiesObj.periodType === "fiscal_year") {
+      return "fiscal_year";
+    } else if (["first_half", "second_half"].includes(upsertSettingEntitiesObj.periodType)) {
+      return "half_year";
+    } else return "fiscal_year";
+  });
   const [selectedPeriodTrend, setSelectedPeriodTrend] = useState(() => {
     if (upsertSettingEntitiesObj.entityLevel !== "member") {
       // メンバーレベルでない場合は年度を初期表示にする -1で来期目標の1年前から遡って表示する
@@ -746,7 +755,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                         entityIdsArray={Array.from(entityIdsSet)}
                         periodType={periodTypeTrend}
                         basePeriod={selectedPeriodTrend}
-                        yearsBack={3} // デフォルトは過去3年分を表示する
+                        yearsBack={2} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
                         fetchEnabled={true}
                       />
                     </Suspense>

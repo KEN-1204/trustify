@@ -5,7 +5,7 @@
   /* padding: 6px 12px; */
   /* padding: 0px 0px 6px; */
   box-shadow: var(--color-chart-tooltip-shadow);
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(9px);
 }
 
 .list_legends {

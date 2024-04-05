@@ -75,7 +75,7 @@ export const useQuerySalesTrends = ({
 
     // 🔹エリアチャート用のdataとlegend用のLabelValueの配列に整形
     // エリアチャート用の配列を作成 {date: 期間, value1: エンティティAの値, value2: エンティティBの値, ...}[]
-    if (Array.isArray(responseData) && responseData.length === 0) {
+    if (Array.isArray(responseData) && responseData.length !== 0) {
       // 🔸期間ごとにデータをグループ化
       const groupedByPeriod = responseData.reduce(
         (acc: { [key: number | string]: SalesTrendResponse[] }, item: SalesTrendResponse) => {
@@ -119,8 +119,8 @@ export const useQuerySalesTrends = ({
                 id: row.entity_id,
                 label: row.entity_name,
                 value: row.current_sales,
-                growth_rate: row.previous_sales,
-                prev_value: row.growth_rate,
+                growth_rate: row.growth_rate,
+                prev_value: row.previous_sales,
               } as LabelValue)
           ),
         } as LabelValueGroupByPeriod;

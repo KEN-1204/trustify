@@ -48,6 +48,8 @@ export const AreaChartTrendMemo = ({
     fetchEnabled: fetchEnabled,
   });
 
+  console.log("エリアチャートトレンドコンポーネント data", data, "isError", isError, "isLoading", isLoading);
+
   if (isLoading)
     return (
       <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
@@ -78,6 +80,7 @@ export const AreaChartTrendMemo = ({
         chartHeight={286}
         delay={600}
         chartData={chartData}
+        periodType={periodType}
         labelType={labelType}
         labelValueGroupByPeriod={labelValueGroupByPeriod}
         legendList={legendList}

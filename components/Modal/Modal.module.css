@@ -29,6 +29,7 @@
 
   background: #ffffff;
   /* color: var(--color-text); */
+  box-shadow: 0px 0px 0px 1px #cccccc90, 0px 0px 0px 2px #33333390, 0 6px 12px 9px #00000042;
 }
 
 /* 周りの光アニメーションとの組み合わせ */
