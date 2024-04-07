@@ -3004,7 +3004,7 @@ export type SalesTargetUpsertColumns = {
   sales_trend: SparkChartObj;
 };
 
-// スパークチャート
+// 🔹スパークチャート
 export type SparkChartObj = {
   title: string;
   subTitle: string;
@@ -3013,10 +3013,16 @@ export type SparkChartObj = {
   data: { date: string | number | null; value: number | null }[];
 };
 
-// エリアチャート value1, value2 ...
+// 🔹エリアチャート value1, value2 ...
 export type AreaChartObj = {
   date: string | number;
   value1: number;
+  [key: string]: string | number;
+};
+// 🔹ドーナツチャート value1, value2 ...
+export type DonutChartObj = {
+  name: string | number;
+  value: number;
   [key: string]: string | number;
 };
 export type LabelValue = {

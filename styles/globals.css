@@ -25,8 +25,14 @@
   --caret-color-blue: #1da1f2;
   --caret-color-light-blue: #02e7f5;
 
-  --color-text-title-black: #37352f;
-  --color-text-title-black-hover: #37352f90;
+  /* --color-text-title-black: #37352f;
+  --color-text-title-black-hover: #37352f90; */
+  --color-text-title-black: #424242;
+  --color-text-title-black-hover: #42424290;
+  --color-text-title-gray: #484848;
+  --color-text-title-gray-hover: #48484890;
+  /* --color-text-title-gray: #404452;
+  --color-text-title-gray-hover: #40445290; */
 
   /* bg */
   --color-bg-sub-solid-light: #f3f5f8;
@@ -950,8 +956,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sub-text: rgba(55, 53, 47, 0.65);
   --color-sub-text-dark: rgba(180, 179, 178, 0.65);
   --color-placeholder-text: #9ca3af;
-  --color-text-title: #37352f;
+  /* --color-text-title: #37352f; */
   --color-text-title: #424242;
+  --color-text-title-g: var(--color-text-title-gray);
   /* --color-text-description: #44433f; */
 
   /* ブランドカラー　テキスト */
@@ -1276,10 +1283,24 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-pie-chart-stroke-line: #666;
 
   /* チャートカラー */
+  --color-chart-fill-f: var(--color-bg-brand-f);
+  --color-chart-fill-f-sheer: var(--color-bg-brand-f);
+  --color-chart-fill-brand-sub: var(--color-bg-brand-sub);
+  --color-chart-fill-brand-sub-sheer: var(--color-bg-brand-sub);
+  --color-chart-fill-brand: var(--color-bg-brand);
+  --color-chart-fill-brand-sheer: var(--color-bg-brand);
+  --color-chart-fill-brand-grd2: #0ab5ff;
+  --color-chart-fill-brand-grd2-sheer: #0ab5ff;
+  --color-chart-fill-brand-grd3: #cffcfd;
+  --color-chart-fill-brand-grd3-sheer: #cffcfd;
+  --color-chart-fill-brand-light: var(--color-bg-brand-light);
+  --color-chart-fill-brand-light-sheer: var(--color-bg-brand-light);
   --color-chart-fill-rose: #f43f5e;
   --color-chart-fill-rose-sheer: #f43f5e;
   --color-chart-fill-emerald: #10b981;
   --color-chart-fill-emerald-sheer: #10b981;
+  --color-chart-fill-teal: #14b8a6;
+  --color-chart-fill-teal-sheer: #14b8a6;
   --color-chart-fill-blue: #3b82f6;
   --color-chart-fill-blue-sheer: #3d82f6;
   --color-chart-fill-indigo: #6366f1;
@@ -1837,6 +1858,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-placeholder-text: #9ca3af;
   --color-placeholder-text-light: #e0e9f9;
   --color-text-title: #fff;
+  --color-text-title-g: var(--color-text-title);
   /* 
   --color-text-brand
   Figma: #7cc4f8
@@ -2214,10 +2236,24 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-pie-chart-stroke-line: #ddd;
 
   /* チャートカラー */
+  --color-chart-fill-f: var(--color-bg-brand-f);
+  --color-chart-fill-f-sheer: var(--color-bg-brand-fd0);
+  --color-chart-fill-brand-sub: var(--color-bg-brand-sub);
+  --color-chart-fill-brand-sub-sheer: var(--color-bg-brand-subd0);
+  --color-chart-fill-brand: var(--color-bg-brand);
+  --color-chart-fill-brand-sheer: var(--color-bg-brandd0);
+  --color-chart-fill-brand-grd2: #0ab5ff;
+  --color-chart-fill-brand-grd2-sheer: #0ab5ffd0;
+  --color-chart-fill-brand-grd3: #cffcfd;
+  --color-chart-fill-brand-grd3-sheer: #cffcfdd0;
+  --color-chart-fill-brand-light: var(--color-bg-brand-light);
+  --color-chart-fill-brand-light-sheer: var(--color-bg-brand-lightd0);
   --color-chart-fill-rose: #f43f5e;
   --color-chart-fill-rose-sheer: #f43f5eb9;
   --color-chart-fill-emerald: #10b981;
   --color-chart-fill-emerald-sheer: #10b981b9;
+  --color-chart-fill-teal: #14b8a6;
+  --color-chart-fill-teal-sheer: #14b8a6b9;
   --color-chart-fill-blue: #3b82f6;
   --color-chart-fill-blue-sheer: #3d82f6b9;
   --color-chart-fill-indigo: #6366f1;

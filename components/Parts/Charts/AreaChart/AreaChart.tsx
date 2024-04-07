@@ -23,6 +23,7 @@ import { colorsHEXTrend } from "../Seeds/seedData";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { xAxisDateFormatter } from "../ChartFormatters/dateFormatter";
+import { SpinnerX } from "../../SpinnerX/SpinnerX";
 
 type Props = {
   //   data: { date: string | number | null; value: number | null }[];
@@ -40,6 +41,8 @@ type Props = {
   labelValueGroupByPeriod: LabelValueGroupByPeriod[];
   legendList: LegendNameId[];
   tickCount?: number;
+  fallbackHeight: string;
+  fallbackPadding: string;
 };
 
 const AreaChartComponentMemo = ({
@@ -51,6 +54,8 @@ const AreaChartComponentMemo = ({
   labelValueGroupByPeriod,
   legendList,
   tickCount = 5,
+  fallbackHeight,
+  fallbackPadding,
 }: Props) => {
   const language = useStore((state) => state.language);
 
@@ -183,6 +188,11 @@ const AreaChartComponentMemo = ({
 
   return (
     <>
+      {!isMounted && (
+        <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
+          <SpinnerX />
+        </div>
+      )}
       {isMounted && !!chartData?.length && (
         <ResponsiveContainer width="100%" height={chartHeight} className={`fade08_forward`}>
           <AreaChart data={chartData} margin={{ top: 0, bottom: 0, right: 0, left: 0 }}>

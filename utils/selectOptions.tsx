@@ -1426,6 +1426,12 @@ export const mappingOrderCertaintyStartOfMonthToast: { [key: number]: { [key: st
   3: { ja: `△ネタ`, en: "" },
   4: { ja: `▲ネタ`, en: "" },
 };
+export const mappingSalesProbablyShort: { [key: number]: { [key: string]: string } } = {
+  1: { ja: `A`, en: "A" },
+  2: { ja: `⚪️ネタ`, en: "⚪️" },
+  3: { ja: `△ネタ`, en: "△" },
+  4: { ja: `▲ネタ`, en: "▲" },
+};
 // export const getInvertOrderCertaintyStartOfMonth = (classNum: string, language: string = "ja") => {
 //   switch (classNum) {
 //     case "A (受注済み)":

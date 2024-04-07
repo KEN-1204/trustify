@@ -29,6 +29,7 @@ import { FallbackTargetTable } from "../../UpsertTarget/UpsertTargetGridTable/Fa
 import { UpsertSettingTargetGridTable } from "./UpsertSettingTargetGridTable/UpsertSettingTargetGridTable";
 import { mappingEntityName } from "@/utils/mappings";
 import { AreaChartTrend } from "./AreaChartTrend/AreaChartTrend";
+import { DonutChartDeals } from "./DonutChartDeals/DonutChartDeals";
 
 export const columnHeaderListTarget = [
   "period_type",
@@ -271,69 +272,6 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     return fiscalMonths;
   }, [fiscalStartYearMonth]);
 
-  // 🌟売上推移で表示するperiodType
-  // 遡る年数
-  const [yearsBack, setYearsBack] = useState(2);
-  // デフォルト：(期間タイプ: fiscal_year, half_year, quarter, year_month),
-  // エリアチャートに渡す期間タイプ (半期、四半期、月次)
-  const [periodTypeTrend, setPeriodTypeTrend] = useState(() => {
-    // UpsertTargetEntity側では半期を上期と下期で分けるが、ここではselectedPeriodDetailTrendの識別用として上下を使い、periodTypeは年度、半期、四半期、月次のみで区別する
-    if (upsertSettingEntitiesObj.periodType === "fiscal_year") {
-      return "fiscal_year";
-    } else if (["first_half", "second_half"].includes(upsertSettingEntitiesObj.periodType)) {
-      return "half_year";
-    } else return "fiscal_year";
-  });
-  // エリアチャートに渡す期間 半期の
-  const [selectedPeriodDetailTrend, setSelectedPeriodDetailTrend] = useState<{ period: string; value: number }>(() => {
-    if (upsertSettingEntitiesObj.entityLevel !== "member") {
-      // メンバーレベルでない場合は年度を初期表示にする -1で来期目標の1年前から遡って表示する
-      return {
-        period: "fiscal_year",
-        value: upsertSettingEntitiesObj.fiscalYear - 1,
-      };
-    } else {
-      // メンバーレベルの場合は選択肢した半期（上期か下期）を表示する
-      if (upsertSettingEntitiesObj.periodType === "first_half") {
-        //
-        return {
-          period: "first_half",
-          value: (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 1,
-        }; // 1が上期、2が下期
-      } else {
-        return {
-          period: "second_half",
-          value: (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 2,
-        }; // 1が上期、2が下期
-      }
-    }
-  });
-
-  // 売上推移の「2021H1 ~ 2023H1」表示用
-  const trendPeriodTitle = useMemo(() => {
-    if (periodTypeTrend === "fiscal_year") {
-      return { periodStart: selectedPeriodDetailTrend.value - yearsBack, periodEnd: selectedPeriodDetailTrend.value };
-    } else if (["half_year", "quarter"].includes(periodTypeTrend)) {
-      const year = Number(selectedPeriodDetailTrend.value.toString().substring(0, 4));
-      const period = selectedPeriodDetailTrend.value.toString().substring(5);
-      const back = yearsBack * 10;
-      return {
-        periodStart: periodTypeTrend === "half_year" ? `${year - back}H${period}` : `${year - back}Q${period}`,
-        periodEnd: periodTypeTrend === "half_year" ? `${year}H${period}` : `${year}Q${period}`,
-      };
-    } else if (periodTypeTrend === "year_month") {
-      const year = Number(selectedPeriodDetailTrend.value.toString().substring(0, 4));
-      const period = selectedPeriodDetailTrend.value.toString().substring(5);
-      const back = yearsBack * 100;
-      return {
-        periodStart: `${year - back}年${period}月度`,
-        periodEnd: `${year}年${period}月度`,
-      };
-    } else {
-      return { periodStart: selectedPeriodDetailTrend.value - yearsBack, periodEnd: selectedPeriodDetailTrend.value };
-    }
-  }, [selectedPeriodDetailTrend, yearsBack]);
-
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
   const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
@@ -475,6 +413,95 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     if (selectedInactiveItemIdsMap.size > 0) setSelectedInactiveItemIdsMap(new Map());
     setIsOpenEditSubListModal(false);
   };
+
+  // 🌟売上推移で表示するperiodType
+  // 遡る年数
+  const [yearsBack, setYearsBack] = useState(2);
+  // デフォルト：(期間タイプ: fiscal_year, half_year, quarter, year_month),
+  // エリアチャートに渡す期間タイプ (半期、四半期、月次)
+  const [periodTypeTrend, setPeriodTypeTrend] = useState(() => {
+    // UpsertTargetEntity側では半期を上期と下期で分けるが、ここではselectedPeriodDetailTrendの識別用として上下を使い、periodTypeは年度、半期、四半期、月次のみで区別する
+    if (upsertSettingEntitiesObj.periodType === "fiscal_year") {
+      return "fiscal_year";
+    } else if (["first_half", "second_half"].includes(upsertSettingEntitiesObj.periodType)) {
+      return "half_year";
+    } else return "fiscal_year";
+  });
+  // エリアチャートに渡す期間 セレクトボックス選択中
+  const [selectedPeriodDetailTrend, setSelectedPeriodDetailTrend] = useState<{ period: string; value: number }>(() => {
+    if (upsertSettingEntitiesObj.entityLevel !== "member") {
+      // メンバーレベルでない場合は年度を初期表示にする -1で来期目標の1年前から遡って表示する
+      return {
+        period: "fiscal_year",
+        value: upsertSettingEntitiesObj.fiscalYear - 1,
+      };
+    } else {
+      // メンバーレベルの場合は選択肢した半期（上期か下期）を表示する
+      if (upsertSettingEntitiesObj.periodType === "first_half") {
+        //
+        return {
+          period: "first_half",
+          value: (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 1,
+        }; // 1が上期、2が下期
+      } else {
+        return {
+          period: "second_half",
+          value: (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 2,
+        }; // 1が上期、2が下期
+      }
+    }
+  });
+
+  // 売上推移の「2021H1 ~ 2023H1」表示用
+  const trendPeriodTitle = useMemo(() => {
+    if (periodTypeTrend === "fiscal_year") {
+      return {
+        periodStart: `${selectedPeriodDetailTrend.value - yearsBack}年度`,
+        periodEnd: `${selectedPeriodDetailTrend.value}年度`,
+      };
+    } else {
+      const year = Number(selectedPeriodDetailTrend.value.toString().substring(0, 4));
+      const period = selectedPeriodDetailTrend.value.toString().substring(4);
+      const back = yearsBack;
+      return {
+        periodStart:
+          periodTypeTrend === "half_year"
+            ? `${year - back}H${period}`
+            : periodTypeTrend === "quarter"
+            ? `${year - back}Q${period}`
+            : periodTypeTrend === "year_month"
+            ? `${year - back}年${period}月度`
+            : `${selectedPeriodDetailTrend.value - yearsBack}年度`,
+        periodEnd:
+          periodTypeTrend === "half_year"
+            ? `${year}H${period}`
+            : periodTypeTrend === "quarter"
+            ? `${year}Q${period}`
+            : periodTypeTrend === "year_month"
+            ? `${year}年${period}月度`
+            : `${selectedPeriodDetailTrend.value}年度`,
+      };
+    }
+  }, [selectedPeriodDetailTrend, yearsBack]);
+
+  // -------------------------- 売上推移 部門別 ここまで --------------------------
+  // -------------------------- 案件状況 --------------------------
+  const dealStatusPeriodTitle = useMemo(() => {
+    const year = upsertSettingEntitiesObj.fiscalYear;
+    if (periodTypeTrend === "fiscal_year") {
+      return `${year}年度`;
+    } else {
+      const period = selectedPeriodDetailTrend.value.toString().substring(4);
+      return periodTypeTrend === "half_year"
+        ? `${year}H${period}`
+        : periodTypeTrend === "quarter"
+        ? `${year}Q${period}`
+        : periodTypeTrend === "year_month"
+        ? `${year}年${period}月度`
+        : `${selectedPeriodDetailTrend.value}年度`;
+    }
+  }, []);
+  // -------------------------- 案件状況 ここまで --------------------------
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
@@ -637,13 +664,15 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     isEndEntity,
     "settingEntityLevel",
     settingEntityLevel,
-    upsertSettingEntitiesObj,
-    "サブ目標リスト",
-    subTargetList,
-    "memberDataArray",
-    memberDataArray,
-    "editSubList",
-    editSubList
+    "selectedPeriodDetailTrend",
+    selectedPeriodDetailTrend,
+    upsertSettingEntitiesObj
+    // "サブ目標リスト",
+    // subTargetList,
+    // "memberDataArray",
+    // memberDataArray,
+    // "editSubList",
+    // editSubList,
   );
   return (
     <>
@@ -767,7 +796,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                 )}
                 {upsertSettingEntitiesObj.entityLevel && (
                   <div
-                    className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title)]`}
+                    className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
                     onMouseEnter={(e) => {
                       handleOpenTooltip({
                         e: e,
@@ -870,24 +899,10 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                 <div className={`${styles.grid_content_card}`} style={{ minHeight: `369px` }}>
                   <div className={`${styles.card_title_area}`}>
                     <div className={`${styles.card_title}`}>
-                      {/* <div className={`flex items-end`}> */}
                       <div className={`flex flex-col`}>
                         <span>売上推移 全社</span>
-                        {/* <span className={`mb-[3px] ml-[6px] text-[13px] text-[var(--color-text-sub)]`}>
-                          {upsertSettingEntitiesObj.fiscalYear - 3} ~ {upsertSettingEntitiesObj.fiscalYear - 1}
-                          年度
-                        </span> */}
                         <span className={`text-[12px] text-[var(--color-text-sub)]`}>
-                          {upsertSettingEntitiesObj.fiscalYear - 3} ~ {upsertSettingEntitiesObj.fiscalYear - 1}
-                          年度
-                          {periodTypeTrend === "fiscal_year" &&
-                            `${upsertSettingEntitiesObj.fiscalYear - 3} ~ ${
-                              upsertSettingEntitiesObj.fiscalYear - 1
-                            }年度`}
-                          {periodTypeTrend !== "fiscal_year" &&
-                            `${upsertSettingEntitiesObj.fiscalYear - 3} ~ ${
-                              upsertSettingEntitiesObj.fiscalYear - 1
-                            }年度`}
+                          {trendPeriodTitle.periodStart} ~ {trendPeriodTitle.periodEnd}
                         </span>
                       </div>
                     </div>
@@ -912,28 +927,39 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                       />
                     </Suspense>
                   </ErrorBoundary>
-                  {/* <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
-                    <SpinnerX />
-                  </div> */}
-                  {/* <div
-                    className={`${styles.area_chart_container}  w-full bg-[red]/[0]`}
-                  >
-                    <AreaChartComponent labelType="" labelValueArray={labelValueArrayMain} delay={600} />
-                  </div> */}
                 </div>
                 <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
                   <div className={`${styles.card_title_area}`}>
                     <div className={`${styles.card_title}`}>
                       <div className={`flex flex-col`}>
-                        <span>売上推移 部門別</span>
+                        <span>案件状況 全社</span>
                         <span className={`text-[12px] text-[var(--color-text-sub)]`}>
-                          {upsertSettingEntitiesObj.fiscalYear - 3} ~ {upsertSettingEntitiesObj.fiscalYear - 1}
-                          年度
+                          {upsertSettingEntitiesObj.fiscalYear}年度
                         </span>
                       </div>
                     </div>
                   </div>
-                  <div className={`${styles.main_container}`}></div>
+                  {/* <div className={`${styles.main_container}`}></div> */}
+                  <ErrorBoundary FallbackComponent={ErrorFallback}>
+                    <Suspense
+                      fallback={
+                        <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
+                          <SpinnerX />
+                        </div>
+                      }
+                    >
+                      <DonutChartDeals
+                        companyId={userProfileState.company_id}
+                        entityLevel={upsertSettingEntitiesObj.entityLevel}
+                        entityIdsArray={Array.from(entityIdsSet)}
+                        periodTitle={dealStatusPeriodTitle}
+                        periodType={periodTypeTrend}
+                        basePeriod={selectedPeriodDetailTrend.value}
+                        yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
+                        fetchEnabled={true}
+                      />
+                    </Suspense>
+                  </ErrorBoundary>
                 </div>
               </div>
             )}

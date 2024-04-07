@@ -1500,6 +1500,10 @@ background: var(--color-sales-card-bg);
 
 /* セレクトボタン用の上下アイコン */
 .select_arrow {
+  /* color: #404452; */
+  /* color: rgb(64, 68, 82); */
+  /* color: rgb(48, 49, 61); */
+  /* color: #30313d; */
   position: absolute;
   right: 1px;
   top: 50%;

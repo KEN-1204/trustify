@@ -74,6 +74,7 @@ export const AreaChartTrendMemo = ({
     <div
       // className={`${styles.area_chart_container} mt-[16px] h-[288px] w-full bg-[red]/[0]`}
       className={`${styles.area_chart_container}  w-full bg-[red]/[0]`}
+      style={{ padding: `0px 24px 16px 6px` }}
     >
       {/* エリアチャート */}
       <AreaChartComponent
@@ -84,6 +85,8 @@ export const AreaChartTrendMemo = ({
         labelType={labelType}
         labelValueGroupByPeriod={labelValueGroupByPeriod}
         legendList={legendList}
+        fallbackHeight={fallbackHeight}
+        fallbackPadding={`0px 6px 8px 24px`}
       />
       {/* エリアチャート ここまで */}
     </div>
