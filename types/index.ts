@@ -3019,12 +3019,7 @@ export type AreaChartObj = {
   value1: number;
   [key: string]: string | number;
 };
-// 🔹ドーナツチャート value1, value2 ...
-export type DonutChartObj = {
-  name: string | number;
-  value: number;
-  [key: string]: string | number;
-};
+
 export type LabelValue = {
   id: string;
   label: string;
@@ -3065,4 +3060,20 @@ export type SalesTrendYearHalf = {
   labelType: string; // dateやsales_periodなど
   periodType: string; // 期間タイプ
   entityLevel: string; // エンティティレベル
+};
+
+// 🔹ドーナツチャート value1, value2 ...
+export type DonutChartObj = {
+  name: string | number;
+  value: number;
+  [key: string]: string | number;
+};
+// ドーナツチャート 残ネタ獲得状況
+export type LabelDataSalesProbably = {
+  name: number;
+  amount: number;
+  probably: number;
+  quantity: number;
+  average_price: number;
+  [key: string]: number;
 };

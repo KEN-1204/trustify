@@ -1062,6 +1062,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     #121212f9 100%
   );
   --color-chart-tooltip-bg: #fff;
+  --color-chart-tooltip-bg-solid: #fff;
   --color-chart-tooltip-shadow: 0 0 0 1px var(--color-border-light), 0 7px 12px 2px #00000024;
   /* アラートポップアップ alert_popup */
   --color-alert-popup-bg: #fff6f8;
@@ -1951,7 +1952,15 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     #333333d0 70%,
     #121212d0 100%
   );
+  --color-tooltip-gradient-black-solid: linear-gradient(
+    to bottom left,
+    #666666 0%,
+    #484848 30%,
+    #333333 70%,
+    #121212 100%
+  );
   --color-chart-tooltip-bg: var(--color-tooltip-gradient-black);
+  --color-chart-tooltip-bg-solid: var(--color-tooltip-gradient-black-solid);
   --color-chart-tooltip-shadow: 0 0 0 1px var(--color-border-light), 0 3px 9px 3px #00000030;
   /* アラートポップアップ alert_popup */
   --color-alert-popup-bg: #555;
@@ -2701,6 +2710,10 @@ textarea {
 .fade_chart05_d2 {
   opacity: 0;
   animation: fade 0.5s 2s ease forwards;
+}
+.fade_chart05_d5 {
+  opacity: 0;
+  animation: fade 0.5s 5s ease forwards;
 }
 
 /* クリア オーバーレイ absolute z-indexは個別につける */

@@ -1395,22 +1395,63 @@ export const getLeaseDivision = (value: string, language: string = "ja") => {
 // 各確度ごとの獲得率を算出して可視化することで、正確な売上予測と過分な製造、在庫管理によるコストを削減、利益最大化を図る
 export const optionsOrderCertaintyStartOfMonth = [1, 2, 3, 4];
 
-export const getOrderCertaintyStartOfMonth = (classNum: number, language: string = "ja") => {
+export const getOrderCertaintyStartOfMonth = (
+  classNum: number,
+  language: string = "ja",
+  withLabel: boolean = false
+) => {
   switch (classNum) {
     case 1:
-      return language === "ja" ? `A (受注済み)` : `A (受注済み)`; // AwardのA
+      return language === "ja" ? `A (受注済み)` : `A Already Ordered`; // AwardのA
       break;
     case 2:
-      return language === "ja" ? `○ (80%以上の確率で受注)` : `○ (80%以上の確率で受注)`;
+      return language === "ja"
+        ? `⚪️${withLabel ? `ネタ` : ``} (80%以上の確率で受注)`
+        : `⚪️ An 80% probability of winning the order`;
       break;
     case 3:
-      return language === "ja" ? `△ (50%以上の確率で受注)` : `△ (50%以上の確率で受注)`;
+      return language === "ja"
+        ? `△${withLabel ? `ネタ` : ``} (50%以上の確率で受注)`
+        : `△ An 50% probability of winning the order`;
       break;
     case 4:
-      return language === "ja" ? `▲ (30%以上の確率で受注)` : `▲ (30%以上の確率で受注)`;
+      return language === "ja"
+        ? `▲${withLabel ? `ネタ` : ``} (30%以上の確率で受注)`
+        : `▲ An 30% probability of winning the order`;
       break;
 
     default:
+      return "-";
+      break;
+  }
+};
+export const getOrderCertaintyStartOfMonthZenkaku = (
+  classNum: number,
+  language: string = "ja",
+  withLabel: boolean = false
+) => {
+  switch (classNum) {
+    case 1:
+      return language === "ja" ? `A（受注済み）` : `A Already Ordered`; // AwardのA
+      break;
+    case 2:
+      return language === "ja"
+        ? `⚪️${withLabel ? `ネタ` : ``}（80%以上の確率で受注）`
+        : `⚪️ An 80% probability of winning the order`;
+      break;
+    case 3:
+      return language === "ja"
+        ? `△${withLabel ? `ネタ` : ``}（50%以上の確率で受注）`
+        : `△ An 50% probability of winning the order`;
+      break;
+    case 4:
+      return language === "ja"
+        ? `▲${withLabel ? `ネタ` : ``}（30%以上の確率で受注）`
+        : `▲ An 30% probability of winning the order`;
+      break;
+
+    default:
+      return "-";
       break;
   }
 };

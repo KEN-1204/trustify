@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../../../../DashboardSalesTargetComponent.module.css";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { DonutChartComponent } from "@/components/Parts/Charts/DonutChart/DonutChart";
@@ -80,7 +80,11 @@ const DonutChartDealsMemo = ({
   //   }, []);
   // ------------------------- テストデータ ここまで -------------------------
 
+  // ホバー中のセクター
+  const [activeIndex, setActiveIndex] = useState(1000);
+
   const chartData = donutChartData;
+  const totalAmount = 952000000000;
 
   const chartHeight = 286;
   const pieChartRadius = 78;
@@ -90,7 +94,7 @@ const DonutChartDealsMemo = ({
   //   const chartCenterX = 124;
   const chartCenterX = 112;
 
-  const labelType = "date";
+  const labelType = "sales_probably";
 
   // チャート マウントを0.6s遅らせる
   const [isMounted, setIsMounted] = useState(false);
@@ -121,23 +125,29 @@ const DonutChartDealsMemo = ({
               minWidth: chartContainerWidth ? chartContainerWidth : `calc(${pieChartRadius * 2 + paddingX * 2})`,
             }}
           >
-            <DonutChartComponent
-              // colors={COLORS}
-              // colorsSheer={COLORS_SHEER}
-              colors={COLORS_DEAL}
-              colorsSheer={COLORS_DEAL_SHEER}
-              // colors={COLORS_GRD}
-              // colorsSheer={COLORS_GRD_SHEER}
-              chartHeight={chartHeight}
-              chartCenterX={chartCenterX}
-              chartData={chartData}
-              periodType={periodType}
-              labelType={labelType}
-              // labelValueGroupByPeriod={labelValueGroupByPeriod}
-              // legendList={legendList}
-              fallbackHeight={fallbackHeight}
-              fallbackPadding={`0px 6px 8px 24px`}
-            />
+            <div className={`absolute left-0 top-0 flex h-full w-[448px] items-center bg-[blue]/[0]`}>
+              <DonutChartComponent
+                // colors={COLORS}
+                // colorsSheer={COLORS_SHEER}
+                colors={COLORS_DEAL}
+                colorsSheer={COLORS_DEAL_SHEER}
+                // colors={COLORS_GRD}
+                // colorsSheer={COLORS_GRD_SHEER}
+                chartHeight={chartHeight}
+                chartCenterX={chartCenterX}
+                chartData={chartData}
+                totalAmount={totalAmount}
+                periodType={periodType}
+                labelType={labelType}
+                labelDataSalesProbably={donutLabelData}
+                // labelValueGroupByPeriod={labelValueGroupByPeriod}
+                // legendList={legendList}
+                fallbackHeight={fallbackHeight}
+                fallbackPadding={`0px 6px 8px 24px`}
+                activeIndexParent={activeIndex}
+                setActiveIndexParent={setActiveIndex}
+              />
+            </div>
           </div>
           <div
             className={`fade08_forward flex h-full min-h-full w-full flex-col bg-[gray]/[0]`}
@@ -172,25 +182,34 @@ const DonutChartDealsMemo = ({
                   <li
                     key={`deal_status_${index}`}
                     //   className={`flex w-full justify-between border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px]`}
-                    className={`w-full border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px]`}
+                    className={`w-full border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px] ${
+                      styles.deal_list
+                    } ${activeIndex === 1000 ? `` : activeIndex === index ? `` : `${styles.inactive}`}`}
                     style={{ display: `grid`, gridTemplateColumns: `80px 1fr` }}
                   >
                     <div className={`flex items-center`}>
                       <div
                         className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`}
-                        style={{ background: `${COLORS_DEAL[index]}` }}
+                        style={{
+                          background:
+                            activeIndex === 1000
+                              ? `${COLORS_DEAL[index]}`
+                              : activeIndex === index
+                              ? `${COLORS_DEAL[index]}`
+                              : `var(--color-text-disabled)`,
+                        }}
                       />
-                      <div className="text-[13px] text-[var(--color-text-title)]">
+                      <div className="text-[13px]">
                         {/* <span>A</span> */}
                         {/* <span>⚪️</span> */}
                         <span>
                           {mappingSalesProbablyShort[chartData[index].name][language]}
-                          {index !== 0 ? `ネタ` : ``}
+                          {/* {index !== 0 ? `ネタ` : ``} */}
                         </span>
                       </div>
                     </div>
                     <div
-                      className={`flex items-center justify-end text-[13px] text-[var(--color-text-title)]`}
+                      className={`flex items-center justify-end text-[13px]`}
                       style={{ ...(!isDesktopGTE1600 && { maxWidth: `312px` }) }}
                       // style={{
                       //   display: `grid`,
@@ -200,20 +219,24 @@ const DonutChartDealsMemo = ({
                     >
                       <div className={`flex justify-end  ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}>
                         {/* <span className={`${isDesktopGTE1600 ? `` : `max-w-[85px]`} truncate`}>¥ 2,240,000</span> */}
-                        <span className={`${isDesktopGTE1600 ? `` : `max-w-[85px]`} truncate`}>
+                        <span className={`${isDesktopGTE1600 ? `` : `max-w-[85px]`} min-w-[85px] truncate text-end`}>
                           {formatToJapaneseYen(deal.average_price)}
                         </span>
                       </div>
                       <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}>
-                        <span className={`${isDesktopGTE1600 ? `` : `max-w-[42px]`} truncate`}>{deal.quantity}件</span>
+                        <span className={`${isDesktopGTE1600 ? `` : `max-w-[42px]`} min-w-[42px] truncate text-end`}>
+                          {deal.quantity}件
+                        </span>
                       </div>
                       <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : `pl-[12px]`}`}>
-                        <span className={`${isDesktopGTE1600 ? `` : `max-w-[35px]`} truncate`}>100%</span>
+                        <span className={`${isDesktopGTE1600 ? `` : `max-w-[35px]`} min-w-[35px] truncate text-end`}>
+                          {deal.probably}%
+                        </span>
                       </div>
                       <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : `pl-[12px]`}`}>
-                        <span className={`${isDesktopGTE1600 ? `` : `max-w-[102px]`} truncate`}>
+                        <span className={`${isDesktopGTE1600 ? `` : `max-w-[102px]`} min-w-[102px] truncate text-end`}>
                           {/* ¥ 32,650,000,000 */}
-                          {formatToJapaneseYen(deal.average_price)}
+                          {formatToJapaneseYen(deal.amount)}
                         </span>
                       </div>
                     </div>
@@ -238,7 +261,7 @@ const DonutChartDealsMemo = ({
                 <span>12件</span>
               </div> */}
                   <div className={`font-bold`}>
-                    <span>¥ 12,950,000,000,000</span>
+                    <span>{formatToJapaneseYen(totalAmount, true)}</span>
                   </div>
                 </div>
               </li>

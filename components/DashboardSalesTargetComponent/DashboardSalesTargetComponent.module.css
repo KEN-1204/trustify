@@ -1516,3 +1516,11 @@ background: var(--color-sales-card-bg);
   align-items: center;
   pointer-events: none;
 }
+
+/* ドーナツチャート */
+.deal_list {
+  color: var(--color-text-title);
+}
+.deal_list.inactive {
+  color: var(--color-text-disabled);
+}

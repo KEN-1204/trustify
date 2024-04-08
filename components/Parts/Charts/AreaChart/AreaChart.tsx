@@ -321,7 +321,7 @@ export const CustomTooltip = ({
 
   return (
     <div className={`${styles.tooltip} pointer-events-none min-w-[240px]`}>
-      <h4 className={`px-[12px] pb-[4px] pt-[6px] text-[14px] font-bold`}>
+      <h4 className={`rounded-t-[6px] px-[12px] pb-[4px] pt-[6px] text-[14px] font-bold backdrop-blur-[2px]`}>
         {labelType === "date" &&
           (dateLabel
             ? language === "ja"
@@ -334,7 +334,7 @@ export const CustomTooltip = ({
 
       <hr className={`min-h-[1px] w-full bg-[var(--color-border-light)]`} />
 
-      <ul className={`flex flex-col space-y-[4px]`}>
+      <ul className={`flex flex-col space-y-[5px] rounded-b-[6px] backdrop-blur-[2px]`}>
         {!!labelValueGroup?.length &&
           labelValueGroup.map((obj, index) => {
             const growthRate = obj.growth_rate;

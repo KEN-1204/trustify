@@ -5,7 +5,16 @@
   /* padding: 6px 12px; */
   /* padding: 0px 0px 6px; */
   box-shadow: var(--color-chart-tooltip-shadow);
-  /* backdrop-filter: blur(9px); */
+  backdrop-filter: blur(9px);
+}
+.tooltip_solid {
+  border-radius: 6px;
+  background: var(--color-chart-tooltip-bg-solid);
+  color: var(--color-text-title);
+  /* padding: 6px 12px; */
+  /* padding: 0px 0px 6px; */
+  box-shadow: var(--color-chart-tooltip-shadow);
+  /* backdrop-filter: blur(10px); */
 }
 
 .list_legends {
