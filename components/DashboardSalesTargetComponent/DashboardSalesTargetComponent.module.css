@@ -724,6 +724,15 @@
   background-color: var(--color-bg-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
 }
+.select_btn_wrapper select {
+  box-shadow: 0 0 0 1px var(--color-border-base);
+  max-width: 300px;
+  padding: 4px 24px 4px 12px;
+}
+.select_btn_wrapper select:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+
 .edit_btn {
   /* background-color: #ffffff20; */
   background-color: #484848;

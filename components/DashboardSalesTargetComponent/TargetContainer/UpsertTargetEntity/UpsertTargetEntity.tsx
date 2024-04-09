@@ -36,6 +36,7 @@ import { FiPlus } from "react-icons/fi";
 import { IoTriangleOutline } from "react-icons/io5";
 import { RxDot } from "react-icons/rx";
 import { mappingDescriptions, mappingPopupTitle } from "./dataSettingTarget";
+import { FallbackUpsertSettingTargetEntityGroup } from "./UpsertSettingTargetEntityGroup/FallbackUpsertSettingTargetEntityGroup";
 
 /*
 🌠上位エンティティグループに対して紐付ける方法のメリットとデメリット
@@ -609,6 +610,7 @@ const UpsertTargetEntityMemo = () => {
     // return console.log("リターン");
     setUpsertSettingEntitiesObj({
       ...upsertSettingEntitiesObj,
+      parentEntityLevelId: "",
       parentEntityLevel: "",
       parentEntityId: "",
       parentEntityName: "",
@@ -960,7 +962,16 @@ const UpsertTargetEntityMemo = () => {
             className={`spacer-top-overlay fixed left-0 top-0 z-[4500] min-h-[56px] w-[100vw] bg-[green]/[0]`}
             onClick={handleCloseSettingEntitiesTarget}
           ></div>
-          <div className={`setting_target_container fixed left-0 top-0 z-[80] h-[100vh] w-[100vw] bg-[red]/[0]`}>
+
+          <ErrorBoundary FallbackComponent={ErrorFallback}>
+            <Suspense fallback={<FallbackUpsertSettingTargetEntityGroup />}>
+              <UpsertSettingTargetEntityGroup
+                settingEntityLevel={currentLevel}
+                setIsSettingTargetMode={setIsSettingTargetMode}
+              />
+            </Suspense>
+          </ErrorBoundary>
+          {/* <div className={`setting_target_container fixed left-0 top-0 z-[80] h-[100vh] w-[100vw] bg-[red]/[0]`}>
             <div className={`${styles.upsert_setting_container} relative flex h-full w-full`}>
               <div className={`${styles.main_container_setting} z-[1200] flex h-full w-full bg-[yellow]/[0]`}>
                 <div className={`${styles.spacer_left}`}></div>
@@ -977,7 +988,7 @@ const UpsertTargetEntityMemo = () => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
         </>
       )}
 
@@ -1276,7 +1287,11 @@ const UpsertTargetEntityMemo = () => {
                           }}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => {
-                            if (step === 1) handleAddLevel();
+                            if (step === 1) {
+                              if (addedEntityLevelListLocal.length === 0 && selectedEntityLevel !== "company")
+                                return alert("最初は会社レイヤーから追加してください。");
+                              handleAddLevel();
+                            }
                             if (step === 2) handleNextUpsertTarget();
                             if (step === 3) {
                               if (!isAlreadySetState) {
@@ -1443,6 +1458,7 @@ const UpsertTargetEntityMemo = () => {
                                           const newParentEntityGroup = {
                                             fiscalYear: upsertSettingEntitiesObj.fiscalYear,
                                             periodType: "fiscal_year", // レベルに合わせた目標の期間タイプ、売上推移用
+                                            parentEntityLevelId: levelObj.id,
                                             parentEntityLevel: parentEntityLevel,
                                             parentEntityId: entityGroupObj.parent_entity_id,
                                             parentEntityName: entityGroupObj.parent_entity_name,

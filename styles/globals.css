@@ -1476,7 +1476,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-modal-bg-side-c-secondc0: #555555e9;
 
   /* お知らせ確認モーダル dark */
-  --color-bg-notification-modal: #222;
+  /* --color-bg-notification-modal: #222; */
+  --color-bg-notification-modal: #292929;
   --color-overlay: #ffffff10;
   --color-overlay-light: #ffffff10;
   --color-overlay-black-md: #05050599;
@@ -2297,7 +2298,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-bg-dashboard: var(--color-bg-base); */
   --color-bg-dashboard: #121212;
   --color-tab-underline: #383838;
-  --color-btn-basic-bg: #333;
+  /* --color-btn-basic-bg: #333; */
+  --color-btn-basic-bg: #393939;
   --color-btn-basic-bg-hover: #666;
   --color-btn-basic-bg-on-card: #424242;
   --color-btn-basic-bg-on-card-hover: #666;

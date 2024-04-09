@@ -10,6 +10,8 @@ import {
   EditedCard,
   EditedProduct,
   FiscalYearMonthObjForTarget,
+  InputSalesTargetsIdToDataMap,
+  InputSalesTargetsYearHalf,
   MainEntityTarget,
   Meeting_row_data,
   MemberAccounts,
@@ -500,6 +502,16 @@ type State = {
   // ユーザーのエンティティの中でメンバーの親に当たる末端のエンティティ
   // endEntity: string;
   // setEndEntity: (payload: string) => void;
+  // 目標入力値保存用のグローバルstate {entityId: {data: -, isCollected: false}} isCollectedでデータの収集が完了したかどうかを確認
+  // 親から子へデータを収集を伝えるためのトリガー
+  saveTriggerSalesTarget: boolean;
+  setSaveTriggerSalesTarget: (payload: boolean) => void;
+  // データ収集時にエラーが起きた場合の検知
+  resultCollectSalesTargets: boolean;
+  setResultCollectSalesTargets: (payload: boolean) => void;
+  // 各テーブルの目標入力値を保持するstate
+  inputSalesTargetsIdToDataMap: InputSalesTargetsIdToDataMap;
+  setInputSalesTargetsIdToDataMap: (payload: InputSalesTargetsIdToDataMap) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1198,6 +1210,16 @@ const useDashboardStore = create<State>((set) => ({
   // 目標設定時の上位エンティティと紐づく設定対象の下位エンティティ配列・年度オブジェクト
   upsertSettingEntitiesObj: null,
   setUpsertSettingEntitiesObj: (payload) => set({ upsertSettingEntitiesObj: payload }),
+  // 目標入力値保存用のグローバルstate {entityId: {data: -, isCollected: false}} isCollectedでデータの収集が完了したかどうかを確認
+  // 親から子へデータを収集を伝えるためのトリガー
+  saveTriggerSalesTarget: false,
+  setSaveTriggerSalesTarget: (payload) => set({ saveTriggerSalesTarget: payload }),
+  // データ収集時にエラーが起きた場合の検知
+  resultCollectSalesTargets: false,
+  setResultCollectSalesTargets: (payload) => set({ resultCollectSalesTargets: payload }),
+  // 各テーブルの目標入力値を保持するstate
+  inputSalesTargetsIdToDataMap: {},
+  setInputSalesTargetsIdToDataMap: (payload) => set({ inputSalesTargetsIdToDataMap: payload }),
 
   // ユーザーのエンティティの中でメンバーの親に当たる末端のエンティティ
   // endEntity: "company",

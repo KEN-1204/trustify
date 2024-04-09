@@ -13,20 +13,21 @@ import {
   COLORS_GRD_SHEER,
   COLORS_SHEER,
 } from "@/components/Parts/Charts/Seeds/seedData";
-import { donutChartData, donutLabelData, salesProbabilityList } from "./dataDonutChart";
+import { donutChartData, salesProbabilityList } from "./dataDonutChart";
 import { useMedia } from "react-use";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 import { mappingSalesProbablyShort } from "@/utils/selectOptions";
 import useStore from "@/store";
+import { useQuerySalesProbability } from "@/hooks/useQuerySalesProbability";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 
 type Props = {
   companyId: string;
   entityLevel: string;
-  entityIdsArray: string[];
+  entityId: string;
   periodTitle: string;
   periodType: string;
   basePeriod: number;
-  yearsBack: number;
   fetchEnabled?: boolean;
   fallbackHeight?: string;
   fallbackPadding?: string;
@@ -38,11 +39,10 @@ type Props = {
 const DonutChartDealsMemo = ({
   companyId,
   entityLevel,
-  entityIdsArray,
+  entityId,
   periodTitle,
   periodType,
   basePeriod,
-  yearsBack,
   fetchEnabled,
   fallbackHeight = "302px",
   fallbackPadding = `0px 0px 6px`,
@@ -80,11 +80,42 @@ const DonutChartDealsMemo = ({
   //   }, []);
   // ------------------------- テストデータ ここまで -------------------------
 
+  // ------------------------- useQuery残ネタ取得 -------------------------
+  const { data, isLoading, isError } = useQuerySalesProbability({
+    companyId,
+    entityId,
+    entityLevel,
+    basePeriod,
+    periodType,
+    fetchEnabled,
+  });
+  // ------------------------- useQuery残ネタ取得 ここまで -------------------------
+
+  console.log("DonutChartDealsレンダリング data", data, "isError", isError, "isLoading", isLoading);
+
+  if (isLoading)
+    return (
+      <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
+        <SpinnerX />
+      </div>
+    );
+
+  if (!data || isError)
+    return (
+      <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
+        <span style={{ fontSize: fontSize }}>
+          {(!data || !data.chartData?.length) && !isError && noDataText}
+          {isError && errorText}
+        </span>
+      </div>
+    );
+
   // ホバー中のセクター
   const [activeIndex, setActiveIndex] = useState(1000);
 
-  const chartData = donutChartData;
-  const totalAmount = 952000000000;
+  const chartData = data.chartData;
+  const totalAmount = data.total_amount;
+  const donutLabelData = data.labelListSalesProbabilities;
 
   const chartHeight = 286;
   const pieChartRadius = 78;
@@ -104,8 +135,6 @@ const DonutChartDealsMemo = ({
       setIsMounted(true);
     }, 600);
   }, []);
-
-  console.log("DonutChartDealsレンダリング");
 
   return (
     <div
@@ -136,10 +165,10 @@ const DonutChartDealsMemo = ({
                 chartHeight={chartHeight}
                 chartCenterX={chartCenterX}
                 chartData={chartData}
+                labelListSalesProbabilities={donutLabelData}
                 totalAmount={totalAmount}
                 periodType={periodType}
                 labelType={labelType}
-                labelDataSalesProbably={donutLabelData}
                 // labelValueGroupByPeriod={labelValueGroupByPeriod}
                 // legendList={legendList}
                 fallbackHeight={fallbackHeight}
@@ -220,7 +249,7 @@ const DonutChartDealsMemo = ({
                       <div className={`flex justify-end  ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}>
                         {/* <span className={`${isDesktopGTE1600 ? `` : `max-w-[85px]`} truncate`}>¥ 2,240,000</span> */}
                         <span className={`${isDesktopGTE1600 ? `` : `max-w-[85px]`} min-w-[85px] truncate text-end`}>
-                          {formatToJapaneseYen(deal.average_price)}
+                          {isValidNumber(deal.average_price) ? formatToJapaneseYen(deal.average_price) : `¥ -`}
                         </span>
                       </div>
                       <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}>
@@ -230,7 +259,7 @@ const DonutChartDealsMemo = ({
                       </div>
                       <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : `pl-[12px]`}`}>
                         <span className={`${isDesktopGTE1600 ? `` : `max-w-[35px]`} min-w-[35px] truncate text-end`}>
-                          {deal.probably}%
+                          {deal.probability}%
                         </span>
                       </div>
                       <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : `pl-[12px]`}`}>

@@ -17,6 +17,8 @@ type Props = {
   buttonColor?: "brand" | "red" | "green";
   zIndexOverlay?: string;
   zIndex?: string;
+  withAnnotation?: boolean;
+  annotationText?: string;
 };
 
 export const ConfirmationModal: FC<Props> = ({
@@ -32,13 +34,15 @@ export const ConfirmationModal: FC<Props> = ({
   buttonColor = "red",
   zIndexOverlay,
   zIndex,
+  withAnnotation = false,
+  annotationText = `この操作は少し時間がかかります。画面を閉じずにお待ちください。`,
 }) => {
   return (
     <>
       {/* オーバーレイ */}
       <div
         // className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
-        className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[#00000033] backdrop-blur-sm"
+        className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay-light)] backdrop-blur-sm"
         style={{ ...(zIndexOverlay && { zIndex: zIndexOverlay }) }}
         // onClick={() => {
         //   setShowConfirmCancelModal(null);
@@ -107,6 +111,7 @@ export const ConfirmationModal: FC<Props> = ({
             </button>
           </div>
         </section>
+        {withAnnotation && <p className="mt-[20px] text-[13px] font-bold">{annotationText}</p>}
       </div>
     </>
   );

@@ -1,7 +1,18 @@
 import styles from "../../../DashboardSalesTargetComponent.module.css";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
-import { CSSProperties, Dispatch, Fragment, SetStateAction, Suspense, memo, useEffect, useMemo, useState } from "react";
+import {
+  CSSProperties,
+  Dispatch,
+  Fragment,
+  SetStateAction,
+  Suspense,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { FaSave } from "react-icons/fa";
 import { IoIosSave } from "react-icons/io";
 import { MdSaveAlt } from "react-icons/md";
@@ -22,7 +33,7 @@ import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { HiOutlineSelector, HiOutlineSwitchHorizontal } from "react-icons/hi";
 import { GrPowerReset } from "react-icons/gr";
 import { BsChevronLeft } from "react-icons/bs";
-import { IoAddOutline } from "react-icons/io5";
+import { IoAddOutline, IoChevronDownOutline } from "react-icons/io5";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { FallbackTargetTable } from "../../UpsertTarget/UpsertTargetGridTable/FallbackTargetTable";
@@ -30,6 +41,8 @@ import { UpsertSettingTargetGridTable } from "./UpsertSettingTargetGridTable/Ups
 import { mappingEntityName } from "@/utils/mappings";
 import { AreaChartTrend } from "./AreaChartTrend/AreaChartTrend";
 import { DonutChartDeals } from "./DonutChartDeals/DonutChartDeals";
+import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 
 export const columnHeaderListTarget = [
   "period_type",
@@ -205,10 +218,20 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // ローディング
   const [isLoading, setIsLoading] = useState(false);
 
-  if (!userProfileState || !userProfileState.company_id || !upsertSettingEntitiesObj || !fiscalYearStartEndDate) {
+  const handleReturn = () => {
     setIsSettingTargetMode(false);
     setUpsertSettingEntitiesObj(null);
     toast.error("エラー：会計年度データの取得に失敗しました...🙇‍♀️");
+  };
+
+  if (!userProfileState || !userProfileState.company_id || !upsertSettingEntitiesObj || !fiscalYearStartEndDate) {
+    handleReturn();
+    return null;
+  }
+
+  if (!userProfileState.customer_fiscal_end_month) {
+    alert("お客様の決算日データが見つかりませんでした。");
+    handleReturn();
     return null;
   }
 
@@ -217,6 +240,228 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     () => new Set(upsertSettingEntitiesObj.entities.map((obj) => obj.entity_id)),
     [upsertSettingEntitiesObj.entities]
   );
+  // Mapオブジェクト エンティティid => エンティティオブジェクト
+  const entityIdToObjMap = useMemo(
+    () => new Map(upsertSettingEntitiesObj.entities.map((obj) => [obj.entity_id, obj])),
+    [upsertSettingEntitiesObj.entities]
+  );
+
+  // 案件状況の選択肢のリストをメモ化
+  const optionsEntity = useMemo(() => {
+    return Array.from(entityIdsSet).map((id) => ({
+      id,
+      entityName: entityIdToObjMap.get(id)?.entity_name ?? "-",
+    }));
+  }, [entityIdsSet, entityIdToObjMap]);
+
+  // 売上推移、案件状況を表示するレベル 親エンティティか子エンティティか companyレベルの場合は不要
+
+  // ドーナツチャートで残ネタ・売上予測を表示するエンティティ
+  const [selectedEntityIdForDonut, setSelectedEntityIdForDonut] = useState(
+    upsertSettingEntitiesObj.entities[0].entity_id
+  );
+
+  // -------------------------- state関連 --------------------------
+  // stickyを付与するrow
+  const [stickyRow, setStickyRow] = useState<string | null>(null);
+
+  const isEndEntity = settingEntityLevel === "member";
+
+  // メンバーレベル（isEndEntityの場合）の場合の、上期か下期か
+  const [isFirstHalf, setIsFirstHalf] = useState(isEndEntity ? true : undefined);
+
+  // 🌠目標を保存
+  // companyレベルの場合：総合目標テーブルのinputのみ集めてINSERT => 年度~半期
+  // department~memberレベルの場合：各部門テーブルのinputを全て集めてINSERT => memberレベルのみ半期~月次
+  // 各テーブルの入力値を格納するZustandのグローバルstate
+
+  // 子コンポーネントからデータを収集する関数を保持するステート
+  const inputSalesTargetsIdToDataMap = useDashboardStore((state) => state.inputSalesTargetsIdToDataMap);
+  const setInputSalesTargetsIdToDataMap = useDashboardStore((state) => state.setInputSalesTargetsIdToDataMap);
+  // 親から子へデータを収集を伝えるためのトリガー
+  const saveTriggerSalesTarget = useDashboardStore((state) => state.saveTriggerSalesTarget);
+  const setSaveTriggerSalesTarget = useDashboardStore((state) => state.setSaveTriggerSalesTarget);
+
+  const [isOpenConfirmDialog, setIsOpenConfirmDialog] = useState(false);
+
+  // 保存ボタンクリック
+  const handleCollectInputTargets = () => {
+    // 保存ボタンクリックで、各コンポーネントに対して入力値をZustandに格納するようにトリガーを発火
+    setSaveTriggerSalesTarget(true);
+    console.log("✅✅✅ 親コンポーネント 保存ボタンクリック");
+
+    // ローディング開始
+    setIsLoading(true);
+  };
+
+  useEffect(() => {
+    // トリガーがtrueになってから全てのエンティティのデータが収集できたかを検知して、全て完了したらダイアログを開きエラーが起きたらエラ〜メッセージを表示
+    if (!saveTriggerSalesTarget) return;
+    console.log(
+      "✅✅✅ 親コンポーネント データ収集 全て収集できたか確認",
+      Object.keys(inputSalesTargetsIdToDataMap).length,
+      upsertSettingEntitiesObj.entities.length,
+      inputSalesTargetsIdToDataMap,
+      upsertSettingEntitiesObj.entities
+    );
+    if (Object.keys(inputSalesTargetsIdToDataMap).length !== upsertSettingEntitiesObj.entities.length) return;
+    const isCollectedAll =
+      Object.values(inputSalesTargetsIdToDataMap).every((obj) => obj.isCollected) &&
+      Object.keys(inputSalesTargetsIdToDataMap).every((id) => entityIdsSet.has(id)) &&
+      entityIdsSet.size === Object.keys(inputSalesTargetsIdToDataMap).length;
+    const hasError = Object.values(inputSalesTargetsIdToDataMap).some((obj) => obj.error !== null);
+
+    console.log(
+      "✅✅✅✅✅✅✅✅✅ 親コンポーネントuseEffect 全てデータ収集完了",
+      "inputSalesTargetsIdToDataMap",
+      inputSalesTargetsIdToDataMap,
+      "isCollectedAll",
+      isCollectedAll,
+      "hasError",
+      hasError
+    );
+
+    if (hasError || !isCollectedAll) {
+      setIsLoading(false); // ローディング終了
+      const errorEntityName =
+        Object.values(inputSalesTargetsIdToDataMap).find((obj) => obj.error !== null)?.data.entity_name ?? "";
+      alert(
+        `${
+          errorEntityName ? `「${errorEntityName}」の` : ``
+        }売上目標の入力値に有効ではないデータが含まれているため、保存ができませんでした。 再度入力内容を確認してください。🙇‍♀️`
+      );
+      setSaveTriggerSalesTarget(false); //トリガーをリセット
+      setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
+      return;
+    }
+
+    if (isCollectedAll) {
+      if (isLoading) setIsLoading(false); // ローディング終了
+      // 全ての収集が完了したらダイアログを表示
+      setIsOpenConfirmDialog(true);
+      setSaveTriggerSalesTarget(false); //トリガーをリセット
+    }
+  }, [saveTriggerSalesTarget, inputSalesTargetsIdToDataMap]);
+
+  // 目標を確定クリック
+  const handleSaveTarget = async () => {
+    const periodStart = fiscalYearStartEndDate.startDate;
+    const periodEnd = fiscalYearStartEndDate.endDate;
+    if (!periodStart) return;
+    if (!periodEnd) return;
+    setIsLoading(true); // ローディングを開始
+
+    // 年度テーブル、エンティティレベルテーブル、エンティティテーブル、売上目標テーブルにUPSERT
+    try {
+      // fiscal_yearsテーブルに存在しない場合はINSERT、存在する場合はUPDATE
+
+      // inputSalesTargetsIdToDataMap;
+      // 下記4つのテーブルにUPSERT
+      // ・fiscal_yearsテーブル
+      // ・entity_level_structuresテーブル
+      // ・entity_structuresテーブル
+      // ・sales_targetsテーブル
+
+      if (upsertSettingEntitiesObj.entityLevel !== "member") {
+        const entityDataArray = upsertSettingEntitiesObj.entities.map((obj) => {
+          const salesTarget = inputSalesTargetsIdToDataMap[obj.entity_id].data;
+          const salesTargetYear = salesTarget.inputSalesTargetYear.replace(/[^\d.]/g, "");
+          const salesTargetFirstHalf = salesTarget.inputSalesTargetFirstHalf.replace(/[^\d.]/g, "");
+          const salesTargetSecondHalf = salesTarget.inputSalesTargetSecondHalf.replace(/[^\d.]/g, "");
+
+          const isValidAllNumber = [salesTargetYear, salesTargetFirstHalf, salesTargetSecondHalf].every((target) =>
+            isValidNumber(target)
+          );
+
+          const entityId = obj.entity_id;
+          const parentEntityId = obj.parent_entity_id;
+
+          let createdByCompanyId = userProfileState.company_id;
+          let createdByDepartmentId = null;
+          let createdBySectionId = null;
+          let createdByUnitId = null;
+          // let createdByUserId = null;
+          let createdByOfficeId = null;
+          let parentCreatedByCompanyId = null;
+          let parentCreatedByDepartmentId = null;
+          let parentCreatedBySectionId = null;
+          let parentCreatedByUnitId = null;
+          let parentCreatedByUserId = null;
+          let parentCreatedByOfficeId = null;
+
+          if (upsertSettingEntitiesObj.entityLevel === "company") {
+          }
+          if (upsertSettingEntitiesObj.entityLevel === "department") {
+            parentCreatedByCompanyId = parentEntityId;
+            createdByDepartmentId = entityId;
+          }
+          if (upsertSettingEntitiesObj.entityLevel === "section") {
+            parentCreatedByDepartmentId = parentEntityId;
+            createdByDepartmentId = sectionIdToObjMap?.get(entityId)?.created_by_department_id ?? null;
+            createdBySectionId = entityId;
+          }
+          if (upsertSettingEntitiesObj.entityLevel === "unit") {
+            parentCreatedBySectionId = parentEntityId;
+            createdByDepartmentId = unitIdToObjMap?.get(entityId)?.created_by_department_id ?? null;
+            createdBySectionId = unitIdToObjMap?.get(entityId)?.created_by_section_id ?? null;
+            createdByUnitId = entityId;
+          }
+          if (upsertSettingEntitiesObj.entityLevel === "office") {
+            parentCreatedByCompanyId = parentEntityId;
+            createdByOfficeId = entityId;
+          }
+
+          if (isValidAllNumber) {
+            return {
+              created_by_company_id: createdByCompanyId,
+              created_by_department_id: createdByDepartmentId,
+              created_by_section_id: createdBySectionId,
+              created_by_unit_id: createdByUnitId,
+              created_by_user_id: null, // memberレベル以外のルートのため必ずnull
+              created_by_office_id: createdByOfficeId,
+              parent_created_by_company_id: parentCreatedByCompanyId,
+              parent_created_by_department_id: parentCreatedByDepartmentId,
+              parent_created_by_section_id: parentCreatedBySectionId,
+              parent_created_by_unit_id: parentCreatedByUnitId,
+              parent_created_by_user_id: parentCreatedByUserId, // nullしかないが一応セットしておく
+              parent_created_by_office_id: parentCreatedByOfficeId,
+              entity_name: obj.entity_name,
+              parent_entity_id: obj.parent_entity_id,
+              parent_entity_name: obj.parent_entity_name,
+              is_confirmed_annual_half: true,
+              is_confirmed_first_half_details: false,
+              is_confirmed_second_half_details: false,
+              sales_target_year: Number(salesTargetYear),
+              sales_target_first_half: Number(salesTargetFirstHalf),
+              sales_target_second_half: Number(salesTargetSecondHalf),
+            };
+          } else {
+            throw new Error("売上目標の値が有効ではありません。");
+          }
+        });
+
+        const payload = {
+          _company_id: userProfileState.company_id,
+          _fiscal_year: upsertSettingEntitiesObj.fiscalYear,
+          _period_start: periodStart,
+          _period_end: periodEnd,
+          _target_type: "sales_target",
+          _entity_level: upsertSettingEntitiesObj.entityLevel,
+          _parent_entity_level_id: upsertSettingEntitiesObj.parentEntityId ?? null,
+          _entities_data: entityDataArray,
+        };
+
+        const { error } = supabase.rpc("upsert_sales_target", payload);
+      } else {
+      }
+    } catch (error: any) {
+      console.error("エラー：", error);
+      toast.error("売上目標の保存に失敗しました...🙇‍♀️");
+    }
+    setIsLoading(false); // ローディングを終了
+    setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
+    setIsOpenConfirmDialog(false); // ダイアログを閉じる
+  };
 
   // 🌟目標設定モードを終了
   const handleCancelUpsert = () => {
@@ -229,16 +474,9 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
       parentEntityLevel: "",
       parentEntityName: "",
     });
+    if (saveTriggerSalesTarget) setSaveTriggerSalesTarget(false); //トリガーをリセット
+    setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
   };
-
-  // -------------------------- state関連 --------------------------
-  // stickyを付与するrow
-  const [stickyRow, setStickyRow] = useState<string | null>(null);
-
-  const isEndEntity = settingEntityLevel === "member";
-
-  // isEndEntityの場合の上期か下期か
-  const [isFirstHalf, setIsFirstHalf] = useState(isEndEntity ? true : undefined);
 
   // -------------------------- 変数関連 --------------------------
   // 🔸ユーザーが選択した会計年度の期首
@@ -278,6 +516,31 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
+  // 「事業部」「課・セクション」「係・チーム」「事業所」のid to objectオブジェクトマップ生成
+  // 事業部マップ {id: 事業部オブジェクト}
+  const departmentIdToObjMap = useMemo(() => {
+    if (!departmentDataArray?.length) return null;
+    const departmentMap = new Map(departmentDataArray.map((obj) => [obj.id, obj]));
+    return departmentMap;
+  }, [departmentDataArray]);
+  // 課・セクションマップ {id: 課・セクションオブジェクト}
+  const sectionIdToObjMap = useMemo(() => {
+    if (!sectionDataArray?.length) return null;
+    const sectionMap = new Map(sectionDataArray.map((obj) => [obj.id, obj]));
+    return sectionMap;
+  }, [sectionDataArray]);
+  // 係マップ {id: 係オブジェクト}
+  const unitIdToObjMap = useMemo(() => {
+    if (!unitDataArray?.length) return null;
+    const unitMap = new Map(unitDataArray.map((obj) => [obj.id, obj]));
+    return unitMap;
+  }, [unitDataArray]);
+  // 事業所マップ {id: 事業所オブジェクト}
+  const officeIdToObjMap = useMemo(() => {
+    if (!officeDataArray?.length) return null;
+    const officeMap = new Map(officeDataArray.map((obj) => [obj.id, obj]));
+    return officeMap;
+  }, [officeDataArray]);
 
   // ========================= 🌟メンバーリスト取得useQuery キャッシュ🌟 =========================
   const entityIdsStr = useMemo(() => {
@@ -331,7 +594,8 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   const getDivName = () => {
     switch (upsertSettingEntitiesObj.entityLevel) {
       case "company":
-        return language === "ja" ? `全社 - 部門別` : `Company - Sections`;
+        return language === "ja" ? `全社` : `Company`;
+      // return language === "ja" ? `全社 - 部門別` : `Company - Sections`;
       case "department":
         return language === "ja" ? `事業部別` : `Departments`;
       case "section":
@@ -451,6 +715,33 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
       }
     }
   });
+  // ドーナツチャートに渡す期間 セレクトボックス選択中
+  const [selectedPeriodDetailProbability, setSelectedPeriodDetailProbability] = useState<{
+    period: string;
+    value: number;
+  }>(() => {
+    if (upsertSettingEntitiesObj.entityLevel !== "member") {
+      // メンバーレベルでない場合は年度を初期表示にする -1で来期目標の1年前から遡って表示する
+      return {
+        period: "fiscal_year",
+        value: upsertSettingEntitiesObj.fiscalYear,
+      };
+    } else {
+      // メンバーレベルの場合は選択肢した半期（上期か下期）を表示する
+      if (upsertSettingEntitiesObj.periodType === "first_half") {
+        //
+        return {
+          period: "first_half",
+          value: upsertSettingEntitiesObj.fiscalYear * 10 + 1,
+        }; // 1が上期、2が下期
+      } else {
+        return {
+          period: "second_half",
+          value: upsertSettingEntitiesObj.fiscalYear * 10 + 2,
+        }; // 1が上期、2が下期
+      }
+    }
+  });
 
   // 売上推移の「2021H1 ~ 2023H1」表示用
   const trendPeriodTitle = useMemo(() => {
@@ -483,6 +774,23 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
       };
     }
   }, [selectedPeriodDetailTrend, yearsBack]);
+
+  // 案件状況の「2021H1」表示用
+  const salesProbabilityPeriodTitle = useMemo(() => {
+    if (periodTypeTrend === "fiscal_year") {
+      return `${selectedPeriodDetailProbability.value}年度`;
+    } else {
+      const year = Number(selectedPeriodDetailProbability.value.toString().substring(0, 4));
+      const period = selectedPeriodDetailProbability.value.toString().substring(4);
+      return periodTypeTrend === "half_year"
+        ? `${year}H${period}`
+        : periodTypeTrend === "quarter"
+        ? `${year}Q${period}`
+        : periodTypeTrend === "year_month"
+        ? `${year}年${period}月度`
+        : `${selectedPeriodDetailProbability.value}年度`;
+    }
+  }, [selectedPeriodDetailProbability]);
 
   // -------------------------- 売上推移 部門別 ここまで --------------------------
   // -------------------------- 案件状況 --------------------------
@@ -660,12 +968,13 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // }, [periodTypeTrend]);
 
   console.log(
-    "UpsertTargetコンポーネントレンダリング isEndEntity",
+    "UpsertSettingTargetEntityGroupコンポーネントレンダリング isEndEntity",
     isEndEntity,
     "settingEntityLevel",
     settingEntityLevel,
     "selectedPeriodDetailTrend",
     selectedPeriodDetailTrend,
+    "upsertSettingEntitiesObj",
     upsertSettingEntitiesObj
     // "サブ目標リスト",
     // subTargetList,
@@ -679,390 +988,475 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
       {/* ローディングオーバーレイ */}
       {isLoading && (
         <div
-          className={`flex-center fixed left-0 top-0 z-[5000] h-full w-full bg-[var(--overlay-loading-modal-inside)]`}
+          className={`flex-center fixed left-0 top-0 z-[7000] h-full w-full bg-[var(--overlay-loading-modal-inside)]`}
         >
           <SpinnerBrand withBorder withShadow />
         </div>
       )}
-      {/* ===================== スクロールコンテナ ここから ===================== */}
-      <div className={`${styles.main_contents_container}`}>
-        {/* ----------------- １画面目 上画面 ----------------- */}
-        <section
-          // className={`${styles.company_screen} space-y-[20px] ${
-          className={`${styles.company_table_screen}`}
-        >
-          <div className={`${styles.title_area} ${styles.upsert} flex w-full justify-between`}>
-            <h1 className={`${styles.title} ${styles.upsert}`}>
-              <span>目標設定</span>
-            </h1>
-            <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>
-              <div className={`${styles.btn} ${styles.basic}`} onClick={handleCancelUpsert}>
-                <span>戻る</span>
-              </div>
-              <div
-                className={`${styles.btn} ${styles.brand} space-x-[3px]`}
-                onClick={(e) => {
-                  console.log("クリック");
-                }}
-              >
-                {/* <RiSave3Fill className={`stroke-[3] text-[12px] text-[#fff]`} /> */}
-                <MdSaveAlt className={`text-[14px] text-[#fff]`} />
-                <span>保存</span>
-              </div>
-            </div>
-          </div>
-        </section>
-        {/* ----------------- ２画面目 下画面 ----------------- */}
-        <section className={`${styles.main_section_area} fade08_forward`}>
-          {/* ------------------ コンテンツエリア ------------------ */}
-          <div className={`${styles.contents_area} ${styles.upsert}`}>
-            {/* ---------- 総合目標 ---------- */}
-            <ErrorBoundary FallbackComponent={ErrorFallback}>
-              <Suspense
-                fallback={
-                  <FallbackTargetTable
-                    title={upsertSettingEntitiesObj.parentEntityName}
-                    isSettingYearHalf={!isEndEntity}
-                    hiddenBg={true}
-                    hiddenTitle={true}
-                  />
-                }
-              >
-                <div
-                  className={`${styles.row_container} ${
-                    upsertSettingEntitiesObj.entityLevel !== "company" &&
-                    stickyRow === upsertSettingEntitiesObj.parentEntityId
-                      ? styles.sticky_row
-                      : ``
-                  } ${
-                    upsertSettingEntitiesObj.entityLevel === "company" &&
-                    stickyRow === upsertSettingEntitiesObj.entities[0].entity_id
-                      ? styles.sticky_row
-                      : ``
-                  }`}
+      {/* ===================== setting_target_container ここから ===================== */}
+      <div className={`setting_target_container fixed left-0 top-0 z-[80] h-[100vh] w-[100vw] bg-[red]/[0]`}>
+        <div className={`${styles.upsert_setting_container} relative flex h-full w-full`}>
+          <div className={`${styles.main_container_setting} z-[1200] flex h-full w-full bg-[yellow]/[0]`}>
+            <div className={`${styles.spacer_left}`}></div>
+            <div className={`${styles.main_contents_wrapper} `}>
+              <div className={`${styles.spacer_top}`}></div>
+              {/* ===================== スクロールコンテナ ここから ===================== */}
+              <div className={`${styles.main_contents_container}`}>
+                {/* ----------------- １画面目 上画面 ----------------- */}
+                <section
+                  // className={`${styles.company_screen} space-y-[20px] ${
+                  className={`${styles.company_table_screen}`}
                 >
-                  {upsertSettingEntitiesObj.entityLevel === "company" && (
-                    <UpsertSettingTargetGridTable
-                      isEndEntity={isEndEntity}
-                      entityLevel={upsertSettingEntitiesObj.entityLevel}
-                      entityId={upsertSettingEntitiesObj.entities[0].entity_id}
-                      entityNameTitle={upsertSettingEntitiesObj.entities[0].entity_name}
-                      stickyRow={stickyRow}
-                      setStickyRow={setStickyRow}
-                      annualFiscalMonths={annualFiscalMonthsUpsert}
-                      isFirstHalf={isFirstHalf}
-                      isMainTarget={true}
-                    />
-                  )}
-                  {upsertSettingEntitiesObj.entityLevel !== "company" && (
-                    <UpsertSettingTargetGridTable
-                      isEndEntity={isEndEntity}
-                      entityLevel={upsertSettingEntitiesObj.parentEntityLevel}
-                      entityId={upsertSettingEntitiesObj.parentEntityId}
-                      entityNameTitle={upsertSettingEntitiesObj.parentEntityName}
-                      stickyRow={stickyRow}
-                      setStickyRow={setStickyRow}
-                      annualFiscalMonths={annualFiscalMonthsUpsert}
-                      isFirstHalf={isFirstHalf}
-                      isMainTarget={true}
-                    />
-                  )}
-                </div>
-              </Suspense>
-            </ErrorBoundary>
-            {/* <FallbackTargetTable
-              title={upsertTargetObj.entityName}
-              isSettingYearHalf={!isEndEntity}
-              hiddenBg={true}
-              hiddenTitle={true}
-            /> */}
-            {/* ---------- 総合目標 ここまで ---------- */}
-
-            {/* ----------- タイトルエリア ----------- */}
-            <div className={`${styles.section_title_area} flex w-full items-end justify-between`}>
-              <h1 className={`${styles.title} ${styles.upsert}`}>
-                {/* <span>部門別</span> */}
-                {<span>{getDivName()}</span>}
-              </h1>
-
-              <div className={`${styles.btn_area} flex h-full items-center space-x-[12px]`}>
-                {upsertSettingEntitiesObj.entityLevel !== "company" && (
-                  <div className={`${styles.btn} ${styles.basic} space-x-[6px]`} onClick={handleOpenEditSubListModal}>
-                    <HiOutlineSwitchHorizontal className={`text-[14px] `} />
-                    <span>
-                      {mappingDivName[upsertSettingEntitiesObj.entityLevel as EntityLevelNames][language]}リスト編集
-                    </span>
-                  </div>
-                )}
-                {upsertSettingEntitiesObj.entityLevel && (
-                  <div
-                    className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
-                    onMouseEnter={(e) => {
-                      handleOpenTooltip({
-                        e: e,
-                        display: "top",
-                        content: `チャートの表示期間を変更`,
-                        marginTop: 6,
-                      });
-                    }}
-                    onMouseLeave={handleCloseTooltip}
-                  >
-                    <select
-                      className={`z-10 min-h-[30px] cursor-pointer select-none  appearance-none rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[14px] font-bold`}
-                      style={{ boxShadow: `0 0 0 1px var(--color-border-base)` }}
-                      value={selectedPeriodDetailTrend.period}
-                      onChange={(e) => {
-                        const periodDetail = e.target.value;
-                        let periodValue = upsertSettingEntitiesObj.fiscalYear - 1; // 年度
-                        if (periodDetail === "first_half")
-                          periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 1; // 上期
-                        if (periodDetail === "second_half")
-                          periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 2; // 下期
-
-                        if (upsertSettingEntitiesObj.entityLevel === "member") {
-                          if (periodDetail === "first_quarter")
-                            periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 1; // Q1
-                          if (periodDetail === "second_quarter")
-                            periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 2; // Q2
-                          if (periodDetail === "third_quarter")
-                            periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 3; // Q3
-                          if (periodDetail === "fourth_quarter")
-                            periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 4; // Q4
-                        }
-
-                        setSelectedPeriodDetailTrend({
-                          period: periodDetail,
-                          value: periodValue,
-                        });
-                        // エリアチャート用の期間タイプも同時に更新
-                        if (periodDetail === "fiscal_year") {
-                          if (periodTypeTrend !== "fiscal_year") setPeriodTypeTrend("fiscal_year");
-                        }
-                        if (["first_half", "second_half"].includes(periodDetail)) {
-                          if (periodTypeTrend !== "half_year") setPeriodTypeTrend("half_year");
-                        }
-                        if (
-                          ["first_quarter", "second_quarter", "third_quarter", "fourth_quarter"].includes(periodDetail)
-                        ) {
-                          if (periodTypeTrend !== "quarter") setPeriodTypeTrend("quarter");
-                        }
-                        handleCloseTooltip();
-                      }}
-                    >
-                      {/* メンバーレベル以外 */}
-                      {upsertSettingEntitiesObj.entityLevel !== "member" && (
-                        <>
-                          <option value="fiscal_year">年度</option>
-                          <option value="first_half">上期</option>
-                          <option value="second_half">下期</option>
-                        </>
-                      )}
-                      {upsertSettingEntitiesObj.entityLevel === "member" && (
-                        <>
-                          <option value="first_half">上期</option>
-                          <option value="second_half">下期</option>
-                          <option value="first_quarter">Q1</option>
-                          <option value="second_quarter">Q2</option>
-                          <option value="third_quarter">Q3</option>
-                          <option value="fourth_quarter">Q4</option>
-                        </>
-                      )}
-                    </select>
-                    {/* 上下矢印アイコン */}
-                    <div className={`${styles.select_arrow}`}>
-                      <HiOutlineSelector className="stroke-[2] text-[16px]" />
-                    </div>
-                  </div>
-                )}
-                {/* <div
-                  className={`${styles.btn} ${styles.brand} space-x-[3px]`}
-                  onClick={(e) => {
-                    console.log("クリック");
-                  }}
-                >
-                  <MdSaveAlt className={`text-[14px] text-[#fff]`} />
-                  <span>保存</span>
-                </div> */}
-              </div>
-            </div>
-            {/* ----------- タイトルエリア ここまで ----------- */}
-
-            {/* ----------- 部門別シェア ３列エリア ----------- */}
-            {!allFetched && (
-              <div className={`flex-center fade08_forward h-full max-h-[225px] min-h-[225px] w-full`}>
-                <SpinnerX />
-              </div>
-            )}
-            {/* 🌟全社レベル🌟 */}
-            {allFetched && upsertSettingEntitiesObj.entityLevel === "company" && (
-              <div className={`${styles.grid_row} ${styles.col2} fade08_forward`}>
-                <div className={`${styles.grid_content_card}`} style={{ minHeight: `369px` }}>
-                  <div className={`${styles.card_title_area}`}>
-                    <div className={`${styles.card_title}`}>
-                      <div className={`flex flex-col`}>
-                        <span>売上推移 全社</span>
-                        <span className={`text-[12px] text-[var(--color-text-sub)]`}>
-                          {trendPeriodTitle.periodStart} ~ {trendPeriodTitle.periodEnd}
-                        </span>
+                  <div className={`${styles.title_area} ${styles.upsert} flex w-full justify-between`}>
+                    <h1 className={`${styles.title} ${styles.upsert}`}>
+                      <span>目標設定</span>
+                    </h1>
+                    <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>
+                      <div className={`${styles.btn} ${styles.basic}`} onClick={handleCancelUpsert}>
+                        <span>戻る</span>
+                      </div>
+                      <div
+                        className={`${styles.btn} ${styles.brand} space-x-[3px]`}
+                        onClick={(e) => {
+                          handleCollectInputTargets();
+                        }}
+                      >
+                        {/* <RiSave3Fill className={`stroke-[3] text-[12px] text-[#fff]`} /> */}
+                        <MdSaveAlt className={`text-[14px] text-[#fff]`} />
+                        <span>保存</span>
                       </div>
                     </div>
                   </div>
-
-                  <ErrorBoundary FallbackComponent={ErrorFallback}>
-                    <Suspense
-                      fallback={
-                        <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
-                          <SpinnerX />
-                        </div>
-                      }
-                    >
-                      <AreaChartTrend
-                        companyId={userProfileState.company_id}
-                        entityLevel={upsertSettingEntitiesObj.entityLevel}
-                        entityIdsArray={Array.from(entityIdsSet)}
-                        periodType={periodTypeTrend}
-                        basePeriod={selectedPeriodDetailTrend.value}
-                        yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
-                        fetchEnabled={true}
-                      />
-                    </Suspense>
-                  </ErrorBoundary>
-                </div>
-                <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
-                  <div className={`${styles.card_title_area}`}>
-                    <div className={`${styles.card_title}`}>
-                      <div className={`flex flex-col`}>
-                        <span>案件状況 全社</span>
-                        <span className={`text-[12px] text-[var(--color-text-sub)]`}>
-                          {upsertSettingEntitiesObj.fiscalYear}年度
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  {/* <div className={`${styles.main_container}`}></div> */}
-                  <ErrorBoundary FallbackComponent={ErrorFallback}>
-                    <Suspense
-                      fallback={
-                        <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
-                          <SpinnerX />
-                        </div>
-                      }
-                    >
-                      <DonutChartDeals
-                        companyId={userProfileState.company_id}
-                        entityLevel={upsertSettingEntitiesObj.entityLevel}
-                        entityIdsArray={Array.from(entityIdsSet)}
-                        periodTitle={dealStatusPeriodTitle}
-                        periodType={periodTypeTrend}
-                        basePeriod={selectedPeriodDetailTrend.value}
-                        yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
-                        fetchEnabled={true}
-                      />
-                    </Suspense>
-                  </ErrorBoundary>
-                </div>
-              </div>
-            )}
-            {/* 🌟全社レベル🌟 */}
-            {/* 🌟事業〜メンバーレベル🌟 */}
-            {allFetched && upsertSettingEntitiesObj.entityLevel !== "company" && (
-              <div className={`${styles.grid_row} ${styles.col2} fade08_forward`}>
-                <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
-                  <div className={`${styles.card_title_area}`}>
-                    <div className={`${styles.card_title}`}>
-                      <span>売上目標シェア {upsertSettingEntitiesObj.fiscalYear}年度</span>
-                    </div>
-                  </div>
-                  <div className={`${styles.main_container}`}></div>
-                </div>
-                <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
-                  <div className={`${styles.card_title_area}`}>
-                    <div className={`${styles.card_title}`}>
-                      <span>
-                        売上推移 {upsertSettingEntitiesObj.fiscalYear - 3} ~ {upsertSettingEntitiesObj.fiscalYear - 1}
-                        年度
-                      </span>
-                    </div>
-                  </div>
-                  <div className={`${styles.main_container}`}></div>
-                </div>
-              </div>
-            )}
-            {/* 🌟事業〜メンバーレベル🌟 */}
-            {/* ----------- 部門別シェア ３列エリア ここまで ----------- */}
-
-            {/* ---------- 部門別目標 ---------- */}
-            {upsertSettingEntitiesObj.entityLevel !== "company" &&
-              subTargetList &&
-              subTargetList.length > 0 &&
-              subTargetList.map((obj, tableIndex) => {
-                const childEntityLevel = upsertSettingEntitiesObj.entityLevel;
-                const targetTitle = getSubTargetTitle(childEntityLevel, obj);
-                const entityLevelName = mappingEntityName[upsertSettingEntitiesObj.entityLevel][language];
-                // currentActiveIndexより大きいindexのテーブルはローディングを表示しておく
-                if (tableIndex > currentActiveIndex) {
-                  // console.log(
-                  //   "部門別目標 ローディング中🙇 tableIndex",
-                  //   tableIndex,
-                  //   "currentActiveIndex",
-                  //   currentActiveIndex,
-                  //   "targetTitle",
-                  //   targetTitle
-                  // );
-                  return (
-                    <Fragment key={`${obj.id}_${childEntityLevel}_${targetTitle}_fallback`}>
-                      <FallbackTargetTable
-                        title={entityLevelName}
-                        isSettingYearHalf={!isEndEntity}
-                        hiddenBg={true}
-                        hiddenTitle={true}
-                      />
-                    </Fragment>
-                  );
-                }
-                // console.log(
-                //   "部門別目標 アクティブマウント🔥 tableIndex",
-                //   tableIndex,
-                //   "currentActiveIndex",
-                //   currentActiveIndex,
-                //   "targetTitle",
-                //   targetTitle
-                // );
-
-                return (
-                  <Fragment key={`${obj.id}_${childEntityLevel}_${targetTitle}`}>
+                </section>
+                {/* ----------------- ２画面目 下画面 ----------------- */}
+                <section className={`${styles.main_section_area} fade08_forward`}>
+                  {/* ------------------ コンテンツエリア ------------------ */}
+                  <div className={`${styles.contents_area} ${styles.upsert}`}>
+                    {/* ---------- 総合目標 ---------- */}
                     <ErrorBoundary FallbackComponent={ErrorFallback}>
-                      <Suspense fallback={<FallbackTargetTable title={targetTitle} />}>
-                        <div className={`${styles.row_container} ${stickyRow === obj.id ? styles.sticky_row : ``}`}>
-                          <UpsertSettingTargetGridTable
-                            isEndEntity={isEndEntity}
-                            entityLevel={childEntityLevel}
-                            entityId={obj.id}
-                            entityNameTitle={targetTitle}
-                            stickyRow={stickyRow}
-                            setStickyRow={setStickyRow}
-                            annualFiscalMonths={annualFiscalMonthsUpsert}
-                            isFirstHalf={isFirstHalf}
-                            isMainTarget={false}
-                            fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
-                            onFetchComplete={() => onFetchComplete(tableIndex)}
-                            subTargetList={subTargetList}
-                            setSubTargetList={setSubTargetList}
+                      <Suspense
+                        fallback={
+                          <FallbackTargetTable
+                            title={upsertSettingEntitiesObj.parentEntityName}
+                            isSettingYearHalf={!isEndEntity}
+                            hiddenBg={true}
+                            hiddenTitle={true}
                           />
+                        }
+                      >
+                        <div
+                          className={`${styles.row_container} ${
+                            upsertSettingEntitiesObj.entityLevel !== "company" &&
+                            stickyRow === upsertSettingEntitiesObj.parentEntityId
+                              ? styles.sticky_row
+                              : ``
+                          } ${
+                            upsertSettingEntitiesObj.entityLevel === "company" &&
+                            stickyRow === upsertSettingEntitiesObj.entities[0].entity_id
+                              ? styles.sticky_row
+                              : ``
+                          }`}
+                        >
+                          {upsertSettingEntitiesObj.entityLevel === "company" && (
+                            <UpsertSettingTargetGridTable
+                              isEndEntity={isEndEntity}
+                              entityLevel={upsertSettingEntitiesObj.entityLevel}
+                              entityId={upsertSettingEntitiesObj.entities[0].entity_id}
+                              entityNameTitle={upsertSettingEntitiesObj.entities[0].entity_name}
+                              stickyRow={stickyRow}
+                              setStickyRow={setStickyRow}
+                              annualFiscalMonths={annualFiscalMonthsUpsert}
+                              isFirstHalf={isFirstHalf}
+                              isMainTarget={true}
+                            />
+                          )}
+                          {upsertSettingEntitiesObj.entityLevel !== "company" && (
+                            <UpsertSettingTargetGridTable
+                              isEndEntity={isEndEntity}
+                              entityLevel={upsertSettingEntitiesObj.parentEntityLevel}
+                              entityId={upsertSettingEntitiesObj.parentEntityId}
+                              entityNameTitle={upsertSettingEntitiesObj.parentEntityName}
+                              stickyRow={stickyRow}
+                              setStickyRow={setStickyRow}
+                              annualFiscalMonths={annualFiscalMonthsUpsert}
+                              isFirstHalf={isFirstHalf}
+                              isMainTarget={true}
+                            />
+                          )}
                         </div>
                       </Suspense>
                     </ErrorBoundary>
-                  </Fragment>
-                );
-              })}
-            {/* ---------- 部門別目標 ここまで ---------- */}
-          </div>
-          {/* ------------------ コンテンツエリア ここまで ------------------ */}
-        </section>
+                    {/* ---------- 総合目標 ここまで ---------- */}
 
-        {/* ----------------- ２画面目 下画面 ここまで ----------------- */}
+                    {/* ----------- タイトルエリア ----------- */}
+                    <div className={`${styles.section_title_area} flex w-full items-end justify-between`}>
+                      <h1 className={`${styles.title} ${styles.upsert}`}>
+                        {/* <span>部門別</span> */}
+                        {<span>{getDivName()}</span>}
+                      </h1>
+
+                      <div className={`${styles.btn_area} flex h-full items-center space-x-[12px]`}>
+                        {upsertSettingEntitiesObj.entityLevel !== "company" && (
+                          <div
+                            className={`${styles.btn} ${styles.basic} space-x-[6px]`}
+                            onClick={handleOpenEditSubListModal}
+                          >
+                            <HiOutlineSwitchHorizontal className={`text-[14px] `} />
+                            <span>
+                              {mappingDivName[upsertSettingEntitiesObj.entityLevel as EntityLevelNames][language]}
+                              リスト編集
+                            </span>
+                          </div>
+                        )}
+                        {upsertSettingEntitiesObj.entityLevel && (
+                          <div
+                            className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
+                            onMouseEnter={(e) => {
+                              handleOpenTooltip({
+                                e: e,
+                                display: "top",
+                                content: `チャートの表示期間を変更`,
+                                marginTop: 6,
+                              });
+                            }}
+                            onMouseLeave={handleCloseTooltip}
+                          >
+                            <select
+                              className={`z-10 min-h-[30px] cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[14px] font-bold`}
+                              value={selectedPeriodDetailTrend.period}
+                              onChange={(e) => {
+                                const periodDetail = e.target.value;
+                                let currPeriodValue = upsertSettingEntitiesObj.fiscalYear; // 今年度
+                                let periodValue = upsertSettingEntitiesObj.fiscalYear - 1; // 前年度
+                                if (periodDetail === "first_half") {
+                                  currPeriodValue = upsertSettingEntitiesObj.fiscalYear * 10 + 1; // 上期
+                                  periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 1; // 上期
+                                }
+                                if (periodDetail === "second_half") {
+                                  currPeriodValue = upsertSettingEntitiesObj.fiscalYear * 10 + 2; // 下期
+                                  periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 2; // 下期
+                                }
+
+                                if (upsertSettingEntitiesObj.entityLevel === "member") {
+                                  if (periodDetail === "first_quarter") {
+                                    currPeriodValue = upsertSettingEntitiesObj.fiscalYear * 10 + 1; // Q1
+                                    periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 1; // Q1
+                                  }
+                                  if (periodDetail === "second_quarter") {
+                                    currPeriodValue = upsertSettingEntitiesObj.fiscalYear * 10 + 2; // Q2
+                                    periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 2; // Q2
+                                  }
+                                  if (periodDetail === "third_quarter") {
+                                    currPeriodValue = upsertSettingEntitiesObj.fiscalYear * 10 + 3; // Q3
+                                    periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 3; // Q3
+                                  }
+                                  if (periodDetail === "fourth_quarter") {
+                                    currPeriodValue = upsertSettingEntitiesObj.fiscalYear * 10 + 4; // Q4
+                                    periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 4; // Q4
+                                  }
+                                }
+                                // 売上推移用 目標年度の1年前をbasePeriodとしてセット
+                                setSelectedPeriodDetailTrend({
+                                  period: periodDetail,
+                                  value: periodValue,
+                                });
+                                // 案件状況 目標年度と同じ年度をbasePeriodとしてセット
+                                setSelectedPeriodDetailProbability({
+                                  period: periodDetail,
+                                  value: currPeriodValue,
+                                });
+                                // エリアチャート用の期間タイプも同時に更新
+                                if (periodDetail === "fiscal_year") {
+                                  if (periodTypeTrend !== "fiscal_year") setPeriodTypeTrend("fiscal_year");
+                                }
+                                if (["first_half", "second_half"].includes(periodDetail)) {
+                                  if (periodTypeTrend !== "half_year") setPeriodTypeTrend("half_year");
+                                }
+                                if (
+                                  ["first_quarter", "second_quarter", "third_quarter", "fourth_quarter"].includes(
+                                    periodDetail
+                                  )
+                                ) {
+                                  if (periodTypeTrend !== "quarter") setPeriodTypeTrend("quarter");
+                                }
+                                handleCloseTooltip();
+                              }}
+                            >
+                              {/* メンバーレベル以外 */}
+                              {upsertSettingEntitiesObj.entityLevel !== "member" && (
+                                <>
+                                  <option value="fiscal_year">年度</option>
+                                  <option value="first_half">上期</option>
+                                  <option value="second_half">下期</option>
+                                </>
+                              )}
+                              {upsertSettingEntitiesObj.entityLevel === "member" && (
+                                <>
+                                  <option value="first_half">上期</option>
+                                  <option value="second_half">下期</option>
+                                  <option value="first_quarter">Q1</option>
+                                  <option value="second_quarter">Q2</option>
+                                  <option value="third_quarter">Q3</option>
+                                  <option value="fourth_quarter">Q4</option>
+                                </>
+                              )}
+                            </select>
+                            {/* 上下矢印アイコン */}
+                            <div className={`${styles.select_arrow}`}>
+                              <HiOutlineSelector className="stroke-[2] text-[16px]" />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {/* ----------- タイトルエリア ここまで ----------- */}
+
+                    {/* ----------- 部門別シェア ３列エリア ----------- */}
+                    {!allFetched && (
+                      <div className={`flex-center fade08_forward h-full max-h-[225px] min-h-[225px] w-full`}>
+                        <SpinnerX />
+                      </div>
+                    )}
+                    {/* 🌟全社レベル🌟 */}
+                    {allFetched && upsertSettingEntitiesObj.entityLevel === "company" && (
+                      <div className={`${styles.grid_row} ${styles.col2} fade08_forward`}>
+                        <div className={`${styles.grid_content_card}`} style={{ minHeight: `369px` }}>
+                          <div className={`${styles.card_title_area}`}>
+                            <div className={`${styles.card_title}`}>
+                              <div className={`flex flex-col`}>
+                                <span>売上推移 全社</span>
+                                <span className={`text-[12px] text-[var(--color-text-sub)]`}>
+                                  {trendPeriodTitle.periodStart} ~ {trendPeriodTitle.periodEnd}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <ErrorBoundary FallbackComponent={ErrorFallback}>
+                            <Suspense
+                              fallback={
+                                <div
+                                  className={`flex-center w-full`}
+                                  style={{ minHeight: `302px`, padding: `0px 0px 6px` }}
+                                >
+                                  <SpinnerX />
+                                </div>
+                              }
+                            >
+                              <AreaChartTrend
+                                companyId={userProfileState.company_id}
+                                entityLevel={upsertSettingEntitiesObj.entityLevel}
+                                entityIdsArray={Array.from(entityIdsSet)}
+                                periodType={periodTypeTrend}
+                                basePeriod={selectedPeriodDetailTrend.value}
+                                yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
+                                fetchEnabled={true}
+                              />
+                            </Suspense>
+                          </ErrorBoundary>
+                        </div>
+                        <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                          <div className={`${styles.card_title_area} !items-start`}>
+                            <div className={`${styles.card_title}`}>
+                              <div className={`flex flex-col`}>
+                                <span>案件状況 全社</span>
+                                <span className={`text-[12px] text-[var(--color-text-sub)]`}>
+                                  {salesProbabilityPeriodTitle}
+                                </span>
+                              </div>
+                            </div>
+                            <div className={`flex h-full items-start justify-end pt-[3px]`}>
+                              <div
+                                className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
+                                // onMouseEnter={(e) => {
+                                //   handleOpenTooltip({
+                                //     e: e,
+                                //     display: "top",
+                                //     content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
+                                //     marginTop: 9,
+                                //   });
+                                // }}
+                                // onMouseLeave={handleCloseTooltip}
+                              >
+                                <select
+                                  className={`z-10 min-h-[30px] cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[13px]`}
+                                  // style={{ boxShadow: `0 0 0 1px var(--color-border-base)` }}
+                                  value={selectedEntityIdForDonut}
+                                  onChange={(e) => {
+                                    setSelectedEntityIdForDonut(e.target.value);
+                                  }}
+                                >
+                                  {optionsEntity.map((obj, index) => (
+                                    <option key={`option_${obj.id}`} value={obj.id}>
+                                      {obj.entityName}
+                                    </option>
+                                  ))}
+                                </select>
+                                {/* 上下矢印アイコン */}
+                                <div className={`${styles.select_arrow}`}>
+                                  {/* <HiOutlineSelector className="stroke-[2] text-[16px]" /> */}
+                                  <IoChevronDownOutline className={`text-[12px]`} />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          {/* <div className={`${styles.main_container}`}></div> */}
+                          <ErrorBoundary FallbackComponent={ErrorFallback}>
+                            <Suspense
+                              fallback={
+                                <div
+                                  className={`flex-center w-full`}
+                                  style={{ minHeight: `302px`, padding: `0px 0px 6px` }}
+                                >
+                                  <SpinnerX />
+                                </div>
+                              }
+                            >
+                              <DonutChartDeals
+                                companyId={userProfileState.company_id}
+                                entityLevel={upsertSettingEntitiesObj.entityLevel}
+                                entityId={selectedEntityIdForDonut}
+                                periodTitle={dealStatusPeriodTitle}
+                                periodType={periodTypeTrend}
+                                basePeriod={selectedPeriodDetailProbability.value}
+                                fetchEnabled={true}
+                              />
+                            </Suspense>
+                          </ErrorBoundary>
+                        </div>
+                      </div>
+                    )}
+                    {/* 🌟全社レベル🌟 */}
+                    {/* 🌟事業〜メンバーレベル🌟 */}
+                    {allFetched && upsertSettingEntitiesObj.entityLevel !== "company" && (
+                      <div className={`${styles.grid_row} ${styles.col2} fade08_forward`}>
+                        <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                          <div className={`${styles.card_title_area}`}>
+                            <div className={`${styles.card_title}`}>
+                              <span>売上目標シェア {upsertSettingEntitiesObj.fiscalYear}年度</span>
+                            </div>
+                          </div>
+                          <div className={`${styles.main_container}`}></div>
+                        </div>
+                        <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                          <div className={`${styles.card_title_area}`}>
+                            <div className={`${styles.card_title}`}>
+                              <span>
+                                売上推移 {upsertSettingEntitiesObj.fiscalYear - 3} ~{" "}
+                                {upsertSettingEntitiesObj.fiscalYear - 1}
+                                年度
+                              </span>
+                            </div>
+                          </div>
+                          <div className={`${styles.main_container}`}></div>
+                        </div>
+                      </div>
+                    )}
+                    {/* 🌟事業〜メンバーレベル🌟 */}
+                    {/* ----------- 部門別シェア ３列エリア ここまで ----------- */}
+
+                    {/* ---------- 部門別目標 ---------- */}
+                    {upsertSettingEntitiesObj.entityLevel !== "company" &&
+                      subTargetList &&
+                      subTargetList.length > 0 &&
+                      subTargetList.map((obj, tableIndex) => {
+                        const childEntityLevel = upsertSettingEntitiesObj.entityLevel;
+                        const targetTitle = getSubTargetTitle(childEntityLevel, obj);
+                        const entityLevelName = mappingEntityName[upsertSettingEntitiesObj.entityLevel][language];
+                        // currentActiveIndexより大きいindexのテーブルはローディングを表示しておく
+                        if (tableIndex > currentActiveIndex) {
+                          // console.log(
+                          //   "部門別目標 ローディング中🙇 tableIndex",
+                          //   tableIndex,
+                          //   "currentActiveIndex",
+                          //   currentActiveIndex,
+                          //   "targetTitle",
+                          //   targetTitle
+                          // );
+                          return (
+                            <Fragment key={`${obj.id}_${childEntityLevel}_${targetTitle}_fallback`}>
+                              <FallbackTargetTable
+                                title={entityLevelName}
+                                isSettingYearHalf={!isEndEntity}
+                                hiddenBg={true}
+                                hiddenTitle={true}
+                              />
+                            </Fragment>
+                          );
+                        }
+                        // console.log(
+                        //   "部門別目標 アクティブマウント🔥 tableIndex",
+                        //   tableIndex,
+                        //   "currentActiveIndex",
+                        //   currentActiveIndex,
+                        //   "targetTitle",
+                        //   targetTitle
+                        // );
+
+                        return (
+                          <Fragment key={`${obj.id}_${childEntityLevel}_${targetTitle}`}>
+                            <ErrorBoundary FallbackComponent={ErrorFallback}>
+                              <Suspense fallback={<FallbackTargetTable title={targetTitle} />}>
+                                <div
+                                  className={`${styles.row_container} ${stickyRow === obj.id ? styles.sticky_row : ``}`}
+                                >
+                                  <UpsertSettingTargetGridTable
+                                    isEndEntity={isEndEntity}
+                                    entityLevel={childEntityLevel}
+                                    entityId={obj.id}
+                                    entityNameTitle={targetTitle}
+                                    stickyRow={stickyRow}
+                                    setStickyRow={setStickyRow}
+                                    annualFiscalMonths={annualFiscalMonthsUpsert}
+                                    isFirstHalf={isFirstHalf}
+                                    isMainTarget={false}
+                                    fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
+                                    onFetchComplete={() => onFetchComplete(tableIndex)}
+                                    subTargetList={subTargetList}
+                                    setSubTargetList={setSubTargetList}
+                                  />
+                                </div>
+                              </Suspense>
+                            </ErrorBoundary>
+                          </Fragment>
+                        );
+                      })}
+                    {/* ---------- 部門別目標 ここまで ---------- */}
+                  </div>
+                  {/* ------------------ コンテンツエリア ここまで ------------------ */}
+                </section>
+
+                {/* ----------------- ２画面目 下画面 ここまで ----------------- */}
+              </div>
+              {/* ===================== スクロールコンテナ ここまで ===================== */}
+            </div>
+          </div>
+        </div>
       </div>
-      {/* ===================== スクロールコンテナ ここまで ===================== */}
+      {/* ===================== setting_target_container ここまで ===================== */}
+
+      {/* top left スペーサー z-[4500] */}
+      {isOpenConfirmDialog && (
+        <ConfirmationModal
+          titleText={`売上目標を保存・確定してもよろしいですか？`}
+          sectionP1={`確定することで入力した売上目標が${
+            mappingEntityName[upsertSettingEntitiesObj.entityLevel][language]
+          }レイヤーの${upsertSettingEntitiesObj.fiscalYear}年度の売上目標として設定されます。`}
+          cancelText="戻る"
+          submitText="確定する"
+          buttonColor="brand"
+          zIndex="6000px"
+          zIndexOverlay="5800px"
+          withAnnotation={true}
+          annotationText="注：この操作は少し時間がかかります。画面を閉じずにお待ちください。"
+          clickEventClose={() => {
+            setSaveTriggerSalesTarget(false); //トリガーをリセット
+            setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
+            setIsOpenConfirmDialog(false); // ダイアログを閉じる
+          }}
+          clickEventSubmit={handleSaveTarget}
+        />
+      )}
     </>
   );
 };

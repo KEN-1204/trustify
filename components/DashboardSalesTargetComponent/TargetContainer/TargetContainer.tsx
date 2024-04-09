@@ -736,6 +736,7 @@ export const TargetContainer = () => {
       periodType: "",
       entityLevel: "",
       entities: [],
+      parentEntityLevelId: "",
       parentEntityLevel: "",
       parentEntityId: "",
       parentEntityName: "",

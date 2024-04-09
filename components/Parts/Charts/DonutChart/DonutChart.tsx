@@ -2,7 +2,7 @@ import useStore from "@/store";
 import { Dispatch, Fragment, SetStateAction, memo, useEffect, useMemo, useRef, useState } from "react";
 import { SpinnerX } from "../../SpinnerX/SpinnerX";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, TooltipProps } from "recharts";
-import { DonutChartObj, LabelDataSalesProbably } from "@/types";
+import { DonutChartObj, LabelDataSalesProbability } from "@/types";
 import { COLORS_GRD, COLORS_GRD_SHEER } from "../Seeds/seedData";
 import { NameType, ValueType } from "recharts/types/component/DefaultTooltipContent";
 import { getOrderCertaintyStartOfMonth, getOrderCertaintyStartOfMonthZenkaku } from "@/utils/selectOptions";
@@ -27,7 +27,7 @@ type Props = {
   delay?: number;
   chartData: DonutChartObj[];
   totalAmount: number;
-  labelDataSalesProbably?: LabelDataSalesProbably[];
+  labelListSalesProbabilities?: LabelDataSalesProbability[];
   periodType?: string;
   labelType: string;
   //   labelValueGroupByPeriod: LabelValueGroupByPeriod[];
@@ -48,7 +48,7 @@ const DonutChartComponentMemo = ({
   delay = 0,
   chartData,
   totalAmount,
-  labelDataSalesProbably,
+  labelListSalesProbabilities,
   periodType,
   labelType = "date",
   //   labelValueGroupByPeriod,
@@ -78,9 +78,9 @@ const DonutChartComponentMemo = ({
 
   // 🔹受注確度ごとのlabel(ツールチップ用)のMapオブジェクトを作成
   const probablyNameToObjMap = useMemo(() => {
-    if (!labelDataSalesProbably) return undefined;
-    return new Map(labelDataSalesProbably.map((obj) => [obj.name, obj]));
-  }, [labelDataSalesProbably ?? ""]);
+    if (!labelListSalesProbabilities) return undefined;
+    return new Map(labelListSalesProbabilities.map((obj) => [obj.name, obj]));
+  }, [labelListSalesProbabilities ?? ""]);
 
   // チャート マウントを0.6s遅らせる
   // const [isMounted, setIsMounted] = useState(delay ? false : true);
@@ -98,6 +98,12 @@ const DonutChartComponentMemo = ({
     }, delay);
   }, []);
 
+  // total_amountが0の場合はdisplayChartDataにダミーデータをセットしてグレー色のプレイスホルダーを表示
+  const placeholderData = [{ name: "No Data", value: 100 }];
+  const isNoData = totalAmount === 0;
+
+  const displayChartData = totalAmount > 0 ? chartData : placeholderData;
+
   console.log("DonutChartコンポーネントレンダリング");
   return (
     <>
@@ -106,11 +112,11 @@ const DonutChartComponentMemo = ({
           <SpinnerX />
         </div>
       )}
-      {isMounted && !!chartData?.length && (
+      {isMounted && (
         <ResponsiveContainer width="100%" height={chartHeight} className={`fade08_forward relative z-[100]`}>
           <PieChart margin={{ top: 0, bottom: 0, right: 0, left: 0 }}>
             <Pie
-              data={chartData}
+              data={displayChartData}
               dataKey="value"
               // cx="50%"
               cx={chartCenterX} // 78(半径) + 56(padding-left)
@@ -119,37 +125,40 @@ const DonutChartComponentMemo = ({
               // outerRadius={60}
               innerRadius={60}
               outerRadius={78}
-              paddingAngle={chartData?.length === 1 ? 0 : 3} // セクター間の間隔 lengthが1の場合は間隔は0にする
+              paddingAngle={displayChartData?.length === 1 ? 0 : 3} // セクター間の間隔 lengthが1の場合は間隔は0にする
               // Rechartsでは、3時の方角が開始点で反時計回りが前提となるため、450度反時計回りの0時を開始点、そこから90度まで逆行(つまり、Rechartsでは時計回りに12時の方角までを描画する)
               startAngle={450}
               endAngle={90}
-              onMouseEnter={onPieEnter}
-              onMouseLeave={onPieLeave}
+              onMouseEnter={!isNoData ? onPieEnter : undefined}
+              onMouseLeave={!isNoData ? onPieLeave : undefined}
             >
-              {chartData.map((entry, index) => (
+              {displayChartData.map((entry, index) => (
                 <Cell
-                  key={`donut_chart_cell_${index}`}
+                  key={`donut_chart_cell_${entry.name}_${index}`}
                   // fill={COLORS_SHEER[index % COLORS.length]}
                   // stroke={COLORS[index % COLORS.length]}
-                  fill={colorsSheer[index % colorsSheer.length]}
-                  stroke={colors[index % colors.length]}
+                  // fill={!isNoData ? colorsSheer[index % colorsSheer.length] : "var(--color-progress-chart-bg)"}
+                  fill={!isNoData ? colorsSheer[index % colorsSheer.length] : "var(--color-bg-sub)"}
+                  stroke={!isNoData ? colors[index % colors.length] : "var(--color-bg-sub)"}
                   strokeWidth={`1px`}
                 />
               ))}
             </Pie>
-            <Tooltip
-              content={(props) => (
-                <CustomTooltip
-                  props={props}
-                  labelType={labelType}
-                  periodType={periodType}
-                  language={language}
-                  labelDataSalesProbably={labelDataSalesProbably}
-                  probablyNameToObjMap={probablyNameToObjMap}
-                  colors={colors}
-                />
-              )}
-            />
+            {!isNoData && (
+              <Tooltip
+                content={(props) => (
+                  <CustomTooltip
+                    props={props}
+                    labelType={labelType}
+                    periodType={periodType}
+                    language={language}
+                    labelListSalesProbabilities={labelListSalesProbabilities}
+                    probablyNameToObjMap={probablyNameToObjMap}
+                    colors={colors}
+                  />
+                )}
+              />
+            )}
             {/* 中央にテキストを表示するためのカスタムSVG要素 */}
             {activeIndexParent === 1000 && isValidNumber(totalAmount) && (
               <text
@@ -160,12 +169,18 @@ const DonutChartComponentMemo = ({
                 fontWeight={500}
                 textAnchor="middle"
                 dominantBaseline="central"
-                fill={`var(--color-text-title)`}
+                fill={!isNoData ? `var(--color-text-title)` : `var(--color-text-sub)`}
                 // fill={`var(--main-color-f)`}
                 // className={`${isMounted ? `fade05` : `fade_chart05_d2`}`}
                 className={`fade_chart05_d2`}
               >
-                {`¥ ${formatSalesTarget(totalAmount)}`}
+                {!isNoData && <tspan>{`¥ ${formatSalesTarget(totalAmount)}`}</tspan>}
+                {isNoData && (
+                  <>
+                    <tspan x={chartCenterX} y="50%" dy={-10}>{`¥ 0`}</tspan>
+                    <tspan x={chartCenterX} y="50%" dy={10} fontSize={13}>{`No Data`}</tspan>
+                  </>
+                )}
               </text>
             )}
           </PieChart>
@@ -183,8 +198,8 @@ type TooltipCustomProps = {
   labelType: string;
   periodType?: string;
   language: string;
-  labelDataSalesProbably?: LabelDataSalesProbably[];
-  probablyNameToObjMap?: Map<string | number, LabelDataSalesProbably>;
+  labelListSalesProbabilities?: LabelDataSalesProbability[];
+  probablyNameToObjMap?: Map<string | number, LabelDataSalesProbability>;
   colors: string[];
 };
 
@@ -193,7 +208,7 @@ export const CustomTooltip = ({
   labelType,
   periodType,
   language,
-  labelDataSalesProbably,
+  labelListSalesProbabilities,
   probablyNameToObjMap,
   colors,
 }: TooltipCustomProps) => {
@@ -205,7 +220,7 @@ export const CustomTooltip = ({
   console.log("ドーナツチャートツールチップ payload", payload, "props", props);
 
   if (labelType === "sales_probably") {
-    if (!labelDataSalesProbably) return null;
+    if (!labelListSalesProbabilities) return null;
     if (!probablyNameToObjMap) return null;
 
     const labelName = payload[0].name as number;

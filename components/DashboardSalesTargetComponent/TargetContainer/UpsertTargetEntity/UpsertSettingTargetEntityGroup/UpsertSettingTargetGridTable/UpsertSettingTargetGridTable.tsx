@@ -1,4 +1,4 @@
-import { CSSProperties, Dispatch, SetStateAction, memo, useEffect, useMemo, useState } from "react";
+import { CSSProperties, Dispatch, SetStateAction, memo, useCallback, useEffect, useMemo, useState } from "react";
 import styles from "../../../../DashboardSalesTargetComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import {
@@ -20,7 +20,9 @@ import { calculateYearOverYear } from "@/utils/Helpers/PercentHelpers/calculateY
 import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
 import {
   Department,
+  EntityInputSalesTargetObj,
   FiscalYearMonthObjForTarget,
+  InputSalesTargetsYearHalf,
   MemberAccounts,
   Office,
   SalesSummaryYearHalf,
@@ -129,6 +131,71 @@ Props) => {
   const [inputSalesTargetYear, setInputSalesTargetYear] = useState("");
   const [inputSalesTargetFirstHalf, setInputSalesTargetFirstHalf] = useState("");
   const [inputSalesTargetSecondHalf, setInputSalesTargetSecondHalf] = useState("");
+
+  // このテーブルが総合目標で、かつ、エンティティレベルが全社の場合は入力値をZustandに格納する
+  const saveTriggerSalesTarget = useDashboardStore((state) => state.saveTriggerSalesTarget);
+  const inputSalesTargetsIdToDataMap = useDashboardStore((state) => state.inputSalesTargetsIdToDataMap);
+  const setInputSalesTargetsIdToDataMap = useDashboardStore((state) => state.setInputSalesTargetsIdToDataMap);
+
+  const validateInputSalesTargets = useCallback((salesTargetArray: string[]) => {
+    return salesTargetArray.every((target) => isValidNumber(target.replace(/[^\d.]/g, "")));
+  }, []);
+
+  useEffect(() => {
+    // トリガーがtrueの場合か、isCollectedでない(もしくは存在しない)場合のみ目標stateの収集を実行
+    if (!saveTriggerSalesTarget) return;
+    if ((inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected) return;
+
+    // Zustandのオブジェクトのstateの不変性を保つためcloneDeepでオブジェクトをコピー
+    const copyInputMap = cloneDeep(inputSalesTargetsIdToDataMap);
+    const newTarget = {
+      entity_id: entityId,
+      entity_name: entityNameTitle,
+      inputSalesTargetYear,
+      inputSalesTargetFirstHalf,
+      inputSalesTargetSecondHalf,
+    } as InputSalesTargetsYearHalf;
+
+    const isAllValid = validateInputSalesTargets([
+      inputSalesTargetYear,
+      inputSalesTargetFirstHalf,
+      inputSalesTargetSecondHalf,
+    ]);
+
+    if (!isAllValid) {
+      copyInputMap[entityId] = { data: newTarget, isCollected: false, error: "データが有効ではありません" };
+    } else {
+      copyInputMap[entityId] = { data: newTarget, isCollected: true, error: null };
+    }
+
+    console.log("🔥🔥🔥✅✅✅✅✅✅✅✅✅✅ 子コンポーネント isAllValid", isAllValid, copyInputMap);
+
+    // Zustandを更新
+    setInputSalesTargetsIdToDataMap(copyInputMap);
+  }, [saveTriggerSalesTarget]);
+
+  // useEffect(() => {
+  //   // データ収集関数をストアに登録
+  //   const newCollectors = [
+  //     ...collectorsSalesTarget,
+  //     () =>
+  //       ({
+  //         entity_id: entityId,
+  //         entity_name: entityNameTitle,
+  //         inputSalesTargetYear,
+  //         inputSalesTargetFirstHalf,
+  //         inputSalesTargetSecondHalf,
+  //       } as InputSalesTargetsYearHalf),
+  //   ];
+  //   setCollectorsSalesTarget(newCollectors);
+  //   console.log(
+  //     "データ収集関数をストアに登録 newCollectors",
+  //     newCollectors,
+  //     "collectorsSalesTarget",
+  //     collectorsSalesTarget
+  //   );
+  // }, [setCollectorsSalesTarget]);
+
   // 前年比input 「年度・上半期・下半期」
   const [inputYoYGrowthYear, setInputYoYGrowthYear] = useState<string>("");
   const [inputYoYGrowthFirstHalf, setInputYoYGrowthFirstHalf] = useState<string>("");

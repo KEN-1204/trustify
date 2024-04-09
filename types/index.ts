@@ -2976,6 +2976,7 @@ export type UpsertSettingEntitiesObj = {
   entityLevel: string; // 全社・事業部
   entities: Entity[]; // 設定するエンティティid配列
   // entityName: string;
+  parentEntityLevelId: string; // 紐づく上位エンティティid
   parentEntityLevel: string; // 紐づく上位エンティティ詳細
   parentEntityId: string;
   parentEntityName: string;
@@ -3003,6 +3004,19 @@ export type SalesTargetUpsertColumns = {
   three_years_ago_sales: number | null;
   sales_trend: SparkChartObj;
 };
+
+// 売上目標保存時の各エンティティの入力値を保持するstate 年度~半期
+export type InputSalesTargetsYearHalf = {
+  entity_id: string;
+  entity_name: string;
+  inputSalesTargetYear: string;
+  inputSalesTargetFirstHalf: string;
+  inputSalesTargetSecondHalf: string;
+};
+
+// {entityId: {data: ローカルobj, isCollected: false}} isCollectedデータ収集が完了
+export type EntityInputSalesTargetObj = { data: InputSalesTargetsYearHalf; isCollected: boolean; error: string | null };
+export type InputSalesTargetsIdToDataMap = { [key: string]: EntityInputSalesTargetObj };
 
 // 🔹スパークチャート
 export type SparkChartObj = {
@@ -3064,16 +3078,24 @@ export type SalesTrendYearHalf = {
 
 // 🔹ドーナツチャート value1, value2 ...
 export type DonutChartObj = {
-  name: string | number;
+  name: number;
   value: number;
-  [key: string]: string | number;
+  [key: string]: number;
 };
 // ドーナツチャート 残ネタ獲得状況
-export type LabelDataSalesProbably = {
-  name: number;
-  amount: number;
-  probably: number;
-  quantity: number;
+export type LabelDataSalesProbability = {
+  sales_probability_name: number;
   average_price: number;
+  quantity: number;
+  probability: number;
+  amount: number;
+  period: number;
   [key: string]: number;
+};
+
+// 🌠最終的なuseQueryの確度別の残ネタ獲得状況
+export type SalesProbabilitiesChartData = {
+  total_amount: number;
+  chartData: DonutChartObj[];
+  labelListSalesProbabilities: LabelDataSalesProbability[];
 };
