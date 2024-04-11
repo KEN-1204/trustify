@@ -666,7 +666,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-bg-selected: #0095ff;
   --color-table-bg-selected: #2982ff;
   --color-table-color-selected: #fff;
-  /* 🔹テーブル行偶数行カラーチェンジ */
+  --color-table-container-bg: #fff;
+  /* 🔹テーブル行偶数行カラーチェンジ 
+  */
+  --color-table-odd-color-changed-bg: #fff;
   /* --color-table-even-color-changed-bg: #f7f7f7; */
   /* --color-table-even-color-changed-bg: #f3f6f8; */
   --color-table-even-color-changed-bg: #f5f6f7;
@@ -1334,6 +1337,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* -------- 🌟売上目標🌟 light -------- */
   /* --color-bg-dashboard: #40576d12; */
+  --color-bg-dashboard-table: #fff;
   --color-bg-dashboard: #f2f3f4;
   --color-tab-underline: rgba(57, 76, 96, 0.15);
   --color-btn-basic-bg: #fff;
@@ -1623,8 +1627,13 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-bg-selected: #303030; */
   /* --color-table-bg-selected: var(--color-bg-brand-f20); */
   /* --color-table-bg-selected: var(--color-bg-brand-f30); */
+  --color-table-container-bg: #1c1c1c;
   /* 🔹テーブル行偶数行カラーチェンジ */
-  --color-table-even-color-changed-bg: #2d2d2d;
+  /* --color-table-odd-color-changed-bg: #0f0f0f; */
+  /* --color-table-odd-color-changed-bg: #121212; */
+  --color-table-odd-color-changed-bg: #141414;
+  /* --color-table-even-color-changed-bg: #2d2d2d; */
+  --color-table-even-color-changed-bg: #1c1c1c;
   /* --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f30); */
   /* --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f-hover-solid); */
   /* --color-table-even-color-changed-bg-hover: #393939; */
@@ -2296,6 +2305,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* -------- 🌟売上目標🌟 dark -------- */
   /* --color-bg-dashboard: var(--color-bg-base); */
+  --color-bg-dashboard-table: #121212;
   --color-bg-dashboard: #121212;
   --color-tab-underline: #383838;
   /* --color-btn-basic-bg: #333; */

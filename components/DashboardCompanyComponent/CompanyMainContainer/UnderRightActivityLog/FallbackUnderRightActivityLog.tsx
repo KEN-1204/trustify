@@ -84,7 +84,7 @@ export const FallbackUnderRightActivityLog = () => {
         <div className={`${styles.right_table_tab_header}`}>
           <span>活動履歴</span>
           <div
-            className={`flex-center transition-bg03 text-[#999]} group ml-[22px] cursor-not-allowed space-x-[9px] px-[10px] py-[2px]`}
+            className={`flex-center transition-bg03 group ml-[22px] cursor-not-allowed space-x-[9px] px-[10px] py-[2px] text-[#999]`}
           >
             <FiRefreshCw className="text-[11px]" />
             <span className={``}>リフレッシュ</span>

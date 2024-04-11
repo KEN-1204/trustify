@@ -364,14 +364,9 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
 
       if (upsertSettingEntitiesObj.entityLevel !== "member") {
         const entityDataArray = upsertSettingEntitiesObj.entities.map((obj) => {
-          const salesTarget = inputSalesTargetsIdToDataMap[obj.entity_id].data;
-          const salesTargetYear = salesTarget.inputSalesTargetYear.replace(/[^\d.]/g, "");
-          const salesTargetFirstHalf = salesTarget.inputSalesTargetFirstHalf.replace(/[^\d.]/g, "");
-          const salesTargetSecondHalf = salesTarget.inputSalesTargetSecondHalf.replace(/[^\d.]/g, "");
+          const salesTargetObj = inputSalesTargetsIdToDataMap[obj.entity_id].data;
 
-          const isValidAllNumber = [salesTargetYear, salesTargetFirstHalf, salesTargetSecondHalf].every((target) =>
-            isValidNumber(target)
-          );
+          const isValidAllNumber = salesTargetObj.sales_targets.every((obj) => isValidNumber(obj.sales_target));
 
           const entityId = obj.entity_id;
           const parentEntityId = obj.parent_entity_id;
@@ -390,6 +385,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           let parentCreatedByOfficeId = null;
 
           if (upsertSettingEntitiesObj.entityLevel === "company") {
+            // companyレベルの場合は、親は存在しないのでnullのまま
           }
           if (upsertSettingEntitiesObj.entityLevel === "department") {
             parentCreatedByCompanyId = parentEntityId;
@@ -425,16 +421,20 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
               parent_created_by_unit_id: parentCreatedByUnitId,
               parent_created_by_user_id: parentCreatedByUserId, // nullしかないが一応セットしておく
               parent_created_by_office_id: parentCreatedByOfficeId,
-              entity_name: obj.entity_name,
-              parent_entity_id: obj.parent_entity_id,
-              parent_entity_name: obj.parent_entity_name,
               is_confirmed_annual_half: true,
               is_confirmed_first_half_details: false,
               is_confirmed_second_half_details: false,
-              sales_target_year: Number(salesTargetYear),
-              sales_target_first_half: Number(salesTargetFirstHalf),
-              sales_target_second_half: Number(salesTargetSecondHalf),
+              entity_name: obj.entity_name,
+              parent_entity_name: obj.parent_entity_name,
+              sales_targets_array: salesTargetObj.sales_targets,
             };
+            /** salesTargetObj.sales_targets: 
+               * {
+                  period_type: string;
+                  period: number; // 2024, 20241, 202401
+                  sales_target: number;
+                }
+               */
           } else {
             throw new Error("売上目標の値が有効ではありません。");
           }
@@ -449,9 +449,10 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           _entity_level: upsertSettingEntitiesObj.entityLevel,
           _parent_entity_level_id: upsertSettingEntitiesObj.parentEntityId ?? null,
           _entities_data: entityDataArray,
+          // _period_type: upsertSettingEntitiesObj.periodType, // 期間タイプ(fiscal_year, first_half_details, second_half_details)
         };
 
-        const { error } = supabase.rpc("upsert_sales_target", payload);
+        const { error } = supabase.rpc("upsert_sales_target_entities", payload);
       } else {
       }
     } catch (error: any) {
@@ -701,7 +702,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
       };
     } else {
       // メンバーレベルの場合は選択肢した半期（上期か下期）を表示する
-      if (upsertSettingEntitiesObj.periodType === "first_half") {
+      if (upsertSettingEntitiesObj.periodType === "first_half_details") {
         //
         return {
           period: "first_half",
@@ -728,7 +729,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
       };
     } else {
       // メンバーレベルの場合は選択肢した半期（上期か下期）を表示する
-      if (upsertSettingEntitiesObj.periodType === "first_half") {
+      if (upsertSettingEntitiesObj.periodType === "first_half_details") {
         //
         return {
           period: "first_half",

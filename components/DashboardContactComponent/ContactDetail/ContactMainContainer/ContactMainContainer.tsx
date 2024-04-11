@@ -2995,7 +2995,7 @@ const ContactMainContainerMemo: FC = () => {
                       }}
                     >
                       {isValidNumber(selectedRowDataContact?.industry_type_id)
-                        ? mappingIndustryType[selectedRowDataContact?.industry_type_id][language]
+                        ? mappingIndustryType[selectedRowDataContact?.industry_type_id!][language]
                         : ""}
                     </span>
                   )}

@@ -191,7 +191,7 @@ export const DashboardHomeComponent = () => {
 
   return (
     <div
-      className={`flex-center ${styles.app_main_container} relative ${
+      className={`flex-center ${styles.app_main_container}  relative ${
         isOpenSidebar ? `${styles.open}` : `${styles.close}`
       }`}
     >
@@ -213,7 +213,7 @@ export const DashboardHomeComponent = () => {
         {/* 上ヘッダーサイズ分のスペーサー */}
         <div className={`${styles.spacer_top}`}></div>
         {/* ===================== スクロールコンテナ ここから ===================== */}
-        <div className={`${styles.main_contents_container}`}>
+        <div className={`${styles.main_contents_container} transition-bg05`}>
           {/* １画面目 */}
           {/* メッセージコンテナ */}
 

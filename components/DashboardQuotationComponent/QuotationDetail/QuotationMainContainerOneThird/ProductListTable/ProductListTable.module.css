@@ -175,6 +175,9 @@
   position: absolute;
 }
 /* 🔹偶数行カラーチェンジ */
+.grid_row.even_color_change:nth-of-type(odd) .grid_cell {
+  background-color: var(--color-table-odd-color-changed-bg);
+}
 .grid_row.even_color_change:nth-of-type(even) .grid_cell {
   /* background-color: #f7f7f7; */
   background-color: var(--color-table-even-color-changed-bg);

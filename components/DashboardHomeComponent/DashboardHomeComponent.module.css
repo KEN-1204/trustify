@@ -54,6 +54,8 @@
   justify-content: flex-start;
   overflow-y: scroll;
   overflow-x: inherit;
+
+  /* background: var(--color-bg-dashboard-table); */
 }
 .main_contents_container.height_all {
   height: 100%;

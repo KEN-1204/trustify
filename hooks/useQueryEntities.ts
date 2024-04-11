@@ -38,6 +38,7 @@ export const useQueryEntities = (
     // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     await new Promise((resolve) => setTimeout(resolve, 500));
 
+    // {"company": [ ... ], "department": [ ... ], "section": [ ... ], ...}
     return data as EntitiesHierarchy;
   };
 

@@ -33,7 +33,21 @@ export const useQueryEntityLevels = (
     // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    // return data as (EntityLevelStructures & { fiscal_year: number })[];
+    /*
+    type EntityLevels = {
+    id: string;
+    created_at: string;
+    updated_at: string | null;
+    fiscal_year_id: string;
+    created_by_company_id: string;
+    entity_level: string;
+    is_confirmed_annual_half: boolean;
+    is_confirmed_first_half_details: boolean;
+    is_confirmed_second_half_details: boolean;
+    target_type: string;
+    fiscal_year: number; //fiscal_yearsテーブルからfiscal_yaerを取得
+    };
+ */
     return data as EntityLevels[];
   };
 

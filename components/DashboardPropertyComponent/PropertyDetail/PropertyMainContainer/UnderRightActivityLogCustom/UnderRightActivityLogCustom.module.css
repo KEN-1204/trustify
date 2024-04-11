@@ -19,6 +19,7 @@
   position: relative;
   /* margin-bottom: 10px; */
   background: var(--color-bg-under-container);
+  background-color: var(--color-table-container-bg);
   font-family: var(--font-family-str);
 }
 .right_activity_log_container.company_table_screen_pr {
@@ -190,6 +191,9 @@
   position: absolute;
 }
 /* 🔹偶数行カラーチェンジ */
+.grid_row.even_color_change:nth-of-type(odd) .grid_cell {
+  background-color: var(--color-table-odd-color-changed-bg);
+}
 .grid_row.even_color_change:nth-of-type(even) .grid_cell {
   background-color: var(--color-table-even-color-changed-bg);
 }

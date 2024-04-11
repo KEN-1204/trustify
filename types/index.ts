@@ -2592,7 +2592,7 @@ export type EntityLevels = {
   is_confirmed_first_half_details: boolean;
   is_confirmed_second_half_details: boolean;
   target_type: string;
-  fiscal_year: number; //fiscal_yearsテーブルから
+  fiscal_year: number; //fiscal_yearsテーブルからfiscal_yaerを取得
 };
 
 // 売上目標テーブル
@@ -2629,7 +2629,7 @@ export type Entity = {
   parent_entity_level_id: string;
   target_type: string;
   entity_id: string;
-  parent_entity_id: string;
+  parent_entity_id: string | null;
   is_confirmed_annual_half: boolean;
   is_confirmed_first_half_details: boolean;
   is_confirmed_second_half_details: boolean;
@@ -2640,13 +2640,24 @@ export type Entity = {
   parent_entity_level: string; // entity_level_structuresテーブル
 };
 export type EntityGroupByParent = {
-  parent_entity_id: string;
+  parent_entity_id: string | null;
   parent_entity_name: string;
   entities: Entity[];
 };
 export type EntityLevelNames = "company" | "department" | "section" | "unit" | "member" | "office";
 export type EntitiesHierarchy = Record<EntityLevelNames, EntityGroupByParent[]>;
 // export type EntitiesHierarchy = { [K in EntityLevelNames]: EntityGroupByParent[] };
+
+// メンバーエンティティグループ 上位エンティティに紐づくグループとして取得し、選択肢として表示 {上位エンティティid: {メンバーobj}}
+export type MemberGroupsByParentEntity = {
+  [key: string]: {
+    parent_entity_id: string;
+    parent_entity_name: string;
+    // parent_entity_level_id: string;
+    // parent_entity_level: string;
+    member_group: (MemberAccounts & { company_id: string; company_name: string })[];
+  };
+};
 // ------------- 🌠売上目標DB関連🌠 -------------
 
 // 売上目標 売上目標テーブルからFUNCTIONで取得
@@ -2972,7 +2983,7 @@ export type UpsertTargetObj = {
 // 目標設定用 年度・エンティティ関連オブジェクト
 export type UpsertSettingEntitiesObj = {
   fiscalYear: number;
-  periodType: string; // 期間タイプ(fiscal_year, first_half_detail, second_half_details)
+  periodType: "fiscal_year" | "first_half_details" | "second_half_details"; // 期間タイプ(fiscal_year, first_half_details, second_half_details)
   entityLevel: string; // 全社・事業部
   entities: Entity[]; // 設定するエンティティid配列
   // entityName: string;
@@ -3006,12 +3017,15 @@ export type SalesTargetUpsertColumns = {
 };
 
 // 売上目標保存時の各エンティティの入力値を保持するstate 年度~半期
+export type inputSalesData = {
+  period_type: string;
+  period: number; // 2024, 20241, 202401
+  sales_target: number;
+};
 export type InputSalesTargetsYearHalf = {
   entity_id: string;
   entity_name: string;
-  inputSalesTargetYear: string;
-  inputSalesTargetFirstHalf: string;
-  inputSalesTargetSecondHalf: string;
+  sales_targets: inputSalesData[];
 };
 
 // {entityId: {data: ローカルobj, isCollected: false}} isCollectedデータ収集が完了

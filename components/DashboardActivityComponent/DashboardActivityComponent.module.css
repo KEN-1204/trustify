@@ -53,6 +53,8 @@
   justify-content: flex-start;
   overflow-y: scroll;
   overflow-x: inherit;
+
+  background: var(--color-bg-dashboard-table);
 }
 
 .screen1 {
@@ -67,7 +69,7 @@
   /* height: calc(100vh - var(--header-height)); */
   /* min-height: min-content; */
   width: 100%;
-  background-color: var(--color-bg-base);
+  /* background-color: var(--color-bg-base); */
   /* flex-grow: 1; */
   /* flex: 1; */
   position: relative;

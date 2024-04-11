@@ -37,6 +37,8 @@ import { IoTriangleOutline } from "react-icons/io5";
 import { RxDot } from "react-icons/rx";
 import { mappingDescriptions, mappingPopupTitle } from "./dataSettingTarget";
 import { FallbackUpsertSettingTargetEntityGroup } from "./UpsertSettingTargetEntityGroup/FallbackUpsertSettingTargetEntityGroup";
+import { useQueryMemberAccountsFilteredByEntity } from "@/hooks/useQueryMemberAccountsFilteredByEntity";
+import { useQueryMemberGroupsByParentEntities } from "@/hooks/useQueryMemberGroupsByParentEntities";
 
 /*
 🌠上位エンティティグループに対して紐付ける方法のメリットとデメリット
@@ -73,6 +75,9 @@ const UpsertTargetEntityMemo = () => {
 
   const setUpsertTargetMode = useDashboardStore((state) => state.setUpsertTargetMode);
 
+  // ユーザーの会計年度の期首と期末のDateオブジェクト
+  const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
+
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
   // 目標設定を行う上位エンティティグループ()
@@ -88,12 +93,19 @@ const UpsertTargetEntityMemo = () => {
   const [isStickySidebar, setIsStickySidebar] = useState(false);
   const [isStickyHeader, setIsStickyHeader] = useState(false);
 
-  if (!userProfileState) return null;
-  if (!userProfileState.company_id) return null;
-  // if (!upsertTargetObj) return null;
-  // if (!upsertTargetObj.fiscalYear) return null;
-  if (!upsertSettingEntitiesObj) return null;
-  if (!upsertSettingEntitiesObj.fiscalYear) return null;
+  const handleErrorReturn = () => {
+    setUpsertSettingEntitiesObj(null);
+    setUpsertTargetMode(null);
+    return null;
+  };
+
+  if (!userProfileState) return handleErrorReturn();
+  if (!userProfileState.company_id) return handleErrorReturn();
+  // if (!upsertTargetObj) return handleErrorReturn();
+  // if (!upsertTargetObj.fiscalYear) return handleErrorReturn();
+  if (!upsertSettingEntitiesObj) return handleErrorReturn();
+  if (!upsertSettingEntitiesObj.fiscalYear) return handleErrorReturn();
+  if (!fiscalYearStartEndDate) return handleErrorReturn();
 
   // ref
   // 説明アイコン
@@ -107,7 +119,7 @@ const UpsertTargetEntityMemo = () => {
 
   // ===================== 🌠エンティティレベルuseQuery🌠 =====================
   const {
-    data: entityLevelsQueryData,
+    data: addedEntityLevelsListQueryData,
     isLoading: isLoadingQueryLevel,
     isError: isErrorQueryLevel,
   } = useQueryEntityLevels(userProfileState.company_id, upsertSettingEntitiesObj.fiscalYear, "sales_target", true);
@@ -116,12 +128,12 @@ const UpsertTargetEntityMemo = () => {
   // ===================== 🌠エンティティuseQuery🌠 =====================
   // エンティティレベルのidのみで配列を作成(エンティティuseQuery用)
   const entityLevelIds = useMemo(() => {
-    if (!entityLevelsQueryData) return [];
-    return entityLevelsQueryData.map((obj) => obj.id);
-  }, [entityLevelsQueryData]);
+    if (!addedEntityLevelsListQueryData) return [];
+    return addedEntityLevelsListQueryData.map((obj) => obj.id);
+  }, [addedEntityLevelsListQueryData]);
 
   const {
-    data: entitiesQueryData,
+    data: entitiesHierarchyQueryData,
     isLoading: isLoadingQueryEntities,
     isError: isErrorQueryEntities,
   } = useQueryEntities(
@@ -133,9 +145,11 @@ const UpsertTargetEntityMemo = () => {
   );
   // ===================== 🌠エンティティuseQuery🌠 =====================
 
-  // 🌟エンティティレベルとエンティティをローカルstateで管理し、追加編集をローカルで行い最終確定時にDBとキャッシュを更新
-  const [addedEntityLevelListLocal, setAddedEntityLevelListLocal] = useState(entityLevelsQueryData ?? []);
-  const [entityHierarchyLocal, setEntityHierarchyLocal] = useState<EntitiesHierarchy>({
+  // 🌟✅エンティティレベルとエンティティをローカルstateで管理し、追加編集をローカルで行い最終確定時にDBとキャッシュを更新
+  const [addedEntityLevelsListLocal, setAddedEntityLevelsListLocal] = useState(addedEntityLevelsListQueryData ?? []);
+  // ✅エンティティレベルごとにentitiesHierarchyQueryDataを振り分ける
+  // // {"company": [ ... ], "department": [ ... ], "section": [ ... ], ...}
+  const [entitiesHierarchyLocal, setEntitiesHierarchyLocal] = useState<EntitiesHierarchy>({
     company: [],
     department: [],
     section: [],
@@ -144,14 +158,14 @@ const UpsertTargetEntityMemo = () => {
     office: [],
   });
 
-  // 🌟エンティティレベルを取得した後に必ずstateにセットするためのuseEffect
+  // 🌟エンティティレベルを取得した後に必ずstateにセットするためのuseEffect 新たにエンティティレベルが追加された時にも自動的にuseQueryの内容を反映
   useEffect(() => {
-    setAddedEntityLevelListLocal(addedEntityLevelListLocal ?? []);
-  }, [entityLevelsQueryData]);
+    setAddedEntityLevelsListLocal(addedEntityLevelsListQueryData ?? []);
+  }, [addedEntityLevelsListQueryData]);
 
   // 🌟レベルごとのエンティティリストを取得した後に必ずセットするためのuseEffect
   useEffect(() => {
-    if (entitiesQueryData) {
+    if (entitiesHierarchyQueryData) {
       let initialState: EntitiesHierarchy = {
         company: [],
         department: [],
@@ -162,26 +176,54 @@ const UpsertTargetEntityMemo = () => {
       };
 
       // 存在するエンティティレベルのキーを取得
-      const existingKeys = Object.keys(entitiesQueryData);
+      const existingKeys = Object.keys(entitiesHierarchyQueryData);
 
       // 存在するキーに対してのみ値をセット
       existingKeys.forEach((key) => {
-        initialState[key as EntityLevelNames] = entitiesQueryData[key as EntityLevelNames];
+        initialState[key as EntityLevelNames] = entitiesHierarchyQueryData[key as EntityLevelNames];
       });
 
-      setEntityHierarchyLocal(initialState);
+      setEntitiesHierarchyLocal(initialState);
     }
-  }, [entitiesQueryData]);
+  }, [entitiesHierarchyQueryData]);
 
-  // エンティティレベルMap key: レベル名, value: オブジェクトのMapオブジェクトを生成
-  const entityLevelsMap = useMemo(() => {
-    if (!addedEntityLevelListLocal || addedEntityLevelListLocal?.length === 0) return null;
-    return new Map(addedEntityLevelListLocal.map((obj) => [obj.entity_level, obj]));
-  }, [addedEntityLevelListLocal]);
-  // const entityLevelsMap = useMemo(() => {
-  //   if (!entityLevelsQueryData || entityLevelsQueryData?.length === 0) return null;
-  //   return new Map(entityLevelsQueryData.map((obj) => [obj.entity_level, obj]));
-  // }, [entityLevelsQueryData]);
+  // ✅エンティティレベルMap key: レベル名, value: オブジェクトのMapオブジェクトを生成
+  const addedEntityLevelsMapLocal = useMemo(() => {
+    if (!addedEntityLevelsListLocal || addedEntityLevelsListLocal?.length === 0) return null;
+    return new Map(addedEntityLevelsListLocal.map((obj) => [obj.entity_level, obj]));
+  }, [addedEntityLevelsListLocal]);
+  // const addedEntityLevelsMapLocal = useMemo(() => {
+  //   if (!addedEntityLevelsListQueryData || addedEntityLevelsListQueryData?.length === 0) return null;
+  //   return new Map(addedEntityLevelsListQueryData.map((obj) => [obj.entity_level, obj]));
+  // }, [addedEntityLevelsListQueryData]);
+
+  // ✅現在のレベル ステップ1でレベルを選択して変更
+  const [currentLevel, setCurrentLevel] = useState<EntityLevelNames>(() => {
+    if (!addedEntityLevelsMapLocal || addedEntityLevelsMapLocal.size === 0) return "company";
+    if (addedEntityLevelsMapLocal.has("member")) return "member";
+    if (addedEntityLevelsMapLocal.has("unit")) return "unit";
+    if (addedEntityLevelsMapLocal.has("section")) "section";
+    if (addedEntityLevelsMapLocal.has("department")) "department";
+    if (addedEntityLevelsMapLocal.has("company")) "company";
+    return "company";
+  });
+
+  // ✅現在のレベルの上位エンティティレベル
+  const parentEntityLevel = useMemo(() => {
+    if (currentLevel === "company") return "root";
+    if (currentLevel === "department") return "company";
+    if (currentLevel === "section") return "department";
+    if (currentLevel === "unit") return "section";
+    if (currentLevel === "member" && addedEntityLevelsMapLocal) {
+      if (addedEntityLevelsMapLocal.has("unit")) return "unit";
+      if (addedEntityLevelsMapLocal.has("section")) return "section";
+      if (addedEntityLevelsMapLocal.has("department")) return "department";
+      if (addedEntityLevelsMapLocal.has("company")) return "company";
+      return "company";
+    } else {
+      return "company";
+    }
+  }, [currentLevel]);
 
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
@@ -189,6 +231,220 @@ const UpsertTargetEntityMemo = () => {
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
+  // ========================= 🌟メンバーリスト取得useQuery キャッシュ🌟 =========================
+  const currentParentEntitiesForMember = useMemo(() => {
+    if (currentLevel !== "member" || !entitiesHierarchyQueryData || parentEntityLevel === "root") return [];
+    return entitiesHierarchyQueryData[parentEntityLevel]
+      .map((entityGroup) => {
+        return entityGroup.entities.map((entity) => ({
+          // parent_entity_level_id: entity.parent_entity_level_id,
+          // parent_entity_level: entity.parent_entity_level,
+          // parent_entity_id: entity.parent_entity_id,
+          // parent_entity_name: entity.parent_entity_name,
+          entity_level: parentEntityLevel,
+          entity_id: entity.entity_id,
+          entity_name: entity.entity_name,
+        }));
+      })
+      .flatMap((array) => array);
+  }, [currentLevel, parentEntityLevel]);
+  // メンバーアカウント メンバーレベルの直上レベル内の追加済みの全てのエンティティに紐づくメンバーを取得する
+  const {
+    data: queryDataMemberGroupsByParentEntities,
+    error: useQueryError,
+    isLoading: useQueryIsLoading,
+    refetch: refetchMemberAccounts,
+  } = useQueryMemberGroupsByParentEntities({
+    parent_entity_level: parentEntityLevel,
+    parentEntities: currentParentEntitiesForMember, // メンバーレベルの直上レベル内の追加済みの全てのエンティティ
+    isReady: currentLevel === "member" && currentParentEntitiesForMember.length > 0, // メンバーレベルになったらフェッチ
+  });
+
+  // ✅メンバーレベルでメンバーグループを取得した後にuseEffectで取得したメンバーグループをsetEntitiesHierarchyLocalで更新する
+  useEffect(() => {
+    if (currentLevel !== "member") return;
+    if (!queryDataMemberGroupsByParentEntities) return;
+    if (!userProfileState.company_id) return;
+
+    if (Object.keys(queryDataMemberGroupsByParentEntities).length === 0) return;
+
+    let newEntityHierarchy: EntitiesHierarchy = cloneDeep(entitiesHierarchyLocal);
+    let newEntityGroupByParent = [] as EntityGroupByParent[];
+
+    try {
+      if (parentEntityLevel === "company") {
+        const companyEntityLevelId = addedEntityLevelsListLocal.find((level) => level.entity_level === "company")?.id;
+        if (!companyEntityLevelId) return alert("予期せぬエラーが発生しました。");
+        const companyEntities = entitiesHierarchyLocal["company"];
+        newEntityGroupByParent = companyEntities
+          .map((root) => {
+            return root.entities.map((company) => {
+              if (!Object.keys(queryDataMemberGroupsByParentEntities).includes(company.entity_id))
+                throw new Error("会社データが見つかりませんでした。");
+              const membersByCompany = queryDataMemberGroupsByParentEntities[company.entity_id];
+              return {
+                parent_entity_id: membersByCompany.parent_entity_id,
+                parent_entity_name: membersByCompany.parent_entity_name,
+                entities: membersByCompany.member_group.map(
+                  (member) =>
+                    ({
+                      id: "", // INSERT時に作成
+                      created_at: "", // INSERT時に作成
+                      updated_at: "", // INSERT時に作成
+                      fiscal_year_id: "", // INSERT時に作成
+                      entity_level_id: "", // INSERT時に作成
+                      parent_entity_level_id: companyEntityLevelId,
+                      target_type: "sales_target",
+                      entity_id: member.id,
+                      parent_entity_id: membersByCompany.parent_entity_id,
+                      is_confirmed_annual_half: false,
+                      is_confirmed_first_half_details: false,
+                      is_confirmed_second_half_details: false,
+                      entity_name: member.profile_name,
+                      parent_entity_name: member.company_name,
+                      fiscal_year: upsertSettingEntitiesObj.fiscalYear,
+                      entity_level: "member",
+                      parent_entity_level: "company",
+                    } as Entity)
+                ),
+              } as EntityGroupByParent;
+            });
+          })
+          .flatMap((array) => array);
+      }
+      if (parentEntityLevel === "department") {
+        const departmentEntityLevelId = addedEntityLevelsListLocal.find(
+          (level) => level.entity_level === "department"
+        )?.id;
+        if (!departmentEntityLevelId || !userProfileState.assigned_department_id)
+          return alert("予期せぬエラーが発生しました。");
+        const departmentEntities = entitiesHierarchyLocal["department"];
+        newEntityGroupByParent = departmentEntities
+          .map((company) => {
+            return company.entities.map((department) => {
+              if (!Object.keys(queryDataMemberGroupsByParentEntities).includes(department.entity_id))
+                throw new Error("事業部データが見つかりませんでした。");
+              const membersByDepartment = queryDataMemberGroupsByParentEntities[department.entity_id];
+              return {
+                parent_entity_id: membersByDepartment.parent_entity_id,
+                parent_entity_name: membersByDepartment.parent_entity_name,
+                entities: membersByDepartment.member_group.map(
+                  (member) =>
+                    ({
+                      id: "", // INSERT時に作成
+                      created_at: "", // INSERT時に作成
+                      updated_at: "", // INSERT時に作成
+                      fiscal_year_id: "", // INSERT時に作成
+                      entity_level_id: "", // INSERT時に作成
+                      parent_entity_level_id: departmentEntityLevelId,
+                      target_type: "sales_target",
+                      entity_id: member.id,
+                      parent_entity_id: membersByDepartment.parent_entity_id,
+                      is_confirmed_annual_half: false,
+                      is_confirmed_first_half_details: false,
+                      is_confirmed_second_half_details: false,
+                      entity_name: member.profile_name,
+                      parent_entity_name: member.assigned_department_name,
+                      fiscal_year: upsertSettingEntitiesObj.fiscalYear,
+                      entity_level: "member",
+                      parent_entity_level: "department",
+                    } as Entity)
+                ),
+              } as EntityGroupByParent;
+            });
+          })
+          .flatMap((array) => array);
+      }
+      if (parentEntityLevel === "section") {
+        const sectionEntityLevelId = addedEntityLevelsListLocal.find((level) => level.entity_level === "section")?.id;
+        if (!sectionEntityLevelId || !userProfileState.assigned_section_id)
+          return alert("予期せぬエラーが発生しました。");
+        const sectionEntities = entitiesHierarchyLocal["section"];
+        newEntityGroupByParent = sectionEntities
+          .map((department) => {
+            return department.entities.map((section) => {
+              if (!Object.keys(queryDataMemberGroupsByParentEntities).includes(section.entity_id))
+                throw new Error("課・セクションデータが見つかりませんでした。");
+              const membersBySection = queryDataMemberGroupsByParentEntities[section.entity_id];
+              return {
+                parent_entity_id: membersBySection.parent_entity_id,
+                parent_entity_name: membersBySection.parent_entity_name,
+                entities: membersBySection.member_group.map(
+                  (member) =>
+                    ({
+                      id: "", // INSERT時に作成
+                      created_at: "", // INSERT時に作成
+                      updated_at: "", // INSERT時に作成
+                      fiscal_year_id: "", // INSERT時に作成
+                      entity_level_id: "", // INSERT時に作成
+                      parent_entity_level_id: sectionEntityLevelId,
+                      target_type: "sales_target",
+                      entity_id: member.id,
+                      parent_entity_id: membersBySection.parent_entity_id,
+                      is_confirmed_annual_half: false,
+                      is_confirmed_first_half_details: false,
+                      is_confirmed_second_half_details: false,
+                      entity_name: member.profile_name,
+                      parent_entity_name: member.assigned_section_name,
+                      fiscal_year: upsertSettingEntitiesObj.fiscalYear,
+                      entity_level: "member",
+                      parent_entity_level: "section",
+                    } as Entity)
+                ),
+              } as EntityGroupByParent;
+            });
+          })
+          .flatMap((array) => array);
+      }
+      if (parentEntityLevel === "unit") {
+        const unitEntityLevelId = addedEntityLevelsListLocal.find((level) => level.entity_level === "unit")?.id;
+        if (!unitEntityLevelId || !userProfileState.assigned_unit_id) return alert("予期せぬエラーが発生しました。");
+        const unitEntities = entitiesHierarchyLocal["unit"];
+        newEntityGroupByParent = unitEntities
+          .map((section) => {
+            return section.entities.map((unit) => {
+              if (!Object.keys(queryDataMemberGroupsByParentEntities).includes(unit.entity_id))
+                throw new Error("係データが見つかりませんでした。");
+              const membersByUnit = queryDataMemberGroupsByParentEntities[unit.entity_id];
+              return {
+                parent_entity_id: membersByUnit.parent_entity_id,
+                parent_entity_name: membersByUnit.parent_entity_name,
+                entities: membersByUnit.member_group.map(
+                  (member) =>
+                    ({
+                      id: "", // INSERT時に作成
+                      created_at: "", // INSERT時に作成
+                      updated_at: "", // INSERT時に作成
+                      fiscal_year_id: "", // INSERT時に作成
+                      entity_level_id: "", // INSERT時に作成
+                      parent_entity_level_id: unitEntityLevelId,
+                      target_type: "sales_target",
+                      entity_id: member.id,
+                      parent_entity_id: membersByUnit.parent_entity_id,
+                      is_confirmed_annual_half: false,
+                      is_confirmed_first_half_details: false,
+                      is_confirmed_second_half_details: false,
+                      entity_name: member.profile_name,
+                      parent_entity_name: member.assigned_unit_name,
+                      fiscal_year: upsertSettingEntitiesObj.fiscalYear,
+                      entity_level: "member",
+                      parent_entity_level: "unit",
+                    } as Entity)
+                ),
+              } as EntityGroupByParent;
+            });
+          })
+          .flatMap((array) => array);
+      }
+
+      newEntityHierarchy = { ...newEntityHierarchy, member: newEntityGroupByParent };
+
+      setEntitiesHierarchyLocal(newEntityHierarchy);
+    } catch (error: any) {
+      console.error("エラー：", error);
+    }
+  }, [queryDataMemberGroupsByParentEntities]);
+  // ========================= 🌟メンバーリスト取得useQuery キャッシュ🌟 =========================
 
   // 「事業部」「課・セクション」「係・チーム」「事業所」のid to objectオブジェクトマップ生成
   // 事業部マップ {id: 事業部オブジェクト}
@@ -216,69 +472,67 @@ const UpsertTargetEntityMemo = () => {
     return officeMap;
   }, [officeDataArray]);
 
-  // ===================== 🌟ユーザーが作成したエンティティのみのセクションリストを再生成🌟 =====================
-  const [entityLevelList, setEntityLevelList] = useState<
+  // ===================== 🌟ユーザーが作成したエンティティのみでレベル選択肢リストを再生成🌟 =====================
+  // ✅ステップ1の選択肢で追加
+  const [optionsEntityLevelList, setOptionsEntityLevelList] = useState<
     {
-      title: string;
+      // title: string;
+      title: EntityLevelNames;
       name: {
         [key: string]: string;
       };
     }[]
-  >(() => {
-    let newEntityList = [{ title: "company", name: { ja: "全社", en: "Company" } }];
-    if (departmentDataArray && departmentDataArray.length > 0) {
-      newEntityList.push({ title: "department", name: { ja: "事業部", en: "Department" } });
-    }
-    if (sectionDataArray && sectionDataArray.length > 0) {
-      newEntityList.push({ title: "section", name: { ja: "課・セクション", en: "Section" } });
-    }
-    if (unitDataArray && unitDataArray.length > 0) {
-      newEntityList.push({ title: "unit", name: { ja: "係・チーム", en: "Unit" } });
-    }
-    // メンバーは必ず追加
-    newEntityList.push({ title: "member", name: { ja: "メンバー", en: "Member" } });
-    // 事業所は一旦見合わせ
-    // if (officeDataArray && officeDataArray.length > 0) {
-    //   newEntityList.push({ title: "office", name: { ja: "事業所", en: "Office" } });
-    // }
+  >(
+    (): {
+      title: EntityLevelNames;
+      name: {
+        [key: string]: string;
+      };
+    }[] => {
+      let newEntityList: {
+        title: EntityLevelNames;
+        name: {
+          [key: string]: string;
+        };
+      }[] = [{ title: "company", name: { ja: "全社", en: "Company" } }];
+      if (departmentDataArray && departmentDataArray.length > 0) {
+        newEntityList.push({ title: "department", name: { ja: "事業部", en: "Department" } });
+      }
+      if (sectionDataArray && sectionDataArray.length > 0) {
+        newEntityList.push({ title: "section", name: { ja: "課・セクション", en: "Section" } });
+      }
+      if (unitDataArray && unitDataArray.length > 0) {
+        newEntityList.push({ title: "unit", name: { ja: "係・チーム", en: "Unit" } });
+      }
+      // メンバーは必ず追加
+      newEntityList.push({ title: "member", name: { ja: "メンバー", en: "Member" } });
+      // 事業所は一旦見合わせ
+      // if (officeDataArray && officeDataArray.length > 0) {
+      //   newEntityList.push({ title: "office", name: { ja: "事業所", en: "Office" } });
+      // }
 
-    // まだ一つもレベルが追加されていない場合は全てのレベルの選択肢を返す
-    if (!entityLevelsMap || entityLevelsMap.size === 0) return newEntityList;
+      // まだ一つもレベルが追加されていない場合は全てのレベルの選択肢を返す
+      if (!addedEntityLevelsMapLocal || addedEntityLevelsMapLocal.size === 0) return newEntityList;
 
-    // 既に指定年度の売上目標を構成するレベルが追加されている場合、追加済みの末端レベルの下位レベルに当たるレベル以降を選択肢としてフィルターして返す
-    if (entityLevelsMap.has("member")) return [];
-    if (entityLevelsMap.has("unit")) return [{ title: "member", name: { ja: "メンバー", en: "Member" } }];
-    if (entityLevelsMap.has("section")) {
-      return newEntityList.filter((obj) => ["unit", "member"].includes(obj.title));
+      // 既に指定年度の売上目標を構成するレベルが追加されている場合、追加済みの末端レベルの下位レベルに当たるレベル以降を選択肢としてフィルターして返す
+      if (addedEntityLevelsMapLocal.has("member")) return [];
+      if (addedEntityLevelsMapLocal.has("unit")) return [{ title: "member", name: { ja: "メンバー", en: "Member" } }];
+      if (addedEntityLevelsMapLocal.has("section")) {
+        return newEntityList.filter((obj) => ["unit", "member"].includes(obj.title));
+      }
+      if (addedEntityLevelsMapLocal.has("department")) {
+        // 事業部->課->係->メンバーで、事業部->係と飛ばすことがないようにunitは選択肢から省く
+        return newEntityList.filter((obj) => ["section", "member"].includes(obj.title));
+        // return newEntityList.filter((obj) => ["section", "unit", "member"].includes(obj.title));
+      }
+      if (addedEntityLevelsMapLocal.has("company")) {
+        // 会社->事業部->課->係->メンバーで、会社->課、会社->係のように飛ばすことがないようにsection, unitは選択肢から省く
+        return newEntityList.filter((obj) => ["department", "member"].includes(obj.title));
+      }
+      return [];
     }
-    if (entityLevelsMap.has("department")) {
-      return newEntityList.filter((obj) => ["section", "unit", "member"].includes(obj.title));
-    }
-    if (entityLevelsMap.has("company")) {
-      return newEntityList.filter((obj) => ["department", "section", "unit", "member"].includes(obj.title));
-    }
-    return [];
-  });
-
-  // 現在のレベル
-  const [currentLevel, setCurrentLevel] = useState<EntityLevelNames>(() => {
-    if (!entityLevelsMap || entityLevelsMap.size === 0) return "company";
-    if (entityLevelsMap.has("member")) return "member";
-    if (entityLevelsMap.has("unit")) return "unit";
-    if (entityLevelsMap.has("section")) "section";
-    if (entityLevelsMap.has("department")) "department";
-    if (entityLevelsMap.has("company")) "company";
-    return "company";
-  });
-
-  // 現在のレベルの上位エンティティレベル
-  const parentEntityLevel = useMemo(() => {
-    if (currentLevel === "company") return "root";
-    if (currentLevel === "department") return "company";
-    if (currentLevel === "section") return "department";
-    if (currentLevel === "unit") return "section";
-    if (currentLevel === "member") return "unit";
-  }, [currentLevel]);
+  );
+  // ===================== 🌟ユーザーが作成したエンティティのみでレベル選択肢リストを再生成🌟 ここまで=====================
 
   // エンティティレベル内の全ての上位エンティティグループ内の全てのエンティティが設定済みかどうかをチェックする関数
   const checkAllEntitiesSet = (entityGroups: EntityGroupByParent[], currentLevel: EntityLevelNames) => {
@@ -300,88 +554,43 @@ const UpsertTargetEntityMemo = () => {
     });
   };
 
-  // 🌟エンティティレベル内の全てのエンティティが設定済みかどうかを判別するstate
+  // 🌟✅エンティティレベル内の全てのエンティティが設定済みかどうかを判別するstate
   const [isAlreadySetState, setIsAlreadySetState] = useState(false);
-
-  // 初回マウント時、エンティティレベル変更時、エンティティグループ追加、変更時に全て設定済みか再算出
+  // ✅初回マウント時、エンティティレベル変更時、エンティティグループ追加、変更時に全て設定済みか再算出
+  // const entityLevelIdsStr = entityLevelIds?.length > 0 ? entityLevelIds.join(", ") : "";
+  // エンティティレベル, エンティティ追加
+  // => addedEntityLevelsListQueryDataがinvalidateで更新
+  // => useMemoでエンティティレベルidの配列が再生成
+  // => entitiesHierarchyQueryDataのqueryKeyのentityLevelIdsStrが新しいidの追加によりqueryKeyが変化しエンティティ再フェッチ
+  // => 追加したエンティティもentitiesHierarchyQueryDataに加わる
+  // => entitiesHierarchyQueryDataの変化によりuseEffectでエンティティレベルごとにエンティティが振り分けられるentitiesHierarchyLocalが新しく更新される
+  // => entitiesHierarchyLocalの変化によりuseEffectでentitiesHierarchyLocalの中で現在選択中のレベル(currentLevel)内の全てのエンティティのisConfirmを確認
+  // => 全社~係レベルまではis_confirmed_annual_halfがcurrentLevel内のエンティティ全てtrueになっていればisAlreadySetStateがtrueに変化し、ステップ3の「目標を確定」ボタンをクリック可能にする(メンバーの場合はfirst_half_detailsかsecond_half_detailsのどちらか)
   useEffect(() => {
     // 現在のレベル内の上位エンティティごとのエンティティグループ
-    const entityGroups = entityHierarchyLocal[currentLevel];
+    const entityGroups = entitiesHierarchyLocal[currentLevel];
 
     const isConfirm = checkAllEntitiesSet(entityGroups, currentLevel);
 
     setIsAlreadySetState(isConfirm);
-  }, [entityHierarchyLocal, currentLevel]);
+  }, [entitiesHierarchyLocal, currentLevel]);
 
-  // const entityLevelList: {
-  //   title: string;
-  //   name: {
-  //     [key: string]: string;
-  //   };
-  // }[] = useMemo(() => {
-  //   let newEntityList = [{ title: "company", name: { ja: "全社", en: "Company" } }];
-  //   if (departmentDataArray && departmentDataArray.length > 0) {
-  //     newEntityList.push({ title: "department", name: { ja: "事業部", en: "Department" } });
-  //   }
-  //   if (sectionDataArray && sectionDataArray.length > 0) {
-  //     newEntityList.push({ title: "section", name: { ja: "課・セクション", en: "Section" } });
-  //   }
-  //   if (unitDataArray && unitDataArray.length > 0) {
-  //     newEntityList.push({ title: "unit", name: { ja: "係・チーム", en: "Unit" } });
-  //   }
-  //   // メンバーは必ず追加
-  //   newEntityList.push({ title: "member", name: { ja: "メンバー", en: "Member" } });
-  //   // 事業所は一旦見合わせ
-  //   // if (officeDataArray && officeDataArray.length > 0) {
-  //   //   newEntityList.push({ title: "office", name: { ja: "事業所", en: "Office" } });
-  //   // }
-
-  //   // まだ一つもレベルが追加されていない場合は全てのレベルの選択肢を返す
-  //   if (!entityLevelsMap || entityLevelsMap.size === 0) return newEntityList;
-
-  //   // 既に指定年度の売上目標を構成するレベルが追加されている場合、追加済みの末端レベルの下位レベルに当たるレベル以降を選択肢としてフィルターして返す
-  //   if (entityLevelsMap.has("member")) return [];
-  //   if (entityLevelsMap.has("unit")) return [{ title: "member", name: { ja: "メンバー", en: "Member" } }];
-  //   if (entityLevelsMap.has("section")) {
-  //     return newEntityList.filter((obj) => ["unit", "member"].includes(obj.title));
-  //   }
-  //   if (entityLevelsMap.has("department")) {
-  //     return newEntityList.filter((obj) => ["section", "unit", "member"].includes(obj.title));
-  //   }
-  //   if (entityLevelsMap.has("company")) {
-  //     return newEntityList.filter((obj) => ["department", "section", "unit", "member"].includes(obj.title));
-  //   }
-  //   return [];
-  // }, [departmentDataArray, sectionDataArray, unitDataArray, officeDataArray]);
   // ===================== 🌟ユーザーが作成したエンティティのみのセクションリストを再生成🌟 =====================
-
-  // =====================初回のエンティティレベルの選択肢=====================
-  const [selectedEntityLevel, setSelectedEntityLevel] = useState(() => {
-    // 既に追加済みのレベルの下位レベルを選択済みにする
-    if (!entityLevelsMap || entityLevelsMap.size === 0) return "company";
-    if (entityLevelsMap.has("member")) return "";
-    if (entityLevelsMap.has("unit")) return "member";
-    if (entityLevelsMap.has("section")) return entityLevelsMap.has("unit") ? "unit" : "member";
-    if (entityLevelsMap.has("department")) {
-      if (entityLevelsMap.has("section")) entityLevelsMap.has("unit") ? "unit" : "member";
-      return "member";
-    }
-    return "company";
-  });
 
   // ===================== 関数 =====================
   // 🌟目標設定モードを終了
   const handleCancelUpsert = () => {
     // setUpsertTargetMode(false);
     setUpsertTargetMode(null);
-    // setUpsertTargetObj(null);
     setUpsertSettingEntitiesObj(null);
+    // setUpsertTargetObj(null);
   };
 
-  // レイヤー(レベル)を追加 ローカルstate
+  // ステップ1, 「追加」クリック => レイヤー(レベル)を追加 ローカルstate
   const handleAddLevel = () => {
     // 選択中のレベルが既にMapに存在するならリターン
-    if (entityLevelsMap && entityLevelsMap.has(selectedEntityLevel)) return;
+    // if (addedEntityLevelsMapLocal && addedEntityLevelsMapLocal.has(selectedEntityLevel)) return;
+    if (addedEntityLevelsMapLocal && addedEntityLevelsMapLocal.has(currentLevel)) return;
     // 新たに追加するレベルオブジェクト
     const newLevel = {
       id: "",
@@ -389,7 +598,8 @@ const UpsertTargetEntityMemo = () => {
       updated_at: null,
       fiscal_year_id: "",
       created_by_company_id: userProfileState.company_id,
-      entity_level: selectedEntityLevel,
+      // entity_level: selectedEntityLevel,
+      entity_level: currentLevel,
       is_confirmed_annual_half: false,
       is_confirmed_first_half_details: false,
       is_confirmed_second_half_details: false,
@@ -397,15 +607,17 @@ const UpsertTargetEntityMemo = () => {
       fiscal_year: upsertSettingEntitiesObj.fiscalYear,
     } as EntityLevels;
 
-    setAddedEntityLevelListLocal([...addedEntityLevelListLocal, newLevel]);
+    setAddedEntityLevelsListLocal([...addedEntityLevelsListLocal, newLevel]);
 
     // 新たに追加した場合の上位エンティティごとのエンティティグループの一覧を生成(ユーザーには追加ではなく、ここから不要なエンティティを削除するアクションをステップ2で行ってもらう)
-    let newEntityHierarchy: EntitiesHierarchy = cloneDeep(entityHierarchyLocal);
+    let newEntityHierarchy: EntitiesHierarchy = cloneDeep(entitiesHierarchyLocal);
     let newEntityGroupByParent;
-    if (selectedEntityLevel === "company") {
+    // if (selectedEntityLevel === "company") {
+    if (currentLevel === "company") {
       newEntityGroupByParent = [
         {
-          parent_entity_id: "root",
+          // parent_entity_id: "root",
+          parent_entity_id: null,
           parent_entity_name: "root",
           entities: [
             {
@@ -417,7 +629,8 @@ const UpsertTargetEntityMemo = () => {
               parent_entity_level_id: "",
               target_type: "sales_target",
               entity_id: userProfileState.company_id,
-              parent_entity_id: "root",
+              // parent_entity_id: "root",
+              parent_entity_id: null,
               is_confirmed_annual_half: false,
               is_confirmed_first_half_details: false,
               is_confirmed_second_half_details: false,
@@ -436,8 +649,12 @@ const UpsertTargetEntityMemo = () => {
       newEntityHierarchy = { ...newEntityHierarchy, company: newEntityGroupByParent };
 
       // 現在のレベルをcompanyにする
-      setCurrentLevel("company");
-    } else if (selectedEntityLevel === "department") {
+      // setCurrentLevel("company");
+      // } else if (selectedEntityLevel === "department") {
+    } else if (currentLevel === "department") {
+      // 現在のレベルがdepartmentであればcompanyレベルは追加済みのため、必ずcompannyレベルのidは取得可能
+      const companyEntityLevelId = addedEntityLevelsListLocal.find((level) => level.entity_level === "company")?.id;
+      if (!companyEntityLevelId) return alert("予期せぬエラーが発生しました。");
       newEntityGroupByParent = [
         {
           parent_entity_id: userProfileState.company_id,
@@ -451,7 +668,7 @@ const UpsertTargetEntityMemo = () => {
                   updated_at: "",
                   fiscal_year_id: "",
                   entity_level_id: "",
-                  parent_entity_level_id: "",
+                  parent_entity_level_id: companyEntityLevelId,
                   target_type: "sales_target",
                   entity_id: obj.id,
                   parent_entity_id: userProfileState.company_id,
@@ -473,135 +690,258 @@ const UpsertTargetEntityMemo = () => {
       newEntityHierarchy = { ...newEntityHierarchy, department: newEntityGroupByParent };
 
       // 現在のレベルを department にする
-      setCurrentLevel("department");
+      // setCurrentLevel("department");
     }
-    // sectionを追加した場合は、確実に事業部を追加済みのためentityHierarchyLocalで追加した事業部のみのsectionを追加する
+    // sectionを追加した場合は、確実に事業部を追加済みのためentitiesHierarchyLocalで追加した事業部のみのsectionを追加する
     else if (
-      selectedEntityLevel === "section" &&
-      entityHierarchyLocal &&
-      entityHierarchyLocal["department"]?.length === 1 &&
+      // selectedEntityLevel === "section" &&
+      currentLevel === "section" &&
+      entitiesHierarchyLocal &&
+      entitiesHierarchyLocal["department"]?.length === 1 &&
       sectionDataArray
     ) {
-      newEntityGroupByParent = entityHierarchyLocal["department"][0].entities.map((departmentObj) => {
-        // 上位エンティティとなる事業部idに一致するセクションを抽出してentitiesにセット
-        const sections = sectionDataArray.filter(
-          (section) => section.created_by_department_id === departmentObj.entity_id
-        );
-        return {
-          parent_entity_id: departmentObj.entity_id,
-          parent_entity_name: departmentObj.entity_name,
-          entities: sections.map(
-            (obj) =>
-              ({
-                id: "",
-                created_at: "",
-                updated_at: "",
-                fiscal_year_id: "",
-                entity_level_id: "",
-                parent_entity_level_id: "",
-                target_type: "sales_target",
-                entity_id: obj.id,
-                parent_entity_id: obj.created_by_department_id,
-                is_confirmed_annual_half: false,
-                is_confirmed_first_half_details: false,
-                is_confirmed_second_half_details: false,
-                entity_name: obj.section_name,
-                parent_entity_name:
-                  departmentIdToObjMap?.get(obj.created_by_department_id ?? "")?.department_name ?? "",
-                // fiscal_yearsテーブル
-                fiscal_year: upsertSettingEntitiesObj.fiscalYear,
-                // entity_level_structuresテーブル
-                entity_level: "department",
-                parent_entity_level: "company",
-              } as Entity)
-          ),
-        } as EntityGroupByParent;
-      });
+      // 現在のレベルがsectionであればdepartmentレベルは追加済みのため、必ずdepartmentレベルのidは取得可能
+      const departmentEntityLevelId = addedEntityLevelsListLocal.find(
+        (level) => level.entity_level === "department"
+      )?.id;
+      if (!departmentEntityLevelId) return alert("予期せぬエラーが発生しました。");
+      newEntityGroupByParent = entitiesHierarchyLocal["department"]
+        .map((departmentGroupByCompany) => {
+          return departmentGroupByCompany.entities.map((entityDepartment) => {
+            // 上位エンティティとなる事業部idに一致するセクションを抽出してentitiesにセット
+            const sections = sectionDataArray.filter(
+              (section) => section.created_by_department_id === entityDepartment.entity_id
+            );
+
+            return {
+              parent_entity_id: entityDepartment.entity_id,
+              parent_entity_name: entityDepartment.entity_name,
+              entities: sections.map((section) => {
+                return {
+                  id: "",
+                  created_at: "",
+                  updated_at: "",
+                  fiscal_year_id: "",
+                  entity_level_id: "",
+                  parent_entity_level_id: departmentEntityLevelId,
+                  target_type: "sales_target",
+                  entity_id: section.id,
+                  parent_entity_id: section.created_by_department_id,
+                  is_confirmed_annual_half: false,
+                  is_confirmed_first_half_details: false,
+                  is_confirmed_second_half_details: false,
+                  entity_name: section.section_name,
+                  parent_entity_name:
+                    departmentIdToObjMap?.get(section.created_by_department_id ?? "")?.department_name ?? "",
+                  // fiscal_yearsテーブル
+                  fiscal_year: upsertSettingEntitiesObj.fiscalYear,
+                  // entity_level_structuresテーブル
+                  entity_level: "section",
+                  parent_entity_level: "department",
+                } as Entity;
+              }),
+            };
+          });
+        })
+        .flatMap((array) => array);
+
       newEntityHierarchy = { ...newEntityHierarchy, section: newEntityGroupByParent };
       // 現在のレベルを section にする
-      setCurrentLevel("section");
+      // setCurrentLevel("section");
     }
-    // unitを追加した場合は、確実に事業部を追加済みのためentityHierarchyLocalで追加した事業部のみのunitを追加する
+    // unitを追加した場合は、確実に事業部を追加済みのためentitiesHierarchyLocalで追加した事業部のみのunitを追加する
     else if (
-      selectedEntityLevel === "unit" &&
-      entityHierarchyLocal &&
-      entityHierarchyLocal["section"]?.length === 1 &&
+      // selectedEntityLevel === "unit" &&
+      currentLevel === "unit" &&
+      entitiesHierarchyLocal &&
+      entitiesHierarchyLocal["section"]?.length === 1 &&
       unitDataArray
     ) {
-      newEntityGroupByParent = entityHierarchyLocal["section"][0].entities.map((sectionObj) => {
-        // 上位エンティティとなる事業部idに一致するセクションを抽出してentitiesにセット
-        const units = unitDataArray.filter((unit) => unit.created_by_section_id === sectionObj.entity_id);
-        return {
-          parent_entity_id: sectionObj.entity_id,
-          parent_entity_name: sectionObj.entity_name,
-          entities: units.map(
-            (obj) =>
-              ({
-                id: "",
-                created_at: "",
-                updated_at: "",
-                fiscal_year_id: "",
-                entity_level_id: "",
-                parent_entity_level_id: "",
-                target_type: "sales_target",
-                entity_id: obj.id,
-                parent_entity_id: obj.created_by_section_id,
-                is_confirmed_annual_half: false,
-                is_confirmed_first_half_details: false,
-                is_confirmed_second_half_details: false,
-                entity_name: obj.unit_name,
-                parent_entity_name: sectionIdToObjMap?.get(obj.created_by_section_id ?? "")?.section_name ?? "",
-                // fiscal_yearsテーブル
-                fiscal_year: upsertSettingEntitiesObj.fiscalYear,
-                // entity_level_structuresテーブル
-                entity_level: "section",
-                parent_entity_level: "company",
-              } as Entity)
-          ),
-        } as EntityGroupByParent;
-      });
+      // 現在のレベルがunitであればsectionレベルは追加済みのため、必ずsectionレベルのidは取得可能
+      const sectionEntityLevelId = addedEntityLevelsListLocal.find((level) => level.entity_level === "section")?.id;
+      if (!sectionEntityLevelId) return alert("予期せぬエラーが発生しました。");
+
+      // unitの直上のレベルで既に追加済みのsectionに紐づくunitをsectionIdごとにグループ化してentityHierarchyにセット
+      newEntityGroupByParent = entitiesHierarchyLocal["section"]
+        .map((sectionGroupByDepartment) => {
+          return sectionGroupByDepartment.entities.map((entitySection) => {
+            // 上位エンティティとなる事業部idに一致するセクションを抽出してentitiesにセット
+            const units = unitDataArray.filter((unit) => unit.created_by_section_id === entitySection.entity_id);
+
+            return {
+              parent_entity_id: entitySection.entity_id,
+              parent_entity_name: entitySection.entity_name,
+              entities: units.map((unit) => {
+                return {
+                  id: "",
+                  created_at: "",
+                  updated_at: "",
+                  fiscal_year_id: "",
+                  entity_level_id: "",
+                  parent_entity_level_id: sectionEntityLevelId,
+                  target_type: "sales_target",
+                  entity_id: unit.id,
+                  parent_entity_id: unit.created_by_section_id,
+                  is_confirmed_annual_half: false,
+                  is_confirmed_first_half_details: false,
+                  is_confirmed_second_half_details: false,
+                  entity_name: unit.unit_name,
+                  parent_entity_name: sectionIdToObjMap?.get(unit.created_by_section_id ?? "")?.section_name ?? "",
+                  // fiscal_yearsテーブル
+                  fiscal_year: upsertSettingEntitiesObj.fiscalYear,
+                  // entity_level_structuresテーブル
+                  entity_level: "unit",
+                  parent_entity_level: "section",
+                } as Entity;
+              }),
+            };
+          });
+        })
+        .flatMap((array) => array);
 
       newEntityHierarchy = { ...newEntityHierarchy, unit: newEntityGroupByParent };
       // 現在のレベルを unit にする
-      setCurrentLevel("unit");
-    } else if (selectedEntityLevel === "member") {
-      // メンバーの場合は、どのレベルから取得するかが、全社、事業部、課、係の中で不明
+      // setCurrentLevel("unit");
+      // } else if (selectedEntityLevel === "member") {
+    } else if (currentLevel === "member") {
+      // ✅メンバーの場合は、どのレベルから取得するかが、全社、事業部、課、係の中で不明
       // 全社、事業部、課、係それぞれのパターンを想定して追加するのもあり => 一旦ユーザー側にメンバーは一から追加してもらう
-
+      // addedEntityLevelsListLocal に既に追加されているメンバーレベルを除くレベル内で末端レベルに紐づくメンバーを全て追加する
+      // const addedLevelsMap = new Map(addedEntityLevelsListLocal.map((obj) => [obj.entity_level, obj]));
+      // // 🔸メンバーレベルルート 親がunitの場合
+      // if (addedLevelsMap.has("unit") && unitDataArray) {
+      //   // 現在のレベルがunitであればsectionレベルは追加済みのため、必ずsectionレベルのidは取得可能
+      //   const unitEntityLevelId = addedLevelsMap.get("unit")?.id;
+      //   if (!unitEntityLevelId) return alert("予期せぬエラーが発生しました。");
+      //   newEntityGroupByParent = entitiesHierarchyLocal["unit"][0].entities.map((unitObj) => {
+      //     // 上位エンティティとなる課idに一致する係を抽出してentitiesにセット
+      //     const units = unitDataArray.filter((unit) => unit.created_by_section_id === unitObj.entity_id);
+      //     return {
+      //       parent_entity_id: unitObj.entity_id,
+      //       parent_entity_name: unitObj.entity_name,
+      //       entities: units.map(
+      //         (obj) =>
+      //           ({
+      //             id: "",
+      //             created_at: "",
+      //             updated_at: "",
+      //             fiscal_year_id: "",
+      //             entity_level_id: "",
+      //             parent_entity_level_id: unitEntityLevelId,
+      //             target_type: "sales_target",
+      //             entity_id: obj.id,
+      //             parent_entity_id: obj.created_by_section_id,
+      //             is_confirmed_annual_half: false,
+      //             is_confirmed_first_half_details: false,
+      //             is_confirmed_second_half_details: false,
+      //             entity_name: obj.unit_name,
+      //             parent_entity_name: sectionIdToObjMap?.get(obj.created_by_section_id ?? "")?.section_name ?? "",
+      //             // fiscal_yearsテーブル
+      //             fiscal_year: upsertSettingEntitiesObj.fiscalYear,
+      //             // entity_level_structuresテーブル
+      //             entity_level: "section",
+      //             parent_entity_level: "company",
+      //           } as Entity)
+      //       ),
+      //     } as EntityGroupByParent;
+      //   });
+      //   newEntityHierarchy = { ...newEntityHierarchy, unit: newEntityGroupByParent };
+      // }
       // 現在のレベルを member にする
-      setCurrentLevel("member");
+      // setCurrentLevel("member");
     }
 
     if (newEntityGroupByParent) {
       // エンティティグループを更新
-      setEntityHierarchyLocal(newEntityHierarchy);
+      setEntitiesHierarchyLocal(newEntityHierarchy);
     }
 
     // 追加したレベルは選択肢リストから取り除く
-    const newLevelList = [...entityLevelList];
-    const filteredList = newLevelList.filter((obj) => obj.title !== selectedEntityLevel);
+    const newLevelList = [...optionsEntityLevelList];
+    // const filteredList = newLevelList.filter((obj) => obj.title !== selectedEntityLevel);
+    const filteredList = newLevelList.filter((obj) => obj.title !== currentLevel);
 
     // リスト更新前に選択中のレイヤーを下位レベルに更新
     // 現在がメンバーレベルなら選択中のレベルはメンバーのままにする
-    if (selectedEntityLevel !== "member") {
-      const currentIndex = entityLevelList.findIndex((obj) => obj.title === selectedEntityLevel);
-      const newSelectedLevel = entityLevelList[currentIndex + 1];
-      if (newSelectedLevel) setSelectedEntityLevel(newSelectedLevel.title);
+    // if (selectedEntityLevel !== "member") {
+    if (currentLevel !== "member") {
+      // // const currentIndex = entityLevelList.findIndex((obj) => obj.title === selectedEntityLevel);
+      // const currentIndex = entityLevelList.findIndex((obj) => obj.title === currentLevel);
+      // const newSelectedLevel = entityLevelList[currentIndex + 1];
+      // // if (newSelectedLevel) setSelectedEntityLevel(newSelectedLevel.title);
+      // if (newSelectedLevel) setCurrentLevel(newSelectedLevel.title);
     } else {
-      setSelectedEntityLevel(""); // メンバーレベルの場合はレベル追加は不要となるので空文字をセット
+      // setSelectedEntityLevel(""); // メンバーレベルの場合はレベル追加は不要となるので空文字をセット
+      // setCurrentLevel("member");
     }
 
     // 追加したレベルを除去したレベルリストで更新
     console.log("filteredList", filteredList, "newLevelList", newLevelList);
-    setEntityLevelList(filteredList);
+    setOptionsEntityLevelList(filteredList);
 
-    // ステップを2に更新
+    // ステップを2に更新 次はレベル内にエンティティを追加、削除してレイヤー内の構成を確定させる
     setStep(2);
   };
 
-  // 🌟ステップ2の「次へ」をクリック 選択中のレベルのエンティティを
-  const handleNextUpsertTarget = () => {
-    // ステップを3に移行
+  // 🌟ステップ2の「構成を確定」をクリック 現在のレベルに追加したエンティティ構成をentity_structuresにINSERTして構成を確定する
+  const handleSaveEntities = () => {
+    try {
+      // 下記3つのテーブルにINSERT
+      // ・fiscal_yearsテーブル
+      // ・entity_level_structuresテーブル
+      // ・entity_structuresテーブル
+
+      const periodStart = fiscalYearStartEndDate.startDate;
+      const periodEnd = fiscalYearStartEndDate.endDate;
+
+      // エンティティレベル
+
+      // エンティティ
+      // entityGroupListByParent: {parent_entity_id: string, parent_entity_name: string, entities: Entity[]}[]
+      const entityGroupsByParent =
+        entitiesHierarchyLocal && Object.keys(entitiesHierarchyLocal).includes(currentLevel)
+          ? entitiesHierarchyLocal[currentLevel]
+          : null;
+
+      if (!entityGroupsByParent) throw new Error("レイヤー内のデータが見つかりませんでした。");
+
+      const entityGroupsByParentForInsert = entityGroupsByParent.map(
+        (entityGroup) =>
+          ({
+            parent_entity_id: entityGroup.parent_entity_id,
+            parent_entity_name: entityGroup.parent_entity_name,
+            entities: entityGroup.entities.map((entity) => ({
+              parent_entity_level_id: entity.parent_entity_id || null, // 空文字はnullをセット
+              target_type: "sales_target",
+              entity_id: entity.entity_id,
+              parent_entity_id: entity.parent_entity_id || null,
+              is_confirmed_annual_half: false,
+              is_confirmed_first_half_details: false,
+              is_confirmed_second_half_details: false,
+              entity_name: userProfileState.customer_name,
+              parent_entity_name: "root",
+              // fiscal_yearsテーブル
+              fiscal_year: upsertSettingEntitiesObj.fiscalYear,
+              // entity_level_structuresテーブル
+              entity_level: "company",
+              parent_entity_level: "root",
+            })),
+          } as EntityGroupByParent)
+      );
+
+      const payload = {
+        _company_id: userProfileState.company_id,
+        _fiscal_year: upsertSettingEntitiesObj.fiscalYear,
+        _period_start: periodStart,
+        _period_end: periodEnd,
+        _target_type: "sales_target",
+        _entity_level: upsertSettingEntitiesObj.entityLevel,
+        _parent_entity_level_id: upsertSettingEntitiesObj.parentEntityId ?? null,
+        _entity_groups_by_parent_entity: entityDataArray, // 上位エンティティに紐づく各エンティティグループ
+      };
+    } catch (error: any) {}
+
+    // レベル内のエンティティ構成が確定したら、ステップを3に移行
     setStep(3);
   };
 
@@ -857,13 +1197,14 @@ const UpsertTargetEntityMemo = () => {
   const styleStepNextBtn = () => {
     const activeStyle = `bg-[var(--color-bg-brand-f)] cursor-pointer hover:bg-[var(--color-bg-brand-f-hover)] text-[#fff]`;
     const inactiveStyle = `bg-[var(--color-bg-brand-f-disabled)] cursor-not-allowed text-[var(--color-text-disabled-on-brand)]`;
-    if (step === 2 && currentLevel !== "company") {
+    if (step === 2) {
+      if (currentLevel === "company") return activeStyle;
       // エンティティレベル内の上位エンティティごとのエンティティリストが１つ以上ならアクティブ
-      if (currentLevel === "department" && entityHierarchyLocal["department"].length === 0) return inactiveStyle;
-      if (currentLevel === "section" && entityHierarchyLocal["section"].length === 0) return inactiveStyle;
-      if (currentLevel === "unit" && entityHierarchyLocal["unit"].length === 0) return inactiveStyle;
-      if (currentLevel === "member" && entityHierarchyLocal["member"].length === 0) return inactiveStyle;
-      if (currentLevel === "office" && entityHierarchyLocal["office"].length === 0) return inactiveStyle;
+      if (currentLevel === "department" && entitiesHierarchyLocal["department"].length === 0) return inactiveStyle;
+      if (currentLevel === "section" && entitiesHierarchyLocal["section"].length === 0) return inactiveStyle;
+      if (currentLevel === "unit" && entitiesHierarchyLocal["unit"].length === 0) return inactiveStyle;
+      if (currentLevel === "member" && entitiesHierarchyLocal["member"].length === 0) return inactiveStyle;
+      if (currentLevel === "office" && entitiesHierarchyLocal["office"].length === 0) return inactiveStyle;
     }
     // レイヤー内の全てのエンティティの目標が設定済みかどうかを判別する
     if (step === 3) {
@@ -885,8 +1226,9 @@ const UpsertTargetEntityMemo = () => {
   // ステップ2
   const getTextStep2 = () => {
     if (currentLevel === "company")
-      return `追加したレイヤー内で売上目標に直接関わる部門やメンバーを追加してください。\n全社レイヤーには既に貴社を追加しております。「次へ」から次のステップに進んでください！`;
-    if (selectedEntityLevel === "member")
+      return `追加したレイヤー内で売上目標に直接関わる部門やメンバーを追加してください。\n全社レイヤーには既に貴社を追加しております。「確定」から次のステップに進んでください！`;
+    // if (selectedEntityLevel === "member")
+    if (currentLevel === "member")
       return `追加したレイヤー内で売上目標に直接関わる部門やメンバーを追加してください。\n売上目標に関わるメンバーを追加しましょう！レイヤーの構成が確定したら「次へ」から次のステップに進んでください。`;
     return `追加したレイヤー内で売上目標に直接関わる部門やメンバーを追加してください。\n次は売上目標に関わる部門を追加しましょう！レイヤーの構成が確定したら「次へ」から次のステップに進んでください。`;
   };
@@ -894,7 +1236,8 @@ const UpsertTargetEntityMemo = () => {
   const getTextStep3 = () => {
     if (currentLevel === "company")
       return `まずは会社の「目標設定」から「年度・半期」の全社売上目標を設定してください。\n目標設定が完了したら「目標設定を確定」から全社目標を確定してください。`;
-    if (selectedEntityLevel === "member")
+    // if (selectedEntityLevel === "member")
+    if (currentLevel === "member")
       return `追加したレイヤー内で売上目標に直接関わる部門やメンバーを追加してください。\n売上目標に関わるメンバーを追加しましょう！レイヤーの構成が確定したら「次へ」から次のステップに進んでください。`;
     return `追加したレイヤー内で売上目標に直接関わる部門やメンバーを追加してください。\n次は売上目標に関わる部門を追加しましょう！レイヤーの構成が確定したら「次へ」から次のステップに進んでください。`;
   };
@@ -923,18 +1266,20 @@ const UpsertTargetEntityMemo = () => {
     "UpsertTargetEntityコンポーネントレンダリング",
     "upsertSettingEntitiesObj",
     upsertSettingEntitiesObj,
-    "entityLevelList",
-    entityLevelList,
-    "addedEntityLevelListLocal",
-    addedEntityLevelListLocal,
-    "entityHierarchyLocal",
-    entityHierarchyLocal,
-    "selectedEntityLevel",
-    selectedEntityLevel,
-    "entityLevelsQueryData",
-    entityLevelsQueryData,
-    "entitiesQueryData",
-    entitiesQueryData,
+    "レベル選択肢optionsEntityLevelList",
+    optionsEntityLevelList,
+    // selectedEntityLevel,
+    "現在のレベルcurrentLevel",
+    currentLevel,
+    "レベル構成クエリデータaddedEntityLevelsListQueryData",
+    addedEntityLevelsListQueryData,
+    "追加済みのレベルローカルデータaddedEntityLevelsListLocal",
+    addedEntityLevelsListLocal,
+    // "selectedEntityLevel",
+    "レベル別エンティティ構成クエリデータentitiesHierarchyQueryData",
+    entitiesHierarchyQueryData,
+    "レベル別エンティティ構成ローカルデータentitiesHierarchyLocal",
+    entitiesHierarchyLocal,
     "step",
     step,
     "currentLevel",
@@ -968,6 +1313,7 @@ const UpsertTargetEntityMemo = () => {
               <UpsertSettingTargetEntityGroup
                 settingEntityLevel={currentLevel}
                 setIsSettingTargetMode={setIsSettingTargetMode}
+                setStep={setStep}
               />
             </Suspense>
           </ErrorBoundary>
@@ -1128,7 +1474,7 @@ const UpsertTargetEntityMemo = () => {
                       <span className={`text-[12px] font-bold`}>2</span>
                     </div>
                   </div>
-                  <span>レイヤーに部門・人を追加して構成を確定させる</span>
+                  <span>レイヤーに部門・人を追加して組織構成を決める</span>
                 </div>
                 <div className={`${styles.description} w-full text-[12px] ${step === 2 ? `${styles.open}` : ``}`}>
                   <p>{`追加したレイヤー内で売上目標に直接関わる部門や人を追加してください。`}</p>
@@ -1216,7 +1562,7 @@ const UpsertTargetEntityMemo = () => {
                     <div className={`flex flex-col`}>
                       <h4 className={`flex min-h-[30px] font-bold`}>
                         {step === 1 && <span>組織を構成するレイヤーを追加</span>}
-                        {step === 2 && <span>各レイヤー内に会社・部門・メンバーを追加</span>}
+                        {step === 2 && <span>レイヤーごとに会社・部門・メンバーを追加して、組織構成を決める</span>}
                         {step === 3 && <span>各部門・各メンバーの売上目標を設定</span>}
                         {/* {step === 4 && <span>組織を構成するレイヤーを追加</span>} */}
                         {step === 3 && (
@@ -1257,17 +1603,20 @@ const UpsertTargetEntityMemo = () => {
                         </p>
                       </div>
                       <div className={`flex items-center ${step === 3 ? `mt-[20px]` : `mt-[20px]`}`}>
-                        {selectedEntityLevel !== "" && step === 1 && (
+                        {/* {selectedEntityLevel !== "" && step === 1 && ( */}
+                        {step === 1 && (
                           <select
                             className={`${styles.select_box} ${styles.both} mr-[20px] truncate`}
                             style={{ maxWidth: `150px` }}
-                            value={selectedEntityLevel}
+                            // value={selectedEntityLevel}
+                            value={currentLevel}
                             onChange={(e) => {
-                              setSelectedEntityLevel(e.target.value);
+                              // setSelectedEntityLevel(e.target.value);
+                              setCurrentLevel(e.target.value as EntityLevelNames);
                               // if (openPopupMenu) handleClosePopupMenu();
                             }}
                           >
-                            {entityLevelList.map((obj) => (
+                            {optionsEntityLevelList.map((obj) => (
                               <option key={obj.title} value={obj.title}>
                                 {obj.name[language]}
                               </option>
@@ -1288,11 +1637,12 @@ const UpsertTargetEntityMemo = () => {
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => {
                             if (step === 1) {
-                              if (addedEntityLevelListLocal.length === 0 && selectedEntityLevel !== "company")
+                              // if (addedEntityLevelsListLocal.length === 0 && selectedEntityLevel !== "company")
+                              if (addedEntityLevelsListLocal.length === 0 && currentLevel !== "company")
                                 return alert("最初は会社レイヤーから追加してください。");
                               handleAddLevel();
                             }
-                            if (step === 2) handleNextUpsertTarget();
+                            if (step === 2) handleSaveEntities();
                             if (step === 3) {
                               if (!isAlreadySetState) {
                                 console.log("リターン");
@@ -1305,7 +1655,7 @@ const UpsertTargetEntityMemo = () => {
                         >
                           <span className="select-none">
                             {step === 1 && `レイヤーを追加`}
-                            {step === 2 && `次へ`}
+                            {step === 2 && `構成を確定`}
                             {step === 3 && getTextStepBtn3()}
                           </span>
                         </button>
@@ -1366,7 +1716,7 @@ const UpsertTargetEntityMemo = () => {
                   </li>
                 </ul>
               </div> */}
-              {!addedEntityLevelListLocal?.length && (
+              {!addedEntityLevelsListLocal?.length && (
                 <div
                   className={`flex-col-center h-[calc(100vh-56px-66px-168px-32px)] w-[calc(100vw-72px-260px-32px)]  p-[16px] text-[13px]`}
                 >
@@ -1379,12 +1729,12 @@ const UpsertTargetEntityMemo = () => {
                   </div>
                 </div>
               )}
-              {!!addedEntityLevelListLocal?.length &&
-                addedEntityLevelListLocal.map((levelObj) => {
+              {!!addedEntityLevelsListLocal?.length &&
+                addedEntityLevelsListLocal.map((levelObj) => {
                   const entityLevel = levelObj.entity_level;
                   const entityGroupListByParent =
-                    entityHierarchyLocal && Object.keys(entityHierarchyLocal).includes(entityLevel)
-                      ? entityHierarchyLocal[entityLevel as EntityLevelNames]
+                    entitiesHierarchyLocal && Object.keys(entitiesHierarchyLocal).includes(entityLevel)
+                      ? entitiesHierarchyLocal[entityLevel as EntityLevelNames]
                       : null;
                   return (
                     <div key={`column_${levelObj.id}`} className={`${styles.col} fade08_forward`}>
@@ -1480,7 +1830,7 @@ const UpsertTargetEntityMemo = () => {
                                           );
                                           setSelectedMemberAndPeriodType({
                                             memberGroupObjByParent: entityGroupObj,
-                                            periodType: "first_half", // 上期~月度
+                                            periodType: "first_half_details", // 上期~月度
                                             isConfirmFirstHalf: isConfirmFirstHalf,
                                             isConfirmSecondHalf: isConfirmSecondHalf,
                                           });

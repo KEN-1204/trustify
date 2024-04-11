@@ -136,6 +136,7 @@
   /* overflow-x: hidden; */
   /* background: transparent; */
   background-color: var(--color-bg-base);
+  background-color: var(--color-table-container-bg);
   /* box-shadow: 0 0px 20px rgba(12, 12, 12, 0.5); */
   color: var(--color-text);
   color: var(--color-text-title);
@@ -391,6 +392,9 @@
   position: absolute;
 }
 /* 🔹偶数行カラーチェンジ */
+.grid_row.even_color_change:nth-of-type(odd) .grid_cell {
+  background-color: var(--color-table-odd-color-changed-bg);
+}
 .grid_row.even_color_change:nth-of-type(even) .grid_cell {
   background-color: var(--color-table-even-color-changed-bg);
 }

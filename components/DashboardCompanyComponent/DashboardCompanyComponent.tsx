@@ -79,9 +79,11 @@ export const DashboardCompanyComponent: FC = () => {
 
           {/* ２画面目 下画面 */}
           <section
-            className={`${tableContainerSize === "all" ? `${styles.company_screen_under_all}` : ``}  ${
-              tableContainerSize === "half" ? `${styles.company_screen_under_half}` : ``
-            } ${tableContainerSize === "one_third" ? `${styles.company_screen_under_one_third}` : ``}`}
+            className={`${styles.company_screen_under} ${
+              tableContainerSize === "all" ? `${styles.company_screen_under_all}` : ``
+            }  ${tableContainerSize === "half" ? `${styles.company_screen_under_half}` : ``} ${
+              tableContainerSize === "one_third" ? `${styles.company_screen_under_one_third}` : ``
+            }`}
           >
             <CompanyDetail />
           </section>

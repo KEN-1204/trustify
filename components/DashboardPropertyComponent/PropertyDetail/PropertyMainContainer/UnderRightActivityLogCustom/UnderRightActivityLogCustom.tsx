@@ -613,10 +613,17 @@ const UnderRightActivityLogCustomMemo = ({ isHoverableBorder = false }: Props) =
         className={`${styles.right_activity_log_container} ${
           underDisplayFullScreen && `${styles.full_screen}`
         }  w-full bg-[var(--color-bg-under-back)] ${
-          isOpenSidebar ? `${styles.open} transition-base02` : `${styles.close} transition-base01`
+          isOpenSidebar ? `${styles.open} transition-w02` : `${styles.close} transition-w01`
         } ${tableContainerSize === "half" ? `${styles.company_table_screen_pr}` : ``} ${
           tableContainerSize === "all" ? `${styles.company_table_screen_pr}` : ``
         }`}
+        // className={`${styles.right_activity_log_container} ${
+        //   underDisplayFullScreen && `${styles.full_screen}`
+        // }  w-full bg-[var(--color-bg-under-back)] ${
+        //   isOpenSidebar ? `${styles.open} transition-base02` : `${styles.close} transition-base01`
+        // } ${tableContainerSize === "half" ? `${styles.company_table_screen_pr}` : ``} ${
+        //   tableContainerSize === "all" ? `${styles.company_table_screen_pr}` : ``
+        // }`}
         // className={`${styles.right_activity_log_container}  w-full bg-[var(--color-bg-under-back)] ${
         //   isOpenSidebar ? `${styles.open} transition-base02` : `${styles.close} transition-base01`
         // } ${tableContainerSize === "half" ? `${styles.company_table_screen_pr}` : ``} ${

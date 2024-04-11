@@ -30,6 +30,7 @@ import {
   Section,
   SparkChartObj,
   Unit,
+  inputSalesData,
 } from "@/types";
 import { useQuerySalesSummaryAndGrowth } from "@/hooks/useQuerySalesSummaryAndGrowth";
 import { toast } from "react-toastify";
@@ -91,11 +92,13 @@ Props) => {
   const supabase = useSupabaseClient();
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
-  const upsertTargetObj = useDashboardStore((state) => state.upsertTargetObj);
+  // const upsertTargetObj = useDashboardStore((state) => state.upsertTargetObj);
+  const upsertSettingEntitiesObj = useDashboardStore((state) => state.upsertSettingEntitiesObj);
 
   const [isLoading, setIsLoading] = useState(false);
 
-  if (!upsertTargetObj || !userProfileState || !userProfileState.company_id) return;
+  // if (!upsertTargetObj || !userProfileState || !userProfileState.company_id) return;
+  if (!upsertSettingEntitiesObj || !userProfileState || !userProfileState.company_id) return;
 
   // 「半期〜月度」
   if (isEndEntity && !annualFiscalMonths) return null;
@@ -111,8 +114,8 @@ Props) => {
     companyId: userProfileState.company_id,
     entityLevel: entityLevel,
     entityId: entityId,
-    periodType: isEndEntity ? `half_monthly` : `year_half`,
-    fiscalYear: upsertTargetObj.fiscalYear,
+    periodType: isEndEntity ? `first_half_details` : `year_half`,
+    fiscalYear: upsertSettingEntitiesObj.fiscalYear,
     isFirstHalf: isFirstHalf,
     annualFiscalMonths: annualFiscalMonths,
     fetchEnabled: isMainTarget ? true : fetchEnabled, // メイン目標はtrue, でなければfetchEnabledに従う
@@ -131,48 +134,9 @@ Props) => {
   const [inputSalesTargetYear, setInputSalesTargetYear] = useState("");
   const [inputSalesTargetFirstHalf, setInputSalesTargetFirstHalf] = useState("");
   const [inputSalesTargetSecondHalf, setInputSalesTargetSecondHalf] = useState("");
+  // 「上期・Q1, Q2・month_01~month_06」
 
-  // このテーブルが総合目標で、かつ、エンティティレベルが全社の場合は入力値をZustandに格納する
-  const saveTriggerSalesTarget = useDashboardStore((state) => state.saveTriggerSalesTarget);
-  const inputSalesTargetsIdToDataMap = useDashboardStore((state) => state.inputSalesTargetsIdToDataMap);
-  const setInputSalesTargetsIdToDataMap = useDashboardStore((state) => state.setInputSalesTargetsIdToDataMap);
-
-  const validateInputSalesTargets = useCallback((salesTargetArray: string[]) => {
-    return salesTargetArray.every((target) => isValidNumber(target.replace(/[^\d.]/g, "")));
-  }, []);
-
-  useEffect(() => {
-    // トリガーがtrueの場合か、isCollectedでない(もしくは存在しない)場合のみ目標stateの収集を実行
-    if (!saveTriggerSalesTarget) return;
-    if ((inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected) return;
-
-    // Zustandのオブジェクトのstateの不変性を保つためcloneDeepでオブジェクトをコピー
-    const copyInputMap = cloneDeep(inputSalesTargetsIdToDataMap);
-    const newTarget = {
-      entity_id: entityId,
-      entity_name: entityNameTitle,
-      inputSalesTargetYear,
-      inputSalesTargetFirstHalf,
-      inputSalesTargetSecondHalf,
-    } as InputSalesTargetsYearHalf;
-
-    const isAllValid = validateInputSalesTargets([
-      inputSalesTargetYear,
-      inputSalesTargetFirstHalf,
-      inputSalesTargetSecondHalf,
-    ]);
-
-    if (!isAllValid) {
-      copyInputMap[entityId] = { data: newTarget, isCollected: false, error: "データが有効ではありません" };
-    } else {
-      copyInputMap[entityId] = { data: newTarget, isCollected: true, error: null };
-    }
-
-    console.log("🔥🔥🔥✅✅✅✅✅✅✅✅✅✅ 子コンポーネント isAllValid", isAllValid, copyInputMap);
-
-    // Zustandを更新
-    setInputSalesTargetsIdToDataMap(copyInputMap);
-  }, [saveTriggerSalesTarget]);
+  // 「下期・Q3, Q4・month_07~month_12」
 
   // useEffect(() => {
   //   // データ収集関数をストアに登録
@@ -269,6 +233,81 @@ Props) => {
     },
   ];
   type RowHeaderNameYearHalf = "fiscal_year" | "first_half" | "second_half";
+
+  // 🌠このテーブルが総合目標で、かつ、エンティティレベルが全社の場合は入力値をZustandに格納する
+  const saveTriggerSalesTarget = useDashboardStore((state) => state.saveTriggerSalesTarget);
+  const inputSalesTargetsIdToDataMap = useDashboardStore((state) => state.inputSalesTargetsIdToDataMap);
+  const setInputSalesTargetsIdToDataMap = useDashboardStore((state) => state.setInputSalesTargetsIdToDataMap);
+
+  const validateInputSalesTargets = useCallback((salesTargetArray: string[]) => {
+    return salesTargetArray.every((target) => isValidNumber(target.replace(/[^\d.]/g, "")));
+  }, []);
+
+  // 🌠「保存クリック」データ収集
+  useEffect(() => {
+    // トリガーがtrueの場合か、isCollectedでない(もしくは存在しない)場合のみ目標stateの収集を実行
+    if (!saveTriggerSalesTarget) return;
+    if ((inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected) return;
+
+    const getPeriod = (key: string) => {
+      if (key === "fiscal_year") return upsertSettingEntitiesObj.fiscalYear;
+      if (key === "first_half") return upsertSettingEntitiesObj.fiscalYear * 10 + 1;
+      if (key === "second_half") return upsertSettingEntitiesObj.fiscalYear * 10 + 2;
+      if (key === "first_quarter") return upsertSettingEntitiesObj.fiscalYear * 10 + 1;
+      if (key === "second_quarter") return upsertSettingEntitiesObj.fiscalYear * 10 + 2;
+      if (key === "third_quarter") return upsertSettingEntitiesObj.fiscalYear * 10 + 3;
+      if (key === "fourth_quarter") return upsertSettingEntitiesObj.fiscalYear * 10 + 4;
+      if (key === "month_01") return upsertSettingEntitiesObj.fiscalYear * 100 + 1;
+      if (key === "month_02") return upsertSettingEntitiesObj.fiscalYear * 100 + 2;
+      if (key === "month_03") return upsertSettingEntitiesObj.fiscalYear * 100 + 3;
+      if (key === "month_04") return upsertSettingEntitiesObj.fiscalYear * 100 + 4;
+      if (key === "month_05") return upsertSettingEntitiesObj.fiscalYear * 100 + 5;
+      if (key === "month_06") return upsertSettingEntitiesObj.fiscalYear * 100 + 6;
+      if (key === "month_07") return upsertSettingEntitiesObj.fiscalYear * 100 + 7;
+      if (key === "month_08") return upsertSettingEntitiesObj.fiscalYear * 100 + 8;
+      if (key === "month_09") return upsertSettingEntitiesObj.fiscalYear * 100 + 9;
+      if (key === "month_10") return upsertSettingEntitiesObj.fiscalYear * 100 + 10;
+      if (key === "month_11") return upsertSettingEntitiesObj.fiscalYear * 100 + 11;
+      if (key === "month_12") return upsertSettingEntitiesObj.fiscalYear * 100 + 12;
+      return upsertSettingEntitiesObj.fiscalYear;
+    };
+
+    let salesTargets: inputSalesData[] = [];
+
+    if (entityLevel !== "member") {
+      salesTargets = inputSalesTargetsList.map((obj, index) => {
+        return {
+          period_type: obj.key, // 年度~半期："fiscal_year" | "first_half" | "second_half" | first_quarter | second_quarter | ...
+          period: getPeriod(obj.key),
+          sales_target: Number(obj.inputTarget.replace(/[^\d.]/g, "")),
+        } as inputSalesData;
+      });
+    }
+    if (entityLevel === "member") {
+    }
+
+    // Zustandのオブジェクトのstateの不変性を保つためcloneDeepでオブジェクトをコピー
+    const copyInputMap = cloneDeep(inputSalesTargetsIdToDataMap);
+    const newTarget = {
+      entity_id: entityId,
+      entity_name: entityNameTitle,
+      sales_targets: salesTargets,
+    } as InputSalesTargetsYearHalf;
+
+    const isAllValid = validateInputSalesTargets(inputSalesTargetsList.map((obj) => obj.inputTarget));
+
+    if (!isAllValid) {
+      copyInputMap[entityId] = { data: newTarget, isCollected: false, error: "データが有効ではありません" };
+    } else {
+      copyInputMap[entityId] = { data: newTarget, isCollected: true, error: null };
+    }
+
+    console.log("🔥🔥🔥✅✅✅✅✅✅✅✅✅✅ 子コンポーネント isAllValid", isAllValid, copyInputMap);
+
+    // Zustandを更新
+    setInputSalesTargetsIdToDataMap(copyInputMap);
+  }, [saveTriggerSalesTarget]);
+
   // const mappingInputSalesTargets: {
   //   [K in RowHeaderNameYearHalf]: {
   //     [K in "key" | "title" | "inputTarget" | "setInputTarget" | "inputYoYGrowth" | "setInputYoYGrowth"]: any;
@@ -501,7 +540,7 @@ Props) => {
       if (error) throw error;
 
       // キャッシュのサブ目標リストから部門を削除
-      // const periodType = isEndEntity ? `half_monthly` : `year_half`;
+      // const periodType = isEndEntity ? `first_half_details` : `year_half`;
       // const fiscalYear = upsertTargetObj.fiscalYear;
       // const queryKey = ["sales_summary_and_growth", entityLevel, entityId, periodType, fiscalYear, isFirstHalf];
 
@@ -674,7 +713,7 @@ Props) => {
                 className={`${styles.grid_header_row}`}
               >
                 {columnHeaderListTarget.map((column, colIndex) => {
-                  let displayValue = formatColumnName(column, upsertTargetObj.fiscalYear)[language];
+                  let displayValue = formatColumnName(column, upsertSettingEntitiesObj.fiscalYear)[language];
                   return (
                     <div
                       key={colIndex}
@@ -718,7 +757,7 @@ Props) => {
                 {salesSummaryRowData &&
                   salesSummaryRowData.map((row, rowIndex) => {
                     // const rowHeaderName = formatRowName(row, upsertTargetObj.fiscalYear)[language];
-                    const rowHeaderName = formatRowName(row.period_type, upsertTargetObj.fiscalYear)[language];
+                    const rowHeaderName = formatRowName(row.period_type, upsertSettingEntitiesObj.fiscalYear)[language];
                     return (
                       <div key={`grid_row_${rowIndex}`} role="row" className={`${styles.row}`}>
                         {columnHeaderListTarget.map((column, colIndex) => {
@@ -836,10 +875,10 @@ Props) => {
                                       let newDataArray = [...newTrend.data];
                                       const newDate =
                                         row.period_type === "fiscal_year"
-                                          ? upsertTargetObj.fiscalYear
+                                          ? upsertSettingEntitiesObj.fiscalYear
                                           : row.period_type === "first_half"
-                                          ? upsertTargetObj.fiscalYear * 10 + 1
-                                          : upsertTargetObj.fiscalYear * 10 + 2;
+                                          ? upsertSettingEntitiesObj.fiscalYear * 10 + 1
+                                          : upsertSettingEntitiesObj.fiscalYear * 10 + 2;
                                       const newData = {
                                         date: newDate,
                                         value: convertedSalesTarget,
@@ -851,10 +890,10 @@ Props) => {
                                       }
                                       const newTitle =
                                         row.period_type === "fiscal_year"
-                                          ? `FY${upsertTargetObj.fiscalYear}`
+                                          ? `FY${upsertSettingEntitiesObj.fiscalYear}`
                                           : row.period_type === "first_half"
-                                          ? `${upsertTargetObj.fiscalYear}H1`
-                                          : `${upsertTargetObj.fiscalYear}H2`;
+                                          ? `${upsertSettingEntitiesObj.fiscalYear}H1`
+                                          : `${upsertSettingEntitiesObj.fiscalYear}H2`;
                                       newTrend = {
                                         ...newTrend,
                                         title: newTitle,
@@ -993,7 +1032,7 @@ Props) => {
                                             // ディープコピー
                                             let newTrend = cloneDeep(salesTrendsSecondHalf) as SparkChartObj;
                                             let newDataArray = [...newTrend.data];
-                                            const newDate = upsertTargetObj.fiscalYear * 10 + 2; // 下期
+                                            const newDate = upsertSettingEntitiesObj.fiscalYear * 10 + 2; // 下期
                                             const newData = {
                                               date: newDate,
                                               value: newSecondHalfTarget,
@@ -1003,7 +1042,7 @@ Props) => {
                                             } else if (newDataArray.length === 4) {
                                               newDataArray.splice(-1, 1, newData);
                                             }
-                                            const newTitle = `${upsertTargetObj.fiscalYear}H2`;
+                                            const newTitle = `${upsertSettingEntitiesObj.fiscalYear}H2`;
                                             newTrend = {
                                               ...newTrend,
                                               title: newTitle,
