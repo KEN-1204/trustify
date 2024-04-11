@@ -39,6 +39,9 @@ import { mappingDescriptions, mappingPopupTitle } from "./dataSettingTarget";
 import { FallbackUpsertSettingTargetEntityGroup } from "./UpsertSettingTargetEntityGroup/FallbackUpsertSettingTargetEntityGroup";
 import { useQueryMemberAccountsFilteredByEntity } from "@/hooks/useQueryMemberAccountsFilteredByEntity";
 import { useQueryMemberGroupsByParentEntities } from "@/hooks/useQueryMemberGroupsByParentEntities";
+import { toast } from "react-toastify";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 
 /*
 🌠上位エンティティグループに対して紐付ける方法のメリットとデメリット
@@ -64,6 +67,7 @@ import { useQueryMemberGroupsByParentEntities } from "@/hooks/useQueryMemberGrou
 // 🌠上位エンティティグループに対して紐付ける方法
 
 const UpsertTargetEntityMemo = () => {
+  const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
@@ -116,6 +120,10 @@ const UpsertTargetEntityMemo = () => {
   // // 年度オプション選択肢
   // const optionsFiscalYear = useDashboardStore((state) => state.optionsFiscalYear);
   // const setOptionsFiscalYear = useDashboardStore((state) => state.setOptionsFiscalYear);
+
+  // ================================ 🌟設定済み年度useQuery🌟 ================================
+  const fiscalYearsQueryData = queryClient.getQueriesData(["fiscal_years", "sales_target"]);
+  // ================================ 🌟設定済み年度useQuery🌟 ================================
 
   // ===================== 🌠エンティティレベルuseQuery🌠 =====================
   const {
@@ -883,8 +891,11 @@ const UpsertTargetEntityMemo = () => {
     setStep(2);
   };
 
+  const [isLoadingSave, setIsLoadingSave] = useState(false);
+
   // 🌟ステップ2の「構成を確定」をクリック 現在のレベルに追加したエンティティ構成をentity_structuresにINSERTして構成を確定する
-  const handleSaveEntities = () => {
+  const handleSaveEntities = async () => {
+    setIsLoadingSave(true);
     try {
       // 下記3つのテーブルにINSERT
       // ・fiscal_yearsテーブル
@@ -894,55 +905,157 @@ const UpsertTargetEntityMemo = () => {
       const periodStart = fiscalYearStartEndDate.startDate;
       const periodEnd = fiscalYearStartEndDate.endDate;
 
-      // エンティティレベル
+      // エンティティレベル INSERT用
 
-      // エンティティ
-      // entityGroupListByParent: {parent_entity_id: string, parent_entity_name: string, entities: Entity[]}[]
-      const entityGroupsByParent =
+      // エンティティ INSERT用 entitiesHierarchyLocalから現在のエンティティレベルに対応するエンティティグループを取得してINSERTするエンティティグループにセッする
+      // entitiesHierarchyLocal: {company: [], department: []. section: [], ...}
+      const entityGroupsByParentArray =
         entitiesHierarchyLocal && Object.keys(entitiesHierarchyLocal).includes(currentLevel)
           ? entitiesHierarchyLocal[currentLevel]
           : null;
 
-      if (!entityGroupsByParent) throw new Error("レイヤー内のデータが見つかりませんでした。");
+      // 現在のレベルの直上のレベルのidを取得 現在がcompanyレベルの場合は上位エンティティレベルidは存在しないためnull
+      let parentEntityLevelId = null;
+      if (currentLevel !== "company" && !!addedEntityLevelsListQueryData) {
+        parentEntityLevelId = addedEntityLevelsListQueryData.find(
+          (levelObj) => levelObj.entity_level === parentEntityLevel
+        )?.id;
+      }
 
-      const entityGroupsByParentForInsert = entityGroupsByParent.map(
-        (entityGroup) =>
-          ({
-            parent_entity_id: entityGroup.parent_entity_id,
-            parent_entity_name: entityGroup.parent_entity_name,
-            entities: entityGroup.entities.map((entity) => ({
-              parent_entity_level_id: entity.parent_entity_id || null, // 空文字はnullをセット
-              target_type: "sales_target",
-              entity_id: entity.entity_id,
-              parent_entity_id: entity.parent_entity_id || null,
+      if (!entityGroupsByParentArray) throw new Error("レイヤー内のデータが見つかりませんでした。");
+
+      const entitiesDataArray = entityGroupsByParentArray
+        .map((parent) => {
+          return parent.entities.map((entityObj) => {
+            const entityId = entityObj.entity_id;
+            const parentEntityId = entityObj.parent_entity_id;
+
+            let createdByCompanyId = userProfileState.company_id;
+            let createdByDepartmentId = null;
+            let createdBySectionId = null;
+            let createdByUnitId = null;
+            let createdByUserId = null;
+            let createdByOfficeId = null;
+            let parentCreatedByCompanyId = null;
+            let parentCreatedByDepartmentId = null;
+            let parentCreatedBySectionId = null;
+            let parentCreatedByUnitId = null;
+            let parentCreatedByUserId = null;
+            let parentCreatedByOfficeId = null;
+
+            if (currentLevel === "company") {
+              // companyレベルの場合は、親は存在しないのでnullのまま
+              createdByCompanyId = userProfileState.company_id;
+            }
+            if (currentLevel === "department") {
+              parentCreatedByCompanyId = parentEntityId;
+              createdByCompanyId = userProfileState.company_id;
+              createdByDepartmentId = entityId;
+            }
+            if (currentLevel === "section") {
+              parentCreatedByDepartmentId = parentEntityId;
+              createdByCompanyId = userProfileState.company_id;
+              createdByDepartmentId = sectionIdToObjMap?.get(entityId)?.created_by_department_id ?? null;
+              createdBySectionId = entityId;
+            }
+            if (currentLevel === "unit") {
+              parentCreatedBySectionId = parentEntityId;
+              createdByCompanyId = userProfileState.company_id;
+              createdByDepartmentId = unitIdToObjMap?.get(entityId)?.created_by_department_id ?? null;
+              createdBySectionId = unitIdToObjMap?.get(entityId)?.created_by_section_id ?? null;
+              createdByUnitId = entityId;
+            }
+            if (currentLevel === "member") {
+              if (!parentEntityId) throw new Error("予期せぬエラーが発生しました。");
+              if (parentEntityLevel === "company") {
+                parentCreatedByCompanyId = parentEntityId;
+              }
+              if (parentEntityLevel === "department") {
+                parentCreatedByDepartmentId = parentEntityId;
+              }
+              if (parentEntityLevel === "section") {
+                parentCreatedBySectionId = parentEntityId;
+              }
+              if (parentEntityLevel === "unit") {
+                parentCreatedByUnitId = parentEntityId;
+              }
+              const memberGroup =
+                queryDataMemberGroupsByParentEntities &&
+                Object.keys(queryDataMemberGroupsByParentEntities).includes(parentEntityId)
+                  ? queryDataMemberGroupsByParentEntities[parentEntityId].member_group
+                  : null;
+              if (!memberGroup) throw new Error("メンバーデータが見つかりませんでした。");
+              const memberObj = memberGroup.find((member) => member.id === entityId);
+              if (!memberObj) throw new Error("メンバーデータが見つかりませんでした。");
+              createdByDepartmentId = memberObj.assigned_department_id ?? null;
+              createdBySectionId = memberObj.assigned_section_id ?? null;
+              createdByUnitId = memberObj.assigned_unit_id ?? null;
+              createdByUserId = memberObj.id;
+            }
+            if (currentLevel === "office") {
+              parentCreatedByCompanyId = parentEntityId;
+              createdByOfficeId = entityId;
+            }
+
+            return {
+              created_by_company_id: createdByCompanyId,
+              created_by_department_id: createdByDepartmentId,
+              created_by_section_id: createdBySectionId,
+              created_by_unit_id: createdByUnitId,
+              created_by_user_id: createdByUserId,
+              created_by_office_id: createdByOfficeId,
+              parent_created_by_company_id: parentCreatedByCompanyId,
+              parent_created_by_department_id: parentCreatedByDepartmentId,
+              parent_created_by_section_id: parentCreatedBySectionId,
+              parent_created_by_unit_id: parentCreatedByUnitId,
+              parent_created_by_user_id: parentCreatedByUserId, // nullしかないが一応セットしておく
+              parent_created_by_office_id: parentCreatedByOfficeId,
               is_confirmed_annual_half: false,
               is_confirmed_first_half_details: false,
               is_confirmed_second_half_details: false,
-              entity_name: userProfileState.customer_name,
-              parent_entity_name: "root",
-              // fiscal_yearsテーブル
-              fiscal_year: upsertSettingEntitiesObj.fiscalYear,
-              // entity_level_structuresテーブル
-              entity_level: "company",
-              parent_entity_level: "root",
-            })),
-          } as EntityGroupByParent)
-      );
+              entity_name: entityObj.entity_name,
+              parent_entity_name: entityObj.parent_entity_name,
+            };
+          });
+        })
+        .flatMap((array) => array);
+
+      // 現在のレベルがcompanyレベルではない場合で、上位エンティティレベルidが存在しない場合にはエラーを投げる
+      if (currentLevel !== "company" && !parentEntityLevelId)
+        throw new Error("上位レイヤーのデータが見つかりませんでした。");
 
       const payload = {
         _company_id: userProfileState.company_id,
-        _fiscal_year: upsertSettingEntitiesObj.fiscalYear,
-        _period_start: periodStart,
-        _period_end: periodEnd,
+        _fiscal_year: upsertSettingEntitiesObj.fiscalYear, // fiscal_yearsテーブル用
+        _period_start: periodStart, // fiscal_yearsテーブル用
+        _period_end: periodEnd, // fiscal_yearsテーブル用
         _target_type: "sales_target",
-        _entity_level: upsertSettingEntitiesObj.entityLevel,
-        _parent_entity_level_id: upsertSettingEntitiesObj.parentEntityId ?? null,
-        _entity_groups_by_parent_entity: entityDataArray, // 上位エンティティに紐づく各エンティティグループ
+        _entity_level: currentLevel, // entity_level_structuresテーブル用
+        _parent_entity_level_id: parentEntityLevelId ?? null,
+        _entity_groups_by_parent_entity: entitiesDataArray, // 上位エンティティに紐づく各エンティティグループ
       };
-    } catch (error: any) {}
 
-    // レベル内のエンティティ構成が確定したら、ステップを3に移行
-    setStep(3);
+      console.log("🔥upsert_sales_target_year_level_entities 実行 payload", payload);
+
+      const { error } = await supabase.rpc("upsert_sales_target_year_level_entities", payload);
+
+      if (error) throw error;
+
+      console.log("✅rpc upsert_sales_target_year_level_entities関数実行成功✅");
+
+      // fiscal_years, entity_level_structures, entity_structuresテーブルのuseQueryキャッシュをinvalidate
+
+      await queryClient.invalidateQueries(["fiscal_years", "sales_target"]);
+      await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+      // entity_structuresのキャッシュはentity_levelsキャッシュの再フェッチで新たにentityLevelIdsが生成され新たなqueryKeyが生成されるためinvalidate不要
+
+      // レベル内のエンティティ構成が確定したら、ステップを3に移行
+      setStep(3);
+    } catch (error: any) {
+      console.error("エラー：", error);
+      toast.error("組織構成の保存に失敗しました...🙇‍♀️");
+    }
+    setIsLoadingSave(false);
   };
 
   // エンティティ目標設定モード終了
@@ -1266,6 +1379,8 @@ const UpsertTargetEntityMemo = () => {
     "UpsertTargetEntityコンポーネントレンダリング",
     "upsertSettingEntitiesObj",
     upsertSettingEntitiesObj,
+    "目標年度fiscalYearsQueryData",
+    fiscalYearsQueryData,
     "レベル選択肢optionsEntityLevelList",
     optionsEntityLevelList,
     // selectedEntityLevel,
@@ -1623,42 +1738,49 @@ const UpsertTargetEntityMemo = () => {
                             ))}
                           </select>
                         )}
-                        <button
-                          className={`transition-bg01 flex-center max-h-[36px] max-w-max rounded-[8px] px-[15px] py-[10px] text-[13px] font-bold ${styleStepNextBtn()}`}
-                          onMouseEnter={(e) => {
-                            if (step !== 3) return;
-                            handleOpenTooltip({
-                              e: e,
-                              display: "top",
-                              content: tooltipBtnText(),
-                              marginTop: 0,
-                            });
-                          }}
-                          onMouseLeave={handleCloseTooltip}
-                          onClick={() => {
-                            if (step === 1) {
-                              // if (addedEntityLevelsListLocal.length === 0 && selectedEntityLevel !== "company")
-                              if (addedEntityLevelsListLocal.length === 0 && currentLevel !== "company")
-                                return alert("最初は会社レイヤーから追加してください。");
-                              handleAddLevel();
-                            }
-                            if (step === 2) handleSaveEntities();
-                            if (step === 3) {
-                              if (!isAlreadySetState) {
-                                console.log("リターン");
-                                alert(alertTextNextBtn3());
-                                return;
+                        {isLoadingSave && (
+                          <div className={`flex-center min-h-[36px] min-w-[95px]`}>
+                            <SpinnerX h="h-[27px]" w="w-[27px]" />
+                          </div>
+                        )}
+                        {!isLoadingSave && (
+                          <button
+                            className={`transition-bg01 flex-center max-h-[36px] max-w-max rounded-[8px] px-[15px] py-[10px] text-[13px] font-bold ${styleStepNextBtn()}`}
+                            onMouseEnter={(e) => {
+                              if (step !== 3) return;
+                              handleOpenTooltip({
+                                e: e,
+                                display: "top",
+                                content: tooltipBtnText(),
+                                marginTop: 0,
+                              });
+                            }}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() => {
+                              if (step === 1) {
+                                // if (addedEntityLevelsListLocal.length === 0 && selectedEntityLevel !== "company")
+                                if (addedEntityLevelsListLocal.length === 0 && currentLevel !== "company")
+                                  return alert("最初は会社レイヤーから追加してください。");
+                                handleAddLevel();
                               }
-                              console.log("クリック");
-                            }
-                          }}
-                        >
-                          <span className="select-none">
-                            {step === 1 && `レイヤーを追加`}
-                            {step === 2 && `構成を確定`}
-                            {step === 3 && getTextStepBtn3()}
-                          </span>
-                        </button>
+                              if (step === 2) handleSaveEntities();
+                              if (step === 3) {
+                                if (!isAlreadySetState) {
+                                  console.log("リターン");
+                                  alert(alertTextNextBtn3());
+                                  return;
+                                }
+                                console.log("クリック");
+                              }
+                            }}
+                          >
+                            <span className="select-none">
+                              {step === 1 && `レイヤーを追加`}
+                              {step === 2 && `構成を確定`}
+                              {step === 3 && getTextStepBtn3()}
+                            </span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
