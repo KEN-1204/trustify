@@ -33,29 +33,42 @@
 }
 
 /* 周りの光アニメーションとの組み合わせ */
-/* .modal_container {
+.auth_container {
   position: fixed;
   z-index: 1000;
-  top: 50%;
+  top: 45%;
   left: 50%;
-  height: 60dvh;
-  width: 30vw;
   transform: translate(-50%, -50%);
+  /* height: 60dvh; */
+  width: 100%;
+  max-width: 420px;
+  /* backdrop-filter: blur(4px); */
+  /* width: 30vw; */
   border-radius: 12px;
   overflow: hidden;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  justify-content: flex-start;
   align-items: center;
-  color: var(--color-text);
-} */
-/* .modal_container::before {
+  /* color: var(--color-text-title); */
+  color: #fff;
+  /* position: relative; */
+
+  padding: 10px 10px 36px 10px;
+  /* box-shadow: 0px 0px 0px 2px #33333390, 0 6px 12px 9px #00000066, 0 12px 24px 12px #00000056; */
+  box-shadow: 0 9px 12px 12px #00000056, 0 15px 24px 18px #33333356;
+}
+.auth_container::before {
   content: "";
   position: absolute;
   z-index: -1;
-  width: 200%;
+  /* width: 200%;
+  height: 200%; */
+  top: -45%;
+  width: 93%;
   height: 200%;
   background: var(--tile-border);
-  animation: 6s rotate linear infinite;
+  animation: 5s rotate linear infinite;
 }
 @keyframes rotate {
   from {
@@ -64,40 +77,23 @@
   to {
     transform: rotate(0deg);
   }
-} */
-/* .modal_container::after {
+}
+.auth_container::after {
   content: "";
   position: absolute;
   z-index: -1;
   inset: 0;
+
   padding: 2px;
   border-radius: 12px;
-  background: linear-gradient(to top right, #080808, #232323);
+  /* background: #141414; */
+  /* background: linear-gradient(to bottom left, #333333f9 0%, #222222f9 30%, #141414f9 70%, #0f0f0ff9 100%); */
+  /* background: var(--color-auth-modal-bg); */
+  background: var(--color-auth-modal-bg-gradient-black);
+  /* background: linear-gradient(to top right, #080808, #232323); */
   background-clip: content-box;
   backdrop-filter: blur(12px);
-} */
-/* .modal_container::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  padding: 2px;
-  border-radius: 12px;
-  background: linear-gradient(to bottom right, rgba(var(--tile-start-rgb), 1) rgba(var(--tile-end-rgb), 1));
-  background-clip: content-box;
-  backdrop-filter: blur(12px);
-} */
-/* .modal_container::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  padding: 2px;
-  border-radius: 12px;
-  background: #141414;
-  background-clip: content-box;
-  backdrop-filter: blur(12px);
-} */
+}
 
 .auth_area {
   width: 100%;
@@ -133,18 +129,28 @@
   width: 100%;
   /* border: 3px solid var(--color-border-strong, #000); */
   box-shadow: rgba(15, 15, 15, 0.8) 0px 0px 0px 3px inset;
+
   border-radius: 8px;
   background-color: #fff;
   font-size: 16px;
   font-weight: 700;
   padding: 0 15px;
 }
+/* rotateバージョン */
+.auth_container .auth_block {
+  box-shadow: rgba(255, 255, 255, 0.7) 0px 0px 0px 3px inset;
+}
+
 .auth_google {
   transition: all 0.3s;
   /* box-shadow: rgba(var(--color-btn-brand-rgb), 0.8) 0px 0px 0px 3px inset;
   color: var(--color-btn-brand); */
   overflow: hidden;
   position: relative;
+}
+/* rotateバージョン */
+.auth_container .auth_google {
+  background-color: #191919;
 }
 .auth_google:hover {
   transform: translateY(-2px);
@@ -156,6 +162,10 @@
   text-overflow: ellipsis;
   font-family: sans-serif;
   transition: all 1s;
+}
+/* rotateバージョン */
+.auth_container .google_text {
+  color: #fff;
 }
 .auth_google:hover .google_text {
   /* background: linear-gradient(60deg, #de3f32, #efb408, #32a050, #407eeb); */
@@ -212,6 +222,18 @@
   line-height: 60px;
   color: var(--color-sub-text);
 }
+
+/* rotateバージョン */
+.auth_container .sign_in_and_up_orBlock {
+  color: var(--color-auth-modal-or-text);
+}
+.sub_text {
+  color: var(--color-sub-text);
+}
+/* rotateバージョン */
+.auth_container .sub_text {
+  color: var(--color-auth-modal-or-text);
+}
 .form_input {
   font-weight: 500;
   font-size: 16px;
@@ -251,6 +273,8 @@
   outline: none;
   border-radius: 8px;
   color: #000;
+  /* rotateバージョン */
+  color: #fff;
   font-weight: 500;
   font-size: 15px;
   caret-color: var(--caret-color-blue);
@@ -261,6 +285,10 @@
   /* box-shadow: 0 0 0 1px #999; */
   box-shadow: rgba(15, 15, 15, 0.2) 0px 0px 0px 1px inset;
   border-radius: 8px;
+}
+/* rotateバージョン */
+.auth_container .input_group input {
+  box-shadow: rgba(255, 255, 255, 0.4) 0px 0px 0px 1px inset;
 }
 
 .input_group input:focus {
@@ -321,12 +349,26 @@
   font-size: 8px;
   color: var(--color-bg-brand-sub);
 }
+/* rotateバージョン */
+.auth_container .email_input_area {
+  background: rgba(var(--input-area-bg-rgb), 0.1);
+  color: #fff;
+}
+/* rotateバージョン */
+.auth_container .email_input_area:focus {
+  box-shadow: 0 0 0 2px var(--color-btn-brand);
+}
+
 .input_group .email_input_area {
   padding-top: 10px;
 }
 
 .email_box .submittedEmailInput {
   background: rgba(var(--color-btn-brand-rgb), 0.1);
+}
+/* rotateバージョン */
+.auth_container .email_box .submittedEmailInput {
+  background: rgba(var(--color-btn-brand-rgb), 0.5);
 }
 
 /* ログインコード */
@@ -340,6 +382,11 @@
   background: rgba(var(--bright-green-rgb), 0.1);
 
   padding-top: 10px;
+}
+/* rotateバージョン */
+.auth_container .input_group .login_code_area {
+  /* box-shadow: inset 0px 0px 0px 1px rgba(255, 255, 255, 0.4); */
+  box-shadow: 0 0 0 1px var(--bright-green);
 }
 
 .login_code_box {
@@ -394,6 +441,14 @@
   transition: all 0.3s;
   overflow: hidden;
   position: relative;
+}
+/* rotateバージョン */
+.auth_container .auth_button {
+  background: var(--color-bg-brand);
+  box-shadow: unset;
+}
+.auth_container .auth_button:hover {
+  box-shadow: rgba(255, 255, 255, 0.66) 0px 0px 0px 3px inset;
 }
 /* .auth_button {
   box-shadow: inset 0px 0px 0px 3px #222;
@@ -453,6 +508,8 @@
   display: inline;
   font-size: 12px;
   color: var(--color-sub-text);
+  /* rotateバージョン */
+  color: var(--color-sub-text-dark);
 }
 .term_wrapper a {
   /* color: var(--color-text-brand-sub); */
@@ -464,6 +521,8 @@
   font-size: 16px;
   user-select: none;
   color: var(--color-sub-text);
+  /* rotateバージョン */
+  color: var(--color-auth-modal-switch-text);
 }
 .switch_link {
   cursor: pointer;

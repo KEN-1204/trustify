@@ -11,6 +11,10 @@ import { ReactNode } from "react";
 import { create } from "zustand";
 
 type State = {
+  // HP画面 Root or About
+  activePage: string;
+  setActivePage: (payload: string) => void;
+
   // =================== マウス ===================
   // クリック位置
   clickedItemPos: ClickedItemPos;
@@ -108,6 +112,10 @@ type State = {
 
 // ================================= 🌟useStore🌟 =================================
 const useStore = create<State>((set) => ({
+  // HP画面 Root or About
+  activePage: "Root",
+  setActivePage: (payload) => set({ activePage: payload }),
+
   // =================== マウス ===================
   // クリックしたアイテムのポジションを取得
   clickedItemPos: null,

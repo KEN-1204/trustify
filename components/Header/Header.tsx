@@ -36,6 +36,7 @@ export const Header: FC<Props> = ({
   const theme = useRootStore(useThemeStore, (state) => state.theme);
   // const theme = useThemeStore((state) => state.theme);
   // const theme = useStore((state) => state.theme);
+  const setActivePage = useStore((state) => state.setActivePage);
   const setIsOpenModal = useStore((state) => state.setIsOpenModal);
   const openLangTab = useStore((state) => state.openLangTab);
   const setOpenLangTab = useStore((state) => state.setOpenLangTab);
@@ -172,11 +173,29 @@ export const Header: FC<Props> = ({
 
   const [isLoading, setIsLoading] = useState(false);
 
+  useEffect(() => {
+    if (sessionState) {
+      setIsLoading(true);
+    } else {
+      if (isLoading) setIsLoading(false);
+    }
+  }, [sessionState]);
+
   return (
     <>
       {isLoading && (
-        <div className={`${styles.loading_overlay} flex-center fixed inset-0 z-[10000] bg-[#00000090]`}>
+        <div
+          className={`${styles.loading_overlay} fade05_forward flex-col-center fixed inset-0 z-[10000] bg-[var(--overlay-dark99)]`}
+        >
           <SpinnerBrand withBorder withShadow />
+          {sessionState && (
+            <div
+              className={`flex-col-center transition-x-[-50%] transition-y-[-50%] left-[50%] top-[55%] mt-[12px] space-y-[3px] rounded-[6px] bg-[#00000090] px-[12px] py-[6px] text-[13px] text-[#fff]`}
+            >
+              <span>ダッシュボードをローディング中です...</span>
+              <span>ページ遷移までもうしばらくお待ちください🙇‍♀️</span>
+            </div>
+          )}
         </div>
       )}
       <header
@@ -255,7 +274,7 @@ export const Header: FC<Props> = ({
               </Link>
             </li>
             <li className={`${styles.navList} ${switchLightTextColor}`}>
-              <Link
+              {/* <Link
                 href="/about"
                 prefetch={true}
                 className={`${styles.navbarItem}`}
@@ -268,7 +287,22 @@ export const Header: FC<Props> = ({
                   {language === "en" && "About"}
                 </span>
                 <div className={`${styles.underline}`} />
-              </Link>
+              </Link> */}
+              <div
+                className={`${styles.navbarItem}`}
+                onClick={() => {
+                  setIsLoading(true);
+                  setTimeout(() => {
+                    setActivePage("About");
+                  }, 500);
+                }}
+              >
+                <span>
+                  {language === "ja" && "企業"}
+                  {language === "en" && "About"}
+                </span>
+                <div className={`${styles.underline}`} />
+              </div>
             </li>
             <li className={`${styles.navList} ${switchLightTextColor}`}>
               <button className={`${styles.navbarItem}`} onClick={handleAuthLoginLogout}>

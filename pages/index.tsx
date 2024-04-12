@@ -8,6 +8,7 @@ import { Session, User, createServerSupabaseClient } from "@supabase/auth-helper
 import { GetServerSidePropsContext } from "next";
 import { useEffectOnce } from "react-use";
 import useThemeStore from "@/store/useThemeStore";
+import { AboutComponent } from "@/components/About/About";
 
 // { initialSession, user }: { initialSession: Session; user: User | null }
 
@@ -16,6 +17,7 @@ export default function Home({ initialLang }: { initialLang: string }) {
   const language = useStore((state) => state.language);
   const setTheme = useThemeStore((state) => state.setTheme);
   const setLanguage = useStore((state) => state.setLanguage);
+  const activePage = useStore((state) => state.activePage);
   // const setTheme = useStore((state) => state.setTheme);
 
   // 言語別タイトル
@@ -23,9 +25,11 @@ export default function Home({ initialLang }: { initialLang: string }) {
   switch (language) {
     case "ja":
       langTitle = "TRUSTiFY | 売上を上げ続けた実績に裏付けされたデータベース";
+      if (activePage === "About") langTitle = "会社概要 | TRUSTiFY";
       break;
     case "en":
       langTitle = "TRUSTiFY | Get the best";
+      if (activePage === "About") langTitle = "About | TRUSTiFY";
       break;
     default:
       langTitle = "TRUSTiFY";
@@ -52,13 +56,16 @@ export default function Home({ initialLang }: { initialLang: string }) {
 
   return (
     <Layout title={langTitle}>
-      <Header
-        logoSrc="/assets/images/Trustify_logo_white1.png"
-        blurDataURL="/assets/images/Trustify_logo_white1_blur.png"
-        logoSrcDark="/assets/images/Trustify_logo_black.png"
-        blurDataURLDark="/assets/images/Trustify_logo_black_blur.png"
-      />
-      <Root />
+      {activePage !== "About" && (
+        <Header
+          logoSrc="/assets/images/Trustify_logo_white1.png"
+          blurDataURL="/assets/images/Trustify_logo_white1_blur.png"
+          logoSrcDark="/assets/images/Trustify_logo_black.png"
+          blurDataURLDark="/assets/images/Trustify_logo_black_blur.png"
+        />
+      )}
+      {activePage === "Root" && <Root />}
+      {activePage === "About" && <AboutComponent />}
       {/* {clickedItemPos && <LangMenu />} */}
       {/* {clickedItemPosOver && <LangMenuOver />} */}
     </Layout>

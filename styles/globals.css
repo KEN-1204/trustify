@@ -73,6 +73,14 @@
   --main-color-tkd0: #ff3b5bd0;
   --main-color-tke0: #ff3b5be0;
   --main-color-tkf0: #ff3b5bf0;
+  --main-color-gradient-black: linear-gradient(to bottom left, #333333 0%, #222222 33%, #141414 66%, #0f0f0f 100%);
+  --main-color-gradient-blackc0: linear-gradient(
+    to bottom left,
+    #333333c0 0%,
+    #222222c0 33%,
+    #141414c0 66%,
+    #0f0f0fc0 100%
+  );
 
   --main-color-tk-blue: #00f2ea;
 
@@ -478,6 +486,13 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-auth-modal-switch-text: #fff;
   --color-auth-modal-or-text: #ccc;
   --color-auth-modal-bg: #282828;
+  --color-auth-modal-bg-gradient-black: linear-gradient(
+    to bottom left,
+    #393939 0%,
+    #282828 30%,
+    #242424 70%,
+    #0f0f0ff9 100%
+  );
 
   /* モーダル右側 背景 Canva */
   --color-modal-bg-side-c: #ebf3ff;
@@ -1046,7 +1061,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --overlay-modal-bg: #ffffff60;
   /* --overlay-loading-modal-inside: #ffffff48; */
   --overlay-loading-modal-inside: #00000066;
-  /* --overlay-loading-modal-inside: #00000090; */
+  --overlay-loading-modal-inside99: #00000099;
   /* サイドテーブルオーバーレイ light */
   --color-sidetable-overlay: #00000066;
   /* ツールチップ */
@@ -1469,6 +1484,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-auth-modal-or-text: var(--color-text-secondary);
   --color-header-bg-active: #252525;
   --color-auth-modal-bg: #141414;
+  --color-auth-modal-bg-gradient-black: var(--main-color-gradient-black);
 
   /* モーダル右側 背景 Canva dark */
   /* --color-modal-bg-side-c: #383838; */
@@ -1946,7 +1962,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --overlay: #ffffff20;
   --overlay-modal-bg: #33333360;
   --overlay-loading-modal-inside: #00000066;
-  /* --overlay-loading-modal-inside: #00000090; */
+  --overlay-loading-modal-inside99: #00000099;
   /* サイドテーブルオーバーレイ dark */
   --color-sidetable-overlay: #00000039;
 

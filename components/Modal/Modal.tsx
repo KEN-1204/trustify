@@ -222,7 +222,8 @@ export const Modal: FC = () => {
         {/* バーチャルビデオ背景 ここまで */}
       </div>
       {/* モーダル */}
-      <div className={`${styles.modal_container} transition-base fade05`}>
+      <div className={`${styles.auth_container} transition-base fade05`}>
+        {/* <div className={`${styles.modal_container} transition-base fade05`}> */}
         {/* ローディングオーバーレイ */}
         {isLoading && (
           <div className={`${styles.loading_overlay} flex-center fixed inset-0 z-[10000] bg-[#00000090]`}>
@@ -330,7 +331,7 @@ export const Modal: FC = () => {
 
             {/* メールでOTPリクエスト送信後に表示するメッセージ */}
             {alreadyRequestedOtp && (
-              <div className="flex-col-center mt-[8px] text-[14px] text-[var(--color-sub-text)]">
+              <div className={`${styles.sub_text} flex-col-center mt-[12px] text-[14px]`}>
                 <span>一時的なログインコードをお送りしました。</span>
                 <span>受信トレイをご確認ください。</span>
               </div>
