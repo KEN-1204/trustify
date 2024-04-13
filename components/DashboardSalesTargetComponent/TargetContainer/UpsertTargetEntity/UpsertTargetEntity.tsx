@@ -33,7 +33,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { FallbackTargetContainer } from "../FallbackTargetContainer";
 import { FiPlus } from "react-icons/fi";
-import { IoTriangleOutline } from "react-icons/io5";
+import { IoChevronDownOutline, IoTriangleOutline } from "react-icons/io5";
 import { RxDot } from "react-icons/rx";
 import { mappingDescriptions, mappingPopupTitle } from "./dataSettingTarget";
 import { FallbackUpsertSettingTargetEntityGroup } from "./UpsertSettingTargetEntityGroup/FallbackUpsertSettingTargetEntityGroup";
@@ -79,7 +79,11 @@ const UpsertTargetEntityMemo = () => {
   const upsertSettingEntitiesObj = useDashboardStore((state) => state.upsertSettingEntitiesObj);
   const setUpsertSettingEntitiesObj = useDashboardStore((state) => state.setUpsertSettingEntitiesObj);
 
+  // 個別エンティティグループ目標設定モード
   const setUpsertTargetMode = useDashboardStore((state) => state.setUpsertTargetMode);
+  // メンバーレベル目標設定時専用 「上期詳細」「下期詳細」切り替えstate
+  const settingPeriodTypeForMemberLevel = useDashboardStore((state) => state.settingPeriodTypeForMemberLevel);
+  const setSettingPeriodTypeForMemberLevel = useDashboardStore((state) => state.setSettingPeriodTypeForMemberLevel);
 
   // ユーザーの会計年度の期首と期末のDateオブジェクト
   const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
@@ -148,6 +152,7 @@ const UpsertTargetEntityMemo = () => {
     return addedEntityLevelsListQueryData.map((obj) => obj.id);
   }, [addedEntityLevelsListQueryData]);
 
+  // 現在追加済みの全てのレベルidに紐づくそれぞれのエンティティ
   const {
     data: entitiesHierarchyQueryData,
     isLoading: isLoadingQueryEntities,
@@ -611,21 +616,22 @@ const UpsertTargetEntityMemo = () => {
     // setUpsertTargetObj(null);
   };
 
+  // ----------------------------- 🌟ステップ1 レベル「追加」をクリック🌟 -----------------------------
   // ステップ1, 「追加」クリック => レイヤー(レベル)を追加 ローカルstate
   const handleAddLevel = () => {
     // 選択中のレベルが既にMapに存在するならリターン
     if (addedEntityLevelsMapLocal && addedEntityLevelsMapLocal.has(selectedNextLevel)) return;
 
     // 現在のレベルから選択中の追加予定のレベルが飛び級をしていた場合にはリターン
-    if (!(currentLevel === "" && selectedNextLevel === "company"))
-      return alert("組織レイヤーは会社レベルから追加してください。");
-    if (!(currentLevel === "company" && ["department", "member"].includes(selectedNextLevel)))
-      return alert("会社レイヤーの下の階層は「事業部」か「メンバー」を追加してください。");
-    if (!(currentLevel === "department" && ["section", "member"].includes(selectedNextLevel)))
+    if (currentLevel === "" && selectedNextLevel !== "company")
+      return alert("組織レイヤーは「全社」から追加してください。");
+    if (currentLevel === "company" && !["department", "member"].includes(selectedNextLevel))
+      return alert("全社レイヤーの下の階層は「事業部」か「メンバー」を追加してください。");
+    if (currentLevel === "department" && !["section", "member"].includes(selectedNextLevel))
       return alert("事業部レイヤーの下の階層は「課・セクション」か「メンバー」を追加してください。");
-    if (!(currentLevel === "section" && ["unit", "member"].includes(selectedNextLevel)))
+    if (currentLevel === "section" && !["unit", "member"].includes(selectedNextLevel))
       return alert("課・セクションレイヤーの下の階層は「係・チーム」か「メンバー」を追加してください。");
-    if (!(currentLevel === "unit" && ["member"].includes(selectedNextLevel)))
+    if (currentLevel === "unit" && !["member"].includes(selectedNextLevel))
       return alert("係・チームレイヤーの下の階層は「メンバー」を追加してください。");
 
     // if (addedEntityLevelsMapLocal && addedEntityLevelsMapLocal.has(currentLevel)) return;
@@ -648,7 +654,7 @@ const UpsertTargetEntityMemo = () => {
     setAddedEntityLevelsListLocal([...addedEntityLevelsListLocal, newLevel]);
 
     // ✅追加したレベル内に先に全てのエンティティを追加しておき、ユーザーに追加の手間を省く(削除をしてもらう)
-    // 新たに追加した場合の上位エンティティごとのエンティティグループの一覧を生成(ユーザーには追加ではなく、ここから不要なエンティティを削除するアクションをステップ2で行ってもらう)
+    // 新たに追加したレベルの上位エンティティごと(parent_entity_id)のエンティティグループ(entities)に最初は上位エンティティに紐づく全てのエンティティを追加する。(ユーザーには追加ではなく、ここから不要なエンティティを削除するアクションをステップ2で行ってもらう)
     let newEntityHierarchy: EntitiesHierarchy = cloneDeep(entitiesHierarchyLocal);
     let newEntityGroupByParent;
     if (selectedNextLevel === "company") {
@@ -870,10 +876,12 @@ const UpsertTargetEntityMemo = () => {
     // ステップを2に更新 次はレベル内にエンティティを追加、削除してレイヤー内の構成を確定させる
     setStep(2);
   };
+  // ----------------------------- 🌟ステップ1 レベル「追加」をクリック🌟 ここまで -----------------------------
 
   const [isLoadingSave, setIsLoadingSave] = useState(false);
 
-  // 🌟ステップ2の「構成を確定」をクリック 現在のレベルに追加したエンティティ構成をentity_structuresにINSERTして構成を確定する
+  // ----------------------------- 🌟ステップ2 UPSERT「構成を確定」をクリック🌟 -----------------------------
+  // 現在のレベルに追加したエンティティ構成をentity_structuresにINSERTして構成を確定する
   const handleSaveEntities = async () => {
     if (currentLevel === "") return alert("エラー：レイヤーが見つかりませんでした。先にレイヤーを追加してください。");
     setIsLoadingSave(true);
@@ -1066,6 +1074,7 @@ const UpsertTargetEntityMemo = () => {
     }
     setIsLoadingSave(false);
   };
+  // ----------------------- 🌟ステップ2 UPSERT「構成を確定」をクリック🌟 ここまで -----------------------
 
   // エンティティ目標設定モード終了
   const handleCloseSettingEntitiesTarget = () => {
@@ -1510,7 +1519,7 @@ const UpsertTargetEntityMemo = () => {
         </div>
       )}
 
-      {isSettingTargetMode && upsertSettingEntitiesObj && upsertSettingEntitiesObj.entities.length > 0 && (
+      {isSettingTargetMode && upsertSettingEntitiesObj?.entities && upsertSettingEntitiesObj.entities.length > 0 && (
         <>
           {/* オーバーレイ */}
           <div
@@ -1960,6 +1969,29 @@ const UpsertTargetEntityMemo = () => {
                         <h4 className={`text-[19px] font-bold`}>{mappingEntityName[entityLevel][language]}</h4>
                         <div className={`flex items-center text-[13px]`}>
                           <span className={`text-[var(--main-color-tk)]`}>未設定</span>
+                          {/* メンバーレベルに達した時に「上期詳細」「下期詳細」を切り替えて目標設定状態を確認できるようにする */}
+                          {/* <div
+                            className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
+                          >
+                            <select
+                              className={`z-10 min-h-[30px] cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[13px]`}
+                              value={currentLevel !== "member" ? `fiscal_year` : settingPeriodTypeForMemberLevel}
+                              onChange={(e) => {
+                                setSettingPeriodTypeForMemberLevel(e.target.value);
+                              }}
+                            >
+                              {currentLevel !== "member" && <option value={`fiscal_year`}>年度・半期</option>}
+                              {currentLevel === "member" && (
+                                <>
+                                  <option value={`first_half_details`}>上期詳細</option>
+                                  <option value={`second_half_details`}>下期詳細</option>
+                                </>
+                              )}
+                            </select>
+                            <div className={`${styles.select_arrow}`}>
+                              <IoChevronDownOutline className={`text-[12px]`} />
+                            </div>
+                          </div> */}
                         </div>
                       </div>
                       <ul className={`flex w-full flex-col`}>

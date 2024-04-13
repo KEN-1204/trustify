@@ -19,7 +19,17 @@ import { MdSaveAlt } from "react-icons/md";
 import { RiSave3Fill } from "react-icons/ri";
 import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/ProgressCircle";
 import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/ProgressNumber";
-import { Department, EntityLevelNames, MemberAccounts, Office, Section, Unit } from "@/types";
+import {
+  Department,
+  EntitiesHierarchy,
+  EntityLevelNames,
+  EntityLevels,
+  MemberAccounts,
+  Office,
+  Section,
+  Unit,
+  UpsertSettingEntitiesObj,
+} from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { SparkChart } from "@/components/Parts/Charts/SparkChart/SparkChart";
 import { ErrorBoundary } from "react-error-boundary";
@@ -43,6 +53,7 @@ import { AreaChartTrend } from "./AreaChartTrend/AreaChartTrend";
 import { DonutChartDeals } from "./DonutChartDeals/DonutChartDeals";
 import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import { UpsertSettingTargetGridTableForMemberLevel } from "./UpsertSettingTargetGridTable/UpsertSettingTargetGridTableForMemberLevel";
 
 export const columnHeaderListTarget = [
   "period_type",
@@ -164,6 +175,7 @@ export const getSubTargetTitle = (
 type Props = {
   settingEntityLevel: string;
   setIsSettingTargetMode: Dispatch<SetStateAction<boolean>>;
+  setStep: Dispatch<SetStateAction<number>>;
 };
 
 // メンバーの直属の親エンティティでないメイン目標の場合は、「年度・半期」の入力
@@ -186,7 +198,7 @@ type Props = {
   「下期・Q3・Q4・下期内の月度」の売上目標を6の手順で同様に目標設定する
 */
 
-const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTargetMode }: Props) => {
+const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTargetMode, setStep }: Props) => {
   const queryClient = useQueryClient();
   const supabase = useSupabaseClient();
   const language = useStore((state) => state.language);
@@ -200,6 +212,9 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   const setUpsertSettingEntitiesObj = useDashboardStore((state) => state.setUpsertSettingEntitiesObj);
   // ユーザーの会計年度の期首と期末のDateオブジェクト
   const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
+
+  // メンバーレベル目標設定時 上期詳細、下期詳細
+  const settingPeriodTypeForMemberLevel = useDashboardStore((state) => state.settingPeriodTypeForMemberLevel);
 
   // サブ目標リスト編集モード
   const [isOpenEditSubListModal, setIsOpenEditSubListModal] = useState(false);
@@ -219,10 +234,33 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   const [isLoading, setIsLoading] = useState(false);
 
   const handleReturn = () => {
+    setUpsertSettingEntitiesObj({
+      fiscalYear: upsertSettingEntitiesObj?.fiscalYear ?? "",
+      periodType: "", // メンバーレベル以外は年度〜半期(fiscal_year), メンバーレベルなら半期詳細(details)
+      parentEntityLevelId: "",
+      parentEntityLevel: "",
+      parentEntityId: "",
+      parentEntityName: "",
+      entityLevel: "",
+      entities: [],
+    } as UpsertSettingEntitiesObj);
     setIsSettingTargetMode(false);
-    setUpsertSettingEntitiesObj(null);
     toast.error("エラー：会計年度データの取得に失敗しました...🙇‍♀️");
   };
+
+  if (upsertSettingEntitiesObj?.entities?.length === 0) {
+    setUpsertSettingEntitiesObj({
+      fiscalYear: upsertSettingEntitiesObj?.fiscalYear ?? "",
+      periodType: "", // メンバーレベル以外は年度〜半期(fiscal_year), メンバーレベルなら半期詳細(details)
+      parentEntityLevelId: "",
+      parentEntityLevel: "",
+      parentEntityId: "",
+      parentEntityName: "",
+      entityLevel: "",
+      entities: [],
+    } as UpsertSettingEntitiesObj);
+    setIsSettingTargetMode(false);
+  }
 
   if (!userProfileState || !userProfileState.company_id || !upsertSettingEntitiesObj || !fiscalYearStartEndDate) {
     handleReturn();
@@ -234,6 +272,49 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     handleReturn();
     return null;
   }
+
+  // -------------------------- 🌠useQuery現在のエンティティレベル🌠 --------------------------
+  const addedEntityLevelsListQueryData: EntityLevels[] | undefined = queryClient.getQueryData([
+    "entity_levels",
+    "sales_target",
+    upsertSettingEntitiesObj.fiscalYear,
+  ]);
+  // 現在のエンティティレベルid
+  const currentLevelObj = useMemo(() => {
+    if (!addedEntityLevelsListQueryData) return null;
+    return addedEntityLevelsListQueryData.find((level) => level.entity_level === upsertSettingEntitiesObj.entityLevel);
+  }, [addedEntityLevelsListQueryData]);
+  // エンティティレベルのidのみで配列を作成(エンティティuseQuery用)
+  const entityLevelIdsStr = useMemo(() => {
+    if (!addedEntityLevelsListQueryData) return "";
+    const entityLevelIds = addedEntityLevelsListQueryData.map((obj) => obj.id);
+    return entityLevelIds?.length > 0 ? entityLevelIds.join(", ") : "";
+  }, [addedEntityLevelsListQueryData]);
+  // -------------------------- 🌠useQuery現在のエンティティレベル🌠 --------------------------
+  // -------------------------- 🌠useQuery同じレベル内の全エンティティ🌠 --------------------------
+  const entitiesHierarchyQueryData: EntitiesHierarchy | undefined = queryClient.getQueryData([
+    "entities",
+    "sales_target",
+    upsertSettingEntitiesObj.fiscalYear,
+    entityLevelIdsStr,
+  ]);
+
+  // 全てのレベルごとのエンティティから、現在のレベルのエンティティのみに絞り込む
+  const queryDataAllEntitiesByCurrentLevel = useMemo(() => {
+    if (!entitiesHierarchyQueryData) return [];
+    const currentLevelEntityGroupByParent = Object.keys(entitiesHierarchyQueryData).includes(
+      upsertSettingEntitiesObj.entityLevel
+    )
+      ? entitiesHierarchyQueryData[upsertSettingEntitiesObj.entityLevel as EntityLevelNames]
+      : null;
+    if (!currentLevelEntityGroupByParent) return [];
+    // 各上位エンティティごとにグループ化されている各エンティティをflatMapでそれぞれの上位エンティティ別に分けずにフラットに現在のエンティティレベル内に存在する確定済みのエンティティを全て配列にまとめる => 売上目標を確定する際に全てのエンティティがis_confirmになっているか確認する
+    const allEntitiesByCurrentLevel = currentLevelEntityGroupByParent
+      .map((group) => group.entities.map((entity) => entity))
+      .flatMap((array) => array);
+    return allEntitiesByCurrentLevel;
+  }, [entitiesHierarchyQueryData]);
+  // -------------------------- 🌠useQuery同じレベル内の全エンティティ🌠 --------------------------
 
   // 🌟エンティティid配列をSetオブジェクトに変換
   const entityIdsSet = useMemo(
@@ -265,11 +346,6 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // stickyを付与するrow
   const [stickyRow, setStickyRow] = useState<string | null>(null);
 
-  const isEndEntity = settingEntityLevel === "member";
-
-  // メンバーレベル（isEndEntityの場合）の場合の、上期か下期か
-  const [isFirstHalf, setIsFirstHalf] = useState(isEndEntity ? true : undefined);
-
   // 🌠目標を保存
   // companyレベルの場合：総合目標テーブルのinputのみ集めてINSERT => 年度~半期
   // department~memberレベルの場合：各部門テーブルのinputを全て集めてINSERT => memberレベルのみ半期~月次
@@ -284,7 +360,8 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
 
   const [isOpenConfirmDialog, setIsOpenConfirmDialog] = useState(false);
 
-  // 保存ボタンクリック
+  // ------------------------ 🌠保存ボタンクリック 全ての子コンポーネント内の目標を収集🌠 ここから ------------------------
+  // 1. 保存ボタンクリック -> 子コンポーネントの各テーブルに目標をZustandに格納するようトリガーを発火
   const handleCollectInputTargets = () => {
     // 保存ボタンクリックで、各コンポーネントに対して入力値をZustandに格納するようにトリガーを発火
     setSaveTriggerSalesTarget(true);
@@ -294,8 +371,10 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     setIsLoading(true);
   };
 
+  // 2. トリガーがtrueになってから全てのエンティティのデータが収集できたかをuseEffectで検知
+  // 3-1. 今回の設定対象となるentitiesのlengthと売上目標の要素が一致し、全て完了したらダイアログを開く
+  // 3-2. エラーが起きたらエラーメッセージを表示
   useEffect(() => {
-    // トリガーがtrueになってから全てのエンティティのデータが収集できたかを検知して、全て完了したらダイアログを開きエラーが起きたらエラ〜メッセージを表示
     if (!saveTriggerSalesTarget) return;
     console.log(
       "✅✅✅ 親コンポーネント データ収集 全て収集できたか確認",
@@ -342,32 +421,64 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
       setSaveTriggerSalesTarget(false); //トリガーをリセット
     }
   }, [saveTriggerSalesTarget, inputSalesTargetsIdToDataMap]);
+  // ------------------------ 🌠保存ボタンクリック 全ての子コンポーネント内の目標を収集🌠 ここまで ------------------------
 
-  // 目標を確定クリック
+  // ----------------------------- 🌠目標を確定クリック sales_targetsテーブルUPSERT🌠 -----------------------------
+  // 売上目標確定ダイアログで「確定する」ボタンをクリックで発火
   const handleSaveTarget = async () => {
-    const periodStart = fiscalYearStartEndDate.startDate;
-    const periodEnd = fiscalYearStartEndDate.endDate;
-    if (!periodStart) return;
-    if (!periodEnd) return;
+    if (!currentLevelObj) return alert("レイヤー情報が見つかりませんでした。");
     setIsLoading(true); // ローディングを開始
 
-    // 年度テーブル、エンティティレベルテーブル、エンティティテーブル、売上目標テーブルにUPSERT
+    // ----------------------- 🔹sales_targetsテーブルUPSERTのみルート🔹 -----------------------
+    // inputSalesTargetsIdToDataMap;
     try {
-      // fiscal_yearsテーブルに存在しない場合はINSERT、存在する場合はUPDATE
-
-      // inputSalesTargetsIdToDataMap;
-      // 下記4つのテーブルにUPSERT
-      // ・fiscal_yearsテーブル
-      // ・entity_level_structuresテーブル
-      // ・entity_structuresテーブル
-      // ・sales_targetsテーブル
-
+      // 1. sales_targetsテーブル 売上目標テーブルにUPSERT
+      // 2-1. 今回「年度~半期」の設定が完了したエンティティのis_confirmをtrueにする(全社~係)
+      // 2-2. 今回「上期詳細 or 下期詳細」の設定が完了したメンバーエンティティのis_confirmをtrueにする(メンバー)
+      // 3-1. レベル内の全てのエンティティの目標の設定が完了したら、エンティティレベルのis_confirmをtrueにする(全社~係)
+      // 3-2. レベル内の全てのエンティティの目標の設定が完了したら、エンティティレベルのis_confirmをtrueにする(メンバー)
       if (upsertSettingEntitiesObj.entityLevel !== "member") {
-        const entityDataArray = upsertSettingEntitiesObj.entities.map((obj) => {
+        // 🔹sales_targetsテーブルへのpayloadを作成
+        // step2の組織レイヤー設定で確定した上位エンティティに紐づくエンティティグループ群の中で、
+        // 今回のstep3で一つの上位エンティティのエンティティグループを選択肢、売上目標設定を設定する形で、
+        // 1. 目標設定対象の全てのエンティティ群のentitiesから一つずつobjでエンティティを取り出し、
+        // 2. obj.entity_idで取り出したエンティティidで入力した売上目標が入ったdataをsalesTargetObjに格納
+        // 3. 取り出したエンティティの売上目標の年度、上期、下期の入力値が全てnumber型に適法しているかチェック
+        // 4. sales_targetsテーブルへのUPSERTパラメータ用に各エンティティの売上目標をまとめる
+
+        /*
+          // {
+            entity_id1: {
+              isCollected: ~,
+              error: ~,
+              data: {
+                entity_id: ~, 
+                entity_name: ~, 
+                sales_targets: {
+                  period_type: ~,
+                  period: ~,
+                  sales_target:~
+                }[]
+              },
+            entity_id2: {...},
+            entity_id3: {...},
+            }
+          }
+          */
+        const insertEntitySet = new Set(upsertSettingEntitiesObj.entities.map((entity) => entity.entity_id));
+
+        // 1.
+        const entitiesSalesTargetsArray = upsertSettingEntitiesObj.entities.map((obj) => {
+          // 2.
           const salesTargetObj = inputSalesTargetsIdToDataMap[obj.entity_id].data;
 
+          // 3. 全ての売上目標入力値(sales_target)がnumber型に適合しているかUPSERT前にチェック
           const isValidAllNumber = salesTargetObj.sales_targets.every((obj) => isValidNumber(obj.sales_target));
 
+          if (!isValidAllNumber)
+            throw new Error(`${obj.entity_name ? `${obj.entity_name}の` : ``}売上目標の値が有効ではありません。`);
+
+          // 売上目標設定では一つの上位エンティティグループごとの設定のため、全てのエンティティのparent_entity_idは一緒
           const entityId = obj.entity_id;
           const parentEntityId = obj.parent_entity_id;
 
@@ -375,96 +486,416 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           let createdByDepartmentId = null;
           let createdBySectionId = null;
           let createdByUnitId = null;
-          // let createdByUserId = null;
+          let createdByUserId = null;
           let createdByOfficeId = null;
-          let parentCreatedByCompanyId = null;
-          let parentCreatedByDepartmentId = null;
-          let parentCreatedBySectionId = null;
-          let parentCreatedByUnitId = null;
-          let parentCreatedByUserId = null;
-          let parentCreatedByOfficeId = null;
 
           if (upsertSettingEntitiesObj.entityLevel === "company") {
             // companyレベルの場合は、親は存在しないのでnullのまま
           }
           if (upsertSettingEntitiesObj.entityLevel === "department") {
-            parentCreatedByCompanyId = parentEntityId;
             createdByDepartmentId = entityId;
           }
           if (upsertSettingEntitiesObj.entityLevel === "section") {
-            parentCreatedByDepartmentId = parentEntityId;
             createdByDepartmentId = sectionIdToObjMap?.get(entityId)?.created_by_department_id ?? null;
             createdBySectionId = entityId;
           }
           if (upsertSettingEntitiesObj.entityLevel === "unit") {
-            parentCreatedBySectionId = parentEntityId;
             createdByDepartmentId = unitIdToObjMap?.get(entityId)?.created_by_department_id ?? null;
             createdBySectionId = unitIdToObjMap?.get(entityId)?.created_by_section_id ?? null;
             createdByUnitId = entityId;
           }
           if (upsertSettingEntitiesObj.entityLevel === "office") {
-            parentCreatedByCompanyId = parentEntityId;
             createdByOfficeId = entityId;
           }
 
-          if (isValidAllNumber) {
-            return {
-              created_by_company_id: createdByCompanyId,
-              created_by_department_id: createdByDepartmentId,
-              created_by_section_id: createdBySectionId,
-              created_by_unit_id: createdByUnitId,
-              created_by_user_id: null, // memberレベル以外のルートのため必ずnull
-              created_by_office_id: createdByOfficeId,
-              parent_created_by_company_id: parentCreatedByCompanyId,
-              parent_created_by_department_id: parentCreatedByDepartmentId,
-              parent_created_by_section_id: parentCreatedBySectionId,
-              parent_created_by_unit_id: parentCreatedByUnitId,
-              parent_created_by_user_id: parentCreatedByUserId, // nullしかないが一応セットしておく
-              parent_created_by_office_id: parentCreatedByOfficeId,
-              is_confirmed_annual_half: true,
-              is_confirmed_first_half_details: false,
-              is_confirmed_second_half_details: false,
-              entity_name: obj.entity_name,
-              parent_entity_name: obj.parent_entity_name,
-              sales_targets_array: salesTargetObj.sales_targets,
-            };
-            /** salesTargetObj.sales_targets: 
-               * {
-                  period_type: string;
-                  period: number; // 2024, 20241, 202401
-                  sales_target: number;
-                }
-               */
-          } else {
-            throw new Error("売上目標の値が有効ではありません。");
-          }
+          const salesTargetPayload = {
+            entity_structure_id: obj.id,
+            entity_name: obj.entity_name,
+            parent_entity_name: obj.parent_entity_name,
+            created_by_company_id: createdByCompanyId,
+            created_by_department_id: createdByDepartmentId,
+            created_by_section_id: createdBySectionId,
+            created_by_unit_id: createdByUnitId,
+            created_by_user_id: null, // memberレベル以外のルートのため必ずnull
+            created_by_office_id: createdByOfficeId,
+            is_confirmed_annual_half: true, // memberレベル以外のルートのため必ず「年度~半期」の目標設定なのでtrue
+            is_confirmed_first_half_details: obj.is_confirmed_first_half_details,
+            is_confirmed_second_half_details: obj.is_confirmed_second_half_details,
+            sales_targets_array: salesTargetObj.sales_targets,
+          };
+
+          return salesTargetPayload;
         });
+
+        // レベル内の全エンティティの売上目標の設定が完了しているかチェック(今回INSERTするエンティティを除いた全てのエンティティ)
+        const allEntitiesExcludeInsertEntities = queryDataAllEntitiesByCurrentLevel.filter(
+          (entity) => !insertEntitySet.has(entity.entity_id)
+        );
+        // -> 完了している場合はUPSERT時にentity_levels_structuresテーブルのis_confirmをtrueに変更する
+        const isAllConfirmAnnual =
+          allEntitiesExcludeInsertEntities.length === 0 ||
+          allEntitiesExcludeInsertEntities.every((entity) => entity.is_confirmed_annual_half);
 
         const payload = {
           _company_id: userProfileState.company_id,
-          _fiscal_year: upsertSettingEntitiesObj.fiscalYear,
-          _period_start: periodStart,
-          _period_end: periodEnd,
+          _fiscal_year_id: currentLevelObj.fiscal_year_id,
           _target_type: "sales_target",
-          _entity_level: upsertSettingEntitiesObj.entityLevel,
+          _entity_level_id: currentLevelObj.id,
           _parent_entity_level_id: upsertSettingEntitiesObj.parentEntityId ?? null,
-          _entities_data: entityDataArray,
-          // _period_type: upsertSettingEntitiesObj.periodType, // 期間タイプ(fiscal_year, first_half_details, second_half_details)
+          _entities_data: entitiesSalesTargetsArray,
+          _is_confirmed_annual_all_entities: isAllConfirmAnnual, // 今回のインサートが成功した場合に全てis_confirmがtrueになるかどうか
+          _is_confirmed_first_half_details: false, // メンバーレベル以外のレベルで上下期詳細がtrueになるのはメンバーレベルの集計クリック時なのでfalse
+          _is_confirmed_second_half_details: false, // メンバーレベル以外のレベルで上下期詳細がtrueになるのはメンバーレベルの集計クリック時なのでfalse
+          // _entity_level: upsertSettingEntitiesObj.entityLevel,
         };
 
-        const { error } = supabase.rpc("upsert_sales_target_entities", payload);
-      } else {
+        console.log(
+          "🔥🔹「全社〜係」レベルのルート FUNCTION upsert_sales_target_current_level_entities関数実行 payload",
+          payload,
+          "queryDataAllEntitiesByCurrentLevel",
+          queryDataAllEntitiesByCurrentLevel,
+          "allEntitiesExcludeInsertEntities",
+          allEntitiesExcludeInsertEntities
+        );
+
+        // setIsLoading(false);
+        // console.log("✅ insertEntitySet", insertEntitySet);
+
+        // if (true) return toast.success("✅目標設定が完了しました！🌟");
+
+        const { error } = supabase.rpc("upsert_sales_target_current_level_entities", payload);
+
+        if (error) throw error;
+
+        console.log(
+          "✅「全社〜係」レベルのルート FUNCTION upsert_sales_target_current_level_entities関数実行成功 キャッシュを更新"
+        );
+
+        toast.success("目標設定が完了しました！🌟");
+
+        // 正常に全てのエンティティの目標のUPSERTが完了したら、
+        // useQueryのエンティティレベルとエンティティをinvalidateして再度INSERT後のデータを取得してステップを次に進める
+        // fiscal_yearsテーブル、entity_structuresテーブル、entity_structuresテーブル、sales_targetsテーブル
+        await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+        // entitiesキャッシュはqueryKeyに渡しているentityLevelIdsが先ほど追加したidが加わり別のentityLevelIdsに変更されるためinvalidateQuery不要
+
+        // addedEntityLevelListLocalに関しては、エンティティレベルのinvalidateでentityLevelsQueryDataが新しく生成され、useEffectで「setAddedEntityLevelListLocal(addedEntityLevelListLocal ?? []);」が実行されるため、特にstateの変更はこちらでは不要
+
+        // 現在のレベルがメンバーレベル以外ならレベル追加ステップ1に戻す
+
+        const newUpsertSettingEntitiesObj = {
+          fiscalYear: upsertSettingEntitiesObj.fiscalYear,
+          periodType: "", // メンバーレベル以外は年度〜半期(fiscal_year), メンバーレベルなら半期詳細(details)
+          parentEntityLevelId: "",
+          parentEntityLevel: "",
+          parentEntityId: "",
+          parentEntityName: "",
+          entityLevel: "",
+          entities: [],
+        } as UpsertSettingEntitiesObj;
+
+        setIsLoading(false); // ローディングを終了
+        setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
+        setStep(1); // ステップ1のエンティティレベル選択画面に戻す
+        setIsOpenConfirmDialog(false); // ダイアログを閉じる
+        setUpsertSettingEntitiesObj(newUpsertSettingEntitiesObj);
+        setIsSettingTargetMode(false); // 売上設定画面をエンティティ選択画面に戻す
+      }
+      // 🔹メンバーレベルのルート
+      else {
+        const insertEntitySet = new Set(upsertSettingEntitiesObj.entities.map((entity) => entity.entity_id));
+
+        // 1. 設定対象のメンバー全員の売上目標の入力値をpayloadとしてまとめる
+        const entitiesSalesTargetsArray = upsertSettingEntitiesObj.entities.map((obj) => {
+          // 2.
+          const salesTargetObj = inputSalesTargetsIdToDataMap[obj.entity_id].data;
+
+          // 3. 全ての売上目標入力値(sales_target)がnumber型に適合しているかUPSERT前にチェック
+          const isValidAllNumber = salesTargetObj.sales_targets.every((obj) => isValidNumber(obj.sales_target));
+
+          if (!isValidAllNumber)
+            throw new Error(`${obj.entity_name ? `${obj.entity_name}の` : ``}売上目標の値が有効ではありません。`);
+
+          // 一旦メンバーレベルに関しては、created_by_user_id以外のレベルのエンティティidはnullをセットする
+
+          // メンバーレベルのis_confirmに関しては、今回の設定が「上期詳細」「下期詳細」に応じて動的に変更する
+          let isConfirmedFirstHalf = false;
+          let isConfirmedSecondHalf = false;
+
+          if (settingPeriodTypeForMemberLevel === "first_half_details") {
+            isConfirmedFirstHalf = true;
+            isConfirmedSecondHalf = obj.is_confirmed_second_half_details; // 現在のまま 既にtrueの場合はtrueをセット
+          } else if (settingPeriodTypeForMemberLevel === "second_half_details") {
+            isConfirmedFirstHalf = obj.is_confirmed_first_half_details; // 現在のまま 既にtrueの場合はtrueをセット
+            isConfirmedSecondHalf = true;
+          }
+
+          const salesTargetPayload = {
+            entity_structure_id: obj.id,
+            entity_name: obj.entity_name,
+            parent_entity_name: obj.parent_entity_name,
+            created_by_company_id: userProfileState.company_id,
+            created_by_department_id: null,
+            created_by_section_id: null,
+            created_by_unit_id: null,
+            created_by_user_id: obj.entity_id,
+            created_by_office_id: null,
+            is_confirmed_annual_half: true, // メンバーレベルでは年度の目標設定は存在しないので、最初からtrueをセット
+            is_confirmed_first_half_details: isConfirmedFirstHalf,
+            is_confirmed_second_half_details: isConfirmedSecondHalf,
+            sales_targets_array: salesTargetObj.sales_targets,
+          };
+
+          return salesTargetPayload;
+        });
+
+        // レベル内の全エンティティの売上目標の設定が完了しているかチェック(今回INSERTするエンティティを除いた全てのエンティティ)
+        const allEntitiesExcludeInsertEntities = queryDataAllEntitiesByCurrentLevel.filter(
+          (entity) => !insertEntitySet.has(entity.entity_id)
+        );
+        // -> 完了している場合はUPSERT時にentity_levels_structuresテーブルのis_confirmをtrueに変更する
+        // 年度(メンバーレベルの場合には年度は意味をなさないが一応)
+        const isAllConfirmAnnual = allEntitiesExcludeInsertEntities.every((entity) => entity.is_confirmed_annual_half);
+        // 上期詳細(今回の設定が上期詳細でない場合には、INSERT対象も含めた全メンバーの上期詳細のis_confirmedをチェック)
+        const isAllConfirmedFirstHalfDetails =
+          settingPeriodTypeForMemberLevel === "first_half_details"
+            ? allEntitiesExcludeInsertEntities.every((entity) => entity.is_confirmed_first_half_details)
+            : queryDataAllEntitiesByCurrentLevel.every((entity) => entity.is_confirmed_first_half_details);
+        // 下期詳細(今回の設定が下期詳細でない場合には、INSERT対象も含めた全メンバーの下期詳細のis_confirmedをチェック)
+        const isAllConfirmedSecondHalfDetails =
+          settingPeriodTypeForMemberLevel === "second_half_details"
+            ? allEntitiesExcludeInsertEntities.every((entity) => entity.is_confirmed_second_half_details)
+            : queryDataAllEntitiesByCurrentLevel.every((entity) => entity.is_confirmed_second_half_details);
+
+        const payload = {
+          _company_id: userProfileState.company_id,
+          _fiscal_year_id: currentLevelObj.fiscal_year_id,
+          _target_type: "sales_target",
+          _entity_level_id: currentLevelObj.id,
+          _parent_entity_level_id: upsertSettingEntitiesObj.parentEntityId ?? null,
+          _entities_data: entitiesSalesTargetsArray,
+          _is_confirmed_annual_all_entities: isAllConfirmAnnual, // 今回のインサートが成功した場合に全てis_confirmがtrueになるかどうか
+          _is_confirmed_first_half_details: isAllConfirmedFirstHalfDetails,
+          _is_confirmed_second_half_details: isAllConfirmedSecondHalfDetails,
+          // _entity_level: upsertSettingEntitiesObj.entityLevel,
+        };
+
+        console.log(
+          "🔥🔹メンバーレベルのルート FUNCTION upsert_sales_target_current_level_entities関数実行 payload",
+          payload
+        );
+        const { error } = supabase.rpc("upsert_sales_target_current_level_entities", payload);
+
+        if (error) throw error;
+
+        console.log(
+          "✅メンバーレベルのルート FUNCTION upsert_sales_target_current_level_entities関数実行成功 キャッシュを更新"
+        );
+
+        toast.success("目標設定が完了しました！🌟");
+
+        // エンティティレベルのUPDATEが実行されていたらエンティティレベルテーブルへのキャッシュも更新する
+        if (isAllConfirmAnnual || isAllConfirmedFirstHalfDetails || isAllConfirmedSecondHalfDetails) {
+          // レベルとエンティティテーブル両方invalidateで更新する
+          await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+          await queryClient.invalidateQueries([
+            "entities",
+            "sales_targets",
+            upsertSettingEntitiesObj.fiscalYear,
+            entityLevelIdsStr,
+          ]);
+        } else {
+          // レベルのUPDATEが行われていない場合は、エンティティテーブルのみキャッシュを更新する(sales_targetsテーブルへのinvalidateは特にしなくてOK)
+          await queryClient.invalidateQueries([
+            "entities",
+            "sales_targets",
+            upsertSettingEntitiesObj.fiscalYear,
+            entityLevelIdsStr,
+          ]);
+        }
+
+        // 既にメンバーレベルの場合は、これ以上レベル追加はないため、
+        // メンバーレベル内の全てのエンティティ(メンバー)のis_confirmがtrueになっていたらステップ4で、
+        // まだ売上目標が設定されていないメンバーがいるならステップ3
+        const newUpsertSettingEntitiesObj = {
+          fiscalYear: upsertSettingEntitiesObj.fiscalYear,
+          periodType: "", // メンバーレベル以外は年度〜半期(fiscal_year), メンバーレベルなら半期詳細(details)
+          parentEntityLevelId: "",
+          parentEntityLevel: "",
+          parentEntityId: "",
+          parentEntityName: "",
+          entityLevel: "",
+          entities: [],
+        } as UpsertSettingEntitiesObj;
+
+        // 上期詳細 or 下期詳細が全てtrueになったらstep4
+        if (isAllConfirmedFirstHalfDetails || isAllConfirmedSecondHalfDetails) {
+          setStep(4); // 全てのレベル、エンティティの年度〜半期の売上目標とメンバーの半期詳細の目標設定が完了したため、次の集計ステップ4に移行する
+        } else {
+          setStep(3); // まだ未設定のメンバーが残っているため、step3の目標設定ステップのままにする
+        }
+
+        setIsLoading(false); // ローディングを終了
+        setUpsertSettingEntitiesObj(newUpsertSettingEntitiesObj);
+        setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
+        setIsOpenConfirmDialog(false); // ダイアログを閉じる
+        setIsSettingTargetMode(false); // 売上設定画面をエンティティ選択画面に戻す
       }
     } catch (error: any) {
+      setIsLoading(false); // ローディングを終了
+      setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
+      setIsOpenConfirmDialog(false); // ダイアログを閉じる
       console.error("エラー：", error);
       toast.error("売上目標の保存に失敗しました...🙇‍♀️");
     }
-    setIsLoading(false); // ローディングを終了
-    setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
-    setIsOpenConfirmDialog(false); // ダイアログを閉じる
-  };
 
-  // 🌟目標設定モードを終了
+    // ----------------------- 🔹sales_targetsテーブルUPSERTのみルート🔹 -----------------------
+
+    // // 年度テーブル、エンティティレベルテーブル、エンティティテーブル、売上目標テーブルにUPSERT
+    // try {
+    //   // fiscal_yearsテーブルに存在しない場合はINSERT、存在する場合はUPDATE
+
+    //   // inputSalesTargetsIdToDataMap;
+    //   // 下記4つのテーブルにUPSERT
+    //   // ・fiscal_yearsテーブル
+    //   // ・entity_level_structuresテーブル
+    //   // ・entity_structuresテーブル
+    //   // ・sales_targetsテーブル
+
+    //   if (upsertSettingEntitiesObj.entityLevel !== "member") {
+    //     const entityDataArray = upsertSettingEntitiesObj.entities.map((obj) => {
+    //       const salesTargetObj = inputSalesTargetsIdToDataMap[obj.entity_id].data;
+
+    //       const isValidAllNumber = salesTargetObj.sales_targets.every((obj) => isValidNumber(obj.sales_target));
+
+    //       const entityId = obj.entity_id;
+    //       const parentEntityId = obj.parent_entity_id;
+
+    //       let createdByCompanyId = userProfileState.company_id;
+    //       let createdByDepartmentId = null;
+    //       let createdBySectionId = null;
+    //       let createdByUnitId = null;
+    //       // let createdByUserId = null;
+    //       let createdByOfficeId = null;
+    //       let parentCreatedByCompanyId = null;
+    //       let parentCreatedByDepartmentId = null;
+    //       let parentCreatedBySectionId = null;
+    //       let parentCreatedByUnitId = null;
+    //       let parentCreatedByUserId = null;
+    //       let parentCreatedByOfficeId = null;
+
+    //       if (upsertSettingEntitiesObj.entityLevel === "company") {
+    //         // companyレベルの場合は、親は存在しないのでnullのまま
+    //       }
+    //       if (upsertSettingEntitiesObj.entityLevel === "department") {
+    //         parentCreatedByCompanyId = parentEntityId;
+    //         createdByDepartmentId = entityId;
+    //       }
+    //       if (upsertSettingEntitiesObj.entityLevel === "section") {
+    //         parentCreatedByDepartmentId = parentEntityId;
+    //         createdByDepartmentId = sectionIdToObjMap?.get(entityId)?.created_by_department_id ?? null;
+    //         createdBySectionId = entityId;
+    //       }
+    //       if (upsertSettingEntitiesObj.entityLevel === "unit") {
+    //         parentCreatedBySectionId = parentEntityId;
+    //         createdByDepartmentId = unitIdToObjMap?.get(entityId)?.created_by_department_id ?? null;
+    //         createdBySectionId = unitIdToObjMap?.get(entityId)?.created_by_section_id ?? null;
+    //         createdByUnitId = entityId;
+    //       }
+    //       if (upsertSettingEntitiesObj.entityLevel === "office") {
+    //         parentCreatedByCompanyId = parentEntityId;
+    //         createdByOfficeId = entityId;
+    //       }
+
+    //       if (isValidAllNumber) {
+    //         return {
+    //           created_by_company_id: createdByCompanyId,
+    //           created_by_department_id: createdByDepartmentId,
+    //           created_by_section_id: createdBySectionId,
+    //           created_by_unit_id: createdByUnitId,
+    //           created_by_user_id: null, // memberレベル以外のルートのため必ずnull
+    //           created_by_office_id: createdByOfficeId,
+    //           parent_created_by_company_id: parentCreatedByCompanyId,
+    //           parent_created_by_department_id: parentCreatedByDepartmentId,
+    //           parent_created_by_section_id: parentCreatedBySectionId,
+    //           parent_created_by_unit_id: parentCreatedByUnitId,
+    //           parent_created_by_user_id: parentCreatedByUserId, // nullしかないが一応セットしておく
+    //           parent_created_by_office_id: parentCreatedByOfficeId,
+    //           is_confirmed_annual_half: true,
+    //           is_confirmed_first_half_details: false,
+    //           is_confirmed_second_half_details: false,
+    //           entity_name: obj.entity_name,
+    //           parent_entity_name: obj.parent_entity_name,
+    //           sales_targets_array: salesTargetObj.sales_targets,
+    //         };
+    //         /** salesTargetObj.sales_targets:
+    //            * {
+    //               period_type: string;
+    //               period: number; // 2024, 20241, 202401
+    //               sales_target: number;
+    //             }
+    //            */
+    //       } else {
+    //         throw new Error("売上目標の値が有効ではありません。");
+    //       }
+    //     });
+
+    //     const payload = {
+    //       _company_id: userProfileState.company_id,
+    //       _fiscal_year: upsertSettingEntitiesObj.fiscalYear,
+    //       _period_start: periodStart,
+    //       _period_end: periodEnd,
+    //       _target_type: "sales_target",
+    //       _entity_level: upsertSettingEntitiesObj.entityLevel,
+    //       _parent_entity_level_id: upsertSettingEntitiesObj.parentEntityId ?? null,
+    //       _entities_data: entityDataArray,
+    //       // _period_type: upsertSettingEntitiesObj.periodType, // 期間タイプ(fiscal_year, first_half_details, second_half_details)
+    //     };
+
+    //     const { error } = supabase.rpc("upsert_sales_target_entities", payload);
+
+    //     if (error) throw error;
+
+    //     // 正常に全てのエンティティの目標のUPSERTが完了したら、
+    //     // useQueryのエンティティレベルとエンティティをinvalidateして再度INSERT後のデータを取得してステップを次に進める
+    //     // fiscal_yearsテーブル、entity_structuresテーブル、entity_structuresテーブル、sales_targetsテーブル
+    //     await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+    //     // entitiesキャッシュはqueryKeyに渡しているentityLevelIdsが先ほど追加したidが加わり別のentityLevelIdsに変更されるためinvalidateQuery不要
+
+    //     // addedEntityLevelListLocalに関しては、エンティティレベルのinvalidateでentityLevelsQueryDataが新しく生成され、useEffectで「setAddedEntityLevelListLocal(addedEntityLevelListLocal ?? []);」が実行されるため、特にstateの変更はこちらでは不要
+
+    //     // 現在のレベルがメンバーレベル以外ならレベル追加ステップ1に戻す
+    //     if (upsertSettingEntitiesObj.entityLevel !== "member") {
+    //       const newParentEntityGroup = {
+    //         fiscalYear: upsertSettingEntitiesObj.fiscalYear,
+    //         periodType: "fiscal_year", // レベルに合わせた目標の期間タイプ、売上推移用
+    //         parentEntityLevelId: "",
+    //         parentEntityLevel: "",
+    //         parentEntityId: "",
+    //         parentEntityName: "",
+    //         entityLevel: "",
+    //         entities: entityGroupObj.entities,
+    //       } as UpsertSettingEntitiesObj;
+
+    //       setUpsertSettingEntitiesObj(newParentEntityGroup);
+    //       setIsSettingTargetMode(true);
+
+    //       setStep(1); // ステップ1のエンティティレベル選択画面に戻す
+    //     }
+    //   } else {
+    //     // 既にメンバーレベルの場合は、これ以上レベル追加はないため、ステップ
+    //   }
+    // } catch (error: any) {
+    //   console.error("エラー：", error);
+    //   toast.error("売上目標の保存に失敗しました...🙇‍♀️");
+    // }
+    // setIsLoading(false); // ローディングを終了
+    // setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
+    // setIsOpenConfirmDialog(false); // ダイアログを閉じる
+  };
+  // --------------------------- 🌠目標を確定クリック sales_targetsテーブルUPSERT🌠 ここまで ---------------------------
+
+  // --------------------------- 🌠目標設定モードを終了🌠 ---------------------------
   const handleCancelUpsert = () => {
     setIsSettingTargetMode(false);
     setUpsertSettingEntitiesObj({
@@ -478,6 +909,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     if (saveTriggerSalesTarget) setSaveTriggerSalesTarget(false); //トリガーをリセット
     setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
   };
+  // --------------------------- 🌠目標設定モードを終了🌠 ここまで ---------------------------
 
   // -------------------------- 変数関連 --------------------------
   // 🔸ユーザーが選択した会計年度の期首
@@ -503,8 +935,8 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
 
   // 🔸ユーザーが選択した売上目標の会計年度の前年度12ヶ月分の年月度の配列(isEndEntityでない場合はスルー)
   const annualFiscalMonthsUpsert = useMemo(() => {
-    // 末端のエンティティでない場合は、月度の目標入力は不要のためリターン
-    if (!isEndEntity) return null;
+    // メンバーレベルでない場合は、月度の目標入力は不要のためリターン
+    if (upsertSettingEntitiesObj.entityLevel !== "member") return null;
     // ユーザーが選択した会計月度基準で過去3年分の年月度を生成
     const fiscalMonths = calculateFiscalYearMonths(fiscalStartYearMonth);
 
@@ -686,7 +1118,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // エリアチャートに渡す期間タイプ (半期、四半期、月次)
   const [periodTypeTrend, setPeriodTypeTrend] = useState(() => {
     // UpsertTargetEntity側では半期を上期と下期で分けるが、ここではselectedPeriodDetailTrendの識別用として上下を使い、periodTypeは年度、半期、四半期、月次のみで区別する
-    if (upsertSettingEntitiesObj.periodType === "fiscal_year") {
+    if (upsertSettingEntitiesObj.periodType === "year_half") {
       return "fiscal_year";
     } else if (["first_half", "second_half"].includes(upsertSettingEntitiesObj.periodType)) {
       return "half_year";
@@ -969,8 +1401,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // }, [periodTypeTrend]);
 
   console.log(
-    "UpsertSettingTargetEntityGroupコンポーネントレンダリング isEndEntity",
-    isEndEntity,
+    "UpsertSettingTargetEntityGroupコンポーネントレンダリング",
     "settingEntityLevel",
     settingEntityLevel,
     "selectedPeriodDetailTrend",
@@ -1039,7 +1470,8 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                         fallback={
                           <FallbackTargetTable
                             title={upsertSettingEntitiesObj.parentEntityName}
-                            isSettingYearHalf={!isEndEntity}
+                            // isSettingYearHalf={!isEndEntity}
+                            isSettingYearHalf={true}
                             hiddenBg={true}
                             hiddenTitle={true}
                           />
@@ -1060,27 +1492,25 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                         >
                           {upsertSettingEntitiesObj.entityLevel === "company" && (
                             <UpsertSettingTargetGridTable
-                              isEndEntity={isEndEntity}
                               entityLevel={upsertSettingEntitiesObj.entityLevel}
                               entityId={upsertSettingEntitiesObj.entities[0].entity_id}
                               entityNameTitle={upsertSettingEntitiesObj.entities[0].entity_name}
                               stickyRow={stickyRow}
                               setStickyRow={setStickyRow}
                               annualFiscalMonths={annualFiscalMonthsUpsert}
-                              isFirstHalf={isFirstHalf}
                               isMainTarget={true}
                             />
                           )}
                           {upsertSettingEntitiesObj.entityLevel !== "company" && (
                             <UpsertSettingTargetGridTable
-                              isEndEntity={isEndEntity}
+                              // isEndEntity={isEndEntity}
                               entityLevel={upsertSettingEntitiesObj.parentEntityLevel}
                               entityId={upsertSettingEntitiesObj.parentEntityId}
                               entityNameTitle={upsertSettingEntitiesObj.parentEntityName}
                               stickyRow={stickyRow}
                               setStickyRow={setStickyRow}
                               annualFiscalMonths={annualFiscalMonthsUpsert}
-                              isFirstHalf={isFirstHalf}
+                              // isFirstHalf={isFirstHalf}
                               isMainTarget={true}
                             />
                           )}
@@ -1378,7 +1808,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                             <Fragment key={`${obj.id}_${childEntityLevel}_${targetTitle}_fallback`}>
                               <FallbackTargetTable
                                 title={entityLevelName}
-                                isSettingYearHalf={!isEndEntity}
+                                isSettingYearHalf={upsertSettingEntitiesObj.entityLevel !== "member"}
                                 hiddenBg={true}
                                 hiddenTitle={true}
                               />
@@ -1401,21 +1831,40 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                                 <div
                                   className={`${styles.row_container} ${stickyRow === obj.id ? styles.sticky_row : ``}`}
                                 >
-                                  <UpsertSettingTargetGridTable
-                                    isEndEntity={isEndEntity}
-                                    entityLevel={childEntityLevel}
-                                    entityId={obj.id}
-                                    entityNameTitle={targetTitle}
-                                    stickyRow={stickyRow}
-                                    setStickyRow={setStickyRow}
-                                    annualFiscalMonths={annualFiscalMonthsUpsert}
-                                    isFirstHalf={isFirstHalf}
-                                    isMainTarget={false}
-                                    fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
-                                    onFetchComplete={() => onFetchComplete(tableIndex)}
-                                    subTargetList={subTargetList}
-                                    setSubTargetList={setSubTargetList}
-                                  />
+                                  {upsertSettingEntitiesObj.entityLevel !== "member" && (
+                                    <UpsertSettingTargetGridTable
+                                      // isEndEntity={upsertSettingEntitiesObj.entityLevel === "member"}
+                                      entityLevel={childEntityLevel}
+                                      entityId={obj.id}
+                                      entityNameTitle={targetTitle}
+                                      stickyRow={stickyRow}
+                                      setStickyRow={setStickyRow}
+                                      annualFiscalMonths={annualFiscalMonthsUpsert}
+                                      // isFirstHalf={isFirstHalf}
+                                      isMainTarget={false}
+                                      fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
+                                      onFetchComplete={() => onFetchComplete(tableIndex)}
+                                      subTargetList={subTargetList}
+                                      setSubTargetList={setSubTargetList}
+                                    />
+                                  )}
+                                  {upsertSettingEntitiesObj.entityLevel === "member" && (
+                                    <UpsertSettingTargetGridTableForMemberLevel
+                                      // isEndEntity={upsertSettingEntitiesObj.entityLevel === "member"}
+                                      entityLevel={childEntityLevel}
+                                      entityId={obj.id}
+                                      entityNameTitle={targetTitle}
+                                      stickyRow={stickyRow}
+                                      setStickyRow={setStickyRow}
+                                      annualFiscalMonths={annualFiscalMonthsUpsert}
+                                      // isFirstHalf={isFirstHalf}
+                                      isMainTarget={false}
+                                      fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
+                                      onFetchComplete={() => onFetchComplete(tableIndex)}
+                                      subTargetList={subTargetList}
+                                      setSubTargetList={setSubTargetList}
+                                    />
+                                  )}
                                 </div>
                               </Suspense>
                             </ErrorBoundary>
@@ -1436,6 +1885,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
       </div>
       {/* ===================== setting_target_container ここまで ===================== */}
 
+      {/* ---------------------- 売上目標を保存・確定 ---------------------- */}
       {/* top left スペーサー z-[4500] */}
       {isOpenConfirmDialog && (
         <ConfirmationModal
@@ -1458,6 +1908,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           clickEventSubmit={handleSaveTarget}
         />
       )}
+      {/* ---------------------- 売上目標を保存・確定 ここまで ---------------------- */}
     </>
   );
 };

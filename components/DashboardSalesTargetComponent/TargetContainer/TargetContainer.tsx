@@ -735,7 +735,7 @@ export const TargetContainer = () => {
     // 「年度~半期」のfiscal_yearをセットし、UpsertTargetEntityコンポーネント側でのuseQueryの状態で「上期、下期」を動的に変更する
     setUpsertSettingEntitiesObj({
       fiscalYear: selectedFiscalYearLocal,
-      periodType: "fiscal_year",
+      periodType: "", // fiscal_yearではなく、初期状態は空文字をセットし、step1の追加したレベルで動的にセットする
       entityLevel: "",
       entities: [],
       parentEntityLevelId: "",

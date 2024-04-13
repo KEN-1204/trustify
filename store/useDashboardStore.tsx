@@ -512,6 +512,9 @@ type State = {
   // 各テーブルの目標入力値を保持するstate
   inputSalesTargetsIdToDataMap: InputSalesTargetsIdToDataMap;
   setInputSalesTargetsIdToDataMap: (payload: InputSalesTargetsIdToDataMap) => void;
+  // メンバーレベルの目標設定時に「上期詳細」「下期詳細」を切り替えるstate
+  settingPeriodTypeForMemberLevel: string;
+  setSettingPeriodTypeForMemberLevel: (payload: string) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1220,6 +1223,9 @@ const useDashboardStore = create<State>((set) => ({
   // 各テーブルの目標入力値を保持するstate
   inputSalesTargetsIdToDataMap: {},
   setInputSalesTargetsIdToDataMap: (payload) => set({ inputSalesTargetsIdToDataMap: payload }),
+  // メンバーレベルの目標設定時に「上期詳細」「下期詳細」を切り替えるstate
+  settingPeriodTypeForMemberLevel: "first_half_details",
+  setSettingPeriodTypeForMemberLevel: (payload) => set({ settingPeriodTypeForMemberLevel: payload }),
 
   // ユーザーのエンティティの中でメンバーの親に当たる末端のエンティティ
   // endEntity: "company",

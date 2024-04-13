@@ -87,6 +87,20 @@ export const mappingMonthEnToJa = {
   November: "11",
   December: "12",
 };
+export const mappingMonthToAbbreviation = {
+  January: "Jan.",
+  February: "Feb.",
+  March: "Mar.",
+  April: "Apr.",
+  May: "May",
+  June: "Jun.",
+  July: "Jul.",
+  August: "Aug.",
+  September: "Sep.",
+  October: "Oct.",
+  November: "Nov.",
+  December: "Dec.",
+};
 
 // --------------------------- 🌟SDB関連🌟 ---------------------------
 // アクティブエンティティ名 activeEntityTabs メンバーは係のサブツリーとして同時に表示

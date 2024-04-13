@@ -10,7 +10,6 @@ type Props = {
   entityId: string;
   periodType: string;
   fiscalYear: number;
-  isFirstHalf?: boolean | undefined;
   annualFiscalMonths?: FiscalYearMonthObjForTarget | undefined | null;
   fetchEnabled?: boolean;
 };
@@ -20,9 +19,8 @@ export const useQuerySalesSummaryAndGrowth = ({
   companyId,
   entityLevel,
   entityId,
-  periodType, // 「year_half」と「half_monthly」
+  periodType, // 「year_half」「first_half_details」「second_half_details」
   fiscalYear, // 現在選択中の会計年度(FUNCTION側で-1)
-  isFirstHalf,
   annualFiscalMonths,
   fetchEnabled = true,
 }: Props) => {
@@ -64,70 +62,68 @@ export const useQuerySalesSummaryAndGrowth = ({
       responseData = data;
     }
     // 2.3. 「半期〜月度」
-    else if (periodType === "half_monthly") {
+    else if (periodType === "first_half_details") {
       // if (!annualFiscalMonthsLastYear || !annualFiscalMonthsTwoYearsAgo || !annualFiscalMonthsThreeYearsAgo)
       //   return null;
       if (!annualFiscalMonths) return null;
       // 2. 「上半期・Q1, Q2・01~06」の3年分の売上
-      if (isFirstHalf == true) {
-        const payload = {
-          _entity_level: entityLevel, // エンティティタイプの割り当て
-          _entity_id: entityId, // エンティティid
-          _fiscal_year: fiscalYear, // 現在の会計年度
-          _start_year_month: annualFiscalMonths.month_01,
-          _end_year_month: annualFiscalMonths.month_06,
-          _month_01: annualFiscalMonths.month_01,
-          _month_02: annualFiscalMonths.month_02,
-          _month_03: annualFiscalMonths.month_03,
-          _month_04: annualFiscalMonths.month_04,
-          _month_05: annualFiscalMonths.month_05,
-          _month_06: annualFiscalMonths.month_06,
-        };
-        console.log(
-          "🔥useQuerySalesSummaryAndGrowth rpc get_sales_summary_and_growth_first_half_monthly関数実行 payload",
-          payload
-        );
+      const payload = {
+        _entity_level: entityLevel, // エンティティタイプの割り当て
+        _entity_id: entityId, // エンティティid
+        _fiscal_year: fiscalYear, // 現在の会計年度
+        _start_year_month: annualFiscalMonths.month_01,
+        _end_year_month: annualFiscalMonths.month_06,
+        _month_01: annualFiscalMonths.month_01,
+        _month_02: annualFiscalMonths.month_02,
+        _month_03: annualFiscalMonths.month_03,
+        _month_04: annualFiscalMonths.month_04,
+        _month_05: annualFiscalMonths.month_05,
+        _month_06: annualFiscalMonths.month_06,
+      };
+      console.log(
+        "🔥useQuerySalesSummaryAndGrowth rpc get_sales_summary_and_growth_first_half_monthly関数実行 payload",
+        payload
+      );
 
-        const { data, error } = await supabase.rpc("get_sales_summary_and_growth_first_half_monthly", payload);
-        // .eq("created_by_company_id", companyId);
+      const { data, error } = await supabase.rpc("get_sales_summary_and_growth_first_half_monthly", payload);
+      // .eq("created_by_company_id", companyId);
 
-        if (error) {
-          console.error("❌getSalesSummaryAndGrowthエラー発生", error);
-          throw error;
-        }
-
-        responseData = data;
+      if (error) {
+        console.error("❌getSalesSummaryAndGrowthエラー発生", error);
+        throw error;
       }
+
+      responseData = data;
+    } else if (periodType === "second_half_details") {
+      if (!annualFiscalMonths) return null;
       // 3. 「下半期・Q3, Q4・07~12」の3年分の売上
-      else {
-        const payload = {
-          _entity_level: entityLevel, // エンティティタイプの割り当て
-          _entity_id: entityId, // エンティティid
-          _fiscal_year: fiscalYear, // 現在の会計年度
-          _start_year_month: annualFiscalMonths.month_07,
-          _end_year_month: annualFiscalMonths.month_12,
-          _month_07: annualFiscalMonths.month_07,
-          _month_08: annualFiscalMonths.month_08,
-          _month_09: annualFiscalMonths.month_09,
-          _month_10: annualFiscalMonths.month_10,
-          _month_11: annualFiscalMonths.month_11,
-          _month_12: annualFiscalMonths.month_12,
-        };
-        console.log(
-          "🔥useQuerySalesSummaryAndGrowth rpc get_sales_summary_and_growth_second_half_monthly関数実行 payload",
-          payload
-        );
+      const payload = {
+        _entity_level: entityLevel, // エンティティタイプの割り当て
+        _entity_id: entityId, // エンティティid
+        _fiscal_year: fiscalYear, // 現在の会計年度
+        _start_year_month: annualFiscalMonths.month_07,
+        _end_year_month: annualFiscalMonths.month_12,
+        _month_07: annualFiscalMonths.month_07,
+        _month_08: annualFiscalMonths.month_08,
+        _month_09: annualFiscalMonths.month_09,
+        _month_10: annualFiscalMonths.month_10,
+        _month_11: annualFiscalMonths.month_11,
+        _month_12: annualFiscalMonths.month_12,
+      };
+      console.log(
+        "🔥useQuerySalesSummaryAndGrowth rpc get_sales_summary_and_growth_second_half_monthly関数実行 payload",
+        payload
+      );
 
-        const { data, error } = await supabase.rpc("get_sales_summary_and_growth_second_half_monthly", payload);
-        // .eq("created_by_company_id", companyId);
+      const { data, error } = await supabase.rpc("get_sales_summary_and_growth_second_half_monthly", payload);
+      // .eq("created_by_company_id", companyId);
 
-        if (error) {
-          console.error("❌getSalesSummaryAndGrowthエラー発生", error);
-          throw error;
-        }
-
-        responseData = data;
+      if (error) {
+        console.error("❌getSalesSummaryAndGrowthエラー発生", error);
+        throw error;
       }
+
+      responseData = data;
     }
 
     // 売上推移カラムを追加
@@ -169,7 +165,7 @@ export const useQuerySalesSummaryAndGrowth = ({
   };
 
   return useQuery({
-    queryKey: ["sales_summary_and_growth", entityLevel, entityId, periodType, fiscalYear, isFirstHalf],
+    queryKey: ["sales_summary_and_growth", entityLevel, entityId, periodType, fiscalYear],
     queryFn: getSalesSummaryAndGrowth,
     staleTime: Infinity,
     onError: (error) => {

@@ -2983,7 +2983,7 @@ export type UpsertTargetObj = {
 // 目標設定用 年度・エンティティ関連オブジェクト
 export type UpsertSettingEntitiesObj = {
   fiscalYear: number;
-  periodType: "fiscal_year" | "first_half_details" | "second_half_details"; // 期間タイプ(fiscal_year, first_half_details, second_half_details)
+  periodType: "year_half" | "first_half_details" | "second_half_details" | ""; // 期間タイプ(fiscal_year, first_half_details, second_half_details) 初期セットでは空文字をセットする なぜなら次のレベルがメンバーレベルかどうかがわからないため
   entityLevel: string; // 全社・事業部
   entities: Entity[]; // 設定するエンティティid配列
   // entityName: string;
@@ -3022,14 +3022,14 @@ export type inputSalesData = {
   period: number; // 2024, 20241, 202401
   sales_target: number;
 };
-export type InputSalesTargetsYearHalf = {
+export type InputSalesTargets = {
   entity_id: string;
   entity_name: string;
   sales_targets: inputSalesData[];
 };
 
-// {entityId: {data: ローカルobj, isCollected: false}} isCollectedデータ収集が完了
-export type EntityInputSalesTargetObj = { data: InputSalesTargetsYearHalf; isCollected: boolean; error: string | null };
+// {entityId: {data: ローカルobj, isCollected: false, error: }} isCollectedデータ収集が完了
+export type EntityInputSalesTargetObj = { data: InputSalesTargets; isCollected: boolean; error: string | null };
 export type InputSalesTargetsIdToDataMap = { [key: string]: EntityInputSalesTargetObj };
 
 // 🔹スパークチャート

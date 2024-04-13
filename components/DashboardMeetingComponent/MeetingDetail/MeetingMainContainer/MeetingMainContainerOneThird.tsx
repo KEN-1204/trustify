@@ -2947,7 +2947,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onChange={(e) => setInputResultStartTimeMinute(e.target.value === "" ? "" : e.target.value)}
                           >
                             <option value=""></option>
-                            {minutes5.map((minute) => (
+                            {minutes.map((minute) => (
                               <option key={minute} value={minute}>
                                 {minute}
                               </option>
@@ -3113,7 +3113,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onChange={(e) => setInputResultEndTimeMinute(e.target.value === "" ? "" : e.target.value)}
                           >
                             <option value=""></option>
-                            {minutes5.map((minute) => (
+                            {minutes.map((minute) => (
                               <option key={minute} value={minute}>
                                 {minute}
                               </option>
