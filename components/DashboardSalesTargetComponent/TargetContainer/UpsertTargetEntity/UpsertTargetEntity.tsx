@@ -142,6 +142,7 @@ const UpsertTargetEntityMemo = () => {
     data: addedEntityLevelsListQueryData,
     isLoading: isLoadingQueryLevel,
     isError: isErrorQueryLevel,
+    isSuccess: isSuccessQueryLevel,
   } = useQueryEntityLevels(userProfileState.company_id, upsertSettingEntitiesObj.fiscalYear, "sales_target", true);
   // ===================== 🌠エンティティレベルuseQuery🌠 =====================
 
@@ -151,6 +152,17 @@ const UpsertTargetEntityMemo = () => {
     if (!addedEntityLevelsListQueryData) return [];
     return addedEntityLevelsListQueryData.map((obj) => obj.id);
   }, [addedEntityLevelsListQueryData]);
+
+  // const triggerQueryEntities = useDashboardStore((state) => state.triggerQueryEntities);
+  // useEffect(() => {
+  //   if (!triggerQueryEntities) return;
+  //   if (triggerQueryEntities && isSuccessQueryLevel) {
+  //     const invalidateQueryEntities = async () => {
+  //       await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+  //     };
+  //     invalidateQueryEntities();
+  //   }
+  // }, [triggerQueryEntities, isSuccessQueryLevel]);
 
   // 現在追加済みの全てのレベルidに紐づくそれぞれのエンティティ
   const {
@@ -162,7 +174,7 @@ const UpsertTargetEntityMemo = () => {
     upsertSettingEntitiesObj.fiscalYear,
     "sales_target",
     entityLevelIds,
-    true
+    isSuccessQueryLevel
   );
   // ===================== 🌠エンティティuseQuery🌠 =====================
 

@@ -1,3 +1,4 @@
+import useDashboardStore from "@/store/useDashboardStore";
 import { EntitiesHierarchy, EntityLevelStructures } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
@@ -11,15 +12,17 @@ export const useQueryEntities = (
   isReady: boolean = true
 ) => {
   const supabase = useSupabaseClient();
+  // const triggerQueryEntities = useDashboardStore((state) => state.triggerQueryEntities);
+  // const setTriggerQueryEntities = useDashboardStore((state) => state.setTriggerQueryEntities);
 
   const entityLevelIdsStr = entityLevelIds?.length > 0 ? entityLevelIds.join(", ") : "";
 
   const getEntities = async () => {
-    if (!company_id) return null;
-    if (!fiscalYear) return null;
-    if (!targetType) return null;
-    if (!entityLevelIds || entityLevelIds?.length === 0) return null;
-    if (targetType !== "sales_target") return null;
+    // if (!company_id) return null;
+    // if (!fiscalYear) return null;
+    // if (!targetType) return null;
+    // if (!entityLevelIds || entityLevelIds?.length === 0) return null;
+    // if (targetType !== "sales_target") return null;
 
     const payload = {
       _company_id: company_id,
@@ -38,12 +41,16 @@ export const useQueryEntities = (
     // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     await new Promise((resolve) => setTimeout(resolve, 500));
 
+    // if (triggerQueryEntities) {
+    //   setTriggerQueryEntities(false);
+    // }
     // {"company": [ ... ], "department": [ ... ], "section": [ ... ], ...}
     return data as EntitiesHierarchy;
   };
 
   return useQuery({
-    queryKey: ["entities", targetType, fiscalYear, entityLevelIdsStr],
+    // queryKey: ["entities", targetType, fiscalYear, entityLevelIdsStr],
+    queryKey: ["entities", targetType, fiscalYear],
     queryFn: getEntities,
     staleTime: Infinity,
     onError: (error) => {

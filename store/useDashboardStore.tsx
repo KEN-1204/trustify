@@ -515,6 +515,9 @@ type State = {
   // メンバーレベルの目標設定時に「上期詳細」「下期詳細」を切り替えるstate
   settingPeriodTypeForMemberLevel: string;
   setSettingPeriodTypeForMemberLevel: (payload: string) => void;
+  // エンティティinvalidateトリガー
+  triggerQueryEntities: boolean;
+  setTriggerQueryEntities: (payload: boolean) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1226,6 +1229,9 @@ const useDashboardStore = create<State>((set) => ({
   // メンバーレベルの目標設定時に「上期詳細」「下期詳細」を切り替えるstate
   settingPeriodTypeForMemberLevel: "first_half_details",
   setSettingPeriodTypeForMemberLevel: (payload) => set({ settingPeriodTypeForMemberLevel: payload }),
+  // エンティティinvalidateトリガー
+  triggerQueryEntities: false,
+  setTriggerQueryEntities: (payload) => set({ triggerQueryEntities: payload }),
 
   // ユーザーのエンティティの中でメンバーの親に当たる末端のエンティティ
   // endEntity: "company",

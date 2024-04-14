@@ -424,6 +424,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // ------------------------ 🌠保存ボタンクリック 全ての子コンポーネント内の目標を収集🌠 ここまで ------------------------
 
   // ----------------------------- 🌠目標を確定クリック sales_targetsテーブルUPSERT🌠 -----------------------------
+  const setTriggerQueryEntities = useDashboardStore((state) => state.setTriggerQueryEntities);
   // 売上目標確定ダイアログで「確定する」ボタンをクリックで発火
   const handleSaveTarget = async () => {
     if (!currentLevelObj) return alert("レイヤー情報が見つかりませんでした。");
@@ -544,8 +545,8 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           _parent_entity_level_id: upsertSettingEntitiesObj.parentEntityId ?? null,
           _entities_data: entitiesSalesTargetsArray,
           _is_confirmed_annual_all_entities: isAllConfirmAnnual, // 今回のインサートが成功した場合に全てis_confirmがtrueになるかどうか
-          _is_confirmed_first_half_details: false, // メンバーレベル以外のレベルで上下期詳細がtrueになるのはメンバーレベルの集計クリック時なのでfalse
-          _is_confirmed_second_half_details: false, // メンバーレベル以外のレベルで上下期詳細がtrueになるのはメンバーレベルの集計クリック時なのでfalse
+          _is_confirmed_first_half_all_entities: false, // メンバーレベル以外のレベルで上下期詳細がtrueになるのはメンバーレベルの集計クリック時なのでfalse
+          _is_confirmed_second_half_all_entities: false, // メンバーレベル以外のレベルで上下期詳細がtrueになるのはメンバーレベルの集計クリック時なのでfalse
           // _entity_level: upsertSettingEntitiesObj.entityLevel,
         };
 
@@ -563,9 +564,24 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
 
         // if (true) return toast.success("✅目標設定が完了しました！🌟");
 
-        const { error } = supabase.rpc("upsert_sales_target_current_level_entities", payload);
+        const { error } = await supabase.rpc("upsert_sales_target_current_level_entities", payload);
+        // const { data, error } = await supabase.rpc("upsert_sales_target_current_level_entities_test", payload);
+
+        // 0.5秒後に解決するPromiseの非同期処理を入れて明示的にローディングを入れる
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         if (error) throw error;
+
+        // if (true) {
+        //   console.log("✅「全社〜係」レベルのルート テスト結果", data, error);
+
+        //   toast.success("テスト完了！✅");
+
+        //   setIsLoading(false); // ローディングを終了
+        //   setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
+        //   setIsOpenConfirmDialog(false); // ダイアログを閉じる
+        //   return;
+        // }
 
         console.log(
           "✅「全社〜係」レベルのルート FUNCTION upsert_sales_target_current_level_entities関数実行成功 キャッシュを更新"
@@ -573,11 +589,21 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
 
         toast.success("目標設定が完了しました！🌟");
 
-        // 正常に全てのエンティティの目標のUPSERTが完了したら、
-        // useQueryのエンティティレベルとエンティティをinvalidateして再度INSERT後のデータを取得してステップを次に進める
-        // fiscal_yearsテーブル、entity_structuresテーブル、entity_structuresテーブル、sales_targetsテーブル
+        // エンティティレベルのUPDATEが実行されていたらエンティティレベルテーブルへのキャッシュも更新する
+        // if (isAllConfirmAnnual) {
+        //   // レベルとエンティティテーブル両方invalidateで更新する
+        //   await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+        //   await new Promise((resolve) => setTimeout(resolve, 100));
+        //   await queryClient.invalidateQueries(["entities", "sales_targets", upsertSettingEntitiesObj.fiscalYear]);
+        // } else {
+        //   // レベルのUPDATEが行われていない場合は、エンティティテーブルのみキャッシュを更新する(sales_targetsテーブルへのinvalidateは特にしなくてOK)
+        //   // await new Promise((resolve) => setTimeout(resolve, 100));
+        //   await queryClient.invalidateQueries(["entities", "sales_targets", upsertSettingEntitiesObj.fiscalYear]);
+        // }
+        // レベルとエンティティテーブル両方invalidateで更新する
         await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
-        // entitiesキャッシュはqueryKeyに渡しているentityLevelIdsが先ほど追加したidが加わり別のentityLevelIdsに変更されるためinvalidateQuery不要
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
 
         // addedEntityLevelListLocalに関しては、エンティティレベルのinvalidateでentityLevelsQueryDataが新しく生成され、useEffectで「setAddedEntityLevelListLocal(addedEntityLevelListLocal ?? []);」が実行されるため、特にstateの変更はこちらでは不要
 
@@ -594,9 +620,14 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           entities: [],
         } as UpsertSettingEntitiesObj;
 
+        if (isAllConfirmAnnual) {
+          setStep(1); // ステップ1のエンティティレベル選択画面に戻す
+        } else {
+          setStep(3); // まだ現在のエンティティレベル内に未設定のエンティティが存在しているためstep3のまま
+        }
+
         setIsLoading(false); // ローディングを終了
         setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
-        setStep(1); // ステップ1のエンティティレベル選択画面に戻す
         setIsOpenConfirmDialog(false); // ダイアログを閉じる
         setUpsertSettingEntitiesObj(newUpsertSettingEntitiesObj);
         setIsSettingTargetMode(false); // 売上設定画面をエンティティ選択画面に戻す
@@ -675,8 +706,8 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           _parent_entity_level_id: upsertSettingEntitiesObj.parentEntityId ?? null,
           _entities_data: entitiesSalesTargetsArray,
           _is_confirmed_annual_all_entities: isAllConfirmAnnual, // 今回のインサートが成功した場合に全てis_confirmがtrueになるかどうか
-          _is_confirmed_first_half_details: isAllConfirmedFirstHalfDetails,
-          _is_confirmed_second_half_details: isAllConfirmedSecondHalfDetails,
+          _is_confirmed_first_half_all_entities: isAllConfirmedFirstHalfDetails,
+          _is_confirmed_second_half_all_entities: isAllConfirmedSecondHalfDetails,
           // _entity_level: upsertSettingEntitiesObj.entityLevel,
         };
 
@@ -684,7 +715,10 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           "🔥🔹メンバーレベルのルート FUNCTION upsert_sales_target_current_level_entities関数実行 payload",
           payload
         );
-        const { error } = supabase.rpc("upsert_sales_target_current_level_entities", payload);
+        const { error } = await supabase.rpc("upsert_sales_target_current_level_entities", payload);
+
+        // 0.5秒後に解決するPromiseの非同期処理を入れて明示的にローディングを入れる
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
         if (error) throw error;
 
@@ -692,27 +726,21 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           "✅メンバーレベルのルート FUNCTION upsert_sales_target_current_level_entities関数実行成功 キャッシュを更新"
         );
 
-        toast.success("目標設定が完了しました！🌟");
-
         // エンティティレベルのUPDATEが実行されていたらエンティティレベルテーブルへのキャッシュも更新する
-        if (isAllConfirmAnnual || isAllConfirmedFirstHalfDetails || isAllConfirmedSecondHalfDetails) {
-          // レベルとエンティティテーブル両方invalidateで更新する
-          await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
-          await queryClient.invalidateQueries([
-            "entities",
-            "sales_targets",
-            upsertSettingEntitiesObj.fiscalYear,
-            entityLevelIdsStr,
-          ]);
-        } else {
-          // レベルのUPDATEが行われていない場合は、エンティティテーブルのみキャッシュを更新する(sales_targetsテーブルへのinvalidateは特にしなくてOK)
-          await queryClient.invalidateQueries([
-            "entities",
-            "sales_targets",
-            upsertSettingEntitiesObj.fiscalYear,
-            entityLevelIdsStr,
-          ]);
-        }
+        // if (isAllConfirmAnnual || isAllConfirmedFirstHalfDetails || isAllConfirmedSecondHalfDetails) {
+        //   // レベルとエンティティテーブル両方invalidateで更新する
+        //   await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+        //   await queryClient.invalidateQueries(["entities", "sales_targets", upsertSettingEntitiesObj.fiscalYear]);
+        // } else {
+        //   // レベルのUPDATEが行われていない場合は、エンティティテーブルのみキャッシュを更新する(sales_targetsテーブルへのinvalidateは特にしなくてOK)
+        //   await queryClient.invalidateQueries(["entities", "sales_targets", upsertSettingEntitiesObj.fiscalYear]);
+        // }
+        // レベルとエンティティテーブル両方invalidateで更新する
+        await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+
+        toast.success("目標設定が完了しました！🌟");
 
         // 既にメンバーレベルの場合は、これ以上レベル追加はないため、
         // メンバーレベル内の全てのエンティティ(メンバー)のis_confirmがtrueになっていたらステップ4で、
