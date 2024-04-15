@@ -11,7 +11,7 @@ import {
   EditedProduct,
   FiscalYearMonthObjForTarget,
   InputSalesTargetsIdToDataMap,
-  InputSalesTargetsYearHalf,
+  InputSalesTargets,
   MainEntityTarget,
   Meeting_row_data,
   MemberAccounts,

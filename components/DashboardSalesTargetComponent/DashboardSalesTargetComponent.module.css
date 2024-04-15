@@ -1137,7 +1137,11 @@
   /* box-shadow: 0 0 0 1px var(--color-bg-brand-f);
   background-color: var(--color-bg-brand-f30); */
   box-shadow: 0 0 0 1px var(--color-edit-remove);
-  background-color: var(--color-edit-remove-hover);
+  background-color: var(--color-edit-remove-inner);
+}
+.switch_container .icon_button.remove:hover,
+.switch_container .sortable_list .item.remove:hover {
+  background-color: var(--color-edit-remove-inner-hover);
 }
 .switch_container .item .details {
   display: flex;
@@ -1203,7 +1207,7 @@
 }
 .switch_container .icon_button.remove {
   /* background-color: var(--color-edit-remove-hover); */
-  background-color: var(--color-edit-remove-hover);
+  background-color: var(--color-edit-remove-inner);
   box-shadow: 0 0 0 1px var(--color-edit-remove);
   color: var(--main-color-tk);
   cursor: pointer;

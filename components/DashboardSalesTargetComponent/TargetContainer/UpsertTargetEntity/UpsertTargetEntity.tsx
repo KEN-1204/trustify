@@ -1,12 +1,12 @@
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { Suspense, memo, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../../DashboardSalesTargetComponent.module.css";
-import { MdOutlineDataSaverOff, MdSaveAlt } from "react-icons/md";
+import { MdSaveAlt } from "react-icons/md";
 import useDashboardStore from "@/store/useDashboardStore";
 import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
 import useStore from "@/store";
 import { addTaskIllustration, dataIllustration } from "@/components/assets";
-import { BsCheck2 } from "react-icons/bs";
+import { BsCheck2, BsChevronLeft } from "react-icons/bs";
 import NextImage from "next/image";
 import { useQueryEntityLevels } from "@/hooks/useQueryEntityLevels";
 import { useQueryEntities } from "@/hooks/useQueryEntities";
@@ -17,6 +17,7 @@ import {
   EntityGroupByParent,
   EntityLevelNames,
   EntityLevels,
+  MemberAccounts,
   Office,
   PopupDescMenuParams,
   Section,
@@ -44,6 +45,9 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { useQueryFiscalYears } from "@/hooks/useQueryFiscalYears";
 import { useQueryFiscalYear } from "@/hooks/useQueryFiscalYear";
+import { GrPowerReset } from "react-icons/gr";
+import { FaExchangeAlt } from "react-icons/fa";
+import { CgArrowsExchange } from "react-icons/cg";
 
 /*
 🌠上位エンティティグループに対して紐付ける方法のメリットとデメリット
@@ -231,6 +235,7 @@ const UpsertTargetEntityMemo = () => {
   // }, [addedEntityLevelsListQueryData]);
 
   // ✅現在のレベル ステップ1でレベルを選択して変更
+  // const [currentLevel, setCurrentLevel] = useState<EntityLevelNames | "">("");
   const [currentLevel, setCurrentLevel] = useState<EntityLevelNames | "">(() => {
     if (!addedEntityLevelsMapLocal || addedEntityLevelsMapLocal.size === 0) return "";
     if (addedEntityLevelsMapLocal.has("member")) return "member";
@@ -1102,6 +1107,255 @@ const UpsertTargetEntityMemo = () => {
     });
     setIsSettingTargetMode(false);
   };
+
+  //
+  const getEntityTargetTitle = (
+    entityLevel: string,
+    obj: Department | Section | Unit | Office | (MemberAccounts & { company_id: string; company_name: string })
+  ) => {
+    switch (entityLevel) {
+      case "department":
+        return (obj as Department).department_name ?? "-";
+      case "section":
+        return (obj as Section).section_name ?? "-";
+      case "unit":
+        return (obj as Unit).unit_name ?? "-";
+      case "office":
+        return (obj as Office).office_name ?? "-";
+      case "member":
+        return (obj as MemberAccounts).profile_name ?? "-";
+
+      default:
+        return "-";
+        break;
+    }
+  };
+
+  // エンティティリスト編集モード
+  const [isOpenEditEntityListByParentModal, setIsOpenEditEntityListByParentModal] = useState(false);
+  // 現在編集中の上位エンティティ
+  const [editParentEntity, setEditParentEntity] = useState<{ id: string; name: string } | null>(null);
+  // エンティティリスト編集 グループ内の全てのリスト
+  const [editAllEntityListByParent, setEditAllEntityListByParent] = useState<
+    (MemberAccounts & { company_id: string; company_name: string })[] | Department[] | Section[] | Unit[] | Office[]
+  >([]);
+  // 選択中のアクティブなエンティティ
+  const [selectedActiveItemIdsMap, setSelectedActiveItemIdsMap] = useState<
+    Map<string, Department | Section | Unit | Office | (MemberAccounts & { company_id: string; company_name: string })>
+  >(new Map());
+  // 選択中の非アクティブなエンティティ
+  const [selectedInactiveItemIdsMap, setSelectedInactiveItemIdsMap] = useState<
+    Map<string, Department | Section | Unit | Office | (MemberAccounts & { company_id: string; company_name: string })>
+  >(new Map());
+  // 現在表示中のエンティティリストMap
+  const [editCurrentDisplayEntityMapInParentGroup, setEditCurrentDisplayEntityMapInParentGroup] = useState<
+    Map<string, Entity>
+  >(new Map());
+
+  // エンティティリスト編集モーダルを開く
+  const handleOpenEditEntityListByParentModal = ({ parentEntityId }: { parentEntityId: string }) => {
+    if (currentLevel === "") return alert("有効なレイヤーが見つかりませんでした。");
+    const getEntityListArray = (parentEntityId: string) => {
+      let currentEntityListAll:
+        | (MemberAccounts & { company_id: string; company_name: string })[]
+        | Department[]
+        | Section[]
+        | Unit[]
+        | Office[] = [];
+      let filteredEntityListByParent:
+        | (MemberAccounts & { company_id: string; company_name: string })[]
+        | Department[]
+        | Section[]
+        | Unit[]
+        | Office[] = [];
+      switch (currentLevel) {
+        case "department":
+          currentEntityListAll = departmentDataArray ? [...departmentDataArray] : [];
+          filteredEntityListByParent = currentEntityListAll.filter(
+            (department) => department.created_by_company_id === parentEntityId
+          );
+          return filteredEntityListByParent;
+        case "section":
+          currentEntityListAll = sectionDataArray ? [...sectionDataArray] : [];
+          filteredEntityListByParent = currentEntityListAll.filter(
+            (section) => section.created_by_department_id === parentEntityId
+          );
+          return filteredEntityListByParent;
+        case "unit":
+          currentEntityListAll = unitDataArray ? [...unitDataArray] : [];
+          filteredEntityListByParent = currentEntityListAll.filter(
+            (unit) => unit.created_by_section_id === parentEntityId
+          );
+          return filteredEntityListByParent;
+        case "office":
+          currentEntityListAll = officeDataArray ? [...officeDataArray] : [];
+          filteredEntityListByParent = currentEntityListAll.filter(
+            (office) => office.created_by_company_id === parentEntityId
+          );
+          return filteredEntityListByParent;
+        case "member":
+          if (!queryDataMemberGroupsByParentEntities) return [];
+          const memberGroupByParentEntity = queryDataMemberGroupsByParentEntities[parentEntityId].member_group;
+          currentEntityListAll = [...memberGroupByParentEntity] ?? [];
+          if (parentEntityLevel === "company") {
+            filteredEntityListByParent = currentEntityListAll.filter((member) => member.company_id === parentEntityId);
+          }
+          if (parentEntityLevel === "department") {
+            filteredEntityListByParent = currentEntityListAll.filter(
+              (member) => member.assigned_department_id === parentEntityId
+            );
+          }
+          if (parentEntityLevel === "section") {
+            filteredEntityListByParent = currentEntityListAll.filter(
+              (member) => member.assigned_section_id === parentEntityId
+            );
+          }
+          if (parentEntityLevel === "unit") {
+            filteredEntityListByParent = currentEntityListAll.filter(
+              (member) => member.assigned_unit_id === parentEntityId
+            );
+          }
+          return filteredEntityListByParent;
+        default:
+          return [];
+          break;
+      }
+    };
+
+    // モーダルで表示する編集を行うエンティティグループの全てのエンティティリスト
+    const allEntityListByCurrentParent = getEntityListArray(parentEntityId) as
+      | (MemberAccounts & { company_id: string; company_name: string })[]
+      | Department[]
+      | Section[]
+      | Unit[]
+      | Office[];
+    setEditAllEntityListByParent(allEntityListByCurrentParent);
+
+    // 現在グループ内に表示中のエンティティリストをMapで保持
+    const currentDisplayEntityGroup = entitiesHierarchyLocal[currentLevel].find(
+      (group) => group.parent_entity_id === parentEntityId
+    );
+    if (!currentDisplayEntityGroup) return alert("リストデータが見つかりませんでした。");
+    if (!currentDisplayEntityGroup.parent_entity_id) return alert("上位のリスト元データが見つかりませんでした。");
+    const currentDisplayEntityMapInParentGroup = new Map(
+      currentDisplayEntityGroup.entities.map((entity) => [entity.entity_id, entity])
+    );
+    setEditCurrentDisplayEntityMapInParentGroup(currentDisplayEntityMapInParentGroup);
+
+    // 編集中の親エンティティ
+    setEditParentEntity({
+      id: currentDisplayEntityGroup.parent_entity_id,
+      name: currentDisplayEntityGroup.parent_entity_name,
+    });
+
+    // リスト編集モーダルを開く
+    setIsOpenEditEntityListByParentModal(true);
+  };
+
+  // エンティティリスト編集モーダルを閉じる
+  const handleCloseEditEntityListByParentModal = () => {
+    setEditAllEntityListByParent([]);
+    if (selectedActiveItemIdsMap.size > 0) setSelectedActiveItemIdsMap(new Map());
+    if (selectedInactiveItemIdsMap.size > 0) setSelectedInactiveItemIdsMap(new Map());
+    setIsOpenEditEntityListByParentModal(false);
+  };
+
+  // エンティティリスト編集モーダル 追加・削除
+  const handleUpdateEntityList = async (updateType: "add" | "remove") => {
+    // レベルからupdateするテーブルを確定
+    let updatedTable = "";
+    if (currentLevel === "department") updatedTable = "departments";
+    if (currentLevel === "section") updatedTable = "sections";
+    if (currentLevel === "unit") updatedTable = "units";
+    if (currentLevel === "office") updatedTable = "offices";
+    if (currentLevel === "member") updatedTable = "profiles";
+    if (currentLevel === "") return alert("部門データが見つかりませんでした。");
+
+    const newTargetType = updateType === "add" ? "sales_target" : null;
+    const updatedPayload = { target_type: newTargetType };
+    // idのみの配列を生成
+    const updatedEntityIds =
+      updateType === "add" ? [...selectedInactiveItemIdsMap.keys()] : [...selectedActiveItemIdsMap.keys()];
+    // 今回更新するMapオブジェクトを代入
+    const updatedEntityIdsMap = updateType === "add" ? selectedInactiveItemIdsMap : selectedActiveItemIdsMap;
+
+    setIsLoading(true); // ローディング開始
+
+    try {
+      console.log(
+        "削除実行🔥 updatedTable",
+        updatedTable,
+        updatedPayload,
+        "updatedEntityIds",
+        updatedEntityIds,
+        "selectedInactiveItemIdsMap",
+        selectedInactiveItemIdsMap,
+        "selectedActiveItemIdsMap",
+        selectedActiveItemIdsMap
+      );
+      // const { error } = await supabase.from(updatedTable).update(updatedPayload).in("id", updatedEntityIds);
+
+      // if (error) throw error;
+
+      // // キャッシュの部門からsales_targetをnullに更新する
+      // let queryKey = "departments";
+      // if (currentLevel === "department") queryKey = "departments";
+      // if (currentLevel === "section") queryKey = "sections";
+      // if (currentLevel === "unit") queryKey = "units";
+      // if (currentLevel === "office") queryKey = "offices";
+      // if (currentLevel === "member") queryKey = "member_accounts";
+      // const prevCache = queryClient.getQueryData([queryKey]) as
+      //   | Department[]
+      //   | Section[]
+      //   | Unit[]
+      //   | Office[]
+      //   | MemberAccounts[];
+      // let newCache = [...prevCache]; // キャッシュのシャローコピーを作成
+      // // 更新対象のオブジェクトのtarget_typeをsales_target or nullに変更
+      // newCache = newCache.map((obj) =>
+      //   updatedEntityIdsMap.has(obj.id) ? { ...obj, target_type: newTargetType } : obj
+      // );
+      // console.log("キャッシュを更新 newCache", newCache);
+      // queryClient.setQueryData([queryKey], newCache); // キャッシュを更新
+
+      // if (updateType === "remove") {
+      //   // 固定していた場合は固定を解除
+      //   if (!!stickyRow && updatedEntityIdsMap.has(stickyRow)) {
+      //     setStickyRow(null);
+      //   }
+      // }
+
+      setIsLoading(false); // ローディング終了
+
+      // サブ目標リストを更新
+      // const newList = newCache.filter((obj) => obj.target_type === "sales_target") as
+      //   | Department[]
+      //   | Section[]
+      //   | Unit[]
+      //   | Office[]
+      //   | MemberAccounts[];
+      // setSubTargetList(newList);
+
+      // モーダル内のリストを更新
+      // setEditSubList(newCache as MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]);
+
+      const successMsg = updateType === "add" ? `目標リストに追加しました🌟` : `目標リストから削除しました🌟`;
+      toast.success(successMsg);
+
+      // リセット
+      if (updateType === "add") {
+        setSelectedInactiveItemIdsMap(new Map());
+      } else {
+        setSelectedActiveItemIdsMap(new Map());
+      }
+    } catch (error: any) {
+      console.error("エラー：", error);
+      const errorMsg =
+        updateType === "add" ? `目標リストへの追加に失敗しました...🙇‍♀️` : "目標リストからの削除に失敗しました...🙇‍♀️";
+      toast.error(errorMsg);
+    }
+  };
+
   // ===================== 関数 =====================
 
   // --------------------- ポップアップメニュー関連 ---------------------
@@ -1287,7 +1541,7 @@ const UpsertTargetEntityMemo = () => {
   type TooltipParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
     display: string;
-    content: string;
+    content?: string;
     content2?: string | undefined | null;
     marginTop?: number;
     itemsPosition?: string;
@@ -1309,7 +1563,7 @@ const UpsertTargetEntityMemo = () => {
       y: y,
       itemWidth: width,
       itemHeight: height,
-      content: content,
+      content: ((e.target as HTMLDivElement).dataset.text as string) || (content ?? ""),
       content2: content2,
       display: display,
       marginTop: marginTop,
@@ -1465,11 +1719,6 @@ const UpsertTargetEntityMemo = () => {
           // is_confirmed_annual_halfがfalseのレベルをcurrentLevelにセット
         }
 
-        // 現在追加している末尾のレベルを現在のレベルにセットする(useQueryのFUNCTIONでレベルごとに並び替え済み)
-        const addedLastLevel = addedEntityLevelsListQueryData[addedEntityLevelsListQueryData.length - 1]
-          .entity_level as EntityLevelNames;
-        setCurrentLevel(addedLastLevel);
-
         // 既に指定年度の売上目標を構成するレベルが追加されている場合、追加済みの末端レベルの下位レベルに当たるレベル以降を選択肢としてフィルターして返す
         // 係レベルまで追加済み 残りのメンバーレベルのみセット
         if (addedLevelsMap.has("unit")) {
@@ -1489,6 +1738,11 @@ const UpsertTargetEntityMemo = () => {
           // 会社->事業部->課->係->メンバーで、会社->課、会社->係のように飛ばすことがないようにsection, unitは選択肢から省く
           newLevelList = newLevelList.filter((obj) => ["department", "section", "unit", "member"].includes(obj.title));
         }
+
+        // 現在追加している末尾のレベルを現在のレベルにセットする(useQueryのFUNCTIONでレベルごとに並び替え済み)
+        const selectedLevel = newLevelList[0].title;
+        setSelectedNextLevel(selectedLevel);
+        // setCurrentLevel(addedLastLevel);
       }
     }
     // フィルター後のレベル選択肢で更新
@@ -1506,6 +1760,10 @@ const UpsertTargetEntityMemo = () => {
     // selectedEntityLevel,
     "現在のレベルcurrentLevel",
     currentLevel,
+    "次の選択中のレベルselectedNextLevel",
+    selectedNextLevel,
+    "親のレベルparentEntityLevel",
+    parentEntityLevel,
     "レベル構成クエリデータaddedEntityLevelsListQueryData",
     addedEntityLevelsListQueryData,
     "追加済みのレベルローカルデータaddedEntityLevelsListLocal",
@@ -1971,16 +2229,60 @@ const UpsertTargetEntityMemo = () => {
               {!!addedEntityLevelsListLocal?.length &&
                 addedEntityLevelsListLocal.map((levelObj) => {
                   const entityLevel = levelObj.entity_level;
+
+                  const isConfirmLevelAH = levelObj.is_confirmed_annual_half;
+                  const isConfirmLevelFH = levelObj.is_confirmed_first_half_details;
+                  const isConfirmLevelSH = levelObj.is_confirmed_second_half_details;
+
+                  // エンティティが設定済みかどうか
+                  let settingLevelState = "notSet";
+                  // 全て設定済み
+                  if (isConfirmLevelAH && isConfirmLevelFH && isConfirmLevelSH) {
+                    settingLevelState = "setAll";
+                  }
+                  // 年度のみ
+                  else if (isConfirmLevelAH && !isConfirmLevelFH && !isConfirmLevelSH) {
+                    settingLevelState = "setAnnualHalfOnly";
+                  }
+                  // 上半期まで
+                  else if (isConfirmLevelAH && isConfirmLevelFH && !isConfirmLevelSH) {
+                    settingLevelState = "setFirstHalf";
+                  }
+                  // 下半期まで
+                  else if (isConfirmLevelAH && !isConfirmLevelFH && isConfirmLevelSH) {
+                    settingLevelState = "setSecondHalf";
+                  }
+
                   const entityGroupListByParent =
                     entitiesHierarchyLocal && Object.keys(entitiesHierarchyLocal).includes(entityLevel)
                       ? entitiesHierarchyLocal[entityLevel as EntityLevelNames]
                       : null;
+
                   return (
-                    <div key={`column_${levelObj.id}`} className={`${styles.col} fade08_forward`}>
+                    <div key={`column_${levelObj.entity_level}`} className={`${styles.col} fade08_forward`}>
                       <div className={`flex w-full justify-between`}>
                         <h4 className={`text-[19px] font-bold`}>{mappingEntityName[entityLevel][language]}</h4>
                         <div className={`flex items-center text-[13px]`}>
-                          <span className={`text-[var(--main-color-tk)]`}>未設定</span>
+                          {settingLevelState === "notSet" && (
+                            <span className={`text-[var(--main-color-tk)]`}>未設定</span>
+                          )}
+                          {settingLevelState !== "notSet" && (
+                            <div className={`flex items-center space-x-[6px]`}>
+                              {/* {settingLevelState === "setAnnualHalfOnly" && (
+                                <span className={`text-[var(--main-color-f)]`}>「年度・半期」</span>
+                              )} */}
+                              {settingLevelState === "setAnnualHalfOnly" && (
+                                <div
+                                  // className={`flex-center rounded-full border border-solid border-[var(--color-border-light)] bg-[var(--color-edit-bg-solid)] px-[12px] py-[3px] text-[var(--color-text-sub)]`}
+                                  className={`flex-center text-[var(--color-text-brand-f)]`}
+                                >
+                                  {/* <span className={`text-[var(--main-color-f)]`}>年度・半期</span> */}
+                                  <span className={`text-[13px]`}>設定完了</span>
+                                </div>
+                              )}
+                              {/* <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" /> */}
+                            </div>
+                          )}
                           {/* メンバーレベルに達した時に「上期詳細」「下期詳細」を切り替えて目標設定状態を確認できるようにする */}
                           {/* <div
                             className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
@@ -2023,10 +2325,10 @@ const UpsertTargetEntityMemo = () => {
                           </div>
                         )}
                         {entityGroupListByParent &&
-                          entityGroupListByParent.map((entityGroupObj, index) => {
+                          entityGroupListByParent.map((entityGroupObj, rowGroupIndex) => {
                             return (
                               <li
-                                key={`section_${entityGroupObj.parent_entity_id}_${levelObj.id}`}
+                                key={`section_${levelObj.entity_level}_${entityGroupObj.parent_entity_id}_${rowGroupIndex}`}
                                 className="mb-[6px] mt-[16px] flex w-full flex-col"
                               >
                                 <h3 className={`mb-[0px] flex min-h-[30px] items-center justify-between font-bold`}>
@@ -2040,13 +2342,24 @@ const UpsertTargetEntityMemo = () => {
                                         className={`${styles.title_icon} mb-[2px]`}
                                       />
                                       {/* <span className="max-w-[270px] truncate">マイクロスコープ事業部</span> */}
-                                      <span className="max-w-[270px] truncate">
+                                      <span
+                                        className="max-w-[270px] truncate"
+                                        data-text={`${entityGroupObj.parent_entity_name}`}
+                                        onMouseEnter={(e) => {
+                                          const el = e.currentTarget;
+                                          if (el.scrollWidth > el.offsetWidth)
+                                            handleOpenTooltip({ e, display: "top", marginTop: 9 });
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          if (hoveredItemPos) handleCloseTooltip();
+                                        }}
+                                      >
                                         {entityLevel !== "company" && entityGroupObj.parent_entity_name}
                                         {entityLevel === "company" && entityGroupObj.parent_entity_name === "root"
                                           ? language === "ja"
                                             ? "会社・チーム"
                                             : "Company"
-                                          : "Company"}
+                                          : ""}
                                       </span>
                                       {/* <BsCheck2 className="pointer-events-none min-h-[20px] min-w-[20px] stroke-1 text-[20px] text-[#00d436]" /> */}
                                     </div>
@@ -2060,6 +2373,26 @@ const UpsertTargetEntityMemo = () => {
                                       }),
                                     }}
                                     onClick={(e) => {
+                                      // ------------------- 🔹step2🔹 -------------------
+                                      if (step === 2) {
+                                        if (!entityGroupObj.parent_entity_id)
+                                          return alert(
+                                            `${
+                                              entityGroupObj.parent_entity_name
+                                                ? `${entityGroupObj.parent_entity_name}の`
+                                                : ``
+                                            }データが見つかりませんでした。`
+                                          );
+                                        levelObj;
+                                        entityGroupObj;
+                                        // 現在のレベルの親レベルを特定して引数に渡す
+
+                                        handleOpenEditEntityListByParentModal({
+                                          parentEntityId: entityGroupObj.parent_entity_id,
+                                        });
+                                      }
+                                      // ------------------- 🔹step2🔹 ここまで -------------------
+                                      // ------------------- 🔹step3🔹 -------------------
                                       if (step === 3) {
                                         if (!entityGroupObj.entities?.length)
                                           return alert("グループ内に１つ以上の部門・メンバーを追加してください。");
@@ -2069,7 +2402,7 @@ const UpsertTargetEntityMemo = () => {
                                           // 上位エンティティ内の全てのエンティティ配列をグローバルstateに追加する
                                           const newParentEntityGroup = {
                                             fiscalYear: upsertSettingEntitiesObj.fiscalYear,
-                                            periodType: "fiscal_year", // レベルに合わせた目標の期間タイプ、売上推移用
+                                            periodType: "year_half", // レベルに合わせた目標の期間タイプ、売上推移用
                                             parentEntityLevelId: levelObj.id,
                                             parentEntityLevel: parentEntityLevel,
                                             parentEntityId: entityGroupObj.parent_entity_id,
@@ -2113,8 +2446,10 @@ const UpsertTargetEntityMemo = () => {
                                           // });
                                         }
                                       }
+                                      // ------------------- 🔹step3🔹 -------------------
                                     }}
                                   >
+                                    {/* {step === 2 && <CgArrowsExchange className={`mr-[3px] text-[18px] text-[#fff]`} />} */}
                                     {step === 2 && `リスト編集`}
                                     {step === 3 && <FiPlus className={`mr-[3px] stroke-[3] text-[12px] text-[#fff]`} />}
                                     {step === 3 && `目標設定`}
@@ -2122,7 +2457,7 @@ const UpsertTargetEntityMemo = () => {
                                 </h3>
                                 <ul className={`w-full`}>
                                   {!!entityGroupObj.entities?.length &&
-                                    entityGroupObj.entities.map((entityObj, index) => {
+                                    entityGroupObj.entities.map((entityObj, rowEntityIndex) => {
                                       const isConfirmAH = entityObj.is_confirmed_annual_half;
                                       const isConfirmFH = entityObj.is_confirmed_first_half_details;
                                       const isConfirmSH = entityObj.is_confirmed_second_half_details;
@@ -2146,8 +2481,9 @@ const UpsertTargetEntityMemo = () => {
                                       }
                                       return (
                                         <li
-                                          key={`list_${entityObj.id}_${entityGroupObj.parent_entity_id}`}
-                                          className={`flex w-full items-center justify-between border-b border-solid border-[var(--color-border-light)] pb-[10px] pt-[16px]`}
+                                          key={`list_${levelObj.entity_level}_${entityGroupObj.parent_entity_id}_${entityObj.entity_name}_${entityObj.entity_id}_${rowEntityIndex}`}
+                                          className={`flex w-full items-center justify-between border-b border-solid border-[var(--color-border-light)] pb-[9px] pt-[12px]`}
+                                          style={{ ...(rowEntityIndex === 0 && { paddingTop: `15px` }) }}
                                         >
                                           <div className={`flex max-w-[290px] items-center`}>
                                             <div className={`max-w-[290px] truncate text-[14px] font-bold`}>
@@ -2165,14 +2501,17 @@ const UpsertTargetEntityMemo = () => {
                                                   <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
                                                 )}
                                                 {settingState !== "setAll" && (
-                                                  <IoTriangleOutline className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                                  <>
+                                                    <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                                    {/* <IoTriangleOutline className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" /> */}
+                                                  </>
                                                 )}
-                                                <span className="text-[13px] text-[var(--color-text-brand-f)]">
+                                                {/* <span className="text-[13px] text-[var(--color-text-brand-f)]">
                                                   {settingState === "setAll" && `設定済み`}
                                                   {settingState === "setAnnualHalfOnly" && `設定済み(年度)`}
                                                   {settingState === "setFirstHalf" && `設定済み(上期)`}
                                                   {settingState === "setSecondHalf" && `設定済み(下期)`}
-                                                </span>
+                                                </span> */}
                                               </div>
                                             )}
                                           </div>
@@ -2393,6 +2732,241 @@ const UpsertTargetEntityMemo = () => {
         </div>
       )}
       {/* ---------------------------- 🌟説明ポップアップ🌟 ここまで ---------------------------- */}
+
+      {/* ---------------------------- エンティティリスト編集モーダル ---------------------------- */}
+      {isOpenEditEntityListByParentModal && editParentEntity && (
+        <>
+          <div
+            className={`fade03_forward fixed left-0 top-0 z-[100] h-[100vh] w-[100vw] bg-[#00000056] backdrop-blur-[6px]`}
+            onClick={handleCloseEditEntityListByParentModal}
+          ></div>
+          <div className={`${styles.switch_container} fade05_forward`}>
+            {/* 保存キャンセルエリア */}
+            <div className="flex w-full  items-center justify-between whitespace-nowrap py-[10px] pb-[30px] text-center text-[18px]">
+              <div
+                className="relative flex min-w-[125px] cursor-pointer select-none items-center pl-[10px] text-start font-semibold hover:text-[#aaa]"
+                onClick={handleCloseEditEntityListByParentModal}
+              >
+                {/* <span>キャンセル</span> */}
+                <BsChevronLeft className="z-1 absolute  left-[-25px] top-[50%] translate-y-[-50%] text-[24px]" />
+                <span>戻る</span>
+              </div>
+              <div className="flex select-none items-center space-x-[6px] font-bold">
+                <span className="max-w-[330px] truncate">{editParentEntity.name}</span>
+                <span>リスト編集</span>
+              </div>
+              {/* <div className="-translate-x-[25px] font-bold">カラム並び替え・追加/削除</div> */}
+              <div
+                className={`min-w-[125px] cursor-pointer select-none text-end font-bold text-[var(--color-text-brand-f)] hover:text-[var(--color-text-brand-f-hover)] ${
+                  styles.save_text
+                } ${
+                  selectedActiveItemIdsMap.size === 0 && selectedInactiveItemIdsMap.size === 0
+                    ? `!text-[color-text-sub]`
+                    : ``
+                } ${selectedInactiveItemIdsMap.size > 0 ? `!text-[var(--bright-green)]` : ``} ${
+                  selectedActiveItemIdsMap.size > 0
+                    ? `!text-[var(--main-color-tk)] hover:!text-[var(--main-color-tkc0)]`
+                    : ``
+                }`}
+                onClick={async () => {
+                  if (selectedActiveItemIdsMap.size === 0 && selectedInactiveItemIdsMap.size === 0) return;
+                  // 売上目標に追加
+                  if (selectedInactiveItemIdsMap.size > 0 && selectedActiveItemIdsMap.size === 0) {
+                    handleUpdateEntityList("add");
+                  }
+                  // 売上目標から削除
+                  if (selectedActiveItemIdsMap.size > 0 && selectedInactiveItemIdsMap.size === 0) {
+                    handleUpdateEntityList("remove");
+                  }
+                }}
+              >
+                <span
+                  onMouseEnter={(e) => {
+                    if (selectedActiveItemIdsMap.size === 0 && selectedInactiveItemIdsMap.size === 0) return;
+                    const text =
+                      selectedInactiveItemIdsMap.size > 0
+                        ? `選択したアイテムをリストに追加`
+                        : selectedActiveItemIdsMap.size > 0
+                        ? `選択したアイテムをリストから削除`
+                        : ``;
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: text,
+                      marginTop: 12,
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                >
+                  {selectedInactiveItemIdsMap.size > 0 && selectedActiveItemIdsMap.size === 0 && `追加`}
+                  {selectedActiveItemIdsMap.size > 0 && selectedInactiveItemIdsMap.size === 0 && `削除`}
+                </span>
+              </div>
+            </div>
+            {/* メインコンテンツ コンテナ */}
+            <div className={`${styles.edit_contents_container}`}>
+              {/* 右コンテンツボックス */}
+              <div className={`flex h-full  basis-5/12 flex-col items-center ${styles.content_box}`}>
+                {/* タイトルエリア */}
+                <div className={`${styles.title} w-full space-x-[12px] text-[var(--color-edit-arrow-disable-color)]`}>
+                  <div
+                    className={`flex-center h-[30px] cursor-not-allowed rounded-[9px] px-[12px] ${styles.icon_button} ${
+                      selectedActiveItemIdsMap.size > 0 ? `${styles.inactive}` : ``
+                    } ${selectedInactiveItemIdsMap.size > 0 ? `${styles.add}` : ``}`}
+                    onMouseEnter={(e) => {
+                      const text =
+                        selectedInactiveItemIdsMap.size > 0
+                          ? `選択したアイテムをリストに追加`
+                          : `目標リストに追加するアイテムを選択してください`;
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: text,
+                        marginTop: 6,
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                    onClick={async () => {
+                      if (selectedActiveItemIdsMap.size > 0) return;
+                      // 売上目標に追加
+                      if (selectedInactiveItemIdsMap.size > 0) {
+                        handleUpdateEntityList("add");
+                      }
+                    }}
+                  >
+                    <span className="text-[12px]">追加</span>
+                  </div>
+                  <div
+                    className={`flex-center h-[30px] cursor-not-allowed rounded-[9px] px-[12px] ${styles.icon_button} ${
+                      selectedActiveItemIdsMap.size > 0 ? `${styles.remove}` : ``
+                    } ${selectedInactiveItemIdsMap.size > 0 ? `${styles.inactive}` : ``}`}
+                    onMouseEnter={(e) => {
+                      const text =
+                        selectedActiveItemIdsMap.size > 0
+                          ? `選択したアイテムをリストから削除`
+                          : `目標リストから削除するアイテムを選択してください`;
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: text,
+                        marginTop: 6,
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                    onClick={() => {
+                      if (selectedInactiveItemIdsMap.size > 0) return;
+                      if (selectedActiveItemIdsMap.size > 0) {
+                        handleUpdateEntityList("remove");
+                      }
+                    }}
+                  >
+                    <span className="text-[12px]">削除</span>
+                  </div>
+
+                  <div
+                    // ref={resetRightRef}
+                    className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full  ${styles.icon_button} ${
+                      !!selectedActiveItemIdsMap.size || !!selectedInactiveItemIdsMap.size
+                        ? `${styles.arrow_right_reset_active}`
+                        : ``
+                    }`}
+                    onMouseEnter={(e) => {
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: `リセット`,
+                        marginTop: 6,
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                    onClick={() => {
+                      if (selectedActiveItemIdsMap.size > 0) setSelectedActiveItemIdsMap(new Map());
+                      if (selectedInactiveItemIdsMap.size > 0) setSelectedInactiveItemIdsMap(new Map());
+                    }}
+                  >
+                    <GrPowerReset className="pointer-events-none text-[16px]" />
+                  </div>
+                  {(!!selectedActiveItemIdsMap.size || !!selectedInactiveItemIdsMap.size) && (
+                    <div className="ml-auto flex h-full w-fit flex-1 items-center justify-end">
+                      {selectedActiveItemIdsMap.size > 0 && (
+                        <span className={`text-[14px] text-[var(--color-text-brand-f)]`}>
+                          {selectedActiveItemIdsMap.size}件選択中
+                        </span>
+                      )}
+                      {selectedInactiveItemIdsMap.size > 0 && (
+                        <span className={`text-[14px] text-[var(--color-text-brand-f)]`}>
+                          {selectedInactiveItemIdsMap.size}件選択中
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* カラムリストエリア */}
+                <ul className={`${styles.sortable_list}`}>
+                  {editAllEntityListByParent.map((item, index) => {
+                    const isDisplay = editCurrentDisplayEntityMapInParentGroup.has(item.id);
+                    return (
+                      <li
+                        key={`right_${item.id}_${item.target_type}`}
+                        className={`${styles.item} ${styles.item_right} ${!isDisplay ? `${styles.inactive}` : ``} ${
+                          selectedActiveItemIdsMap.has(item.id) ? `${styles.remove}` : ``
+                        } ${selectedInactiveItemIdsMap.has(item.id) ? `${styles.add}` : ``}`}
+                        onClick={() => {
+                          // 表示中のitemをクリック
+                          if (isDisplay) {
+                            if (selectedInactiveItemIdsMap.size > 0) setSelectedInactiveItemIdsMap(new Map()); // 非表示選択リストはリセット
+
+                            const newMap = new Map(selectedActiveItemIdsMap); // 現在のMapのシャローコピーを作成
+
+                            if (newMap.has(item.id)) {
+                              // 既に入っている場合は取り除く
+                              newMap.delete(item.id);
+                            } else {
+                              // 含まれていない場合は追加する
+                              newMap.set(item.id, item);
+                            }
+
+                            setSelectedActiveItemIdsMap(newMap);
+                          }
+                          // 非表示のitem
+                          else {
+                            if (selectedActiveItemIdsMap.size > 0) setSelectedActiveItemIdsMap(new Map()); // 表示中選択リストはリセット
+
+                            const newMap = new Map(selectedInactiveItemIdsMap);
+
+                            if (newMap.has(item.id)) {
+                              // 既に入っている場合は取り除く
+                              newMap.delete(item.id);
+                            } else {
+                              // 含まれていない場合は追加する
+                              newMap.set(item.id, item);
+                            }
+                            setSelectedInactiveItemIdsMap(newMap);
+                          }
+                        }}
+                      >
+                        <div className={styles.details}>
+                          <span className="truncate">{getEntityTargetTitle(currentLevel, item)}</span>
+                          {/* <MdOutlineDragIndicator className="fill-[var(--color-text)]" /> */}
+                        </div>
+                        {isDisplay && (
+                          <span className="min-w-max text-[10px] text-[var(--color-text-brand-f)]">表示中</span>
+                        )}
+                        {/* {item.target_type === "sales_target" && (
+                        <span className="min-w-max text-[10px] text-[var(--color-text-brand-f)]">表示中</span>
+                      )} */}
+                      </li>
+                    );
+                  })}
+                </ul>
+                {/* <span ref={scrollBottomRef}></span> */}
+              </div>
+            </div>
+            {/* {hoveredItemPosModal && <TooltipModal />} */}
+          </div>
+        </>
+      )}
+      {/* ---------------------------- エンティティリスト編集モーダル ここまで ---------------------------- */}
     </>
   );
 };

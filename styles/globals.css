@@ -906,9 +906,14 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-edit-add-hover: #7fff7090;
   --color-edit-add50: #7fff7050;
   /* --color-edit-remove: #ff8585; */
-  --color-edit-remove: #ff7d7d;
-  --color-edit-remove50: #ff7d7d50;
-  --color-edit-remove-hover: #ff7d7d80;
+  /* --color-edit-remove: #ff7d7d; */
+  /* --color-edit-remove50: #ff7d7d50; */
+  /* --color-edit-remove-hover: #ff7d7d80; */
+  --color-edit-remove: var(--main-color-tk);
+  --color-edit-remove50: var(--main-color-tk50);
+  --color-edit-remove-hover: var(--main-color-tk50);
+  --color-edit-remove-inner: var(--main-color-tk40);
+  --color-edit-remove-inner-hover: var(--main-color-tk70);
   --color-edit-left-active: #6ae67d;
   --color-edit-left-active-bg: #abffa230;
   /* --color-edit-right-active: #f63e54; */
@@ -1817,9 +1822,14 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-edit-add: #7fff70;
   --color-edit-add-hover: #7fff7090;
   /* --color-edit-remove: #ff8585; */
-  --color-edit-remove: #ff7d7d;
+  /* --color-edit-remove: #ff7d7d;
   --color-edit-remove50: #ff7d7d50;
-  --color-edit-remove-hover: #ff7d7d40;
+  --color-edit-remove-hover: #ff7d7d40; */
+  --color-edit-remove: var(--main-color-tk);
+  --color-edit-remove50: var(--main-color-tk50);
+  --color-edit-remove-hover: var(--main-color-tk20);
+  --color-edit-remove-inner: var(--main-color-tk20);
+  --color-edit-remove-inner-hover: var(--main-color-tk50);
   --color-edit-left-active: #6ae67d;
   --color-edit-left-active-bg: #abffa230;
   --color-edit-right-active: #f63e54;
