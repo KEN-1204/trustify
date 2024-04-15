@@ -641,6 +641,7 @@
   /* background-color: var(--color-black-bg); */
   /* background-color: #303030; */
   background-color: var(--color-settings-menu-bg);
+  /* background-color: var(--color-settings-menu-bg-reversible); */
   opacity: 0;
   transform: translateY(-5%);
   animation: fade_up5 0.3s ease forwards;
@@ -1067,6 +1068,7 @@
   min-width: 577px;
   /* max-width: 577px; */
   max-height: 732px;
+  color: var(--color-text-title);
   background-color: var(--color-edit-bg);
   box-shadow: var(--color-edit-border-with-shadow);
   border-radius: 12px;
@@ -1130,8 +1132,10 @@
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }
 .switch_container .sortable_list .item.add {
-  box-shadow: 0 0 0 1px var(--color-edit-left-active);
-  background-color: var(--color-edit-left-active-bg);
+  /* box-shadow: 0 0 0 1px var(--color-edit-left-active);
+  background-color: var(--color-edit-left-active-bg); */
+  box-shadow: 0 0 0 1px var(--color-edit-add);
+  background-color: var(--color-edit-add-inner);
 }
 .switch_container .sortable_list .item.remove {
   /* box-shadow: 0 0 0 1px var(--color-bg-brand-f);
@@ -1139,10 +1143,22 @@
   box-shadow: 0 0 0 1px var(--color-edit-remove);
   background-color: var(--color-edit-remove-inner);
 }
+.switch_container .icon_button.add:hover,
+.switch_container .sortable_list .item.add:hover {
+  background-color: var(--color-edit-add-inner-hover);
+}
 .switch_container .icon_button.remove:hover,
 .switch_container .sortable_list .item.remove:hover {
   background-color: var(--color-edit-remove-inner-hover);
 }
+/* .switch_container .icon_button.add:hover {
+  background-color: var(--color-edit-add);
+  color: #fff;
+}
+.switch_container .icon_button.remove:hover {
+  background-color: var(--color-edit-remove);
+  color: #fff;
+} */
 .switch_container .item .details {
   display: flex;
   align-items: center;
@@ -1199,9 +1215,11 @@
   color: var(--color-edit-arrow-disable-color);
 }
 .switch_container .icon_button.add {
-  background-color: var(--color-edit-add50);
   /* box-shadow: 0 0 0 1px var(--color-edit-add); */
-  box-shadow: 0 0 0 1px var(--bright-green);
+  /* background-color: var(--color-edit-add50);
+  box-shadow: 0 0 0 1px var(--bright-green); */
+  background-color: var(--color-edit-add-inner);
+  box-shadow: 0 0 0 1px var(--color-edit-add);
   color: var(--bright-green);
   cursor: pointer;
 }

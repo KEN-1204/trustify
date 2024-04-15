@@ -111,6 +111,11 @@
   --bright-greenb0: #00d436b0;
   --bright-greena0: #00d436a0;
   --bright-green90: #00d43690;
+  --bright-green80: #00d43680;
+  --bright-green70: #00d43670;
+  --bright-green60: #00d43660;
+  --bright-green50: #00d43650;
+  --bright-green40: #00d43640;
   --bright-green30: #00d43630;
   --bright-green29: #00d43629;
   --bright-green20: #00d43620;
@@ -902,9 +907,14 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-edit-frozen-text: #c0c0c0;
   --color-edit-border-frozen: 0 0 0 1px #cfcfcf;
   /* --color-edit-add: #abffa2; */
-  --color-edit-add: #7fff70;
+  /* --color-edit-add: #7fff70;
   --color-edit-add-hover: #7fff7090;
-  --color-edit-add50: #7fff7050;
+  --color-edit-add50: #7fff7050; */
+  --color-edit-add: var(--bright-green);
+  --color-edit-add50: var(--bright-green50);
+  --color-edit-add-hover: var(--bright-green50);
+  --color-edit-add-inner: var(--bright-green30);
+  --color-edit-add-inner-hover: var(--bright-green70);
   /* --color-edit-remove: #ff8585; */
   /* --color-edit-remove: #ff7d7d; */
   /* --color-edit-remove50: #ff7d7d50; */
@@ -1294,8 +1304,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* -------- 🌟セッティングメニュー🌟 light -------- */
   /* --color-settings-menu-bg: #ffffffde; */
   --color-settings-menu-bg: #242424;
+  --color-settings-menu-bg-reversible: #fff;
   --color-setting-menu-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390,
-    0 4px 10px 3px #00000066;
+    0 6px 12px 4px #00000066;
   /* -------- ✅セッティングメニュー✅ light -------- */
   /* -------- 🌠グラフ・チャート関連🌠 light -------- */
   /* ProgressCircle */
@@ -1819,8 +1830,13 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-edit-border-frozen: inset 0px 0px 0px 1px #777777e0, 0px 0px 0px 1px #333;
   /* --color-edit-border-frozen: 0 0 0 1px #555; */
   /* --color-edit-add: #abffa2; */
-  --color-edit-add: #7fff70;
-  --color-edit-add-hover: #7fff7090;
+  /* --color-edit-add: #7fff70;
+  --color-edit-add-hover: #7fff7090; */
+  --color-edit-add: var(--bright-green);
+  --color-edit-add50: var(--bright-green50);
+  --color-edit-add-hover: var(--bright-green20);
+  --color-edit-add-inner: var(--bright-green20);
+  --color-edit-add-inner-hover: var(--bright-green50);
   /* --color-edit-remove: #ff8585; */
   /* --color-edit-remove: #ff7d7d;
   --color-edit-remove50: #ff7d7d50;
@@ -2267,6 +2283,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* -------- ✅案件詳細モーダルSDB✅ dark -------- */
   /* -------- 🌟セッティングメニュー🌟 dark -------- */
   --color-settings-menu-bg: #242424;
+  --color-settings-menu-bg-reversible: #242424;
   --color-setting-menu-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390,
     0 4px 10px 2px #ffffff33;
   /* -------- ✅セッティングメニュー✅ dark -------- */

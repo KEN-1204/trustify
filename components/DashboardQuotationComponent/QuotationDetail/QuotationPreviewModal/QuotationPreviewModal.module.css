@@ -159,7 +159,8 @@
   z-index: 3500;
   /* background-color: var(--color-sign-out-bg); */
   /* background-color: #00000090; */
-  background-color: #303030;
+  /* background-color: #303030; */
+  background-color: var(--color-settings-menu-bg);
   /* box-shadow: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390, 0 4px 10px 2px #ffffff33; */
   box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390, 0 4px 10px 2px #ffffff33;
   color: #fff;
@@ -301,7 +302,8 @@
 .description_menu {
   box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390, 0 4px 10px 2px #ffffff33;
   /* background-color: var(--color-black-bg); */
-  background-color: #303030;
+  /* background-color: #303030; */
+  background-color: var(--color-settings-menu-bg);
   opacity: 0;
   transform: translateY(-5%);
   animation: fade_up5 0.3s ease forwards;

@@ -27,4 +27,5 @@ export const mappingPopupTitle: { [key: string]: { [key: string]: string } } = {
   settingSalesTarget: { en: "Sales Target", ja: "売上目標" },
   settingSalesTargetEntity: { en: "Fiscal Year", ja: "会計年度" },
   periodType: { en: "Period", ja: "期間" },
+  step: { en: `Step`, ja: `目標設定 手順` },
 };

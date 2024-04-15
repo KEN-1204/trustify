@@ -36,7 +36,7 @@ import { FallbackTargetContainer } from "../FallbackTargetContainer";
 import { FiPlus } from "react-icons/fi";
 import { IoChevronDownOutline, IoTriangleOutline } from "react-icons/io5";
 import { RxDot } from "react-icons/rx";
-import { mappingDescriptions, mappingPopupTitle } from "./dataSettingTarget";
+import { mappingPopupTitle } from "./dataSettingTarget";
 import { FallbackUpsertSettingTargetEntityGroup } from "./UpsertSettingTargetEntityGroup/FallbackUpsertSettingTargetEntityGroup";
 import { useQueryMemberAccountsFilteredByEntity } from "@/hooks/useQueryMemberAccountsFilteredByEntity";
 import { useQueryMemberGroupsByParentEntities } from "@/hooks/useQueryMemberGroupsByParentEntities";
@@ -123,6 +123,7 @@ const UpsertTargetEntityMemo = () => {
 
   // ref
   // 説明アイコン
+  const infoIconStepRef = useRef<HTMLDivElement | null>(null);
   const infoIconTitleRef = useRef<HTMLDivElement | null>(null);
 
   // // 選択中の会計年度ローカルstate
@@ -728,7 +729,7 @@ const UpsertTargetEntityMemo = () => {
                   id: "",
                   created_at: "",
                   updated_at: "",
-                  fiscal_year_id: "",
+                  fiscal_year_id: fiscalYearQueryData?.id ?? "", // companyレベル以外はfiscal_year_idはINSERT済み
                   entity_level_id: "",
                   parent_entity_level_id: companyEntityLevelId,
                   target_type: "sales_target",
@@ -767,6 +768,7 @@ const UpsertTargetEntityMemo = () => {
         (level) => level.entity_level === "department"
       )?.id;
       if (!departmentEntityLevelId) return alert("予期せぬエラーが発生しました。");
+      // sectionエンティティを作成するために、上位レベルに追加されているdepartmentエンティティを全てflatMapで展開して、そのdepartment一つずつに対して紐づくsectionをentitiesにグループ化してセットする
       newEntityGroupByParent = entitiesHierarchyLocal["department"]
         .map((departmentGroupByCompany) => {
           return departmentGroupByCompany.entities.map((entityDepartment) => {
@@ -783,7 +785,7 @@ const UpsertTargetEntityMemo = () => {
                   id: "",
                   created_at: "",
                   updated_at: "",
-                  fiscal_year_id: "",
+                  fiscal_year_id: fiscalYearQueryData?.id ?? "",
                   entity_level_id: "",
                   parent_entity_level_id: departmentEntityLevelId,
                   target_type: "sales_target",
@@ -838,7 +840,7 @@ const UpsertTargetEntityMemo = () => {
                   id: "",
                   created_at: "",
                   updated_at: "",
-                  fiscal_year_id: "",
+                  fiscal_year_id: fiscalYearQueryData?.id ?? "",
                   entity_level_id: "",
                   parent_entity_level_id: sectionEntityLevelId,
                   target_type: "sales_target",
@@ -1254,106 +1256,185 @@ const UpsertTargetEntityMemo = () => {
 
   // エンティティリスト編集モーダルを閉じる
   const handleCloseEditEntityListByParentModal = () => {
+    setEditParentEntity(null);
     setEditAllEntityListByParent([]);
     if (selectedActiveItemIdsMap.size > 0) setSelectedActiveItemIdsMap(new Map());
     if (selectedInactiveItemIdsMap.size > 0) setSelectedInactiveItemIdsMap(new Map());
+    setEditCurrentDisplayEntityMapInParentGroup(new Map());
     setIsOpenEditEntityListByParentModal(false);
   };
 
   // エンティティリスト編集モーダル 追加・削除
   const handleUpdateEntityList = async (updateType: "add" | "remove") => {
-    // レベルからupdateするテーブルを確定
-    let updatedTable = "";
-    if (currentLevel === "department") updatedTable = "departments";
-    if (currentLevel === "section") updatedTable = "sections";
-    if (currentLevel === "unit") updatedTable = "units";
-    if (currentLevel === "office") updatedTable = "offices";
-    if (currentLevel === "member") updatedTable = "profiles";
-    if (currentLevel === "") return alert("部門データが見つかりませんでした。");
+    if (currentLevel === "") return alert("有効なレイヤーが見つかりませんでした。");
+    if (!editParentEntity) return alert("上位レイヤーデータが見つかりませんでした。");
 
-    const newTargetType = updateType === "add" ? "sales_target" : null;
-    const updatedPayload = { target_type: newTargetType };
-    // idのみの配列を生成
-    const updatedEntityIds =
-      updateType === "add" ? [...selectedInactiveItemIdsMap.keys()] : [...selectedActiveItemIdsMap.keys()];
-    // 今回更新するMapオブジェクトを代入
-    const updatedEntityIdsMap = updateType === "add" ? selectedInactiveItemIdsMap : selectedActiveItemIdsMap;
+    // 全てのエンティティグループを削除しようとしている場合はリターンさせる
+    if (updateType === "remove") {
+      if (editCurrentDisplayEntityMapInParentGroup.size === selectedActiveItemIdsMap.size)
+        return alert(
+          "リストから全ての部門を削除はできません。リスト内には売上目標に関わる1つ以上の部門を追加してください。"
+        );
+    }
 
     setIsLoading(true); // ローディング開始
 
     try {
       console.log(
-        "削除実行🔥 updatedTable",
-        updatedTable,
-        updatedPayload,
-        "updatedEntityIds",
-        updatedEntityIds,
         "selectedInactiveItemIdsMap",
         selectedInactiveItemIdsMap,
         "selectedActiveItemIdsMap",
         selectedActiveItemIdsMap
       );
-      // const { error } = await supabase.from(updatedTable).update(updatedPayload).in("id", updatedEntityIds);
 
-      // if (error) throw error;
-
-      // // キャッシュの部門からsales_targetをnullに更新する
-      // let queryKey = "departments";
-      // if (currentLevel === "department") queryKey = "departments";
-      // if (currentLevel === "section") queryKey = "sections";
-      // if (currentLevel === "unit") queryKey = "units";
-      // if (currentLevel === "office") queryKey = "offices";
-      // if (currentLevel === "member") queryKey = "member_accounts";
-      // const prevCache = queryClient.getQueryData([queryKey]) as
-      //   | Department[]
-      //   | Section[]
-      //   | Unit[]
-      //   | Office[]
-      //   | MemberAccounts[];
-      // let newCache = [...prevCache]; // キャッシュのシャローコピーを作成
-      // // 更新対象のオブジェクトのtarget_typeをsales_target or nullに変更
-      // newCache = newCache.map((obj) =>
-      //   updatedEntityIdsMap.has(obj.id) ? { ...obj, target_type: newTargetType } : obj
-      // );
-      // console.log("キャッシュを更新 newCache", newCache);
-      // queryClient.setQueryData([queryKey], newCache); // キャッシュを更新
-
-      // if (updateType === "remove") {
-      //   // 固定していた場合は固定を解除
-      //   if (!!stickyRow && updatedEntityIdsMap.has(stickyRow)) {
-      //     setStickyRow(null);
-      //   }
-      // }
-
-      setIsLoading(false); // ローディング終了
-
-      // サブ目標リストを更新
-      // const newList = newCache.filter((obj) => obj.target_type === "sales_target") as
-      //   | Department[]
-      //   | Section[]
-      //   | Unit[]
-      //   | Office[]
-      //   | MemberAccounts[];
-      // setSubTargetList(newList);
-
-      // モーダル内のリストを更新
-      // setEditSubList(newCache as MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]);
-
-      const successMsg = updateType === "add" ? `目標リストに追加しました🌟` : `目標リストから削除しました🌟`;
-      toast.success(successMsg);
-
-      // リセット
       if (updateType === "add") {
+        // 親レベルテーブルのid
+        const parentLevel = addedEntityLevelsListQueryData?.find((level) => level.entity_level === parentEntityLevel);
+
+        // Mapのstateをシャローコピー
+        const newDisplayEntityGroupMap = new Map(editCurrentDisplayEntityMapInParentGroup);
+
+        // 非表示中のエンティティを追加、セットする
+        [...selectedInactiveItemIdsMap.values()].forEach((item) => {
+          if (!newDisplayEntityGroupMap.has(item.id)) {
+            newDisplayEntityGroupMap.set(item.id, {
+              id: "",
+              created_at: "",
+              updated_at: "",
+              fiscal_year_id: fiscalYearQueryData?.id ?? "",
+              entity_level_id: "", // step2の確定ボタンでINSERT
+              parent_entity_level_id: parentLevel?.id,
+              target_type: "sales_target",
+              entity_id: item.id,
+              parent_entity_id: editParentEntity.id,
+              is_confirmed_annual_half: false,
+              is_confirmed_first_half_details: false,
+              is_confirmed_second_half_details: false,
+              entity_name: getEntityTargetTitle(currentLevel, item),
+              parent_entity_name: editParentEntity.name,
+              // fiscal_yearsテーブル
+              fiscal_year: fiscalYearQueryData?.fiscal_year,
+              // entity_level_structuresテーブル
+              entity_level: currentLevel,
+              parent_entity_level: parentEntityLevel,
+            } as Entity);
+          }
+        });
+
+        const newEntities = [...newDisplayEntityGroupMap.values()];
+
+        const newEntityGroupByParent = {
+          parent_entity_id: editParentEntity.id,
+          parent_entity_name: editParentEntity.name,
+          entities: newEntities,
+        } as EntityGroupByParent;
+
+        // エンティティヒエラルキーを更新
+        const copiedEntitiesHierarchy = cloneDeep(entitiesHierarchyLocal);
+        // 現在リスト編集中の上位エンティティグループのみ新たなnewEntityGroupByParentをセットする
+        copiedEntitiesHierarchy[currentLevel] = copiedEntitiesHierarchy[currentLevel].map((group) => {
+          if (group.parent_entity_id !== editParentEntity.id) return group;
+          return newEntityGroupByParent;
+        });
+
+        // 実際のリストを更新
+        setEntitiesHierarchyLocal(copiedEntitiesHierarchy);
+
+        // モーダル内のリストも更新
+        // 現在表示中のリストのMapのstateを更新
+        setEditCurrentDisplayEntityMapInParentGroup(newDisplayEntityGroupMap);
+        // 選択中の非表示エンティティをリセット
         setSelectedInactiveItemIdsMap(new Map());
-      } else {
-        setSelectedActiveItemIdsMap(new Map());
       }
+      // リストから削除
+      else if (updateType === "remove") {
+        // Mapのstateをシャローコピー
+        const newDisplayEntityGroupMap = new Map(editCurrentDisplayEntityMapInParentGroup);
+        // 現在表示中で選択中のエンティティを削除する
+        [...selectedActiveItemIdsMap.values()].forEach((item) => {
+          if (newDisplayEntityGroupMap.has(item.id)) {
+            newDisplayEntityGroupMap.delete(item.id);
+          }
+
+          const newEntities = [...newDisplayEntityGroupMap.values()];
+
+          const newEntityGroupByParent = {
+            parent_entity_id: editParentEntity.id,
+            parent_entity_name: editParentEntity.name,
+            entities: newEntities,
+          } as EntityGroupByParent;
+
+          // エンティティヒエラルキーを更新
+          const copiedEntitiesHierarchy = cloneDeep(entitiesHierarchyLocal);
+          // 現在リスト編集中の上位エンティティグループのみ新たなnewEntityGroupByParentをセットする
+          copiedEntitiesHierarchy[currentLevel] = copiedEntitiesHierarchy[currentLevel].map((group) => {
+            if (group.parent_entity_id !== editParentEntity.id) return group;
+            return newEntityGroupByParent;
+          });
+
+          // 実際のリストを更新
+          setEntitiesHierarchyLocal(copiedEntitiesHierarchy);
+
+          // モーダル内のリストも更新
+          // 現在表示中のリストのMapのstateを更新
+          setEditCurrentDisplayEntityMapInParentGroup(newDisplayEntityGroupMap);
+          // 選択中の非表示エンティティをリセット
+          setSelectedActiveItemIdsMap(new Map());
+        });
+      }
+
+      toast.success(updateType === "add" ? `目標リストに追加しました🌟` : `目標リストから削除しました🌟`);
     } catch (error: any) {
       console.error("エラー：", error);
-      const errorMsg =
-        updateType === "add" ? `目標リストへの追加に失敗しました...🙇‍♀️` : "目標リストからの削除に失敗しました...🙇‍♀️";
-      toast.error(errorMsg);
+      toast.error(
+        updateType === "add" ? `目標リストへの追加に失敗しました...🙇‍♀️` : "目標リストからの削除に失敗しました...🙇‍♀️"
+      );
     }
+    setIsLoading(false); // ローディング終了
+
+    // const { error } = await supabase.from(updatedTable).update(updatedPayload).in("id", updatedEntityIds);
+
+    // if (error) throw error;
+
+    // // キャッシュの部門からsales_targetをnullに更新する
+    // let queryKey = "departments";
+    // if (currentLevel === "department") queryKey = "departments";
+    // if (currentLevel === "section") queryKey = "sections";
+    // if (currentLevel === "unit") queryKey = "units";
+    // if (currentLevel === "office") queryKey = "offices";
+    // if (currentLevel === "member") queryKey = "member_accounts";
+    // const prevCache = queryClient.getQueryData([queryKey]) as
+    //   | Department[]
+    //   | Section[]
+    //   | Unit[]
+    //   | Office[]
+    //   | MemberAccounts[];
+    // let newCache = [...prevCache]; // キャッシュのシャローコピーを作成
+    // // 更新対象のオブジェクトのtarget_typeをsales_target or nullに変更
+    // newCache = newCache.map((obj) =>
+    //   updatedEntityIdsMap.has(obj.id) ? { ...obj, target_type: newTargetType } : obj
+    // );
+    // console.log("キャッシュを更新 newCache", newCache);
+    // queryClient.setQueryData([queryKey], newCache); // キャッシュを更新
+
+    // if (updateType === "remove") {
+    //   // 固定していた場合は固定を解除
+    //   if (!!stickyRow && updatedEntityIdsMap.has(stickyRow)) {
+    //     setStickyRow(null);
+    //   }
+    // }
+
+    // サブ目標リストを更新
+    // const newList = newCache.filter((obj) => obj.target_type === "sales_target") as
+    //   | Department[]
+    //   | Section[]
+    //   | Unit[]
+    //   | Office[]
+    //   | MemberAccounts[];
+    // setSubTargetList(newList);
+
+    // モーダル内のリストを更新
+    // setEditSubList(newCache as MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]);
   };
 
   // ===================== 関数 =====================
@@ -1475,7 +1556,8 @@ const UpsertTargetEntityMemo = () => {
       let positionX = 0;
       let positionY = y;
       if (displayX === "right") {
-        positionX = -18 - 50 - (maxWidth ?? 400);
+        positionX = x + width + 6;
+        // positionX = -18 - 50 - (maxWidth ?? 400);
       } else if (displayX === "left") {
         positionX = window.innerWidth - x + 6;
       } else if (displayX === "bottom_left" && sectionMenuWidth) {
@@ -1576,6 +1658,27 @@ const UpsertTargetEntityMemo = () => {
   };
   // ==================================================================================
 
+  // 手順の説明文
+  const descriptionStep = [
+    {
+      title: "売上目標に関わる組織構成を決める",
+      content: `手順のステップ1~3を繰り返す形で、${upsertSettingEntitiesObj.fiscalYear}年度の売上目標に関わるレイヤーを「全社とメンバー」レイヤー間の「事業部・課/セクション・係/チーム」はお客様の独自の組織構成に合わせて上位階層からレイヤーを追加していき、売上目標を段階的に設定しましょう！`,
+    },
+    {
+      title: "売上目標の設定",
+      content:
+        "全社から係までのレイヤーでは「年度・半期」の売上目標を上位階層から設定していきます。\nメンバーレイヤーでは各メンバーの「上期内の半期から月次」もしくは「下期内の半期から月次」までの売上目標をメンバーの案件状況や受注見込みを考慮して設定しましょう。",
+    },
+    {
+      title: "四半期・月次目標を上位レイヤーに反映",
+      content: `メンバーレイヤーの半期から月次の売上目標の設定が完了した後、ステップ4で全てのメンバーの四半期・月次の売上目標を集計し、全社までの上位レイヤーの四半期・月次の売上目標に反映することで${upsertSettingEntitiesObj.fiscalYear}年度の売上目標が完成となります！`,
+    },
+  ];
+
+  const mappingDescriptions: { [key: string]: { [key: string]: string }[] } = {
+    step: descriptionStep,
+  };
+
   // インラインスタイル
   // 上部のステップライン
   const getActiveSteps = (num: number) =>
@@ -1592,7 +1695,7 @@ const UpsertTargetEntityMemo = () => {
     step === num ? `text-[var(--color-text-title)]` : `text-[var(--color-text-disabled)]`;
   // ステップヘッダーの次へボタン アクティブか非アクティブか
   const styleStepNextBtn = () => {
-    const activeStyle = `bg-[var(--color-bg-brand-f)] cursor-pointer hover:bg-[var(--color-bg-brand-f-hover)] text-[#fff]`;
+    const activeStyle = `bg-[var(--color-bg-brand-f)] cursor-pointer hover:bg-[var(--color-bg-brand-f-deep)] text-[#fff]`;
     const inactiveStyle = `bg-[var(--color-bg-brand-f-disabled)] cursor-not-allowed text-[var(--color-text-disabled-on-brand)]`;
     if (step === 2) {
       if (currentLevel === "company") return activeStyle;
@@ -1627,7 +1730,7 @@ const UpsertTargetEntityMemo = () => {
     // if (selectedEntityLevel === "member")
     if (currentLevel === "member")
       return `追加したレイヤー内で売上目標に直接関わる部門やメンバーを追加してください。\n売上目標に関わるメンバーを追加しましょう！レイヤーの構成が確定したら「次へ」から次のステップに進んでください。`;
-    return `追加したレイヤー内で売上目標に直接関わる部門やメンバーを追加してください。\n次は売上目標に関わる部門を追加しましょう！レイヤーの構成が確定したら「次へ」から次のステップに進んでください。`;
+    return `追加した${mappingEntityName[currentLevel][language]}レイヤー内で売上目標に直接関わる${mappingEntityName[currentLevel][language]}を下の「リスト編集」から追加・削除し、構成を決めてください。\nレイヤーの構成が決まったら「構成を確定」から現在のリスト内容を保存し次のステップに進んでください！`;
   };
   // ステップ3
   const getTextStep3 = () => {
@@ -1658,6 +1761,11 @@ const UpsertTargetEntityMemo = () => {
     }
     return "";
   };
+
+  // step別期間タイトル
+  // const mappingPeriodTitle = {
+  //   1:
+  // }
 
   // ✅初回マウント時
   // 初回マウント時にユーザーが選択した年度の中で、既にレイヤーがINSERTされており、
@@ -1835,11 +1943,18 @@ const UpsertTargetEntityMemo = () => {
       <div className={`${styles.main_container_entity} fade08_forward`}>
         <div className={`${styles.title_area}`}>
           <h1 className={`${styles.title} ${styles.upsert} space-x-[24px]`}>
-            <span className="min-w-max">{upsertSettingEntitiesObj.fiscalYear}年度 目標設定</span>
+            {(step === 1 || currentLevel === "") && (
+              <span className="min-w-max">{upsertSettingEntitiesObj.fiscalYear}年度 目標設定</span>
+            )}
+            {[2, 3].includes(step) && currentLevel !== "" && (
+              <span className="min-w-max">
+                {upsertSettingEntitiesObj.fiscalYear}年度 {mappingEntityName[currentLevel][language]} 目標設定
+              </span>
+            )}
             {/* ----プログレスエリア---- */}
             <div className="relative flex h-[25px] w-full items-center">
               {/* プログレスライン */}
-              <div className="absolute left-0 top-[50%] z-[0] h-[1px] w-[185px] bg-[var(--color-progress-bg)]"></div>
+              <div className="absolute left-0 top-[50%] z-[0] h-[1px] w-[145px] bg-[var(--color-progress-bg)]"></div>
               {/* ○1 */}
               <div
                 className={`flex-center z-[1] mr-[15px] h-[25px] w-[25px] cursor-pointer rounded-full border border-solid ${getActiveSteps(
@@ -1877,14 +1992,14 @@ const UpsertTargetEntityMemo = () => {
                 <span className={`text-[12px] font-bold`}>4</span>
               </div>
               {/* ○5 */}
-              <div
+              {/* <div
                 className={`flex-center  z-[1] mr-[15px] h-[25px] w-[25px] cursor-not-allowed rounded-full border border-solid ${getActiveSteps(
                   5
                 )}`}
                 onClick={() => setStep(5)}
               >
                 <span className={`text-[12px] font-bold`}>5</span>
-              </div>
+              </div> */}
             </div>
             {/* ----プログレスエリア ここまで---- */}
           </h1>
@@ -1911,9 +2026,27 @@ const UpsertTargetEntityMemo = () => {
           <div className={`${styles.left_container} bg-[red]/[0] ${isStickySidebar ? `${styles.sticky_side}` : ``}`}>
             <div className={`${styles.step_container} space-y-[12px]`}>
               <div className={`flex w-full justify-between`}>
-                <h4 className={`w-full text-[18px] font-bold`}>
+                <h4
+                  className={`flex w-full max-w-max items-center text-[18px] font-bold`}
+                  onMouseEnter={(e) => {
+                    const icon = infoIconStepRef.current;
+                    if (icon && icon.classList.contains(styles.animate_ping)) {
+                      icon.classList.remove(styles.animate_ping);
+                    }
+                    handleOpenPopupMenu({ e, title: "step", displayX: "right", maxWidth: 360 });
+                  }}
+                  onMouseLeave={handleClosePopupMenu}
+                >
                   <span>手順</span>
+                  <div className="flex-center relative ml-[12px] h-[16px] w-[16px] rounded-full">
+                    <div
+                      ref={infoIconStepRef}
+                      className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                    ></div>
+                    <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                  </div>
                 </h4>
+
                 <div
                   className={`${styles.btn} ${styles.basic} space-x-[4px] whitespace-nowrap`}
                   onMouseEnter={(e) => {
@@ -1936,6 +2069,7 @@ const UpsertTargetEntityMemo = () => {
                   {!isStickySidebar && <span>固定</span>}
                 </div>
               </div>
+
               {/* ------------- */}
               <li className={`flex h-max w-full flex-col`}>
                 <div className={`flex w-full items-center space-x-[9px] text-[14px] font-bold ${getActiveDesc(1)}`}>
@@ -2005,15 +2139,17 @@ const UpsertTargetEntityMemo = () => {
                       <span className={`text-[12px] font-bold`}>4</span>
                     </div>
                   </div>
-                  <span>ステップ1~3を繰り返し、目標に関わる全メンバーの目標を設定する</span>
+                  {/* <span>ステップ1~3を繰り返し、目標に関わる全メンバーの目標を設定する</span> */}
+                  <span>全レイヤーの四半期・月次の売上目標を「集計」で完成させる</span>
                 </div>
                 <div className={`${styles.description} w-full text-[12px] ${step === 4 ? `${styles.open}` : ``}`}>
-                  <p>{`「全社、メンバー」レイヤーの間の「事業部・課/セクション・係/チーム」はお客様ごとに独自の組織構成に合わせて全ての組織階層・レイヤーを追加し、最後は目標に関わる全メンバーの目標を設定してください。`}</p>
+                  {/* <p>{`「全社、メンバー」レイヤーの間の「事業部・課/セクション・係/チーム」はお客様ごとに独自の組織構成に合わせて全ての組織階層・レイヤーを追加し、最後は目標に関わる全メンバーの目標を設定してください。`}</p> */}
+                  <p>{`全てのメンバーの四半期、月次目標の設定が完了したら、全メンバーの売上目標を集約して全てのレイヤーの四半期・月次売上目標を完成させる`}</p>
                 </div>
               </li>
               {/* ------------- */}
               {/* ------------- */}
-              <li className={`flex h-max w-full flex-col`}>
+              {/* <li className={`flex h-max w-full flex-col`}>
                 <div className={`flex w-full items-center space-x-[9px] text-[14px] font-bold ${getActiveDesc(5)}`}>
                   <div className="flex h-full min-w-max items-center">
                     <div
@@ -2025,14 +2161,13 @@ const UpsertTargetEntityMemo = () => {
                     </div>
                   </div>
                   <span>
-                    {/* メンバーの年度〜月次の売上目標を完成後、全レイヤーの四半期・月次の売上目標を「集計」で完成させる */}
                     全レイヤーの四半期・月次の売上目標を「集計」で完成させる
                   </span>
                 </div>
                 <div className={`${styles.description} w-full text-[12px] ${step === 5 ? `${styles.open}` : ``}`}>
                   <p>{`全てのメンバーの四半期、月次目標の設定が完了したら、全メンバーの売上目標を集約して全てのレイヤーの四半期・月次売上目標を完成させる`}</p>
                 </div>
-              </li>
+              </li> */}
               {/* ------------- */}
             </div>
           </div>
@@ -2055,7 +2190,12 @@ const UpsertTargetEntityMemo = () => {
                     <div className={`flex flex-col`}>
                       <h4 className={`flex min-h-[30px] font-bold`}>
                         {step === 1 && <span>組織を構成するレイヤーを追加</span>}
-                        {step === 2 && <span>レイヤーごとに会社・部門・メンバーを追加して、組織構成を決める</span>}
+                        {step === 2 && currentLevel === "company" && (
+                          <span>レイヤーごとに会社・部門・メンバーを追加して、組織構成を決める</span>
+                        )}
+                        {step === 2 && currentLevel !== "company" && (
+                          <span>レイヤーごとに部門・メンバーを追加して、組織構成を決める</span>
+                        )}
                         {step === 3 && <span>各部門・各メンバーの売上目標を設定</span>}
                         {/* {step === 4 && <span>組織を構成するレイヤーを追加</span>} */}
                         {step === 3 && (
@@ -2125,12 +2265,21 @@ const UpsertTargetEntityMemo = () => {
                           <button
                             className={`transition-bg01 flex-center max-h-[36px] max-w-max rounded-[8px] px-[15px] py-[10px] text-[13px] font-bold ${styleStepNextBtn()}`}
                             onMouseEnter={(e) => {
-                              if (step !== 3) return;
+                              if (step === 4) return;
+                              if (step === 2 && currentLevel === "company") return;
+                              let content1 = ``;
+                              const step1Content1 = `${upsertSettingEntitiesObj.fiscalYear}年度の売上目標の組織構成に`;
+                              const step1Content2 = `${mappingEntityName[selectedNextLevel][language]}レイヤーを追加する`;
+                              if (step === 1) content1 = step1Content1;
+                              if (step === 2 && currentLevel !== "")
+                                content1 = `${mappingEntityName[currentLevel][language]}レイヤーの目標リストを確定・保存する`;
+                              if (step === 3) content1 = "全社レイヤーの売上目標の設定内容を保存します。";
                               handleOpenTooltip({
                                 e: e,
                                 display: "top",
-                                content: tooltipBtnText(),
-                                marginTop: 0,
+                                content: content1,
+                                content2: step === 1 ? step1Content2 : undefined,
+                                marginTop: step === 1 ? 24 : 0,
                               });
                             }}
                             onMouseLeave={handleCloseTooltip}
@@ -2372,6 +2521,35 @@ const UpsertTargetEntityMemo = () => {
                                         display: `none`,
                                       }),
                                     }}
+                                    onMouseEnter={(e) => {
+                                      if (step === 2 || step === 3) {
+                                        let step2Text = ``;
+                                        let step3Text = ``;
+                                        if (currentLevel !== "" && parentEntityLevel !== "root") {
+                                          step2Text = `${parentEntityLevel === "company" ? `` : `この`}${
+                                            mappingEntityName[parentEntityLevel][language]
+                                          }内で売上目標に関わる${
+                                            mappingEntityName[currentLevel][language]
+                                          }リストを編集する`;
+                                          step3Text = `${
+                                            parentEntityLevel === "company"
+                                              ? ``
+                                              : `この${mappingEntityName[parentEntityLevel][language]}内の`
+                                          }各${mappingEntityName[currentLevel][language]}の売上目標を設定する`;
+                                        }
+                                        if (currentLevel === "company") {
+                                          step3Text = `全社の売上目標を設定する`;
+                                        }
+
+                                        handleOpenTooltip({
+                                          e: e,
+                                          display: "top",
+                                          content: step === 2 ? step2Text : step === 3 ? step3Text : ``,
+                                          marginTop: 9,
+                                        });
+                                      }
+                                    }}
+                                    onMouseLeave={handleCloseTooltip}
                                     onClick={(e) => {
                                       // ------------------- 🔹step2🔹 -------------------
                                       if (step === 2) {
@@ -2694,7 +2872,7 @@ const UpsertTargetEntityMemo = () => {
           </div>
 
           <ul className={`flex flex-col rounded-[6px] ${styles.u_list}`}>
-            {["guide"].includes(openPopupMenu.title) &&
+            {["step"].includes(openPopupMenu.title) &&
               mappingDescriptions[openPopupMenu.title].map((item, index) => (
                 <li
                   key={item.title + index.toString()}
@@ -2712,16 +2890,28 @@ const UpsertTargetEntityMemo = () => {
                   </p>
                 </li>
               ))}
-            {!["guide"].includes(openPopupMenu.title) && (
+            {!["step"].includes(openPopupMenu.title) && (
               <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
                 <p className="select-none whitespace-pre-wrap text-[12px] leading-[20px]">
                   {openPopupMenu.title === "settingSalesTargetEntity" &&
                     "選択中の会計年度の目標を表示します。\n会計年度は2020年から現在まで選択可能で、翌年度はお客様の決算日から現在の日付が3ヶ月を切ると表示、設定、編集が可能となります。"}
+                  {/* {openPopupMenu.title === "step" &&
+                    `以下のステップ1~3を繰り返し、${upsertSettingEntitiesObj.fiscalYear}年度の売上目標に関わるレイヤーを「全社からメンバーまで」それぞれ上位階層から追加していき、売上目標を段階的に設定しましょう！`} */}
                 </p>
+                {/* {openPopupMenu.title === "step" && (
+                  <>
+                    <p className="!mt-[12px] select-none whitespace-pre-wrap text-[12px] leading-[20px]">
+                      {`全社から係までのレイヤーでは「年度・半期」の売上目標を設定し、メンバーレイヤーでは各メンバーの「上期内の半期から月次」もしくは「下期内の半期から月次」までの売上目標を設定します。`}
+                    </p>
+                    <p className="!mt-[12px] select-none whitespace-pre-wrap text-[12px] leading-[20px]">
+                      {`メンバーレイヤーの半期から月次の目標設定の設定が完了した後、ステップ4で全てのメンバーの四半期・月次の売上目標を集計し、全社までの上位レイヤーの四半期・月次の売上目標を反映することで${upsertSettingEntitiesObj.fiscalYear}年度の売上目標が完成となります！`}
+                    </p>
+                  </>
+                )} */}
               </li>
             )}
-            {openPopupMenu.title === "print" && <hr className="mb-[6px] min-h-[1px] w-full bg-[#666]" />}
-            {/* {openPopupMenu.title === "print" &&
+            {/* {openPopupMenu.title === "step" && <hr className="mb-[6px] min-h-[1px] w-full bg-[#666]" />} */}
+            {/* {openPopupMenu.title === "step" &&
               descriptionPrintTips.map((obj, index) => (
                 <li key={obj.title} className={`flex w-full space-x-[3px] px-[14px] py-[3px] text-[12px]`}>
                   <span className="min-w-[80px] max-w-[80px] font-bold">・{obj.title}：</span>

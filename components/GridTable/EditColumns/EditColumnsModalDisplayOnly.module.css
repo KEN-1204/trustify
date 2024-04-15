@@ -93,15 +93,21 @@
   background: var(--color-edit-item-bg);
   cursor: pointer;
 }
+.sortable_list .item:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
 .sortable_list .item.active_left {
   box-shadow: 0 0 0 1px var(--color-edit-left-active);
-  background-color: var(--color-edit-left-active-bg);
+  background: var(--color-edit-left-active-bg);
 }
 .sortable_list .item.active_right {
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
-  background-color: var(--color-bg-brand-f30);
+  background: var(--color-bg-brand-f30);
   /* box-shadow: 0 0 0 1px var(--color-edit-right-active);
-  background-color: var(--color-edit-right-active-bg); */
+  background: var(--color-edit-right-active-bg); */
+}
+.sortable_list .item.active_right:hover {
+  background: var(--color-btn-brand-f);
 }
 .item .details {
   display: flex;
@@ -136,6 +142,7 @@
   opacity: 0.3;
   /* background: var(--color-edit-add); */
   background: var(--color-bg-brand-f);
+  background: var(--color-card-dragging-bg);
   color: #fff;
 }
 .item_right svg:active,
@@ -148,6 +155,7 @@
   opacity: 0.3;
   /* background: var(--bright-red); */
   background: var(--color-bg-brand-f);
+  background: var(--color-card-dragging-bg);
   color: #fff;
 }
 
