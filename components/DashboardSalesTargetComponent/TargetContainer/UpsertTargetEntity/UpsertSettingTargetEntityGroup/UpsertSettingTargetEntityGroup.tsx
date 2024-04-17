@@ -11,6 +11,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { FaSave } from "react-icons/fa";
@@ -26,6 +27,7 @@ import {
   EntityLevels,
   MemberAccounts,
   Office,
+  SalesTargetsYearHalf,
   Section,
   Unit,
   UpsertSettingEntitiesObj,
@@ -55,6 +57,8 @@ import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { UpsertSettingTargetGridTableForMemberLevel } from "./UpsertSettingTargetGridTable/UpsertSettingTargetGridTableForMemberLevel";
 import { MainTargetTableDisplayOnly } from "./UpsertSettingTargetGridTable/MainTargetTableDisplayOnly";
+import { ImInfo } from "react-icons/im";
+import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
 
 export const columnHeaderListTarget = [
   "period_type",
@@ -377,7 +381,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // 3-2. エラーが起きたらエラーメッセージを表示
   useEffect(() => {
     if (!saveTriggerSalesTarget) {
-      if (isLoading) setIsLoading(true);
+      if (isLoading) setIsLoading(false);
       return;
     }
     console.log(
@@ -424,6 +428,10 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
       );
       setSaveTriggerSalesTarget(false); //トリガーをリセット
       setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
+      if (isLoading) setIsLoading(false); // ローディング終了
+      // save関連のstateをリセット
+      setCurrentActiveIndexSave(0);
+      setAllSaved(false);
       return;
     }
 
@@ -1098,7 +1106,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     office: { ja: "事業所", en: "Office" },
   };
 
-  // 子コンポーネントを順番にフェッチさせる
+  // --------------------------- 🌠子コンポーネントを順番にフェッチさせる🌠 ---------------------------
   const [currentActiveIndex, setCurrentActiveIndex] = useState(0); // 順番にフェッチを許可
   const [allFetched, setAllFetched] = useState(false); // サブ目標コンポーネントのフェッチが全て完了したらtrueに変更
 
@@ -1107,6 +1115,11 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     // サブ目標リストよりactiveIndexが大きくなった場合、全てフェッチが完了
     if (currentActiveIndex >= subTargetList.length) {
       setAllFetched(true);
+    }
+    if (upsertSettingEntitiesObj.entityLevel === "company") {
+      if (currentActiveIndex >= upsertSettingEntitiesObj.entities.length) {
+        setAllFetched(true);
+      }
     }
   }, [currentActiveIndex]);
 
@@ -1123,6 +1136,33 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     );
     setCurrentActiveIndex((prevIndex) => prevIndex + 1); // activeIndexを+1して次のコンポーネントのフェッチを許可
   };
+  // --------------------------- 🌠子コンポーネントを順番にフェッチさせる🌠 ---------------------------
+  // --------------------------- 🌠子コンポーネントに順番にデータ収集させる🌠 ---------------------------
+  const [currentActiveIndexSave, setCurrentActiveIndexSave] = useState(0); // 順番にフェッチを許可
+  const [allSaved, setAllSaved] = useState(false); // サブ目標コンポーネントのフェッチが全て完了したらtrueに変更
+
+  // 全子コンポーネントがフェッチ完了したかを監視
+  useEffect(() => {
+    // サブ目標リストよりactiveIndexが大きくなった場合、全てフェッチが完了
+    if (currentActiveIndexSave >= subTargetList.length) {
+      setAllSaved(true);
+    }
+  }, [currentActiveIndexSave]);
+
+  // 各サブ目標コンポーネントでフェッチ完了通知を受け取る関数
+  const onSaveComplete = (tableIndex: number) => {
+    // 既に現在のテーブルのindexよりcurrentActiveIndexが大きければリターン
+    if (tableIndex < currentActiveIndexSave || allSaved) return;
+    console.log(
+      "onFetchComplete関数実行 tableIndex",
+      tableIndex,
+      "currentActiveIndexSave",
+      currentActiveIndexSave,
+      tableIndex < currentActiveIndexSave
+    );
+    setCurrentActiveIndexSave((prevIndex) => prevIndex + 1); // activeIndexを+1して次のコンポーネントのフェッチを許可
+  };
+  // --------------------------- 🌠子コンポーネントに順番にデータ収集させる🌠 ---------------------------
 
   // サブ目標リスト編集モーダルを開く
   // const handleOpenEditSubListModal = () => {
@@ -1444,6 +1484,18 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   //   return backNum;
   // }, [periodTypeTrend]);
 
+  // --------------------- 🌟メイン目標の売上目標をキャッシュから取得🌟 ---------------------
+  const salesTargetsYearHalf: SalesTargetsYearHalf | null | undefined = queryClient.getQueryData([
+    "sales_target_main_year_half",
+    upsertSettingEntitiesObj.parentEntityLevel,
+    upsertSettingEntitiesObj.parentEntityId,
+    `year_half`,
+    upsertSettingEntitiesObj.fiscalYear,
+  ]);
+  // --------------------- 🌟メイン目標の売上目標をキャッシュから取得🌟 ---------------------
+
+  const infoIconInputStatusRef = useRef<HTMLDivElement | null>(null);
+
   console.log(
     "UpsertSettingTargetEntityGroupコンポーネントレンダリング",
     "upsertSettingEntitiesObj",
@@ -1453,7 +1505,9 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     "settingEntityLevel",
     settingEntityLevel,
     "selectedPeriodDetailTrend",
-    selectedPeriodDetailTrend
+    selectedPeriodDetailTrend,
+    "メイン目標キャッシュsalesTargetsYearHalf",
+    salesTargetsYearHalf
     // "サブ目標リスト",
     // subTargetList,
     // "memberDataArray",
@@ -1545,6 +1599,9 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                               setStickyRow={setStickyRow}
                               annualFiscalMonths={annualFiscalMonthsUpsert}
                               isMainTarget={true}
+                              saveEnabled={saveTriggerSalesTarget}
+                              onSaveComplete={() => onSaveComplete(0)}
+                              allSaved={allSaved}
                             />
                           )}
                           {upsertSettingEntitiesObj.entityLevel !== "company" && (
@@ -1601,9 +1658,9 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                             </span>
                           </div>
                         )} */}
-                        {upsertSettingEntitiesObj.entityLevel && (
+                        {upsertSettingEntitiesObj.entityLevel && allFetched && (
                           <div
-                            className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
+                            className={`${styles.select_btn_wrapper} fade08_forward relative flex items-center text-[var(--color-text-title-g)]`}
                             onMouseEnter={(e) => {
                               handleOpenTooltip({
                                 e: e,
@@ -1968,6 +2025,112 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                     {/*  */}
                     {/* ----------- 部門別シェア ３列エリア ここまで ----------- */}
 
+                    {/* ----------- 残り/総合目標 入力状況確認テーブル ----------- */}
+                    {upsertSettingEntitiesObj.entityLevel !== "company" && !!salesTargetsYearHalf && (
+                      <div className={`${styles.grid_row} ${styles.col1} fade08_forward`}>
+                        <div className={`${styles.grid_content_card} relative`}>
+                          {/* ------------------ タイトルエリア ------------------ */}
+                          <div className={`${styles.card_title_area}`}>
+                            <div className={`${styles.card_title} flex items-center`}>
+                              <span>{getDivName()}別目標合計 / 総合目標</span>
+                              <div className={`ml-[12px] flex h-full items-center`}>
+                                <div
+                                  className="flex-center relative h-[16px] w-[16px] rounded-full"
+                                  onMouseEnter={(e) => {
+                                    const icon = infoIconInputStatusRef.current;
+                                    if (icon && icon.classList.contains(styles.animate_ping)) {
+                                      icon.classList.remove(styles.animate_ping);
+                                    }
+                                    handleOpenTooltip({
+                                      e: e,
+                                      display: "top",
+                                      content: ``,
+                                      marginTop: 9,
+                                      itemsPosition: `left`,
+                                    });
+                                  }}
+                                  onMouseLeave={handleCloseTooltip}
+                                >
+                                  <div
+                                    ref={infoIconInputStatusRef}
+                                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                                  ></div>
+                                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                                </div>
+                              </div>
+                            </div>
+                            <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>
+                              <div
+                                className={`${styles.btn} ${styles.basic} space-x-[4px]`}
+                                onMouseEnter={(e) => {
+                                  handleOpenTooltip({
+                                    e: e,
+                                    display: "top",
+                                    content: stickyRow === "input_status" ? `固定を解除` : `画面内に固定`,
+                                    marginTop: 9,
+                                  });
+                                }}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  if ("input_status" === stickyRow) {
+                                    setStickyRow(null);
+                                  } else {
+                                    setStickyRow("input_status");
+                                  }
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                {stickyRow === "input_status" && <TbSnowflakeOff />}
+                                {stickyRow !== "input_status" && <TbSnowflake />}
+                                {stickyRow === "input_status" && <span>解除</span>}
+                                {stickyRow !== "input_status" && <span>固定</span>}
+                              </div>
+                            </div>
+                          </div>
+                          {/* ------------------ タイトルエリア ここまで ------------------ */}
+                          {/* ------------------ メインコンテナ ------------------ */}
+                          <div className={`${styles.main_container}`}>
+                            <div className={`flex w-full items-center justify-between`}>
+                              <div className={`flex w-1/3 items-center justify-start`}>
+                                <div
+                                  className={`flex-center ml-[18px] mr-[24px] rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] text-[var(--color-text-sub)]`}
+                                >
+                                  <span>年度</span>
+                                </div>
+                                <div className={`flex items-center space-x-[12px]`}>
+                                  <div className={`font-bold`}>
+                                    <span>¥ 0</span>
+                                  </div>
+                                  <div className={`font-bold`}>
+                                    <span>/</span>
+                                  </div>
+                                  <div className={`font-bold`}>
+                                    <span>{salesTargetsYearHalf.sales_target_year ?? ""}</span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className={`flex w-1/3 items-center justify-start`}>
+                                <div
+                                  className={`flex-center ml-[18px] mr-[24px] rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] text-[var(--color-text-sub)]`}
+                                >
+                                  <span>上半期</span>
+                                </div>
+                              </div>
+                              <div className={`flex w-1/3 items-center justify-start`}>
+                                <div
+                                  className={`flex-center ml-[18px] mr-[24px] rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] text-[var(--color-text-sub)]`}
+                                >
+                                  <span>下半期</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          {/* ------------------ メインコンテナ ここまで ------------------ */}
+                        </div>
+                      </div>
+                    )}
+                    {/* ----------- 残り/総合目標 入力状況確認テーブル ここまで ----------- */}
+
                     {/* ---------- 部門別目標 ---------- */}
                     {upsertSettingEntitiesObj.entityLevel !== "company" &&
                       subTargetList &&
@@ -2017,23 +2180,32 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                                     <UpsertSettingTargetGridTable
                                       // isEndEntity={upsertSettingEntitiesObj.entityLevel === "member"}
                                       entityLevel={targetEntityLevel}
-                                      entityId={obj.id}
                                       entityNameTitle={targetTitle}
+                                      entityId={obj.id}
+                                      parentEntityLevel={upsertSettingEntitiesObj.parentEntityLevel}
+                                      parentEntityId={upsertSettingEntitiesObj.parentEntityId}
+                                      parentEntityNameTitle={upsertSettingEntitiesObj.parentEntityName}
                                       stickyRow={stickyRow}
                                       setStickyRow={setStickyRow}
                                       annualFiscalMonths={annualFiscalMonthsUpsert}
                                       // isFirstHalf={isFirstHalf}
                                       isMainTarget={false}
+                                      // fetchEnabled={
+                                      //   !!salesTargetsYearHalf && (tableIndex === currentActiveIndex || allFetched)
+                                      // }
                                       fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
                                       onFetchComplete={() => onFetchComplete(tableIndex)}
+                                      saveEnabled={saveTriggerSalesTarget && tableIndex === currentActiveIndexSave}
+                                      onSaveComplete={() => onSaveComplete(tableIndex)}
+                                      allSaved={allSaved}
                                     />
                                   )}
                                   {upsertSettingEntitiesObj.entityLevel === "member" && (
                                     <UpsertSettingTargetGridTableForMemberLevel
                                       // isEndEntity={upsertSettingEntitiesObj.entityLevel === "member"}
                                       entityLevel={targetEntityLevel}
-                                      entityId={obj.id}
                                       entityNameTitle={targetTitle}
+                                      entityId={obj.id}
                                       stickyRow={stickyRow}
                                       setStickyRow={setStickyRow}
                                       annualFiscalMonths={annualFiscalMonthsUpsert}

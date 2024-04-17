@@ -1,4 +1,14 @@
-import { CSSProperties, Dispatch, SetStateAction, memo, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  CSSProperties,
+  Dispatch,
+  SetStateAction,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "../../../../DashboardSalesTargetComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import {
@@ -41,6 +51,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { FallbackScrollContainer } from "../../../SalesTargetsContainer/SalesTargetGridTable/FallbackScrollContainer";
+import { ImInfo } from "react-icons/im";
 
 /**
  *   "period_type",
@@ -59,12 +70,18 @@ type Props = {
   entityLevel: string;
   entityNameTitle: string;
   entityId: string;
+  parentEntityLevel?: string;
+  parentEntityId?: string;
+  parentEntityNameTitle?: string;
   stickyRow: string | null;
   setStickyRow: Dispatch<SetStateAction<string | null>>;
   annualFiscalMonths: FiscalYearMonthObjForTarget | null;
   isMainTarget: boolean; // メイン目標かどうか
   fetchEnabled?: boolean; // メイン目標でない場合はfetchEnabledがtrueに変更されたらフェッチを許可する
   onFetchComplete?: () => void;
+  saveEnabled?: boolean;
+  onSaveComplete?: () => void;
+  allSaved: boolean;
   // subTargetList?: Department[] | Section[] | Unit[] | Office[] | MemberAccounts[];
   // setSubTargetList?: Dispatch<SetStateAction<Department[] | Section[] | Unit[] | Office[] | MemberAccounts[]>>;
 };
@@ -74,6 +91,9 @@ const UpsertSettingTargetGridTableMemo = ({
   entityLevel,
   entityNameTitle,
   entityId,
+  parentEntityLevel,
+  parentEntityId,
+  parentEntityNameTitle,
   stickyRow,
   setStickyRow,
   // fiscalYearMonthsForThreeYear,
@@ -81,6 +101,9 @@ const UpsertSettingTargetGridTableMemo = ({
   isMainTarget = false,
   fetchEnabled,
   onFetchComplete,
+  saveEnabled,
+  onSaveComplete,
+  allSaved,
 }: // subTargetList,
 // setSubTargetList,
 // startYearMonth,
@@ -101,9 +124,23 @@ Props) => {
   // if (!upsertTargetObj || !userProfileState || !userProfileState.company_id) return;
   if (!upsertSettingEntitiesObj || !userProfileState || !userProfileState.company_id) return;
 
+  // 会社レベル以外のエンティティが設定対象の場合には、親エンティティレベルとIdが取得できているかを確認する
+  if (!isMainTarget && (!parentEntityLevel || !parentEntityId)) {
+    return;
+  }
+
   // 「半期〜月度」
   // if (isMemberLevelSetting && !annualFiscalMonths) return null;
 
+  // --------------------- 🌟メイン目標の売上目標をキャッシュから取得🌟 ---------------------
+  const salesTargetsYearHalf = queryClient.getQueryData([
+    "sales_target_main_year_half",
+    parentEntityLevel,
+    parentEntityId,
+    `year_half`,
+    upsertSettingEntitiesObj.fiscalYear,
+  ]);
+  // --------------------- 🌟メイン目標の売上目標をキャッシュから取得🌟 ---------------------
   // --------------------- 🌟過去3年分の売上と前年度の前年伸び率実績を取得するuseQuery🌟 ---------------------
   const {
     data: salesSummaryRowData,
@@ -118,16 +155,17 @@ Props) => {
     periodType: `year_half`,
     fiscalYear: upsertSettingEntitiesObj.fiscalYear,
     annualFiscalMonths: annualFiscalMonths,
-    fetchEnabled: isMainTarget ? true : fetchEnabled, // メイン目標はtrue, でなければfetchEnabledに従う
+    fetchEnabled: isMainTarget ? true : fetchEnabled && !!salesTargetsYearHalf, // メイン目標はtrue, でなければfetchEnabledがtrue、かつ、メインの売上目標が取得できてからフェッチを行う
   });
   // --------------------- 🌟過去3年分の売上と前年度の前年伸び率実績を取得するuseQuery🌟 ここまで ---------------------
 
-  // ---------------- useQueryでフェッチが完了したら ----------------
+  // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
   useEffect(() => {
     if (isSuccessQuery || isErrorQuery) {
       if (onFetchComplete) onFetchComplete();
     }
   }, [isSuccessQuery, isErrorQuery]);
+  // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
 
   // ---------------- ローカルstate ----------------
   // 売上目標input 「年度・上半期・下半期」
@@ -220,23 +258,24 @@ Props) => {
 
   // 🌠「保存クリック」データ収集
   useEffect(() => {
+    if (!saveTriggerSalesTarget)
+      return console.log(`❌${entityNameTitle}テーブル リターン トリガーがfalse`, saveTriggerSalesTarget);
+    if (!saveEnabled) return console.log(`❌${entityNameTitle}テーブル saveEnabledがfalseのためリターン`, saveEnabled);
+    if (allSaved) return console.log(`${entityNameTitle}テーブル ✅全てデータ収集ずみリターン`, allSaved);
     // トリガーがtrueの場合か、isCollectedでない(もしくは存在しない)場合のみ目標stateの収集を実行
     console.log(
-      `🔥🔥🔥🔥🔥${entityNameTitle}テーブル データ収集トリガー検知 saveTriggerSalesTarget`,
+      `🔥🔥🔥🔥🔥${entityNameTitle}テーブル データ収集トリガー検知`,
       saveTriggerSalesTarget,
-      "(inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected",
-      (inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected
+      "isCollected",
+      (inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected,
+      "saveEnabled",
+      saveEnabled
     );
-    if (!saveTriggerSalesTarget) {
-      console.log(`🔥🔥🔥🔥🔥${entityNameTitle}テーブル リターン !saveTriggerSalesTarget`);
-      return;
-    }
-    if ((inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected) {
-      console.log(
-        `🔥🔥🔥🔥🔥${entityNameTitle}テーブル リターン (inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected`
+    if ((inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected)
+      return console.log(
+        `✅${entityNameTitle}テーブル リターン isCollected`,
+        (inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected
       );
-      return;
-    }
 
     const getPeriod = (key: string) => {
       if (key === "fiscal_year") return upsertSettingEntitiesObj.fiscalYear;
@@ -301,7 +340,8 @@ Props) => {
 
     // Zustandを更新
     setInputSalesTargetsIdToDataMap(copyInputMap);
-  }, [saveTriggerSalesTarget]);
+    if (onSaveComplete) onSaveComplete();
+  }, [saveTriggerSalesTarget, saveEnabled]);
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
@@ -471,6 +511,8 @@ Props) => {
     "UpsertSettingTargetGridTableコンポーネントレンダリング",
     "entityNameTitle",
     entityNameTitle
+    // "salesTargetsYearHalf",
+    // salesTargetsYearHalf
     // "entityLevel",
     // entityLevel,
     // "annualFiscalMonths",
@@ -487,7 +529,11 @@ Props) => {
     // isLoadingQuery
   );
 
+  const infoIconStepRef = useRef<HTMLDivElement | null>(null);
+
+  // 過去3年分の実績の取得中、または、メイン目標の売上目標をキャッシュから未取得の場合にはローディングを表示する
   if (isLoadingQuery) return <FallbackScrollContainer title={entityNameTitle} />;
+  // if (isLoadingQuery || !salesTargetsYearHalf) return <FallbackScrollContainer title={entityNameTitle} />;
 
   return (
     <>
@@ -508,8 +554,42 @@ Props) => {
                   <div className={`absolute bottom-0 left-0 min-h-[2px] w-full bg-[var(--color-bg-brand-f)]`} />
                 </div>
               </div> */}
-            <div className={`${styles.card_title}`}>
+            <div className={`${styles.card_title} flex items-center`}>
               <span>{entityNameTitle}</span>
+              <div className={`ml-[12px] flex h-full items-center`}>
+                <div
+                  className="flex-center relative h-[16px] w-[16px] rounded-full"
+                  onMouseEnter={(e) => {
+                    const icon = infoIconStepRef.current;
+                    if (icon && icon.classList.contains(styles.animate_ping)) {
+                      icon.classList.remove(styles.animate_ping);
+                    }
+                    const parentName = parentEntityLevel === "company" ? `全社` : `${parentEntityNameTitle}`;
+                    const mainContent = ``;
+                    const subContent1 = parentEntityNameTitle
+                      ? `${entityNameTitle}のシェアは総合目標となる${parentName}の`
+                      : `${entityNameTitle}のシェアは総合目標の`;
+                    const subContent2 = `それぞれ期間の売上目標を100%とした場合のシェアを表しています。`;
+                    // handleOpenPopupMenu({ e, title: "step", displayX: "right", maxWidth: 360 });
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: isMainTarget ? mainContent : subContent1,
+                      content2: isMainTarget ? undefined : subContent2,
+                      marginTop: isMainTarget ? 9 : 39,
+                      itemsPosition: `left`,
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                  // onMouseLeave={handleClosePopupMenu}
+                >
+                  <div
+                    ref={infoIconStepRef}
+                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                  ></div>
+                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                </div>
+              </div>
             </div>
 
             <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>

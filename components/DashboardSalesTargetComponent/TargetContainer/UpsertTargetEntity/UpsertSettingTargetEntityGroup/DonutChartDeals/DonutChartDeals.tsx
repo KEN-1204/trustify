@@ -279,7 +279,7 @@ const DonutChartDealsMemo = ({
                     // style={{ background: `${COLORS_DEAL[index]}` }}
                   />
                   <div className="text-[13px] font-bold text-[var(--color-text-title)]">
-                    <span>合計予測</span>
+                    <span>残ネタ獲得 合計予測</span>
                   </div>
                 </div>
                 <div className={`flex items-center space-x-[12px] text-[13px] text-[var(--color-text-title)]`}>
