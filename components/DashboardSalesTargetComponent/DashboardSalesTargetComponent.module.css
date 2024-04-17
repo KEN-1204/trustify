@@ -928,6 +928,14 @@
 .card_title_area .btn.brand:hover {
   background-color: var(--color-bg-brand-f-deep);
 }
+.btn.brand.inactive {
+  background-color: var(--color-bg-brand-f-disabled) !important;
+  color: var(--color-text-disabled-on-brand) !important;
+  cursor: not-allowed;
+}
+.btn.brand.inactive svg {
+  color: var(--color-text-disabled-on-brand) !important;
+}
 
 /* --------- コンテンツエリア(GridTable) ---------  */
 .main_container {
@@ -1131,6 +1139,12 @@
 .switch_container .sortable_list .item:hover {
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }
+.switch_container .item.inactive {
+  /* background: var(--color-card-bg-disabled); */
+  /* box-shadow: 0 0 0 1px var(--color-card-border-rejected); */
+  background: var(--color-edit-item-bg-disabled);
+  box-shadow: 0 0 0 1px var(--color-edit-item-border-disabled);
+}
 .switch_container .sortable_list .item.add {
   /* box-shadow: 0 0 0 1px var(--color-edit-left-active);
   background-color: var(--color-edit-left-active-bg); */
@@ -1168,9 +1182,14 @@
   font-size: 12px;
   width: 290px;
 }
+
 .switch_container .item.inactive .details span {
   text-decoration: line-through;
-  color: var(--color-text-sub);
+  /* color: var(--color-text-sub); */
+  color: var(--color-text-disabled);
+}
+.switch_container .item.inactive.add .details span {
+  /* color: var(--color-edit-add); */
 }
 .switch_container .item svg {
   color: #474747;

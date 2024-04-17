@@ -600,7 +600,7 @@ export const TargetContainer = () => {
 
   // メニューを閉じる
   const handleClosePopupMenu = () => {
-    setOpenPopupMenu(null);
+    if (openPopupMenu) setOpenPopupMenu(null);
   };
   // --------------------- ポップアップメニュー関連 ここまで ---------------------
   // --------------------- メニュー liコンテンツ挿入用 ---------------------
@@ -716,6 +716,7 @@ export const TargetContainer = () => {
     });
 
     // setUpsertTargetMode(true);
+    handleClosePopupMenu();
     setUpsertTargetMode("settingTarget");
   };
 
@@ -1785,6 +1786,7 @@ export const TargetContainer = () => {
                     <div
                       className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
                       onClick={() => {
+                        handleClosePopupMenu();
                         if (openSectionMenu.title === "settingSalesTarget") handleStartUpsertMode();
                       }}
                     >

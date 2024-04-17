@@ -49,8 +49,8 @@ export const useQueryEntities = (
   };
 
   return useQuery({
-    // queryKey: ["entities", targetType, fiscalYear, entityLevelIdsStr],
-    queryKey: ["entities", targetType, fiscalYear],
+    queryKey: ["entities", targetType, fiscalYear, entityLevelIdsStr],
+    // queryKey: ["entities", targetType, fiscalYear],
     queryFn: getEntities,
     staleTime: Infinity,
     onError: (error) => {

@@ -54,6 +54,7 @@ import { DonutChartDeals } from "./DonutChartDeals/DonutChartDeals";
 import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { UpsertSettingTargetGridTableForMemberLevel } from "./UpsertSettingTargetGridTable/UpsertSettingTargetGridTableForMemberLevel";
+import { MainTargetTableDisplayOnly } from "./UpsertSettingTargetGridTable/MainTargetTableDisplayOnly";
 
 export const columnHeaderListTarget = [
   "period_type",
@@ -316,7 +317,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   }, [entitiesHierarchyQueryData]);
   // -------------------------- 🌠useQuery同じレベル内の全エンティティ🌠 --------------------------
 
-  // 🌟エンティティid配列をSetオブジェクトに変換
+  // 🌟目標設定対象のエンティティ配列からエンティティidのみ取り出しSetオブジェクトに変換
   const entityIdsSet = useMemo(
     () => new Set(upsertSettingEntitiesObj.entities.map((obj) => obj.entity_id)),
     [upsertSettingEntitiesObj.entities]
@@ -327,7 +328,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     [upsertSettingEntitiesObj.entities]
   );
 
-  // 案件状況の選択肢のリストをメモ化
+  // 案件状況(ドーナツチャート)で表示するエンティティを切り替えるためのセレクトボックスに渡す選択肢のリストをメモ化
   const optionsEntity = useMemo(() => {
     return Array.from(entityIdsSet).map((id) => ({
       id,
@@ -620,10 +621,11 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           entities: [],
         } as UpsertSettingEntitiesObj;
 
+        // step3の「目標設定を確定」ボタンでstepを先に進める
         if (isAllConfirmAnnual) {
-          setStep(1); // ステップ1のエンティティレベル選択画面に戻す
+          // setStep(1); // ステップ1のエンティティレベル選択画面に戻す
         } else {
-          setStep(3); // まだ現在のエンティティレベル内に未設定のエンティティが存在しているためstep3のまま
+          // setStep(3); // まだ現在のエンティティレベル内に未設定のエンティティが存在しているためstep3のまま
         }
 
         setIsLoading(false); // ローディングを終了
@@ -756,11 +758,11 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           entities: [],
         } as UpsertSettingEntitiesObj;
 
-        // 上期詳細 or 下期詳細が全てtrueになったらstep4
+        // 上期詳細 or 下期詳細が全てtrueになったらstep4 step3の「目標設定を確定」ボタンでstepを先に進める
         if (isAllConfirmedFirstHalfDetails || isAllConfirmedSecondHalfDetails) {
-          setStep(4); // 全てのレベル、エンティティの年度〜半期の売上目標とメンバーの半期詳細の目標設定が完了したため、次の集計ステップ4に移行する
+          // setStep(4); // 全てのレベル、エンティティの年度〜半期の売上目標とメンバーの半期詳細の目標設定が完了したため、次の集計ステップ4に移行する
         } else {
-          setStep(3); // まだ未設定のメンバーが残っているため、step3の目標設定ステップのままにする
+          // setStep(3); // まだ未設定のメンバーが残っているため、step3の目標設定ステップのままにする
         }
 
         setIsLoading(false); // ローディングを終了
@@ -961,7 +963,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     [currentFiscalYearDateObj]
   );
 
-  // 🔸ユーザーが選択した売上目標の会計年度の前年度12ヶ月分の年月度の配列(isEndEntityでない場合はスルー)
+  // 🔸ユーザーが選択した売上目標の会計年度の前年度12ヶ月分の年月度の配列(メンバーレベルでない場合はスルー)
   const annualFiscalMonthsUpsert = useMemo(() => {
     // メンバーレベルでない場合は、月度の目標入力は不要のためリターン
     if (upsertSettingEntitiesObj.entityLevel !== "member") return null;
@@ -1109,27 +1111,27 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   };
 
   // サブ目標リスト編集モーダルを開く
-  const handleOpenEditSubListModal = () => {
-    const getSubListArray = () => {
-      switch (upsertSettingEntitiesObj.entityLevel) {
-        case "department":
-          return departmentDataArray ? [...departmentDataArray] : [];
-        case "section":
-          return sectionDataArray ? [...sectionDataArray] : [];
-        case "unit":
-          return unitDataArray ? [...unitDataArray] : [];
-        case "office":
-          return officeDataArray ? [...officeDataArray] : [];
-        case "member":
-          return memberDataArray ? [...memberDataArray] : [];
-        default:
-          return [];
-          break;
-      }
-    };
-    setEditSubList(getSubListArray() as MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]);
-    setIsOpenEditSubListModal(true);
-  };
+  // const handleOpenEditSubListModal = () => {
+  //   const getSubListArray = () => {
+  //     switch (upsertSettingEntitiesObj.entityLevel) {
+  //       case "department":
+  //         return departmentDataArray ? [...departmentDataArray] : [];
+  //       case "section":
+  //         return sectionDataArray ? [...sectionDataArray] : [];
+  //       case "unit":
+  //         return unitDataArray ? [...unitDataArray] : [];
+  //       case "office":
+  //         return officeDataArray ? [...officeDataArray] : [];
+  //       case "member":
+  //         return memberDataArray ? [...memberDataArray] : [];
+  //       default:
+  //         return [];
+  //         break;
+  //     }
+  //   };
+  //   setEditSubList(getSubListArray() as MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]);
+  //   setIsOpenEditSubListModal(true);
+  // };
 
   // サブ目標リスト編集モーダルを閉じる
   const handleCloseEditSubListModal = () => {
@@ -1530,6 +1532,17 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                             />
                           )}
                           {upsertSettingEntitiesObj.entityLevel !== "company" && (
+                            <MainTargetTableDisplayOnly
+                              entityLevel={upsertSettingEntitiesObj.parentEntityLevel}
+                              entityId={upsertSettingEntitiesObj.parentEntityId}
+                              entityNameTitle={upsertSettingEntitiesObj.parentEntityName}
+                              stickyRow={stickyRow}
+                              setStickyRow={setStickyRow}
+                              annualFiscalMonths={annualFiscalMonthsUpsert}
+                              // salesTargetsYearHalf={}
+                            />
+                          )}
+                          {/* {upsertSettingEntitiesObj.entityLevel !== "company" && (
                             <UpsertSettingTargetGridTable
                               // isEndEntity={isEndEntity}
                               entityLevel={upsertSettingEntitiesObj.parentEntityLevel}
@@ -1541,7 +1554,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                               // isFirstHalf={isFirstHalf}
                               isMainTarget={true}
                             />
-                          )}
+                          )} */}
                         </div>
                       </Suspense>
                     </ErrorBoundary>
@@ -1555,7 +1568,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                       </h1>
 
                       <div className={`${styles.btn_area} flex h-full items-center space-x-[12px]`}>
-                        {upsertSettingEntitiesObj.entityLevel !== "company" && (
+                        {/* {upsertSettingEntitiesObj.entityLevel !== "company" && (
                           <div
                             className={`${styles.btn} ${styles.basic} space-x-[6px]`}
                             onClick={handleOpenEditSubListModal}
@@ -1566,7 +1579,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                               リスト編集
                             </span>
                           </div>
-                        )}
+                        )} */}
                         {upsertSettingEntitiesObj.entityLevel && (
                           <div
                             className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}

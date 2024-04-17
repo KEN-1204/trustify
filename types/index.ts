@@ -2527,139 +2527,6 @@ export type MainEntityTarget = {
   entityName: string;
 };
 
-// ------------- 🌠売上目標DB関連🌠 -------------
-// 目標設定済み年度
-export type FiscalYears = {
-  id: string;
-  created_at: string;
-  fiscal_year: number;
-  period_start: string | null;
-  period_end: string | null;
-  created_by_company_id: string | null;
-  target_type: string | null;
-  is_confirmed_first_half_details: boolean;
-  is_confirmed_second_half_details: boolean;
-};
-// エンティティレベル
-export type EntityLevelStructures = {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  fiscal_year_id: string;
-  created_by_company_id: string;
-  entity_level: string;
-  is_confirmed_annual_half: boolean;
-  is_confirmed_first_half_details: boolean;
-  is_confirmed_second_half_details: boolean;
-  target_type: string;
-};
-// レベル内の各エンティティ
-export type EntityStructures = {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  fiscal_year_id: string | null;
-  entity_level_id: string | null;
-  parent_entity_level_id: string | null;
-  target_type: string | null;
-  created_by_company_id: string | null;
-  created_by_department_id: string | null;
-  created_by_section_id: string | null;
-  created_by_unit_id: string | null;
-  created_by_user_id: string | null;
-  created_by_office_id: string | null;
-  parent_created_by_company_id: string | null;
-  parent_created_by_department_id: string | null;
-  parent_created_by_section_id: string | null;
-  parent_created_by_unit_id: string | null;
-  parent_created_by_user_id: string | null;
-  parent_created_by_office_id: string | null;
-  is_confirmed_annual_half: boolean;
-  is_confirmed_first_half_details: boolean;
-  is_confirmed_second_half_details: boolean;
-  entity_name: string | null;
-  parent_entity_name: string | null;
-};
-// SELECTで取得する時用のEntityLevel
-export type EntityLevels = {
-  id: string;
-  created_at: string;
-  updated_at: string | null;
-  fiscal_year_id: string;
-  created_by_company_id: string;
-  entity_level: string;
-  is_confirmed_annual_half: boolean;
-  is_confirmed_first_half_details: boolean;
-  is_confirmed_second_half_details: boolean;
-  target_type: string;
-  fiscal_year: number; //fiscal_yearsテーブルからfiscal_yaerを取得
-};
-
-// 売上目標テーブル
-export type SalesTargets = {
-  id: string;
-  created_at: string;
-  updated_at: string | null;
-  fiscal_year_id: string | null;
-  entity_level_id: string | null;
-  entity_id: string | null;
-  created_by_company_id: string | null;
-  created_by_department_id: string | null;
-  created_by_section_id: string | null;
-  created_by_unit_id: string | null;
-  created_by_user_id: string | null;
-  created_by_office_id: string | null;
-  period_type: string | null;
-  period: number | null;
-  sales_target: number | null;
-};
-
-// レベル内の各エンティティをFUNCTIONで取得するデータ型
-//  {レベル名: [{上位エンティティid: [obj, obj, ...]}, {上位エンティティid: [obj, obj, ...]}]}
-// エンティティレベル名
-// 各レベル名をkeyとして割り当てられるvalueの配列
-// [{上位エンティティid: [エンティティobj, エンティティobj, ...]}, {上位エンティティid: [obj, obj, ...]}]
-// SELECTで取得する時用のEntity
-export type Entity = {
-  id: string;
-  created_at: string;
-  updated_at: string;
-  fiscal_year_id: string;
-  entity_level_id: string;
-  parent_entity_level_id: string;
-  target_type: string;
-  entity_id: string;
-  parent_entity_id: string | null;
-  is_confirmed_annual_half: boolean;
-  is_confirmed_first_half_details: boolean;
-  is_confirmed_second_half_details: boolean;
-  entity_name: string;
-  parent_entity_name: string;
-  fiscal_year: number; // fiscal_yearsテーブル
-  entity_level: string; // entity_level_structuresテーブル
-  parent_entity_level: string; // entity_level_structuresテーブル
-};
-export type EntityGroupByParent = {
-  parent_entity_id: string | null;
-  parent_entity_name: string;
-  entities: Entity[];
-};
-export type EntityLevelNames = "company" | "department" | "section" | "unit" | "member" | "office";
-export type EntitiesHierarchy = Record<EntityLevelNames, EntityGroupByParent[]>;
-// export type EntitiesHierarchy = { [K in EntityLevelNames]: EntityGroupByParent[] };
-
-// メンバーエンティティグループ 上位エンティティに紐づくグループとして取得し、選択肢として表示 {上位エンティティid: {メンバーobj}}
-export type MemberGroupsByParentEntity = {
-  [key: string]: {
-    parent_entity_id: string;
-    parent_entity_name: string;
-    // parent_entity_level_id: string;
-    // parent_entity_level: string;
-    member_group: (MemberAccounts & { company_id: string; company_name: string })[];
-  };
-};
-// ------------- 🌠売上目標DB関連🌠 -------------
-
 // 売上目標 売上目標テーブルからFUNCTIONで取得
 // export type SalesTargetFYRowData = {
 //   entity_id: string;
@@ -2925,6 +2792,140 @@ export type SalesTargetsRowDataWithYoY = {
   yoy_growth: SalesTargetFYRowData & { share: number | null };
 };
 
+// ------------- 🌠売上目標DB関連🌠 -------------
+// 目標設定済み年度
+export type FiscalYears = {
+  id: string;
+  created_at: string;
+  fiscal_year: number;
+  period_start: string | null;
+  period_end: string | null;
+  created_by_company_id: string | null;
+  target_type: string | null;
+  is_confirmed_first_half_details: boolean;
+  is_confirmed_second_half_details: boolean;
+};
+// エンティティレベル
+export type EntityLevelStructures = {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  fiscal_year_id: string;
+  created_by_company_id: string;
+  entity_level: string;
+  is_confirmed_annual_half: boolean;
+  is_confirmed_first_half_details: boolean;
+  is_confirmed_second_half_details: boolean;
+  target_type: string;
+};
+// レベル内の各エンティティ
+export type EntityStructures = {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  fiscal_year_id: string | null;
+  entity_level_id: string | null;
+  parent_entity_level_id: string | null;
+  target_type: string | null;
+  created_by_company_id: string | null;
+  created_by_department_id: string | null;
+  created_by_section_id: string | null;
+  created_by_unit_id: string | null;
+  created_by_user_id: string | null;
+  created_by_office_id: string | null;
+  parent_created_by_company_id: string | null;
+  parent_created_by_department_id: string | null;
+  parent_created_by_section_id: string | null;
+  parent_created_by_unit_id: string | null;
+  parent_created_by_user_id: string | null;
+  parent_created_by_office_id: string | null;
+  is_confirmed_annual_half: boolean;
+  is_confirmed_first_half_details: boolean;
+  is_confirmed_second_half_details: boolean;
+  entity_name: string | null;
+  parent_entity_name: string | null;
+};
+// SELECTで取得する時用のEntityLevel
+export type EntityLevels = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  fiscal_year_id: string;
+  created_by_company_id: string;
+  entity_level: string;
+  is_confirmed_annual_half: boolean;
+  is_confirmed_first_half_details: boolean;
+  is_confirmed_second_half_details: boolean;
+  target_type: string;
+  fiscal_year: number; //fiscal_yearsテーブルからfiscal_yaerを取得
+};
+
+// 売上目標テーブル
+export type SalesTargets = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  fiscal_year_id: string | null;
+  entity_level_id: string | null;
+  entity_id: string | null;
+  created_by_company_id: string | null;
+  created_by_department_id: string | null;
+  created_by_section_id: string | null;
+  created_by_unit_id: string | null;
+  created_by_user_id: string | null;
+  created_by_office_id: string | null;
+  period_type: string | null;
+  period: number | null;
+  sales_target: number | null;
+};
+
+// レベル内の各エンティティをFUNCTIONで取得するデータ型
+//  {レベル名: [{上位エンティティid: [obj, obj, ...]}, {上位エンティティid: [obj, obj, ...]}]}
+// エンティティレベル名
+// 各レベル名をkeyとして割り当てられるvalueの配列
+// [{上位エンティティid: [エンティティobj, エンティティobj, ...]}, {上位エンティティid: [obj, obj, ...]}]
+// SELECTで取得する時用のEntity
+export type Entity = {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  fiscal_year_id: string;
+  entity_level_id: string;
+  parent_entity_level_id: string;
+  target_type: string;
+  entity_id: string;
+  parent_entity_id: string | null;
+  is_confirmed_annual_half: boolean;
+  is_confirmed_first_half_details: boolean;
+  is_confirmed_second_half_details: boolean;
+  entity_name: string;
+  parent_entity_name: string;
+  fiscal_year: number; // fiscal_yearsテーブル
+  entity_level: string; // entity_level_structuresテーブル
+  parent_entity_level: string; // entity_level_structuresテーブル
+};
+export type EntityGroupByParent = {
+  parent_entity_id: string | null;
+  parent_entity_name: string;
+  entities: Entity[];
+};
+export type EntityLevelNames = "company" | "department" | "section" | "unit" | "member" | "office";
+export type EntitiesHierarchy = Record<EntityLevelNames, EntityGroupByParent[]>;
+// export type EntitiesHierarchy = { [K in EntityLevelNames]: EntityGroupByParent[] };
+
+// メンバーエンティティグループ 上位エンティティに紐づくグループとして取得し、選択肢として表示 {上位エンティティid: {メンバーobj}}
+export type MemberGroupsByParentEntity = {
+  [key: string]: {
+    parent_entity_id: string;
+    parent_entity_name: string;
+    // parent_entity_level_id: string;
+    // parent_entity_level: string;
+    member_group: (MemberAccounts & { company_id: string; company_name: string })[];
+  };
+};
+
+// ------------- 🌠売上目標DB関連🌠 -------------
+
 // ３行１セットデータ型 FUNCTIONで取得するdataset_typeではスネークケースのため、Zustandもスネークケースで定義
 export type DisplayKeys = "sales_targets" | "last_year_sales" | "yoy_growth";
 // 🔹前年度の前年比伸び率実績(前年度の前年比)と前々年度売上あり
@@ -3001,6 +3002,13 @@ export type SalesSummaryYearHalf = {
   three_years_ago_sales: number;
   // growth_rate: number;
   yo2y_growth: number; // 前年度前年伸び率実績(2年前から1年前の成長率)
+};
+
+// メイン目標の売上目標「年度・半期」
+export type SalesTargetsYearHalf = {
+  sales_target_year: number;
+  sales_target_first_half: number;
+  sales_target_second_half: number;
 };
 
 // 売上目標設定時のカラム

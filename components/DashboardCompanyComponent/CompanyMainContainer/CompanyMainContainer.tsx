@@ -1,4 +1,15 @@
-import React, { ChangeEvent, FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  FC,
+  FormEvent,
+  Suspense,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "../CompanyDetail/CompanyDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -805,6 +816,11 @@ const CompanyMainContainerMemo: FC = () => {
   //   // }
   // };
   // ================== ✅セレクトボックスで個別フィールドをアップデート ==================
+
+  // 資本金の変換をメモ化
+  const convertedCapital = useMemo(() => {
+    return selectedRowDataCompany?.capital ? convertToJapaneseCurrencyFormat(selectedRowDataCompany.capital) : "";
+  }, []);
 
   console.log(
     "🔥 CompanyMainContainerレンダリング searchMode",
@@ -1747,9 +1763,10 @@ const CompanyMainContainerMemo: FC = () => {
                       }}
                     >
                       {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
-                      {selectedRowDataCompany?.capital
+                      {/* {selectedRowDataCompany?.capital
                         ? convertToJapaneseCurrencyFormat(selectedRowDataCompany.capital)
-                        : ""}
+                        : ""} */}
+                      {convertedCapital}
                     </span>
                   )}
                   {/* サーチ */}

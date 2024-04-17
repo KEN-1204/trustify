@@ -65,8 +65,8 @@ type Props = {
   isMainTarget: boolean; // メイン目標かどうか
   fetchEnabled?: boolean; // メイン目標でない場合はfetchEnabledがtrueに変更されたらフェッチを許可する
   onFetchComplete?: () => void;
-  subTargetList?: Department[] | Section[] | Unit[] | Office[] | MemberAccounts[];
-  setSubTargetList?: Dispatch<SetStateAction<Department[] | Section[] | Unit[] | Office[] | MemberAccounts[]>>;
+  // subTargetList?: Department[] | Section[] | Unit[] | Office[] | MemberAccounts[];
+  // setSubTargetList?: Dispatch<SetStateAction<Department[] | Section[] | Unit[] | Office[] | MemberAccounts[]>>;
 };
 
 const UpsertSettingTargetGridTableMemo = ({
@@ -81,9 +81,9 @@ const UpsertSettingTargetGridTableMemo = ({
   isMainTarget = false,
   fetchEnabled,
   onFetchComplete,
-  subTargetList,
-  setSubTargetList,
-}: // startYearMonth,
+}: // subTargetList,
+// setSubTargetList,
+// startYearMonth,
 // endYearMonth,
 Props) => {
   const queryClient = useQueryClient();
@@ -366,77 +366,77 @@ Props) => {
   };
 
   // サブ目標リストから部門エンティティを削除(target_typeをnullに変更)
-  const handleRemoveFromTargetList = async () => {
-    if (!subTargetList) return;
-    if (!setSubTargetList) return;
-    // エンティティタイプからupdateするテーブルを確定
-    let updatedTable = "";
-    if (entityLevel === "department") updatedTable = "departments";
-    if (entityLevel === "section") updatedTable = "sections";
-    if (entityLevel === "unit") updatedTable = "units";
-    if (entityLevel === "office") updatedTable = "offices";
-    if (entityLevel === "member") updatedTable = "profiles";
-    if (entityLevel === "") return alert("部門データが見つかりませんでした。");
+  // const handleRemoveFromTargetList = async () => {
+  //   if (!subTargetList) return;
+  //   if (!setSubTargetList) return;
+  //   // エンティティタイプからupdateするテーブルを確定
+  //   let updatedTable = "";
+  //   if (entityLevel === "department") updatedTable = "departments";
+  //   if (entityLevel === "section") updatedTable = "sections";
+  //   if (entityLevel === "unit") updatedTable = "units";
+  //   if (entityLevel === "office") updatedTable = "offices";
+  //   if (entityLevel === "member") updatedTable = "profiles";
+  //   if (entityLevel === "") return alert("部門データが見つかりませんでした。");
 
-    const updatedPayload = { target_type: null };
+  //   const updatedPayload = { target_type: null };
 
-    setIsLoading(true); // ローディング開始
+  //   setIsLoading(true); // ローディング開始
 
-    try {
-      console.log("削除実行🔥 updatedTable", updatedTable, entityId);
-      const { error } = await supabase.from(updatedTable).update(updatedPayload).eq("id", entityId);
+  //   try {
+  //     console.log("削除実行🔥 updatedTable", updatedTable, entityId);
+  //     const { error } = await supabase.from(updatedTable).update(updatedPayload).eq("id", entityId);
 
-      if (error) throw error;
+  //     if (error) throw error;
 
-      // キャッシュのサブ目標リストから部門を削除
-      // const periodType = isMemberLevelSetting ? `first_half_details` : `year_half`;
-      // const fiscalYear = upsertTargetObj.fiscalYear;
-      // const queryKey = ["sales_summary_and_growth", entityLevel, entityId, periodType, fiscalYear, isFirstHalf];
+  //     // キャッシュのサブ目標リストから部門を削除
+  //     // const periodType = isMemberLevelSetting ? `first_half_details` : `year_half`;
+  //     // const fiscalYear = upsertTargetObj.fiscalYear;
+  //     // const queryKey = ["sales_summary_and_growth", entityLevel, entityId, periodType, fiscalYear, isFirstHalf];
 
-      // キャッシュの部門からsales_targetをnullに更新する
-      let queryKey = "departments";
-      if (entityLevel === "department") queryKey = "departments";
-      if (entityLevel === "section") queryKey = "sections";
-      if (entityLevel === "unit") queryKey = "units";
-      if (entityLevel === "office") queryKey = "offices";
-      if (entityLevel === "member") queryKey = "member_accounts";
-      const prevCache = queryClient.getQueryData([queryKey]) as
-        | Department[]
-        | Section[]
-        | Unit[]
-        | Office[]
-        | MemberAccounts[];
-      const newCache = [...prevCache]; // キャッシュのシャローコピーを作成
-      // 更新対象のオブジェクトのtarget_typeをnullに変更
-      const updateIndex = newCache.findIndex((obj) => obj.id === entityId);
-      if (updateIndex !== -1) {
-        // 更新対象の配列内のインデックスを変えずに対象のプロパティのみ変更
-        newCache.splice(updateIndex, 1, { ...prevCache[updateIndex], target_type: null });
-        queryClient.setQueryData([queryKey], newCache); // キャッシュを更新
-      }
+  //     // キャッシュの部門からsales_targetをnullに更新する
+  //     let queryKey = "departments";
+  //     if (entityLevel === "department") queryKey = "departments";
+  //     if (entityLevel === "section") queryKey = "sections";
+  //     if (entityLevel === "unit") queryKey = "units";
+  //     if (entityLevel === "office") queryKey = "offices";
+  //     if (entityLevel === "member") queryKey = "member_accounts";
+  //     const prevCache = queryClient.getQueryData([queryKey]) as
+  //       | Department[]
+  //       | Section[]
+  //       | Unit[]
+  //       | Office[]
+  //       | MemberAccounts[];
+  //     const newCache = [...prevCache]; // キャッシュのシャローコピーを作成
+  //     // 更新対象のオブジェクトのtarget_typeをnullに変更
+  //     const updateIndex = newCache.findIndex((obj) => obj.id === entityId);
+  //     if (updateIndex !== -1) {
+  //       // 更新対象の配列内のインデックスを変えずに対象のプロパティのみ変更
+  //       newCache.splice(updateIndex, 1, { ...prevCache[updateIndex], target_type: null });
+  //       queryClient.setQueryData([queryKey], newCache); // キャッシュを更新
+  //     }
 
-      // 固定していた場合は固定を解除
-      if (stickyRow === entityId) {
-        setStickyRow(null);
-      }
+  //     // 固定していた場合は固定を解除
+  //     if (stickyRow === entityId) {
+  //       setStickyRow(null);
+  //     }
 
-      setIsLoading(false); // ローディング終了
+  //     setIsLoading(false); // ローディング終了
 
-      // サブ目標リストから削除
-      const newList = [...subTargetList].filter((obj) => obj.id !== entityId) as
-        | Department[]
-        | Section[]
-        | Unit[]
-        | Office[]
-        | MemberAccounts[];
-      setSubTargetList(newList);
+  //     // サブ目標リストから削除
+  //     const newList = [...subTargetList].filter((obj) => obj.id !== entityId) as
+  //       | Department[]
+  //       | Section[]
+  //       | Unit[]
+  //       | Office[]
+  //       | MemberAccounts[];
+  //     setSubTargetList(newList);
 
-      toast.success(`${entityNameTitle}を目標リストから削除しました🌟`);
-    } catch (error: any) {
-      console.error("エラー：", error);
-      toast.error("目標リストからの削除に失敗しました...🙇‍♀️");
-    }
-  };
+  //     toast.success(`${entityNameTitle}を目標リストから削除しました🌟`);
+  //   } catch (error: any) {
+  //     console.error("エラー：", error);
+  //     toast.error("目標リストからの削除に失敗しました...🙇‍♀️");
+  //   }
+  // };
 
   // チャート マウントを0.6s遅らせる
   const [isMounted, setIsMounted] = useState(false);
@@ -493,7 +493,7 @@ Props) => {
             </div>
 
             <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>
-              {!isMainTarget && (
+              {/* {!isMainTarget && (
                 <div
                   className={`${styles.btn} ${styles.basic} space-x-[4px]`}
                   onMouseEnter={(e) => {
@@ -510,7 +510,7 @@ Props) => {
                   <HiOutlineSwitchHorizontal />
                   <span>削除</span>
                 </div>
-              )}
+              )} */}
               <div
                 className={`${styles.btn} ${styles.basic} space-x-[4px]`}
                 onMouseEnter={(e) => {

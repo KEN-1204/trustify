@@ -903,6 +903,11 @@ const UpsertTargetEntityMemo = () => {
   // 現在のレベルに追加したエンティティ構成をentity_structuresにINSERTして構成を確定する
   const handleSaveEntities = async () => {
     if (currentLevel === "") return alert("エラー：レイヤーが見つかりませんでした。先にレイヤーを追加してください。");
+    // 既に会社レベルが存在する状態(fiscal_yearsテーブルへのINSERTが済んでいる状態)かを確認
+    if (["department", "section", "unit", "member", "office"].includes(currentLevel)) {
+      if (!fiscalYearQueryData) return alert("エラー：会計年度データが見つかりませんでした。");
+    }
+
     setIsLoadingSave(true);
     try {
       // 下記3つのテーブルにINSERT
@@ -924,9 +929,8 @@ const UpsertTargetEntityMemo = () => {
       // 現在のレベルの直上のレベルのidを取得 現在がcompanyレベルの場合は上位エンティティレベルidは存在しないためnull
       let parentEntityLevelId = null;
       if (currentLevel !== "company" && !!addedEntityLevelsListQueryData) {
-        parentEntityLevelId = addedEntityLevelsListQueryData.find(
-          (levelObj) => levelObj.entity_level === parentEntityLevel
-        )?.id;
+        parentEntityLevelId =
+          addedEntityLevelsListQueryData.find((levelObj) => levelObj.entity_level === parentEntityLevel)?.id ?? null;
       }
 
       if (!entityGroupsByParentArray) throw new Error("レイヤー内のデータが見つかりませんでした。");
@@ -1057,8 +1061,10 @@ const UpsertTargetEntityMemo = () => {
         await queryClient.invalidateQueries(["fiscal_year", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
         await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
         // entity_structuresのキャッシュはentity_levelsキャッシュの再フェッチで新たにentityLevelIdsが生成され新たなqueryKeyが生成されるためinvalidate不要
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
       }
-      // 🔹既にfiscal_yearsテーブルに年度をINSERT済みで今回はレベルとエンティティのみINSERTルート
+      // 🔹既にfiscal_yearsテーブルに年度をINSERT済みで今回はレベルとエンティティのみINSERTルート(会社レベル以外のルート)
       else {
         const payload = {
           _company_id: userProfileState.company_id,
@@ -1082,7 +1088,8 @@ const UpsertTargetEntityMemo = () => {
         // entity_level_structuresテーブルのuseQueryキャッシュをinvalidate
         // await queryClient.invalidateQueries(["fiscal_year", "sales_target", upsertSettingEntitiesObj.fiscalYear]); fiscal_yearsテーブルにはUPSERTしていないためinvalidateは不要
         await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
-        // entity_structuresのキャッシュはentity_levelsキャッシュの再フェッチで新たにentityLevelIdsが生成され新たなqueryKeyが生成されるためinvalidate不要
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
       }
 
       // レベル内のエンティティ構成が確定したら、ステップを3に移行
@@ -1717,7 +1724,11 @@ const UpsertTargetEntityMemo = () => {
   // ステップ3のアラートテキスト
   const alertTextNextBtn3 = () => {
     if (currentLevel === "company") {
-      return `会社・チームの目標がまだ設定されていません。「目標設定」ボタンから会社・チームの目標設定が保存した後に目標設定を確定させてください。`;
+      return `会社・チームの目標がまだ設定されていません。「目標設定」ボタンから会社・チームの目標設定が完了した後に「次へ」から次のステップに進んでください。`;
+    }
+    if (currentLevel !== "") {
+      const currentEntitLevelyName = mappingEntityName[currentLevel][language];
+      return `${currentEntitLevelyName}レイヤー内に目標が未設定の${currentEntitLevelyName}が存在します。「目標設定」ボタンから全ての${currentEntitLevelyName}の売上目標を設定した後、「次へ」から次のステップに進んでください。`;
     }
     return "未完了です。";
   };
@@ -1730,34 +1741,101 @@ const UpsertTargetEntityMemo = () => {
     // if (selectedEntityLevel === "member")
     if (currentLevel === "member")
       return `追加したレイヤー内で売上目標に直接関わる部門やメンバーを追加してください。\n売上目標に関わるメンバーを追加しましょう！レイヤーの構成が確定したら「次へ」から次のステップに進んでください。`;
-    return `追加した${mappingEntityName[currentLevel][language]}レイヤー内で売上目標に直接関わる${mappingEntityName[currentLevel][language]}を下の「リスト編集」から追加・削除し、構成を決めてください。\nレイヤーの構成が決まったら「構成を確定」から現在のリスト内容を保存し次のステップに進んでください！`;
+    const currentEntitLevelName = mappingEntityName[currentLevel][language];
+    return `追加した${currentEntitLevelName}レイヤー内で売上目標に直接関わる${currentEntitLevelName}を下の「リスト編集」から追加・削除し、構成を決めてください。\nレイヤーの構成が決まったら「構成を確定」から現在のリスト内容を保存し次のステップに進んでください！`;
   };
-  // ステップ3
+  // ステップ3タイトル
+  const getStep3Title = () => {
+    if (currentLevel === "company") return `全社の売上目標を設定`;
+    if (currentLevel === "department") return `各事業部の売上目標を設定`;
+    if (currentLevel === "section") return `各課・セクションの売上目標を設定`;
+    if (currentLevel === "unit") return `各係・チームの売上目標を設定`;
+    if (currentLevel === "member") return `各メンバーの売上目標を設定`;
+    return `各部門・各メンバーの売上目標を設定`;
+  };
+  // ステップ3 説明文
   const getTextStep3 = () => {
     if (currentLevel === "company")
-      return `まずは会社の「目標設定」から「年度・半期」の全社売上目標を設定してください。\n目標設定が完了したら「目標設定を確定」から全社目標を確定してください。`;
+      return `まずは全社の「目標設定」から「年度・半期」の全社売上目標を設定してください。\n目標設定が完了したら「次へ」を押して次のレイヤーの目標設定に進んでください。`;
+    if (currentLevel === "department")
+      return `下記の「目標設定」から追加した事業部の売上目標を設定してください。\nリストに追加した全ての事業部の目標設定が完了したら「次へ」から次のレイヤーの目標設定に進んでください。`;
+    if (currentLevel === "section")
+      return `下記の「目標設定」から追加した課・セクションの売上目標を設定してください。\nリストに追加した全ての課・セクションの目標設定が完了したら「次へ」から次のレイヤーの目標設定に進んでください。`;
+    if (currentLevel === "unit")
+      return `下記の「目標設定」から追加した係・チームの売上目標を設定してください。\nリストに追加した全ての係・チームの目標設定が完了したら「次へ」からメンバーレイヤーの目標設定に進んでください。`;
     // if (selectedEntityLevel === "member")
     if (currentLevel === "member")
-      return `追加したレイヤー内で売上目標に直接関わる部門やメンバーを追加してください。\n売上目標に関わるメンバーを追加しましょう！レイヤーの構成が確定したら「次へ」から次のステップに進んでください。`;
+      return `下記の「目標設定」から追加したメンバーの売上目標を設定してください。\nリストに追加した全てのメンバーの目標設定が完了したら「次へ」から次のステップに進んでください。`;
     return `追加したレイヤー内で売上目標に直接関わる部門やメンバーを追加してください。\n次は売上目標に関わる部門を追加しましょう！レイヤーの構成が確定したら「次へ」から次のステップに進んでください。`;
   };
 
   // ステップヘッダーのボタンテキスト
   // ステップ3
-  const getTextStepBtn3 = () => {
-    if (currentLevel === "company") return "目標設定を確定";
-  };
   const tooltipBtnText = () => {
     if (step === 3) {
-      if (currentLevel === "company") return "全社レイヤーの売上目標の設定内容を保存します。";
+      if (currentLevel === "company")
+        return { text: "全社レイヤーの売上目標の設定内容を保存します。", isMultiLines: false };
+      if (currentLevel !== "") {
+        const currentEntitLevelName = mappingEntityName[currentLevel][language];
+        if (isAlreadySetState) {
+          if (currentLevel === "member") return { text: `次のステップに進んでください。`, isMultiLines: false };
+          if (optionsEntityLevelList.length > 1)
+            return {
+              text: `再度ステップ1~3で新たに売上目標に直結する\n貴社の組織構成に合わせたレイヤーを追加し売上目標を設定してください。`,
+              isMultiLines: true,
+            };
+          if (optionsEntityLevelList.length === 1)
+            return {
+              text: `最後にメンバーレイヤーを追加し${currentEntitLevelName}の売上目標を構成する\n各メンバーの売上目標を設定してください。`,
+              isMultiLines: true,
+            };
+        } else {
+          return {
+            text: `${currentEntitLevelName}レイヤー内に追加した全ての${currentEntitLevelName}の\n売上目標を設定してください。`,
+            isMultiLines: true,
+          };
+        }
+      }
     }
-    return "";
+    return { text: "", isMultiLines: false };
   };
 
   // infoアイコン ステップヘッダー
   const infoIconTextStep = () => {
-    if (step === 3 && currentLevel === "company") {
-      return `全社の目標設定が完了した後は、貴社の組織構成に合わせて\n「事業部・課/セクション・係/チーム」を追加、目標設定のステップ1~3を繰り返し、\n最後にメンバーレイヤーを追加後、各メンバーの売上目標を設定してください。`;
+    if (step === 3) {
+      if (currentLevel === "member") {
+        return `最後にメンバーレイヤーに追加した全てのメンバーの売上目標を設定し、「次へ」からステップ4に進んでください。`;
+      }
+      let levelNamesStr = ``;
+      if (!!departmentDataArray?.length) levelNamesStr = `事業部`;
+      if (!!sectionDataArray?.length) levelNamesStr = `事業部・課/セクション`;
+      if (!!unitDataArray?.length) levelNamesStr = `事業部・課/セクション・係/チーム`;
+      if (levelNamesStr !== "") {
+        const currentEntitLevelName = mappingEntityName[currentLevel][language];
+        if (currentLevel === "company")
+          return `全社の目標設定が完了した後、貴社の組織構成に合わせて\n「${levelNamesStr}」から売上目標に必要なレイヤーを追加、目標設定のステップ1~3を繰り返し、\n最後にメンバーレイヤーを追加後、各メンバーの売上目標を設定してください。`;
+        if (currentLevel === "department") {
+          levelNamesStr = "";
+          if (!!sectionDataArray?.length) levelNamesStr = `課/セクション`;
+          if (!!unitDataArray?.length) levelNamesStr = `課/セクション・係/チーム`;
+          if (levelNamesStr !== "") {
+            return `事業部レイヤーの目標設定が完了した後、貴社の組織構成に合わせて\n「${levelNamesStr}」から売上目標に必要なレイヤーを追加、目標設定のステップ1~3を繰り返し、\n最後にメンバーレイヤーを追加後、各メンバーの売上目標を設定してください。`;
+          } else {
+            return `事業部レイヤーの目標設定が完了した後、再度ステップ1でメンバーレイヤーを追加し、各メンバーの売上目標を設定してください。`;
+          }
+        }
+        if (currentLevel === "section") {
+          levelNamesStr = "";
+          if (!!unitDataArray?.length) levelNamesStr = `係/チーム`;
+          if (levelNamesStr !== "") {
+            return `課/セクションレイヤーの目標設定が完了した後、貴社の組織構成に合わせて\n「${levelNamesStr}」から売上目標に必要なレイヤーを追加、目標設定のステップ1~3を繰り返し、\n最後にメンバーレイヤーを追加後、各メンバーの売上目標を設定してください。`;
+          } else {
+            return `課/セクションレイヤーの目標設定が完了した後、再度ステップ1でメンバーレイヤーを追加し、各メンバーの売上目標を設定してください。`;
+          }
+        }
+      } else {
+        return `現在のレイヤーの目標設定が完了した後、再度ステップ1でメンバーレイヤーを追加し、各メンバーの売上目標を設定してください。`;
+      }
     }
     return "";
   };
@@ -1943,14 +2021,21 @@ const UpsertTargetEntityMemo = () => {
       <div className={`${styles.main_container_entity} fade08_forward`}>
         <div className={`${styles.title_area}`}>
           <h1 className={`${styles.title} ${styles.upsert} space-x-[24px]`}>
-            {(step === 1 || currentLevel === "") && (
-              <span className="min-w-max">{upsertSettingEntitiesObj.fiscalYear}年度 目標設定</span>
-            )}
-            {[2, 3].includes(step) && currentLevel !== "" && (
-              <span className="min-w-max">
-                {upsertSettingEntitiesObj.fiscalYear}年度 {mappingEntityName[currentLevel][language]} 目標設定
-              </span>
-            )}
+            <div className={`flex items-center space-x-[12px]`}>
+              {(step === 1 || currentLevel === "") && (
+                <>
+                  <span className="min-w-max">{upsertSettingEntitiesObj.fiscalYear}年度</span>
+                  <span className="min-w-max">目標設定</span>
+                </>
+              )}
+              {[2, 3].includes(step) && currentLevel !== "" && (
+                <>
+                  <span className="min-w-max">{upsertSettingEntitiesObj.fiscalYear}年度</span>
+                  <span className="min-w-max">{mappingEntityName[currentLevel][language]}</span>
+                  <span className="min-w-max">目標設定</span>
+                </>
+              )}
+            </div>
             {/* ----プログレスエリア---- */}
             <div className="relative flex h-[25px] w-full items-center">
               {/* プログレスライン */}
@@ -2008,9 +2093,13 @@ const UpsertTargetEntityMemo = () => {
               <span>戻る</span>
             </div>
             <div
-              className={`${styles.btn} ${styles.brand} space-x-[3px]`}
+              className={`${styles.btn} ${styles.brand} ${styles.inactive} space-x-[3px]`}
               onClick={(e) => {
+                alert(
+                  "売上目標が全て完了していません。左記の手順に沿って全てのレイヤーの売上目標が設定できたら保存を押して設定を保存してください。"
+                );
                 console.log("クリック");
+                return;
               }}
             >
               {/* <RiSave3Fill className={`stroke-[3] text-[12px] text-[#fff]`} /> */}
@@ -2196,7 +2285,7 @@ const UpsertTargetEntityMemo = () => {
                         {step === 2 && currentLevel !== "company" && (
                           <span>レイヤーごとに部門・メンバーを追加して、組織構成を決める</span>
                         )}
-                        {step === 3 && <span>各部門・各メンバーの売上目標を設定</span>}
+                        {step === 3 && <span>{getStep3Title()}</span>}
                         {/* {step === 4 && <span>組織を構成するレイヤーを追加</span>} */}
                         {step === 3 && (
                           <div className={`flex h-full items-start pt-[4px]`}>
@@ -2270,20 +2359,29 @@ const UpsertTargetEntityMemo = () => {
                               let content1 = ``;
                               const step1Content1 = `${upsertSettingEntitiesObj.fiscalYear}年度の売上目標の組織構成に`;
                               const step1Content2 = `${mappingEntityName[selectedNextLevel][language]}レイヤーを追加する`;
-                              if (step === 1) content1 = step1Content1;
+                              let isMultiLines = false;
+                              if (step === 1) {
+                                content1 = step1Content1;
+                                isMultiLines = true;
+                              }
                               if (step === 2 && currentLevel !== "")
                                 content1 = `${mappingEntityName[currentLevel][language]}レイヤーの目標リストを確定・保存する`;
-                              if (step === 3) content1 = "全社レイヤーの売上目標の設定内容を保存します。";
+                              if (step === 3) {
+                                const { text, isMultiLines: _isMultiLines } = tooltipBtnText();
+                                content1 = text;
+                                isMultiLines = _isMultiLines;
+                              }
                               handleOpenTooltip({
                                 e: e,
                                 display: "top",
                                 content: content1,
                                 content2: step === 1 ? step1Content2 : undefined,
-                                marginTop: step === 1 ? 24 : 0,
+                                marginTop: isMultiLines ? 24 : 0,
                               });
                             }}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => {
+                              handleCloseTooltip();
                               if (step === 1) {
                                 handleAddLevel();
                               }
@@ -2295,13 +2393,18 @@ const UpsertTargetEntityMemo = () => {
                                   return;
                                 }
                                 console.log("クリック");
+                                if (currentLevel !== "member") {
+                                  setStep(1);
+                                } else {
+                                  setStep(4);
+                                }
                               }
                             }}
                           >
                             <span className="select-none">
                               {step === 1 && `レイヤーを追加`}
                               {step === 2 && `構成を確定`}
-                              {step === 3 && getTextStepBtn3()}
+                              {step === 3 && `次へ`}
                             </span>
                           </button>
                         )}
@@ -2514,124 +2617,146 @@ const UpsertTargetEntityMemo = () => {
                                     </div>
                                     <div className="min-h-[1px] w-full bg-[var(--color-bg-brand-f)]" />
                                   </div>
-                                  <div
-                                    className={`${styles.btn} ${styles.brand} flex items-center truncate font-normal`}
-                                    style={{
-                                      ...(((entityLevel === "company" && step === 2) || step === 1) && {
-                                        display: `none`,
-                                      }),
-                                    }}
-                                    onMouseEnter={(e) => {
-                                      if (step === 2 || step === 3) {
-                                        let step2Text = ``;
-                                        let step3Text = ``;
-                                        if (currentLevel !== "" && parentEntityLevel !== "root") {
-                                          step2Text = `${parentEntityLevel === "company" ? `` : `この`}${
-                                            mappingEntityName[parentEntityLevel][language]
-                                          }内で売上目標に関わる${
-                                            mappingEntityName[currentLevel][language]
-                                          }リストを編集する`;
-                                          step3Text = `${
-                                            parentEntityLevel === "company"
-                                              ? ``
-                                              : `この${mappingEntityName[parentEntityLevel][language]}内の`
-                                          }各${mappingEntityName[currentLevel][language]}の売上目標を設定する`;
+                                  {!isLoadingSave && (
+                                    <div
+                                      className={`${styles.btn} ${styles.brand} flex items-center truncate font-normal`}
+                                      style={{
+                                        ...((step === 1 ||
+                                          (entityLevel === "company" && step === 2) ||
+                                          (step === 3 && currentLevel !== entityLevel) ||
+                                          (step === 3 &&
+                                            currentLevel === entityLevel &&
+                                            currentLevel !== "member" &&
+                                            levelObj.is_confirmed_annual_half)) && {
+                                          display: `none`,
+                                        }),
+                                      }}
+                                      onMouseEnter={(e) => {
+                                        if (step === 2 || step === 3) {
+                                          let step2Text = ``;
+                                          let step2Text2 = `開発部門や総務部門などの売上目標に直接関わらない部門は目標リストから削除し、\n営業部門などの売上に直結する部門を残す形でリストを編集してください。`;
+                                          let step3Text = ``;
+                                          if (currentLevel !== "" && parentEntityLevel !== "root") {
+                                            step2Text = `${parentEntityLevel === "company" ? `` : `この`}${
+                                              mappingEntityName[parentEntityLevel][language]
+                                            }内で売上目標に関わる${
+                                              mappingEntityName[currentLevel][language]
+                                            }リストを編集する`;
+                                            step3Text = `${
+                                              parentEntityLevel === "company"
+                                                ? ``
+                                                : `この${mappingEntityName[parentEntityLevel][language]}内の`
+                                            }各${mappingEntityName[currentLevel][language]}の売上目標を設定する`;
+                                          }
+                                          if (currentLevel === "company") {
+                                            step3Text = `全社の売上目標を設定する`;
+                                            step2Text2 = ``;
+                                          }
+                                          if (currentLevel === "member") {
+                                            step2Text2 = `開発部門や総務部門などの売上目標に直接関わらないメンバーは目標リストから削除し、\n営業部門などの売上に直結するメンバーを残す形でリストを編集してください。`;
+                                          }
+
+                                          handleOpenTooltip({
+                                            e: e,
+                                            display: "top",
+                                            content: step === 2 ? step2Text : step === 3 ? step3Text : ``,
+                                            content2: step2Text2 ? step2Text2 : undefined,
+                                            marginTop: step2Text2 ? 48 : 9,
+                                            itemsPosition: step2Text2 ? "left" : "center",
+                                          });
                                         }
-                                        if (currentLevel === "company") {
-                                          step3Text = `全社の売上目標を設定する`;
-                                        }
+                                      }}
+                                      onMouseLeave={handleCloseTooltip}
+                                      onClick={(e) => {
+                                        // ------------------- 🔹step2🔹 -------------------
+                                        if (step === 2) {
+                                          if (!entityGroupObj.parent_entity_id)
+                                            return alert(
+                                              `${
+                                                entityGroupObj.parent_entity_name
+                                                  ? `${entityGroupObj.parent_entity_name}の`
+                                                  : ``
+                                              }データが見つかりませんでした。`
+                                            );
+                                          levelObj;
+                                          entityGroupObj;
+                                          // 現在のレベルの親レベルを特定して引数に渡す
 
-                                        handleOpenTooltip({
-                                          e: e,
-                                          display: "top",
-                                          content: step === 2 ? step2Text : step === 3 ? step3Text : ``,
-                                          marginTop: 9,
-                                        });
-                                      }
-                                    }}
-                                    onMouseLeave={handleCloseTooltip}
-                                    onClick={(e) => {
-                                      // ------------------- 🔹step2🔹 -------------------
-                                      if (step === 2) {
-                                        if (!entityGroupObj.parent_entity_id)
-                                          return alert(
-                                            `${
-                                              entityGroupObj.parent_entity_name
-                                                ? `${entityGroupObj.parent_entity_name}の`
-                                                : ``
-                                            }データが見つかりませんでした。`
-                                          );
-                                        levelObj;
-                                        entityGroupObj;
-                                        // 現在のレベルの親レベルを特定して引数に渡す
-
-                                        handleOpenEditEntityListByParentModal({
-                                          parentEntityId: entityGroupObj.parent_entity_id,
-                                        });
-                                      }
-                                      // ------------------- 🔹step2🔹 ここまで -------------------
-                                      // ------------------- 🔹step3🔹 -------------------
-                                      if (step === 3) {
-                                        if (!entityGroupObj.entities?.length)
-                                          return alert("グループ内に１つ以上の部門・メンバーを追加してください。");
-
-                                        // 全社〜係レベルまでは年度
-                                        if (currentLevel !== "member") {
-                                          // 上位エンティティ内の全てのエンティティ配列をグローバルstateに追加する
-                                          const newParentEntityGroup = {
-                                            fiscalYear: upsertSettingEntitiesObj.fiscalYear,
-                                            periodType: "year_half", // レベルに合わせた目標の期間タイプ、売上推移用
-                                            parentEntityLevelId: levelObj.id,
-                                            parentEntityLevel: parentEntityLevel,
+                                          handleOpenEditEntityListByParentModal({
                                             parentEntityId: entityGroupObj.parent_entity_id,
-                                            parentEntityName: entityGroupObj.parent_entity_name,
-                                            entityLevel: currentLevel,
-                                            entities: entityGroupObj.entities,
-                                          } as UpsertSettingEntitiesObj;
-
-                                          setUpsertSettingEntitiesObj(newParentEntityGroup);
-                                          setIsSettingTargetMode(true);
-                                        }
-                                        // メンバーレベルは上期か下期どちらを設定するか選択
-                                        else {
-                                          // 上半期と下半期それぞれでグループ内のエンティティ全てのis_confirmがtrueかチェック
-                                          const isConfirmFirstHalf = entityGroupObj.entities.every(
-                                            (entity) => entity.is_confirmed_first_half_details
-                                          );
-                                          const isConfirmSecondHalf = entityGroupObj.entities.every(
-                                            (entity) => entity.is_confirmed_second_half_details
-                                          );
-                                          setSelectedMemberAndPeriodType({
-                                            memberGroupObjByParent: entityGroupObj,
-                                            periodType: "first_half_details", // 上期~月度
-                                            isConfirmFirstHalf: isConfirmFirstHalf,
-                                            isConfirmSecondHalf: isConfirmSecondHalf,
                                           });
-
-                                          const sectionWidth = 330;
-                                          handleOpenSectionMenu({
-                                            e,
-                                            title: "selectTargetPeriodTypeForMember",
-                                            displayX: "bottom_left",
-                                            fadeType: "fade_down",
-                                            maxWidth: sectionWidth,
-                                            minWidth: sectionWidth,
-                                          });
-                                          // setOpenSubMenu({
-                                          //   display: "left",
-                                          //   fadeType: "fade_down",
-                                          //   sectionMenuWidth: sectionWidth,
-                                          // });
                                         }
-                                      }
-                                      // ------------------- 🔹step3🔹 -------------------
-                                    }}
-                                  >
-                                    {/* {step === 2 && <CgArrowsExchange className={`mr-[3px] text-[18px] text-[#fff]`} />} */}
-                                    {step === 2 && `リスト編集`}
-                                    {step === 3 && <FiPlus className={`mr-[3px] stroke-[3] text-[12px] text-[#fff]`} />}
-                                    {step === 3 && `目標設定`}
-                                  </div>
+                                        // ------------------- 🔹step2🔹 ここまで -------------------
+                                        // ------------------- 🔹step3🔹 -------------------
+                                        if (step === 3) {
+                                          if (!entityGroupObj.entities?.length)
+                                            return alert("グループ内に１つ以上の部門・メンバーを追加してください。");
+
+                                          // 全社〜係レベルまでは年度
+                                          if (currentLevel !== "member") {
+                                            // 上位エンティティ内の全てのエンティティ配列をグローバルstateに追加する
+                                            const newParentEntityGroup = {
+                                              fiscalYear: upsertSettingEntitiesObj.fiscalYear,
+                                              periodType: "year_half", // レベルに合わせた目標の期間タイプ、売上推移用
+                                              parentEntityLevelId: levelObj.id,
+                                              parentEntityLevel: parentEntityLevel,
+                                              parentEntityId: entityGroupObj.parent_entity_id,
+                                              parentEntityName: entityGroupObj.parent_entity_name,
+                                              entityLevel: currentLevel,
+                                              entities: entityGroupObj.entities,
+                                            } as UpsertSettingEntitiesObj;
+
+                                            setUpsertSettingEntitiesObj(newParentEntityGroup);
+                                            setIsSettingTargetMode(true);
+                                          }
+                                          // メンバーレベルは上期か下期どちらを設定するか選択
+                                          else {
+                                            // 上半期と下半期それぞれでグループ内のエンティティ全てのis_confirmがtrueかチェック
+                                            const isConfirmFirstHalf = entityGroupObj.entities.every(
+                                              (entity) => entity.is_confirmed_first_half_details
+                                            );
+                                            const isConfirmSecondHalf = entityGroupObj.entities.every(
+                                              (entity) => entity.is_confirmed_second_half_details
+                                            );
+                                            setSelectedMemberAndPeriodType({
+                                              memberGroupObjByParent: entityGroupObj,
+                                              periodType: "first_half_details", // 上期~月度
+                                              isConfirmFirstHalf: isConfirmFirstHalf,
+                                              isConfirmSecondHalf: isConfirmSecondHalf,
+                                            });
+
+                                            const sectionWidth = 330;
+                                            handleOpenSectionMenu({
+                                              e,
+                                              title: "selectTargetPeriodTypeForMember",
+                                              displayX: "bottom_left",
+                                              fadeType: "fade_down",
+                                              maxWidth: sectionWidth,
+                                              minWidth: sectionWidth,
+                                            });
+                                            // setOpenSubMenu({
+                                            //   display: "left",
+                                            //   fadeType: "fade_down",
+                                            //   sectionMenuWidth: sectionWidth,
+                                            // });
+                                          }
+                                        }
+                                        // ------------------- 🔹step3🔹 -------------------
+                                      }}
+                                    >
+                                      {/* {step === 2 && <CgArrowsExchange className={`mr-[3px] text-[18px] text-[#fff]`} />} */}
+                                      {step === 2 && `リスト編集`}
+                                      {step === 3 && (
+                                        <FiPlus className={`mr-[3px] stroke-[3] text-[12px] text-[#fff]`} />
+                                      )}
+                                      {step === 3 && `目標設定`}
+                                    </div>
+                                  )}
+                                  {isLoadingSave && currentLevel === entityLevel && (
+                                    <div className={`flex min-h-[30px] min-w-[83px] items-center justify-end`}>
+                                      <SpinnerX h="h-[24px]" w="w-[24px]" />
+                                    </div>
+                                  )}
                                 </h3>
                                 <ul className={`w-full`}>
                                   {!!entityGroupObj.entities?.length &&
