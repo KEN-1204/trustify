@@ -221,8 +221,22 @@ Props) => {
   // 🌠「保存クリック」データ収集
   useEffect(() => {
     // トリガーがtrueの場合か、isCollectedでない(もしくは存在しない)場合のみ目標stateの収集を実行
-    if (!saveTriggerSalesTarget) return;
-    if ((inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected) return;
+    console.log(
+      `🔥🔥🔥🔥🔥${entityNameTitle}テーブル データ収集トリガー検知 saveTriggerSalesTarget`,
+      saveTriggerSalesTarget,
+      "(inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected",
+      (inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected
+    );
+    if (!saveTriggerSalesTarget) {
+      console.log(`🔥🔥🔥🔥🔥${entityNameTitle}テーブル リターン !saveTriggerSalesTarget`);
+      return;
+    }
+    if ((inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected) {
+      console.log(
+        `🔥🔥🔥🔥🔥${entityNameTitle}テーブル リターン (inputSalesTargetsIdToDataMap[entityId] as EntityInputSalesTargetObj)?.isCollected`
+      );
+      return;
+    }
 
     const getPeriod = (key: string) => {
       if (key === "fiscal_year") return upsertSettingEntitiesObj.fiscalYear;
@@ -272,12 +286,18 @@ Props) => {
     const isAllValid = validateInputSalesTargets(inputSalesTargetsList.map((obj) => obj.inputTarget));
 
     if (!isAllValid) {
-      copyInputMap[entityId] = { data: newTarget, isCollected: false, error: "データが有効ではありません" };
+      copyInputMap[entityId] = { data: newTarget, isCollected: true, error: "データが有効ではありません" };
     } else {
       copyInputMap[entityId] = { data: newTarget, isCollected: true, error: null };
     }
 
-    console.log("🔥🔥🔥✅✅✅✅✅✅✅✅✅✅ 子コンポーネント isAllValid", isAllValid, copyInputMap);
+    console.log(
+      `🔥🔥🔥✅✅✅✅✅✅✅✅✅✅${entityNameTitle}テーブル 子コンポーネント Zustandを更新`,
+      "isAllValid",
+      isAllValid,
+      "copyInputMap",
+      copyInputMap
+    );
 
     // Zustandを更新
     setInputSalesTargetsIdToDataMap(copyInputMap);
