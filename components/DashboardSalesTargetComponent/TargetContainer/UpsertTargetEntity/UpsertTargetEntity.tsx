@@ -1988,7 +1988,18 @@ const UpsertTargetEntityMemo = () => {
           ></div>
 
           <ErrorBoundary FallbackComponent={ErrorFallback}>
-            <Suspense fallback={<FallbackUpsertSettingTargetEntityGroup />}>
+            <Suspense
+              fallback={
+                <FallbackUpsertSettingTargetEntityGroup
+                  isUpsertSalesTargetTable={true}
+                  fiscalYear={upsertSettingEntitiesObj.fiscalYear}
+                  currentLevel={currentLevel}
+                  step={step}
+                  language={language}
+                  getActiveSteps={getActiveSteps}
+                />
+              }
+            >
               <UpsertSettingTargetEntityGroup
                 settingEntityLevel={currentLevel}
                 setIsSettingTargetMode={setIsSettingTargetMode}
@@ -1996,6 +2007,14 @@ const UpsertTargetEntityMemo = () => {
               />
             </Suspense>
           </ErrorBoundary>
+          {/* <FallbackUpsertSettingTargetEntityGroup
+            isUpsertSalesTargetTable={true}
+            fiscalYear={upsertSettingEntitiesObj.fiscalYear}
+            currentLevel={currentLevel}
+            step={step}
+            language={language}
+            getActiveSteps={getActiveSteps}
+          /> */}
           {/* <div className={`setting_target_container fixed left-0 top-0 z-[80] h-[100vh] w-[100vw] bg-[red]/[0]`}>
             <div className={`${styles.upsert_setting_container} relative flex h-full w-full`}>
               <div className={`${styles.main_container_setting} z-[1200] flex h-full w-full bg-[yellow]/[0]`}>

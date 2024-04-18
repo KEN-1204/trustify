@@ -37,6 +37,7 @@ import {
   Office,
   SalesSummaryYearHalf,
   SalesTargetUpsertColumns,
+  SalesTargetsYearHalf,
   Section,
   SparkChartObj,
   Unit,
@@ -133,7 +134,7 @@ Props) => {
   // if (isMemberLevelSetting && !annualFiscalMonths) return null;
 
   // --------------------- 🌟メイン目標の売上目標をキャッシュから取得🌟 ---------------------
-  const salesTargetsYearHalf = queryClient.getQueryData([
+  const salesTargetsYearHalf: SalesTargetsYearHalf | undefined = queryClient.getQueryData([
     "sales_target_main_year_half",
     parentEntityLevel,
     parentEntityId,
@@ -874,7 +875,7 @@ Props) => {
                                           convertedFirstHalfTarget !== "0")
                                       ) {
                                         try {
-                                          // 年度と上期の売上目標 Decimalオブジェクトの生成
+                                          // 🔹年度と上期の売上目標 Decimalオブジェクトの生成
                                           const totalTargetDecimal = new Decimal(
                                             row.period_type === "first_half"
                                               ? convertedTotalTargetYear
@@ -939,16 +940,36 @@ Props) => {
                                             return;
                                           }
 
-                                          // 上期シェアを計算し、整数に丸める
-                                          const firstHalfShare = firstHalfTargetDecimal
-                                            .dividedBy(totalTargetDecimal)
-                                            .times(100)
-                                            .toFixed(0, Decimal.ROUND_HALF_UP);
-                                          setShareFirstHalf(Number(firstHalfShare));
-                                          // 下期シェアを計算する（100から上期シェアを引く）
-                                          const secondHalfShare = 100 - Number(firstHalfShare);
-                                          setShareSecondHalf(secondHalfShare);
-                                          // 下期売上目標を計算して更新
+                                          // 🔸シェアの算出
+                                          // ---------- 🔹companyレベル以外でのサブターゲットの場合 ----------
+                                          // 全社以外はメイン目標に対してシェア割を算出
+                                          if (entityLevel !== "company") {
+                                            // 年度が入力され、かつ、上半期が入力されている場合
+                                            // 🔹上期シェアを計算し、整数に丸める
+                                            const firstHalfShare = firstHalfTargetDecimal
+                                              .dividedBy(totalTargetDecimal)
+                                              .times(100)
+                                              .toFixed(0, Decimal.ROUND_HALF_UP);
+                                            setShareFirstHalf(Number(firstHalfShare));
+                                            // 下期シェアを計算する（100から上期シェアを引く）
+                                            const secondHalfShare = 100 - Number(firstHalfShare);
+                                            setShareSecondHalf(secondHalfShare);
+                                          }
+                                          // ---------- 🔹companyレベルでのメインターゲットの場合 ----------
+                                          // 全社内の期間でシェア割を算出
+                                          else {
+                                            // 🔹上期シェアを計算し、整数に丸める
+                                            const firstHalfShare = firstHalfTargetDecimal
+                                              .dividedBy(totalTargetDecimal)
+                                              .times(100)
+                                              .toFixed(0, Decimal.ROUND_HALF_UP);
+                                            setShareFirstHalf(Number(firstHalfShare));
+                                            // 下期シェアを計算する（100から上期シェアを引く）
+                                            const secondHalfShare = 100 - Number(firstHalfShare);
+                                            setShareSecondHalf(secondHalfShare);
+                                          }
+
+                                          // 🔸下期売上目標を計算して更新
                                           const newSecondHalfTarget = totalTargetDecimal
                                             .minus(firstHalfTargetDecimal)
                                             .toNumber();
@@ -976,7 +997,7 @@ Props) => {
                                             setInputYoYGrowthSecondHalf(secondHalfResult.yearOverYear);
                                           }
 
-                                          // 下期の売上推移に追加
+                                          // 🔹下期の売上推移に追加
                                           if (salesTrendsSecondHalf && isValidNumber(newSecondHalfTarget)) {
                                             // ディープコピー
                                             let newTrend = cloneDeep(salesTrendsSecondHalf) as SparkChartObj;

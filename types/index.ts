@@ -3004,11 +3004,15 @@ export type SalesSummaryYearHalf = {
   yo2y_growth: number; // 前年度前年伸び率実績(2年前から1年前の成長率)
 };
 
+// 「年度・半期」目標のキー
+export type KeysSalesTargetsYearHalf = "sales_target_year" | "sales_target_first_half" | "sales_target_second_half";
 // メイン目標の売上目標「年度・半期」
-export type SalesTargetsYearHalf = {
-  sales_target_year: number;
-  sales_target_first_half: number;
-  sales_target_second_half: number;
+export type SalesTargetsYearHalf = { [K in KeysSalesTargetsYearHalf]: number };
+// 設定対象のサブテーブルの売上目標の合計「年度・半期」
+export type TotalSalesTargetsYearHalf = { [K in KeysSalesTargetsYearHalf]: number };
+export type TotalSalesTargetsYearHalfObj = {
+  total_targets: TotalSalesTargetsYearHalf;
+  input_targets_array: { entity_id: string; entity_name: string; input_targets: SalesTargetsYearHalf }[];
 };
 
 // 売上目標設定時のカラム

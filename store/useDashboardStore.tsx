@@ -36,6 +36,9 @@ import {
   UpsertTargetObj,
   UserProfile,
   UserProfileCompanySubscription,
+  TotalSalesTargetsYearHalf,
+  SalesTargetsYearHalf,
+  TotalSalesTargetsYearHalfObj,
 } from "@/types";
 import { activityColumnHeaderItemListData } from "@/utils/activityColumnHeaderItemListDate";
 import { companyColumnHeaderItemListData } from "@/utils/companyColumnHeaderItemListData";
@@ -512,6 +515,9 @@ type State = {
   // 各テーブルの目標入力値を保持するstate
   inputSalesTargetsIdToDataMap: InputSalesTargetsIdToDataMap;
   setInputSalesTargetsIdToDataMap: (payload: InputSalesTargetsIdToDataMap) => void;
+  // 売上目標設定対象となる各テーブルの合計値を保持するstate(会社レベル以外でのレベル設定時に使用)
+  totalInputSalesTargetsYearHalf: TotalSalesTargetsYearHalfObj;
+  setTotalInputSalesTargetsYearHalf: (payload: TotalSalesTargetsYearHalfObj) => void;
   // メンバーレベルの目標設定時に「上期詳細」「下期詳細」を切り替えるstate
   settingPeriodTypeForMemberLevel: string;
   setSettingPeriodTypeForMemberLevel: (payload: string) => void;
@@ -1226,6 +1232,16 @@ const useDashboardStore = create<State>((set) => ({
   // 各テーブルの目標入力値を保持するstate
   inputSalesTargetsIdToDataMap: {},
   setInputSalesTargetsIdToDataMap: (payload) => set({ inputSalesTargetsIdToDataMap: payload }),
+  // 売上目標設定対象となる各テーブルの合計値を保持するstate(会社レベル以外でのレベル設定時に使用)
+  totalInputSalesTargetsYearHalf: {
+    total_targets: {
+      sales_target_year: 0,
+      sales_target_first_half: 0,
+      sales_target_second_half: 0,
+    },
+    input_targets_array: [],
+  },
+  setTotalInputSalesTargetsYearHalf: (payload) => set({ totalInputSalesTargetsYearHalf: payload }),
   // メンバーレベルの目標設定時に「上期詳細」「下期詳細」を切り替えるstate
   settingPeriodTypeForMemberLevel: "first_half_details",
   setSettingPeriodTypeForMemberLevel: (payload) => set({ settingPeriodTypeForMemberLevel: payload }),

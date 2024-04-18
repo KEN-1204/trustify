@@ -25,10 +25,12 @@ import {
   EntitiesHierarchy,
   EntityLevelNames,
   EntityLevels,
+  KeysSalesTargetsYearHalf,
   MemberAccounts,
   Office,
   SalesTargetsYearHalf,
   Section,
+  TotalSalesTargetsYearHalfObj,
   Unit,
   UpsertSettingEntitiesObj,
 } from "@/types";
@@ -59,6 +61,9 @@ import { UpsertSettingTargetGridTableForMemberLevel } from "./UpsertSettingTarge
 import { MainTargetTableDisplayOnly } from "./UpsertSettingTargetGridTable/MainTargetTableDisplayOnly";
 import { ImInfo } from "react-icons/im";
 import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
+import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
+import { useQuerySalesTargetsMain } from "@/hooks/useQuerySalesTargetsMain";
+import Decimal from "decimal.js";
 
 export const columnHeaderListTarget = [
   "period_type",
@@ -1485,29 +1490,101 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // }, [periodTypeTrend]);
 
   // --------------------- 🌟メイン目標の売上目標をキャッシュから取得🌟 ---------------------
-  const salesTargetsYearHalf: SalesTargetsYearHalf | null | undefined = queryClient.getQueryData([
-    "sales_target_main_year_half",
-    upsertSettingEntitiesObj.parentEntityLevel,
-    upsertSettingEntitiesObj.parentEntityId,
-    `year_half`,
-    upsertSettingEntitiesObj.fiscalYear,
-  ]);
+  // const salesTargetsYearHalf: SalesTargetsYearHalf | null | undefined = queryClient.getQueryData([
+  //   "sales_target_main_year_half",
+  //   upsertSettingEntitiesObj.parentEntityLevel,
+  //   upsertSettingEntitiesObj.parentEntityId,
+  //   `year_half`,
+  //   upsertSettingEntitiesObj.fiscalYear,
+  // ]);
+  const {
+    data: salesTargetsYearHalf,
+    error: salesTargetsYearHalfError,
+    isLoading: isLoadingSalesTargetsYearHalf,
+    isError: isErrorSalesTargetsYearHalf,
+  } = useQuerySalesTargetsMain({
+    companyId: userProfileState.company_id,
+    entityLevel: upsertSettingEntitiesObj.parentEntityLevel,
+    entityId: upsertSettingEntitiesObj.parentEntityId,
+    periodType: "year_half",
+    fiscalYear: upsertSettingEntitiesObj.fiscalYear,
+    fetchEnabled: true,
+  });
   // --------------------- 🌟メイン目標の売上目標をキャッシュから取得🌟 ---------------------
+
+  // 部門別の「年度・半期」のそれぞれの目標金額の合計値
+  const totalInputSalesTargetsYearHalf = useDashboardStore((state) => state.totalInputSalesTargetsYearHalf);
+  const setTotalInputSalesTargetsYearHalf = useDashboardStore((state) => state.setTotalInputSalesTargetsYearHalf);
+
+  // 初回マウント時に設定対象のエンティティの数量分、totalInputSalesTargetsYearHalfのinput_targets_arrayにセットする
+  useEffect(() => {
+    const isYearHalf = upsertSettingEntitiesObj.periodType;
+    if (isYearHalf === "year_half") {
+      const inputSalesTargetsArray = upsertSettingEntitiesObj.entities.map((entity) => {
+        return {
+          entity_id: entity.entity_id,
+          entity_name: entity.entity_name,
+          input_targets: {
+            sales_target_year: 0,
+            sales_target_first_half: 0,
+            sales_target_second_half: 0,
+          },
+        };
+      }) as { entity_id: string; entity_name: string; input_targets: SalesTargetsYearHalf }[];
+
+      const initialTotalSalesTargetsYearHalf = {
+        total_targets: {
+          sales_target_year: 0,
+          sales_target_first_half: 0,
+          sales_target_second_half: 0,
+        },
+        input_targets_array: inputSalesTargetsArray,
+      } as TotalSalesTargetsYearHalfObj;
+
+      // 初回stateをセット
+      setTotalInputSalesTargetsYearHalf(initialTotalSalesTargetsYearHalf);
+    }
+  }, []);
+
+  // 部門別目標合計/総合目標 用の配列
+  const salesTargetsYearHalfStatus = useMemo(() => {
+    if (!salesTargetsYearHalf) return null;
+    return Object.entries(salesTargetsYearHalf).map(([key, value], index) => {
+      let title: { [key: string]: string } = { ja: `年度`, en: `Fiscal Year` };
+      if (key === "sales_target_first_half") title = { ja: `上半期`, en: `First Half Year` };
+      if (key === "sales_target_second_half") title = { ja: `下半期`, en: `Second Half Year` };
+      const totalInput = totalInputSalesTargetsYearHalf.total_targets[key as KeysSalesTargetsYearHalf];
+      const mainTargetDecimal = new Decimal(value);
+      const totalInputDecimal = new Decimal(totalInput);
+      // 残り目標額
+      const restSalesTarget = mainTargetDecimal.minus(totalInputDecimal).toNumber();
+      const isNegative = restSalesTarget < 0;
+      return {
+        key: key,
+        sales_target: formatToJapaneseYen(value),
+        title: title,
+        restTarget: formatToJapaneseYen(restSalesTarget, true, true),
+        isNegative: isNegative,
+      };
+    });
+  }, [salesTargetsYearHalf, totalInputSalesTargetsYearHalf]);
 
   const infoIconInputStatusRef = useRef<HTMLDivElement | null>(null);
 
   console.log(
-    "UpsertSettingTargetEntityGroupコンポーネントレンダリング",
+    "🌠UpsertSettingTargetEntityGroupコンポーネントレンダリング",
     "upsertSettingEntitiesObj",
     upsertSettingEntitiesObj,
     "収集したデータinputSalesTargetsIdToDataMap",
     inputSalesTargetsIdToDataMap,
-    "settingEntityLevel",
-    settingEntityLevel,
-    "selectedPeriodDetailTrend",
-    selectedPeriodDetailTrend,
-    "メイン目標キャッシュsalesTargetsYearHalf",
-    salesTargetsYearHalf
+    // "settingEntityLevel",
+    // settingEntityLevel,
+    // "selectedPeriodDetailTrend",
+    // selectedPeriodDetailTrend,
+    // "メイン目標キャッシュsalesTargetsYearHalf",
+    // salesTargetsYearHalf,
+    "合計目標と個別エンティティ目標totalInputSalesTargetsYearHalf",
+    totalInputSalesTargetsYearHalf
     // "サブ目標リスト",
     // subTargetList,
     // "memberDataArray",
@@ -2026,113 +2103,120 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                     {/* ----------- 部門別シェア ３列エリア ここまで ----------- */}
 
                     {/* ----------- 残り/総合目標 入力状況確認テーブル ----------- */}
-                    {upsertSettingEntitiesObj.entityLevel !== "company" && !!salesTargetsYearHalf && (
-                      <div className={`${styles.grid_row} ${styles.col1} fade08_forward`}>
-                        <div className={`${styles.grid_content_card} relative`}>
-                          {/* ------------------ タイトルエリア ------------------ */}
-                          <div className={`${styles.card_title_area}`}>
-                            <div className={`${styles.card_title} flex items-center`}>
-                              <span>{getDivName()}別目標合計 / 総合目標</span>
-                              <div className={`ml-[12px] flex h-full items-center`}>
+                    {upsertSettingEntitiesObj.entityLevel !== "company" && !!salesTargetsYearHalf && allFetched && (
+                      <div
+                        className={`${styles.row_container} ${stickyRow === `input_status` ? styles.sticky_row : ``}`}
+                      >
+                        <div className={`${styles.grid_row} ${styles.col1} fade08_forward`}>
+                          <div className={`${styles.grid_content_card} relative`}>
+                            {/* ------------------ タイトルエリア ------------------ */}
+                            <div className={`${styles.card_title_area}`}>
+                              <div className={`${styles.card_title} flex items-center`}>
+                                <span>{getDivName()}目標残り合計 / 総合目標</span>
+                                <div className={`ml-[12px] flex h-full items-center`}>
+                                  <div
+                                    className="flex-center relative h-[16px] w-[16px] rounded-full"
+                                    onMouseEnter={(e) => {
+                                      const icon = infoIconInputStatusRef.current;
+                                      if (icon && icon.classList.contains(styles.animate_ping)) {
+                                        icon.classList.remove(styles.animate_ping);
+                                      }
+                                      handleOpenTooltip({
+                                        e: e,
+                                        display: "top",
+                                        content: ``,
+                                        marginTop: 9,
+                                        itemsPosition: `left`,
+                                      });
+                                    }}
+                                    onMouseLeave={handleCloseTooltip}
+                                  >
+                                    <div
+                                      ref={infoIconInputStatusRef}
+                                      className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                                    ></div>
+                                    <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                                  </div>
+                                </div>
+                              </div>
+                              <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>
                                 <div
-                                  className="flex-center relative h-[16px] w-[16px] rounded-full"
+                                  className={`${styles.btn} ${styles.basic} space-x-[4px]`}
                                   onMouseEnter={(e) => {
-                                    const icon = infoIconInputStatusRef.current;
-                                    if (icon && icon.classList.contains(styles.animate_ping)) {
-                                      icon.classList.remove(styles.animate_ping);
-                                    }
                                     handleOpenTooltip({
                                       e: e,
                                       display: "top",
-                                      content: ``,
+                                      content: stickyRow === "input_status" ? `固定を解除` : `画面内に固定`,
                                       marginTop: 9,
-                                      itemsPosition: `left`,
                                     });
                                   }}
                                   onMouseLeave={handleCloseTooltip}
+                                  onClick={() => {
+                                    if ("input_status" === stickyRow) {
+                                      setStickyRow(null);
+                                    } else {
+                                      setStickyRow("input_status");
+                                    }
+                                    handleCloseTooltip();
+                                  }}
                                 >
-                                  <div
-                                    ref={infoIconInputStatusRef}
-                                    className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
-                                  ></div>
-                                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                                  {stickyRow === "input_status" && <TbSnowflakeOff />}
+                                  {stickyRow !== "input_status" && <TbSnowflake />}
+                                  {stickyRow === "input_status" && <span>解除</span>}
+                                  {stickyRow !== "input_status" && <span>固定</span>}
                                 </div>
                               </div>
                             </div>
-                            <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>
-                              <div
-                                className={`${styles.btn} ${styles.basic} space-x-[4px]`}
-                                onMouseEnter={(e) => {
-                                  handleOpenTooltip({
-                                    e: e,
-                                    display: "top",
-                                    content: stickyRow === "input_status" ? `固定を解除` : `画面内に固定`,
-                                    marginTop: 9,
-                                  });
-                                }}
-                                onMouseLeave={handleCloseTooltip}
-                                onClick={() => {
-                                  if ("input_status" === stickyRow) {
-                                    setStickyRow(null);
-                                  } else {
-                                    setStickyRow("input_status");
-                                  }
-                                  handleCloseTooltip();
-                                }}
-                              >
-                                {stickyRow === "input_status" && <TbSnowflakeOff />}
-                                {stickyRow !== "input_status" && <TbSnowflake />}
-                                {stickyRow === "input_status" && <span>解除</span>}
-                                {stickyRow !== "input_status" && <span>固定</span>}
+                            {/* ------------------ タイトルエリア ここまで ------------------ */}
+                            {/* ------------------ メインコンテナ ------------------ */}
+                            <div
+                              className={`${styles.main_container}`}
+                              style={{ paddingTop: `10px`, paddingBottom: `15px` }}
+                            >
+                              <div className={`flex w-full items-center justify-between`}>
+                                {!!salesTargetsYearHalfStatus &&
+                                  salesTargetsYearHalfStatus.map((obj) => {
+                                    // const totalInputSalesTarget =
+                                    //   totalInputSalesTargetsYearHalf[obj.key as KeysSalesTargetsYearHalf];
+                                    return (
+                                      <div key={`${obj.key}`} className={`flex w-1/3 items-center justify-start`}>
+                                        <div
+                                          className={`flex-center ml-[18px] mr-[24px] min-w-max whitespace-nowrap rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] text-[var(--color-text-title)]`}
+                                        >
+                                          <span>{obj.title[language]}</span>
+                                        </div>
+                                        <div className={`flex flex-wrap items-end space-x-[12px]`}>
+                                          <div
+                                            className={`text-[19px] font-bold ${
+                                              obj.isNegative ? `text-[var(--main-color-tk)]` : ``
+                                            }`}
+                                          >
+                                            <span>{obj.restTarget}</span>
+                                          </div>
+                                          <div className={`flex items-center space-x-[6px]`}>
+                                            <div className={``}>
+                                              <span>/</span>
+                                            </div>
+                                            <div className={`text-[14px]`}>
+                                              <span>{obj.sales_target}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
                               </div>
                             </div>
+                            {/* ------------------ メインコンテナ ここまで ------------------ */}
                           </div>
-                          {/* ------------------ タイトルエリア ここまで ------------------ */}
-                          {/* ------------------ メインコンテナ ------------------ */}
-                          <div className={`${styles.main_container}`}>
-                            <div className={`flex w-full items-center justify-between`}>
-                              <div className={`flex w-1/3 items-center justify-start`}>
-                                <div
-                                  className={`flex-center ml-[18px] mr-[24px] rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] text-[var(--color-text-sub)]`}
-                                >
-                                  <span>年度</span>
-                                </div>
-                                <div className={`flex items-center space-x-[12px]`}>
-                                  <div className={`font-bold`}>
-                                    <span>¥ 0</span>
-                                  </div>
-                                  <div className={`font-bold`}>
-                                    <span>/</span>
-                                  </div>
-                                  <div className={`font-bold`}>
-                                    <span>{salesTargetsYearHalf.sales_target_year ?? ""}</span>
-                                  </div>
-                                </div>
-                              </div>
-                              <div className={`flex w-1/3 items-center justify-start`}>
-                                <div
-                                  className={`flex-center ml-[18px] mr-[24px] rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] text-[var(--color-text-sub)]`}
-                                >
-                                  <span>上半期</span>
-                                </div>
-                              </div>
-                              <div className={`flex w-1/3 items-center justify-start`}>
-                                <div
-                                  className={`flex-center ml-[18px] mr-[24px] rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] text-[var(--color-text-sub)]`}
-                                >
-                                  <span>下半期</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                          {/* ------------------ メインコンテナ ここまで ------------------ */}
                         </div>
                       </div>
                     )}
                     {/* ----------- 残り/総合目標 入力状況確認テーブル ここまで ----------- */}
 
                     {/* ---------- 部門別目標 ---------- */}
-                    {upsertSettingEntitiesObj.entityLevel !== "company" &&
+                    {!!salesTargetsYearHalf &&
+                      upsertSettingEntitiesObj.entityLevel !== "company" &&
                       subTargetList &&
                       subTargetList.length > 0 &&
                       subTargetList.map((obj, tableIndex) => {
