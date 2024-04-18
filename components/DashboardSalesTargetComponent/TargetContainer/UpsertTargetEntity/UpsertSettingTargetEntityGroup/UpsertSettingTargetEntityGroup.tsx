@@ -46,7 +46,7 @@ import { useQueryMemberAccountsFilteredByEntity } from "@/hooks/useQueryMemberAc
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { HiOutlineSelector, HiOutlineSwitchHorizontal } from "react-icons/hi";
 import { GrPowerReset } from "react-icons/gr";
-import { BsChevronLeft } from "react-icons/bs";
+import { BsCheck2, BsChevronLeft } from "react-icons/bs";
 import { IoAddOutline, IoChevronDownOutline } from "react-icons/io5";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -1559,12 +1559,16 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
       // 残り目標額
       const restSalesTarget = mainTargetDecimal.minus(totalInputDecimal).toNumber();
       const isNegative = restSalesTarget < 0;
+      const isComplete = restSalesTarget === 0;
       return {
         key: key,
         sales_target: formatToJapaneseYen(value),
+        // sales_target: value,
         title: title,
-        restTarget: formatToJapaneseYen(restSalesTarget, true, true),
+        // restTarget: formatToJapaneseYen(restSalesTarget, true, true),
+        restTarget: restSalesTarget,
         isNegative: isNegative,
+        isComplete: isComplete,
       };
     });
   }, [salesTargetsYearHalf, totalInputSalesTargetsYearHalf]);
@@ -2171,7 +2175,8 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                             {/* ------------------ メインコンテナ ------------------ */}
                             <div
                               className={`${styles.main_container}`}
-                              style={{ paddingTop: `10px`, paddingBottom: `15px` }}
+                              // style={{ paddingTop: `10px`, paddingBottom: `15px`, padding: `10px 24px 15px` }}
+                              style={{ padding: `10px 24px 15px` }}
                             >
                               <div className={`flex w-full items-center justify-between`}>
                                 {!!salesTargetsYearHalfStatus &&
@@ -2181,9 +2186,16 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                                     return (
                                       <div key={`${obj.key}`} className={`flex w-1/3 items-center justify-start`}>
                                         <div
-                                          className={`flex-center ml-[18px] mr-[24px] min-w-max whitespace-nowrap rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] text-[var(--color-text-title)]`}
+                                          className={` flex items-center ${obj.isComplete ? `mr-[12px]` : `mr-[24px]`}`}
                                         >
-                                          <span>{obj.title[language]}</span>
+                                          <div
+                                            className={`flex-center min-w-max whitespace-nowrap rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] text-[var(--color-text-title)]`}
+                                          >
+                                            <span>{obj.title[language]}</span>
+                                          </div>
+                                          {obj.isComplete && (
+                                            <BsCheck2 className="pointer-events-none ml-[12px] min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                          )}
                                         </div>
                                         <div className={`flex flex-wrap items-end space-x-[12px]`}>
                                           <div
@@ -2191,7 +2203,27 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                                               obj.isNegative ? `text-[var(--main-color-tk)]` : ``
                                             }`}
                                           >
-                                            <span>{obj.restTarget}</span>
+                                            {/* <span>{obj.restTarget}</span> */}
+                                            <ProgressNumber
+                                              targetNumber={obj.restTarget}
+                                              // startNumber={Math.round(68000 / 2)}
+                                              // startNumber={Number((68000 * 0.1).toFixed(0))}
+                                              startNumber={0}
+                                              duration={3000}
+                                              easeFn="Quintic"
+                                              fontSize={19}
+                                              // margin="0 0 -3px 0"
+                                              margin="0 0 0 0"
+                                              isReady={true}
+                                              fade={`fade08_forward`}
+                                              isPrice={true}
+                                              isPercent={false}
+                                              includeCurrencySymbol={true}
+                                              showNegativeSign={true}
+                                              textColor={`${
+                                                obj.isNegative ? `var(--main-color-tk)` : `var(--color-text-title)`
+                                              }`}
+                                            />
                                           </div>
                                           <div className={`flex items-center space-x-[6px]`}>
                                             <div className={``}>

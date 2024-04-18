@@ -40,6 +40,7 @@ import {
   SalesTargetsYearHalf,
   Section,
   SparkChartObj,
+  TotalSalesTargetsYearHalfObj,
   Unit,
   inputSalesData,
 } from "@/types";
@@ -117,6 +118,10 @@ Props) => {
   // const upsertTargetObj = useDashboardStore((state) => state.upsertTargetObj);
   const upsertSettingEntitiesObj = useDashboardStore((state) => state.upsertSettingEntitiesObj);
 
+  // 部門別の「年度・半期」のそれぞれの目標金額の合計値
+  const totalInputSalesTargetsYearHalf = useDashboardStore((state) => state.totalInputSalesTargetsYearHalf);
+  const setTotalInputSalesTargetsYearHalf = useDashboardStore((state) => state.setTotalInputSalesTargetsYearHalf);
+
   // メンバーレベル設定時の上期詳細か下期詳細
   const settingPeriodTypeForMemberLevel = useDashboardStore((state) => state.settingPeriodTypeForMemberLevel);
 
@@ -134,7 +139,7 @@ Props) => {
   // if (isMemberLevelSetting && !annualFiscalMonths) return null;
 
   // --------------------- 🌟メイン目標の売上目標をキャッシュから取得🌟 ---------------------
-  const salesTargetsYearHalf: SalesTargetsYearHalf | undefined = queryClient.getQueryData([
+  const salesTargetsYearHalf: SalesTargetsYearHalf | null | undefined = queryClient.getQueryData([
     "sales_target_main_year_half",
     parentEntityLevel,
     parentEntityId,
@@ -178,6 +183,8 @@ Props) => {
   const [inputYoYGrowthYear, setInputYoYGrowthYear] = useState<string>("");
   const [inputYoYGrowthFirstHalf, setInputYoYGrowthFirstHalf] = useState<string>("");
   const [inputYoYGrowthSecondHalf, setInputYoYGrowthSecondHalf] = useState<string>("");
+  // 年度のシェア(会社レベル以外で使用 総合目標の年度目標を100%としてシェアを算出)
+  const [shareFiscalYear, setShareFiscalYear] = useState<number>(0);
   // 上半期のシェア
   const [shareFirstHalf, setShareFirstHalf] = useState<number>(0);
   // 下半期のシェア
@@ -390,6 +397,7 @@ Props) => {
   const getShare = (row: string) => {
     switch (row) {
       case "fiscal_year":
+        if (entityLevel !== "company") return shareFiscalYear;
         return 100;
       case "first_half":
         return shareFirstHalf;
@@ -910,6 +918,18 @@ Props) => {
                                               ...salesSummaryRowData[2].sales_trend,
                                               updateAt: Date.now(),
                                             });
+                                            // 🔹メイン目標の年度売上目標Decimalオブジェクトの生成
+                                            if (salesTargetsYearHalf) {
+                                              const mainTotalTargetDecimal = new Decimal(
+                                                salesTargetsYearHalf.sales_target_year
+                                              );
+                                              // 🔹メイン年度目標から年度シェアを計算し、整数に丸める
+                                              const fiscalYearShare = totalTargetDecimal
+                                                .dividedBy(mainTotalTargetDecimal)
+                                                .times(100)
+                                                .toFixed(0, Decimal.ROUND_HALF_UP);
+                                              setShareFiscalYear(Number(fiscalYearShare));
+                                            }
                                             // 年度が上期を下回った場合にはここでリターン
                                             return;
                                           }
@@ -936,26 +956,190 @@ Props) => {
                                               ...salesSummaryRowData[2].sales_trend,
                                               updateAt: Date.now(),
                                             });
-                                            // 年度が上期を下回った場合にはここでリターン
+                                            // 🔹メイン目標の上期売上目標Decimalオブジェクトの生成
+                                            if (salesTargetsYearHalf) {
+                                              const mainFirstHalfTargetDecimal = new Decimal(
+                                                salesTargetsYearHalf.sales_target_first_half
+                                              );
+                                              // 🔹メイン上期目標から上期シェアを計算し、整数に丸める
+                                              const firstHalfShare = firstHalfTargetDecimal
+                                                .dividedBy(mainFirstHalfTargetDecimal)
+                                                .times(100)
+                                                .toFixed(0, Decimal.ROUND_HALF_UP);
+                                              setShareFirstHalf(Number(firstHalfShare));
+                                            }
+                                            // 上期入力でが上期が年度を上回った場合にはここでリターン
                                             return;
                                           }
 
-                                          // 🔸シェアの算出
+                                          // 🔸シェア算出ここから --------------------------------------
                                           // ---------- 🔹companyレベル以外でのサブターゲットの場合 ----------
                                           // 全社以外はメイン目標に対してシェア割を算出
                                           if (entityLevel !== "company") {
-                                            // 年度が入力され、かつ、上半期が入力されている場合
-                                            // 🔹上期シェアを計算し、整数に丸める
+                                            // 🔸下期売上目標を計算して更新
+                                            const newSecondHalfTarget = totalTargetDecimal
+                                              .minus(firstHalfTargetDecimal)
+                                              .toNumber();
+                                            const formattedSecondHalfTarget = formatDisplayPrice(newSecondHalfTarget);
+                                            setInputSalesTargetSecondHalf(formattedSecondHalfTarget);
+                                            // シェア算出時に使用するために下期目標の入力値のDecimalオブジェクトしておく
+                                            const secondHalfTargetDecimal = new Decimal(newSecondHalfTarget);
+
+                                            const copiedTotalInputSalesTargetsYearHalf =
+                                              cloneDeep(totalInputSalesTargetsYearHalf);
+
+                                            const newTotalTargetObj =
+                                              copiedTotalInputSalesTargetsYearHalf.input_targets_array.find(
+                                                (obj) => obj.entity_id === entityId
+                                              );
+
+                                            if (!salesTargetsYearHalf)
+                                              return alert("総合目標データが取得できませんでした。");
+                                            if (!newTotalTargetObj)
+                                              return alert("売上目標合計データが取得できませんでした。");
+
+                                            const periodKey =
+                                              row.period_type === "fiscal_year"
+                                                ? "sales_target_year"
+                                                : "sales_target_first_half";
+                                            // 年度・上半期のどちらかを更新
+                                            newTotalTargetObj.input_targets[periodKey] =
+                                              row.period_type === "fiscal_year"
+                                                ? totalTargetDecimal.toNumber()
+                                                : firstHalfTargetDecimal.toNumber();
+
+                                            const anotherPeriodKey =
+                                              row.period_type === "fiscal_year"
+                                                ? "sales_target_first_half"
+                                                : "sales_target_year";
+                                            // 年度・上半期のもう一方の売上目標を更新
+                                            newTotalTargetObj.input_targets[anotherPeriodKey] =
+                                              row.period_type === "fiscal_year"
+                                                ? firstHalfTargetDecimal.toNumber()
+                                                : totalTargetDecimal.toNumber();
+                                            // 下期の売上目標を更新
+                                            newTotalTargetObj.input_targets["sales_target_second_half"] =
+                                              newSecondHalfTarget;
+
+                                            // 全エンティティの配列を更新
+                                            const newTotalInputSalesTargetsYearHalfArray =
+                                              copiedTotalInputSalesTargetsYearHalf.input_targets_array.map(
+                                                (entityTargetObj) =>
+                                                  entityTargetObj.entity_id === entityId
+                                                    ? newTotalTargetObj
+                                                    : entityTargetObj
+                                              );
+
+                                            // 🔸全てのエンティティの売上目標合計を再計算
+                                            let newSalesTargetYear = 0;
+                                            let newSalesTargetFirstHalf = 0;
+                                            let newSalesTargetSecondHalf = 0;
+                                            newTotalInputSalesTargetsYearHalfArray.forEach((obj) => {
+                                              newSalesTargetYear += obj.input_targets.sales_target_year;
+                                              newSalesTargetFirstHalf += obj.input_targets.sales_target_first_half;
+                                              newSalesTargetSecondHalf += obj.input_targets.sales_target_second_half;
+                                            });
+
+                                            const newTotalTargetsYearHalfObj = {
+                                              total_targets: {
+                                                sales_target_year: newSalesTargetYear,
+                                                sales_target_first_half: newSalesTargetFirstHalf,
+                                                sales_target_second_half: newSalesTargetSecondHalf,
+                                              },
+                                              input_targets_array: newTotalInputSalesTargetsYearHalfArray,
+                                            } as TotalSalesTargetsYearHalfObj;
+
+                                            setTotalInputSalesTargetsYearHalf(newTotalTargetsYearHalfObj);
+
+                                            // 🔹メイン目標の年度、上期、下期の売上目標Decimalオブジェクトの生成
+                                            const mainTotalTargetDecimal = new Decimal(
+                                              salesTargetsYearHalf.sales_target_year
+                                            );
+                                            const mainFirstHalfTargetDecimal = new Decimal(
+                                              salesTargetsYearHalf.sales_target_first_half
+                                            );
+                                            const mainSecondHalfTargetDecimal = new Decimal(
+                                              salesTargetsYearHalf.sales_target_second_half
+                                            );
+
+                                            // 🔹メイン年度目標から年度シェアを計算し、整数に丸める
+                                            const fiscalYearShare = totalTargetDecimal
+                                              .dividedBy(mainTotalTargetDecimal)
+                                              .times(100)
+                                              .toFixed(0, Decimal.ROUND_HALF_UP);
+                                            setShareFiscalYear(Number(fiscalYearShare));
+                                            // 🔹メイン上期目標から上期シェアを計算し、整数に丸める
                                             const firstHalfShare = firstHalfTargetDecimal
-                                              .dividedBy(totalTargetDecimal)
+                                              .dividedBy(mainFirstHalfTargetDecimal)
                                               .times(100)
                                               .toFixed(0, Decimal.ROUND_HALF_UP);
                                             setShareFirstHalf(Number(firstHalfShare));
-                                            // 下期シェアを計算する（100から上期シェアを引く）
-                                            const secondHalfShare = 100 - Number(firstHalfShare);
-                                            setShareSecondHalf(secondHalfShare);
+                                            // 🔹メイン下期目標から下期シェアを計算する
+                                            const secondHalfShare = secondHalfTargetDecimal
+                                              .dividedBy(mainSecondHalfTargetDecimal)
+                                              .times(100)
+                                              .toFixed(0, Decimal.ROUND_HALF_UP);
+                                            setShareSecondHalf(Number(secondHalfShare));
+                                            // 🔸シェア算出ここまで --------------------------------------
+
+                                            // 🔸下期前年比を算出
+                                            // 前年比
+                                            const secondHalfResult = calculateYearOverYear(
+                                              newSecondHalfTarget,
+                                              salesSummaryRowData[salesSummaryRowData.length - 1].last_year_sales,
+                                              1,
+                                              true,
+                                              false
+                                            );
+                                            if (secondHalfResult.error) {
+                                              // toast.error(`エラー：${secondHalfResult.error}🙇‍♀️`);
+                                              console.log(
+                                                `❌${
+                                                  salesSummaryRowData[salesSummaryRowData.length - 1].period_type
+                                                } 値引率の取得に失敗`,
+                                                secondHalfResult.error
+                                              );
+                                              setInputYoYGrowthSecondHalf("");
+                                            } else if (secondHalfResult.yearOverYear) {
+                                              setInputYoYGrowthSecondHalf(secondHalfResult.yearOverYear);
+                                            }
+
+                                            // 🔹下期の売上推移に追加
+                                            if (salesTrendsSecondHalf && isValidNumber(newSecondHalfTarget)) {
+                                              // ディープコピー
+                                              let newTrend = cloneDeep(salesTrendsSecondHalf) as SparkChartObj;
+                                              let newDataArray = [...newTrend.data];
+                                              const newDate = upsertSettingEntitiesObj.fiscalYear * 10 + 2; // 下期
+                                              const newData = {
+                                                date: newDate,
+                                                value: newSecondHalfTarget,
+                                              };
+                                              if (newDataArray.length === 3) {
+                                                newDataArray.push(newData);
+                                              } else if (newDataArray.length === 4) {
+                                                newDataArray.splice(-1, 1, newData);
+                                              }
+                                              const newTitle = `${upsertSettingEntitiesObj.fiscalYear}H2`;
+                                              newTrend = {
+                                                ...newTrend,
+                                                title: newTitle,
+                                                mainValue: newSecondHalfTarget,
+                                                growthRate: secondHalfResult.yearOverYear
+                                                  ? parseFloat(secondHalfResult.yearOverYear.replace(/%/g, ""))
+                                                  : null,
+                                                data: newDataArray,
+                                              };
+                                              console.log(
+                                                "ここ🔥🔥🔥🔥🔥🔥 newTrend",
+                                                newTrend,
+                                                "row.period_type ",
+                                                row.period_type
+                                              );
+                                              setSalesTrendsSecondHalf({ ...newTrend, updateAt: Date.now() });
+                                            }
                                           }
                                           // ---------- 🔹companyレベルでのメインターゲットの場合 ----------
+                                          // 🔸シェア算出ここから --------------------------------------
                                           // 全社内の期間でシェア割を算出
                                           else {
                                             // 🔹上期シェアを計算し、整数に丸める
@@ -967,72 +1151,155 @@ Props) => {
                                             // 下期シェアを計算する（100から上期シェアを引く）
                                             const secondHalfShare = 100 - Number(firstHalfShare);
                                             setShareSecondHalf(secondHalfShare);
-                                          }
+                                            // 🔸シェア算出ここまで --------------------------------------
 
-                                          // 🔸下期売上目標を計算して更新
-                                          const newSecondHalfTarget = totalTargetDecimal
-                                            .minus(firstHalfTargetDecimal)
-                                            .toNumber();
-                                          const formattedSecondHalfTarget = formatDisplayPrice(newSecondHalfTarget);
-                                          setInputSalesTargetSecondHalf(formattedSecondHalfTarget);
-                                          // 下期前年比を算出
-                                          // 前年比
-                                          const secondHalfResult = calculateYearOverYear(
-                                            newSecondHalfTarget,
-                                            salesSummaryRowData[salesSummaryRowData.length - 1].last_year_sales,
-                                            1,
-                                            true,
-                                            false
-                                          );
-                                          if (secondHalfResult.error) {
-                                            // toast.error(`エラー：${secondHalfResult.error}🙇‍♀️`);
-                                            console.log(
-                                              `❌${
-                                                salesSummaryRowData[salesSummaryRowData.length - 1].period_type
-                                              } 値引率の取得に失敗`,
-                                              secondHalfResult.error
+                                            // 🔸下期売上目標を計算して更新
+                                            const newSecondHalfTarget = totalTargetDecimal
+                                              .minus(firstHalfTargetDecimal)
+                                              .toNumber();
+                                            const formattedSecondHalfTarget = formatDisplayPrice(newSecondHalfTarget);
+                                            setInputSalesTargetSecondHalf(formattedSecondHalfTarget);
+                                            // 下期前年比を算出
+                                            // 前年比
+                                            const secondHalfResult = calculateYearOverYear(
+                                              newSecondHalfTarget,
+                                              salesSummaryRowData[salesSummaryRowData.length - 1].last_year_sales,
+                                              1,
+                                              true,
+                                              false
                                             );
-                                            setInputYoYGrowthSecondHalf("");
-                                          } else if (secondHalfResult.yearOverYear) {
-                                            setInputYoYGrowthSecondHalf(secondHalfResult.yearOverYear);
-                                          }
-
-                                          // 🔹下期の売上推移に追加
-                                          if (salesTrendsSecondHalf && isValidNumber(newSecondHalfTarget)) {
-                                            // ディープコピー
-                                            let newTrend = cloneDeep(salesTrendsSecondHalf) as SparkChartObj;
-                                            let newDataArray = [...newTrend.data];
-                                            const newDate = upsertSettingEntitiesObj.fiscalYear * 10 + 2; // 下期
-                                            const newData = {
-                                              date: newDate,
-                                              value: newSecondHalfTarget,
-                                            };
-                                            if (newDataArray.length === 3) {
-                                              newDataArray.push(newData);
-                                            } else if (newDataArray.length === 4) {
-                                              newDataArray.splice(-1, 1, newData);
+                                            if (secondHalfResult.error) {
+                                              // toast.error(`エラー：${secondHalfResult.error}🙇‍♀️`);
+                                              console.log(
+                                                `❌${
+                                                  salesSummaryRowData[salesSummaryRowData.length - 1].period_type
+                                                } 値引率の取得に失敗`,
+                                                secondHalfResult.error
+                                              );
+                                              setInputYoYGrowthSecondHalf("");
+                                            } else if (secondHalfResult.yearOverYear) {
+                                              setInputYoYGrowthSecondHalf(secondHalfResult.yearOverYear);
                                             }
-                                            const newTitle = `${upsertSettingEntitiesObj.fiscalYear}H2`;
-                                            newTrend = {
-                                              ...newTrend,
-                                              title: newTitle,
-                                              mainValue: newSecondHalfTarget,
-                                              growthRate: secondHalfResult.yearOverYear
-                                                ? parseFloat(secondHalfResult.yearOverYear.replace(/%/g, ""))
-                                                : null,
-                                              data: newDataArray,
-                                            };
-                                            console.log(
-                                              "ここ🔥🔥🔥🔥🔥🔥 newTrend",
-                                              newTrend,
-                                              "row.period_type ",
-                                              row.period_type
-                                            );
-                                            setSalesTrendsSecondHalf({ ...newTrend, updateAt: Date.now() });
+
+                                            // 🔹下期の売上推移に追加
+                                            if (salesTrendsSecondHalf && isValidNumber(newSecondHalfTarget)) {
+                                              // ディープコピー
+                                              let newTrend = cloneDeep(salesTrendsSecondHalf) as SparkChartObj;
+                                              let newDataArray = [...newTrend.data];
+                                              const newDate = upsertSettingEntitiesObj.fiscalYear * 10 + 2; // 下期
+                                              const newData = {
+                                                date: newDate,
+                                                value: newSecondHalfTarget,
+                                              };
+                                              if (newDataArray.length === 3) {
+                                                newDataArray.push(newData);
+                                              } else if (newDataArray.length === 4) {
+                                                newDataArray.splice(-1, 1, newData);
+                                              }
+                                              const newTitle = `${upsertSettingEntitiesObj.fiscalYear}H2`;
+                                              newTrend = {
+                                                ...newTrend,
+                                                title: newTitle,
+                                                mainValue: newSecondHalfTarget,
+                                                growthRate: secondHalfResult.yearOverYear
+                                                  ? parseFloat(secondHalfResult.yearOverYear.replace(/%/g, ""))
+                                                  : null,
+                                                data: newDataArray,
+                                              };
+                                              console.log(
+                                                "ここ🔥🔥🔥🔥🔥🔥 newTrend",
+                                                newTrend,
+                                                "row.period_type ",
+                                                row.period_type
+                                              );
+                                              setSalesTrendsSecondHalf({ ...newTrend, updateAt: Date.now() });
+                                            }
                                           }
                                         } catch (error: any) {
                                           toast.error("エラー：シェアの算出に失敗しました...🙇‍♀️");
                                           console.log(`❌入力値"${inputSalesTargetFirstHalf}"が無効です。`, error);
+                                        }
+                                      }
+                                      // 会社レベル以外のサブ目標で、かつ、年度、上期のどちらかが未入力の場合は、入力した期間のシェアと前年比を算出
+                                      else {
+                                        if (entityLevel !== "company") {
+                                          // convertedSalesTarget
+                                          if (!isValidNumber(convertedSalesTarget)) return;
+                                          // 🔹メイン目標の年度売上目標Decimalオブジェクトの生成
+                                          if (salesTargetsYearHalf) {
+                                            const mainTargetDecimal = new Decimal(
+                                              row.period_type === "fiscal_year"
+                                                ? salesTargetsYearHalf.sales_target_year
+                                                : salesTargetsYearHalf.sales_target_first_half
+                                            );
+                                            const inputTargetDecimal = new Decimal(convertedSalesTarget!);
+                                            // 🔹メイン年度目標から年度シェアを計算し、整数に丸める
+                                            const newShare = inputTargetDecimal
+                                              .dividedBy(mainTargetDecimal)
+                                              .times(100)
+                                              .toFixed(0, Decimal.ROUND_HALF_UP);
+                                            if (row.period_type === "fiscal_year") setShareFiscalYear(Number(newShare));
+                                            if (row.period_type === "first_half") setShareFirstHalf(Number(newShare));
+
+                                            // 🔹残り合計を更新
+                                            const copiedTotalInputSalesTargetsYearHalf =
+                                              cloneDeep(totalInputSalesTargetsYearHalf);
+
+                                            const newTotalTargetObj =
+                                              copiedTotalInputSalesTargetsYearHalf.input_targets_array.find(
+                                                (obj) => obj.entity_id === entityId
+                                              );
+
+                                            if (!newTotalTargetObj) {
+                                              return alert("売上目標合計データが取得できませんでした。");
+                                            }
+
+                                            const periodKey =
+                                              row.period_type === "fiscal_year"
+                                                ? "sales_target_year"
+                                                : "sales_target_first_half";
+                                            // 年度・上半期のどちらかを更新
+                                            newTotalTargetObj.input_targets[periodKey] = convertedSalesTarget!;
+
+                                            const anotherPeriodKey =
+                                              row.period_type === "fiscal_year"
+                                                ? "sales_target_first_half"
+                                                : "sales_target_year";
+                                            // 年度・上半期のもう一方の売上目標を更新 未入力のため0で更新
+                                            newTotalTargetObj.input_targets[anotherPeriodKey] = 0;
+                                            // 下期も年度か上期が未入力なら未入力となるため0で更新
+                                            newTotalTargetObj.input_targets["sales_target_second_half"] = 0;
+
+                                            // 全エンティティの配列を更新
+                                            const newTotalInputSalesTargetsYearHalfArray =
+                                              copiedTotalInputSalesTargetsYearHalf.input_targets_array.map(
+                                                (entityTargetObj) =>
+                                                  entityTargetObj.entity_id === entityId
+                                                    ? newTotalTargetObj
+                                                    : entityTargetObj
+                                              );
+
+                                            // 🔸全てのエンティティの売上目標合計を再計算
+                                            let newSalesTargetYear = 0;
+                                            let newSalesTargetFirstHalf = 0;
+                                            let newSalesTargetSecondHalf = 0;
+                                            newTotalInputSalesTargetsYearHalfArray.forEach((obj) => {
+                                              newSalesTargetYear += obj.input_targets.sales_target_year;
+                                              newSalesTargetFirstHalf += obj.input_targets.sales_target_first_half;
+                                              newSalesTargetSecondHalf += obj.input_targets.sales_target_second_half;
+                                            });
+
+                                            const newTotalTargetsYearHalfObj = {
+                                              total_targets: {
+                                                sales_target_year: newSalesTargetYear,
+                                                sales_target_first_half: newSalesTargetFirstHalf,
+                                                sales_target_second_half: newSalesTargetSecondHalf,
+                                              },
+                                              input_targets_array: newTotalInputSalesTargetsYearHalfArray,
+                                            } as TotalSalesTargetsYearHalfObj;
+
+                                            setTotalInputSalesTargetsYearHalf(newTotalTargetsYearHalfObj);
+                                          }
                                         }
                                       }
                                     }

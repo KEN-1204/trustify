@@ -16,6 +16,8 @@ type Props = {
   isPercent?: boolean;
   fade?: string;
   customClass?: string;
+  includeCurrencySymbol?: boolean;
+  showNegativeSign?: boolean;
 };
 
 const ProgressNumberMemo = ({
@@ -30,6 +32,8 @@ const ProgressNumberMemo = ({
   isReady = true,
   isPrice = true,
   isPercent = false,
+  includeCurrencySymbol = true,
+  showNegativeSign = true,
   fade,
   customClass,
 }: Props) => {
@@ -113,7 +117,7 @@ const ProgressNumberMemo = ({
       className={`${fade && !isReady ? `opacity-0` : ``} ${isReady && fade ? `${fade}` : ``} ${customClass}`}
     >
       {/* {animatedProgress.toLocaleString()} */}
-      {isPrice && formatToJapaneseYen(animatedProgress)}
+      {isPrice && formatToJapaneseYen(animatedProgress, includeCurrencySymbol, showNegativeSign)}
       {!isPrice && animatedProgress}
       {isPercent && `%`}
     </span>
