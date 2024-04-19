@@ -263,6 +263,14 @@ export const Modal: FC = () => {
             {language === "ja" && "または"}
             {language === "en" && "or"}
           </span>
+          {/* <div className={`${styles.sign_in_and_up_orBlock}`} style={{ position: `relative` }}>
+            <div className={`absolute left-[6%] top-[50%] min-h-[2px] w-[33%] bg-[#565656]`} />
+            <span>
+              {language === "ja" && "または"}
+              {language === "en" && "or"}
+            </span>
+            <div className={`absolute right-[6%] top-[50%] min-h-[2px] w-[33%] bg-[#565656]`} />
+          </div> */}
 
           {/* メール */}
           {/* <input
@@ -491,7 +499,7 @@ export const Modal: FC = () => {
                 <span>
                   {language === "ja" && (
                     <>
-                      「メールアドレスでログイン」と「Googleでログイン」をクリックすることで、TRUSTiFYの
+                      「メールアドレスでログイン」か「Googleでログイン」をクリックすることで、TRUSTiFYの
                       <Link href="#" prefetch={false}>
                         利用規約
                       </Link>

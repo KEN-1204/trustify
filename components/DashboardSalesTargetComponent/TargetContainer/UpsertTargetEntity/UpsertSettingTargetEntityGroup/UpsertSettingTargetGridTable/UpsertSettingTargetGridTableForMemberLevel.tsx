@@ -997,21 +997,24 @@ Props) => {
                                   }}
                                   onFocus={() => {
                                     // 売上目標が0以外のfalsyならリターン
-                                    if (!isValidNumber(inputSalesTarget.replace(/[^\d.]/g, ""))) {
+                                    const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
+                                    if (!isValidNumber(replacedPrice)) {
                                       console.log(
-                                        "リターンinputSalesTarget",
-                                        inputSalesTarget,
-                                        !isValidNumber(inputSalesTarget)
+                                        "リターンreplacedPrice",
+                                        replacedPrice,
+                                        !isValidNumber(replacedPrice)
                                       );
                                       return;
                                     }
                                     console.log("こここinputSalesTarget", inputSalesTarget);
                                     // フォーカス時は数字と小数点以外除去
-                                    setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
+                                    setInputSalesTarget(replacedPrice);
+                                    // setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
                                   }}
                                   onBlur={(e) => {
                                     // 現在の売上目標金額
-                                    const replacedPrice = inputSalesTarget.replace(/[^\d.]/g, "");
+                                    const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
+                                    // const replacedPrice = inputSalesTarget.replace(/[^\d.]/g, "");
 
                                     // 売上目標が空文字の場合は売上推移から目標を取り除いてリターンする
                                     if (!checkNotFalsyExcludeZero(replacedPrice)) {

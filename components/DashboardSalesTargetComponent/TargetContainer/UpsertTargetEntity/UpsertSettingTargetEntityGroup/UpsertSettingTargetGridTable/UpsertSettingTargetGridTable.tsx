@@ -54,6 +54,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { FallbackScrollContainer } from "../../../SalesTargetsContainer/SalesTargetGridTable/FallbackScrollContainer";
 import { ImInfo } from "react-icons/im";
+import { zenkakuToHankaku } from "@/utils/Helpers/zenkakuToHankaku";
 
 /**
  *   "period_type",
@@ -758,25 +759,35 @@ Props) => {
                                   }}
                                   onFocus={() => {
                                     // 売上目標が0以外のfalsyならリターン
-                                    if (!isValidNumber(inputSalesTarget.replace(/[^\d.]/g, ""))) {
+                                    const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
+                                    if (!isValidNumber(replacedPrice)) {
                                       console.log(
-                                        "リターンinputSalesTarget",
-                                        inputSalesTarget,
-                                        !isValidNumber(inputSalesTarget)
+                                        "リターンreplacedPrice",
+                                        replacedPrice,
+                                        !isValidNumber(replacedPrice)
                                       );
                                       return;
                                     }
-                                    console.log("こここinputSalesTarget", inputSalesTarget);
+                                    console.log(
+                                      "こここinputSalesTarget",
+                                      inputSalesTarget,
+                                      "replacedPrice",
+                                      replacedPrice
+                                    );
                                     // フォーカス時は数字と小数点以外除去
-                                    setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
+                                    setInputSalesTarget(replacedPrice);
+                                    // setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
                                   }}
                                   onBlur={(e) => {
                                     // 現在の売上目標金額
-                                    const replacedPrice = inputSalesTarget.replace(/[^\d.]/g, "");
+                                    const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
 
                                     // 売上目標が空文字の場合は売上推移から目標を取り除いてリターンする
                                     if (!checkNotFalsyExcludeZero(replacedPrice)) {
-                                      console.log("売上推移をリセット", replacedPrice);
+                                      console.log(
+                                        "空文字のため売上目標、前年比、売上推移、シェアをリセット",
+                                        replacedPrice
+                                      );
                                       // 売上推移をリセット
                                       setSalesTrends({
                                         ...salesSummaryRowData[rowIndex].sales_trend,
@@ -795,6 +806,62 @@ Props) => {
                                       // 上期下期のシェアをリセット
                                       setShareFirstHalf(0);
                                       setShareSecondHalf(0);
+
+                                      // 残り目標金額をリセットする
+                                      if (salesTargetsYearHalf) {
+                                        // 🔹残り合計を更新
+                                        const copiedTotalInputSalesTargetsYearHalf =
+                                          cloneDeep(totalInputSalesTargetsYearHalf);
+
+                                        const newTotalTargetObj =
+                                          copiedTotalInputSalesTargetsYearHalf.input_targets_array.find(
+                                            (obj) => obj.entity_id === entityId
+                                          );
+
+                                        if (!newTotalTargetObj) {
+                                          return alert("売上目標合計データが取得できませんでした。");
+                                        }
+
+                                        const periodKey =
+                                          row.period_type === "fiscal_year"
+                                            ? "sales_target_year"
+                                            : "sales_target_first_half";
+                                        // 年度・上半期のどちらかを更新
+                                        newTotalTargetObj.input_targets[periodKey] = 0;
+
+                                        // 下期も年度か上期が未入力なら未入力となるため0で更新
+                                        newTotalTargetObj.input_targets["sales_target_second_half"] = 0;
+
+                                        // 全エンティティの配列を更新
+                                        const newTotalInputSalesTargetsYearHalfArray =
+                                          copiedTotalInputSalesTargetsYearHalf.input_targets_array.map(
+                                            (entityTargetObj) =>
+                                              entityTargetObj.entity_id === entityId
+                                                ? newTotalTargetObj
+                                                : entityTargetObj
+                                          );
+
+                                        // 🔸全てのエンティティの売上目標合計を再計算
+                                        let newSalesTargetYear = 0;
+                                        let newSalesTargetFirstHalf = 0;
+                                        let newSalesTargetSecondHalf = 0;
+                                        newTotalInputSalesTargetsYearHalfArray.forEach((obj) => {
+                                          newSalesTargetYear += obj.input_targets.sales_target_year;
+                                          newSalesTargetFirstHalf += obj.input_targets.sales_target_first_half;
+                                          newSalesTargetSecondHalf += obj.input_targets.sales_target_second_half;
+                                        });
+
+                                        const newTotalTargetsYearHalfObj = {
+                                          total_targets: {
+                                            sales_target_year: newSalesTargetYear,
+                                            sales_target_first_half: newSalesTargetFirstHalf,
+                                            sales_target_second_half: newSalesTargetSecondHalf,
+                                          },
+                                          input_targets_array: newTotalInputSalesTargetsYearHalfArray,
+                                        } as TotalSalesTargetsYearHalfObj;
+
+                                        setTotalInputSalesTargetsYearHalf(newTotalTargetsYearHalfObj);
+                                      }
                                       return;
                                     }
                                     // フォーマット後の目標金額

@@ -1103,7 +1103,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   };
 
   const mappingDivName: { [K in EntityLevelNames]: { [key: string]: string } } = {
-    company: { ja: "会社", en: "Company" },
+    company: { ja: "全社", en: "Company" },
     department: { ja: "事業部", en: "Department" },
     section: { ja: "課・セクション", en: "Section" },
     unit: { ja: "係・チーム", en: "Unit" },
@@ -1518,6 +1518,8 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
 
   // 初回マウント時に設定対象のエンティティの数量分、totalInputSalesTargetsYearHalfのinput_targets_arrayにセットする
   useEffect(() => {
+    // 会社レベルの場合は、総合目標が存在しないため、総合目標に対する残り目標金額の算出が不要なためリターン
+    if (upsertSettingEntitiesObj.entityLevel === "company") return;
     const isYearHalf = upsertSettingEntitiesObj.periodType;
     if (isYearHalf === "year_half") {
       const inputSalesTargetsArray = upsertSettingEntitiesObj.entities.map((entity) => {
@@ -1546,9 +1548,11 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     }
   }, []);
 
-  // 部門別目標合計/総合目標 用の配列
+  // 部門別残り目標金額/総合目標 用の配列
   const salesTargetsYearHalfStatus = useMemo(() => {
     if (!salesTargetsYearHalf) return null;
+    // 会社レベルの場合は、総合目標は存在しないためnullをリターン
+    if (upsertSettingEntitiesObj.entityLevel === "company") return null;
     return Object.entries(salesTargetsYearHalf).map(([key, value], index) => {
       let title: { [key: string]: string } = { ja: `年度`, en: `Fiscal Year` };
       if (key === "sales_target_first_half") title = { ja: `上半期`, en: `First Half Year` };
@@ -1572,6 +1576,14 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
       };
     });
   }, [salesTargetsYearHalf, totalInputSalesTargetsYearHalf]);
+
+  // 部門別残り目標金額/総合目標の部門の残り目標金額が全ての期間で0となり、全ての期間がisCompleteとなったらtrueにする
+  const allCompleteTargetsYearHalf = useMemo(() => {
+    if (!salesTargetsYearHalfStatus) return null;
+    // 会社レベルの場合は、総合目標は存在しないためnullをリターン
+    if (upsertSettingEntitiesObj.entityLevel === "company") return null;
+    return salesTargetsYearHalfStatus.every((targetPeriod) => targetPeriod.isComplete);
+  }, [salesTargetsYearHalfStatus]);
 
   const infoIconInputStatusRef = useRef<HTMLDivElement | null>(null);
 
@@ -1629,14 +1641,43 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                         <span>戻る</span>
                       </div>
                       <div
-                        className={`${styles.btn} ${styles.brand} space-x-[3px]`}
+                        className={`${styles.btn} ${styles.brand} space-x-[3px] ${
+                          upsertSettingEntitiesObj.entityLevel !== "company" && !allCompleteTargetsYearHalf
+                            ? `${styles.inactive} relative`
+                            : `relative`
+                        }`}
+                        onMouseEnter={(e) => {
+                          if (upsertSettingEntitiesObj.entityLevel !== "company" && !allCompleteTargetsYearHalf) {
+                            return;
+                          }
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: `${getDivName()}の売上目標を確定・保存します`,
+                            marginTop: 9,
+                            itemsPosition: `left`,
+                          });
+                        }}
+                        onMouseLeave={handleCloseTooltip}
                         onClick={(e) => {
+                          if (upsertSettingEntitiesObj.entityLevel !== "company" && !allCompleteTargetsYearHalf)
+                            return alert(
+                              `売上目標が未設定の${getDivName()}が存在します。全ての${getDivName()}の売上目標の合計値が総合目標となる${
+                                mappingDivName[upsertSettingEntitiesObj.parentEntityLevel as EntityLevelNames][language]
+                              }の売上目標と一致するように目標金額を振り分けてください。`
+                            );
                           handleCollectInputTargets();
                         }}
                       >
+                        {upsertSettingEntitiesObj.entityLevel !== "company" && allCompleteTargetsYearHalf && (
+                          <div
+                            className={`absolute left-0 top-0 z-[0] h-full w-full rounded-[6px] border-[2px] border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f60)] ${styles.animate_ping14}`}
+                            style={{ animationDuration: `1.2s` }}
+                          ></div>
+                        )}
                         {/* <RiSave3Fill className={`stroke-[3] text-[12px] text-[#fff]`} /> */}
-                        <MdSaveAlt className={`text-[14px] text-[#fff]`} />
-                        <span>保存</span>
+                        <MdSaveAlt className={`z-[10] text-[14px] text-[#fff]`} />
+                        <span className={`z-[10]`}>保存</span>
                       </div>
                     </div>
                   </div>
@@ -2116,7 +2157,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                             {/* ------------------ タイトルエリア ------------------ */}
                             <div className={`${styles.card_title_area}`}>
                               <div className={`${styles.card_title} flex items-center`}>
-                                <span>{getDivName()}目標残り合計 / 総合目標</span>
+                                <span>{getDivName()}残り目標金額 / 総合目標</span>
                                 <div className={`ml-[12px] flex h-full items-center`}>
                                   <div
                                     className="flex-center relative h-[16px] w-[16px] rounded-full"
@@ -2128,8 +2169,12 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                                       handleOpenTooltip({
                                         e: e,
                                         display: "top",
-                                        content: ``,
-                                        marginTop: 9,
+                                        content: `全ての${getDivName()}の売上目標の合計値が総合目標となる${
+                                          mappingDivName[
+                                            upsertSettingEntitiesObj.parentEntityLevel as EntityLevelNames
+                                          ][language]
+                                        }の売上目標と\n一致するように目標金額を振り分けてください。`,
+                                        marginTop: 39,
                                         itemsPosition: `left`,
                                       });
                                     }}
@@ -2142,6 +2187,31 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                                     <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
                                   </div>
                                 </div>
+                                {!allCompleteTargetsYearHalf && (
+                                  <div
+                                    className={`flex-center ml-[18px] h-full pb-[2px] text-[13px] font-normal text-[var(--main-color-tk)]`}
+                                  >
+                                    <span className="">未完了</span>
+                                  </div>
+                                )}
+                                {allCompleteTargetsYearHalf && (
+                                  <div
+                                    className={`flex-center ml-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f)] px-[12px] py-[3px] text-[12px] text-[#fff]`}
+                                    onMouseEnter={(e) => {
+                                      handleOpenTooltip({
+                                        e: e,
+                                        display: "top",
+                                        content: `全ての${getDivName()}の売上目標の設定が完了しました！\n保存ボタンをクリックして売上目標を確定・保存してください。`,
+                                        marginTop: 30,
+                                        itemsPosition: `left`,
+                                      });
+                                    }}
+                                    onMouseLeave={handleCloseTooltip}
+                                  >
+                                    <span className="ml-[2px]">設定完了</span>
+                                    <BsCheck2 className="pointer-events-none ml-[6px] min-h-[18px] min-w-[18px] stroke-1 text-[18px] text-[#fff]" />
+                                  </div>
+                                )}
                               </div>
                               <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>
                                 <div
@@ -2186,7 +2256,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                                     return (
                                       <div key={`${obj.key}`} className={`flex w-1/3 items-center justify-start`}>
                                         <div
-                                          className={` flex items-center ${obj.isComplete ? `mr-[12px]` : `mr-[24px]`}`}
+                                          className={` flex items-center ${obj.isComplete ? `mr-[12px]` : `mr-[15px]`}`}
                                         >
                                           <div
                                             className={`flex-center min-w-max whitespace-nowrap rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] text-[var(--color-text-title)]`}
@@ -2199,10 +2269,17 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                                         </div>
                                         <div className={`flex flex-wrap items-end space-x-[12px]`}>
                                           <div
-                                            className={`text-[19px] font-bold ${
-                                              obj.isNegative ? `text-[var(--main-color-tk)]` : ``
+                                            className={`flex items-end text-[19px] font-bold ${
+                                              obj.isNegative
+                                                ? `text-[var(--main-color-tk)]`
+                                                : obj.isComplete
+                                                ? `text-[var(--color-text-title)]`
+                                                : `text-[var(--color-text-title)]`
                                             }`}
                                           >
+                                            <div className="mr-[6px] flex items-end pb-[3px]">
+                                              <span className={`text-[11px] font-normal`}>残り</span>
+                                            </div>
                                             {/* <span>{obj.restTarget}</span> */}
                                             <ProgressNumber
                                               targetNumber={obj.restTarget}
@@ -2218,10 +2295,14 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                                               fade={`fade08_forward`}
                                               isPrice={true}
                                               isPercent={false}
-                                              includeCurrencySymbol={true}
+                                              includeCurrencySymbol={obj.isComplete ? false : true}
                                               showNegativeSign={true}
                                               textColor={`${
-                                                obj.isNegative ? `var(--main-color-tk)` : `var(--color-text-title)`
+                                                obj.isNegative
+                                                  ? `var(--main-color-tk)`
+                                                  : obj.isComplete
+                                                  ? `var(--bright-green)`
+                                                  : `var(--color-text-title)`
                                               }`}
                                             />
                                           </div>

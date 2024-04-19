@@ -2924,6 +2924,13 @@ export type MemberGroupsByParentEntity = {
   };
 };
 
+// 🔸追加した各エンティティ内にメンバーがいるかどうか人数をcountで確認useQuery🔸
+export type AddedEntityMemberCount = {
+  entity_id: string;
+  entity_name: string;
+  member_count: number;
+};
+
 // ------------- 🌠売上目標DB関連🌠 -------------
 
 // ３行１セットデータ型 FUNCTIONで取得するdataset_typeではスネークケースのため、Zustandもスネークケースで定義

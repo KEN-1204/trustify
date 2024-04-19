@@ -524,6 +524,9 @@ type State = {
   // エンティティinvalidateトリガー
   triggerQueryEntities: boolean;
   setTriggerQueryEntities: (payload: boolean) => void;
+  // リスト編集時にレベル内のエンティティからメンバーが所属しているエンティティのidをSetオブジェクトで保持し、リスト編集モーダル内でメンバー所属ありのエンティティのみを残せるようにする
+  entityIdsWithMembersSetObj: Set<string> | null;
+  setEntityIdsWithMembersSetObj: (payload: Set<string> | null) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1248,6 +1251,9 @@ const useDashboardStore = create<State>((set) => ({
   // エンティティinvalidateトリガー
   triggerQueryEntities: false,
   setTriggerQueryEntities: (payload) => set({ triggerQueryEntities: payload }),
+  // リスト編集時にレベル内のエンティティからメンバーが所属しているエンティティのidをSetオブジェクトで保持し、リスト編集モーダル内でメンバー所属ありのエンティティのみを残せるようにする
+  entityIdsWithMembersSetObj: null,
+  setEntityIdsWithMembersSetObj: (payload) => set({ entityIdsWithMembersSetObj: payload }),
 
   // ユーザーのエンティティの中でメンバーの親に当たる末端のエンティティ
   // endEntity: "company",

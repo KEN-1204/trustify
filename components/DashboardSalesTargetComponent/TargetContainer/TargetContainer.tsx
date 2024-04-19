@@ -716,7 +716,7 @@ export const TargetContainer = () => {
     });
 
     // setUpsertTargetMode(true);
-    handleClosePopupMenu();
+    setOpenPopupMenu(null);
     setUpsertTargetMode("settingTarget");
   };
 

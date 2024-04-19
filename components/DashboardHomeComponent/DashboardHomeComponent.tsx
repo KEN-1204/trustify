@@ -291,7 +291,8 @@ export const DashboardHomeComponent = () => {
                     {home_cards.map((item, index) => (
                       <div
                         key={item.name}
-                        className={`${styles.content_card} transition-base02 mt-[10px] flex h-[72px] w-full max-w-[400px] items-center rounded-[8px] bg-[var(--color-bg-base-sub)] p-[16px] text-[14px] font-bold`}
+                        // className={`${styles.content_card} transition-base02 mt-[10px] flex h-[72px] w-full max-w-[400px] items-center rounded-[8px] bg-[var(--color-bg-base-sub)] p-[16px] text-[14px] font-bold`}
+                        className={`${styles.content_card} transition-bg03 mt-[10px] flex h-[72px] w-full max-w-[400px] items-center rounded-[8px] bg-[var(--color-bg-base-sub)] p-[16px] text-[14px] font-bold text-[var(--color-text-title)]`}
                         onClick={() => {
                           if (item.name === "invitation") {
                             if (

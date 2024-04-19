@@ -786,6 +786,26 @@
 .animate_ping {
   animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
+@keyframes ping15 {
+  75%,
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+.animate_ping15 {
+  animation: ping15 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+@keyframes ping14 {
+  75%,
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+.animate_ping14 {
+  animation: ping14 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
 
 /* ---------------------------- 説明メニュー ここまで ---------------------------- */
 
@@ -1418,7 +1438,7 @@
 }
 .main_container_entity .contents_area_entity .left_container.sticky_side {
   position: sticky;
-  z-index: 20;
+  z-index: 200;
   top: 0;
   left: 0;
 }
