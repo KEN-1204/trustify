@@ -43,6 +43,7 @@ import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { FallbackScrollContainer } from "../../../SalesTargetsContainer/SalesTargetGridTable/FallbackScrollContainer";
 import { generateMonthHeaders } from "@/utils/Helpers/CalendarHelpers/generateMonthHeaders";
 import { mappingMonthEnToJa, mappingMonthToAbbreviation } from "@/utils/mappings";
+import { zenkakuToHankaku } from "@/utils/Helpers/zenkakuToHankaku";
 
 /**
  *   "period_type",

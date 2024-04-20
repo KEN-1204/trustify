@@ -109,7 +109,7 @@ export const mappingEntityName: { [key: string]: { [key: string]: string } } = {
   company: { ja: "全社", en: "Company" },
   department: { ja: "事業部", en: "Department" },
   section: { ja: "課・セクション", en: "Section" },
-  unit: { ja: "係・ユニット", en: "Unit" },
+  unit: { ja: "係・チーム", en: "Unit" },
   member: { ja: "メンバー", en: "Member" },
   office: { ja: "事業所", en: "Office" },
 };

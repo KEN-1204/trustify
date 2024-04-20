@@ -28,8 +28,10 @@ import {
   KeysSalesTargetsYearHalf,
   MemberAccounts,
   Office,
+  SalesTargetsHalfDetails,
   SalesTargetsYearHalf,
   Section,
+  TotalSalesTargetsHalfDetailsObj,
   TotalSalesTargetsYearHalfObj,
   Unit,
   UpsertSettingEntitiesObj,
@@ -224,7 +226,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
 
   // メンバーレベル目標設定時 上期詳細、下期詳細
-  const settingPeriodTypeForMemberLevel = useDashboardStore((state) => state.settingPeriodTypeForMemberLevel);
+  const selectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.selectedPeriodTypeForMemberLevel);
 
   // サブ目標リスト編集モード
   const [isOpenEditSubListModal, setIsOpenEditSubListModal] = useState(false);
@@ -373,6 +375,23 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // ------------------------ 🌠保存ボタンクリック 全ての子コンポーネント内の目標を収集🌠 ここから ------------------------
   // 1. 保存ボタンクリック -> 子コンポーネントの各テーブルに目標をZustandに格納するようトリガーを発火
   const handleCollectInputTargets = () => {
+    // 会社レベル以外の総合目標の振り分けで目標設定するルート
+    // 全ての期間の全ての部門の合計売上目標が総合目標と一致していない(allCompleteTargetsYearHalfがfalse)の場合にはアラートを出しリターン
+    if (upsertSettingEntitiesObj.entityLevel !== "company" && !allCompleteTargetsYearHalf) {
+      let alertMessage = `売上目標が未設定の${getDivName()}が存在します。`;
+      // isNegativeが存在する場合にはアラートをnegative用で表示する
+      if (salesTargetsYearHalfStatus && salesTargetsYearHalfStatus.some((targetPeriod) => targetPeriod.isNegative)) {
+        const negativePeriodTarget = salesTargetsYearHalfStatus.find((target) => target.isNegative);
+        const negativePeriod = negativePeriodTarget ? negativePeriodTarget.title[language] : ``;
+        alertMessage = `${getDivName()}の${negativePeriod}売上目標の合計値が総合目標の売上目標と一致していません。`;
+      }
+      return alert(
+        `${alertMessage}全ての${getDivName()}の売上目標の合計値が総合目標の${
+          mappingDivName[upsertSettingEntitiesObj.parentEntityLevel as EntityLevelNames][language]
+        }の売上目標と一致するように目標金額を振り分けてください。`
+      );
+    }
+
     // 保存ボタンクリックで、各コンポーネントに対して入力値をZustandに格納するようにトリガーを発火
     setSaveTriggerSalesTarget(true);
     console.log("✅✅✅ 親コンポーネント 保存ボタンクリック");
@@ -585,11 +604,6 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           allEntitiesExcludeInsertEntities
         );
 
-        // setIsLoading(false);
-        // console.log("✅ insertEntitySet", insertEntitySet);
-
-        // if (true) return toast.success("✅目標設定が完了しました！🌟");
-
         const { error } = await supabase.rpc("upsert_sales_target_current_level_entities", payload);
         // const { data, error } = await supabase.rpc("upsert_sales_target_current_level_entities_test", payload);
 
@@ -597,17 +611,6 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
         await new Promise((resolve) => setTimeout(resolve, 500));
 
         if (error) throw error;
-
-        // if (true) {
-        //   console.log("✅「全社〜係」レベルのルート テスト結果", data, error);
-
-        //   toast.success("テスト完了！✅");
-
-        //   setIsLoading(false); // ローディングを終了
-        //   setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
-        //   setIsOpenConfirmDialog(false); // ダイアログを閉じる
-        //   return;
-        // }
 
         console.log(
           "✅「全社〜係」レベルのルート FUNCTION upsert_sales_target_current_level_entities関数実行成功 キャッシュを更新"
@@ -633,8 +636,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
 
         // addedEntityLevelListLocalに関しては、エンティティレベルのinvalidateでentityLevelsQueryDataが新しく生成され、useEffectで「setAddedEntityLevelListLocal(addedEntityLevelListLocal ?? []);」が実行されるため、特にstateの変更はこちらでは不要
 
-        // 現在のレベルがメンバーレベル以外ならレベル追加ステップ1に戻す
-
+        // 売上設定UPSERTデータをリセット
         const newUpsertSettingEntitiesObj = {
           fiscalYear: upsertSettingEntitiesObj.fiscalYear,
           periodType: "", // メンバーレベル以外は年度〜半期(fiscal_year), メンバーレベルなら半期詳細(details)
@@ -656,7 +658,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
         setIsLoading(false); // ローディングを終了
         setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
         setIsOpenConfirmDialog(false); // ダイアログを閉じる
-        setUpsertSettingEntitiesObj(newUpsertSettingEntitiesObj);
+        setUpsertSettingEntitiesObj(newUpsertSettingEntitiesObj); // 売上設定UPSERTデータをリセット
         setIsSettingTargetMode(false); // 売上設定画面をエンティティ選択画面に戻す
       }
       // 🔹メンバーレベルのルート
@@ -680,10 +682,10 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
           let isConfirmedFirstHalf = false;
           let isConfirmedSecondHalf = false;
 
-          if (settingPeriodTypeForMemberLevel === "first_half_details") {
+          if (selectedPeriodTypeForMemberLevel === "first_half_details") {
             isConfirmedFirstHalf = true;
             isConfirmedSecondHalf = obj.is_confirmed_second_half_details; // 現在のまま 既にtrueの場合はtrueをセット
-          } else if (settingPeriodTypeForMemberLevel === "second_half_details") {
+          } else if (selectedPeriodTypeForMemberLevel === "second_half_details") {
             isConfirmedFirstHalf = obj.is_confirmed_first_half_details; // 現在のまま 既にtrueの場合はtrueをセット
             isConfirmedSecondHalf = true;
           }
@@ -716,12 +718,12 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
         const isAllConfirmAnnual = allEntitiesExcludeInsertEntities.every((entity) => entity.is_confirmed_annual_half);
         // 上期詳細(今回の設定が上期詳細でない場合には、INSERT対象も含めた全メンバーの上期詳細のis_confirmedをチェック)
         const isAllConfirmedFirstHalfDetails =
-          settingPeriodTypeForMemberLevel === "first_half_details"
+          selectedPeriodTypeForMemberLevel === "first_half_details"
             ? allEntitiesExcludeInsertEntities.every((entity) => entity.is_confirmed_first_half_details)
             : queryDataAllEntitiesByCurrentLevel.every((entity) => entity.is_confirmed_first_half_details);
         // 下期詳細(今回の設定が下期詳細でない場合には、INSERT対象も含めた全メンバーの下期詳細のis_confirmedをチェック)
         const isAllConfirmedSecondHalfDetails =
-          settingPeriodTypeForMemberLevel === "second_half_details"
+          selectedPeriodTypeForMemberLevel === "second_half_details"
             ? allEntitiesExcludeInsertEntities.every((entity) => entity.is_confirmed_second_half_details)
             : queryDataAllEntitiesByCurrentLevel.every((entity) => entity.is_confirmed_second_half_details);
 
@@ -1216,13 +1218,13 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // 🔹エリアチャートに渡す期間 セレクトボックス選択中
   const [selectedPeriodDetailTrend, setSelectedPeriodDetailTrend] = useState<{ period: string; value: number }>(() => {
     if (upsertSettingEntitiesObj.entityLevel !== "member") {
-      // メンバーレベルでない場合は年度を初期表示にする -1で来期目標の1年前から遡って表示する
+      // 🔸メンバーレベルでない場合は年度を初期表示にする -1で来期目標の1年前から遡って表示する
       return {
         period: "fiscal_year",
         value: upsertSettingEntitiesObj.fiscalYear - 1,
       };
     } else {
-      // メンバーレベルの場合は選択肢した半期（上期か下期）を表示する
+      // 🔸メンバーレベルの場合は選択肢した半期（上期か下期）を表示する
       if (upsertSettingEntitiesObj.periodType === "first_half_details") {
         //
         return {
@@ -1243,13 +1245,13 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     value: number;
   }>(() => {
     if (upsertSettingEntitiesObj.entityLevel !== "member") {
-      // メンバーレベルでない場合は年度を初期表示にする -1で来期目標の1年前から遡って表示する
+      // 🔸メンバーレベルでない場合は年度を初期表示にする -1で来期目標の1年前から遡って表示する
       return {
         period: "fiscal_year",
         value: upsertSettingEntitiesObj.fiscalYear,
       };
     } else {
-      // メンバーレベルの場合は選択肢した半期（上期か下期）を表示する
+      // 🔸メンバーレベルの場合は選択肢した半期（上期か下期）を表示する
       if (upsertSettingEntitiesObj.periodType === "first_half_details") {
         //
         return {
@@ -1489,14 +1491,8 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   //   return backNum;
   // }, [periodTypeTrend]);
 
-  // --------------------- 🌟メイン目標の売上目標をキャッシュから取得🌟 ---------------------
-  // const salesTargetsYearHalf: SalesTargetsYearHalf | null | undefined = queryClient.getQueryData([
-  //   "sales_target_main_year_half",
-  //   upsertSettingEntitiesObj.parentEntityLevel,
-  //   upsertSettingEntitiesObj.parentEntityId,
-  //   `year_half`,
-  //   upsertSettingEntitiesObj.fiscalYear,
-  // ]);
+  // --------------------- 🌟メイン目標の売上目標を取得するuseQuery🌟 ---------------------
+  // ---------------------------------- 🌠【事業部〜係レベル用】
   const {
     data: salesTargetsYearHalf,
     error: salesTargetsYearHalfError,
@@ -1508,45 +1504,102 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     entityId: upsertSettingEntitiesObj.parentEntityId,
     periodType: "year_half",
     fiscalYear: upsertSettingEntitiesObj.fiscalYear,
-    fetchEnabled: true,
+    fetchEnabled: ["department", "section", "unit", "member"].includes(upsertSettingEntitiesObj.entityLevel), // 【事業部〜係レベル用】
+    // fetchEnabled:
+    //   ["department", "section", "unit"].includes(upsertSettingEntitiesObj.entityLevel) &&
+    //   upsertSettingEntitiesObj.periodType === "year_half", // 【事業部〜係レベル用】
+    // fetchEnabled: true,
   });
-  // --------------------- 🌟メイン目標の売上目標をキャッシュから取得🌟 ---------------------
+  // ---------------------------------- 🌠【メンバーレベル用】
+  // --------------------- 🌟メイン目標の売上目標を取得するuseQuery🌟 ---------------------
 
-  // 部門別の「年度・半期」のそれぞれの目標金額の合計値
+  // ---------------------------------- 🌠【事業部〜係レベル用】
+  // 部門別の「年度・半期」のそれぞれの目標金額の合計値を保持するstate
   const totalInputSalesTargetsYearHalf = useDashboardStore((state) => state.totalInputSalesTargetsYearHalf);
   const setTotalInputSalesTargetsYearHalf = useDashboardStore((state) => state.setTotalInputSalesTargetsYearHalf);
+  // ---------------------------------- 🌠【メンバーレベル用】
+  // 部門別の「年度・半期」のそれぞれの目標金額の合計値を保持するstate
+  const totalInputSalesTargetsHalfDetails = useDashboardStore((state) => state.totalInputSalesTargetsHalfDetails);
+  const setTotalInputSalesTargetsHalfDetails = useDashboardStore((state) => state.setTotalInputSalesTargetsHalfDetails);
 
-  // 初回マウント時に設定対象のエンティティの数量分、totalInputSalesTargetsYearHalfのinput_targets_arrayにセットする
+  // ---------------------------------- ✅初回マウント時✅ ----------------------------------
+  // 初回マウント時に部門別の「年度・半期」 or メンバー別の「半期詳細」のそれぞれの目標金額の合計値を保持するstateのinput_targets_arrayに設定対象のエンティティの数量分の初期値をセットする
   useEffect(() => {
     // 会社レベルの場合は、総合目標が存在しないため、総合目標に対する残り目標金額の算出が不要なためリターン
     if (upsertSettingEntitiesObj.entityLevel === "company") return;
-    const isYearHalf = upsertSettingEntitiesObj.periodType;
-    if (isYearHalf === "year_half") {
-      const inputSalesTargetsArray = upsertSettingEntitiesObj.entities.map((entity) => {
-        return {
-          entity_id: entity.entity_id,
-          entity_name: entity.entity_name,
-          input_targets: {
+    if (upsertSettingEntitiesObj.entityLevel === "") return;
+
+    // 🔸【事業部〜係レベルルート】年度・半期の売上目標のstateをセット --------------------
+    if (upsertSettingEntitiesObj.entityLevel !== "member") {
+      if (upsertSettingEntitiesObj.periodType === "year_half") {
+        const inputSalesTargetsArray = upsertSettingEntitiesObj.entities.map((entity) => {
+          return {
+            entity_id: entity.entity_id,
+            entity_name: entity.entity_name,
+            input_targets: {
+              sales_target_year: 0,
+              sales_target_first_half: 0,
+              sales_target_second_half: 0,
+            },
+          };
+        }) as { entity_id: string; entity_name: string; input_targets: SalesTargetsYearHalf }[];
+
+        const initialTotalSalesTargetsYearHalf = {
+          total_targets: {
             sales_target_year: 0,
             sales_target_first_half: 0,
             sales_target_second_half: 0,
           },
-        };
-      }) as { entity_id: string; entity_name: string; input_targets: SalesTargetsYearHalf }[];
+          input_targets_array: inputSalesTargetsArray,
+        } as TotalSalesTargetsYearHalfObj;
 
-      const initialTotalSalesTargetsYearHalf = {
-        total_targets: {
-          sales_target_year: 0,
-          sales_target_first_half: 0,
-          sales_target_second_half: 0,
-        },
-        input_targets_array: inputSalesTargetsArray,
-      } as TotalSalesTargetsYearHalfObj;
+        // 初回stateをセット
+        setTotalInputSalesTargetsYearHalf(initialTotalSalesTargetsYearHalf);
+      }
+    }
+    // 🔸【メンバーレベルルート】半期詳細の売上目標のstateをセット --------------------
+    else {
+      // 初期値自体は上半期、下半期ともに同じプロパティのZustandのstateを使用する
+      if (["first_half_details", "second_half_details"].includes(upsertSettingEntitiesObj.periodType)) {
+        const inputSalesTargetsArray = upsertSettingEntitiesObj.entities.map((entity) => {
+          return {
+            entity_id: entity.entity_id,
+            entity_name: entity.entity_name,
+            input_targets: {
+              sales_target_half: 0,
+              sales_target_first_quarter: 0,
+              sales_target_second_quarter: 0,
+              sales_target_month_01: 0,
+              sales_target_month_02: 0,
+              sales_target_month_03: 0,
+              sales_target_month_04: 0,
+              sales_target_month_05: 0,
+              sales_target_month_06: 0,
+            },
+          };
+        }) as { entity_id: string; entity_name: string; input_targets: SalesTargetsHalfDetails }[];
 
-      // 初回stateをセット
-      setTotalInputSalesTargetsYearHalf(initialTotalSalesTargetsYearHalf);
+        const initialTotalSalesTargetsHalfDetails = {
+          total_targets: {
+            sales_target_half: 0,
+            sales_target_first_quarter: 0,
+            sales_target_second_quarter: 0,
+            sales_target_month_01: 0,
+            sales_target_month_02: 0,
+            sales_target_month_03: 0,
+            sales_target_month_04: 0,
+            sales_target_month_05: 0,
+            sales_target_month_06: 0,
+          },
+          input_targets_array: inputSalesTargetsArray,
+        } as TotalSalesTargetsHalfDetailsObj;
+
+        // 初回stateをセット
+        setTotalInputSalesTargetsHalfDetails(initialTotalSalesTargetsHalfDetails);
+      }
     }
   }, []);
+  // ---------------------------------- ✅初回マウント時✅ ----------------------------------
 
   // 部門別残り目標金額/総合目標 用の配列
   const salesTargetsYearHalfStatus = useMemo(() => {
@@ -1660,12 +1713,6 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                         }}
                         onMouseLeave={handleCloseTooltip}
                         onClick={(e) => {
-                          if (upsertSettingEntitiesObj.entityLevel !== "company" && !allCompleteTargetsYearHalf)
-                            return alert(
-                              `売上目標が未設定の${getDivName()}が存在します。全ての${getDivName()}の売上目標の合計値が総合目標となる${
-                                mappingDivName[upsertSettingEntitiesObj.parentEntityLevel as EntityLevelNames][language]
-                              }の売上目標と一致するように目標金額を振り分けてください。`
-                            );
                           handleCollectInputTargets();
                         }}
                       >

@@ -42,14 +42,14 @@ type Props = {
   handleOpenEditEntityListByParentModal: ({ parentEntityId }: { parentEntityId: string }) => void;
   setIsSettingTargetMode: (value: SetStateAction<boolean>) => void;
   entitiesHierarchyLocal: EntitiesHierarchy;
-  setSelectedMemberAndPeriodType: Dispatch<
-    SetStateAction<{
-      memberGroupObjByParent: EntityGroupByParent;
-      periodType: string;
-      isConfirmFirstHalf: boolean;
-      isConfirmSecondHalf: boolean;
-    } | null>
-  >;
+  // setSelectedMemberAndPeriodType: Dispatch<
+  //   SetStateAction<{
+  //     memberGroupObjByParent: EntityGroupByParent;
+  //     periodType: string;
+  //     isConfirmFirstHalf: boolean;
+  //     isConfirmSecondHalf: boolean;
+  //   } | null>
+  // >;
   handleOpenSectionMenu: ({ e, title, displayX, maxWidth, minWidth, fadeType }: SectionMenuParams) => void;
 };
 
@@ -68,12 +68,17 @@ export const EntityLevelColumn = ({
   handleOpenEditEntityListByParentModal,
   setIsSettingTargetMode,
   entitiesHierarchyLocal,
-  setSelectedMemberAndPeriodType,
+  // setSelectedMemberAndPeriodType,
   handleOpenSectionMenu,
 }: Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const upsertSettingEntitiesObj = useDashboardStore((state) => state.upsertSettingEntitiesObj);
   const setUpsertSettingEntitiesObj = useDashboardStore((state) => state.setUpsertSettingEntitiesObj);
+
+  // メンバーレベル目標設定時専用 「上期詳細」「下期詳細」切り替えstate "first_half_details" | "second_half_details"
+  const selectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.selectedPeriodTypeForMemberLevel);
+  const setSelectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.setSelectedPeriodTypeForMemberLevel);
+
   const entityLevel = levelObj.entity_level;
 
   if (!upsertSettingEntitiesObj || !userProfileState) return;
@@ -127,10 +132,35 @@ export const EntityLevelColumn = ({
     // }
   }, [addedEntitiesMemberCountQueryData]);
 
+  // ---------------------- 🌠各上位エンティティグループごとの設定完了状況を取得🌠 ----------------------
+  const completeSettingMapInGroup = useMemo(() => {
+    // 現在設定対象のレベル以外は不要のためリターン
+    if (currentLevel !== levelObj.entity_level) return null;
+    if (!entityGroupListByParent) return null;
+    // 一旦メンバーレベル以外で設定 あとで編集🌠🌠🌠🌠🌠🌠🌠
+    const newStatusArray = entityGroupListByParent.map((group) => {
+      const isConfirmedAllEntities = group.entities.every((entity) =>
+        currentLevel !== "member"
+          ? entity.is_confirmed_annual_half
+          : selectedPeriodTypeForMemberLevel === "first_half_details"
+          ? entity.is_confirmed_first_half_details
+          : entity.is_confirmed_second_half_details
+      );
+      return {
+        parent_entity_id: group.parent_entity_id ?? "",
+        parent_entity_name: group.parent_entity_name,
+        isCompleteAllEntities: isConfirmedAllEntities,
+      };
+    });
+    return new Map(newStatusArray.map((group) => [group.parent_entity_id, group]));
+  }, [entityGroupListByParent, currentLevel, selectedPeriodTypeForMemberLevel]);
+
   console.log(
     `🔸${levelObj.entity_level}レベルコンポーネント`,
-    "addedEntitiesMemberCountQueryData",
-    addedEntitiesMemberCountQueryData
+    "追加済みエンティティのメンバー所属有無状況クエリ結果",
+    addedEntitiesMemberCountQueryData,
+    `${levelObj.entity_level}レベル内上位エンティティグループごとの目標設定状況`,
+    completeSettingMapInGroup
   );
 
   return (
@@ -140,23 +170,37 @@ export const EntityLevelColumn = ({
         <div className={`flex w-full justify-between`}>
           <h4 className={`text-[19px] font-bold`}>{mappingEntityName[entityLevel][language]}</h4>
           <div className={`flex items-center text-[13px]`}>
-            {settingLevelState === "notSet" && <span className={`text-[var(--main-color-tk)]`}>未設定</span>}
-            {settingLevelState !== "notSet" && (
-              <div className={`flex items-center space-x-[6px]`}>
-                {/* {settingLevelState === "setAnnualHalfOnly" && (
-                                <span className={`text-[var(--main-color-f)]`}>「年度・半期」</span>
-                              )} */}
-                {settingLevelState === "setAnnualHalfOnly" && (
-                  <div
-                    // className={`flex-center rounded-full border border-solid border-[var(--color-border-light)] bg-[var(--color-edit-bg-solid)] px-[12px] py-[3px] text-[var(--color-text-sub)]`}
-                    className={`flex-center text-[var(--color-text-brand-f)]`}
-                  >
-                    {/* <span className={`text-[var(--main-color-f)]`}>年度・半期</span> */}
-                    <span className={`text-[13px]`}>設定完了</span>
+            {currentLevel !== "member" && (
+              <>
+                {settingLevelState === "notSet" && <span className={`text-[var(--main-color-tk)]`}>未設定</span>}
+                {settingLevelState !== "notSet" && (
+                  <div className={`flex items-center space-x-[6px]`}>
+                    {settingLevelState === "setAnnualHalfOnly" && (
+                      <div
+                        // className={`flex-center rounded-full border border-solid border-[var(--color-border-light)] bg-[var(--color-edit-bg-solid)] px-[12px] py-[3px] text-[var(--color-text-sub)]`}
+                        className={`flex-center text-[var(--color-text-brand-f)]`}
+                      >
+                        <span className={`text-[13px]`}>設定完了</span>
+                      </div>
+                    )}
                   </div>
                 )}
-                {/* <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" /> */}
-              </div>
+              </>
+            )}
+
+            {currentLevel === "member" && (
+              <>
+                {(selectedPeriodTypeForMemberLevel === "first_half_details" &&
+                  ["setAll", "setFirstHalf"].includes(settingLevelState)) ||
+                (selectedPeriodTypeForMemberLevel === "second_half_details" &&
+                  ["setAll", "setSecondHalf"].includes(settingLevelState)) ? (
+                  <div className={`flex-center text-[var(--color-text-brand-f)]`}>
+                    <span className={`text-[13px]`}>設定完了</span>
+                  </div>
+                ) : (
+                  <span className={`text-[var(--main-color-tk)]`}>未設定</span>
+                )}
+              </>
             )}
             {/* メンバーレベルに達した時に「上期詳細」「下期詳細」を切り替えて目標設定状態を確認できるようにする */}
             {/* <div className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}>
@@ -199,6 +243,11 @@ export const EntityLevelColumn = ({
           )}
           {entityGroupListByParent &&
             entityGroupListByParent.map((entityGroupObj, rowGroupIndex) => {
+              // 上位エンティティグループごとの各エンティティの目標設定完了状況を取得
+              const parentId = entityGroupObj.parent_entity_id;
+              const settingStatusObj =
+                completeSettingMapInGroup && parentId && (completeSettingMapInGroup.get(parentId) ?? null);
+              const isCompleteAllEntitiesInGroup = settingStatusObj ? settingStatusObj.isCompleteAllEntities : false;
               return (
                 <li
                   key={`section_${levelObj.entity_level}_${entityGroupObj.parent_entity_id}_${rowGroupIndex}`}
@@ -247,7 +296,7 @@ export const EntityLevelColumn = ({
                             (step === 3 &&
                               currentLevel === entityLevel &&
                               currentLevel !== "member" &&
-                              levelObj.is_confirmed_annual_half)) && {
+                              (levelObj.is_confirmed_annual_half || isCompleteAllEntitiesInGroup))) && {
                             display: `none`,
                           }),
                         }}
@@ -332,29 +381,37 @@ export const EntityLevelColumn = ({
                             }
                             // メンバーレベルは上期か下期どちらを設定するか選択
                             else {
-                              // 上半期と下半期それぞれでグループ内のエンティティ全てのis_confirmがtrueかチェック
-                              const isConfirmFirstHalf = entityGroupObj.entities.every(
-                                (entity) => entity.is_confirmed_first_half_details
-                              );
-                              const isConfirmSecondHalf = entityGroupObj.entities.every(
-                                (entity) => entity.is_confirmed_second_half_details
-                              );
-                              setSelectedMemberAndPeriodType({
-                                memberGroupObjByParent: entityGroupObj,
-                                periodType: "first_half_details", // 上期~月度
-                                isConfirmFirstHalf: isConfirmFirstHalf,
-                                isConfirmSecondHalf: isConfirmSecondHalf,
-                              });
+                              // 上位エンティティ内の全てのエンティティ配列をグローバルstateに追加する
+                              const newParentEntityGroup = {
+                                fiscalYear: upsertSettingEntitiesObj.fiscalYear,
+                                periodType: selectedPeriodTypeForMemberLevel, // "first_half_details" | "second_half_details"のどちらか
+                                parentEntityLevelId: levelObj.id,
+                                parentEntityLevel: parentEntityLevel,
+                                parentEntityId: entityGroupObj.parent_entity_id,
+                                parentEntityName: entityGroupObj.parent_entity_name,
+                                entityLevel: currentLevel,
+                                entities: entityGroupObj.entities,
+                              } as UpsertSettingEntitiesObj;
 
-                              const sectionWidth = 330;
-                              handleOpenSectionMenu({
-                                e,
-                                title: "selectTargetPeriodTypeForMember",
-                                displayX: "bottom_left",
-                                fadeType: "fade_down",
-                                maxWidth: sectionWidth,
-                                minWidth: sectionWidth,
-                              });
+                              setUpsertSettingEntitiesObj(newParentEntityGroup);
+                              setIsSettingTargetMode(true);
+
+                              // setSelectedMemberAndPeriodType({
+                              //   memberGroupObjByParent: entityGroupObj,
+                              //   periodType: "first_half_details", // 上期~月度
+                              //   isConfirmFirstHalf: isConfirmFirstHalf,
+                              //   isConfirmSecondHalf: isConfirmSecondHalf,
+                              // });
+
+                              // const sectionWidth = 330;
+                              // handleOpenSectionMenu({
+                              //   e,
+                              //   title: "selectTargetPeriodTypeForMember",
+                              //   displayX: "bottom_left",
+                              //   fadeType: "fade_down",
+                              //   maxWidth: sectionWidth,
+                              //   minWidth: sectionWidth,
+                              // });
                               // setOpenSubMenu({
                               //   display: "left",
                               //   fadeType: "fade_down",

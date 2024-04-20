@@ -39,6 +39,7 @@ import {
   TotalSalesTargetsYearHalf,
   SalesTargetsYearHalf,
   TotalSalesTargetsYearHalfObj,
+  TotalSalesTargetsHalfDetailsObj,
 } from "@/types";
 import { activityColumnHeaderItemListData } from "@/utils/activityColumnHeaderItemListDate";
 import { companyColumnHeaderItemListData } from "@/utils/companyColumnHeaderItemListData";
@@ -515,12 +516,16 @@ type State = {
   // 各テーブルの目標入力値を保持するstate
   inputSalesTargetsIdToDataMap: InputSalesTargetsIdToDataMap;
   setInputSalesTargetsIdToDataMap: (payload: InputSalesTargetsIdToDataMap) => void;
-  // 売上目標設定対象となる各テーブルの合計値を保持するstate(会社レベル以外でのレベル設定時に使用)
+  // 【事業部〜係レベル用】売上目標設定対象となる各テーブルの合計値を保持するstate(会社レベル以外でのレベル設定時に使用)
   totalInputSalesTargetsYearHalf: TotalSalesTargetsYearHalfObj;
   setTotalInputSalesTargetsYearHalf: (payload: TotalSalesTargetsYearHalfObj) => void;
+
+  // 【メンバーレベル用】売上目標設定対象となる各テーブルの合計値を保持するstate(会社レベル以外でのレベル設定時に使用)
+  totalInputSalesTargetsHalfDetails: TotalSalesTargetsHalfDetailsObj;
+  setTotalInputSalesTargetsHalfDetails: (payload: TotalSalesTargetsHalfDetailsObj) => void;
   // メンバーレベルの目標設定時に「上期詳細」「下期詳細」を切り替えるstate
-  settingPeriodTypeForMemberLevel: string;
-  setSettingPeriodTypeForMemberLevel: (payload: string) => void;
+  selectedPeriodTypeForMemberLevel: "first_half_details" | "second_half_details";
+  setSelectedPeriodTypeForMemberLevel: (payload: "first_half_details" | "second_half_details") => void;
   // エンティティinvalidateトリガー
   triggerQueryEntities: boolean;
   setTriggerQueryEntities: (payload: boolean) => void;
@@ -1235,7 +1240,7 @@ const useDashboardStore = create<State>((set) => ({
   // 各テーブルの目標入力値を保持するstate
   inputSalesTargetsIdToDataMap: {},
   setInputSalesTargetsIdToDataMap: (payload) => set({ inputSalesTargetsIdToDataMap: payload }),
-  // 売上目標設定対象となる各テーブルの合計値を保持するstate(会社レベル以外でのレベル設定時に使用)
+  // 【事業部〜係レベル用】売上目標設定対象となる各テーブルの合計値を保持するstate(会社レベル以外でのレベル設定時に使用)
   totalInputSalesTargetsYearHalf: {
     total_targets: {
       sales_target_year: 0,
@@ -1245,9 +1250,26 @@ const useDashboardStore = create<State>((set) => ({
     input_targets_array: [],
   },
   setTotalInputSalesTargetsYearHalf: (payload) => set({ totalInputSalesTargetsYearHalf: payload }),
+  // 【メンバーレベル用】売上目標設定対象となる各テーブルの合計値を保持するstate(会社レベル以外でのレベル設定時に使用)
+  totalInputSalesTargetsHalfDetails: {
+    total_targets: {
+      sales_target_half: 0,
+      // sales_target_first_quarter: 0,
+      // sales_target_second_quarter: 0,
+      // sales_target_month_01: 0,
+      // sales_target_month_02: 0,
+      // sales_target_month_03: 0,
+      // sales_target_month_04: 0,
+      // sales_target_month_05: 0,
+      // sales_target_month_06: 0,
+    },
+    input_targets_array: [],
+  },
+  setTotalInputSalesTargetsHalfDetails: (payload) => set({ totalInputSalesTargetsHalfDetails: payload }),
+
   // メンバーレベルの目標設定時に「上期詳細」「下期詳細」を切り替えるstate
-  settingPeriodTypeForMemberLevel: "first_half_details",
-  setSettingPeriodTypeForMemberLevel: (payload) => set({ settingPeriodTypeForMemberLevel: payload }),
+  selectedPeriodTypeForMemberLevel: "first_half_details",
+  setSelectedPeriodTypeForMemberLevel: (payload) => set({ selectedPeriodTypeForMemberLevel: payload }),
   // エンティティinvalidateトリガー
   triggerQueryEntities: false,
   setTriggerQueryEntities: (payload) => set({ triggerQueryEntities: payload }),

@@ -88,9 +88,6 @@ const UpsertTargetEntityMemo = () => {
 
   // 個別エンティティグループ目標設定モード
   const setUpsertTargetMode = useDashboardStore((state) => state.setUpsertTargetMode);
-  // メンバーレベル目標設定時専用 「上期詳細」「下期詳細」切り替えstate
-  const settingPeriodTypeForMemberLevel = useDashboardStore((state) => state.settingPeriodTypeForMemberLevel);
-  const setSettingPeriodTypeForMemberLevel = useDashboardStore((state) => state.setSettingPeriodTypeForMemberLevel);
 
   // ユーザーの会計年度の期首と期末のDateオブジェクト
   const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
@@ -99,7 +96,12 @@ const UpsertTargetEntityMemo = () => {
   const [step, setStep] = useState(1);
   // 目標設定を行う上位エンティティグループ()
   const [isSettingTargetMode, setIsSettingTargetMode] = useState(false);
-  // メンバーレベル時の「目標設定」クリックした選択中のメンバーエンティティと上期、下期どちらを選択しているか
+  // メンバーレベル時の上期、下期の期間state デフォルトでは上期を選択中にする
+  // メンバーレベル目標設定時専用 「上期詳細」「下期詳細」切り替えstate "first_half_details" | "second_half_details"
+  const selectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.selectedPeriodTypeForMemberLevel);
+  const setSelectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.setSelectedPeriodTypeForMemberLevel);
+  // const [selectedHalfYearForMemberLevel, setSelectedHalfYearForMemberLevel] = useState('first_year_detail')
+  // メンバーレベル時の「目標設定」クリックした選択中のメンバーエンティティと上期、下期どちらを選択しているか => ❌一旦使用なし
   const [selectedMemberAndPeriodType, setSelectedMemberAndPeriodType] = useState<{
     memberGroupObjByParent: EntityGroupByParent;
     periodType: string;
@@ -128,6 +130,8 @@ const UpsertTargetEntityMemo = () => {
   // 説明アイコン
   const infoIconStepRef = useRef<HTMLDivElement | null>(null);
   const infoIconTitleRef = useRef<HTMLDivElement | null>(null);
+  // スクロールエリア
+  const scrollContentsAreaRef = useRef<HTMLDivElement | null>(null);
 
   // // 選択中の会計年度ローカルstate
   // const [selectedFiscalYearLocal, setSelectedFiscalYearLocal] = useState(upsertTargetObj.fiscalYear);
@@ -687,7 +691,9 @@ const UpsertTargetEntityMemo = () => {
       fiscal_year: upsertSettingEntitiesObj.fiscalYear,
     } as EntityLevels;
 
-    setAddedEntityLevelsListLocal([...addedEntityLevelsListLocal, newLevel]);
+    const newAddedEntityLevelListLocal = [...addedEntityLevelsListLocal, newLevel];
+
+    setAddedEntityLevelsListLocal(newAddedEntityLevelListLocal);
 
     // ✅追加したレベル内に先に全てのエンティティを追加しておき、ユーザーに追加の手間を省く(削除をしてもらう)
     // 新たに追加したレベルの上位エンティティごと(parent_entity_id)のエンティティグループ(entities)に最初は上位エンティティに紐づく全てのエンティティを追加する。(ユーザーには追加ではなく、ここから不要なエンティティを削除するアクションをステップ2で行ってもらう)
@@ -929,6 +935,20 @@ const UpsertTargetEntityMemo = () => {
 
     // ステップを2に更新 次はレベル内にエンティティを追加、削除してレイヤー内の構成を確定させる
     setStep(2);
+
+    // 0.1秒遅延して右端にスクロールさせる
+    setTimeout(() => {
+      if (scrollContentsAreaRef.current) {
+        // エンティティレベルカラムが3つ以上で画面右端を超える場合にはヘッダーとサイドバーを固定してから右端にスクロールする
+        if (newAddedEntityLevelListLocal.length > 3) {
+          if (isStickyHeader === false) setIsStickyHeader(true); // ヘッダー固定
+          if (isStickySidebar === false) setIsStickySidebar(true); // サイドバー固定
+        }
+        const scrollArea = scrollContentsAreaRef.current;
+        const { width } = scrollArea.getBoundingClientRect();
+        scrollArea.scrollTo({ top: 0, left: width, behavior: "smooth" });
+      }
+    }, 100);
   };
   // ----------------------------- 🌟ステップ1 レベル「追加」をクリック🌟 ここまで -----------------------------
 
@@ -1975,7 +1995,8 @@ const UpsertTargetEntityMemo = () => {
   //   1:
   // }
 
-  // ✅初回マウント時
+  // ------------------------------------------- ✅初回マウント時✅ -------------------------------------------
+  // --------------------------- ✅step, currentLevel, selectedNextLevel, optionsEntityLevelListのセットアップ✅
   // 初回マウント時にユーザーが選択した年度の中で、既にレイヤーがINSERTされており、
   // かつ、既存レイヤーの中でまだ売上目標が未設定のレイヤーが存在する場合はstepを3にして、既存レイヤーのエンティティの売上目標設定から始める
   useEffect(() => {
@@ -1989,41 +2010,51 @@ const UpsertTargetEntityMemo = () => {
     }
 
     // 追加したレベルは選択肢リストから取り除く
-    let newLevelList = [...optionsEntityLevelList];
+    let newOptionsLevelList = [...optionsEntityLevelList];
 
-    // 全て完了済みの場合は、確認画面とリセットして再度登録するかどうかの画面へ
+    // 🔹全て完了済みの場合は、確認画面とリセットして再度登録するかどうかの画面へ
     if (fiscalYearQueryData.is_confirmed_first_half_details && fiscalYearQueryData.is_confirmed_second_half_details) {
       setStep(5);
       setCurrentLevel("member");
-      newLevelList = [];
+      newOptionsLevelList = []; // メンバー追加は必要ないため空の配列をセット
     }
-    // 上半期、下半期どちらか1つでも完了しているならメンバーレベルが存在しているため、ステップ3の目標設定画面で残りの半期目標設定へ
+    // 🔹上半期、下半期どちらか1つでも完了しているならメンバーレベルが存在しているため、ステップ3の目標設定画面で残りの半期目標設定へ
     if (fiscalYearQueryData.is_confirmed_first_half_details || fiscalYearQueryData.is_confirmed_second_half_details) {
       setStep(3);
       setCurrentLevel("member");
-      newLevelList = [];
+      newOptionsLevelList = [];
     }
 
-    // 🔹エンティティレベル 年度が存在してるならレベルもINSERT済みのため必ず1つ以上レベルが存在するルート
-    if (addedEntityLevelsListQueryData) {
+    // 🔹エンティティレベル 年度が存在してるなら全社レベルがINSERT済みのため必ず1つ以上レベルが存在するルート
+    if (addedEntityLevelsListQueryData && addedEntityLevelsListQueryData.length > 0) {
       const addedLevelsMap = new Map(addedEntityLevelsListQueryData.map((level) => [level.entity_level, level]));
-      // レベルが１つ以上で、メンバーレベルが存在する、かつ
+      // 🔸🔸レベルが１つ以上で、メンバーレベルが存在するルート
       // is_confirmed_first_half_detailsとis_confirmed_second_half_detailsがどちらもtrueの場合はstep4で全エンティティを集計
       // is_confirmed_first_half_detailsとis_confirmed_second_half_detailsのどちらか１つでもfalseの場合はstep3
       if (addedLevelsMap.has("member")) {
         setCurrentLevel("member"); // メンバーレベルに変更 parentEntityLevelはcurrentLevel変更に合わせてuseMemoで最新に更新される
-        newLevelList = [];
+        newOptionsLevelList = [];
         if (
+          // 全てのレベルの上期、下期の目標が設定済みならステップ4へ、
           addedEntityLevelsListQueryData.every(
             (level) => level.is_confirmed_first_half_details && level.is_confirmed_second_half_details
           )
         ) {
-          setStep(4);
-        } else {
-          setStep(3);
+          setStep(5); // 上期、下期、両方完了済みのためステップ5の確認、リセット画面へ
+        }
+        // 全てのレベル内で上期、下期のどちらかが未設定があり、かつ、メンバーレベルは上期、下期どちらも設定済みならstep4へ
+        else if (
+          addedLevelsMap.get("member")?.is_confirmed_first_half_details &&
+          addedLevelsMap.get("member")?.is_confirmed_second_half_details
+        ) {
+          setStep(4); // 集計ステップへ
+        }
+        // メンバーレベルで上期、下期どちらか一つでも未設定があるならstep3へ
+        else {
+          setStep(3); // 売上設定ステップへ
         }
       }
-      // レベルが１つ以上で、メンバーレベルが存在しない、かつ、
+      // 🔸🔸レベルが１つ以上で、メンバーレベルが存在しないルート
       else {
         // is_confirmed_annual_halfが全てtrueならstep1で次のレイヤーを追加
         // is_confirmed_annual_halfが１つ以上falseが存在するならstep3、
@@ -2035,35 +2066,39 @@ const UpsertTargetEntityMemo = () => {
           // is_confirmed_annual_halfがfalseのレベルをcurrentLevelにセット
         }
 
-        // 既に指定年度の売上目標を構成するレベルが追加されている場合、追加済みの末端レベルの下位レベルに当たるレベル以降を選択肢としてフィルターして返す
+        // 追加済みの末端レベルの下位レベルに当たるレベル以降を選択肢としてフィルターして返す
         // 係レベルまで追加済み 残りのメンバーレベルのみセット
         if (addedLevelsMap.has("unit")) {
-          newLevelList = [{ title: "member", name: { ja: "メンバー", en: "Member" } }];
+          newOptionsLevelList = [{ title: "member", name: { ja: "メンバー", en: "Member" } }];
         }
         // 課レベルまで追加済み 係レベル以下を残す
         else if (addedLevelsMap.has("section")) {
-          newLevelList = newLevelList.filter((obj) => ["unit", "member"].includes(obj.title));
+          newOptionsLevelList = newOptionsLevelList.filter((obj) => ["unit", "member"].includes(obj.title));
         }
         // 事業部レベルまで追加済み 課レベル以下を残す
         else if (addedLevelsMap.has("department")) {
           // 事業部->課->係->メンバーで、事業部->係と飛ばすことがないようにunitは選択肢から省く
-          newLevelList = newLevelList.filter((obj) => ["section", "unit", "member"].includes(obj.title));
+          newOptionsLevelList = newOptionsLevelList.filter((obj) => ["section", "unit", "member"].includes(obj.title));
         }
         // 会社レベルまで追加済み 事業部レベル以下を残す
         else if (addedLevelsMap.has("company")) {
           // 会社->事業部->課->係->メンバーで、会社->課、会社->係のように飛ばすことがないようにsection, unitは選択肢から省く
-          newLevelList = newLevelList.filter((obj) => ["department", "section", "unit", "member"].includes(obj.title));
+          newOptionsLevelList = newOptionsLevelList.filter((obj) =>
+            ["department", "section", "unit", "member"].includes(obj.title)
+          );
         }
 
-        // 現在追加している末尾のレベルを現在のレベルにセットする(useQueryのFUNCTIONでレベルごとに並び替え済み)
-        const selectedLevel = newLevelList[0].title;
+        // 現在追加済みの選択肢から先頭のレベルを現在のセンタ中のレベルにセットする(useQueryのFUNCTIONでレベルごとに並び替え済み)
+        const selectedLevel = newOptionsLevelList[0].title;
         setSelectedNextLevel(selectedLevel);
         // setCurrentLevel(addedLastLevel);
       }
     }
     // フィルター後のレベル選択肢で更新
-    setOptionsEntityLevelList(newLevelList);
+    setOptionsEntityLevelList(newOptionsLevelList);
   }, []);
+  // --------------------------- ✅step, currentLevel, selectedNextLevel, optionsEntityLevelListのセットアップ✅
+  // ------------------------------------------- ✅初回マウント時✅ -------------------------------------------
 
   console.log(
     "UpsertTargetEntityコンポーネントレンダリング",
@@ -2192,37 +2227,37 @@ const UpsertTargetEntityMemo = () => {
               <div className="absolute left-0 top-[50%] z-[0] h-[1px] w-[145px] bg-[var(--color-progress-bg)]"></div>
               {/* ○1 */}
               <div
-                className={`flex-center z-[1] mr-[15px] h-[25px] w-[25px] cursor-pointer rounded-full border border-solid ${getActiveSteps(
+                className={`flex-center z-[1] mr-[15px] h-[25px] w-[25px] rounded-full border border-solid ${getActiveSteps(
                   1
                 )}`}
-                onClick={() => setStep(1)}
+                // onClick={() => setStep(1)}
               >
                 <span className={`text-[12px] font-bold`}>1</span>
               </div>
               {/* ○2 */}
               <div
-                className={`flex-center  z-[1] mr-[15px] h-[25px] w-[25px] cursor-not-allowed rounded-full border border-solid ${getActiveSteps(
+                className={`flex-center  z-[1] mr-[15px] h-[25px] w-[25px] rounded-full border border-solid ${getActiveSteps(
                   2
                 )}`}
-                onClick={() => setStep(2)}
+                // onClick={() => setStep(2)}
               >
                 <span className={`text-[12px] font-bold`}>2</span>
               </div>
               {/* ○3 */}
               <div
-                className={`flex-center  z-[1] mr-[15px] h-[25px] w-[25px] cursor-not-allowed rounded-full border border-solid ${getActiveSteps(
+                className={`flex-center  z-[1] mr-[15px] h-[25px] w-[25px] rounded-full border border-solid ${getActiveSteps(
                   3
                 )}`}
-                onClick={() => setStep(3)}
+                // onClick={() => setStep(3)}
               >
                 <span className={`text-[12px] font-bold`}>3</span>
               </div>
               {/* ○4 */}
               <div
-                className={`flex-center  z-[1] mr-[15px] h-[25px] w-[25px] cursor-not-allowed rounded-full border border-solid ${getActiveSteps(
+                className={`flex-center  z-[1] mr-[15px] h-[25px] w-[25px] rounded-full border border-solid ${getActiveSteps(
                   4
                 )}`}
-                onClick={() => setStep(4)}
+                // onClick={() => setStep(4)}
               >
                 <span className={`text-[12px] font-bold`}>4</span>
               </div>
@@ -2260,7 +2295,7 @@ const UpsertTargetEntityMemo = () => {
         </div>
 
         {/* -------------------------------- コンテンツエリア -------------------------------- */}
-        <div className={`${styles.contents_area_entity}`}>
+        <div ref={scrollContentsAreaRef} className={`${styles.contents_area_entity}`}>
           {/* -------------------------------- 左コンテナ手順 -------------------------------- */}
           <div className={`${styles.left_container} bg-[red]/[0] ${isStickySidebar ? `${styles.sticky_side}` : ``}`}>
             <div className={`${styles.step_container} space-y-[12px]`}>
@@ -2561,6 +2596,18 @@ const UpsertTargetEntityMemo = () => {
                             </span>
                           </button>
                         )}
+                        {/* <button
+                          className={`transition-bg01 flex-center max-h-[36px] max-w-max cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[13px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                          onClick={() => {
+                            if (!scrollContentsAreaRef.current) return;
+                            console.log("クリックscrollContentsAreaRef");
+                            const scroll = scrollContentsAreaRef.current;
+                            const { width } = scroll.getBoundingClientRect();
+                            scroll.scrollTo({ top: 0, left: width, behavior: "smooth" });
+                          }}
+                        >
+                          スクロール
+                        </button> */}
                       </div>
                     </div>
                   </div>
@@ -2679,7 +2726,7 @@ const UpsertTargetEntityMemo = () => {
                             handleOpenEditEntityListByParentModal={handleOpenEditEntityListByParentModal}
                             setIsSettingTargetMode={setIsSettingTargetMode}
                             entitiesHierarchyLocal={entitiesHierarchyLocal}
-                            setSelectedMemberAndPeriodType={setSelectedMemberAndPeriodType}
+                            // setSelectedMemberAndPeriodType={setSelectedMemberAndPeriodType}
                             handleOpenSectionMenu={handleOpenSectionMenu}
                           />
                         </Suspense>

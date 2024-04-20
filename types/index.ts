@@ -3011,6 +3011,7 @@ export type SalesSummaryYearHalf = {
   yo2y_growth: number; // 前年度前年伸び率実績(2年前から1年前の成長率)
 };
 
+// ---------------- 【事業部〜係レベルUPSERT用】 ----------------
 // 「年度・半期」目標のキー
 export type KeysSalesTargetsYearHalf = "sales_target_year" | "sales_target_first_half" | "sales_target_second_half";
 // メイン目標の売上目標「年度・半期」
@@ -3021,6 +3022,29 @@ export type TotalSalesTargetsYearHalfObj = {
   total_targets: TotalSalesTargetsYearHalf;
   input_targets_array: { entity_id: string; entity_name: string; input_targets: SalesTargetsYearHalf }[];
 };
+// ---------------- 【事業部〜係レベルUPSERT用】 ----------------
+// ---------------- 【メンバーレベルUPSERT用】 ----------------
+// 「半期詳細」目標のキー
+export type KeysSalesTargetsHalfDetails =
+  | "sales_target_half"
+  | "sales_target_first_quarter"
+  | "sales_target_second_quarter"
+  | "sales_target_month_01"
+  | "sales_target_month_02"
+  | "sales_target_month_03"
+  | "sales_target_month_04"
+  | "sales_target_month_05"
+  | "sales_target_month_06";
+export type KeysMainSalesTargetsHalfDetails = "sales_target_half";
+// メイン目標の売上目標「半期詳細」
+export type SalesTargetsHalfDetails = { [K in KeysSalesTargetsHalfDetails]: number };
+// 設定対象のサブテーブルの売上目標の合計「半期詳細」 メンバーレベル設定時の総合目標は半期のみ保持する
+export type TotalSalesTargetsHalfDetails = { [K in KeysMainSalesTargetsHalfDetails]: number };
+export type TotalSalesTargetsHalfDetailsObj = {
+  total_targets: TotalSalesTargetsHalfDetails;
+  input_targets_array: { entity_id: string; entity_name: string; input_targets: SalesTargetsHalfDetails }[];
+};
+// ---------------- 【メンバーレベルUPSERT用】 ----------------
 
 // 売上目標設定時のカラム
 export type SalesTargetUpsertColumns = {
