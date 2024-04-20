@@ -3001,6 +3001,7 @@ export type UpsertSettingEntitiesObj = {
   parentEntityName: string;
 };
 
+// ---------------- 【事業部〜係レベルUPSERT用】 ----------------
 // 目標設定時の「年度・半期」の「過去3年分の売上」と「前年度の前年伸び率実績」 useQuery
 export type SalesSummaryYearHalf = {
   period_type: string; // 年度・上半期・下半期(fiscal_year, first_half, second_half)
@@ -3010,6 +3011,17 @@ export type SalesSummaryYearHalf = {
   // growth_rate: number;
   yo2y_growth: number; // 前年度前年伸び率実績(2年前から1年前の成長率)
 };
+// ---------------- 【事業部〜係レベルUPSERT用】 ----------------
+// ---------------- 【メンバーレベルUPSERT用】 ----------------
+export type SalesSummaryHalfDetails = {
+  period_type: string; // 年度・上半期・下半期(fiscal_year, first_half, second_half)
+  last_year_sales: number;
+  two_years_ago_sales: number;
+  three_years_ago_sales: number;
+  // growth_rate: number;
+  yo2y_growth: number; // 前年度前年伸び率実績(2年前から1年前の成長率)
+};
+// ---------------- 【メンバーレベルUPSERT用】 ----------------
 
 // ---------------- 【事業部〜係レベルUPSERT用】 ----------------
 // 「年度・半期」目標のキー
@@ -3025,18 +3037,17 @@ export type TotalSalesTargetsYearHalfObj = {
 // ---------------- 【事業部〜係レベルUPSERT用】 ----------------
 // ---------------- 【メンバーレベルUPSERT用】 ----------------
 // 「半期詳細」目標のキー
-export type KeysSalesTargetsHalfDetails =
-  | "sales_target_half"
-  | "sales_target_first_quarter"
-  | "sales_target_second_quarter"
-  | "sales_target_month_01"
-  | "sales_target_month_02"
-  | "sales_target_month_03"
-  | "sales_target_month_04"
-  | "sales_target_month_05"
-  | "sales_target_month_06";
+export type KeysSalesTargetsHalfDetails = "sales_target_half";
+// | "sales_target_first_quarter"
+// | "sales_target_second_quarter"
+// | "sales_target_month_01"
+// | "sales_target_month_02"
+// | "sales_target_month_03"
+// | "sales_target_month_04"
+// | "sales_target_month_05"
+// | "sales_target_month_06";
 export type KeysMainSalesTargetsHalfDetails = "sales_target_half";
-// メイン目標の売上目標「半期詳細」
+// メイン目標の売上目標「半期詳細」半期目標のみ
 export type SalesTargetsHalfDetails = { [K in KeysSalesTargetsHalfDetails]: number };
 // 設定対象のサブテーブルの売上目標の合計「半期詳細」 メンバーレベル設定時の総合目標は半期のみ保持する
 export type TotalSalesTargetsHalfDetails = { [K in KeysMainSalesTargetsHalfDetails]: number };

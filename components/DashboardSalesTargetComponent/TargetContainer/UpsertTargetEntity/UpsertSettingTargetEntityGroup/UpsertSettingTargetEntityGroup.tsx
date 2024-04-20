@@ -31,6 +31,7 @@ import {
   SalesTargetsHalfDetails,
   SalesTargetsYearHalf,
   Section,
+  TotalSalesTargetsHalfDetails,
   TotalSalesTargetsHalfDetailsObj,
   TotalSalesTargetsYearHalfObj,
   Unit,
@@ -1504,13 +1505,28 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     entityId: upsertSettingEntitiesObj.parentEntityId,
     periodType: "year_half",
     fiscalYear: upsertSettingEntitiesObj.fiscalYear,
-    fetchEnabled: ["department", "section", "unit", "member"].includes(upsertSettingEntitiesObj.entityLevel), // 【事業部〜係レベル用】
-    // fetchEnabled:
-    //   ["department", "section", "unit"].includes(upsertSettingEntitiesObj.entityLevel) &&
-    //   upsertSettingEntitiesObj.periodType === "year_half", // 【事業部〜係レベル用】
-    // fetchEnabled: true,
+    // fetchEnabled: upsertSettingEntitiesObj.entityLevel !== "company" && upsertSettingEntitiesObj.entityLevel !== "", // 事業部〜メンバーレベルまで メンバーレベルの目標設定における上位エンティティの売上目標は「年度・半期」となるため
+    fetchEnabled:
+      ["department", "section", "unit"].includes(upsertSettingEntitiesObj.entityLevel) &&
+      upsertSettingEntitiesObj.periodType === "year_half", // 【事業部〜係レベル用】
   });
   // ---------------------------------- 🌠【メンバーレベル用】
+  const {
+    data: salesTargetsHalfDetails,
+    error: salesTargetsHalfDetailsError,
+    isLoading: isLoadingSalesTargetsHalfDetails,
+    isError: isErrorSalesTargetsHalfDetails,
+  } = useQuerySalesTargetsMainHalfDetails({
+    companyId: userProfileState.company_id,
+    entityLevel: upsertSettingEntitiesObj.parentEntityLevel,
+    entityId: upsertSettingEntitiesObj.parentEntityId,
+    periodType: upsertSettingEntitiesObj.periodType, // "first_half_details" | "second_half_details"
+    fiscalYear: upsertSettingEntitiesObj.fiscalYear,
+    // fetchEnabled: upsertSettingEntitiesObj.entityLevel !== "company" && upsertSettingEntitiesObj.entityLevel !== "", // 事業部〜メンバーレベルまで メンバーレベルの目標設定における上位エンティティの売上目標は「年度・半期」となるため
+    fetchEnabled:
+      upsertSettingEntitiesObj.entityLevel === "member" &&
+      ["first_half_details", "second_half_details"].includes(upsertSettingEntitiesObj.periodType), // 【メンバーレベル用】
+  });
   // --------------------- 🌟メイン目標の売上目標を取得するuseQuery🌟 ---------------------
 
   // ---------------------------------- 🌠【事業部〜係レベル用】
@@ -1567,32 +1583,32 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
             entity_name: entity.entity_name,
             input_targets: {
               sales_target_half: 0,
-              sales_target_first_quarter: 0,
-              sales_target_second_quarter: 0,
-              sales_target_month_01: 0,
-              sales_target_month_02: 0,
-              sales_target_month_03: 0,
-              sales_target_month_04: 0,
-              sales_target_month_05: 0,
-              sales_target_month_06: 0,
-            },
+              // sales_target_first_quarter: 0,
+              // sales_target_second_quarter: 0,
+              // sales_target_month_01: 0,
+              // sales_target_month_02: 0,
+              // sales_target_month_03: 0,
+              // sales_target_month_04: 0,
+              // sales_target_month_05: 0,
+              // sales_target_month_06: 0,
+            } as SalesTargetsHalfDetails,
           };
         }) as { entity_id: string; entity_name: string; input_targets: SalesTargetsHalfDetails }[];
 
-        const initialTotalSalesTargetsHalfDetails = {
+        const initialTotalSalesTargetsHalfDetails: TotalSalesTargetsHalfDetailsObj = {
           total_targets: {
             sales_target_half: 0,
-            sales_target_first_quarter: 0,
-            sales_target_second_quarter: 0,
-            sales_target_month_01: 0,
-            sales_target_month_02: 0,
-            sales_target_month_03: 0,
-            sales_target_month_04: 0,
-            sales_target_month_05: 0,
-            sales_target_month_06: 0,
-          },
+            // sales_target_first_quarter: 0,
+            // sales_target_second_quarter: 0,
+            // sales_target_month_01: 0,
+            // sales_target_month_02: 0,
+            // sales_target_month_03: 0,
+            // sales_target_month_04: 0,
+            // sales_target_month_05: 0,
+            // sales_target_month_06: 0,
+          } as TotalSalesTargetsHalfDetails,
           input_targets_array: inputSalesTargetsArray,
-        } as TotalSalesTargetsHalfDetailsObj;
+        };
 
         // 初回stateをセット
         setTotalInputSalesTargetsHalfDetails(initialTotalSalesTargetsHalfDetails);
@@ -1601,7 +1617,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   }, []);
   // ---------------------------------- ✅初回マウント時✅ ----------------------------------
 
-  // 部門別残り目標金額/総合目標 用の配列
+  // --------------------🔸【事業部〜係レベルルート】部門別残り目標金額/総合目標 用の配列 --------------------
   const salesTargetsYearHalfStatus = useMemo(() => {
     if (!salesTargetsYearHalf) return null;
     // 会社レベルの場合は、総合目標は存在しないためnullをリターン
@@ -1637,6 +1653,46 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     if (upsertSettingEntitiesObj.entityLevel === "company") return null;
     return salesTargetsYearHalfStatus.every((targetPeriod) => targetPeriod.isComplete);
   }, [salesTargetsYearHalfStatus]);
+  // --------------------🔸【事業部〜係レベルルート】部門別残り目標金額/総合目標 用の配列 --------------------
+
+  // --------------------🔸【メンバーレベルルート】部門別残り目標金額/総合目標 用の配列 --------------------
+  const salesTargetsHalfDetailsStatus = useMemo(() => {
+    if (!salesTargetsHalfDetails) return null;
+    // 会社レベルの場合は、総合目標は存在しないためnullをリターン
+    if (upsertSettingEntitiesObj.entityLevel === "company") return null;
+    return Object.entries(salesTargetsHalfDetails).map(([key, value], index) => {
+      let title: { [key: string]: string } = { ja: `年度`, en: `Fiscal Year` };
+      if (key === "sales_target_first_half") title = { ja: `上半期`, en: `First Half Year` };
+      if (key === "sales_target_second_half") title = { ja: `下半期`, en: `Second Half Year` };
+      const totalInput = totalInputSalesTargetsHalfDetails.total_targets[key as KeysSalesTargetsHalfDetails];
+      const mainTargetDecimal = new Decimal(value);
+      const totalInputDecimal = new Decimal(totalInput);
+      // 残り目標額
+      const restSalesTarget = mainTargetDecimal.minus(totalInputDecimal).toNumber();
+      const isNegative = restSalesTarget < 0;
+      const isComplete = restSalesTarget === 0;
+      return {
+        key: key,
+        sales_target: formatToJapaneseYen(value),
+        // sales_target: value,
+        title: title,
+        // restTarget: formatToJapaneseYen(restSalesTarget, true, true),
+        restTarget: restSalesTarget,
+        isNegative: isNegative,
+        isComplete: isComplete,
+      };
+    });
+  }, [salesTargetsHalfDetails, totalInputSalesTargetsHalfDetails]);
+
+  // 部門別残り目標金額/総合目標の部門の残り目標金額が全ての期間で0となり、全ての期間がisCompleteとなったらtrueにする
+  const allCompleteTargetsHalfDetails = useMemo(() => {
+    if (!salesTargetsHalfDetailsStatus) return null;
+    // 会社レベルの場合は、総合目標は存在しないためnullをリターン
+    if (upsertSettingEntitiesObj.entityLevel === "company") return null;
+    return salesTargetsHalfDetailsStatus.every((targetPeriod) => targetPeriod.isComplete);
+  }, [salesTargetsHalfDetailsStatus]);
+
+  // --------------------🔸【メンバーレベルルート】部門別残り目標金額/総合目標 用の配列 --------------------
 
   const infoIconInputStatusRef = useRef<HTMLDivElement | null>(null);
 
@@ -2450,13 +2506,17 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                                       entityLevel={targetEntityLevel}
                                       entityNameTitle={targetTitle}
                                       entityId={obj.id}
+                                      parentEntityLevel={upsertSettingEntitiesObj.parentEntityLevel}
+                                      parentEntityId={upsertSettingEntitiesObj.parentEntityId}
+                                      parentEntityNameTitle={upsertSettingEntitiesObj.parentEntityName}
                                       stickyRow={stickyRow}
                                       setStickyRow={setStickyRow}
                                       annualFiscalMonths={annualFiscalMonthsUpsert}
-                                      // isFirstHalf={isFirstHalf}
-                                      isMainTarget={false}
                                       fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
                                       onFetchComplete={() => onFetchComplete(tableIndex)}
+                                      saveEnabled={saveTriggerSalesTarget && tableIndex === currentActiveIndexSave}
+                                      onSaveComplete={() => onSaveComplete(tableIndex)}
+                                      allSaved={allSaved}
                                     />
                                   )}
                                 </div>

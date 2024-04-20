@@ -1,4 +1,4 @@
-import { FiscalYearMonthObjForTarget, SalesSummaryYearHalf, SalesTargetsYearHalf, SparkChartObj } from "@/types";
+import { SalesTargetsHalfDetails } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -8,39 +8,38 @@ type Props = {
   entityId: string;
   periodType: string;
   fiscalYear: number;
-  annualFiscalMonths?: FiscalYearMonthObjForTarget | undefined | null;
   fetchEnabled?: boolean;
 };
 
-// メイン目標の年度〜半期の売上目標を取得するuseQuery
-export const useQuerySalesTargetsMain = ({
+// メンバーレベルの売上設定時に親エンティティであるメイン目標の「半期」の売上目標を取得するuseQuery
+export const useQuerySalesTargetsMainHalfDetails = ({
   companyId,
   entityLevel,
   entityId,
-  periodType, // 「year_half」のみ 上半期、下半期詳細は別のuseQueryで取得
+  periodType, // 「first_half_details」「second_half_details」
   fiscalYear, // 現在選択中の会計年度(FUNCTION側で-1)
-  fetchEnabled = true,
+  fetchEnabled = false,
 }: Props) => {
   const supabase = useSupabaseClient();
 
-  const getSalesTargetsMain = async () => {
+  const getSalesTargetsMainHalfDetails = async () => {
     let responseData = null;
 
-    // 1. 「年度・半期」の売上目標
+    // 1. 「上半期・下半期」の売上目標
     const payload = {
       _entity_level: entityLevel, // エンティティタイプの割り当て
       _company_id: companyId, // 会社id
       _entity_id: entityId, // エンティティid
       _fiscal_year: fiscalYear, // 現在の会計年度
-      // _period_type: periodType, // 「year_half」「first_half_details」「second_half_details」
+      _period_type: periodType, // 「first_half_details」「second_half_details」
     };
 
-    console.log("🔥useQuerySalesTargetsMain rpc get_sales_target_main_year_half payload", payload);
+    console.log("🔥useQuerySalesTargetsMainHalfDetails rpc get_sales_target_main_half_details payload", payload);
 
-    const { data, error } = await supabase.rpc("get_sales_target_main_year_half", payload);
+    const { data, error } = await supabase.rpc("get_sales_target_main_half_details", payload);
 
     if (error) {
-      console.error("❌getSalesTargetsMain", error);
+      console.error("❌getSalesTargetsMainHalfDetails", error);
       throw error;
     }
 
@@ -49,14 +48,14 @@ export const useQuerySalesTargetsMain = ({
     // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    console.log("✅✅✅ useQuery getSalesTargetsMain responseData", responseData);
+    console.log("✅✅✅ useQuery getSalesTargetsMainHalfDetails responseData", responseData);
 
-    return responseData as SalesTargetsYearHalf | null;
+    return responseData as SalesTargetsHalfDetails | null;
   };
 
   return useQuery({
-    queryKey: ["sales_target_main_year_half", entityLevel, entityId, periodType, fiscalYear],
-    queryFn: getSalesTargetsMain,
+    queryKey: ["sales_target_main_half_details", entityLevel, entityId, periodType, fiscalYear],
+    queryFn: getSalesTargetsMainHalfDetails,
     staleTime: Infinity,
     onError: (error) => {
       console.error("useQueryDepartments error:", error);

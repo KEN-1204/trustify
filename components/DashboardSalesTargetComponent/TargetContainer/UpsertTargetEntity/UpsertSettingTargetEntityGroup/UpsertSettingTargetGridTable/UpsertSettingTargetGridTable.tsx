@@ -123,12 +123,11 @@ Props) => {
   const totalInputSalesTargetsYearHalf = useDashboardStore((state) => state.totalInputSalesTargetsYearHalf);
   const setTotalInputSalesTargetsYearHalf = useDashboardStore((state) => state.setTotalInputSalesTargetsYearHalf);
 
-  // メンバーレベル設定時の上期詳細か下期詳細
-  const settingPeriodTypeForMemberLevel = useDashboardStore((state) => state.settingPeriodTypeForMemberLevel);
+  // メンバーレベル設定時の上期詳細か下期詳細 => upsertSettingEntitiesObj.period_typeで上期詳細 or 下期詳細を判別可能
+  // const selectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.selectedPeriodTypeForMemberLevel);
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // if (!upsertTargetObj || !userProfileState || !userProfileState.company_id) return;
   if (!upsertSettingEntitiesObj || !userProfileState || !userProfileState.company_id) return;
 
   // 会社レベル以外のエンティティが設定対象の場合には、親エンティティレベルとIdが取得できているかを確認する
@@ -175,22 +174,22 @@ Props) => {
   // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
 
   // ---------------- ローカルstate ----------------
-  // 売上目標input 「年度・上半期・下半期」
+  // 🔸売上目標input 「年度・上半期・下半期」
   const [inputSalesTargetYear, setInputSalesTargetYear] = useState("");
   const [inputSalesTargetFirstHalf, setInputSalesTargetFirstHalf] = useState("");
   const [inputSalesTargetSecondHalf, setInputSalesTargetSecondHalf] = useState("");
 
-  // 前年比input 「年度・上半期・下半期」
+  // 🔸前年比input 「年度・上半期・下半期」
   const [inputYoYGrowthYear, setInputYoYGrowthYear] = useState<string>("");
   const [inputYoYGrowthFirstHalf, setInputYoYGrowthFirstHalf] = useState<string>("");
   const [inputYoYGrowthSecondHalf, setInputYoYGrowthSecondHalf] = useState<string>("");
-  // 年度のシェア(会社レベル以外で使用 総合目標の年度目標を100%としてシェアを算出)
+  // 🔸年度のシェア(会社レベル以外で使用 総合目標の年度目標を100%としてシェアを算出)
   const [shareFiscalYear, setShareFiscalYear] = useState<number>(0);
-  // 上半期のシェア
+  // 🔸上半期のシェア
   const [shareFirstHalf, setShareFirstHalf] = useState<number>(0);
-  // 下半期のシェア
+  // 🔸下半期のシェア
   const [shareSecondHalf, setShareSecondHalf] = useState<number>(0);
-  // 売上推移(年度・上期、下期)
+  // 🔸売上推移(年度・上期、下期)
   const [salesTrendsYear, setSalesTrendsYear] = useState<(SparkChartObj & { updateAt: number }) | null>(() => {
     if (!salesSummaryRowData) return null;
     const initialData = salesSummaryRowData.find((obj) => obj.period_type === "fiscal_year")?.sales_trend ?? null;
@@ -207,6 +206,8 @@ Props) => {
     return initialData ? { ...initialData, updateAt: Date.now() } : null;
   });
 
+  // ------------------------------ ✅初回マウント時✅ ------------------------------
+  // 過去3年分の「年度・半期」の売上実績が取得できたら、売上推移チャート用のローカルstateに初期値をセットする
   useEffect(() => {
     if (salesSummaryRowData) {
       if (salesTrendsYear && salesTrendsFirstHalf && salesTrendsSecondHalf) return;
@@ -221,7 +222,9 @@ Props) => {
       setSalesTrendsSecondHalf(newSalesTrendsSecondHalf ? { ...newSalesTrendsSecondHalf, updateAt: Date.now() } : null);
     }
   }, [salesSummaryRowData]);
+  // ------------------------------ ✅初回マウント時✅ ------------------------------
 
+  // ------------------------------ 🌠JSXのmap展開用にローカルstateをまとめる🌠 ------------------------------
   const inputSalesTargetsList = [
     {
       key: "fiscal_year",
@@ -255,7 +258,9 @@ Props) => {
     },
   ];
   type RowHeaderNameYearHalf = "fiscal_year" | "first_half" | "second_half";
+  // ------------------------------ 🌠JSXのmap展開用にローカルstateをまとめる🌠 ------------------------------
 
+  // ------------------------------ 🌠保存トリガー発火で各入力値をデータ収集🌠 ------------------------------
   // 🌠このテーブルが総合目標で、かつ、エンティティレベルが全社の場合は入力値をZustandに格納する
   const saveTriggerSalesTarget = useDashboardStore((state) => state.saveTriggerSalesTarget);
   const inputSalesTargetsIdToDataMap = useDashboardStore((state) => state.inputSalesTargetsIdToDataMap);
@@ -311,17 +316,44 @@ Props) => {
 
     let salesTargets: inputSalesData[] = [];
 
+    const getPeriodType = (key: string) => {
+      // fiscal_year, half_year, quarter, year_month
+      if (key === "fiscal_year") return "fiscal_year";
+      if (["first_half", "second_half"].includes(key)) return "half_year";
+      if (["first_quarter", "second_quarter", "third_quarter", "fourth_quarter"].includes(key)) return "quarter";
+      if (
+        [
+          "month_01",
+          "month_02",
+          "month_03",
+          "month_04",
+          "month_05",
+          "month_06",
+          "month_07",
+          "month_08",
+          "month_09",
+          "month_10",
+          "month_11",
+          "month_12",
+        ].includes(key)
+      )
+        return "year_month";
+    };
+
+    // メンバーレベル以外
     if (entityLevel !== "member") {
       salesTargets = inputSalesTargetsList.map((obj, index) => {
         return {
-          period_type: obj.key, // 年度~半期："fiscal_year" | "first_half" | "second_half" | first_quarter | second_quarter | ...
+          period_type: getPeriodType(obj.key), // 年度~半期："fiscal_year" | "first_half" | "second_half" | first_quarter | second_quarter | ...
+          // period_type: obj.key, // 年度~半期："fiscal_year" | "first_half" | "second_half" | first_quarter | second_quarter | ...
           period: getPeriod(obj.key),
           sales_target: Number(obj.inputTarget.replace(/[^\d.]/g, "")),
         } as inputSalesData;
       });
     }
-    if (entityLevel === "member") {
-    }
+    // // メンバーレベル => メンバーレベルはメンバー専用テーブルを使用
+    // else if (entityLevel === "member") {
+    // }
 
     // Zustandのオブジェクトのstateの不変性を保つためcloneDeepでオブジェクトをコピー
     const copyInputMap = cloneDeep(inputSalesTargetsIdToDataMap);
@@ -349,8 +381,9 @@ Props) => {
 
     // Zustandを更新
     setInputSalesTargetsIdToDataMap(copyInputMap);
-    if (onSaveComplete) onSaveComplete();
+    if (onSaveComplete) onSaveComplete(); // 次のテーブルの保存を許可
   }, [saveTriggerSalesTarget, saveEnabled]);
+  // ------------------------------ 🌠保存トリガー発火で各入力値をデータ収集🌠 ------------------------------
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
@@ -394,7 +427,7 @@ Props) => {
   // ==================================================================================
 
   // ---------------- 関数 ----------------
-  // rowの値に応じて適切なシェアを返す関数
+  // 🔸rowの値に応じて適切なシェアを返す関数
   const getShare = (row: string) => {
     switch (row) {
       case "fiscal_year":
@@ -410,7 +443,7 @@ Props) => {
     }
   };
 
-  // 行ヘッダーの値(期間タイプ)とと列ヘッダーの値に応じて表示する値をフォーマットする
+  // 🔸行ヘッダーの値(期間タイプ)とと列ヘッダーの値に応じて表示する値をフォーマットする
   const formatDisplayValue = (row: SalesSummaryYearHalf, column: string) => {
     switch (column) {
       case "last_year_sales":
@@ -508,7 +541,7 @@ Props) => {
   //   }
   // };
 
-  // チャート マウントを0.6s遅らせる
+  // 🔸チャート マウントを0.6s遅らせる
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
     if (isMounted) return;
@@ -768,12 +801,12 @@ Props) => {
                                       );
                                       return;
                                     }
-                                    console.log(
-                                      "こここinputSalesTarget",
-                                      inputSalesTarget,
-                                      "replacedPrice",
-                                      replacedPrice
-                                    );
+                                    // console.log(
+                                    //   "こここinputSalesTarget",
+                                    //   inputSalesTarget,
+                                    //   "replacedPrice",
+                                    //   replacedPrice
+                                    // );
                                     // フォーカス時は数字と小数点以外除去
                                     setInputSalesTarget(replacedPrice);
                                     // setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
