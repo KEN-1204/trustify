@@ -3014,7 +3014,17 @@ export type SalesSummaryYearHalf = {
 // ---------------- 【事業部〜係レベルUPSERT用】 ----------------
 // ---------------- 【メンバーレベルUPSERT用】 ----------------
 export type SalesSummaryHalfDetails = {
-  period_type: string; // 年度・上半期・下半期(fiscal_year, first_half, second_half)
+  // period_type: string; // 半期・Q1, Q1, 1月度~6月度(half_year, first_quarter, second_quarter, month_01~06)
+  period_type:
+    | "half_year"
+    | "first_quarter"
+    | "second_quarter"
+    | "month_01"
+    | "month_02"
+    | "month_03"
+    | "month_04"
+    | "month_05"
+    | "month_06"; // 半期・Q1, Q1, 1月度~6月度(half_year, first_quarter, second_quarter, month_01~06)
   last_year_sales: number;
   two_years_ago_sales: number;
   three_years_ago_sales: number;

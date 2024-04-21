@@ -25,6 +25,7 @@ import {
   EntitiesHierarchy,
   EntityLevelNames,
   EntityLevels,
+  KeysSalesTargetsHalfDetails,
   KeysSalesTargetsYearHalf,
   MemberAccounts,
   Office,
@@ -67,6 +68,7 @@ import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 import { useQuerySalesTargetsMain } from "@/hooks/useQuerySalesTargetsMain";
 import Decimal from "decimal.js";
+import { useQuerySalesTargetsMainHalfDetails } from "@/hooks/useQuerySalesTargetsMainHalfDetails";
 
 export const columnHeaderListTarget = [
   "period_type",

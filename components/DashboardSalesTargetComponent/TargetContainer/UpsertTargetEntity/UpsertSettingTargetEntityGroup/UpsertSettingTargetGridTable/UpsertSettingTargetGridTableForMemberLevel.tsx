@@ -40,6 +40,7 @@ import {
   SalesTargetsHalfDetails,
   Section,
   SparkChartObj,
+  TotalSalesTargetsHalfDetailsObj,
   Unit,
   inputSalesData,
 } from "@/types";
@@ -57,6 +58,7 @@ import { mappingMonthEnToJa, mappingMonthToAbbreviation } from "@/utils/mappings
 import { zenkakuToHankaku } from "@/utils/Helpers/zenkakuToHankaku";
 import { ImInfo } from "react-icons/im";
 import { useQuerySalesSummaryAndGrowthHalfDetails } from "@/hooks/useQuerySalesSummaryAndGrowthHalfDetails";
+import { parseDecimal } from "@/utils/Helpers/Currency/parseDecimal";
 
 /**
  *   "period_type",
@@ -212,6 +214,8 @@ Props) => {
   const [inputYoYGrowthMonth04, setInputYoYGrowthMonth04] = useState("");
   const [inputYoYGrowthMonth05, setInputYoYGrowthMonth05] = useState("");
   const [inputYoYGrowthMonth06, setInputYoYGrowthMonth06] = useState("");
+  // 🔸上期のシェア
+  const [shareHalfYear, setShareHalfYear] = useState<number>(0);
   // 🔸上期：Q1~Q2のシェア(上期は100%のため不要)
   const [shareFirstQuarter, setShareFirstQuarter] = useState<number>(0);
   const [shareSecondQuarter, setShareSecondQuarter] = useState<number>(0);
@@ -591,6 +595,37 @@ Props) => {
     },
   ];
   // ------------------------- 🌠JSXmap展開用Arrayにローカルstateをまとめる🌠 -------------------------
+
+  // ------------------------- 🌠month_xxの売上目標入力許可🌠 -------------------------
+  const isEnableInputMonthTarget = useMemo(() => {
+    // 半期・Q1・Q2の売上目標が全て入力され、かつ、半期とQ1, Q2の合計値が一致している場合にmonth_xxの売上目標の入力を許可する
+
+    // 全ての入力値が入力済みかどうかチェック
+    const isCompleteAllInput =
+      inputSalesTargetHalf !== "" && inputSalesTargetFirstQuarter !== "" && inputSalesTargetSecondQuarter !== "";
+
+    // 全て入力が完了していない場合はfalse
+    if (!isCompleteAllInput) return false;
+
+    // Decimalを作成 new Decimal()使用時に無効な入力が渡された場合にエラーを投げるのでtry/catch文でエラーハンドリングする
+    try {
+      // const halfYearDecimal = new Decimal(zenkakuToHankaku(inputSalesTargetHalf).replace(/[^\d.]/g, ""));
+      const halfYearDecimal = parseDecimal(inputSalesTargetHalf);
+      const firstQuarterDecimal = parseDecimal(inputSalesTargetFirstQuarter);
+      const secondQuarterDecimal = parseDecimal(inputSalesTargetSecondQuarter);
+
+      // Q1, Q2の合計値
+      const totalQuarterDecimal = firstQuarterDecimal.plus(secondQuarterDecimal);
+
+      // 半期とQ1, Q2の合計値が一致しているかどうか
+      const isMatchHalfAndQuarter = halfYearDecimal.equals(totalQuarterDecimal);
+
+      return isMatchHalfAndQuarter;
+    } catch (error: any) {
+      console.log("❌エラー：無効な売上目標の入力値です", error);
+      return false;
+    }
+  }, [inputSalesTargetHalf, inputSalesTargetFirstQuarter, inputSalesTargetSecondQuarter]);
 
   // type RowHeaderNameYearHalf = "fiscal_year" | "first_half" | "second_half";
 
@@ -1119,309 +1154,849 @@ Props) => {
                               }}
                             >
                               {column === "period_type" && <span>{rowHeaderName}</span>}
-                              {column === "sales_target" && row.period_type !== "second_half" && (
-                                <input
-                                  type="text"
-                                  // placeholder="例：600万円 → 6000000　※半角で入力"
-                                  className={`${styles.input_box} ${styles.upsert}`}
-                                  // value={inputDiscountAmountEdit ? inputDiscountAmountEdit : ""}
-                                  value={inputSalesTarget ? inputSalesTarget : ""}
-                                  onChange={(e) => {
-                                    setInputSalesTarget(e.target.value);
-                                  }}
-                                  onFocus={() => {
-                                    // 売上目標が0以外のfalsyならリターン
-                                    const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
-                                    if (!isValidNumber(replacedPrice)) {
-                                      console.log(
-                                        "リターンreplacedPrice",
-                                        replacedPrice,
-                                        !isValidNumber(replacedPrice)
+
+                              {/* -------------------- 🌟半期、Q1🌟 -------------------- */}
+                              {column === "sales_target" &&
+                                ["half_year", "first_quarter"].includes(row.period_type) && (
+                                  <input
+                                    type="text"
+                                    // placeholder="例：600万円 → 6000000　※半角で入力"
+                                    className={`${styles.input_box} ${styles.upsert}`}
+                                    // value={inputDiscountAmountEdit ? inputDiscountAmountEdit : ""}
+                                    value={inputSalesTarget ? inputSalesTarget : ""}
+                                    onChange={(e) => {
+                                      setInputSalesTarget(e.target.value);
+                                    }}
+                                    onFocus={() => {
+                                      // 売上目標が0以外のfalsyならリターン
+                                      const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
+                                      if (!isValidNumber(replacedPrice)) {
+                                        console.log(
+                                          "リターンreplacedPrice",
+                                          replacedPrice,
+                                          !isValidNumber(replacedPrice)
+                                        );
+                                        return;
+                                      }
+                                      // console.log(
+                                      //   "こここinputSalesTarget",
+                                      //   inputSalesTarget,
+                                      //   "replacedPrice",
+                                      //   replacedPrice
+                                      // );
+                                      // フォーカス時は数字と小数点以外除去
+                                      setInputSalesTarget(replacedPrice);
+                                      // setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
+                                    }}
+                                    onBlur={(e) => {
+                                      // ---------------- 🔸半期、Q1の売上目標に対する処理🔸 ----------------
+                                      // 現在の売上目標金額
+                                      const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
+                                      // const replacedPrice = inputSalesTarget.replace(/[^\d.]/g, "");
+
+                                      // 売上目標が空文字の場合は売上推移から目標を取り除いてリターンする
+                                      if (!checkNotFalsyExcludeZero(replacedPrice)) {
+                                        console.log(
+                                          "空文字のため売上目標、前年比、売上推移、シェアをリセット",
+                                          replacedPrice,
+                                          row.period_type
+                                        );
+                                        // 売上推移をリセット
+                                        setSalesTrends({
+                                          ...salesSummaryRowData[rowIndex].sales_trend,
+                                          updateAt: Date.now(),
+                                        });
+                                        // 半期の売上目標が空文字になった場合には、Q1とQ2のシェアと売上推移をリセット
+                                        // Q2の売上目標をリセット
+                                        setInputSalesTargetSecondQuarter("");
+                                        // Q2の売上推移をリセット
+                                        setSalesTrendsSecondQuarter({
+                                          ...salesSummaryRowData[2].sales_trend,
+                                          updateAt: Date.now(),
+                                        });
+                                        // Q2の前年比をリセット
+                                        setInputYoYGrowthSecondQuarter("");
+                                        // Q1, Q2のシェアをリセット
+                                        setShareFirstQuarter(0);
+                                        setShareSecondQuarter(0);
+                                        return;
+                                      }
+                                      // 🔸フォーマット後の目標金額
+                                      const convertedSalesTarget = checkNotFalsyExcludeZero(inputSalesTarget)
+                                        ? convertToYen(inputSalesTarget)
+                                        : null;
+                                      const newFormatSalesTarget = formatDisplayPrice(convertedSalesTarget || 0);
+                                      setInputSalesTarget(newFormatSalesTarget);
+
+                                      // 🔸前年比の計算
+                                      const {
+                                        yearOverYear,
+                                        error: yoyError,
+                                        isPositive,
+                                      } = calculateYearOverYear(
+                                        convertedSalesTarget,
+                                        row.last_year_sales,
+                                        1,
+                                        true,
+                                        false
                                       );
-                                      return;
-                                    }
-                                    // console.log(
-                                    //   "こここinputSalesTarget",
-                                    //   inputSalesTarget,
-                                    //   "replacedPrice",
-                                    //   replacedPrice
-                                    // );
-                                    // フォーカス時は数字と小数点以外除去
-                                    setInputSalesTarget(replacedPrice);
-                                    // setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
-                                  }}
-                                  onBlur={(e) => {
-                                    // 現在の売上目標金額
-                                    const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
-                                    // const replacedPrice = inputSalesTarget.replace(/[^\d.]/g, "");
+                                      if (yoyError) {
+                                        console.log(`❌${row.period_type} 値引率の取得に失敗`, yoyError);
+                                        setInputYoYGrowth("");
+                                      } else if (yearOverYear !== null) {
+                                        setInputYoYGrowth(yearOverYear);
+                                      }
 
-                                    // 売上目標が空文字の場合は売上推移から目標を取り除いてリターンする
-                                    if (!checkNotFalsyExcludeZero(replacedPrice)) {
-                                      console.log(
-                                        "空文字のため売上目標、前年比、売上推移、シェアをリセット",
-                                        replacedPrice
-                                      );
-                                      // 売上推移をリセット
-                                      setSalesTrends({
-                                        ...salesSummaryRowData[rowIndex].sales_trend,
-                                        updateAt: Date.now(),
-                                      });
-                                      // 半期の売上目標が空文字になった場合には、Q1とQ2のシェアと売上推移をリセット
-                                      // Q2の売上目標をリセット
-                                      setInputSalesTargetSecondQuarter("");
-                                      // Q2の売上推移をリセット
-                                      setSalesTrendsSecondQuarter({
-                                        ...salesSummaryRowData[2].sales_trend,
-                                        updateAt: Date.now(),
-                                      });
-                                      // Q2の前年比をリセット
-                                      setInputYoYGrowthSecondQuarter("");
-                                      // Q1, Q2のシェアをリセット
-                                      setShareFirstQuarter(0);
-                                      setShareSecondQuarter(0);
-                                      return;
-                                    }
-                                    // フォーマット後の目標金額
-                                    // const convertedDiscountPrice = checkNotFalsyExcludeZero(inputSalesTarget)
-                                    //   ? convertToYen(inputSalesTarget.trim())
-                                    //   : null;
-                                    const convertedSalesTarget = checkNotFalsyExcludeZero(inputSalesTarget)
-                                      ? convertToYen(inputSalesTarget)
-                                      : null;
-                                    const newFormatDiscountAmount = formatDisplayPrice(convertedSalesTarget || 0);
-                                    setInputSalesTarget(newFormatDiscountAmount);
-
-                                    // 前年比の計算
-                                    const {
-                                      yearOverYear,
-                                      error: yoyError,
-                                      isPositive,
-                                    } = calculateYearOverYear(
-                                      convertedSalesTarget,
-                                      row.last_year_sales,
-                                      1,
-                                      true,
-                                      false
-                                    );
-                                    if (yoyError) {
-                                      console.log(`❌${row.period_type} 値引率の取得に失敗`, yoyError);
-                                      setInputYoYGrowth("");
-                                    } else if (yearOverYear) {
-                                      setInputYoYGrowth(yearOverYear);
-                                    }
-
-                                    // 売上推移に追加
-                                    if (salesTrends) {
-                                      // ディープコピー
-                                      let newTrend = cloneDeep(salesTrends) as SparkChartObj;
-                                      let newDataArray = [...newTrend.data];
-                                      const newDate =
-                                        row.period_type === "fiscal_year"
-                                          ? upsertSettingEntitiesObj.fiscalYear
-                                          : row.period_type === "first_half"
+                                      // 🔸各期間ごとのDate
+                                      const halfYear =
+                                        selectedPeriodTypeForMemberLevel === "first_half_details"
                                           ? upsertSettingEntitiesObj.fiscalYear * 10 + 1
                                           : upsertSettingEntitiesObj.fiscalYear * 10 + 2;
-                                      const newData = {
-                                        date: newDate,
-                                        value: convertedSalesTarget,
-                                      };
-                                      if (newDataArray.length === 3) {
-                                        newDataArray.push(newData);
-                                      } else if (newDataArray.length === 4) {
-                                        newDataArray.splice(-1, 1, newData);
+                                      const firstQuarter =
+                                        selectedPeriodTypeForMemberLevel === "first_half_details"
+                                          ? upsertSettingEntitiesObj.fiscalYear * 10 + 1
+                                          : upsertSettingEntitiesObj.fiscalYear * 10 + 3;
+                                      const secondQuarter =
+                                        selectedPeriodTypeForMemberLevel === "first_half_details"
+                                          ? upsertSettingEntitiesObj.fiscalYear * 10 + 2
+                                          : upsertSettingEntitiesObj.fiscalYear * 10 + 4;
+
+                                      // 🔸売上推移に追加
+                                      if (salesTrends) {
+                                        // ディープコピー
+                                        let newTrend = cloneDeep(salesTrends) as SparkChartObj;
+                                        let newDataArray = [...newTrend.data];
+                                        const newDate =
+                                          row.period_type === "half_year"
+                                            ? halfYear
+                                            : row.period_type === "first_quarter"
+                                            ? firstQuarter
+                                            : secondQuarter;
+                                        const newData = {
+                                          date: newDate,
+                                          value: convertedSalesTarget,
+                                        };
+                                        if (newDataArray.length === 3) {
+                                          newDataArray.push(newData);
+                                        } else if (newDataArray.length === 4) {
+                                          newDataArray.splice(-1, 1, newData);
+                                        }
+                                        const newTitle =
+                                          row.period_type === "half_year"
+                                            ? `${upsertSettingEntitiesObj.fiscalYear}${getTitle("half").en}`
+                                            : row.period_type === "first_quarter"
+                                            ? `${upsertSettingEntitiesObj.fiscalYear}${getTitle("quarter1").en}`
+                                            : `${upsertSettingEntitiesObj.fiscalYear}${getTitle("quarter2").en}`;
+                                        newTrend = {
+                                          ...newTrend,
+                                          title: newTitle,
+                                          mainValue: convertedSalesTarget,
+                                          growthRate:
+                                            yearOverYear !== null ? parseFloat(yearOverYear.replace(/%/g, "")) : null,
+                                          data: newDataArray,
+                                        };
+                                        console.log(
+                                          "ここ🔥🔥🔥🔥🔥🔥 newTrend",
+                                          newTrend,
+                                          "row.period_type ",
+                                          row.period_type
+                                        );
+                                        setSalesTrends({ ...newTrend, updateAt: Date.now() });
                                       }
-                                      const newTitle =
-                                        row.period_type === "fiscal_year"
-                                          ? `FY${upsertSettingEntitiesObj.fiscalYear}`
-                                          : row.period_type === "first_half"
-                                          ? `${upsertSettingEntitiesObj.fiscalYear}H1`
-                                          : `${upsertSettingEntitiesObj.fiscalYear}H2`;
-                                      newTrend = {
-                                        ...newTrend,
-                                        title: newTitle,
-                                        mainValue: convertedSalesTarget,
-                                        growthRate: yearOverYear ? parseFloat(yearOverYear.replace(/%/g, "")) : null,
-                                        data: newDataArray,
-                                      };
-                                      console.log(
-                                        "ここ🔥🔥🔥🔥🔥🔥 newTrend",
-                                        newTrend,
-                                        "row.period_type ",
-                                        row.period_type
-                                      );
-                                      setSalesTrends({ ...newTrend, updateAt: Date.now() });
-                                    }
 
-                                    // 同時にシェア、下半期も計算して更新する
-                                    // if (row.period_type === "first_half" || row.period_type === "fiscal_year") {
-                                    if (
-                                      row.period_type === periodTypeNames.quarter1 ||
-                                      row.period_type === periodTypeNames.half
-                                    ) {
-                                      const convertedTotalTargetHalf = inputSalesTargetHalf.replace(/[^\d.]/g, "");
-                                      const convertedFirstQuarterTarget = inputSalesTargetFirstQuarter.replace(
-                                        /[^\d.]/g,
-                                        ""
-                                      );
-                                      if (
-                                        (row.period_type === periodTypeNames.quarter1 &&
-                                          isValidNumber(convertedTotalTargetHalf) &&
-                                          isValidNumber(convertedSalesTarget) &&
-                                          inputSalesTargetHalf !== "0") ||
-                                        (row.period_type === periodTypeNames.half &&
-                                          isValidNumber(convertedSalesTarget) &&
-                                          isValidNumber(convertedFirstQuarterTarget) &&
-                                          convertedFirstQuarterTarget !== "0")
-                                      ) {
-                                        try {
-                                          // 年度と上期の売上目標 Decimalオブジェクトの生成
-                                          const totalTargetDecimal = new Decimal(
-                                            row.period_type === periodTypeNames.quarter1
-                                              ? convertedTotalTargetHalf
-                                              : convertedSalesTarget!
-                                          );
-                                          const firstQuarterTargetDecimal = new Decimal(
-                                            row.period_type === periodTypeNames.quarter1
-                                              ? convertedSalesTarget!
-                                              : convertedFirstQuarterTarget
-                                          );
-                                          // 🔸上半期が年度を上回っていた場合は、他方をリセット
-                                          // 年度入力で年度が上半期を下回った場合は上半期をリセット
-                                          if (
-                                            row.period_type === periodTypeNames.half &&
-                                            totalTargetDecimal.lessThan(firstQuarterTargetDecimal)
-                                          ) {
-                                            // 上期・下期 売上目標をリセット
-                                            setInputSalesTargetFirstQuarter("");
-                                            setInputSalesTargetSecondQuarter("");
-                                            // 上期・下期 シェアをリセット
-                                            setShareFirstQuarter(0);
-                                            setShareSecondQuarter(0);
-                                            // 上期・下期 前年比をリセット
-                                            setInputYoYGrowthFirstQuarter("");
-                                            setInputYoYGrowthSecondQuarter("");
-                                            // 上期・下期 売上推移をリセット
-                                            setSalesTrendsFirstQuarter({
-                                              ...salesSummaryRowData[1].sales_trend,
-                                              updateAt: Date.now(),
-                                            });
-                                            setSalesTrendsSecondQuarter({
-                                              ...salesSummaryRowData[2].sales_trend,
-                                              updateAt: Date.now(),
-                                            });
-                                            // 年度が上期を下回った場合にはここでリターン
-                                            return;
-                                          }
-                                          // 上期入力で上期が年度を上回っていた場合は年度をリセット
-                                          else if (
-                                            row.period_type === periodTypeNames.quarter1 &&
-                                            totalTargetDecimal.lessThan(firstQuarterTargetDecimal)
-                                          ) {
-                                            // 年度・下期 売上目標をリセット
-                                            setInputSalesTargetHalf("");
-                                            setInputSalesTargetSecondQuarter("");
-                                            // 上期・下期 シェアをリセット(上期は年度売上目標がリセットされるためシェアもリセット)
-                                            setShareFirstQuarter(0);
-                                            setShareSecondQuarter(0);
-                                            // 年度・下期 前年比をリセット
-                                            setInputYoYGrowthHalf("");
-                                            setInputYoYGrowthSecondQuarter("");
-                                            // 年度・下期 売上推移をリセット
-                                            setSalesTrendsHalf({
-                                              ...salesSummaryRowData[0].sales_trend,
-                                              updateAt: Date.now(),
-                                            });
-                                            setSalesTrendsSecondQuarter({
-                                              ...salesSummaryRowData[2].sales_trend,
-                                              updateAt: Date.now(),
-                                            });
-                                            // 年度が上期を下回った場合にはここでリターン
-                                            return;
-                                          }
-
-                                          // 上期シェアを計算し、整数に丸める
-                                          const firstQuarterShare = firstQuarterTargetDecimal
-                                            .dividedBy(totalTargetDecimal)
-                                            .times(100)
-                                            .toFixed(0, Decimal.ROUND_HALF_UP);
-                                          setShareFirstQuarter(Number(firstQuarterShare));
-                                          // 下期シェアを計算する（100から上期シェアを引く）
-                                          const secondQuarterShare = 100 - Number(firstQuarterShare);
-                                          setShareSecondQuarter(secondQuarterShare);
-                                          // 下期売上目標を計算して更新
-                                          const newSecondQuarterTarget = totalTargetDecimal
-                                            .minus(firstQuarterTargetDecimal)
-                                            .toNumber();
-                                          const formattedSecondQuarterTarget =
-                                            formatDisplayPrice(newSecondQuarterTarget);
-                                          setInputSalesTargetSecondQuarter(formattedSecondQuarterTarget);
-                                          // 下期前年比を算出
-                                          // 前年比
-                                          const secondQuarterResult = calculateYearOverYear(
-                                            newSecondQuarterTarget,
-                                            salesSummaryRowData[salesSummaryRowData.length - 1].last_year_sales,
-                                            1,
-                                            true,
-                                            false
-                                          );
-                                          if (secondQuarterResult.error) {
-                                            // toast.error(`エラー：${secondQuarterResult.error}🙇‍♀️`);
-                                            console.log(
-                                              `❌${
-                                                salesSummaryRowData[salesSummaryRowData.length - 1].period_type
-                                              } 値引率の取得に失敗`,
-                                              secondQuarterResult.error
+                                      // 同時にシェア、下半期も計算して更新する
+                                      // if (row.period_type === "first_half" || row.period_type === "fiscal_year") {
+                                      if (row.period_type === "first_quarter" || row.period_type === "half_year") {
+                                        const convertedTotalTargetHalf = inputSalesTargetHalf.replace(/[^\d.]/g, "");
+                                        const convertedFirstQuarterTarget = inputSalesTargetFirstQuarter.replace(
+                                          /[^\d.]/g,
+                                          ""
+                                        );
+                                        if (
+                                          (row.period_type === "first_quarter" &&
+                                            isValidNumber(convertedTotalTargetHalf) &&
+                                            isValidNumber(convertedSalesTarget) &&
+                                            inputSalesTargetHalf !== "0") ||
+                                          (row.period_type === "half_year" &&
+                                            isValidNumber(convertedSalesTarget) &&
+                                            isValidNumber(convertedFirstQuarterTarget) &&
+                                            convertedFirstQuarterTarget !== "0")
+                                        ) {
+                                          try {
+                                            // 🔹半期とQ1の売上目標 Decimalオブジェクトの生成
+                                            // 入力がQ1なら半期を渡し、入力が半期なら入力値をそのまま渡すことで半期のDecimalを作成
+                                            const totalTargetDecimal = new Decimal(
+                                              row.period_type === "first_quarter"
+                                                ? convertedTotalTargetHalf
+                                                : convertedSalesTarget!
                                             );
-                                            setInputYoYGrowthSecondQuarter("");
-                                          } else if (secondQuarterResult.yearOverYear) {
-                                            setInputYoYGrowthSecondQuarter(secondQuarterResult.yearOverYear);
-                                          }
-
-                                          // 下期の売上推移に追加
-                                          if (salesTrendsSecondQuarter && isValidNumber(newSecondQuarterTarget)) {
-                                            // ディープコピー
-                                            let newTrend = cloneDeep(salesTrendsSecondQuarter) as SparkChartObj;
-                                            let newDataArray = [...newTrend.data];
-                                            const newDate = upsertSettingEntitiesObj.fiscalYear * 10 + 2; // 下期
-                                            const newData = {
-                                              date: newDate,
-                                              value: newSecondQuarterTarget,
-                                            };
-                                            if (newDataArray.length === 3) {
-                                              newDataArray.push(newData);
-                                            } else if (newDataArray.length === 4) {
-                                              newDataArray.splice(-1, 1, newData);
+                                            const firstQuarterTargetDecimal = new Decimal(
+                                              row.period_type === "first_quarter"
+                                                ? convertedSalesTarget!
+                                                : convertedFirstQuarterTarget
+                                            );
+                                            // 🔸Q1が半期を上回っていた場合は、他方をリセット
+                                            // 半期入力で半期がQ1を下回った場合はQ1をリセット
+                                            if (
+                                              row.period_type === "half_year" &&
+                                              totalTargetDecimal.lessThan(firstQuarterTargetDecimal)
+                                            ) {
+                                              // Q1・Q2 売上目標をリセット
+                                              setInputSalesTargetFirstQuarter("");
+                                              setInputSalesTargetSecondQuarter("");
+                                              // Q1・Q2 シェアをリセット
+                                              setShareFirstQuarter(0);
+                                              setShareSecondQuarter(0);
+                                              // Q1・Q2 前年比をリセット
+                                              setInputYoYGrowthFirstQuarter("");
+                                              setInputYoYGrowthSecondQuarter("");
+                                              // Q1・Q2 売上推移をリセット
+                                              setSalesTrendsFirstQuarter({
+                                                ...salesSummaryRowData[1].sales_trend,
+                                                updateAt: Date.now(),
+                                              });
+                                              setSalesTrendsSecondQuarter({
+                                                ...salesSummaryRowData[2].sales_trend,
+                                                updateAt: Date.now(),
+                                              });
+                                              // 🔹メイン目標の半期売上目標Decimalオブジェクトの生成
+                                              if (salesTargetsHalfDetails) {
+                                                const mainTotalTargetDecimal = new Decimal(
+                                                  salesTargetsHalfDetails.sales_target_half
+                                                );
+                                                // 🔹メイン半期目標から半期シェアを計算し、整数に丸める
+                                                const fiscalYearShare = totalTargetDecimal
+                                                  .dividedBy(mainTotalTargetDecimal)
+                                                  .times(100)
+                                                  .toFixed(0, Decimal.ROUND_HALF_UP);
+                                                setShareHalfYear(Number(fiscalYearShare));
+                                              }
+                                              // 半期がQ1を下回った場合にはここでリターン
+                                              return;
                                             }
-                                            const newTitle = `${upsertSettingEntitiesObj.fiscalYear}H2`;
-                                            newTrend = {
-                                              ...newTrend,
-                                              title: newTitle,
-                                              mainValue: newSecondQuarterTarget,
-                                              growthRate: secondQuarterResult.yearOverYear
-                                                ? parseFloat(secondQuarterResult.yearOverYear.replace(/%/g, ""))
-                                                : null,
-                                              data: newDataArray,
-                                            };
-                                            console.log(
-                                              "ここ🔥🔥🔥🔥🔥🔥 newTrend",
-                                              newTrend,
-                                              "row.period_type ",
-                                              row.period_type
+                                            // Q1入力でQ1が半期を上回っていた場合は半期をリセット
+                                            else if (
+                                              row.period_type === periodTypeNames.quarter1 &&
+                                              totalTargetDecimal.lessThan(firstQuarterTargetDecimal)
+                                            ) {
+                                              // 半期・Q2 売上目標をリセット
+                                              setInputSalesTargetHalf("");
+                                              setInputSalesTargetSecondQuarter("");
+                                              // Q1・Q2 シェアをリセット(Q1は半期売上目標がリセットされるためシェアもリセット)
+                                              setShareFirstQuarter(0);
+                                              setShareSecondQuarter(0);
+                                              // 半期・Q2 前年比をリセット
+                                              setInputYoYGrowthHalf("");
+                                              setInputYoYGrowthSecondQuarter("");
+                                              // 半期・Q2 売上推移をリセット
+                                              setSalesTrendsHalf({
+                                                ...salesSummaryRowData[0].sales_trend,
+                                                updateAt: Date.now(),
+                                              });
+                                              setSalesTrendsSecondQuarter({
+                                                ...salesSummaryRowData[2].sales_trend,
+                                                updateAt: Date.now(),
+                                              });
+                                              // 🔹メイン目標のQ1売上目標Decimalオブジェクトの生成
+                                              if (salesTargetsHalfDetails) {
+                                                const mainFirstQuarterTargetDecimal = new Decimal(
+                                                  salesTargetsHalfDetails.sales_target_half
+                                                );
+                                                // 🔹メインQ1目標からQ1シェアを計算し、整数に丸める
+                                                const firstQuarterShare = firstQuarterTargetDecimal
+                                                  .dividedBy(mainFirstQuarterTargetDecimal)
+                                                  .times(100)
+                                                  .toFixed(0, Decimal.ROUND_HALF_UP);
+                                                setShareFirstQuarter(Number(firstQuarterShare));
+                                              }
+                                              // 半期がQ1を下回った場合にはここでリターン
+                                              return;
+                                            }
+
+                                            // 🔸Q2売上目標を計算して更新
+                                            const newSecondQuarterTarget = totalTargetDecimal
+                                              .minus(firstQuarterTargetDecimal)
+                                              .toNumber();
+                                            const formattedSecondQuarterTarget =
+                                              formatDisplayPrice(newSecondQuarterTarget);
+                                            setInputSalesTargetSecondQuarter(formattedSecondQuarterTarget);
+                                            // シェア算出時に使用するために下期目標の入力値のDecimalオブジェクトしておく
+                                            const secondQuarterTargetDecimal = new Decimal(newSecondQuarterTarget);
+
+                                            const copiedTotalInputSalesTargetsHalfYear = cloneDeep(
+                                              totalInputSalesTargetsHalfDetails
                                             );
-                                            setSalesTrendsSecondQuarter({ ...newTrend, updateAt: Date.now() });
+
+                                            const newTotalTargetObj =
+                                              copiedTotalInputSalesTargetsHalfYear.input_targets_array.find(
+                                                (obj) => obj.entity_id === entityId
+                                              );
+
+                                            if (!salesTargetsHalfDetails)
+                                              return alert("総合目標データが取得できませんでした。");
+                                            if (!newTotalTargetObj)
+                                              return alert("売上目標合計データが取得できませんでした。");
+
+                                            // 🔸シェア算出ここから --------------------------------------
+                                            // メイン目標に対してシェア割を算出
+                                            // メンバーレベルでは、総合目標に対するシェアの算出は「半期」のみ
+                                            if (row.period_type === "half_year") {
+                                              // 全メンバーの半期各入力値に今回算出した半期目標金額をセット
+                                              newTotalTargetObj.input_targets["sales_target_half"] =
+                                                totalTargetDecimal.toNumber();
+
+                                              // 全メンバーの半期目標配列を更新
+                                              const newTotalInputSalesTargetsHalfDetailsArray =
+                                                copiedTotalInputSalesTargetsHalfYear.input_targets_array.map(
+                                                  (entityTargetObj) =>
+                                                    entityTargetObj.entity_id === entityId
+                                                      ? newTotalTargetObj
+                                                      : entityTargetObj
+                                                );
+
+                                              // 全てのメンバーの半期売上目標合計を再計算
+                                              let newTotalSalesTargetHalfYear = 0;
+                                              newTotalInputSalesTargetsHalfDetailsArray.forEach((obj) => {
+                                                newTotalSalesTargetHalfYear += obj.input_targets.sales_target_half;
+                                              });
+
+                                              const newTotalTargetsHalfDetailsObj = {
+                                                total_targets: {
+                                                  sales_target_half: newTotalSalesTargetHalfYear,
+                                                },
+                                                input_targets_array: newTotalInputSalesTargetsHalfDetailsArray,
+                                              } as TotalSalesTargetsHalfDetailsObj;
+
+                                              setTotalInputSalesTargetsHalfDetails(newTotalTargetsHalfDetailsObj);
+
+                                              // 🔹メイン目標の半期の売上目標Decimalオブジェクトの生成
+                                              const mainTotalTargetDecimal = new Decimal(
+                                                salesTargetsHalfDetails.sales_target_half
+                                              );
+                                              // 🔹メイン半期目標からメンバーの半期シェアを計算し、整数に丸める
+                                              const halfYearShare = totalTargetDecimal
+                                                .dividedBy(mainTotalTargetDecimal)
+                                                .times(100)
+                                                .toFixed(0, Decimal.ROUND_HALF_UP);
+                                              setShareHalfYear(Number(halfYearShare));
+                                            }
+
+                                            // メンバーレベルではシェア算出は半期のみ
+                                            // // Q1シェアを計算し、整数に丸める
+                                            // const firstQuarterShare = firstQuarterTargetDecimal
+                                            //   .dividedBy(totalTargetDecimal)
+                                            //   .times(100)
+                                            //   .toFixed(0, Decimal.ROUND_HALF_UP);
+                                            // setShareFirstQuarter(Number(firstQuarterShare));
+                                            // // 下期シェアを計算する（100からQ1シェアを引く）
+                                            // const secondQuarterShare = 100 - Number(firstQuarterShare);
+                                            // setShareSecondQuarter(secondQuarterShare);
+                                            // // 下期売上目標を計算して更新
+                                            // const newSecondQuarterTarget = totalTargetDecimal
+                                            //   .minus(firstQuarterTargetDecimal)
+                                            //   .toNumber();
+                                            // const formattedSecondQuarterTarget =
+                                            //   formatDisplayPrice(newSecondQuarterTarget);
+                                            // setInputSalesTargetSecondQuarter(formattedSecondQuarterTarget);
+                                            // 🔸シェア算出ここまで --------------------------------------
+
+                                            // 🔸Q2前年比を算出 --------------------------------------
+                                            // 前年比
+                                            // Q2の行を取り出して引数として渡す
+                                            const rowQ2 = salesSummaryRowData.find(
+                                              (obj) => obj.period_type === "second_quarter"
+                                            );
+                                            const secondQuarterResult = calculateYearOverYear(
+                                              newSecondQuarterTarget,
+                                              rowQ2?.last_year_sales ?? null,
+                                              1,
+                                              true,
+                                              false
+                                            );
+                                            if (secondQuarterResult.error) {
+                                              // toast.error(`エラー：${secondQuarterResult.error}🙇‍♀️`);
+                                              console.log(
+                                                `❌${rowQ2?.period_type} 値引率の取得に失敗`,
+                                                secondQuarterResult.error
+                                              );
+                                              setInputYoYGrowthSecondQuarter("");
+                                            } else if (secondQuarterResult.yearOverYear !== null) {
+                                              setInputYoYGrowthSecondQuarter(secondQuarterResult.yearOverYear);
+                                            }
+
+                                            // 🔹Q2の売上推移に追加
+                                            if (salesTrendsSecondQuarter && isValidNumber(newSecondQuarterTarget)) {
+                                              // ディープコピー
+                                              let newTrend = cloneDeep(salesTrendsSecondQuarter) as SparkChartObj;
+                                              let newDataArray = [...newTrend.data];
+                                              const newDate = upsertSettingEntitiesObj.fiscalYear * 10 + secondQuarter; // Q2
+                                              const newData = {
+                                                date: newDate,
+                                                value: newSecondQuarterTarget,
+                                              };
+                                              // まだ売上推移チャートに売上目標が入っていない場合にはpushで末尾に追加し、既に追加ずみの場合は新たな目標金額にspliceで入れ替え
+                                              if (newDataArray.length === 3) {
+                                                newDataArray.push(newData);
+                                              } else if (newDataArray.length === 4) {
+                                                newDataArray.splice(-1, 1, newData);
+                                              }
+                                              const newTitle = `${upsertSettingEntitiesObj.fiscalYear}${
+                                                getTitle("quarter2").en
+                                              }`;
+                                              newTrend = {
+                                                ...newTrend,
+                                                title: newTitle,
+                                                mainValue: newSecondQuarterTarget,
+                                                growthRate: secondQuarterResult.yearOverYear
+                                                  ? parseFloat(secondQuarterResult.yearOverYear.replace(/%/g, ""))
+                                                  : null,
+                                                data: newDataArray,
+                                              };
+                                              console.log(
+                                                "ここ🔥🔥🔥🔥🔥🔥 newTrend",
+                                                newTrend,
+                                                "row.period_type ",
+                                                row.period_type
+                                              );
+                                              setSalesTrendsSecondQuarter({ ...newTrend, updateAt: Date.now() });
+                                            }
+                                          } catch (error: any) {
+                                            // toast.error("エラー：シェアの算出に失敗しました...🙇‍♀️");
+                                            console.log(`❌無効な入力値です。`, error);
                                           }
-                                        } catch (error: any) {
-                                          toast.error("エラー：シェアの算出に失敗しました...🙇‍♀️");
-                                          console.log(`❌入力値"${inputSalesTargetFirstQuarter}"が無効です。`, error);
                                         }
                                       }
-                                    }
-                                  }}
-                                />
-                              )}
+                                    }}
+                                  />
+                                )}
+                              {/* // ---------------- 🌟半期、Q1🌟 ここまで ---------------- */}
+
+                              {/* // ---------------- 🌟month01~06🌟 ---------------- */}
+                              {/* 半期、Q1, Q2が全て入力完了していて、かつ、半期目標とQ1, Q2の合計値が一致している場合にのみ月次目標の入力を許可する */}
+                              {isEnableInputMonthTarget &&
+                                column === "sales_target" &&
+                                ["month_01", "month_02", "month_03", "month_04", "month_05", "month_06"].includes(
+                                  row.period_type
+                                ) && (
+                                  <input
+                                    type="text"
+                                    // placeholder="例：600万円 → 6000000　※半角で入力"
+                                    className={`${styles.input_box} ${styles.upsert}`}
+                                    // value={inputDiscountAmountEdit ? inputDiscountAmountEdit : ""}
+                                    value={inputSalesTarget ? inputSalesTarget : ""}
+                                    onChange={(e) => {
+                                      setInputSalesTarget(e.target.value);
+                                    }}
+                                    onFocus={() => {
+                                      // 売上目標が0以外のfalsyならリターン
+                                      const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
+                                      if (!isValidNumber(replacedPrice)) {
+                                        console.log(
+                                          "リターンreplacedPrice",
+                                          replacedPrice,
+                                          !isValidNumber(replacedPrice)
+                                        );
+                                        return;
+                                      }
+                                      // console.log(
+                                      //   "こここinputSalesTarget",
+                                      //   inputSalesTarget,
+                                      //   "replacedPrice",
+                                      //   replacedPrice
+                                      // );
+                                      // フォーカス時は数字と小数点以外除去
+                                      setInputSalesTarget(replacedPrice);
+                                      // setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
+                                    }}
+                                    onBlur={(e) => {
+                                      // ---------------- 🔸半期、Q1の売上目標に対する処理🔸 ----------------
+                                      // 現在の売上目標金額
+                                      const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
+                                      // const replacedPrice = inputSalesTarget.replace(/[^\d.]/g, "");
+
+                                      // 売上目標が空文字の場合は売上推移から目標を取り除いてリターンする
+                                      if (!checkNotFalsyExcludeZero(replacedPrice)) {
+                                        console.log(
+                                          "空文字のため売上目標、前年比、売上推移、シェアをリセット",
+                                          replacedPrice,
+                                          row.period_type
+                                        );
+                                        // 売上推移をリセット
+                                        setSalesTrends({
+                                          ...salesSummaryRowData[rowIndex].sales_trend,
+                                          updateAt: Date.now(),
+                                        });
+                                        // 半期の売上目標が空文字になった場合には、Q1とQ2のシェアと売上推移をリセット
+                                        // Q2の売上目標をリセット
+                                        setInputSalesTargetSecondQuarter("");
+                                        // Q2の売上推移をリセット
+                                        setSalesTrendsSecondQuarter({
+                                          ...salesSummaryRowData[2].sales_trend,
+                                          updateAt: Date.now(),
+                                        });
+                                        // Q2の前年比をリセット
+                                        setInputYoYGrowthSecondQuarter("");
+                                        // Q1, Q2のシェアをリセット
+                                        setShareFirstQuarter(0);
+                                        setShareSecondQuarter(0);
+                                        return;
+                                      }
+                                      // 🔸フォーマット後の目標金額
+                                      const convertedSalesTarget = checkNotFalsyExcludeZero(inputSalesTarget)
+                                        ? convertToYen(inputSalesTarget)
+                                        : null;
+                                      const newFormatSalesTarget = formatDisplayPrice(convertedSalesTarget || 0);
+                                      setInputSalesTarget(newFormatSalesTarget);
+
+                                      // 🔸前年比の計算
+                                      const {
+                                        yearOverYear,
+                                        error: yoyError,
+                                        isPositive,
+                                      } = calculateYearOverYear(
+                                        convertedSalesTarget,
+                                        row.last_year_sales,
+                                        1,
+                                        true,
+                                        false
+                                      );
+                                      if (yoyError) {
+                                        console.log(`❌${row.period_type} 値引率の取得に失敗`, yoyError);
+                                        setInputYoYGrowth("");
+                                      } else if (yearOverYear !== null) {
+                                        setInputYoYGrowth(yearOverYear);
+                                      }
+
+                                      // 🔸各期間ごとのDate
+                                      const halfYear =
+                                        selectedPeriodTypeForMemberLevel === "first_half_details"
+                                          ? upsertSettingEntitiesObj.fiscalYear * 10 + 1
+                                          : upsertSettingEntitiesObj.fiscalYear * 10 + 2;
+                                      const firstQuarter =
+                                        selectedPeriodTypeForMemberLevel === "first_half_details"
+                                          ? upsertSettingEntitiesObj.fiscalYear * 10 + 1
+                                          : upsertSettingEntitiesObj.fiscalYear * 10 + 3;
+                                      const secondQuarter =
+                                        selectedPeriodTypeForMemberLevel === "first_half_details"
+                                          ? upsertSettingEntitiesObj.fiscalYear * 10 + 2
+                                          : upsertSettingEntitiesObj.fiscalYear * 10 + 4;
+
+                                      // 🔸売上推移に追加
+                                      if (salesTrends) {
+                                        // ディープコピー
+                                        let newTrend = cloneDeep(salesTrends) as SparkChartObj;
+                                        let newDataArray = [...newTrend.data];
+                                        const newDate =
+                                          row.period_type === "half_year"
+                                            ? halfYear
+                                            : row.period_type === "first_quarter"
+                                            ? firstQuarter
+                                            : secondQuarter;
+                                        const newData = {
+                                          date: newDate,
+                                          value: convertedSalesTarget,
+                                        };
+                                        if (newDataArray.length === 3) {
+                                          newDataArray.push(newData);
+                                        } else if (newDataArray.length === 4) {
+                                          newDataArray.splice(-1, 1, newData);
+                                        }
+                                        const newTitle =
+                                          row.period_type === "half_year"
+                                            ? `${upsertSettingEntitiesObj.fiscalYear}${getTitle("half").en}`
+                                            : row.period_type === "first_quarter"
+                                            ? `${upsertSettingEntitiesObj.fiscalYear}${getTitle("quarter1").en}`
+                                            : `${upsertSettingEntitiesObj.fiscalYear}${getTitle("quarter2").en}`;
+                                        newTrend = {
+                                          ...newTrend,
+                                          title: newTitle,
+                                          mainValue: convertedSalesTarget,
+                                          growthRate:
+                                            yearOverYear !== null ? parseFloat(yearOverYear.replace(/%/g, "")) : null,
+                                          data: newDataArray,
+                                        };
+                                        console.log(
+                                          "ここ🔥🔥🔥🔥🔥🔥 newTrend",
+                                          newTrend,
+                                          "row.period_type ",
+                                          row.period_type
+                                        );
+                                        setSalesTrends({ ...newTrend, updateAt: Date.now() });
+                                      }
+
+                                      // 同時にシェア、下半期も計算して更新する
+                                      // if (row.period_type === "first_half" || row.period_type === "fiscal_year") {
+                                      if (row.period_type === "first_quarter" || row.period_type === "half_year") {
+                                        const convertedTotalTargetHalf = inputSalesTargetHalf.replace(/[^\d.]/g, "");
+                                        const convertedFirstQuarterTarget = inputSalesTargetFirstQuarter.replace(
+                                          /[^\d.]/g,
+                                          ""
+                                        );
+                                        if (
+                                          (row.period_type === "first_quarter" &&
+                                            isValidNumber(convertedTotalTargetHalf) &&
+                                            isValidNumber(convertedSalesTarget) &&
+                                            inputSalesTargetHalf !== "0") ||
+                                          (row.period_type === "half_year" &&
+                                            isValidNumber(convertedSalesTarget) &&
+                                            isValidNumber(convertedFirstQuarterTarget) &&
+                                            convertedFirstQuarterTarget !== "0")
+                                        ) {
+                                          try {
+                                            // 🔹半期とQ1の売上目標 Decimalオブジェクトの生成
+                                            // 入力がQ1なら半期を渡し、入力が半期なら入力値をそのまま渡すことで半期のDecimalを作成
+                                            const totalTargetDecimal = new Decimal(
+                                              row.period_type === "first_quarter"
+                                                ? convertedTotalTargetHalf
+                                                : convertedSalesTarget!
+                                            );
+                                            const firstQuarterTargetDecimal = new Decimal(
+                                              row.period_type === "first_quarter"
+                                                ? convertedSalesTarget!
+                                                : convertedFirstQuarterTarget
+                                            );
+                                            // 🔸Q1が半期を上回っていた場合は、他方をリセット
+                                            // 半期入力で半期がQ1を下回った場合はQ1をリセット
+                                            if (
+                                              row.period_type === "half_year" &&
+                                              totalTargetDecimal.lessThan(firstQuarterTargetDecimal)
+                                            ) {
+                                              // Q1・Q2 売上目標をリセット
+                                              setInputSalesTargetFirstQuarter("");
+                                              setInputSalesTargetSecondQuarter("");
+                                              // Q1・Q2 シェアをリセット
+                                              setShareFirstQuarter(0);
+                                              setShareSecondQuarter(0);
+                                              // Q1・Q2 前年比をリセット
+                                              setInputYoYGrowthFirstQuarter("");
+                                              setInputYoYGrowthSecondQuarter("");
+                                              // Q1・Q2 売上推移をリセット
+                                              setSalesTrendsFirstQuarter({
+                                                ...salesSummaryRowData[1].sales_trend,
+                                                updateAt: Date.now(),
+                                              });
+                                              setSalesTrendsSecondQuarter({
+                                                ...salesSummaryRowData[2].sales_trend,
+                                                updateAt: Date.now(),
+                                              });
+                                              // 🔹メイン目標の半期売上目標Decimalオブジェクトの生成
+                                              if (salesTargetsHalfDetails) {
+                                                const mainTotalTargetDecimal = new Decimal(
+                                                  salesTargetsHalfDetails.sales_target_half
+                                                );
+                                                // 🔹メイン半期目標から半期シェアを計算し、整数に丸める
+                                                const fiscalYearShare = totalTargetDecimal
+                                                  .dividedBy(mainTotalTargetDecimal)
+                                                  .times(100)
+                                                  .toFixed(0, Decimal.ROUND_HALF_UP);
+                                                setShareHalfYear(Number(fiscalYearShare));
+                                              }
+                                              // 半期がQ1を下回った場合にはここでリターン
+                                              return;
+                                            }
+                                            // Q1入力でQ1が半期を上回っていた場合は半期をリセット
+                                            else if (
+                                              row.period_type === periodTypeNames.quarter1 &&
+                                              totalTargetDecimal.lessThan(firstQuarterTargetDecimal)
+                                            ) {
+                                              // 半期・Q2 売上目標をリセット
+                                              setInputSalesTargetHalf("");
+                                              setInputSalesTargetSecondQuarter("");
+                                              // Q1・Q2 シェアをリセット(Q1は半期売上目標がリセットされるためシェアもリセット)
+                                              setShareFirstQuarter(0);
+                                              setShareSecondQuarter(0);
+                                              // 半期・Q2 前年比をリセット
+                                              setInputYoYGrowthHalf("");
+                                              setInputYoYGrowthSecondQuarter("");
+                                              // 半期・Q2 売上推移をリセット
+                                              setSalesTrendsHalf({
+                                                ...salesSummaryRowData[0].sales_trend,
+                                                updateAt: Date.now(),
+                                              });
+                                              setSalesTrendsSecondQuarter({
+                                                ...salesSummaryRowData[2].sales_trend,
+                                                updateAt: Date.now(),
+                                              });
+                                              // 🔹メイン目標のQ1売上目標Decimalオブジェクトの生成
+                                              if (salesTargetsHalfDetails) {
+                                                const mainFirstQuarterTargetDecimal = new Decimal(
+                                                  salesTargetsHalfDetails.sales_target_half
+                                                );
+                                                // 🔹メインQ1目標からQ1シェアを計算し、整数に丸める
+                                                const firstQuarterShare = firstQuarterTargetDecimal
+                                                  .dividedBy(mainFirstQuarterTargetDecimal)
+                                                  .times(100)
+                                                  .toFixed(0, Decimal.ROUND_HALF_UP);
+                                                setShareFirstQuarter(Number(firstQuarterShare));
+                                              }
+                                              // 半期がQ1を下回った場合にはここでリターン
+                                              return;
+                                            }
+
+                                            // 🔸Q2売上目標を計算して更新
+                                            const newSecondQuarterTarget = totalTargetDecimal
+                                              .minus(firstQuarterTargetDecimal)
+                                              .toNumber();
+                                            const formattedSecondQuarterTarget =
+                                              formatDisplayPrice(newSecondQuarterTarget);
+                                            setInputSalesTargetSecondQuarter(formattedSecondQuarterTarget);
+                                            // シェア算出時に使用するために下期目標の入力値のDecimalオブジェクトしておく
+                                            const secondQuarterTargetDecimal = new Decimal(newSecondQuarterTarget);
+
+                                            const copiedTotalInputSalesTargetsHalfYear = cloneDeep(
+                                              totalInputSalesTargetsHalfDetails
+                                            );
+
+                                            const newTotalTargetObj =
+                                              copiedTotalInputSalesTargetsHalfYear.input_targets_array.find(
+                                                (obj) => obj.entity_id === entityId
+                                              );
+
+                                            if (!salesTargetsHalfDetails)
+                                              return alert("総合目標データが取得できませんでした。");
+                                            if (!newTotalTargetObj)
+                                              return alert("売上目標合計データが取得できませんでした。");
+
+                                            // 🔸シェア算出ここから --------------------------------------
+                                            // メイン目標に対してシェア割を算出
+                                            // メンバーレベルでは、総合目標に対するシェアの算出は「半期」のみ
+                                            if (row.period_type === "half_year") {
+                                              // 全メンバーの半期各入力値に今回算出した半期目標金額をセット
+                                              newTotalTargetObj.input_targets["sales_target_half"] =
+                                                totalTargetDecimal.toNumber();
+
+                                              // 全メンバーの半期目標配列を更新
+                                              const newTotalInputSalesTargetsHalfDetailsArray =
+                                                copiedTotalInputSalesTargetsHalfYear.input_targets_array.map(
+                                                  (entityTargetObj) =>
+                                                    entityTargetObj.entity_id === entityId
+                                                      ? newTotalTargetObj
+                                                      : entityTargetObj
+                                                );
+
+                                              // 全てのメンバーの半期売上目標合計を再計算
+                                              let newTotalSalesTargetHalfYear = 0;
+                                              newTotalInputSalesTargetsHalfDetailsArray.forEach((obj) => {
+                                                newTotalSalesTargetHalfYear += obj.input_targets.sales_target_half;
+                                              });
+
+                                              const newTotalTargetsHalfDetailsObj = {
+                                                total_targets: {
+                                                  sales_target_half: newTotalSalesTargetHalfYear,
+                                                },
+                                                input_targets_array: newTotalInputSalesTargetsHalfDetailsArray,
+                                              } as TotalSalesTargetsHalfDetailsObj;
+
+                                              setTotalInputSalesTargetsHalfDetails(newTotalTargetsHalfDetailsObj);
+
+                                              // 🔹メイン目標の半期の売上目標Decimalオブジェクトの生成
+                                              const mainTotalTargetDecimal = new Decimal(
+                                                salesTargetsHalfDetails.sales_target_half
+                                              );
+                                              // 🔹メイン半期目標からメンバーの半期シェアを計算し、整数に丸める
+                                              const halfYearShare = totalTargetDecimal
+                                                .dividedBy(mainTotalTargetDecimal)
+                                                .times(100)
+                                                .toFixed(0, Decimal.ROUND_HALF_UP);
+                                              setShareHalfYear(Number(halfYearShare));
+                                            }
+
+                                            // メンバーレベルではシェア算出は半期のみ
+                                            // // Q1シェアを計算し、整数に丸める
+                                            // const firstQuarterShare = firstQuarterTargetDecimal
+                                            //   .dividedBy(totalTargetDecimal)
+                                            //   .times(100)
+                                            //   .toFixed(0, Decimal.ROUND_HALF_UP);
+                                            // setShareFirstQuarter(Number(firstQuarterShare));
+                                            // // 下期シェアを計算する（100からQ1シェアを引く）
+                                            // const secondQuarterShare = 100 - Number(firstQuarterShare);
+                                            // setShareSecondQuarter(secondQuarterShare);
+                                            // // 下期売上目標を計算して更新
+                                            // const newSecondQuarterTarget = totalTargetDecimal
+                                            //   .minus(firstQuarterTargetDecimal)
+                                            //   .toNumber();
+                                            // const formattedSecondQuarterTarget =
+                                            //   formatDisplayPrice(newSecondQuarterTarget);
+                                            // setInputSalesTargetSecondQuarter(formattedSecondQuarterTarget);
+                                            // 🔸シェア算出ここまで --------------------------------------
+
+                                            // 🔸Q2前年比を算出 --------------------------------------
+                                            // 前年比
+                                            // Q2の行を取り出して引数として渡す
+                                            const rowQ2 = salesSummaryRowData.find(
+                                              (obj) => obj.period_type === "second_quarter"
+                                            );
+                                            const secondQuarterResult = calculateYearOverYear(
+                                              newSecondQuarterTarget,
+                                              rowQ2?.last_year_sales ?? null,
+                                              1,
+                                              true,
+                                              false
+                                            );
+                                            if (secondQuarterResult.error) {
+                                              // toast.error(`エラー：${secondQuarterResult.error}🙇‍♀️`);
+                                              console.log(
+                                                `❌${rowQ2?.period_type} 値引率の取得に失敗`,
+                                                secondQuarterResult.error
+                                              );
+                                              setInputYoYGrowthSecondQuarter("");
+                                            } else if (secondQuarterResult.yearOverYear !== null) {
+                                              setInputYoYGrowthSecondQuarter(secondQuarterResult.yearOverYear);
+                                            }
+
+                                            // 🔹Q2の売上推移に追加
+                                            if (salesTrendsSecondQuarter && isValidNumber(newSecondQuarterTarget)) {
+                                              // ディープコピー
+                                              let newTrend = cloneDeep(salesTrendsSecondQuarter) as SparkChartObj;
+                                              let newDataArray = [...newTrend.data];
+                                              const newDate = upsertSettingEntitiesObj.fiscalYear * 10 + secondQuarter; // Q2
+                                              const newData = {
+                                                date: newDate,
+                                                value: newSecondQuarterTarget,
+                                              };
+                                              // まだ売上推移チャートに売上目標が入っていない場合にはpushで末尾に追加し、既に追加ずみの場合は新たな目標金額にspliceで入れ替え
+                                              if (newDataArray.length === 3) {
+                                                newDataArray.push(newData);
+                                              } else if (newDataArray.length === 4) {
+                                                newDataArray.splice(-1, 1, newData);
+                                              }
+                                              const newTitle = `${upsertSettingEntitiesObj.fiscalYear}${
+                                                getTitle("quarter2").en
+                                              }`;
+                                              newTrend = {
+                                                ...newTrend,
+                                                title: newTitle,
+                                                mainValue: newSecondQuarterTarget,
+                                                growthRate: secondQuarterResult.yearOverYear
+                                                  ? parseFloat(secondQuarterResult.yearOverYear.replace(/%/g, ""))
+                                                  : null,
+                                                data: newDataArray,
+                                              };
+                                              console.log(
+                                                "ここ🔥🔥🔥🔥🔥🔥 newTrend",
+                                                newTrend,
+                                                "row.period_type ",
+                                                row.period_type
+                                              );
+                                              setSalesTrendsSecondQuarter({ ...newTrend, updateAt: Date.now() });
+                                            }
+                                          } catch (error: any) {
+                                            toast.error("エラー：シェアの算出に失敗しました...🙇‍♀️");
+                                            console.log(`❌入力値"${inputSalesTargetFirstQuarter}"が無効です。`, error);
+                                          }
+                                        }
+                                      }
+                                    }}
+                                  />
+                                )}
+                              {/* // ---------------- 🌟month01~06🌟 ここまで ---------------- */}
+
+                              {/* // ---------------- 🌟Q2🌟 ---------------- */}
                               {column === "sales_target" && row.period_type === "second_quarter" && (
                                 <span className={`px-[8px] text-[15px]`}>{inputSalesTargetSecondQuarter ?? ""}</span>
                               )}
+                              {/* // ---------------- 🌟Q2🌟 ここまで ---------------- */}
+
                               {column === "share" && (
                                 <>
                                   <div
