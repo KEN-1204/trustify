@@ -229,6 +229,7 @@ const AreaChartComponentMemo = ({
             <YAxis
               dataKey="value1"
               type="number"
+              width={72} // デフォルト60pxから12px+
               axisLine={false}
               tickLine={false}
               tickCount={tickCount}
@@ -240,6 +241,7 @@ const AreaChartComponentMemo = ({
                 // return [0, dataMax * 2];
               }}
               ticks={customTicks} // 0から最大値までをtickCount数で均等に分割した配列をセット
+              allowDataOverflow={false}
               // interval={0}
               // domain={[0, yAxisMax]}
               // domain={([dataMin, dataMax]) => {
@@ -457,12 +459,15 @@ export const CustomLegend = ({ props, labelType, language, legendList }: LegendC
     }
   };
 
+  // <div className={`relative flex w-full max-w-[calc(100vw-72px-62px-6px-24px)] items-start pl-[60px]`}>
+
   return (
-    <div className={`relative flex w-full max-w-[calc(100vw-72px-62px-6px-24px)] items-start pl-[60px]`}>
+    <div className={`relative flex w-full max-w-[calc(100vw-72px-62px-6px-24px)] items-start pl-[72px]`}>
       {isHoveringLegend && (
         <div
           ref={legendsRef}
-          className={`${styles.list_legends} fade08_forward absolute left-[60px] right-[0px] top-[0] z-10 flex  max-w-[calc(100vw-72px-62px-6px-24px)] flex-wrap items-center justify-end leading-[24px]`}
+          // className={`${styles.list_legends} fade08_forward absolute left-[60px] right-[0px] top-[0] z-10 flex  max-w-[calc(100vw-72px-62px-6px-24px)] flex-wrap items-center justify-end leading-[24px]`}
+          className={`${styles.list_legends} fade08_forward absolute left-[72px] right-[0px] top-[0] z-10 flex  max-w-[calc(100vw-72px-62px-6px-24px)] flex-wrap items-center justify-end leading-[24px]`}
           onMouseLeave={handleLeaveLegend}
         >
           {legendList.map((obj, index) => (

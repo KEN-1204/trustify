@@ -151,9 +151,10 @@ Props) => {
         className={`flex min-h-[48px] w-full max-w-[270px] items-center justify-between rounded-[9px] px-[12px]`}
         style={{ minHeight: `${height}px`, maxWidth: `${width}px`, border: `1px solid ${borderColor}` }}
       >
-        <div className="flex flex-col justify-center">
-          <span className={`text-[12px] font-bold text-[var(--color-text-title)]`}>{title}</span>
-          <span className={`text-[8px] text-[var(--color-text-sub)]`}>{subTitle}</span>
+        <div className="flex max-w-[72px] flex-col justify-center">
+          {/* <div className="flex flex-col justify-center"> */}
+          <span className={`truncate text-[12px] font-bold text-[var(--color-text-title)]`}>{title}</span>
+          <span className={`truncate text-[8px] text-[var(--color-text-sub)]`}>{subTitle}</span>
         </div>
         <div className={`flex items-center`}>
           <div

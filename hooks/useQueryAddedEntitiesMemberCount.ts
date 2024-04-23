@@ -124,6 +124,6 @@ export const useQueryAddedEntitiesMemberCount = ({
       !!targetType &&
       isReady &&
       // !!entityIdsStr &&
-      levelObj.entity_level === currentLevel,
+      levelObj.entity_level === currentLevel, // 現在の設定対象のレベルと同じレベルのカラムコンポーネントでのみフェッチを許可
   });
 };

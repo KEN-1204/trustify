@@ -25,9 +25,11 @@ import {
   EntitiesHierarchy,
   EntityLevelNames,
   EntityLevels,
+  FiscalYearMonthObjForTarget,
   KeysSalesTargetsHalfDetails,
   KeysSalesTargetsYearHalf,
   MemberAccounts,
+  MemberGroupsByParentEntity,
   Office,
   SalesTargetsHalfDetails,
   SalesTargetsYearHalf,
@@ -149,6 +151,27 @@ export const formatRowName = (row: string, year: number): { ja: string; en: stri
       break;
   }
 };
+export const formatRowNameHalfDetails = (
+  row: string,
+  year: number,
+  halfType: "first_half_details" | "second_half_details",
+  annualFiscalMonths: FiscalYearMonthObjForTarget
+): { ja: string; en: string; [key: string]: string } => {
+  switch (row) {
+    case "half_year":
+      return halfType === "first_half_details" ? { ja: `上半期`, en: `H1` } : { ja: `下半期`, en: `H2` };
+    case "first_quarter":
+      return halfType === "first_half_details" ? { ja: `Q1`, en: `Q1` } : { ja: `Q3`, en: `Q3` };
+    case "second_quarter":
+      return halfType === "first_half_details" ? { ja: `Q2`, en: `Q2` } : { ja: `Q4`, en: `Q4` };
+    case "month_01":
+      return halfType === "first_half_details" ? { ja: ``, en: `Q2` } : { ja: `Q4`, en: `Q4` };
+
+    default:
+      return halfType === "first_half_details" ? { ja: `-`, en: `-` } : { ja: `-`, en: `-` };
+      break;
+  }
+};
 export const formatRowNameShort = (row: string, year: number): { ja: string; en: string; [key: string]: string } => {
   switch (row) {
     case "fiscal_year":
@@ -191,6 +214,11 @@ type Props = {
   settingEntityLevel: string;
   setIsSettingTargetMode: Dispatch<SetStateAction<boolean>>;
   setStep: Dispatch<SetStateAction<number>>;
+  currentParentEntitiesForMember: {
+    entity_level: string;
+    entity_id: string;
+    entity_name: string;
+  }[];
 };
 
 // メンバーの直属の親エンティティでないメイン目標の場合は、「年度・半期」の入力
@@ -213,7 +241,12 @@ type Props = {
   「下期・Q3・Q4・下期内の月度」の売上目標を6の手順で同様に目標設定する
 */
 
-const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTargetMode, setStep }: Props) => {
+const UpsertSettingTargetEntityGroupMemo = ({
+  settingEntityLevel,
+  setIsSettingTargetMode,
+  setStep,
+  currentParentEntitiesForMember,
+}: Props) => {
   const queryClient = useQueryClient();
   const supabase = useSupabaseClient();
   const language = useStore((state) => state.language);
@@ -1008,6 +1041,39 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
   const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // メンバー
+  const memberDataArray:
+    | (MemberAccounts & {
+        company_id: string;
+        company_name: string;
+      })[]
+    | undefined = useMemo(() => {
+    if (upsertSettingEntitiesObj.entityLevel !== "member") return [];
+
+    const parentEntityIdsSet = new Set(currentParentEntitiesForMember.map((entity) => entity.entity_id));
+    const parentEntityIdsStr = Array.from(parentEntityIdsSet).join(", ");
+    const newMemberDataArray: MemberGroupsByParentEntity | undefined = queryClient.getQueryData([
+      "member_accounts",
+      upsertSettingEntitiesObj.parentEntityLevel, // parent_entity_level,
+      parentEntityIdsStr,
+    ]);
+
+    const flattedMemberDataArray = newMemberDataArray
+      ? Object.values(newMemberDataArray)
+          .map((obj) => obj.member_group)
+          .flatMap((array) => array)
+      : [];
+
+    console.log(
+      "メンバーデータnewMemberDataArray",
+      newMemberDataArray,
+      "currentParentEntitiesForMember",
+      currentParentEntitiesForMember,
+      "flattedMemberDataArray",
+      flattedMemberDataArray
+    );
+    return flattedMemberDataArray;
+  }, [currentParentEntitiesForMember]);
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
   // 「事業部」「課・セクション」「係・チーム」「事業所」のid to objectオブジェクトマップ生成
   // 事業部マップ {id: 事業部オブジェクト}
@@ -1034,25 +1100,33 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     const officeMap = new Map(officeDataArray.map((obj) => [obj.id, obj]));
     return officeMap;
   }, [officeDataArray]);
+  // メンバーマップ {id: メンバーオブジェクト}
+  const memberIdToObjMap = useMemo(() => {
+    if (!memberDataArray?.length) return null;
+    const memberMap = new Map(memberDataArray.map((obj) => [obj.id, obj]));
+    return memberMap;
+  }, [memberDataArray]);
 
   // ========================= 🌟メンバーリスト取得useQuery キャッシュ🌟 =========================
-  const entityIdsStr = useMemo(() => {
-    const entityIds = Array.from(targetEntityIdsSet);
-    const str =
-      entityIds && entityIds.length > 0 ? entityIds.sort(([keyA], [keyB]) => keyA.localeCompare(keyB)).join(", ") : "";
-    return str ?? "";
-  }, [targetEntityIdsSet]);
 
-  const {
-    data: memberDataArray,
-    error: memberDataError,
-    isLoading: isLoadingMember,
-  } = useQueryMemberAccountsFilteredByEntity({
-    entityLevel: upsertSettingEntitiesObj.entityLevel,
-    entityIds: Array.from(targetEntityIdsSet),
-    entityIdsStr: entityIdsStr,
-    isReady: upsertSettingEntitiesObj.entityLevel === "member", // memberの時のみフェッチを許可
-  });
+  // // メンバーエンティティのidを並び替え
+  // const sortedEntityIdsStr = useMemo(() => {
+  //   const entityIds = Array.from(targetEntityIdsSet);
+  //   const str =
+  //     entityIds && entityIds.length > 0 ? entityIds.sort(([keyA], [keyB]) => keyA.localeCompare(keyB)).join(", ") : "";
+  //   return str ?? "";
+  // }, [targetEntityIdsSet]);
+
+  // const {
+  //   data: memberDataArray,
+  //   error: memberDataError,
+  //   isLoading: isLoadingMember,
+  // } = useQueryMemberAccountsFilteredByEntity({
+  //   entityLevel: upsertSettingEntitiesObj.entityLevel,
+  //   entityIds: Array.from(targetEntityIdsSet),
+  //   entityIdsStr: sortedEntityIdsStr,
+  //   isReady: upsertSettingEntitiesObj.entityLevel === "member", // memberの時のみフェッチを許可
+  // });
   // ========================= 🌟メンバーリスト取得useQuery キャッシュ🌟 =========================
 
   // -------------------------- 部門別目標の配列 --------------------------
@@ -1076,6 +1150,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
         const filteredOffice = officeDataArray ? officeDataArray.filter((obj) => targetEntityIdsSet.has(obj.id)) : [];
         return filteredOffice;
       case "member":
+        console.log("メンバーmemberDataArray", memberDataArray);
         const filteredMember = memberDataArray ? memberDataArray.filter((obj) => targetEntityIdsSet.has(obj.id)) : [];
         return filteredMember;
       default:
@@ -1214,7 +1289,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     // UpsertTargetEntity側では半期を上期と下期で分けるが、ここではselectedPeriodDetailTrendの識別用として上下を使い、periodTypeは年度、半期、四半期、月次のみで区別する
     if (upsertSettingEntitiesObj.periodType === "year_half") {
       return "fiscal_year";
-    } else if (["first_half", "second_half"].includes(upsertSettingEntitiesObj.periodType)) {
+    } else if (["first_half_details", "second_half_details"].includes(upsertSettingEntitiesObj.periodType)) {
       return "half_year";
     } else return "fiscal_year";
   });
@@ -1379,101 +1454,101 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   };
   // ==================================================================================
 
-  const handleUpdateSubList = async (updateType: "add" | "remove") => {
-    // エンティティタイプからupdateするテーブルを確定
-    const entityLevel = upsertSettingEntitiesObj.entityLevel;
-    let updatedTable = "";
-    if (entityLevel === "department") updatedTable = "departments";
-    if (entityLevel === "section") updatedTable = "sections";
-    if (entityLevel === "unit") updatedTable = "units";
-    if (entityLevel === "office") updatedTable = "offices";
-    if (entityLevel === "member") updatedTable = "profiles";
-    if (entityLevel === "") return alert("部門データが見つかりませんでした。");
+  // const handleUpdateSubList = async (updateType: "add" | "remove") => {
+  //   // エンティティタイプからupdateするテーブルを確定
+  //   const entityLevel = upsertSettingEntitiesObj.entityLevel;
+  //   let updatedTable = "";
+  //   if (entityLevel === "department") updatedTable = "departments";
+  //   if (entityLevel === "section") updatedTable = "sections";
+  //   if (entityLevel === "unit") updatedTable = "units";
+  //   if (entityLevel === "office") updatedTable = "offices";
+  //   if (entityLevel === "member") updatedTable = "profiles";
+  //   if (entityLevel === "") return alert("部門データが見つかりませんでした。");
 
-    const newTargetType = updateType === "add" ? "sales_target" : null;
-    const updatedPayload = { target_type: newTargetType };
-    // idのみの配列を生成
-    const updatedEntityIds =
-      updateType === "add" ? [...selectedInactiveItemIdsMap.keys()] : [...selectedActiveItemIdsMap.keys()];
-    // 今回更新するMapオブジェクトを代入
-    const updatedEntityIdsMap = updateType === "add" ? selectedInactiveItemIdsMap : selectedActiveItemIdsMap;
+  //   const newTargetType = updateType === "add" ? "sales_target" : null;
+  //   const updatedPayload = { target_type: newTargetType };
+  //   // idのみの配列を生成
+  //   const updatedEntityIds =
+  //     updateType === "add" ? [...selectedInactiveItemIdsMap.keys()] : [...selectedActiveItemIdsMap.keys()];
+  //   // 今回更新するMapオブジェクトを代入
+  //   const updatedEntityIdsMap = updateType === "add" ? selectedInactiveItemIdsMap : selectedActiveItemIdsMap;
 
-    setIsLoading(true); // ローディング開始
+  //   setIsLoading(true); // ローディング開始
 
-    try {
-      console.log(
-        "削除実行🔥 updatedTable",
-        updatedTable,
-        updatedPayload,
-        "updatedEntityIds",
-        updatedEntityIds,
-        "selectedInactiveItemIdsMap",
-        selectedInactiveItemIdsMap,
-        "selectedActiveItemIdsMap",
-        selectedActiveItemIdsMap
-      );
-      const { error } = await supabase.from(updatedTable).update(updatedPayload).in("id", updatedEntityIds);
+  //   try {
+  //     console.log(
+  //       "削除実行🔥 updatedTable",
+  //       updatedTable,
+  //       updatedPayload,
+  //       "updatedEntityIds",
+  //       updatedEntityIds,
+  //       "selectedInactiveItemIdsMap",
+  //       selectedInactiveItemIdsMap,
+  //       "selectedActiveItemIdsMap",
+  //       selectedActiveItemIdsMap
+  //     );
+  //     const { error } = await supabase.from(updatedTable).update(updatedPayload).in("id", updatedEntityIds);
 
-      if (error) throw error;
+  //     if (error) throw error;
 
-      // キャッシュの部門からsales_targetをnullに更新する
-      let queryKey = "departments";
-      if (entityLevel === "department") queryKey = "departments";
-      if (entityLevel === "section") queryKey = "sections";
-      if (entityLevel === "unit") queryKey = "units";
-      if (entityLevel === "office") queryKey = "offices";
-      if (entityLevel === "member") queryKey = "member_accounts";
-      const prevCache = queryClient.getQueryData([queryKey]) as
-        | Department[]
-        | Section[]
-        | Unit[]
-        | Office[]
-        | MemberAccounts[];
-      let newCache = [...prevCache]; // キャッシュのシャローコピーを作成
-      // 更新対象のオブジェクトのtarget_typeをsales_target or nullに変更
-      newCache = newCache.map((obj) =>
-        updatedEntityIdsMap.has(obj.id) ? { ...obj, target_type: newTargetType } : obj
-      );
-      console.log("キャッシュを更新 newCache", newCache);
-      queryClient.setQueryData([queryKey], newCache); // キャッシュを更新
+  //     // キャッシュの部門からsales_targetをnullに更新する
+  //     let queryKey = "departments";
+  //     if (entityLevel === "department") queryKey = "departments";
+  //     if (entityLevel === "section") queryKey = "sections";
+  //     if (entityLevel === "unit") queryKey = "units";
+  //     if (entityLevel === "office") queryKey = "offices";
+  //     if (entityLevel === "member") queryKey = "member_accounts";
+  //     const prevCache = queryClient.getQueryData([queryKey]) as
+  //       | Department[]
+  //       | Section[]
+  //       | Unit[]
+  //       | Office[]
+  //       | MemberAccounts[];
+  //     let newCache = [...prevCache]; // キャッシュのシャローコピーを作成
+  //     // 更新対象のオブジェクトのtarget_typeをsales_target or nullに変更
+  //     newCache = newCache.map((obj) =>
+  //       updatedEntityIdsMap.has(obj.id) ? { ...obj, target_type: newTargetType } : obj
+  //     );
+  //     console.log("キャッシュを更新 newCache", newCache);
+  //     queryClient.setQueryData([queryKey], newCache); // キャッシュを更新
 
-      if (updateType === "remove") {
-        // 固定していた場合は固定を解除
-        if (!!stickyRow && updatedEntityIdsMap.has(stickyRow)) {
-          setStickyRow(null);
-        }
-      }
+  //     if (updateType === "remove") {
+  //       // 固定していた場合は固定を解除
+  //       if (!!stickyRow && updatedEntityIdsMap.has(stickyRow)) {
+  //         setStickyRow(null);
+  //       }
+  //     }
 
-      setIsLoading(false); // ローディング終了
+  //     setIsLoading(false); // ローディング終了
 
-      // サブ目標リストを更新
-      const newList = newCache.filter((obj) => obj.target_type === "sales_target") as
-        | Department[]
-        | Section[]
-        | Unit[]
-        | Office[]
-        | MemberAccounts[];
-      setSubTargetList(newList);
+  //     // サブ目標リストを更新
+  //     const newList = newCache.filter((obj) => obj.target_type === "sales_target") as
+  //       | Department[]
+  //       | Section[]
+  //       | Unit[]
+  //       | Office[]
+  //       | MemberAccounts[];
+  //     setSubTargetList(newList);
 
-      // モーダル内のリストを更新
-      setEditSubList(newCache as MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]);
+  //     // モーダル内のリストを更新
+  //     setEditSubList(newCache as MemberAccounts[] | Department[] | Section[] | Unit[] | Office[]);
 
-      const successMsg = updateType === "add" ? `目標リストに追加しました🌟` : `目標リストから削除しました🌟`;
-      toast.success(successMsg);
+  //     const successMsg = updateType === "add" ? `目標リストに追加しました🌟` : `目標リストから削除しました🌟`;
+  //     toast.success(successMsg);
 
-      // リセット
-      if (updateType === "add") {
-        setSelectedInactiveItemIdsMap(new Map());
-      } else {
-        setSelectedActiveItemIdsMap(new Map());
-      }
-    } catch (error: any) {
-      console.error("エラー：", error);
-      const errorMsg =
-        updateType === "add" ? `目標リストへの追加に失敗しました...🙇‍♀️` : "目標リストからの削除に失敗しました...🙇‍♀️";
-      toast.error(errorMsg);
-    }
-  };
+  //     // リセット
+  //     if (updateType === "add") {
+  //       setSelectedInactiveItemIdsMap(new Map());
+  //     } else {
+  //       setSelectedActiveItemIdsMap(new Map());
+  //     }
+  //   } catch (error: any) {
+  //     console.error("エラー：", error);
+  //     const errorMsg =
+  //       updateType === "add" ? `目標リストへの追加に失敗しました...🙇‍♀️` : "目標リストからの削除に失敗しました...🙇‍♀️";
+  //     toast.error(errorMsg);
+  //   }
+  // };
 
   // years_backをperiodTypeTrendに応じて変更
   // const yearsBack = useMemo(() => {
@@ -1624,28 +1699,42 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     if (!salesTargetsYearHalf) return null;
     // 会社レベルの場合は、総合目標は存在しないためnullをリターン
     if (upsertSettingEntitiesObj.entityLevel === "company") return null;
-    return Object.entries(salesTargetsYearHalf).map(([key, value], index) => {
-      let title: { [key: string]: string } = { ja: `年度`, en: `Fiscal Year` };
-      if (key === "sales_target_first_half") title = { ja: `上半期`, en: `First Half Year` };
-      if (key === "sales_target_second_half") title = { ja: `下半期`, en: `Second Half Year` };
-      const totalInput = totalInputSalesTargetsYearHalf.total_targets[key as KeysSalesTargetsYearHalf];
-      const mainTargetDecimal = new Decimal(value);
-      const totalInputDecimal = new Decimal(totalInput);
-      // 残り目標額
-      const restSalesTarget = mainTargetDecimal.minus(totalInputDecimal).toNumber();
-      const isNegative = restSalesTarget < 0;
-      const isComplete = restSalesTarget === 0;
-      return {
-        key: key,
-        sales_target: formatToJapaneseYen(value),
-        // sales_target: value,
-        title: title,
-        // restTarget: formatToJapaneseYen(restSalesTarget, true, true),
-        restTarget: restSalesTarget,
-        isNegative: isNegative,
-        isComplete: isComplete,
-      };
-    });
+    if (upsertSettingEntitiesObj.entityLevel === "member") return null;
+    console.log(
+      "🔹【事業部〜係レベルルート】部門別残り目標金額/総合目標 用の配列 作成",
+      "upsertSettingEntitiesObj",
+      upsertSettingEntitiesObj,
+      "メイン目標キャッシュsalesTargetsYearHalf",
+      salesTargetsYearHalf
+    );
+    try {
+      const newStatus = Object.entries(salesTargetsYearHalf).map(([key, value], index) => {
+        let title: { [key: string]: string } = { ja: `年度`, en: `Fiscal Year` };
+        if (key === "sales_target_first_half") title = { ja: `上半期`, en: `First Half Year` };
+        if (key === "sales_target_second_half") title = { ja: `下半期`, en: `Second Half Year` };
+        const totalInput = totalInputSalesTargetsYearHalf.total_targets[key as KeysSalesTargetsYearHalf];
+        const mainTargetDecimal = new Decimal(value);
+        const totalInputDecimal = new Decimal(totalInput);
+        // 残り目標額
+        const restSalesTarget = mainTargetDecimal.minus(totalInputDecimal).toNumber();
+        const isNegative = restSalesTarget < 0;
+        const isComplete = restSalesTarget === 0;
+        return {
+          key: key,
+          sales_target: formatToJapaneseYen(value),
+          // sales_target: value,
+          title: title,
+          // restTarget: formatToJapaneseYen(restSalesTarget, true, true),
+          restTarget: restSalesTarget,
+          isNegative: isNegative,
+          isComplete: isComplete,
+        };
+      });
+      return newStatus;
+    } catch (error: any) {
+      console.error("❌エラー：🔹【事業部〜係レベルルート】部門別残り目標金額/総合目標 用の配列 作成 無効な値");
+      return null;
+    }
   }, [salesTargetsYearHalf, totalInputSalesTargetsYearHalf]);
 
   // 部門別残り目標金額/総合目標の部門の残り目標金額が全ての期間で0となり、全ての期間がisCompleteとなったらtrueにする
@@ -1653,6 +1742,7 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
     if (!salesTargetsYearHalfStatus) return null;
     // 会社レベルの場合は、総合目標は存在しないためnullをリターン
     if (upsertSettingEntitiesObj.entityLevel === "company") return null;
+    if (upsertSettingEntitiesObj.entityLevel === "member") return null;
     return salesTargetsYearHalfStatus.every((targetPeriod) => targetPeriod.isComplete);
   }, [salesTargetsYearHalfStatus]);
   // --------------------🔸【事業部〜係レベルルート】部門別残り目標金額/総合目標 用の配列 --------------------
@@ -1660,37 +1750,54 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   // --------------------🔸【メンバーレベルルート】部門別残り目標金額/総合目標 用の配列 --------------------
   const salesTargetsHalfDetailsStatus = useMemo(() => {
     if (!salesTargetsHalfDetails) return null;
+    if (salesTargetsHalfDetails === null || salesTargetsHalfDetails === undefined) return null;
     // 会社レベルの場合は、総合目標は存在しないためnullをリターン
-    if (upsertSettingEntitiesObj.entityLevel === "company") return null;
-    return Object.entries(salesTargetsHalfDetails).map(([key, value], index) => {
-      let title: { [key: string]: string } = { ja: `年度`, en: `Fiscal Year` };
-      if (key === "sales_target_first_half") title = { ja: `上半期`, en: `First Half Year` };
-      if (key === "sales_target_second_half") title = { ja: `下半期`, en: `Second Half Year` };
-      const totalInput = totalInputSalesTargetsHalfDetails.total_targets[key as KeysSalesTargetsHalfDetails];
-      const mainTargetDecimal = new Decimal(value);
-      const totalInputDecimal = new Decimal(totalInput);
-      // 残り目標額
-      const restSalesTarget = mainTargetDecimal.minus(totalInputDecimal).toNumber();
-      const isNegative = restSalesTarget < 0;
-      const isComplete = restSalesTarget === 0;
-      return {
-        key: key,
-        sales_target: formatToJapaneseYen(value),
-        // sales_target: value,
-        title: title,
-        // restTarget: formatToJapaneseYen(restSalesTarget, true, true),
-        restTarget: restSalesTarget,
-        isNegative: isNegative,
-        isComplete: isComplete,
-      };
-    });
+    if (upsertSettingEntitiesObj.entityLevel !== "member") return null;
+    try {
+      console.log(
+        "🔹【メンバーレベルルート】部門別残り目標金額/総合目標 用の配列 作成",
+        "upsertSettingEntitiesObj",
+        upsertSettingEntitiesObj,
+        "メイン目標キャッシュsalesTargetsHalfDetails",
+        salesTargetsHalfDetails
+      );
+      const newStatus = Object.entries(salesTargetsHalfDetails).map(([key, value], index) => {
+        let title: { [key: string]: string } = { ja: `年度`, en: `Fiscal Year` };
+        if (key === "sales_target_half" && upsertSettingEntitiesObj.periodType === "first_half_details")
+          title = { ja: `上半期`, en: `First Half Year` };
+        if (key === "sales_target_half" && upsertSettingEntitiesObj.periodType === "second_half_details")
+          title = { ja: `下半期`, en: `Second Half Year` };
+        const totalInput = totalInputSalesTargetsHalfDetails.total_targets[key as KeysSalesTargetsHalfDetails];
+        const mainTargetDecimal = new Decimal(value);
+        const totalInputDecimal = new Decimal(totalInput);
+        // 残り目標額
+        const restSalesTarget = mainTargetDecimal.minus(totalInputDecimal).toNumber();
+        const isNegative = restSalesTarget < 0;
+        const isComplete = restSalesTarget === 0;
+        return {
+          key: key,
+          sales_target: formatToJapaneseYen(value),
+          // sales_target: value,
+          title: title,
+          // restTarget: formatToJapaneseYen(restSalesTarget, true, true),
+          restTarget: restSalesTarget,
+          isNegative: isNegative,
+          isComplete: isComplete,
+        };
+      });
+      return newStatus;
+    } catch (error: any) {
+      console.error("❌エラー：🔹【メンバーレベルルート】部門別残り目標金額/総合目標 用の配列 作成 無効な値");
+      return null;
+    }
   }, [salesTargetsHalfDetails, totalInputSalesTargetsHalfDetails]);
 
   // 部門別残り目標金額/総合目標の部門の残り目標金額が全ての期間で0となり、全ての期間がisCompleteとなったらtrueにする
   const allCompleteTargetsHalfDetails = useMemo(() => {
     if (!salesTargetsHalfDetailsStatus) return null;
+    if (salesTargetsHalfDetailsStatus === null) return null;
     // 会社レベルの場合は、総合目標は存在しないためnullをリターン
-    if (upsertSettingEntitiesObj.entityLevel === "company") return null;
+    if (upsertSettingEntitiesObj.entityLevel !== "member") return null;
     return salesTargetsHalfDetailsStatus.every((targetPeriod) => targetPeriod.isComplete);
   }, [salesTargetsHalfDetailsStatus]);
 
@@ -1699,19 +1806,23 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
   const infoIconInputStatusRef = useRef<HTMLDivElement | null>(null);
 
   console.log(
-    "🌠UpsertSettingTargetEntityGroupコンポーネントレンダリング",
+    "🌠🌠🌠UpsertSettingTargetEntityGroupコンポーネントレンダリング",
     "upsertSettingEntitiesObj",
     upsertSettingEntitiesObj,
+    "メイン目標キャッシュsalesTargetsYearHalf",
+    salesTargetsYearHalf,
+    "半期詳細ステータスsalesTargetsHalfDetailsStatus",
+    salesTargetsHalfDetailsStatus,
+    "合計目標と個別エンティティ目標totalInputSalesTargetsYearHalf",
+    totalInputSalesTargetsYearHalf,
     "収集したデータinputSalesTargetsIdToDataMap",
     inputSalesTargetsIdToDataMap,
+    "memberDataArray",
+    memberDataArray
     // "settingEntityLevel",
     // settingEntityLevel,
     // "selectedPeriodDetailTrend",
     // selectedPeriodDetailTrend,
-    // "メイン目標キャッシュsalesTargetsYearHalf",
-    // salesTargetsYearHalf,
-    "合計目標と個別エンティティ目標totalInputSalesTargetsYearHalf",
-    totalInputSalesTargetsYearHalf
     // "サブ目標リスト",
     // subTargetList,
     // "memberDataArray",
@@ -1864,12 +1975,21 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                     <div className={`${styles.section_title_area} flex w-full items-end justify-between`}>
                       <h1 className={`${styles.title} ${styles.upsert}`}>
                         {/* <span>部門別</span> */}
-                        {
-                          <span>
-                            {getDivName()}
-                            {upsertSettingEntitiesObj.entityLevel !== "company" ? `別` : ``}
-                          </span>
-                        }
+                        <span>
+                          {getDivName()}
+                          {upsertSettingEntitiesObj.entityLevel !== "company" ? `別` : ``}
+                        </span>
+
+                        {upsertSettingEntitiesObj.entityLevel === "member" && (
+                          <>
+                            {upsertSettingEntitiesObj.periodType === "first_half_details" && (
+                              <span className="ml-[12px]">上期詳細目標</span>
+                            )}
+                            {upsertSettingEntitiesObj.periodType === "second_half_details" && (
+                              <span className="ml-[12px]">下期詳細目標</span>
+                            )}
+                          </>
+                        )}
                       </h1>
 
                       <div className={`${styles.btn_area} flex h-full items-center space-x-[12px]`}>
@@ -1969,12 +2089,20 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                               )}
                               {upsertSettingEntitiesObj.entityLevel === "member" && (
                                 <>
-                                  <option value="first_half">上期</option>
-                                  <option value="second_half">下期</option>
-                                  <option value="first_quarter">Q1</option>
-                                  <option value="second_quarter">Q2</option>
-                                  <option value="third_quarter">Q3</option>
-                                  <option value="fourth_quarter">Q4</option>
+                                  {upsertSettingEntitiesObj.periodType === "first_half_details" && (
+                                    <>
+                                      <option value="first_half">上期</option>
+                                      <option value="first_quarter">Q1</option>
+                                      <option value="second_quarter">Q2</option>
+                                    </>
+                                  )}
+                                  {upsertSettingEntitiesObj.periodType === "second_half_details" && (
+                                    <>
+                                      <option value="second_half">下期</option>
+                                      <option value="third_quarter">Q3</option>
+                                      <option value="fourth_quarter">Q4</option>
+                                    </>
+                                  )}
                                 </>
                               )}
                             </select>
@@ -2354,8 +2482,79 @@ const UpsertSettingTargetEntityGroupMemo = ({ settingEntityLevel, setIsSettingTa
                               style={{ padding: `10px 24px 15px` }}
                             >
                               <div className={`flex w-full items-center justify-between`}>
-                                {!!salesTargetsYearHalfStatus &&
+                                {upsertSettingEntitiesObj.entityLevel !== "member" &&
+                                  !!salesTargetsYearHalfStatus &&
                                   salesTargetsYearHalfStatus.map((obj) => {
+                                    // const totalInputSalesTarget =
+                                    //   totalInputSalesTargetsYearHalf[obj.key as KeysSalesTargetsYearHalf];
+                                    return (
+                                      <div key={`${obj.key}`} className={`flex w-1/3 items-center justify-start`}>
+                                        <div
+                                          className={` flex items-center ${obj.isComplete ? `mr-[12px]` : `mr-[15px]`}`}
+                                        >
+                                          <div
+                                            className={`flex-center min-w-max whitespace-nowrap rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] text-[var(--color-text-title)]`}
+                                          >
+                                            <span>{obj.title[language]}</span>
+                                          </div>
+                                          {obj.isComplete && (
+                                            <BsCheck2 className="pointer-events-none ml-[12px] min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                          )}
+                                        </div>
+                                        <div className={`flex flex-wrap items-end space-x-[12px]`}>
+                                          <div
+                                            className={`flex items-end text-[19px] font-bold ${
+                                              obj.isNegative
+                                                ? `text-[var(--main-color-tk)]`
+                                                : obj.isComplete
+                                                ? `text-[var(--color-text-title)]`
+                                                : `text-[var(--color-text-title)]`
+                                            }`}
+                                          >
+                                            <div className="mr-[6px] flex items-end pb-[3px]">
+                                              <span className={`text-[11px] font-normal`}>残り</span>
+                                            </div>
+                                            {/* <span>{obj.restTarget}</span> */}
+                                            <ProgressNumber
+                                              targetNumber={obj.restTarget}
+                                              // startNumber={Math.round(68000 / 2)}
+                                              // startNumber={Number((68000 * 0.1).toFixed(0))}
+                                              startNumber={0}
+                                              duration={3000}
+                                              easeFn="Quintic"
+                                              fontSize={19}
+                                              // margin="0 0 -3px 0"
+                                              margin="0 0 0 0"
+                                              isReady={true}
+                                              fade={`fade08_forward`}
+                                              isPrice={true}
+                                              isPercent={false}
+                                              includeCurrencySymbol={obj.isComplete ? false : true}
+                                              showNegativeSign={true}
+                                              textColor={`${
+                                                obj.isNegative
+                                                  ? `var(--main-color-tk)`
+                                                  : obj.isComplete
+                                                  ? `var(--bright-green)`
+                                                  : `var(--color-text-title)`
+                                              }`}
+                                            />
+                                          </div>
+                                          <div className={`flex items-center space-x-[6px]`}>
+                                            <div className={``}>
+                                              <span>/</span>
+                                            </div>
+                                            <div className={`text-[14px]`}>
+                                              <span>{obj.sales_target}</span>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                {upsertSettingEntitiesObj.entityLevel === "member" &&
+                                  !!salesTargetsHalfDetailsStatus &&
+                                  salesTargetsHalfDetailsStatus.map((obj) => {
                                     // const totalInputSalesTarget =
                                     //   totalInputSalesTargetsYearHalf[obj.key as KeysSalesTargetsYearHalf];
                                     return (

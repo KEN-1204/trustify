@@ -208,7 +208,8 @@ const UpsertTargetEntityMemo = () => {
     setAddedEntityLevelsListLocal(addedEntityLevelsListQueryData ?? []);
   }, [addedEntityLevelsListQueryData]);
 
-  // 🌟レベルごとのエンティティリストを取得した後に必ずセットするためのuseEffect
+  // ✅【初回マウント時】🌟レベルごとのエンティティリストを取得した後に必ずセットするためのuseEffect
+  const [isSetCompleteEntitiesHierarchy, setIsSetCompleteEntitiesHierarchy] = useState(false);
   useEffect(() => {
     if (entitiesHierarchyQueryData) {
       let initialState: EntitiesHierarchy = {
@@ -227,8 +228,18 @@ const UpsertTargetEntityMemo = () => {
       existingKeys.forEach((key) => {
         initialState[key as EntityLevelNames] = entitiesHierarchyQueryData[key as EntityLevelNames];
       });
+      console.log(
+        "🌟レベルごとのエンティティリストを取得した後に必ずセットするためのuseEffect",
+        "entitiesHierarchyQueryData",
+        entitiesHierarchyQueryData,
+        "existingKeys",
+        existingKeys,
+        "initialState",
+        initialState
+      );
 
       setEntitiesHierarchyLocal(initialState);
+      setIsSetCompleteEntitiesHierarchy(true); // ローカルstateにエンティティのセットが完了を通知 同じ初回マウント時のメンバーレベルで直上の親エンティティに紐づく各メンバー取得するuseQueryが完了したタイミングでentitiesHierarchyLocalにセットする際に、こちらのentitiesHierarchyLocalがセットされていない状態だと全てのレベルが空の配列でsetEntitiesHierarchyLocalが実行されてしまうため、この完了通知の後に再度メンバーもセットする
     }
   }, [entitiesHierarchyQueryData]);
 
@@ -331,6 +342,9 @@ const UpsertTargetEntityMemo = () => {
     if (!userProfileState.company_id) return;
 
     if (Object.keys(queryDataMemberGroupsByParentEntities).length === 0) return;
+
+    // エンティティヒエラルキーがセットされていない場合はセットが完了した後に再度処理を行う
+    if (!isSetCompleteEntitiesHierarchy) return;
 
     let newEntityHierarchy: EntitiesHierarchy = cloneDeep(entitiesHierarchyLocal);
     let newEntityGroupByParent = [] as EntityGroupByParent[];
@@ -503,11 +517,26 @@ const UpsertTargetEntityMemo = () => {
 
       newEntityHierarchy = { ...newEntityHierarchy, member: newEntityGroupByParent };
 
+      // メンバーレベル内に各上位エンティティグループに紐づくメンバーを追加した状態でエンティティローカルstateを更新
       setEntitiesHierarchyLocal(newEntityHierarchy);
+
+      // 0.1秒遅延して右端にスクロールさせる
+      setTimeout(() => {
+        if (scrollContentsAreaRef.current) {
+          // エンティティレベルカラムが3つ以上で画面右端を超える場合にはヘッダーとサイドバーを固定してから右端にスクロールする
+          if (addedEntityLevelsListLocal.length > 3) {
+            if (isStickyHeader === false) setIsStickyHeader(true); // ヘッダー固定
+            if (isStickySidebar === false) setIsStickySidebar(true); // サイドバー固定
+          }
+          const scrollArea = scrollContentsAreaRef.current;
+          const { width } = scrollArea.getBoundingClientRect();
+          scrollArea.scrollTo({ top: 0, left: width, behavior: "smooth" });
+        }
+      }, 100);
     } catch (error: any) {
       console.error("エラー：", error);
     }
-  }, [queryDataMemberGroupsByParentEntities]);
+  }, [queryDataMemberGroupsByParentEntities, isSetCompleteEntitiesHierarchy]);
   // ========================= 🌟メンバーリスト取得useQuery キャッシュ🌟 =========================
 
   // 「事業部」「課・セクション」「係・チーム」「事業所」のid to objectオブジェクトマップ生成
@@ -893,8 +922,8 @@ const UpsertTargetEntityMemo = () => {
       console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥unitセット newEntityHierarchy", newEntityHierarchy, newEntityGroupByParent);
     } else if (selectedNextLevel === "member") {
       // } else if (currentLevel === "member") {
-      // ✅メンバーの場合は、どのレベルから取得するかが、全社、事業部、課、係の中で不明
-      // 全社、事業部、課、係それぞれのパターンを想定して追加するのもあり => 一旦ユーザー側にメンバーは一から追加してもらう
+      // ✅メンバーの場合は、どのレベルから取得するかが、全社、事業部、課、係の中で不明のため、
+      //
 
       // 現在のレベルを member にする
       setCurrentLevel("member");
@@ -965,11 +994,21 @@ const UpsertTargetEntityMemo = () => {
 
     const alertEntityName = mappingEntityName[currentLevel][language];
 
-    // メンバー所属ありのエンティティが1つも存在しない場合にはリターンしてアラート
-    if (entityIdsWithMembersSetObj === null)
-      return alert(
-        `メンバーが所属する${alertEntityName}がありません。売上目標を設定するにはメンバーが所属する${alertEntityName}を1つ以上追加してください。`
-      );
+    // レベルが事業部〜係の場合は、メンバー所属なしのエンティティが構成に含まれている場合にはリターンして、リストから削除してもらうように要求
+    if (["department", "section", "unit"].includes(currentLevel)) {
+      // メンバー所属ありのエンティティが1つも存在しない場合にはリターンしてアラート
+      if (entityIdsWithMembersSetObj === null) {
+        return alert(
+          `メンバーが所属する${alertEntityName}がありません。売上目標を設定するにはメンバーが所属する${alertEntityName}を1つ以上追加してください。`
+        );
+      }
+      // 今回INSERTするエンティティのidのみの配列を作成し、メンバー所属なしエンティティが入っていないか確認
+      if (isIncludeEntityWithoutMembers) {
+        return alert(
+          `メンバーが所属していない${alertEntityName}が含まれています。メンバーが1人以上所属している${alertEntityName}のみ残し、それ以外は目標リストから削除してください。`
+        );
+      }
+    }
 
     // エンティティ INSERT用 entitiesHierarchyLocalから現在のエンティティレベルに対応するエンティティグループを取得してINSERTするエンティティグループにセットする
     // entitiesHierarchyLocal: {company: [], department: []. section: [], ...}
@@ -977,14 +1016,6 @@ const UpsertTargetEntityMemo = () => {
       return alert("レイヤー内の部門データが見つかりませんでした。");
 
     const entityGroupsByParentArray = entitiesHierarchyLocal[currentLevel];
-    // メンバー所属なしのエンティティが構成に含まれている場合にはリターンして、リストから削除してもらうように要求
-    // 今回INSERTするエンティティのidのみの配列を作成し、メンバー所属なしエンティティが入っていないか確認
-
-    if (isIncludeEntityWithoutMembers) {
-      return alert(
-        `メンバーが所属していない${alertEntityName}が含まれています。メンバーが1人以上所属している${alertEntityName}のみ残し、それ以外は目標リストから削除してください。`
-      );
-    }
 
     setIsLoadingSave(true);
     try {
@@ -1336,7 +1367,8 @@ const UpsertTargetEntityMemo = () => {
 
   // ----------------------- 🌟step2の構成を確定時メンバー所属有無確認用🌟 -----------------------
   const entityIdsWithMembersSetObj = useDashboardStore((state) => state.entityIdsWithMembersSetObj);
-  const setEntityIdsWithMembersSetObj = useDashboardStore((state) => state.setEntityIdsWithMembersSetObj);
+  // EntityLevelColumnコンポーネント(各エンティティレベルごとのカラム)内で
+  // const setEntityIdsWithMembersSetObj = useDashboardStore((state) => state.setEntityIdsWithMembersSetObj);
 
   // step2のエンティティ構成確定時のメンバー所属なしエンティティがリスト含まれている場合に、確定ボタンを非アクティブにしてクリック時にはリターンさせる
   // 🌟現在のエンティティレベルの各上位レベルのエンティティグループに紐づく全てのエンティティのidを作成
@@ -1347,6 +1379,7 @@ const UpsertTargetEntityMemo = () => {
     if (!entitiesHierarchyLocal) return null;
     if (!Object.keys(entitiesHierarchyLocal).includes(currentLevel)) return null;
     const entityGroupsByParentArray = entitiesHierarchyLocal[currentLevel];
+    // 現在のレベルの全てエンティティidをまとめた配列を生成
     const newEntityIdsForInsert = entityGroupsByParentArray
       .map((group) => group.entities.map((entity) => entity.entity_id))
       .flatMap((array) => array);
@@ -1371,6 +1404,7 @@ const UpsertTargetEntityMemo = () => {
     // 編集中のエンティティグループ内での表示中のエンティティの配列
     const editingCurrentDisplayEntitiesIds = Array.from(editCurrentDisplayEntityMapInParentGroup.keys());
     if (
+      currentLevel !== "member" &&
       editingCurrentDisplayEntitiesIds.some(
         (id) => !(entityIdsWithMembersSetObj !== null && entityIdsWithMembersSetObj.has(id))
       )
@@ -1841,8 +1875,8 @@ const UpsertTargetEntityMemo = () => {
         return inactiveStyle;
       if (currentLevel === "unit" && (entitiesHierarchyLocal["unit"].length === 0 || isIncludeEntityWithoutMembers))
         return inactiveStyle;
-      if (currentLevel === "member" && (entitiesHierarchyLocal["member"].length === 0 || isIncludeEntityWithoutMembers))
-        return inactiveStyle;
+      // メンバーレベルでは、メンバー所属有無は関係なし
+      if (currentLevel === "member" && entitiesHierarchyLocal["member"].length === 0) return inactiveStyle;
       if (currentLevel === "office" && (entitiesHierarchyLocal["office"].length === 0 || isIncludeEntityWithoutMembers))
         return inactiveStyle;
     }
@@ -2170,6 +2204,7 @@ const UpsertTargetEntityMemo = () => {
                 settingEntityLevel={currentLevel}
                 setIsSettingTargetMode={setIsSettingTargetMode}
                 setStep={setStep}
+                currentParentEntitiesForMember={currentParentEntitiesForMember}
               />
             </Suspense>
           </ErrorBoundary>
@@ -3479,25 +3514,40 @@ const UpsertTargetEntityMemo = () => {
                           <span className="truncate">{getEntityTargetTitle(currentLevel, item)}</span>
                           {/* <MdOutlineDragIndicator className="fill-[var(--color-text)]" /> */}
                         </div>
-                        {isDisplay && (
-                          <div className={`flex min-w-[115px] items-center justify-end`}>
-                            {!(entityIdsWithMembersSetObj && entityIdsWithMembersSetObj.has(item.id)) && (
-                              <span className="mr-[6px] min-w-max text-[10px] text-[var(--main-color-tk)]">
-                                メンバー所属なし
-                              </span>
+                        {currentLevel === "member" && (
+                          <>
+                            {isDisplay && (
+                              <div className={`flex min-w-[115px] items-center justify-end`}>
+                                <span className="min-w-max text-[10px] text-[var(--color-text-brand-f)]">表示中</span>
+                              </div>
                             )}
-                            <span className="min-w-max text-[10px] text-[var(--color-text-brand-f)]">表示中</span>
-                          </div>
+                            {!isDisplay && <div className={`flex items-center justify-end`}></div>}
+                          </>
                         )}
-                        {!isDisplay && !(entityIdsWithMembersSetObj && entityIdsWithMembersSetObj.has(item.id)) && (
-                          <div className={`flex items-center justify-end`}>
-                            {!(entityIdsWithMembersSetObj && entityIdsWithMembersSetObj.has(item.id)) && (
-                              <span className="min-w-max text-[10px] text-[var(--color-text-disabled)]">
-                                メンバー所属なし
-                              </span>
+                        {currentLevel !== "member" && (
+                          <>
+                            {isDisplay && (
+                              <div className={`flex min-w-[115px] items-center justify-end`}>
+                                {!(entityIdsWithMembersSetObj && entityIdsWithMembersSetObj.has(item.id)) && (
+                                  <span className="mr-[6px] min-w-max text-[10px] text-[var(--main-color-tk)]">
+                                    メンバー所属なし
+                                  </span>
+                                )}
+                                <span className="min-w-max text-[10px] text-[var(--color-text-brand-f)]">表示中</span>
+                              </div>
                             )}
-                          </div>
+                            {!isDisplay && !(entityIdsWithMembersSetObj && entityIdsWithMembersSetObj.has(item.id)) && (
+                              <div className={`flex items-center justify-end`}>
+                                {!(entityIdsWithMembersSetObj && entityIdsWithMembersSetObj.has(item.id)) && (
+                                  <span className="min-w-max text-[10px] text-[var(--color-text-disabled)]">
+                                    メンバー所属なし
+                                  </span>
+                                )}
+                              </div>
+                            )}
+                          </>
                         )}
+
                         {/* {item.target_type === "sales_target" && (
                         <span className="min-w-max text-[10px] text-[var(--color-text-brand-f)]">表示中</span>
                       )} */}

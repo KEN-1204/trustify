@@ -95,7 +95,12 @@ export const EntityLevelColumn = ({
     entitiesHierarchyLocal,
     targetType: "sales_target",
     levelObj: levelObj,
-    isReady: step === 2 && currentLevel !== "" && currentLevel !== "company" && currentLevel !== "member", // レベル内に追加した事業部~係の各エンティティにメンバーが所属しているか確認、メンバーがいないエンティティがstep2で入っている場合は「構成を確定」がクリックできないようにする
+    isReady:
+      step === 2 &&
+      currentLevel !== "" &&
+      currentLevel !== "company" &&
+      currentLevel !== "member" &&
+      currentLevel === levelObj.entity_level, // レベル内に追加した事業部~係の各エンティティにメンバーが所属しているか確認、メンバーがいないエンティティがstep2で入っている場合は「構成を確定」がクリックできないようにする
   });
   // ===================== 🔸追加した各エンティティ内にメンバーがいるかどうか人数をcountで確認useQuery🔸 =====================
 
@@ -159,8 +164,12 @@ export const EntityLevelColumn = ({
     `🔸${levelObj.entity_level}レベルコンポーネント`,
     "追加済みエンティティのメンバー所属有無状況クエリ結果",
     addedEntitiesMemberCountQueryData,
-    `${levelObj.entity_level}レベル内上位エンティティグループごとの目標設定状況`,
-    completeSettingMapInGroup
+    `${levelObj.entity_level}レベル内上位エンティティグループごとの目標設定状況completeSettingMapInGroup`,
+    completeSettingMapInGroup,
+    "entityGroupListByParent",
+    entityGroupListByParent,
+    "levelObj",
+    levelObj
   );
 
   return (
@@ -170,7 +179,7 @@ export const EntityLevelColumn = ({
         <div className={`flex w-full justify-between`}>
           <h4 className={`text-[19px] font-bold`}>{mappingEntityName[entityLevel][language]}</h4>
           <div className={`flex items-center text-[13px]`}>
-            {currentLevel !== "member" && (
+            {entityLevel !== "member" && (
               <>
                 {settingLevelState === "notSet" && <span className={`text-[var(--main-color-tk)]`}>未設定</span>}
                 {settingLevelState !== "notSet" && (
@@ -188,7 +197,7 @@ export const EntityLevelColumn = ({
               </>
             )}
 
-            {currentLevel === "member" && (
+            {entityLevel === "member" && (
               <>
                 {(selectedPeriodTypeForMemberLevel === "first_half_details" &&
                   ["setAll", "setFirstHalf"].includes(settingLevelState)) ||

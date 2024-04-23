@@ -48,8 +48,8 @@ export const useQuerySalesSummaryAndGrowthHalfDetails = ({
         _entity_level: entityLevel, // エンティティタイプの割り当て
         _entity_id: entityId, // エンティティid
         _fiscal_year: fiscalYear, // 現在の会計年度
-        _start_year_month: annualFiscalMonths.month_01,
-        _end_year_month: annualFiscalMonths.month_06,
+        // _start_year_month: annualFiscalMonths.month_01,
+        // _end_year_month: annualFiscalMonths.month_06,
         _month_01: annualFiscalMonths.month_01,
         _month_02: annualFiscalMonths.month_02,
         _month_03: annualFiscalMonths.month_03,
@@ -80,8 +80,8 @@ export const useQuerySalesSummaryAndGrowthHalfDetails = ({
         _entity_level: entityLevel, // エンティティタイプの割り当て
         _entity_id: entityId, // エンティティid
         _fiscal_year: fiscalYear, // 現在の会計年度
-        _start_year_month: annualFiscalMonths.month_07,
-        _end_year_month: annualFiscalMonths.month_12,
+        // _start_year_month: annualFiscalMonths.month_07,
+        // _end_year_month: annualFiscalMonths.month_12,
         _month_01: annualFiscalMonths.month_07, // パラメータのmonth_xxの名前自体は上下どちらも一緒に扱う
         _month_02: annualFiscalMonths.month_08,
         _month_03: annualFiscalMonths.month_09,

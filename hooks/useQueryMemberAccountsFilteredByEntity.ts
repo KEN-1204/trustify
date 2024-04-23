@@ -7,16 +7,11 @@ type Props = {
   entityLevel?: string;
   entityIds?: string[];
   entityIdsStr?: string;
-  isReady?: boolean;
+  isReady: boolean;
 };
 
-// 上位エンティティidに紐づくエンティティを全て抽出
-export const useQueryMemberAccountsFilteredByEntity = ({
-  entityLevel,
-  entityIds,
-  entityIdsStr,
-  isReady = true,
-}: Props) => {
+// 上位エンティティidに紐づくメンバーを全て抽出
+export const useQueryMemberAccountsFilteredByEntity = ({ entityLevel, entityIds, entityIdsStr, isReady }: Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const supabase = useSupabaseClient();
 
@@ -53,17 +48,20 @@ export const useQueryMemberAccountsFilteredByEntity = ({
       rows = memberAccountsData;
     } else {
       const { data: memberAccountsData, error } = await supabase
-        .rpc("get_member_accounts_filtered_by_entity", {
+        // .rpc("get_member_accounts_filtered_by_entity", {
+        // .rpc("get_members_filtered_by_parent_entity", {
+        .rpc("get_members_filtered_by_target_entity_ids", {
           _subscription_id: userProfileState.subscription_id,
           _company_id: userProfileState.company_id,
-          _entity_level: entityLevel,
           _entity_ids: entityIds,
-        })
-        .order("profile_name", { ascending: true });
+        });
+      // .order("profile_name", { ascending: true });
+
       if (error) {
         console.log("getMemberAccountsFilteredByEntityエラー発生", error.message);
         throw new Error(error.message);
       }
+
       rows = memberAccountsData;
     }
 
