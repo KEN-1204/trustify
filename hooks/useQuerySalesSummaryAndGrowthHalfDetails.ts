@@ -1,6 +1,7 @@
 import { formatRowNameShort } from "@/components/DashboardSalesTargetComponent/TargetContainer/UpsertTarget/UpsertTarget";
 import useStore from "@/store";
 import { FiscalYearMonthObjForTarget, SalesSummaryHalfDetails, SparkChartObj } from "@/types";
+import { formatRowNameShortHalfDetails } from "@/utils/Helpers/formatRowNames/formatRowNameShortHalfDetails";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -12,6 +13,20 @@ type Props = {
   fiscalYear: number;
   annualFiscalMonths?: FiscalYearMonthObjForTarget | undefined | null;
   fetchEnabled?: boolean;
+  fiscalStartMonthsArray: (
+    | "January"
+    | "February"
+    | "March"
+    | "April"
+    | "May"
+    | "June"
+    | "July"
+    | "August"
+    | "September"
+    | "October"
+    | "November"
+    | "December"
+  )[];
 };
 
 // 過去3年分の売上実績と前年度の伸び率実績を取得するuseQuery
@@ -23,6 +38,7 @@ export const useQuerySalesSummaryAndGrowthHalfDetails = ({
   fiscalYear, // 現在選択中の会計年度(FUNCTION側で-1)
   annualFiscalMonths,
   fetchEnabled = true,
+  fiscalStartMonthsArray,
 }: Props) => {
   const language = useStore((state) => state.language);
   const supabase = useSupabaseClient();
@@ -112,7 +128,9 @@ export const useQuerySalesSummaryAndGrowthHalfDetails = ({
         return {
           ...row,
           sales_trend: {
-            title: formatRowNameShort(row.period_type, fiscalYear - 1)[language],
+            title: formatRowNameShortHalfDetails(row.period_type, fiscalYear - 1, periodType, fiscalStartMonthsArray)[
+              language
+            ],
             subTitle: "前年度伸び率",
             mainValue: row.last_year_sales ?? null,
             growthRate: row.yo2y_growth ? row.yo2y_growth : null,

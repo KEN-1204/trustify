@@ -28,6 +28,7 @@ import { BsChevronLeft } from "react-icons/bs";
 import { IoAddOutline } from "react-icons/io5";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { mappingMonthEnToJa, mappingMonthToAbbreviation } from "@/utils/mappings";
 
 export const columnHeaderListTarget = [
   "period_type",
@@ -108,6 +109,7 @@ export const formatRowName = (row: string, year: number): { ja: string; en: stri
       break;
   }
 };
+// 全社〜係レベル専用 年度〜半期
 export const formatRowNameShort = (row: string, year: number): { ja: string; en: string; [key: string]: string } => {
   switch (row) {
     case "fiscal_year":

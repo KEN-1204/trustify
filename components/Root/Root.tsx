@@ -531,20 +531,28 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
               <div className="absolute left-0 top-0 z-[-1] h-full w-full rounded-[4px] bg-[var(--color-bg-base)]" />
               {!hoveredFeature1 && (
                 <>
-                  <div
-                    className={`fade08_forward absolute left-[12px] top-[10%] z-[0] flex px-[12px] py-[0px]`}
+                  {/* <div
+                    className={`fade08_forward absolute left-[12px] top-[11%] z-[0] flex px-[12px] py-[0px]`}
                     style={{ animationDelay: `0.4s` }}
                   >
-                    <div
-                      className={`flex-center max-w-max rounded-[7px] bg-[var(--color-bg-brand-f)] px-[9px] py-[3px] text-[10px] `}
-                    >
-                      <span className={`text-[#fff]`}>2024</span>
+                    <div className={`beta_icon flex-center relative h-[18px] w-[42px] rounded-full px-[9px] py-[2px]`}>
+                      <span className="text-[9px] text-[#efefef]">New</span>
+                      <span className="absolute -bottom-[0px] left-[50%] h-[1.5px] w-[32px] translate-x-[-50%] bg-gradient-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
                     </div>
-                  </div>
+                  </div> */}
                   <div
                     className={`fade08_forward absolute left-[12px] top-[50%] z-[0] flex translate-y-[-50%] flex-col rounded-[9px] bg-[var(--thumbnail-hero-title-bg)] px-[12px] py-[9px]`}
-                    style={{ animationDelay: `0.4s`, backdropFilter: `var(--thumbnail-hero-title-blur)` }}
+                    // style={{ animationDelay: `0.4s`, backdropFilter: `var(--thumbnail-hero-title-blur)` }}
+                    style={{ animationDelay: `0.4s` }}
                   >
+                    <div className={`absolute left-[0] top-[-39px] z-[0] flex px-[12px]`}>
+                      <div
+                        className={`beta_icon flex-center relative h-[18px] w-[42px] rounded-full px-[9px] py-[2px]`}
+                      >
+                        <span className="text-[9px] text-[#efefef]">New</span>
+                        <span className="absolute -bottom-[0px] left-[50%] h-[1.5px] w-[32px] translate-x-[-50%] bg-gradient-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
+                      </div>
+                    </div>
                     <div className={`font-hiragino flex flex-col text-[var(--color-text-title)]`}>
                       <div className={`text-[10px]`}>誰でも売れる組織へ</div>
                       <div className={`mt-[0px] flex flex-col text-[24px] font-extrabold`}>
@@ -751,7 +759,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
               <div className="absolute left-0 top-0 z-[-1] h-full w-full rounded-[4px] bg-[var(--color-bg-base)]" />
               {!hoveredFeature2 && (
                 <>
-                  <div
+                  {/* <div
                     className={`fade08_forward absolute left-[12px] top-[10%] z-[0] flex px-[12px] py-[0px]`}
                     style={{ animationDelay: `0.4s` }}
                   >
@@ -760,11 +768,18 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                     >
                       <span className={`text-[#fff]`}>2024</span>
                     </div>
-                  </div>
+                  </div> */}
                   <div
                     className={`fade08_forward absolute left-[12px] top-[50%] z-[0] flex translate-y-[-50%] flex-col rounded-[9px] bg-[var(--thumbnail-hero-title-bg-sheer)] px-[12px] py-[9px]`}
                     style={{ animationDelay: `0.4s` }}
                   >
+                    <div className={`absolute left-[0] top-[-39px] z-[0] flex px-[12px]`}>
+                      <div
+                        className={`flex-center max-w-max rounded-[7px] bg-[var(--color-bg-brand-f)] px-[9px] py-[3px] text-[10px] `}
+                      >
+                        <span className={`text-[#fff]`}>2024</span>
+                      </div>
+                    </div>
                     <div className={`font-hiragino flex flex-col text-[var(--color-text-title)]`}>
                       <div className={`text-[10px]`}>今売れる行き先がすぐ見つかる</div>
                       <div className={`mt-[0px] flex flex-col text-[24px] font-extrabold`}>

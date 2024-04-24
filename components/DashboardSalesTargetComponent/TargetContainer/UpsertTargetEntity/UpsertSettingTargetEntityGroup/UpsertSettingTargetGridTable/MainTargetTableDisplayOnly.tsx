@@ -95,7 +95,7 @@ Props) => {
   const upsertSettingEntitiesObj = useDashboardStore((state) => state.upsertSettingEntitiesObj);
 
   // メンバーレベル設定時の上期詳細か下期詳細
-  const settingPeriodTypeForMemberLevel = useDashboardStore((state) => state.settingPeriodTypeForMemberLevel);
+  // const settingPeriodTypeForMemberLevel = useDashboardStore((state) => state.settingPeriodTypeForMemberLevel);
 
   const [isLoading, setIsLoading] = useState(false);
 

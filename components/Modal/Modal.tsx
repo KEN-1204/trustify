@@ -306,7 +306,7 @@ export const Modal: FC = () => {
                 id="email"
                 required
                 // placeholder={`${language === "ja" ? "メールアドレスを入力" : "Email"}`}
-                autoFocus
+                autoFocus={false}
                 value={email}
                 // onChange={(e) => {
                 //   setEmail(e.target.value);
