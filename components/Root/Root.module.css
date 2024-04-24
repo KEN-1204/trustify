@@ -770,6 +770,87 @@
   /* border-color: #232323; */
   /* border-color: var(--color-horizon); */
   /* margin-bottom: 60px; */
+  position: relative;
+}
+
+@keyframes animate_meter_slide {
+  0% {
+    transform: translateX(-110%);
+    left: 0;
+  }
+  100% {
+    transform: translateX(110%);
+    left: 330%;
+  }
+}
+@keyframes animate_meter_slide_reverse {
+  0% {
+    transform: translateX(110%);
+    right: 0;
+  }
+  100% {
+    transform: translateX(-110%);
+    right: 330%;
+  }
+}
+.meteor_brand {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* width: 50%; */
+  width: 66%;
+  height: 100%;
+  border-radius: 12px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    transparent,
+    #0088ff05,
+    #0088ff60,
+    #0088ffe0,
+    #0ab5ffe0,
+    #60fdfdf0,
+    #ffffff
+  );
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  transform: translateX(-110%);
+  /* animation: animate_meter_slide 3s ease infinite; */
+  animation: animate_meter_slide 5s ease infinite;
+  /* animation-delay: 6s !important; */
+}
+.meteor_brand_reverse {
+  position: absolute;
+  top: 0;
+  right: 0;
+  /* width: 50%; */
+  width: 66%;
+  height: 100%;
+  border-radius: 12px;
+  background: linear-gradient(
+    to left,
+    transparent,
+    transparent,
+    #0088ff05,
+    #0088ff60,
+    #0088ffe0,
+    #0ab5ffe0,
+    #60fdfdf0,
+    #ffffff
+  );
+  transform: translateX(110%);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  animation: animate_meter_slide_reverse 5s ease infinite;
+}
+.meter_top {
+  height: 10px;
+  width: 10px;
+  border-radius: 50%;
+  z-index: 100;
+  box-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #fff, 0 0 50px #fff, 0 0 60px #fff;
 }
 
 /* ==================== FAQ ==================== */

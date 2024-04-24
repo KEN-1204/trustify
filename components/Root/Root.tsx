@@ -18,8 +18,21 @@ import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { neonMailIcon, neonMessageIcon, neonMessageIconBg } from "../assets";
 import { FeatureParagraph5 } from "./Features/FeatureParagraph5";
+// テスト
+import useRootStore from "@/store/useRootStore";
+import useThemeStore from "@/store/useThemeStore";
+import { IoPlay } from "react-icons/io5";
 
-export const Root: FC = () => {
+type Props = {
+  logoSrc?: string; // ロゴ なければMeteor
+  blurDataURL?: string; // ロゴ なければMeteor
+  logoSrcDark?: string; // ロゴ なければMeteor
+  blurDataURLDark?: string; // ロゴ なければMeteor
+};
+// export const Root: FC = () => {
+export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURLDark }) => {
+  // テーマ
+  const theme = useRootStore(useThemeStore, (state) => state.theme);
   // 言語
   const language = useStore((state) => state.language);
   const openLangTab = useStore((state) => state.openLangTab);
@@ -399,7 +412,12 @@ export const Root: FC = () => {
         </div>
       </div>
 
-      <hr className={styles.horizon} />
+      {/* <hr className={styles.horizon} /> */}
+      <div className={`${styles.horizon}`}>
+        <div className={`z-1 absolute ${styles.meteor_brand_reverse}`}>
+          <div className={`${styles.meter_top}`}></div>
+        </div>
+      </div>
 
       {/* バーチャルビデオ背景 ここから */}
       {/* {isOpenModal && (
@@ -510,13 +528,81 @@ export const Root: FC = () => {
                 if (featureBgVideoRef1.current) featureBgVideoRef1.current.pause();
               }}
             >
-              <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
+              <div className="absolute left-0 top-0 z-[-1] h-full w-full rounded-[4px] bg-[var(--color-bg-base)]" />
+              {!hoveredFeature1 && (
+                <>
+                  <div
+                    className={`fade08_forward absolute left-[12px] top-[10%] z-[0] flex px-[12px] py-[0px]`}
+                    style={{ animationDelay: `0.4s` }}
+                  >
+                    <div
+                      className={`flex-center max-w-max rounded-[7px] bg-[var(--color-bg-brand-f)] px-[9px] py-[3px] text-[10px] `}
+                    >
+                      <span className={`text-[#fff]`}>2024</span>
+                    </div>
+                  </div>
+                  <div
+                    className={`fade08_forward absolute left-[12px] top-[50%] z-[0] flex translate-y-[-50%] flex-col rounded-[9px] bg-[var(--thumbnail-hero-title-bg)] px-[12px] py-[9px]`}
+                    style={{ animationDelay: `0.4s`, backdropFilter: `var(--thumbnail-hero-title-blur)` }}
+                  >
+                    <div className={`font-hiragino flex flex-col text-[var(--color-text-title)]`}>
+                      <div className={`text-[10px]`}>誰でも売れる組織へ</div>
+                      <div className={`mt-[0px] flex flex-col text-[24px] font-extrabold`}>
+                        <h3>Enhance Sales</h3>
+                        <h3>
+                          {/* <span className={`text-[var(--color-bg-brand-f)]`}>TRUSTiFY</span> Magic Database */}
+                          <span className={`text-brand-f-gradient`}>TRUSTiFY</span> Magic Database
+                        </h3>
+                      </div>
+                      <div className={`mt-[6px] flex`}>
+                        {logoSrc && logoSrcDark ? (
+                          <Image
+                            src={theme === "dark" ? logoSrcDark : logoSrc}
+                            alt=""
+                            fill
+                            sizes="10vw"
+                            placeholder="blur"
+                            blurDataURL={theme === "dark" ? blurDataURLDark : blurDataURL}
+                            className="!relative !h-[30px] !w-[100px] object-cover"
+                          />
+                        ) : (
+                          <span
+                            className={`ml-[-45px] text-[30px] font-[600] ${
+                              theme === "dark" ? `text-[#fff]` : `text-[#000]`
+                            } `}
+                          >
+                            TRUSTiFY
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`absolute-center flex-center z-[2]`}>
+                    <div
+                      className={`flex-center fade08_forward h-[56px] w-[56px] rounded-full bg-[#292929d0] pl-[3px] backdrop-blur-sm`}
+                      style={{
+                        animationDelay: `0.6s`,
+                        boxShadow: `var(--shadow-all-md)`,
+                        border: `1px solid var(--color-bg-brand-f)`,
+                      }}
+                    >
+                      <IoPlay className={`fill-[var(--color-bg-brand-f)] text-[24px]`} />
+                    </div>
+                  </div>
+
+                  <div
+                    className={`shadow-gradient-tb-sm pointer-events-none absolute inset-0 z-[1] rounded-[4px]`}
+                    style={{ background: `var(--thumbnail-shadow-gradient)` }}
+                  />
+                </>
+              )}
               <Image
-                src="/assets/images/root2/feature01_resized_compressed.png"
-                // src="/assets/images/root2/feature05_resized_compressed.png"
-                // src="/assets/images/root2/feature01_resized.png"
-                // src="/assets/images/root/feature1.png"
-                // src="/assets/images/feature-1.png"
+                // src="/assets/images/root2/feature01_resized_compressed.png"
+                src={
+                  theme === "dark"
+                    ? "/assets/images/hero/slide_transparent_shadow_white_55_b3x_last.png"
+                    : "/assets/images/hero/slide_transparent_shadow_black_b3x_last.png"
+                }
                 alt=""
                 placeholder="blur"
                 blurDataURL="/assets/images/root2/placeholders/feature01_placeholder.png"
@@ -554,7 +640,12 @@ export const Root: FC = () => {
         </div> */}
       </section>
 
-      <hr className={styles.horizon} />
+      {/* <hr className={styles.horizon} /> */}
+      <div className={`${styles.horizon} relative`}>
+        <div className={`z-1 absolute ${styles.meteor_brand}`}>
+          <div className={`${styles.meter_top}`}></div>
+        </div>
+      </div>
 
       {/* ======================== Feature2 ======================== */}
       <section
@@ -657,11 +748,81 @@ export const Root: FC = () => {
                 if (featureBgVideoRef2.current) featureBgVideoRef2.current.pause();
               }}
             >
-              <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
+              <div className="absolute left-0 top-0 z-[-1] h-full w-full rounded-[4px] bg-[var(--color-bg-base)]" />
+              {!hoveredFeature2 && (
+                <>
+                  <div
+                    className={`fade08_forward absolute left-[12px] top-[10%] z-[0] flex px-[12px] py-[0px]`}
+                    style={{ animationDelay: `0.4s` }}
+                  >
+                    <div
+                      className={`flex-center max-w-max rounded-[7px] bg-[var(--color-bg-brand-f)] px-[9px] py-[3px] text-[10px] `}
+                    >
+                      <span className={`text-[#fff]`}>2024</span>
+                    </div>
+                  </div>
+                  <div
+                    className={`fade08_forward absolute left-[12px] top-[50%] z-[0] flex translate-y-[-50%] flex-col rounded-[9px] bg-[var(--thumbnail-hero-title-bg-sheer)] px-[12px] py-[9px]`}
+                    style={{ animationDelay: `0.4s` }}
+                  >
+                    <div className={`font-hiragino flex flex-col text-[var(--color-text-title)]`}>
+                      <div className={`text-[10px]`}>今売れる行き先がすぐ見つかる</div>
+                      <div className={`mt-[0px] flex flex-col text-[24px] font-extrabold`}>
+                        <h3>Enhance Sales</h3>
+                        <h3>
+                          {/* <span className={`text-[var(--color-bg-brand-f)]`}>TRUSTiFY</span> Magic Database */}
+                          <span className={`text-brand-f-gradient`}>TRUSTiFY</span> Magic Database
+                        </h3>
+                      </div>
+                      <div className={`mt-[6px] flex`}>
+                        {logoSrc && logoSrcDark ? (
+                          <Image
+                            src={theme === "dark" ? logoSrcDark : logoSrc}
+                            alt=""
+                            fill
+                            sizes="10vw"
+                            placeholder="blur"
+                            blurDataURL={theme === "dark" ? blurDataURLDark : blurDataURL}
+                            className="!relative !h-[30px] !w-[100px] object-cover"
+                          />
+                        ) : (
+                          <span
+                            className={`ml-[-45px] text-[30px] font-[600] ${
+                              theme === "dark" ? `text-[#fff]` : `text-[#000]`
+                            } `}
+                          >
+                            TRUSTiFY
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className={`absolute-center flex-center z-[2]`}>
+                    <div
+                      className={`flex-center fade08_forward h-[56px] w-[56px] rounded-full bg-[#292929d0] pl-[3px] backdrop-blur-sm`}
+                      style={{
+                        animationDelay: `0.6s`,
+                        boxShadow: `var(--shadow-all-md)`,
+                        border: `1px solid var(--color-bg-brand-f)`,
+                      }}
+                    >
+                      <IoPlay className={`fill-[var(--color-bg-brand-f)] text-[24px]`} />
+                    </div>
+                  </div>
+
+                  <div
+                    className={`shadow-gradient-tb-sm pointer-events-none absolute inset-0 z-[1] rounded-[4px]`}
+                    style={{ background: `var(--thumbnail-shadow-gradient)` }}
+                  />
+                </>
+              )}
               <Image
-                src="/assets/images/root2/feature05_resized_compressed.png"
-                // src="/assets/images/root/feature2.png"
-                // src="/assets/images/feature-4.png"
+                // src="/assets/images/root2/feature05_resized_compressed.png"
+                src={
+                  theme === "dark"
+                    ? "/assets/images/hero/bg_slide_black1x_compressed.png"
+                    : "/assets/images/hero/bg_slide_white1x_compressed.png"
+                }
                 alt=""
                 placeholder="blur"
                 blurDataURL="/assets/images/root2/placeholders/feature05_placeholder.png"
@@ -700,7 +861,12 @@ export const Root: FC = () => {
         </div> */}
       </section>
 
-      <hr className={styles.horizon} />
+      {/* <hr className={styles.horizon} /> */}
+      <div className={`${styles.horizon}`}>
+        <div className={`z-1 absolute ${styles.meteor_brand_reverse}`}>
+          <div className={`${styles.meter_top}`}></div>
+        </div>
+      </div>
 
       {/* ======================== Feature3 ======================== */}
       <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} relative`}>
@@ -803,7 +969,7 @@ export const Root: FC = () => {
                 if (featureBgVideoRef3.current) featureBgVideoRef3.current.pause();
               }}
             >
-              <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
+              <div className="absolute left-0 top-0 z-[-1] h-full w-full rounded-[4px] bg-[var(--color-bg-base)]" />
               <Image
                 src="/assets/images/root2/feature02_resized_compressed.png"
                 // src="/assets/images/root/feature3.png"
@@ -835,7 +1001,12 @@ export const Root: FC = () => {
         </div> */}
       </section>
 
-      <hr className={styles.horizon} />
+      {/* <hr className={styles.horizon} /> */}
+      <div className={`${styles.horizon}`}>
+        <div className={`z-1 absolute ${styles.meteor_brand}`}>
+          <div className={`${styles.meter_top}`}></div>
+        </div>
+      </div>
 
       {/* ======================== Feature4 ======================== */}
       <section
@@ -929,7 +1100,7 @@ export const Root: FC = () => {
                 if (featureBgVideoRef4.current) featureBgVideoRef4.current.pause();
               }}
             >
-              <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
+              <div className="absolute left-0 top-0 z-[-1] h-full w-full rounded-[4px] bg-[var(--color-bg-base)]" />
               <Image
                 src="/assets/images/root2/Home_white_resize.png"
                 // src="/assets/images/root2/placeholders/Home_white_resize_placeholder.png"
@@ -960,7 +1131,12 @@ export const Root: FC = () => {
         </div>
       </section>
 
-      <hr className={styles.horizon} />
+      {/* <hr className={styles.horizon} /> */}
+      <div className={`${styles.horizon}`}>
+        <div className={`z-1 absolute ${styles.meteor_brand_reverse}`}>
+          <div className={`${styles.meter_top}`}></div>
+        </div>
+      </div>
 
       {/* ======================== Feature5 ======================== */}
       <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} relative`}>
@@ -1027,7 +1203,7 @@ export const Root: FC = () => {
                 if (featureBgVideoRef5.current) featureBgVideoRef5.current.pause();
               }}
             >
-              <div className="absolute left-0 top-0 z-[-1] h-full w-full bg-[var(--color-bg-base)]" />
+              <div className="absolute left-0 top-0 z-[-1] h-full w-full rounded-[4px] bg-[var(--color-bg-base)]" />
               <Image
                 src="/assets/images/root2/feature02_resized_compressed.png"
                 // src="/assets/images/root/feature3.png"
@@ -1046,7 +1222,12 @@ export const Root: FC = () => {
         </div>
       </section>
 
-      <hr className={styles.horizon} />
+      {/* <hr className={styles.horizon} /> */}
+      <div className={`${styles.horizon}`}>
+        <div className={`z-1 absolute ${styles.meteor_brand}`}>
+          <div className={`${styles.meter_top}`}></div>
+        </div>
+      </div>
 
       {/* ======================== FAQ ======================== */}
       <section id="faq" className={`${styles.faq} max-w-[100vw] overflow-hidden`}>

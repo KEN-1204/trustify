@@ -75,7 +75,7 @@ export const AboutComponent = () => {
     setStartAnimationFeature4(false);
   }, []);
 
-  const [showBg, setShowBg] = useState(() => (Math.random() < 0.78 ? "polkaDots" : "gradientBg"));
+  const [showBg, setShowBg] = useState(() => (Math.random() < 0.9 ? "polkaDots" : "gradientBg"));
 
   const polkaDotsBgsRef = useRef<HTMLDivElement | null>(null);
   const gradientBgRef = useRef<HTMLDivElement | null>(null);

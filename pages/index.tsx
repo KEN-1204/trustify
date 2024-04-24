@@ -64,7 +64,15 @@ export default function Home({ initialLang }: { initialLang: string }) {
           blurDataURLDark="/assets/images/Trustify_logo_black_blur.png"
         />
       )}
-      {activePage === "Root" && <Root />}
+      {/* {activePage === "Root" && <Root />} */}
+      {activePage === "Root" && (
+        <Root
+          logoSrc="/assets/images/Trustify_logo_white1.png"
+          blurDataURL="/assets/images/Trustify_logo_white1_blur.png"
+          logoSrcDark="/assets/images/Trustify_logo_black.png"
+          blurDataURLDark="/assets/images/Trustify_logo_black_blur.png"
+        />
+      )}
       {activePage === "About" && <AboutComponent />}
       {/* {clickedItemPos && <LangMenu />} */}
       {/* {clickedItemPosOver && <LangMenuOver />} */}

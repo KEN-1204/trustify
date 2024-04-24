@@ -1187,6 +1187,22 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* spinnerX */
   --color-spinner-x-bg: rgb(229 231 235);
 
+  /* Rootサムネイル */
+  --thumbnail-hero-title-bg: transparent;
+  --thumbnail-hero-title-bg-sheer: #ffffffa0;
+  --thumbnail-hero-title-blur: blur(2px);
+  /* --thumbnail-shadow-gradient: transparent; */
+  --thumbnail-shadow-gradient: linear-gradient(
+    to bottom,
+    rgba(90, 90, 90, 0.15) 0,
+    rgba(90, 90, 90, 0.06) 15%,
+    rgba(90, 90, 90, 0.03) 35%,
+    rgba(90, 90, 90, 0) 50%,
+    rgba(90, 90, 90, 0.03) 65%,
+    rgba(90, 90, 90, 0.06) 85%,
+    rgba(90, 90, 90, 0.15) 100%
+  );
+
   /* ------------- 🌟ネタ表SDB🌟 light ------------- */
   --color-header-icon-btn: rgba(64, 87, 109, 0.12);
   --color-sidebar-open-overlay: #00000015;
@@ -2130,6 +2146,21 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* spinnerX */
   --color-spinner-x-bg: rgb(75 85 99);
 
+  /* Rootサムネイル */
+  --thumbnail-hero-title-bg: #24242442;
+  --thumbnail-hero-title-bg-sheer: #24242478;
+  --thumbnail-hero-title-blur: blur(4px);
+  --thumbnail-shadow-gradient: linear-gradient(
+    to bottom,
+    rgba(20, 20, 20, 0.6) 0,
+    rgba(20, 20, 20, 0.3) 15%,
+    rgba(20, 20, 20, 0.15) 35%,
+    rgba(20, 20, 20, 0) 50%,
+    rgba(20, 20, 20, 0.15) 65%,
+    rgba(20, 20, 20, 0.3) 85%,
+    rgba(20, 20, 20, 0.6) 100%
+  );
+
   /* ------------- 🌟ネタ表SDB🌟 dark ------------- */
   --color-header-icon-btn: #99999960;
   --color-sidebar-open-overlay: #00000060;
@@ -2504,6 +2535,12 @@ textarea {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.absolute-center {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 /* 共通transition width */
 
@@ -3034,6 +3071,11 @@ textarea {
   /* border: 20px solid #ffffff; */
 }
 
+/* フォント */
+.font-hiragino {
+  font-family: var(--font-family-discord);
+}
+
 /* ブランドグラデーション */
 .brand_f_radial_gradient {
   background: radial-gradient(
@@ -3045,6 +3087,24 @@ textarea {
     #0ab5ff 71.54%,
     rgb(0, 136, 255) 100%
   );
+}
+.text-brand-f-gradient {
+  background: radial-gradient(
+    64.18% 64.18% at 71.16% 35.69%,
+    #cffcfd 0.89%,
+    #bef3f5 17.23%,
+    #7de2eb 42.04%,
+    #7dc8eb 55.12%,
+    #0ab5ff 71.54%,
+    rgb(0, 136, 255) 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+.text-brand-shadow {
+  filter: drop-shadow(0 0 0.3rem var(--color-text-brand-shadow));
 }
 /* ブランドグラデーション */
 .bg-brand-gradient {
