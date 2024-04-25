@@ -3068,6 +3068,16 @@ export type TotalSalesTargetsHalfDetailsObj = {
 };
 // ---------------- 【メンバーレベルUPSERT用】 ----------------
 
+// メンバーレベル売上目標設定時の全メンバーの月次売上目標の入力完了有無と月次目標合計値とQ1, Q2の総合目標と一致しているかを保持
+export type MonthTargetStatusMapForAllMembers = Map<
+  string,
+  {
+    member_id: string;
+    member_name: string;
+    isCompleteAllMonthTargets: boolean;
+  }
+>;
+
 // 売上目標設定時のカラム
 export type SalesTargetUpsertColumns = {
   period_type: string;

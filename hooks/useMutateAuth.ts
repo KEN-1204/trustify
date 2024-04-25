@@ -39,6 +39,7 @@ export const useMutateAuth = () => {
           },
           // skipBrowserRedirect: true,
           // redirectTo: `${process.env.CLIENT_URL}/222`, //テスト
+          redirectTo: `${process.env.CLIENT_URL}/home`, //テスト
         },
       });
 

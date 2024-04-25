@@ -411,9 +411,13 @@ const UpsertSettingTargetEntityGroupMemo = ({
   // ------------------------ 🌠保存ボタンクリック 全ての子コンポーネント内の目標を収集🌠 ここから ------------------------
   // 1. 保存ボタンクリック -> 子コンポーネントの各テーブルに目標をZustandに格納するようトリガーを発火
   const handleCollectInputTargets = () => {
-    // 会社レベル以外の総合目標の振り分けで目標設定するルート
+    // 🔸会社レベル以外の総合目標の振り分けで目標設定するルート
     // 全ての期間の全ての部門の合計売上目標が総合目標と一致していない(allCompleteTargetsYearHalfがfalse)の場合にはアラートを出しリターン
-    if (upsertSettingEntitiesObj.entityLevel !== "company" && !allCompleteTargetsYearHalf) {
+    if (
+      upsertSettingEntitiesObj.entityLevel !== "company" &&
+      upsertSettingEntitiesObj.entityLevel !== "member" &&
+      !allCompleteTargetsYearHalf
+    ) {
       let alertMessage = `売上目標が未設定の${getDivName()}が存在します。`;
       // isNegativeが存在する場合にはアラートをnegative用で表示する
       if (salesTargetsYearHalfStatus && salesTargetsYearHalfStatus.some((targetPeriod) => targetPeriod.isNegative)) {
@@ -426,6 +430,48 @@ const UpsertSettingTargetEntityGroupMemo = ({
           mappingDivName[upsertSettingEntitiesObj.parentEntityLevel as EntityLevelNames][language]
         }の売上目標と一致するように目標金額を振り分けてください。`
       );
+    }
+
+    // 🔸メンバーレベルのルート
+    if (
+      upsertSettingEntitiesObj.entityLevel === "member" &&
+      (!allCompleteTargetsHalfDetails || !isAllCompleteMonthTargetsForMember)
+    ) {
+      if (!allCompleteTargetsHalfDetails) {
+        let alertMessageHalf = `半期売上目標が未設定の${getDivName()}が存在します。`;
+        // isNegativeが存在する場合にはアラートをnegative用で表示する
+        if (
+          salesTargetsHalfDetailsStatus &&
+          salesTargetsHalfDetailsStatus.some((targetPeriod) => targetPeriod.isNegative)
+        ) {
+          const negativePeriodTarget = salesTargetsHalfDetailsStatus.find((target) => target.isNegative);
+          const negativePeriod = negativePeriodTarget ? negativePeriodTarget.title[language] : ``;
+          alertMessageHalf = `${getDivName()}の${negativePeriod}売上目標の合計値が総合目標の売上目標と一致していません。`;
+        }
+        return alert(
+          `${alertMessageHalf}全ての${getDivName()}の半期売上目標の合計値が総合目標の${
+            mappingDivName[upsertSettingEntitiesObj.parentEntityLevel as EntityLevelNames][language]
+          }の半期売上目標と一致するように目標金額を振り分けてください。`
+        );
+      }
+      if (!isAllCompleteMonthTargetsForMember) {
+        let alertMessageMonthQuarter = `売上目標が未設定の${getDivName()}が存在します。`;
+        // isCompleteAllMonthTargetsがfalseのメンバーを特定しアラートする
+        if (
+          monthTargetStatusMapForAllMembers &&
+          Array.from(monthTargetStatusMapForAllMembers.values()).some((member) => !member.isCompleteAllMonthTargets)
+        ) {
+          const isNotCompleteMember = Array.from(monthTargetStatusMapForAllMembers.values()).find(
+            (member) => !member.isCompleteAllMonthTargets
+          );
+          alertMessageMonthQuarter = isNotCompleteMember
+            ? `${isNotCompleteMember.member_name}の売上目標が未入力です。`
+            : `売上目標が未入力のメンバーがいます。`;
+        }
+        return alert(
+          `${alertMessageMonthQuarter}全ての${getDivName()}の月次売上目標の合計値が各四半期の売上目標と一致するように目標金額を振り分けてください。`
+        );
+      }
     }
 
     // 保存ボタンクリックで、各コンポーネントに対して入力値をZustandに格納するようにトリガーを発火
@@ -829,9 +875,9 @@ const UpsertSettingTargetEntityGroupMemo = ({
         }
 
         setIsLoading(false); // ローディングを終了
-        setUpsertSettingEntitiesObj(newUpsertSettingEntitiesObj);
         setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
         setIsOpenConfirmDialog(false); // ダイアログを閉じる
+        setUpsertSettingEntitiesObj(newUpsertSettingEntitiesObj); // 売上設定UPSERTデータをリセット
         setIsSettingTargetMode(false); // 売上設定画面をエンティティ選択画面に戻す
       }
     } catch (error: any) {
@@ -1801,6 +1847,53 @@ const UpsertSettingTargetEntityGroupMemo = ({
     return salesTargetsHalfDetailsStatus.every((targetPeriod) => targetPeriod.isComplete);
   }, [salesTargetsHalfDetailsStatus]);
 
+  // 各メンバーの「月度残り金額/Q」が全て一致して全ての月度の入力が完了したか それぞれのメンバー分の設定状況を管理
+  // id/objでmapで管理
+  // const [monthTargetStatusMapForAllMembers, setMonthTargetStatusMapForAllMembers] = useState(() => {
+  //   if (upsertSettingEntitiesObj.entityLevel !== 'member') return null
+  //     const newMap = new Map(
+  //       upsertSettingEntitiesObj.entities.map((member) => [
+  //         member.entity_id,
+  //         {
+  //           member_id: member.entity_id,
+  //           member_name: member.entity_name,
+  //           isCompleteAllMonthTargets: false,
+  //         },
+  //       ])
+  //     );
+  //   return newMap;
+  // })
+
+  const monthTargetStatusMapForAllMembers = useDashboardStore((state) => state.monthTargetStatusMapForAllMembers);
+  const setMonthTargetStatusMapForAllMembers = useDashboardStore((state) => state.setMonthTargetStatusMapForAllMembers);
+
+  // ✅初回マウント時 monthTargetStatusMapForAllMembersに初期値をセット
+  useEffect(() => {
+    if (upsertSettingEntitiesObj.entityLevel !== "member") return;
+
+    const initialMonthTargetStatusMapForAllMembers = new Map(
+      upsertSettingEntitiesObj.entities.map((member) => [
+        member.entity_id,
+        {
+          member_id: member.entity_id,
+          member_name: member.entity_name,
+          isCompleteAllMonthTargets: false,
+        },
+      ])
+    );
+    setMonthTargetStatusMapForAllMembers(initialMonthTargetStatusMapForAllMembers);
+  }, []);
+
+  // 全てのメンバーの月度目標が入力済みで、かつ、月度目標の合計値がQ1, Q2の総合目標の値と一致している場合true
+  const isAllCompleteMonthTargetsForMember = useMemo(() => {
+    if (upsertSettingEntitiesObj.entityLevel !== "member") return false;
+    if (!monthTargetStatusMapForAllMembers) return false;
+    const completeResult = Array.from(monthTargetStatusMapForAllMembers.values()).every(
+      (member) => member.isCompleteAllMonthTargets
+    );
+    return completeResult;
+  }, [monthTargetStatusMapForAllMembers]);
+
   // --------------------🔸【メンバーレベルルート】部門別残り目標金額/総合目標 用の配列 --------------------
 
   const infoIconInputStatusRef = useRef<HTMLDivElement | null>(null);
@@ -1817,8 +1910,12 @@ const UpsertSettingTargetEntityGroupMemo = ({
     totalInputSalesTargetsYearHalf,
     "収集したデータinputSalesTargetsIdToDataMap",
     inputSalesTargetsIdToDataMap,
-    "memberDataArray",
-    memberDataArray
+    "monthTargetStatusMapForAllMembers",
+    monthTargetStatusMapForAllMembers,
+    "isAllCompleteMonthTargetsForMember",
+    isAllCompleteMonthTargetsForMember
+    // "memberDataArray",
+    // memberDataArray,
     // "settingEntityLevel",
     // settingEntityLevel,
     // "selectedPeriodDetailTrend",
@@ -1864,12 +1961,26 @@ const UpsertSettingTargetEntityGroupMemo = ({
                       </div>
                       <div
                         className={`${styles.btn} ${styles.brand} space-x-[3px] ${
-                          upsertSettingEntitiesObj.entityLevel !== "company" && !allCompleteTargetsYearHalf
+                          (upsertSettingEntitiesObj.entityLevel !== "company" &&
+                            upsertSettingEntitiesObj.entityLevel !== "member" &&
+                            !allCompleteTargetsYearHalf) ||
+                          (upsertSettingEntitiesObj.entityLevel === "member" &&
+                            (!allCompleteTargetsHalfDetails || !isAllCompleteMonthTargetsForMember))
                             ? `${styles.inactive} relative`
                             : `relative`
                         }`}
                         onMouseEnter={(e) => {
-                          if (upsertSettingEntitiesObj.entityLevel !== "company" && !allCompleteTargetsYearHalf) {
+                          if (
+                            upsertSettingEntitiesObj.entityLevel !== "company" &&
+                            upsertSettingEntitiesObj.entityLevel !== "member" &&
+                            !allCompleteTargetsYearHalf
+                          ) {
+                            return;
+                          }
+                          if (
+                            upsertSettingEntitiesObj.entityLevel === "member" &&
+                            (!allCompleteTargetsHalfDetails || !isAllCompleteMonthTargetsForMember)
+                          ) {
                             return;
                           }
                           handleOpenTooltip({
@@ -1885,12 +1996,22 @@ const UpsertSettingTargetEntityGroupMemo = ({
                           handleCollectInputTargets();
                         }}
                       >
-                        {upsertSettingEntitiesObj.entityLevel !== "company" && allCompleteTargetsYearHalf && (
-                          <div
-                            className={`absolute left-0 top-0 z-[0] h-full w-full rounded-[6px] border-[2px] border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f60)] ${styles.animate_ping14}`}
-                            style={{ animationDuration: `1.2s` }}
-                          ></div>
-                        )}
+                        {upsertSettingEntitiesObj.entityLevel !== "company" &&
+                          upsertSettingEntitiesObj.entityLevel !== "member" &&
+                          allCompleteTargetsYearHalf && (
+                            <div
+                              className={`absolute left-0 top-0 z-[0] h-full w-full rounded-[6px] border-[2px] border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f60)] ${styles.animate_ping14}`}
+                              style={{ animationDuration: `1.2s` }}
+                            ></div>
+                          )}
+                        {upsertSettingEntitiesObj.entityLevel === "member" &&
+                          allCompleteTargetsHalfDetails &&
+                          isAllCompleteMonthTargetsForMember && (
+                            <div
+                              className={`absolute left-0 top-0 z-[0] h-full w-full rounded-[6px] border-[2px] border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f60)] ${styles.animate_ping14}`}
+                              style={{ animationDuration: `1.2s` }}
+                            ></div>
+                          )}
                         {/* <RiSave3Fill className={`stroke-[3] text-[12px] text-[#fff]`} /> */}
                         <MdSaveAlt className={`z-[10] text-[14px] text-[#fff]`} />
                         <span className={`z-[10]`}>保存</span>
@@ -2420,30 +2541,63 @@ const UpsertSettingTargetEntityGroupMemo = ({
                                     <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
                                   </div>
                                 </div>
-                                {!allCompleteTargetsYearHalf && (
-                                  <div
-                                    className={`flex-center ml-[18px] h-full pb-[2px] text-[13px] font-normal text-[var(--main-color-tk)]`}
-                                  >
-                                    <span className="">未完了</span>
-                                  </div>
+                                {upsertSettingEntitiesObj.entityLevel !== "member" && (
+                                  <>
+                                    {!allCompleteTargetsYearHalf && (
+                                      <div
+                                        className={`flex-center ml-[18px] h-full pb-[2px] text-[13px] font-normal text-[var(--main-color-tk)]`}
+                                      >
+                                        <span className="">未完了</span>
+                                      </div>
+                                    )}
+                                    {allCompleteTargetsYearHalf && (
+                                      <div
+                                        className={`flex-center ml-[18px] rounded-full border border-solid border-[var(--bright-green)] bg-[var(--bright-green)] px-[12px] py-[3px] text-[12px] text-[#fff]`}
+                                        onMouseEnter={(e) => {
+                                          handleOpenTooltip({
+                                            e: e,
+                                            display: "top",
+                                            content: `全ての${getDivName()}の売上目標の設定が完了しました！\n保存ボタンをクリックして売上目標を確定・保存してください。`,
+                                            marginTop: 30,
+                                            itemsPosition: `left`,
+                                          });
+                                        }}
+                                        onMouseLeave={handleCloseTooltip}
+                                      >
+                                        <span className="ml-[2px]">設定完了</span>
+                                        <BsCheck2 className="pointer-events-none ml-[6px] min-h-[18px] min-w-[18px] stroke-1 text-[18px] text-[#fff]" />
+                                      </div>
+                                    )}
+                                  </>
                                 )}
-                                {allCompleteTargetsYearHalf && (
-                                  <div
-                                    className={`flex-center ml-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f)] px-[12px] py-[3px] text-[12px] text-[#fff]`}
-                                    onMouseEnter={(e) => {
-                                      handleOpenTooltip({
-                                        e: e,
-                                        display: "top",
-                                        content: `全ての${getDivName()}の売上目標の設定が完了しました！\n保存ボタンをクリックして売上目標を確定・保存してください。`,
-                                        marginTop: 30,
-                                        itemsPosition: `left`,
-                                      });
-                                    }}
-                                    onMouseLeave={handleCloseTooltip}
-                                  >
-                                    <span className="ml-[2px]">設定完了</span>
-                                    <BsCheck2 className="pointer-events-none ml-[6px] min-h-[18px] min-w-[18px] stroke-1 text-[18px] text-[#fff]" />
-                                  </div>
+                                {upsertSettingEntitiesObj.entityLevel === "member" && (
+                                  <>
+                                    {!allCompleteTargetsHalfDetails && (
+                                      <div
+                                        className={`flex-center ml-[18px] h-full pb-[2px] text-[13px] font-normal text-[var(--main-color-tk)]`}
+                                      >
+                                        <span className="">未完了</span>
+                                      </div>
+                                    )}
+                                    {allCompleteTargetsHalfDetails && (
+                                      <div
+                                        className={`flex-center ml-[18px] rounded-full border border-solid border-[var(--bright-green)] bg-[var(--bright-green)] px-[12px] py-[3px] text-[12px] text-[#fff]`}
+                                        onMouseEnter={(e) => {
+                                          handleOpenTooltip({
+                                            e: e,
+                                            display: "top",
+                                            content: `全ての${getDivName()}の売上目標の設定が完了しました！\n保存ボタンをクリックして売上目標を確定・保存してください。`,
+                                            marginTop: 30,
+                                            itemsPosition: `left`,
+                                          });
+                                        }}
+                                        onMouseLeave={handleCloseTooltip}
+                                      >
+                                        <span className="ml-[2px]">設定完了</span>
+                                        <BsCheck2 className="pointer-events-none ml-[6px] min-h-[18px] min-w-[18px] stroke-1 text-[18px] text-[#fff]" />
+                                      </div>
+                                    )}
+                                  </>
                                 )}
                               </div>
                               <div className={`${styles.btn_area} flex items-center space-x-[12px]`}>

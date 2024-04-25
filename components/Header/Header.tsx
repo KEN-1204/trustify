@@ -10,6 +10,8 @@ import useThemeStore from "@/store/useThemeStore";
 import useRootStore from "@/store/useRootStore";
 import { LangMenu } from "../Parts/LangMenu/LangMenu";
 import { SpinnerBrand } from "../Parts/SpinnerBrand/SpinnerBrand";
+import { SpinnerX } from "../Parts/SpinnerX/SpinnerX";
+import { useRouter } from "next/router";
 
 type Props = {
   lightModeColor?: string; // bgカラー(ライトモード)
@@ -181,19 +183,32 @@ export const Header: FC<Props> = ({
     }
   }, [sessionState]);
 
+  // // 事前にダッシュボードをプリフェッチ
+  // const router = useRouter();
+  // useEffect(() => {
+  //   const prefetchHome = async () => {
+  //     await router.prefetch("/home");
+  //   };
+  //   prefetchHome();
+  // }, []);
+
   return (
     <>
       {isLoading && (
         <div
           className={`${styles.loading_overlay} fade05_forward flex-col-center fixed inset-0 z-[10000] bg-[var(--overlay-dark99)]`}
         >
+          {/* {!sessionState && <SpinnerBrand withBorder withShadow />}
+          {sessionState && <SpinnerX />} */}
+          {/* {sessionState && <SpinnerBrand withBorder withShadow />} */}
           <SpinnerBrand withBorder withShadow />
           {sessionState && (
             <div
               className={`flex-col-center transition-x-[-50%] transition-y-[-50%] left-[50%] top-[55%] mt-[12px] space-y-[3px] rounded-[6px] bg-[#00000090] px-[12px] py-[6px] text-[13px] text-[#fff]`}
             >
               <span>ダッシュボードをローディング中です...</span>
-              <span>ページ遷移までもうしばらくお待ちください🙇‍♀️</span>
+              <span>ページ遷移まで40秒~50秒ほどかかります</span>
+              <span>もうしばらくお待ちください🙇‍♀️</span>
             </div>
           )}
         </div>

@@ -40,6 +40,7 @@ import {
   SalesTargetsYearHalf,
   TotalSalesTargetsYearHalfObj,
   TotalSalesTargetsHalfDetailsObj,
+  MonthTargetStatusMapForAllMembers,
 } from "@/types";
 import { activityColumnHeaderItemListData } from "@/utils/activityColumnHeaderItemListDate";
 import { companyColumnHeaderItemListData } from "@/utils/companyColumnHeaderItemListData";
@@ -532,6 +533,9 @@ type State = {
   // リスト編集時にレベル内のエンティティからメンバーが所属しているエンティティのidをSetオブジェクトで保持し、リスト編集モーダル内でメンバー所属ありのエンティティのみを残せるようにする
   entityIdsWithMembersSetObj: Set<string> | null;
   setEntityIdsWithMembersSetObj: (payload: Set<string> | null) => void;
+  // メンバーレベルでの、全てのメンバーの月次目標の入力完了と、月次目標の合計とQ1, Q2の総合目標と一致しているかどうかを保持するstate
+  monthTargetStatusMapForAllMembers: MonthTargetStatusMapForAllMembers | null;
+  setMonthTargetStatusMapForAllMembers: (payload: MonthTargetStatusMapForAllMembers | null) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1276,6 +1280,9 @@ const useDashboardStore = create<State>((set) => ({
   // リスト編集時にレベル内のエンティティからメンバーが所属しているエンティティのidをSetオブジェクトで保持し、リスト編集モーダル内でメンバー所属ありのエンティティのみを残せるようにする
   entityIdsWithMembersSetObj: null,
   setEntityIdsWithMembersSetObj: (payload) => set({ entityIdsWithMembersSetObj: payload }),
+  // メンバーレベルでの、全てのメンバーの月次目標の入力完了と、月次目標の合計とQ1, Q2の総合目標と一致しているかどうかを保持するstate
+  monthTargetStatusMapForAllMembers: null,
+  setMonthTargetStatusMapForAllMembers: (payload) => set({ monthTargetStatusMapForAllMembers: payload }),
 
   // ユーザーのエンティティの中でメンバーの親に当たる末端のエンティティ
   // endEntity: "company",

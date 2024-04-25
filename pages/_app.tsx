@@ -104,6 +104,7 @@ export default function App({
             // currentPathRef.current,
             window.history.state.url
           );
+          console.log("🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠router.push");
           await router.push("/home");
         }
         console.log(
@@ -161,6 +162,15 @@ export default function App({
     const handleRouteChangeStart = () => progress.start();
     const handleRouteChangeComplete = () => progress.finish();
     const handleRouteChangeError = () => progress.finish();
+    // const handleRouteChangeStart = () => {
+    //   console.log("🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠progress.start");
+    //   progress.start();
+    // };
+    // const handleRouteChangeComplete = () => {
+    //   console.log("🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠progress.finish");
+    //   progress.finish();
+    // };
+    // const handleRouteChangeError = () => progress.finish();
 
     router.events.on("routeChangeStart", handleRouteChangeStart);
     router.events.on("routeChangeComplete", handleRouteChangeComplete);

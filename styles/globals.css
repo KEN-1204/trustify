@@ -1119,6 +1119,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   );
 
   /* シャドウ light */
+  --shadow-rgb-lg: rgba(0, 0, 0, 0.39);
+  --shadow-rgb-lg-light: rgba(255, 255, 255, 0.39);
+  --shadow-rgb-lg-light-f: var(--color-bg-brand-light40);
   --shadow-sm: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-all-md: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
   --shadow-all-md-dark: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);
@@ -2062,6 +2065,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   );
 
   /* シャドウ dark */
+  --shadow-rgb-lg: rgba(255, 255, 255, 0.39);
+  --shadow-rgb-lg-light: rgba(255, 255, 255, 0.39);
+  --shadow-rgb-lg-light-f: rgba(255, 255, 255, 0.39);
   --shadow-sm: 0px 1px 1px 0px rgba(255, 255, 255, 0.12);
   --shadow-all-md: 0px 4px 15px 1px rgba(255, 255, 255, 0.15);
   --shadow-all-md-dark: 0px 4px 15px 1px rgba(0, 0, 0, 0.15);

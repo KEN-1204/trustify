@@ -1309,3 +1309,23 @@
     opacity: 0.2;
   }
 }
+
+.new_icon {
+  height: 15px;
+  width: 33px;
+  padding: 2px 6px;
+}
+.new_icon span {
+  font-size: 7px;
+}
+
+@media screen and (min-width: 1600px) {
+  .new_icon {
+    height: 18px;
+    width: 42px;
+    padding: 2px 9px;
+  }
+  .new_icon span {
+    font-size: 10px;
+  }
+}

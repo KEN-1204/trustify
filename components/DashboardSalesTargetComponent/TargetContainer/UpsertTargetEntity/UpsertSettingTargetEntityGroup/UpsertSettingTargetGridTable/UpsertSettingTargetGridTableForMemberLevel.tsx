@@ -117,7 +117,7 @@ const UpsertSettingTargetGridTableForMemberLevelMemo = ({
 // endYearMonth,
 Props) => {
   const queryClient = useQueryClient();
-  const supabase = useSupabaseClient();
+  // const supabase = useSupabaseClient();
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // const upsertTargetObj = useDashboardStore((state) => state.upsertTargetObj);
@@ -126,6 +126,10 @@ Props) => {
   // 部門別の「半期」の目標金額の合計値
   const totalInputSalesTargetsHalfDetails = useDashboardStore((state) => state.totalInputSalesTargetsHalfDetails);
   const setTotalInputSalesTargetsHalfDetails = useDashboardStore((state) => state.setTotalInputSalesTargetsHalfDetails);
+
+  // 全てのメンバーの月次目標の入力完了状態と月次合計とQ1, Q2の総合目標が一致しているかを保持するstate
+  const monthTargetStatusMapForAllMembers = useDashboardStore((state) => state.monthTargetStatusMapForAllMembers);
+  const setMonthTargetStatusMapForAllMembers = useDashboardStore((state) => state.setMonthTargetStatusMapForAllMembers);
 
   // 🔸ユーザーの年度初めから12ヶ月分の年月度の配列
   // const annualFiscalMonths = useDashboardStore((state) => state.annualFiscalMonths);
@@ -721,7 +725,7 @@ Props) => {
   // }, [inputSalesTargetHalf, inputSalesTargetFirstQuarter])
   // --------------------- 🌟残りQ/半期🌟 ---------------------
 
-  // メイン目標に対して各月度の合計値の差額をチェックする関数
+  // 🔹メイン目標に対して各月度の合計値の差額をチェックする関数
   const validateMonthlyTargetsAgainstMain = (
     key: "sales_target_first_quarter" | "sales_target_second_quarter",
     mainTarget: string,
@@ -736,7 +740,7 @@ Props) => {
       let totalInputDecimal = new Decimal(0);
       // Q1内の各月度合計値をDecimalで算出
       inputMonths
-        .map((monthInputStr) => parseDecimal(monthInputStr))
+        .map((monthInputStr) => parseDecimal(monthInputStr || 0)) // まだ未入力で空文字の場合は0をDecimalに渡す
         .forEach((monthDecimal) => {
           // plus()で各月度の目標金額を加算した結果をtotalInputDecimalに再代入
           totalInputDecimal = totalInputDecimal.plus(monthDecimal);
@@ -788,57 +792,11 @@ Props) => {
   };
 
   // --------------------- 🌟残り/Q1🌟 ---------------------
-  // type FirstQuarterStatus = {
-  //   key: "sales_target_first_quarter";
-  //   total_sales_target: string;
-  //   title: {
-  //     ja: string;
-  //     en: string;
-  //     [key: string]: string;
-  //   };
-  //   mainTarget: string;
-  //   restTarget: number;
-  //   isNegative: boolean;
-  //   isComplete: boolean;
-  // }
   const [salesTargetFirstQuarterStatus, setSalesTargetFirstQuarterStatus] = useState<QuarterStatus | null>(null);
-  // const salesTargetFirstQuarterStatus = useMemo(() => {
-  //   if (!inputSalesTargetFirstQuarter) return null;
-  //   const inputMonths = [inputSalesTargetMonth01, inputSalesTargetMonth02, inputSalesTargetMonth03];
-  //   const result = validateMonthlyTargetsAgainstMain(
-  //     "sales_target_first_half",
-  //     inputSalesTargetFirstQuarter,
-  //     inputMonths
-  //   );
-  //   return result;
-  // }, [inputSalesTargetFirstQuarter, inputSalesTargetMonth01, inputSalesTargetMonth02, inputSalesTargetMonth03]);
   // --------------------- 🌟残り/Q1🌟 ---------------------
 
   // --------------------- 🌟残り/Q2🌟 ---------------------
-  // type SecondQuarterStatus = {
-  //   key: "sales_target_second_quarter";
-  //   total_sales_target: string;
-  //   title: {
-  //     ja: string;
-  //     en: string;
-  //     [key: string]: string;
-  //   };
-  //   mainTarget: string;
-  //   restTarget: number;
-  //   isNegative: boolean;
-  //   isComplete: boolean;
-  // }
   const [salesTargetSecondQuarterStatus, setSalesTargetSecondQuarterStatus] = useState<QuarterStatus | null>(null);
-  // const salesTargetSecondQuarterStatus = useMemo(() => {
-  //   if (!inputSalesTargetSecondQuarter) return null;
-  //   const inputMonths = [inputSalesTargetMonth04, inputSalesTargetMonth05, inputSalesTargetMonth06];
-  //   const result = validateMonthlyTargetsAgainstMain(
-  //     "sales_target_second_half",
-  //     inputSalesTargetSecondQuarter,
-  //     inputMonths
-  //   );
-  //   return result;
-  // }, [inputSalesTargetSecondQuarter, inputSalesTargetMonth04, inputSalesTargetMonth05, inputSalesTargetMonth06]);
   // --------------------- 🌟残り/Q2🌟 ---------------------
 
   // map展開用の配列
@@ -848,17 +806,6 @@ Props) => {
   type HalfQuarterMonthsKey = "month_01" | "month_02" | "month_03" | "month_04" | "month_05" | "month_06";
   type FirstQuarterMonthsKey = "month_01" | "month_02" | "month_03";
   type SecondQuarterMonthsKey = "month_04" | "month_05" | "month_06";
-
-  // // ------------------------------ 🌠Q1とmonth_01~03が一致しているか🌠 ------------------------------
-  // const isMatchFirstQuarterAndMonth = useMemo(() => {
-  // }, []);
-  // // ------------------------------ 🌠Q1とmonth_01~03が一致しているか🌠 ------------------------------
-
-  // // ------------------------------ 🌠Q2とmonth_04~06が一致しているか🌠 ------------------------------
-  // const isMatchSecondQuarterAndMonth = useMemo(() => {
-  //   return false;
-  // }, []);
-  // // ------------------------------ 🌠Q2とmonth_04~06が一致しているか🌠 ------------------------------
 
   // type RowHeaderNameYearHalf = "fiscal_year" | "first_half" | "second_half";
 
@@ -1177,8 +1124,10 @@ Props) => {
     entityNameTitle,
     "salesTargetsHalfDetails",
     salesTargetsHalfDetails,
-    "inputSalesTargetsList",
-    inputSalesTargetsList
+    "annualFiscalMonths",
+    annualFiscalMonths
+    // "inputSalesTargetsList",
+    // inputSalesTargetsList,
     // "shareHalfYear",
     // shareHalfYear,
     // "entityLevel",
@@ -1261,7 +1210,8 @@ Props) => {
                   salesTargetSecondQuarterStatus?.isComplete && (
                     <div className={`ml-[0px] flex items-center justify-start`}>
                       <div
-                        className={`flex-center ml-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f)] px-[12px] py-[3px] text-[12px] text-[#fff]`}
+                        // className={`flex-center ml-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f)] px-[12px] py-[3px] text-[12px] text-[#fff]`}
+                        className={`flex-center ml-[18px] rounded-full border border-solid border-[var(--bright-green)] bg-[var(--bright-green)] px-[12px] py-[3px] text-[12px] text-[#fff]`}
                         // onMouseEnter={(e) => {
                         //   handleOpenTooltip({
                         //     e: e,
@@ -1732,6 +1682,31 @@ Props) => {
 
                                           setTotalInputSalesTargetsHalfDetails(newTotalTargetsHalfDetailsObj);
                                         }
+
+                                        // 🔸month_xxの全入力完了状態が未完了となるため、このメンバーのisCompleteAllMonthTargetsがtrueだった場合にはfalseにする
+                                        if (monthTargetStatusMapForAllMembers) {
+                                          // 新いMapオブジェクトを作成し、既存のエントリをコピー
+                                          const newMap = new Map(monthTargetStatusMapForAllMembers);
+
+                                          if (newMap.has(entityId)) {
+                                            const targetMemberObj = newMap.get(entityId);
+
+                                            // 全て完了しておらず、今回の入力で全て完了になったらZustandを更新
+                                            if (targetMemberObj && targetMemberObj.isCompleteAllMonthTargets) {
+                                              // このメンバーのisCompleteAllMonthTargetsをfalseに更新してMapオブジェクトのstateを更新
+                                              const updatedMemberObj = {
+                                                ...targetMemberObj,
+                                                isCompleteAllMonthTargets: false,
+                                              };
+                                              newMap.set(entityId, updatedMemberObj); // 更新したオブジェクトでMapを更新
+
+                                              // Zustandステートを新しいMapで更新
+                                              setMonthTargetStatusMapForAllMembers(newMap);
+                                            }
+                                          }
+                                        }
+
+                                        // 空文字入力の場合にはここでリターン
                                         return;
                                       }
                                       // 🔸空文字入力の場合のリセットルート ここまで --------------------
@@ -2501,6 +2476,29 @@ Props) => {
                                           });
                                         }
 
+                                        // 🔸month_xxの全入力完了状態が未完了となるため、このメンバーのisCompleteAllMonthTargetsがtrueだった場合にはfalseにする
+                                        if (monthTargetStatusMapForAllMembers) {
+                                          // 新いMapオブジェクトを作成し、既存のエントリをコピー
+                                          const newMap = new Map(monthTargetStatusMapForAllMembers);
+
+                                          if (newMap.has(entityId)) {
+                                            const targetMemberObj = newMap.get(entityId);
+
+                                            // 全て完了しておらず、今回の入力で全て完了になったらZustandを更新
+                                            if (targetMemberObj && targetMemberObj.isCompleteAllMonthTargets) {
+                                              // このメンバーのisCompleteAllMonthTargetsをfalseに更新してMapオブジェクトのstateを更新
+                                              const updatedMemberObj = {
+                                                ...targetMemberObj,
+                                                isCompleteAllMonthTargets: false,
+                                              };
+                                              newMap.set(entityId, updatedMemberObj); // 更新したオブジェクトでMapを更新
+
+                                              // Zustandステートを新しいMapで更新
+                                              setMonthTargetStatusMapForAllMembers(newMap);
+                                            }
+                                          }
+                                        }
+
                                         // リセット完了した段階でリターン
                                         return;
                                       }
@@ -2570,6 +2568,198 @@ Props) => {
                                       }
 
                                       // 🔸month_xxはシェアの算出なし
+
+                                      // 🔹月次残り目標金額stateを更新【month01~06】
+                                      // --------------- Q1, Q2の両方で適用する関数 ---------------
+                                      const updateTotalMonthTarget = ({
+                                        quarterMonths,
+                                        periodType,
+                                        periodKey,
+                                        inputMainTargetQuarter,
+                                        monthsStrArray,
+                                        setSalesTargetQuarterStatus,
+                                      }: {
+                                        quarterMonths: {
+                                          periodType: FirstQuarterMonthsKey | SecondQuarterMonthsKey;
+                                          inputTarget: string;
+                                        }[];
+                                        periodType: HalfQuarterMonthsKey;
+                                        periodKey: "sales_target_first_quarter" | "sales_target_second_quarter";
+                                        inputMainTargetQuarter: string;
+                                        monthsStrArray: (FirstQuarterMonthsKey | SecondQuarterMonthsKey | string)[];
+                                        setSalesTargetQuarterStatus: Dispatch<SetStateAction<QuarterStatus | null>>;
+                                      }) => {
+                                        // 今回入力したmonthに新たな目標金額をセットした3ヶ月分の配列を作成
+                                        const newQuarterMonths = quarterMonths.map((obj) => {
+                                          if (obj.periodType === periodType) {
+                                            return {
+                                              periodType: obj.periodType,
+                                              inputTarget: newFormatSalesTarget,
+                                            };
+                                          } else {
+                                            // return obj;
+                                            return {
+                                              periodType: obj.periodType,
+                                              inputTarget: obj.inputTarget || "0",
+                                            };
+                                          }
+                                        });
+
+                                        // Q1内の各月次目標の合計値を再計算して残り金額を算出してstate更新
+                                        // 入力値のみの配列を作成して関数の引数に渡す
+                                        const inputMonths = newQuarterMonths.map((obj) => obj.inputTarget);
+
+                                        const result = validateMonthlyTargetsAgainstMain(
+                                          periodKey,
+                                          inputMainTargetQuarter,
+                                          inputMonths
+                                        );
+
+                                        // resultがエラーのルート Q1の期間内のmonth_xxを全てリセット
+                                        if (result === null) {
+                                          inputSalesTargetsList.forEach((target) => {
+                                            // Q1期間内のみリセット
+                                            // if (["month_01", "month_02", "month_03"].includes(target.key)) {
+                                            if (monthsStrArray.includes(target.key)) {
+                                              // 既に空文字のinputはスルー
+                                              if (target.inputTarget !== "") {
+                                                // 売上目標をリセット
+                                                target.setInputTarget("");
+                                                // 前年比をリセット
+                                                target.setInputYoYGrowth("");
+                                                // 売上推移リセット lengthが4で売上目標が追加されてる場合のみリセット
+                                                const trendData = target.salesTrends?.data;
+                                                if (
+                                                  trendData &&
+                                                  trendData.length === 4 &&
+                                                  mapSalesSummaryRowPeriodTypeToObj
+                                                ) {
+                                                  const initialTrend = mapSalesSummaryRowPeriodTypeToObj.get(
+                                                    target.key
+                                                  );
+                                                  target.setSalesTrends(
+                                                    initialTrend
+                                                      ? {
+                                                          ...initialTrend.sales_trend,
+                                                          updateAt: Date.now(),
+                                                        }
+                                                      : null
+                                                  );
+                                                }
+                                              }
+                                              // シェアはmonth_xxはなし
+                                            }
+                                          });
+
+                                          const _mainTarget =
+                                            periodKey === "sales_target_first_quarter"
+                                              ? inputSalesTargetFirstQuarter
+                                              : inputSalesTargetSecondQuarter;
+                                          // 残り目標stateも初期状態にリセット
+                                          // setSalesTargetFirstQuarterStatus({
+                                          setSalesTargetQuarterStatus({
+                                            key: "sales_target_first_quarter",
+                                            total_sales_target: formatToJapaneseYen(0),
+                                            title:
+                                              selectedPeriodTypeForMemberLevel === "first_half_details"
+                                                ? { ja: "Q1", en: `Q1` }
+                                                : { ja: `Q3`, en: `Q3` },
+                                            // mainTarget: inputSalesTargetFirstQuarter,
+                                            mainTarget: _mainTarget,
+                                            // restTarget: Number(zenkakuToHankaku(inputSalesTargetFirstQuarter).replace(/[^\d.]/g, "")),
+                                            restTarget: Number(zenkakuToHankaku(_mainTarget).replace(/[^\d.]/g, "")),
+                                            isNegative: false,
+                                            isComplete: false,
+                                          });
+
+                                          return { isComplete: false };
+                                        }
+                                        // 無事にresultが取得できたルート
+                                        else {
+                                          // setSalesTargetFirstQuarterStatus(result);
+                                          setSalesTargetQuarterStatus(result);
+                                          return { isComplete: result.isComplete };
+                                        }
+                                      };
+                                      // --------------- Q1, Q2の両方で適用する関数 ここまで ---------------
+
+                                      // 🔸入力したmonthがQ1の期間に含まれるルート month_01~03のinputと残り金額stateを更新
+                                      let isCompleteCurrentQuarter = false;
+                                      if (["month_01", "month_02", "month_03"].includes(row.period_type)) {
+                                        const firstQuarterMonths: {
+                                          periodType: FirstQuarterMonthsKey;
+                                          inputTarget: string;
+                                        }[] = [
+                                          { periodType: "month_01", inputTarget: inputSalesTargetMonth01 },
+                                          { periodType: "month_02", inputTarget: inputSalesTargetMonth02 },
+                                          { periodType: "month_03", inputTarget: inputSalesTargetMonth03 },
+                                        ];
+
+                                        const { isComplete } = updateTotalMonthTarget({
+                                          quarterMonths: firstQuarterMonths,
+                                          periodType: row.period_type as HalfQuarterMonthsKey, // このブロックはmonth_xxの列のみなのでHalfQuarterMonthsKeyを型アサーション
+                                          periodKey: "sales_target_first_quarter",
+                                          inputMainTargetQuarter: inputSalesTargetFirstQuarter,
+                                          monthsStrArray: ["month_01", "month_02", "month_03"],
+                                          setSalesTargetQuarterStatus: setSalesTargetFirstQuarterStatus,
+                                        });
+                                        isCompleteCurrentQuarter = isComplete;
+                                      }
+                                      // 🔸入力したmonthがQ2の期間に含まれるルート month_04~06のinputと残り金額stateを更新
+                                      else if (["month_04", "month_05", "month_06"].includes(row.period_type)) {
+                                        const secondQuarterMonths: {
+                                          periodType: SecondQuarterMonthsKey;
+                                          inputTarget: string;
+                                        }[] = [
+                                          { periodType: "month_04", inputTarget: inputSalesTargetMonth04 },
+                                          { periodType: "month_05", inputTarget: inputSalesTargetMonth05 },
+                                          { periodType: "month_06", inputTarget: inputSalesTargetMonth06 },
+                                        ];
+
+                                        const { isComplete } = updateTotalMonthTarget({
+                                          quarterMonths: secondQuarterMonths,
+                                          periodType: row.period_type as HalfQuarterMonthsKey, // このブロックはmonth_xxの列のみなのでHalfQuarterMonthsKeyを型アサーション
+                                          periodKey: "sales_target_second_quarter",
+                                          inputMainTargetQuarter: inputSalesTargetSecondQuarter,
+                                          monthsStrArray: ["month_04", "month_05", "month_06"],
+                                          setSalesTargetQuarterStatus: setSalesTargetSecondQuarterStatus,
+                                        });
+                                        isCompleteCurrentQuarter = isComplete;
+                                      }
+
+                                      // month_xxの全て入力が完了しているかをチェック
+                                      if (monthTargetStatusMapForAllMembers) {
+                                        // 新いMapオブジェクトを作成し、既存のエントリをコピー
+                                        const newMap = new Map(monthTargetStatusMapForAllMembers);
+
+                                        if (newMap.has(entityId)) {
+                                          const targetMemberObj = newMap.get(entityId);
+
+                                          // 全て完了しておらず、今回の入力で全て完了になったらZustandを更新
+                                          if (
+                                            (["month_01", "month_02", "month_03"].includes(row.period_type) &&
+                                              targetMemberObj &&
+                                              !targetMemberObj.isCompleteAllMonthTargets &&
+                                              isCompleteCurrentQuarter &&
+                                              salesTargetSecondQuarterStatus?.isComplete) ||
+                                            (["month_04", "month_05", "month_06"].includes(row.period_type) &&
+                                              targetMemberObj &&
+                                              !targetMemberObj.isCompleteAllMonthTargets &&
+                                              isCompleteCurrentQuarter &&
+                                              salesTargetFirstQuarterStatus?.isComplete)
+                                          ) {
+                                            // このメンバーのisCompleteAllMonthTargetsをtrueに更新してMapオブジェクトのstateを更新
+                                            const updatedMemberObj = {
+                                              ...targetMemberObj,
+                                              isCompleteAllMonthTargets: true,
+                                            };
+                                            newMap.set(entityId, updatedMemberObj); // 更新したオブジェクトでMapを更新
+
+                                            // Zustandステートを新しいMapで更新
+                                            setMonthTargetStatusMapForAllMembers(newMap);
+                                          }
+                                        }
+                                      }
                                     }}
                                   />
                                 )}

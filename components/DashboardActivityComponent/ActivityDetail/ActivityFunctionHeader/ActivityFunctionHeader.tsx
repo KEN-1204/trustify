@@ -204,9 +204,9 @@ const ActivityFunctionHeaderMemo: FC = () => {
               setSelectedRowDataProperty(null);
               setSelectedRowDataQuotation(null);
               if (loadingGlobalState) setLoadingGlobalState(false);
-              // setIsOpenInsertNewPropertyModal(true);
-              setIsInsertModeQuotation(true);
-              setActiveMenuTab("Quotation");
+              setIsOpenInsertNewPropertyModal(true);
+              // setIsInsertModeQuotation(true);
+              // setActiveMenuTab("Property");
             }}
           />
           <RippleButton

@@ -22,6 +22,7 @@ import { FeatureParagraph5 } from "./Features/FeatureParagraph5";
 import useRootStore from "@/store/useRootStore";
 import useThemeStore from "@/store/useThemeStore";
 import { IoPlay } from "react-icons/io5";
+import { useRouter } from "next/router";
 
 type Props = {
   logoSrc?: string; // ロゴ なければMeteor
@@ -45,6 +46,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
   const getStartWithEmail = useStore((state) => state.getStartWithEmail);
   const setGetStartWithEmail = useStore((state) => state.setGetStartWithEmail);
   const setInputEmail = useStore((state) => state.setInputEmail);
+  const sessionState = useStore((state) => state.sessionState);
 
   // FAQのラジオボタンの選択中state
   const [selectedFAQ, setSelectedFAQ] = useState<string | null>(null);
@@ -412,12 +414,14 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
         </div>
       </div>
 
-      {/* <hr className={styles.horizon} /> */}
-      <div className={`${styles.horizon}`}>
-        <div className={`z-1 absolute ${styles.meteor_brand_reverse}`}>
-          <div className={`${styles.meter_top}`}></div>
+      {sessionState && <hr className={styles.horizon} />}
+      {!sessionState && (
+        <div className={`${styles.horizon}`}>
+          <div className={`z-1 absolute ${styles.meteor_brand_reverse}`}>
+            <div className={`${styles.meter_top}`}></div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* バーチャルビデオ背景 ここから */}
       {/* {isOpenModal && (
@@ -462,7 +466,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             // hoveredFeature1 ? `opacity-0` : `pointer-events-none opacity-100`
           }`}
         >
-          <video
+          {/* <video
             ref={featureBgVideoRef1}
             // autoPlay={true}
             muted={true}
@@ -472,13 +476,22 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             className={`pointer-events-none h-[100%] w-[100%] select-none object-cover`}
             onContextMenu={(e) => e.preventDefault()}
           >
-            {/* <source src="/assets/videos/Root/top-bg-virtual-trimmed.mp4" type="video/mp4" /> */}
             <source src="/assets/videos/Root/virtual_resized_compressed.mp4" type="video/mp4" />
-            {/* <source src="/assets/videos/Root/art_white1_compressed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/light_bg_trimmed2_compressed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/nature_snow_compressed_trimmed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/starlight_trimmed.mp4" type="video/mp4" /> */}
-          </video>
+          </video> */}
+          {!sessionState && (
+            <video
+              ref={featureBgVideoRef1}
+              // autoPlay={true}
+              muted={true}
+              playsInline={true}
+              loop={true}
+              preload="none"
+              className={`pointer-events-none h-[100%] w-[100%] select-none object-cover`}
+              onContextMenu={(e) => e.preventDefault()}
+            >
+              <source src="/assets/videos/Root/virtual_resized_compressed.mp4" type="video/mp4" />
+            </video>
+          )}
         </div>
         {/* バーチャルビデオ背景1 ここまで */}
         <div className={`${styles.text_col}`}>
@@ -510,7 +523,8 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             {language === "en" &&
               "By datafying all the processes of sales, which tends to be personalized, such as 'list creation, cold calling, appointment setting, negotiation, closing, and support', and visualizing 'sales-boosting customers, sales-boosting methods, and support methods to maximize satisfaction', we realize an organization where any salesperson can generate high sales and 'maximize economic effects with the least amount of capital and people'."}
           </p> */}
-          <FeatureParagraph hoveredFeature={hoveredFeature1} featureSection={1} />
+          {/* <FeatureParagraph hoveredFeature={hoveredFeature1} featureSection={1} /> */}
+          {!sessionState && <FeatureParagraph hoveredFeature={hoveredFeature1} featureSection={1} />}
         </div>
         <div className={`${styles.img_col} flex items-center`}>
           <div className={`${styles.light_back}`}>
@@ -547,10 +561,10 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                   >
                     <div className={`absolute left-[0] top-[-39px] z-[0] flex px-[12px]`}>
                       <div
-                        className={`beta_icon flex-center relative h-[18px] w-[42px] rounded-full px-[9px] py-[2px]`}
+                        className={`beta_icon ${styles.new_icon} flex-center relative rounded-full px-[6px] py-[2px]`}
                       >
-                        <span className="text-[9px] text-[#efefef]">New</span>
-                        <span className="absolute -bottom-[0px] left-[50%] h-[1.5px] w-[32px] translate-x-[-50%] bg-gradient-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
+                        <span className="text-[#efefef]">New</span>
+                        <span className="absolute -bottom-[0px] left-[50%] h-[1px] w-[24px] translate-x-[-50%] bg-gradient-to-r from-emerald-400/0 via-emerald-400/90 to-emerald-400/0 transition-opacity duration-500 group-hover:opacity-40"></span>
                       </div>
                     </div>
                     <div className={`font-hiragino flex flex-col text-[var(--color-text-title)]`}>
@@ -587,11 +601,11 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                   </div>
                   <div className={`absolute-center flex-center z-[2]`}>
                     <div
-                      className={`flex-center fade08_forward h-[56px] w-[56px] rounded-full bg-[#292929d0] pl-[3px] backdrop-blur-sm`}
+                      className={`flex-center fade08_forward shadow-all-lg h-[56px] w-[56px] rounded-full bg-[#292929d0] pl-[3px] backdrop-blur-sm`}
                       style={{
                         animationDelay: `0.6s`,
-                        boxShadow: `var(--shadow-all-md)`,
-                        border: `1px solid var(--color-bg-brand-f)`,
+                        boxShadow: `0 0 0 1px var(--color-bg-brand-f), 0 0 15px 6px var(--shadow-rgb-lg-light-f)`,
+                        // border: `1px solid var(--color-bg-brand-f)`,
                       }}
                     >
                       <IoPlay className={`fill-[var(--color-bg-brand-f)] text-[24px]`} />
@@ -619,7 +633,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                 className={`${styles.img}`}
                 onContextMenu={(e) => e.preventDefault()}
               />
-              <video
+              {/* <video
                 ref={featureContentVideoRef1}
                 // autoPlay={true}
                 loop={true}
@@ -629,7 +643,20 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                 onContextMenu={(e) => e.preventDefault()}
               >
                 <source src="/assets/videos/dash-company-feature01.mp4" type="video/mp4" />
-              </video>
+              </video> */}
+              {!sessionState && (
+                <video
+                  ref={featureContentVideoRef1}
+                  // autoPlay={true}
+                  loop={true}
+                  playsInline={true}
+                  muted={true}
+                  preload="none"
+                  onContextMenu={(e) => e.preventDefault()}
+                >
+                  <source src="/assets/videos/dash-company-feature01.mp4" type="video/mp4" />
+                </video>
+              )}
             </div>
           </div>
         </div>
@@ -648,12 +675,14 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
         </div> */}
       </section>
 
-      {/* <hr className={styles.horizon} /> */}
-      <div className={`${styles.horizon} relative`}>
-        <div className={`z-1 absolute ${styles.meteor_brand}`}>
-          <div className={`${styles.meter_top}`}></div>
+      {sessionState && <hr className={styles.horizon} />}
+      {!sessionState && (
+        <div className={`${styles.horizon} relative`}>
+          <div className={`z-1 absolute ${styles.meteor_brand}`}>
+            <div className={`${styles.meter_top}`}></div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ======================== Feature2 ======================== */}
       <section
@@ -679,7 +708,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             // hoveredFeature2 ? `opacity-0` : `pointer-events-none opacity-100`
           }`}
         >
-          <video
+          {/* <video
             ref={featureBgVideoRef2}
             // autoPlay={true}
             muted={true}
@@ -689,13 +718,22 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             className={`h-[100%] w-[100%] object-cover`}
             onContextMenu={(e) => e.preventDefault()}
           >
-            {/* <source src="/assets/videos/geographic-compressed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/art_white1_compressed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/light_bg_trimmed2_compressed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/nature_snow_compressed_trimmed.mp4" type="video/mp4" /> */}
             <source src="/assets/videos/Root/starlight_trimmed.mp4" type="video/mp4" />
-            {/* <source src="/assets/videos/Root/star_bg2_trimmed.mp4" type="video/mp4" /> */}
-          </video>
+          </video> */}
+          {!sessionState && (
+            <video
+              ref={featureBgVideoRef2}
+              // autoPlay={true}
+              muted={true}
+              playsInline={true}
+              loop={true}
+              preload="none"
+              className={`h-[100%] w-[100%] object-cover`}
+              onContextMenu={(e) => e.preventDefault()}
+            >
+              <source src="/assets/videos/Root/starlight_trimmed.mp4" type="video/mp4" />
+            </video>
+          )}
           {/* 暗くするオーバーレイ */}
           {/* <div className="absolute inset-0 z-[0] bg-[#00000030]"></div> */}
           {/* シャドウグラデーション */}
@@ -738,7 +776,8 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             {language === "en" &&
               "You can easily and instantly extract potential target companies from our database, which holds data from 980,000 companies, based on various criteria such as 'industry, clients, scale, and past activities'. You can quickly find companies that have the problems your service solves, allowing you to sell faster than your competitors."}
           </p> */}
-          <FeatureParagraph2 hoveredFeature={hoveredFeature2} featureSection={2} />
+          {/* <FeatureParagraph2 hoveredFeature={hoveredFeature2} featureSection={2} /> */}
+          {!sessionState && <FeatureParagraph2 hoveredFeature={hoveredFeature2} featureSection={2} />}
         </div>
         <div className={`${styles.img_col} flex items-center`}>
           <div className={`${styles.light_back}`}>
@@ -814,11 +853,11 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                   </div>
                   <div className={`absolute-center flex-center z-[2]`}>
                     <div
-                      className={`flex-center fade08_forward h-[56px] w-[56px] rounded-full bg-[#292929d0] pl-[3px] backdrop-blur-sm`}
+                      className={`flex-center fade08_forward shadow-all-lg h-[56px] w-[56px] rounded-full bg-[#292929d0] pl-[3px] backdrop-blur-sm`}
                       style={{
                         animationDelay: `0.6s`,
-                        boxShadow: `var(--shadow-all-md)`,
-                        border: `1px solid var(--color-bg-brand-f)`,
+                        boxShadow: `0 0 0 1px var(--color-bg-brand-f), 0 0 15px 6px var(--shadow-rgb-lg-light-f)`,
+                        // border: `1px solid var(--color-bg-brand-f)`,
                       }}
                     >
                       <IoPlay className={`fill-[var(--color-bg-brand-f)] text-[24px]`} />
@@ -847,7 +886,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                 className={`${styles.img}`}
                 onContextMenu={(e) => e.preventDefault()}
               />
-              <video
+              {/* <video
                 ref={featureContentVideoRef2}
                 // autoPlay={true}
                 loop={true}
@@ -857,7 +896,20 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                 onContextMenu={(e) => e.preventDefault()}
               >
                 <source src="/assets/videos/trustify-company-movie2-up.mp4" type="video/mp4" />
-              </video>
+              </video> */}
+              {!sessionState && (
+                <video
+                  ref={featureContentVideoRef2}
+                  // autoPlay={true}
+                  loop={true}
+                  playsInline={true}
+                  muted={true}
+                  preload="none"
+                  onContextMenu={(e) => e.preventDefault()}
+                >
+                  <source src="/assets/videos/trustify-company-movie2-up.mp4" type="video/mp4" />
+                </video>
+              )}
             </div>
           </div>
         </div>
@@ -876,12 +928,14 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
         </div> */}
       </section>
 
-      {/* <hr className={styles.horizon} /> */}
-      <div className={`${styles.horizon}`}>
-        <div className={`z-1 absolute ${styles.meteor_brand_reverse}`}>
-          <div className={`${styles.meter_top}`}></div>
+      {sessionState && <hr className={styles.horizon} />}
+      {!sessionState && (
+        <div className={`${styles.horizon}`}>
+          <div className={`z-1 absolute ${styles.meteor_brand_reverse}`}>
+            <div className={`${styles.meter_top}`}></div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ======================== Feature3 ======================== */}
       <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} relative`}>
@@ -904,7 +958,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             hoveredFeature3 ? `opacity-100` : `pointer-events-none opacity-0`
           }`}
         >
-          <video
+          {/* <video
             ref={featureBgVideoRef3}
             // autoPlay={true}
             muted={true}
@@ -914,15 +968,22 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             className={`h-[100%] w-[100%] object-cover`}
             onContextMenu={(e) => e.preventDefault()}
           >
-            {/* <source src="/assets/videos/Root/top-bg-virtual-trimmed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/virtual_resized_compressed.mp4" type="video/mp4" /> */}
             <source src="/assets/videos/Root/art_white1_compressed.mp4" type="video/mp4" />
-            {/* <source src="/assets/videos/Root/light_bg_trimmed2_compressed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/star_bg2_trimmed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/nature_snow_compressed_trimmed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/starlight_trimmed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/star_bg2_trimmed.mp4" type="video/mp4" /> */}
-          </video>
+          </video> */}
+          {!sessionState && (
+            <video
+              ref={featureBgVideoRef3}
+              // autoPlay={true}
+              muted={true}
+              playsInline={true}
+              loop={true}
+              preload="none"
+              className={`h-[100%] w-[100%] object-cover`}
+              onContextMenu={(e) => e.preventDefault()}
+            >
+              <source src="/assets/videos/Root/art_white1_compressed.mp4" type="video/mp4" />
+            </video>
+          )}
           {/* 暗くするオーバーレイ */}
           {/* <div className="absolute inset-0 z-[0] bg-[#00000030]"></div> */}
           {/* シャドウグラデーション */}
@@ -966,7 +1027,8 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             {language === "en" &&
               "By reducing the daily list creation time by 30 minutes, you save 10 hours per month based on 20 working days, resulting in an annual reduction of 120 hours. This leads to a personnel cost saving of approximately $2,380 per person per year and $23,800 per year for a team of 10 people. (*Personnel costs are calculated based on the median annual income of $38,790)."}
           </p> */}
-          <FeatureParagraph3 hoveredFeature={hoveredFeature3} featureSection={3} />
+          {/* <FeatureParagraph3 hoveredFeature={hoveredFeature3} featureSection={3} /> */}
+          {!sessionState && <FeatureParagraph3 hoveredFeature={hoveredFeature3} featureSection={3} />}
         </div>
         <div className={`${styles.img_col} flex items-center`}>
           <div className={`${styles.light_back}`}>
@@ -1016,12 +1078,14 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
         </div> */}
       </section>
 
-      {/* <hr className={styles.horizon} /> */}
-      <div className={`${styles.horizon}`}>
-        <div className={`z-1 absolute ${styles.meteor_brand}`}>
-          <div className={`${styles.meter_top}`}></div>
+      {sessionState && <hr className={styles.horizon} />}
+      {!sessionState && (
+        <div className={`${styles.horizon}`}>
+          <div className={`z-1 absolute ${styles.meteor_brand}`}>
+            <div className={`${styles.meter_top}`}></div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ======================== Feature4 ======================== */}
       <section
@@ -1046,22 +1110,20 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             hoveredFeature4 ? `opacity-100` : `pointer-events-none opacity-0`
           }`}
         >
-          <video
-            ref={featureBgVideoRef4}
-            // autoPlay={true}
-            muted={true}
-            playsInline={true}
-            loop={true}
-            preload="none"
-            className={`h-[100%] w-[100%] object-cover`}
-            onContextMenu={(e) => e.preventDefault()}
-          >
-            {/* <source src="/assets/videos/geographic-compressed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/art_white1_compressed.mp4" type="video/mp4" /> */}
-            <source src="/assets/videos/Root/nature_snow_compressed_trimmed.mp4" type="video/mp4" />
-            {/* <source src="/assets/videos/Root/light_bg_trimmed2_compressed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/starlight_trimmed.mp4" type="video/mp4" /> */}
-          </video>
+          {!sessionState && (
+            <video
+              ref={featureBgVideoRef4}
+              // autoPlay={true}
+              muted={true}
+              playsInline={true}
+              loop={true}
+              preload="none"
+              className={`h-[100%] w-[100%] object-cover`}
+              onContextMenu={(e) => e.preventDefault()}
+            >
+              <source src="/assets/videos/Root/nature_snow_compressed_trimmed.mp4" type="video/mp4" />
+            </video>
+          )}
           {/* シャドウグラデーション */}
           {/* <div className="shadow-gradient-tb-sm pointer-events-none absolute inset-0 z-[0] h-full w-full select-none"></div> */}
         </div>
@@ -1094,7 +1156,8 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             {language === "en" &&
               "By continuously collecting data on successful and unsuccessful sales prospects, we uncover potential needs from daily sales data, develop products that take the initiative over competitors, and establish a cycle of sales data collection and sales success."}
           </p> */}
-          <FeatureParagraph4 hoveredFeature={hoveredFeature4} featureSection={4} />
+          {/* <FeatureParagraph4 hoveredFeature={hoveredFeature4} featureSection={4} /> */}
+          {!sessionState && <FeatureParagraph4 hoveredFeature={hoveredFeature4} featureSection={4} />}
           {/* {language === "ja" &&
               "売れ先、売れなかった行き先のデータを常に収集することで、日々の営業データから次なる潜在ニーズを発掘し、顧客が気づく前に、他社よりも先手を打つ商品を開発しリリース、そしてまた営業データを収集、売上を上げ続ける仕組みを構築します。"} */}
           {/* {language === "ja" && "日々の営業データから次なる潜在ニーズを発掘し、広告なしのプランでのみご利用いただけます。"} */}
@@ -1146,12 +1209,14 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
         </div>
       </section>
 
-      {/* <hr className={styles.horizon} /> */}
-      <div className={`${styles.horizon}`}>
-        <div className={`z-1 absolute ${styles.meteor_brand_reverse}`}>
-          <div className={`${styles.meter_top}`}></div>
+      {sessionState && <hr className={styles.horizon} />}
+      {!sessionState && (
+        <div className={`${styles.horizon}`}>
+          <div className={`z-1 absolute ${styles.meteor_brand_reverse}`}>
+            <div className={`${styles.meter_top}`}></div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ======================== Feature5 ======================== */}
       <section className={`transition-base-color bg-[--color-bg-hp-main] ${styles.scroll_slides_row} relative`}>
@@ -1161,7 +1226,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             hoveredFeature5 ? `opacity-100` : `pointer-events-none opacity-0`
           }`}
         >
-          <video
+          {/* <video
             ref={featureBgVideoRef5}
             // autoPlay={true}
             muted={true}
@@ -1171,15 +1236,22 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             className={`h-[100%] w-[100%] object-cover`}
             onContextMenu={(e) => e.preventDefault()}
           >
-            {/* <source src="/assets/videos/geographic-compressed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/top-bg-virtual-trimmed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/virtual_resized_compressed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/art_white1_compressed.mp4" type="video/mp4" /> */}
             <source src="/assets/videos/Root/light_bg_trimmed2_compressed.mp4" type="video/mp4" />
-            {/* <source src="/assets/videos/Root/star_bg2_trimmed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/nature_snow_compressed_trimmed.mp4" type="video/mp4" /> */}
-            {/* <source src="/assets/videos/Root/starlight_trimmed.mp4" type="video/mp4" /> */}
-          </video>
+          </video> */}
+          {!sessionState && (
+            <video
+              ref={featureBgVideoRef5}
+              // autoPlay={true}
+              muted={true}
+              playsInline={true}
+              loop={true}
+              preload="none"
+              className={`h-[100%] w-[100%] object-cover`}
+              onContextMenu={(e) => e.preventDefault()}
+            >
+              <source src="/assets/videos/Root/light_bg_trimmed2_compressed.mp4" type="video/mp4" />
+            </video>
+          )}
           {/* 暗くするオーバーレイ */}
           {/* <div className="absolute inset-0 z-[0] bg-[#00000030]"></div> */}
           {/* シャドウグラデーション */}
@@ -1200,7 +1272,8 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
               {language === "en" && "Significantly reduce list creation time and workload."}
             </span>
           </h2>
-          <FeatureParagraph5 hoveredFeature={hoveredFeature5} featureSection={5} />
+          {/* <FeatureParagraph5 hoveredFeature={hoveredFeature5} featureSection={5} /> */}
+          {!sessionState && <FeatureParagraph5 hoveredFeature={hoveredFeature5} featureSection={5} />}
         </div>
         <div className={`${styles.img_col} flex items-center`}>
           <div className={`${styles.light_back}`}>
@@ -1237,12 +1310,14 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
         </div>
       </section>
 
-      {/* <hr className={styles.horizon} /> */}
-      <div className={`${styles.horizon}`}>
-        <div className={`z-1 absolute ${styles.meteor_brand}`}>
-          <div className={`${styles.meter_top}`}></div>
+      {sessionState && <hr className={styles.horizon} />}
+      {!sessionState && (
+        <div className={`${styles.horizon}`}>
+          <div className={`z-1 absolute ${styles.meteor_brand}`}>
+            <div className={`${styles.meter_top}`}></div>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ======================== FAQ ======================== */}
       <section id="faq" className={`${styles.faq} max-w-[100vw] overflow-hidden`}>

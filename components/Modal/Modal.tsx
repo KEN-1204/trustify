@@ -13,6 +13,7 @@ import { useUpdateEffect } from "react-use";
 import { SpinnerX } from "../Parts/SpinnerX/SpinnerX";
 import { Spinner78 } from "../Parts/Spinner78/Spinner78";
 import { SpinnerBrand } from "../Parts/SpinnerBrand/SpinnerBrand";
+import { useRouter } from "next/router";
 
 export const Modal: FC = () => {
   console.log("Modalコンポーネントレンダリング");
@@ -28,6 +29,15 @@ export const Modal: FC = () => {
   const isLogin = useStore((state) => state.isLogin);
   const setIsLogin = useStore((state) => state.setIsLogin);
   const alreadyRequestedOtp = useStore((state) => state.alreadyRequestedOtp);
+
+  // // 事前にダッシュボードをプリフェッチ
+  // const router = useRouter();
+  // useEffect(() => {
+  //   const prefetchHome = async () => {
+  //     await router.prefetch("/home");
+  //   };
+  //   prefetchHome();
+  // }, []);
 
   const {
     email,
