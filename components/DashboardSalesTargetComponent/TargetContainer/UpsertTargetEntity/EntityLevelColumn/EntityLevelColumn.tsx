@@ -177,27 +177,105 @@ export const EntityLevelColumn = ({
       {/* <div key={`column_${levelObj.entity_level}`} className={`${styles.col} fade08_forward`}> */}
       <div className={`${styles.col} fade08_forward`}>
         <div className={`flex w-full justify-between`}>
-          <h4 className={`text-[19px] font-bold`}>{mappingEntityName[entityLevel][language]}</h4>
+          <h4 className={`flex items-center text-[19px] font-bold`}>
+            <span>{mappingEntityName[entityLevel][language]}</span>
+            {step === 3 && currentLevel === "member" && entityLevel === "member" && (
+              <div className={`flex items-center justify-start`}>
+                <div className={`ml-[15px] flex items-center`}>
+                  <div
+                    className={`flex-center transition-bg03 min-w-max space-x-[6px] whitespace-nowrap rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] font-normal text-[var(--color-text-title)] hover:border-[var(--color-bg-brand-f)]`}
+                    onMouseEnter={(e) => {
+                      let tooltipText = ``;
+                      if (selectedPeriodTypeForMemberLevel === "first_half_details")
+                        tooltipText = `現在メンバーレイヤー内の上期詳細（上半期・Q1/Q2・月次）の\n売上目標の設定状況を表示しています`;
+                      if (selectedPeriodTypeForMemberLevel === "second_half_details")
+                        tooltipText = `現在メンバーレイヤー内の下期詳細（下半期・Q3/Q4・月次）の\n売上目標の設定状況を表示しています`;
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: tooltipText,
+                        marginTop: 33,
+                        itemsPosition: `left`,
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {selectedPeriodTypeForMemberLevel === "first_half_details" && `上期詳細`}
+                      {selectedPeriodTypeForMemberLevel === "second_half_details" && `下期詳細`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+            {step === 4 && (
+              <div className={`flex items-center justify-start`}>
+                <div className={`ml-[15px] flex items-center`}>
+                  <div
+                    className={`flex-center transition-bg03 min-w-max space-x-[6px] whitespace-nowrap rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] font-normal text-[var(--color-text-title)] hover:border-[var(--color-bg-brand-f)]`}
+                    onMouseEnter={(e) => {
+                      let tooltipText = ``;
+                      if (selectedPeriodTypeForMemberLevel === "first_half_details")
+                        tooltipText = `${mappingEntityName[entityLevel][language]}レイヤー内の上半期詳細（Q1/Q2・月次）の\n売上目標の設定状況を表示しています`;
+                      if (selectedPeriodTypeForMemberLevel === "second_half_details")
+                        tooltipText = `${mappingEntityName[entityLevel][language]}レイヤー内の下半期詳細（Q3/Q4・月次）の\n売上目標の設定状況を表示しています`;
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: tooltipText,
+                        marginTop: 33,
+                        itemsPosition: `left`,
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {selectedPeriodTypeForMemberLevel === "first_half_details" && `四半期・月次/上期`}
+                      {selectedPeriodTypeForMemberLevel === "second_half_details" && `四半期・月次/下期`}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </h4>
           <div className={`flex items-center text-[13px]`}>
-            {entityLevel !== "member" && (
+            {step !== 4 && (
               <>
-                {settingLevelState === "notSet" && <span className={`text-[var(--main-color-tk)]`}>未設定</span>}
-                {settingLevelState !== "notSet" && (
-                  <div className={`flex items-center space-x-[6px]`}>
-                    {settingLevelState === "setAnnualHalfOnly" && (
-                      <div
-                        // className={`flex-center rounded-full border border-solid border-[var(--color-border-light)] bg-[var(--color-edit-bg-solid)] px-[12px] py-[3px] text-[var(--color-text-sub)]`}
-                        className={`flex-center text-[var(--color-text-brand-f)]`}
-                      >
-                        <span className={`text-[13px]`}>設定完了</span>
+                {entityLevel !== "member" && (
+                  <>
+                    {settingLevelState === "notSet" && <span className={`text-[var(--main-color-tk)]`}>未設定</span>}
+                    {settingLevelState !== "notSet" && (
+                      <div className={`flex items-center space-x-[6px]`}>
+                        {settingLevelState === "setAnnualHalfOnly" && (
+                          <div
+                            // className={`flex-center rounded-full border border-solid border-[var(--color-border-light)] bg-[var(--color-edit-bg-solid)] px-[12px] py-[3px] text-[var(--color-text-sub)]`}
+                            className={`flex-center text-[var(--color-text-brand-f)]`}
+                          >
+                            <span className={`text-[13px]`}>設定完了</span>
+                          </div>
+                        )}
                       </div>
                     )}
-                  </div>
+                  </>
+                )}
+
+                {entityLevel === "member" && (
+                  <>
+                    {(selectedPeriodTypeForMemberLevel === "first_half_details" &&
+                      ["setAll", "setFirstHalf"].includes(settingLevelState)) ||
+                    (selectedPeriodTypeForMemberLevel === "second_half_details" &&
+                      ["setAll", "setSecondHalf"].includes(settingLevelState)) ? (
+                      <div className={`flex-center text-[var(--color-text-brand-f)]`}>
+                        <span className={`text-[13px]`}>設定完了</span>
+                      </div>
+                    ) : (
+                      <span className={`text-[var(--main-color-tk)]`}>未設定</span>
+                    )}
+                  </>
                 )}
               </>
             )}
-
-            {entityLevel === "member" && (
+            {step === 4 && (
               <>
                 {(selectedPeriodTypeForMemberLevel === "first_half_details" &&
                   ["setAll", "setFirstHalf"].includes(settingLevelState)) ||
@@ -211,27 +289,6 @@ export const EntityLevelColumn = ({
                 )}
               </>
             )}
-            {/* メンバーレベルに達した時に「上期詳細」「下期詳細」を切り替えて目標設定状態を確認できるようにする */}
-            {/* <div className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}>
-              <select
-                className={`z-10 min-h-[30px] cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[13px]`}
-                value={currentLevel !== "member" ? `fiscal_year` : settingPeriodTypeForMemberLevel}
-                onChange={(e) => {
-                  setSettingPeriodTypeForMemberLevel(e.target.value);
-                }}
-              >
-                {currentLevel !== "member" && <option value={`fiscal_year`}>年度・半期</option>}
-                {currentLevel === "member" && (
-                  <>
-                    <option value={`first_half_details`}>上期詳細</option>
-                    <option value={`second_half_details`}>下期詳細</option>
-                  </>
-                )}
-              </select>
-              <div className={`${styles.select_arrow}`}>
-                <IoChevronDownOutline className={`text-[12px]`} />
-              </div>
-            </div> */}
           </div>
         </div>
         <ul className={`flex w-full flex-col`}>
@@ -305,7 +362,12 @@ export const EntityLevelColumn = ({
                             (step === 3 &&
                               currentLevel === entityLevel &&
                               currentLevel !== "member" &&
-                              (levelObj.is_confirmed_annual_half || isCompleteAllEntitiesInGroup))) && {
+                              levelObj.is_confirmed_annual_half) ||
+                            (step === 3 &&
+                              currentLevel === entityLevel &&
+                              currentLevel === "member" &&
+                              isCompleteAllEntitiesInGroup) ||
+                            step === 4) && {
                             display: `none`,
                           }),
                         }}
@@ -314,21 +376,22 @@ export const EntityLevelColumn = ({
                             let step2Text = ``;
                             let step2Text2 = `開発部門や総務部門などの売上目標に直接関わらない部門は目標リストから削除し、\n営業部門などの売上に直結する部門を残す形でリストを編集してください。`;
                             let step3Text = ``;
+                            const parentName =
+                              entityGroupObj.parent_entity_name ||
+                              `この${mappingEntityName[parentEntityLevel][language]}`;
                             if (currentLevel !== "" && parentEntityLevel !== "root") {
                               step2Text = `${parentEntityLevel === "company" ? `` : `この`}${
                                 mappingEntityName[parentEntityLevel][language]
                               }内で売上目標に関わる${mappingEntityName[currentLevel][language]}リストを編集する`;
-                              step3Text = `${
-                                parentEntityLevel === "company"
-                                  ? ``
-                                  : `この${mappingEntityName[parentEntityLevel][language]}内の`
-                              }各${mappingEntityName[currentLevel][language]}の売上目標を設定する`;
+                              step3Text = `${parentEntityLevel === "company" ? `` : `${parentName}内の`}各${
+                                mappingEntityName[currentLevel][language]
+                              }の売上目標を設定する`;
                             }
                             if (currentLevel === "company") {
                               step3Text = `全社の売上目標を設定する`;
                               step2Text2 = ``;
                             }
-                            if (currentLevel === "member") {
+                            if (step === 2 && currentLevel === "member") {
                               step2Text2 = `開発部門や総務部門などの売上目標に直接関わらないメンバーは目標リストから削除し、\n営業部門などの売上に直結するメンバーを残す形でリストを編集してください。`;
                             }
 
@@ -336,8 +399,8 @@ export const EntityLevelColumn = ({
                               e: e,
                               display: "top",
                               content: step === 2 ? step2Text : step === 3 ? step3Text : ``,
-                              content2: step2Text2 ? step2Text2 : undefined,
-                              marginTop: step2Text2 ? 48 : 9,
+                              content2: step === 2 && step2Text2 ? step2Text2 : undefined,
+                              marginTop: step === 2 && step2Text2 ? 48 : 9,
                               itemsPosition: step2Text2 ? "left" : "center",
                             });
                           }
@@ -450,7 +513,8 @@ export const EntityLevelColumn = ({
                         const isConfirmFH = entityObj.is_confirmed_first_half_details;
                         const isConfirmSH = entityObj.is_confirmed_second_half_details;
                         // エンティティが設定済みかどうか
-                        let settingState = "notSet";
+                        let settingState: "notSet" | "setAll" | "setAnnualHalfOnly" | "setFirstHalf" | "setSecondHalf" =
+                          "notSet";
                         // 全て設定済み
                         if (isConfirmAH && isConfirmFH && isConfirmSH) {
                           settingState = "setAll";
@@ -460,11 +524,13 @@ export const EntityLevelColumn = ({
                           settingState = "setAnnualHalfOnly";
                         }
                         // 上半期まで
-                        else if (isConfirmAH && isConfirmFH && !isConfirmSH) {
+                        // else if (isConfirmAH && isConfirmFH && !isConfirmSH) {
+                        else if (isConfirmFH && !isConfirmSH) {
                           settingState = "setFirstHalf";
                         }
                         // 下半期まで
-                        else if (isConfirmAH && !isConfirmFH && isConfirmSH) {
+                        // else if (isConfirmAH && !isConfirmFH && isConfirmSH) {
+                        else if (!isConfirmFH && isConfirmSH) {
                           settingState = "setSecondHalf";
                         }
 
@@ -500,32 +566,71 @@ export const EntityLevelColumn = ({
                               </div>
                             </div>
                             <div className={`flex min-h-[30px] items-center`}>
-                              {isNoMember && (
+                              {step !== 4 && (
                                 <>
-                                  <span className="text-[13px] text-[var(--main-color-tk)]">メンバー所属なし</span>
+                                  {isNoMember && (
+                                    <>
+                                      <span className="text-[13px] text-[var(--main-color-tk)]">メンバー所属なし</span>
+                                    </>
+                                  )}
+                                  {!isNoMember && (
+                                    <>
+                                      {settingState === "notSet" && (
+                                        <span className="text-[13px] text-[var(--color-text-sub)]">未設定</span>
+                                      )}
+                                      {settingState !== "notSet" && (
+                                        <div className={`flex items-center space-x-[6px]`}>
+                                          {entityLevel !== "member" && (
+                                            <>
+                                              {(settingState === "setAll" || settingState === "setAnnualHalfOnly") && (
+                                                <>
+                                                  <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                                </>
+                                              )}
+                                            </>
+                                          )}
+                                          {entityLevel === "member" && (
+                                            <>
+                                              {settingState !== "setAll" &&
+                                                ((selectedPeriodTypeForMemberLevel === "first_half_details" &&
+                                                  settingState !== "setFirstHalf") ||
+                                                  (selectedPeriodTypeForMemberLevel === "second_half_details" &&
+                                                    settingState !== "setSecondHalf")) && (
+                                                  <>
+                                                    <span className="text-[13px] text-[var(--color-text-sub)]">
+                                                      未設定
+                                                    </span>
+                                                  </>
+                                                )}
+                                              {(settingState === "setAll" ||
+                                                (selectedPeriodTypeForMemberLevel === "first_half_details" &&
+                                                  settingState === "setFirstHalf") ||
+                                                (selectedPeriodTypeForMemberLevel === "second_half_details" &&
+                                                  settingState === "setSecondHalf")) && (
+                                                <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                              )}
+                                            </>
+                                          )}
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
                                 </>
                               )}
-                              {!isNoMember && (
+                              {step === 4 && (
                                 <>
-                                  {settingState === "notSet" && (
-                                    <span className="text-[13px] text-[var(--color-text-sub)]">未設定</span>
+                                  {((selectedPeriodTypeForMemberLevel === "first_half_details" &&
+                                    settingState === "setFirstHalf") ||
+                                    (selectedPeriodTypeForMemberLevel === "second_half_details" &&
+                                      settingState === "setSecondHalf")) && (
+                                    <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
                                   )}
-                                  {settingState !== "notSet" && (
-                                    <div className={`flex items-center space-x-[6px]`}>
-                                      {settingState === "setAll" && (
-                                        <>
-                                          <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
-                                          {/* <IoTriangleOutline className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" /> */}
-                                        </>
-                                      )}
-                                      {settingState !== "setAll" && (
-                                        <>
-                                          <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
-                                          {/* <IoTriangleOutline className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" /> */}
-                                        </>
-                                      )}
-                                    </div>
-                                  )}
+                                  {!(
+                                    (selectedPeriodTypeForMemberLevel === "first_half_details" &&
+                                      settingState === "setFirstHalf") ||
+                                    (selectedPeriodTypeForMemberLevel === "second_half_details" &&
+                                      settingState === "setSecondHalf")
+                                  ) && <span className="text-[13px] text-[var(--color-text-sub)]">未設定</span>}
                                 </>
                               )}
                             </div>

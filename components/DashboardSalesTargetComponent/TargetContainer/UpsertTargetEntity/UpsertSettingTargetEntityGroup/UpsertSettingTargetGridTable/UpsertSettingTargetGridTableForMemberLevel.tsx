@@ -2606,8 +2606,9 @@ Props) => {
                                         });
 
                                         // Q1内の各月次目標の合計値を再計算して残り金額を算出してstate更新
-                                        // 入力値のみの配列を作成して関数の引数に渡す
+                                        // 入力値のみの配列を作成して関数の引数に渡す 空文字は0の文字列を渡す
                                         const inputMonths = newQuarterMonths.map((obj) => obj.inputTarget);
+                                        // const inputMonths = newQuarterMonths.map((obj) => obj.inputTarget || "0");
 
                                         const result = validateMonthlyTargetsAgainstMain(
                                           periodKey,

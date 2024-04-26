@@ -1813,4 +1813,10 @@ export const mappingPeriodSalesTarget: { [key: string]: { [key: string]: string 
   secondHalf: { ja: "下半期", en: "Second Year" },
 };
 
+// メンバーレベル目標設定時の「上期詳細」「下期詳細」のoptions
+export const mappingHalfDetails: { [key: string]: { [key: string]: string } } = {
+  first_half_details: { ja: "上期詳細", en: "First Half Details" },
+  second_half_details: { ja: "下期詳細", en: "Second Half Details" },
+};
+
 // -------------------------- ✅SDB関連✅ --------------------------
