@@ -52,6 +52,10 @@ import { useQueryAddedEntitiesMemberCount } from "@/hooks/useQueryAddedEntitiesM
 import { FallbackEntityLevelColumn } from "./EntityLevelColumn/FallbackEntityLevelColumn";
 import { EntityLevelColumn } from "./EntityLevelColumn/EntityLevelColumn";
 import { mappingHalfDetails } from "@/utils/selectOptions";
+import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
+import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
+import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
+import { runFireworks } from "@/utils/confetti";
 
 /*
 🌠上位エンティティグループに対して紐付ける方法のメリットとデメリット
@@ -92,6 +96,8 @@ const UpsertTargetEntityMemo = () => {
 
   // ユーザーの会計年度の期首と期末のDateオブジェクト
   const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
+  // ユーザーの年月度の12ヶ月分の配列
+  // const annualFiscalMonths = useDashboardStore((state) => state.annualFiscalMonths);
 
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
@@ -1243,7 +1249,243 @@ const UpsertTargetEntityMemo = () => {
   };
   // ----------------------- 🌟ステップ2 UPSERT「構成を確定」をクリック🌟 ここまで -----------------------
   // ----------------------- 🌟ステップ4 UPSERT「集計」をクリック🌟 -----------------------
-  const handleAggregateQuarterMonth = async () => {};
+  const handleAggregateQuarterMonth = async () => {
+    if (!fiscalYearQueryData) return alert("売上目標年度データが見つかりませんでした。");
+    if (!addedEntityLevelsListQueryData) return alert("レイヤーデータが見つかりませんでした。");
+    // メンバー以外の現在取得されている
+    // ・レベルごとに
+    // ・上位エンティティidに紐づくエンティティグループごとに
+    // 各エンティティidを渡して
+    // 各エンティティidごとにエンティティidに紐づく下位エンティティ(最初はメンバーエンティティ)の
+    // 上期or下期のQ1/Q2と月次の集計値をそのエンティティののQ1/Q2、月次目標に設定UPSERTする
+    // これを全てのレベル、グループ、エンティティごとに行う
+
+    // 事前に定義したレベルの順序をマッピング
+    // メンバーレベルの直上レベルからUPSERTを行うため、memberレベルを除く末端レベルから並び替え
+    const levelOrder = {
+      company: 1,
+      department: 2,
+      section: 3,
+      unit: 4,
+    };
+
+    try {
+      setIsLoading(true); // ローディング開始
+
+      // 🔹【会社〜係レベル】memberとofficeを除いたエンティティレベルのみの配列を作成
+      const entityGroupsWithoutMember = Object.keys(entitiesHierarchyLocal)
+        .filter((key): key is "company" | "department" | "section" | "unit" => key !== "member" && key !== "office")
+        .sort((a, b) => levelOrder[a] - levelOrder[b]) // カスタム順序に基づいてソート
+        .map((key) => {
+          // 上位エンティティごとにグループ化されたエンティティグループ群
+          const parentEntityGroup = entitiesHierarchyLocal[key];
+          // 上位エンティティごとにグループ化されているエンティティを全て平坦化して「Entity[]」の形で返す
+          const flattenEntities = parentEntityGroup.flatMap((group) => group.entities);
+          const entityIds = flattenEntities.map((entity) => entity.entity_id);
+          // idのみ
+          // sales_targetsテーブルへのINSERT用にプロパティ内容を整形
+          const formattedEntities = flattenEntities.map((entity) => {
+            const entityId = entity.entity_id;
+            let createdByCompanyId = userProfileState.company_id;
+            let createdByDepartmentId = null;
+            let createdBySectionId = null;
+            let createdByUnitId = null;
+            let createdByUserId = null;
+            let createdByOfficeId = null;
+
+            if (upsertSettingEntitiesObj.entityLevel === "company") {
+            }
+            if (upsertSettingEntitiesObj.entityLevel === "department") {
+              createdByDepartmentId = entityId;
+            }
+            if (upsertSettingEntitiesObj.entityLevel === "section") {
+              createdByDepartmentId = sectionIdToObjMap?.get(entityId)?.created_by_department_id ?? null;
+              createdBySectionId = entityId;
+            }
+            if (upsertSettingEntitiesObj.entityLevel === "unit") {
+              createdByDepartmentId = unitIdToObjMap?.get(entityId)?.created_by_department_id ?? null;
+              createdBySectionId = unitIdToObjMap?.get(entityId)?.created_by_section_id ?? null;
+              createdByUnitId = entityId;
+            }
+            // メンバーレベルの売上目標のINSERTは無いためmemberレベルの処理は無し
+            if (upsertSettingEntitiesObj.entityLevel === "office") {
+              createdByOfficeId = entityId;
+            }
+
+            // 半期詳細のis_confirmに関しては、今回の設定が「上期詳細」「下期詳細」に応じて動的に変更する
+            let isConfirmedFirstHalf = false;
+            let isConfirmedSecondHalf = false;
+
+            if (selectedPeriodTypeForMemberLevel === "first_half_details") {
+              isConfirmedFirstHalf = true;
+              isConfirmedSecondHalf = entity.is_confirmed_second_half_details; // 現在のまま 既にtrueの場合はtrueをセット
+            } else if (selectedPeriodTypeForMemberLevel === "second_half_details") {
+              isConfirmedFirstHalf = entity.is_confirmed_first_half_details; // 現在のまま 既にtrueの場合はtrueをセット
+              isConfirmedSecondHalf = true;
+            }
+
+            // sales_targets_arrayはFUNCTION内でSELECTクエリで集約する
+            const salesTargetPayload = {
+              entity_id: entity.entity_id,
+              entity_level_id: entity.entity_level_id,
+              entity_structure_id: entity.id,
+              entity_name: entity.entity_name,
+              parent_entity_name: entity.parent_entity_name,
+              created_by_company_id: createdByCompanyId,
+              created_by_department_id: createdByDepartmentId,
+              created_by_section_id: createdBySectionId,
+              created_by_unit_id: createdByUnitId,
+              created_by_user_id: null, // 会社〜係レベルのINSERTのためnull
+              created_by_office_id: null, // 会社〜係レベルのINSERTでは事業所に紐づくことはないのでnull
+              is_confirmed_annual_half: entity.is_confirmed_annual_half, // 会社〜係レベルは既に「年度~半期」目標はINSERT済みのためそのまま
+              is_confirmed_first_half_details: isConfirmedFirstHalf,
+              is_confirmed_second_half_details: isConfirmedSecondHalf,
+              // sales_targets_array: salesTargetObj.sales_targets, // FUNCTION内で集約して追加
+            };
+            /** salesTargetObj.sales_targets: inputSalesData[]
+             * export type inputSalesData = {
+                period_type: string;
+                period: number; // 2024, 20241, 202401
+                sales_target: number;
+              };
+             */
+            return salesTargetPayload;
+          });
+
+          const entityLevelObj = addedEntityLevelsListQueryData.find((level) => level.entity_level === key);
+
+          if (!entityLevelObj) throw new Error("レイヤーデータが見つかりませんでした。E01");
+
+          // entity_level_structures用 半期詳細の今回の設定が「上期詳細」「下期詳細」に応じて動的に変更する
+          let isConfirmedLevelFirstHalf = false;
+          let isConfirmedLevelSecondHalf = false;
+
+          if (selectedPeriodTypeForMemberLevel === "first_half_details") {
+            isConfirmedLevelFirstHalf = true;
+            isConfirmedLevelSecondHalf = entityLevelObj.is_confirmed_second_half_details; // 現在のまま 既にtrueの場合はtrueをセット
+          } else if (selectedPeriodTypeForMemberLevel === "second_half_details") {
+            isConfirmedLevelFirstHalf = entityLevelObj.is_confirmed_first_half_details; // 現在のまま 既にtrueの場合はtrueをセット
+            isConfirmedLevelSecondHalf = true;
+          }
+
+          return {
+            entity_level: key, // "company" | "department" | "section" | "unit"
+            entity_level_id: entityLevelObj.id, // レベルid
+            is_confirmed_annual_half: true, // 必ずtrue
+            is_confirmed_first_half_details: isConfirmedLevelFirstHalf,
+            is_confirmed_second_half_details: isConfirmedLevelSecondHalf,
+            entities_data: formattedEntities,
+            entity_ids: entityIds,
+          };
+        });
+
+      /*
+      Entity[][]: ユーザーがINSERTしたエンティティレベルごとにEntity[]を格納
+      => [
+        [係レベル内の全てのエンティティ],
+        [課レベル内の全てのエンティティ],
+        [事業部レベル内の全てのエンティティ],
+        [全社レベル内の全てのエンティティ]
+      ]
+      */
+
+      // 🔸UPSERT内容
+      // 1. memberレベルに紐づくレベルを起点として全てのエンティティの「Q1/Q2 or Q3/Q4」と「月次」をUPSERT
+      // 2. レベルごとのFOREACHループ内の各エンティティごとのFOREACHループの各イテレーションでsales_targetsテーブルに取り出した単一エンティティの各期間の売上目標のUPSERTが完了したら、entity_structuresテーブルのis_confirmed_xxx_half_detailsをtrueに更新する
+      // 3. 各レベルごとに全てのエンティティの「上期詳細」or「下期詳細」のUPSERTが成功したら、entity_level_structuresテーブルのis_confirm_xxx_half_detailsカラムをtrueに更新する
+      // 4. ユーザーが追加している年度の全てのレベルのis_confirm_xxx_half_detailsカラムがtrueに変更されていることが確認できたら
+      //    fiscal_yearsテーブルのis_confirm_xxx_half_detailsをtrueに変更して、その年度の「上期詳細」or「下期詳細」を完成とする
+
+      /*
+      -- 🔹1. sales_targetsテーブルに各レベルのエンティティの「上期詳細 or 下期詳細」をUPSERT
+      --      memberレベルに紐づくレベルを起点として全てのエンティティの「Q1/Q2 or Q3/Q4」と「月次」をUPSERT
+      -- 🔹2. entity_structuresテーブルのis_confirmed_xxx_half_detailsをtrueに更新
+      -- 🔹3. entity_level_structuresテーブルのis_confirm_xxx_half_detailsをtrueに更新
+      -- 🔹4. fiscal_yearsテーブルのis_confirm_xxx_half_detailsをtrueに更新
+      --      ユーザーが追加している年度の全てのレベルのis_confirm_xxx_half_detailsカラムがtrueに変更されていることが確認できたら
+      --      fiscal_yearsテーブルのis_confirm_xxx_half_detailsをtrueに変更して、その年度の「上期詳細」or「下期詳細」を完成とする
+      */
+      /**   period_start_year_month: , // 会計年月
+            period_end_year_month: , */
+
+      // 上期詳細 or 下期詳細の開始年月と終了年月を算出してpayloadにセット
+      const _settingFiscalYearDateObj = calculateFiscalYearStart({
+        fiscalYearEnd: fiscalYearStartEndDate.endDate,
+        fiscalYearBasis: userProfileState.customer_fiscal_year_basis ?? "firstDayBasis",
+        selectedYear: upsertSettingEntitiesObj.fiscalYear,
+      });
+
+      if (!_settingFiscalYearDateObj) throw new Error("売上目標を追加する際に会計年度データを取得できませんでした。");
+
+      const _fiscalStartYearMonth = calculateDateToYearMonth(
+        _settingFiscalYearDateObj,
+        fiscalYearStartEndDate.endDate.getDate()
+      );
+
+      const fiscalMonths = calculateFiscalYearMonths(_fiscalStartYearMonth);
+
+      // 半期詳細の開始年月
+      const periodStartYearMonth =
+        selectedPeriodTypeForMemberLevel === "first_half_details" ? fiscalMonths.month_01 : fiscalMonths.month_07;
+      // 半期詳細の終了年月
+      const periodEndYearMonth =
+        selectedPeriodTypeForMemberLevel === "first_half_details" ? fiscalMonths.month_06 : fiscalMonths.month_12;
+
+      // fiscal_years用 半期詳細の今回の設定が「上期詳細」「下期詳細」に応じて動的に変更する
+      let isConfirmedFiscalYearFirstHalf = false;
+      let isConfirmedFiscalYearSecondHalf = false;
+
+      if (selectedPeriodTypeForMemberLevel === "first_half_details") {
+        isConfirmedFiscalYearFirstHalf = true;
+        isConfirmedFiscalYearSecondHalf = fiscalYearQueryData.is_confirmed_second_half_details; // 現在のまま
+      } else if (selectedPeriodTypeForMemberLevel === "second_half_details") {
+        isConfirmedFiscalYearFirstHalf = fiscalYearQueryData.is_confirmed_first_half_details; // 現在のまま
+        isConfirmedFiscalYearSecondHalf = true;
+      }
+
+      const payload = {
+        _company_id: userProfileState.company_id,
+        _fiscal_year: fiscalYearQueryData.fiscal_year,
+        _fiscal_year_id: fiscalYearQueryData.id,
+        _is_confirmed_first_half_details_fy: isConfirmedFiscalYearFirstHalf,
+        _is_confirmed_second_half_details_fy: isConfirmedFiscalYearSecondHalf,
+        _target_type: "sales_target",
+        _half_detail_type: selectedPeriodTypeForMemberLevel,
+        _period_start_year_month: periodStartYearMonth, // month_01 (下期詳細の場合の実際の値はmonth_07)
+        _period_end_year_month: periodEndYearMonth, // month_06 (下期詳細の場合の実際の値はmonth_12)
+        _upsert_entity_levels_array: entityGroupsWithoutMember,
+      };
+
+      console.log("🔥🔥🔥🔥🔥upsert_sales_target_half_details_all_entities関数実行 payload", payload);
+
+      const { error } = await supabase.rpc("upsert_sales_target_half_details_all_entities", payload);
+
+      // 0.3秒後に解決するPromiseの非同期処理を入れて明示的にローディングを入れる
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      if (error) {
+        console.log("❌upsert_sales_target_half_details_all_entities関数実行失敗");
+        throw error;
+      }
+
+      console.log("✅FUNCTION upsert_sales_target_half_details_all_entities関数実行成功 キャッシュを更新");
+
+      setIsLoading(false); // ローディング終了
+      toast.success(
+        `全レイヤーの${
+          selectedPeriodTypeForMemberLevel === "first_half_details" ? `上期` : `下期`
+        }の売上目標の設定が完了しました！🌟`
+      );
+      runFireworks();
+
+      // 🔹ステップ5の完了画面に移行 UPSERT後のクライアントサイドの処理
+      // 1. ステップ5に移行して、ユーザーに「完成した半期詳細の内容を確認させる or リセットして改めて目標を設定させる」か、「残りの半期詳細を設定するためにstep3に移行させるか」を選択させる画面を表示する
+    } catch (error: any) {
+      console.error("エラー：", error);
+      toast.error(`売上目標の集計と全レイヤーへの反映に失敗しました...🙇‍♀️`);
+      setIsLoading(false); // ローディング終了
+    }
+  };
   // ----------------------- 🌟ステップ4 UPSERT「集計」をクリック🌟 ここまで -----------------------
 
   // ----------------------- 🌟エンティティ目標設定モード終了🌟 -----------------------

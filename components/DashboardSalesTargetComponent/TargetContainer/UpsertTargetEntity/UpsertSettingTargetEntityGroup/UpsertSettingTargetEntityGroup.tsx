@@ -758,7 +758,25 @@ const UpsertSettingTargetEntityGroupMemo = ({
           if (!isValidAllNumber)
             throw new Error(`${obj.entity_name ? `${obj.entity_name}の` : ``}売上目標の値が有効ではありません。`);
 
-          // 一旦メンバーレベルに関しては、created_by_user_id以外のレベルのエンティティidはnullをセットする
+          // 一旦メンバーレベルに関しては、created_by_user_id以外のレベルのエンティティidはnullをセットする => それぞれのエンティティidもセットする
+          // 売上目標設定では一つの上位エンティティグループごとの設定のため、全てのエンティティのparent_entity_idは一緒
+          const entityId = obj.entity_id;
+          // const parentEntityId = obj.parent_entity_id;
+
+          let createdByCompanyId = userProfileState.company_id;
+          let createdByDepartmentId = null;
+          let createdBySectionId = null;
+          let createdByUnitId = null;
+          let createdByUserId = null;
+          let createdByOfficeId = null;
+
+          if (upsertSettingEntitiesObj.entityLevel === "member") {
+            createdByDepartmentId = memberIdToObjMap?.get(entityId)?.assigned_department_id ?? null;
+            createdBySectionId = memberIdToObjMap?.get(entityId)?.assigned_section_id ?? null;
+            createdByUnitId = memberIdToObjMap?.get(entityId)?.assigned_unit_id ?? null;
+            createdByUserId = entityId;
+            createdByOfficeId = memberIdToObjMap?.get(entityId)?.assigned_office_id ?? null;
+          }
 
           // メンバーレベルのis_confirmに関しては、今回の設定が「上期詳細」「下期詳細」に応じて動的に変更する
           let isConfirmedFirstHalf = false;
@@ -777,11 +795,15 @@ const UpsertSettingTargetEntityGroupMemo = ({
             entity_name: obj.entity_name,
             parent_entity_name: obj.parent_entity_name,
             created_by_company_id: userProfileState.company_id,
-            created_by_department_id: null,
-            created_by_section_id: null,
-            created_by_unit_id: null,
+            // created_by_department_id: null,
+            // created_by_section_id: null,
+            // created_by_unit_id: null,
+            created_by_department_id: createdByDepartmentId,
+            created_by_section_id: createdBySectionId,
+            created_by_unit_id: createdByUnitId,
             created_by_user_id: obj.entity_id,
-            created_by_office_id: null,
+            // created_by_office_id: null,
+            created_by_office_id: createdByOfficeId,
             is_confirmed_annual_half: true, // メンバーレベルでは年度の目標設定は存在しないので、最初からtrueをセット
             is_confirmed_first_half_details: isConfirmedFirstHalf,
             is_confirmed_second_half_details: isConfirmedSecondHalf,

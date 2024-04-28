@@ -9,6 +9,7 @@ import { GetServerSidePropsContext } from "next";
 import { useEffectOnce } from "react-use";
 import useThemeStore from "@/store/useThemeStore";
 import { AboutComponent } from "@/components/About/About";
+import { AboutImageFlowComponent } from "@/components/About/AboutImageFlow";
 
 // { initialSession, user }: { initialSession: Session; user: User | null }
 
@@ -73,7 +74,8 @@ export default function Home({ initialLang }: { initialLang: string }) {
           blurDataURLDark="/assets/images/Trustify_logo_black_blur.png"
         />
       )}
-      {activePage === "About" && <AboutComponent />}
+      {/* {activePage === "About" && <AboutComponent />} */}
+      {activePage === "About" && <AboutImageFlowComponent />}
       {/* {clickedItemPos && <LangMenu />} */}
       {/* {clickedItemPosOver && <LangMenuOver />} */}
     </Layout>

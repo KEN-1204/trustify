@@ -876,11 +876,12 @@ Props) => {
 
     let salesTargets: inputSalesData[] = [];
 
+    //
     // const getPeriodType = (key: string) => {
     //   // fiscal_year, half_year, quarter, year_month
     //   if (key === "fiscal_year") return "fiscal_year";
     //   if (["first_half", "second_half"].includes(key)) return "half_year";
-    //   if (["first_quarter", "second_quarter", "third_quarter", "fourth_quarter"].includes(key)) return "quarter";
+    //   if (["first_quarter", "second_quarter"].includes(key)) return "quarter";
     //   if (
     //     [
     //       "month_01",
@@ -889,20 +890,40 @@ Props) => {
     //       "month_04",
     //       "month_05",
     //       "month_06",
-    //       "month_07",
-    //       "month_08",
-    //       "month_09",
-    //       "month_10",
-    //       "month_11",
-    //       "month_12",
     //     ].includes(key)
     //   )
-    //     return "year_month";
+    //     return key; //
+    //     // return "year_month";
     // };
+
+    // 期間タイプをhalf_yearではなく、first_half, second_half、quarterではなく、first_quarter, second_quarter, third_quarter, fourth_quarterで、詳細に分けるパターンで実装する、month_xxのみ詳細に分けずに全て詳細で統一
+    const getPeriodType = (key: string) => {
+      const isFirstHalf = selectedPeriodTypeForMemberLevel === "first_half_details";
+      // fiscal_year, half_year, quarter, year_month
+      if (key === "fiscal_year") return "fiscal_year";
+      // if (["half_year", "first_half", "second_half"].includes(key)) return key;
+      if (key === "half_year") {
+        return isFirstHalf ? "first_half" : "second_half";
+      }
+      if (["first_quarter", "second_quarter"].includes(key)) {
+        if (key === "first_quarter") return isFirstHalf ? "first_quarter" : "third_quarter";
+        return isFirstHalf ? "second_quarter" : "fourth_quarter";
+      }
+      if (["month_01", "month_02", "month_03", "month_04", "month_05", "month_06"].includes(key)) {
+        let month = key;
+        if (key === "month_01") month = isFirstHalf ? "month_01" : "month_07";
+        if (key === "month_02") month = isFirstHalf ? "month_02" : "month_08";
+        if (key === "month_03") month = isFirstHalf ? "month_03" : "month_09";
+        if (key === "month_04") month = isFirstHalf ? "month_04" : "month_10";
+        if (key === "month_05") month = isFirstHalf ? "month_05" : "month_11";
+        if (key === "month_06") month = isFirstHalf ? "month_06" : "month_12";
+        return month;
+      }
+    };
 
     salesTargets = inputSalesTargetsList.map((obj, index) => {
       return {
-        period_type: obj.key, // half_year | first_quarter | second_quarter | month_01~06
+        period_type: getPeriodType(obj.key), // "half_year" | "quarter" | "year_month"
         period: getPeriod(obj.key),
         sales_target: Number(obj.inputTarget.replace(/[^\d.]/g, "")),
       } as inputSalesData;

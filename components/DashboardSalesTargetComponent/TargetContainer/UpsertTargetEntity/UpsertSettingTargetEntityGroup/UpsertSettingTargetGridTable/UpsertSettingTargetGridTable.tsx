@@ -316,36 +316,38 @@ Props) => {
 
     let salesTargets: inputSalesData[] = [];
 
-    const getPeriodType = (key: string) => {
-      // fiscal_year, half_year, quarter, year_month
-      if (key === "fiscal_year") return "fiscal_year";
-      if (["first_half", "second_half"].includes(key)) return "half_year";
-      if (["first_quarter", "second_quarter", "third_quarter", "fourth_quarter"].includes(key)) return "quarter";
-      if (
-        [
-          "month_01",
-          "month_02",
-          "month_03",
-          "month_04",
-          "month_05",
-          "month_06",
-          "month_07",
-          "month_08",
-          "month_09",
-          "month_10",
-          "month_11",
-          "month_12",
-        ].includes(key)
-      )
-        return "year_month";
-    };
+    // 期間はそれぞれ詳細に分けてINSERTして管理する 半期はfirst_harf, second_half
+    // const getPeriodType = (key: string) => {
+    //   // fiscal_year, half_year, quarter, year_month
+    //   if (key === "fiscal_year") return "fiscal_year";
+    //   if (["first_half", "second_half"].includes(key)) return "half_year";
+    //   if (["first_quarter", "second_quarter", "third_quarter", "fourth_quarter"].includes(key)) return "quarter";
+    //   if (
+    //     [
+    //       "month_01",
+    //       "month_02",
+    //       "month_03",
+    //       "month_04",
+    //       "month_05",
+    //       "month_06",
+    //       "month_07",
+    //       "month_08",
+    //       "month_09",
+    //       "month_10",
+    //       "month_11",
+    //       "month_12",
+    //     ].includes(key)
+    //   )
+    //     return key; // 月度だけは、year_monthで統一してしまうと、202404や202401などの値だけではどれがmonth_01の開始年月度かわからなくなるため、そのままmonth_01で統一する
+    //     // return "year_month";
+    // };
 
-    // メンバーレベル以外
+    // メンバーレベル以外 period_typeは年度のfiscal_yearと上期、下期のfirst_half, second_halfのみ
     if (entityLevel !== "member") {
       salesTargets = inputSalesTargetsList.map((obj, index) => {
         return {
-          period_type: getPeriodType(obj.key), // 年度~半期："fiscal_year" | "first_half" | "second_half" | first_quarter | second_quarter | ...
-          // period_type: obj.key, // 年度~半期："fiscal_year" | "first_half" | "second_half" | first_quarter | second_quarter | ...
+          // period_type: getPeriodType(obj.key), // 年度~半期："fiscal_year" | "half_year"
+          period_type: obj.key, // 年度~半期："fiscal_year" | "first_half" | "second_half"
           period: getPeriod(obj.key),
           sales_target: Number(obj.inputTarget.replace(/[^\d.]/g, "")),
         } as inputSalesData;
