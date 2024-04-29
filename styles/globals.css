@@ -1389,7 +1389,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* -------- 🌟売上目標🌟 light -------- */
   /* --color-bg-dashboard: #40576d12; */
-  --color-bg-dashboard-table: #fff;
+  /* --color-bg-dashboard-table: #fff; */
+  --color-bg-dashboard-table: #f4f7f9;
+  --color-bg-dashboard-table-border: 0 1px 2px 1px #cccccc81;
+  --color-bg-dashboard-table-tab-px: 0.5px;
   --color-bg-dashboard: #f2f3f4;
   --color-tab-underline: rgba(57, 76, 96, 0.15);
   --color-btn-basic-bg: #fff;
@@ -2390,6 +2393,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* -------- 🌟売上目標🌟 dark -------- */
   /* --color-bg-dashboard: var(--color-bg-base); */
   --color-bg-dashboard-table: #121212;
+  --color-bg-dashboard-table-border: 0 3px 2px 1px #000000d0;
+  --color-bg-dashboard-table-tab-px: 1px;
   --color-bg-dashboard: #121212;
   --color-tab-underline: #383838;
   /* --color-btn-basic-bg: #333; */

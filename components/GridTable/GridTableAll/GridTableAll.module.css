@@ -185,6 +185,8 @@
   color: var(--color-text-title);
   /* box-shadow: 0 0px 5px rgba(12, 12, 12, 0.3); */
   /* margin-top: 5px; */
+
+  box-shadow: var(--color-bg-dashboard-table-border);
 }
 .main_container_half {
   /* 全体に表示 Header 56px grid-header 22px */
@@ -212,7 +214,19 @@
   /* background-color: var(--color-bg-table-header); */
   display: flex;
   justify-content: space-between;
-  /* padding-left: 1px; */
+
+  /* -------テスト */
+  border-top-left-radius: 4px;
+  padding-left: 0.5px;
+  padding-left: var(--color-bg-dashboard-table-tab-px);
+  padding-right: var(--color-bg-dashboard-table-tab-px);
+  /* border-top-left-radius: 4px;
+  box-shadow: inset 0px 0px 0px 1px var(--color-border-deep);
+  background: var(--color-bg-brand-table-tab); */
+  /* background: var(--color-bg-brand-table-tab); */
+  /* -------テスト */
+
+  box-shadow: var(--color-bg-dashboard-table-border);
 }
 .table_tab {
   background: var(--color-bg-brand-table-tab);
@@ -236,7 +250,8 @@
   user-select: none;
   color: #fcfcfc;
   font-weight: 500;
-  box-shadow: inset 0px 0px 0px 1px var(--color-border-deep);
+  /* box-shadow: inset 0px 0px 0px 1px var(--color-border-deep); */
+  box-shadow: 0px 0px 0px 1px var(--color-border-deep);
   /* box-shadow: 0 0 5px 0px rgba(12, 12, 12, 0.3); */
   display: flex;
   align-items: center;
@@ -261,6 +276,8 @@
   /* 丸み */
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
+
+  box-shadow: var(--color-bg-dashboard-table-border);
 }
 /* 🌟ファンクションヘッダー */
 .grid_function_header {

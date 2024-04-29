@@ -972,6 +972,9 @@
   /* color: #fff; */
   cursor: grab;
 }
+.table_area .row_group_products_area .row .grid_cell.product_name_area .draggable_item:active {
+  cursor: grabbing;
+}
 .table_area .row_group_products_area .row .grid_cell.product_name_area .draggable_item.dragging {
   opacity: 0.3;
   background: var(--color-bg-brand-f);
