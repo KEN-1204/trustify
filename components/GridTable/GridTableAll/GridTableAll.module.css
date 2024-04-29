@@ -220,13 +220,12 @@
   padding-left: 0.5px;
   padding-left: var(--color-bg-dashboard-table-tab-px);
   padding-right: var(--color-bg-dashboard-table-tab-px);
+  box-shadow: var(--color-bg-dashboard-table-border);
   /* border-top-left-radius: 4px;
   box-shadow: inset 0px 0px 0px 1px var(--color-border-deep);
   background: var(--color-bg-brand-table-tab); */
   /* background: var(--color-bg-brand-table-tab); */
   /* -------テスト */
-
-  box-shadow: var(--color-bg-dashboard-table-border);
 }
 .table_tab {
   background: var(--color-bg-brand-table-tab);

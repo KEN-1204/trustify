@@ -1470,16 +1470,24 @@ const UpsertTargetEntityMemo = () => {
 
       console.log("✅FUNCTION upsert_sales_target_half_details_all_entities関数実行成功 キャッシュを更新");
 
+      // fiscal_years, entity_level_structures, entity_structuresのキャッシュを更新
+      await queryClient.invalidateQueries(["fiscal_year", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+
       setIsLoading(false); // ローディング終了
       toast.success(
         `全レイヤーの${
           selectedPeriodTypeForMemberLevel === "first_half_details" ? `上期` : `下期`
         }の売上目標の設定が完了しました！🌟`
       );
-      runFireworks();
 
       // 🔹ステップ5の完了画面に移行 UPSERT後のクライアントサイドの処理
       // 1. ステップ5に移行して、ユーザーに「完成した半期詳細の内容を確認させる or リセットして改めて目標を設定させる」か、「残りの半期詳細を設定するためにstep3に移行させるか」を選択させる画面を表示する
+      setStep(5);
+      runFireworks();
     } catch (error: any) {
       console.error("エラー：", error);
       toast.error(`売上目標の集計と全レイヤーへの反映に失敗しました...🙇‍♀️`);
@@ -2209,6 +2217,31 @@ const UpsertTargetEntityMemo = () => {
     const halfTitle = selectedPeriodTypeForMemberLevel === "first_half_details" ? `上半期` : `下半期`;
     return `全レイヤーの四半期・月次目標を設定して${halfTitle}の売上目標を完成させる`;
   };
+  // ステップ5タイトル
+  const getStep5Title = () => {
+    const isFirstHalf = selectedPeriodTypeForMemberLevel === "first_half_details";
+    const isCompleteFirstHalfFY = fiscalYearQueryData?.is_confirmed_first_half_details;
+    const isCompleteSecondHalfFY = fiscalYearQueryData?.is_confirmed_second_half_details;
+    const settingFiscalYear = fiscalYearQueryData?.fiscal_year;
+    if (isCompleteFirstHalfFY && isCompleteSecondHalfFY) {
+      return `${settingFiscalYear}年度 売上目標設定完了`;
+    }
+    if (isFirstHalf) {
+      if (isCompleteFirstHalfFY) {
+        return `${settingFiscalYear}年度 上半期詳細売上目標設定完了`;
+      } else {
+        return `${settingFiscalYear}年度の上半期詳細の売上目標を設定する`;
+      }
+    }
+    if (!isFirstHalf) {
+      if (isCompleteSecondHalfFY) {
+        return `${settingFiscalYear}年度 下半期詳細売上目標設定完了`;
+      } else {
+        return `${settingFiscalYear}年度の下半期詳細の売上目標を設定する`;
+      }
+    }
+    return ``;
+  };
   // ステップ3 説明文
   const getTextStep3 = () => {
     if (currentLevel === "company")
@@ -2228,6 +2261,31 @@ const UpsertTargetEntityMemo = () => {
   const getTextStep4 = () => {
     const halfTitle = selectedPeriodTypeForMemberLevel === "first_half_details" ? `上半期` : `下半期`;
     return `下記の「集計」から全メンバーの四半期・月次目標を集計し、集計結果を全レイヤーの四半期・月次目標に反映して、\n${upsertSettingEntitiesObj.fiscalYear}年度${halfTitle}の売上目標を完成させましょう。`;
+  };
+  // ステップ5 説明文
+  const getTextStep5 = () => {
+    const isFirstHalf = selectedPeriodTypeForMemberLevel === "first_half_details";
+    const isCompleteFirstHalfFY = fiscalYearQueryData?.is_confirmed_first_half_details;
+    const isCompleteSecondHalfFY = fiscalYearQueryData?.is_confirmed_second_half_details;
+    const settingFiscalYear = fiscalYearQueryData?.fiscal_year;
+    if (isCompleteFirstHalfFY && isCompleteSecondHalfFY) {
+      return `${settingFiscalYear}年度の売上目標の設定は全て完了しました！お疲れ様でした！🌟\nもし売上目標の設定をやり直す場合は、下記の「リセット」から${settingFiscalYear}年度の売上目標データをリセットしてください。`;
+    }
+    if (isFirstHalf) {
+      if (isCompleteFirstHalfFY) {
+        return `${settingFiscalYear}年度の上半期詳細売上目標の設定が全て完了しました！お疲れ様でした！🌟\n下期詳細の売上目標を設定する場合は、下記の選択ボックスを「下期詳細」に変更してください。`;
+      } else {
+        return `下記の「売上目標を設定する」からステップ3に移行し、${settingFiscalYear}年度の上半期詳細の売上目標を設定します。`;
+      }
+    }
+    if (!isFirstHalf) {
+      if (isCompleteSecondHalfFY) {
+        return `${settingFiscalYear}年度の下半期詳細売上目標の設定が全て完了しました！お疲れ様でした！🌟\n上期詳細の売上目標を設定する場合は、下記の選択ボックスを「上期詳細」に変更してください。`;
+      } else {
+        return `下記の「売上目標を設定する」からステップ3に移行し、${settingFiscalYear}年度の下半期詳細の売上目標を設定します。`;
+      }
+    }
+    return ``;
   };
 
   // ステップヘッダーのボタンテキスト
@@ -2346,9 +2404,12 @@ const UpsertTargetEntityMemo = () => {
       setCurrentLevel("member");
       newOptionsLevelList = []; // メンバー追加は必要ないため空の配列をセット
     }
-    // 🔹上半期、下半期どちらか1つのみ完了しているならメンバーレベルが存在しているため、ステップ3の目標設定画面で残りの半期目標設定へ
+    // 🔹上半期、下半期どちらか1つのみ完了しているならメンバーレベルが存在しているため、
+    // ステップ3の目標設定画面で残りの半期目標設定へ
+    // => ではなく、ステップ5で半期詳細選択画面で、完了済みの半期詳細は「設定完了 リセットしてやり直す」、未完了の半期詳細は「目標を設定する」
     if (fiscalYearQueryData.is_confirmed_first_half_details || fiscalYearQueryData.is_confirmed_second_half_details) {
-      setStep(3);
+      // setStep(3);
+      setStep(5);
       setCurrentLevel("member");
       newOptionsLevelList = [];
     }
@@ -2624,13 +2685,15 @@ const UpsertTargetEntityMemo = () => {
               <span>戻る</span>
             </div>
             <div
-              className={`${styles.btn} ${styles.brand} ${styles.inactive} space-x-[3px]`}
+              className={`${styles.btn} ${styles.brand} ${step === 5 ? `` : `${styles.inactive}`} space-x-[3px]`}
               onClick={(e) => {
-                alert(
-                  "売上目標が全て完了していません。左記の手順に沿って全てのレイヤーの売上目標が設定できたら保存を押して設定を保存してください。"
-                );
-                console.log("クリック");
-                return;
+                if (step !== 5) {
+                  alert(
+                    "売上目標が全て完了していません。左記の手順に沿って全てのレイヤーの売上目標が設定できたら保存を押して設定を保存してください。"
+                  );
+                  return;
+                }
+                handleCancelUpsert();
               }}
             >
               {/* <RiSave3Fill className={`stroke-[3] text-[12px] text-[#fff]`} /> */}
@@ -2821,6 +2884,7 @@ const UpsertTargetEntityMemo = () => {
                         )}
                         {step === 3 && <span>{getStep3Title()}</span>}
                         {step === 4 && <span>{getStep4Title()}</span>}
+                        {step === 5 && <span>{getStep5Title()}</span>}
                         {/* {step === 4 && <span>組織を構成するレイヤーを追加</span>} */}
                         {step === 3 && (
                           <div className={`flex h-full items-start pt-[4px]`}>
@@ -2855,6 +2919,7 @@ const UpsertTargetEntityMemo = () => {
                           {step === 2 && getTextStep2()}
                           {step === 3 && getTextStep3()}
                           {step === 4 && getTextStep4()}
+                          {step === 4 && getTextStep5()}
                           {/* 2で追加した「全社〜係」までは「年度・半期」の売上目標を設定し、
                           各メンバーは一つ上のレイヤーで決めた売上目標と半期の売上目標シェアを割り振り、現在の保有している案件と来期の売上見込みを基に「半期〜月次」の売上目標を設定してください。 */}
                         </p>
@@ -2890,7 +2955,7 @@ const UpsertTargetEntityMemo = () => {
                           </select>
                         )}
                         {/* メンバーレベル設定時の「上期詳細」「下期詳細」を選択 */}
-                        {step === 3 && currentLevel === "member" && (
+                        {[3, 5].includes(step) && currentLevel === "member" && (
                           <select
                             className={`${styles.select_box} ${styles.both} mr-[20px] truncate`}
                             style={{ maxWidth: `max-content` }}
@@ -2967,11 +3032,9 @@ const UpsertTargetEntityMemo = () => {
                               if (step === 2) handleSaveEntities();
                               if (step === 3) {
                                 if (!isAlreadySetState) {
-                                  console.log("リターン");
                                   alert(alertTextNextBtn3());
                                   return;
                                 }
-                                console.log("クリック");
                                 if (currentLevel !== "member") {
                                   setStep(1);
                                 } else if (currentLevel === "member") {
@@ -2980,6 +3043,24 @@ const UpsertTargetEntityMemo = () => {
                               }
                               if (step === 4) {
                                 handleAggregateQuarterMonth();
+                              }
+                              if (step === 5) {
+                                const isFirstHalf = selectedPeriodTypeForMemberLevel === "first_half_details";
+                                const isCompleteFirstHalfFY = fiscalYearQueryData?.is_confirmed_first_half_details;
+                                const isCompleteSecondHalfFY = fiscalYearQueryData?.is_confirmed_second_half_details;
+                                if (
+                                  (isFirstHalf && isCompleteFirstHalfFY) ||
+                                  (!isFirstHalf && isCompleteSecondHalfFY)
+                                ) {
+                                  // 終了
+                                  handleCancelUpsert();
+                                }
+                                if (
+                                  (isFirstHalf && !isCompleteFirstHalfFY) ||
+                                  (!isFirstHalf && !isCompleteSecondHalfFY)
+                                ) {
+                                  setStep(3); // 残りの半期詳細の目標設定画面へ
+                                }
                               }
                             }}
                           >
@@ -3000,6 +3081,21 @@ const UpsertTargetEntityMemo = () => {
                                   {selectedPeriodTypeForMemberLevel === "first_half_details" && `Q1/Q2・月次目標を集計`}
                                   {selectedPeriodTypeForMemberLevel === "second_half_details" &&
                                     `Q3/Q4・月次目標を集計`}
+                                </>
+                              )}
+                              {step === 5 && (
+                                <>
+                                  {((selectedPeriodTypeForMemberLevel === "first_half_details" &&
+                                    fiscalYearQueryData?.is_confirmed_first_half_details) ||
+                                    (selectedPeriodTypeForMemberLevel === "second_half_details" &&
+                                      fiscalYearQueryData?.is_confirmed_second_half_details)) &&
+                                    `保存して終了`}
+                                  {selectedPeriodTypeForMemberLevel === "first_half_details" &&
+                                    !fiscalYearQueryData?.is_confirmed_first_half_details &&
+                                    `上期詳細目標を設定する`}
+                                  {selectedPeriodTypeForMemberLevel === "second_half_details" &&
+                                    !fiscalYearQueryData?.is_confirmed_second_half_details &&
+                                    `下期詳細目標を設定する`}
                                 </>
                               )}
                             </span>

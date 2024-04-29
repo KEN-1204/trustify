@@ -3580,6 +3580,9 @@ textarea {
   background-color: var(--color-bg-brand-fe0) !important;
   color: #fff !important;
 }
+.fc .fc-daygrid-day-frame {
+  background: var(--color-bg-base);
+}
 /* ------------------ ✅カレンダー✅ ------------------ */
 #sidenav-container {
   width: 0px;
@@ -3760,6 +3763,7 @@ textarea {
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 } */
 
+/* -------------- 背景色徐々に変化 インターバル -------------- */
 .uoufRc {
   position: absolute;
   width: 100%;
@@ -3877,3 +3881,4 @@ textarea {
   background: linear-gradient(to right, #dcff99, #dedeff);
   background: linear-gradient(to right in oklch, #dcff99, #dedeff);
 }
+/* -------------- 背景色徐々に変化 インターバル -------------- */
