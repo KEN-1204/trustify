@@ -1263,10 +1263,10 @@ const UpsertTargetEntityMemo = () => {
     // 事前に定義したレベルの順序をマッピング
     // メンバーレベルの直上レベルからUPSERTを行うため、memberレベルを除く末端レベルから並び替え
     const levelOrder = {
-      company: 1,
-      department: 2,
-      section: 3,
-      unit: 4,
+      unit: 1,
+      section: 2,
+      department: 3,
+      company: 4,
     };
 
     try {
@@ -1293,22 +1293,22 @@ const UpsertTargetEntityMemo = () => {
             let createdByUserId = null;
             let createdByOfficeId = null;
 
-            if (upsertSettingEntitiesObj.entityLevel === "company") {
+            if (entity.entity_level === "company") {
             }
-            if (upsertSettingEntitiesObj.entityLevel === "department") {
+            if (entity.entity_level === "department") {
               createdByDepartmentId = entityId;
             }
-            if (upsertSettingEntitiesObj.entityLevel === "section") {
+            if (entity.entity_level === "section") {
               createdByDepartmentId = sectionIdToObjMap?.get(entityId)?.created_by_department_id ?? null;
               createdBySectionId = entityId;
             }
-            if (upsertSettingEntitiesObj.entityLevel === "unit") {
+            if (entity.entity_level === "unit") {
               createdByDepartmentId = unitIdToObjMap?.get(entityId)?.created_by_department_id ?? null;
               createdBySectionId = unitIdToObjMap?.get(entityId)?.created_by_section_id ?? null;
               createdByUnitId = entityId;
             }
             // メンバーレベルの売上目標のINSERTは無いためmemberレベルの処理は無し
-            if (upsertSettingEntitiesObj.entityLevel === "office") {
+            if (entity.entity_level === "office") {
               createdByOfficeId = entityId;
             }
 
@@ -2150,7 +2150,8 @@ const UpsertTargetEntityMemo = () => {
     step === num ? `text-[var(--color-text-title)]` : `text-[var(--color-text-disabled)]`;
   // ステップヘッダーの次へボタン アクティブか非アクティブか
   const styleStepNextBtn = () => {
-    const activeStyle = `bg-[var(--color-bg-brand-f)] cursor-pointer hover:bg-[var(--color-bg-brand-f-deep)] text-[#fff]`;
+    // const activeStyle = `bg-[var(--color-bg-brand-f)] cursor-pointer hover:bg-[var(--color-bg-brand-f-deep)] text-[#fff] brand_btn_active`;
+    const activeStyle = `brand_btn_active`;
     const inactiveStyle = `bg-[var(--color-bg-brand-f-disabled)] cursor-not-allowed text-[var(--color-text-disabled-on-brand)]`;
     if (step === 2) {
       if (currentLevel === "company") return activeStyle;
@@ -2224,18 +2225,18 @@ const UpsertTargetEntityMemo = () => {
     const isCompleteSecondHalfFY = fiscalYearQueryData?.is_confirmed_second_half_details;
     const settingFiscalYear = fiscalYearQueryData?.fiscal_year;
     if (isCompleteFirstHalfFY && isCompleteSecondHalfFY) {
-      return `${settingFiscalYear}年度 売上目標設定完了`;
+      return `${settingFiscalYear}年度 売上目標の設定が完了しました！`;
     }
     if (isFirstHalf) {
       if (isCompleteFirstHalfFY) {
-        return `${settingFiscalYear}年度 上半期詳細売上目標設定完了`;
+        return `${settingFiscalYear}年度 上半期詳細の売上目標の設定が完了しました！`;
       } else {
         return `${settingFiscalYear}年度の上半期詳細の売上目標を設定する`;
       }
     }
     if (!isFirstHalf) {
       if (isCompleteSecondHalfFY) {
-        return `${settingFiscalYear}年度 下半期詳細売上目標設定完了`;
+        return `${settingFiscalYear}年度 下半期詳細の売上目標の設定が完了しました！`;
       } else {
         return `${settingFiscalYear}年度の下半期詳細の売上目標を設定する`;
       }
@@ -2273,14 +2274,14 @@ const UpsertTargetEntityMemo = () => {
     }
     if (isFirstHalf) {
       if (isCompleteFirstHalfFY) {
-        return `${settingFiscalYear}年度の上半期詳細売上目標の設定が全て完了しました！お疲れ様でした！🌟\n下期詳細の売上目標を設定する場合は、下記の選択ボックスを「下期詳細」に変更してください。`;
+        return `${settingFiscalYear}年度の上半期詳細の売上目標の設定が全て完了しました！お疲れ様でした！🌟\n下期詳細の売上目標を設定する場合は、下記の選択ボックスを「下期詳細」に変更してください。`;
       } else {
         return `下記の「売上目標を設定する」からステップ3に移行し、${settingFiscalYear}年度の上半期詳細の売上目標を設定します。`;
       }
     }
     if (!isFirstHalf) {
       if (isCompleteSecondHalfFY) {
-        return `${settingFiscalYear}年度の下半期詳細売上目標の設定が全て完了しました！お疲れ様でした！🌟\n上期詳細の売上目標を設定する場合は、下記の選択ボックスを「上期詳細」に変更してください。`;
+        return `${settingFiscalYear}年度の下半期詳細の売上目標の設定が全て完了しました！お疲れ様でした！🌟\n上期詳細の売上目標を設定する場合は、下記の選択ボックスを「上期詳細」に変更してください。`;
       } else {
         return `下記の「売上目標を設定する」からステップ3に移行し、${settingFiscalYear}年度の下半期詳細の売上目標を設定します。`;
       }
@@ -2618,13 +2619,13 @@ const UpsertTargetEntityMemo = () => {
                   )}
                 </>
               )}
-              {step === 4 && (
+              {[4, 5].includes(step) && (
                 <>
                   <span className="min-w-max">目標設定</span>
                   <span className="min-w-max">
                     {mappingHalfDetails[`${selectedPeriodTypeForMemberLevel}`][language]}
                   </span>
-                  <span className="min-w-max">四半期・月次目標 集計</span>
+                  {step === 4 && <span className="min-w-max">四半期・月次目標 集計</span>}
                 </>
               )}
             </div>
@@ -2919,14 +2920,14 @@ const UpsertTargetEntityMemo = () => {
                           {step === 2 && getTextStep2()}
                           {step === 3 && getTextStep3()}
                           {step === 4 && getTextStep4()}
-                          {step === 4 && getTextStep5()}
+                          {step === 5 && getTextStep5()}
                           {/* 2で追加した「全社〜係」までは「年度・半期」の売上目標を設定し、
                           各メンバーは一つ上のレイヤーで決めた売上目標と半期の売上目標シェアを割り振り、現在の保有している案件と来期の売上見込みを基に「半期〜月次」の売上目標を設定してください。 */}
                         </p>
                       </div>
                       <div
                         className={`flex items-center ${
-                          step === 3
+                          [3].includes(step)
                             ? currentLevel === "member"
                               ? `mt-[10px]`
                               : `mt-[20px]`
@@ -3180,7 +3181,7 @@ const UpsertTargetEntityMemo = () => {
                     </div>
                     <div className={`flex w-full justify-end`}>
                       {step !== 5 && <div className="mr-[84px] mt-[-20px]">{dataIllustration}</div>}
-                      {step === 5 && <div className="mr-[84px] mt-[-20px]">{winnersIllustration("180")}</div>}
+                      {step === 5 && <div className="mr-[84px] mt-[-35px]">{winnersIllustration("180")}</div>}
                     </div>
                   </div>
                 </div>

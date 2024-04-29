@@ -179,7 +179,7 @@ export const EntityLevelColumn = ({
         <div className={`flex w-full justify-between`}>
           <h4 className={`flex items-center text-[19px] font-bold`}>
             <span>{mappingEntityName[entityLevel][language]}</span>
-            {step === 3 && currentLevel === "member" && entityLevel === "member" && (
+            {((step === 3 && currentLevel === "member" && entityLevel === "member") || step === 5) && (
               <div className={`flex items-center justify-start`}>
                 <div className={`ml-[15px] flex items-center`}>
                   <div
@@ -239,7 +239,7 @@ export const EntityLevelColumn = ({
             )}
           </h4>
           <div className={`flex items-center text-[13px]`}>
-            {step !== 4 && (
+            {[1, 2].includes(step) && (
               <>
                 {entityLevel !== "member" && (
                   <>
@@ -275,7 +275,7 @@ export const EntityLevelColumn = ({
                 )}
               </>
             )}
-            {step === 4 && (
+            {[3, 4, 5].includes(step) && (
               <>
                 {(selectedPeriodTypeForMemberLevel === "first_half_details" &&
                   ["setAll", "setFirstHalf"].includes(settingLevelState)) ||
@@ -367,7 +367,8 @@ export const EntityLevelColumn = ({
                               currentLevel === entityLevel &&
                               currentLevel === "member" &&
                               isCompleteAllEntitiesInGroup) ||
-                            step === 4) && {
+                            step === 4 ||
+                            step === 5) && {
                             display: `none`,
                           }),
                         }}
@@ -566,7 +567,7 @@ export const EntityLevelColumn = ({
                               </div>
                             </div>
                             <div className={`flex min-h-[30px] items-center`}>
-                              {step !== 4 && (
+                              {![4, 5].includes(step) && (
                                 <>
                                   {isNoMember && (
                                     <>
@@ -617,7 +618,7 @@ export const EntityLevelColumn = ({
                                   )}
                                 </>
                               )}
-                              {step === 4 && (
+                              {[4, 5].includes(step) && (
                                 <>
                                   {((selectedPeriodTypeForMemberLevel === "first_half_details" &&
                                     settingState === "setFirstHalf") ||

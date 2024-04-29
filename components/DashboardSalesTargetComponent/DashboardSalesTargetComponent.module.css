@@ -508,6 +508,7 @@
   background-color: var(--color-bg-brand-f);
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }
+
 .settings_menu .list.edit_mode {
   cursor: pointer;
 }
@@ -1603,5 +1604,6 @@ background: var(--color-sales-card-bg);
 .deal_list.inactive {
   color: var(--color-text-disabled);
   /* background:#f2f3f4; */
-  /* background:#f4f7f9; */
+  background: #f4f7f9;
+  background: #f0f3f5;
 }

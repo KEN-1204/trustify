@@ -1408,6 +1408,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-sales-card-border: 0 0 0 1px #cccccc90; */
   /* --color-sales-card-border: 0 0 0 1px transparent; */
   --color-target-table-header-bg: #fff;
+  --color-brand-btn-active: var(--color-bg-brand-f);
+  --color-brand-btn-active-hover: var(--color-bg-brand-f-deep);
   /* -------- ✅売上目標✅ light -------- */
 }
 
@@ -2409,6 +2411,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sales-card-border-brand: 0 0 0 1px var(--color-bg-brand-f);
   --color-sales-card-border-sticky: 0 0 0 1px #333, 0 6px 12px 4px #000000dd;
   --color-target-table-header-bg: transparent;
+  --color-brand-btn-active: var(--color-bg-brand-f90);
+  --color-brand-btn-active-hover: var(--color-bg-brand-f);
   /* -------- ✅売上目標✅ dark -------- */
 }
 
@@ -2489,6 +2493,19 @@ textarea {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
   scrollbar-width: none;
+}
+
+/* ブランド ボタン */
+.brand_btn_active {
+  color: #fff;
+  background-color: var(--color-brand-btn-active);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  cursor: pointer;
+}
+.brand_btn_active:hover {
+  color: #fff;
+  background-color: var(--color-brand-btn-active-hover);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }
 
 /* シャドウ */

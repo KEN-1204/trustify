@@ -66,7 +66,9 @@
   /* margin-bottom: 48px; */
   margin-bottom: 320px;
 }
-
+.section_title_area {
+  /* border-bottom: 1px solid var(--color-border-deep); */
+}
 .section_title_area .section_title:hover svg,
 .section_title_area .section_title:hover span {
   color: var(--color-text-brand-f);
