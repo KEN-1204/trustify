@@ -56,6 +56,7 @@ import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearSta
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
 import { runFireworks } from "@/utils/confetti";
+import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 
 /*
 🌠上位エンティティグループに対して紐付ける方法のメリットとデメリット
@@ -1472,6 +1473,8 @@ const UpsertTargetEntityMemo = () => {
 
       // fiscal_years, entity_level_structures, entity_structuresのキャッシュを更新
       await queryClient.invalidateQueries(["fiscal_year", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+      // 全ての年度の売上目標設定状況を保持するキャッシュも更新する
+      await queryClient.invalidateQueries(["fiscal_years", "sales_target"]);
       await new Promise((resolve) => setTimeout(resolve, 300));
       await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -1495,6 +1498,30 @@ const UpsertTargetEntityMemo = () => {
     }
   };
   // ----------------------- 🌟ステップ4 UPSERT「集計」をクリック🌟 ここまで -----------------------
+
+  const [resetTargetType, setResetTargetType] = useState<"half_detail" | "fiscal_year">("half_detail");
+  const mappingResetType: { [K in "half_detail" | "fiscal_year"]: { [key: string]: string } } = {
+    half_detail: {
+      ja: `${selectedPeriodTypeForMemberLevel === "first_half_details" ? `上期詳細` : `下期詳細`}`,
+      en: `${selectedPeriodTypeForMemberLevel === "first_half_details" ? `First Half` : `Second Half`}`,
+    },
+    fiscal_year: {
+      ja: `${upsertSettingEntitiesObj.fiscalYear}年度`,
+      en: `${upsertSettingEntitiesObj.fiscalYear}`,
+    },
+  };
+  const [isOpenResetTargetModal, setIsOpenResetTargetModal] = useState(false);
+  // ----------------------- 🌟ステップ3で設定したメンバーレベルの目標のみリセット🌟 ここまで -----------------------
+  // ステップ3のメンバーレベルで半期詳細の売上目標のみ設定している状態、ステップ4の全レイヤーの半期詳細を集計していない状態(fiscal_yearsテーブルのis_confirmed_xxx_half_detailsがfalseの状態)
+  // ----------------------- 🌟ステップ3で設定したメンバーレベルの目標のみリセット🌟 -----------------------
+
+  // ----------------------- 🌟ステップ5 半期詳細をリセット(メンバーレベルからやり直し)🌟 ここまで -----------------------
+
+  // ----------------------- 🌟ステップ5 半期詳細をリセット(メンバーレベルからやり直し)🌟 -----------------------
+
+  // ----------------------- 🌟ステップ5 半期詳細をリセット(メンバーレベルからやり直し)🌟 ここまで -----------------------
+
+  // ----------------------- 🌟ステップ5 半期詳細をリセット(メンバーレベルからやり直し)🌟 -----------------------
 
   // ----------------------- 🌟エンティティ目標設定モード終了🌟 -----------------------
   const handleCloseSettingEntitiesTarget = () => {
@@ -2276,14 +2303,14 @@ const UpsertTargetEntityMemo = () => {
       if (isCompleteFirstHalfFY) {
         return `${settingFiscalYear}年度の上半期詳細の売上目標の設定が全て完了しました！お疲れ様でした！🌟\n下期詳細の売上目標を設定する場合は、下記の選択ボックスを「下期詳細」に変更してください。`;
       } else {
-        return `下記の「売上目標を設定する」からステップ3に移行し、${settingFiscalYear}年度の上半期詳細の売上目標を設定します。`;
+        return `下記の「上期詳細目標を設定する」からステップ3に移行し、${settingFiscalYear}年度の上半期詳細の売上目標を設定します。`;
       }
     }
     if (!isFirstHalf) {
       if (isCompleteSecondHalfFY) {
         return `${settingFiscalYear}年度の下半期詳細の売上目標の設定が全て完了しました！お疲れ様でした！🌟\n上期詳細の売上目標を設定する場合は、下記の選択ボックスを「上期詳細」に変更してください。`;
       } else {
-        return `下記の「売上目標を設定する」からステップ3に移行し、${settingFiscalYear}年度の下半期詳細の売上目標を設定します。`;
+        return `下記の「下期詳細目標を設定する」からステップ3に移行し、${settingFiscalYear}年度の下半期詳細の売上目標を設定します。`;
       }
     }
     return ``;
@@ -2398,25 +2425,31 @@ const UpsertTargetEntityMemo = () => {
 
     // 追加したレベルは選択肢リストから取り除く
     let newOptionsLevelList = [...optionsEntityLevelList];
+    let selectedLevel = "company";
 
     // 🔹全て完了済みの場合は、確認画面とリセットして再度登録するかどうかの画面へ
     if (fiscalYearQueryData.is_confirmed_first_half_details && fiscalYearQueryData.is_confirmed_second_half_details) {
       setStep(5); // 完了済み画面へ
       setCurrentLevel("member");
       newOptionsLevelList = []; // メンバー追加は必要ないため空の配列をセット
+      selectedLevel = "member";
     }
     // 🔹上半期、下半期どちらか1つのみ完了しているならメンバーレベルが存在しているため、
     // ステップ3の目標設定画面で残りの半期目標設定へ
     // => ではなく、ステップ5で半期詳細選択画面で、完了済みの半期詳細は「設定完了 リセットしてやり直す」、未完了の半期詳細は「目標を設定する」
-    if (fiscalYearQueryData.is_confirmed_first_half_details || fiscalYearQueryData.is_confirmed_second_half_details) {
+    else if (
+      fiscalYearQueryData.is_confirmed_first_half_details ||
+      fiscalYearQueryData.is_confirmed_second_half_details
+    ) {
       // setStep(3);
       setStep(5);
       setCurrentLevel("member");
       newOptionsLevelList = [];
+      selectedLevel = "member";
     }
 
     // 🔹エンティティレベル 年度が存在してるなら全社レベルがINSERT済みのため必ず1つ以上レベルが存在するルート
-    if (addedEntityLevelsListQueryData && addedEntityLevelsListQueryData.length > 0) {
+    else if (addedEntityLevelsListQueryData && addedEntityLevelsListQueryData.length > 0) {
       const addedLevelsMap = new Map(addedEntityLevelsListQueryData.map((level) => [level.entity_level, level]));
       // 🔸🔸レベルが１つ以上で、メンバーレベルが存在するルート
       // is_confirmed_first_half_detailsとis_confirmed_second_half_detailsがどちらもtrueの場合はstep4で全エンティティを集計
@@ -2480,11 +2513,13 @@ const UpsertTargetEntityMemo = () => {
         }
 
         // 現在追加済みの選択肢から先頭のレベルを現在のセンタ中のレベルにセットする(useQueryのFUNCTIONでレベルごとに並び替え済み)
-        const selectedLevel = newOptionsLevelList[0].title;
-        setSelectedNextLevel(selectedLevel);
+        selectedLevel = newOptionsLevelList[0].title;
+        // const selectedLevel = newOptionsLevelList[0].title;
+        // setSelectedNextLevel(selectedLevel);
         // setCurrentLevel(addedLastLevel);
       }
     }
+    setSelectedNextLevel(selectedLevel as EntityLevelNames);
     // フィルター後のレベル選択肢で更新
     setOptionsEntityLevelList(newOptionsLevelList);
   }, []);
@@ -2519,7 +2554,9 @@ const UpsertTargetEntityMemo = () => {
     // "リスト編集用メンバー所属ありエンティティSetオブジェクトentityIdsWithMembersSetObj",
     // entityIdsWithMembersSetObj,
     "entitiesHierarchyQueryData",
-    entitiesHierarchyQueryData
+    entitiesHierarchyQueryData,
+    "年度fiscalYearQueryData",
+    fiscalYearQueryData
     // "追加したエンティティ内のメンバー人数addedEntitiesMemberCountQueryData",
     // addedEntitiesMemberCountQueryData
   );
@@ -2621,6 +2658,7 @@ const UpsertTargetEntityMemo = () => {
               )}
               {[4, 5].includes(step) && (
                 <>
+                  <span className="min-w-max">{upsertSettingEntitiesObj.fiscalYear}年度</span>
                   <span className="min-w-max">目標設定</span>
                   <span className="min-w-max">
                     {mappingHalfDetails[`${selectedPeriodTypeForMemberLevel}`][language]}
@@ -2965,6 +3003,15 @@ const UpsertTargetEntityMemo = () => {
                               setSelectedPeriodTypeForMemberLevel(
                                 e.target.value as "first_half_details" | "second_half_details"
                               );
+                              // ステップ3で変更した先の半期詳細の売上目標が全て設定完了している場合には、stepを5に移行する
+                              if (
+                                (e.target.value === "first_half_details" &&
+                                  fiscalYearQueryData?.is_confirmed_first_half_details) ||
+                                (e.target.value === "second_half_details" &&
+                                  fiscalYearQueryData?.is_confirmed_second_half_details)
+                              ) {
+                                setStep(5);
+                              }
                             }}
                           >
                             <option value={"first_half_details"}>
@@ -2982,7 +3029,7 @@ const UpsertTargetEntityMemo = () => {
                         )}
                         {!isLoadingSave && (
                           <button
-                            className={`transition-bg01 flex-center max-h-[36px] max-w-max rounded-[8px] px-[15px] py-[10px] text-[13px] font-bold ${styleStepNextBtn()}`}
+                            className={`transition-bg01 flex-center max-h-[34px] max-w-max rounded-[8px] px-[15px] py-[10px] text-[13px] font-bold ${styleStepNextBtn()}`}
                             style={{
                               ...(fiscalYearQueryData &&
                                 ((selectedPeriodTypeForMemberLevel === "first_half_details" &&
@@ -3102,34 +3149,50 @@ const UpsertTargetEntityMemo = () => {
                             </span>
                           </button>
                         )}
-                        {step === 3 &&
+                        {/* 半期詳細 or 年度全てをリセット方法を選択 */}
+                        {/* {step === 5 && currentLevel === "member" && (
+                          <select
+                            className={`${styles.select_box} ${styles.both} mx-[20px] truncate`}
+                            style={{ maxWidth: `max-content` }}
+                            value={resetTargetType}
+                            onChange={(e) => {
+                              setResetTargetType(e.target.value as "half_detail" | "fiscal_year");
+                            }}
+                          >
+                            <option value={"half_detail"}>{mappingResetType["half_detail"][language]}</option>
+                            <option value={"fiscal_year"}>{mappingResetType["fiscal_year"][language]}</option>
+                          </select>
+                        )} */}
+                        {step === 5 &&
                           fiscalYearQueryData &&
                           ((selectedPeriodTypeForMemberLevel === "first_half_details" &&
                             fiscalYearQueryData.is_confirmed_first_half_details) ||
                             (selectedPeriodTypeForMemberLevel === "second_half_details" &&
                               fiscalYearQueryData.is_confirmed_second_half_details)) && (
                             <>
-                              <div className="flex items-center justify-start">
-                                <div
+                              <div className="ml-[20px] flex items-center justify-start">
+                                {/* <div
                                   className={`flex-center ml-[6px] rounded-full border border-solid border-[var(--bright-green)] bg-[var(--bright-green)] px-[12px] py-[3px] text-[12px] text-[#fff]`}
                                 >
                                   <span className="ml-[2px]">設定完了</span>
                                   <BsCheck2 className="pointer-events-none ml-[6px] min-h-[18px] min-w-[18px] stroke-1 text-[18px] text-[#fff]" />
-                                </div>
+                                </div> */}
                                 <button
-                                  className={`transition-bg01 flex-center max-h-[36px] max-w-max cursor-pointer rounded-[8px] bg-[var(--color-bg-brand-f)] px-[15px] py-[10px] text-[13px] font-bold text-[#fff] hover:bg-[var(--color-bg-brand-f-deep)]`}
+                                  className={`transition-bg01 flex-center max-h-[36px] max-w-max cursor-pointer rounded-[8px] ${styles.cancel_btn} px-[15px] py-[10px] text-[13px] font-bold`}
                                   onMouseEnter={(e) => {
+                                    // `メンバーレイヤーの${mappingHalfDetails[selectedPeriodTypeForMemberLevel][language]}の売上目標を全てリセットして`
                                     handleOpenTooltip({
                                       e: e,
                                       display: "top",
-                                      content: `メンバーレイヤーの${mappingHalfDetails[selectedPeriodTypeForMemberLevel][language]}の売上目標を全てリセットして`,
-                                      content2: `新たに売上目標を設定する`,
-                                      marginTop: 24,
+                                      content: `リセットタイプ選択画面を表示する\n「${upsertSettingEntitiesObj.fiscalYear}年度の売上目標を全てリセット、または、メンバーレイヤーの${mappingHalfDetails[selectedPeriodTypeForMemberLevel][language]}の売上目標をリセット」から\nリセットタイプを選択して新しく売上目標を設定します。`,
+                                      marginTop: 39,
+                                      itemsPosition: `left`,
                                     });
                                   }}
                                   onMouseLeave={handleCloseTooltip}
                                   onClick={() => {
-                                    console.log("クリック");
+                                    setIsOpenResetTargetModal(true);
+                                    handleCloseTooltip();
                                   }}
                                 >
                                   リセット
@@ -4073,6 +4136,47 @@ const UpsertTargetEntityMemo = () => {
         </>
       )}
       {/* ---------------------------- エンティティリスト編集モーダル ここまで ---------------------------- */}
+
+      {/* ---------------------- 売上目標リセットタイプ選択 リセットモーダル ---------------------- */}
+      {isOpenResetTargetModal && (
+        <ConfirmationModal
+          titleText={`売上目標をリセットしてもよろしいですか？`}
+          sectionP1={`確定することで${
+            resetTargetType === `fiscal_year`
+              ? `${upsertSettingEntitiesObj.fiscalYear}年度の売上目標を全てリセットして、最初から目標設定を始めます。`
+              : `${
+                  selectedPeriodTypeForMemberLevel === "first_half_details" ? `上期詳細` : `下期詳細`
+                }の売上目標をリセットしてメンバーレイヤーから目標設定を始めます。`
+          }この操作は確定後、取り消すことができません。`}
+          cancelText="戻る"
+          submitText="リセットを確定"
+          buttonColor="red"
+          zIndex="6000px"
+          zIndexOverlay="5800px"
+          withAnnotation={true}
+          annotationText="注：この操作は少し時間がかかります。画面を閉じずにお待ちください。"
+          clickEventClose={() => {
+            setIsOpenResetTargetModal(false);
+            // setSaveTriggerSalesTarget(false); //トリガーをリセット
+            // setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
+            // setIsOpenConfirmDialog(false); // ダイアログを閉じる
+          }}
+          clickEventSubmit={() => console.log("クリック")}
+          withSelect={true}
+          optionsSelect={[
+            { value: "half_detail", displayValue: `${mappingResetType["half_detail"][language]}の売上目標をリセット` },
+            {
+              value: "fiscal_year",
+              displayValue: `${mappingResetType["fiscal_year"][language]}の全ての売上目標をリセット`,
+            },
+          ]}
+          selectState={resetTargetType}
+          onChangeEventSelect={(e) => {
+            setResetTargetType(e.target.value as "half_detail" | "fiscal_year");
+          }}
+        />
+      )}
+      {/* ---------------------- 売上目標リセットタイプ選択 リセットモーダル ここまで ---------------------- */}
     </>
   );
 };

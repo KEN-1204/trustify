@@ -208,6 +208,28 @@ export const EntityLevelColumn = ({
                 </div>
               </div>
             )}
+            {step === 3 && currentLevel === "member" && entityLevel !== "member" && (
+              <div className={`flex items-center justify-start`}>
+                <div className={`ml-[15px] flex items-center`}>
+                  <div
+                    className={`flex-center transition-bg03 min-w-max space-x-[6px] whitespace-nowrap rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] font-normal text-[var(--color-text-title)] hover:border-[var(--color-bg-brand-f)]`}
+                    onMouseEnter={(e) => {
+                      let tooltipText = `年度・上半期・下半期の売上目標の設定状況を表示しています`;
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: tooltipText,
+                        marginTop: 12,
+                        itemsPosition: `left`,
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>年度〜半期</span>
+                  </div>
+                </div>
+              </div>
+            )}
             {step === 4 && (
               <div className={`flex items-center justify-start`}>
                 <div className={`ml-[15px] flex items-center`}>
@@ -239,20 +261,44 @@ export const EntityLevelColumn = ({
             )}
           </h4>
           <div className={`flex items-center text-[13px]`}>
-            {[1, 2].includes(step) && (
+            {[1, 2, 3].includes(step) && (
               <>
                 {entityLevel !== "member" && (
                   <>
                     {settingLevelState === "notSet" && <span className={`text-[var(--main-color-tk)]`}>未設定</span>}
                     {settingLevelState !== "notSet" && (
                       <div className={`flex items-center space-x-[6px]`}>
-                        {settingLevelState === "setAnnualHalfOnly" && (
-                          <div
-                            // className={`flex-center rounded-full border border-solid border-[var(--color-border-light)] bg-[var(--color-edit-bg-solid)] px-[12px] py-[3px] text-[var(--color-text-sub)]`}
-                            className={`flex-center text-[var(--color-text-brand-f)]`}
-                          >
-                            <span className={`text-[13px]`}>設定完了</span>
-                          </div>
+                        {currentLevel !== "member" && (
+                          <>
+                            {settingLevelState === "setAnnualHalfOnly" ? (
+                              <div className={`flex-center text-[var(--color-text-brand-f)]`}>
+                                <span className={`text-[13px]`}>設定完了</span>
+                              </div>
+                            ) : (
+                              <span className={`text-[var(--main-color-tk)]`}>未設定</span>
+                            )}
+                          </>
+                        )}
+                        {currentLevel === "member" && (
+                          <>
+                            {settingLevelState === "setAnnualHalfOnly" ? (
+                              <div className={`flex-center text-[var(--color-text-brand-f)]`}>
+                                <span className={`text-[13px]`}>設定完了</span>
+                              </div>
+                            ) : (
+                              <span className={`text-[var(--main-color-tk)]`}>未設定</span>
+                            )}
+                            {/* {(selectedPeriodTypeForMemberLevel === "first_half_details" &&
+                              ["setAll", "setFirstHalf"].includes(settingLevelState)) ||
+                            (selectedPeriodTypeForMemberLevel === "second_half_details" &&
+                              ["setAll", "setSecondHalf"].includes(settingLevelState)) ? (
+                              <div className={`flex-center text-[var(--color-text-brand-f)]`}>
+                                <span className={`text-[13px]`}>設定完了</span>
+                              </div>
+                            ) : (
+                              <span className={`text-[var(--main-color-tk)]`}>未設定</span>
+                            )} */}
+                          </>
                         )}
                       </div>
                     )}
@@ -275,7 +321,7 @@ export const EntityLevelColumn = ({
                 )}
               </>
             )}
-            {[3, 4, 5].includes(step) && (
+            {[4, 5].includes(step) && (
               <>
                 {(selectedPeriodTypeForMemberLevel === "first_half_details" &&
                   ["setAll", "setFirstHalf"].includes(settingLevelState)) ||
@@ -567,7 +613,7 @@ export const EntityLevelColumn = ({
                               </div>
                             </div>
                             <div className={`flex min-h-[30px] items-center`}>
-                              {![4, 5].includes(step) && (
+                              {[1, 2, 3].includes(step) && (
                                 <>
                                   {isNoMember && (
                                     <>
@@ -583,9 +629,15 @@ export const EntityLevelColumn = ({
                                         <div className={`flex items-center space-x-[6px]`}>
                                           {entityLevel !== "member" && (
                                             <>
-                                              {(settingState === "setAll" || settingState === "setAnnualHalfOnly") && (
+                                              {settingState === "setAll" || settingState === "setAnnualHalfOnly" ? (
                                                 <>
                                                   <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <span className="text-[13px] text-[var(--color-text-sub)]">
+                                                    未設定
+                                                  </span>
                                                 </>
                                               )}
                                             </>

@@ -658,6 +658,16 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                 </video>
               )}
             </div>
+            <div
+              className={`${styles.image_blur}`}
+              style={{
+                backgroundImage: `url(${
+                  theme === "dark"
+                    ? "/assets/images/hero/slide_transparent_shadow_white_55_b3x_last.png"
+                    : "/assets/images/hero/slide_transparent_shadow_black_b3x_last.png"
+                })`,
+              }}
+            ></div>
           </div>
         </div>
         {/* <div className={`${styles.img_col}`}>
@@ -911,6 +921,16 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                 </video>
               )}
             </div>
+            <div
+              className={`${styles.image_blur}`}
+              style={{
+                backgroundImage: `url(${
+                  theme === "dark"
+                    ? "/assets/images/hero/bg_slide_black1x_compressed.png"
+                    : "/assets/images/hero/bg_slide_white1x_compressed.png"
+                })`,
+              }}
+            ></div>
           </div>
         </div>
         {/* <div className={styles.img_col}>

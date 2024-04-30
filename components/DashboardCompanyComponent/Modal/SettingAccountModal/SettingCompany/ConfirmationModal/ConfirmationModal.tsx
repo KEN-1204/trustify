@@ -1,6 +1,6 @@
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
-import React, { FC } from "react";
+import React, { ChangeEvent, FC } from "react";
 import { MdClose } from "react-icons/md";
 import styles from "./ConfirmationModal.module.css";
 
@@ -19,6 +19,11 @@ type Props = {
   zIndex?: string;
   withAnnotation?: boolean;
   annotationText?: string;
+  withSelect?: boolean;
+  onChangeEventSelect?: (e: ChangeEvent<HTMLSelectElement>) => void;
+  optionsSelect?: { [K in "value" | "displayValue"]: any }[];
+  selectState?: any;
+  background?: string;
 };
 
 export const ConfirmationModal: FC<Props> = ({
@@ -36,8 +41,14 @@ export const ConfirmationModal: FC<Props> = ({
   zIndex,
   withAnnotation = false,
   annotationText = `この操作は少し時間がかかります。画面を閉じずにお待ちください。`,
+  withSelect = false,
+  onChangeEventSelect,
+  optionsSelect,
+  selectState,
+  background = `var(--color-bg-notification-modal)`,
 }) => {
   return (
+    // --color-sales-card-bg
     <>
       {/* オーバーレイ */}
       <div
@@ -52,7 +63,7 @@ export const ConfirmationModal: FC<Props> = ({
       <div
         // className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-[300px] w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] "
         className="fade02 fixed left-[50%] top-[50%] z-[2000] h-auto max-h-max w-[40vw] max-w-[580px] translate-x-[-50%] translate-y-[-50%] rounded-[8px] bg-[var(--color-bg-notification-modal)] p-[32px] text-[var(--color-text-title)] "
-        style={{ ...(zIndex && { zIndex: zIndex }) }}
+        style={{ ...(zIndex && { zIndex: zIndex }), ...(background && { background: background }) }}
       >
         {/* {!isLoadingState && (
           <div className={`flex-center absolute left-0 top-0 z-[3000] h-[100%] w-[100%] rounded-[8px] bg-[#00000090]`}>
@@ -78,6 +89,7 @@ export const ConfirmationModal: FC<Props> = ({
           <MdClose className="text-[20px] text-[#fff]" />
         </button>
         <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>{titleText}</h3>
+
         {titleText2 && <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>{titleText2}</h3>}
         {sectionP1 && (
           <section className={`mt-[20px] flex h-auto w-full flex-col space-y-2 text-[14px]`}>
@@ -89,6 +101,29 @@ export const ConfirmationModal: FC<Props> = ({
             {sectionP2 && <p className="text-[13px] font-bold">{sectionP2}</p>}
           </section>
         )}
+
+        {withSelect && onChangeEventSelect && !!optionsSelect?.length && (
+          <>
+            <section className={`mt-[20px] flex h-auto w-full flex-col space-y-2 text-[14px]`}>
+              <select
+                className={`${styles.select_box} ${styles.both}  truncate`}
+                style={{ maxWidth: `max-content` }}
+                value={selectState}
+                onChange={onChangeEventSelect}
+                // onChange={(e) => {
+                //   setResetTargetType(e.target.value as "half_detail" | "fiscal_year");
+                // }}
+              >
+                {optionsSelect.map((obj) => (
+                  <option key={obj.value} value={obj.value}>
+                    {obj.displayValue}
+                  </option>
+                ))}
+              </select>
+            </section>
+          </>
+        )}
+
         <section className="flex w-full items-start justify-end">
           <div className={`flex w-[100%] items-center justify-around space-x-5 pt-[30px]`}>
             <button
@@ -102,7 +137,7 @@ export const ConfirmationModal: FC<Props> = ({
             </button>
             <button
               className={`transition-bg02 w-[50%] cursor-pointer rounded-[8px] px-[15px] py-[10px] text-[14px] font-bold text-[#fff]  ${
-                buttonColor === "red" && `bg-[var(--color-red-tk)] hover:bg-[var(--color-red-tk-hover)]`
+                buttonColor === "red" && `bg-[var(--color-red-tk)] hover:bg-[var(--color-red-tk-hover-deep)]`
               } ${buttonColor === "brand" && `bg-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f-hover)]`}`}
               // onClick={loadPortal}
               onClick={clickEventSubmit}

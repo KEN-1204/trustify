@@ -128,6 +128,8 @@
   /* TikTok */
   --color-red-tk: #ff3b5b;
   --color-red-tk-hover: #fd627c;
+  /* --color-red-tk-hover-deep: #e03450; */
+  --color-red-tk-hover-deep: #d4314c;
   /* 紫 FFX */
   /* --color-bg-brand-p: #ff59e9; */
   --color-bg-brand-p: #ff36e1;
@@ -1400,6 +1402,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-btn-basic-bg-on-card: #fff;
   --color-btn-basic-bg-on-card-hover: #ececec;
   --color-btn-basic-text-hover: #565656;
+  --color-btn-cancel-bg: #efefef;
+  --color-btn-cancel-bg-hover: #ddd;
+  --color-btn-cancel-text: #666;
   --color-sales-card-bg: #fff;
   --color-sales-card-border: transparent;
   --color-sales-card-border: 0 1px 2px 1px #cccccc60;
@@ -1540,6 +1545,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* お知らせ確認モーダル dark */
   /* --color-bg-notification-modal: #222; */
   --color-bg-notification-modal: #292929;
+  /* --color-bg-notification-modal: #121212; */
+  --color-bg-notification-modal: linear-gradient(to bottom left, #292929 0%, #222 33%, #121212 66%, #0f0f0f 100%);
   --color-overlay: #ffffff10;
   --color-overlay-light: #ffffff10;
   --color-overlay-black-md: #05050599;
@@ -2405,7 +2412,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-btn-basic-bg-on-card: #424242;
   --color-btn-basic-bg-on-card-hover: #666;
   --color-btn-basic-text-hover: var(--color-text-title);
+  --color-btn-cancel-bg: #484848;
+  --color-btn-cancel-bg-hover: #666;
+  --color-btn-cancel-text: #fff;
   --color-sales-card-bg: linear-gradient(to bottom left, #2d2d2d 0%, #292929 33%, #222 66%, #1c1c1c 100%);
+  /* --color-sales-card-bg: linear-gradient(to bottom left, #2d2d2d 0%, #292929 33%, #1c1c1c 66%, #191919 100%); */
   /* --color-sales-card-bg: linear-gradient(to bottom left, #2c2c2c 0%, #2d2d2d 33%, #222 66%, #1c1c1c 100%); */
   --color-sales-card-border: 0 0 0 1px #333;
   --color-sales-card-border-brand: 0 0 0 1px var(--color-bg-brand-f);
@@ -3890,6 +3901,7 @@ textarea {
   background: linear-gradient(to right, #eae5ff, #cff4fd);
   background: linear-gradient(to right in oklch, #eae5ff, #cff4fd);
 }
+
 .uoufRc.wwsywc {
   background: linear-gradient(to right, #eae5ff, #ffb495);
   background: linear-gradient(to right in oklch, #eae5ff, #ffb495);
@@ -3899,3 +3911,15 @@ textarea {
   background: linear-gradient(to right in oklch, #dcff99, #dedeff);
 }
 /* -------------- 背景色徐々に変化 インターバル -------------- */
+
+/* --------- Youtube 背景動画色グラデ div内にcanvas */
+/* {
+    aspect-ratio: 1.77778 / 1;
+    position: relative;
+    max-height: 100%;
+    max-width: 100%;
+    pointer-events: none;
+    transform: scale(1.5, 2);
+} */
+
+/* bg #0f0f0f */

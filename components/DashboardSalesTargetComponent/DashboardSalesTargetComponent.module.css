@@ -240,10 +240,12 @@
   cursor: pointer;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
+.btn.basic,
 .title_area .btn.basic {
   background-color: var(--color-btn-basic-bg);
   box-shadow: 0 0 0 1px var(--color-border-base);
 }
+.btn.basic:hover,
 .title_area .btn.basic:hover {
   background-color: var(--color-btn-basic-bg-hover);
   color: var(--color-btn-basic-text-hover);
@@ -474,6 +476,21 @@
 }
 .settings_menu .list.btn_area:hover {
   background-color: transparent;
+}
+.cancel_btn {
+  /* background-color: #484848;
+  background-color: var(--color-btn-basic-bg);
+  background-color: #eee; */
+  background-color: var(--color-btn-cancel-bg);
+  /* color: #666; */
+  color: var(--color-btn-cancel-text);
+  user-select: none;
+  white-space: nowrap;
+}
+.cancel_btn:hover {
+  /* background-color: #555;
+  background-color: var(--color-btn-basic-bg-hover); */
+  background-color: var(--color-btn-cancel-bg-hover);
 }
 .settings_menu .list.btn_area .edit_btn {
   background-color: #484848;

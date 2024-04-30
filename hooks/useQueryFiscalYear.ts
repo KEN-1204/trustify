@@ -12,7 +12,7 @@ export const useQueryFiscalYear = (
   const supabase = useSupabaseClient();
 
   const getFiscalYear = async () => {
-    // console.log("useQueryFiscalYear getFiscalYear関数実行 company_id", company_id);
+    console.log("🔥useQueryFiscalYear getFiscalYear関数実行");
 
     const { data, error } = await supabase
       .from("fiscal_years")
@@ -27,7 +27,7 @@ export const useQueryFiscalYear = (
       throw error;
     }
 
-    // console.log("useQueryFiscalYear getFiscalYear関数実行取得結果 data", data);
+    console.log("✅useQueryFiscalYear getFiscalYear関数実行 data", data);
 
     // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     await new Promise((resolve) => setTimeout(resolve, 500));

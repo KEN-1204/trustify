@@ -256,33 +256,49 @@ export const AboutImageFlowComponent = () => {
           <div className={`${styles.main} transition-base`}>
             <div className={`${styles.wrapper}`} onMouseEnter={handleToggleOpacity} onMouseLeave={handleToggleOpacity}>
               <div className={`${styles.imgScroll}`}>
-                <div>
+                <div className={`${styles.scroll_container}`}>
                   {Array(6)
                     .fill(null)
                     .map((_, index) => (
-                      <NextImage
-                        key={`${index}_sss`}
-                        src={PersonImages.woman05}
-                        alt=""
-                        className={`${styles.img}`}
-                      ></NextImage>
+                      <div key={`${index}_sss`} className={`${styles.image_box}`}>
+                        <NextImage
+                          // src={PersonImages.woman01}
+                          src={PersonImages.woman01}
+                          placeholder="blur"
+                          blurDataURL={PersonImages.woman01.blurDataURL}
+                          alt=""
+                          className={`${styles.image}`}
+                        ></NextImage>
+                        <div
+                          className={`${styles.image_blur}`}
+                          style={{ backgroundImage: `url(${PersonImages.woman01.src})` }}
+                        ></div>
+                      </div>
                     ))}
                 </div>
-                <div>
+                <div className={`${styles.scroll_container}`}>
                   {Array(6)
                     .fill(null)
                     .map((_, index) => (
-                      <NextImage
-                        key={`${index}_ss`}
-                        src={PersonImages.woman05}
-                        alt=""
-                        className={`${styles.img}`}
-                      ></NextImage>
+                      <div key={`${index}_ss`} className={`${styles.image_box}`}>
+                        <NextImage
+                          src={PersonImages.woman01}
+                          placeholder="blur"
+                          blurDataURL={PersonImages.woman01.blurDataURL}
+                          alt=""
+                          className={`${styles.image}`}
+                        ></NextImage>
+                        <div
+                          className={`${styles.image_blur}`}
+                          style={{ backgroundImage: `url(${PersonImages.woman01.src})` }}
+                          // style={{ background: `#fff` }}
+                        ></div>
+                      </div>
                     ))}
                 </div>
               </div>
               <div className={`${styles.imgScroll2}`}>
-                <div>
+                <div className={`${styles.scroll_container}`}>
                   <NextImage src={PersonImages.woman01} alt="" className={`${styles.img}`}></NextImage>
                   <NextImage src={PersonImages.woman02} alt="" className={`${styles.img}`}></NextImage>
                   <NextImage src={PersonImages.woman03} alt="" className={`${styles.img}`}></NextImage>
@@ -290,7 +306,7 @@ export const AboutImageFlowComponent = () => {
                   <NextImage src={PersonImages.woman05} alt="" className={`${styles.img}`}></NextImage>
                   <NextImage src={PersonImages.man01} alt="" className={`${styles.img}`}></NextImage>
                 </div>
-                <div>
+                <div className={`${styles.scroll_container}`}>
                   <NextImage src={PersonImages.woman01} alt="" className={`${styles.img}`}></NextImage>
                   <NextImage src={PersonImages.woman02} alt="" className={`${styles.img}`}></NextImage>
                   <NextImage src={PersonImages.woman03} alt="" className={`${styles.img}`}></NextImage>
@@ -300,7 +316,7 @@ export const AboutImageFlowComponent = () => {
                 </div>
               </div>
               <div className={`${styles.imgScroll3}`}>
-                <div>
+                <div className={`${styles.scroll_container}`}>
                   <NextImage src={PersonImages.woman05} alt="" className={`${styles.img}`}></NextImage>
                   <NextImage src={PersonImages.woman04} alt="" className={`${styles.img}`}></NextImage>
                   <NextImage src={PersonImages.woman03} alt="" className={`${styles.img}`}></NextImage>
@@ -308,7 +324,7 @@ export const AboutImageFlowComponent = () => {
                   <NextImage src={PersonImages.woman01} alt="" className={`${styles.img}`}></NextImage>
                   <NextImage src={PersonImages.man04} alt="" className={`${styles.img}`}></NextImage>
                 </div>
-                <div>
+                <div className={`${styles.scroll_container}`}>
                   <NextImage src={PersonImages.woman05} alt="" className={`${styles.img}`}></NextImage>
                   <NextImage src={PersonImages.woman04} alt="" className={`${styles.img}`}></NextImage>
                   <NextImage src={PersonImages.woman03} alt="" className={`${styles.img}`}></NextImage>

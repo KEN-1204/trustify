@@ -756,11 +756,19 @@ export const TargetContainer = () => {
   };
 
   // ---------------------変数---------------------
-  const isConfirmedSelectedFY =
-    targetFiscalYearsMap &&
-    targetFiscalYearsMap.has(selectedFiscalYearLocal) &&
-    (targetFiscalYearsMap.get(selectedFiscalYearLocal)?.is_confirmed_first_half_details ||
-      targetFiscalYearsMap.get(selectedFiscalYearLocal)?.is_confirmed_second_half_details);
+  const confirmStateSelectedFY = useMemo(() => {
+    if (!targetFiscalYearsMap) return "notSet";
+    if (!targetFiscalYearsMap.has(selectedFiscalYearLocal)) return "notSet";
+    const selectedFiscalYearObj = targetFiscalYearsMap.get(selectedFiscalYearLocal);
+    if (!selectedFiscalYearObj) return "notSet";
+    const isConfirmFH = selectedFiscalYearObj.is_confirmed_first_half_details;
+    const isConfirmSH = selectedFiscalYearObj.is_confirmed_second_half_details;
+    if (isConfirmFH && isConfirmSH) return "setAll";
+    if (isConfirmFH && !isConfirmSH) return "setFirstHalf";
+    if (!isConfirmFH && isConfirmSH) return "setSecondHalf";
+
+    return "notSet";
+  }, [targetFiscalYearsMap, selectedFiscalYearLocal]);
 
   // ---------------------変数 ここまで---------------------
 
@@ -773,7 +781,9 @@ export const TargetContainer = () => {
     "現在の会計年度Date",
     format(currentFiscalYearDateObj, "yyyy/MM/dd HH:mm:ss"),
     "現在選択中の会計年度",
-    selectedFiscalYearTarget
+    selectedFiscalYearTarget,
+    "useQuery年度 targetFiscalYears",
+    targetFiscalYears
   );
 
   return (
@@ -990,7 +1000,7 @@ export const TargetContainer = () => {
                 }}
               >
                 {/* <div className="pointer-events-none flex min-w-[130px] items-center"> */}
-                <div className="pointer-events-none flex min-w-[90px] items-center">
+                <div className="pointer-events-none flex min-w-[80px] items-center">
                   {/* <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" /> */}
                   <div className="flex select-none items-center space-x-[2px]">
                     <span className={`${styles.list_title}`}>会計年度</span>
@@ -1013,14 +1023,58 @@ export const TargetContainer = () => {
                     </option>
                   ))}
                 </select>
-                <div className={`ml-[16px] flex items-center space-x-[3px] whitespace-nowrap`}>
-                  {isConfirmedSelectedFY && (
+                <div
+                  className={`${
+                    ["notSet", "setAll"].includes(confirmStateSelectedFY) ? `ml-[16px]` : `ml-[12px]`
+                  } flex items-center space-x-[3px] whitespace-nowrap`}
+                >
+                  {confirmStateSelectedFY !== "notSet" && (
                     <>
-                      <span className={`text-[#00d436]`}>設定済み</span>
-                      <BsCheck2 className="pointer-events-none min-h-[18px] min-w-[18px] stroke-1 text-[18px] text-[#00d436]" />
+                      {confirmStateSelectedFY === "setAll" && (
+                        <>
+                          <span className={`text-[#00d436]`}>設定済み</span>
+                          <BsCheck2 className="pointer-events-none min-h-[18px] min-w-[18px] stroke-1 text-[18px] text-[#00d436]" />
+                        </>
+                      )}
+                      {confirmStateSelectedFY !== "setAll" && (
+                        <div className={`flex items-center space-x-[9px]`}>
+                          <div className={`flex items-center`}>
+                            <span
+                              className={`mr-[4px] ${
+                                confirmStateSelectedFY === "setFirstHalf"
+                                  ? `text-[#00d436]`
+                                  : `text-[var(--main-color-tk)]`
+                              }`}
+                            >
+                              上期
+                            </span>
+                            {confirmStateSelectedFY === "setFirstHalf" ? (
+                              <BsCheck2 className="pointer-events-none min-h-[13px] min-w-[13px] stroke-1 text-[13px] text-[#00d436]" />
+                            )  : (
+                              <div className={`min-h-[13px] min-w-[13px]`}></div>
+                            )}
+                          </div>
+                          <div className={`flex items-center`}>
+                            <span
+                              className={`mr-[4px] ${
+                                confirmStateSelectedFY === "setSecondHalf"
+                                  ? `text-[#00d436]`
+                                  : `text-[var(--main-color-tk)]`
+                              }`}
+                            >
+                              下期
+                            </span>
+                            {confirmStateSelectedFY === "setSecondHalf" ? (
+                              <BsCheck2 className="pointer-events-none min-h-[13px] min-w-[13px] stroke-1 text-[13px] text-[#00d436]" />
+                            ) : (
+                              <div className={`min-h-[13px] min-w-[13px]`}></div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </>
                   )}
-                  {!isConfirmedSelectedFY && <span className={`text-[var(--main-color-tk)]`}>未設定</span>}
+                  {confirmStateSelectedFY === "notSet" && <span className={`text-[var(--main-color-tk)]`}>未設定</span>}
                 </div>
               </li>
               {/* ------------------------------------ */}

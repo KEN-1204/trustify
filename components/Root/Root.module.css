@@ -616,6 +616,23 @@
   /* -webkit-box-reflect: below 0 linear-gradient(transparent, transparent, transparent, #00000010, #00000035); */
   -webkit-box-reflect: below 0 linear-gradient(transparent, transparent, transparent, #00000012, #00000036);
 }
+.light_back .image_blur {
+  position: absolute;
+  z-index: -1;
+  top: 5px;
+  left: 0;
+  transform: translateX(-2.5%);
+  width: 105%;
+  height: 105%;
+  border-radius: 20px;
+  filter: blur(15px);
+  background-size: cover;
+  opacity: 0.8;
+  /* transition: opacity 0.3s ease, transform 0.3s ease; */
+}
+.light_back:hover .image_blur {
+  opacity: 0;
+}
 @media screen and (max-width: 1600px) {
   .light_back {
     max-width: 530px;
