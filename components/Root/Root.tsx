@@ -543,6 +543,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
               }}
             >
               <div className="absolute left-0 top-0 z-[-1] h-full w-full rounded-[4px] bg-[var(--color-bg-base)]" />
+              {/* <div className="absolute left-0 top-0 z-[0] h-full w-full rounded-[4px] bg-[var(--color-bg-base)]" /> */}
               {!hoveredFeature1 && (
                 <>
                   {/* <div
@@ -555,7 +556,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                     </div>
                   </div> */}
                   <div
-                    className={`fade08_forward absolute left-[12px] top-[50%] z-[0] flex translate-y-[-50%] flex-col rounded-[9px] bg-[var(--thumbnail-hero-title-bg)] px-[12px] py-[9px]`}
+                    className={`fade08_forward absolute left-[12px] top-[50%] z-[4] flex translate-y-[-50%] flex-col rounded-[9px] bg-[var(--thumbnail-hero-title-bg)] px-[12px] py-[9px]`}
                     // style={{ animationDelay: `0.4s`, backdropFilter: `var(--thumbnail-hero-title-blur)` }}
                     style={{ animationDelay: `0.4s` }}
                   >
@@ -599,7 +600,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                       </div>
                     </div>
                   </div>
-                  <div className={`absolute-center flex-center z-[2]`}>
+                  <div className={`absolute-center flex-center z-[5]`}>
                     <div
                       className={`flex-center fade08_forward shadow-all-lg h-[56px] w-[56px] rounded-full bg-[#292929d0] pl-[3px] backdrop-blur-sm`}
                       style={{
@@ -658,7 +659,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                 </video>
               )}
             </div>
-            <div
+            {/* <div
               className={`${styles.image_blur}`}
               style={{
                 backgroundImage: `url(${
@@ -667,7 +668,7 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
                     : "/assets/images/hero/slide_transparent_shadow_black_b3x_last.png"
                 })`,
               }}
-            ></div>
+            ></div> */}
           </div>
         </div>
         {/* <div className={`${styles.img_col}`}>

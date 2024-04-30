@@ -1416,6 +1416,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-brand-btn-active: var(--color-bg-brand-f);
   --color-brand-btn-active-hover: var(--color-bg-brand-f-deep);
   /* -------- ✅売上目標✅ light -------- */
+
+  /* -------- 🌟カスタムモーダル🌟 light -------- */
+  --color-modal-border-shadow-custom: 0 6px 12px 9px #00000042;
+  --color-modal-border-shadow-custom: 0 0 0 1px var(--color-border-light), 0 0 0 2px #999, 0 6px 12px 9px #00000042;
+  /* -------- ✅カスタムモーダル✅ light ここまで -------- */
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -2425,6 +2430,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-brand-btn-active: var(--color-bg-brand-f90);
   --color-brand-btn-active-hover: var(--color-bg-brand-f);
   /* -------- ✅売上目標✅ dark -------- */
+
+  /* -------- 🌟カスタムモーダル🌟 dark -------- */
+  --color-modal-border-shadow-custom: 0px 0px 0px 1px #cccccc90, 0px 0px 0px 2px #33333390, 0 6px 12px 9px #00000042;
+  /* -------- ✅カスタムモーダル✅ dark ここまで -------- */
 }
 
 /* html {
