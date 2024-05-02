@@ -35,22 +35,27 @@ export const useQueryMemberGroupsByParentEntities = ({
     // setLoadingGlobalState(true);
     if (!userProfileState) return {};
     if (!(isReady && parentEntities.length > 0)) return {};
-    console.log("useQueryMemberAccountsカスタムフック getMemberGroupsByParentEntities関数");
 
     let rows: (MemberAccounts & { company_id: string; company_name: string })[] = [];
     let memberGroupsObjByParentEntities = {};
 
-    const { data: memberRows, error } = await supabase.rpc("get_members_filtered_by_parent_entity", {
+    const payload = {
       _subscription_id: userProfileState.subscription_id,
       _company_id: userProfileState.company_id,
       _parent_entity_level: parent_entity_level,
       _parent_entity_ids: Array.from(parentEntityIdsSet),
-    });
+    };
+    console.log("🔥useQueryMemberAccountsカスタムフック getMemberGroupsByParentEntities関数実行 payload", payload);
+
+    const { data: memberRows, error } = await supabase.rpc("get_members_filtered_by_parent_entity", payload);
 
     if (error) {
       console.log("getMemberGroupsByParentEntitiesエラー発生", error.message);
       throw new Error(error.message);
     }
+
+    console.log("✅useQueryMemberAccountsカスタムフック getMemberGroupsByParentEntities関数実行成功 data", memberRows);
+
     rows = memberRows;
 
     const getParentEntityId = (

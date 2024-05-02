@@ -408,6 +408,10 @@ const UpsertSettingTargetEntityGroupMemo = ({
 
   const [isOpenConfirmDialog, setIsOpenConfirmDialog] = useState(false);
 
+  // 🌠目標を保存【companyレベル】
+  // companyレベルの場合：総合目標テーブルのinputのみ集めてINSERT => 年度~半期
+
+  // 🌠目標を保存【department~memberレベル】
   // ------------------------ 🌠保存ボタンクリック 全ての子コンポーネント内の目標を収集🌠 ここから ------------------------
   // 1. 保存ボタンクリック -> 子コンポーネントの各テーブルに目標をZustandに格納するようトリガーを発火
   const handleCollectInputTargets = () => {
@@ -1296,9 +1300,16 @@ const UpsertSettingTargetEntityGroupMemo = ({
 
   // 全子コンポーネントがフェッチ完了したかを監視
   useEffect(() => {
-    // サブ目標リストよりactiveIndexが大きくなった場合、全てフェッチが完了
-    if (currentActiveIndexSave >= subTargetList.length) {
-      setAllSaved(true);
+    if (upsertSettingEntitiesObj.entityLevel === "company") {
+      // 会社レベルはメイン目標1つのみなので、1になったらallSavedをtrueに
+      if (currentActiveIndexSave >= 1) {
+        setAllSaved(true);
+      }
+    } else {
+      // サブ目標リストよりactiveIndexが大きくなった場合、全てフェッチが完了
+      if (currentActiveIndexSave >= subTargetList.length) {
+        setAllSaved(true);
+      }
     }
   }, [currentActiveIndexSave]);
 
@@ -2016,6 +2027,11 @@ const UpsertSettingTargetEntityGroupMemo = ({
                         onMouseLeave={handleCloseTooltip}
                         onClick={(e) => {
                           handleCollectInputTargets();
+                          // if (upsertSettingEntitiesObj.entityLevel === "company") {
+                          //   handleSaveTargetCompany();
+                          // } else {
+                          //   handleCollectInputTargets();
+                          // }
                         }}
                       >
                         {upsertSettingEntitiesObj.entityLevel !== "company" &&

@@ -37,6 +37,8 @@ import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMon
 import Decimal from "decimal.js";
 import { calculateGrowth } from "@/utils/Helpers/PercentHelpers/calculateGrowth";
 import { calculateYearOverYear } from "@/utils/Helpers/PercentHelpers/calculateYearOverYear";
+import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
+import { GrPowerReset } from "react-icons/gr";
 
 // entityLevel: company / department...
 type Props = {
@@ -164,6 +166,8 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, comp
   const [salesTableContainerSize, setSalesTableContainerSize] = useState<string>("one_third");
   // ローディング
   const [isLoadingTarget, setIsLoadingTarget] = useState(false);
+  // ローディングリフレッシュ
+  const [isLoadingRefresh, setIsLoadingRefresh] = useState(false);
   // 🌟売上目標テーブル専用 ここまで
   // カードサイズ
   // 各カラムの横幅を管理
@@ -618,7 +622,8 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, comp
   // ================== 🌟活動履歴を取得する関数🌟 ここまで ==================
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, isLoading } =
     useInfiniteQuery({
-      queryKey: ["sales_targets", entityLevel ?? null, `${fiscalYear}`],
+      // queryKey: ["sales_targets", entityLevel ?? null, `${fiscalYear}`],
+      queryKey: ["sales_targets", `${fiscalYear}`, entityLevel ?? null],
       queryFn: async (ctx) => {
         console.log("🔥queryFn実行");
         const nextPage = await fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
@@ -2769,6 +2774,40 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, comp
                 ></div>
                 <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
               </div>
+              {!isLoadingRefresh && (
+                <div
+                  className={`${styles.icon_path_stroke} ${styles.icon_btn_refresh} flex-center transition-bg03 ml-[15px]`}
+                  onMouseEnter={(e) => {
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: "リフレッシュ",
+                      // content2: "フィルターの切り替えが可能です。",
+                      // marginTop: 57,
+                      // marginTop: 38,
+                      marginTop: 6,
+                      itemsPosition: "center",
+                      whiteSpace: "nowrap",
+                    });
+                  }}
+                  onMouseLeave={handleCloseTooltip}
+                  onClick={async () => {
+                    setIsLoadingRefresh(true);
+                    // 目標タブトップ画面の設定年度の売上目標を更新
+                    await queryClient.invalidateQueries(["sales_targets", `${fiscalYear}`, entityLevel ?? null]);
+                    await new Promise((resolve) => setTimeout(resolve, 300));
+                    setIsLoadingRefresh(false);
+                    handleCloseTooltip();
+                  }}
+                >
+                  <GrPowerReset />
+                </div>
+              )}
+              {isLoadingRefresh && (
+                <div className={`flex-center ml-[15px] min-h-[28px] min-w-[28px]`}>
+                  <SpinnerX h="h-[16px]" w="w-[16px]" />
+                </div>
+              )}
             </>
           )}
           {!isMain && (

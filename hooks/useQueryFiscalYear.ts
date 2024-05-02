@@ -32,6 +32,8 @@ export const useQueryFiscalYear = (
     // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     await new Promise((resolve) => setTimeout(resolve, 500));
 
+    console.log("✅useQueryFiscalYear getFiscalYear関数実行成功 data: ", data);
+
     return !!data?.length ? (data[0] as FiscalYears) : null;
   };
 

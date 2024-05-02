@@ -248,20 +248,33 @@ const UpsertTargetEntityMemo = () => {
 
       setEntitiesHierarchyLocal(initialState);
       setIsSetCompleteEntitiesHierarchy(true); // ローカルstateにエンティティのセットが完了を通知 同じ初回マウント時のメンバーレベルで直上の親エンティティに紐づく各メンバー取得するuseQueryが完了したタイミングでentitiesHierarchyLocalにセットする際に、こちらのentitiesHierarchyLocalがセットされていない状態だと全てのレベルが空の配列でsetEntitiesHierarchyLocalが実行されてしまうため、この完了通知の後に再度メンバーもセットする
-      if (currentLevel === "member" && existingKeys.includes("member")) {
-        // エンティティレベルカラムが3つ以上で画面右端を超える場合にはヘッダーとサイドバーを固定してから右端にスクロールする
-        if (addedEntityLevelsListLocal.length > 3) {
-          // 0.1秒遅延して右端にスクロールさせる
-          setTimeout(() => {
-            if (scrollContentsAreaRef.current) {
-              if (isStickyHeader === false) setIsStickyHeader(true); // ヘッダー固定
-              if (isStickySidebar === false) setIsStickySidebar(true); // サイドバー固定
-              const scrollArea = scrollContentsAreaRef.current;
-              const { width } = scrollArea.getBoundingClientRect();
-              scrollArea.scrollTo({ top: 0, left: width, behavior: "smooth" });
-            }
-          }, 100);
-        }
+      // if (currentLevel === "member" && existingKeys.includes("member")) {
+      //   // エンティティレベルカラムが3つ以上で画面右端を超える場合にはヘッダーとサイドバーを固定してから右端にスクロールする
+      //   if (addedEntityLevelsListLocal.length > 3) {
+      //     // 0.1秒遅延して右端にスクロールさせる
+      //     setTimeout(() => {
+      //       if (scrollContentsAreaRef.current) {
+      //         if (isStickyHeader === false) setIsStickyHeader(true); // ヘッダー固定
+      //         if (isStickySidebar === false) setIsStickySidebar(true); // サイドバー固定
+      //         const scrollArea = scrollContentsAreaRef.current;
+      //         const { width } = scrollArea.getBoundingClientRect();
+      //         scrollArea.scrollTo({ top: 0, left: width, behavior: "smooth" });
+      //       }
+      //     }, 100);
+      //   }
+      // }
+      // エンティティレベルカラムが3つ以上で画面右端を超える場合にはヘッダーとサイドバーを固定してから右端にスクロールする
+      if (addedEntityLevelsListLocal.length >= 3) {
+        // 0.1秒遅延して右端にスクロールさせる
+        setTimeout(() => {
+          if (scrollContentsAreaRef.current) {
+            if (isStickyHeader === false) setIsStickyHeader(true); // ヘッダー固定
+            if (isStickySidebar === false) setIsStickySidebar(true); // サイドバー固定
+            const scrollArea = scrollContentsAreaRef.current;
+            const { width } = scrollArea.getBoundingClientRect();
+            scrollArea.scrollTo({ top: 0, left: width, behavior: "smooth" });
+          }
+        }, 100);
       }
     }
   }, [entitiesHierarchyQueryData]);
@@ -609,6 +622,56 @@ const UpsertTargetEntityMemo = () => {
 
   // ===================== 🌟ユーザーが作成したエンティティのみでレベル選択肢リストを再生成🌟 =====================
   // ✅ステップ1の選択肢で追加
+  const initialOptionsEntityLevelList = (): {
+    title: EntityLevelNames;
+    name: {
+      [key: string]: string;
+    };
+  }[] => {
+    let newEntityList: {
+      title: EntityLevelNames;
+      name: {
+        [key: string]: string;
+      };
+    }[] = [{ title: "company", name: { ja: "全社", en: "Company" } }];
+    if (departmentDataArray && departmentDataArray.length > 0) {
+      newEntityList.push({ title: "department", name: { ja: "事業部", en: "Department" } });
+    }
+    if (sectionDataArray && sectionDataArray.length > 0) {
+      newEntityList.push({ title: "section", name: { ja: "課・セクション", en: "Section" } });
+    }
+    if (unitDataArray && unitDataArray.length > 0) {
+      newEntityList.push({ title: "unit", name: { ja: "係・チーム", en: "Unit" } });
+    }
+    // メンバーは必ず追加
+    newEntityList.push({ title: "member", name: { ja: "メンバー", en: "Member" } });
+    // 事業所は一旦見合わせ
+    // if (officeDataArray && officeDataArray.length > 0) {
+    //   newEntityList.push({ title: "office", name: { ja: "事業所", en: "Office" } });
+    // }
+
+    return newEntityList;
+
+    // // まだ一つもレベルが追加されていない場合は全てのレベルの選択肢を返す
+    // if (!addedEntityLevelsMapLocal || addedEntityLevelsMapLocal.size === 0) return newEntityList;
+
+    // // 既に指定年度の売上目標を構成するレベルが追加されている場合、追加済みの末端レベルの下位レベルに当たるレベル以降を選択肢としてフィルターして返す
+    // if (addedEntityLevelsMapLocal.has("member")) return [];
+    // if (addedEntityLevelsMapLocal.has("unit")) return [{ title: "member", name: { ja: "メンバー", en: "Member" } }];
+    // if (addedEntityLevelsMapLocal.has("section")) {
+    //   return newEntityList.filter((obj) => ["unit", "member"].includes(obj.title));
+    // }
+    // if (addedEntityLevelsMapLocal.has("department")) {
+    //   // 事業部->課->係->メンバーで、事業部->係と飛ばすことがないようにunitは選択肢から省く
+    //   return newEntityList.filter((obj) => ["section", "member"].includes(obj.title));
+    //   // return newEntityList.filter((obj) => ["section", "unit", "member"].includes(obj.title));
+    // }
+    // if (addedEntityLevelsMapLocal.has("company")) {
+    //   // 会社->事業部->課->係->メンバーで、会社->課、会社->係のように飛ばすことがないようにsection, unitは選択肢から省く
+    //   return newEntityList.filter((obj) => ["department", "member"].includes(obj.title));
+    // }
+    // return [];
+  };
   const [optionsEntityLevelList, setOptionsEntityLevelList] = useState<
     {
       // title: string;
@@ -617,58 +680,67 @@ const UpsertTargetEntityMemo = () => {
         [key: string]: string;
       };
     }[]
-  >(
-    (): {
-      title: EntityLevelNames;
-      name: {
-        [key: string]: string;
-      };
-    }[] => {
-      let newEntityList: {
-        title: EntityLevelNames;
-        name: {
-          [key: string]: string;
-        };
-      }[] = [{ title: "company", name: { ja: "全社", en: "Company" } }];
-      if (departmentDataArray && departmentDataArray.length > 0) {
-        newEntityList.push({ title: "department", name: { ja: "事業部", en: "Department" } });
-      }
-      if (sectionDataArray && sectionDataArray.length > 0) {
-        newEntityList.push({ title: "section", name: { ja: "課・セクション", en: "Section" } });
-      }
-      if (unitDataArray && unitDataArray.length > 0) {
-        newEntityList.push({ title: "unit", name: { ja: "係・チーム", en: "Unit" } });
-      }
-      // メンバーは必ず追加
-      newEntityList.push({ title: "member", name: { ja: "メンバー", en: "Member" } });
-      // 事業所は一旦見合わせ
-      // if (officeDataArray && officeDataArray.length > 0) {
-      //   newEntityList.push({ title: "office", name: { ja: "事業所", en: "Office" } });
-      // }
+  >(initialOptionsEntityLevelList());
+  // const [optionsEntityLevelList, setOptionsEntityLevelList] = useState<
+  //   {
+  //     // title: string;
+  //     title: EntityLevelNames;
+  //     name: {
+  //       [key: string]: string;
+  //     };
+  //   }[]
+  // >(
+  //   (): {
+  //     title: EntityLevelNames;
+  //     name: {
+  //       [key: string]: string;
+  //     };
+  //   }[] => {
+  //     let newEntityList: {
+  //       title: EntityLevelNames;
+  //       name: {
+  //         [key: string]: string;
+  //       };
+  //     }[] = [{ title: "company", name: { ja: "全社", en: "Company" } }];
+  //     if (departmentDataArray && departmentDataArray.length > 0) {
+  //       newEntityList.push({ title: "department", name: { ja: "事業部", en: "Department" } });
+  //     }
+  //     if (sectionDataArray && sectionDataArray.length > 0) {
+  //       newEntityList.push({ title: "section", name: { ja: "課・セクション", en: "Section" } });
+  //     }
+  //     if (unitDataArray && unitDataArray.length > 0) {
+  //       newEntityList.push({ title: "unit", name: { ja: "係・チーム", en: "Unit" } });
+  //     }
+  //     // メンバーは必ず追加
+  //     newEntityList.push({ title: "member", name: { ja: "メンバー", en: "Member" } });
+  //     // 事業所は一旦見合わせ
+  //     // if (officeDataArray && officeDataArray.length > 0) {
+  //     //   newEntityList.push({ title: "office", name: { ja: "事業所", en: "Office" } });
+  //     // }
 
-      return newEntityList;
+  //     return newEntityList;
 
-      // // まだ一つもレベルが追加されていない場合は全てのレベルの選択肢を返す
-      // if (!addedEntityLevelsMapLocal || addedEntityLevelsMapLocal.size === 0) return newEntityList;
+  //     // // まだ一つもレベルが追加されていない場合は全てのレベルの選択肢を返す
+  //     // if (!addedEntityLevelsMapLocal || addedEntityLevelsMapLocal.size === 0) return newEntityList;
 
-      // // 既に指定年度の売上目標を構成するレベルが追加されている場合、追加済みの末端レベルの下位レベルに当たるレベル以降を選択肢としてフィルターして返す
-      // if (addedEntityLevelsMapLocal.has("member")) return [];
-      // if (addedEntityLevelsMapLocal.has("unit")) return [{ title: "member", name: { ja: "メンバー", en: "Member" } }];
-      // if (addedEntityLevelsMapLocal.has("section")) {
-      //   return newEntityList.filter((obj) => ["unit", "member"].includes(obj.title));
-      // }
-      // if (addedEntityLevelsMapLocal.has("department")) {
-      //   // 事業部->課->係->メンバーで、事業部->係と飛ばすことがないようにunitは選択肢から省く
-      //   return newEntityList.filter((obj) => ["section", "member"].includes(obj.title));
-      //   // return newEntityList.filter((obj) => ["section", "unit", "member"].includes(obj.title));
-      // }
-      // if (addedEntityLevelsMapLocal.has("company")) {
-      //   // 会社->事業部->課->係->メンバーで、会社->課、会社->係のように飛ばすことがないようにsection, unitは選択肢から省く
-      //   return newEntityList.filter((obj) => ["department", "member"].includes(obj.title));
-      // }
-      // return [];
-    }
-  );
+  //     // // 既に指定年度の売上目標を構成するレベルが追加されている場合、追加済みの末端レベルの下位レベルに当たるレベル以降を選択肢としてフィルターして返す
+  //     // if (addedEntityLevelsMapLocal.has("member")) return [];
+  //     // if (addedEntityLevelsMapLocal.has("unit")) return [{ title: "member", name: { ja: "メンバー", en: "Member" } }];
+  //     // if (addedEntityLevelsMapLocal.has("section")) {
+  //     //   return newEntityList.filter((obj) => ["unit", "member"].includes(obj.title));
+  //     // }
+  //     // if (addedEntityLevelsMapLocal.has("department")) {
+  //     //   // 事業部->課->係->メンバーで、事業部->係と飛ばすことがないようにunitは選択肢から省く
+  //     //   return newEntityList.filter((obj) => ["section", "member"].includes(obj.title));
+  //     //   // return newEntityList.filter((obj) => ["section", "unit", "member"].includes(obj.title));
+  //     // }
+  //     // if (addedEntityLevelsMapLocal.has("company")) {
+  //     //   // 会社->事業部->課->係->メンバーで、会社->課、会社->係のように飛ばすことがないようにsection, unitは選択肢から省く
+  //     //   return newEntityList.filter((obj) => ["department", "member"].includes(obj.title));
+  //     // }
+  //     // return [];
+  //   }
+  // );
   // ===================== 🌟ユーザーが作成したエンティティのみでレベル選択肢リストを再生成🌟 ここまで=====================
 
   // 🌟✅現在のエンティティレベル内の全てのエンティティが設定済みかどうかを判別するstate
@@ -1251,8 +1323,9 @@ const UpsertTargetEntityMemo = () => {
   // ----------------------- 🌟ステップ2 UPSERT「構成を確定」をクリック🌟 ここまで -----------------------
   // ----------------------- 🌟ステップ4 UPSERT「集計」をクリック🌟 -----------------------
   const handleAggregateQuarterMonth = async () => {
-    if (!fiscalYearQueryData) return alert("売上目標年度データが見つかりませんでした。");
-    if (!addedEntityLevelsListQueryData) return alert("レイヤーデータが見つかりませんでした。");
+    if (!fiscalYearQueryData) return alert("売上目標年度データが見つかりませんでした。E02");
+    if (!addedEntityLevelsListQueryData) return alert("レイヤーデータが見つかりませんでした。E03");
+    if (!entitiesHierarchyQueryData) return alert("レイヤーデータが見つかりませんでした。E04");
     // メンバー以外の現在取得されている
     // ・レベルごとに
     // ・上位エンティティidに紐づくエンティティグループごとに
@@ -1270,12 +1343,26 @@ const UpsertTargetEntityMemo = () => {
       company: 4,
     };
 
+    // if (true) {
+    //   const aaa = Object.keys(entitiesHierarchyLocal).filter(
+    //     (key): key is "company" | "department" | "section" | "unit" => {
+    //       console.log("key in entitiesHierarchyQueryData", key in entitiesHierarchyQueryData, key);
+    //       return key !== "member" && key !== "office" && key in entitiesHierarchyQueryData;
+    //     }
+    //   );
+    //   console.log("結果 aaa", aaa);
+    //   return
+    // }
+
     try {
       setIsLoading(true); // ローディング開始
 
       // 🔹【会社〜係レベル】memberとofficeを除いたエンティティレベルのみの配列を作成
       const entityGroupsWithoutMember = Object.keys(entitiesHierarchyLocal)
-        .filter((key): key is "company" | "department" | "section" | "unit" => key !== "member" && key !== "office")
+        .filter(
+          (key): key is "company" | "department" | "section" | "unit" =>
+            key !== "member" && key !== "office" && key in entitiesHierarchyQueryData
+        )
         .sort((a, b) => levelOrder[a] - levelOrder[b]) // カスタム順序に基づいてソート
         .map((key) => {
           // 上位エンティティごとにグループ化されたエンティティグループ群
@@ -1479,6 +1566,8 @@ const UpsertTargetEntityMemo = () => {
       await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
       await new Promise((resolve) => setTimeout(resolve, 300));
       await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+      // 目標タブトップ画面の設定年度の売上目標を更新
+      await queryClient.invalidateQueries(["sales_targets", upsertSettingEntitiesObj.fiscalYear]);
 
       setIsLoading(false); // ローディング終了
       toast.success(
@@ -1517,23 +1606,266 @@ const UpsertTargetEntityMemo = () => {
 
   // ----------------------- 🌟ステップ5 目標をリセット🌟 -----------------------
   const handleResetTarget = async () => {
+    if (!addedEntityLevelsListQueryData) return alert("エラー：レイヤーデータが見つかりませんでした。E00");
+    if (!fiscalYearQueryData) return alert("エラー：年度データが見つかりませんでした。E00");
+    if (!entitiesHierarchyQueryData) return alert("エラー：レイヤーデータが見つかりませんでした。E06");
     try {
+      setIsLoading(true); // ローディング開始
       // 🌟半期詳細をリセット(メンバーレベルからやり直し)
       // 上期詳細 or 下期詳細の売上目標をリセットして、メンバーレベルの半期詳細の売上目標から設定を始める
       if (resetTargetType === "half_detail") {
         // 🔸上期詳細をリセット
+        // 削除対象のエンティティをレベルごとに収集
+        // 🔹1. sales_targetsテーブルから上期詳細or下期詳細を削除
+        // 🔹2. 削除したエンティティのentity_structuresテーブルのis_confirmed_xxx_half_detailsをfalseにUPDATE
+        // 🔹3. 削除したレベルのentity_level_structuresテーブルのis_confirmed_xxx_half_detailsをfalseにUPDATE
+        // 🔹4. fiscal_yearsテーブルのis_confirmed_xxx_half_detailsをfalseにUPDATE
+
+        const levelOrder = {
+          member: 1,
+          unit: 2,
+          section: 3,
+          department: 4,
+          company: 5,
+        };
+
+        // 🔹【会社〜メンバーレベル】officeを除いたエンティティレベルのみの配列を作成
+        const entityGroupsWithoutMember = Object.keys(entitiesHierarchyLocal)
+          .filter(
+            (key): key is "company" | "department" | "section" | "unit" | "member" =>
+              key !== "office" && key in entitiesHierarchyQueryData
+          )
+          .sort((a, b) => levelOrder[a] - levelOrder[b]) // カスタム順序に基づいてソート
+          .map((key) => {
+            // 上位エンティティごとにグループ化されたエンティティグループ群
+            const parentEntityGroup = entitiesHierarchyLocal[key];
+            // 上位エンティティごとにグループ化されているエンティティを全て平坦化して「Entity[]」の形で返す
+            const flattenEntities = parentEntityGroup.flatMap((group) => group.entities);
+            const entityIds = flattenEntities.map((entity) => entity.entity_id);
+            const entityStructureIds = flattenEntities.map((entity) => entity.id);
+
+            const entityLevelObj = addedEntityLevelsListQueryData.find((level) => level.entity_level === key);
+
+            if (!entityLevelObj) throw new Error("レイヤーデータが見つかりませんでした。E01");
+
+            // entity_level_structures用 半期詳細の今回の設定が「上期詳細」「下期詳細」に応じて動的に変更する
+            let isConfirmedLevelFirstHalf = false;
+            let isConfirmedLevelSecondHalf = false;
+
+            if (selectedPeriodTypeForMemberLevel === "first_half_details") {
+              isConfirmedLevelFirstHalf = false;
+              isConfirmedLevelSecondHalf = entityLevelObj.is_confirmed_second_half_details; // 現在のまま 既にtrueの場合はtrueをセット
+            } else if (selectedPeriodTypeForMemberLevel === "second_half_details") {
+              isConfirmedLevelFirstHalf = entityLevelObj.is_confirmed_first_half_details; // 現在のまま 既にtrueの場合はtrueをセット
+              isConfirmedLevelSecondHalf = false;
+            }
+
+            return {
+              entity_level: key, // "company" | "department" | "section" | "unit"
+              entity_ids: entityIds,
+              entity_structure_ids: entityStructureIds,
+              entity_level_id: entityLevelObj.id, // レベルid
+              // is_confirmed_annual_half: true, // 必ずtrue
+              is_confirmed_first_half_details: isConfirmedLevelFirstHalf,
+              is_confirmed_second_half_details: isConfirmedLevelSecondHalf,
+              // entities_data: formattedEntities,
+            };
+          });
+
+        // fiscal_years用 半期詳細の今回の設定が「上期詳細」「下期詳細」に応じて動的に変更する
+        let isConfirmedFiscalYearFirstHalf = false;
+        let isConfirmedFiscalYearSecondHalf = false;
+
         if (selectedPeriodTypeForMemberLevel === "first_half_details") {
+          isConfirmedFiscalYearFirstHalf = false;
+          isConfirmedFiscalYearSecondHalf = fiscalYearQueryData.is_confirmed_second_half_details; // 現在のまま
+        } else if (selectedPeriodTypeForMemberLevel === "second_half_details") {
+          isConfirmedFiscalYearFirstHalf = fiscalYearQueryData.is_confirmed_first_half_details; // 現在のまま
+          isConfirmedFiscalYearSecondHalf = false;
         }
-        // 🔸下期詳細をリセット
-        else {
+
+        const payload = {
+          _company_id: userProfileState.company_id,
+          _fiscal_year: fiscalYearQueryData.fiscal_year,
+          _fiscal_year_id: fiscalYearQueryData.id,
+          _is_confirmed_first_half_details_fy: isConfirmedFiscalYearFirstHalf,
+          _is_confirmed_second_half_details_fy: isConfirmedFiscalYearSecondHalf,
+          _target_type: "sales_target",
+          _half_detail_type: selectedPeriodTypeForMemberLevel,
+          // _period_start_year_month: periodStartYearMonth, // month_01 (下期詳細の場合の実際の値はmonth_07)
+          // _period_end_year_month: periodEndYearMonth, // month_06 (下期詳細の場合の実際の値はmonth_12)
+          _reset_entity_levels_array: entityGroupsWithoutMember,
+        };
+
+        console.log("🔥🔥🔥🔥🔥reset_sales_target_half_details_all_at_once関数実行 payload", payload);
+
+        const { error } = await supabase.rpc("reset_sales_target_half_details_all_at_once", payload);
+
+        // 0.3秒後に解決するPromiseの非同期処理を入れて明示的にローディングを入れる
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        if (error) {
+          console.log("❌reset_sales_target_half_details_all_at_once関数実行失敗");
+          throw error;
         }
+
+        console.log("✅FUNCTION reset_sales_target_half_details_all_at_once関数実行成功 キャッシュを更新");
+
+        // fiscal_years, entity_level_structures, entity_structuresのキャッシュを更新
+        await queryClient.invalidateQueries(["fiscal_year", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+        // 全ての年度の売上目標設定状況を保持するキャッシュも更新する
+        await queryClient.invalidateQueries(["fiscal_years", "sales_target"]);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+        // 目標タブトップ画面の設定年度の売上目標を更新
+        await queryClient.invalidateQueries(["sales_targets", upsertSettingEntitiesObj.fiscalYear]);
+
+        setIsLoading(false); // ローディング終了
+        setIsOpenResetTargetModal(false); // モーダルを閉じる
+        toast.success(
+          `全レイヤーの${
+            selectedPeriodTypeForMemberLevel === "first_half_details" ? `上期詳細` : `下期詳細`
+          }の売上目標のリセットが完了しました！🌟`
+        );
+
+        // 🔹半期詳細のリセットの完了後、ステップ3のメンバーレイヤーの半期詳細の売上目標設定画面に移行する
+        setStep(3);
       }
       // 🌟全ての売上目標をリセットして、全て最初から設定を始める
       else {
+        // 🔸全てをリセット
+        // 削除対象のエンティティをレベルごとに収集
+        // 🔹1. sales_targetsテーブルから上期詳細or下期詳細を削除
+        // 🔹2. 削除したエンティティのentity_structuresテーブルのis_confirmed_xxx_half_detailsをfalseにUPDATE
+        // 🔹3. 削除したレベルのentity_level_structuresテーブルのis_confirmed_xxx_half_detailsをfalseにUPDATE
+        // 🔹4. fiscal_yearsテーブルのis_confirmed_xxx_half_detailsをfalseにUPDATE
+
+        const levelOrder = {
+          member: 1,
+          unit: 2,
+          section: 3,
+          department: 4,
+          company: 5,
+        };
+
+        // 🔹【会社〜メンバーレベル】officeを除いたエンティティレベルのみの配列を作成
+        const entityGroupsWithoutOffice = Object.keys(entitiesHierarchyLocal)
+          .filter(
+            (key): key is "company" | "department" | "section" | "unit" | "member" =>
+              key !== "office" && key in entitiesHierarchyQueryData
+          )
+          .sort((a, b) => levelOrder[a] - levelOrder[b]) // カスタム順序に基づいてソート
+          .map((key) => {
+            // 上位エンティティごとにグループ化されたエンティティグループ群
+            const parentEntityGroup = entitiesHierarchyLocal[key];
+            // 上位エンティティごとにグループ化されているエンティティを全て平坦化して「Entity[]」の形で返す
+            const flattenEntities = parentEntityGroup.flatMap((group) => group.entities);
+            const entityIds = flattenEntities.map((entity) => entity.entity_id);
+            const entityStructureIds = flattenEntities.map((entity) => entity.id);
+
+            const entityLevelObj = addedEntityLevelsListQueryData.find((level) => level.entity_level === key);
+
+            if (!entityLevelObj) throw new Error("レイヤーデータが見つかりませんでした。E01");
+
+            let deleteCountSalesTarget = 0;
+            if (entityLevelObj.entity_level === "member") {
+              // メンバーレベルに年度目標は存在しないためそれぞれの半期詳細がtrueで+9
+              if (entityLevelObj.is_confirmed_first_half_details) deleteCountSalesTarget += 9;
+              if (entityLevelObj.is_confirmed_second_half_details) deleteCountSalesTarget += 9;
+            } else {
+              // 全社〜係レベルは、半期詳細で上期、下期を除く8行INSERTしているためそれぞれtrueなら+8
+              if (entityLevelObj.is_confirmed_first_half_details) deleteCountSalesTarget += 8;
+              if (entityLevelObj.is_confirmed_second_half_details) deleteCountSalesTarget += 8;
+              // 全社〜係レベルは「年度〜半期」での3行分は確実にINSERTされているため+3
+              if (entityLevelObj.is_confirmed_annual_half) deleteCountSalesTarget += 3;
+            }
+
+            return {
+              entity_level: key, // "company" | "department" | "section" | "unit"
+              entity_ids: entityIds,
+              entity_structure_ids: entityStructureIds,
+              entity_level_id: entityLevelObj.id, // レベルid
+              delete_count_sales_targets: deleteCountSalesTarget,
+              // entities_data: formattedEntities,
+            };
+          });
+
+        const previousParentEntityLevel = parentEntityLevel;
+
+        const payload = {
+          _company_id: userProfileState.company_id,
+          _fiscal_year: fiscalYearQueryData.fiscal_year,
+          _fiscal_year_id: fiscalYearQueryData.id,
+          _target_type: "sales_target",
+          _reset_entity_levels_array: entityGroupsWithoutOffice,
+        };
+
+        console.log("🔥🔥🔥🔥🔥reset_sales_target_all_at_once関数実行 payload", payload);
+
+        const { error } = await supabase.rpc("reset_sales_target_all_at_once", payload);
+
+        // 0.3秒後に解決するPromiseの非同期処理を入れて明示的にローディングを入れる
+        await new Promise((resolve) => setTimeout(resolve, 300));
+
+        if (error) {
+          console.log("❌reset_sales_target_all_at_once関数実行失敗");
+          throw error;
+        }
+
+        console.log("✅FUNCTION reset_sales_target_all_at_once関数実行成功 キャッシュを更新");
+
+        // fiscal_years, entity_level_structures, entity_structuresのキャッシュを削除
+        await queryClient.removeQueries({
+          queryKey: ["fiscal_year", "sales_target", upsertSettingEntitiesObj.fiscalYear],
+          exact: true,
+        });
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await queryClient.removeQueries({
+          queryKey: ["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear],
+          exact: true,
+        });
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        await queryClient.removeQueries({
+          queryKey: ["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear],
+          exact: true,
+        });
+        await queryClient.removeQueries({ queryKey: ["member_accounts", previousParentEntityLevel], exact: true });
+        // await queryClient.removeQueries(["member_accounts", parent_entity_level, parentEntityIdsStr]);
+        // 全ての年度の売上目標設定状況を保持するキャッシュも更新する
+        await queryClient.invalidateQueries(["fiscal_years", "sales_target"]);
+
+        // 🔹売上目標を全てリセットした後、モーダルを閉じて、ステップ1に戻る
+        setStep(1);
+
+        // 🔹ステップ1に戻る前に各種レベル等を初期値に戻す
+        setAddedEntityLevelsListLocal([]);
+        setEntitiesHierarchyLocal({
+          company: [],
+          department: [],
+          section: [],
+          unit: [],
+          member: [],
+          office: [],
+        });
+        setCurrentLevel("");
+        setSelectedNextLevel("company");
+        setOptionsEntityLevelList(initialOptionsEntityLevelList());
+        setIsAlreadySetState(false);
+        if (isStickySidebar) setIsStickySidebar(false);
+        if (isStickyHeader) setIsStickyHeader(false);
+        if (selectedPeriodTypeForMemberLevel === "first_half_details")
+          setSelectedPeriodTypeForMemberLevel("first_half_details");
+
+        setIsLoading(false); // ローディング終了
+        setIsOpenResetTargetModal(false); // モーダルを閉じる
+        toast.success(`全レイヤーの売上目標のリセットが完了しました！🌟`);
       }
     } catch (error: any) {
       console.error("エラー：", error);
       toast.error("売上目標のリセットに失敗しました...🙇‍♀️");
+      setIsLoading(false); // ローディング終了
     }
   };
   // ----------------------- 🌟ステップ5 目標をリセット🌟 ここまで -----------------------
@@ -2374,18 +2706,19 @@ const UpsertTargetEntityMemo = () => {
       if (!!unitDataArray?.length) levelNamesStr = `事業部・課/セクション・係/チーム`;
       if (levelNamesStr !== "") {
         const currentEntitLevelName = mappingEntityName[currentLevel][language];
-        if (currentLevel === "company")
+        if (currentLevel === "company") {
           if (levelNamesStr !== "") {
-            return `全社の売上目標を設定してください。全社の目標設定が完了した後、「次へ」から再度ステップ1に戻り、\n貴社の組織構成に合わせて\n「${levelNamesStr}」から売上目標に必要なレイヤーを追加、目標設定のステップ1~3を繰り返し、\n最後にメンバーレイヤーを追加後、各メンバーの売上目標を設定してください。`;
+            return `全社の売上目標を設定してください。全社の目標設定が完了した後、「次へ」から再度ステップ1に戻り、\n貴社の組織構成に合わせて「${levelNamesStr}」から売上目標に必要なレイヤーに対して、\n目標設定のステップ1~3を繰り返し、最後にメンバーレイヤーを追加してください。`;
           } else {
             return `全社の売上目標を設定してください。目標設定が完了した後、\n「次へ」から再度ステップ1に戻りメンバーレイヤーを追加、各メンバーの売上目標を設定してください。`;
           }
+        }
         if (currentLevel === "department") {
           levelNamesStr = "";
           if (!!sectionDataArray?.length) levelNamesStr = `課/セクション`;
           if (!!unitDataArray?.length) levelNamesStr = `課/セクション・係/チーム`;
           if (levelNamesStr !== "") {
-            return `事業部レイヤー内の全ての事業部の売上目標を設定してください。目標設定が完了した後「次へ」から再度ステップ1に戻り、\n貴社の組織構成に合わせて\n「${levelNamesStr}」から売上目標に必要なレイヤーを追加、目標設定のステップ1~3を繰り返し、\n最後にメンバーレイヤーを追加後、各メンバーの売上目標を設定してください。`;
+            return `事業部レイヤー内の全ての事業部の売上目標を設定してください。目標設定が完了した後「次へ」から再度ステップ1に戻り、\n貴社の組織構成に合わせて「${levelNamesStr}」から売上目標に必要なレイヤーに対して、\n目標設定のステップ1~3を繰り返し、最後にメンバーレイヤーをしてください。`;
           } else {
             return `事業部レイヤー内の全ての事業部の売上目標を設定してください。目標設定が完了した後、\n「次へ」から再度ステップ1に戻りメンバーレイヤーを追加、各メンバーの売上目標を設定してください。`;
           }
@@ -2394,7 +2727,7 @@ const UpsertTargetEntityMemo = () => {
           levelNamesStr = "";
           if (!!unitDataArray?.length) levelNamesStr = `係/チーム`;
           if (levelNamesStr !== "") {
-            return `課/セクションレイヤー内の全ての課/セクションの売上目標を設定してください。目標設定が完了した後「次へ」から再度ステップ1に戻り、\n貴社の組織構成に合わせて「${levelNamesStr}」から売上目標に必要なレイヤーを追加、目標設定のステップ1~3を繰り返し、\n最後にメンバーレイヤーを追加後、各メンバーの売上目標を設定してください。`;
+            return `課/セクションレイヤー内の全ての課/セクションの売上目標を設定してください。目標設定が完了した後「次へ」から再度ステップ1に戻り、\n貴社の組織構成に合わせて「${levelNamesStr}」から売上目標に必要なレイヤーに対して、\n目標設定のステップ1~3を繰り返し、最後にメンバーレイヤーをしてください。`;
           } else {
             return `課/セクションレイヤー内の全ての事業部の売上目標を設定してください。目標設定が完了した後、\n「次へ」から再度ステップ1に戻りメンバーレイヤーを追加、各メンバーの売上目標を設定してください。`;
           }
@@ -2545,8 +2878,6 @@ const UpsertTargetEntityMemo = () => {
     "UpsertTargetEntityコンポーネントレンダリング",
     // "upsertSettingEntitiesObj",
     // upsertSettingEntitiesObj,
-    // "目標年度fiscalYearQueryData",
-    // fiscalYearQueryData,
     "step",
     step,
     "レベル選択肢optionsEntityLevelList",
@@ -2558,8 +2889,6 @@ const UpsertTargetEntityMemo = () => {
     selectedNextLevel,
     "親のレベルparentEntityLevel",
     parentEntityLevel,
-    // "レベル構成クエリデータaddedEntityLevelsListQueryData",
-    // addedEntityLevelsListQueryData,
     "追加済みのレベルローカルデータaddedEntityLevelsListLocal",
     addedEntityLevelsListLocal,
     // "レベル別エンティティ構成クエリデータentitiesHierarchyQueryData",
@@ -2568,10 +2897,14 @@ const UpsertTargetEntityMemo = () => {
     entitiesHierarchyLocal,
     // "リスト編集用メンバー所属ありエンティティSetオブジェクトentityIdsWithMembersSetObj",
     // entityIdsWithMembersSetObj,
+    "目標年度fiscalYearQueryData",
+    fiscalYearQueryData,
+    "レベル構成クエリデータaddedEntityLevelsListQueryData",
+    addedEntityLevelsListQueryData,
     "entitiesHierarchyQueryData",
     entitiesHierarchyQueryData,
-    "年度fiscalYearQueryData",
-    fiscalYearQueryData
+    "currentParentEntitiesForMember",
+    currentParentEntitiesForMember
     // "追加したエンティティ内のメンバー人数addedEntitiesMemberCountQueryData",
     // addedEntitiesMemberCountQueryData
   );

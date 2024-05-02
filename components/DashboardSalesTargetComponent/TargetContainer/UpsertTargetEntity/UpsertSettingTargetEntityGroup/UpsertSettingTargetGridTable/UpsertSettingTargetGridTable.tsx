@@ -610,7 +610,7 @@ Props) => {
                       icon.classList.remove(styles.animate_ping);
                     }
                     const parentName = parentEntityLevel === "company" ? `全社` : `${parentEntityNameTitle}`;
-                    const mainContent = ``;
+                    const mainContent = `メインの売上目標を設定してください`;
                     const subContent1 = parentEntityNameTitle
                       ? `${entityNameTitle}のシェアは総合目標となる${parentName}の`
                       : `${entityNameTitle}のシェアは総合目標の`;
@@ -814,6 +814,13 @@ Props) => {
                                     // setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
                                   }}
                                   onBlur={(e) => {
+                                    // if (e.target.value === "" && inputSalesTarget === "") {
+                                    //   console.log(
+                                    //     "現在の入力値とstateがともに空文字のため何もせずリターン",
+                                    //     e.target.value
+                                    //   );
+                                    //   return;
+                                    // }
                                     // 現在の売上目標金額
                                     const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
 

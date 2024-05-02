@@ -169,7 +169,9 @@ export const EntityLevelColumn = ({
     "entityGroupListByParent",
     entityGroupListByParent,
     "levelObj",
-    levelObj
+    levelObj,
+    "settingLevelState",
+    settingLevelState
   );
 
   return (
@@ -281,7 +283,10 @@ export const EntityLevelColumn = ({
                         )}
                         {currentLevel === "member" && (
                           <>
-                            {settingLevelState === "setAnnualHalfOnly" ? (
+                            {/* メンバーエンティティ以外は、ステップ3で既に上期詳細か下期詳細が設定済みの場合、タグが「年度〜半期」で表示されていてもsetAnnualHalfOnlyではなく、「"setFirstHalf", "setSecondHalf"」のどちらかが表示されるため、notSet以外であれば設定完了になる */}
+                            {["setAnnualHalfOnly", "setAll", "setFirstHalf", "setSecondHalf"].includes(
+                              settingLevelState
+                            ) ? (
                               <div className={`flex-center text-[var(--color-text-brand-f)]`}>
                                 <span className={`text-[13px]`}>設定完了</span>
                               </div>
@@ -629,7 +634,14 @@ export const EntityLevelColumn = ({
                                         <div className={`flex items-center space-x-[6px]`}>
                                           {entityLevel !== "member" && (
                                             <>
-                                              {settingState === "setAll" || settingState === "setAnnualHalfOnly" ? (
+                                              {(currentLevel !== "member" && settingState === "setAnnualHalfOnly") ||
+                                              (currentLevel === "member" &&
+                                                [
+                                                  "setAnnualHalfOnly",
+                                                  "setAll",
+                                                  "setFirstHalf",
+                                                  "setSecondHalf",
+                                                ].includes(settingState)) ? (
                                                 <>
                                                   <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
                                                 </>
@@ -673,16 +685,16 @@ export const EntityLevelColumn = ({
                               {[4, 5].includes(step) && (
                                 <>
                                   {((selectedPeriodTypeForMemberLevel === "first_half_details" &&
-                                    settingState === "setFirstHalf") ||
+                                    ["setAll", "setFirstHalf"].includes(settingState)) ||
                                     (selectedPeriodTypeForMemberLevel === "second_half_details" &&
-                                      settingState === "setSecondHalf")) && (
+                                      ["setAll", "setSecondHalf"].includes(settingState))) && (
                                     <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
                                   )}
                                   {!(
                                     (selectedPeriodTypeForMemberLevel === "first_half_details" &&
-                                      settingState === "setFirstHalf") ||
+                                      ["setAll", "setFirstHalf"].includes(settingState)) ||
                                     (selectedPeriodTypeForMemberLevel === "second_half_details" &&
-                                      settingState === "setSecondHalf")
+                                      ["setAll", "setSecondHalf"].includes(settingState))
                                   ) && <span className="text-[13px] text-[var(--color-text-sub)]">未設定</span>}
                                 </>
                               )}

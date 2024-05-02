@@ -734,7 +734,15 @@ Props) => {
     try {
       // 6,000,000,000 => 6000000000 => Decimalオブジェクト
       //  const inputMonths = [inputSalesTargetMonth01, inputSalesTargetMonth02, inputSalesTargetMonth03];
-
+      console.log(
+        "validateMonthlyTargetsAgainstMain関数",
+        "key",
+        key,
+        "mainTarget",
+        mainTarget,
+        "inputMonths",
+        inputMonths
+      );
       if (!validateInputSalesTargets(inputMonths)) throw new Error("Q1の月次に無効な入力値が含まれています。");
 
       let totalInputDecimal = new Decimal(0);
@@ -772,7 +780,7 @@ Props) => {
         isComplete: isComplete,
       };
     } catch (error: any) {
-      console.error("❌エラー：🔹残り月次/Q1目標 用データ ", error);
+      console.log("❌エラー：🔹残り月次/Q1目標 用データ ", error);
       return null;
     }
   };
@@ -1558,6 +1566,13 @@ Props) => {
                                       // setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
                                     }}
                                     onBlur={(e) => {
+                                      // if (e.target.value === "" && inputSalesTarget === "") {
+                                      //   console.log(
+                                      //     "現在の入力値とstateがともに空文字のため何もせずリターン",
+                                      //     e.target.value
+                                      //   );
+                                      //   return;
+                                      // }
                                       // ---------------- 🔸半期、Q1の売上目標に対する処理🔸 ----------------
                                       // 現在の売上目標金額
                                       const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
@@ -2232,6 +2247,10 @@ Props) => {
                                       // setInputSalesTarget(inputSalesTarget.replace(/[^\d.]/g, ""));
                                     }}
                                     onBlur={(e) => {
+                                      // if (e.target.value === "" && inputSalesTarget === "") {
+                                      //   console.log("空文字のため何もせずリターン", e.target.value);
+                                      //   return;
+                                      // }
                                       // ---------------- 🔸month01~06🔸 ----------------
                                       // 現在の売上目標金額【month01~06】
                                       const replacedPrice = zenkakuToHankaku(inputSalesTarget).replace(/[^\d.]/g, "");
@@ -2379,7 +2398,7 @@ Props) => {
                                         };
                                         // ---------------- リセット関数 Q1/Q2両方に適用 ここまで ----------------
 
-                                        // 🔸入力したmonthがQ1の期間に含まれるルート month_01~03のinputと残り金額stateを全てリセット
+                                        // 🔸入力した空文字のmonthがQ1の期間に含まれるルート month_01~03のinputと残り金額stateを全てリセット
                                         if (["month_01", "month_02", "month_03"].includes(row.period_type)) {
                                           const firstQuarterMonths: {
                                             periodType: FirstQuarterMonthsKey;
@@ -2476,7 +2495,7 @@ Props) => {
                                           //   setSalesTargetFirstQuarterStatus(result);
                                           // }
                                         }
-                                        // 🔸入力したmonthがQ2の期間に含まれるルート month_04~06のinputと残り金額stateを全てリセット
+                                        // 🔸入力した空文字のmonthがQ2の期間に含まれるルート month_04~06のinputと残り金額stateを全てリセット
                                         else if (["month_04", "month_05", "month_06"].includes(row.period_type)) {
                                           const secondQuarterMonths: {
                                             periodType: SecondQuarterMonthsKey;

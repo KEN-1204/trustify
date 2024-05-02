@@ -33,6 +33,8 @@ export const useQueryEntityLevels = (
     // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     await new Promise((resolve) => setTimeout(resolve, 500));
 
+    console.log("✅useQueryEntityLevels実行成功 data: ", data);
+
     /*
     type EntityLevels = {
     id: string;

@@ -1225,8 +1225,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-text: var(--color-text-title);
   --color-deal-board-bg: #ffffff66;
   /* --color-deal-board-bg-black-gradient: #ffffff66; */
+  --color-deal-board-bg-black-gradient-prev: transparent;
   --color-deal-board-bg-black-gradient: #ffffff;
+  --color-deal-board--bg-theme-black-prev: transparent;
   --color-deal-board--bg-theme-black: var(--color-sales-card-bg);
+  --color-deal-board--bg-theme-simple12-prev: transparent;
   --color-deal-board--bg-theme-simple12: var(--color-sales-card-bg);
   /* --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 4px #999; */
   --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 2px 9px 3px #99999990;
@@ -2214,14 +2217,22 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     rgba(53, 53, 53, 0.56) 49.45%,
     rgba(15, 15, 15, 0.33) 90.83%
   ); */
+  --color-deal-board-bg-black-gradient-prev: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.56) 1.21%,
+    rgba(53, 53, 53, 0.56) 49.45%,
+    rgba(0, 0, 0, 0.56) 90.83%
+  );
   --color-deal-board-bg-black-gradient: linear-gradient(
     90deg,
     rgba(0, 0, 0, 0.56) 1.21%,
     rgba(53, 53, 53, 0.56) 49.45%,
     rgba(0, 0, 0, 0.56) 90.83%
   );
+  --color-deal-board--bg-theme-black-prev: transparent;
   --color-deal-board--bg-theme-black: transparent;
   /* --color-deal-board--bg-theme-simple12: var(--color-deal-board-bg); */
+  --color-deal-board--bg-theme-simple12-prev: var(--color-sales-card-bg);
   --color-deal-board--bg-theme-simple12: var(--color-sales-card-bg);
   /* --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 3px #999999; */
   --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 3px #999999;
@@ -2433,6 +2444,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* -------- 🌟カスタムモーダル🌟 dark -------- */
   --color-modal-border-shadow-custom: 0px 0px 0px 1px #cccccc90, 0px 0px 0px 2px #33333390, 0 6px 12px 9px #00000042;
+  --color-modal-border-shadow-custom: 0px 0px 0px 1px #cccccc90, 0px 0px 0px 2px #33333390, 0 6px 12px 9px #00000066;
   /* -------- ✅カスタムモーダル✅ dark ここまで -------- */
 }
 
@@ -2778,6 +2790,10 @@ textarea {
 .fade05_forward {
   opacity: 0;
   animation: fade 0.5s ease forwards;
+}
+.fade06_forward {
+  opacity: 0;
+  animation: fade 0.6s ease forwards;
 }
 .fade08_forward {
   opacity: 0;

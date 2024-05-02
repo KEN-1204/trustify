@@ -23,8 +23,10 @@ export const DashboardSDBComponent = () => {
     if (!!themeColor && activeThemeColor !== themeColor) {
       setActiveThemeColor(themeColor); // 既に存在する場合のみ反映
     }
-    // テーマをdarkに変更
-    setTheme("dark");
+    if (themeColor === null) {
+      // テーマをdarkに変更
+      setTheme("dark");
+    }
   }, []);
 
   const getThemeBG = () => {
