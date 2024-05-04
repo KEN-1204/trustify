@@ -1141,6 +1141,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-top-white-md: 0px -4px 15px 3px rgba(255, 255, 255, 0.39);
   /* --shadow-header: 0 2px 4px -1px rgba(57, 76, 96, 0.15); */
   --shadow-header: 0 2px 4px 0px rgba(57, 76, 96, 0.15);
+  /* --shadow-header: 0 3px 4px 0px rgba(57, 76, 96, 0.15); */
   --shadow-header-sdb: 0 2px 4px 0px rgba(57, 76, 96, 0.15);
   --shadow-sidebar: 2px 0px 4px -1px rgba(57, 76, 96, 0.15);
   --shadow-sidebar-dark: 0 2px 6px 1px rgba(57, 76, 96, 0.3);
@@ -1398,6 +1399,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-dashboard-table: #f4f7f9;
   --color-bg-dashboard-table-border: 0 1px 2px 1px #cccccc81;
   --color-bg-dashboard-table-tab-px: 0.5px;
+  /* --color-bg-dashboard-table-header-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.12); */
+  --color-bg-dashboard-table-header-shadow: 0px 3px 4px 0px rgba(0, 0, 0, 0.15);
+  --color-bg-dashboard-table-header-shadow-under-right: 0px 2px 4px 0px rgba(0, 0, 0, 0.09);
+  --color-dashboard-table-right-shadow: linear-gradient(-90deg, var(--color-edit-bg-solid) 27%, transparent);
   --color-bg-dashboard: #f2f3f4;
   --color-tab-underline: rgba(57, 76, 96, 0.15);
   --color-btn-basic-bg: #fff;
@@ -2102,11 +2107,13 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-top-md2: 0px -12px 15px -8px rgba(255, 255, 255, 0.15);
   --shadow-top-white-md: 0px -4px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-bottom-white-md: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
-  --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12);
+  /* --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12); */
+  --shadow-header: 0px 2px 6px 0px rgba(0, 0, 0, 0.6);
   /* --shadow-header: 0px 1px 6px 2px rgba(0, 0, 0, 0.33); */
   --shadow-header-sdb: 0px 1px 6px 0px rgba(0, 0, 0, 0.33);
   --shadow-header-sdb: 0px 1px 6px -1px rgba(255, 255, 255, 0.12);
-  --shadow-sidebar: 1px 0px 6px -2px rgba(255, 255, 255, 0.12);
+  /* --shadow-sidebar: 1px 0px 6px -2px rgba(255, 255, 255, 0.12); */
+  --shadow-sidebar: 2px 0px 6px 0px rgba(0, 0, 0, 0.6);
   /* --shadow-sidebar: 1px 0px 6px 1px rgba(0, 0, 0, 0.33); */
   --shadow-sidebar-dark: 0px 0px 6px -1px rgba(255, 255, 255, 0.3);
   --color-header-shadow-hover: rgb(0 0 0 / 69%) 0px 16px 38px -5px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
@@ -2420,6 +2427,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-dashboard-table: #121212;
   --color-bg-dashboard-table-border: 0 3px 2px 1px #000000d0;
   --color-bg-dashboard-table-tab-px: 1px;
+  --color-bg-dashboard-table-header-shadow: 0px 3px 9px 0px rgba(0, 0, 0, 0.9);
+  --color-bg-dashboard-table-header-shadow-under-right: 0px 3px 6px 0px rgba(0, 0, 0, 0.9);
+  --color-dashboard-table-right-shadow: linear-gradient(-90deg, transparent, transparent);
   --color-bg-dashboard: #121212;
   --color-tab-underline: #383838;
   /* --color-btn-basic-bg: #333; */

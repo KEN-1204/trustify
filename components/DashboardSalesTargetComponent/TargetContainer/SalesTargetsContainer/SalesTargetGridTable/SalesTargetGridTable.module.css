@@ -116,7 +116,8 @@
 
 /* --------------------- タイトルエリア ---------------------  */
 .card_title_area {
-  padding: 15px 24px 5px;
+  /* padding: 15px 24px 5px; */
+  padding: 15px 24px 8px;
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -514,7 +515,7 @@
   height: 16px;
 }
 
-.grid_header_cell_share span {
+.grid_header_cell_share {
   font-size: 12px;
 }
 .main_container input[type="checkbox"] {

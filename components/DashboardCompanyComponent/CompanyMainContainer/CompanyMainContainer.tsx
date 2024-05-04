@@ -836,6 +836,7 @@ const CompanyMainContainerMemo: FC = () => {
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
+      <div className={`absolute left-0 top-[62px] z-10 h-0 w-full`}></div>
       {/* フィールドエディットモードの時のオーバーレイ */}
       {/* {!searchMode && isEditModeField !== null && (
         <div

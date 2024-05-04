@@ -22,6 +22,7 @@
 .contents_area .grid_row.col3 {
   grid-template-columns: repeat(3, 1fr);
 }
+
 .contents_area .grid_row .grid_content_card {
   /* min-height: 300px; */
   min-height: max-content;
@@ -31,7 +32,23 @@
   background: var(--color-sales-card-bg);
   box-shadow: var(--color-sales-card-border);
   border-radius: 12px;
+  transition: box-shadow 0.5s ease;
 }
+
+/* 🌟スティッキー */
+.sticky_row {
+  position: sticky;
+  top: 15px;
+  bottom: 15px;
+  /* position: fixed;
+  top: 66px; */
+  z-index: 100;
+  /* display: flex; */
+}
+.contents_area .grid_row.sticky_row .grid_content_card {
+  box-shadow: var(--color-sales-card-border-sticky);
+}
+
 .contents_area .grid_row .grid_content_card .card_title_area {
   padding: 15px 24px 5px;
   width: 100%;

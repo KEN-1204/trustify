@@ -604,7 +604,7 @@ const useDashboardStore = create<State>((set) => ({
   isOpenSideBarPickBox: true,
   setIsOpenSideBarPickBox: (payload) => set({ isOpenSideBarPickBox: payload }),
   // 【サイドバーの拡大・縮小】
-  isOpenSidebar: true,
+  isOpenSidebar: false,
   setIsOpenSidebar: (payload) => set({ isOpenSidebar: payload }),
 
   // =================== データ編集モーダル ===================

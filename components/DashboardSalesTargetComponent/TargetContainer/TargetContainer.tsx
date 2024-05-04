@@ -40,6 +40,9 @@ import { UpsertTarget } from "./UpsertTarget/UpsertTarget";
 import { FallbackTargetContainer } from "./FallbackTargetContainer";
 import { UpsertTargetEntity } from "./UpsertTargetEntity/UpsertTargetEntity";
 import { useQueryFiscalYears } from "@/hooks/useQueryFiscalYears";
+import { useQueryFiscalYear } from "@/hooks/useQueryFiscalYear";
+import { useQueryEntityLevels } from "@/hooks/useQueryEntityLevels";
+import { useQueryEntities } from "@/hooks/useQueryEntities";
 
 export const TargetContainer = () => {
   const language = useStore((state) => state.language);
@@ -87,11 +90,15 @@ export const TargetContainer = () => {
   if (!userProfileState) return;
   if (!userProfileState.company_id) return;
 
-  // ================================ 🌟設定済み年度useQuery🌟 ================================
+  // 🔹表示中の会計年度
+  const selectedFiscalYearTarget = useDashboardStore((state) => state.selectedFiscalYearTarget);
+  const setSelectedFiscalYearTarget = useDashboardStore((state) => state.setSelectedFiscalYearTarget);
+
+  // ================================ 🌟設定済み年度(複数年度)useQuery🌟 ================================
   const {
     data: targetFiscalYears,
     isLoading: isLoadingQueryFiscalYears,
-    isError: isErrorQueryFiscalYear,
+    isError: isErrorQueryFiscalYears,
   } = useQueryFiscalYears(userProfileState?.company_id, "sales_target", true);
   // key: 年度、value: オブジェクトのMapオブジェクト
   const targetFiscalYearsMap = useMemo(() => {
@@ -100,7 +107,7 @@ export const TargetContainer = () => {
   }, [targetFiscalYears]);
   // console.log("🌃🌃🌃🌃🌃🌃targetFiscalYearsMap", targetFiscalYearsMap, "targetFiscalYears", targetFiscalYears);
 
-  // ================================ 🌟設定済み年度useQuery🌟 ================================
+  // ================================ 🌟設定済み年度(複数年度)useQuery🌟 ================================
 
   // ================================ 🌟事業部リスト取得useQuery🌟 ================================
   const {
@@ -218,12 +225,10 @@ export const TargetContainer = () => {
   const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
   // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
-  // 🔹メイン目標のエンティティ
-  const mainEntityTarget = useDashboardStore((state) => state.mainEntityTarget);
-  const setMainEntityTarget = useDashboardStore((state) => state.setMainEntityTarget);
-  // 🔹表示中の会計年度
-  const selectedFiscalYearTarget = useDashboardStore((state) => state.selectedFiscalYearTarget);
-  const setSelectedFiscalYearTarget = useDashboardStore((state) => state.setSelectedFiscalYearTarget);
+  // // 🔹メイン目標のエンティティ
+  // const mainEntityTarget = useDashboardStore((state) => state.mainEntityTarget);
+  // const setMainEntityTarget = useDashboardStore((state) => state.setMainEntityTarget);
+
   // 🔹売上目標・プロセス目標
   const [activeTargetTab, setActiveTargetTab] = useState("Sales");
 
@@ -281,6 +286,12 @@ export const TargetContainer = () => {
     []
   );
 
+  // 初回マウント時に現在の会計年度をZustandにセット
+  useEffect(() => {
+    // 🔸会計年度をセット
+    setSelectedFiscalYearTarget(currentFiscalYear);
+  }, []);
+
   // 🔹決算日Date(現在の会計年度の決算日Date) 決算日を取得して変数に格納
   const fiscalYearEndDate = useMemo(() => {
     return (
@@ -300,7 +311,7 @@ export const TargetContainer = () => {
         selectedYear: selectedFiscalYearTarget ?? currentFiscalYear,
       }) ?? new Date()
     );
-  }, [fiscalYearEndDate, userProfileState?.customer_fiscal_year_basis]);
+  }, [fiscalYearEndDate]);
 
   // 🔹ユーザーの会計年度の期首と期末の年月(カレンダー年月)
   const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
@@ -323,8 +334,8 @@ export const TargetContainer = () => {
       // 🔸顧客の期首と期末のDateオブジェクトをセット
       setFiscalYearStartEndDate({ startDate: currentFiscalYearDateObj, endDate: fiscalYearEndDate });
 
-      // 🔸会計年度をセット
-      setSelectedFiscalYearTarget(currentFiscalYearDateObj.getFullYear());
+      // // 🔸会計年度をセット currentFiscalYearDateObjを依存配列にセットしてsetSelectedFiscalYearTargetを実行すると循環参照になるため別のuseEffectで選択年度はセットし、変更時はsalesTargetGridTableのselectタグで変更する。
+      // setSelectedFiscalYearTarget(currentFiscalYearDateObj.getFullYear());
 
       // 🔸顧客の選択している会計年度の開始年月度
       const newStartYearMonth = calculateDateToYearMonth(currentFiscalYearDateObj, fiscalYearEndDate.getDate());
@@ -443,17 +454,17 @@ export const TargetContainer = () => {
   // -------------------------- ✅年度の選択肢を作成✅ --------------------------
 
   // -------------------------- Zustandメイン目標をセット --------------------------
-  useEffect(() => {
-    if (mainEntityTarget !== null) return;
-    if (!userProfileState) return;
-    if (!userProfileState.company_id) return;
-    if (!userProfileState.customer_name) return;
-    setMainEntityTarget({
-      entityId: userProfileState.company_id,
-      entityName: userProfileState.customer_name,
-      entityLevel: "company",
-    });
-  }, []);
+  // useEffect(() => {
+  //   if (mainEntityTarget !== null) return;
+  //   if (!userProfileState) return;
+  //   if (!userProfileState.company_id) return;
+  //   if (!userProfileState.customer_name) return;
+  //   setMainEntityTarget({
+  //     entityId: userProfileState.company_id,
+  //     entityName: userProfileState.customer_name,
+  //     entityLevel: "company",
+  //   });
+  // }, []);
   // -------------------------- Zustandメイン目標をセット ここまで --------------------------
   // ---------------------- 変数 ここまで ----------------------
 
@@ -807,7 +818,7 @@ export const TargetContainer = () => {
                   <span>編集</span>
                 </div>
                 <div
-                  className={`${styles.btn} ${styles.brand} space-x-[3px]`}
+                  className={`${styles.btn} ${styles.brand} flex items-center space-x-[3px]`}
                   onClick={(e) => {
                     if (typeof userProfileState.company_id !== "string") return;
                     // 目標設定はマネージャー以上の役職のユーザーのみ設定可能にする
@@ -909,6 +920,7 @@ export const TargetContainer = () => {
 
           {/* 選択年がまだセットされていない場合はローディングを表示 */}
           {!selectedFiscalYearTarget && <FallbackContainerSalesTarget />}
+          {/* {selectedFiscalYearTarget && <FallbackContainerSalesTarget />} */}
 
           {activeTargetTab === "Sales" && selectedFiscalYearTarget && (
             <section className={`${styles.main_section_area} fade08_forward`}>
@@ -1050,7 +1062,7 @@ export const TargetContainer = () => {
                             </span>
                             {confirmStateSelectedFY === "setFirstHalf" ? (
                               <BsCheck2 className="pointer-events-none min-h-[13px] min-w-[13px] stroke-1 text-[13px] text-[#00d436]" />
-                            )  : (
+                            ) : (
                               <div className={`min-h-[13px] min-w-[13px]`}></div>
                             )}
                           </div>

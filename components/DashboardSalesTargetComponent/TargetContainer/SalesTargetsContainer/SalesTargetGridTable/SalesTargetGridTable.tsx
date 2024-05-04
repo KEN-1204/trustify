@@ -1,4 +1,4 @@
-import { Fragment, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Dispatch, Fragment, SetStateAction, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./SalesTargetGridTable.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { columnNameToJapaneseSalesTarget } from "@/utils/columnNameToJapaneseSalesTarget";
@@ -39,6 +39,7 @@ import { calculateGrowth } from "@/utils/Helpers/PercentHelpers/calculateGrowth"
 import { calculateYearOverYear } from "@/utils/Helpers/PercentHelpers/calculateYearOverYear";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { GrPowerReset } from "react-icons/gr";
+import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
 
 // entityLevel: company / department...
 type Props = {
@@ -48,9 +49,25 @@ type Props = {
   isMain: boolean;
   companyId: string;
   entityId: string;
+  stickyRow: string | null;
+  setStickyRow: Dispatch<SetStateAction<string | null>>;
 };
 
-const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, companyId, fiscalYear, isMain }: Props) => {
+const SalesTargetGridTableMemo = ({
+  entityLevel,
+  entityNameTitle,
+  entityId,
+  parentEntityLevel,
+  parentEntityId,
+  parentEntityNameTitle,
+  companyId,
+  fiscalYear,
+  isMain,
+  fetchEnabled,
+  onFetchComplete,
+  stickyRow,
+  setStickyRow,
+}: Props) => {
   const supabase = useSupabaseClient();
   const queryClient = useQueryClient();
   const language = useStore((state) => state.language);
@@ -620,27 +637,45 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, comp
     };
   }
   // ================== 🌟活動履歴を取得する関数🌟 ここまで ==================
-  const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, isLoading } =
-    useInfiniteQuery({
-      // queryKey: ["sales_targets", entityLevel ?? null, `${fiscalYear}`],
-      queryKey: ["sales_targets", `${fiscalYear}`, entityLevel ?? null],
-      queryFn: async (ctx) => {
-        console.log("🔥queryFn実行");
-        const nextPage = await fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
-        // const nextPage = await fetchServerPageTest(50, ctx.pageParam); // 50個ずつ取得
-        console.log("✅queryFn成功 nextPage", nextPage);
-        return nextPage;
-      },
-      // getNextPageParam: (_lastGroup, groups) => groups.length,
-      getNextPageParam: (lastGroup, allGroups) => {
-        // lastGroup.isLastPageがtrueならundefinedを返す
-        return lastGroup.isLastPage ? undefined : allGroups.length;
-      },
-      staleTime: Infinity,
-      // enabled: isFetchingEnabled && fetchEnabledRef.current, // デバウンス後にフェッチを有効化(選択行が変更後3秒経過したらフェッチ許可)
-      enabled: !!entityId && !!entityLevel,
-    });
+  const {
+    status,
+    data,
+    error,
+    isFetching,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    isLoading,
+    isSuccess: isSuccessQuery,
+    isError: isErrorQuery,
+  } = useInfiniteQuery({
+    // queryKey: ["sales_targets", entityLevel ?? null, `${fiscalYear}`],
+    queryKey: ["sales_targets", `${fiscalYear}`, entityLevel ?? null],
+    queryFn: async (ctx) => {
+      console.log("🔥queryFn実行");
+      const nextPage = await fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
+      // const nextPage = await fetchServerPageTest(50, ctx.pageParam); // 50個ずつ取得
+      console.log("✅queryFn成功 nextPage", nextPage);
+      return nextPage;
+    },
+    // getNextPageParam: (_lastGroup, groups) => groups.length,
+    getNextPageParam: (lastGroup, allGroups) => {
+      // lastGroup.isLastPageがtrueならundefinedを返す
+      return lastGroup.isLastPage ? undefined : allGroups.length;
+    },
+    staleTime: Infinity,
+    // enabled: isFetchingEnabled && fetchEnabledRef.current, // デバウンス後にフェッチを有効化(選択行が変更後3秒経過したらフェッチ許可)
+    enabled: !!entityId && !!entityLevel && isMain ? true : fetchEnabled,
+  });
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
+
+  // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
+  useEffect(() => {
+    if (isSuccessQuery || isErrorQuery) {
+      if (onFetchComplete) onFetchComplete();
+    }
+  }, [isSuccessQuery, isErrorQuery]);
+  // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
 
   const Rows = data && data.pages[0]?.rows ? data.pages.flatMap((d) => d?.rows) : [];
   const allRows = Rows.map((obj, index) => {
@@ -2714,9 +2749,19 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, comp
                 <IoChevronDownOutline className={` text-[18px]`} />
               </div>
 
+              {isMain && (
+                <>
+                  <div
+                    className={`flex-center ml-[15px] rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] font-bold text-[var(--color-text-sub)]`}
+                  >
+                    <span>総合目標</span>
+                  </div>
+                </>
+              )}
+
               {optionsFiscalYear && selectedFiscalYearTarget && (
                 <div
-                  className={`${styles.select_text_wrapper} !ml-[15px] flex pl-[1px] text-[15px]`}
+                  className={`${styles.select_text_wrapper} relative !ml-[15px] flex pl-[1px] text-[15px]`}
                   onMouseEnter={(e) => {
                     const tooltipText = `選択中の会計年度の目標を表示します。\n会計年度は2020年から現在まで選択可能で、翌年度はお客様の決算日から\n現在の日付が3ヶ月を切ると表示、設定、編集が可能となります。`;
                     handleOpenTooltip({
@@ -2730,7 +2775,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, comp
                 >
                   <select
                     ref={selectPeriodRef}
-                    className={`${styles.select_text} ${styles.arrow_none} mr-[3px] truncate`}
+                    className={`${styles.select_text} ${styles.arrow_none} z-[1] truncate pr-[17px]`}
                     // className={`${styles.select_text} mr-[6px] truncate`}
                     value={selectedFiscalYearTarget ?? ""}
                     onChange={(e) => {
@@ -2746,7 +2791,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, comp
                       </option>
                     ))}
                   </select>
-                  <div className={`flex-center h-[24px] text-[14px]`}>
+                  <div className={`flex-center absolute right-0 top-0 z-0 h-[24px] text-[14px]`}>
                     <IoChevronDownOutline className={` text-[14px]`} />
                   </div>
                 </div>
@@ -2787,7 +2832,7 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, comp
                       // marginTop: 38,
                       marginTop: 6,
                       itemsPosition: "center",
-                      whiteSpace: "nowrap",
+                      // whiteSpace: "nowrap",
                     });
                   }}
                   onMouseLeave={handleCloseTooltip}
@@ -2816,10 +2861,36 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, comp
             </div>
           )}
         </div>
-        <div className={`${styles.title_right_wrapper}`}>
+        <div className={`${styles.title_right_wrapper} space-x-[12px]`}>
           <div className={`${styles.btn} ${styles.basic} space-x-[3px]`}>
             <span>全て</span>
             <IoCaretDownOutline className={``} />
+          </div>
+
+          <div
+            className={`${styles.btn} ${styles.basic} space-x-[4px]`}
+            onMouseEnter={(e) => {
+              handleOpenTooltip({
+                e: e,
+                display: "top",
+                content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
+                marginTop: 9,
+              });
+            }}
+            onMouseLeave={handleCloseTooltip}
+            onClick={() => {
+              if (entityId === stickyRow) {
+                setStickyRow(null);
+              } else {
+                setStickyRow(entityId);
+              }
+              handleCloseTooltip();
+            }}
+          >
+            {stickyRow === entityId && <TbSnowflakeOff />}
+            {stickyRow !== entityId && <TbSnowflake />}
+            {stickyRow === entityId && <span>解除</span>}
+            {stickyRow !== entityId && <span>固定</span>}
           </div>
         </div>
       </div>
@@ -2829,6 +2900,12 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, comp
           theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
         }`}
       >
+        {/* 右側shadow */}
+        <div
+          className={`absolute right-[9px] top-0 z-[100] h-full w-[33px]`}
+          style={{ background: `var(--color-dashboard-table-right-shadow)` }}
+        />
+        {/* 右側shadow */}
         {/* ================== Gridスクロールコンテナ ================== */}
         <div
           ref={parentGridScrollContainer}
@@ -2861,9 +2938,13 @@ const SalesTargetGridTableMemo = ({ entityNameTitle, entityLevel, entityId, comp
             >
               <div
                 // className={styles.grid_select_cell_header}
-                className={`${styles.grid_header_cell_share} flex items-center`}
+                className={`${styles.grid_header_cell_share} flex flex-col items-center`}
               >
-                <span>シェア</span>
+                {/* <span>シェア</span> */}
+                <>
+                  <span className={`pointer-events-none text-[12px] leading-[12px]`}>シェア</span>
+                  <span className={`pointer-events-none text-[10px]`}>(年度)</span>
+                </>
                 {/* <input
                   type="checkbox"
                   aria-label="Select All"

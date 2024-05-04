@@ -353,7 +353,7 @@ const SettingCompanyMemo = () => {
   const [insertDepartmentMode, setInsertDepartmentMode] = useState(false);
   const [inputDepartmentName, setInputDepartmentName] = useState("");
   const [editDepartmentMode, setEditDepartmentMode] = useState(false);
-  const [editedDepartment, setEditedDepartment] = useState<Omit<Department, "created_at"> | null>(null);
+  const [editedDepartment, setEditedDepartment] = useState<Omit<Department, "created_at" | "target_type"> | null>(null);
   const originalDepartmentNameRef = useRef<string | null>(null);
   // const [activeDepartmentTagIndex, setActiveDepartmentTagIndex] = useState<number | null>(null);
   const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
@@ -361,7 +361,7 @@ const SettingCompanyMemo = () => {
   const [insertSectionMode, setInsertSectionMode] = useState(false);
   const [inputSectionName, setInputSectionName] = useState("");
   const [editSectionMode, setEditSectionMode] = useState(false);
-  const [editedSection, setEditedSection] = useState<Omit<Section, "created_at"> | null>(null);
+  const [editedSection, setEditedSection] = useState<Omit<Section, "created_at" | "target_type"> | null>(null);
   const originalSectionNameRef = useRef<Section | null>(null);
   // const originalSectionNameRef = useRef<string | null>(null);
   // const [activeSectionTagIndex, setActiveSectionTagIndex] = useState<number | null>(null);
@@ -371,7 +371,7 @@ const SettingCompanyMemo = () => {
   const [insertUnitMode, setInsertUnitMode] = useState(false);
   const [inputUnitName, setInputUnitName] = useState("");
   const [editUnitMode, setEditUnitMode] = useState(false);
-  const [editedUnit, setEditedUnit] = useState<Omit<Unit, "created_at"> | null>(null);
+  const [editedUnit, setEditedUnit] = useState<Omit<Unit, "created_at" | "target_type"> | null>(null);
   const originalUnitNameRef = useRef<Unit | null>(null);
   // const originalUnitNameRef = useRef<string | null>(null);
   // const [activeUnitTagIndex, setActiveUnitTagIndex] = useState<number | null>(null);
@@ -382,7 +382,7 @@ const SettingCompanyMemo = () => {
   const [insertOfficeMode, setInsertOfficeMode] = useState(false);
   const [inputOfficeName, setInputOfficeName] = useState("");
   const [editOfficeMode, setEditOfficeMode] = useState(false);
-  const [editedOffice, setEditedOffice] = useState<Omit<Office, "created_at"> | null>(null);
+  const [editedOffice, setEditedOffice] = useState<Omit<Office, "created_at" | "target_type"> | null>(null);
   const originalOfficeNameRef = useRef<string | null>(null);
   // const [activeOfficeTagIndex, setActiveOfficeTagIndex] = useState<number | null>(null);
   const [selectedOffice, setSelectedOffice] = useState<Office | null>(null);

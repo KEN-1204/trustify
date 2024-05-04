@@ -2520,13 +2520,6 @@ export type CustomizedLabelProps = {
   y: number;
 };
 
-// 売上目標画面のメインエンティティ
-export type MainEntityTarget = {
-  entityLevel: string;
-  entityId: string;
-  entityName: string;
-};
-
 // 売上目標 売上目標テーブルからFUNCTIONで取得
 // export type SalesTargetFYRowData = {
 //   entity_id: string;
@@ -2931,6 +2924,41 @@ export type AddedEntityMemberCount = {
   member_count: number;
 };
 
+// 目標設定用 年度・エンティティ関連オブジェクト
+export type UpsertSettingEntitiesObj = {
+  fiscalYear: number;
+  periodType: "year_half" | "first_half_details" | "second_half_details" | ""; // 期間タイプ(fiscal_year, first_half_details, second_half_details) 初期セットでは空文字をセットする なぜなら次のレベルがメンバーレベルかどうかがわからないため
+  entityLevel: string; // 全社・事業部
+  entities: Entity[]; // 設定するエンティティid配列
+  // entityName: string;
+  parentEntityLevelId: string; // 紐づく上位エンティティid
+  parentEntityLevel: string; // 紐づく上位エンティティ詳細
+  parentEntityId: string;
+  parentEntityName: string;
+};
+
+// 売上目標画面のメインエンティティ
+// export type MainEntityTarget = {
+//   entityLevel: string;
+//   entityId: string;
+//   entityName: string;
+// };
+export type MainEntityTarget = {
+  // entityLevel: string;
+  // entityId: string;
+  // entityName: string;
+
+  // fiscalYear: number;
+  periodType: "year_half" | "first_half_details" | "second_half_details" | ""; // 期間タイプ(fiscal_year, first_half_details, second_half_details) 初期セットでは空文字をセットする なぜなら次のレベルがメンバーレベルかどうかがわからないため
+  entityLevel: string; // 全社・事業部
+  entities: Entity[]; // 設定するエンティティid配列
+  // entityName: string;
+  parentEntityLevelId: string; // 紐づく上位エンティティid
+  parentEntityLevel: string; // 紐づく上位エンティティ詳細
+  parentEntityId: string;
+  parentEntityName: string;
+};
+
 // ------------- 🌠売上目標DB関連🌠 -------------
 
 // ３行１セットデータ型 FUNCTIONで取得するdataset_typeではスネークケースのため、Zustandもスネークケースで定義
@@ -2987,18 +3015,6 @@ export type UpsertTargetObj = {
   entityId: string; // 設定するエンティティid
   entityName: string;
   childEntityLevel: string;
-};
-// 目標設定用 年度・エンティティ関連オブジェクト
-export type UpsertSettingEntitiesObj = {
-  fiscalYear: number;
-  periodType: "year_half" | "first_half_details" | "second_half_details" | ""; // 期間タイプ(fiscal_year, first_half_details, second_half_details) 初期セットでは空文字をセットする なぜなら次のレベルがメンバーレベルかどうかがわからないため
-  entityLevel: string; // 全社・事業部
-  entities: Entity[]; // 設定するエンティティid配列
-  // entityName: string;
-  parentEntityLevelId: string; // 紐づく上位エンティティid
-  parentEntityLevel: string; // 紐づく上位エンティティ詳細
-  parentEntityId: string;
-  parentEntityName: string;
 };
 
 // ---------------- 【事業部〜係レベルUPSERT用】 ----------------
