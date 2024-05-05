@@ -286,7 +286,7 @@
   user-select: none;
 }
 .menu_item:hover .text_wrapper span {
-  color: var(--color-text);
+  color: var(--color-text-title);
 }
 .menu_item.active .text_wrapper span {
   color: #fff;
@@ -297,7 +297,7 @@
 }
 @keyframes switchColor {
   0% {
-    color: var(--color-text);
+    color: var(--color-text-title);
     font-weight: 500;
   }
   90% {
@@ -315,8 +315,8 @@
 .menu_item:hover .icon_wrapper svg path,
 .menu_item:hover .icon_wrapper svg path,
 .menu_item:hover .icon_wrapper span {
-  color: var(--color-text);
-  stroke: var(--color-text);
+  color: var(--color-text-title);
+  stroke: var(--color-text-title);
 }
 .menu_item.active .icon_wrapper svg,
 .menu_item.active .icon_wrapper svg path,
@@ -332,8 +332,8 @@
 }
 @keyframes switchIconColor {
   0% {
-    color: var(--color-text);
-    stroke: var(--color-text);
+    color: var(--color-text-title);
+    stroke: var(--color-text-title);
   }
   90% {
   }

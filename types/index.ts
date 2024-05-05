@@ -2561,12 +2561,12 @@ export type SalesTargetFYRowData = {
   entity_id: string;
   entity_level: string | null;
   entity_name: string | null;
-  created_by_company_id: string | null;
-  created_by_department_id: string | null;
-  created_by_section_id: string | null;
-  created_by_unit_id: string | null;
-  created_by_user_id: string | null;
-  created_by_office_id: string | null;
+  // created_by_company_id: string | null;
+  // created_by_department_id: string | null;
+  // created_by_section_id: string | null;
+  // created_by_unit_id: string | null;
+  // created_by_user_id: string | null;
+  // created_by_office_id: string | null;
   fiscal_year: number | null;
   first_half: number | null;
   second_half: number | null;

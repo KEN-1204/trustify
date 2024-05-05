@@ -9,6 +9,7 @@ import {
   Department,
   EntitiesHierarchy,
   Entity,
+  EntityLevelNames,
   EntityLevels,
   FiscalYears,
   MainEntityTarget,
@@ -211,6 +212,28 @@ const SalesTargetsContainerMemo = () => {
   //   return newEntityList;
   // }, [departmentDataArray, sectionDataArray, unitDataArray, officeDataArray]);
 
+  // 部門別の名称
+  const getDivName = (entityLevel: EntityLevelNames) => {
+    switch (entityLevel) {
+      case "company":
+        return language === "ja" ? `全社` : `Company`;
+      // return language === "ja" ? `全社 - 部門別` : `Company - Sections`;
+      case "department":
+        return language === "ja" ? `事業部` : `Departments`;
+      case "section":
+        return language === "ja" ? `課・セクション` : `Sections`;
+      case "unit":
+        return language === "ja" ? `係・チーム` : `Units`;
+      case "office":
+        return language === "ja" ? `事業所` : `Offices`;
+      case "member":
+        return language === "ja" ? `メンバー` : `Members`;
+      default:
+        return language === "ja" ? `部門` : `Division`;
+        break;
+    }
+  };
+
   console.log(
     "🌟SalesTargetsContainerコンポーネントレンダリング",
     "mainEntityTarget",
@@ -249,16 +272,17 @@ const SalesTargetsContainerMemo = () => {
               </div>
             </div> */}
             {/* コンテンツエリア */}
-            {mainEntityTarget && mainEntityTarget.entityLevel === "company" && (
+            {mainEntityTarget && mainEntityTarget.entityLevel === "company" && selectedFiscalYearTarget && (
               <>
                 <ErrorBoundary FallbackComponent={ErrorFallback}>
                   <Suspense fallback={<FallbackScrollContainer title={mainEntityTarget.entities[0].entity_name} />}>
                     <SalesTargetGridTable
                       entityLevel={mainEntityTarget.entities[0].entity_level}
-                      entityNameTitle={mainEntityTarget.entities[0].entity_name}
-                      entityId={mainEntityTarget.entities[0].entity_id}
+                      // entityNameTitle={mainEntityTarget.entities[0].entity_name}
+                      // entityId={mainEntityTarget.entities[0].entity_id}
+                      entities={mainEntityTarget.entities}
+                      divName={getDivName("company")}
                       companyId={userProfileState.company_id}
-                      fiscalYear={selectedFiscalYearTarget}
                       isMain={true}
                       stickyRow={stickyRow}
                       setStickyRow={setStickyRow}

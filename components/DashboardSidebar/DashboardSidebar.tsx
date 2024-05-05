@@ -143,7 +143,7 @@ export const DashboardSidebarMemo: FC = () => {
               //   style={{ borderBottom: "1px solid var(--color-border-deep)" }}
             >
               <div
-                className={`cursor-pointer text-[var(--color-text)] hover:text-[var(--color-text-brand-f)] ${
+                className={`cursor-pointer text-[var(--color-text-title)] hover:text-[var(--color-text-brand-f)] ${
                   styles.section_title
                 } ${isOpenSidebar ? "w-[84px] " : "w-full "}`}
                 data-text={`${
@@ -173,12 +173,12 @@ export const DashboardSidebarMemo: FC = () => {
                 {!isOpenSidebar && (
                   <div className="flex-col-center fade1 pointer-events-none w-full">
                     <span
-                      className={`transition-base03 fade03 pointer-events-none scale-90 select-none whitespace-nowrap text-[10px] text-[var(--color-text)]`}
+                      className={`transition-base03 fade03 pointer-events-none scale-90 select-none whitespace-nowrap text-[10px] text-[var(--color-text-title)]`}
                     >
                       メニュー
                     </span>
                     <BsChevronDown
-                      className={`transition-base03 fade03 pointer-events-none stroke-[0.5] text-[24px] text-[var(--color-text)] ${
+                      className={`transition-base03 fade03 pointer-events-none stroke-[0.5] text-[24px] text-[var(--color-text-title)] ${
                         isOpenSideBarMenu ? "rotate-0" : "-rotate-180"
                       }`}
                     />
@@ -219,7 +219,7 @@ export const DashboardSidebarMemo: FC = () => {
                 >
                   <div className={styles.icon_wrapper}>
                     <GrHomeRounded
-                      className={`scale-[0.8] text-[24px] text-[var(--color-text)] ${styles.sidebar_icon}`}
+                      className={`scale-[0.8] text-[24px] text-[var(--color-text-title)] ${styles.sidebar_icon}`}
                     />
                   </div>
                   <div
@@ -251,7 +251,7 @@ export const DashboardSidebarMemo: FC = () => {
                 >
                   <div className={styles.icon_wrapper}>
                     <HiOutlineBuildingOffice2
-                      className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`}
+                      className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text-title)]`}
                     />
                   </div>
                   <div
@@ -282,10 +282,10 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    {/* <HiOutlineChatBubbleLeftRight className="text-[24px] text-[var(--color-text)]" /> */}
-                    {/* <FaUserTie className="scale-[0.9] text-[24px] text-[var(--color-text)]" /> */}
+                    {/* <HiOutlineChatBubbleLeftRight className="text-[24px] text-[var(--color-text-title)]" /> */}
+                    {/* <FaUserTie className="scale-[0.9] text-[24px] text-[var(--color-text-title)]" /> */}
                     <GrUserManager
-                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text)]`}
+                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text-title)]`}
                     />
                   </div>
                   <div
@@ -316,9 +316,9 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    {/* <HiOutlineChatBubbleLeftRight className="text-[24px] text-[var(--color-text)]" /> */}
+                    {/* <HiOutlineChatBubbleLeftRight className="text-[24px] text-[var(--color-text-title)]" /> */}
                     <BsTelephonePlus
-                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text)] ${
+                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text-title)] ${
                         activeMenuTab === "Activity" ? `stroke-[0.3]` : ``
                       }`}
                     />
@@ -352,9 +352,9 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    {/* <BsTelephonePlus className="scale-[0.9] text-[24px] text-[var(--color-text)]" /> */}
+                    {/* <BsTelephonePlus className="scale-[0.9] text-[24px] text-[var(--color-text-title)]" /> */}
                     <HiOutlineChatBubbleLeftRight
-                      className={`${styles.sidebar_icon} scale-[1] text-[24px] text-[var(--color-text)]`}
+                      className={`${styles.sidebar_icon} scale-[1] text-[24px] text-[var(--color-text-title)]`}
                     />
                   </div>
                   <div
@@ -387,17 +387,17 @@ export const DashboardSidebarMemo: FC = () => {
                   <div className={styles.icon_wrapper}>
                     {language === "ja" && (
                       <>
-                        {/* <RiMoneyCnyCircleLine className="scale-[1.05] text-[24px] text-[var(--color-text)]" /> */}
+                        {/* <RiMoneyCnyCircleLine className="scale-[1.05] text-[24px] text-[var(--color-text-title)]" /> */}
                         <AiOutlineMoneyCollect
-                          className={`${styles.sidebar_icon} scale-[1.05] text-[24px] text-[var(--color-text)]`}
+                          className={`${styles.sidebar_icon} scale-[1.05] text-[24px] text-[var(--color-text-title)]`}
                         />
                       </>
                     )}
                     {language === "en" && (
                       <>
-                        {/* <RiMoneyDollarCircleLine className="scale-[1.05] text-[24px] text-[var(--color-text)]" /> */}
+                        {/* <RiMoneyDollarCircleLine className="scale-[1.05] text-[24px] text-[var(--color-text-title)]" /> */}
                         <BiMoneyWithdraw
-                          className={`${styles.sidebar_icon} scale-[1.05] text-[24px] text-[var(--color-text)]`}
+                          className={`${styles.sidebar_icon} scale-[1.05] text-[24px] text-[var(--color-text-title)]`}
                         />
                       </>
                     )}
@@ -430,9 +430,9 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    {/* <RiCalendar2Fill className="text-[24px] text-[var(--color-text)]" /> */}
+                    {/* <RiCalendar2Fill className="text-[24px] text-[var(--color-text-title)]" /> */}
                     <BsCalendarDate
-                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text)]`}
+                      className={`${styles.sidebar_icon} scale-[0.9] text-[24px] text-[var(--color-text-title)]`}
                     />
                   </div>
                   <div
@@ -498,7 +498,9 @@ export const DashboardSidebarMemo: FC = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <div className={`${styles.icon_wrapper}`}>
-                    <MdOutlineLeaderboard className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`} />
+                    <MdOutlineLeaderboard
+                      className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text-title)]`}
+                    />
                   </div>
                   <div
                     className={`${`${styles.text_wrapper} ${
@@ -530,7 +532,7 @@ export const DashboardSidebarMemo: FC = () => {
                 >
                   <div className={styles.icon_wrapper}>
                     <BsTelephoneInbound
-                      className={`${styles.sidebar_icon} scale-[0.85] text-[24px] text-[var(--color-text)]`}
+                      className={`${styles.sidebar_icon} scale-[0.85] text-[24px] text-[var(--color-text-title)]`}
                     />
                   </div>
                   <div
@@ -564,7 +566,9 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    <FaLink className={`${styles.sidebar_icon} scale-[0.85] text-[24px] text-[var(--color-text)]`} />
+                    <FaLink
+                      className={`${styles.sidebar_icon} scale-[0.85] text-[24px] text-[var(--color-text-title)]`}
+                    />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -597,7 +601,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    <FaTelegramPlane className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`} />
+                    <FaTelegramPlane className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text-title)]`} />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -632,9 +636,9 @@ export const DashboardSidebarMemo: FC = () => {
                 >
                   <div className={styles.icon_wrapper}>
                     {/* <MdOutlineAdminPanelSettings
-                      className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`}
+                      className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text-title)]`}
                     /> */}
-                    <BiTargetLock className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`} />
+                    <BiTargetLock className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text-title)]`} />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -668,8 +672,8 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={styles.icon_wrapper}>
-                    {/* <BsCheckCircle className="text-[24px] text-[var(--color-text)]" /> */}
-                    <BsCheck2Circle className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text)]`} />
+                    {/* <BsCheckCircle className="text-[24px] text-[var(--color-text-title)]" /> */}
+                    <BsCheck2Circle className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text-title)]`} />
                   </div>
                   <div
                     className={`${styles.text_wrapper} ${
@@ -693,7 +697,7 @@ export const DashboardSidebarMemo: FC = () => {
               } border border-b-black`}
             >
               <div
-                className={`flex min-w-fit cursor-pointer items-center text-[var(--color-text)] hover:text-[var(--color-text-brand-f)] ${
+                className={`flex min-w-fit cursor-pointer items-center text-[var(--color-text-title)] hover:text-[var(--color-text-brand-f)] ${
                   styles.section_title
                 }  ${isOpenSidebar ? "w-[84px] pr-[20px]" : "flex-center w-full"}`}
                 data-text={`${
@@ -715,11 +719,11 @@ export const DashboardSidebarMemo: FC = () => {
                 )}
                 {!isOpenSidebar && (
                   <div className="flex-col-center fade1 pointer-events-none w-full">
-                    <span className="transition-base03  pointer-events-none scale-75 select-none whitespace-nowrap text-[8px] text-[var(--color-text)]">
+                    <span className="transition-base03  pointer-events-none scale-75 select-none whitespace-nowrap text-[8px] text-[var(--color-text-title)]">
                       ピックボックス
                     </span>
                     <BsChevronDown
-                      className={`transition-base03 pointer-events-none stroke-[0.5] text-[24px] text-[var(--color-text)] hover:stroke-[var(--color-text-brand-f)] ${
+                      className={`transition-base03 pointer-events-none stroke-[0.5] text-[24px] text-[var(--color-text-title)] hover:stroke-[var(--color-text-brand-f)] ${
                         isOpenSideBarPickBox ? "rotate-0" : "-rotate-180"
                       } `}
                     />
@@ -759,7 +763,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={`${styles.icon_wrapper}`} style={!isOpenSidebar ? { flexDirection: "column" } : {}}>
-                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text)]" />
+                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text-title)]" />
                     {!isOpenSidebar && (
                       <span className="pointer-events-none scale-[0.8] select-none truncate text-[10px]">
                         ピックボックス１
@@ -794,7 +798,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={`${styles.icon_wrapper}`} style={!isOpenSidebar ? { flexDirection: "column" } : {}}>
-                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text)]" />
+                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text-title)]" />
                     {!isOpenSidebar && (
                       <span className="pointer-events-none scale-[0.8] select-none truncate text-[10px]">
                         ピックボックス２
@@ -829,7 +833,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={`${styles.icon_wrapper}`} style={!isOpenSidebar ? { flexDirection: "column" } : {}}>
-                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text)]" />
+                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text-title)]" />
                     {!isOpenSidebar && (
                       <span className="pointer-events-none scale-[0.8] select-none truncate text-[10px]">
                         ピックボックス３
@@ -864,7 +868,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={`${styles.icon_wrapper}`} style={!isOpenSidebar ? { flexDirection: "column" } : {}}>
-                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text)]" />
+                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text-title)]" />
                     {!isOpenSidebar && (
                       <span className="pointer-events-none scale-[0.8] select-none truncate text-[10px]">
                         ピックボックス４
@@ -899,7 +903,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={`${styles.icon_wrapper}`} style={!isOpenSidebar ? { flexDirection: "column" } : {}}>
-                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text)]" />
+                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text-title)]" />
                     {!isOpenSidebar && (
                       <span className="pointer-events-none scale-[0.8] select-none truncate text-[10px]">
                         ピックボックス５
@@ -934,7 +938,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={`${styles.icon_wrapper}`} style={!isOpenSidebar ? { flexDirection: "column" } : {}}>
-                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text)]" />
+                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text-title)]" />
                     {!isOpenSidebar && (
                       <span className="pointer-events-none scale-[0.8] select-none truncate text-[10px]">
                         ピックボックス６
@@ -969,7 +973,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={`${styles.icon_wrapper}`} style={!isOpenSidebar ? { flexDirection: "column" } : {}}>
-                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text)]" />
+                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text-title)]" />
                     {!isOpenSidebar && (
                       <span className="pointer-events-none scale-[0.8] select-none truncate text-[10px]">
                         ピックボックス７
@@ -1004,7 +1008,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={`${styles.icon_wrapper}`} style={!isOpenSidebar ? { flexDirection: "column" } : {}}>
-                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text)]" />
+                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text-title)]" />
                     {!isOpenSidebar && (
                       <span className="pointer-events-none scale-[0.8] select-none truncate text-[10px]">
                         ピックボックス８
@@ -1039,7 +1043,7 @@ export const DashboardSidebarMemo: FC = () => {
                   }}
                 >
                   <div className={`${styles.icon_wrapper}`} style={!isOpenSidebar ? { flexDirection: "column" } : {}}>
-                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text)]" />
+                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text-title)]" />
                     {!isOpenSidebar && (
                       <span className="pointer-events-none scale-[0.8] select-none truncate text-[10px]">
                         ピックボックス９
@@ -1077,7 +1081,7 @@ export const DashboardSidebarMemo: FC = () => {
                     className={`${styles.icon_wrapper} !max-w-[40px]`}
                     style={!isOpenSidebar ? { flexDirection: "column" } : {}}
                   >
-                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text)]" />
+                    <HiOutlineInboxArrowDown className="text-[24px] text-[var(--color-text-title)]" />
                     {!isOpenSidebar && (
                       <span className="pointer-events-none scale-[0.8] select-none truncate text-[10px]">
                         ピックボックスピック
