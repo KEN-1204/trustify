@@ -678,7 +678,7 @@ const UpsertSettingTargetEntityGroupMemo = ({
           _is_confirmed_annual_all_entities: isAllConfirmAnnual, // 今回のインサートが成功した場合に全てis_confirmがtrueになるかどうか
           _is_confirmed_first_half_all_entities: false, // メンバーレベル以外のレベルで上下期詳細がtrueになるのはメンバーレベルの集計クリック時なのでfalse
           _is_confirmed_second_half_all_entities: false, // メンバーレベル以外のレベルで上下期詳細がtrueになるのはメンバーレベルの集計クリック時なのでfalse
-          // _entity_level: upsertSettingEntitiesObj.entityLevel,
+          _entity_level: upsertSettingEntitiesObj.entityLevel, // UPSERTするエンティティレベル
         };
 
         console.log(
@@ -845,7 +845,7 @@ const UpsertSettingTargetEntityGroupMemo = ({
           _is_confirmed_annual_all_entities: isAllConfirmAnnual, // 今回のインサートが成功した場合に全てis_confirmがtrueになるかどうか
           _is_confirmed_first_half_all_entities: isAllConfirmedFirstHalfDetails,
           _is_confirmed_second_half_all_entities: isAllConfirmedSecondHalfDetails,
-          // _entity_level: upsertSettingEntitiesObj.entityLevel,
+          _entity_level: upsertSettingEntitiesObj.entityLevel, // UPSERTするエンティティレベル
         };
 
         console.log(

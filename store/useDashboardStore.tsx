@@ -536,6 +536,10 @@ type State = {
   // メンバーレベルでの、全てのメンバーの月次目標の入力完了と、月次目標の合計とQ1, Q2の総合目標と一致しているかどうかを保持するstate
   monthTargetStatusMapForAllMembers: MonthTargetStatusMapForAllMembers | null;
   setMonthTargetStatusMapForAllMembers: (payload: MonthTargetStatusMapForAllMembers | null) => void;
+  // 目標トップページ
+  // 表示期間(年度全て・上期詳細・下期詳細)
+  displayTargetPeriodType: "fiscal_year" | "first_half" | "second_half";
+  setDisplayTargetPeriodType: (payload: "fiscal_year" | "first_half" | "second_half") => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1284,9 +1288,10 @@ const useDashboardStore = create<State>((set) => ({
   monthTargetStatusMapForAllMembers: null,
   setMonthTargetStatusMapForAllMembers: (payload) => set({ monthTargetStatusMapForAllMembers: payload }),
 
-  // ユーザーのエンティティの中でメンバーの親に当たる末端のエンティティ
-  // endEntity: "company",
-  // setEndEntity: (payload) => set({ endEntity: payload }),
+  // 目標トップページ
+  // 表示期間(年度全て・上期詳細・下期詳細)
+  displayTargetPeriodType: "fiscal_year_all",
+  setDisplayTargetPeriodType: (payload) => set({ displayTargetPeriodType: payload }),
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: false,

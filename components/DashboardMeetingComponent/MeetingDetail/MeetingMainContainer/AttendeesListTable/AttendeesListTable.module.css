@@ -33,6 +33,8 @@
   background-color: var(--color-table-container-bg);
 
   font-family: var(--font-family-str);
+
+  /* box-shadow: var(--color-bg-dashboard-under-table-border); */
 }
 /*  */
 .right_activity_log_container.company_table_screen_pr {

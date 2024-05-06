@@ -2950,11 +2950,11 @@ export type MainEntityTarget = {
 
   // fiscalYear: number;
   periodType: "year_half" | "first_half_details" | "second_half_details" | ""; // 期間タイプ(fiscal_year, first_half_details, second_half_details) 初期セットでは空文字をセットする なぜなら次のレベルがメンバーレベルかどうかがわからないため
-  entityLevel: string; // 全社・事業部
+  entityLevel: EntityLevelNames; // 全レイヤー(office除く)
   entities: Entity[]; // 設定するエンティティid配列
   // entityName: string;
   parentEntityLevelId: string; // 紐づく上位エンティティid
-  parentEntityLevel: string; // 紐づく上位エンティティ詳細
+  parentEntityLevel: "company" | "department" | "section" | "unit"; // 紐づく上位エンティティ詳細(メンバーレベル無し)
   parentEntityId: string;
   parentEntityName: string;
 };

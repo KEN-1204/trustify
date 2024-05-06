@@ -18,7 +18,6 @@ import {
   SalesTargetsRowDataWithYoY,
   Section,
   SectionMenuParams,
-  SparkChartObj,
   Unit,
 } from "@/types";
 import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -49,8 +48,6 @@ import { GrPowerReset } from "react-icons/gr";
 import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
 import { mappingEntityName } from "@/utils/mappings";
 import { convertToJapaneseCurrencyFormatInYen } from "@/utils/Helpers/Currency/convertToJapaneseCurrencyFormatInYen";
-import { useQuerySalesSummaryAndGrowth } from "@/hooks/useQuerySalesSummaryAndGrowth";
-import { SparkChart } from "@/components/Parts/Charts/SparkChart/SparkChart";
 
 // entityLevel: company / department...
 type Props = {
@@ -70,7 +67,8 @@ type Props = {
   setStickyRow: Dispatch<SetStateAction<string | null>>;
 };
 
-const SalesTargetGridTableMemo = ({
+// 事業部〜メンバーレベルを表示するためのサブ目標テーブル
+const SalesTargetGridTableSubMemo = ({
   entityLevel,
   // entityNameTitle,
   // entityId,
@@ -79,7 +77,6 @@ const SalesTargetGridTableMemo = ({
   parentEntityId,
   parentEntityNameTitle,
   divName,
-  isMain,
   fetchEnabled,
   onFetchComplete,
   companyId,
@@ -436,45 +433,6 @@ const SalesTargetGridTableMemo = ({
     () => generateMonthHeaders(Number(currentFiscalStartYearMonth.toString().slice(-2))),
     [fiscalYearStartEndDate]
   );
-
-  // --------------------- 🌟過去3年分の売上と前年度の前年伸び率実績を取得するuseQuery🌟 ---------------------
-  const {
-    data: salesSummaryRowDataTrend,
-    error: salesSummaryErrorTrend,
-    isLoading: isLoadingQueryTrend,
-    isSuccess: isSuccessQueryTrend,
-    isError: isErrorQueryTrend,
-  } = useQuerySalesSummaryAndGrowth({
-    companyId: companyId,
-    entityLevel: entityLevel,
-    entityId: entities[0].entity_id,
-    periodType: `year_half`, // 年度、上期、下期の３期間を取得
-    fiscalYear: selectedFiscalYearTarget,
-    annualFiscalMonths: annualFiscalMonths,
-    fetchEnabled: isMain, // メイン目標のみ売上推移をフェッチ
-  });
-  // --------------------- 🌟過去3年分の売上と前年度の前年伸び率実績を取得するuseQuery🌟 ここまで ---------------------
-
-  // 表示期間(年度全て・上期詳細・下期詳細)
-  const displayTargetPeriodType = useDashboardStore((state) => state.displayTargetPeriodType);
-  const setDisplayTargetPeriodType = useDashboardStore((state) => state.setDisplayTargetPeriodType);
-
-  // 売上推移(年度・上期、下期)
-  // const [salesTrends, setSalesTrends] = useState<(SparkChartObj & { updateAt: number }) | null>(() => {
-  //   if (!salesSummaryRowDataTrend) return null;
-  //   // "fiscal_year" | "first_half" | "second_half"
-  //   // const initialData = salesSummaryRowDataTrend.find((obj) => obj.period_type === "fiscal_year")?.sales_trend ?? null;
-  //   const initialData =
-  //     salesSummaryRowDataTrend.find((obj) => obj.period_type === displayTargetPeriodType)?.sales_trend ?? null;
-  //   return initialData ? { ...initialData, updateAt: Date.now() } : null;
-  // });
-  const salesTrends = useMemo(() => {
-    if (!salesSummaryRowDataTrend) return null;
-    const salesTrendData =
-      salesSummaryRowDataTrend.find((obj) => obj.period_type === displayTargetPeriodType)?.sales_trend ?? null;
-
-    return salesTrendData ? { ...salesTrendData, updateAt: Date.now() } : null;
-  }, [salesSummaryRowDataTrend, displayTargetPeriodType]);
 
   // ================== 🌟疑似的なサーバーデータフェッチ用の関数🌟 ==================
   const fetchServerPageTest = async (
@@ -1448,7 +1406,7 @@ const SalesTargetGridTableMemo = ({
     console.log("🌟ヘッダーカラム生成 gotData ===========================", gotData);
 
     // ========================= 🔥テスト ローカルストレージ ルート =========================
-    const localStorageColumnHeaderItemListJSON = localStorage.getItem(`grid_columns_sales_target_main`);
+    const localStorageColumnHeaderItemListJSON = localStorage.getItem(`grid_columns_sales_target_sub`);
     // const localStorageColumnHeaderItemListJSON = localStorage.getItem("grid_columns_contacts");
     if (localStorageColumnHeaderItemListJSON) {
       console.log("useEffect ローカルストレージルート🔥");
@@ -1666,7 +1624,7 @@ const SalesTargetGridTableMemo = ({
 
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const salesTargetColumnHeaderItemListJSON = JSON.stringify(firstColumnItemListArray);
-    localStorage.setItem(`grid_columns_sales_target_main`, salesTargetColumnHeaderItemListJSON);
+    localStorage.setItem(`grid_columns_sales_target_sub`, salesTargetColumnHeaderItemListJSON);
     // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
   }, [gotData]); // gotDataのstateがtrueになったら再度実行
@@ -1791,7 +1749,7 @@ const SalesTargetGridTableMemo = ({
       }
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const salesTargetColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem(`grid_columns_sales_target_main`, salesTargetColumnHeaderItemListJSON);
+      localStorage.setItem(`grid_columns_sales_target_sub`, salesTargetColumnHeaderItemListJSON);
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     };
@@ -2705,7 +2663,7 @@ const SalesTargetGridTableMemo = ({
     console.log("Drop✅");
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const salesTargetColumnHeaderItemListJSON = JSON.stringify(salesTargetColumnHeaderItemList);
-    localStorage.setItem(`grid_columns_sales_target_main`, salesTargetColumnHeaderItemListJSON);
+    localStorage.setItem(`grid_columns_sales_target_sub`, salesTargetColumnHeaderItemListJSON);
     // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
     // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
@@ -2794,7 +2752,7 @@ const SalesTargetGridTableMemo = ({
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const salesTargetColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem(`grid_columns_sales_target_main`, salesTargetColumnHeaderItemListJSON);
+      localStorage.setItem(`grid_columns_sales_target_sub`, salesTargetColumnHeaderItemListJSON);
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
@@ -2898,7 +2856,7 @@ const SalesTargetGridTableMemo = ({
 
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
       const salesTargetColumnHeaderItemListJSON = JSON.stringify(newColumnHeaderItemList);
-      localStorage.setItem(`grid_columns_sales_target_main`, salesTargetColumnHeaderItemListJSON);
+      localStorage.setItem(`grid_columns_sales_target_sub`, salesTargetColumnHeaderItemListJSON);
       // localStorage.setItem("grid_columns_contacts", contactColumnHeaderItemListJSON);
       // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ここまで ================
 
@@ -3182,7 +3140,7 @@ const SalesTargetGridTableMemo = ({
   // 上半期のみ 売上目標のみ、前年比のみなどのフィルターはここで行う
 
   console.log(
-    "✅SalesTargetGridTableコンポーネントレンダリング",
+    "✅SalesTargetGridTableSubコンポーネントレンダリング",
     "=============================================data",
     data,
     // "rowVirtualizer.getVirtualItems()",
@@ -3239,9 +3197,7 @@ const SalesTargetGridTableMemo = ({
     "entityLevelToParentLevelMap",
     entityLevelToParentLevelMap,
     "entityLevelToChildLevelMap",
-    entityLevelToChildLevelMap,
-    "salesTrends",
-    salesTrends
+    entityLevelToChildLevelMap
     // `virtualItems:${rowVirtualizer.getVirtualItems().length}`
     // "colsWidth",
     // colsWidth,
@@ -3541,29 +3497,6 @@ const SalesTargetGridTableMemo = ({
               {isLoadingRefresh && (
                 <div className={`flex-center ml-[15px] min-h-[28px] min-w-[28px]`}>
                   <SpinnerX h="h-[16px]" w="w-[16px]" />
-                </div>
-              )}
-              {salesTrends && isMain && (
-                <div>
-                  <SparkChart
-                    key={`${entityLevel}_${salesTrends?.title}_${salesTrends?.mainValue}_${salesTrends?.data?.length}_${salesTrends.updateAt}_main`}
-                    id={`${entityLevel}_${salesTrends?.title}_${salesTrends?.mainValue}_${salesTrends?.data?.length}_${salesTrends.updateAt}_main`}
-                    title={salesTrends.title}
-                    subTitle={salesTrends.subTitle}
-                    mainValue={salesTrends.mainValue} // COALESCE関数で売上がなくても0が入るためnumber型になる
-                    growthRate={salesTrends.growthRate}
-                    data={salesTrends.data}
-                    dataUpdateAt={salesTrends.updateAt}
-                    // title={row.sales_trend.title}
-                    // subTitle={row.sales_trend.subTitle}
-                    // mainValue={row.sales_trend.mainValue} // COALESCE関数で売上がなくても0が入るためnumber型になる
-                    // growthRate={row.sales_trend.growthRate}
-                    // data={row.sales_trend.data}
-                    // title={`${upsertTargetObj.fiscalYear - rowIndex}年度`}
-                    height={48}
-                    width={270}
-                    delay={600}
-                  />
                 </div>
               )}
             </>
@@ -5103,4 +5036,4 @@ const SalesTargetGridTableMemo = ({
   );
 };
 
-export const SalesTargetGridTable = memo(SalesTargetGridTableMemo);
+export const SalesTargetGridTableSub = memo(SalesTargetGridTableSubMemo);
