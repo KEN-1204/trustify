@@ -40,6 +40,10 @@ const SalesTargetsContainerMemo = () => {
   if (!userProfileState?.company_id) return null;
   if (!selectedFiscalYearTarget) return null;
 
+  // ========================= 🌟総合目標の目標と前年度売上を取得Zustand🌟 =========================
+  const mainTotalTargets = useDashboardStore((state) => state.mainTotalTargets);
+  // ========================= 🌟総合目標の目標と前年度売上を取得Zustand🌟 =========================
+
   // -------------------------- state関連 --------------------------
   // stickyを付与するrow
   const [stickyRow, setStickyRow] = useState<string | null>(null);
@@ -442,7 +446,7 @@ const SalesTargetsContainerMemo = () => {
             {mainEntityTarget &&
               !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
               parentEntityObj && (
-                <div className={`${styles.card_wrapper} fade08_forward`}>
+                <>
                   <ErrorBoundary FallbackComponent={ErrorFallback}>
                     <Suspense
                       fallback={
@@ -475,7 +479,10 @@ const SalesTargetsContainerMemo = () => {
                       />
                     </Suspense>
                   </ErrorBoundary>
-                </div>
+                </>
+                // <div className={`${styles.card_wrapper} fade08_forward`}>
+
+                // </div>
               )}
             {/* {mainEntityTarget &&
               !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
@@ -575,7 +582,7 @@ const SalesTargetsContainerMemo = () => {
         })} */}
         {/* ---------- */}
 
-        {/* ---------- */}
+        {/* ----------------------------------- サブ目標 ----------------------------------- */}
         <div className={`${styles.grid_row} ${styles.col1} ${stickyRow === "sub_targets" ? styles.sticky_row : ``}`}>
           <div className={`${styles.grid_content_card} fade08_forward`}>
             {/* {mainEntityTarget &&
@@ -594,10 +601,15 @@ const SalesTargetsContainerMemo = () => {
                   </div>
                 </>
               )} */}
-            {mainEntityTarget &&
+            {currentActiveIndex < 1 && (
+              <FallbackScrollContainer title={mainEntityTarget ? getDivName(mainEntityTarget.entityLevel) : ""} />
+            )}
+            {currentActiveIndex <= 1 &&
+              mainTotalTargets &&
+              mainEntityTarget &&
               !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
               parentEntityObj && (
-                <div className={`${styles.card_wrapper} fade08_forward`}>
+                <>
                   <ErrorBoundary FallbackComponent={ErrorFallback}>
                     <Suspense fallback={<FallbackScrollContainer title={getDivName(mainEntityTarget.entityLevel)} />}>
                       <SalesTargetGridTableSub
@@ -613,10 +625,14 @@ const SalesTargetsContainerMemo = () => {
                       />
                     </Suspense>
                   </ErrorBoundary>
-                </div>
+                  {/* <div className={`${styles.card_wrapper} fade08_forward`}>
+                  
+                </div> */}
+                </>
               )}
           </div>
         </div>
+        {/* ----------------------------------- サブ目標 ----------------------------------- */}
         <div className={`${styles.grid_row} ${styles.col1}`}>
           <div className={`${styles.grid_content_card}`}>
             <div className={`${styles.card_wrapper} fade08_forward`}>

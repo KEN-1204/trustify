@@ -41,6 +41,7 @@ import {
   TotalSalesTargetsYearHalfObj,
   TotalSalesTargetsHalfDetailsObj,
   MonthTargetStatusMapForAllMembers,
+  MainTotalTargets,
 } from "@/types";
 import { activityColumnHeaderItemListData } from "@/utils/activityColumnHeaderItemListDate";
 import { companyColumnHeaderItemListData } from "@/utils/companyColumnHeaderItemListData";
@@ -540,6 +541,9 @@ type State = {
   // 表示期間(年度全て・上期詳細・下期詳細)
   displayTargetPeriodType: "fiscal_year" | "first_half" | "second_half";
   setDisplayTargetPeriodType: (payload: "fiscal_year" | "first_half" | "second_half") => void;
+  // 総合目標の「売上目標・前年度売上」の「年度・上期・下期」を保持 サブ目標のそれぞれのシェアの算出に使用(目標トップページ)
+  mainTotalTargets: MainTotalTargets | null;
+  setMainTotalTargets: (payload: MainTotalTargets | null) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1292,6 +1296,9 @@ const useDashboardStore = create<State>((set) => ({
   // 表示期間(年度全て・上期詳細・下期詳細)
   displayTargetPeriodType: "fiscal_year",
   setDisplayTargetPeriodType: (payload) => set({ displayTargetPeriodType: payload }),
+  // 総合目標の「売上目標・前年度売上」の「年度・上期・下期」を保持 サブ目標のそれぞれのシェアの算出に使用(目標トップページ)
+  mainTotalTargets: null,
+  setMainTotalTargets: (payload) => set({ mainTotalTargets: payload }),
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: false,

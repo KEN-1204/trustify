@@ -1417,6 +1417,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-btn-cancel-bg-hover: #ddd;
   --color-btn-cancel-text: #666;
   --color-sales-card-bg: #fff;
+  --color-sales-card-bg-single: #fff;
   --color-sales-card-border: transparent;
   --color-sales-card-border: 0 1px 2px 1px #cccccc60;
   --color-sales-card-border-brand: 0 0 0 1px var(--color-bg-brand-f), 0 1px 2px 2px #cccccc60;
@@ -2448,6 +2449,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-btn-cancel-bg-hover: #666;
   --color-btn-cancel-text: #fff;
   --color-sales-card-bg: linear-gradient(to bottom left, #2d2d2d 0%, #292929 33%, #222 66%, #1c1c1c 100%);
+  --color-sales-card-bg-single: #292929;
   /* --color-sales-card-bg: linear-gradient(to bottom left, #2d2d2d 0%, #292929 33%, #1c1c1c 66%, #191919 100%); */
   /* --color-sales-card-bg: linear-gradient(to bottom left, #2c2c2c 0%, #2d2d2d 33%, #222 66%, #1c1c1c 100%); */
   --color-sales-card-border: 0 0 0 1px #333;

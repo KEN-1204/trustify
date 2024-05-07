@@ -20,7 +20,7 @@ import {
   SectionMenuParams,
   Unit,
 } from "@/types";
-import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
+import { InfiniteData, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
@@ -109,6 +109,8 @@ const SalesTargetGridTableSubMemo = ({
   // テーブルに表示するデータセットキー 「売上目標・前年度売上・前年比」: ["salesTargets", "lastYearSales", "yoyGrowth"]
   const displayKeys = useDashboardStore((state) => state.displayKeys);
   const setDisplayKeys = useDashboardStore((state) => state.setDisplayKeys);
+  // 表示期間(年度全て・上期詳細・下期詳細)
+  const displayTargetPeriodType = useDashboardStore((state) => state.displayTargetPeriodType);
 
   // const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
   // const [selectedSection, setSelectedSection] = useState<Section | null>(null);
@@ -253,14 +255,36 @@ const SalesTargetGridTableSubMemo = ({
   );
 
   // ========================= 🌟総合目標の目標と前年度売上を取得useQuery キャッシュ🌟 =========================
-  const mainEntityQueryData = queryClient.getQueryData([
-    "sales_targets",
-    `${selectedFiscalYearTarget}`,
-    mainEntityTarget?.parentEntityLevel ?? null,
-    mainEntityTarget?.entityLevel ?? null,
-    mainEntityTarget?.parentEntityId ?? null,
-    "main",
-  ]);
+  // ========================= 🌟総合目標の目標と前年度売上を取得Zustand🌟 =========================
+  const mainTotalTargets = useDashboardStore((state) => state.mainTotalTargets);
+  // ========================= 🌟総合目標の目標と前年度売上を取得Zustand🌟 =========================
+  // const mainEntityQueryData:
+  //   | InfiniteData<{
+  //       rows: SalesTargetsRowDataWithYoY[] | null;
+  //       nextOffset: number;
+  //       isLastPage: boolean;
+  //       count: number | null;
+  //     }>
+  //   | undefined = queryClient.getQueryData([
+  //   "sales_targets",
+  //   `${selectedFiscalYearTarget}`,
+  //   mainEntityTarget?.parentEntityLevel ?? null,
+  //   mainEntityTarget?.entityLevel ?? null,
+  //   mainEntityTarget?.parentEntityId ?? null,
+  //   "main",
+  // ]);
+  // const mainSalesTargetRow = useMemo(() => {
+  //   if (!mainEntityQueryData) return null;
+  //   return mainEntityQueryData && !!mainEntityQueryData.pages?.length && !!mainEntityQueryData.pages[0]?.rows?.length
+  //     ? mainEntityQueryData.pages[0].rows[0]
+  //     : null;
+  // }, [mainEntityQueryData]);
+  // console.log(
+  //   "✅🔥✅🔥✅🔥✅🔥✅🔥✅🔥 mainEntityQueryData",
+  //   mainEntityQueryData,
+  //   "mainSalesTargetRow",
+  //   mainSalesTargetRow
+  // );
   // ========================= 🌟総合目標の目標と前年度売上を取得useQuery キャッシュ🌟 =========================
 
   // ================== 🌟useInfiniteQueryフック🌟 ==================
@@ -614,17 +638,91 @@ const SalesTargetGridTableSubMemo = ({
 
         // 売上目標と前年度売上は先頭にシェアを追加(メインのため100%)
         salesTargetRows = salesTargetRows?.length
-          ? (salesTargetRows.map((obj) => ({
-              ...obj,
-              share: 100,
-            })) as (SalesTargetFYRowData & { share: number })[])
+          ? (salesTargetRows.map((obj) => {
+              let _share = 0;
+              try {
+                if (!mainTotalTargets?.sales_targets) throw new Error("❌mainTotalTargets?.sales_targets無し");
+                if (displayTargetPeriodType === "fiscal_year") {
+                  const _totalTargetFY = mainTotalTargets?.sales_targets.fiscal_year;
+                  if (!isValidNumber(_totalTargetFY)) throw new Error("❌総合目標金額無し");
+                  const totalDecimalFY = new Decimal(_totalTargetFY!);
+                  const subEntityDecimalFY = new Decimal(obj.fiscal_year ?? 0);
+                  _share = Number(
+                    subEntityDecimalFY.dividedBy(totalDecimalFY).times(100).toFixed(0, Decimal.ROUND_HALF_UP)
+                  );
+                }
+                if (displayTargetPeriodType === "first_half") {
+                  const _totalTargetFH = mainTotalTargets?.sales_targets.first_half;
+                  if (!isValidNumber(_totalTargetFH)) throw new Error("❌総合目標金額無し");
+                  const totalDecimalFH = new Decimal(_totalTargetFH!);
+                  const subEntityDecimalFH = new Decimal(obj.first_half ?? 0);
+                  _share = Number(
+                    subEntityDecimalFH.dividedBy(totalDecimalFH).times(100).toFixed(0, Decimal.ROUND_HALF_UP)
+                  );
+                }
+                if (displayTargetPeriodType === "second_half") {
+                  const _totalTargetSH = mainTotalTargets?.sales_targets.second_half;
+                  if (!isValidNumber(_totalTargetSH)) throw new Error("❌総合目標金額無し");
+                  const totalDecimalSH = new Decimal(_totalTargetSH!);
+                  const subEntityDecimalSH = new Decimal(obj.second_half ?? 0);
+                  _share = Number(
+                    subEntityDecimalSH.dividedBy(totalDecimalSH).times(100).toFixed(0, Decimal.ROUND_HALF_UP)
+                  );
+                }
+              } catch (e: any) {
+                console.log("queryFn内シェア算出", e);
+              }
+
+              console.log(
+                "🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠シェア",
+                _share,
+                "mainTotalTargets",
+                mainTotalTargets,
+                "displayTargetPeriodType",
+                displayTargetPeriodType
+              );
+
+              return {
+                ...obj,
+                share: _share,
+              };
+            }) as (SalesTargetFYRowData & { share: number })[])
           : [];
         lastYearSalesRows = lastYearSalesRows?.length
-          ? (lastYearSalesRows.map((obj) => ({
-              ...obj,
-              share: 100,
-              entity_name: entitiesIdToObjMap.get(obj?.entity_id) ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
-            })) as (SalesTargetFYRowData & { share: number })[])
+          ? (lastYearSalesRows.map((obj) => {
+              let _share = 0;
+              try {
+                if (!mainTotalTargets?.last_year_sales) throw new Error("❌mainTotalTargets?.last_year_sales無し");
+                if (displayTargetPeriodType === "fiscal_year") {
+                  const _totalTargetFY = mainTotalTargets?.last_year_sales.fiscal_year;
+                  if (!isValidNumber(_totalTargetFY)) throw new Error("❌総合目標金額無し");
+                  const totalDecimalFY = new Decimal(_totalTargetFY!);
+                  const subEntityDecimalFY = new Decimal(obj.fiscal_year ?? 0);
+                  _share = subEntityDecimalFY.dividedBy(totalDecimalFY).toNumber();
+                }
+                if (displayTargetPeriodType === "first_half") {
+                  const _totalTargetFH = mainTotalTargets?.last_year_sales.first_half;
+                  if (!isValidNumber(_totalTargetFH)) throw new Error("❌総合目標金額無し");
+                  const totalDecimalFH = new Decimal(_totalTargetFH!);
+                  const subEntityDecimalFH = new Decimal(obj.first_half ?? 0);
+                  _share = subEntityDecimalFH.dividedBy(totalDecimalFH).toNumber();
+                }
+                if (displayTargetPeriodType === "second_half") {
+                  const _totalTargetSH = mainTotalTargets?.last_year_sales.second_half;
+                  if (!isValidNumber(_totalTargetSH)) throw new Error("❌総合目標金額無し");
+                  const totalDecimalSH = new Decimal(_totalTargetSH!);
+                  const subEntityDecimalSH = new Decimal(obj.second_half ?? 0);
+                  _share = subEntityDecimalSH.dividedBy(totalDecimalSH).toNumber();
+                }
+              } catch (e: any) {
+                console.log("queryFn内シェア算出", e);
+              }
+              return {
+                ...obj,
+                share: _share,
+                entity_name: entitiesIdToObjMap.get(obj?.entity_id) ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
+              };
+            }) as (SalesTargetFYRowData & { share: number })[])
           : [];
 
         // １行３セット(３行)にまとめてrowsを生成して返す
@@ -684,7 +782,7 @@ const SalesTargetGridTableSubMemo = ({
       "sub",
     ],
     queryFn: async (ctx) => {
-      console.log("🔥queryFn実行");
+      console.log("🔥queryFn実行サブ mainTotalTargets", mainTotalTargets);
       const nextPage = await fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
       // const nextPage = await fetchServerPageTest(50, ctx.pageParam); // 50個ずつ取得
       console.log("✅queryFn成功 nextPage", nextPage);
@@ -698,7 +796,7 @@ const SalesTargetGridTableSubMemo = ({
     staleTime: Infinity,
     // enabled: isFetchingEnabled && fetchEnabledRef.current, // デバウンス後にフェッチを有効化(選択行が変更後3秒経過したらフェッチ許可)
     // enabled: !!entityId && !!entityLevel && isMain ? true : fetchEnabled,
-    enabled: !!entities && !!entityLevel && fetchEnabled,
+    enabled: !!entities && !!entityLevel && fetchEnabled && !!mainTotalTargets, // 総合目標データの取得が完了したらフェッチを許可
   });
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
 
@@ -2448,6 +2546,31 @@ const SalesTargetGridTableSubMemo = ({
   ); // columnNameのみの配列を取得
   // 上半期のみ 売上目標のみ、前年比のみなどのフィルターはここで行う
 
+  // ---------------------------- 🌠シェア🌠 ----------------------------
+  // infiniteQueryで初回は年度に対するシェアを算出した結果をstateに格納 年度から上期 or 下期に変更した場合にはstateを更新
+  type SharesData = {
+    [K in "sales_targets" | "last_year_sales"]: number;
+  };
+  const [shares, setShares] = useState<SharesData[] | null>(
+    !!allRows?.length
+      ? Array(allRows.length)
+          .fill(null)
+          .map((_, index) => {
+            return {
+              sales_targets: allRows[index]?.sales_targets ? allRows[index].sales_targets[displayTargetPeriodType] : 0,
+              last_year_sales: allRows[index]?.last_year_sales
+                ? allRows[index]?.last_year_sales[displayTargetPeriodType]
+                : 0,
+            };
+          })
+      : null
+  );
+  useEffect(() => {
+    if (!allRows) return;
+    if (!mainTotalTargets) return;
+  }, [mainTotalTargets, allRows]);
+  // ---------------------------- 🌠シェア🌠 ----------------------------
+
   console.log(
     "✅SalesTargetGridTableSubコンポーネントレンダリング",
     "=============================================data",
@@ -2456,8 +2579,8 @@ const SalesTargetGridTableSubMemo = ({
     // rowVirtualizer.getVirtualItems(),
     "1年分の年月度annualFiscalMonths",
     annualFiscalMonths,
-    "総合目標のキャッシュデータmainEntityQueryData",
-    mainEntityQueryData,
+    "総合目標state mainTotalTargets",
+    mainTotalTargets,
     "allRows",
     allRows
     // "前年度の1年分の年月度lastAnnualFiscalMonths",
@@ -3011,7 +3134,7 @@ const SalesTargetGridTableSubMemo = ({
                                         <ProgressCircle
                                           circleId="3"
                                           textId="3"
-                                          progress={100}
+                                          progress={displayRowData.share ?? 0}
                                           // progress={0}
                                           duration={5000}
                                           easeFn="Quartic"
@@ -3025,7 +3148,7 @@ const SalesTargetGridTableSubMemo = ({
                                           fade={`fade03_forward`}
                                         />
                                         <ProgressNumber
-                                          targetNumber={100}
+                                          targetNumber={displayRowData.share ?? 0}
                                           // startNumber={Math.round(68000 / 2)}
                                           // startNumber={Number((68000 * 0.1).toFixed(0))}
                                           startNumber={0}

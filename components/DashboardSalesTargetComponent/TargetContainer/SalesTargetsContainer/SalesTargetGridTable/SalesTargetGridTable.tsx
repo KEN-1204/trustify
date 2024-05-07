@@ -1270,10 +1270,28 @@ const SalesTargetGridTableMemo = ({
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
 
   // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
+  const setMainTotalTargets = useDashboardStore((state) => state.setMainTotalTargets);
   useEffect(() => {
     // 総合目標のフェッチが完了したら、子エンティティのフェッチを許可する。=> 総合目標の各目標金額を子エンティティテーブルで取得してシェアを算出する
     if (isMain) {
       if (isSuccessQuery || isErrorQuery) {
+        // 総合目標をZustandに格納
+        const newQueryTarget = !!data?.pages?.length && !!data?.pages[0].rows?.length ? data?.pages[0].rows[0] : null;
+        if (newQueryTarget) {
+          setMainTotalTargets({
+            sales_targets: {
+              fiscal_year: newQueryTarget.sales_targets.fiscal_year ?? 0,
+              first_half: newQueryTarget.sales_targets.first_half ?? 0,
+              second_half: newQueryTarget.sales_targets.second_half ?? 0,
+            },
+            last_year_sales: {
+              fiscal_year: newQueryTarget.last_year_sales.fiscal_year ?? 0,
+              first_half: newQueryTarget.last_year_sales.first_half ?? 0,
+              second_half: newQueryTarget.last_year_sales.second_half ?? 0,
+            },
+          });
+        }
+        // フェッチ完了を通知
         if (onFetchComplete) onFetchComplete();
       }
     }
@@ -3682,7 +3700,7 @@ const SalesTargetGridTableMemo = ({
               )}
 
               {salesTrends && isMain && (
-                <div className={`relative !ml-[18px] flex min-w-[232px] fade08_forward`}>
+                <div className={`fade08_forward relative !ml-[18px] flex min-w-[232px]`}>
                   <SparkChart
                     key={`${entityLevel}_${salesTrends?.title}_${salesTrends?.mainValue}_${salesTrends?.data?.length}_${salesTrends.updateAt}_main`}
                     id={`${entityLevel}_${salesTrends?.title}_${salesTrends?.mainValue}_${salesTrends?.data?.length}_${salesTrends.updateAt}_main`}
@@ -4189,7 +4207,7 @@ const SalesTargetGridTableMemo = ({
                                           tabIndex={-1}
                                           className={`${styles.grid_cell} ${
                                             salesTargetColumnHeaderItemList[index].isFrozen
-                                              ? styles.grid_column_frozen
+                                              ? `${styles.grid_column_frozen}`
                                               : ""
                                           } ${
                                             isFrozenCountRef.current === 1 && index === 0
@@ -4207,6 +4225,7 @@ const SalesTargetGridTableMemo = ({
                                                     ? salesTargetColumnHeaderItemList[index]?.columnIndex
                                                     : index + 2,
                                                   left: `var(--frozen-left-${index})`,
+                                                  // backdropFilter: `blur(16px)`,
                                                 }
                                               : {
                                                   gridColumnStart: salesTargetColumnHeaderItemList[index]
@@ -4225,6 +4244,10 @@ const SalesTargetGridTableMemo = ({
                                           onKeyDown={handleKeyDown}
                                         >
                                           {displayValue}
+                                          {/* <span className={`z-0`}>{displayValue}</span>
+                                          <div
+                                            className={`absolute left-0 top-0 z-10 h-full w-full backdrop-blur-md`}
+                                          ></div> */}
                                         </div>
                                       );
                                     })

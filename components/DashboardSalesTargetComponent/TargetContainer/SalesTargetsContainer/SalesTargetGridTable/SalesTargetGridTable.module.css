@@ -224,8 +224,7 @@
   user-select: none;
   outline: none;
   font-weight: 700;
-  /* contain: layout size style; */
-  contain: size layout style paint;
+  /* contain: size layout style paint; */
   height: var(--header-row-height);
   width: var(--row-width);
   box-sizing: content-box;
@@ -282,7 +281,7 @@
 
   /* background: var(--color-table-header); */
   background: var(--color-target-table-header-bg);
-  backdrop-filter: blur(12px);
+  /* backdrop-filter: blur(12px); */
   white-space: nowrap;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -297,6 +296,7 @@
   /* border: 1px solid transparent; */
   /* border-bottom: 1px solid transparent; */
   /* border-right: 1px solid transparent; */
+
   contain: size layout style paint;
   outline: none;
   padding: 0 8px;
@@ -316,7 +316,7 @@
   /* background-color: #232323; */
   /* テスト */
   /* background: var(--color-table-cell-bg); */
-  backdrop-filter: blur(12px);
+  /* backdrop-filter: blur(12px); */
   /* テスト */
 
   white-space: nowrap;
@@ -336,6 +336,7 @@
   padding: 0 8px;
   /* border: 1px solid transparent; */
 }
+
 .grid_cell.company_highlight {
   /* color: var(--color-company-highlight); */
   font-family: sans-serif;
@@ -404,6 +405,7 @@
 .grid_column_frozen {
   position: sticky;
   z-index: 1;
+  /* backdrop-filter: blur(12px); */
 }
 
 .grid_cell_frozen_last {
@@ -1214,4 +1216,9 @@
 .icon_path_stroke path,
 .icon_path_stroke svg {
   pointer-events: none;
+}
+
+.grid_header_row .grid_column_header_all.grid_column_frozen,
+.grid_row .grid_cell.grid_column_frozen {
+  backdrop-filter: blur(10px) !important;
 }

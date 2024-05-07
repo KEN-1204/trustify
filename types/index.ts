@@ -2969,6 +2969,11 @@ export type DisplayKeys = "sales_targets" | "last_year_sales" | "yoy_growth";
 // export type DisplayKeys = "salesTargets" | "lastYearSales" | "yoyGrowth";
 // yo2y_growth：前年度の前年比の伸び率実績(前年度の前年比)Year Over Two Years
 // yoy: Year Over Year
+export type MainTotalTargets = {
+  [K in "sales_targets" | "last_year_sales"]: {
+    [K in "fiscal_year" | "first_half" | "second_half"]: number;
+  };
+};
 
 // 売上目標・前年度売上フェッチ時の年月度の12ヶ月分の配列
 export type FiscalYearMonthKey =

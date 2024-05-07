@@ -30,14 +30,15 @@
   max-width: calc(100vw - 72px - 62px);
   /* max-width: calc(100vw - 62px); */
   background: var(--color-sales-card-bg);
+  /* background: var(--color-sales-card-bg-single); */
   box-shadow: var(--color-sales-card-border);
   border-radius: 12px;
   transition: box-shadow 0.5s ease;
 }
 .contents_area .grid_row .grid_content_card .card_wrapper {
-  background: var(--color-sales-card-bg);
+  /* background: var(--color-sales-card-bg);
+  border-radius: 12px; */
   /* box-shadow: var(--color-sales-card-border); */
-  border-radius: 12px;
   /* transition: box-shadow 0.5s ease; */
 }
 
