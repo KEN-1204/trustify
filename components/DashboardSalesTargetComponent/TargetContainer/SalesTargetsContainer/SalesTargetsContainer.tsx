@@ -24,6 +24,7 @@ import useStore from "@/store";
 import { useQueryFiscalYear } from "@/hooks/useQueryFiscalYear";
 import { useQueryEntityLevels } from "@/hooks/useQueryEntityLevels";
 import { useQueryEntities } from "@/hooks/useQueryEntities";
+import { SalesTargetGridTableSub } from "./SalesTargetGridTable/SalesTargetGridTableSub";
 
 const SalesTargetsContainerMemo = () => {
   const language = useStore((state) => state.language);
@@ -100,6 +101,12 @@ const SalesTargetsContainerMemo = () => {
   );
   // ===================== 🌠エンティティuseQuery🌠 =====================
 
+  // key: エンティティレベル名, value: 上位エンティティグループ
+  const entitiesHierarchyMap = useMemo(() => {
+    if (!entitiesHierarchyQueryData) return null;
+    return new Map(Object.entries(entitiesHierarchyQueryData).map(([key, value], index) => [key, value]));
+  }, [entitiesHierarchyQueryData]);
+
   // key: エンティティレベル名, value: 下位(子)エンティティレベル
   const entityLevelToChildLevelMap = useMemo(() => {
     if (!entityLevelsQueryData) return null;
@@ -115,18 +122,37 @@ const SalesTargetsContainerMemo = () => {
   }, [entityLevelsQueryData]);
 
   // -------------------------- 親エンティティのEntityオブジェクト --------------------------
-  const parentEntityObj = useMemo(() => {
+  const [parentEntityObj, setParentEntityObj] = useState<Entity | null>(null);
+
+  const parentAllEntityGroupMap = useMemo(() => {
     if (!mainEntityTarget) return null;
     if (!entitiesHierarchyQueryData) return null;
-    if (!entityLevelToChildLevelMap) return null;
-    if (mainEntityTarget.parentEntityLevel === "company") return null;
-    if (!["department", "section", "unit"].includes(mainEntityTarget.parentEntityLevel)) return null;
     const parentEntityGroups = entitiesHierarchyQueryData[mainEntityTarget.parentEntityLevel];
     const parentAllEntityGroup = parentEntityGroups.map((group) => group.entities).flatMap((entities) => entities);
-    const parentAllEntityGroupMap = new Map(parentAllEntityGroup.map((entities) => [entities.entity_id, entities]));
+    const _parentAllEntityGroupMap = new Map(parentAllEntityGroup.map((entities) => [entities.entity_id, entities]));
+    return _parentAllEntityGroupMap;
+  }, [entitiesHierarchyQueryData, mainEntityTarget?.parentEntityLevel]);
+
+  useEffect(() => {
+    if (!mainEntityTarget) return;
+    if (!mainEntityTarget?.parentEntityId) return;
+    if (!parentAllEntityGroupMap) return;
+
     const newParentEntityObj = parentAllEntityGroupMap.get(mainEntityTarget.parentEntityId);
-    return newParentEntityObj ?? null;
-  }, [mainEntityTarget, entitiesHierarchyQueryData]);
+    setParentEntityObj(newParentEntityObj ?? null);
+  }, [mainEntityTarget?.parentEntityId]);
+  // const parentEntityObj = useMemo(() => {
+  //   if (!mainEntityTarget) return null;
+  //   if (!entitiesHierarchyQueryData) return null;
+  //   if (!entityLevelToChildLevelMap) return null;
+  //   if (mainEntityTarget.parentEntityLevel === "company") return null;
+  //   if (!["department", "section", "unit"].includes(mainEntityTarget.parentEntityLevel)) return null;
+  //   const parentEntityGroups = entitiesHierarchyQueryData[mainEntityTarget.parentEntityLevel];
+  //   const parentAllEntityGroup = parentEntityGroups.map((group) => group.entities).flatMap((entities) => entities);
+  //   const parentAllEntityGroupMap = new Map(parentAllEntityGroup.map((entities) => [entities.entity_id, entities]));
+  //   const newParentEntityObj = parentAllEntityGroupMap.get(mainEntityTarget.parentEntityId);
+  //   return newParentEntityObj ?? null;
+  // }, [mainEntityTarget, entitiesHierarchyQueryData]);
   // -------------------------- 親エンティティのEntityオブジェクト --------------------------
 
   // -------------------------- Zustand上位エンティティグループをセット --------------------------
@@ -136,7 +162,52 @@ const SalesTargetsContainerMemo = () => {
     if (!userProfileState.company_id) return;
     if (!userProfileState.customer_name) return;
 
-    // 初期値はroot-companyのエンティティグループをセット
+    // fiscal_yearsのis_confirmed_xxx_half_detailsのどちらかが完了していればcompany-xxxを表示
+    // 次をelse ifにせず ifにすることで、childLevelが存在しなかった場合はroot-companyをセットする
+    if (
+      fiscalYearQueryData &&
+      (fiscalYearQueryData.is_confirmed_first_half_details || fiscalYearQueryData.is_confirmed_second_half_details) &&
+      entitiesHierarchyQueryData &&
+      entityLevelToChildLevelMap &&
+      entitiesHierarchyMap &&
+      "company" in entitiesHierarchyQueryData &&
+      entitiesHierarchyQueryData["company"].length > 0 &&
+      !!entitiesHierarchyQueryData["company"][0].entities.length
+    ) {
+      const companyLevelObj = entitiesHierarchyQueryData["company"][0];
+      const companyEntityId = companyLevelObj.entities[0].entity_id;
+      // 全社エンティティidに紐づく子エンティティグループ
+      const childLevel = entityLevelToChildLevelMap.get("company");
+      console.log("🌠🌠🌠 childLevel", childLevel, "entitiesHierarchyQueryData", entitiesHierarchyQueryData);
+      if (childLevel) {
+        const childEntityGroups = entitiesHierarchyMap.get(childLevel);
+        console.log("🌠🌠🌠🔥🔥🔥 childEntityGroups", childEntityGroups, "entitiesHierarchyMap", entitiesHierarchyMap);
+        if (childEntityGroups) {
+          // 会社エンティティidに紐づくエンティティグループ
+          const childEntityGroup = childEntityGroups.find((group) => group.parent_entity_id === companyEntityId);
+          console.log("🌠🌠🌠🔥🔥🔥🌠🌠🌠 childEntityGroup", childEntityGroup);
+          if (childEntityGroup && childEntityGroup?.entities?.length > 0) {
+            const newMainEntityTarget = {
+              periodType: "year_half", // 初回は年度(全て)をセット
+              entityLevel: childEntityGroup.entities[0].entity_level,
+              entities: childEntityGroup.entities,
+              parentEntityLevelId: childEntityGroup.entities[0].parent_entity_level_id,
+              parentEntityLevel: "company",
+              parentEntityId: childEntityGroup.parent_entity_id,
+              parentEntityName: childEntityGroup.parent_entity_name,
+            } as MainEntityTarget;
+
+            console.log("🌠🌠🌠🔥🔥🔥🌠🌠🌠🔥🔥🔥 newMainEntityTarget", newMainEntityTarget);
+
+            setMainEntityTarget(newMainEntityTarget);
+            return;
+          }
+        }
+      }
+    }
+
+    // fiscal_yearsのis_confirmed_xxx_half_detailsのどちらも未完了で、
+    // かつ、companyレベルは存在していれば初期値はroot-companyのエンティティグループをセット
     if (
       entitiesHierarchyQueryData &&
       "company" in entitiesHierarchyQueryData &&
@@ -241,6 +312,43 @@ const SalesTargetsContainerMemo = () => {
   //   return newEntityList;
   // }, [departmentDataArray, sectionDataArray, unitDataArray, officeDataArray]);
 
+  // --------------------------- 🌠子コンポーネントを順番にフェッチさせる🌠 ---------------------------
+  const [currentActiveIndex, setCurrentActiveIndex] = useState(0); // 順番にフェッチを許可
+  const [allFetched, setAllFetched] = useState(false); // サブ目標コンポーネントのフェッチが全て完了したらtrueに変更
+
+  // // 全子コンポーネントがフェッチ完了したかを監視
+  // useEffect(() => {
+  //   // サブ目標リストよりactiveIndexが大きくなった場合、全てフェッチが完了
+  //   if (currentActiveIndex >= subTargetList.length) {
+  //     setAllFetched(true);
+  //   }
+  //   if (upsertSettingEntitiesObj.entityLevel === "company") {
+  //     if (currentActiveIndex >= upsertSettingEntitiesObj.entities.length) {
+  //       setAllFetched(true);
+  //     }
+  //   }
+  // }, [currentActiveIndex]);
+
+  // 総合目標のエンティティの変更か、選択年度の変更があった場合にフェッチ完了状態をリセットする
+  const onResetFetchComplete = () => {
+    setCurrentActiveIndex(0);
+  };
+
+  // 総合目標のフェッチが完了したら
+  const onFetchComplete = (tableIndex: number) => {
+    // 既に現在のテーブルのindexよりcurrentActiveIndexが大きければリターン
+    if (tableIndex < currentActiveIndex || allFetched) return;
+    console.log(
+      "onFetchComplete関数実行 tableIndex",
+      tableIndex,
+      "currentActiveIndex",
+      currentActiveIndex,
+      tableIndex < currentActiveIndex
+    );
+    setCurrentActiveIndex((prevIndex) => prevIndex + 1); // activeIndexを+1して次のコンポーネントのフェッチを許可
+  };
+  // --------------------------- 🌠子コンポーネントを順番にフェッチさせる🌠 ---------------------------
+
   // 部門別の名称
   const getDivName = (entityLevel: EntityLevelNames) => {
     switch (entityLevel) {
@@ -274,7 +382,9 @@ const SalesTargetsContainerMemo = () => {
     "entityLevelsQueryData",
     entityLevelsQueryData,
     "entitiesHierarchyQueryData",
-    entitiesHierarchyQueryData
+    entitiesHierarchyQueryData,
+    "parentEntityObj",
+    parentEntityObj
     // "entityLevelList",
     // entityLevelList,
     // departmentDataArray,
@@ -293,67 +403,102 @@ const SalesTargetsContainerMemo = () => {
             stickyRow === userProfileState.company_id ? styles.sticky_row : ``
           }`}
         >
-          <div className={`${styles.grid_content_card}`}>
-            {/* タイトルエリア */}
-            {/* <div className={`${styles.card_title_area}`}>
-              <div className={`${styles.card_title}`}>
-                <span>全社</span>
-              </div>
-            </div> */}
-            {/* コンテンツエリア */}
-            {mainEntityTarget && mainEntityTarget.parentEntityLevel === "company" && (
-              <>
-                <ErrorBoundary FallbackComponent={ErrorFallback}>
-                  <Suspense
-                    fallback={
-                      <FallbackScrollContainer
-                        title={
-                          mainEntityTarget.entityLevel === "company"
-                            ? language === "ja"
-                              ? `全社`
-                              : `Company`
-                            : mainEntityTarget.entities[0].entity_name
-                        }
+          <div className={`${styles.grid_content_card} `}>
+            {mainEntityTarget &&
+              mainEntityTarget.parentEntityLevel === "company" &&
+              mainEntityTarget.entityLevel === "company" && (
+                <div className={`${styles.card_wrapper} fade08_forward`}>
+                  <ErrorBoundary FallbackComponent={ErrorFallback}>
+                    <Suspense
+                      fallback={
+                        <FallbackScrollContainer
+                          title={
+                            mainEntityTarget.entityLevel === "company"
+                              ? language === "ja"
+                                ? `全社`
+                                : `Company`
+                              : mainEntityTarget.entities[0].entity_name
+                          }
+                        />
+                      }
+                    >
+                      <SalesTargetGridTable
+                        entityLevel={mainEntityTarget.entities[0].entity_level}
+                        // entityNameTitle={mainEntityTarget.entities[0].entity_name}
+                        // entityId={mainEntityTarget.entities[0].entity_id}
+                        entities={mainEntityTarget.entities}
+                        divName={getDivName("company")}
+                        companyId={userProfileState.company_id}
+                        isMain={true}
+                        stickyRow={stickyRow}
+                        setStickyRow={setStickyRow}
+                        onFetchComplete={() => onFetchComplete(0)} // メイン目標は0をセット
+                        onResetFetchComplete={onResetFetchComplete}
                       />
-                    }
+                    </Suspense>
+                  </ErrorBoundary>
+                </div>
+              )}
+            {mainEntityTarget &&
+              !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
+              parentEntityObj && (
+                <div className={`${styles.card_wrapper} fade08_forward`}>
+                  <ErrorBoundary FallbackComponent={ErrorFallback}>
+                    <Suspense
+                      fallback={
+                        <FallbackScrollContainer
+                          title={
+                            mainEntityTarget.parentEntityLevel === "company"
+                              ? getDivName("company")
+                              : mainEntityTarget.parentEntityName
+                          }
+                        />
+                      }
+                    >
+                      <SalesTargetGridTable
+                        entityLevel={mainEntityTarget.parentEntityLevel}
+                        // entityNameTitle={mainEntityTarget.entities[0].entity_name}
+                        // entityId={mainEntityTarget.entities[0].entity_id}
+                        entities={[parentEntityObj]} // 総合目標は親エンティティ一つ
+                        // divName={getDivName(mainEntityTarget.parentEntityLevel)}
+                        divName={
+                          mainEntityTarget.parentEntityLevel === "company"
+                            ? getDivName("company")
+                            : mainEntityTarget.parentEntityName
+                        }
+                        companyId={userProfileState.company_id}
+                        isMain={true}
+                        stickyRow={stickyRow}
+                        setStickyRow={setStickyRow}
+                        onFetchComplete={() => onFetchComplete(0)} // メイン目標は0をセット
+                        onResetFetchComplete={onResetFetchComplete}
+                      />
+                    </Suspense>
+                  </ErrorBoundary>
+                </div>
+              )}
+            {/* {mainEntityTarget &&
+              !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
+              !parentEntityObj && (
+                <>
+                  <div className={`${styles.card_title_area}`}>
+                    <div className={`${styles.card_title}`}>
+                      <span>
+                        {mainEntityTarget.parentEntityLevel === "company"
+                          ? getDivName("company")
+                          : mainEntityTarget.parentEntityLevel}
+                      </span>
+                    </div>
+                  </div>
+                  <div
+                    className={`flex min-h-[66px] w-full min-w-[calc(100vw-72px-62px-30px)] items-end justify-center pb-[33px] text-[12px] text-[var(--color-text-sub)]`}
                   >
-                    <SalesTargetGridTable
-                      entityLevel={mainEntityTarget.entities[0].entity_level}
-                      // entityNameTitle={mainEntityTarget.entities[0].entity_name}
-                      // entityId={mainEntityTarget.entities[0].entity_id}
-                      entities={mainEntityTarget.entities}
-                      divName={getDivName("company")}
-                      companyId={userProfileState.company_id}
-                      isMain={true}
-                      stickyRow={stickyRow}
-                      setStickyRow={setStickyRow}
-                    />
-                  </Suspense>
-                </ErrorBoundary>
-              </>
-            )}
-            {mainEntityTarget && mainEntityTarget.parentEntityLevel !== "company" && parentEntityObj && (
-              <>
-                <ErrorBoundary FallbackComponent={ErrorFallback}>
-                  <Suspense fallback={<FallbackScrollContainer title={mainEntityTarget.parentEntityName} />}>
-                    <SalesTargetGridTable
-                      entityLevel={mainEntityTarget.parentEntityLevel}
-                      // entityNameTitle={mainEntityTarget.entities[0].entity_name}
-                      // entityId={mainEntityTarget.entities[0].entity_id}
-                      entities={[parentEntityObj]} // 総合目標は親エンティティ一つ
-                      // divName={getDivName(mainEntityTarget.parentEntityLevel)}
-                      divName={mainEntityTarget.parentEntityName}
-                      companyId={userProfileState.company_id}
-                      isMain={true}
-                      stickyRow={stickyRow}
-                      setStickyRow={setStickyRow}
-                    />
-                  </Suspense>
-                </ErrorBoundary>
-              </>
-            )}
-            {/* <FallbackScrollContainer title="全社" /> */}
+                    <span>データがありません。</span>
+                  </div>
+                </>
+              )} */}
           </div>
+          {/* <FallbackScrollContainer title="全社" /> */}
         </div>
         {/* ---------- */}
 
@@ -390,21 +535,25 @@ const SalesTargetsContainerMemo = () => {
 
         <div className={`${styles.grid_row} ${styles.col2}`}>
           <div className={`${styles.grid_content_card}`}>
-            <div className={`${styles.card_title_area}`}>
-              <div className={`${styles.card_title}`}>
-                <span>売上推移</span>
+            <div className={`${styles.card_wrapper} fade08_forward`}>
+              <div className={`${styles.card_title_area}`}>
+                <div className={`${styles.card_title}`}>
+                  <span>売上推移</span>
+                </div>
               </div>
+              <div className={`${styles.main_container}`}></div>
             </div>
-            <div className={`${styles.main_container}`}></div>
           </div>
 
           <div className={`${styles.grid_content_card}`}>
-            <div className={`${styles.card_title_area}`}>
-              <div className={`${styles.card_title}`}>
-                <span>売上目標シェア</span>
+            <div className={`${styles.card_wrapper} fade08_forward`}>
+              <div className={`${styles.card_title_area}`}>
+                <div className={`${styles.card_title}`}>
+                  <span>売上目標シェア</span>
+                </div>
               </div>
+              <div className={`${styles.main_container}`}></div>
             </div>
-            <div className={`${styles.main_container}`}></div>
           </div>
         </div>
 
@@ -427,43 +576,57 @@ const SalesTargetsContainerMemo = () => {
         {/* ---------- */}
 
         {/* ---------- */}
-        <div className={`${styles.grid_row} ${styles.col1}`}>
-          <div className={`${styles.grid_content_card}`}>
-            {/* <div className={`${styles.card_title_area}`}>
-              <div className={`${styles.card_title}`}>
-                <span>事業部別</span>
-              </div>
-            </div>
-            <div className={`${styles.main_container}`}></div> */}
-            {mainEntityTarget && mainEntityTarget.parentEntityLevel !== "company" && (
-              <>
-                <ErrorBoundary FallbackComponent={ErrorFallback}>
-                  <Suspense fallback={<FallbackScrollContainer title={getDivName(mainEntityTarget.entityLevel)} />}>
-                    <SalesTargetGridTable
-                      entityLevel={mainEntityTarget.entityLevel}
-                      // entityNameTitle={mainEntityTarget.entities[0].entity_name}
-                      // entityId={mainEntityTarget.entities[0].entity_id}
-                      entities={mainEntityTarget.entities}
-                      divName={getDivName(mainEntityTarget.entityLevel)}
-                      companyId={userProfileState.company_id}
-                      isMain={false}
-                      stickyRow={stickyRow}
-                      setStickyRow={setStickyRow}
-                    />
-                  </Suspense>
-                </ErrorBoundary>
-              </>
-            )}
+        <div className={`${styles.grid_row} ${styles.col1} ${stickyRow === "sub_targets" ? styles.sticky_row : ``}`}>
+          <div className={`${styles.grid_content_card} fade08_forward`}>
+            {/* {mainEntityTarget &&
+              !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
+              !parentEntityObj && (
+                <>
+                  <div className={`${styles.card_title_area}`}>
+                    <div className={`${styles.card_title}`}>
+                      <span>{`${getDivName(mainEntityTarget.entityLevel)}`}</span>
+                    </div>
+                  </div>
+                  <div
+                    className={`flex min-h-[66px] w-full min-w-[calc(100vw-72px-62px-30px)] items-end justify-center pb-[33px] text-[12px] text-[var(--color-text-sub)]`}
+                  >
+                    <span>データがありません。</span>
+                  </div>
+                </>
+              )} */}
+            {mainEntityTarget &&
+              !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
+              parentEntityObj && (
+                <div className={`${styles.card_wrapper} fade08_forward`}>
+                  <ErrorBoundary FallbackComponent={ErrorFallback}>
+                    <Suspense fallback={<FallbackScrollContainer title={getDivName(mainEntityTarget.entityLevel)} />}>
+                      <SalesTargetGridTableSub
+                        entityLevel={mainEntityTarget.entityLevel}
+                        // entityNameTitle={mainEntityTarget.entities[0].entity_name}
+                        // entityId={mainEntityTarget.entities[0].entity_id}
+                        entities={mainEntityTarget.entities}
+                        divName={getDivName(mainEntityTarget.entityLevel)}
+                        companyId={userProfileState.company_id}
+                        stickyRow={stickyRow}
+                        setStickyRow={setStickyRow}
+                        fetchEnabled={currentActiveIndex > 0} // 総合目標のフェッチが完了済みならフェッチを許可
+                      />
+                    </Suspense>
+                  </ErrorBoundary>
+                </div>
+              )}
           </div>
         </div>
         <div className={`${styles.grid_row} ${styles.col1}`}>
           <div className={`${styles.grid_content_card}`}>
-            <div className={`${styles.card_title_area}`}>
-              <div className={`${styles.card_title}`}>
-                <span>スローガン・重点方針</span>
+            <div className={`${styles.card_wrapper} fade08_forward`}>
+              <div className={`${styles.card_title_area}`}>
+                <div className={`${styles.card_title}`}>
+                  <span>スローガン・重点方針</span>
+                </div>
               </div>
+              <div className={`${styles.main_container}`}></div>
             </div>
-            <div className={`${styles.main_container}`}></div>
           </div>
         </div>
         {/* <div className={`${styles.grid_row} ${styles.col1}`}>

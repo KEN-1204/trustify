@@ -1290,7 +1290,7 @@ const useDashboardStore = create<State>((set) => ({
 
   // 目標トップページ
   // 表示期間(年度全て・上期詳細・下期詳細)
-  displayTargetPeriodType: "fiscal_year_all",
+  displayTargetPeriodType: "fiscal_year",
   setDisplayTargetPeriodType: (payload) => set({ displayTargetPeriodType: payload }),
 
   // =================== 営業カレンダー ===================

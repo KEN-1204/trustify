@@ -59,7 +59,7 @@ type Props = {
   parentEntityId?: string;
   parentEntityNameTitle?: string;
   divName: string;
-  isMain: boolean;
+  //   isMain: boolean;
   fetchEnabled?: boolean; // メイン目標でない場合はfetchEnabledがtrueに変更されたらフェッチを許可する
   onFetchComplete?: () => void;
   companyId: string;
@@ -119,7 +119,7 @@ const SalesTargetGridTableSubMemo = ({
   const [selectedUnit, setSelectedUnit] = useState<Entity | null>(null);
   const [selectedOffice, setSelectedOffice] = useState<Entity | null>(null);
 
-  if (isMain && !mainEntityTarget) return null;
+  if (!mainEntityTarget) return null;
   if (!fiscalYearStartEndDate) return null;
   if (!currentFiscalStartYearMonth) return null;
   if (!annualFiscalMonths) return null;
@@ -163,188 +163,6 @@ const SalesTargetGridTableSubMemo = ({
     const officeMap = new Map(officeDataArray.map((obj) => [obj.id, obj]));
     return officeMap;
   }, [officeDataArray]);
-
-  // ========================= 🌟年度・レベル・エンティティuseQuery キャッシュ🌟 =========================
-  const fiscalYearQueryData: FiscalYears | undefined = queryClient.getQueryData([
-    "fiscal_year",
-    "sales_target",
-    selectedFiscalYearTarget,
-  ]);
-  const entityLevelsQueryData: EntityLevels[] | undefined = queryClient.getQueryData([
-    "entity_levels",
-    "sales_target",
-    selectedFiscalYearTarget,
-  ]);
-  // エンティティレベルのidのみで配列を作成(エンティティuseQuery用)
-  const entityLevelIdsStr = useMemo(() => {
-    if (!entityLevelsQueryData) return [];
-    const entityLevelIds = entityLevelsQueryData.map((obj) => obj.id);
-    const entityLevelIdsStr = entityLevelIds?.length > 0 ? entityLevelIds.join(", ") : "";
-    return entityLevelIdsStr;
-  }, [entityLevelsQueryData]);
-
-  const entitiesHierarchyQueryData: EntitiesHierarchy | undefined = queryClient.getQueryData([
-    "entities",
-    "sales_target",
-    selectedFiscalYearTarget,
-    entityLevelIdsStr,
-  ]);
-
-  // key: エンティティレベル名, value: 上位エンティティグループ
-  const entitiesHierarchyMap = useMemo(() => {
-    if (!entitiesHierarchyQueryData) return null;
-    return new Map(Object.entries(entitiesHierarchyQueryData).map(([key, value], index) => [key, value]));
-  }, [entitiesHierarchyQueryData]);
-
-  // key: エンティティレベル名, value: 上位エンティティレベル
-  const entityLevelToParentLevelMap = useMemo(() => {
-    if (!entityLevelsQueryData) return null;
-    const getParentLevel = (level: EntityLevelNames) => {
-      if (level === "company") return "company";
-      const currentLevelIndex = entityLevelsQueryData.findIndex((obj) => obj.entity_level === level);
-      return entityLevelsQueryData[currentLevelIndex - 1].entity_level as EntityLevelNames;
-    };
-    return new Map(
-      entityLevelsQueryData.map((level) => [level.entity_level, getParentLevel(level.entity_level as EntityLevelNames)])
-    );
-  }, [entityLevelsQueryData]);
-  // key: エンティティレベル名, value: 下位(子)エンティティレベル
-  const entityLevelToChildLevelMap = useMemo(() => {
-    if (!entityLevelsQueryData) return null;
-    const getParentLevel = (level: EntityLevelNames) => {
-      if (level === "member") return "member";
-      const currentLevelIndex = entityLevelsQueryData.findIndex((obj) => obj.entity_level === level);
-      if (currentLevelIndex + 1 === entityLevelsQueryData.length) return "member";
-      return entityLevelsQueryData[currentLevelIndex + 1].entity_level as EntityLevelNames;
-    };
-    return new Map(
-      entityLevelsQueryData.map((level) => [level.entity_level, getParentLevel(level.entity_level as EntityLevelNames)])
-    );
-  }, [entityLevelsQueryData]);
-  // ========================= 🌟年度・レベル・エンティティuseQuery キャッシュ🌟 =========================
-
-  // 事業部~事業所までは変更する際に、エンティティ名を選択した後にactiveDisplayTabsを更新するため一旦ローカルでエンティティタイプを保持するためのstate
-  // const [activeEntityLocal, setActiveEntityLocal] = useState<{
-  //   entityLevel: string;
-  //   entityName: string;
-  //   entityId: string;
-  // } | null>(null);
-
-  // 総合目標のエンティティレベルを保持
-  const [activeEntityLocal, setActiveEntityLocal] = useState<{
-    entityLevel: "company" | "department" | "section" | "unit";
-    entityName: string;
-    entityId: string;
-  } | null>(null);
-
-  // 総合目標変更時の選択中のレベルのエンティティグループの選択肢
-  const [optionsBySelectedLevel, setOptionsBySelectedLevel] = useState<EntityGroupByParent[]>([]);
-
-  // 上位エンティティidからエンティティグループを取得するMapオブジェクト
-  const parentIdToEntityGroupMap = useMemo(() => {
-    if (!optionsBySelectedLevel.length) return null;
-    return new Map(optionsBySelectedLevel.map((group) => [group.parent_entity_id, group]));
-  }, [optionsBySelectedLevel]);
-
-  // ===================== 🌟ユーザーが作成したエンティティのみでレベル選択肢リストを再生成🌟 =====================
-  // ✅ステップ1の選択肢で追加
-  const initialOptionsEntityLevelList = (): {
-    // title: EntityLevelNames;
-    title: "company" | "department" | "section" | "unit";
-    name: {
-      [key: string]: string;
-    };
-  }[] => {
-    let newEntityList: {
-      // title: EntityLevelNames;
-      title: "company" | "department" | "section" | "unit";
-      name: {
-        [key: string]: string;
-      };
-    }[] = [{ title: "company", name: { ja: "全社", en: "Company" } }];
-    if (departmentDataArray && departmentDataArray.length > 0) {
-      newEntityList.push({ title: "department", name: { ja: "事業部", en: "Department" } });
-    }
-    if (sectionDataArray && sectionDataArray.length > 0) {
-      newEntityList.push({ title: "section", name: { ja: "課・セクション", en: "Section" } });
-    }
-    if (unitDataArray && unitDataArray.length > 0) {
-      newEntityList.push({ title: "unit", name: { ja: "係・チーム", en: "Unit" } });
-    }
-    // 目標トップ画面は総合目標を基準に選択するため、メンバーレベルは選択肢に入れなくてOK
-    // newEntityList.push({ title: "member", name: { ja: "メンバー", en: "Member" } });
-    // 事業所は一旦見合わせ
-    // if (officeDataArray && officeDataArray.length > 0) {
-    //   newEntityList.push({ title: "office", name: { ja: "事業所", en: "Office" } });
-    // }
-    return newEntityList;
-  };
-  // const [optionsEntityLevelList, setOptionsEntityLevelList] = useState<
-  const [mainEntityLevelList, setMainEntityLevelList] = useState<
-    {
-      // title: string;
-      // title: EntityLevelNames;
-      title: "company" | "department" | "section" | "unit";
-      name: {
-        [key: string]: string;
-      };
-    }[]
-  >(initialOptionsEntityLevelList());
-
-  // ✅初回マウント時に現在の選択年度のuseQueryで取得したエンティティレベルをセット
-  useEffect(() => {
-    // 目標年度が存在しない場合は、選択肢を空でセット
-    if (!fiscalYearQueryData || !entityLevelsQueryData || entityLevelsQueryData.length === 0) {
-      setMainEntityLevelList([]);
-    }
-
-    if (entityLevelsQueryData) {
-      const addedLevelsMap = new Map(entityLevelsQueryData.map((level) => [level.entity_level, level]));
-
-      let newOptionsLevelList = [...mainEntityLevelList];
-      if (addedLevelsMap.has("unit")) {
-        newOptionsLevelList = newOptionsLevelList.filter((obj) =>
-          ["company", "department", "section", "unit"].includes(obj.title)
-        );
-      } else if (addedLevelsMap.has("section")) {
-        newOptionsLevelList = newOptionsLevelList.filter((obj) =>
-          ["company", "department", "section"].includes(obj.title)
-        );
-      } else if (addedLevelsMap.has("department")) {
-        newOptionsLevelList = newOptionsLevelList.filter((obj) => ["company", "department"].includes(obj.title));
-      } else if (addedLevelsMap.has("company")) {
-        newOptionsLevelList = newOptionsLevelList.filter((obj) => ["company"].includes(obj.title));
-      }
-
-      setMainEntityLevelList(newOptionsLevelList);
-    }
-  }, [fiscalYearQueryData, entityLevelsQueryData]);
-  // ===================== 🌟ユーザーが作成したエンティティのみでレベル選択肢リストを再生成🌟 ここまで=====================
-
-  // 🔹ユーザーが作成したエンティティのみのセクションリストを再生成
-  // const mainEntityLevelList: {
-  //   title: string;
-  //   name: {
-  //     [key: string]: string;
-  //   };
-  // }[] = useMemo(() => {
-  //   let newEntityList = [{ title: "company", name: { ja: "全社", en: "Company" } }];
-  //   if (departmentDataArray && departmentDataArray.length > 0) {
-  //     newEntityList.push({ title: "department", name: { ja: "事業部", en: "Department" } });
-  //   }
-  //   if (sectionDataArray && sectionDataArray.length > 0) {
-  //     newEntityList.push({ title: "section", name: { ja: "課・セクション", en: "Section" } });
-  //   }
-  //   if (unitDataArray && unitDataArray.length > 0) {
-  //     newEntityList.push({ title: "unit", name: { ja: "係・チーム", en: "Unit" } });
-  //   }
-  //   // メンバーエンティティはサブ目標で表示するためメインエンティティリストには追加せず
-  //   // newEntityList.push({ title: "member", name: { ja: "メンバー", en: "Member" } });
-  //   if (officeDataArray && officeDataArray.length > 0) {
-  //     newEntityList.push({ title: "office", name: { ja: "事業所", en: "Office" } });
-  //   }
-  //   return newEntityList;
-  // }, [departmentDataArray, sectionDataArray, unitDataArray, officeDataArray]);
 
   // ======================= 🌟現在の選択した事業部で課・セクションを絞り込むuseEffect🌟 =======================
   // const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
@@ -434,71 +252,16 @@ const SalesTargetGridTableSubMemo = ({
     [fiscalYearStartEndDate]
   );
 
-  // ================== 🌟疑似的なサーバーデータフェッチ用の関数🌟 ==================
-  const fetchServerPageTest = async (
-    limit: number,
-    offset: number = 0
-  ): Promise<{
-    rows: SalesTargetsRowDataWithYoY[];
-    nextOffset: number;
-    isLastPage: boolean;
-    count: number | null;
-  }> => {
-    // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
-    // const rows = new Array(limit).fill(0).map((e, index) => {
-    //   const newData: TableDataType = {
-    //     activityType: `TEL発信`,
-    //     summary: "50ミクロンで測定したい",
-    //     date: "2021/06/01",
-    //     sales: "伊藤謙太",
-    //     department: "メトロロジ",
-    //     office: "東京営業所",
-    //   };
-    //   return newData;
-    // });
-    const quantity = (_entityLevel: string) => {
-      switch (_entityLevel) {
-        case "company":
-          return 1;
-          break;
-        case "department":
-          return 4;
-          break;
-        case "section":
-          return 4;
-          break;
-        case "unit":
-          return 6;
-          break;
-        case "":
-          return 1;
-          break;
-
-        default:
-          return 1;
-          break;
-      }
-    };
-    // const rows = testRowData("company", 1);
-    const salesTargets = testRowData("company", quantity(entityLevel));
-    const lastYearSales = testRowDataLastYear("company", quantity(entityLevel));
-    const yoyGrowths = testRowDataPercent("company", quantity(entityLevel));
-    const count = quantity(entityLevel);
-    const isLastPage = true;
-
-    const rows = salesTargets.map((target, index) => ({
-      sales_targets: target,
-      last_year_sales: lastYearSales[index],
-      yoy_growth: yoyGrowths[index],
-    })) as SalesTargetsRowDataWithYoY[];
-
-    // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
-    return { rows, nextOffset: offset + 1, isLastPage, count };
-  };
-  // ================== ✅疑似的なサーバーデータフェッチ用の関数✅ ==================
+  // ========================= 🌟総合目標の目標と前年度売上を取得useQuery キャッシュ🌟 =========================
+  const mainEntityQueryData = queryClient.getQueryData([
+    "sales_targets",
+    `${selectedFiscalYearTarget}`,
+    mainEntityTarget?.parentEntityLevel ?? null,
+    mainEntityTarget?.entityLevel ?? null,
+    mainEntityTarget?.parentEntityId ?? null,
+    "main",
+  ]);
+  // ========================= 🌟総合目標の目標と前年度売上を取得useQuery キャッシュ🌟 =========================
 
   // ================== 🌟useInfiniteQueryフック🌟 ==================
   function ensureTargetsRowData(data: any): SalesTargetFYRowData[] {
@@ -707,505 +470,181 @@ const SalesTargetGridTableSubMemo = ({
         const entityIds = entities.map((entity) => entity.entity_id);
         const entityStructureIds = entities.map((entity) => entity.id);
         // 🔹メイン目標 特定のエンティティIDのみ取得
-        if (isMain) {
-          // 🔸売上目標を取得するFUNCTIONの実行
-          // const payload = {
-          //   _company_id: companyId,
-          //   _entity_level: entityLevel, // エンティティタイプ
-          //   // _entity_id: entityId, // エンティティのid
-          //   // _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
-          //   _entity_ids: entityIds, // エンティティのid
-          //   _entity_structure_ids: entityStructureIds, // エンティティテーブルのid
-          //   _fiscal_year: selectedFiscalYearTarget, // 選択した会計年度
-          //   _start_year_month: currentFiscalStartYearMonth, // 202304の年度初めの年月度
-          //   _end_year_month:
-          //     fiscalYearStartEndDate.endDate.getFullYear() * 100 + fiscalYearStartEndDate.endDate.getMonth() + 1, // 202403の決算日の年月度 ユーザーの会計年度のカレンダー年月
-          //   // SELECTクエリで作成するカラム用
-          //   _month_01: annualFiscalMonths.month_01,
-          //   _month_02: annualFiscalMonths.month_02,
-          //   _month_03: annualFiscalMonths.month_03,
-          //   _month_04: annualFiscalMonths.month_04,
-          //   _month_05: annualFiscalMonths.month_05,
-          //   _month_06: annualFiscalMonths.month_06,
-          //   _month_07: annualFiscalMonths.month_07,
-          //   _month_08: annualFiscalMonths.month_08,
-          //   _month_09: annualFiscalMonths.month_09,
-          //   _month_10: annualFiscalMonths.month_10,
-          //   _month_11: annualFiscalMonths.month_11,
-          //   _month_12: annualFiscalMonths.month_12,
-          // };
-          // console.log(
-          //   "🔥 queryFn関数実行 fetchServerPage get_sales_targets_for_fiscal_year_all実行 payload",
-          //   payload,
-          //   "entityIds",
-          //   entityIds,
-          //   "entityStructureIds",
-          //   entityStructureIds,
-          //   // "entityLevel",
-          //   // entityLevel,
-          //   // "entityId",
-          //   // entityId,
-          //   "selectedFiscalYearTarget",
-          //   selectedFiscalYearTarget
-          // );
-          // const {
-          //   data: salesTargetData,
-          //   error,
-          //   count: fetchCount,
-          // } = await supabase
-          //   .rpc("get_sales_targets_for_fiscal_year_all", payload, { count: "exact" })
-          //   .eq("created_by_company_id", companyId)
-          //   .range(from, to);
+        // 🔸売上目標を取得するFUNCTIONの実行
 
-          // if (error) throw error;
+        // 🔸売上目標と前年度売上実績を一緒に取得するFUNCTIONの実行
+        const payload = {
+          _company_id: companyId,
+          _entity_level: entityLevel, // エンティティタイプ
+          // _entity_id: entityId, // エンティティのid
+          // _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
+          _entity_ids: entityIds, // エンティティのid
+          _entity_structure_ids: entityStructureIds, // エンティティテーブルのid
+          _fiscal_year: selectedFiscalYearTarget, // 選択した会計年度
+          // _start_year_month: currentFiscalStartYearMonth, // 202304の年度初めの年月度
+          // _end_year_month:
+          //   fiscalYearStartEndDate.endDate.getFullYear() * 100 + fiscalYearStartEndDate.endDate.getMonth() + 1, // 202403の決算日の年月度 ユーザーの会計年度のカレンダー年月
+          _start_year_month: annualFiscalMonths.month_01, // annualから取得する
+          _end_year_month: annualFiscalMonths.month_12, // annualから取得する
+          // SELECTクエリで作成するカラム用
+          _month_01: annualFiscalMonths.month_01,
+          _month_02: annualFiscalMonths.month_02,
+          _month_03: annualFiscalMonths.month_03,
+          _month_04: annualFiscalMonths.month_04,
+          _month_05: annualFiscalMonths.month_05,
+          _month_06: annualFiscalMonths.month_06,
+          _month_07: annualFiscalMonths.month_07,
+          _month_08: annualFiscalMonths.month_08,
+          _month_09: annualFiscalMonths.month_09,
+          _month_10: annualFiscalMonths.month_10,
+          _month_11: annualFiscalMonths.month_11,
+          _month_12: annualFiscalMonths.month_12,
+        };
+        console.log(
+          "🔥 queryFn関数実行 get_sales_targets_and_ly_sales_for_fy_all実行 payload",
+          payload,
+          "entityIds",
+          entityIds,
+          "entityStructureIds",
+          entityStructureIds,
+          "selectedFiscalYearTarget",
+          selectedFiscalYearTarget
+        );
+        const {
+          data: salesTargetData,
+          error,
+          count: fetchCount,
+        } = await supabase
+          .rpc("get_sales_targets_and_ly_sales_for_fy_all", payload, { count: "exact" })
+          // .eq("created_by_company_id", companyId)
+          .range(from, to);
 
-          // salesTargetRows = ensureTargetsRowData(salesTargetData); // SalesTargetFYRowData型チェック
+        if (error) throw error;
 
-          // console.log("✅get_sales_targets_for_fiscal_year_all成功 salesTargetRows", salesTargetRows);
+        console.log("✅get_sales_targets_and_ly_sales_for_fy_all実行成功 salesTargetData", salesTargetData);
 
-          // // 🔸前年度売上を取得するFUNCTIONの実行
-          // const lastYearPayload = {
-          //   _entity_level: entityLevel, // エンティティタイプ
-          //   // _entity_id: entityId, // エンティティのid
-          //   // _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
-          //   _entity_id: entities[0].entity_id, // エンティティのid
-          //   _entity_name: entities[0].entity_name, // エンティティ名 マイクロスコープ事業部など
-          //   _fiscal_year: selectedFiscalYearTarget - 1, // 選択した会計年度の前年度
-          //   _start_year_month: currentFiscalStartYearMonth - 100, // 前年度の年度初めの年月度
-          //   _end_year_month:
-          //     fiscalYearStartEndDate.endDate.getFullYear() * 100 - 100 + fiscalYearStartEndDate.endDate.getMonth() + 1, // 前年度の決算日の年月度 ユーザーの会計年度のカレンダー年月
-          //   // SELECTクエリで作成するカラム用
-          //   _month_01: lastAnnualFiscalMonths.month_01,
-          //   _month_02: lastAnnualFiscalMonths.month_02,
-          //   _month_03: lastAnnualFiscalMonths.month_03,
-          //   _month_04: lastAnnualFiscalMonths.month_04,
-          //   _month_05: lastAnnualFiscalMonths.month_05,
-          //   _month_06: lastAnnualFiscalMonths.month_06,
-          //   _month_07: lastAnnualFiscalMonths.month_07,
-          //   _month_08: lastAnnualFiscalMonths.month_08,
-          //   _month_09: lastAnnualFiscalMonths.month_09,
-          //   _month_10: lastAnnualFiscalMonths.month_10,
-          //   _month_11: lastAnnualFiscalMonths.month_11,
-          //   _month_12: lastAnnualFiscalMonths.month_12,
-          // };
-          // console.log(
-          //   "🔥 queryFn関数実行 fetchServerPage get_last_year_sales_for_fiscal_year_all実行 lastYearPayload",
-          //   lastYearPayload
-          // );
-          // const {
-          //   data: lastYearSalesData,
-          //   error: lastYearSalesError,
-          //   count: lastYearSalesFetchCount,
-          // } = await supabase
-          //   .rpc("get_last_year_sales_for_fiscal_year_all", lastYearPayload, { count: "exact" })
-          //   .eq("created_by_company_id", companyId)
-          //   .range(from, to);
+        // メンバーレベルの年度目標はここで上期と下期の目標を合算して補完
+        salesTargetRows = ensureTargetsRowData(salesTargetData?.sales_targets); // SalesTargetFYRowData型チェック
+        lastYearSalesRows = ensureLastSalesRowData(salesTargetData?.last_year_sales); // SalesTargetFYRowData型チェック
 
-          // if (lastYearSalesError) throw lastYearSalesError;
+        const lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
 
-          // console.log("✅get_last_year_sales_for_fiscal_year_all成功 lastYearSalesRows", lastYearSalesData);
-          // lastYearSalesRows = ensureLastSalesRowData(lastYearSalesData); // SalesTargetFYRowData型チェック
+        // 🔸前年比の算出 「(今年の数値 - 去年の数値) / 去年の数値 * 100」の公式を使用して前年比を算出
+        yoyGrowthRows = salesTargetRows.map((target, index) => {
+          const sales_target_entityId = target.entity_id;
+          // const lySales = lastYearSalesRows.find((lys) => lys.entity_id === sales_target_entityId);
+          const lySales = lastYearSalesRowsMap.get(sales_target_entityId);
+          // const lySales = lastYearSalesRows[index];
 
-          // console.log("✅get_last_year_sales_for_fiscal_year_all成功 lastYearSalesRows", lastYearSalesRows);
+          const resultFY = calculateYearOverYear(target?.fiscal_year, lySales?.fiscal_year, 1);
+          const result1H = calculateYearOverYear(target?.first_half, lySales?.first_half, 1);
+          const result2H = calculateYearOverYear(target?.second_half, lySales?.second_half, 1);
+          const result1Q = calculateYearOverYear(target?.first_quarter, lySales?.first_quarter, 1);
+          const result2Q = calculateYearOverYear(target?.second_quarter, lySales?.second_quarter, 1);
+          const result3Q = calculateYearOverYear(target?.third_quarter, lySales?.third_quarter, 1);
+          const result4Q = calculateYearOverYear(target?.fourth_quarter, lySales?.fourth_quarter, 1);
+          const resultMonth01 = calculateYearOverYear(target?.month_01, lySales?.month_01, 1);
+          const resultMonth02 = calculateYearOverYear(target?.month_02, lySales?.month_02, 1);
+          const resultMonth03 = calculateYearOverYear(target?.month_03, lySales?.month_03, 1);
+          const resultMonth04 = calculateYearOverYear(target?.month_04, lySales?.month_04, 1);
+          const resultMonth05 = calculateYearOverYear(target?.month_05, lySales?.month_05, 1);
+          const resultMonth06 = calculateYearOverYear(target?.month_06, lySales?.month_06, 1);
+          const resultMonth07 = calculateYearOverYear(target?.month_07, lySales?.month_07, 1);
+          const resultMonth08 = calculateYearOverYear(target?.month_08, lySales?.month_08, 1);
+          const resultMonth09 = calculateYearOverYear(target?.month_09, lySales?.month_09, 1);
+          const resultMonth10 = calculateYearOverYear(target?.month_10, lySales?.month_10, 1);
+          const resultMonth11 = calculateYearOverYear(target?.month_11, lySales?.month_11, 1);
+          const resultMonth12 = calculateYearOverYear(target?.month_12, lySales?.month_12, 1);
 
-          // 🔸売上目標と前年度売上実績を一緒に取得するFUNCTIONの実行
-          const payload = {
-            _company_id: companyId,
-            _entity_level: entityLevel, // エンティティタイプ
-            // _entity_id: entityId, // エンティティのid
-            // _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
-            _entity_ids: entityIds, // エンティティのid
-            _entity_structure_ids: entityStructureIds, // エンティティテーブルのid
-            _fiscal_year: selectedFiscalYearTarget, // 選択した会計年度
-            // _start_year_month: currentFiscalStartYearMonth, // 202304の年度初めの年月度
-            // _end_year_month:
-            //   fiscalYearStartEndDate.endDate.getFullYear() * 100 + fiscalYearStartEndDate.endDate.getMonth() + 1, // 202403の決算日の年月度 ユーザーの会計年度のカレンダー年月
-            _start_year_month: annualFiscalMonths.month_01, // annualから取得する
-            _end_year_month: annualFiscalMonths.month_12, // annualから取得する
-            // SELECTクエリで作成するカラム用
-            _month_01: annualFiscalMonths.month_01,
-            _month_02: annualFiscalMonths.month_02,
-            _month_03: annualFiscalMonths.month_03,
-            _month_04: annualFiscalMonths.month_04,
-            _month_05: annualFiscalMonths.month_05,
-            _month_06: annualFiscalMonths.month_06,
-            _month_07: annualFiscalMonths.month_07,
-            _month_08: annualFiscalMonths.month_08,
-            _month_09: annualFiscalMonths.month_09,
-            _month_10: annualFiscalMonths.month_10,
-            _month_11: annualFiscalMonths.month_11,
-            _month_12: annualFiscalMonths.month_12,
-          };
           console.log(
-            "🔥 queryFn関数実行 get_sales_targets_and_ly_sales_for_fy_all実行 payload",
-            payload,
-            "entityIds",
-            entityIds,
-            "entityStructureIds",
-            entityStructureIds,
-            "selectedFiscalYearTarget",
-            selectedFiscalYearTarget
+            "result2H",
+            result2H,
+            "target?.second_half",
+            target?.second_half,
+            "lySales?.second_half",
+            lySales?.second_half
           );
-          const {
-            data: salesTargetData,
-            error,
-            count: fetchCount,
-          } = await supabase
-            .rpc("get_sales_targets_and_ly_sales_for_fy_all", payload, { count: "exact" })
-            // .eq("created_by_company_id", companyId)
-            .range(from, to);
+          console.log(
+            "result4Q",
+            result4Q,
+            "target?.fourth_quarter",
+            target?.fourth_quarter,
+            "lySales?.fourth_quarter",
+            lySales?.fourth_quarter
+          );
+          console.log(
+            "resultMonth12",
+            resultMonth12,
+            "target?.month_12",
+            target?.month_12,
+            "lySales?.month_12",
+            lySales?.month_12
+          );
 
-          if (error) throw error;
+          return {
+            ...target,
+            share: null,
+            dataset_type: "yoy_growth",
+            // 前年比(伸び率) 25.7%の小数点第1位までの数値部分で算出してセット
+            fiscal_year: !resultFY.error ? Number(resultFY.yearOverYear) : null, // 年度
+            first_half: !result1H.error ? Number(result1H.yearOverYear) : null,
+            second_half: !result2H.error ? Number(result2H.yearOverYear) : null,
+            first_quarter: !result1Q.error ? Number(result1Q.yearOverYear) : null,
+            second_quarter: !result2Q.error ? Number(result2Q.yearOverYear) : null,
+            third_quarter: !result3Q.error ? Number(result3Q.yearOverYear) : null,
+            fourth_quarter: !result4Q.error ? Number(result4Q.yearOverYear) : null,
+            month_01: !resultMonth01.error ? Number(resultMonth01.yearOverYear) : null,
+            month_02: !resultMonth02.error ? Number(resultMonth02.yearOverYear) : null,
+            month_03: !resultMonth03.error ? Number(resultMonth03.yearOverYear) : null,
+            month_04: !resultMonth04.error ? Number(resultMonth04.yearOverYear) : null,
+            month_05: !resultMonth05.error ? Number(resultMonth05.yearOverYear) : null,
+            month_06: !resultMonth06.error ? Number(resultMonth06.yearOverYear) : null,
+            month_07: !resultMonth07.error ? Number(resultMonth07.yearOverYear) : null,
+            month_08: !resultMonth08.error ? Number(resultMonth08.yearOverYear) : null,
+            month_09: !resultMonth09.error ? Number(resultMonth09.yearOverYear) : null,
+            month_10: !resultMonth10.error ? Number(resultMonth10.yearOverYear) : null,
+            month_11: !resultMonth11.error ? Number(resultMonth11.yearOverYear) : null,
+            month_12: !resultMonth12.error ? Number(resultMonth12.yearOverYear) : null,
+          } as SalesTargetFYRowData;
+        });
 
-          console.log("✅get_sales_targets_and_ly_sales_for_fy_all実行成功 salesTargetData", salesTargetData);
+        console.log("✅前年比算出結果 yoyGrowthRows", yoyGrowthRows);
 
-          // メンバーレベルの年度目標はここで上期と下期の目標を合算して補完
-          salesTargetRows = ensureTargetsRowData(salesTargetData?.sales_targets); // SalesTargetFYRowData型チェック
-          lastYearSalesRows = ensureLastSalesRowData(salesTargetData?.last_year_sales); // SalesTargetFYRowData型チェック
+        const yoyGrowthRowsMap = new Map(yoyGrowthRows.map((row) => [row.entity_id, row]));
 
-          const lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
+        // 売上目標と前年度売上は先頭にシェアを追加(メインのため100%)
+        salesTargetRows = salesTargetRows?.length
+          ? (salesTargetRows.map((obj) => ({
+              ...obj,
+              share: 100,
+            })) as (SalesTargetFYRowData & { share: number })[])
+          : [];
+        lastYearSalesRows = lastYearSalesRows?.length
+          ? (lastYearSalesRows.map((obj) => ({
+              ...obj,
+              share: 100,
+              entity_name: entitiesIdToObjMap.get(obj?.entity_id) ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
+            })) as (SalesTargetFYRowData & { share: number })[])
+          : [];
 
-          // 🔸前年比の算出 「(今年の数値 - 去年の数値) / 去年の数値 * 100」の公式を使用して前年比を算出
-          yoyGrowthRows = salesTargetRows.map((target, index) => {
-            const sales_target_entityId = target.entity_id;
-            // const lySales = lastYearSalesRows.find((lys) => lys.entity_id === sales_target_entityId);
-            const lySales = lastYearSalesRowsMap.get(sales_target_entityId);
-            // const lySales = lastYearSalesRows[index];
+        // １行３セット(３行)にまとめてrowsを生成して返す
+        rows = salesTargetRows.map((target, index) => {
+          const targetEntityId = target.entity_id;
+          return {
+            sales_targets: target,
+            last_year_sales: lastYearSalesRowsMap.get(targetEntityId),
+            yoy_growth: yoyGrowthRowsMap.get(targetEntityId),
+            // last_year_sales: lastYearSalesRows[index],
+            // yoy_growth: yoyGrowthRows[index],
+          };
+        }) as SalesTargetsRowDataWithYoY[];
 
-            const resultFY = calculateYearOverYear(target?.fiscal_year, lySales?.fiscal_year, 1);
-            const result1H = calculateYearOverYear(target?.first_half, lySales?.first_half, 1);
-            const result2H = calculateYearOverYear(target?.second_half, lySales?.second_half, 1);
-            const result1Q = calculateYearOverYear(target?.first_quarter, lySales?.first_quarter, 1);
-            const result2Q = calculateYearOverYear(target?.second_quarter, lySales?.second_quarter, 1);
-            const result3Q = calculateYearOverYear(target?.third_quarter, lySales?.third_quarter, 1);
-            const result4Q = calculateYearOverYear(target?.fourth_quarter, lySales?.fourth_quarter, 1);
-            const resultMonth01 = calculateYearOverYear(target?.month_01, lySales?.month_01, 1);
-            const resultMonth02 = calculateYearOverYear(target?.month_02, lySales?.month_02, 1);
-            const resultMonth03 = calculateYearOverYear(target?.month_03, lySales?.month_03, 1);
-            const resultMonth04 = calculateYearOverYear(target?.month_04, lySales?.month_04, 1);
-            const resultMonth05 = calculateYearOverYear(target?.month_05, lySales?.month_05, 1);
-            const resultMonth06 = calculateYearOverYear(target?.month_06, lySales?.month_06, 1);
-            const resultMonth07 = calculateYearOverYear(target?.month_07, lySales?.month_07, 1);
-            const resultMonth08 = calculateYearOverYear(target?.month_08, lySales?.month_08, 1);
-            const resultMonth09 = calculateYearOverYear(target?.month_09, lySales?.month_09, 1);
-            const resultMonth10 = calculateYearOverYear(target?.month_10, lySales?.month_10, 1);
-            const resultMonth11 = calculateYearOverYear(target?.month_11, lySales?.month_11, 1);
-            const resultMonth12 = calculateYearOverYear(target?.month_12, lySales?.month_12, 1);
+        console.log("✅rows結果", rows);
 
-            console.log(
-              "result2H",
-              result2H,
-              "target?.second_half",
-              target?.second_half,
-              "lySales?.second_half",
-              lySales?.second_half
-            );
-            console.log(
-              "result4Q",
-              result4Q,
-              "target?.fourth_quarter",
-              target?.fourth_quarter,
-              "lySales?.fourth_quarter",
-              lySales?.fourth_quarter
-            );
-            console.log(
-              "resultMonth12",
-              resultMonth12,
-              "target?.month_12",
-              target?.month_12,
-              "lySales?.month_12",
-              lySales?.month_12
-            );
-
-            return {
-              ...target,
-              share: null,
-              dataset_type: "yoy_growth",
-              // 前年比(伸び率) 25.7%の小数点第1位までの数値部分で算出してセット
-              fiscal_year: !resultFY.error ? Number(resultFY.yearOverYear) : null, // 年度
-              first_half: !result1H.error ? Number(result1H.yearOverYear) : null,
-              second_half: !result2H.error ? Number(result2H.yearOverYear) : null,
-              first_quarter: !result1Q.error ? Number(result1Q.yearOverYear) : null,
-              second_quarter: !result2Q.error ? Number(result2Q.yearOverYear) : null,
-              third_quarter: !result3Q.error ? Number(result3Q.yearOverYear) : null,
-              fourth_quarter: !result4Q.error ? Number(result4Q.yearOverYear) : null,
-              month_01: !resultMonth01.error ? Number(resultMonth01.yearOverYear) : null,
-              month_02: !resultMonth02.error ? Number(resultMonth02.yearOverYear) : null,
-              month_03: !resultMonth03.error ? Number(resultMonth03.yearOverYear) : null,
-              month_04: !resultMonth04.error ? Number(resultMonth04.yearOverYear) : null,
-              month_05: !resultMonth05.error ? Number(resultMonth05.yearOverYear) : null,
-              month_06: !resultMonth06.error ? Number(resultMonth06.yearOverYear) : null,
-              month_07: !resultMonth07.error ? Number(resultMonth07.yearOverYear) : null,
-              month_08: !resultMonth08.error ? Number(resultMonth08.yearOverYear) : null,
-              month_09: !resultMonth09.error ? Number(resultMonth09.yearOverYear) : null,
-              month_10: !resultMonth10.error ? Number(resultMonth10.yearOverYear) : null,
-              month_11: !resultMonth11.error ? Number(resultMonth11.yearOverYear) : null,
-              month_12: !resultMonth12.error ? Number(resultMonth12.yearOverYear) : null,
-              // fiscal_year: calculateGrowth(target?.fiscal_year, lySales?.fiscal_year, 1), // 年度
-              // first_half: calculateGrowth(target?.first_half, lySales?.first_half, 1),
-              // second_half: calculateGrowth(target?.second_half, lySales?.second_half, 1),
-              // first_quarter: calculateGrowth(target?.first_quarter, lySales?.first_quarter, 1),
-              // second_quarter: calculateGrowth(target?.second_quarter, lySales?.second_quarter, 1),
-              // third_quarter: calculateGrowth(target?.third_quarter, lySales?.third_quarter, 1),
-              // fourth_quarter: calculateGrowth(target?.fourth_quarter, lySales?.fourth_quarter, 1),
-              // month_01: calculateGrowth(target?.month_01, lySales?.month_01, 1),
-              // month_02: calculateGrowth(target?.month_02, lySales?.month_02, 1),
-              // month_03: calculateGrowth(target?.month_03, lySales?.month_03, 1),
-              // month_04: calculateGrowth(target?.month_04, lySales?.month_04, 1),
-              // month_05: calculateGrowth(target?.month_05, lySales?.month_05, 1),
-              // month_06: calculateGrowth(target?.month_06, lySales?.month_06, 1),
-              // month_07: calculateGrowth(target?.month_07, lySales?.month_07, 1),
-              // month_08: calculateGrowth(target?.month_08, lySales?.month_08, 1),
-              // month_09: calculateGrowth(target?.month_09, lySales?.month_09, 1),
-              // month_10: calculateGrowth(target?.month_10, lySales?.month_10, 1),
-              // month_11: calculateGrowth(target?.month_11, lySales?.month_11, 1),
-              // month_12: calculateGrowth(target?.month_12, lySales?.month_12, 1),
-            } as SalesTargetFYRowData;
-          });
-
-          console.log("✅前年比算出結果 yoyGrowthRows", yoyGrowthRows);
-
-          const yoyGrowthRowsMap = new Map(yoyGrowthRows.map((row) => [row.entity_id, row]));
-
-          // 売上目標と前年度売上は先頭にシェアを追加(メインのため100%)
-          salesTargetRows = salesTargetRows?.length
-            ? (salesTargetRows.map((obj) => ({
-                ...obj,
-                share: 100,
-              })) as (SalesTargetFYRowData & { share: number })[])
-            : [];
-          lastYearSalesRows = lastYearSalesRows?.length
-            ? (lastYearSalesRows.map((obj) => ({
-                ...obj,
-                share: 100,
-                entity_name: entitiesIdToObjMap.get(obj?.entity_id) ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
-              })) as (SalesTargetFYRowData & { share: number })[])
-            : [];
-
-          // １行３セット(３行)にまとめてrowsを生成して返す
-          rows = salesTargetRows.map((target, index) => {
-            const targetEntityId = target.entity_id;
-            return {
-              sales_targets: target,
-              last_year_sales: lastYearSalesRowsMap.get(targetEntityId),
-              yoy_growth: yoyGrowthRowsMap.get(targetEntityId),
-              // last_year_sales: lastYearSalesRows[index],
-              // yoy_growth: yoyGrowthRows[index],
-            };
-          }) as SalesTargetsRowDataWithYoY[];
-
-          console.log("✅rows結果", rows);
-
-          // rows = ensureClientCompanies(data);
-          isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-          count = fetchCount;
-        }
+        // rows = ensureClientCompanies(data);
+        isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+        count = fetchCount;
         // 🔹サブ目標 メイン目標を100%として構成する個別のエンティティの目標
-        else {
-          // 🔸売上目標と前年度売上実績を一緒に取得するFUNCTIONの実行
-          const payload = {
-            _company_id: companyId,
-            _entity_level: entityLevel, // エンティティタイプ
-            // _entity_id: entityId, // エンティティのid
-            // _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
-            _entity_ids: entityIds, // エンティティのid
-            _entity_structure_ids: entityStructureIds, // エンティティテーブルのid
-            _fiscal_year: selectedFiscalYearTarget, // 選択した会計年度
-            // _start_year_month: currentFiscalStartYearMonth, // 202304の年度初めの年月度
-            // _end_year_month:
-            //   fiscalYearStartEndDate.endDate.getFullYear() * 100 + fiscalYearStartEndDate.endDate.getMonth() + 1, // 202403の決算日の年月度 ユーザーの会計年度のカレンダー年月
-            _start_year_month: annualFiscalMonths.month_01, // annualから取得する
-            _end_year_month: annualFiscalMonths.month_12, // annualから取得する
-            // SELECTクエリで作成するカラム用
-            _month_01: annualFiscalMonths.month_01,
-            _month_02: annualFiscalMonths.month_02,
-            _month_03: annualFiscalMonths.month_03,
-            _month_04: annualFiscalMonths.month_04,
-            _month_05: annualFiscalMonths.month_05,
-            _month_06: annualFiscalMonths.month_06,
-            _month_07: annualFiscalMonths.month_07,
-            _month_08: annualFiscalMonths.month_08,
-            _month_09: annualFiscalMonths.month_09,
-            _month_10: annualFiscalMonths.month_10,
-            _month_11: annualFiscalMonths.month_11,
-            _month_12: annualFiscalMonths.month_12,
-          };
-          console.log(
-            "🔥 queryFn関数実行 get_sales_targets_and_ly_sales_for_fy_all実行 payload",
-            payload,
-            "entityIds",
-            entityIds,
-            "entityStructureIds",
-            entityStructureIds,
-            "selectedFiscalYearTarget",
-            selectedFiscalYearTarget
-          );
-          const {
-            data: salesTargetData,
-            error,
-            count: fetchCount,
-          } = await supabase
-            .rpc("get_sales_targets_and_ly_sales_for_fy_all", payload, { count: "exact" })
-            // .eq("created_by_company_id", companyId)
-            .range(from, to);
-
-          if (error) throw error;
-
-          console.log("✅get_sales_targets_and_ly_sales_for_fy_all実行成功 salesTargetData", salesTargetData);
-
-          // メンバーレベルの年度目標はここで上期と下期の目標を合算して補完
-          salesTargetRows = ensureTargetsRowData(salesTargetData?.sales_targets); // SalesTargetFYRowData型チェック
-          lastYearSalesRows = ensureLastSalesRowData(salesTargetData?.last_year_sales); // SalesTargetFYRowData型チェック
-
-          const lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
-
-          // 🔸前年比の算出 「(今年の数値 - 去年の数値) / 去年の数値 * 100」の公式を使用して前年比を算出
-          yoyGrowthRows = salesTargetRows.map((target, index) => {
-            const sales_target_entityId = target.entity_id;
-            // const lySales = lastYearSalesRows.find((lys) => lys.entity_id === sales_target_entityId);
-            const lySales = lastYearSalesRowsMap.get(sales_target_entityId);
-            // const lySales = lastYearSalesRows[index];
-
-            const resultFY = calculateYearOverYear(target?.fiscal_year, lySales?.fiscal_year, 1);
-            const result1H = calculateYearOverYear(target?.first_half, lySales?.first_half, 1);
-            const result2H = calculateYearOverYear(target?.second_half, lySales?.second_half, 1);
-            const result1Q = calculateYearOverYear(target?.first_quarter, lySales?.first_quarter, 1);
-            const result2Q = calculateYearOverYear(target?.second_quarter, lySales?.second_quarter, 1);
-            const result3Q = calculateYearOverYear(target?.third_quarter, lySales?.third_quarter, 1);
-            const result4Q = calculateYearOverYear(target?.fourth_quarter, lySales?.fourth_quarter, 1);
-            const resultMonth01 = calculateYearOverYear(target?.month_01, lySales?.month_01, 1);
-            const resultMonth02 = calculateYearOverYear(target?.month_02, lySales?.month_02, 1);
-            const resultMonth03 = calculateYearOverYear(target?.month_03, lySales?.month_03, 1);
-            const resultMonth04 = calculateYearOverYear(target?.month_04, lySales?.month_04, 1);
-            const resultMonth05 = calculateYearOverYear(target?.month_05, lySales?.month_05, 1);
-            const resultMonth06 = calculateYearOverYear(target?.month_06, lySales?.month_06, 1);
-            const resultMonth07 = calculateYearOverYear(target?.month_07, lySales?.month_07, 1);
-            const resultMonth08 = calculateYearOverYear(target?.month_08, lySales?.month_08, 1);
-            const resultMonth09 = calculateYearOverYear(target?.month_09, lySales?.month_09, 1);
-            const resultMonth10 = calculateYearOverYear(target?.month_10, lySales?.month_10, 1);
-            const resultMonth11 = calculateYearOverYear(target?.month_11, lySales?.month_11, 1);
-            const resultMonth12 = calculateYearOverYear(target?.month_12, lySales?.month_12, 1);
-
-            console.log(
-              "result2H",
-              result2H,
-              "target?.second_half",
-              target?.second_half,
-              "lySales?.second_half",
-              lySales?.second_half
-            );
-            console.log(
-              "result4Q",
-              result4Q,
-              "target?.fourth_quarter",
-              target?.fourth_quarter,
-              "lySales?.fourth_quarter",
-              lySales?.fourth_quarter
-            );
-            console.log(
-              "resultMonth12",
-              resultMonth12,
-              "target?.month_12",
-              target?.month_12,
-              "lySales?.month_12",
-              lySales?.month_12
-            );
-
-            return {
-              ...target,
-              share: null,
-              dataset_type: "yoy_growth",
-              // 前年比(伸び率) 25.7%の小数点第1位までの数値部分で算出してセット
-              fiscal_year: !resultFY.error ? Number(resultFY.yearOverYear) : null, // 年度
-              first_half: !result1H.error ? Number(result1H.yearOverYear) : null,
-              second_half: !result2H.error ? Number(result2H.yearOverYear) : null,
-              first_quarter: !result1Q.error ? Number(result1Q.yearOverYear) : null,
-              second_quarter: !result2Q.error ? Number(result2Q.yearOverYear) : null,
-              third_quarter: !result3Q.error ? Number(result3Q.yearOverYear) : null,
-              fourth_quarter: !result4Q.error ? Number(result4Q.yearOverYear) : null,
-              month_01: !resultMonth01.error ? Number(resultMonth01.yearOverYear) : null,
-              month_02: !resultMonth02.error ? Number(resultMonth02.yearOverYear) : null,
-              month_03: !resultMonth03.error ? Number(resultMonth03.yearOverYear) : null,
-              month_04: !resultMonth04.error ? Number(resultMonth04.yearOverYear) : null,
-              month_05: !resultMonth05.error ? Number(resultMonth05.yearOverYear) : null,
-              month_06: !resultMonth06.error ? Number(resultMonth06.yearOverYear) : null,
-              month_07: !resultMonth07.error ? Number(resultMonth07.yearOverYear) : null,
-              month_08: !resultMonth08.error ? Number(resultMonth08.yearOverYear) : null,
-              month_09: !resultMonth09.error ? Number(resultMonth09.yearOverYear) : null,
-              month_10: !resultMonth10.error ? Number(resultMonth10.yearOverYear) : null,
-              month_11: !resultMonth11.error ? Number(resultMonth11.yearOverYear) : null,
-              month_12: !resultMonth12.error ? Number(resultMonth12.yearOverYear) : null,
-            } as SalesTargetFYRowData;
-          });
-
-          console.log("✅前年比算出結果 yoyGrowthRows", yoyGrowthRows);
-
-          const yoyGrowthRowsMap = new Map(yoyGrowthRows.map((row) => [row.entity_id, row]));
-
-          // 売上目標と前年度売上は先頭にシェアを追加(メインのため100%)
-          salesTargetRows = salesTargetRows?.length
-            ? (salesTargetRows.map((obj) => ({
-                ...obj,
-                share: 100,
-              })) as (SalesTargetFYRowData & { share: number })[])
-            : [];
-          lastYearSalesRows = lastYearSalesRows?.length
-            ? (lastYearSalesRows.map((obj) => ({
-                ...obj,
-                share: 100,
-                entity_name: entitiesIdToObjMap.get(obj?.entity_id) ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
-              })) as (SalesTargetFYRowData & { share: number })[])
-            : [];
-
-          // １行３セット(３行)にまとめてrowsを生成して返す
-          rows = salesTargetRows.map((target, index) => {
-            const targetEntityId = target.entity_id;
-            return {
-              sales_targets: target,
-              last_year_sales: lastYearSalesRowsMap.get(targetEntityId),
-              yoy_growth: yoyGrowthRowsMap.get(targetEntityId),
-              // last_year_sales: lastYearSalesRows[index],
-              // yoy_growth: yoyGrowthRows[index],
-            };
-          }) as SalesTargetsRowDataWithYoY[];
-
-          console.log("✅rows結果", rows);
-
-          // rows = ensureClientCompanies(data);
-          isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-          count = fetchCount;
-
-          // // 🔸売上目標を取得するFUNCTIONの実行
-          // const payload = {
-          //   _entity_level: entityLevel,
-          //   // _entity_id: entityId,
-          //   _entity_ids: entityIds,
-          //   _fiscal_year: selectedFiscalYearTarget,
-          // };
-          // const {
-          //   data,
-          //   error,
-          //   count: fetchCount,
-          // } = await supabase
-          //   .rpc("get_sales_targets_sub", payload, { count: "exact" })
-          //   .eq("created_by_company_id", companyId)
-          //   .range(from, to)
-          //   .order("entity_name", { ascending: true });
-
-          // if (error) throw error;
-
-          // // メインの年度売上目標に対して、取得した年度目標がシェア何%かを算出して先頭に追加
-
-          // // 🔸前年度売上を取得するFUNCTIONの実行
-
-          // // メインの前年度の年度売上に対して、取得した年度売上がシェア何%かを算出して先頭に追加
-
-          // // 🔸前年比の算出
-
-          // rows = ensureClientCompanies(data);
-          // isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-          // count = fetchCount;
-        }
       } catch (e: any) {
         console.error(`fetchServerPage関数 DBからデータ取得に失敗、エラー: `, e);
         rows = null;
@@ -1236,7 +675,14 @@ const SalesTargetGridTableSubMemo = ({
     isError: isErrorQuery,
   } = useInfiniteQuery({
     // queryKey: ["sales_targets", entityLevel ?? null, `${fiscalYear}`],
-    queryKey: ["sales_targets", `${selectedFiscalYearTarget}`, entityLevel ?? null],
+    queryKey: [
+      "sales_targets",
+      `${selectedFiscalYearTarget}`,
+      mainEntityTarget?.parentEntityLevel ?? null,
+      mainEntityTarget?.entityLevel ?? null,
+      mainEntityTarget?.parentEntityId ?? null,
+      "sub",
+    ],
     queryFn: async (ctx) => {
       console.log("🔥queryFn実行");
       const nextPage = await fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
@@ -1252,19 +698,17 @@ const SalesTargetGridTableSubMemo = ({
     staleTime: Infinity,
     // enabled: isFetchingEnabled && fetchEnabledRef.current, // デバウンス後にフェッチを有効化(選択行が変更後3秒経過したらフェッチ許可)
     // enabled: !!entityId && !!entityLevel && isMain ? true : fetchEnabled,
-    enabled: !!entities && !!entityLevel && isMain ? true : fetchEnabled,
+    enabled: !!entities && !!entityLevel && fetchEnabled,
   });
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
 
   // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
-  useEffect(() => {
-    // 総合目標のフェッチが完了したら、子エンティティのフェッチを許可する。=> 総合目標の各目標金額を子エンティティテーブルで取得してシェアを算出する
-    if (isMain) {
-      if (isSuccessQuery || isErrorQuery) {
-        if (onFetchComplete) onFetchComplete();
-      }
-    }
-  }, [isSuccessQuery, isErrorQuery]);
+  // useEffect(() => {
+  //   // 総合目標のフェッチが完了したら、子エンティティのフェッチを許可する。=> 総合目標の各目標金額を子エンティティテーブルで取得してシェアを算出する
+  //     if (isSuccessQuery || isErrorQuery) {
+  //       if (onFetchComplete) onFetchComplete();
+  //     }
+  // }, [isSuccessQuery, isErrorQuery]);
   // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
 
   const Rows = data && data.pages[0]?.rows ? data.pages.flatMap((d) => d?.rows) : [];
@@ -2964,141 +2408,6 @@ const SalesTargetGridTableSubMemo = ({
   };
   // ==================================================================================
 
-  // -------------------------- 🌟セクションメニュー🌟 --------------------------
-  // モーダルのtop, left, width, height
-  // const settingModalProperties = useDashboardStore((state) => state.settingModalProperties);
-  const [openSectionMenu, setOpenSectionMenu] = useState<{
-    x?: number;
-    y: number;
-    title?: string;
-    displayX?: string;
-    maxWidth?: number;
-    minWidth?: number;
-    fadeType?: string;
-  } | null>(null);
-
-  // 適用、戻るメニュー
-  const [openSubMenu, setOpenSubMenu] = useState<{
-    display: string;
-    fadeType: string;
-    sectionMenuWidth?: number;
-  } | null>(null);
-
-  // 説明メニュー(onClickイベントで開いてホバー可能な状態はisHoverableをtrueにする)
-  const [openPopupMenu, setOpenPopupMenu] = useState<{
-    x?: number;
-    y: number;
-    title: string;
-    displayX?: string;
-    maxWidth?: number;
-    minWidth?: number;
-    fadeType?: string;
-    isHoverable?: boolean;
-    sectionMenuWidth?: number;
-  } | null>(null);
-
-  const sectionMenuRef = useRef<HTMLDivElement | null>(null);
-
-  // centerで位置が調整された時用のopacity
-  // const [isAdjustedMenu, setIsAdjustedMenu] = useState(true);
-
-  const handleOpenSectionMenu = ({ e, title, displayX, maxWidth, minWidth, fadeType }: SectionMenuParams) => {
-    // if (!settingModalProperties) return;
-    if (!displayX || displayX === "center") {
-      const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-      let positionY = y + height + 6;
-      let positionX = x;
-      if (displayX === "center") positionX = x + width / 2;
-
-      // モーダルのtopとleftを考慮
-      // positionY -= settingModalProperties.top;
-      // positionX -= settingModalProperties.left;
-
-      // // centerの場合には位置の調整が入るため一旦透明にして調整後にopacityを1にする
-      // setIsAdjustedMenu(false);
-
-      console.log("クリック", y, x, positionX);
-      setOpenSectionMenu({
-        y: positionY,
-        x: positionX,
-        title: title,
-        displayX: displayX,
-        fadeType: fadeType,
-        maxWidth: maxWidth,
-      });
-    } else {
-      const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-      let positionX = 0;
-      let positionY = y;
-      if (displayX === "right") {
-        positionX = -18 - 50 - (maxWidth ?? 400);
-      } else if (displayX === "left") {
-        positionX = window.innerWidth - x;
-      } else if (displayX === "bottom_left") {
-        positionX = window.innerWidth - x - width;
-        positionY = y + height + 6;
-      } else if (displayX === "bottom_right") {
-        positionX = x;
-        positionY = y + height + 6;
-      } else if (displayX === "top_right") {
-        positionX = x;
-        positionY = window.innerHeight - y + 6;
-      }
-      // positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : 0;
-      // positionX = displayX === "left" ? window.innerWidth - x : 0;
-
-      // let positionY = y - settingModalProperties.top;
-      // positionX -= settingModalProperties.left;
-      console.log("クリック", displayX, positionY, x, y, width, height);
-
-      setOpenSectionMenu({
-        x: positionX,
-        y: positionY,
-        title: title,
-        displayX: displayX,
-        maxWidth: maxWidth,
-        minWidth: minWidth,
-        fadeType: fadeType,
-      });
-    }
-  };
-
-  // useEffect(() => {
-  //   if (!openSectionMenu?.displayX || openSectionMenu?.displayX !== "center") return;
-  //   if (openSectionMenu?.displayX === "center" && sectionMenuRef.current && openSectionMenu.x) {
-  //     const menuWith = sectionMenuRef.current.getBoundingClientRect().width;
-  //     const newX = openSectionMenu.x - menuWith / 2;
-  //     console.log("🔥newX", newX, menuWith, openSectionMenu.x);
-  //     setOpenSectionMenu({ ...openSectionMenu, x: newX });
-
-  //     // centerの場合には位置の調整が入るため一旦透明にして調整後にopacityを1にする
-  //     setIsAdjustedMenu(true);
-  //   }
-  // }, [openSectionMenu?.displayX]);
-
-  // メニューを閉じる
-  const handleCloseSectionMenu = (
-    errorMsg: string | undefined = undefined,
-    alertMsg: string | undefined = undefined
-  ) => {
-    if (openSectionMenu && openSectionMenu.title === "entity") {
-      setActiveEntityLocal(null);
-    }
-
-    // setOpenSectionMenu(null);
-    if (openSectionMenu) setOpenSectionMenu(null);
-    if (errorMsg) console.error(`${errorMsg}`);
-    if (alertMsg) alert(alertMsg);
-  };
-
-  // ポップアップのフェードタイプ
-  const getFadeTypeClass = (fadeType: string) => {
-    if (fadeType === "fade_down") return styles.fade_down;
-    if (fadeType === "fade_up") return styles.fade_up;
-    if (fadeType === "fade") return styles.fade;
-  };
-  // -------------------------- 🌟セクションメニュー🌟 ここまで --------------------------
-
   // 部門別の名称
   const getDivName = (entityLevel: EntityLevelNames) => {
     switch (entityLevel) {
@@ -3147,6 +2456,10 @@ const SalesTargetGridTableSubMemo = ({
     // rowVirtualizer.getVirtualItems(),
     "1年分の年月度annualFiscalMonths",
     annualFiscalMonths,
+    "総合目標のキャッシュデータmainEntityQueryData",
+    mainEntityQueryData,
+    "allRows",
+    allRows
     // "前年度の1年分の年月度lastAnnualFiscalMonths",
     // lastAnnualFiscalMonths,
     // "会計月度カレンダー配列",
@@ -3184,20 +2497,7 @@ const SalesTargetGridTableSubMemo = ({
     // checkedRows,
     // "selectedCheckBox",
     // selectedCheckBox,
-    "allRows",
-    allRows,
-    "fiscalYearQueryData",
-    fiscalYearQueryData,
-    "entityLevelsQueryData",
-    entityLevelsQueryData,
-    "entitiesHierarchyQueryData",
-    entitiesHierarchyQueryData,
-    "mainEntityLevelList",
-    mainEntityLevelList,
-    "entityLevelToParentLevelMap",
-    entityLevelToParentLevelMap,
-    "entityLevelToChildLevelMap",
-    entityLevelToChildLevelMap
+
     // `virtualItems:${rowVirtualizer.getVirtualItems().length}`
     // "colsWidth",
     // colsWidth,
@@ -3302,266 +2602,62 @@ const SalesTargetGridTableSubMemo = ({
   return (
     <>
       {/* タイトルエリア */}
-      <div className={`${styles.card_title_area}`}>
+      <div className={`${styles.card_title_area} fade08_forward`}>
         <div className={`${styles.title_left_wrapper}`}>
-          {isMain && mainEntityTarget && (
-            <>
-              <div
-                className={`${styles.card_title} relative z-[2000] space-x-[3px]`}
-                onMouseEnter={(e) => {
-                  const icon = infoIconTitleRef.current;
-                  if (icon && icon.classList.contains(styles.animate_ping)) {
-                    icon.classList.remove(styles.animate_ping);
-                  }
-                  handleOpenTooltip({
-                    e: e,
-                    display: "top",
-                    content: `総合目標の変更`,
-                    marginTop: 9,
-                  });
-                }}
-                onMouseLeave={handleCloseTooltip}
-                onClick={(e) => {
-                  if (
-                    !fiscalYearQueryData ||
-                    !entityLevelsQueryData ||
-                    entityLevelsQueryData.length === 0 ||
-                    !(
-                      fiscalYearQueryData.is_confirmed_first_half_details ||
-                      fiscalYearQueryData.is_confirmed_second_half_details
-                    )
-                  ) {
-                    // fiscal_yearsの半期詳細のどちらかがtrueでないなら(設定完了してないなら)リターン
-                    return alert(
-                      `${selectedFiscalYearTarget}年度の売上目標が未設定です。右上の「目標設定」から${selectedFiscalYearTarget}年度の売上目標を設定してください。`
-                    );
-                  }
-                  // 会社・メンバーレベルの2つのみの場合、レベルの変更は無いためリターン
-                  if (mainEntityLevelList.length <= 1)
-                    return alert(
-                      `${selectedFiscalYearTarget}年度の売上目標のレイヤーは「全社・メンバー」レイヤーの2つのみです。レイヤーが2つ以上の時のみ総合目標の表示切り替えが可能です。売上目標の作成・編集は右上の「目標設定」から可能です。`
-                    );
-                  // setActiveEntityLocal({
-                  //   entityLevel: mainEntityTarget.entityLevel,
-                  //   entityName: mainEntityTarget.entityName ?? "",
-                  //   entityId: mainEntityTarget.entityId ?? "",
-                  // });
-
-                  // 上位エンティティレベルが総合目標になるためparentEntityをセットする
-                  setActiveEntityLocal({
-                    entityLevel: mainEntityTarget.parentEntityLevel,
-                    entityName: mainEntityTarget.parentEntityName ?? "",
-                    entityId: mainEntityTarget.parentEntityId ?? "",
-                  });
-                  // クリックした位置が上半分か下半分かで上下表示方向を出し分ける
-                  const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-
-                  // const isTopHalf = window.innerHeight / 2 > y;
-                  const isUp = window.innerHeight < y + height + 386;
-
-                  const sectionWidth = 330;
-                  if (!isUp) {
-                    handleOpenSectionMenu({
-                      e,
-                      title: "entity",
-                      // displayX: "right",
-                      displayX: "bottom_right",
-                      fadeType: "fade_up",
-                      maxWidth: sectionWidth,
-                      minWidth: sectionWidth,
-                    });
-                  } else {
-                    handleOpenSectionMenu({
-                      e,
-                      title: "entity",
-                      // displayX: "right",
-                      displayX: "top_right",
-                      fadeType: "fade_up",
-                      maxWidth: sectionWidth,
-                      minWidth: sectionWidth,
-                    });
-                  }
-
-                  setOpenSubMenu({ display: "right", fadeType: "fade_down", sectionMenuWidth: sectionWidth });
-                  handleCloseTooltip();
-                }}
-              >
-                {/* <div className={`absolute left-0 top-[100%] z-[2000] h-[500px] w-[300px] bg-red-100`}></div> */}
-                <span>{entityLevel === "company" ? (language === "ja" ? `全社` : `Company`) : divName}</span>
-                <IoChevronDownOutline className={` text-[18px]`} />
-              </div>
-
-              {isMain && (
-                <>
-                  <div
-                    className={`flex-center ml-[15px] rounded-full border border-solid border-[var(--color-border-light)] px-[12px] py-[3px] text-[12px] font-bold text-[var(--color-text-sub)]`}
-                  >
-                    <span>総合目標</span>
-                  </div>
-                </>
-              )}
-
-              {optionsFiscalYear && selectedFiscalYearTarget && (
-                <div
-                  className={`${styles.select_text_wrapper} relative !ml-[15px] flex pl-[1px] text-[15px]`}
-                  onMouseEnter={(e) => {
-                    const tooltipText = `選択中の会計年度の目標を表示します。\n会計年度は2020年から現在まで選択可能で、翌年度はお客様の決算日から\n現在の日付が3ヶ月を切ると表示、設定、編集が可能となります。`;
-                    handleOpenTooltip({
-                      e: e,
-                      display: "top",
-                      content: tooltipText,
-                      marginTop: 56,
-                    });
-                  }}
-                  onMouseLeave={handleCloseTooltip}
-                >
-                  <select
-                    ref={selectPeriodRef}
-                    className={`${styles.select_text} ${styles.arrow_none} z-[1] truncate pr-[17px]`}
-                    // className={`${styles.select_text} mr-[6px] truncate`}
-                    value={selectedFiscalYearTarget ?? ""}
-                    onChange={(e) => {
-                      setSelectedFiscalYearTarget(Number(e.target.value));
-                    }}
-                    onClick={handleCloseTooltip}
-                  >
-                    {optionsFiscalYear.map((year) => (
-                      <option key={year} value={year}>
-                        {language === "en" ? `FY ` : ``}
-                        {year}
-                        {language === "ja" ? `年度` : ``}
-                      </option>
-                    ))}
-                  </select>
-                  <div className={`flex-center absolute right-0 top-0 z-0 h-[24px] text-[14px]`}>
-                    <IoChevronDownOutline className={` text-[14px]`} />
-                  </div>
-                </div>
-              )}
-              <div
-                className="flex-center relative !ml-[15px] h-[16px] w-[16px] rounded-full"
-                onMouseEnter={(e) => {
-                  const icon = infoIconTitleRef.current;
-                  if (icon && icon.classList.contains(styles.animate_ping)) {
-                    icon.classList.remove(styles.animate_ping);
-                  }
-                  if (!isMain) return;
-                  handleOpenTooltip({
-                    e: e,
-                    display: "top",
-                    content: isMain ? `下矢印から総合目標の区分や会計年度の切り替えが可能です。` : ``,
-                    marginTop: 22,
-                  });
-                }}
-                onMouseLeave={handleCloseTooltip}
-              >
-                <div
-                  ref={infoIconTitleRef}
-                  className={`flex-center absolute left-0 top-0 h-[16px] w-[16px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
-                ></div>
-                <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
-              </div>
-              {!isLoadingRefresh && (
-                <div
-                  className={`${styles.icon_path_stroke} ${styles.icon_btn_refresh} flex-center transition-bg03 ml-[15px]`}
-                  onMouseEnter={(e) => {
-                    handleOpenTooltip({
-                      e: e,
-                      display: "top",
-                      content: "リフレッシュ",
-                      // content2: "フィルターの切り替えが可能です。",
-                      // marginTop: 57,
-                      // marginTop: 38,
-                      marginTop: 6,
-                      itemsPosition: "center",
-                      // whiteSpace: "nowrap",
-                    });
-                  }}
-                  onMouseLeave={handleCloseTooltip}
-                  onClick={async () => {
-                    setIsLoadingRefresh(true);
-                    // 目標タブトップ画面の設定年度の売上目標を更新
-                    await queryClient.invalidateQueries([
-                      "sales_targets",
-                      `${selectedFiscalYearTarget}`,
-                      entityLevel ?? null,
-                    ]);
-                    await new Promise((resolve) => setTimeout(resolve, 300));
-                    setIsLoadingRefresh(false);
-                    handleCloseTooltip();
-                  }}
-                >
-                  <GrPowerReset />
-                </div>
-              )}
-              {isLoadingRefresh && (
-                <div className={`flex-center ml-[15px] min-h-[28px] min-w-[28px]`}>
-                  <SpinnerX h="h-[16px]" w="w-[16px]" />
-                </div>
-              )}
-            </>
-          )}
-          {!isMain && (
-            <div className={`${styles.card_title}`}>
-              {/* <span>{entityNameTitle}</span> */}
-              <span>
-                {entityLevel === "company" ? (language === "ja" ? `全社` : `Company`) : `${divName}別 売上目標`}
-              </span>
-            </div>
-          )}
+          <div className={`${styles.card_title}`}>
+            {/* <span>{entityNameTitle}</span> */}
+            <span>{entityLevel === "company" ? (language === "ja" ? `全社` : `Company`) : `${divName}`}</span>
+          </div>
         </div>
         <div className={`${styles.title_right_wrapper} space-x-[12px]`}>
-          {isMain && (
-            <>
-              <div className={`${styles.btn} ${styles.basic} space-x-[3px]`}>
-                <span>全て</span>
-                <IoCaretDownOutline className={``} />
-              </div>
-
-              <div
-                className={`${styles.btn} ${styles.basic} space-x-[4px]`}
-                onMouseEnter={(e) => {
-                  const entityId = mainEntityTarget?.entities[0].entity_id;
-                  handleOpenTooltip({
-                    e: e,
-                    display: "top",
-                    content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
-                    marginTop: 9,
-                  });
-                }}
-                onMouseLeave={handleCloseTooltip}
-                onClick={() => {
-                  const entityId = mainEntityTarget?.entities[0].entity_id;
-                  if (!entityId) return;
-                  if (entityId === stickyRow) {
-                    setStickyRow(null);
-                  } else {
-                    setStickyRow(entityId);
-                  }
-                  handleCloseTooltip();
-                }}
-              >
-                {stickyRow === mainEntityTarget?.entities[0].entity_id && <TbSnowflakeOff />}
-                {stickyRow !== mainEntityTarget?.entities[0].entity_id && <TbSnowflake />}
-                {stickyRow === mainEntityTarget?.entities[0].entity_id && <span>解除</span>}
-                {stickyRow !== mainEntityTarget?.entities[0].entity_id && <span>固定</span>}
-              </div>
-            </>
-          )}
+          <div
+            className={`${styles.btn} ${styles.basic} space-x-[4px]`}
+            onMouseEnter={(e) => {
+              const entityId = "sub_targets";
+              handleOpenTooltip({
+                e: e,
+                display: "top",
+                content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
+                marginTop: 9,
+              });
+            }}
+            onMouseLeave={handleCloseTooltip}
+            onClick={() => {
+              const entityId = "sub_targets";
+              if (!entityId) return;
+              if (entityId === stickyRow) {
+                setStickyRow(null);
+              } else {
+                setStickyRow(entityId);
+              }
+              handleCloseTooltip();
+            }}
+          >
+            {stickyRow === "sub_targets" && <TbSnowflakeOff />}
+            {stickyRow !== "sub_targets" && <TbSnowflake />}
+            {stickyRow === "sub_targets" && <span>解除</span>}
+            {stickyRow !== "sub_targets" && <span>固定</span>}
+          </div>
         </div>
       </div>
       {/* コンテンツエリア */}
       <div
         className={`${styles.main_container} ${
           theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
-        }`}
+        } fade08_forward`}
       >
-        {/* 右側shadow */}
+        {/* スクロールコンテナ下のshadow padding-bottom: 24px; */}
+        <div
+          className={`absolute bottom-0 left-0 z-[100] min-h-[24px] w-full rounded-b-[13px]`}
+          style={{ background: `var(--color-dashboard-table-under-shadow)` }}
+        />
+        {/* スクロールコンテナ下のshadow padding-bottom: 24px; */}
+        {/* スクロールコンテナ右側shadow */}
         <div
           className={`absolute right-[9px] top-0 z-[100] h-full w-[33px]`}
           style={{ background: `var(--color-dashboard-table-right-shadow)` }}
         />
-        {/* 右側shadow */}
+        {/* スクロールコンテナ右側shadow */}
         {/* ================== Gridスクロールコンテナ ================== */}
         <div
           ref={parentGridScrollContainer}
@@ -3569,9 +2665,9 @@ const SalesTargetGridTableSubMemo = ({
           aria-multiselectable="true"
           style={{
             width: "100%",
-            ...(isMain && { maxHeight: `${36 + rowHeight * displayKeys.length + 24}px` }),
+            // ...(isMain && { maxHeight: `${36 + rowHeight * displayKeys.length + 24}px` }),
           }}
-          className={`${styles.grid_scroll_container}`}
+          className={`${styles.grid_scroll_container} ${styles.sub}`}
           // onKeyDown={(e) => {
           //   if (e.key === "ArrowUp" || e.key === "ArrowDown") {
           //     e.preventDefault(); // セル移動時に上下矢印キーで移動しないようにする
@@ -4112,926 +3208,6 @@ const SalesTargetGridTableSubMemo = ({
           )}
         </div>
       </div>
-
-      {/* ---------------------------- 🌟セッティングメニュー🌟 ---------------------------- */}
-      {/* クリック時のオーバーレイ */}
-      {openSectionMenu && <div className={`${styles.menu_overlay}`} onClick={() => handleCloseSectionMenu()}></div>}
-      {openSectionMenu && (
-        <div
-          ref={sectionMenuRef}
-          className={`${styles.settings_menu} fixed z-[3000] h-auto rounded-[6px] ${
-            openSectionMenu.fadeType ? getFadeTypeClass(openSectionMenu.fadeType) : ``
-          }`}
-          style={{
-            ...(openSectionMenu.maxWidth && { maxWidth: `${openSectionMenu.maxWidth}px` }),
-            ...(openSectionMenu.minWidth && { minWidth: `${openSectionMenu.minWidth}px` }),
-            ...((openSectionMenu.displayX === "center" || !openSectionMenu.displayX) && {
-              left: `${openSectionMenu.x}px`,
-              top: `${openSectionMenu.y}px`,
-            }),
-            ...(openSectionMenu?.displayX &&
-              ["left", "bottom_left"].includes(openSectionMenu?.displayX) && {
-                right: `${openSectionMenu?.x ?? 0}px`,
-                top: `${openSectionMenu.y}px`,
-              }),
-            ...(openSectionMenu?.displayX &&
-              ["right", "bottom_right"].includes(openSectionMenu?.displayX) && {
-                left: `${openSectionMenu?.x ?? 0}px`,
-                top: `${openSectionMenu.y}px`,
-              }),
-            ...(openSectionMenu?.displayX === "top_left" && {
-              right: `${openSectionMenu?.x ?? 0}px`,
-              bottom: `${openSectionMenu.y}px`,
-            }),
-            ...(openSectionMenu?.displayX === "top_right" && {
-              left: `${openSectionMenu?.x ?? 0}px`,
-              bottom: `${openSectionMenu.y}px`,
-            }),
-          }}
-        >
-          {/* ------------------------ エンティティ選択メニュー ------------------------ */}
-          {openSectionMenu.title === "entity" &&
-            mainEntityTarget &&
-            entityLevelsQueryData &&
-            entitiesHierarchyQueryData && (
-              <>
-                <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
-                  <div className="flex max-w-max flex-col">
-                    <span>メイン目標</span>
-                    <div className={`${styles.section_underline} w-full`} />
-                  </div>
-                </h3>
-
-                <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
-                  下記メニューから「全社・事業部・課/セクション・係/チーム・事業所」を変更することで、各区分に応じたメイン目標を表示します。
-                </p>
-
-                <hr className="min-h-[1px] w-full bg-[#999]" />
-
-                {/* -------- メニューコンテンツエリア -------- */}
-                <div className={`${styles.scroll_container} flex max-h-[240px] w-full flex-col overflow-y-auto`}>
-                  <ul className={`flex h-full w-full flex-col`}>
-                    {/* ------------------------------------ */}
-                    {mainEntityLevelList.map((obj, index) => {
-                      const isActive = obj.title === activeEntityLocal?.entityLevel;
-                      return (
-                        <li
-                          key={obj.title}
-                          className={`${styles.list} ${styles.select_list} ${isActive ? styles.active : ``}`}
-                          onClick={(e) => {
-                            if (isActive) return console.log("リターン ", isActive, obj);
-                            if (!entityLevelToChildLevelMap)
-                              return handleCloseSectionMenu(`entityLevelToChildLevelMap なし`);
-                            if (!entitiesHierarchyMap) return handleCloseSectionMenu(`entitiesHierarchyMap なし`);
-                            // 全社の場合は、そのまま区分を変更
-                            if (obj.title === "company") {
-                              // setActiveDisplayTabs({ ...activeDisplayTabs, entity: obj.title });
-                              //
-                              const parentEntityGroups = entitiesHierarchyQueryData[obj.title];
-
-                              if (parentEntityGroups.length !== 1)
-                                return handleCloseSectionMenu(
-                                  `parentEntityGroups.lengthが1ではない ${parentEntityGroups.length}`
-                                );
-
-                              const companyEntityGroupObj = parentEntityGroups[0];
-                              if (companyEntityGroupObj.entities.length !== 1)
-                                return handleCloseSectionMenu(
-                                  `companyEntityGroupObj.entities.lengthが1ではない ${companyEntityGroupObj.entities.length}`
-                                );
-
-                              // 一番目のエンティティ
-                              const companyEntityObj = companyEntityGroupObj.entities[0];
-
-                              // １番目のエンティティidに紐づく子エンティティグループ
-                              const childLevel = entityLevelToChildLevelMap.get(companyEntityObj.entity_level);
-
-                              if (!childLevel) return handleCloseSectionMenu(`childLevel なし`);
-
-                              const childEntityGroups = entitiesHierarchyMap.get(childLevel);
-
-                              if (!childEntityGroups) return handleCloseSectionMenu(`childEntityGroups なし`);
-
-                              const childEntityGroup = childEntityGroups.find(
-                                (group) => group.parent_entity_id === companyEntityObj.entity_id
-                              );
-
-                              if (!childEntityGroup) return handleCloseSectionMenu(`childEntityGroup なし`);
-                              if (!childEntityGroup.entities.length)
-                                return handleCloseSectionMenu(`childEntityGroup.entities.length なし`);
-
-                              setMainEntityTarget({
-                                ...mainEntityTarget,
-                                entityLevel: childEntityGroup.entities[0].entity_level as EntityLevelNames,
-                                entities: childEntityGroup.entities,
-                                parentEntityId: companyEntityObj.entity_id ?? "",
-                                parentEntityLevel: companyEntityObj.entity_level as
-                                  | "company"
-                                  | "department"
-                                  | "section"
-                                  | "unit", // company
-                              });
-                              setActiveEntityLocal(null);
-                              setOpenSectionMenu(null);
-                            }
-                            // 事業部~係までは、エンティティ区分タイプ+表示するエンティティ名が必要なため、一旦ローカルstateに区分タイプを保存して、右側の選択エリアでエンティティ名をセレクトで選択してもらう
-                            else if (["departments", "sections", "unit"].includes(obj.title)) {
-                              if (!entitiesHierarchyMap) return handleCloseSectionMenu(`entitiesHierarchyMap なし`);
-                              if (!entityLevelToParentLevelMap)
-                                return handleCloseSectionMenu(`entityLevelToParentLevelMap なし`);
-
-                              const entityGroupsByParent = entitiesHierarchyQueryData[obj.title];
-
-                              if (entityGroupsByParent?.length !== 1)
-                                return handleCloseSectionMenu(
-                                  `entityGroupsByParent.lengthが1ではない ${entityGroupsByParent.length}`
-                                );
-
-                              const firstEntityGroupByParent = entityGroupsByParent[0];
-
-                              if (firstEntityGroupByParent.entities?.length !== 1)
-                                return handleCloseSectionMenu(
-                                  `firstEntityGroupByParent.entities.lengthが1ではない ${firstEntityGroupByParent.entities.length}`
-                                );
-
-                              // 一番目のエンティティ
-                              const firstEntity = firstEntityGroupByParent.entities[0];
-
-                              setActiveEntityLocal({
-                                entityLevel: firstEntity.entity_level as "company" | "department" | "section" | "unit",
-                                entityName: firstEntity.entity_name,
-                                entityId: firstEntity.entity_id,
-                              });
-
-                              // クリックしたレベルの選択肢をセット
-                              setOptionsBySelectedLevel(entityGroupsByParent);
-                            }
-                            // handleClosePopupMenu();
-                          }}
-                        >
-                          <div className="pointer-events-none flex min-w-[110px] items-center">
-                            <MdOutlineDataSaverOff
-                              className={`${styles.list_icon} mr-[16px] min-h-[20px] min-w-[20px] text-[20px]`}
-                            />
-                            <div className="flex select-none items-center space-x-[2px]">
-                              <span className={`${styles.select_item}`}>{obj.name[language]}</span>
-                            </div>
-                          </div>
-                          {isActive && (
-                            <div className={`${styles.icon_container}`}>
-                              <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
-                            </div>
-                          )}
-                        </li>
-                      );
-                    })}
-                    {/* {mainEntityLevelList.map((obj, index) => {
-                      const isActive = obj.title === activeEntityLocal?.entityLevel;
-                      return (
-                        <li
-                          key={obj.title}
-                          className={`${styles.list} ${styles.select_list} ${isActive ? styles.active : ``}`}
-                          onClick={(e) => {
-                            if (isActive) return console.log("リターン ", isActive, obj);
-                            // 全社の場合は、そのまま区分を変更
-                            if (obj.title === "company") {
-                              // setActiveDisplayTabs({ ...activeDisplayTabs, entity: obj.title });
-                              // 親エンティティがcompanyのエンティティオブジェクトをセットする
-                              const companyIndex = entityLevelsQueryData.findIndex(
-                                (level) => level.entity_level === "company"
-                              );
-                              if (companyIndex === -1) return handleCloseSectionMenu();
-                              const nextLevelObj = entityLevelsQueryData[companyIndex + 1];
-                              if (!nextLevelObj) return handleCloseSectionMenu();
-                              const nextLevel = nextLevelObj.entity_level;
-                              if (!nextLevel || !(nextLevel in entitiesHierarchyQueryData))
-                                return handleCloseSectionMenu();
-                              if (
-                                ["company", "department", "section", "unit", "member", "office"].includes(nextLevel) &&
-                                nextLevel in entitiesHierarchyQueryData
-                              ) {
-                                // 現在取得済みのエンティティレベルの中でparentEntityLevelがcompanyのエンティティをentitiesにセット
-                                // 親エンティティが全社エンティティの場合は上位グループ配列は全社1つ
-                                if (entitiesHierarchyQueryData[nextLevel as EntityLevelNames].length !== 1)
-                                  return handleCloseSectionMenu();
-                                const entityGroupByParentCompany =
-                                  entitiesHierarchyQueryData[nextLevel as EntityLevelNames][0];
-                                console.log(
-                                  "entityGroupByParentCompany",
-                                  entityGroupByParentCompany,
-                                  "nextLevelObj",
-                                  nextLevelObj
-                                );
-                                setMainEntityTarget({
-                                  ...mainEntityTarget,
-                                  entityLevel: nextLevel as EntityLevelNames,
-                                  entities: entityGroupByParentCompany.entities,
-                                  parentEntityId: entityGroupByParentCompany.parent_entity_id ?? "",
-                                  parentEntityLevel: "company",
-                                });
-                                // setMainEntityTarget({ ...mainEntityTarget, entityLevel: obj.title });
-                                setActiveEntityLocal(null);
-                                setOpenSectionMenu(null);
-                              }
-                            }
-                            // 事業部~事業所までは、エンティティ区分タイプ+表示するエンティティ名が必要なため、一旦ローカルstateに区分タイプを保存して、右側の選択エリアでエンティティ名をセレクトで選択してもらう
-                            else {
-                              if (!entitiesHierarchyMap) return handleCloseSectionMenu(`entitiesHierarchyMapなし`);
-                              if (!entityLevelToParentLevelMap)
-                                return handleCloseSectionMenu(`entityLevelToParentLevelMapなし`);
-                              if (obj.title === "department") {
-                                if (!departmentDataArray || departmentDataArray?.length === 0) {
-                                  alert("事業部リストがありません。先に「会社・チーム」から事業部を作成してください。");
-                                  return;
-                                }
-                                const departmentId = departmentDataArray ? departmentDataArray[0].id : "";
-                                const newDepartment = departmentIdToObjMap?.get(departmentId);
-                                setSelectedDepartment(newDepartment ?? null);
-                                setActiveEntityLocal({
-                                  entityLevel: obj.title,
-                                  entityName: newDepartment?.department_name ?? "",
-                                  entityId: newDepartment?.id ?? "",
-                                });
-                                // const departmentEntitiesGroups = entitiesHierarchyMap.get("department");
-                                // if (!departmentEntitiesGroups || !departmentEntitiesGroups[0].entities?.length)
-                                //   return handleCloseSectionMenu(`departmentEntitiesGroupsなし`);
-                                // const initialDepartmentObj = departmentEntitiesGroups[0].entities[0]
-                                // setSelectedDepartment(departmentEntitiesGroups[0].entities[0])
-                                // setActiveEntityLocal({
-                                //   entityLevel: 'department',
-                                //   entityName: initialDepartmentObj.entity_name ?? "",
-                                //   entityId: initialDepartmentObj.entity_id ?? "",
-                                // });
-                              }
-                              if (obj.title === "section") {
-                                if (!departmentDataArray || departmentDataArray?.length === 0) {
-                                  alert("事業部リストがありません。先に「会社・チーム」から事業部を作成してください。");
-                                  return;
-                                }
-                                if (!sectionDataArray || sectionDataArray?.length === 0) {
-                                  alert(
-                                    "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
-                                  );
-                                  return;
-                                }
-                                const departmentId = departmentDataArray ? departmentDataArray[0].id : "";
-                                setSelectedDepartment(departmentIdToObjMap?.get(departmentId) ?? null);
-                                // departmentIdに一致するセクションのみ絞り込んで選択肢リストを作成
-                                // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目をstateにセット
-                                const filteredSectionList = sectionDataArray.filter(
-                                  (unit) => unit.created_by_department_id === departmentId
-                                );
-                                // 選択肢を１番目の事業部のidで絞り込み
-                                setFilteredSectionBySelectedDepartment(filteredSectionList);
-                                if (!filteredSectionList || filteredSectionList?.length === 0) {
-                                  alert(
-                                    "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
-                                  );
-                                  setSelectedSection(null);
-                                  return;
-                                }
-                                const firstSectionObj = [...filteredSectionList].sort((a, b) => {
-                                  if (a.section_name === null) return 1; // null値をリストの最後に移動
-                                  if (b.section_name === null) return -1;
-                                  return a.section_name?.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
-                                })[0];
-                                setSelectedSection(firstSectionObj);
-                                setActiveEntityLocal({
-                                  entityLevel: obj.title,
-                                  entityName: firstSectionObj?.section_name ?? "",
-                                  entityId: firstSectionObj?.id ?? "",
-                                });
-                              }
-                              if (obj.title === "unit") {
-                                if (!departmentDataArray || departmentDataArray?.length === 0) {
-                                  alert("事業部リストがありません。先に「会社・チーム」から事業部を作成してください。");
-                                  return;
-                                }
-                                if (!sectionDataArray || sectionDataArray?.length === 0) {
-                                  alert(
-                                    "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
-                                  );
-                                  return;
-                                }
-                                if (!unitDataArray || unitDataArray?.length === 0) {
-                                  alert(
-                                    "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
-                                  );
-                                  return;
-                                }
-                                const departmentId = departmentDataArray ? departmentDataArray[0].id : "";
-                                setSelectedDepartment(departmentIdToObjMap?.get(departmentId) ?? null);
-                                // departmentIdに一致するセクションのみ絞り込んで選択肢リストを作成
-                                // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目をstateにセット
-                                const filteredSectionList = sectionDataArray.filter(
-                                  (unit) => unit.created_by_department_id === departmentId
-                                );
-                                // 選択肢を１番目の事業部のidで絞り込み
-                                setFilteredSectionBySelectedDepartment(filteredSectionList);
-                                if (!filteredSectionList || filteredSectionList?.length === 0) {
-                                  alert(
-                                    "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
-                                  );
-                                  setSelectedSection(null);
-                                  return;
-                                }
-                                const firstSectionObj = [...filteredSectionList].sort((a, b) => {
-                                  if (a.section_name === null) return 1; // null値をリストの最後に移動
-                                  if (b.section_name === null) return -1;
-                                  return a.section_name?.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
-                                })[0];
-                                setSelectedSection(firstSectionObj);
-
-                                // 🔹事業部リスト１番目の事業部に紐づく課・セクションリストの選択肢の１番目の課に紐づく係リストの１番目をstateにセット
-                                const filteredUnitList = unitDataArray.filter(
-                                  (unit) => unit.created_by_section_id === firstSectionObj.id
-                                );
-                                setFilteredUnitBySelectedSection(filteredUnitList);
-                                //
-                                if (!filteredUnitList || filteredUnitList?.length === 0) {
-                                  alert(
-                                    "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
-                                  );
-                                  return;
-                                }
-                                const firstUnitObj = [...filteredUnitList].sort((a, b) => {
-                                  if (a.unit_name === null) return 1; // null値をリストの最後に移動
-                                  if (b.unit_name === null) return -1;
-                                  return a.unit_name?.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
-                                })[0];
-                                setSelectedUnit(firstUnitObj);
-                                setActiveEntityLocal({
-                                  entityLevel: obj.title,
-                                  entityName: firstUnitObj?.unit_name ?? "",
-                                  entityId: firstUnitObj?.id ?? "",
-                                });
-                                // setIsOpenConfirmUpsertModal("unit");
-
-                                // const unitId = unitDataArray ? unitDataArray[0].id : "";
-                                // setSelectedUnit(unitIdToObjMap?.get(unitId) ?? null);
-                              }
-                              if (obj.title === "office") {
-                                if (!officeDataArray || officeDataArray?.length === 0) {
-                                  alert("事業所リストがありません。先に「会社・チーム」から事業所を作成してください。");
-                                  return;
-                                }
-                                const officeId = officeDataArray ? officeDataArray[0].id : "";
-                                const newOffice = officeIdToObjMap?.get(officeId);
-                                setSelectedOffice(newOffice ?? null);
-                                setActiveEntityLocal({
-                                  entityLevel: obj.title,
-                                  entityName: newOffice?.office_name ?? "",
-                                  entityId: newOffice?.id ?? "",
-                                });
-                              }
-                            }
-                            // handleClosePopupMenu();
-                          }}
-                        >
-                          <div className="pointer-events-none flex min-w-[110px] items-center">
-                            <MdOutlineDataSaverOff
-                              className={`${styles.list_icon} mr-[16px] min-h-[20px] min-w-[20px] text-[20px]`}
-                            />
-                            <div className="flex select-none items-center space-x-[2px]">
-                              <span className={`${styles.select_item}`}>{obj.name[language]}</span>
-                            </div>
-                          </div>
-                          {isActive && (
-                            <div className={`${styles.icon_container}`}>
-                              <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
-                            </div>
-                          )}
-                        </li>
-                      );
-                    })} */}
-                    {/* ------------------------------------ */}
-                  </ul>
-                </div>
-                {/* ------------------ 🌟サイドエンティティ詳細メニュー🌟 適用・戻るエリア 全社以外で表示 */}
-                {activeEntityLocal && activeEntityLocal.entityLevel !== "company" && openSubMenu && (
-                  <div
-                    className={`${styles.settings_menu} ${
-                      styles.edit_mode
-                    } left-[320px] z-[3000] h-auto w-full min-w-[330px] max-w-max overflow-hidden rounded-[6px] ${
-                      openSubMenu.display === "fade_up" ? styles.fade_up : `${styles.fade_down}`
-                    }`}
-                    style={{
-                      position: "absolute",
-                      ...(openSectionMenu.maxWidth && { maxWidth: `${openSectionMenu.maxWidth}px` }),
-                      ...(openSectionMenu.minWidth && { minWidth: `${openSectionMenu.minWidth}px` }),
-                      ...(openSubMenu.display === "bottom" && { bottom: "-150px", left: 0 }),
-                      ...(openSubMenu.display === "right" && {
-                        top: "0px",
-                        left: (openSubMenu.sectionMenuWidth ?? 0) + 10,
-                      }),
-                      animationDelay: `0.2s`,
-                      animationDuration: `0.5s`,
-                    }}
-                  >
-                    {/* ------------------------------------ */}
-                    <li className={`${styles.section_title} flex min-h-max w-full font-bold`}>
-                      <div className="flex max-w-max flex-col">
-                        <span>{mappingSectionName[activeEntityLocal.entityLevel][language]}</span>
-                        <div className={`${styles.underline} w-full`} />
-                      </div>
-                    </li>
-                    {/* ------------------------------------ */}
-                    {/* ------------------------ 事業部 ------------------------ */}
-                    {/* {["department", "section", "unit"].includes(activeEntityLocal.entityLevel) && (
-                      <li
-                        className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
-                      >
-                        <div className={`${styles.list_title_wrapper}`}>
-                          <div className="flex select-none items-center space-x-[2px]">
-                            <span className={`${styles.list_title}`}>事業部</span>
-                            <span className={``}>：</span>
-                          </div>
-                        </div>
-                        <div className={`${styles.list_item_content}`}>
-                          {(!selectedDepartment || !departmentIdToObjMap) && (
-                            <span className={`${styles.empty_text}`}>事業部が見つかりません</span>
-                          )}
-                          {selectedDepartment && departmentIdToObjMap && (
-                            <select
-                              className={`h-full ${styles.select_box} truncate`}
-                              value={selectedDepartment.id}
-                              onChange={(e) => {
-                                const departmentId = e.target.value;
-                                const newDepartment = departmentIdToObjMap.has(departmentId)
-                                  ? departmentIdToObjMap.get(departmentId)
-                                  : null;
-                                setSelectedDepartment(newDepartment ?? null);
-                                // 選択中のレベルが事業部の場合
-                                if (activeEntityLocal.entityLevel === "department") {
-                                  setActiveEntityLocal({
-                                    ...activeEntityLocal,
-                                    entityId: departmentId,
-                                    entityName: newDepartment?.department_name ?? "",
-                                  });
-                                }
-
-                                // 選択中のレベルが課 or 係の場合で、かつ、事業部を変更した場合には課と係を初期値にリセット
-                                if (["section", "unit"].includes(activeEntityLocal.entityLevel)) {
-                                  // セクションエンティティが存在するルート かつ、事業部を変更した場合
-                                  if (activeEntityLocal.entityLevel === "section") {
-                                    if (!sectionDataArray || sectionDataArray?.length === 0) {
-                                      alert(
-                                        "課・セクションリストがありません。先に「会社・チーム」から課・セクションを作成してください。"
-                                      );
-                                      return;
-                                    }
-                                    // 全ての課から新たに選択した事業部に含まれる課のみの選択肢を生成して、1番目を選択中の課にセット
-                                    const sectionEntityGroups = entitiesHierarchyQueryData["section"];
-                                    const filteredSectionList = sectionEntityGroups.find(
-                                      (section) => section.parent_entity_id === departmentId
-                                    );
-                                    // const filteredSectionList = sectionDataArray.filter(
-                                    //   (unit) => unit.created_by_department_id === departmentId
-                                    // );
-
-                                    if (!filteredSectionList)
-                                      return alert("課・セクションリストが見つかりませんでした。E001");
-
-                                    const sortedSectionList = [...filteredSectionList.entities].sort((a, b) => {
-                                      if (a.entity_name === null) return 1; // null値をリストの最後に移動
-                                      if (b.entity_name === null) return -1;
-                                      return a.entity_name.localeCompare(
-                                        b.entity_name,
-                                        language === "ja" ? "ja" : "en"
-                                      );
-                                    });
-                                    // const sortedSectionList = [...filteredSectionList].sort((a, b) => {
-                                    //   if (a.section_name === null) return 1; // null値をリストの最後に移動
-                                    //   if (b.section_name === null) return -1;
-                                    //   return a.section_name.localeCompare(b.section_name, language === "ja" ? "ja" : "en");
-                                    // });
-                                    setFilteredSectionBySelectedDepartment(sortedSectionList);
-
-                                    const firstSectionObj =
-                                      sortedSectionList?.length >= 1 ? sortedSectionList[0] : null;
-                                    setSelectedSection(firstSectionObj);
-                                    if (activeEntityLocal.entityLevel === "section") {
-                                      setActiveEntityLocal({
-                                        ...activeEntityLocal,
-                                        entityId: firstSectionObj?.id ?? "",
-                                        entityName: firstSectionObj?.section_name ?? "",
-                                      });
-                                    }
-                                  }
-
-                                  if (activeEntityLocal.entityLevel === "unit") {
-                                    if (!unitDataArray || unitDataArray?.length === 0) {
-                                      alert(
-                                        "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
-                                      );
-                                      return;
-                                    }
-                                    if (!firstSectionObj) {
-                                      setSelectedUnit(null);
-                                      return;
-                                    }
-                                    // 全ての課から新たに選択した事業部に含まれる課のみの選択肢を生成して、1番目を選択中の課にセット
-                                    const filteredUnitList = unitDataArray.filter(
-                                      (unit) => unit.created_by_section_id === firstSectionObj.id
-                                    );
-
-                                    const sortedUnitList = [...filteredUnitList].sort((a, b) => {
-                                      if (a.unit_name === null) return 1; // null値をリストの最後に移動
-                                      if (b.unit_name === null) return -1;
-                                      return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
-                                    });
-                                    setFilteredUnitBySelectedSection(sortedUnitList);
-
-                                    const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
-                                    setSelectedUnit(firstUnitObj);
-                                    if (activeEntityLocal.entityLevel === "unit") {
-                                      setActiveEntityLocal({
-                                        ...activeEntityLocal,
-                                        entityId: firstUnitObj?.id ?? "",
-                                        entityName: firstUnitObj?.unit_name ?? "",
-                                      });
-                                    }
-                                  }
-                                }
-                              }}
-                            >
-                              {!!departmentDataArray?.length &&
-                                departmentDataArray.map(
-                                  (department, index) =>
-                                    !!department &&
-                                    department.department_name && (
-                                      <option key={department.id} value={department.id}>
-                                        {department.department_name}
-                                      </option>
-                                    )
-                                )}
-                            </select>
-                          )}
-                        </div>
-                      </li>
-                    )} */}
-                    {/* ------------------------ 事業部 ------------------------ */}
-                    {/* ------------------------ 課・セクション ------------------------ */}
-                    {/* {["section", "unit"].includes(activeEntityLocal.entityLevel) && (
-                      <li
-                        className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
-                      >
-                        <div className={`${styles.list_title_wrapper}`}>
-                          <div className="flex min-w-max select-none items-center space-x-[2px]">
-                            <span className={`${styles.list_title}`}>課・セクション</span>
-                            <span className={``}>：</span>
-                          </div>
-                        </div>
-                        <div className={`${styles.list_item_content}`}>
-                          {!selectedSection && (
-                            <span className={`${styles.empty_text}`}>課・セクションが見つかりません</span>
-                          )}
-                          {selectedSection && sectionIdToObjMap && (
-                            <select
-                              className={` ${styles.select_box} truncate`}
-                              value={selectedSection.id}
-                              onChange={(e) => {
-                                const sectionId = e.target.value;
-                                const newSection = sectionIdToObjMap.has(sectionId)
-                                  ? sectionIdToObjMap.get(sectionId)
-                                  : null;
-                                setSelectedSection(newSection ?? null);
-
-                                if (activeEntityLocal.entityLevel === "section") {
-                                  setActiveEntityLocal({
-                                    ...activeEntityLocal,
-                                    entityId: sectionId,
-                                    entityName: newSection?.section_name ?? "",
-                                  });
-                                }
-
-                                if (activeEntityLocal.entityLevel === "unit") {
-                                  if (!unitDataArray || unitDataArray?.length === 0) {
-                                    alert(
-                                      "係・チームリストがありません。先に「会社・チーム」から係・チームを作成してください。"
-                                    );
-                                    return;
-                                  }
-                                  // 全ての課から新たに選択した事業部に含まれる課のみの選択肢を生成して、1番目を選択中の課にセット
-                                  const filteredUnitList = unitDataArray.filter(
-                                    (unit) => unit.created_by_section_id === sectionId
-                                  );
-
-                                  const sortedUnitList = [...filteredUnitList].sort((a, b) => {
-                                    if (a.unit_name === null) return 1; // null値をリストの最後に移動
-                                    if (b.unit_name === null) return -1;
-                                    return a.unit_name.localeCompare(b.unit_name, language === "ja" ? "ja" : "en");
-                                  });
-                                  setFilteredUnitBySelectedSection(sortedUnitList);
-
-                                  const firstUnitObj = sortedUnitList?.length >= 1 ? sortedUnitList[0] : null;
-                                  setSelectedUnit(firstUnitObj);
-                                  if (activeEntityLocal.entityLevel === "unit") {
-                                    setActiveEntityLocal({
-                                      ...activeEntityLocal,
-                                      entityId: firstUnitObj?.id ?? "",
-                                      entityName: firstUnitObj?.unit_name ?? "",
-                                    });
-                                  }
-                                }
-                              }}
-                            >
-                              {!!filteredSectionBySelectedDepartment?.length &&
-                                filteredSectionBySelectedDepartment.map(
-                                  (section, index) =>
-                                    !!section &&
-                                    section.section_name && (
-                                      <option key={section.id} value={section.id}>
-                                        {section.section_name}
-                                      </option>
-                                    )
-                                )}
-                            </select>
-                          )}
-                        </div>
-                      </li>
-                    )} */}
-                    {/* ------------------------ 課・セクション ------------------------ */}
-                    {/* ------------------------ 係・チーム ------------------------ */}
-                    {/* {activeEntityLocal.entityLevel === "unit" && (
-                      <li
-                        className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
-                      >
-                        <div className={`${styles.list_title_wrapper}`}>
-                          <div className="flex select-none items-center space-x-[2px]">
-                            <span className={`${styles.list_title}`}>係・チーム</span>
-                            <span className={``}>：</span>
-                          </div>
-                        </div>
-                        <div className={`${styles.list_item_content}`}>
-                          {!selectedUnit && <span className={`${styles.empty_text}`}>係・チームが見つかりません</span>}
-                          {selectedUnit && unitIdToObjMap && (
-                            <select
-                              className={`${styles.select_box} truncate`}
-                              value={selectedUnit.id}
-                              onChange={(e) => {
-                                const unitId = e.target.value;
-                                const newUnit = unitIdToObjMap.has(unitId) ? unitIdToObjMap.get(unitId) : null;
-                                setSelectedUnit(newUnit ?? null);
-
-                                setActiveEntityLocal({
-                                  ...activeEntityLocal,
-                                  entityId: unitId,
-                                  entityName: newUnit?.unit_name ?? "",
-                                });
-                              }}
-                            >
-                              {!!filteredUnitBySelectedSection?.length &&
-                                filteredUnitBySelectedSection.map(
-                                  (unit, index) =>
-                                    !!unit &&
-                                    unit.unit_name && (
-                                      <option key={unit.id} value={unit.id}>
-                                        {unit.unit_name}
-                                      </option>
-                                    )
-                                )}
-                            </select>
-                          )}
-                        </div>
-                      </li>
-                    )} */}
-                    {/* ------------------------ 係・チーム ------------------------ */}
-                    {/* ------------------------ 事業所 ------------------------ */}
-                    {/* {activeEntityLocal.entityLevel === "office" && (
-                      <li
-                        className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
-                      >
-                        <div className={`${styles.list_title_wrapper}`}>
-                          <div className="flex select-none items-center space-x-[2px]">
-                            <span className={`${styles.list_title}`}>事業所</span>
-                            <span className={``}>：</span>
-                          </div>
-                        </div>
-                        <div className={`${styles.list_item_content}`}>
-                          {!selectedOffice && <span className={`${styles.empty_text}`}>事業所が見つかりません</span>}
-                          {selectedOffice && officeIdToObjMap && (
-                            <select
-                              className={` ${styles.select_box} truncate`}
-                              value={selectedOffice.id}
-                              onChange={(e) => {
-                                const officeId = e.target.value;
-                                const newOffice = officeIdToObjMap.has(officeId)
-                                  ? officeIdToObjMap.get(officeId)
-                                  : null;
-                                setSelectedOffice(newOffice ?? null);
-
-                                setActiveEntityLocal({
-                                  ...activeEntityLocal,
-                                  entityId: officeId,
-                                  entityName: newOffice?.office_name ?? "",
-                                });
-                              }}
-                            >
-                              {!!officeDataArray?.length &&
-                                officeDataArray.map(
-                                  (office, index) =>
-                                    !!office &&
-                                    office.office_name && (
-                                      <option key={office.id} value={office.id}>
-                                        {office.office_name}
-                                      </option>
-                                    )
-                                )}
-                            </select>
-                          )}
-                        </div>
-                      </li>
-                    )} */}
-                    {/* ------------------------ 事業所 ------------------------ */}
-                    {/* ------------------------ 「事業部〜係」エンティティ ------------------------ */}
-                    {["department", "section", "unit"].includes(activeEntityLocal.entityLevel) && (
-                      <li
-                        className={`relative flex  w-full items-center justify-between px-[18px] py-[6px] pr-[18px] hover:text-[var(--color-dropdown-list-hover-text)] ${styles.dropdown_list}`}
-                      >
-                        <div className={`${styles.list_title_wrapper}`}>
-                          <div className="flex select-none items-center space-x-[2px]">
-                            <span className={`${styles.list_title}`}>
-                              {mappingEntityName[activeEntityLocal.entityLevel][language]}
-                            </span>
-                            <span className={``}>：</span>
-                          </div>
-                        </div>
-                        <div className={`${styles.list_item_content}`}>
-                          {(!activeEntityLocal || !parentIdToEntityGroupMap) && (
-                            <span className={`${styles.empty_text}`}>
-                              {mappingEntityName[activeEntityLocal.entityLevel][language]}が見つかりません
-                            </span>
-                          )}
-                          {activeEntityLocal && parentIdToEntityGroupMap && (
-                            <select
-                              className={`h-full ${styles.select_box} truncate`}
-                              value={activeEntityLocal.entityId}
-                              onChange={(e) => {
-                                const selectedEntityGroup = parentIdToEntityGroupMap.get(e.target.value);
-                                if (!selectedEntityGroup) return handleCloseSectionMenu(`selectedEntityGroup なし`);
-                                if (!selectedEntityGroup.parent_entity_id)
-                                  return handleCloseSectionMenu(`selectedEntityGroup.parent_entity_id なし`);
-                                setActiveEntityLocal({
-                                  ...activeEntityLocal,
-                                  entityName: selectedEntityGroup.parent_entity_name,
-                                  entityId: selectedEntityGroup.parent_entity_id,
-                                });
-                              }}
-                            >
-                              {!!optionsBySelectedLevel?.length &&
-                                optionsBySelectedLevel.map(
-                                  (entity, index) =>
-                                    !!entity &&
-                                    entity.parent_entity_name && (
-                                      <option key={entity.parent_entity_id} value={entity.parent_entity_id ?? ""}>
-                                        {entity.parent_entity_name}
-                                      </option>
-                                    )
-                                )}
-                            </select>
-                          )}
-                        </div>
-                      </li>
-                    )}
-                    {/* ------------------------ 「事業部〜係」エンティティ ------------------------ */}
-                    <hr className="mt-[3px] min-h-[1px] w-full bg-[#999]" />
-                    {/* ------------------------------------ */}
-                    <li className={`${styles.list} ${styles.btn_area} space-x-[20px]`}>
-                      <div
-                        className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
-                        // onClick={() => {
-                        //   if (!activeEntityLocal) return;
-                        //   if (!activeEntityLocal.entityName) return;
-                        //   if (!activeEntityLocal.entityId) return;
-                        //   if (openSectionMenu.title === "entity") {
-                        //     // 選択、確定するエンティティの子の配列をフィルター
-                        //     if (activeEntityLocal.entityLevel === "department") {
-                        //       const departmentId = activeEntityLocal.entityId;
-                        //       if (sectionDataArray && sectionDataArray.length > 0) {
-                        //         const filteredSectionList = sectionDataArray.filter(
-                        //           (section) => section.created_by_department_id === departmentId
-                        //         );
-                        //         // 選択肢を１番目の事業部のidで絞り込み
-                        //         setFilteredSectionBySelectedDepartment(filteredSectionList);
-                        //       }
-                        //     }
-                        //     if (activeEntityLocal.entityLevel === "section") {
-                        //       const sectionId = activeEntityLocal.entityId;
-                        //       if (unitDataArray && unitDataArray.length > 0) {
-                        //         const filteredUnitList = unitDataArray.filter(
-                        //           (unit) => unit.created_by_section_id === sectionId
-                        //         );
-                        //         // 選択肢を１番目の事業部のidで絞り込み
-                        //         setFilteredUnitBySelectedSection(filteredUnitList);
-                        //       }
-                        //     }
-                        //     // 係・チームを選択した場合はメンバーリストをuseQueryで取得する
-                        //     if (activeEntityLocal.entityLevel === "unit") {
-                        //     }
-                        //     // 事業所を選択した場合はメンバーリストをuseQueryで取得する
-                        //     if (activeEntityLocal.entityLevel === "office") {
-                        //     }
-                        //   }
-
-                        //   // setActiveDisplayTabs({
-                        //   //   ...activeDisplayTabs,
-                        //   //   entity: activeEntityLocal.entityLevel,
-                        //   //   entityName: activeEntityLocal.entityName || null,
-                        //   //   entityId: activeEntityLocal.entityId || null,
-                        //   // });
-                        //   // setMainEntityTarget({
-                        //   //   entityLevel: activeEntityLocal.entityLevel,
-                        //   //   entityName: activeEntityLocal.entityName,
-                        //   //   entityId: activeEntityLocal.entityId,
-                        //   // });
-                        //   // setMainEntityTarget({
-                        //   //   entityLevel: activeEntityLocal.entityLevel,
-                        //   //   entityName: activeEntityLocal.entityName,
-                        //   //   entityId: activeEntityLocal.entityId,
-                        //   // });
-                        //   setOpenSectionMenu(null);
-                        // }}
-                        onClick={() => {
-                          if (openSectionMenu.title === "entity") {
-                            if (!entityLevelsQueryData) return;
-                            if (!entityLevelToChildLevelMap) return;
-                            if (!entitiesHierarchyMap) return;
-                            if (!activeEntityLocal) return;
-                            if (!activeEntityLocal.entityName) return;
-                            if (!activeEntityLocal.entityId) return;
-                            // 選択、確定するエンティティの子の配列をフィルター
-                            // setMainEntityTarget({
-                            //   entityLevel: activeEntityLocal.entityLevel,
-                            //   entityName: activeEntityLocal.entityName,
-                            //   entityId: activeEntityLocal.entityId,
-                            // });
-
-                            const parentEntityLevel = entityLevelsQueryData.find(
-                              (level) => level.entity_level === activeEntityLocal.entityLevel
-                            );
-
-                            if (!parentEntityLevel) return handleCloseSectionMenu;
-                            `parentEntityLevel なし`;
-
-                            // 総合目標のエンティティidに紐づく子エンティティグループ
-                            const childLevel = entityLevelToChildLevelMap.get(activeEntityLocal.entityLevel);
-
-                            if (!childLevel) return handleCloseSectionMenu(`childLevel なし`);
-
-                            const childEntityGroups = entitiesHierarchyMap.get(childLevel);
-
-                            if (!childEntityGroups) return handleCloseSectionMenu(`childEntityGroups なし`);
-
-                            const childEntityGroup = childEntityGroups.find(
-                              (group) => group.parent_entity_id === activeEntityLocal.entityId
-                            );
-
-                            if (!childEntityGroup) return handleCloseSectionMenu(`childEntityGroup なし`);
-                            if (!childEntityGroup.entities.length)
-                              return handleCloseSectionMenu(`childEntityGroup.entities.length なし`);
-
-                            if (
-                              !["member", "company", "department", "section", "unit", "office"].includes(
-                                childEntityGroup.entities[0].entity_level
-                              )
-                            )
-                              return handleCloseSectionMenu(`entity_level エラー`);
-
-                            setMainEntityTarget({
-                              ...mainEntityTarget,
-                              parentEntityLevel: activeEntityLocal.entityLevel,
-                              parentEntityLevelId: parentEntityLevel.id,
-                              parentEntityId: activeEntityLocal.entityId,
-                              parentEntityName: activeEntityLocal.entityName,
-                              entityLevel: childEntityGroup.entities[0].entity_level as EntityLevelNames,
-                              entities: childEntityGroup.entities,
-                            });
-                          }
-                          // setOpenSectionMenu(null);
-                          handleCloseSectionMenu();
-                        }}
-                      >
-                        <span>適用</span>
-                      </div>
-                      <div
-                        className={`transition-bg02 ${styles.edit_btn} ${styles.cancel}`}
-                        onClick={() => {
-                          handleCloseSectionMenu();
-                        }}
-                      >
-                        <span>戻る</span>
-                      </div>
-                    </li>
-                    {/* ------------------------------------ */}
-                  </div>
-                )}
-                {/* 右サイドエンティティ詳細メニュー 適用・戻るエリア */}
-              </>
-            )}
-          {/* ------------------------ エンティティ選択メニュー ------------------------ */}
-        </div>
-      )}
     </>
   );
 };

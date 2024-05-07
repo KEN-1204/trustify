@@ -1405,6 +1405,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-dashboard-table-header-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.15);
   --color-bg-dashboard-table-header-shadow-under-right: 0px 2px 4px 0px rgba(0, 0, 0, 0.09);
   --color-dashboard-table-right-shadow: linear-gradient(-90deg, var(--color-edit-bg-solid) 27%, transparent);
+  --color-dashboard-table-under-shadow: linear-gradient(to top, var(--color-edit-bg-solid) 27%, transparent);
   --color-bg-dashboard: #f2f3f4;
   --color-tab-underline: rgba(57, 76, 96, 0.15);
   --color-btn-basic-bg: #fff;
@@ -2434,6 +2435,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-dashboard-table-header-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.9);
   --color-bg-dashboard-table-header-shadow-under-right: 0px 3px 6px 0px rgba(0, 0, 0, 0.9);
   --color-dashboard-table-right-shadow: linear-gradient(-90deg, transparent, transparent);
+  --color-dashboard-table-under-shadow: linear-gradient(to top, var(--color-edit-bg-solid) 27%, transparent);
   --color-bg-dashboard: #121212;
   --color-tab-underline: #383838;
   /* --color-btn-basic-bg: #333; */

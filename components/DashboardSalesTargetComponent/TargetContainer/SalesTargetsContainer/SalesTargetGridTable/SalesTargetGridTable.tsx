@@ -51,6 +51,7 @@ import { mappingEntityName } from "@/utils/mappings";
 import { convertToJapaneseCurrencyFormatInYen } from "@/utils/Helpers/Currency/convertToJapaneseCurrencyFormatInYen";
 import { useQuerySalesSummaryAndGrowth } from "@/hooks/useQuerySalesSummaryAndGrowth";
 import { SparkChart } from "@/components/Parts/Charts/SparkChart/SparkChart";
+import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
 
 // entityLevel: company / department...
 type Props = {
@@ -65,6 +66,7 @@ type Props = {
   isMain: boolean;
   fetchEnabled?: boolean; // メイン目標でない場合はfetchEnabledがtrueに変更されたらフェッチを許可する
   onFetchComplete?: () => void;
+  onResetFetchComplete?: () => void;
   companyId: string;
   stickyRow: string | null;
   setStickyRow: Dispatch<SetStateAction<string | null>>;
@@ -82,6 +84,7 @@ const SalesTargetGridTableMemo = ({
   isMain,
   fetchEnabled,
   onFetchComplete,
+  onResetFetchComplete,
   companyId,
   stickyRow,
   setStickyRow,
@@ -436,45 +439,6 @@ const SalesTargetGridTableMemo = ({
     () => generateMonthHeaders(Number(currentFiscalStartYearMonth.toString().slice(-2))),
     [fiscalYearStartEndDate]
   );
-
-  // --------------------- 🌟過去3年分の売上と前年度の前年伸び率実績を取得するuseQuery🌟 ---------------------
-  const {
-    data: salesSummaryRowDataTrend,
-    error: salesSummaryErrorTrend,
-    isLoading: isLoadingQueryTrend,
-    isSuccess: isSuccessQueryTrend,
-    isError: isErrorQueryTrend,
-  } = useQuerySalesSummaryAndGrowth({
-    companyId: companyId,
-    entityLevel: entityLevel,
-    entityId: entities[0].entity_id,
-    periodType: `year_half`, // 年度、上期、下期の３期間を取得
-    fiscalYear: selectedFiscalYearTarget,
-    annualFiscalMonths: annualFiscalMonths,
-    fetchEnabled: isMain, // メイン目標のみ売上推移をフェッチ
-  });
-  // --------------------- 🌟過去3年分の売上と前年度の前年伸び率実績を取得するuseQuery🌟 ここまで ---------------------
-
-  // 表示期間(年度全て・上期詳細・下期詳細)
-  const displayTargetPeriodType = useDashboardStore((state) => state.displayTargetPeriodType);
-  const setDisplayTargetPeriodType = useDashboardStore((state) => state.setDisplayTargetPeriodType);
-
-  // 売上推移(年度・上期、下期)
-  // const [salesTrends, setSalesTrends] = useState<(SparkChartObj & { updateAt: number }) | null>(() => {
-  //   if (!salesSummaryRowDataTrend) return null;
-  //   // "fiscal_year" | "first_half" | "second_half"
-  //   // const initialData = salesSummaryRowDataTrend.find((obj) => obj.period_type === "fiscal_year")?.sales_trend ?? null;
-  //   const initialData =
-  //     salesSummaryRowDataTrend.find((obj) => obj.period_type === displayTargetPeriodType)?.sales_trend ?? null;
-  //   return initialData ? { ...initialData, updateAt: Date.now() } : null;
-  // });
-  const salesTrends = useMemo(() => {
-    if (!salesSummaryRowDataTrend) return null;
-    const salesTrendData =
-      salesSummaryRowDataTrend.find((obj) => obj.period_type === displayTargetPeriodType)?.sales_trend ?? null;
-
-    return salesTrendData ? { ...salesTrendData, updateAt: Date.now() } : null;
-  }, [salesSummaryRowDataTrend, displayTargetPeriodType]);
 
   // ================== 🌟疑似的なサーバーデータフェッチ用の関数🌟 ==================
   const fetchServerPageTest = async (
@@ -1278,7 +1242,14 @@ const SalesTargetGridTableMemo = ({
     isError: isErrorQuery,
   } = useInfiniteQuery({
     // queryKey: ["sales_targets", entityLevel ?? null, `${fiscalYear}`],
-    queryKey: ["sales_targets", `${selectedFiscalYearTarget}`, entityLevel ?? null],
+    queryKey: [
+      "sales_targets",
+      `${selectedFiscalYearTarget}`,
+      mainEntityTarget?.parentEntityLevel ?? null,
+      mainEntityTarget?.entityLevel ?? null,
+      mainEntityTarget?.parentEntityId ?? null,
+      "main",
+    ],
     queryFn: async (ctx) => {
       console.log("🔥queryFn実行");
       const nextPage = await fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
@@ -1313,7 +1284,150 @@ const SalesTargetGridTableMemo = ({
   const allRows = Rows.map((obj, index) => {
     return { index, ...obj };
   });
+
   // ================= 🔥🔥テスト🔥🔥ここまで==================
+
+  // --------------------- 🌟過去3年分の売上と前年度の前年伸び率実績を取得するuseQuery🌟 ---------------------
+  const {
+    data: salesSummaryRowDataTrend,
+    error: salesSummaryErrorTrend,
+    isLoading: isLoadingQueryTrend,
+    isSuccess: isSuccessQueryTrend,
+    isError: isErrorQueryTrend,
+  } = useQuerySalesSummaryAndGrowth({
+    companyId: companyId,
+    entityLevel: entityLevel,
+    entityId: entities[0].entity_id,
+    periodType: `year_half`, // 年度、上期、下期の３期間を取得
+    fiscalYear: selectedFiscalYearTarget,
+    annualFiscalMonths: annualFiscalMonths,
+    fetchEnabled: isMain && isSuccessQuery, // メイン目標のみ売上推移をフェッチ
+  });
+
+  // 表示期間(年度全て・上期詳細・下期詳細)
+  const displayTargetPeriodType = useDashboardStore((state) => state.displayTargetPeriodType);
+  const setDisplayTargetPeriodType = useDashboardStore((state) => state.setDisplayTargetPeriodType);
+
+  // 売上推移(年度・上期、下期)
+  const [salesTrends, setSalesTrends] = useState<(SparkChartObj & { updateAt: number }) | null>(() => {
+    // if (!salesSummaryRowDataTrend) return null;
+    // // "fiscal_year" | "first_half" | "second_half"
+    // // const initialData = salesSummaryRowDataTrend.find((obj) => obj.period_type === "fiscal_year")?.sales_trend ?? null;
+    // const initialData =
+    //   salesSummaryRowDataTrend.find((obj) => obj.period_type === displayTargetPeriodType)?.sales_trend ?? null;
+    // return initialData ? { ...initialData, updateAt: Date.now() } : null;
+    return null;
+  });
+
+  useEffect(() => {
+    if (!isMain) return;
+    if (!salesSummaryRowDataTrend) return;
+
+    let newTrendData =
+      salesSummaryRowDataTrend.find((obj) => obj.period_type === displayTargetPeriodType)?.sales_trend ?? null;
+
+    if (newTrendData && newTrendData.data) {
+      let newDataArray = [...newTrendData.data];
+      // 現在選択中の年度の年度・上期・下期の売上目標の期間
+      const currentTargetDate =
+        displayTargetPeriodType === "fiscal_year"
+          ? selectedFiscalYearTarget
+          : displayTargetPeriodType === "first_half"
+          ? selectedFiscalYearTarget * 10 + 1
+          : selectedFiscalYearTarget * 10 + 2;
+
+      const newTitle =
+        displayTargetPeriodType === "fiscal_year"
+          ? `FY${selectedFiscalYearTarget}`
+          : displayTargetPeriodType === "first_half"
+          ? `${selectedFiscalYearTarget}H1`
+          : `${selectedFiscalYearTarget}H2`;
+
+      // クエリ結果がnullや0でない場合
+      if (
+        allRows.length > 0 &&
+        allRows[0]?.sales_targets &&
+        allRows[0]?.sales_targets.fiscal_year &&
+        allRows[0]?.last_year_sales
+      ) {
+        const rowSales = allRows[0]?.sales_targets;
+        const rowLastYearSales = allRows[0]?.last_year_sales;
+        // 現在選択中の年度の年度・上期・下期の売上目標
+        const currentPeriodSalesTarget =
+          displayTargetPeriodType === "fiscal_year"
+            ? rowSales.fiscal_year ?? 0
+            : displayTargetPeriodType === "first_half"
+            ? rowSales.first_half ?? 0
+            : rowSales.second_half ?? 0;
+        const newData = {
+          date: currentTargetDate,
+          value: currentPeriodSalesTarget,
+        };
+
+        if (newDataArray.length === 3) {
+          newDataArray.push(newData);
+        } else if (newDataArray.length === 4) {
+          newDataArray.splice(-1, 1, newData);
+        }
+
+        // 前年度売上
+        const lastYearSalesSamePeriod =
+          displayTargetPeriodType === "fiscal_year"
+            ? rowLastYearSales.fiscal_year ?? 0
+            : displayTargetPeriodType === "first_half"
+            ? rowLastYearSales.first_half ?? 0
+            : rowLastYearSales.second_half ?? 0;
+
+        // 前年比の計算
+        const {
+          yearOverYear,
+          error: yoyError,
+          isPositive,
+        } = calculateYearOverYear(currentPeriodSalesTarget, lastYearSalesSamePeriod, 1, true, false);
+
+        newTrendData = {
+          ...newTrendData,
+          title: newTitle,
+          mainValue: currentPeriodSalesTarget, // SpartChart側でフォーマットするためこちらでフォーマット不要
+          growthRate: yearOverYear !== null ? parseFloat(yearOverYear.replace(/%/g, "")) : null,
+          data: newDataArray,
+        };
+      }
+      // クエリ結果がnullや0の場合
+      else {
+        const newData = {
+          date: currentTargetDate,
+          value: 0,
+        };
+        if (newDataArray.length === 3) {
+          newDataArray.push(newData);
+        } else if (newDataArray.length === 4) {
+          newDataArray.splice(-1, 1, newData);
+        }
+
+        newTrendData = {
+          ...newTrendData,
+          title: newTitle,
+          mainValue: 0,
+          growthRate: null,
+          data: newDataArray,
+        };
+      }
+    }
+
+    console.log("新たなトレンドデータをセット", newTrendData, "salesSummaryRowDataTrend", salesSummaryRowDataTrend);
+
+    setSalesTrends(newTrendData ? { ...newTrendData, updateAt: Date.now() } : null);
+  }, [salesSummaryRowDataTrend, displayTargetPeriodType]);
+
+  // const salesTrends = useMemo(() => {
+  //   if (!salesSummaryRowDataTrend) return null;
+  //   const salesTrendData =
+  //     salesSummaryRowDataTrend.find((obj) => obj.period_type === displayTargetPeriodType)?.sales_trend ?? null;
+
+  //   return salesTrendData ? { ...salesTrendData, updateAt: Date.now() } : null;
+  // }, [salesSummaryRowDataTrend, displayTargetPeriodType]);
+  // --------------------- 🌟過去3年分の売上と前年度の前年伸び率実績を取得するuseQuery🌟 ここまで ---------------------
 
   const rowHeight = 48;
 
@@ -3241,7 +3355,11 @@ const SalesTargetGridTableMemo = ({
     "entityLevelToChildLevelMap",
     entityLevelToChildLevelMap,
     "salesTrends",
-    salesTrends
+    salesTrends,
+    "displayTargetPeriodType",
+    displayTargetPeriodType,
+    "salesSummaryRowDataTrend",
+    salesSummaryRowDataTrend
     // `virtualItems:${rowVirtualizer.getVirtualItems().length}`
     // "colsWidth",
     // colsWidth,
@@ -3346,7 +3464,7 @@ const SalesTargetGridTableMemo = ({
   return (
     <>
       {/* タイトルエリア */}
-      <div className={`${styles.card_title_area}`}>
+      <div className={`${styles.card_title_area} ${styles.main} fade08_forward`}>
         <div className={`${styles.title_left_wrapper}`}>
           {isMain && mainEntityTarget && (
             <>
@@ -3482,6 +3600,25 @@ const SalesTargetGridTableMemo = ({
                   </div>
                 </div>
               )}
+
+              {/* {salesTrends && isMain && (
+                <div className={`relative !ml-[15px] flex`}>
+                  <SparkChart
+                    key={`${entityLevel}_${salesTrends?.title}_${salesTrends?.mainValue}_${salesTrends?.data?.length}_${salesTrends.updateAt}_main`}
+                    id={`${entityLevel}_${salesTrends?.title}_${salesTrends?.mainValue}_${salesTrends?.data?.length}_${salesTrends.updateAt}_main`}
+                    title={salesTrends.title}
+                    subTitle={salesTrends.subTitle}
+                    mainValue={salesTrends.mainValue} // COALESCE関数で売上がなくても0が入るためnumber型になる
+                    growthRate={salesTrends.growthRate}
+                    data={salesTrends.data}
+                    dataUpdateAt={salesTrends.updateAt}
+                    height={48}
+                    width={270}
+                    delay={600}
+                  />
+                </div>
+              )} */}
+
               <div
                 className="flex-center relative !ml-[15px] h-[16px] w-[16px] rounded-full"
                 onMouseEnter={(e) => {
@@ -3543,8 +3680,9 @@ const SalesTargetGridTableMemo = ({
                   <SpinnerX h="h-[16px]" w="w-[16px]" />
                 </div>
               )}
+
               {salesTrends && isMain && (
-                <div>
+                <div className={`relative !ml-[18px] flex min-w-[232px] fade08_forward`}>
                   <SparkChart
                     key={`${entityLevel}_${salesTrends?.title}_${salesTrends?.mainValue}_${salesTrends?.data?.length}_${salesTrends.updateAt}_main`}
                     id={`${entityLevel}_${salesTrends?.title}_${salesTrends?.mainValue}_${salesTrends?.data?.length}_${salesTrends.updateAt}_main`}
@@ -3554,15 +3692,9 @@ const SalesTargetGridTableMemo = ({
                     growthRate={salesTrends.growthRate}
                     data={salesTrends.data}
                     dataUpdateAt={salesTrends.updateAt}
-                    // title={row.sales_trend.title}
-                    // subTitle={row.sales_trend.subTitle}
-                    // mainValue={row.sales_trend.mainValue} // COALESCE関数で売上がなくても0が入るためnumber型になる
-                    // growthRate={row.sales_trend.growthRate}
-                    // data={row.sales_trend.data}
-                    // title={`${upsertTargetObj.fiscalYear - rowIndex}年度`}
                     height={48}
                     width={270}
-                    delay={600}
+                    delay={500}
                   />
                 </div>
               )}
@@ -3577,7 +3709,7 @@ const SalesTargetGridTableMemo = ({
             </div>
           )}
         </div>
-        <div className={`${styles.title_right_wrapper} space-x-[12px]`}>
+        <div className={`${styles.title_right_wrapper} relative space-x-[12px]`}>
           {isMain && (
             <>
               <div className={`${styles.btn} ${styles.basic} space-x-[3px]`}>
@@ -3588,7 +3720,7 @@ const SalesTargetGridTableMemo = ({
               <div
                 className={`${styles.btn} ${styles.basic} space-x-[4px]`}
                 onMouseEnter={(e) => {
-                  const entityId = mainEntityTarget?.entities[0].entity_id;
+                  const entityId = mainEntityTarget?.parentEntityId;
                   handleOpenTooltip({
                     e: e,
                     display: "top",
@@ -3598,7 +3730,7 @@ const SalesTargetGridTableMemo = ({
                 }}
                 onMouseLeave={handleCloseTooltip}
                 onClick={() => {
-                  const entityId = mainEntityTarget?.entities[0].entity_id;
+                  const entityId = mainEntityTarget?.parentEntityId;
                   if (!entityId) return;
                   if (entityId === stickyRow) {
                     setStickyRow(null);
@@ -3608,10 +3740,10 @@ const SalesTargetGridTableMemo = ({
                   handleCloseTooltip();
                 }}
               >
-                {stickyRow === mainEntityTarget?.entities[0].entity_id && <TbSnowflakeOff />}
-                {stickyRow !== mainEntityTarget?.entities[0].entity_id && <TbSnowflake />}
-                {stickyRow === mainEntityTarget?.entities[0].entity_id && <span>解除</span>}
-                {stickyRow !== mainEntityTarget?.entities[0].entity_id && <span>固定</span>}
+                {stickyRow === mainEntityTarget?.parentEntityId && <TbSnowflakeOff />}
+                {stickyRow !== mainEntityTarget?.parentEntityId && <TbSnowflake />}
+                {stickyRow === mainEntityTarget?.parentEntityId && <span>解除</span>}
+                {stickyRow !== mainEntityTarget?.parentEntityId && <span>固定</span>}
               </div>
             </>
           )}
@@ -3621,7 +3753,7 @@ const SalesTargetGridTableMemo = ({
       <div
         className={`${styles.main_container} ${
           theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
-        }`}
+        } fade08_forward`}
       >
         {/* 右側shadow */}
         <div
@@ -5074,6 +5206,8 @@ const SalesTargetGridTableMemo = ({
                               entityLevel: childEntityGroup.entities[0].entity_level as EntityLevelNames,
                               entities: childEntityGroup.entities,
                             });
+
+                            if (onResetFetchComplete) onResetFetchComplete();
                           }
                           // setOpenSectionMenu(null);
                           handleCloseSectionMenu();
