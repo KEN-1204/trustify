@@ -2640,6 +2640,27 @@ export type SalesTargetSHRowData = {
   month_12: number | null;
 };
 
+// 年度全て Key
+export type FiscalYearAllKeys =
+  | "fiscal_year"
+  | "first_half"
+  | "second_half"
+  | "first_quarter"
+  | "second_quarter"
+  | "third_quarter"
+  | "fourth_quarter"
+  | "month_01"
+  | "month_02"
+  | "month_03"
+  | "month_04"
+  | "month_05"
+  | "month_06"
+  | "month_07"
+  | "month_08"
+  | "month_09"
+  | "month_10"
+  | "month_11"
+  | "month_12";
 // 上期詳細Key
 export type FirstHalfDetailsKeys =
   | "first_half"
@@ -3034,7 +3055,8 @@ export type DisplayKeys = "sales_targets" | "last_year_sales" | "yoy_growth";
 // yoy: Year Over Year
 export type MainTotalTargets = {
   [K in "sales_targets" | "last_year_sales"]: {
-    [K in "fiscal_year" | "first_half" | "second_half"]: number;
+    // [K in "fiscal_year" | "first_half" | "second_half"]: number;
+    [K in FiscalYearAllKeys]: number;
   };
 };
 
@@ -3271,4 +3293,30 @@ export type SalesProbabilitiesChartData = {
   total_amount: number;
   chartData: DonutChartObj[];
   labelListSalesProbabilities: LabelDataSalesProbability[];
+};
+// ドーナツチャート 売上目標シェア
+export type DonutChartShareObj = {
+  name: string;
+  value: number;
+  [key: string]: number | string;
+};
+// ドーナツチャート 売上目標シェア
+export type LabelDataSalesTargetsShare = {
+  entity_name: string;
+  amount: number;
+  share: number;
+  period: number;
+  [key: string]: number | string;
+};
+// useQueryのレスポンスデータ(売上目標シェア)
+// export type responseShareTargets = {
+//   total_amount: number;
+//   label_data: LabelDataSalesTargetsShare[];
+// };
+
+// 🌠最終的なuseQueryのエンティティ別 売上目標シェア
+export type SalesTargetsShareChartData = {
+  total_amount: number;
+  chartData: DonutChartShareObj[];
+  labelListShareSalesTargets: LabelDataSalesTargetsShare[];
 };

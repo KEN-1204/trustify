@@ -1281,16 +1281,50 @@ const SalesTargetGridTableMemo = ({
         // 総合目標をZustandに格納
         const newQueryTarget = !!data?.pages?.length && !!data?.pages[0].rows?.length ? data?.pages[0].rows[0] : null;
         if (newQueryTarget) {
+          const st = newQueryTarget.sales_targets;
+          const lys = newQueryTarget.last_year_sales;
           setMainTotalTargets({
             sales_targets: {
-              fiscal_year: newQueryTarget.sales_targets.fiscal_year ?? 0,
-              first_half: newQueryTarget.sales_targets.first_half ?? 0,
-              second_half: newQueryTarget.sales_targets.second_half ?? 0,
+              fiscal_year: st.fiscal_year ?? 0,
+              first_half: st.first_half ?? 0,
+              second_half: st.second_half ?? 0,
+              first_quarter: st.first_quarter ?? 0,
+              second_quarter: st.second_quarter ?? 0,
+              third_quarter: st.third_quarter ?? 0,
+              fourth_quarter: st.fourth_quarter ?? 0,
+              month_01: st.month_01 ?? 0,
+              month_02: st.month_02 ?? 0,
+              month_03: st.month_03 ?? 0,
+              month_04: st.month_04 ?? 0,
+              month_05: st.month_05 ?? 0,
+              month_06: st.month_06 ?? 0,
+              month_07: st.month_07 ?? 0,
+              month_08: st.month_08 ?? 0,
+              month_09: st.month_09 ?? 0,
+              month_10: st.month_10 ?? 0,
+              month_11: st.month_11 ?? 0,
+              month_12: st.month_12 ?? 0,
             },
             last_year_sales: {
-              fiscal_year: newQueryTarget.last_year_sales.fiscal_year ?? 0,
-              first_half: newQueryTarget.last_year_sales.first_half ?? 0,
-              second_half: newQueryTarget.last_year_sales.second_half ?? 0,
+              fiscal_year: lys.fiscal_year ?? 0,
+              first_half: lys.first_half ?? 0,
+              second_half: lys.second_half ?? 0,
+              first_quarter: lys.first_quarter ?? 0,
+              second_quarter: lys.second_quarter ?? 0,
+              third_quarter: lys.third_quarter ?? 0,
+              fourth_quarter: lys.fourth_quarter ?? 0,
+              month_01: lys.month_01 ?? 0,
+              month_02: lys.month_02 ?? 0,
+              month_03: lys.month_03 ?? 0,
+              month_04: lys.month_04 ?? 0,
+              month_05: lys.month_05 ?? 0,
+              month_06: lys.month_06 ?? 0,
+              month_07: lys.month_07 ?? 0,
+              month_08: lys.month_08 ?? 0,
+              month_09: lys.month_09 ?? 0,
+              month_10: lys.month_10 ?? 0,
+              month_11: lys.month_11 ?? 0,
+              month_12: lys.month_12 ?? 0,
             },
           });
         }

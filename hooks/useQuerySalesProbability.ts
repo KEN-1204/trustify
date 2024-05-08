@@ -21,7 +21,8 @@ type Props = {
   companyId: string;
   entityLevel: string;
   entityId: string;
-  periodType: string;
+  // periodType: string;
+  periodType: "fiscal_year" | "half_year" | "quarter" | "year_month";
   basePeriod: number;
   fetchEnabled?: boolean;
 };
