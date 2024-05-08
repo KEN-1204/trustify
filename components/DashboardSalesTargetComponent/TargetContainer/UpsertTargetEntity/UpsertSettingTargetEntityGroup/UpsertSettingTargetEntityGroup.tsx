@@ -1359,6 +1359,7 @@ const UpsertSettingTargetEntityGroupMemo = ({
     setIsOpenEditSubListModal(false);
   };
 
+  // -------------------------- 売上推移 部門別 --------------------------
   // 🌟売上推移で表示するperiodType
   // 遡る年数
   const [yearsBack, setYearsBack] = useState(2);

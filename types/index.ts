@@ -2557,6 +2557,8 @@ export type CustomizedLabelProps = {
 // 売上目標 売上目標テーブルからFUNCTIONで取得
 export type SalesTargetFYRowData = {
   share: number | null;
+  share_first_half: number | null;
+  share_second_half: number | null;
   dataset_type: string;
   entity_id: string;
   entity_level: string | null;
@@ -2599,6 +2601,67 @@ export type SalesTargetFYRowData = {
   // November: number | null;
   // December: number | null;
 };
+// 上期詳細カラム
+export type SalesTargetFHRowData = {
+  share: number | null;
+  share_first_half: number | null;
+  share_second_half: number | null;
+  dataset_type: string;
+  entity_id: string;
+  entity_level: string | null;
+  entity_name: string | null;
+  first_half: number | null;
+  first_quarter: number | null;
+  second_quarter: number | null;
+  month_01: number | null;
+  month_02: number | null;
+  month_03: number | null;
+  month_04: number | null;
+  month_05: number | null;
+  month_06: number | null;
+};
+// 下期詳細
+export type SalesTargetSHRowData = {
+  share: number | null;
+  share_first_half: number | null;
+  share_second_half: number | null;
+  dataset_type: string;
+  entity_id: string;
+  entity_level: string | null;
+  entity_name: string | null;
+  second_half: number | null;
+  third_quarter: number | null;
+  fourth_quarter: number | null;
+  month_07: number | null;
+  month_08: number | null;
+  month_09: number | null;
+  month_10: number | null;
+  month_11: number | null;
+  month_12: number | null;
+};
+
+// 上期詳細Key
+export type FirstHalfDetailsKeys =
+  | "first_half"
+  | "first_quarter"
+  | "second_quarter"
+  | "month_01"
+  | "month_02"
+  | "month_03"
+  | "month_04"
+  | "month_05"
+  | "month_06";
+// 下期詳細Key
+export type SecondHalfDetailsKeys =
+  | "second_half"
+  | "third_quarter"
+  | "fourth_quarter"
+  | "month_07"
+  | "month_08"
+  | "month_09"
+  | "month_10"
+  | "month_11"
+  | "month_12";
 
 // 前年度売上実績 案件テーブルからFUNCTIONで取得
 export type LastYearSalesRowData = {

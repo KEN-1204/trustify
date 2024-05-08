@@ -14,7 +14,9 @@ import {
   EntityLevels,
   FiscalYears,
   Office,
+  SalesTargetFHRowData,
   SalesTargetFYRowData,
+  SalesTargetSHRowData,
   SalesTargetsRowDataWithYoY,
   Section,
   SectionMenuParams,
@@ -52,6 +54,7 @@ import { convertToJapaneseCurrencyFormatInYen } from "@/utils/Helpers/Currency/c
 import { useQuerySalesSummaryAndGrowth } from "@/hooks/useQuerySalesSummaryAndGrowth";
 import { SparkChart } from "@/components/Parts/Charts/SparkChart/SparkChart";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
+import { HiOutlineSelector } from "react-icons/hi";
 
 // entityLevel: company / department...
 type Props = {
@@ -1690,7 +1693,8 @@ const SalesTargetGridTableMemo = ({
     if (entityLevel === "company") {
       newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更 id
     } else {
-      newColsWidths.fill("150px", 1, 2); // 2列目を100pxに変更 id
+      newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更 id
+      // newColsWidths.fill("150px", 1, 2); // 2列目を100pxに変更 id
     }
     // newColsWidths.fill("100px", 2, 3); // 2列目を100pxに変更 法人番号
     // newColsWidths.fill("200px", 3, 4); // 4列目を100pxに変更 会社名
@@ -3295,22 +3299,128 @@ const SalesTargetGridTableMemo = ({
     }
   };
 
+  const columnsSetFirstHalf = useMemo(
+    () =>
+      new Set([
+        "entity_name",
+        "dataset_type",
+        "first_half",
+        "first_quarter",
+        "second_quarter",
+        "month_01",
+        "month_02",
+        "month_03",
+        "month_04",
+        "month_05",
+        "month_06",
+      ]),
+    []
+  );
+  const columnsSetSecondHalf = useMemo(
+    () =>
+      new Set([
+        "entity_name",
+        "dataset_type",
+        "second_half",
+        "third_quarter",
+        "fourth_quarter",
+        "month_07",
+        "month_08",
+        "month_09",
+        "month_10",
+        "month_11",
+        "month_12",
+      ]),
+    []
+  );
+
+  const filteredSalesTargetColumnHeaderItemList = useMemo(() => {
+    let copiedColumnHeaderList = [...salesTargetColumnHeaderItemList];
+
+    if (displayTargetPeriodType === "first_half") {
+      copiedColumnHeaderList = copiedColumnHeaderList.filter((column) => columnsSetFirstHalf.has(column.columnName));
+      return copiedColumnHeaderList;
+    } else if (displayTargetPeriodType === "second_half") {
+      copiedColumnHeaderList = copiedColumnHeaderList.filter((column) => columnsSetSecondHalf.has(column.columnName));
+      return copiedColumnHeaderList;
+    } else {
+      return copiedColumnHeaderList;
+    }
+  }, [salesTargetColumnHeaderItemList, displayTargetPeriodType]);
+
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
-  const columnOrder = [...salesTargetColumnHeaderItemList].map(
-    (item, index) =>
-      item.columnName as keyof Omit<
-        SalesTargetFYRowData,
-        | "entity_id"
-        | "entity_level"
-        | "share"
-        | "created_by_company_id"
-        | "created_by_department_id"
-        | "created_by_section_id"
-        | "created_by_unit_id"
-        | "created_by_user_id"
-        | "created_by_office_id"
-      >
-  ); // columnNameのみの配列を取得
+  const columnOrder = useMemo(() => {
+    let copiedColumnHeaderList = [...filteredSalesTargetColumnHeaderItemList];
+    if (displayTargetPeriodType === "fiscal_year") {
+      return [...copiedColumnHeaderList].map(
+        (item, index) =>
+          item.columnName as keyof Omit<
+            SalesTargetFYRowData,
+            | "entity_id"
+            | "entity_level"
+            | "share"
+            | "created_by_company_id"
+            | "created_by_department_id"
+            | "created_by_section_id"
+            | "created_by_unit_id"
+            | "created_by_user_id"
+            | "created_by_office_id"
+          >
+      );
+    }
+    if (displayTargetPeriodType === "first_half") {
+      // copiedColumnHeaderList = copiedColumnHeaderList.filter((column) => columnsSetFirstHalf.has(column.columnName));
+      return [...copiedColumnHeaderList].map(
+        (item, index) =>
+          item.columnName as keyof Omit<
+            SalesTargetFHRowData,
+            | "entity_id"
+            | "entity_level"
+            | "share"
+            | "created_by_company_id"
+            | "created_by_department_id"
+            | "created_by_section_id"
+            | "created_by_unit_id"
+            | "created_by_user_id"
+            | "created_by_office_id"
+          >
+      );
+    }
+    if (displayTargetPeriodType === "second_half") {
+      // copiedColumnHeaderList = copiedColumnHeaderList.filter((column) => columnsSetSecondHalf.has(column.columnName));
+      return [...copiedColumnHeaderList].map(
+        (item, index) =>
+          item.columnName as keyof Omit<
+            SalesTargetSHRowData,
+            | "entity_id"
+            | "entity_level"
+            | "share"
+            | "created_by_company_id"
+            | "created_by_department_id"
+            | "created_by_section_id"
+            | "created_by_unit_id"
+            | "created_by_user_id"
+            | "created_by_office_id"
+          >
+      );
+    }
+
+    // return [...salesTargetColumnHeaderItemList].map(
+    //   (item, index) =>
+    //     item.columnName as keyof Omit<
+    //       SalesTargetFYRowData,
+    //       | "entity_id"
+    //       | "entity_level"
+    //       | "share"
+    //       | "created_by_company_id"
+    //       | "created_by_department_id"
+    //       | "created_by_section_id"
+    //       | "created_by_unit_id"
+    //       | "created_by_user_id"
+    //       | "created_by_office_id"
+    //     >
+    // );
+  }, [filteredSalesTargetColumnHeaderItemList, displayTargetPeriodType]); // columnNameのみの配列を取得
   // 上半期のみ 売上目標のみ、前年比のみなどのフィルターはここで行う
 
   console.log(
@@ -3730,9 +3840,61 @@ const SalesTargetGridTableMemo = ({
         <div className={`${styles.title_right_wrapper} relative space-x-[12px]`}>
           {isMain && (
             <>
-              <div className={`${styles.btn} ${styles.basic} space-x-[3px]`}>
+              {/* <div
+                className={`${styles.btn} ${styles.basic} space-x-[3px]`}
+                onMouseEnter={(e) => {
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `表示期間を変更`,
+                    marginTop: 9,
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+                onClick={() => {
+                  const entityId = mainEntityTarget?.parentEntityId;
+                  if (!entityId) return;
+                  if (entityId === stickyRow) {
+                    setStickyRow(null);
+                  } else {
+                    setStickyRow(entityId);
+                  }
+                  handleCloseTooltip();
+                }}
+              >
                 <span>全て</span>
                 <IoCaretDownOutline className={``} />
+              </div> */}
+              <div
+                className={`${styles.select_btn_wrapper} fade08_forward relative flex items-center text-[var(--color-text-title-g)]`}
+                onMouseEnter={(e) => {
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `表示期間を変更`,
+                    marginTop: 9,
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <select
+                  className={`z-10 cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px]`}
+                  value={displayTargetPeriodType}
+                  onChange={(e) => {
+                    setDisplayTargetPeriodType(e.target.value as "first_half" | "second_half" | "fiscal_year");
+                    handleCloseTooltip();
+                  }}
+                >
+                  <>
+                    <option value="fiscal_year">全て</option>
+                    <option value="first_half">上期</option>
+                    <option value="second_half">下期</option>
+                  </>
+                </select>
+                {/* 上下矢印アイコン */}
+                <div className={`${styles.select_arrow}`}>
+                  <HiOutlineSelector className="stroke-[2] text-[16px]" />
+                </div>
               </div>
 
               <div
@@ -3804,10 +3966,15 @@ const SalesTargetGridTableMemo = ({
               aria-colindex={1}
               aria-selected={false}
               tabIndex={-1}
-              className={`${styles.grid_column_header_all} ${styles.grid_column_frozen} ${styles.grid_column_header_checkbox_column} ${styles.share}`}
+              className={`${styles.grid_column_header_all} ${styles.grid_column_frozen} ${
+                styles.grid_column_header_checkbox_column
+              } ${styles.share} ${displayTargetPeriodType !== "fiscal_year" ? `${styles.drag_disabled}` : ``}`}
               // style={{ gridColumnStart: 1, left: columnHeaderLeft(0), position: "sticky" }}
               style={{ gridColumnStart: 1, left: "0px", position: "sticky" }}
-              onClick={(e) => handleClickGridCell(e)}
+              onClick={(e) => {
+                if (displayTargetPeriodType !== "fiscal_year") return;
+                handleClickGridCell(e);
+              }}
             >
               <div
                 // className={styles.grid_select_cell_header}
@@ -3816,7 +3983,15 @@ const SalesTargetGridTableMemo = ({
                 {/* <span>シェア</span> */}
                 <>
                   <span className={`pointer-events-none text-[12px] leading-[12px]`}>シェア</span>
-                  <span className={`pointer-events-none text-[10px]`}>(年度)</span>
+                  <span className={`pointer-events-none text-[10px]`}>
+                    (
+                    {displayTargetPeriodType === "fiscal_year"
+                      ? `年度`
+                      : displayTargetPeriodType === "first_half"
+                      ? `上期`
+                      : `下期`}
+                    )
+                  </span>
                 </>
                 {/* <input
                   type="checkbox"
@@ -3831,8 +4006,10 @@ const SalesTargetGridTableMemo = ({
               </div>
             </div>
             {/* ======== ヘッダーセル チェックボックスColumn ここまで ======== */}
-            {!!salesTargetColumnHeaderItemList.length &&
-              [...salesTargetColumnHeaderItemList]
+            {/* {!!salesTargetColumnHeaderItemList.length &&
+              [...salesTargetColumnHeaderItemList] */}
+            {!!filteredSalesTargetColumnHeaderItemList.length &&
+              [...filteredSalesTargetColumnHeaderItemList]
                 .sort((a, b) => a.columnIndex - b.columnIndex) // columnIndexで並び替え
                 .map((key, index) => (
                   <div
@@ -3841,6 +4018,7 @@ const SalesTargetGridTableMemo = ({
                     key={key.columnName}
                     ref={(ref) => (colsRef.current[index] = ref)}
                     role="columnheader"
+                    // draggable={displayTargetPeriodType === "fiscal_year" ? !key.isFrozen : false} // テスト
                     draggable={!key.isFrozen} // テスト
                     // draggable={index === 0 ? false : true} // テスト
                     data-column-id={`${key.columnId}`}
@@ -3865,7 +4043,9 @@ const SalesTargetGridTableMemo = ({
                       key.isFrozen ? `${styles.grid_column_frozen} cursor-default` : "cursor-grab"
                     } ${isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""} ${
                       isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
-                    } ${styles.grid_cell_resizable} dropzone ${key.isOverflow ? `${styles.is_overflow}` : ""}`}
+                    } ${styles.grid_cell_resizable} dropzone ${key.isOverflow ? `${styles.is_overflow}` : ""} ${
+                      displayTargetPeriodType !== "fiscal_year" ? `${styles.drag_disabled}` : ``
+                    }`}
                     style={
                       key.isFrozen
                         ? { gridColumnStart: index + 2, left: `var(--frozen-left-${index})` }
@@ -3903,9 +4083,16 @@ const SalesTargetGridTableMemo = ({
                         handleCloseTooltip();
                       }
                     }}
-                    onDragStart={(e) => handleDragStart(e, index)} // テスト
-                    onDragEnd={(e) => handleDragEnd(e)} // テスト
+                    onDragStart={(e) => {
+                      if (displayTargetPeriodType !== "fiscal_year") return;
+                      handleDragStart(e, index);
+                    }} // テスト
+                    onDragEnd={(e) => {
+                      if (displayTargetPeriodType !== "fiscal_year") return;
+                      handleDragEnd(e);
+                    }} // テスト
                     onDragOver={(e) => {
+                      if (displayTargetPeriodType !== "fiscal_year") return;
                       e.preventDefault(); // テスト
                       handleDragOver(e, index);
                     }}
@@ -3913,6 +4100,7 @@ const SalesTargetGridTableMemo = ({
                     //   handleDragEnter(e, index); // デバウンス
                     // }, 300)}
                     onDragEnter={(e) => {
+                      if (displayTargetPeriodType !== "fiscal_year") return;
                       handleDragEnter(e, index);
                     }}
                   >
@@ -3958,8 +4146,12 @@ const SalesTargetGridTableMemo = ({
                       ref={(ref) => (draggableOverlaysRef.current[index] = ref)}
                       role="draggable_overlay"
                       className={styles.draggable_overlay}
-                      onMouseDown={(e) => handleMouseDown(e, index)}
+                      onMouseDown={(e) => {
+                        if (displayTargetPeriodType !== "fiscal_year") return;
+                        handleMouseDown(e, index);
+                      }}
                       onMouseEnter={() => {
+                        if (displayTargetPeriodType !== "fiscal_year") return;
                         const gridScrollContainer = parentGridScrollContainer.current;
                         if (!gridScrollContainer) return;
                         const colsLines = gridScrollContainer.querySelectorAll(`[aria-colindex="${index + 2}"]`);
@@ -3971,6 +4163,7 @@ const SalesTargetGridTableMemo = ({
                         });
                       }}
                       onMouseLeave={() => {
+                        if (displayTargetPeriodType !== "fiscal_year") return;
                         const gridScrollContainer = parentGridScrollContainer.current;
                         if (!gridScrollContainer) return;
                         const colsLines = gridScrollContainer.querySelectorAll(`[aria-colindex="${index + 2}"]`);
@@ -4176,7 +4369,8 @@ const SalesTargetGridTableMemo = ({
                                     // .map((columnName) => rowData[columnName])
                                     .map((columnName) => displayRowData[columnName])
                                     .map((value, index) => {
-                                      const columnName = salesTargetColumnHeaderItemList[index]?.columnName;
+                                      // const columnName = salesTargetColumnHeaderItemList[index]?.columnName;
+                                      const columnName = filteredSalesTargetColumnHeaderItemList[index]?.columnName;
                                       // const columnName = Object.keys(displayRowData)[];
                                       let displayValue = value;
 

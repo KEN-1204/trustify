@@ -340,6 +340,7 @@
 .grid_cell.company_highlight {
   /* color: var(--color-company-highlight); */
   font-family: sans-serif;
+  font-weight: 600;
 }
 .grid_row:hover .grid_cell {
   background-color: var(--color-table-row-hover);
@@ -394,6 +395,7 @@
 .grid_column_header_all:active {
   cursor: grabbing;
 }
+
 /* カラム順番入れ替え中のスタイル変更 ドラッグ中の色を付ける */
 .grid_column_header_all.dragging_change_order {
   opacity: 0.3;
@@ -1221,4 +1223,49 @@
 .grid_header_row .grid_column_header_all.grid_column_frozen,
 .grid_row .grid_cell.grid_column_frozen {
   backdrop-filter: blur(10px) !important;
+}
+
+.select_btn_wrapper select {
+  box-shadow: 0 0 0 1px var(--color-border-base);
+  /* background-color: var(--color-btn-basic-bg); */
+  background-color: var(--color-btn-basic-bg-on-card);
+  max-width: 300px;
+  padding: 4px 24px 4px 12px;
+  /* padding: 6px 12px; */
+  font-weight: 500;
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+
+  font-size: 12px;
+}
+.select_btn_wrapper select:hover {
+  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */
+  /* background-color: var(--color-btn-basic-bg-hover); */
+  background-color: var(--color-btn-basic-bg-on-card-hover);
+  color: var(--color-btn-basic-text-hover);
+}
+
+/* セレクトボタン用の上下アイコン */
+.select_arrow {
+  /* color: #404452; */
+  /* color: rgb(64, 68, 82); */
+  /* color: rgb(48, 49, 61); */
+  /* color: #30313d; */
+  position: absolute;
+  right: 1px;
+  top: 50%;
+  z-index: 100;
+  transform: translateY(-50%);
+  width: 25px;
+  height: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+
+.grid_column_header_all.drag_disabled {
+  cursor: default !important;
+}
+.grid_column_header_all.drag_disabled * {
+  cursor: default !important;
 }

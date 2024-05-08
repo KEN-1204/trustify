@@ -14,7 +14,9 @@ import {
   EntityLevels,
   FiscalYears,
   Office,
+  SalesTargetFHRowData,
   SalesTargetFYRowData,
+  SalesTargetSHRowData,
   SalesTargetsRowDataWithYoY,
   Section,
   SectionMenuParams,
@@ -608,6 +610,8 @@ const SalesTargetGridTableSubMemo = ({
           return {
             ...target,
             share: null,
+            share_first_half: null,
+            share_second_half: null,
             dataset_type: "yoy_growth",
             // 前年比(伸び率) 25.7%の小数点第1位までの数値部分で算出してセット
             fiscal_year: !resultFY.error ? Number(resultFY.yearOverYear) : null, // 年度
@@ -640,9 +644,12 @@ const SalesTargetGridTableSubMemo = ({
         salesTargetRows = salesTargetRows?.length
           ? (salesTargetRows.map((obj) => {
               let _share = 0;
-              try {
-                if (!mainTotalTargets?.sales_targets) throw new Error("❌mainTotalTargets?.sales_targets無し");
-                if (displayTargetPeriodType === "fiscal_year") {
+              let _share_first_half = 0;
+              let _share_second_half = 0;
+              if (!!mainTotalTargets?.sales_targets) {
+                try {
+                  // fiscal_year
+                  // if (displayTargetPeriodType === "fiscal_year") {}
                   const _totalTargetFY = mainTotalTargets?.sales_targets.fiscal_year;
                   if (!isValidNumber(_totalTargetFY)) throw new Error("❌総合目標金額無し");
                   const totalDecimalFY = new Decimal(_totalTargetFY!);
@@ -650,76 +657,110 @@ const SalesTargetGridTableSubMemo = ({
                   _share = Number(
                     subEntityDecimalFY.dividedBy(totalDecimalFY).times(100).toFixed(0, Decimal.ROUND_HALF_UP)
                   );
+                } catch (e: any) {
+                  console.log("queryFn内シェア算出sales_targets.fiscal_year", e);
                 }
-                if (displayTargetPeriodType === "first_half") {
+
+                try {
+                  // first_half
+                  // if (displayTargetPeriodType === "first_half") {}
                   const _totalTargetFH = mainTotalTargets?.sales_targets.first_half;
                   if (!isValidNumber(_totalTargetFH)) throw new Error("❌総合目標金額無し");
                   const totalDecimalFH = new Decimal(_totalTargetFH!);
                   const subEntityDecimalFH = new Decimal(obj.first_half ?? 0);
-                  _share = Number(
+                  _share_first_half = Number(
                     subEntityDecimalFH.dividedBy(totalDecimalFH).times(100).toFixed(0, Decimal.ROUND_HALF_UP)
                   );
+                } catch (e: any) {
+                  console.log("queryFn内シェア算出sales_targets.first_half", e);
                 }
-                if (displayTargetPeriodType === "second_half") {
+
+                try {
+                  // second_half
+                  // if (displayTargetPeriodType === "second_half") {}
                   const _totalTargetSH = mainTotalTargets?.sales_targets.second_half;
                   if (!isValidNumber(_totalTargetSH)) throw new Error("❌総合目標金額無し");
                   const totalDecimalSH = new Decimal(_totalTargetSH!);
                   const subEntityDecimalSH = new Decimal(obj.second_half ?? 0);
-                  _share = Number(
+                  _share_second_half = Number(
                     subEntityDecimalSH.dividedBy(totalDecimalSH).times(100).toFixed(0, Decimal.ROUND_HALF_UP)
                   );
+                } catch (e: any) {
+                  console.log("queryFn内シェア算出sales_targets.second_half", e);
                 }
-              } catch (e: any) {
-                console.log("queryFn内シェア算出", e);
               }
 
               console.log(
                 "🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠シェア",
                 _share,
+                _share_first_half,
+                _share_second_half,
                 "mainTotalTargets",
-                mainTotalTargets,
-                "displayTargetPeriodType",
-                displayTargetPeriodType
+                mainTotalTargets
               );
 
               return {
                 ...obj,
                 share: _share,
+                share_first_half: _share_first_half,
+                share_second_half: _share_second_half,
               };
             }) as (SalesTargetFYRowData & { share: number })[])
           : [];
         lastYearSalesRows = lastYearSalesRows?.length
           ? (lastYearSalesRows.map((obj) => {
               let _share = 0;
-              try {
-                if (!mainTotalTargets?.last_year_sales) throw new Error("❌mainTotalTargets?.last_year_sales無し");
-                if (displayTargetPeriodType === "fiscal_year") {
+              let _share_first_half = 0;
+              let _share_second_half = 0;
+              if (!!mainTotalTargets?.last_year_sales) {
+                try {
+                  // fiscal_year
+                  // if (displayTargetPeriodType === "fiscal_year") {}
                   const _totalTargetFY = mainTotalTargets?.last_year_sales.fiscal_year;
                   if (!isValidNumber(_totalTargetFY)) throw new Error("❌総合目標金額無し");
                   const totalDecimalFY = new Decimal(_totalTargetFY!);
                   const subEntityDecimalFY = new Decimal(obj.fiscal_year ?? 0);
-                  _share = subEntityDecimalFY.dividedBy(totalDecimalFY).toNumber();
+                  _share = Number(
+                    subEntityDecimalFY.dividedBy(totalDecimalFY).times(100).toFixed(0, Decimal.ROUND_HALF_UP)
+                  );
+                } catch (e: any) {
+                  console.log("queryFn内シェア算出last_year_sales.fiscal_year", e);
                 }
-                if (displayTargetPeriodType === "first_half") {
+
+                try {
+                  // first_half
+                  // if (displayTargetPeriodType === "first_half") {}
                   const _totalTargetFH = mainTotalTargets?.last_year_sales.first_half;
                   if (!isValidNumber(_totalTargetFH)) throw new Error("❌総合目標金額無し");
                   const totalDecimalFH = new Decimal(_totalTargetFH!);
                   const subEntityDecimalFH = new Decimal(obj.first_half ?? 0);
-                  _share = subEntityDecimalFH.dividedBy(totalDecimalFH).toNumber();
+                  _share_first_half = Number(
+                    subEntityDecimalFH.dividedBy(totalDecimalFH).times(100).toFixed(0, Decimal.ROUND_HALF_UP)
+                  );
+                } catch (e: any) {
+                  console.log("queryFn内シェア算出last_year_sales.first_half", e);
                 }
-                if (displayTargetPeriodType === "second_half") {
+
+                try {
+                  // second_half
+                  // if (displayTargetPeriodType === "second_half") {}
                   const _totalTargetSH = mainTotalTargets?.last_year_sales.second_half;
                   if (!isValidNumber(_totalTargetSH)) throw new Error("❌総合目標金額無し");
                   const totalDecimalSH = new Decimal(_totalTargetSH!);
                   const subEntityDecimalSH = new Decimal(obj.second_half ?? 0);
-                  _share = subEntityDecimalSH.dividedBy(totalDecimalSH).toNumber();
+                  _share_second_half = Number(
+                    subEntityDecimalSH.dividedBy(totalDecimalSH).times(100).toFixed(0, Decimal.ROUND_HALF_UP)
+                  );
+                } catch (e: any) {
+                  console.log("queryFn内シェア算出last_year_sales.second_half", e);
                 }
-              } catch (e: any) {
-                console.log("queryFn内シェア算出", e);
               }
+
               return {
                 ...obj,
                 share: _share,
+                share_first_half: _share_first_half,
+                share_second_half: _share_second_half,
                 entity_name: entitiesIdToObjMap.get(obj?.entity_id) ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
               };
             }) as (SalesTargetFYRowData & { share: number })[])
@@ -1058,7 +1099,8 @@ const SalesTargetGridTableSubMemo = ({
     if (entityLevel === "company") {
       newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更 id
     } else {
-      newColsWidths.fill("150px", 1, 2); // 2列目を100pxに変更 id
+      newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更 id
+      // newColsWidths.fill("150px", 1, 2); // 2列目を100pxに変更 id
     }
     // newColsWidths.fill("100px", 2, 3); // 2列目を100pxに変更 法人番号
     // newColsWidths.fill("200px", 3, 4); // 4列目を100pxに変更 会社名
@@ -2528,47 +2570,218 @@ const SalesTargetGridTableSubMemo = ({
     }
   };
 
+  // // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
+  // const columnOrder = [...salesTargetColumnHeaderItemList].map(
+  //   (item, index) =>
+  //     item.columnName as keyof Omit<
+  //       SalesTargetFYRowData,
+  //       | "entity_id"
+  //       | "entity_level"
+  //       | "share"
+  //       | "created_by_company_id"
+  //       | "created_by_department_id"
+  //       | "created_by_section_id"
+  //       | "created_by_unit_id"
+  //       | "created_by_user_id"
+  //       | "created_by_office_id"
+  //     >
+  // ); // columnNameのみの配列を取得
+  // 上半期のみ 売上目標のみ、前年比のみなどのフィルターはここで行う
+  const columnsSetFirstHalf = useMemo(
+    () =>
+      new Set([
+        "entity_name",
+        "dataset_type",
+        "first_half",
+        "first_quarter",
+        "second_quarter",
+        "month_01",
+        "month_02",
+        "month_03",
+        "month_04",
+        "month_05",
+        "month_06",
+      ]),
+    []
+  );
+  const columnsSetSecondHalf = useMemo(
+    () =>
+      new Set([
+        "entity_name",
+        "dataset_type",
+        "second_half",
+        "third_quarter",
+        "fourth_quarter",
+        "month_07",
+        "month_08",
+        "month_09",
+        "month_10",
+        "month_11",
+        "month_12",
+      ]),
+    []
+  );
+
+  const filteredSalesTargetColumnHeaderItemList = useMemo(() => {
+    let copiedColumnHeaderList = [...salesTargetColumnHeaderItemList];
+
+    if (displayTargetPeriodType === "first_half") {
+      copiedColumnHeaderList = copiedColumnHeaderList.filter((column) => columnsSetFirstHalf.has(column.columnName));
+      return copiedColumnHeaderList;
+    } else if (displayTargetPeriodType === "second_half") {
+      copiedColumnHeaderList = copiedColumnHeaderList.filter((column) => columnsSetSecondHalf.has(column.columnName));
+      return copiedColumnHeaderList;
+    } else {
+      return copiedColumnHeaderList;
+    }
+  }, [salesTargetColumnHeaderItemList, displayTargetPeriodType]);
+
   // 🌟現在のカラム.map((obj) => Object.values(row)[obj.columnId])で展開してGridセルを表示する
-  const columnOrder = [...salesTargetColumnHeaderItemList].map(
-    (item, index) =>
-      item.columnName as keyof Omit<
-        SalesTargetFYRowData,
-        | "entity_id"
-        | "entity_level"
-        | "share"
-        | "created_by_company_id"
-        | "created_by_department_id"
-        | "created_by_section_id"
-        | "created_by_unit_id"
-        | "created_by_user_id"
-        | "created_by_office_id"
-      >
-  ); // columnNameのみの配列を取得
+  const columnOrder = useMemo(() => {
+    let copiedColumnHeaderList = [...filteredSalesTargetColumnHeaderItemList];
+    if (displayTargetPeriodType === "fiscal_year") {
+      return [...copiedColumnHeaderList].map(
+        (item, index) =>
+          item.columnName as keyof Omit<
+            SalesTargetFYRowData,
+            | "entity_id"
+            | "entity_level"
+            | "share"
+            | "created_by_company_id"
+            | "created_by_department_id"
+            | "created_by_section_id"
+            | "created_by_unit_id"
+            | "created_by_user_id"
+            | "created_by_office_id"
+          >
+      );
+    }
+    if (displayTargetPeriodType === "first_half") {
+      // copiedColumnHeaderList = copiedColumnHeaderList.filter((column) => columnsSetFirstHalf.has(column.columnName));
+      return [...copiedColumnHeaderList].map(
+        (item, index) =>
+          item.columnName as keyof Omit<
+            SalesTargetFHRowData,
+            | "entity_id"
+            | "entity_level"
+            | "share"
+            | "created_by_company_id"
+            | "created_by_department_id"
+            | "created_by_section_id"
+            | "created_by_unit_id"
+            | "created_by_user_id"
+            | "created_by_office_id"
+          >
+      );
+    }
+    if (displayTargetPeriodType === "second_half") {
+      // copiedColumnHeaderList = copiedColumnHeaderList.filter((column) => columnsSetSecondHalf.has(column.columnName));
+      return [...copiedColumnHeaderList].map(
+        (item, index) =>
+          item.columnName as keyof Omit<
+            SalesTargetSHRowData,
+            | "entity_id"
+            | "entity_level"
+            | "share"
+            | "created_by_company_id"
+            | "created_by_department_id"
+            | "created_by_section_id"
+            | "created_by_unit_id"
+            | "created_by_user_id"
+            | "created_by_office_id"
+          >
+      );
+    }
+
+    // return [...salesTargetColumnHeaderItemList].map(
+    //   (item, index) =>
+    //     item.columnName as keyof Omit<
+    //       SalesTargetFYRowData,
+    //       | "entity_id"
+    //       | "entity_level"
+    //       | "share"
+    //       | "created_by_company_id"
+    //       | "created_by_department_id"
+    //       | "created_by_section_id"
+    //       | "created_by_unit_id"
+    //       | "created_by_user_id"
+    //       | "created_by_office_id"
+    //     >
+    // );
+  }, [filteredSalesTargetColumnHeaderItemList, displayTargetPeriodType]); // columnNameのみの配列を取得
   // 上半期のみ 売上目標のみ、前年比のみなどのフィルターはここで行う
 
   // ---------------------------- 🌠シェア🌠 ----------------------------
   // infiniteQueryで初回は年度に対するシェアを算出した結果をstateに格納 年度から上期 or 下期に変更した場合にはstateを更新
-  type SharesData = {
-    [K in "sales_targets" | "last_year_sales"]: number;
-  };
-  const [shares, setShares] = useState<SharesData[] | null>(
-    !!allRows?.length
-      ? Array(allRows.length)
-          .fill(null)
-          .map((_, index) => {
-            return {
-              sales_targets: allRows[index]?.sales_targets ? allRows[index].sales_targets[displayTargetPeriodType] : 0,
-              last_year_sales: allRows[index]?.last_year_sales
-                ? allRows[index]?.last_year_sales[displayTargetPeriodType]
-                : 0,
-            };
-          })
-      : null
-  );
-  useEffect(() => {
-    if (!allRows) return;
-    if (!mainTotalTargets) return;
-  }, [mainTotalTargets, allRows]);
+  // const getShares = (index: number) => {
+  //   let shareSalesTarget = 0;
+  //   const salesTargetObj = allRows[index]?.sales_targets;
+  //   if (salesTargetObj && Object.keys(salesTargetObj).includes(displayTargetPeriodType)) {
+  //     const salesTargetByCurrentPeriod = salesTargetObj[displayTargetPeriodType];
+  //     if (isValidNumber(salesTargetByCurrentPeriod) && mainTotalTargets) {
+  //       try {
+  //         const totalSalesTarget = mainTotalTargets.sales_targets[displayTargetPeriodType];
+  //         const salesTargetDecimal = new Decimal(salesTargetByCurrentPeriod!);
+  //         const totalSalesTargetDecimal = new Decimal(totalSalesTarget);
+  //         shareSalesTarget = Number(
+  //           salesTargetDecimal.dividedBy(totalSalesTargetDecimal).times(100).toFixed(0, Decimal.ROUND_HALF_UP)
+  //         );
+  //       } catch (error: any) {
+  //         console.log("❌シェア算出useEffect shareSalesTarget", error);
+  //       }
+  //     }
+  //   }
+  //   let shareLastSales = 0;
+  //   const lastSalesObj = allRows[index]?.last_year_sales;
+  //   if (lastSalesObj && Object.keys(lastSalesObj).includes(displayTargetPeriodType)) {
+  //     const lastSalesByCurrentPeriod = lastSalesObj[displayTargetPeriodType];
+  //     if (isValidNumber(lastSalesByCurrentPeriod) && mainTotalTargets) {
+  //       try {
+  //         const totalLastSales = mainTotalTargets.last_year_sales[displayTargetPeriodType];
+  //         const lastSalesDecimal = new Decimal(lastSalesByCurrentPeriod!);
+  //         const totalLastSalesDecimal = new Decimal(totalLastSales);
+  //         shareLastSales = Number(
+  //           lastSalesDecimal.dividedBy(totalLastSalesDecimal).times(100).toFixed(0, Decimal.ROUND_HALF_UP)
+  //         );
+  //       } catch (error: any) {
+  //         console.log("❌シェア算出useEffect shareLastSales", error);
+  //       }
+  //     }
+  //   }
+  //   return {
+  //     sales_targets: shareSalesTarget,
+  //     last_year_sales: shareLastSales,
+  //   };
+  // };
+
+  // type SharesData = {
+  //   [K in "sales_targets" | "last_year_sales"]: number;
+  // };
+
+  // const [shares, setShares] = useState<SharesData[] | null>(
+  //   !!allRows?.length
+  //     ? Array(allRows.length)
+  //         .fill(null)
+  //         .map((_, index) => {
+  //           return getShares(index);
+  //         })
+  //     : null
+  // );
+
+  // useEffect(() => {
+  //   if (!allRows) return;
+  //   if (!mainTotalTargets) return;
+
+  //   console.log("シェアを更新 getShares", getShares(1));
+
+  //   // const newSharesArray = Array(allRows.length)
+  //   //   .fill(null)
+  //   //   .map((_, index) => {
+  //   //     return getShares(index);
+  //   //   });
+  //   // console.log("シェアを更新 newSharesArray", newSharesArray);
+  //   // setShares(newSharesArray);
+  // }, [mainTotalTargets, allRows, displayTargetPeriodType]);
   // ---------------------------- 🌠シェア🌠 ----------------------------
 
   console.log(
@@ -2583,6 +2796,8 @@ const SalesTargetGridTableSubMemo = ({
     mainTotalTargets,
     "allRows",
     allRows
+    // "shares",
+    // shares
     // "前年度の1年分の年月度lastAnnualFiscalMonths",
     // lastAnnualFiscalMonths,
     // "会計月度カレンダー配列",
@@ -2806,10 +3021,15 @@ const SalesTargetGridTableSubMemo = ({
               aria-colindex={1}
               aria-selected={false}
               tabIndex={-1}
-              className={`${styles.grid_column_header_all} ${styles.grid_column_frozen} ${styles.grid_column_header_checkbox_column} ${styles.share}`}
+              className={`${styles.grid_column_header_all} ${styles.grid_column_frozen} ${
+                styles.grid_column_header_checkbox_column
+              } ${styles.share} ${displayTargetPeriodType !== "fiscal_year" ? `${styles.drag_disabled}` : ``}`}
               // style={{ gridColumnStart: 1, left: columnHeaderLeft(0), position: "sticky" }}
               style={{ gridColumnStart: 1, left: "0px", position: "sticky" }}
-              onClick={(e) => handleClickGridCell(e)}
+              onClick={(e) => {
+                if (displayTargetPeriodType !== "fiscal_year") return;
+                handleClickGridCell(e);
+              }}
             >
               <div
                 // className={styles.grid_select_cell_header}
@@ -2818,7 +3038,15 @@ const SalesTargetGridTableSubMemo = ({
                 {/* <span>シェア</span> */}
                 <>
                   <span className={`pointer-events-none text-[12px] leading-[12px]`}>シェア</span>
-                  <span className={`pointer-events-none text-[10px]`}>(年度)</span>
+                  <span className={`pointer-events-none text-[10px]`}>
+                    (
+                    {displayTargetPeriodType === "fiscal_year"
+                      ? `年度`
+                      : displayTargetPeriodType === "first_half"
+                      ? `上期`
+                      : `下期`}
+                    )
+                  </span>
                 </>
                 {/* <input
                   type="checkbox"
@@ -2833,8 +3061,10 @@ const SalesTargetGridTableSubMemo = ({
               </div>
             </div>
             {/* ======== ヘッダーセル チェックボックスColumn ここまで ======== */}
-            {!!salesTargetColumnHeaderItemList.length &&
-              [...salesTargetColumnHeaderItemList]
+            {/* {!!salesTargetColumnHeaderItemList.length &&
+              [...salesTargetColumnHeaderItemList] */}
+            {!!filteredSalesTargetColumnHeaderItemList.length &&
+              [...filteredSalesTargetColumnHeaderItemList]
                 .sort((a, b) => a.columnIndex - b.columnIndex) // columnIndexで並び替え
                 .map((key, index) => (
                   <div
@@ -2843,7 +3073,8 @@ const SalesTargetGridTableSubMemo = ({
                     key={key.columnName}
                     ref={(ref) => (colsRef.current[index] = ref)}
                     role="columnheader"
-                    draggable={!key.isFrozen} // テスト
+                    draggable={displayTargetPeriodType === "fiscal_year" ? !key.isFrozen : false} // テスト
+                    // draggable={!key.isFrozen} // テスト
                     // draggable={index === 0 ? false : true} // テスト
                     data-column-id={`${key.columnId}`}
                     data-handler-id={`T${key.columnId}${key.columnName}`}
@@ -2867,7 +3098,9 @@ const SalesTargetGridTableSubMemo = ({
                       key.isFrozen ? `${styles.grid_column_frozen} cursor-default` : "cursor-grab"
                     } ${isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""} ${
                       isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
-                    } ${styles.grid_cell_resizable} dropzone ${key.isOverflow ? `${styles.is_overflow}` : ""}`}
+                    } ${styles.grid_cell_resizable} dropzone ${key.isOverflow ? `${styles.is_overflow}` : ""} ${
+                      displayTargetPeriodType !== "fiscal_year" ? `${styles.drag_disabled}` : ``
+                    }`}
                     style={
                       key.isFrozen
                         ? { gridColumnStart: index + 2, left: `var(--frozen-left-${index})` }
@@ -2905,9 +3138,16 @@ const SalesTargetGridTableSubMemo = ({
                         handleCloseTooltip();
                       }
                     }}
-                    onDragStart={(e) => handleDragStart(e, index)} // テスト
-                    onDragEnd={(e) => handleDragEnd(e)} // テスト
+                    onDragStart={(e) => {
+                      if (displayTargetPeriodType !== "fiscal_year") return;
+                      handleDragStart(e, index);
+                    }} // テスト
+                    onDragEnd={(e) => {
+                      if (displayTargetPeriodType !== "fiscal_year") return;
+                      handleDragEnd(e);
+                    }} // テスト
                     onDragOver={(e) => {
+                      if (displayTargetPeriodType !== "fiscal_year") return;
                       e.preventDefault(); // テスト
                       handleDragOver(e, index);
                     }}
@@ -2915,6 +3155,7 @@ const SalesTargetGridTableSubMemo = ({
                     //   handleDragEnter(e, index); // デバウンス
                     // }, 300)}
                     onDragEnter={(e) => {
+                      if (displayTargetPeriodType !== "fiscal_year") return;
                       handleDragEnter(e, index);
                     }}
                   >
@@ -2960,8 +3201,12 @@ const SalesTargetGridTableSubMemo = ({
                       ref={(ref) => (draggableOverlaysRef.current[index] = ref)}
                       role="draggable_overlay"
                       className={styles.draggable_overlay}
-                      onMouseDown={(e) => handleMouseDown(e, index)}
+                      onMouseDown={(e) => {
+                        if (displayTargetPeriodType !== "fiscal_year") return;
+                        handleMouseDown(e, index);
+                      }}
                       onMouseEnter={() => {
+                        if (displayTargetPeriodType !== "fiscal_year") return;
                         const gridScrollContainer = parentGridScrollContainer.current;
                         if (!gridScrollContainer) return;
                         const colsLines = gridScrollContainer.querySelectorAll(`[aria-colindex="${index + 2}"]`);
@@ -2973,6 +3218,7 @@ const SalesTargetGridTableSubMemo = ({
                         });
                       }}
                       onMouseLeave={() => {
+                        if (displayTargetPeriodType !== "fiscal_year") return;
                         const gridScrollContainer = parentGridScrollContainer.current;
                         if (!gridScrollContainer) return;
                         const colsLines = gridScrollContainer.querySelectorAll(`[aria-colindex="${index + 2}"]`);
@@ -3071,16 +3317,15 @@ const SalesTargetGridTableSubMemo = ({
                         {displayKeys.map((displayKey, displayIndex) => {
                           // 選択されたキーに対応するデータを展開
                           const displayRowData = rowData[displayKey];
-                          // console.log(
-                          //   "🌠displayRowData",
-                          //   displayRowData,
-                          //   "displayKeys",
-                          //   displayKeys,
-                          //   "rowData",
-                          //   rowData,
-                          //   "displayKey",
-                          //   displayKey
-                          // );
+                          // 表示期間に対応したシェア
+                          const shareByDisplayPeriod =
+                            displayTargetPeriodType === "fiscal_year"
+                              ? displayRowData?.share ?? 0
+                              : displayTargetPeriodType === "first_half"
+                              ? displayRowData?.share_first_half ?? 0
+                              : displayTargetPeriodType === "second_half"
+                              ? displayRowData?.share_second_half ?? 0
+                              : 0;
 
                           // 各行の実際のtop位置を動的に計算
                           // 仮想化した1行 * データセットの個数 * データセットのindex * １行の高さ
@@ -3134,7 +3379,7 @@ const SalesTargetGridTableSubMemo = ({
                                         <ProgressCircle
                                           circleId="3"
                                           textId="3"
-                                          progress={displayRowData.share ?? 0}
+                                          progress={shareByDisplayPeriod}
                                           // progress={0}
                                           duration={5000}
                                           easeFn="Quartic"
@@ -3148,7 +3393,7 @@ const SalesTargetGridTableSubMemo = ({
                                           fade={`fade03_forward`}
                                         />
                                         <ProgressNumber
-                                          targetNumber={displayRowData.share ?? 0}
+                                          targetNumber={shareByDisplayPeriod}
                                           // startNumber={Math.round(68000 / 2)}
                                           // startNumber={Number((68000 * 0.1).toFixed(0))}
                                           startNumber={0}
@@ -3178,7 +3423,8 @@ const SalesTargetGridTableSubMemo = ({
                                     // .map((columnName) => rowData[columnName])
                                     .map((columnName) => displayRowData[columnName])
                                     .map((value, index) => {
-                                      const columnName = salesTargetColumnHeaderItemList[index]?.columnName;
+                                      // const columnName = salesTargetColumnHeaderItemList[index]?.columnName;
+                                      const columnName = filteredSalesTargetColumnHeaderItemList[index]?.columnName;
                                       // const columnName = Object.keys(displayRowData)[];
                                       let displayValue = value;
 
