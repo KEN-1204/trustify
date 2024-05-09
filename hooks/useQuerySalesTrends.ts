@@ -19,7 +19,8 @@ type Props = {
   entityLevel: string;
   entityIdsArray: string[];
   entityIdsStrKey: string; // キャッシュ用エンティティidをstringに
-  periodType: string;
+  // periodType: string;
+  periodType: "fiscal_year" | "half_year" | "quarter" | "year_month";
   basePeriod: number;
   yearsBack: number;
   fetchEnabled?: boolean;

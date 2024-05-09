@@ -26,7 +26,8 @@ type Props = {
   entityLevel: string;
   entityId: string;
   periodTitle: string;
-  periodType: string;
+  // periodType: string;
+  periodType: "fiscal_year" | "half_year" | "quarter" | "year_month";
   basePeriod: number;
   fetchEnabled?: boolean;
   fallbackHeight?: string;
@@ -232,7 +233,7 @@ const DonutChartDealsMemo = ({
                         {/* <span>A</span> */}
                         {/* <span>⚪️</span> */}
                         <span>
-                          {mappingSalesProbablyShort[chartData[index].name][language]}
+                          {mappingSalesProbablyShort[chartData[index].name as number][language]}
                           {/* {index !== 0 ? `ネタ` : ``} */}
                         </span>
                       </div>

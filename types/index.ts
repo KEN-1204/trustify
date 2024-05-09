@@ -3273,9 +3273,9 @@ export type SalesTrendYearHalf = {
 
 // 🔹ドーナツチャート value1, value2 ...
 export type DonutChartObj = {
-  name: number;
+  name: number | string;
   value: number;
-  [key: string]: number;
+  [key: string]: number | string;
 };
 // ドーナツチャート 残ネタ獲得状況
 export type LabelDataSalesProbability = {
@@ -3319,4 +3319,8 @@ export type SalesTargetsShareChartData = {
   total_amount: number;
   chartData: DonutChartShareObj[];
   labelListShareSalesTargets: LabelDataSalesTargetsShare[];
+};
+
+export type EntityObjForChart = {
+  [K in "entity_name" | "entity_id" | "entity_structure_id"]: string;
 };

@@ -11,7 +11,9 @@ import {
   Entity,
   EntityLevelNames,
   EntityLevels,
+  EntityObjForChart,
   FiscalYearAllKeys,
+  FiscalYearMonthKey,
   FiscalYears,
   MainEntityTarget,
   Office,
@@ -29,6 +31,8 @@ import { SalesTargetGridTableSub } from "./SalesTargetGridTable/SalesTargetGridT
 import { HiOutlineSelector } from "react-icons/hi";
 import { AreaChartTrend } from "../UpsertTargetEntity/UpsertSettingTargetEntityGroup/AreaChartTrend/AreaChartTrend";
 import { DonutChartTargetShares } from "./DonutChartShares/DonutChartTargetShares";
+import { AreaChartTrendWithTarget } from "./AreaChartTrendWithTarget/AreaChartTrendWithTarget";
+import { mappingEntityName } from "@/utils/mappings";
 
 const SalesTargetsContainerMemo = () => {
   const language = useStore((state) => state.language);
@@ -49,6 +53,9 @@ const SalesTargetsContainerMemo = () => {
   // 表示期間(年度全て・上期詳細・下期詳細)
   const displayTargetPeriodType = useDashboardStore((state) => state.displayTargetPeriodType);
   const setDisplayTargetPeriodType = useDashboardStore((state) => state.setDisplayTargetPeriodType);
+
+  // 🔹売上目標フェッチ時の年月度の12ヶ月分の配列
+  const annualFiscalMonths = useDashboardStore((state) => state.annualFiscalMonths);
 
   // -------------------------- state関連 --------------------------
   // stickyを付与するrow
@@ -88,6 +95,12 @@ const SalesTargetsContainerMemo = () => {
     "sales_target",
     isSuccessQueryFiscalYear
   );
+
+  // レベルMapオブジェクト key: レベル名, value: レベルオブジェクト
+  const entityLevelMap = useMemo(() => {
+    if (!entityLevelsQueryData) return null;
+    return new Map(entityLevelsQueryData.map((levelObj) => [levelObj.entity_level as EntityLevelNames, levelObj]));
+  }, [entityLevelsQueryData]);
   // ===================== 🌠エンティティレベルuseQuery🌠 =====================
 
   // ===================== 🌠エンティティuseQuery🌠 =====================
@@ -109,7 +122,6 @@ const SalesTargetsContainerMemo = () => {
     entityLevelIds,
     isSuccessQueryLevel
   );
-  // ===================== 🌠エンティティuseQuery🌠 =====================
 
   // key: エンティティレベル名, value: 上位エンティティグループ
   const entitiesHierarchyMap = useMemo(() => {
@@ -130,6 +142,7 @@ const SalesTargetsContainerMemo = () => {
       entityLevelsQueryData.map((level) => [level.entity_level, getParentLevel(level.entity_level as EntityLevelNames)])
     );
   }, [entityLevelsQueryData]);
+  // ===================== 🌠エンティティuseQuery🌠 =====================
 
   // -------------------------- 親エンティティのEntityオブジェクト --------------------------
   const [parentEntityObj, setParentEntityObj] = useState<Entity | null>(null);
@@ -151,23 +164,11 @@ const SalesTargetsContainerMemo = () => {
     const newParentEntityObj = parentAllEntityGroupMap.get(mainEntityTarget.parentEntityId);
     setParentEntityObj(newParentEntityObj ?? null);
   }, [mainEntityTarget?.parentEntityId]);
-  // const parentEntityObj = useMemo(() => {
-  //   if (!mainEntityTarget) return null;
-  //   if (!entitiesHierarchyQueryData) return null;
-  //   if (!entityLevelToChildLevelMap) return null;
-  //   if (mainEntityTarget.parentEntityLevel === "company") return null;
-  //   if (!["department", "section", "unit"].includes(mainEntityTarget.parentEntityLevel)) return null;
-  //   const parentEntityGroups = entitiesHierarchyQueryData[mainEntityTarget.parentEntityLevel];
-  //   const parentAllEntityGroup = parentEntityGroups.map((group) => group.entities).flatMap((entities) => entities);
-  //   const parentAllEntityGroupMap = new Map(parentAllEntityGroup.map((entities) => [entities.entity_id, entities]));
-  //   const newParentEntityObj = parentAllEntityGroupMap.get(mainEntityTarget.parentEntityId);
-  //   return newParentEntityObj ?? null;
-  // }, [mainEntityTarget, entitiesHierarchyQueryData]);
   // -------------------------- 親エンティティのEntityオブジェクト --------------------------
 
   // -------------------------- Zustand上位エンティティグループをセット --------------------------
   useEffect(() => {
-    if (mainEntityTarget !== null) return;
+    // if (mainEntityTarget !== null) return;
     if (!userProfileState) return;
     if (!userProfileState.company_id) return;
     if (!userProfileState.customer_name) return;
@@ -188,14 +189,14 @@ const SalesTargetsContainerMemo = () => {
       const companyEntityId = companyLevelObj.entities[0].entity_id;
       // 全社エンティティidに紐づく子エンティティグループ
       const childLevel = entityLevelToChildLevelMap.get("company");
-      console.log("🌠🌠🌠 childLevel", childLevel, "entitiesHierarchyQueryData", entitiesHierarchyQueryData);
+
       if (childLevel) {
         const childEntityGroups = entitiesHierarchyMap.get(childLevel);
-        console.log("🌠🌠🌠🔥🔥🔥 childEntityGroups", childEntityGroups, "entitiesHierarchyMap", entitiesHierarchyMap);
+
         if (childEntityGroups) {
           // 会社エンティティidに紐づくエンティティグループ
           const childEntityGroup = childEntityGroups.find((group) => group.parent_entity_id === companyEntityId);
-          console.log("🌠🌠🌠🔥🔥🔥🌠🌠🌠 childEntityGroup", childEntityGroup);
+
           if (childEntityGroup && childEntityGroup?.entities?.length > 0) {
             const newMainEntityTarget = {
               periodType: "year_half", // 初回は年度(全て)をセット
@@ -207,15 +208,24 @@ const SalesTargetsContainerMemo = () => {
               parentEntityName: childEntityGroup.parent_entity_name,
             } as MainEntityTarget;
 
-            console.log("🌠🌠🌠🔥🔥🔥🌠🌠🌠🔥🔥🔥 newMainEntityTarget", newMainEntityTarget);
-
             setMainEntityTarget(newMainEntityTarget);
 
             // 子エンティティのレベルがメンバーレベルだった場合には「上期か下期」の設定済みの方に変更する
-            if (childEntityGroup.entities[0].entity_level === 'member') {
-              if (fiscalYearQueryData.is_confirmed_first_half_details) {
-                setDisplayTargetPeriodType('first_half');
-              } else if (!fiscalYearQueryData.is_confirmed_first_half_details && fiscalYearQueryData.is_confirmed_second_half_details) {
+            if (childEntityGroup.entities[0].entity_level === "member") {
+              if (
+                fiscalYearQueryData.is_confirmed_first_half_details &&
+                fiscalYearQueryData.is_confirmed_second_half_details
+              ) {
+                if (displayTargetPeriodType !== "fiscal_year") setDisplayTargetPeriodType("fiscal_year");
+              } else if (
+                fiscalYearQueryData.is_confirmed_first_half_details &&
+                !fiscalYearQueryData.is_confirmed_second_half_details
+              ) {
+                setDisplayTargetPeriodType("first_half");
+              } else if (
+                !fiscalYearQueryData.is_confirmed_first_half_details &&
+                fiscalYearQueryData.is_confirmed_second_half_details
+              ) {
                 setDisplayTargetPeriodType("second_half");
               }
             }
@@ -350,7 +360,8 @@ const SalesTargetsContainerMemo = () => {
 
   // 🌟目標設定対象のエンティティ配列からエンティティidのみ取り出しSetオブジェクトに変換
   const targetEntityIdsSet = useMemo(
-    () => !!mainEntityTarget?.entities?.length ? new Set(mainEntityTarget?.entities.map((obj) => obj.entity_id)) : null,
+    () =>
+      !!mainEntityTarget?.entities?.length ? new Set(mainEntityTarget?.entities.map((obj) => obj.entity_id)) : null,
     [mainEntityTarget?.entities]
   );
   // Mapオブジェクト エンティティid => エンティティオブジェクト
@@ -362,105 +373,174 @@ const SalesTargetsContainerMemo = () => {
     [mainEntityTarget?.entities]
   );
 
-  // 🌟売上推移で表示するperiodType
+  // 🌟売上推移で表示するperiodType テーブルの年度・上期・下期の表示期間のdisplayTargetPeriodTypeとは切り離して期間タイプ全てで管理する
   // 遡る年数
   const [yearsBack, setYearsBack] = useState(2);
   // デフォルト：(期間タイプ: fiscal_year, half_year, quarter, year_month),
   // エリアチャートに渡す期間タイプ (半期、四半期、月次) propertiesテーブルから取得のため期間タイプはhalf_year, quarterのように詳細を絞らず指定
-  const [periodTypeTrend, setPeriodTypeTrend] = useState(() => {
-    // UpsertTargetEntity側では半期を上期と下期で分けるが、ここではselectedPeriodDetailTrendの識別用として上下を使い、periodTypeは年度、半期、四半期、月次のみで区別する
-    if (displayTargetPeriodType === "fiscal_year") {
-      return "fiscal_year";
-    } else if (["first_half", "second_half"].includes(displayTargetPeriodType)) {
-      return "half_year";
-    } else return "fiscal_year";
-  });
-  // 🔹エリアチャートに渡す期間 セレクトボックス選択中
-  const [selectedPeriodDetailTrend, setSelectedPeriodDetailTrend] = useState<{ period: string; value: number } | null>(
-    null
-  );
-  // 🔹ドーナツチャートに渡す期間 セレクトボックス選択中
+  // const [periodTypeTrend, setPeriodTypeTrend] = useState<
+  //   ("fiscal_year" | "half_year" | "quarter" | "year_month") | null
+  // >(null);
+
+  // 🔹両チャートの期間を切り替えるための選択中の期間 セレクトボックスで使用 全ての期間 エリア・ドーナツ両チャートのperiodと連動
+  const [selectedPeriodForChart, setSelectedPeriodForChart] = useState<FiscalYearAllKeys | null>(null);
+
+  // 🔹エリアチャートに渡す期間
+  const [selectedPeriodDetailTrend, setSelectedPeriodDetailTrend] = useState<{
+    period: "fiscal_year" | "half_year" | "quarter" | "year_month";
+    value: number;
+  } | null>(null);
+  // 🔹ドーナツチャートに渡す期間
   const [selectedPeriodDetailShare, setSelectedPeriodDetailShare] = useState<{
     // period: string;
     period: FiscalYearAllKeys;
     value: number;
   } | null>(null);
-  // const [selectedPeriodDetailProbability, setSelectedPeriodDetailProbability] = useState<{
-  //   period: string;
-  //   value: number;
-  // } | null>(null);
 
-  const getInitialTrend = () => {
+  // ドーナツチャート用のentities
+  const entitiesForShareChart: EntityObjForChart[] | null = useMemo(() => {
+    if (!mainEntityTarget?.entities) return null;
+    return mainEntityTarget.entities.map((entity) => ({
+      entity_name: entity.entity_name,
+      entity_id: entity.entity_id,
+      entity_structure_id: entity.id,
+    }));
+  }, [mainEntityTarget?.entities]);
+
+  // ドーナツチャート用 選択中の表示期間タイプ別 総合売上目標金額(parentEntityTotalMainTarget)
+  const parentEntityTotalMainTarget = useMemo(() => {
+    if (!mainTotalTargets) return null;
+    if (!selectedPeriodDetailShare) return null;
+    return mainTotalTargets.sales_targets[selectedPeriodDetailShare.period];
+  }, [mainTotalTargets]);
+
+  const getInitialPeriodForChart = (): FiscalYearAllKeys | null => {
+    // fiscal_yearsテーブル is_confirmed_xxx_half_detailsカラムがtrueの期間を初期表示期間にセット
+    // メンバーレベルの設定と集約まで完了している場合のみチャートを表示可能にする
+    if (!fiscalYearQueryData) return null;
     if (!mainEntityTarget) return null;
-    if (mainEntityTarget.entityLevel !== "member") {
-      // 🔸メンバーレベルでない場合は年度を初期表示にする -1で来期目標の1年前から遡って表示する
+    if (!fiscalYearQueryData.is_confirmed_first_half_details && !fiscalYearQueryData.is_confirmed_second_half_details)
+      return null;
+    // 上期詳細と下期詳細がどちらもtrueなら年度を初期表示
+    if (fiscalYearQueryData.is_confirmed_first_half_details && fiscalYearQueryData.is_confirmed_second_half_details) {
+      return "fiscal_year";
+    }
+    // 上期詳細のみtrueなら上期を初期表示
+    if (fiscalYearQueryData.is_confirmed_first_half_details) return "first_half";
+    // 下期詳細のみtrueなら下期を初期表示
+    if (fiscalYearQueryData.is_confirmed_second_half_details) return "second_half";
+    return null;
+  };
+
+  // 売上推移は過去3年分の売上実績をpropertiesテーブルから取得するため、periodTypeは年度、半期、四半期、月次のみで区別する(全て "xxx_fiscal_year" | "xxx_half_year" | "xxx_quarter" | "xxx_year_month"で管理しているため)
+  const getInitialTrend = (): {
+    period: "fiscal_year" | "half_year" | "quarter" | "year_month";
+    value: number;
+  } | null => {
+    if (!mainEntityTarget) return null;
+    if (!fiscalYearQueryData) return null;
+    if (!fiscalYearQueryData.is_confirmed_first_half_details && !fiscalYearQueryData.is_confirmed_second_half_details)
+      return null;
+
+    // 上期詳細と下期詳細がどちらもtrueなら年度を初期表示
+    if (fiscalYearQueryData.is_confirmed_first_half_details && fiscalYearQueryData.is_confirmed_second_half_details) {
       return {
         period: "fiscal_year",
         value: selectedFiscalYearTarget - 1,
       };
-    } else {
-      if (displayTargetPeriodType === "fiscal_year") {
+    }
+    // 上期詳細のみtrueなら上期を初期表示(メンバー) メンバーレベル以外は年度を表示
+    else if (fiscalYearQueryData.is_confirmed_first_half_details) {
+      if (mainEntityTarget.entityLevel !== "member") {
         return {
           period: "fiscal_year",
           value: selectedFiscalYearTarget - 1,
         };
-      }
-      // 🔸メンバーレベルの場合は選択肢した半期（上期か下期）を表示する
-      else if (displayTargetPeriodType === "first_half") {
-        //
-        return {
-          period: "first_half",
-          value: (selectedFiscalYearTarget - 1) * 10 + 1,
-        }; // 1が上期、2が下期
       } else {
         return {
-          period: "second_half",
+          period: "half_year", // propertiesテーブルから取得のため上期・下期の詳細は分けずにセット
+          value: (selectedFiscalYearTarget - 1) * 10 + 1,
+        }; // 1が上期、2が下期
+      }
+    }
+    // 下期詳細のみtrueなら下期を初期表示(メンバー) メンバーレベル以外は年度を表示
+    else if (fiscalYearQueryData.is_confirmed_second_half_details) {
+      if (mainEntityTarget.entityLevel !== "member") {
+        return {
+          period: "fiscal_year",
+          value: selectedFiscalYearTarget - 1,
+        };
+      } else {
+        return {
+          period: "half_year", // propertiesテーブルから取得のため上期・下期の詳細は分けずにセット
           value: (selectedFiscalYearTarget - 1) * 10 + 2,
         }; // 1が上期、2が下期
       }
     }
+    return null;
   };
-  const getInitialShare = (): {period: FiscalYearAllKeys, value: number} | null => {
+
+  const getInitialShare = (): { period: FiscalYearAllKeys; value: number } | null => {
     if (!mainEntityTarget) return null;
-    if (mainEntityTarget.entityLevel !== "member") {
-      // 🔸メンバーレベルでない場合は年度を初期表示にする -1で来期目標の1年前から遡って表示する
+    if (!fiscalYearQueryData) return null;
+    if (!fiscalYearQueryData.is_confirmed_first_half_details && !fiscalYearQueryData.is_confirmed_second_half_details)
+      return null;
+
+    // 上期詳細と下期詳細がどちらもtrueなら年度を初期表示
+    if (fiscalYearQueryData.is_confirmed_first_half_details && fiscalYearQueryData.is_confirmed_second_half_details) {
       return {
         period: "fiscal_year",
         value: selectedFiscalYearTarget,
       };
-    } else {
-      // 🔸メンバーレベルの場合は選択肢した半期（上期か下期）を表示する
-      if (displayTargetPeriodType === "fiscal_year") {
+    }
+    // 上期詳細のみtrueなら上期を初期表示
+    else if (fiscalYearQueryData.is_confirmed_first_half_details) {
+      if (mainEntityTarget.entityLevel !== "member") {
         return {
           period: "fiscal_year",
           value: selectedFiscalYearTarget,
         };
-      } else if (displayTargetPeriodType === "first_half") {
-        return {
-          period: "first_half",
-          value: selectedFiscalYearTarget * 10 + 1,
-        }; // 1が上期、2が下期
       } else {
         return {
-          period: "second_half",
+          period: "first_half", // sales_targetsテーブルから取得のため上期・下期の詳細を分けてセット
+          value: selectedFiscalYearTarget * 10 + 1,
+        }; // 1が上期、2が下期
+      }
+    }
+    // 下期詳細のみtrueなら下期を初期表示
+    else if (fiscalYearQueryData.is_confirmed_second_half_details) {
+      if (mainEntityTarget.entityLevel !== "member") {
+        return {
+          period: "fiscal_year",
+          value: selectedFiscalYearTarget,
+        };
+      } else {
+        return {
+          period: "second_half", // sales_targetsテーブルから取得のため上期・下期の詳細を分けてセット
           value: selectedFiscalYearTarget * 10 + 2,
         }; // 1が上期、2が下期
       }
     }
+    return null;
   };
+
   useEffect(() => {
     if (!mainEntityTarget) return;
+    if (!!selectedPeriodForChart && !!selectedPeriodDetailTrend && !!selectedPeriodDetailShare) return;
     // 初期値セット
-    // 売上推移
+    // 売上推移 両チャートの表示切り替え セレクトボックスで使用
+    setSelectedPeriodForChart(getInitialPeriodForChart());
+    // 売上推移 選択中
     setSelectedPeriodDetailTrend(getInitialTrend());
-    // 売上目標シェア
+    // 売上目標シェア 選択中
     setSelectedPeriodDetailShare(getInitialShare());
-  }, []);
+  }, [mainEntityTarget]);
 
   // 🔹売上推移の「2021H1 ~ 2023H1」表示用
   const trendPeriodTitle = useMemo(() => {
     if (!selectedPeriodDetailTrend) return null;
-    if (periodTypeTrend === "fiscal_year") {
+
+    if (selectedPeriodDetailTrend.period === "fiscal_year") {
       return {
         periodStart: `${selectedPeriodDetailTrend.value - yearsBack}年度`,
         periodEnd: `${selectedPeriodDetailTrend.value}年度`,
@@ -471,42 +551,24 @@ const SalesTargetsContainerMemo = () => {
       const back = yearsBack;
       return {
         periodStart:
-          periodTypeTrend === "half_year"
+          selectedPeriodDetailTrend.period === "half_year"
             ? `${year - back}H${period}`
-            : periodTypeTrend === "quarter"
+            : selectedPeriodDetailTrend.period === "quarter"
             ? `${year - back}Q${period}`
-            : periodTypeTrend === "year_month"
+            : selectedPeriodDetailTrend.period === "year_month"
             ? `${year - back}年${period}月度`
             : `${selectedPeriodDetailTrend.value - yearsBack}年度`,
         periodEnd:
-          periodTypeTrend === "half_year"
+          selectedPeriodDetailTrend.period === "half_year"
             ? `${year}H${period}`
-            : periodTypeTrend === "quarter"
+            : selectedPeriodDetailTrend.period === "quarter"
             ? `${year}Q${period}`
-            : periodTypeTrend === "year_month"
+            : selectedPeriodDetailTrend.period === "year_month"
             ? `${year}年${period}月度`
             : `${selectedPeriodDetailTrend.value}年度`,
       };
     }
   }, [selectedPeriodDetailTrend, yearsBack]);
-
-  // 売上目標シェアの「2021H1」表示用
-  const salesSharePeriodTitle = useMemo(() => {
-    if (!selectedPeriodDetailShare) return null;
-    if (periodTypeTrend === "fiscal_year") {
-      return `${selectedPeriodDetailShare.value}年度`;
-    } else {
-      const year = Number(selectedPeriodDetailShare.value.toString().substring(0, 4));
-      const period = selectedPeriodDetailShare.value.toString().substring(4);
-      return periodTypeTrend === "half_year"
-        ? `${year}H${period}`
-        : periodTypeTrend === "quarter"
-        ? `${year}Q${period}`
-        : periodTypeTrend === "year_month"
-        ? `${year}年${period}月度`
-        : `${selectedPeriodDetailShare.value}年度`;
-    }
-  }, [selectedPeriodDetailShare]);
 
   // 案件状況の「2021H1」表示用
   // const salesProbabilityPeriodTitle = useMemo(() => {
@@ -527,6 +589,61 @@ const SalesTargetsContainerMemo = () => {
   // }, [selectedPeriodDetailProbability]);
 
   // -------------------------- 売上推移 部門別 ここまで --------------------------
+
+  // -------------------------- 売上目標シェア --------------------------
+
+  // 売上目標シェアの「2021H1」表示用
+  const salesTargetSharePeriodTitle = useMemo(() => {
+    if (!selectedPeriodDetailShare) return null;
+
+    if (selectedPeriodDetailShare.period === "fiscal_year") {
+      return `${selectedPeriodDetailShare.value}年度`;
+    } else {
+      const year = Number(selectedPeriodDetailShare.value.toString().substring(0, 4));
+      const period = selectedPeriodDetailShare.value.toString().substring(4);
+      return ["first_half", "second_half"].includes(selectedPeriodDetailShare.period)
+        ? `${year}H${period}`
+        : ["first_quarter", "second_quarter", "third_quarter", "fourth_quarter"].includes(
+            selectedPeriodDetailShare.period
+          )
+        ? `${year}Q${period}`
+        : [
+            "month_01",
+            "month_02",
+            "month_03",
+            "month_04",
+            "month_05",
+            "month_06",
+            "month_07",
+            "month_08",
+            "month_09",
+            "month_10",
+            "month_11",
+            "month_12",
+          ].includes(selectedPeriodDetailShare.period)
+        ? `${year}年${period}月度`
+        : `${selectedPeriodDetailShare.value}年度`;
+    }
+  }, [selectedPeriodDetailShare]);
+
+  // 売上目標シェア タイトル
+  // const shareChartPeriodTitle = useMemo(() => {
+  //   if (!selectedPeriodDetailTrend) return null;
+  //   const year = selectedFiscalYearTarget;
+  //   if (periodTypeTrend === "fiscal_year") {
+  //     return `${year}年度`;
+  //   } else {
+  //     const period = selectedPeriodDetailTrend.value.toString().substring(4);
+  //     return periodTypeTrend === "half_year"
+  //       ? `${year}H${period}`
+  //       : periodTypeTrend === "quarter"
+  //       ? `${year}Q${period}`
+  //       : periodTypeTrend === "year_month"
+  //       ? `${year}年${period}月度`
+  //       : `${selectedPeriodDetailTrend.value}年度`;
+  //   }
+  // }, [selectedPeriodDetailTrend]);
+  // -------------------------- 売上目標シェア ここまで --------------------------
 
   // ---------------------- 変数 ----------------------
   // 🔹ユーザーが作成したエンティティのみのセクションリストを再生成
@@ -630,7 +747,28 @@ const SalesTargetsContainerMemo = () => {
     "parentEntityObj",
     parentEntityObj,
     "selectedPeriodDetailTrend",
-    selectedPeriodDetailTrend
+    selectedPeriodDetailTrend,
+    "trueかどうか",
+    !!mainEntityTarget?.entityLevel &&
+      !!allFetched &&
+      !!selectedPeriodDetailTrend &&
+      !!fiscalYearQueryData &&
+      !!selectedPeriodForChart &&
+      !!(fiscalYearQueryData.is_confirmed_first_half_details || fiscalYearQueryData.is_confirmed_second_half_details),
+    "selectedPeriodForChart",
+    selectedPeriodForChart,
+    "selectedPeriodDetailTrend",
+    selectedPeriodDetailTrend,
+    "selectedPeriodDetailShare",
+    selectedPeriodDetailShare,
+    "entitiesForShareChart",
+    entitiesForShareChart,
+    "parentEntityTotalMainTarget",
+    parentEntityTotalMainTarget,
+    "allFetched",
+    allFetched,
+    "stickyRow",
+    stickyRow
     // "entityLevelList",
     // entityLevelList,
     // departmentDataArray,
@@ -645,9 +783,7 @@ const SalesTargetsContainerMemo = () => {
       <div className={`${styles.contents_area}`}>
         {/* ---------- */}
         <div
-          className={`${styles.grid_row} ${styles.col1} ${
-            stickyRow === userProfileState.company_id ? styles.sticky_row : ``
-          }`}
+          className={`${styles.grid_row} ${styles.col1} ${stickyRow === "main_entity_target" ? styles.sticky_row : ``}`}
         >
           <div className={`${styles.grid_content_card} `}>
             {mainEntityTarget &&
@@ -669,7 +805,7 @@ const SalesTargetsContainerMemo = () => {
                       }
                     >
                       <SalesTargetGridTable
-                        entityLevel={mainEntityTarget.entities[0].entity_level}
+                        entityLevel={mainEntityTarget.entities[0].entity_level as "company"}
                         // entityNameTitle={mainEntityTarget.entities[0].entity_name}
                         // entityId={mainEntityTarget.entities[0].entity_id}
                         entities={mainEntityTarget.entities}
@@ -782,160 +918,6 @@ const SalesTargetsContainerMemo = () => {
           </div>
         </div> */}
 
-        {/* ----------- サブ目標タイトルエリア ----------- */}
-        {mainEntityTarget && (
-          <div className={`${styles.section_title_area} mb-[15px] flex w-full items-end justify-between`}>
-            <h1 className={`${styles.title} ${styles.upsert}`}>
-              {/* <span>部門別</span> */}
-              {!(mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") && (
-                <span>{getDivName(mainEntityTarget.entityLevel)}別</span>
-              )}
-              {mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company" && (
-                <span>{getDivName("company")}</span>
-              )}
-
-              {/* {upsertSettingEntitiesObj.entityLevel === "member" && (
-              <>
-                {upsertSettingEntitiesObj.periodType === "first_half_details" && (
-                  <span className="ml-[12px]">上期詳細目標</span>
-                )}
-                {upsertSettingEntitiesObj.periodType === "second_half_details" && (
-                  <span className="ml-[12px]">下期詳細目標</span>
-                )}
-              </>
-            )} */}
-            </h1>
-
-            <div className={`${styles.btn_area} flex h-full items-center space-x-[12px]`}>
-              {/* {upsertSettingEntitiesObj.entityLevel !== "company" && (
-                          <div
-                            className={`${styles.btn} ${styles.basic} space-x-[6px]`}
-                            onClick={handleOpenEditSubListModal}
-                          >
-                            <HiOutlineSwitchHorizontal className={`text-[14px] `} />
-                            <span>
-                              {mappingDivName[upsertSettingEntitiesObj.entityLevel as EntityLevelNames][language]}
-                              リスト編集
-                            </span>
-                          </div>
-                        )} */}
-              {mainEntityTarget.entityLevel && allFetched && selectedPeriodDetailTrend && (
-                <div
-                  className={`${styles.select_btn_wrapper} fade08_forward relative flex items-center text-[var(--color-text-title-g)]`}
-                  onMouseEnter={(e) => {
-                    handleOpenTooltip({
-                      e: e,
-                      display: "top",
-                      content: `チャートの表示期間を変更`,
-                      marginTop: 6,
-                    });
-                  }}
-                  onMouseLeave={handleCloseTooltip}
-                >
-                  <select
-                    className={`z-10 min-h-[30px] cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[14px] font-bold`}
-                    value={selectedPeriodDetailTrend.period}
-                    onChange={(e) => {
-                      const periodDetail = e.target.value;
-                      let currPeriodValue = selectedFiscalYearTarget; // 今年度
-                      let periodValue = selectedFiscalYearTarget - 1; // 前年度
-                      if (periodDetail === "first_half") {
-                        currPeriodValue = selectedFiscalYearTarget * 10 + 1; // 上期
-                        periodValue = (selectedFiscalYearTarget - 1) * 10 + 1; // 上期
-                      }
-                      if (periodDetail === "second_half") {
-                        currPeriodValue = selectedFiscalYearTarget * 10 + 2; // 下期
-                        periodValue = (selectedFiscalYearTarget - 1) * 10 + 2; // 下期
-                      }
-
-                      if (mainEntityTarget.entityLevel === "member") {
-                        if (periodDetail === "first_quarter") {
-                          currPeriodValue = selectedFiscalYearTarget * 10 + 1; // Q1
-                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 1; // Q1
-                        }
-                        if (periodDetail === "second_quarter") {
-                          currPeriodValue = selectedFiscalYearTarget * 10 + 2; // Q2
-                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 2; // Q2
-                        }
-                        if (periodDetail === "third_quarter") {
-                          currPeriodValue = selectedFiscalYearTarget * 10 + 3; // Q3
-                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 3; // Q3
-                        }
-                        if (periodDetail === "fourth_quarter") {
-                          currPeriodValue = selectedFiscalYearTarget * 10 + 4; // Q4
-                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 4; // Q4
-                        }
-                      }
-                      // 売上推移用 目標年度の1年前をbasePeriodとしてセット
-                      setSelectedPeriodDetailTrend({
-                        period: periodDetail,
-                        value: periodValue,
-                      });
-                      // // 案件状況 目標年度と同じ年度をbasePeriodとしてセット
-                      // setSelectedPeriodDetailProbability({
-                      //   period: periodDetail,
-                      //   value: currPeriodValue,
-                      // });
-                      // エリアチャート用の期間タイプも同時に更新
-                      if (periodDetail === "fiscal_year") {
-                        if (periodTypeTrend !== "fiscal_year") setPeriodTypeTrend("fiscal_year");
-                      }
-                      if (["first_half", "second_half"].includes(periodDetail)) {
-                        if (periodTypeTrend !== "half_year") setPeriodTypeTrend("half_year");
-                      }
-                      if (
-                        ["first_quarter", "second_quarter", "third_quarter", "fourth_quarter"].includes(periodDetail)
-                      ) {
-                        if (periodTypeTrend !== "quarter") setPeriodTypeTrend("quarter");
-                      }
-                      handleCloseTooltip();
-                    }}
-                  >
-                    {/* メンバーレベル以外 */}
-                    {mainEntityTarget.entityLevel !== "member" && (
-                      <>
-                        <option value="fiscal_year">年度</option>
-                        <option value="first_half">上期</option>
-                        <option value="second_half">下期</option>
-                      </>
-                    )}
-                    {mainEntityTarget.entityLevel === "member" && (
-                      <>
-                        {displayTargetPeriodType === "fiscal_year" && (
-                          <>
-                            <option value="fiscal_year">年度</option>
-                            <option value="first_half">上期</option>
-                            <option value="second_half">下期</option>
-                          </>
-                        )}
-                        {displayTargetPeriodType === "first_half" && (
-                          <>
-                            <option value="first_half">上期</option>
-                            <option value="first_quarter">Q1</option>
-                            <option value="second_quarter">Q2</option>
-                          </>
-                        )}
-                        {displayTargetPeriodType === "second_half" && (
-                          <>
-                            <option value="second_half">下期</option>
-                            <option value="third_quarter">Q3</option>
-                            <option value="fourth_quarter">Q4</option>
-                          </>
-                        )}
-                      </>
-                    )}
-                  </select>
-                  {/* 上下矢印アイコン */}
-                  <div className={`${styles.select_arrow}`}>
-                    <HiOutlineSelector className="stroke-[2] text-[16px]" />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        {/* ----------- サブ目標タイトルエリア ここまで ----------- */}
-
         {/* --------------------------- 売上推移・売上目標シェア --------------------------- */}
         {!allFetched && (
           <div className={`flex-center fade08_forward h-full max-h-[300px] min-h-[300px] w-full`}>
@@ -943,21 +925,75 @@ const SalesTargetsContainerMemo = () => {
           </div>
         )}
 
-        {/* 🌟全社レベルのみ 売上目標未設定🌟 */}
+        {/* 上下どちらも未設定 */}
         {allFetched &&
-          mainEntityTarget?.parentEntityLevel === "company" &&
-          mainEntityTarget.entityLevel === "company" &&
-          trendPeriodTitle &&
-          selectedPeriodDetailTrend &&
-          targetEntityIdsSet &&
-          mainTotalTargets && (
+          !(
+            (fiscalYearQueryData?.is_confirmed_first_half_details ||
+              fiscalYearQueryData?.is_confirmed_second_half_details) &&
+            trendPeriodTitle &&
+            selectedPeriodDetailTrend &&
+            targetEntityIdsSet &&
+            mainEntityTarget &&
+            mainTotalTargets
+          ) && (
+            <>
+              <div className={`${styles.grid_row} ${styles.col2} fade08_forward`} style={{ marginBottom: `13px` }}>
+                <div className={`${styles.grid_content_card}`}>
+                  <div className={`${styles.card_wrapper} fade08_forward`}>
+                    <div className={`${styles.card_title_area}`}>
+                      <div className={`${styles.card_title}`}>
+                        <span>売上推移</span>
+                      </div>
+                    </div>
+                    <div className={`${styles.main_container} flex-center`}>
+                      <div
+                        className={`flex h-full w-full items-center justify-center text-[13px] text-[var(--color-text-sub)]`}
+                      >
+                        <span>売上目標が設定されていません。</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className={`${styles.grid_content_card}`}>
+                  <div className={`${styles.card_wrapper} fade08_forward`}>
+                    <div className={`${styles.card_title_area}`}>
+                      <div className={`${styles.card_title}`}>
+                        <span>売上目標シェア</span>
+                      </div>
+                    </div>
+                    <div className={`${styles.main_container} flex-center`}>
+                      <div
+                        className={`flex h-full w-full items-center justify-center text-[13px] text-[var(--color-text-sub)]`}
+                      >
+                        {/* <span>データがありません。</span> */}
+                        <span>売上目標が設定されていません。</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+
+        {/* 上期or下期を設定済み */}
+        {allFetched &&
+          !!(
+            (fiscalYearQueryData?.is_confirmed_first_half_details ||
+              fiscalYearQueryData?.is_confirmed_second_half_details) &&
+            trendPeriodTitle &&
+            selectedPeriodDetailTrend !== null &&
+            targetEntityIdsSet &&
+            mainEntityTarget &&
+            mainTotalTargets
+          ) && (
             <>
               <div className={`${styles.grid_row} ${styles.col2} fade08_forward`}>
                 <div className={`${styles.grid_content_card}`} style={{ minHeight: `369px` }}>
                   <div className={`${styles.card_title_area}`}>
                     <div className={`${styles.card_title}`}>
                       <div className={`flex flex-col`}>
-                        <span>売上推移 全社</span>
+                        <span>売上推移 {mappingEntityName[mainEntityTarget.entityLevel][language]}別</span>
                         <span className={`text-[12px] text-[var(--color-text-sub)]`}>
                           {trendPeriodTitle.periodStart} ~ {trendPeriodTitle.periodEnd}
                         </span>
@@ -973,11 +1009,11 @@ const SalesTargetsContainerMemo = () => {
                         </div>
                       }
                     >
-                      <AreaChartTrend
+                      <AreaChartTrendWithTarget
                         companyId={userProfileState.company_id}
-                        entityLevel={"company"}
+                        entityLevel={mainEntityTarget.entityLevel}
                         entityIdsArray={Array.from(targetEntityIdsSet)}
-                        periodType={periodTypeTrend}
+                        periodType={selectedPeriodDetailTrend.period}
                         basePeriod={selectedPeriodDetailTrend.value}
                         yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
                         fetchEnabled={true}
@@ -985,128 +1021,317 @@ const SalesTargetsContainerMemo = () => {
                     </Suspense>
                   </ErrorBoundary>
                 </div>
-               {selectedPeriodDetailShare &&  <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
-                  <div className={`${styles.card_title_area} !items-start`}>
-                    <div className={`${styles.card_title}`}>
-                      <div className={`flex flex-col`}>
-                        <span>売上目標シェア</span>
-                        <span className={`text-[12px] text-[var(--color-text-sub)]`}>{salesSharePeriodTitle}</span>
+                {!(mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
+                  selectedPeriodDetailShare &&
+                  entitiesForShareChart &&
+                  parentEntityTotalMainTarget !== null &&
+                  salesTargetSharePeriodTitle !== null &&
+                  fiscalYearQueryData &&
+                  mainEntityTarget &&
+                  entityLevelMap &&
+                  entityLevelMap.has(mainEntityTarget.entityLevel) && (
+                    <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                      <div className={`${styles.card_title_area} !items-start`}>
+                        <div className={`${styles.card_title}`}>
+                          <div className={`flex flex-col`}>
+                            <span>売上目標シェア</span>
+                            <span className={`text-[12px] text-[var(--color-text-sub)]`}>
+                              {salesTargetSharePeriodTitle}
+                            </span>
+                          </div>
+                        </div>
+                        <div className={`flex h-full items-start justify-end pt-[3px]`}></div>
                       </div>
-                    </div>
-                    <div className={`flex h-full items-start justify-end pt-[3px]`}>
-                      {/* <div
-                        className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
-                        // onMouseEnter={(e) => {
-                        //   handleOpenTooltip({
-                        //     e: e,
-                        //     display: "top",
-                        //     content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
-                        //     marginTop: 9,
-                        //   });
-                        // }}
-                        // onMouseLeave={handleCloseTooltip}
-                      >
-                        <select
-                          className={`z-10 min-h-[30px] cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[13px]`}
-                          // style={{ boxShadow: `0 0 0 1px var(--color-border-base)` }}
-                          value={selectedEntityIdForDonut}
-                          onChange={(e) => {
-                            setSelectedEntityIdForDonut(e.target.value);
-                          }}
+                      {/* <div className={`${styles.main_container}`}></div> */}
+                      <ErrorBoundary FallbackComponent={ErrorFallback}>
+                        <Suspense
+                          fallback={
+                            <div
+                              className={`flex-center w-full`}
+                              style={{ minHeight: `302px`, padding: `0px 0px 6px` }}
+                            >
+                              <SpinnerX />
+                            </div>
+                          }
                         >
-                          {optionsEntity.map((obj, index) => (
-                            <option key={`option_${obj.id}`} value={obj.id}>
-                              {obj.entityName}
-                            </option>
-                          ))}
-                        </select>
-                        <div className={`${styles.select_arrow}`}>
-                          <IoChevronDownOutline className={`text-[12px]`} />
-                        </div>
-                      </div> */}
+                          <DonutChartTargetShares
+                            companyId={userProfileState.company_id}
+                            parentEntityId={mainEntityTarget.parentEntityId}
+                            parentEntityTotalMainTarget={parentEntityTotalMainTarget}
+                            entityLevel={mainEntityTarget.entityLevel}
+                            entityLevelId={entityLevelMap.get(mainEntityTarget.entityLevel)!.id}
+                            fiscalYearId={fiscalYearQueryData.id}
+                            entities={entitiesForShareChart}
+                            periodTitle={salesTargetSharePeriodTitle}
+                            periodType={selectedPeriodDetailShare.period}
+                            basePeriod={selectedFiscalYearTarget}
+                            fetchEnabled={true}
+                            // periodType={periodTypeTrend}
+                          />
+                        </Suspense>
+                      </ErrorBoundary>
                     </div>
-                  </div>
-                  {/* <div className={`${styles.main_container}`}></div> */}
-                  <ErrorBoundary FallbackComponent={ErrorFallback}>
-                    <Suspense
-                      fallback={
-                        <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
-                          <SpinnerX />
-                        </div>
-                      }
-                    >
-                      <DonutChartTargetShares
-                        companyId={userProfileState.company_id}
-                        parentEntityId={mainEntityTarget.parentEntityId}
-                        parentEntityTotalMainTarget={mainTotalTargets.sales_targets.}
-                        entityLevel={upsertSettingEntitiesObj.entityLevel}
-                        entityId={selectedEntityIdForDonut}
-                        periodTitle={dealStatusPeriodTitle}
-                        // periodType={periodTypeTrend}
-                        periodType={selectedPeriodDetailShare.period}
-                        basePeriod={selectedPeriodDetailProbability.value}
-                        fetchEnabled={true}
-                      />
-                    </Suspense>
-                  </ErrorBoundary>
-                </div>}
+                  )}
               </div>
             </>
           )}
-        {/* 🌟全社レベルのみ 売上目標未設定🌟 */}
-
-        {/* {allFetched && (
-          <>
-            <div className={`${styles.grid_row} ${styles.col2} fade08_forward`}>
-              <div className={`${styles.grid_content_card}`}>
-                <div className={`${styles.card_wrapper} fade08_forward`}>
-                  <div className={`${styles.card_title_area}`}>
-                    <div className={`${styles.card_title}`}>
-                      <span>売上推移</span>
-                    </div>
-                  </div>
-                  <div className={`${styles.main_container}`}></div>
-                </div>
-              </div>
-
-              <div className={`${styles.grid_content_card}`}>
-                <div className={`${styles.card_wrapper} fade08_forward`}>
-                  <div className={`${styles.card_title_area}`}>
-                    <div className={`${styles.card_title}`}>
-                      <span>売上目標シェア</span>
-                    </div>
-                  </div>
-                  <div className={`${styles.main_container}`}></div>
-                </div>
-              </div>
-            </div>
-          </>
-        )} */}
 
         {/* --------------------------- 売上推移・売上目標シェア --------------------------- */}
 
-        {/* ---------- */}
+        {/* ----------- サブ目標タイトルエリア ----------- */}
+        {mainEntityTarget &&
+          !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") && (
+            <div
+              className={`${styles.section_title_area} mb-[15px] flex w-full items-end justify-between`}
+              style={{ marginBottom: `13px` }}
+            >
+              <h1 className={`${styles.title} ${styles.upsert}`}>
+                {/* <span>部門別</span> */}
+                {!(mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") && (
+                  <span>{getDivName(mainEntityTarget.entityLevel)}別</span>
+                )}
+                {mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company" && (
+                  <span>{getDivName("company")}</span>
+                )}
 
-        {/* ---------- */}
-        {/* {!!entityLevelList?.length && entityLevelList.map((obj) => {
-          return (
-            <div key={`${obj.title}_row_card`} className={`${styles.grid_row} ${styles.col1}`}>
-              <div className={`${styles.grid_content_card}`}>
-                <ErrorBoundary FallbackComponent={ErrorFallback}>
-                  <Suspense fallback={<FallbackScrollContainer title={obj.name[language]} />}>
-                    <SalesTargetGridTable title={obj.name[language]} entityLevel={obj.title} fiscalYear={2023} isMain={false} />
-                  </Suspense>
-                </ErrorBoundary>
+                {/* {upsertSettingEntitiesObj.entityLevel === "member" && (
+              <>
+                {upsertSettingEntitiesObj.periodType === "first_half_details" && (
+                  <span className="ml-[12px]">上期詳細目標</span>
+                )}
+                {upsertSettingEntitiesObj.periodType === "second_half_details" && (
+                  <span className="ml-[12px]">下期詳細目標</span>
+                )}
+              </>
+            )} */}
+              </h1>
+
+              <div className={`${styles.btn_area} flex h-full items-center space-x-[12px]`}>
+                {/* セレクトボックス 上期か下期どちらか設定が完了している場合 */}
+                {mainEntityTarget.entityLevel &&
+                allFetched &&
+                selectedPeriodDetailTrend &&
+                fiscalYearQueryData &&
+                selectedPeriodForChart &&
+                (fiscalYearQueryData.is_confirmed_first_half_details ||
+                  fiscalYearQueryData.is_confirmed_second_half_details) ? (
+                  <div
+                    className={`${styles.select_btn_wrapper} fade08_forward relative flex items-center text-[var(--color-text-title-g)]`}
+                    onMouseEnter={(e) => {
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: `チャートの表示期間を変更`,
+                        marginTop: 6,
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <select
+                      className={`z-10 min-h-[30px] cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[14px] font-bold`}
+                      value={selectedPeriodForChart}
+                      onChange={(e) => {
+                        const periodDetail = e.target.value as FiscalYearAllKeys;
+                        let periodForTrend: "fiscal_year" | "half_year" | "quarter" | "year_month" = "fiscal_year";
+                        let currPeriodValue = selectedFiscalYearTarget; // 今年度
+                        let periodValue = selectedFiscalYearTarget - 1; // 前年度
+                        if (periodDetail === "first_half") {
+                          periodForTrend = "half_year";
+                          currPeriodValue = selectedFiscalYearTarget * 10 + 1; // 上期
+                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 1; // 上期
+                        }
+                        if (periodDetail === "second_half") {
+                          periodForTrend = "half_year";
+                          currPeriodValue = selectedFiscalYearTarget * 10 + 2; // 下期
+                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 2; // 下期
+                        }
+                        if (periodDetail === "first_quarter") {
+                          periodForTrend = "quarter";
+                          currPeriodValue = selectedFiscalYearTarget * 10 + 1; // Q1
+                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 1; // Q1
+                        }
+                        if (periodDetail === "second_quarter") {
+                          periodForTrend = "quarter";
+                          currPeriodValue = selectedFiscalYearTarget * 10 + 2; // Q2
+                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 2; // Q2
+                        }
+                        if (periodDetail === "third_quarter") {
+                          periodForTrend = "quarter";
+                          currPeriodValue = selectedFiscalYearTarget * 10 + 3; // Q3
+                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 3; // Q3
+                        }
+                        if (periodDetail === "fourth_quarter") {
+                          periodForTrend = "quarter";
+                          currPeriodValue = selectedFiscalYearTarget * 10 + 4; // Q4
+                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 4; // Q4
+                        }
+                        if (
+                          [
+                            "month_01",
+                            "month_02",
+                            "month_03",
+                            "month_04",
+                            "month_05",
+                            "month_06",
+                            "month_07",
+                            "month_08",
+                            "month_09",
+                            "month_10",
+                            "month_11",
+                            "month_12",
+                          ].includes(periodDetail) &&
+                          annualFiscalMonths
+                        ) {
+                          periodForTrend = "year_month";
+                          const monthValue = Number(
+                            annualFiscalMonths[periodDetail as FiscalYearMonthKey].toString().substring(4)
+                          ); // 5文字目以降の月次
+                          currPeriodValue = selectedFiscalYearTarget * 100 + monthValue;
+                          periodValue = (selectedFiscalYearTarget - 1) * 100 + monthValue;
+                        }
+                        // 両チャート表示期間選択用
+                        setSelectedPeriodForChart(periodDetail);
+                        // 売上推移用 propertiesテーブルから取得のためperiodは「"fiscal_year" | "half_year" | "quarter" | "year_month"」の期間タイプをセット 目標年度の1年前をbasePeriodとしてセット
+                        setSelectedPeriodDetailTrend({
+                          period: periodForTrend,
+                          value: periodValue,
+                        });
+                        // 売上目標シェア sales_targetsテーブルから取得のためperiodはFiscalYearAllKeysをセット
+                        setSelectedPeriodDetailShare({
+                          period: periodDetail,
+                          value: currPeriodValue,
+                        });
+                        handleCloseTooltip();
+                      }}
+                    >
+                      {/* 上期下期どちらも設定完了済み */}
+                      {fiscalYearQueryData.is_confirmed_first_half_details &&
+                        fiscalYearQueryData.is_confirmed_second_half_details && (
+                          <>
+                            <option value="fiscal_year">年度</option>
+                            <option value="first_half">上期</option>
+                            <option value="second_half">下期</option>
+                            <option value="first_quarter">Q1</option>
+                            <option value="second_quarter">Q2</option>
+                            <option value="third_quarter">Q3</option>
+                            <option value="fourth_quarter">Q4</option>
+                            {annualFiscalMonths && (
+                              <>
+                                <option value="month_01">{annualFiscalMonths.month_01}</option>
+                                <option value="month_02">{annualFiscalMonths.month_02}</option>
+                                <option value="month_03">{annualFiscalMonths.month_03}</option>
+                                <option value="month_04">{annualFiscalMonths.month_04}</option>
+                                <option value="month_05">{annualFiscalMonths.month_05}</option>
+                                <option value="month_06">{annualFiscalMonths.month_06}</option>
+                                <option value="month_07">{annualFiscalMonths.month_07}</option>
+                                <option value="month_08">{annualFiscalMonths.month_08}</option>
+                                <option value="month_09">{annualFiscalMonths.month_09}</option>
+                                <option value="month_10">{annualFiscalMonths.month_10}</option>
+                                <option value="month_11">{annualFiscalMonths.month_11}</option>
+                                <option value="month_12">{annualFiscalMonths.month_12}</option>
+                              </>
+                            )}
+                          </>
+                        )}
+                      {/* 上期のみ設定完了済みの場合 */}
+                      {fiscalYearQueryData.is_confirmed_first_half_details &&
+                        !fiscalYearQueryData.is_confirmed_second_half_details && (
+                          <>
+                            {/* メンバーレベル以外は年度・下期を入れる */}
+                            {mainEntityTarget.entityLevel !== "member" && (
+                              <>
+                                <option value="fiscal_year">年度</option>
+                                <option value="second_half">下期</option>
+                              </>
+                            )}
+                            <option value="first_half">上期</option>
+                            <option value="first_quarter">Q1</option>
+                            <option value="second_quarter">Q2</option>
+                            {annualFiscalMonths && (
+                              <>
+                                <option value="month_01">{annualFiscalMonths.month_01}</option>
+                                <option value="month_02">{annualFiscalMonths.month_02}</option>
+                                <option value="month_03">{annualFiscalMonths.month_03}</option>
+                                <option value="month_04">{annualFiscalMonths.month_04}</option>
+                                <option value="month_05">{annualFiscalMonths.month_05}</option>
+                                <option value="month_06">{annualFiscalMonths.month_06}</option>
+                              </>
+                            )}
+                          </>
+                        )}
+                      {/* 下期のみ設定完了済みの場合 */}
+                      {!fiscalYearQueryData.is_confirmed_first_half_details &&
+                        fiscalYearQueryData.is_confirmed_second_half_details && (
+                          <>
+                            {/* メンバーレベル以外は年度・上期を入れる */}
+                            {mainEntityTarget.entityLevel !== "member" && (
+                              <>
+                                <option value="fiscal_year">年度</option>
+                                <option value="first_half">上期</option>
+                              </>
+                            )}
+                            <option value="second_half">下期</option>
+                            <option value="third_quarter">Q3</option>
+                            <option value="fourth_quarter">Q4</option>
+                            {annualFiscalMonths && (
+                              <>
+                                <option value="month_07">{annualFiscalMonths.month_07}</option>
+                                <option value="month_08">{annualFiscalMonths.month_08}</option>
+                                <option value="month_09">{annualFiscalMonths.month_09}</option>
+                                <option value="month_10">{annualFiscalMonths.month_10}</option>
+                                <option value="month_11">{annualFiscalMonths.month_11}</option>
+                                <option value="month_12">{annualFiscalMonths.month_12}</option>
+                              </>
+                            )}
+                          </>
+                        )}
+                    </select>
+                    {/* 上下矢印アイコン */}
+                    <div className={`${styles.select_arrow}`}>
+                      <HiOutlineSelector className="stroke-[2] text-[16px]" />
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {/* セレクトボックス プレイスホルダー */}
+                    <div
+                      className={`${styles.select_btn_wrapper} fade08_forward relative flex items-center text-[var(--color-text-title-g)]`}
+                      onMouseEnter={(e) => {
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: `売上目標の設定完了後\nチャート表示期間の変更が可能です。`,
+                          marginTop: 24,
+                        });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <select
+                        className={`z-10 min-h-[30px] cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[14px] font-bold`}
+                        defaultValue={"fiscal_year"}
+                      >
+                        <option value="fiscal_year">年度</option>
+                      </select>
+                      {/* 上下矢印アイコン */}
+                      <div className={`${styles.select_arrow}`}>
+                        <HiOutlineSelector className="stroke-[2] text-[16px]" />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
-          );
-        })} */}
-        {/* ---------- */}
+          )}
+        {/* ----------- サブ目標タイトルエリア ここまで ----------- */}
 
         {/* ----------------------------------- サブ目標 ----------------------------------- */}
-        <div className={`${styles.grid_row} ${styles.col1} ${stickyRow === "sub_targets" ? styles.sticky_row : ``}`}>
-          <div className={`${styles.grid_content_card} fade08_forward`}>
-            {/* {mainEntityTarget &&
+        {mainEntityTarget &&
+          !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") && (
+            <div
+              className={`${styles.grid_row} ${styles.col1} ${stickyRow === "sub_targets" ? styles.sticky_row : ``}`}
+            >
+              <div className={`${styles.grid_content_card} fade08_forward`}>
+                {/* {mainEntityTarget &&
               !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
               !parentEntityObj && (
                 <>
@@ -1122,39 +1347,36 @@ const SalesTargetsContainerMemo = () => {
                   </div>
                 </>
               )} */}
-            {currentActiveIndex < 1 && (
-              <FallbackScrollContainer title={mainEntityTarget ? getDivName(mainEntityTarget.entityLevel) : ""} />
-            )}
-            {currentActiveIndex <= 1 &&
-              mainTotalTargets &&
-              mainEntityTarget &&
-              !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
-              parentEntityObj && (
-                <>
-                  <ErrorBoundary FallbackComponent={ErrorFallback}>
-                    <Suspense fallback={<FallbackScrollContainer title={getDivName(mainEntityTarget.entityLevel)} />}>
-                      <SalesTargetGridTableSub
-                        entityLevel={mainEntityTarget.entityLevel}
-                        // entityNameTitle={mainEntityTarget.entities[0].entity_name}
-                        // entityId={mainEntityTarget.entities[0].entity_id}
-                        entities={mainEntityTarget.entities}
-                        divName={getDivName(mainEntityTarget.entityLevel)}
-                        companyId={userProfileState.company_id}
-                        stickyRow={stickyRow}
-                        setStickyRow={setStickyRow}
-                        fetchEnabled={currentActiveIndex > 0} // 総合目標のフェッチが完了済みならフェッチを許可
-                      />
-                    </Suspense>
-                  </ErrorBoundary>
-                  {/* <div className={`${styles.card_wrapper} fade08_forward`}>
+                {currentActiveIndex < 1 && (
+                  <FallbackScrollContainer title={mainEntityTarget ? getDivName(mainEntityTarget.entityLevel) : ""} />
+                )}
+                {currentActiveIndex <= 1 && mainTotalTargets && parentEntityObj && (
+                  <>
+                    <ErrorBoundary FallbackComponent={ErrorFallback}>
+                      <Suspense fallback={<FallbackScrollContainer title={getDivName(mainEntityTarget.entityLevel)} />}>
+                        <SalesTargetGridTableSub
+                          entityLevel={mainEntityTarget.entityLevel}
+                          // entityNameTitle={mainEntityTarget.entities[0].entity_name}
+                          // entityId={mainEntityTarget.entities[0].entity_id}
+                          entities={mainEntityTarget.entities}
+                          divName={getDivName(mainEntityTarget.entityLevel)}
+                          companyId={userProfileState.company_id}
+                          stickyRow={stickyRow}
+                          setStickyRow={setStickyRow}
+                          fetchEnabled={currentActiveIndex > 0} // 総合目標のフェッチが完了済みならフェッチを許可
+                        />
+                      </Suspense>
+                    </ErrorBoundary>
+                    {/* <div className={`${styles.card_wrapper} fade08_forward`}>
                   
                 </div> */}
-                </>
-              )}
-          </div>
-        </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         {/* ----------------------------------- サブ目標 ----------------------------------- */}
-        <div className={`${styles.grid_row} ${styles.col1}`}>
+        {/* <div className={`${styles.grid_row} ${styles.col1}`}>
           <div className={`${styles.grid_content_card}`}>
             <div className={`${styles.card_wrapper} fade08_forward`}>
               <div className={`${styles.card_title_area}`}>
@@ -1163,15 +1385,6 @@ const SalesTargetsContainerMemo = () => {
                 </div>
               </div>
               <div className={`${styles.main_container}`}></div>
-            </div>
-          </div>
-        </div>
-        {/* <div className={`${styles.grid_row} ${styles.col1}`}>
-          <div className={`${styles.grid_content_card}`}>
-            <div className={`${styles.card_title_area}`}>
-              <div className={`${styles.card_title}`}>
-                <span>事業部</span>
-              </div>
             </div>
           </div>
         </div> */}

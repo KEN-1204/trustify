@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
-import styles from "../../../../DashboardSalesTargetComponent.module.css";
+import styles from "../../../DashboardSalesTargetComponent.module.css";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { DonutChartComponent } from "@/components/Parts/Charts/DonutChart/DonutChart";
 import { subDays } from "date-fns";
@@ -13,20 +13,29 @@ import {
   COLORS_GRD_SHEER,
   COLORS_SHEER,
 } from "@/components/Parts/Charts/Seeds/seedData";
-import { donutChartData, salesProbabilityList } from "./dataDonutChart";
 import { useMedia } from "react-use";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 import { mappingSalesProbablyShort } from "@/utils/selectOptions";
 import useStore from "@/store";
 import { useQuerySalesProbability } from "@/hooks/useQuerySalesProbability";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import { useQuerySalesTargetsShare } from "@/hooks/useQuerySalesTargetsShare";
+import { EntityLevelNames, EntityObjForChart, FiscalYearAllKeys } from "@/types";
+import { DonutChartCustomComponent } from "@/components/Parts/Charts/DonutChart/DonutChartCustom";
+import { mappingEntityName } from "@/utils/mappings";
 
 type Props = {
   companyId: string;
-  entityLevel: string;
-  entityId: string;
+  parentEntityId: string; // queryKey用
+  parentEntityTotalMainTarget: number;
+  entityLevel: EntityLevelNames;
+  entityLevelId: string;
+  fiscalYearId: string;
+  entities: EntityObjForChart[];
+  // entityId: string;
   periodTitle: string;
-  periodType: string;
+  // periodType: "fiscal_year" | "half_year" | "quarter" | "year_month";
+  periodType: FiscalYearAllKeys;
   basePeriod: number;
   fetchEnabled?: boolean;
   fallbackHeight?: string;
@@ -38,8 +47,13 @@ type Props = {
 
 const DonutChartTargetSharesMemo = ({
   companyId,
+  parentEntityId,
+  parentEntityTotalMainTarget,
   entityLevel,
-  entityId,
+  entityLevelId,
+  fiscalYearId,
+  entities,
+  // entityId,
   periodTitle,
   periodType,
   basePeriod,
@@ -81,12 +95,16 @@ const DonutChartTargetSharesMemo = ({
   // ------------------------- テストデータ ここまで -------------------------
 
   // ------------------------- useQuery残ネタ取得 -------------------------
-  const { data, isLoading, isError } = useQuerySalesProbability({
+  const { data, isLoading, isError } = useQuerySalesTargetsShare({
     companyId,
-    entityId,
+    parentEntityId,
+    parentEntityTotalMainTarget,
     entityLevel,
-    basePeriod,
-    periodType,
+    entityLevelId,
+    fiscalYearId,
+    entities,
+    periodType, // 期間タイプ FiscalYearAllKeysの全ての期間タイプ
+    basePeriod, // 起点となる時点
     fetchEnabled,
   });
   // ------------------------- useQuery残ネタ取得 ここまで -------------------------
@@ -115,7 +133,8 @@ const DonutChartTargetSharesMemo = ({
 
   const chartData = data.chartData;
   const totalAmount = data.total_amount;
-  const donutLabelData = data.labelListSalesProbabilities;
+  const donutLabelData = data.labelListShareSalesTargets;
+  // const donutLabelData = data.labelListSalesProbabilities;
 
   const chartHeight = 286;
   const pieChartRadius = 78;
@@ -125,7 +144,7 @@ const DonutChartTargetSharesMemo = ({
   //   const chartCenterX = 124;
   const chartCenterX = 112;
 
-  const labelType = "sales_probably";
+  const labelType = "sales_target_share";
 
   // チャート マウントを0.6s遅らせる
   const [isMounted, setIsMounted] = useState(false);
@@ -155,22 +174,16 @@ const DonutChartTargetSharesMemo = ({
             }}
           >
             <div className={`absolute left-0 top-0 flex h-full w-[448px] items-center bg-[blue]/[0]`}>
-              <DonutChartComponent
-                // colors={COLORS}
-                // colorsSheer={COLORS_SHEER}
+              <DonutChartCustomComponent
                 colors={COLORS_DEAL}
                 colorsSheer={COLORS_DEAL_SHEER}
-                // colors={COLORS_GRD}
-                // colorsSheer={COLORS_GRD_SHEER}
                 chartHeight={chartHeight}
                 chartCenterX={chartCenterX}
                 chartData={chartData}
-                labelListSalesProbabilities={donutLabelData}
+                labelListSalesTargetShare={donutLabelData}
                 totalAmount={totalAmount}
                 periodType={periodType}
                 labelType={labelType}
-                // labelValueGroupByPeriod={labelValueGroupByPeriod}
-                // legendList={legendList}
                 fallbackHeight={fallbackHeight}
                 fallbackPadding={`0px 6px 8px 24px`}
                 activeIndexParent={activeIndex}
@@ -182,34 +195,23 @@ const DonutChartTargetSharesMemo = ({
             className={`fade08_forward flex h-full min-h-full w-full flex-col bg-[gray]/[0]`}
             style={{ minHeight: chartHeight }}
           >
-            <div className={`w-full`}>
-              <h4 className={`text-[14px]`}>残ネタ獲得・売上予測</h4>
-            </div>
+            <div className={`w-full`}>{/* <h4 className={`text-[14px]`}>残ネタ獲得・売上予測</h4> */}</div>
             <div className={`mt-[15px] flex w-full justify-between text-[12px] text-[var(--color-text-sub)]`}>
               <div>
                 {/* <span>Category</span> */}
-                <span>受注確度</span>
+                <span>{mappingEntityName[entityLevel][language]}</span>
               </div>
               <div className={`flex space-x-[6px]`}>
-                {/* <span>Average Price</span> */}
-                <span>平均単価</span>
+                <span>目標金額</span>
                 <span>/</span>
-                {/* <span>Quantity</span> */}
-                <span>件数</span>
-                <span>/</span>
-                {/* <span>Quantity</span> */}
-                <span>確度</span>
-                <span>/</span>
-                {/* <span>Amount</span> */}
-                {/* <span>合計 (確度込み)</span> */}
-                <span>合計（確度込み）</span>
+                <span>シェア</span>
               </div>
             </div>
             <ul className={`flex w-full flex-col`}>
-              {donutLabelData.map((deal, index) => {
+              {donutLabelData.map((shareObj, index) => {
                 return (
                   <li
-                    key={`deal_status_${index}`}
+                    key={`share_${index}`}
                     //   className={`flex w-full justify-between border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px]`}
                     className={`w-full border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px] ${
                       styles.deal_list
@@ -229,12 +231,7 @@ const DonutChartTargetSharesMemo = ({
                         }}
                       />
                       <div className="text-[13px]">
-                        {/* <span>A</span> */}
-                        {/* <span>⚪️</span> */}
-                        <span>
-                          {mappingSalesProbablyShort[chartData[index].name][language]}
-                          {/* {index !== 0 ? `ネタ` : ``} */}
-                        </span>
+                        <span>{chartData[index].name}</span>
                       </div>
                     </div>
                     <div
@@ -249,30 +246,19 @@ const DonutChartTargetSharesMemo = ({
                       <div className={`flex justify-end  ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}>
                         {/* <span className={`${isDesktopGTE1600 ? `` : `max-w-[85px]`} truncate`}>¥ 2,240,000</span> */}
                         <span className={`${isDesktopGTE1600 ? `` : `max-w-[85px]`} min-w-[85px] truncate text-end`}>
-                          {isValidNumber(deal.average_price) ? formatToJapaneseYen(deal.average_price) : `¥ -`}
-                        </span>
-                      </div>
-                      <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}>
-                        <span className={`${isDesktopGTE1600 ? `` : `max-w-[42px]`} min-w-[42px] truncate text-end`}>
-                          {deal.quantity}件
+                          {isValidNumber(shareObj.average_price) ? formatToJapaneseYen(shareObj.amount) : `¥ -`}
                         </span>
                       </div>
                       <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : `pl-[12px]`}`}>
                         <span className={`${isDesktopGTE1600 ? `` : `max-w-[35px]`} min-w-[35px] truncate text-end`}>
-                          {deal.probability}%
-                        </span>
-                      </div>
-                      <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : `pl-[12px]`}`}>
-                        <span className={`${isDesktopGTE1600 ? `` : `max-w-[102px]`} min-w-[102px] truncate text-end`}>
-                          {/* ¥ 32,650,000,000 */}
-                          {formatToJapaneseYen(deal.amount)}
+                          {shareObj.share}%
                         </span>
                       </div>
                     </div>
                   </li>
                 );
               })}
-              <li className={`flex w-full justify-between pb-[9px] pt-[12px]`}>
+              {/* <li className={`flex w-full justify-between pb-[9px] pt-[12px]`}>
                 <div className={`flex items-center`}>
                   <div
                     className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`}
@@ -283,17 +269,11 @@ const DonutChartTargetSharesMemo = ({
                   </div>
                 </div>
                 <div className={`flex items-center space-x-[12px] text-[13px] text-[var(--color-text-title)]`}>
-                  {/* <div className={``}>
-                <span>¥ 3,240,000</span>
-              </div> */}
-                  {/* <div className={``}>
-                <span>12件</span>
-              </div> */}
                   <div className={`font-bold`}>
                     <span>{formatToJapaneseYen(totalAmount, true)}</span>
                   </div>
                 </div>
-              </li>
+              </li> */}
             </ul>
           </div>
         </>

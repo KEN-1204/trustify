@@ -1365,7 +1365,7 @@ const UpsertSettingTargetEntityGroupMemo = ({
   const [yearsBack, setYearsBack] = useState(2);
   // デフォルト：(期間タイプ: fiscal_year, half_year, quarter, year_month),
   // エリアチャートに渡す期間タイプ (半期、四半期、月次)
-  const [periodTypeTrend, setPeriodTypeTrend] = useState(() => {
+  const [periodTypeTrend, setPeriodTypeTrend] = useState<"fiscal_year" | "half_year" | "quarter" | "year_month">(() => {
     // UpsertTargetEntity側では半期を上期と下期で分けるが、ここではselectedPeriodDetailTrendの識別用として上下を使い、periodTypeは年度、半期、四半期、月次のみで区別する
     if (upsertSettingEntitiesObj.periodType === "year_half") {
       return "fiscal_year";
@@ -1374,7 +1374,10 @@ const UpsertSettingTargetEntityGroupMemo = ({
     } else return "fiscal_year";
   });
   // 🔹エリアチャートに渡す期間 セレクトボックス選択中
-  const [selectedPeriodDetailTrend, setSelectedPeriodDetailTrend] = useState<{ period: string; value: number }>(() => {
+  const [selectedPeriodDetailTrend, setSelectedPeriodDetailTrend] = useState<{
+    period: "fiscal_year" | "half_year" | "quarter" | "year_month";
+    value: number;
+  }>(() => {
     if (upsertSettingEntitiesObj.entityLevel !== "member") {
       // 🔸メンバーレベルでない場合は年度を初期表示にする -1で来期目標の1年前から遡って表示する
       return {
@@ -1386,12 +1389,14 @@ const UpsertSettingTargetEntityGroupMemo = ({
       if (upsertSettingEntitiesObj.periodType === "first_half_details") {
         //
         return {
-          period: "first_half",
+          // period: "first_half",
+          period: "half_year",
           value: (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 1,
         }; // 1が上期、2が下期
       } else {
         return {
-          period: "second_half",
+          // period: "second_half",
+          period: "half_year",
           value: (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 2,
         }; // 1が上期、2が下期
       }
@@ -2180,41 +2185,51 @@ const UpsertSettingTargetEntityGroupMemo = ({
                           >
                             <select
                               className={`z-10 min-h-[30px] cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[14px] font-bold`}
-                              value={selectedPeriodDetailTrend.period}
+                              // value={selectedPeriodDetailTrend.period}
+                              value={selectedPeriodDetailProbability.period}
                               onChange={(e) => {
                                 const periodDetail = e.target.value;
+                                let periodForTrend: "fiscal_year" | "half_year" | "quarter" | "year_month" =
+                                  "fiscal_year";
                                 let currPeriodValue = upsertSettingEntitiesObj.fiscalYear; // 今年度
                                 let periodValue = upsertSettingEntitiesObj.fiscalYear - 1; // 前年度
                                 if (periodDetail === "first_half") {
+                                  periodForTrend = "half_year";
                                   currPeriodValue = upsertSettingEntitiesObj.fiscalYear * 10 + 1; // 上期
                                   periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 1; // 上期
                                 }
                                 if (periodDetail === "second_half") {
+                                  periodForTrend = "half_year";
                                   currPeriodValue = upsertSettingEntitiesObj.fiscalYear * 10 + 2; // 下期
                                   periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 2; // 下期
                                 }
 
                                 if (upsertSettingEntitiesObj.entityLevel === "member") {
                                   if (periodDetail === "first_quarter") {
+                                    periodForTrend = "quarter";
                                     currPeriodValue = upsertSettingEntitiesObj.fiscalYear * 10 + 1; // Q1
                                     periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 1; // Q1
                                   }
                                   if (periodDetail === "second_quarter") {
+                                    periodForTrend = "quarter";
                                     currPeriodValue = upsertSettingEntitiesObj.fiscalYear * 10 + 2; // Q2
                                     periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 2; // Q2
                                   }
                                   if (periodDetail === "third_quarter") {
+                                    periodForTrend = "quarter";
                                     currPeriodValue = upsertSettingEntitiesObj.fiscalYear * 10 + 3; // Q3
                                     periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 3; // Q3
                                   }
                                   if (periodDetail === "fourth_quarter") {
+                                    periodForTrend = "quarter";
                                     currPeriodValue = upsertSettingEntitiesObj.fiscalYear * 10 + 4; // Q4
                                     periodValue = (upsertSettingEntitiesObj.fiscalYear - 1) * 10 + 4; // Q4
                                   }
                                 }
                                 // 売上推移用 目標年度の1年前をbasePeriodとしてセット
                                 setSelectedPeriodDetailTrend({
-                                  period: periodDetail,
+                                  // period: periodDetail,
+                                  period: periodForTrend,
                                   value: periodValue,
                                 });
                                 // 案件状況 目標年度と同じ年度をbasePeriodとしてセット
@@ -2382,7 +2397,7 @@ const UpsertSettingTargetEntityGroupMemo = ({
                                 entityLevel={upsertSettingEntitiesObj.entityLevel}
                                 entityId={selectedEntityIdForDonut}
                                 periodTitle={dealStatusPeriodTitle}
-                                periodType={periodTypeTrend}
+                                periodType={periodTypeTrend} // 案件状況はpropertiesテーブルから取得するためTrendと同じ期間タイプでOK "fiscal_year" | "half_year" | "quarter" | "year_month"
                                 basePeriod={selectedPeriodDetailProbability.value}
                                 fetchEnabled={true}
                               />

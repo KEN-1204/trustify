@@ -1,4 +1,11 @@
-import { DonutChartShareObj, LabelDataSalesTargetsShare, SalesTargetsShareChartData } from "@/types";
+import {
+  DonutChartShareObj,
+  EntityLevelNames,
+  EntityObjForChart,
+  FiscalYearAllKeys,
+  LabelDataSalesTargetsShare,
+  SalesTargetsShareChartData,
+} from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -6,14 +13,13 @@ type Props = {
   companyId: string;
   parentEntityId: string; // queryKey用
   parentEntityTotalMainTarget: number;
-  entityLevel: string;
+  entityLevel: EntityLevelNames;
   entityLevelId: string;
   fiscalYearId: string;
-  entities: {
-    [K in "entity_name" | "entity_id" | "entity_structure_id"]: string;
-  }[];
+  entities: EntityObjForChart[];
   //   periodType: string;
-  periodType: "fiscal_year" | "half_year" | "quarter" | "year_month";
+  // periodType: "fiscal_year" | "half_year" | "quarter" | "year_month";
+  periodType: FiscalYearAllKeys; // 売上目標はsales_targetsテーブルから取得のため、期間詳細を全て区切って取得可能(売上実績のpropertiesテーブルから取得の場合は「"fiscal_year" | "half_year" | "quarter" | "year_month"」の4種類のみ)
   basePeriod: number;
   fetchEnabled?: boolean;
 };
@@ -24,9 +30,9 @@ export const useQuerySalesTargetsShare = ({
   parentEntityId,
   parentEntityTotalMainTarget,
   entityLevel,
-  entities,
   entityLevelId,
   fiscalYearId,
+  entities,
   periodType, // 期間タイプ fiscal_year, half_year, quarter, year_month
   basePeriod, // 起点となる時点
   fetchEnabled = true,

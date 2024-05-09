@@ -1568,6 +1568,8 @@ const UpsertTargetEntityMemo = () => {
       await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
       // 目標タブトップ画面の設定年度の売上目標を更新
       await queryClient.invalidateQueries(["sales_targets", upsertSettingEntitiesObj.fiscalYear]);
+      // 目標トップページのスパークチャートをリセット
+      await queryClient.invalidateQueries(["sales_summary_and_growth", upsertSettingEntitiesObj.fiscalYear]);
 
       setIsLoading(false); // ローディング終了
       toast.success(
@@ -1835,6 +1837,8 @@ const UpsertTargetEntityMemo = () => {
         // await queryClient.removeQueries(["member_accounts", parent_entity_level, parentEntityIdsStr]);
         // 全ての年度の売上目標設定状況を保持するキャッシュも更新する
         await queryClient.invalidateQueries(["fiscal_years", "sales_target"]);
+
+        await queryClient.invalidateQueries(["sales_targets", upsertSettingEntitiesObj.fiscalYear]);
 
         // 🔹売上目標を全てリセットした後、モーダルを閉じて、ステップ1に戻る
         setStep(1);

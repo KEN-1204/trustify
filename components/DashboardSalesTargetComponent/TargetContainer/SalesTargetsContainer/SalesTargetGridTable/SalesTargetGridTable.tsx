@@ -58,7 +58,8 @@ import { HiOutlineSelector } from "react-icons/hi";
 
 // entityLevel: company / department...
 type Props = {
-  entityLevel: string;
+  // entityLevel: string;
+  entityLevel: "company" | "department" | "section" | "unit"; // 総合目標のみで使用のためmemberはなし
   // entityNameTitle: string;
   // entityId: string;
   entities: Entity[];
@@ -119,14 +120,10 @@ const SalesTargetGridTableMemo = ({
   const displayKeys = useDashboardStore((state) => state.displayKeys);
   const setDisplayKeys = useDashboardStore((state) => state.setDisplayKeys);
 
-  // const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
-  // const [selectedSection, setSelectedSection] = useState<Section | null>(null);
-  // const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
-  // const [selectedOffice, setSelectedOffice] = useState<Office | null>(null);
-  const [selectedDepartment, setSelectedDepartment] = useState<Entity | null>(null);
-  const [selectedSection, setSelectedSection] = useState<Entity | null>(null);
-  const [selectedUnit, setSelectedUnit] = useState<Entity | null>(null);
-  const [selectedOffice, setSelectedOffice] = useState<Entity | null>(null);
+  // const [selectedDepartment, setSelectedDepartment] = useState<Entity | null>(null);
+  // const [selectedSection, setSelectedSection] = useState<Entity | null>(null);
+  // const [selectedUnit, setSelectedUnit] = useState<Entity | null>(null);
+  // const [selectedOffice, setSelectedOffice] = useState<Entity | null>(null);
 
   if (isMain && !mainEntityTarget) return null;
   if (!fiscalYearStartEndDate) return null;
@@ -140,6 +137,15 @@ const SalesTargetGridTableMemo = ({
     return new Map(entities.map((entity) => [entity.entity_id, entity]));
   }, [entities]);
 
+  // 現在のエンティティのオブジェクト
+  const mainEntityObj = useMemo(() => {
+    if (!entitiesIdToObjMap) return null;
+    if (!mainEntityTarget?.parentEntityId) return null;
+    const mainEntityObj = entitiesIdToObjMap.get(mainEntityTarget.parentEntityId);
+    if (!mainEntityObj) return null;
+    return mainEntityObj;
+  }, [entitiesIdToObjMap, mainEntityTarget?.parentEntityId]);
+
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
   const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
   const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
@@ -147,31 +153,31 @@ const SalesTargetGridTableMemo = ({
   const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
   // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
 
-  // 「事業部」「課・セクション」「係・チーム」「事業所」のid to objectオブジェクトマップ生成
-  // 事業部マップ {id: 事業部オブジェクト}
-  const departmentIdToObjMap = useMemo(() => {
-    if (!departmentDataArray?.length) return null;
-    const departmentMap = new Map(departmentDataArray.map((obj) => [obj.id, obj]));
-    return departmentMap;
-  }, [departmentDataArray]);
-  // 課・セクションマップ {id: 課・セクションオブジェクト}
-  const sectionIdToObjMap = useMemo(() => {
-    if (!sectionDataArray?.length) return null;
-    const sectionMap = new Map(sectionDataArray.map((obj) => [obj.id, obj]));
-    return sectionMap;
-  }, [sectionDataArray]);
-  // 係マップ {id: 係オブジェクト}
-  const unitIdToObjMap = useMemo(() => {
-    if (!unitDataArray?.length) return null;
-    const unitMap = new Map(unitDataArray.map((obj) => [obj.id, obj]));
-    return unitMap;
-  }, [unitDataArray]);
-  // 事業所マップ {id: 事業所オブジェクト}
-  const officeIdToObjMap = useMemo(() => {
-    if (!officeDataArray?.length) return null;
-    const officeMap = new Map(officeDataArray.map((obj) => [obj.id, obj]));
-    return officeMap;
-  }, [officeDataArray]);
+  // // 「事業部」「課・セクション」「係・チーム」「事業所」のid to objectオブジェクトマップ生成
+  // // 事業部マップ {id: 事業部オブジェクト}
+  // const departmentIdToObjMap = useMemo(() => {
+  //   if (!departmentDataArray?.length) return null;
+  //   const departmentMap = new Map(departmentDataArray.map((obj) => [obj.id, obj]));
+  //   return departmentMap;
+  // }, [departmentDataArray]);
+  // // 課・セクションマップ {id: 課・セクションオブジェクト}
+  // const sectionIdToObjMap = useMemo(() => {
+  //   if (!sectionDataArray?.length) return null;
+  //   const sectionMap = new Map(sectionDataArray.map((obj) => [obj.id, obj]));
+  //   return sectionMap;
+  // }, [sectionDataArray]);
+  // // 係マップ {id: 係オブジェクト}
+  // const unitIdToObjMap = useMemo(() => {
+  //   if (!unitDataArray?.length) return null;
+  //   const unitMap = new Map(unitDataArray.map((obj) => [obj.id, obj]));
+  //   return unitMap;
+  // }, [unitDataArray]);
+  // // 事業所マップ {id: 事業所オブジェクト}
+  // const officeIdToObjMap = useMemo(() => {
+  //   if (!officeDataArray?.length) return null;
+  //   const officeMap = new Map(officeDataArray.map((obj) => [obj.id, obj]));
+  //   return officeMap;
+  // }, [officeDataArray]);
 
   // ========================= 🌟年度・レベル・エンティティuseQuery キャッシュ🌟 =========================
   const fiscalYearQueryData: FiscalYears | undefined = queryClient.getQueryData([
@@ -514,7 +520,9 @@ const SalesTargetGridTableMemo = ({
     if (!Array.isArray(data) || !data?.length) {
       const placeholderSalesTargetArray = entities.map((entity) => {
         return {
-          share: entityLevel === "company" ? 100 : 0,
+          // share: entityLevel === "company" ? 100 : 0,
+          // share: 100, // 総合目標のため常に100
+          share: 0, // 売上目標が未設定の場合には常に0
           dataset_type: "sales_target",
           entity_id: entity.entity_id,
           entity_level: entity.entity_level,
@@ -559,39 +567,42 @@ const SalesTargetGridTableMemo = ({
       // throw new Error("売上目標の取得に失敗しました。data", data);
     }
     // `data` is `SalesTargetsRowDataWithYoY[] | null`
-    if (entityLevel !== "member") {
-      return data as SalesTargetFYRowData[];
-    } else {
-      const memberSalesTargetArray = (data as SalesTargetFYRowData[]).map((row) => {
-        // メンバーエンティティで年度目標が取得できている場合はそのままrowをリターン
-        if (Object.keys(row).includes("fiscal_year") && row?.fiscal_year !== null && row?.fiscal_year !== undefined) {
-          return row;
-        }
-        // メンバーエンティティで年度目標が取得できていない場合は上期と下期の売上目標を合算して年度目標を追加
-        let totalFiscalYear = 0;
-        try {
-          const firstHalfDecimal = new Decimal(row.first_half ?? 0);
-          const secondHalfDecimal = new Decimal(row.second_half ?? 0);
-          totalFiscalYear = firstHalfDecimal.plus(secondHalfDecimal).toNumber();
-        } catch (error: any) {
-          totalFiscalYear = (row.first_half ?? 0) + (row.second_half ?? 0);
-          console.log("❌memberSalesTargetArray totalFiscalYear Decimalエラー", totalFiscalYear);
-        }
 
-        return {
-          ...row,
-          fiscal_year: totalFiscalYear,
-        };
-      });
+    return data as SalesTargetFYRowData[];
+    // if (entityLevel !== "member") {
+    //   return data as SalesTargetFYRowData[];
+    // } else {
+    //   const memberSalesTargetArray = (data as SalesTargetFYRowData[]).map((row) => {
+    //     // メンバーエンティティで年度目標が取得できている場合はそのままrowをリターン
+    //     if (Object.keys(row).includes("fiscal_year") && row?.fiscal_year !== null && row?.fiscal_year !== undefined) {
+    //       return row;
+    //     }
+    //     // メンバーエンティティで年度目標が取得できていない場合は上期と下期の売上目標を合算して年度目標を追加
+    //     let totalFiscalYear = 0;
+    //     try {
+    //       const firstHalfDecimal = new Decimal(row.first_half ?? 0);
+    //       const secondHalfDecimal = new Decimal(row.second_half ?? 0);
+    //       totalFiscalYear = firstHalfDecimal.plus(secondHalfDecimal).toNumber();
+    //     } catch (error: any) {
+    //       totalFiscalYear = (row.first_half ?? 0) + (row.second_half ?? 0);
+    //       console.log("❌memberSalesTargetArray totalFiscalYear Decimalエラー", totalFiscalYear);
+    //     }
 
-      return memberSalesTargetArray;
-    }
+    //     return {
+    //       ...row,
+    //       fiscal_year: totalFiscalYear,
+    //     };
+    //   });
+
+    // return memberSalesTargetArray;
+    // }
   }
   function ensureLastSalesRowData(data: any): SalesTargetFYRowData[] {
     if (!Array.isArray(data) || !data?.length) {
       const placeholderLastYearSalesArray = entities.map((entity) => {
         return {
-          share: entityLevel === "company" ? 100 : 0,
+          // share: entityLevel === "company" ? 100 : 0,
+          share: 100, // 総合目標のため常に100
           dataset_type: "last_year_sales",
           entity_id: entity.entity_id,
           entity_level: entity.entity_level,
@@ -637,13 +648,6 @@ const SalesTargetGridTableMemo = ({
     }
     // `data` is `SalesTargetsRowDataWithYoY[] | null`
     return data as SalesTargetFYRowData[];
-  }
-  function ensureClientCompanies(data: any): SalesTargetsRowDataWithYoY[] | null {
-    if (Array.isArray(data) && data.length > 0 && "error" in data[0]) {
-      throw new Error("売上目標の取得に失敗しました。");
-    }
-    // `data` is `SalesTargetsRowDataWithYoY[] | null`
-    return data as SalesTargetsRowDataWithYoY[] | null;
   }
 
   // ================== 🌟活動履歴を取得する関数🌟 ==================
@@ -715,116 +719,19 @@ const SalesTargetGridTableMemo = ({
       try {
         const entityIds = entities.map((entity) => entity.entity_id);
         const entityStructureIds = entities.map((entity) => entity.id);
+
+        const isSetCompleteTarget = entityStructureIds.every((id) => !!id); // 空文字の場合には未設定でfalse
         // 🔹メイン目標 特定のエンティティIDのみ取得
         if (isMain) {
-          // 🔸売上目標を取得するFUNCTIONの実行
-          // const payload = {
-          //   _company_id: companyId,
-          //   _entity_level: entityLevel, // エンティティタイプ
-          //   // _entity_id: entityId, // エンティティのid
-          //   // _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
-          //   _entity_ids: entityIds, // エンティティのid
-          //   _entity_structure_ids: entityStructureIds, // エンティティテーブルのid
-          //   _fiscal_year: selectedFiscalYearTarget, // 選択した会計年度
-          //   _start_year_month: currentFiscalStartYearMonth, // 202304の年度初めの年月度
-          //   _end_year_month:
-          //     fiscalYearStartEndDate.endDate.getFullYear() * 100 + fiscalYearStartEndDate.endDate.getMonth() + 1, // 202403の決算日の年月度 ユーザーの会計年度のカレンダー年月
-          //   // SELECTクエリで作成するカラム用
-          //   _month_01: annualFiscalMonths.month_01,
-          //   _month_02: annualFiscalMonths.month_02,
-          //   _month_03: annualFiscalMonths.month_03,
-          //   _month_04: annualFiscalMonths.month_04,
-          //   _month_05: annualFiscalMonths.month_05,
-          //   _month_06: annualFiscalMonths.month_06,
-          //   _month_07: annualFiscalMonths.month_07,
-          //   _month_08: annualFiscalMonths.month_08,
-          //   _month_09: annualFiscalMonths.month_09,
-          //   _month_10: annualFiscalMonths.month_10,
-          //   _month_11: annualFiscalMonths.month_11,
-          //   _month_12: annualFiscalMonths.month_12,
-          // };
-          // console.log(
-          //   "🔥 queryFn関数実行 fetchServerPage get_sales_targets_for_fiscal_year_all実行 payload",
-          //   payload,
-          //   "entityIds",
-          //   entityIds,
-          //   "entityStructureIds",
-          //   entityStructureIds,
-          //   // "entityLevel",
-          //   // entityLevel,
-          //   // "entityId",
-          //   // entityId,
-          //   "selectedFiscalYearTarget",
-          //   selectedFiscalYearTarget
-          // );
-          // const {
-          //   data: salesTargetData,
-          //   error,
-          //   count: fetchCount,
-          // } = await supabase
-          //   .rpc("get_sales_targets_for_fiscal_year_all", payload, { count: "exact" })
-          //   .eq("created_by_company_id", companyId)
-          //   .range(from, to);
-
-          // if (error) throw error;
-
-          // salesTargetRows = ensureTargetsRowData(salesTargetData); // SalesTargetFYRowData型チェック
-
-          // console.log("✅get_sales_targets_for_fiscal_year_all成功 salesTargetRows", salesTargetRows);
-
-          // // 🔸前年度売上を取得するFUNCTIONの実行
-          // const lastYearPayload = {
-          //   _entity_level: entityLevel, // エンティティタイプ
-          //   // _entity_id: entityId, // エンティティのid
-          //   // _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
-          //   _entity_id: entities[0].entity_id, // エンティティのid
-          //   _entity_name: entities[0].entity_name, // エンティティ名 マイクロスコープ事業部など
-          //   _fiscal_year: selectedFiscalYearTarget - 1, // 選択した会計年度の前年度
-          //   _start_year_month: currentFiscalStartYearMonth - 100, // 前年度の年度初めの年月度
-          //   _end_year_month:
-          //     fiscalYearStartEndDate.endDate.getFullYear() * 100 - 100 + fiscalYearStartEndDate.endDate.getMonth() + 1, // 前年度の決算日の年月度 ユーザーの会計年度のカレンダー年月
-          //   // SELECTクエリで作成するカラム用
-          //   _month_01: lastAnnualFiscalMonths.month_01,
-          //   _month_02: lastAnnualFiscalMonths.month_02,
-          //   _month_03: lastAnnualFiscalMonths.month_03,
-          //   _month_04: lastAnnualFiscalMonths.month_04,
-          //   _month_05: lastAnnualFiscalMonths.month_05,
-          //   _month_06: lastAnnualFiscalMonths.month_06,
-          //   _month_07: lastAnnualFiscalMonths.month_07,
-          //   _month_08: lastAnnualFiscalMonths.month_08,
-          //   _month_09: lastAnnualFiscalMonths.month_09,
-          //   _month_10: lastAnnualFiscalMonths.month_10,
-          //   _month_11: lastAnnualFiscalMonths.month_11,
-          //   _month_12: lastAnnualFiscalMonths.month_12,
-          // };
-          // console.log(
-          //   "🔥 queryFn関数実行 fetchServerPage get_last_year_sales_for_fiscal_year_all実行 lastYearPayload",
-          //   lastYearPayload
-          // );
-          // const {
-          //   data: lastYearSalesData,
-          //   error: lastYearSalesError,
-          //   count: lastYearSalesFetchCount,
-          // } = await supabase
-          //   .rpc("get_last_year_sales_for_fiscal_year_all", lastYearPayload, { count: "exact" })
-          //   .eq("created_by_company_id", companyId)
-          //   .range(from, to);
-
-          // if (lastYearSalesError) throw lastYearSalesError;
-
-          // console.log("✅get_last_year_sales_for_fiscal_year_all成功 lastYearSalesRows", lastYearSalesData);
-          // lastYearSalesRows = ensureLastSalesRowData(lastYearSalesData); // SalesTargetFYRowData型チェック
-
-          // console.log("✅get_last_year_sales_for_fiscal_year_all成功 lastYearSalesRows", lastYearSalesRows);
-
           // 🔸売上目標と前年度売上実績を一緒に取得するFUNCTIONの実行
           const payload = {
+            _is_complete_target: isSetCompleteTarget,
             _company_id: companyId,
             _entity_level: entityLevel, // エンティティタイプ
             // _entity_id: entityId, // エンティティのid
             // _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
             _entity_ids: entityIds, // エンティティのid
-            _entity_structure_ids: entityStructureIds, // エンティティテーブルのid
+            // _entity_structure_ids: entityStructureIds, // エンティティテーブルのid
             _fiscal_year: selectedFiscalYearTarget, // 選択した会計年度
             // _start_year_month: currentFiscalStartYearMonth, // 202304の年度初めの年月度
             // _end_year_month:
@@ -844,6 +751,9 @@ const SalesTargetGridTableMemo = ({
             _month_10: annualFiscalMonths.month_10,
             _month_11: annualFiscalMonths.month_11,
             _month_12: annualFiscalMonths.month_12,
+            // オプショナルなプロパティは条件に応じて追加
+            ...(isSetCompleteTarget && { _entity_structure_ids: entityStructureIds }), // エンティティテーブルのid(売上目標が設定されていない場合にはパラメータで定義したUUID[]のデータ型を満たせずにエラーとなるため、NULL値をオプショナルとして売上目標が設定されている時のみ_entity_structure_idsのパラメータを追加する)
+            // _entity_structure_ids: isSetCompleteTarget ? entityStructureIds : null,
           };
           console.log(
             "🔥 queryFn関数実行 get_sales_targets_and_ly_sales_for_fy_all実行 payload",
@@ -872,7 +782,7 @@ const SalesTargetGridTableMemo = ({
           salesTargetRows = ensureTargetsRowData(salesTargetData?.sales_targets); // SalesTargetFYRowData型チェック
           lastYearSalesRows = ensureLastSalesRowData(salesTargetData?.last_year_sales); // SalesTargetFYRowData型チェック
 
-          const lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
+          let lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
 
           // 🔸前年比の算出 「(今年の数値 - 去年の数値) / 去年の数値 * 100」の公式を使用して前年比を算出
           yoyGrowthRows = salesTargetRows.map((target, index) => {
@@ -980,7 +890,7 @@ const SalesTargetGridTableMemo = ({
           salesTargetRows = salesTargetRows?.length
             ? (salesTargetRows.map((obj) => ({
                 ...obj,
-                share: 100,
+                share: isSetCompleteTarget ? 100 : 0,
               })) as (SalesTargetFYRowData & { share: number })[])
             : [];
           lastYearSalesRows = lastYearSalesRows?.length
@@ -990,6 +900,9 @@ const SalesTargetGridTableMemo = ({
                 entity_name: entitiesIdToObjMap.get(obj?.entity_id) ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
               })) as (SalesTargetFYRowData & { share: number })[])
             : [];
+
+          // シェア挿入後のデータで新たにMapを生成して再代入
+          lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
 
           // １行３セット(３行)にまとめてrowsを生成して返す
           rows = salesTargetRows.map((target, index) => {
@@ -1010,211 +923,211 @@ const SalesTargetGridTableMemo = ({
           count = fetchCount;
         }
         // 🔹サブ目標 メイン目標を100%として構成する個別のエンティティの目標
-        else {
-          // 🔸売上目標と前年度売上実績を一緒に取得するFUNCTIONの実行
-          const payload = {
-            _company_id: companyId,
-            _entity_level: entityLevel, // エンティティタイプ
-            // _entity_id: entityId, // エンティティのid
-            // _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
-            _entity_ids: entityIds, // エンティティのid
-            _entity_structure_ids: entityStructureIds, // エンティティテーブルのid
-            _fiscal_year: selectedFiscalYearTarget, // 選択した会計年度
-            // _start_year_month: currentFiscalStartYearMonth, // 202304の年度初めの年月度
-            // _end_year_month:
-            //   fiscalYearStartEndDate.endDate.getFullYear() * 100 + fiscalYearStartEndDate.endDate.getMonth() + 1, // 202403の決算日の年月度 ユーザーの会計年度のカレンダー年月
-            _start_year_month: annualFiscalMonths.month_01, // annualから取得する
-            _end_year_month: annualFiscalMonths.month_12, // annualから取得する
-            // SELECTクエリで作成するカラム用
-            _month_01: annualFiscalMonths.month_01,
-            _month_02: annualFiscalMonths.month_02,
-            _month_03: annualFiscalMonths.month_03,
-            _month_04: annualFiscalMonths.month_04,
-            _month_05: annualFiscalMonths.month_05,
-            _month_06: annualFiscalMonths.month_06,
-            _month_07: annualFiscalMonths.month_07,
-            _month_08: annualFiscalMonths.month_08,
-            _month_09: annualFiscalMonths.month_09,
-            _month_10: annualFiscalMonths.month_10,
-            _month_11: annualFiscalMonths.month_11,
-            _month_12: annualFiscalMonths.month_12,
-          };
-          console.log(
-            "🔥 queryFn関数実行 get_sales_targets_and_ly_sales_for_fy_all実行 payload",
-            payload,
-            "entityIds",
-            entityIds,
-            "entityStructureIds",
-            entityStructureIds,
-            "selectedFiscalYearTarget",
-            selectedFiscalYearTarget
-          );
-          const {
-            data: salesTargetData,
-            error,
-            count: fetchCount,
-          } = await supabase
-            .rpc("get_sales_targets_and_ly_sales_for_fy_all", payload, { count: "exact" })
-            // .eq("created_by_company_id", companyId)
-            .range(from, to);
+        // else {
+        //   // 🔸売上目標と前年度売上実績を一緒に取得するFUNCTIONの実行
+        //   const payload = {
+        //     _company_id: companyId,
+        //     _entity_level: entityLevel, // エンティティタイプ
+        //     // _entity_id: entityId, // エンティティのid
+        //     // _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
+        //     _entity_ids: entityIds, // エンティティのid
+        //     _entity_structure_ids: entityStructureIds, // エンティティテーブルのid
+        //     _fiscal_year: selectedFiscalYearTarget, // 選択した会計年度
+        //     // _start_year_month: currentFiscalStartYearMonth, // 202304の年度初めの年月度
+        //     // _end_year_month:
+        //     //   fiscalYearStartEndDate.endDate.getFullYear() * 100 + fiscalYearStartEndDate.endDate.getMonth() + 1, // 202403の決算日の年月度 ユーザーの会計年度のカレンダー年月
+        //     _start_year_month: annualFiscalMonths.month_01, // annualから取得する
+        //     _end_year_month: annualFiscalMonths.month_12, // annualから取得する
+        //     // SELECTクエリで作成するカラム用
+        //     _month_01: annualFiscalMonths.month_01,
+        //     _month_02: annualFiscalMonths.month_02,
+        //     _month_03: annualFiscalMonths.month_03,
+        //     _month_04: annualFiscalMonths.month_04,
+        //     _month_05: annualFiscalMonths.month_05,
+        //     _month_06: annualFiscalMonths.month_06,
+        //     _month_07: annualFiscalMonths.month_07,
+        //     _month_08: annualFiscalMonths.month_08,
+        //     _month_09: annualFiscalMonths.month_09,
+        //     _month_10: annualFiscalMonths.month_10,
+        //     _month_11: annualFiscalMonths.month_11,
+        //     _month_12: annualFiscalMonths.month_12,
+        //   };
+        //   console.log(
+        //     "🔥 queryFn関数実行 get_sales_targets_and_ly_sales_for_fy_all実行 payload",
+        //     payload,
+        //     "entityIds",
+        //     entityIds,
+        //     "entityStructureIds",
+        //     entityStructureIds,
+        //     "selectedFiscalYearTarget",
+        //     selectedFiscalYearTarget
+        //   );
+        //   const {
+        //     data: salesTargetData,
+        //     error,
+        //     count: fetchCount,
+        //   } = await supabase
+        //     .rpc("get_sales_targets_and_ly_sales_for_fy_all", payload, { count: "exact" })
+        //     // .eq("created_by_company_id", companyId)
+        //     .range(from, to);
 
-          if (error) throw error;
+        //   if (error) throw error;
 
-          console.log("✅get_sales_targets_and_ly_sales_for_fy_all実行成功 salesTargetData", salesTargetData);
+        //   console.log("✅get_sales_targets_and_ly_sales_for_fy_all実行成功 salesTargetData", salesTargetData);
 
-          // メンバーレベルの年度目標はここで上期と下期の目標を合算して補完
-          salesTargetRows = ensureTargetsRowData(salesTargetData?.sales_targets); // SalesTargetFYRowData型チェック
-          lastYearSalesRows = ensureLastSalesRowData(salesTargetData?.last_year_sales); // SalesTargetFYRowData型チェック
+        //   // メンバーレベルの年度目標はここで上期と下期の目標を合算して補完
+        //   salesTargetRows = ensureTargetsRowData(salesTargetData?.sales_targets); // SalesTargetFYRowData型チェック
+        //   lastYearSalesRows = ensureLastSalesRowData(salesTargetData?.last_year_sales); // SalesTargetFYRowData型チェック
 
-          const lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
+        //   const lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
 
-          // 🔸前年比の算出 「(今年の数値 - 去年の数値) / 去年の数値 * 100」の公式を使用して前年比を算出
-          yoyGrowthRows = salesTargetRows.map((target, index) => {
-            const sales_target_entityId = target.entity_id;
-            // const lySales = lastYearSalesRows.find((lys) => lys.entity_id === sales_target_entityId);
-            const lySales = lastYearSalesRowsMap.get(sales_target_entityId);
-            // const lySales = lastYearSalesRows[index];
+        //   // 🔸前年比の算出 「(今年の数値 - 去年の数値) / 去年の数値 * 100」の公式を使用して前年比を算出
+        //   yoyGrowthRows = salesTargetRows.map((target, index) => {
+        //     const sales_target_entityId = target.entity_id;
+        //     // const lySales = lastYearSalesRows.find((lys) => lys.entity_id === sales_target_entityId);
+        //     const lySales = lastYearSalesRowsMap.get(sales_target_entityId);
+        //     // const lySales = lastYearSalesRows[index];
 
-            const resultFY = calculateYearOverYear(target?.fiscal_year, lySales?.fiscal_year, 1);
-            const result1H = calculateYearOverYear(target?.first_half, lySales?.first_half, 1);
-            const result2H = calculateYearOverYear(target?.second_half, lySales?.second_half, 1);
-            const result1Q = calculateYearOverYear(target?.first_quarter, lySales?.first_quarter, 1);
-            const result2Q = calculateYearOverYear(target?.second_quarter, lySales?.second_quarter, 1);
-            const result3Q = calculateYearOverYear(target?.third_quarter, lySales?.third_quarter, 1);
-            const result4Q = calculateYearOverYear(target?.fourth_quarter, lySales?.fourth_quarter, 1);
-            const resultMonth01 = calculateYearOverYear(target?.month_01, lySales?.month_01, 1);
-            const resultMonth02 = calculateYearOverYear(target?.month_02, lySales?.month_02, 1);
-            const resultMonth03 = calculateYearOverYear(target?.month_03, lySales?.month_03, 1);
-            const resultMonth04 = calculateYearOverYear(target?.month_04, lySales?.month_04, 1);
-            const resultMonth05 = calculateYearOverYear(target?.month_05, lySales?.month_05, 1);
-            const resultMonth06 = calculateYearOverYear(target?.month_06, lySales?.month_06, 1);
-            const resultMonth07 = calculateYearOverYear(target?.month_07, lySales?.month_07, 1);
-            const resultMonth08 = calculateYearOverYear(target?.month_08, lySales?.month_08, 1);
-            const resultMonth09 = calculateYearOverYear(target?.month_09, lySales?.month_09, 1);
-            const resultMonth10 = calculateYearOverYear(target?.month_10, lySales?.month_10, 1);
-            const resultMonth11 = calculateYearOverYear(target?.month_11, lySales?.month_11, 1);
-            const resultMonth12 = calculateYearOverYear(target?.month_12, lySales?.month_12, 1);
+        //     const resultFY = calculateYearOverYear(target?.fiscal_year, lySales?.fiscal_year, 1);
+        //     const result1H = calculateYearOverYear(target?.first_half, lySales?.first_half, 1);
+        //     const result2H = calculateYearOverYear(target?.second_half, lySales?.second_half, 1);
+        //     const result1Q = calculateYearOverYear(target?.first_quarter, lySales?.first_quarter, 1);
+        //     const result2Q = calculateYearOverYear(target?.second_quarter, lySales?.second_quarter, 1);
+        //     const result3Q = calculateYearOverYear(target?.third_quarter, lySales?.third_quarter, 1);
+        //     const result4Q = calculateYearOverYear(target?.fourth_quarter, lySales?.fourth_quarter, 1);
+        //     const resultMonth01 = calculateYearOverYear(target?.month_01, lySales?.month_01, 1);
+        //     const resultMonth02 = calculateYearOverYear(target?.month_02, lySales?.month_02, 1);
+        //     const resultMonth03 = calculateYearOverYear(target?.month_03, lySales?.month_03, 1);
+        //     const resultMonth04 = calculateYearOverYear(target?.month_04, lySales?.month_04, 1);
+        //     const resultMonth05 = calculateYearOverYear(target?.month_05, lySales?.month_05, 1);
+        //     const resultMonth06 = calculateYearOverYear(target?.month_06, lySales?.month_06, 1);
+        //     const resultMonth07 = calculateYearOverYear(target?.month_07, lySales?.month_07, 1);
+        //     const resultMonth08 = calculateYearOverYear(target?.month_08, lySales?.month_08, 1);
+        //     const resultMonth09 = calculateYearOverYear(target?.month_09, lySales?.month_09, 1);
+        //     const resultMonth10 = calculateYearOverYear(target?.month_10, lySales?.month_10, 1);
+        //     const resultMonth11 = calculateYearOverYear(target?.month_11, lySales?.month_11, 1);
+        //     const resultMonth12 = calculateYearOverYear(target?.month_12, lySales?.month_12, 1);
 
-            console.log(
-              "result2H",
-              result2H,
-              "target?.second_half",
-              target?.second_half,
-              "lySales?.second_half",
-              lySales?.second_half
-            );
-            console.log(
-              "result4Q",
-              result4Q,
-              "target?.fourth_quarter",
-              target?.fourth_quarter,
-              "lySales?.fourth_quarter",
-              lySales?.fourth_quarter
-            );
-            console.log(
-              "resultMonth12",
-              resultMonth12,
-              "target?.month_12",
-              target?.month_12,
-              "lySales?.month_12",
-              lySales?.month_12
-            );
+        //     console.log(
+        //       "result2H",
+        //       result2H,
+        //       "target?.second_half",
+        //       target?.second_half,
+        //       "lySales?.second_half",
+        //       lySales?.second_half
+        //     );
+        //     console.log(
+        //       "result4Q",
+        //       result4Q,
+        //       "target?.fourth_quarter",
+        //       target?.fourth_quarter,
+        //       "lySales?.fourth_quarter",
+        //       lySales?.fourth_quarter
+        //     );
+        //     console.log(
+        //       "resultMonth12",
+        //       resultMonth12,
+        //       "target?.month_12",
+        //       target?.month_12,
+        //       "lySales?.month_12",
+        //       lySales?.month_12
+        //     );
 
-            return {
-              ...target,
-              share: null,
-              dataset_type: "yoy_growth",
-              // 前年比(伸び率) 25.7%の小数点第1位までの数値部分で算出してセット
-              fiscal_year: !resultFY.error ? Number(resultFY.yearOverYear) : null, // 年度
-              first_half: !result1H.error ? Number(result1H.yearOverYear) : null,
-              second_half: !result2H.error ? Number(result2H.yearOverYear) : null,
-              first_quarter: !result1Q.error ? Number(result1Q.yearOverYear) : null,
-              second_quarter: !result2Q.error ? Number(result2Q.yearOverYear) : null,
-              third_quarter: !result3Q.error ? Number(result3Q.yearOverYear) : null,
-              fourth_quarter: !result4Q.error ? Number(result4Q.yearOverYear) : null,
-              month_01: !resultMonth01.error ? Number(resultMonth01.yearOverYear) : null,
-              month_02: !resultMonth02.error ? Number(resultMonth02.yearOverYear) : null,
-              month_03: !resultMonth03.error ? Number(resultMonth03.yearOverYear) : null,
-              month_04: !resultMonth04.error ? Number(resultMonth04.yearOverYear) : null,
-              month_05: !resultMonth05.error ? Number(resultMonth05.yearOverYear) : null,
-              month_06: !resultMonth06.error ? Number(resultMonth06.yearOverYear) : null,
-              month_07: !resultMonth07.error ? Number(resultMonth07.yearOverYear) : null,
-              month_08: !resultMonth08.error ? Number(resultMonth08.yearOverYear) : null,
-              month_09: !resultMonth09.error ? Number(resultMonth09.yearOverYear) : null,
-              month_10: !resultMonth10.error ? Number(resultMonth10.yearOverYear) : null,
-              month_11: !resultMonth11.error ? Number(resultMonth11.yearOverYear) : null,
-              month_12: !resultMonth12.error ? Number(resultMonth12.yearOverYear) : null,
-            } as SalesTargetFYRowData;
-          });
+        //     return {
+        //       ...target,
+        //       share: null,
+        //       dataset_type: "yoy_growth",
+        //       // 前年比(伸び率) 25.7%の小数点第1位までの数値部分で算出してセット
+        //       fiscal_year: !resultFY.error ? Number(resultFY.yearOverYear) : null, // 年度
+        //       first_half: !result1H.error ? Number(result1H.yearOverYear) : null,
+        //       second_half: !result2H.error ? Number(result2H.yearOverYear) : null,
+        //       first_quarter: !result1Q.error ? Number(result1Q.yearOverYear) : null,
+        //       second_quarter: !result2Q.error ? Number(result2Q.yearOverYear) : null,
+        //       third_quarter: !result3Q.error ? Number(result3Q.yearOverYear) : null,
+        //       fourth_quarter: !result4Q.error ? Number(result4Q.yearOverYear) : null,
+        //       month_01: !resultMonth01.error ? Number(resultMonth01.yearOverYear) : null,
+        //       month_02: !resultMonth02.error ? Number(resultMonth02.yearOverYear) : null,
+        //       month_03: !resultMonth03.error ? Number(resultMonth03.yearOverYear) : null,
+        //       month_04: !resultMonth04.error ? Number(resultMonth04.yearOverYear) : null,
+        //       month_05: !resultMonth05.error ? Number(resultMonth05.yearOverYear) : null,
+        //       month_06: !resultMonth06.error ? Number(resultMonth06.yearOverYear) : null,
+        //       month_07: !resultMonth07.error ? Number(resultMonth07.yearOverYear) : null,
+        //       month_08: !resultMonth08.error ? Number(resultMonth08.yearOverYear) : null,
+        //       month_09: !resultMonth09.error ? Number(resultMonth09.yearOverYear) : null,
+        //       month_10: !resultMonth10.error ? Number(resultMonth10.yearOverYear) : null,
+        //       month_11: !resultMonth11.error ? Number(resultMonth11.yearOverYear) : null,
+        //       month_12: !resultMonth12.error ? Number(resultMonth12.yearOverYear) : null,
+        //     } as SalesTargetFYRowData;
+        //   });
 
-          console.log("✅前年比算出結果 yoyGrowthRows", yoyGrowthRows);
+        //   console.log("✅前年比算出結果 yoyGrowthRows", yoyGrowthRows);
 
-          const yoyGrowthRowsMap = new Map(yoyGrowthRows.map((row) => [row.entity_id, row]));
+        //   const yoyGrowthRowsMap = new Map(yoyGrowthRows.map((row) => [row.entity_id, row]));
 
-          // 売上目標と前年度売上は先頭にシェアを追加(メインのため100%)
-          salesTargetRows = salesTargetRows?.length
-            ? (salesTargetRows.map((obj) => ({
-                ...obj,
-                share: 100,
-              })) as (SalesTargetFYRowData & { share: number })[])
-            : [];
-          lastYearSalesRows = lastYearSalesRows?.length
-            ? (lastYearSalesRows.map((obj) => ({
-                ...obj,
-                share: 100,
-                entity_name: entitiesIdToObjMap.get(obj?.entity_id) ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
-              })) as (SalesTargetFYRowData & { share: number })[])
-            : [];
+        //   // 売上目標と前年度売上は先頭にシェアを追加(メインのため100%)
+        //   salesTargetRows = salesTargetRows?.length
+        //     ? (salesTargetRows.map((obj) => ({
+        //         ...obj,
+        //         share: 100,
+        //       })) as (SalesTargetFYRowData & { share: number })[])
+        //     : [];
+        //   lastYearSalesRows = lastYearSalesRows?.length
+        //     ? (lastYearSalesRows.map((obj) => ({
+        //         ...obj,
+        //         share: 100,
+        //         entity_name: entitiesIdToObjMap.get(obj?.entity_id) ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
+        //       })) as (SalesTargetFYRowData & { share: number })[])
+        //     : [];
 
-          // １行３セット(３行)にまとめてrowsを生成して返す
-          rows = salesTargetRows.map((target, index) => {
-            const targetEntityId = target.entity_id;
-            return {
-              sales_targets: target,
-              last_year_sales: lastYearSalesRowsMap.get(targetEntityId),
-              yoy_growth: yoyGrowthRowsMap.get(targetEntityId),
-              // last_year_sales: lastYearSalesRows[index],
-              // yoy_growth: yoyGrowthRows[index],
-            };
-          }) as SalesTargetsRowDataWithYoY[];
+        //   // １行３セット(３行)にまとめてrowsを生成して返す
+        //   rows = salesTargetRows.map((target, index) => {
+        //     const targetEntityId = target.entity_id;
+        //     return {
+        //       sales_targets: target,
+        //       last_year_sales: lastYearSalesRowsMap.get(targetEntityId),
+        //       yoy_growth: yoyGrowthRowsMap.get(targetEntityId),
+        //       // last_year_sales: lastYearSalesRows[index],
+        //       // yoy_growth: yoyGrowthRows[index],
+        //     };
+        //   }) as SalesTargetsRowDataWithYoY[];
 
-          console.log("✅rows結果", rows);
+        //   console.log("✅rows結果", rows);
 
-          // rows = ensureClientCompanies(data);
-          isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-          count = fetchCount;
+        //   // rows = ensureClientCompanies(data);
+        //   isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+        //   count = fetchCount;
 
-          // // 🔸売上目標を取得するFUNCTIONの実行
-          // const payload = {
-          //   _entity_level: entityLevel,
-          //   // _entity_id: entityId,
-          //   _entity_ids: entityIds,
-          //   _fiscal_year: selectedFiscalYearTarget,
-          // };
-          // const {
-          //   data,
-          //   error,
-          //   count: fetchCount,
-          // } = await supabase
-          //   .rpc("get_sales_targets_sub", payload, { count: "exact" })
-          //   .eq("created_by_company_id", companyId)
-          //   .range(from, to)
-          //   .order("entity_name", { ascending: true });
+        //   // // 🔸売上目標を取得するFUNCTIONの実行
+        //   // const payload = {
+        //   //   _entity_level: entityLevel,
+        //   //   // _entity_id: entityId,
+        //   //   _entity_ids: entityIds,
+        //   //   _fiscal_year: selectedFiscalYearTarget,
+        //   // };
+        //   // const {
+        //   //   data,
+        //   //   error,
+        //   //   count: fetchCount,
+        //   // } = await supabase
+        //   //   .rpc("get_sales_targets_sub", payload, { count: "exact" })
+        //   //   .eq("created_by_company_id", companyId)
+        //   //   .range(from, to)
+        //   //   .order("entity_name", { ascending: true });
 
-          // if (error) throw error;
+        //   // if (error) throw error;
 
-          // // メインの年度売上目標に対して、取得した年度目標がシェア何%かを算出して先頭に追加
+        //   // // メインの年度売上目標に対して、取得した年度目標がシェア何%かを算出して先頭に追加
 
-          // // 🔸前年度売上を取得するFUNCTIONの実行
+        //   // // 🔸前年度売上を取得するFUNCTIONの実行
 
-          // // メインの前年度の年度売上に対して、取得した年度売上がシェア何%かを算出して先頭に追加
+        //   // // メインの前年度の年度売上に対して、取得した年度売上がシェア何%かを算出して先頭に追加
 
-          // // 🔸前年比の算出
+        //   // // 🔸前年比の算出
 
-          // rows = ensureClientCompanies(data);
-          // isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-          // count = fetchCount;
-        }
+        //   // rows = ensureClientCompanies(data);
+        //   // isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+        //   // count = fetchCount;
+        // }
       } catch (e: any) {
         console.error(`fetchServerPage関数 DBからデータ取得に失敗、エラー: `, e);
         rows = null;
@@ -1374,9 +1287,17 @@ const SalesTargetGridTableMemo = ({
     return null;
   });
 
+  // -------------------------- 🌠売上推移スパークチャートに売上目標を追加(salesTrends) 🌠 --------------------------
+
   useEffect(() => {
     if (!isMain) return;
     if (!salesSummaryRowDataTrend) return;
+    // 売上目標の追加はエンティティレベルテーブルのis_confirmed_xxxの状況に応じて追加
+    if (!mainEntityTarget) return;
+    if (!mainEntityObj) return;
+    if (displayTargetPeriodType === "fiscal_year" && mainEntityObj.is_confirmed_annual_half) return;
+    if (displayTargetPeriodType === "first_half" && mainEntityObj.is_confirmed_first_half_details) return;
+    if (displayTargetPeriodType === "second_half" && mainEntityObj.is_confirmed_second_half_details) return;
 
     let newTrendData =
       salesSummaryRowDataTrend.find((obj) => obj.period_type === displayTargetPeriodType)?.sales_trend ?? null;
@@ -1474,6 +1395,7 @@ const SalesTargetGridTableMemo = ({
 
     setSalesTrends(newTrendData ? { ...newTrendData, updateAt: Date.now() } : null);
   }, [salesSummaryRowDataTrend, displayTargetPeriodType]);
+  // -------------------------- 🌠売上推移スパークチャートに売上目標を追加(salesTrends) 🌠 --------------------------
 
   // const salesTrends = useMemo(() => {
   //   if (!salesSummaryRowDataTrend) return null;
@@ -3465,6 +3387,8 @@ const SalesTargetGridTableMemo = ({
     // rowVirtualizer.getVirtualItems(),
     "1年分の年月度annualFiscalMonths",
     annualFiscalMonths,
+    "entities",
+    entities,
     // "前年度の1年分の年月度lastAnnualFiscalMonths",
     // lastAnnualFiscalMonths,
     // "会計月度カレンダー配列",
@@ -3934,7 +3858,8 @@ const SalesTargetGridTableMemo = ({
               <div
                 className={`${styles.btn} ${styles.basic} space-x-[4px]`}
                 onMouseEnter={(e) => {
-                  const entityId = mainEntityTarget?.parentEntityId;
+                  // 売上目標が設定されていない状態ではエンティティidが存在せず、stickyが機能しなくなるので、main_entity_targetの文字列をセット
+                  const entityId = "main_entity_target";
                   handleOpenTooltip({
                     e: e,
                     display: "top",
@@ -3944,7 +3869,7 @@ const SalesTargetGridTableMemo = ({
                 }}
                 onMouseLeave={handleCloseTooltip}
                 onClick={() => {
-                  const entityId = mainEntityTarget?.parentEntityId;
+                  const entityId = "main_entity_target";
                   if (!entityId) return;
                   if (entityId === stickyRow) {
                     setStickyRow(null);
@@ -3954,10 +3879,10 @@ const SalesTargetGridTableMemo = ({
                   handleCloseTooltip();
                 }}
               >
-                {stickyRow === mainEntityTarget?.parentEntityId && <TbSnowflakeOff />}
-                {stickyRow !== mainEntityTarget?.parentEntityId && <TbSnowflake />}
-                {stickyRow === mainEntityTarget?.parentEntityId && <span>解除</span>}
-                {stickyRow !== mainEntityTarget?.parentEntityId && <span>固定</span>}
+                {stickyRow === "main_entity_target" && <TbSnowflakeOff />}
+                {stickyRow !== "main_entity_target" && <TbSnowflake />}
+                {stickyRow === "main_entity_target" && <span>解除</span>}
+                {stickyRow !== "main_entity_target" && <span>固定</span>}
               </div>
             </>
           )}
@@ -4359,7 +4284,8 @@ const SalesTargetGridTableMemo = ({
                                         <ProgressCircle
                                           circleId="3"
                                           textId="3"
-                                          progress={100}
+                                          // progress={100}
+                                          progress={displayRowData.share ?? 0}
                                           // progress={0}
                                           duration={5000}
                                           easeFn="Quartic"
@@ -4373,7 +4299,8 @@ const SalesTargetGridTableMemo = ({
                                           fade={`fade03_forward`}
                                         />
                                         <ProgressNumber
-                                          targetNumber={100}
+                                          // targetNumber={100}
+                                          targetNumber={displayRowData.share ?? 0}
                                           // startNumber={Math.round(68000 / 2)}
                                           // startNumber={Number((68000 * 0.1).toFixed(0))}
                                           startNumber={0}

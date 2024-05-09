@@ -294,7 +294,8 @@ const SalesTargetGridTableSubMemo = ({
     if (!Array.isArray(data) || !data?.length) {
       const placeholderSalesTargetArray = entities.map((entity) => {
         return {
-          share: entityLevel === "company" ? 100 : 0,
+          // share: entityLevel === "company" ? 100 : 0,
+          share: 0, // 売上目標が未設定の場合には常に0
           dataset_type: "sales_target",
           entity_id: entity.entity_id,
           entity_level: entity.entity_level,
@@ -495,17 +496,19 @@ const SalesTargetGridTableSubMemo = ({
       try {
         const entityIds = entities.map((entity) => entity.entity_id);
         const entityStructureIds = entities.map((entity) => entity.id);
+
+        const isSetCompleteTarget = entityStructureIds.every((id) => !!id); // 空文字の場合には未設定でfalse
         // 🔹メイン目標 特定のエンティティIDのみ取得
         // 🔸売上目標を取得するFUNCTIONの実行
 
         // 🔸売上目標と前年度売上実績を一緒に取得するFUNCTIONの実行
         const payload = {
+          _is_complete_target: isSetCompleteTarget,
           _company_id: companyId,
           _entity_level: entityLevel, // エンティティタイプ
           // _entity_id: entityId, // エンティティのid
           // _entity_name: entityNameTitle, // エンティティ名 マイクロスコープ事業部など
           _entity_ids: entityIds, // エンティティのid
-          _entity_structure_ids: entityStructureIds, // エンティティテーブルのid
           _fiscal_year: selectedFiscalYearTarget, // 選択した会計年度
           // _start_year_month: currentFiscalStartYearMonth, // 202304の年度初めの年月度
           // _end_year_month:
@@ -525,6 +528,9 @@ const SalesTargetGridTableSubMemo = ({
           _month_10: annualFiscalMonths.month_10,
           _month_11: annualFiscalMonths.month_11,
           _month_12: annualFiscalMonths.month_12,
+          // オプショナルなプロパティは条件に応じて追加
+          ...(isSetCompleteTarget && { _entity_structure_ids: entityStructureIds }), // エンティティテーブルのid(売上目標が設定されていない場合にはパラメータで定義したUUID[]のデータ型を満たせずにエラーとなるため、NULL値をオプショナルとして売上目標が設定されている時のみ_entity_structure_idsのパラメータを追加する)
+          // _entity_structure_ids: isSetCompleteTarget ? entityStructureIds : null,
         };
         console.log(
           "🔥 queryFn関数実行 get_sales_targets_and_ly_sales_for_fy_all実行 payload",
@@ -553,7 +559,7 @@ const SalesTargetGridTableSubMemo = ({
         salesTargetRows = ensureTargetsRowData(salesTargetData?.sales_targets); // SalesTargetFYRowData型チェック
         lastYearSalesRows = ensureLastSalesRowData(salesTargetData?.last_year_sales); // SalesTargetFYRowData型チェック
 
-        const lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
+        let lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
 
         // 🔸前年比の算出 「(今年の数値 - 去年の数値) / 去年の数値 * 100」の公式を使用して前年比を算出
         yoyGrowthRows = salesTargetRows.map((target, index) => {
@@ -643,6 +649,9 @@ const SalesTargetGridTableSubMemo = ({
         // 売上目標と前年度売上は先頭にシェアを追加(メインのため100%)
         salesTargetRows = salesTargetRows?.length
           ? (salesTargetRows.map((obj) => {
+              if (!isSetCompleteTarget) {
+                return obj;
+              }
               let _share = 0;
               let _share_first_half = 0;
               let _share_second_half = 0;
@@ -765,6 +774,9 @@ const SalesTargetGridTableSubMemo = ({
               };
             }) as (SalesTargetFYRowData & { share: number })[])
           : [];
+
+        // シェア挿入後のデータで新たにMapを生成して再代入
+        lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
 
         // １行３セット(３行)にまとめてrowsを生成して返す
         rows = salesTargetRows.map((target, index) => {

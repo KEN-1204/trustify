@@ -1,5 +1,5 @@
 import { AreaChartComponent } from "@/components/Parts/Charts/AreaChart/AreaChart";
-import styles from "../../../../DashboardSalesTargetComponent.module.css";
+import styles from "../../../DashboardSalesTargetComponent.module.css";
 import { memo, useMemo } from "react";
 import { useQuerySalesTrends } from "@/hooks/useQuerySalesTrends";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
@@ -20,7 +20,9 @@ type Props = {
   noDataText?: string;
 };
 
-const AreaChartTrendMemo = ({
+// 過去3年分の売上実績に今回の売上目標を追加して4つ分のデータをエリアチャートに表示する
+
+const AreaChartTrendWithTargetMemo = ({
   companyId,
   entityLevel,
   entityIdsArray,
@@ -60,7 +62,8 @@ const AreaChartTrendMemo = ({
 
   if (!data || isError)
     return (
-      <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
+      // <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
+      <div className={`flex-center `} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
         <span style={{ fontSize: fontSize }}>
           {(!data || !data.chartData?.length) && !isError && noDataText}
           {isError && errorText}
@@ -94,4 +97,4 @@ const AreaChartTrendMemo = ({
   );
 };
 
-export const AreaChartTrend = memo(AreaChartTrendMemo);
+export const AreaChartTrendWithTarget = memo(AreaChartTrendWithTargetMemo);

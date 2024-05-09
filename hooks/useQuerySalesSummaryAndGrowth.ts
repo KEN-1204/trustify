@@ -165,7 +165,7 @@ export const useQuerySalesSummaryAndGrowth = ({
   };
 
   return useQuery({
-    queryKey: ["sales_summary_and_growth", entityLevel, entityId, periodType, fiscalYear],
+    queryKey: ["sales_summary_and_growth", fiscalYear, periodType, entityLevel, entityId],
     queryFn: getSalesSummaryAndGrowth,
     staleTime: Infinity,
     onError: (error) => {
