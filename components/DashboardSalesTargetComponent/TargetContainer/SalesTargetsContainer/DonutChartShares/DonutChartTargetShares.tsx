@@ -24,6 +24,7 @@ import { useQuerySalesTargetsShare } from "@/hooks/useQuerySalesTargetsShare";
 import { EntityLevelNames, EntityObjForChart, FiscalYearAllKeys } from "@/types";
 import { DonutChartCustomComponent } from "@/components/Parts/Charts/DonutChart/DonutChartCustom";
 import { mappingEntityName } from "@/utils/mappings";
+import { roundTo } from "@/utils/Helpers/PercentHelpers/roundTo";
 
 type Props = {
   fiscalYear: number;
@@ -161,7 +162,9 @@ const DonutChartTargetSharesMemo = ({
       return {
         entity_name: obj.entity_name,
         amount: isValidNumber(obj.amount) ? formatToJapaneseYen(obj.amount) : `¥ -`,
-        share: obj.share.toFixed(1),
+        // share: obj.share.toFixed(1),
+        // share: (Math.round(obj.share * 10) / 10).toFixed(1),
+        share: roundTo(obj.share, 1),
       };
     });
   }, [donutLabelData]);

@@ -33,6 +33,9 @@ import { AreaChartTrend } from "../UpsertTargetEntity/UpsertSettingTargetEntityG
 import { DonutChartTargetShares } from "./DonutChartShares/DonutChartTargetShares";
 import { AreaChartTrendWithTarget } from "./AreaChartTrendWithTarget/AreaChartTrendWithTarget";
 import { mappingEntityName } from "@/utils/mappings";
+import { format } from "date-fns";
+import { enUS } from "date-fns/locale";
+import { IoChevronDownOutline } from "react-icons/io5";
 
 const SalesTargetsContainerMemo = () => {
   const language = useStore((state) => state.language);
@@ -57,9 +60,37 @@ const SalesTargetsContainerMemo = () => {
   // 🔹売上目標フェッチ時の年月度の12ヶ月分の配列
   const annualFiscalMonths = useDashboardStore((state) => state.annualFiscalMonths);
 
+  // 12ヶ月分の「202404」の年月度を「4月度」の値に変更した選択肢を作成
+  const formattedAnnualFiscalMonths = useMemo(() => {
+    if (!annualFiscalMonths) return null;
+    let formattedMonths: { [K in FiscalYearMonthKey]: { [key: string]: string } } = {} as {
+      [K in FiscalYearMonthKey]: { [key: string]: string };
+    };
+    Object.entries(annualFiscalMonths).forEach(([key, value], index) => {
+      // 年月度から月度の部分だけを取り出す (文字列の下2桁を取得)
+      const monthStr = String(value).slice(-2);
+      // 月度が '08' のようになっている場合、先頭の '0' を削除して数値に変換
+      const month = parseInt(monthStr, 10);
+      // 年は任意で、月だけを指定して日付オブジェクトを生成
+      const monthDate = new Date(2000, month - 1);
+      // `${value.toString().substring(4)}月度`
+      // 日本語と英語で月度を表記
+      formattedMonths[key as FiscalYearMonthKey] = {
+        ja: `${month}月度`,
+        en: format(monthDate, "MMM", { locale: enUS }), // Jan, Feb, ... Dec
+      };
+    });
+    return formattedMonths;
+    // String(): null や undefined を引数に渡した場合、それぞれ "null" と "undefined" の文字列を返します。
+    // toString(): null.toString() や undefined.toString() はエラーを引き起こします。
+  }, [annualFiscalMonths]);
+
   // -------------------------- state関連 --------------------------
   // stickyを付与するrow
   const [stickyRow, setStickyRow] = useState<string | null>(null);
+
+  // 売上推移を表示する対象の切り替え用state 総合目標かサブ目標
+  const [displayTypeForTrend, setDisplayTypeForTrend] = useState<"sub_entities" | "main_entity">("sub_entities");
 
   // // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
   // const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
@@ -255,6 +286,8 @@ const SalesTargetsContainerMemo = () => {
       } as MainEntityTarget;
 
       setMainEntityTarget(newMainEntityTarget);
+
+      setDisplayTypeForTrend("main_entity");
     }
     // まだエンティティが設定されていない場合は、ユーザーの会社データからセット
     else {
@@ -287,6 +320,8 @@ const SalesTargetsContainerMemo = () => {
         parentEntityName: "company",
       } as MainEntityTarget;
       setMainEntityTarget(newMainEntityTarget);
+
+      setDisplayTypeForTrend("main_entity");
     }
   }, []);
   // -------------------------- Zustand上位エンティティグループをセット ここまで --------------------------
@@ -412,7 +447,7 @@ const SalesTargetsContainerMemo = () => {
     if (!mainTotalTargets) return null;
     if (!selectedPeriodDetailShare) return null;
     return mainTotalTargets.sales_targets[selectedPeriodDetailShare.period];
-  }, [mainTotalTargets]);
+  }, [mainTotalTargets, selectedPeriodDetailShare?.period]);
 
   const getInitialPeriodForChart = (): FiscalYearAllKeys | null => {
     // fiscal_yearsテーブル is_confirmed_xxx_half_detailsカラムがtrueの期間を初期表示期間にセット
@@ -937,7 +972,10 @@ const SalesTargetsContainerMemo = () => {
             mainTotalTargets
           ) && (
             <>
-              <div className={`${styles.grid_row} ${styles.col2} fade08_forward`} style={{ marginBottom: `13px` }}>
+              <div
+                className={`${styles.grid_row} ${styles.col2} fade08_forward`}
+                //  style={{ marginBottom: `13px` }}
+              >
                 <div className={`${styles.grid_content_card}`}>
                   <div className={`${styles.card_wrapper} fade08_forward`}>
                     <div className={`${styles.card_title_area}`}>
@@ -993,10 +1031,68 @@ const SalesTargetsContainerMemo = () => {
                   <div className={`${styles.card_title_area}`}>
                     <div className={`${styles.card_title}`}>
                       <div className={`flex flex-col`}>
-                        <span>売上推移 {mappingEntityName[mainEntityTarget.entityLevel][language]}別</span>
+                        {/* <span>売上推移 {mappingEntityName[mainEntityTarget.entityLevel][language]}別</span> */}
+                        <span>
+                          売上推移{" "}
+                          {displayTypeForTrend === "sub_entities"
+                            ? `${mappingEntityName[mainEntityTarget.entityLevel][language]}別`
+                            : `${
+                                mainEntityTarget.parentEntityLevel === "company"
+                                  ? getDivName("company")
+                                  : mainEntityTarget.parentEntityName
+                              }`}
+                        </span>
                         <span className={`text-[12px] text-[var(--color-text-sub)]`}>
                           {trendPeriodTitle.periodStart} ~ {trendPeriodTitle.periodEnd}
                         </span>
+                      </div>
+                    </div>
+
+                    <div className={`flex h-full items-start justify-end pt-[3px]`}>
+                      <div
+                        className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
+                        onMouseEnter={(e) => {
+                          let tooltipContent = ``;
+                          if (
+                            fiscalYearQueryData.is_confirmed_first_half_details ||
+                            fiscalYearQueryData.is_confirmed_second_half_details
+                          ) {
+                            tooltipContent = `チャート表示対象を切り替える`;
+                          }
+                          if (tooltipContent)
+                            handleOpenTooltip({
+                              e: e,
+                              display: "top",
+                              content: tooltipContent,
+                              marginTop: 9,
+                            });
+                        }}
+                        onMouseLeave={handleCloseTooltip}
+                      >
+                        <select
+                          className={`z-10 cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[12px]`}
+                          // style={{ boxShadow: `0 0 0 1px var(--color-border-base)` }}
+                          value={displayTypeForTrend}
+                          onChange={(e) => {
+                            setDisplayTypeForTrend(e.target.value as "sub_entities" | "main_entity");
+                          }}
+                        >
+                          {(fiscalYearQueryData.is_confirmed_first_half_details ||
+                            fiscalYearQueryData.is_confirmed_second_half_details) && (
+                            <option value={"sub_entities"}>
+                              {mappingEntityName[mainEntityTarget.entityLevel][language]}別
+                            </option>
+                          )}
+                          <option value={"main_entity"}>
+                            {mainEntityTarget.parentEntityLevel === "company"
+                              ? getDivName("company")
+                              : mainEntityTarget.parentEntityName}
+                          </option>
+                        </select>
+                        <div className={`${styles.select_arrow}`}>
+                          {/* <IoChevronDownOutline className={`text-[12px]`} /> */}
+                          <HiOutlineSelector className="stroke-[2] text-[16px]" />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1011,8 +1107,22 @@ const SalesTargetsContainerMemo = () => {
                     >
                       <AreaChartTrendWithTarget
                         companyId={userProfileState.company_id}
-                        entityLevel={mainEntityTarget.entityLevel}
-                        entityIdsArray={Array.from(targetEntityIdsSet)}
+                        entityLevel={
+                          !(
+                            mainEntityTarget?.parentEntityLevel === "company" &&
+                            mainEntityTarget.entityLevel === "company"
+                          ) && displayTypeForTrend === "sub_entities"
+                            ? mainEntityTarget.entityLevel
+                            : mainEntityTarget.parentEntityLevel
+                        }
+                        entityIdsArray={
+                          !(
+                            mainEntityTarget?.parentEntityLevel === "company" &&
+                            mainEntityTarget.entityLevel === "company"
+                          ) && displayTypeForTrend === "sub_entities"
+                            ? Array.from(targetEntityIdsSet)
+                            : [mainEntityTarget.parentEntityId]
+                        }
                         periodType={selectedPeriodDetailTrend.period}
                         basePeriod={selectedPeriodDetailTrend.value}
                         yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
@@ -1034,13 +1144,44 @@ const SalesTargetsContainerMemo = () => {
                     <div className={`${styles.card_title_area} !items-start`}>
                       <div className={`${styles.card_title}`}>
                         <div className={`flex flex-col`}>
-                          <span>売上目標シェア</span>
+                          <span>売上目標シェア {`${mappingEntityName[mainEntityTarget.entityLevel][language]}別`}</span>
                           <span className={`text-[12px] text-[var(--color-text-sub)]`}>
                             {salesTargetSharePeriodTitle}
                           </span>
                         </div>
                       </div>
-                      <div className={`flex h-full items-start justify-end pt-[3px]`}></div>
+                      <div className={`flex h-full items-start justify-end pt-[3px]`}>
+                        {/* <div
+                          className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
+                          // onMouseEnter={(e) => {
+                          //   handleOpenTooltip({
+                          //     e: e,
+                          //     display: "top",
+                          //     content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
+                          //     marginTop: 9,
+                          //   });
+                          // }}
+                          // onMouseLeave={handleCloseTooltip}
+                        >
+                          <select
+                            className={`z-10 min-h-[30px] cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[13px]`}
+                            // style={{ boxShadow: `0 0 0 1px var(--color-border-base)` }}
+                            value={selectedEntityIdForDonut}
+                            onChange={(e) => {
+                              setSelectedEntityIdForDonut(e.target.value);
+                            }}
+                          >
+                            {optionsEntity.map((obj, index) => (
+                              <option key={`option_${obj.id}`} value={obj.id}>
+                                {obj.entityName}
+                              </option>
+                            ))}
+                          </select>
+                          <div className={`${styles.select_arrow}`}>
+                            <IoChevronDownOutline className={`text-[12px]`} />
+                          </div>
+                        </div> */}
+                      </div>
                     </div>
                     {/* <div className={`${styles.main_container}`}></div> */}
                     <ErrorBoundary FallbackComponent={ErrorFallback}>
@@ -1098,7 +1239,7 @@ const SalesTargetsContainerMemo = () => {
           !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") && (
             <div
               className={`${styles.section_title_area} mb-[15px] flex w-full items-end justify-between`}
-              style={{ marginBottom: `13px` }}
+              // style={{ marginBottom: `13px` }}
             >
               <h1 className={`${styles.title} ${styles.upsert}`}>
                 {/* <span>部門別</span> */}
@@ -1108,6 +1249,8 @@ const SalesTargetsContainerMemo = () => {
                 {mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company" && (
                   <span>{getDivName("company")}</span>
                 )}
+
+                <span className="ml-[12px]">売上目標</span>
 
                 {/* {upsertSettingEntitiesObj.entityLevel === "member" && (
               <>
@@ -1230,20 +1373,20 @@ const SalesTargetsContainerMemo = () => {
                             <option value="second_quarter">Q2</option>
                             <option value="third_quarter">Q3</option>
                             <option value="fourth_quarter">Q4</option>
-                            {annualFiscalMonths && (
+                            {formattedAnnualFiscalMonths && (
                               <>
-                                <option value="month_01">{annualFiscalMonths.month_01}</option>
-                                <option value="month_02">{annualFiscalMonths.month_02}</option>
-                                <option value="month_03">{annualFiscalMonths.month_03}</option>
-                                <option value="month_04">{annualFiscalMonths.month_04}</option>
-                                <option value="month_05">{annualFiscalMonths.month_05}</option>
-                                <option value="month_06">{annualFiscalMonths.month_06}</option>
-                                <option value="month_07">{annualFiscalMonths.month_07}</option>
-                                <option value="month_08">{annualFiscalMonths.month_08}</option>
-                                <option value="month_09">{annualFiscalMonths.month_09}</option>
-                                <option value="month_10">{annualFiscalMonths.month_10}</option>
-                                <option value="month_11">{annualFiscalMonths.month_11}</option>
-                                <option value="month_12">{annualFiscalMonths.month_12}</option>
+                                <option value="month_01">{formattedAnnualFiscalMonths.month_01[language]}</option>
+                                <option value="month_02">{formattedAnnualFiscalMonths.month_02[language]}</option>
+                                <option value="month_03">{formattedAnnualFiscalMonths.month_03[language]}</option>
+                                <option value="month_04">{formattedAnnualFiscalMonths.month_04[language]}</option>
+                                <option value="month_05">{formattedAnnualFiscalMonths.month_05[language]}</option>
+                                <option value="month_06">{formattedAnnualFiscalMonths.month_06[language]}</option>
+                                <option value="month_07">{formattedAnnualFiscalMonths.month_07[language]}</option>
+                                <option value="month_08">{formattedAnnualFiscalMonths.month_08[language]}</option>
+                                <option value="month_09">{formattedAnnualFiscalMonths.month_09[language]}</option>
+                                <option value="month_10">{formattedAnnualFiscalMonths.month_10[language]}</option>
+                                <option value="month_11">{formattedAnnualFiscalMonths.month_11[language]}</option>
+                                <option value="month_12">{formattedAnnualFiscalMonths.month_12[language]}</option>
                               </>
                             )}
                           </>
@@ -1262,14 +1405,14 @@ const SalesTargetsContainerMemo = () => {
                             <option value="first_half">上期</option>
                             <option value="first_quarter">Q1</option>
                             <option value="second_quarter">Q2</option>
-                            {annualFiscalMonths && (
+                            {formattedAnnualFiscalMonths && (
                               <>
-                                <option value="month_01">{annualFiscalMonths.month_01}</option>
-                                <option value="month_02">{annualFiscalMonths.month_02}</option>
-                                <option value="month_03">{annualFiscalMonths.month_03}</option>
-                                <option value="month_04">{annualFiscalMonths.month_04}</option>
-                                <option value="month_05">{annualFiscalMonths.month_05}</option>
-                                <option value="month_06">{annualFiscalMonths.month_06}</option>
+                                <option value="month_01">{formattedAnnualFiscalMonths.month_01[language]}</option>
+                                <option value="month_02">{formattedAnnualFiscalMonths.month_02[language]}</option>
+                                <option value="month_03">{formattedAnnualFiscalMonths.month_03[language]}</option>
+                                <option value="month_04">{formattedAnnualFiscalMonths.month_04[language]}</option>
+                                <option value="month_05">{formattedAnnualFiscalMonths.month_05[language]}</option>
+                                <option value="month_06">{formattedAnnualFiscalMonths.month_06[language]}</option>
                               </>
                             )}
                           </>
@@ -1288,14 +1431,14 @@ const SalesTargetsContainerMemo = () => {
                             <option value="second_half">下期</option>
                             <option value="third_quarter">Q3</option>
                             <option value="fourth_quarter">Q4</option>
-                            {annualFiscalMonths && (
+                            {formattedAnnualFiscalMonths && (
                               <>
-                                <option value="month_07">{annualFiscalMonths.month_07}</option>
-                                <option value="month_08">{annualFiscalMonths.month_08}</option>
-                                <option value="month_09">{annualFiscalMonths.month_09}</option>
-                                <option value="month_10">{annualFiscalMonths.month_10}</option>
-                                <option value="month_11">{annualFiscalMonths.month_11}</option>
-                                <option value="month_12">{annualFiscalMonths.month_12}</option>
+                                <option value="month_07">{formattedAnnualFiscalMonths.month_07[language]}</option>
+                                <option value="month_08">{formattedAnnualFiscalMonths.month_08[language]}</option>
+                                <option value="month_09">{formattedAnnualFiscalMonths.month_09[language]}</option>
+                                <option value="month_10">{formattedAnnualFiscalMonths.month_10[language]}</option>
+                                <option value="month_11">{formattedAnnualFiscalMonths.month_11[language]}</option>
+                                <option value="month_12">{formattedAnnualFiscalMonths.month_12[language]}</option>
                               </>
                             )}
                           </>

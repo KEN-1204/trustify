@@ -12,6 +12,7 @@ import {
   EntityGroupByParent,
   EntityLevelNames,
   EntityLevels,
+  FiscalYearMonthKey,
   FiscalYears,
   Office,
   SalesTargetFHRowData,
@@ -55,6 +56,7 @@ import { useQuerySalesSummaryAndGrowth } from "@/hooks/useQuerySalesSummaryAndGr
 import { SparkChart } from "@/components/Parts/Charts/SparkChart/SparkChart";
 import { checkNotFalsyExcludeZero } from "@/utils/Helpers/checkNotFalsyExcludeZero";
 import { HiOutlineSelector } from "react-icons/hi";
+import { enUS } from "date-fns/locale";
 
 // entityLevel: company / department...
 type Props = {
@@ -1284,9 +1286,9 @@ const SalesTargetGridTableMemo = ({
     // 売上目標の追加はエンティティレベルテーブルのis_confirmed_xxxの状況に応じて追加
     if (!mainEntityTarget) return;
     if (!mainEntityObj) return;
-    if (displayTargetPeriodType === "fiscal_year" && mainEntityObj.is_confirmed_annual_half) return;
-    if (displayTargetPeriodType === "first_half" && mainEntityObj.is_confirmed_first_half_details) return;
-    if (displayTargetPeriodType === "second_half" && mainEntityObj.is_confirmed_second_half_details) return;
+    if (displayTargetPeriodType === "fiscal_year" && !mainEntityObj.is_confirmed_annual_half) return;
+    if (displayTargetPeriodType === "first_half" && !mainEntityObj.is_confirmed_first_half_details) return;
+    if (displayTargetPeriodType === "second_half" && !mainEntityObj.is_confirmed_second_half_details) return;
 
     let newTrendData =
       salesSummaryRowDataTrend.find((obj) => obj.period_type === displayTargetPeriodType)?.sales_trend ?? null;
@@ -3378,43 +3380,6 @@ const SalesTargetGridTableMemo = ({
     annualFiscalMonths,
     "entities",
     entities,
-    // "前年度の1年分の年月度lastAnnualFiscalMonths",
-    // lastAnnualFiscalMonths,
-    // "会計月度カレンダー配列",
-    // fiscalStartMonthsArray,
-    // "startDate",
-    // format(fiscalYearStartEndDate.startDate, "yyyy/MM/dd"),
-    // "endDate",
-    // format(fiscalYearStartEndDate.endDate, "yyyy/MM/dd"),
-    // "開始年月度",
-    // currentFiscalStartYearMonth,
-    // "filteredSectionBySelectedDepartment",
-    // filteredSectionBySelectedDepartment,
-    // "filteredUnitBySelectedSection",
-    // filteredUnitBySelectedSection,
-    // "departmentDataArray",
-    // departmentDataArray,
-    // "sectionDataArray",
-    // sectionDataArray,
-    // "unitDataArray",
-    // unitDataArray,
-    // "officeDataArray",
-    // officeDataArray,
-    // "departmentIdToObjMap",
-    // departmentIdToObjMap,
-    // "sectionIdToObjMap",
-    // sectionIdToObjMap,
-    // "unitIdToObjMap",
-    // unitIdToObjMap,
-    // "officeIdToObjMap",
-    // officeIdToObjMap,
-    // "全てのカラムcolsRef",
-    // colsRef,
-    // "checkedRows個数, checkedRows",
-    // Object.keys(checkedRows).length,
-    // checkedRows,
-    // "selectedCheckBox",
-    // selectedCheckBox,
     "allRows",
     allRows,
     "fiscalYearQueryData",
@@ -3434,7 +3399,9 @@ const SalesTargetGridTableMemo = ({
     "displayTargetPeriodType",
     displayTargetPeriodType,
     "salesSummaryRowDataTrend",
-    salesSummaryRowDataTrend
+    salesSummaryRowDataTrend,
+    "mainEntityObj",
+    mainEntityObj
     // `virtualItems:${rowVirtualizer.getVirtualItems().length}`
     // "colsWidth",
     // colsWidth,

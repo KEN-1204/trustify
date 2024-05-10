@@ -210,7 +210,8 @@
   /* padding-bottom: 36px; */
 }
 .grid_scroll_container.sub {
-  max-height: 339px;
+  /* max-height: 339px; */
+  max-height: 354px;
 }
 
 .grid_header_row {
