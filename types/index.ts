@@ -2864,10 +2864,15 @@ export type Yo2YGrowthRowData = {
 
 // 「売上目標・前年度売上・前年比」の３つのデータセットをqueryFnで取得した３つの結果をオブジェクトにまとめたデータ型
 export type SalesTargetsRowDataWithYoY = {
-  sales_targets: SalesTargetFYRowData & { share: number | null };
-  last_year_sales: SalesTargetFYRowData & { share: number | null };
-  yoy_growth: SalesTargetFYRowData & { share: number | null };
+  sales_targets: SalesTargetFYRowData;
+  last_year_sales: SalesTargetFYRowData;
+  yoy_growth: SalesTargetFYRowData;
 };
+// export type SalesTargetsRowDataWithYoY = {
+//   sales_targets: SalesTargetFYRowData & { share: number | null };
+//   last_year_sales: SalesTargetFYRowData & { share: number | null };
+//   yoy_growth: SalesTargetFYRowData & { share: number | null };
+// };
 
 // ------------- 🌠売上目標DB関連🌠 -------------
 // 目標設定済み年度

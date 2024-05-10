@@ -361,15 +361,15 @@ const SalesTargetGridTableMemo = ({
   //   return newEntityList;
   // }, [departmentDataArray, sectionDataArray, unitDataArray, officeDataArray]);
 
-  // ======================= 🌟現在の選択した事業部で課・セクションを絞り込むuseEffect🌟 =======================
-  // const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
-  const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Entity[]>([]);
-  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
-  // ======================= 🌟現在の選択した事業部で課・セクションを絞り込むuseEffect🌟 =======================
-  // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
-  // const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
-  const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Entity[]>([]);
-  // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+  // // ======================= 🌟現在の選択した事業部で課・セクションを絞り込むuseEffect🌟 =======================
+  // // const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Section[]>([]);
+  // const [filteredSectionBySelectedDepartment, setFilteredSectionBySelectedDepartment] = useState<Entity[]>([]);
+  // // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
+  // // ======================= 🌟現在の選択した事業部で課・セクションを絞り込むuseEffect🌟 =======================
+  // // const [filteredUnitBySelectedDepartment, setFilteredUnitBySelectedDepartment] = useState<Unit[]>([]);
+  // // const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Unit[]>([]);
+  // const [filteredUnitBySelectedSection, setFilteredUnitBySelectedSection] = useState<Entity[]>([]);
+  // // ======================= ✅現在の選択した事業部でチームを絞り込むuseEffect✅ =======================
 
   // 🔹 ------------------------------------------ 🔹ローカルstate関連🔹 ------------------------------------------
   // 🌟売上目標テーブル専用
@@ -450,74 +450,79 @@ const SalesTargetGridTableMemo = ({
   );
 
   // ================== 🌟疑似的なサーバーデータフェッチ用の関数🌟 ==================
-  const fetchServerPageTest = async (
-    limit: number,
-    offset: number = 0
-  ): Promise<{
-    rows: SalesTargetsRowDataWithYoY[];
-    nextOffset: number;
-    isLastPage: boolean;
-    count: number | null;
-  }> => {
-    // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
-    // const rows = new Array(limit).fill(0).map((e, index) => {
-    //   const newData: TableDataType = {
-    //     activityType: `TEL発信`,
-    //     summary: "50ミクロンで測定したい",
-    //     date: "2021/06/01",
-    //     sales: "伊藤謙太",
-    //     department: "メトロロジ",
-    //     office: "東京営業所",
-    //   };
-    //   return newData;
-    // });
-    const quantity = (_entityLevel: string) => {
-      switch (_entityLevel) {
-        case "company":
-          return 1;
-          break;
-        case "department":
-          return 4;
-          break;
-        case "section":
-          return 4;
-          break;
-        case "unit":
-          return 6;
-          break;
-        case "":
-          return 1;
-          break;
+  // const fetchServerPageTest = async (
+  //   limit: number,
+  //   offset: number = 0
+  // ): Promise<{
+  //   rows: SalesTargetsRowDataWithYoY[];
+  //   nextOffset: number;
+  //   isLastPage: boolean;
+  //   count: number | null;
+  // }> => {
+  //   // useInfiniteQueryのクエリ関数で渡すlimitの個数分でIndex番号を付けたRowの配列を生成
+  //   // const rows = new Array(limit).fill(0).map((e, index) => {
+  //   //   const newData: TableDataType = {
+  //   //     activityType: `TEL発信`,
+  //   //     summary: "50ミクロンで測定したい",
+  //   //     date: "2021/06/01",
+  //   //     sales: "伊藤謙太",
+  //   //     department: "メトロロジ",
+  //   //     office: "東京営業所",
+  //   //   };
+  //   //   return newData;
+  //   // });
+  //   const quantity = (_entityLevel: string) => {
+  //     switch (_entityLevel) {
+  //       case "company":
+  //         return 1;
+  //         break;
+  //       case "department":
+  //         return 4;
+  //         break;
+  //       case "section":
+  //         return 4;
+  //         break;
+  //       case "unit":
+  //         return 6;
+  //         break;
+  //       case "":
+  //         return 1;
+  //         break;
 
-        default:
-          return 1;
-          break;
-      }
-    };
-    // const rows = testRowData("company", 1);
-    const salesTargets = testRowData("company", quantity(entityLevel));
-    const lastYearSales = testRowDataLastYear("company", quantity(entityLevel));
-    const yoyGrowths = testRowDataPercent("company", quantity(entityLevel));
-    const count = quantity(entityLevel);
-    const isLastPage = true;
+  //       default:
+  //         return 1;
+  //         break;
+  //     }
+  //   };
+  //   // const rows = testRowData("company", 1);
+  //   const salesTargets = testRowData("company", quantity(entityLevel));
+  //   const lastYearSales = testRowDataLastYear("company", quantity(entityLevel));
+  //   const yoyGrowths = testRowDataPercent("company", quantity(entityLevel));
+  //   const count = quantity(entityLevel);
+  //   const isLastPage = true;
 
-    const rows = salesTargets.map((target, index) => ({
-      sales_targets: target,
-      last_year_sales: lastYearSales[index],
-      yoy_growth: yoyGrowths[index],
-    })) as SalesTargetsRowDataWithYoY[];
+  //   const rows = salesTargets.map((target, index) => ({
+  //     sales_targets: target,
+  //     last_year_sales: lastYearSales[index],
+  //     yoy_growth: yoyGrowths[index],
+  //   })) as SalesTargetsRowDataWithYoY[];
 
-    // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  //   // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
+  //   await new Promise((resolve) => setTimeout(resolve, 1000));
 
-    // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
-    return { rows, nextOffset: offset + 1, isLastPage, count };
-  };
+  //   // 取得したrowsを返す（nextOffsetは、queryFnのctx.pageParamsが初回フェッチはundefinedで2回目が1のため+1でページ数と合わせる）
+  //   return { rows, nextOffset: offset + 1, isLastPage, count };
+  // };
   // ================== ✅疑似的なサーバーデータフェッチ用の関数✅ ==================
 
   // ================== 🌟useInfiniteQueryフック🌟 ==================
   function ensureTargetsRowData(data: any): SalesTargetFYRowData[] {
-    if (!Array.isArray(data) || !data?.length) {
+    console.log(
+      "メイン目標 ensureTargetsRowData 売上目標の取得結果の個数とentitiesの個数が一致しているか",
+      data?.length,
+      entities.length
+    );
+    if (!Array.isArray(data) || !data?.length || data?.length !== entities.length) {
       const placeholderSalesTargetArray = entities.map((entity) => {
         return {
           // share: entityLevel === "company" ? 100 : 0,
@@ -598,7 +603,12 @@ const SalesTargetGridTableMemo = ({
     // }
   }
   function ensureLastSalesRowData(data: any): SalesTargetFYRowData[] {
-    if (!Array.isArray(data) || !data?.length) {
+    console.log(
+      "メイン目標 ensureTargetsRowData 前年度売上の取得結果の個数とentitiesの個数が一致しているか",
+      data?.length,
+      entities.length
+    );
+    if (!Array.isArray(data) || !data?.length || data?.length !== entities.length) {
       const placeholderLastYearSalesArray = entities.map((entity) => {
         return {
           // share: entityLevel === "company" ? 100 : 0,
@@ -811,31 +821,6 @@ const SalesTargetGridTableMemo = ({
             const resultMonth11 = calculateYearOverYear(target?.month_11, lySales?.month_11, 1);
             const resultMonth12 = calculateYearOverYear(target?.month_12, lySales?.month_12, 1);
 
-            console.log(
-              "result2H",
-              result2H,
-              "target?.second_half",
-              target?.second_half,
-              "lySales?.second_half",
-              lySales?.second_half
-            );
-            console.log(
-              "result4Q",
-              result4Q,
-              "target?.fourth_quarter",
-              target?.fourth_quarter,
-              "lySales?.fourth_quarter",
-              lySales?.fourth_quarter
-            );
-            console.log(
-              "resultMonth12",
-              resultMonth12,
-              "target?.month_12",
-              target?.month_12,
-              "lySales?.month_12",
-              lySales?.month_12
-            );
-
             return {
               ...target,
               share: null,
@@ -891,12 +876,16 @@ const SalesTargetGridTableMemo = ({
             ? (salesTargetRows.map((obj) => ({
                 ...obj,
                 share: isSetCompleteTarget ? 100 : 0,
+                share_first_half: isSetCompleteTarget ? 100 : 0,
+                share_second_half: isSetCompleteTarget ? 100 : 0,
               })) as (SalesTargetFYRowData & { share: number })[])
             : [];
           lastYearSalesRows = lastYearSalesRows?.length
             ? (lastYearSalesRows.map((obj) => ({
                 ...obj,
                 share: 100,
+                share_first_half: 100,
+                share_second_half: 100,
                 entity_name: entitiesIdToObjMap.get(obj?.entity_id) ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
               })) as (SalesTargetFYRowData & { share: number })[])
             : [];
@@ -3826,12 +3815,32 @@ const SalesTargetGridTableMemo = ({
               <div
                 className={`${styles.select_btn_wrapper} fade08_forward relative flex items-center text-[var(--color-text-title-g)]`}
                 onMouseEnter={(e) => {
-                  handleOpenTooltip({
-                    e: e,
-                    display: "top",
-                    content: `表示期間を変更`,
-                    marginTop: 9,
-                  });
+                  let tooltipContent = ``;
+                  if (fiscalYearQueryData) {
+                    if (
+                      fiscalYearQueryData.is_confirmed_first_half_details &&
+                      fiscalYearQueryData.is_confirmed_second_half_details
+                    ) {
+                      tooltipContent = `表示期間を変更`;
+                    } else {
+                      tooltipContent = `上期と下期の両期間の設定が完了すると\n表示期間を「全て・上期・下期」から変更が可能になります`;
+                    }
+                  } else {
+                    tooltipContent = `売上目標の設定が完了すると\n表示期間を「全て・上期・下期」から変更が可能になります`;
+                  }
+
+                  if (!!tooltipContent)
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      content: tooltipContent,
+                      marginTop: fiscalYearQueryData
+                        ? fiscalYearQueryData.is_confirmed_first_half_details &&
+                          fiscalYearQueryData.is_confirmed_second_half_details
+                          ? 9
+                          : 29
+                        : 29,
+                    });
                 }}
                 onMouseLeave={handleCloseTooltip}
               >
@@ -3843,11 +3852,30 @@ const SalesTargetGridTableMemo = ({
                     handleCloseTooltip();
                   }}
                 >
-                  <>
-                    <option value="fiscal_year">全て</option>
-                    <option value="first_half">上期</option>
-                    <option value="second_half">下期</option>
-                  </>
+                  {fiscalYearQueryData &&
+                    fiscalYearQueryData.is_confirmed_first_half_details &&
+                    fiscalYearQueryData.is_confirmed_second_half_details && (
+                      <>
+                        <option value="fiscal_year">全て</option>
+                        <option value="first_half">上期</option>
+                        <option value="second_half">下期</option>
+                      </>
+                    )}
+                  {fiscalYearQueryData &&
+                    fiscalYearQueryData.is_confirmed_first_half_details &&
+                    !fiscalYearQueryData.is_confirmed_second_half_details && (
+                      <>
+                        <option value="first_half">上期</option>
+                      </>
+                    )}
+                  {fiscalYearQueryData &&
+                    !fiscalYearQueryData.is_confirmed_first_half_details &&
+                    fiscalYearQueryData.is_confirmed_second_half_details && (
+                      <>
+                        <option value="second_half">下期</option>
+                      </>
+                    )}
+                  {!fiscalYearQueryData && <option value="fiscal_year">全て</option>}
                 </select>
                 {/* 上下矢印アイコン */}
                 <div className={`${styles.select_arrow}`}>
@@ -3978,7 +4006,8 @@ const SalesTargetGridTableMemo = ({
                     ref={(ref) => (colsRef.current[index] = ref)}
                     role="columnheader"
                     // draggable={displayTargetPeriodType === "fiscal_year" ? !key.isFrozen : false} // テスト
-                    draggable={!key.isFrozen} // テスト
+                    // draggable={!key.isFrozen} // テスト
+                    draggable={false} // テスト
                     // draggable={index === 0 ? false : true} // テスト
                     data-column-id={`${key.columnId}`}
                     data-handler-id={`T${key.columnId}${key.columnName}`}
@@ -3994,17 +4023,17 @@ const SalesTargetGridTableMemo = ({
                       // lastLastFiscalYear,
                       // lastLastFiscalYear2Digits
                     )}`}
-                    aria-colindex={key.columnIndex}
+                    // aria-colindex={key.columnIndex}
+                    aria-colindex={displayTargetPeriodType !== "fiscal_year" ? index + 2 : key.columnIndex} // colindexはフィルター関係なしに元々のカラムリストのindex通りにセットする colindexは1からスタートで、mapからのぞいたチェックボックスが1でmapの開始位置は2からのためindex+2
                     // aria-colindex={index + 2}
                     aria-selected={false}
                     tabIndex={-1}
                     className={`${styles.grid_column_header_all} ${
-                      key.isFrozen ? `${styles.grid_column_frozen} cursor-default` : "cursor-grab"
+                      key.isFrozen ? `${styles.grid_column_frozen} cursor-default` : ""
                     } ${isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""} ${
                       isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
-                    } ${styles.grid_cell_resizable} dropzone ${key.isOverflow ? `${styles.is_overflow}` : ""} ${
-                      displayTargetPeriodType !== "fiscal_year" ? `${styles.drag_disabled}` : ``
-                    }`}
+                    } ${styles.grid_cell_resizable} dropzone ${key.isOverflow ? `${styles.is_overflow}` : ""}`}
+                    // styles.drag_disabled
                     style={
                       key.isFrozen
                         ? { gridColumnStart: index + 2, left: `var(--frozen-left-${index})` }
@@ -4043,15 +4072,15 @@ const SalesTargetGridTableMemo = ({
                       }
                     }}
                     onDragStart={(e) => {
-                      if (displayTargetPeriodType !== "fiscal_year") return;
+                      // if (displayTargetPeriodType !== "fiscal_year") return;
                       handleDragStart(e, index);
                     }} // テスト
                     onDragEnd={(e) => {
-                      if (displayTargetPeriodType !== "fiscal_year") return;
+                      // if (displayTargetPeriodType !== "fiscal_year") return;
                       handleDragEnd(e);
                     }} // テスト
                     onDragOver={(e) => {
-                      if (displayTargetPeriodType !== "fiscal_year") return;
+                      // if (displayTargetPeriodType !== "fiscal_year") return;
                       e.preventDefault(); // テスト
                       handleDragOver(e, index);
                     }}
@@ -4059,7 +4088,7 @@ const SalesTargetGridTableMemo = ({
                     //   handleDragEnter(e, index); // デバウンス
                     // }, 300)}
                     onDragEnter={(e) => {
-                      if (displayTargetPeriodType !== "fiscal_year") return;
+                      // if (displayTargetPeriodType !== "fiscal_year") return;
                       handleDragEnter(e, index);
                     }}
                   >
@@ -4106,11 +4135,11 @@ const SalesTargetGridTableMemo = ({
                       role="draggable_overlay"
                       className={styles.draggable_overlay}
                       onMouseDown={(e) => {
-                        if (displayTargetPeriodType !== "fiscal_year") return;
+                        // if (displayTargetPeriodType !== "fiscal_year") return;
                         handleMouseDown(e, index);
                       }}
                       onMouseEnter={() => {
-                        if (displayTargetPeriodType !== "fiscal_year") return;
+                        // if (displayTargetPeriodType !== "fiscal_year") return;
                         const gridScrollContainer = parentGridScrollContainer.current;
                         if (!gridScrollContainer) return;
                         const colsLines = gridScrollContainer.querySelectorAll(`[aria-colindex="${index + 2}"]`);
@@ -4122,7 +4151,7 @@ const SalesTargetGridTableMemo = ({
                         });
                       }}
                       onMouseLeave={() => {
-                        if (displayTargetPeriodType !== "fiscal_year") return;
+                        // if (displayTargetPeriodType !== "fiscal_year") return;
                         const gridScrollContainer = parentGridScrollContainer.current;
                         if (!gridScrollContainer) return;
                         const colsLines = gridScrollContainer.querySelectorAll(`[aria-colindex="${index + 2}"]`);
@@ -4240,7 +4269,12 @@ const SalesTargetGridTableMemo = ({
 
                           return (
                             <div
-                              key={"row" + virtualRow.index.toString() + displayKey}
+                              // key={"row" + virtualRow.index.toString() + displayKey}
+                              key={
+                                "row" + virtualRow.index.toString() + displayKey + displayRowData?.entity_id ??
+                                "no_entity" + displayRowData?.dataset_type ??
+                                "no_dataset_type"
+                              }
                               role="row"
                               tabIndex={-1}
                               // aria-rowindex={virtualRow.index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
@@ -4338,20 +4372,19 @@ const SalesTargetGridTableMemo = ({
                                       displayValue = formatDisplayValue(displayKey, columnName, displayValue);
 
                                       if (columnName === "fiscal_year" && displayKey === "sales_targets") {
-                                        console.log(
-                                          "displayValue",
-                                          displayValue,
-                                          "value",
-                                          value,
-                                          "columnName",
-                                          columnName,
-                                          "displayKey",
-                                          displayKey
-                                        );
                                       }
                                       return (
                                         <div
-                                          key={"row" + virtualRow.index.toString() + index.toString() + displayKey}
+                                          // key={"row" + virtualRow.index.toString() + index.toString() + displayKey}
+                                          key={
+                                            "gridcell" +
+                                              virtualRow.index.toString() +
+                                              index.toString() +
+                                              displayKey +
+                                              displayRowData?.entity_id ??
+                                            "no_entity" + displayRowData?.dataset_type ??
+                                            "no_dataset_type" + columnName
+                                          }
                                           role="gridcell"
                                           aria-colindex={
                                             salesTargetColumnHeaderItemList[index]
@@ -4410,7 +4443,16 @@ const SalesTargetGridTableMemo = ({
                                   // カラム順番が変更されていない場合には、初期のallRows[0]のrowからmap()で展開
                                   Object.values(rowData).map((value, index) => (
                                     <div
-                                      key={"row" + virtualRow.index.toString() + index.toString()}
+                                      // key={"row" + virtualRow.index.toString() + index.toString()}
+                                      key={
+                                        "gridcell" +
+                                          virtualRow.index.toString() +
+                                          index.toString() +
+                                          displayKey +
+                                          displayRowData?.entity_id ??
+                                        "no_entity" + displayRowData?.dataset_type ??
+                                        "no_dataset_type" + filteredSalesTargetColumnHeaderItemList[index]?.columnName
+                                      }
                                       // ref={(ref) => (colsRef.current[index] = ref)}
                                       role="gridcell"
                                       // aria-colindex={index + 2}

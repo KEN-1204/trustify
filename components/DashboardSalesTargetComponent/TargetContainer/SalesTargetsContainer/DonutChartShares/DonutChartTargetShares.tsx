@@ -12,6 +12,7 @@ import {
   COLORS_GRD,
   COLORS_GRD_SHEER,
   COLORS_SHEER,
+  colorsHEXTrend,
 } from "@/components/Parts/Charts/Seeds/seedData";
 import { useMedia } from "react-use";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
@@ -25,6 +26,7 @@ import { DonutChartCustomComponent } from "@/components/Parts/Charts/DonutChart/
 import { mappingEntityName } from "@/utils/mappings";
 
 type Props = {
+  fiscalYear: number;
   companyId: string;
   parentEntityId: string; // queryKey用
   parentEntityTotalMainTarget: number;
@@ -46,6 +48,7 @@ type Props = {
 };
 
 const DonutChartTargetSharesMemo = ({
+  fiscalYear,
   companyId,
   parentEntityId,
   parentEntityTotalMainTarget,
@@ -96,6 +99,7 @@ const DonutChartTargetSharesMemo = ({
 
   // ------------------------- useQuery残ネタ取得 -------------------------
   const { data, isLoading, isError } = useQuerySalesTargetsShare({
+    fiscalYear,
     companyId,
     parentEntityId,
     parentEntityTotalMainTarget,
@@ -133,6 +137,7 @@ const DonutChartTargetSharesMemo = ({
 
   const chartData = data.chartData;
   const totalAmount = data.total_amount;
+  const formattedTotalAmount = useMemo(() => formatToJapaneseYen(totalAmount, true), [totalAmount]);
   const donutLabelData = data.labelListShareSalesTargets;
   // const donutLabelData = data.labelListSalesProbabilities;
 
@@ -145,6 +150,21 @@ const DonutChartTargetSharesMemo = ({
   const chartCenterX = 112;
 
   const labelType = "sales_target_share";
+
+  // const colors = COLORS_DEAL;
+  // const colorsSheer = COLORS_DEAL_SHEER;
+  const colors = colorsHEXTrend; // COLORS_DEAL
+  const colorsSheer = colorsHEXTrend;
+
+  const formattedLabelDataArray = useMemo(() => {
+    return donutLabelData.map((obj, indx) => {
+      return {
+        entity_name: obj.entity_name,
+        amount: isValidNumber(obj.amount) ? formatToJapaneseYen(obj.amount) : `¥ -`,
+        share: obj.share.toFixed(1),
+      };
+    });
+  }, [donutLabelData]);
 
   // チャート マウントを0.6s遅らせる
   const [isMounted, setIsMounted] = useState(false);
@@ -175,8 +195,8 @@ const DonutChartTargetSharesMemo = ({
           >
             <div className={`absolute left-0 top-0 flex h-full w-[448px] items-center bg-[blue]/[0]`}>
               <DonutChartCustomComponent
-                colors={COLORS_DEAL}
-                colorsSheer={COLORS_DEAL_SHEER}
+                colors={colors}
+                colorsSheer={colorsSheer}
                 chartHeight={chartHeight}
                 chartCenterX={chartCenterX}
                 chartData={chartData}
@@ -195,7 +215,10 @@ const DonutChartTargetSharesMemo = ({
             className={`fade08_forward flex h-full min-h-full w-full flex-col bg-[gray]/[0]`}
             style={{ minHeight: chartHeight }}
           >
-            <div className={`w-full`}>{/* <h4 className={`text-[14px]`}>残ネタ獲得・売上予測</h4> */}</div>
+            <div className={`min-h-[21px] w-full`}>
+              {/* <h4 className={`text-[14px]`}>残ネタ獲得・売上予測</h4> */}
+              {/* <h4 className={`min-h-[14px] text-[14px]`}></h4> */}
+            </div>
             <div className={`mt-[15px] flex w-full justify-between text-[12px] text-[var(--color-text-sub)]`}>
               <div>
                 {/* <span>Category</span> */}
@@ -207,74 +230,155 @@ const DonutChartTargetSharesMemo = ({
                 <span>シェア</span>
               </div>
             </div>
-            <ul className={`flex w-full flex-col`}>
-              {donutLabelData.map((shareObj, index) => {
-                return (
-                  <li
-                    key={`share_${index}`}
-                    //   className={`flex w-full justify-between border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px]`}
-                    className={`w-full border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px] ${
-                      styles.deal_list
-                    } ${activeIndex === 1000 ? `` : activeIndex === index ? `` : `${styles.inactive}`}`}
-                    style={{ display: `grid`, gridTemplateColumns: `80px 1fr` }}
-                  >
-                    <div className={`flex items-center`}>
-                      <div
-                        className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`}
-                        style={{
-                          background:
-                            activeIndex === 1000
-                              ? `${COLORS_DEAL[index]}`
-                              : activeIndex === index
-                              ? `${COLORS_DEAL[index]}`
-                              : `var(--color-text-disabled)`,
-                        }}
-                      />
-                      <div className="text-[13px]">
-                        <span>{chartData[index].name}</span>
-                      </div>
-                    </div>
-                    <div
-                      className={`flex items-center justify-end text-[13px]`}
-                      style={{ ...(!isDesktopGTE1600 && { maxWidth: `312px` }) }}
-                      // style={{
-                      //   display: `grid`,
-                      //   gridTemplateColumns: isDesktopGTE1600 ? `repeat(4, max-content)` : `97px 54px 47px 114px`,
-                      //   //   gridTemplateColumns: `repeat(4, max-content)`,
-                      // }}
-                    >
-                      <div className={`flex justify-end  ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}>
-                        {/* <span className={`${isDesktopGTE1600 ? `` : `max-w-[85px]`} truncate`}>¥ 2,240,000</span> */}
-                        <span className={`${isDesktopGTE1600 ? `` : `max-w-[85px]`} min-w-[85px] truncate text-end`}>
-                          {isValidNumber(shareObj.average_price) ? formatToJapaneseYen(shareObj.amount) : `¥ -`}
-                        </span>
-                      </div>
-                      <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : `pl-[12px]`}`}>
-                        <span className={`${isDesktopGTE1600 ? `` : `max-w-[35px]`} min-w-[35px] truncate text-end`}>
-                          {shareObj.share}%
-                        </span>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-              {/* <li className={`flex w-full justify-between pb-[9px] pt-[12px]`}>
-                <div className={`flex items-center`}>
-                  <div
-                    className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`}
-                    // style={{ background: `${COLORS_DEAL[index]}` }}
-                  />
-                  <div className="text-[13px] font-bold text-[var(--color-text-title)]">
-                    <span>残ネタ獲得 合計予測</span>
-                  </div>
+
+            <div className={`flex- relative max-h-[187px] w-full flex-col overflow-y-auto`}>
+              <ul className={`relative flex w-full flex-col`}>
+                {formattedLabelDataArray &&
+                  formattedLabelDataArray.map((shareObj, index) => {
+                    return (
+                      <li
+                        key={`share_${index}`}
+                        //   className={`flex w-full justify-between border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px]`}
+                        className={`w-full border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px] ${
+                          styles.deal_list
+                        } ${activeIndex === 1000 ? `` : activeIndex === index ? `` : `${styles.inactive}`}`}
+                        style={{ display: `grid`, gridTemplateColumns: `80px 1fr` }}
+                      >
+                        <div className={`flex items-center`}>
+                          <div
+                            className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`}
+                            style={{
+                              background:
+                                activeIndex === 1000
+                                  ? `${colors[index]}`
+                                  : activeIndex === index
+                                  ? `${colors[index]}`
+                                  : `var(--color-text-disabled)`,
+                            }}
+                          />
+                          <div className="text-[13px]">
+                            <span>{chartData[index].name}</span>
+                          </div>
+                        </div>
+                        <div
+                          className={`flex items-center justify-end text-[13px]`}
+                          style={{ ...(!isDesktopGTE1600 && { maxWidth: `312px` }) }}
+                          // style={{
+                          //   display: `grid`,
+                          //   gridTemplateColumns: isDesktopGTE1600 ? `repeat(4, max-content)` : `97px 54px 47px 114px`,
+                          //   //   gridTemplateColumns: `repeat(4, max-content)`,
+                          // }}
+                        >
+                          <div className={`flex justify-end  ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}>
+                            {/* <span className={`${isDesktopGTE1600 ? `` : `max-w-[85px]`} truncate`}>¥ 2,240,000</span> */}
+                            <span className={`${isDesktopGTE1600 ? `` : ``} min-w-[85px] truncate text-end`}>
+                              {shareObj.amount}
+                            </span>
+                          </div>
+                          <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : `pl-[12px]`}`}>
+                            <div
+                              className={`${
+                                isDesktopGTE1600 ? `` : `max-w-[42px]`
+                              } min-w-[35px] rounded-[4px] bg-[var(--color-sales-card-label-bg)] px-[6px] py-[2px] text-[10px] `}
+                            >
+                              <span className={`${isDesktopGTE1600 ? `` : `max-w-[42px]`} min-w-[35px]`}>
+                                {shareObj.share}%
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                {/*  */}
+                {/* {Array(3)
+                  .fill(null)
+                  .map((_, index) => {
+                    return (
+                      <li
+                        key={`share_${index}_test`}
+                        className={`w-full border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px] ${
+                          styles.deal_list
+                        } ${activeIndex === 1000 ? `` : activeIndex === index ? `` : `${styles.inactive}`}`}
+                        style={{ display: `grid`, gridTemplateColumns: `80px 1fr` }}
+                      >
+                        <div className={`flex items-center`}>
+                          <div
+                            className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`}
+                            style={{
+                              background:
+                                activeIndex === 1000
+                                  ? `${colors[index]}`
+                                  : activeIndex === index
+                                  ? `${colors[index]}`
+                                  : `var(--color-text-disabled)`,
+                            }}
+                          />
+                          <div className="text-[13px]">
+                            <span>伊藤 謙太</span>
+                          </div>
+                        </div>
+                        <div
+                          className={`flex items-center justify-end text-[13px]`}
+                          style={{ ...(!isDesktopGTE1600 && { maxWidth: `312px` }) }}
+                        >
+                          <div className={`flex justify-end  ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}>
+                            <span className={`${isDesktopGTE1600 ? `` : ``} min-w-[85px] truncate text-end`}>
+                              {formatToJapaneseYen(360000000)}
+                            </span>
+                          </div>
+                          <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : `pl-[12px]`}`}>
+                            <div
+                              className={`${
+                                isDesktopGTE1600 ? `` : `max-w-[42px]`
+                              } min-w-[35px] rounded-[4px] bg-[var(--color-sales-card-label-bg)] px-[6px] py-[2px] text-[10px] `}
+                            >
+                              <span className={`${isDesktopGTE1600 ? `` : `max-w-[42px]`} min-w-[35px]`}>78.3%</span>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })} */}
+                {/*  */}
+              </ul>
+            </div>
+            <li className={` flex w-full justify-between pb-[9px] pt-[12px]`}>
+              <div className={`flex items-center`}>
+                <div
+                  className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`}
+                  // style={{ background: `${COLORS_DEAL[index]}` }}
+                />
+                <div className="text-[13px] font-bold text-[var(--color-text-title)]">
+                  <span>合計金額</span>
                 </div>
-                <div className={`flex items-center space-x-[12px] text-[13px] text-[var(--color-text-title)]`}>
-                  <div className={`font-bold`}>
+              </div>
+              <div className={`flex items-center space-x-[12px] text-[13px] text-[var(--color-text-title)]`}>
+                {/* <div className={`font-bold`}>
                     <span>{formatToJapaneseYen(totalAmount, true)}</span>
+                  </div> */}
+                <div
+                  className={`flex items-center justify-end font-bold`}
+                  style={{ ...(!isDesktopGTE1600 && { maxWidth: `312px` }) }}
+                >
+                  <div className={`flex justify-end  ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}>
+                    <span className={`${isDesktopGTE1600 ? `` : ``} min-w-[85px] truncate text-end`}>
+                      <span>{formattedTotalAmount}</span>
+                    </span>
+                  </div>
+                  <div className={`flex justify-end text-end ${isDesktopGTE1600 ? `pl-[15px]` : `pl-[12px]`}`}>
+                    <div
+                      className={`${
+                        isDesktopGTE1600 ? `` : `max-w-[42px]`
+                      } min-w-[35px] rounded-[4px] bg-[var(--color-sales-card-label-bg)] px-[5px] py-[2px] text-[11px] font-normal`}
+                    >
+                      <span className={`${isDesktopGTE1600 ? `` : `max-w-[42px]`} min-w-[35px]`}>100%</span>
+                    </div>
+                    {/* <span className={`${isDesktopGTE1600 ? `` : `max-w-[42px]`} min-w-[42px] truncate`}>100%</span> */}
                   </div>
                 </div>
-              </li> */}
-            </ul>
+              </div>
+            </li>
           </div>
         </>
       )}

@@ -300,6 +300,7 @@
   contain: size layout style paint;
   outline: none;
   padding: 0 8px;
+  cursor: default;
 }
 
 /* １列目と２列目の色を変える */

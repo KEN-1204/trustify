@@ -10,6 +10,7 @@ export const DashboardSalesTargetComponent: FC = () => {
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
+
   // const isOpenChangeSizeMenu = useDashboardStore((state) => state.isOpenChangeSizeMenu);
   // const setIsOpenChangeSizeMenu = useDashboardStore((state) => state.setIsOpenChangeSizeMenu);
   // const setClickedItemPos = useStore((state) => state.setClickedItemPos);

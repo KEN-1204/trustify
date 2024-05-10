@@ -694,6 +694,10 @@ export const TargetContainer = () => {
     if (fadeType === "fade") return styles.fade;
   };
 
+  const setMainEntityTarget = useDashboardStore((state) => state.setMainEntityTarget);
+  const setMainTotalTargets = useDashboardStore((state) => state.setMainTotalTargets);
+  const setDisplayTargetPeriodType = useDashboardStore((state) => state.setDisplayTargetPeriodType);
+
   // 目標設定モード開始(作成・編集ボタンクリック)❌一旦中止
   const handleStartUpsertMode = () => {
     if (!activeEntityLocal) return alert("エラー：グループデータが見つかりませんでした。");
@@ -729,6 +733,11 @@ export const TargetContainer = () => {
     // setUpsertTargetMode(true);
     setOpenPopupMenu(null);
     setUpsertTargetMode("settingTarget");
+
+    // 目標トップページのメインエンティティをリセットしておく
+    setMainEntityTarget(null);
+    setMainTotalTargets(null); // 総合目標の合計値もリセット
+    setDisplayTargetPeriodType("fiscal_year"); // 年度に戻す
   };
 
   // 目標設定モード開始 エンティティレベルとエンティティの追加から ✅こちらを使用

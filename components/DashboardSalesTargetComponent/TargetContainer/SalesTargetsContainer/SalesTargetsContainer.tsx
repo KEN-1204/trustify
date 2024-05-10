@@ -61,12 +61,12 @@ const SalesTargetsContainerMemo = () => {
   // stickyを付与するrow
   const [stickyRow, setStickyRow] = useState<string | null>(null);
 
-  // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
-  const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
-  const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
-  const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
-  const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
-  // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
+  // // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
+  // const departmentDataArray: Department[] | undefined = queryClient.getQueryData(["departments"]);
+  // const sectionDataArray: Section[] | undefined = queryClient.getQueryData(["sections"]);
+  // const unitDataArray: Unit[] | undefined = queryClient.getQueryData(["units"]);
+  // const officeDataArray: Office[] | undefined = queryClient.getQueryData(["offices"]);
+  // // ========================= 🌟事業部・課・係・事業所リスト取得useQuery キャッシュ🌟 =========================
 
   // ================================ 🌟設定済み年度useQuery🌟 ================================
   // const fiscalYearsQueryData = queryClient.getQueriesData(["fiscal_years", "sales_target"]);
@@ -1022,56 +1022,71 @@ const SalesTargetsContainerMemo = () => {
                   </ErrorBoundary>
                 </div>
                 {!(mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
-                  selectedPeriodDetailShare &&
-                  entitiesForShareChart &&
-                  parentEntityTotalMainTarget !== null &&
-                  salesTargetSharePeriodTitle !== null &&
-                  fiscalYearQueryData &&
-                  mainEntityTarget &&
-                  entityLevelMap &&
-                  entityLevelMap.has(mainEntityTarget.entityLevel) && (
-                    <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
-                      <div className={`${styles.card_title_area} !items-start`}>
-                        <div className={`${styles.card_title}`}>
-                          <div className={`flex flex-col`}>
-                            <span>売上目標シェア</span>
-                            <span className={`text-[12px] text-[var(--color-text-sub)]`}>
-                              {salesTargetSharePeriodTitle}
-                            </span>
-                          </div>
+                selectedPeriodDetailShare &&
+                entitiesForShareChart &&
+                parentEntityTotalMainTarget !== null &&
+                salesTargetSharePeriodTitle !== null &&
+                fiscalYearQueryData &&
+                mainEntityTarget &&
+                entityLevelMap &&
+                entityLevelMap.has(mainEntityTarget.entityLevel) ? (
+                  <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                    <div className={`${styles.card_title_area} !items-start`}>
+                      <div className={`${styles.card_title}`}>
+                        <div className={`flex flex-col`}>
+                          <span>売上目標シェア</span>
+                          <span className={`text-[12px] text-[var(--color-text-sub)]`}>
+                            {salesTargetSharePeriodTitle}
+                          </span>
                         </div>
-                        <div className={`flex h-full items-start justify-end pt-[3px]`}></div>
                       </div>
-                      {/* <div className={`${styles.main_container}`}></div> */}
-                      <ErrorBoundary FallbackComponent={ErrorFallback}>
-                        <Suspense
-                          fallback={
-                            <div
-                              className={`flex-center w-full`}
-                              style={{ minHeight: `302px`, padding: `0px 0px 6px` }}
-                            >
-                              <SpinnerX />
-                            </div>
-                          }
-                        >
-                          <DonutChartTargetShares
-                            companyId={userProfileState.company_id}
-                            parentEntityId={mainEntityTarget.parentEntityId}
-                            parentEntityTotalMainTarget={parentEntityTotalMainTarget}
-                            entityLevel={mainEntityTarget.entityLevel}
-                            entityLevelId={entityLevelMap.get(mainEntityTarget.entityLevel)!.id}
-                            fiscalYearId={fiscalYearQueryData.id}
-                            entities={entitiesForShareChart}
-                            periodTitle={salesTargetSharePeriodTitle}
-                            periodType={selectedPeriodDetailShare.period}
-                            basePeriod={selectedFiscalYearTarget}
-                            fetchEnabled={true}
-                            // periodType={periodTypeTrend}
-                          />
-                        </Suspense>
-                      </ErrorBoundary>
+                      <div className={`flex h-full items-start justify-end pt-[3px]`}></div>
                     </div>
-                  )}
+                    {/* <div className={`${styles.main_container}`}></div> */}
+                    <ErrorBoundary FallbackComponent={ErrorFallback}>
+                      <Suspense
+                        fallback={
+                          <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
+                            <SpinnerX />
+                          </div>
+                        }
+                      >
+                        <DonutChartTargetShares
+                          fiscalYear={selectedFiscalYearTarget}
+                          companyId={userProfileState.company_id}
+                          parentEntityId={mainEntityTarget.parentEntityId}
+                          parentEntityTotalMainTarget={parentEntityTotalMainTarget}
+                          entityLevel={mainEntityTarget.entityLevel}
+                          entityLevelId={entityLevelMap.get(mainEntityTarget.entityLevel)!.id}
+                          fiscalYearId={fiscalYearQueryData.id}
+                          entities={entitiesForShareChart}
+                          periodTitle={salesTargetSharePeriodTitle}
+                          periodType={selectedPeriodDetailShare.period}
+                          basePeriod={selectedPeriodDetailShare.value}
+                          fetchEnabled={true}
+                          // periodType={periodTypeTrend}
+                        />
+                      </Suspense>
+                    </ErrorBoundary>
+                  </div>
+                ) : (
+                  <div className={`${styles.grid_content_card}`}>
+                    <div className={`${styles.card_wrapper} fade08_forward`}>
+                      <div className={`${styles.card_title_area}`}>
+                        <div className={`${styles.card_title}`}>
+                          <span>売上目標シェア</span>
+                        </div>
+                      </div>
+                      <div className={`${styles.main_container} flex-center`}>
+                        <div
+                          className={`flex h-full w-full items-center justify-center text-[13px] text-[var(--color-text-sub)]`}
+                        >
+                          <span>データがありません。</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -1367,9 +1382,6 @@ const SalesTargetsContainerMemo = () => {
                         />
                       </Suspense>
                     </ErrorBoundary>
-                    {/* <div className={`${styles.card_wrapper} fade08_forward`}>
-                  
-                </div> */}
                   </>
                 )}
               </div>

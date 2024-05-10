@@ -1566,10 +1566,18 @@ const UpsertTargetEntityMemo = () => {
       await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
       await new Promise((resolve) => setTimeout(resolve, 300));
       await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+
       // 目標タブトップ画面の設定年度の売上目標を更新
       await queryClient.invalidateQueries(["sales_targets", upsertSettingEntitiesObj.fiscalYear]);
-      // 目標トップページのスパークチャートをリセット
-      await queryClient.invalidateQueries(["sales_summary_and_growth", upsertSettingEntitiesObj.fiscalYear]);
+
+      // 目標トップページのスパークチャートをリセット  過去3年分の売上実績と前年度伸び率実績は全てpropertiesテーブルなので不要
+      // await queryClient.invalidateQueries(["sales_summary_and_growth", upsertSettingEntitiesObj.fiscalYear]);
+
+      // エリアチャートは過去の売上実績で売上目標の更新による影響が無いためinvalidateは不要
+      // await queryClient.invalidateQueries(["sales_trends"]);
+
+      // 目標トップページのドーナツチャート(売上目標シェア)をリセット
+      await queryClient.invalidateQueries(["sales_targets_share", upsertSettingEntitiesObj.fiscalYear]);
 
       setIsLoading(false); // ローディング終了
       toast.success(
@@ -1721,8 +1729,18 @@ const UpsertTargetEntityMemo = () => {
         await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
         await new Promise((resolve) => setTimeout(resolve, 300));
         await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+
         // 目標タブトップ画面の設定年度の売上目標を更新
-        await queryClient.invalidateQueries(["sales_targets", upsertSettingEntitiesObj.fiscalYear]);
+        await queryClient.removeQueries(["sales_targets", upsertSettingEntitiesObj.fiscalYear]);
+
+        // 目標トップページのスパークチャートをリセット 過去3年分の売上実績と前年度伸び率実績は全てpropertiesテーブルなので不要
+        // await queryClient.removeQueries(["sales_summary_and_growth", upsertSettingEntitiesObj.fiscalYear]);
+
+        // エリアチャートは過去の売上実績で売上目標の更新による影響が無いためinvalidateは不要
+        // await queryClient.invalidateQueries(["sales_trends"]);
+
+        // 目標トップページのドーナツチャート(売上目標シェア)をリセット
+        await queryClient.removeQueries(["sales_targets_share", upsertSettingEntitiesObj.fiscalYear]);
 
         setIsLoading(false); // ローディング終了
         setIsOpenResetTargetModal(false); // モーダルを閉じる
@@ -1838,7 +1856,17 @@ const UpsertTargetEntityMemo = () => {
         // 全ての年度の売上目標設定状況を保持するキャッシュも更新する
         await queryClient.invalidateQueries(["fiscal_years", "sales_target"]);
 
-        await queryClient.invalidateQueries(["sales_targets", upsertSettingEntitiesObj.fiscalYear]);
+        // 目標タブトップ画面の設定年度の売上目標を更新
+        await queryClient.removeQueries(["sales_targets", upsertSettingEntitiesObj.fiscalYear]);
+
+        // 目標トップページのスパークチャートをリセット 過去3年分の売上実績と前年度伸び率実績は全てpropertiesテーブルなので不要
+        // await queryClient.removeQueries(["sales_summary_and_growth", upsertSettingEntitiesObj.fiscalYear]);
+
+        // エリアチャートは過去の売上実績で売上目標の更新による影響が無いためinvalidateは不要
+        // await queryClient.invalidateQueries(["sales_trends"]);
+
+        // 目標トップページのドーナツチャート(売上目標シェア)をリセット
+        await queryClient.removeQueries(["sales_targets_share", upsertSettingEntitiesObj.fiscalYear]);
 
         // 🔹売上目標を全てリセットした後、モーダルを閉じて、ステップ1に戻る
         setStep(1);

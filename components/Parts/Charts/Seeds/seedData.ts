@@ -33,8 +33,10 @@ export const dataPie = [
 // エリアチャート用
 export const colorsHEXTrend = [
   "var(--main-color-f)", // stripe
-  "#14b8a6", // teal
-  "#625afa", // stripe
+  "#1bc0dd", //
+  // "#14b8a6", // teal
+  "#6366f1", // indigo
+  // "#625afa", // stripe
   //   "rgba(98, 90, 250)", // stripe
   "#d946ef",
   "#f43f5e",
@@ -43,8 +45,8 @@ export const colorsHEXTrend = [
   "#3b82f6",
   "#a855f7",
   "#0ea5e9",
-  "#ec4899",
   "#8b5cf6",
+  "#ec4899",
   "#f97316",
   "#22c55e",
   "#ef4444",

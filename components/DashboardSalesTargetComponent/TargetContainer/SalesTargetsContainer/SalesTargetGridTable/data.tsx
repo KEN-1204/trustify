@@ -32,6 +32,8 @@ export const testRowData = (entityLevel: string | null, quantity: number = 1): S
       }
       return {
         share: null,
+        share_first_half: null,
+        share_second_half: null,
         dataset_type: `sales_targets`,
         entity_id: `${index}_sales_targets`,
         entity_name: entityName ?? null,
@@ -76,39 +78,6 @@ export const testRowData = (entityLevel: string | null, quantity: number = 1): S
         // November: null,
         // December: null,
       } as SalesTargetFYRowData;
-      // return {
-      //   dataset_type: `sales_target`,
-      //   entity_id: `${index}_sales_target`,
-      //   entity_name: `${entityName}`,
-      //   entity_level: entityLevel,
-      //   // 紐付け関連
-      //   created_by_company_id: null,
-      //   created_by_department_id: null,
-      //   created_by_section_id: null,
-      //   created_by_unit_id: null,
-      //   created_by_user_id: null,
-      //   created_by_office_id: null,
-      //   // 当年度売上目標
-      //   fiscal_year: null,
-      //   first_half: null,
-      //   second_half: null,
-      //   first_quarter: null,
-      //   second_quarter: null,
-      //   third_quarter: null,
-      //   fourth_quarter: null,
-      //   January: null,
-      //   February: null,
-      //   March: null,
-      //   April: null,
-      //   May: null,
-      //   June: null,
-      //   July: null,
-      //   August: null,
-      //   September: null,
-      //   October: null,
-      //   November: null,
-      //   December: null,
-      // };
     });
 };
 export const testRowDataLastYear = (
@@ -147,6 +116,8 @@ export const testRowDataLastYear = (
       }
       return {
         share: null,
+        share_first_half: null,
+        share_second_half: null,
         dataset_type: `last_year_sales`,
         entity_id: `${index}_last_year_sales`,
         entity_name: entityName ?? null,
@@ -225,6 +196,8 @@ export const testRowDataPercent = (entityLevel: string | null, quantity: number 
       }
       return {
         share: null,
+        share_first_half: null,
+        share_second_half: null,
         dataset_type: `yoy_growth`,
         entity_id: `${index}_yoy_growth`,
         entity_name: entityName ?? null,

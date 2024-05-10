@@ -10,6 +10,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 
 type Props = {
+  fiscalYear: number; // queryKeyセット用 売上目標の更新時のinvalidateに使用
   companyId: string;
   parentEntityId: string; // queryKey用
   parentEntityTotalMainTarget: number;
@@ -26,6 +27,7 @@ type Props = {
 
 // 過去3年分の売上実績と前年度の伸び率実績を取得するuseQuery
 export const useQuerySalesTargetsShare = ({
+  fiscalYear,
   companyId,
   parentEntityId,
   parentEntityTotalMainTarget,
@@ -101,7 +103,7 @@ export const useQuerySalesTargetsShare = ({
   };
 
   return useQuery({
-    queryKey: ["sales_targets_share", parentEntityId, entityLevel, periodType, basePeriod],
+    queryKey: ["sales_targets_share", fiscalYear, parentEntityId, entityLevel, periodType, basePeriod],
     queryFn: getSalesTargetsShare,
     staleTime: Infinity,
     onError: (error) => {

@@ -173,7 +173,7 @@ export const useQuerySalesTrends = ({
   };
 
   return useQuery({
-    queryKey: ["sales_trends", entityLevel, entityIdsStrKey, periodType, basePeriod, yearsBack],
+    queryKey: ["sales_trends", basePeriod, yearsBack, entityLevel, entityIdsStrKey, periodType],
     queryFn: getSalesTrends,
     staleTime: Infinity,
     onError: (error) => {

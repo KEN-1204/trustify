@@ -1621,6 +1621,6 @@ background: var(--color-sales-card-bg);
 .deal_list.inactive {
   color: var(--color-text-disabled);
   /* background:#f2f3f4; */
-  background: #f4f7f9;
-  background: #f0f3f5;
+  /* background: #f4f7f9; */
+  /* background: #f0f3f5; */
 }
