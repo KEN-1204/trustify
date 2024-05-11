@@ -1,11 +1,13 @@
-// nで渡された数値をdigitsで渡した任意の小数点以下の桁で四捨五入する関数
-export function roundTo(n: number, digits: number) {
+// nで渡された数値をdigitsで渡した任意の小数点以下の桁で四捨五入する関数 ((Math.round(obj.share * 10) / 10).toFixed(1)よりも精度が高い)
+export function roundTo(n: number, digits: number, forceDecimal = false) {
   if (digits === undefined) {
     digits = 0;
   }
   const multiplicator = Math.pow(10, digits);
   n = parseFloat((n * multiplicator).toFixed(11));
-  return Math.round(n) / multiplicator;
+  const roundedValue = Math.round(n) / multiplicator;
+  // forceDecimalがtrueの場合、toFixedを使って小数点以下を保持
+  return forceDecimal ? roundedValue.toFixed(digits) : roundedValue.toString();
 }
 
 /**

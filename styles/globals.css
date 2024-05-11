@@ -1423,6 +1423,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sales-card-border-brand: 0 0 0 1px var(--color-bg-brand-f), 0 1px 2px 2px #cccccc60;
   --color-sales-card-border-sticky: 0 1px 2px 1px #cccccc60, 0 6px 12px 3px #00000056;
   --color-sales-card-label-bg: var(--color-bg-sub);
+  --color-sales-card-label-text: var(--color-text-title);
   /* --color-sales-card-border: 0 0 0 1px #cccccc90; */
   /* --color-sales-card-border: 0 0 0 1px transparent; */
   --color-target-table-header-bg: #fff;
@@ -2458,6 +2459,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   --color-donut-share-bg: #666;
   --color-sales-card-label-bg: #565656;
+  --color-sales-card-label-text: var(--color-text-sub);
   --color-sales-card-border-sticky: 0 0 0 1px #333, 0 6px 12px 4px #000000dd;
   --color-target-table-header-bg: transparent;
   --color-brand-btn-active: var(--color-bg-brand-f90);

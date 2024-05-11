@@ -1021,6 +1021,7 @@ const SalesTargetsContainerMemo = () => {
               fiscalYearQueryData?.is_confirmed_second_half_details) &&
             trendPeriodTitle &&
             selectedPeriodDetailTrend !== null &&
+            selectedPeriodForChart !== null &&
             targetEntityIdsSet &&
             mainEntityTarget &&
             mainTotalTargets
@@ -1127,6 +1128,8 @@ const SalesTargetsContainerMemo = () => {
                         basePeriod={selectedPeriodDetailTrend.value}
                         yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
                         fetchEnabled={true}
+                        displayTypeForTrend={displayTypeForTrend}
+                        selectedPeriodForChart={selectedPeriodForChart}
                       />
                     </Suspense>
                   </ErrorBoundary>

@@ -12,6 +12,7 @@ import {
   EntityGroupByParent,
   EntityLevelNames,
   EntityLevels,
+  FiscalYearAllKeys,
   FiscalYears,
   Office,
   SalesTargetFHRowData,
@@ -20,6 +21,8 @@ import {
   SalesTargetsRowDataWithYoY,
   Section,
   SectionMenuParams,
+  SubEntitySalesTarget,
+  SubEntitySalesTargetObj,
   Unit,
 } from "@/types";
 import { InfiniteData, useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
@@ -800,12 +803,119 @@ const SalesTargetGridTableSubMemo = ({
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
 
   // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
-  // useEffect(() => {
-  //   // 総合目標のフェッチが完了したら、子エンティティのフェッチを許可する。=> 総合目標の各目標金額を子エンティティテーブルで取得してシェアを算出する
-  //     if (isSuccessQuery || isErrorQuery) {
-  //       if (onFetchComplete) onFetchComplete();
-  //     }
-  // }, [isSuccessQuery, isErrorQuery]);
+  const setSubEntitiesSalesTargets = useDashboardStore((state) => state.setSubEntitiesSalesTargets);
+
+  useEffect(() => {
+    // 総合目標のフェッチが完了したら、子エンティティのフェッチを許可する。=> 総合目標の各目標金額を子エンティティテーブルで取得してシェアを算出する
+    if (isSuccessQuery || isErrorQuery) {
+      // if (onFetchComplete) onFetchComplete();
+
+      // 取得した各エンティティの売上目標をZustandにセットして売上推移の末尾に追加してチャートに反映する
+      const newQueryTarget = !!data?.pages?.length && !!data?.pages[0].rows?.length ? data?.pages[0].rows : null;
+      const queryTargetRowsMapByEntityId = newQueryTarget
+        ? new Map(newQueryTarget.map((row) => [row.sales_targets.entity_id, row]))
+        : null;
+      console.log(
+        "🌠🔥🌠🔥🌠🔥🌠🔥🌠🔥🌠🔥🌠🔥🌠🔥サブ",
+        queryTargetRowsMapByEntityId,
+        newQueryTarget,
+        entities,
+        entities.length,
+        entities.length
+      );
+      if (newQueryTarget && entities && entities.length === entities.length && queryTargetRowsMapByEntityId) {
+        try {
+          const newSubEntitySalesTargetArray = entities.map((entity) => {
+            const salesTargetObj = queryTargetRowsMapByEntityId.get(entity.entity_id);
+
+            if (!salesTargetObj) throw new Error("無効なデータです エラー:012");
+
+            const { sales_targets, yoy_growth, last_year_sales } = salesTargetObj;
+
+            return {
+              entity_id: entity.entity_id,
+              entity_level: entity.entity_level,
+              entity_name: entity.entity_name,
+              sales_target_obj: {
+                sales_targets: {
+                  fiscal_year: sales_targets.fiscal_year ?? 0,
+                  first_half: sales_targets.first_half ?? 0,
+                  second_half: sales_targets.second_half ?? 0,
+                  first_quarter: sales_targets.first_quarter ?? 0,
+                  second_quarter: sales_targets.second_quarter ?? 0,
+                  third_quarter: sales_targets.third_quarter ?? 0,
+                  fourth_quarter: sales_targets.fourth_quarter ?? 0,
+                  month_01: sales_targets.month_01 ?? 0,
+                  month_02: sales_targets.month_02 ?? 0,
+                  month_03: sales_targets.month_03 ?? 0,
+                  month_04: sales_targets.month_04 ?? 0,
+                  month_05: sales_targets.month_05 ?? 0,
+                  month_06: sales_targets.month_06 ?? 0,
+                  month_07: sales_targets.month_07 ?? 0,
+                  month_08: sales_targets.month_08 ?? 0,
+                  month_09: sales_targets.month_09 ?? 0,
+                  month_10: sales_targets.month_10 ?? 0,
+                  month_11: sales_targets.month_11 ?? 0,
+                  month_12: sales_targets.month_12 ?? 0,
+                },
+                last_year_sales: {
+                  fiscal_year: last_year_sales.fiscal_year ?? 0,
+                  first_half: last_year_sales.first_half ?? 0,
+                  second_half: last_year_sales.second_half ?? 0,
+                  first_quarter: last_year_sales.first_quarter ?? 0,
+                  second_quarter: last_year_sales.second_quarter ?? 0,
+                  third_quarter: last_year_sales.third_quarter ?? 0,
+                  fourth_quarter: last_year_sales.fourth_quarter ?? 0,
+                  month_01: last_year_sales.month_01 ?? 0,
+                  month_02: last_year_sales.month_02 ?? 0,
+                  month_03: last_year_sales.month_03 ?? 0,
+                  month_04: last_year_sales.month_04 ?? 0,
+                  month_05: last_year_sales.month_05 ?? 0,
+                  month_06: last_year_sales.month_06 ?? 0,
+                  month_07: last_year_sales.month_07 ?? 0,
+                  month_08: last_year_sales.month_08 ?? 0,
+                  month_09: last_year_sales.month_09 ?? 0,
+                  month_10: last_year_sales.month_10 ?? 0,
+                  month_11: last_year_sales.month_11 ?? 0,
+                  month_12: last_year_sales.month_12 ?? 0,
+                },
+                yoy_growth: {
+                  fiscal_year: yoy_growth.fiscal_year ?? null,
+                  first_half: yoy_growth.first_half ?? null,
+                  second_half: yoy_growth.second_half ?? null,
+                  first_quarter: yoy_growth.first_quarter ?? null,
+                  second_quarter: yoy_growth.second_quarter ?? null,
+                  third_quarter: yoy_growth.third_quarter ?? null,
+                  fourth_quarter: yoy_growth.fourth_quarter ?? null,
+                  month_01: yoy_growth.month_01 ?? null,
+                  month_02: yoy_growth.month_02 ?? null,
+                  month_03: yoy_growth.month_03 ?? null,
+                  month_04: yoy_growth.month_04 ?? null,
+                  month_05: yoy_growth.month_05 ?? null,
+                  month_06: yoy_growth.month_06 ?? null,
+                  month_07: yoy_growth.month_07 ?? null,
+                  month_08: yoy_growth.month_08 ?? null,
+                  month_09: yoy_growth.month_09 ?? null,
+                  month_10: yoy_growth.month_10 ?? null,
+                  month_11: yoy_growth.month_11 ?? null,
+                  month_12: yoy_growth.month_12 ?? null,
+                },
+              } as SubEntitySalesTargetObj,
+            } as SubEntitySalesTarget;
+          });
+
+          console.log(
+            "🌠🔥🌠🔥🌠🔥🌠🔥🌠🔥🌠🔥🌠🔥🌠🔥サブ newSubEntitySalesTargetArray",
+            newSubEntitySalesTargetArray
+          );
+
+          setSubEntitiesSalesTargets(newSubEntitySalesTargetArray);
+        } catch (e: any) {
+          console.error("エラー：", e);
+        }
+      }
+    }
+  }, [isSuccessQuery, isErrorQuery]);
   // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
 
   const Rows = data && data.pages[0]?.rows ? data.pages.flatMap((d) => d?.rows) : [];

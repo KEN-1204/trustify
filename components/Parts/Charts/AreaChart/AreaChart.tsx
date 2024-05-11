@@ -43,6 +43,7 @@ type Props = {
   tickCount?: number;
   fallbackHeight: string;
   fallbackPadding: string;
+  salesTargetDate?: string | undefined;
 };
 
 const AreaChartComponentMemo = ({
@@ -56,6 +57,7 @@ const AreaChartComponentMemo = ({
   tickCount = 5,
   fallbackHeight,
   fallbackPadding,
+  salesTargetDate,
 }: Props) => {
   const language = useStore((state) => state.language);
 
@@ -186,6 +188,8 @@ const AreaChartComponentMemo = ({
     }, delay);
   }, []);
 
+  console.log("🔥🔥🌠🌠🔥🔥🌠🌠🔥🔥🌠🌠エリアチャート: chartData", chartData);
+
   return (
     <>
       {!isMounted && (
@@ -259,9 +263,10 @@ const AreaChartComponentMemo = ({
                   labelType={labelType}
                   periodType={periodType}
                   language={language}
-                  labelValueGroupByPeriod={labelValueGroupByPeriod}
+                  // labelValueGroupByPeriod={labelValueGroupByPeriod}
                   periodToLabelValueMap={periodToLabelValueMap}
                   trendColor={trendColor}
+                  salesTargetDate={salesTargetDate}
                 />
               )}
             />
@@ -295,9 +300,10 @@ type TooltipCustomProps = {
   labelType: string;
   periodType?: string;
   language: string;
-  labelValueGroupByPeriod: LabelValueGroupByPeriod[];
+  // labelValueGroupByPeriod: LabelValueGroupByPeriod[];
   periodToLabelValueMap: Map<string | number, LabelValue[]>;
   trendColor: string | null;
+  salesTargetDate?: string | undefined;
 };
 
 export const CustomTooltip = ({
@@ -305,9 +311,10 @@ export const CustomTooltip = ({
   labelType,
   periodType,
   language,
-  labelValueGroupByPeriod,
+  // labelValueGroupByPeriod,
   periodToLabelValueMap,
   trendColor,
+  salesTargetDate,
 }: TooltipCustomProps) => {
   const { active, payload, label } = props;
   if (!active) return null;
@@ -318,6 +325,18 @@ export const CustomTooltip = ({
   const dateLabel = label;
 
   const labelValueGroup = periodToLabelValueMap.has(dateLabel) ? periodToLabelValueMap.get(dateLabel) : null;
+
+  console.log(
+    "🔥🔥🌠🌠🔥🔥🌠🌠🔥🔥🌠🌠dateLabel: ",
+    dateLabel,
+    "salesTargetDate: ",
+    salesTargetDate,
+    dateLabel === salesTargetDate,
+    "labelValueGroup",
+    labelValueGroup,
+    "periodToLabelValueMap",
+    periodToLabelValueMap
+  );
 
   if (!labelValueGroup) return null;
 
@@ -331,7 +350,13 @@ export const CustomTooltip = ({
               : format(parseISO(dateLabel), "eeee, d MMM, yyyy")
             : "-")}
         {labelType === "sales_period" &&
-          xAxisDateFormatter({ value: dateLabel, labelType: labelType, periodType: periodType, fyFullName: true })}
+          xAxisDateFormatter({
+            value: dateLabel,
+            labelType: labelType,
+            periodType: periodType,
+            fyFullName: true,
+            isSalesTarget: dateLabel === salesTargetDate,
+          })}
       </h4>
 
       <hr className={`min-h-[1px] w-full bg-[var(--color-border-light)]`} />

@@ -3059,11 +3059,29 @@ export type DisplayKeys = "sales_targets" | "last_year_sales" | "yoy_growth";
 // yo2y_growth：前年度の前年比の伸び率実績(前年度の前年比)Year Over Two Years
 // yoy: Year Over Year
 export type MainTotalTargets = {
-  [K in "sales_targets" | "last_year_sales"]: {
+  [K in "sales_targets" | "last_year_sales" | "yoy_growth"]: {
     // [K in "fiscal_year" | "first_half" | "second_half"]: number;
-    [K in FiscalYearAllKeys]: number;
+    [K in FiscalYearAllKeys]: number | null;
   };
 };
+// 売上推移に売上目標をchartDataに追加用
+export type SubEntitySalesTargetObj = {
+  [K in "sales_targets" | "last_year_sales" | "yoy_growth"]: {
+    // [K in "fiscal_year" | "first_half" | "second_half"]: number;
+    [K in FiscalYearAllKeys]: number | null;
+  };
+};
+export type SubEntitySalesTarget = {
+  entity_id: string;
+  entity_name: string;
+  entity_level: string;
+  sales_target_obj: SubEntitySalesTargetObj;
+};
+// export type SubEntityTarget = {
+//   sales_targets: {
+//     [K in FiscalYearAllKeys]: number;
+//   };
+// };
 
 // 売上目標・前年度売上フェッチ時の年月度の12ヶ月分の配列
 export type FiscalYearMonthKey =
@@ -3274,6 +3292,9 @@ export type SalesTrendYearHalf = {
   labelType: string; // dateやsales_periodなど
   periodType: string; // 期間タイプ
   entityLevel: string; // エンティティレベル
+  entityIdToNameMapping: {
+    [key: string]: string;
+  }; // エンティティid: value1 or value2 or ...
 };
 
 // 🔹ドーナツチャート value1, value2 ...

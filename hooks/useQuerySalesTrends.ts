@@ -111,6 +111,7 @@ export const useQuerySalesTrends = ({
       Array.from(entityIdSet).forEach((id, index) => {
         entityIdToNameMapping[id] = `value${index + 1}`; // value1から
       });
+      // key: エンティティid, value: valueXXのentityIdToNameMappingも一緒に返してサブ目標の各エンティティに対応したvalueXXが何か判別できるようにする => 各エンティティに対応した正しいvalueXXにエンティティの売上目標をセットする
 
       // 🔸各期間ごとにエンティティごとのデータを整形
       const chartData = Object.keys(groupedByPeriod).map((period) => {
@@ -123,6 +124,9 @@ export const useQuerySalesTrends = ({
           const valueName = entityIdToNameMapping[entry.entity_id];
           periodEntry[valueName] = entry.current_sales;
         });
+
+        // value1, value2が各エンティティに対応
+
         return periodEntry;
       });
 
@@ -161,6 +165,7 @@ export const useQuerySalesTrends = ({
         labelType: "sales_period", // dateのフォーマット用
         periodType: periodType,
         entityLevel: entityLevel,
+        entityIdToNameMapping: entityIdToNameMapping,
       };
     }
 

@@ -42,6 +42,7 @@ import {
   TotalSalesTargetsHalfDetailsObj,
   MonthTargetStatusMapForAllMembers,
   MainTotalTargets,
+  SubEntitySalesTarget,
 } from "@/types";
 import { activityColumnHeaderItemListData } from "@/utils/activityColumnHeaderItemListDate";
 import { companyColumnHeaderItemListData } from "@/utils/companyColumnHeaderItemListData";
@@ -544,6 +545,9 @@ type State = {
   // 総合目標の「売上目標・前年度売上」の「年度・上期・下期」を保持 サブ目標のそれぞれのシェアの算出に使用(目標トップページ)
   mainTotalTargets: MainTotalTargets | null;
   setMainTotalTargets: (payload: MainTotalTargets | null) => void;
+  // 売上推移に売上目標をchartDataに追加用
+  subEntitiesSalesTargets: SubEntitySalesTarget[] | null;
+  setSubEntitiesSalesTargets: (payload: SubEntitySalesTarget[] | null) => void;
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
@@ -1299,6 +1303,9 @@ const useDashboardStore = create<State>((set) => ({
   // 総合目標の「売上目標・前年度売上」の「年度・上期・下期」を保持 サブ目標のそれぞれのシェアの算出に使用(目標トップページ)
   mainTotalTargets: null,
   setMainTotalTargets: (payload) => set({ mainTotalTargets: payload }),
+  // 売上推移に売上目標をchartDataに追加用
+  subEntitiesSalesTargets: null,
+  setSubEntitiesSalesTargets: (payload) => set({ subEntitiesSalesTargets: payload }),
 
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: false,

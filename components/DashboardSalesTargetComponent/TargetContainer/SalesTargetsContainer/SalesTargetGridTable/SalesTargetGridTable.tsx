@@ -1187,6 +1187,7 @@ const SalesTargetGridTableMemo = ({
         if (newQueryTarget) {
           const st = newQueryTarget.sales_targets;
           const lys = newQueryTarget.last_year_sales;
+          const yoy = newQueryTarget.yoy_growth;
           setMainTotalTargets({
             sales_targets: {
               fiscal_year: st.fiscal_year ?? 0,
@@ -1229,6 +1230,27 @@ const SalesTargetGridTableMemo = ({
               month_10: lys.month_10 ?? 0,
               month_11: lys.month_11 ?? 0,
               month_12: lys.month_12 ?? 0,
+            },
+            yoy_growth: {
+              fiscal_year: yoy.fiscal_year ?? null,
+              first_half: yoy.first_half ?? null,
+              second_half: yoy.second_half ?? null,
+              first_quarter: yoy.first_quarter ?? null,
+              second_quarter: yoy.second_quarter ?? null,
+              third_quarter: yoy.third_quarter ?? null,
+              fourth_quarter: yoy.fourth_quarter ?? null,
+              month_01: yoy.month_01 ?? null,
+              month_02: yoy.month_02 ?? null,
+              month_03: yoy.month_03 ?? null,
+              month_04: yoy.month_04 ?? null,
+              month_05: yoy.month_05 ?? null,
+              month_06: yoy.month_06 ?? null,
+              month_07: yoy.month_07 ?? null,
+              month_08: yoy.month_08 ?? null,
+              month_09: yoy.month_09 ?? null,
+              month_10: yoy.month_10 ?? null,
+              month_11: yoy.month_11 ?? null,
+              month_12: yoy.month_12 ?? null,
             },
           });
         }

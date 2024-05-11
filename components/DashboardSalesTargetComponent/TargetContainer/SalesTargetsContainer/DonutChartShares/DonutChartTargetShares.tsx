@@ -164,7 +164,7 @@ const DonutChartTargetSharesMemo = ({
         amount: isValidNumber(obj.amount) ? formatToJapaneseYen(obj.amount) : `¥ -`,
         // share: obj.share.toFixed(1),
         // share: (Math.round(obj.share * 10) / 10).toFixed(1),
-        share: roundTo(obj.share, 1),
+        share: roundTo(obj.share, 1, true),
       };
     });
   }, [donutLabelData]);
@@ -282,7 +282,7 @@ const DonutChartTargetSharesMemo = ({
                             <div
                               className={`${
                                 isDesktopGTE1600 ? `` : `max-w-[42px]`
-                              } min-w-[35px] rounded-[4px] bg-[var(--color-sales-card-label-bg)] px-[6px] py-[2px] text-[10px] `}
+                              } min-w-[35px] rounded-[4px] bg-[var(--color-sales-card-label-bg)] px-[6px] py-[2px] text-[10px]`}
                             >
                               <span className={`${isDesktopGTE1600 ? `` : `max-w-[42px]`} min-w-[35px]`}>
                                 {shareObj.share}%
