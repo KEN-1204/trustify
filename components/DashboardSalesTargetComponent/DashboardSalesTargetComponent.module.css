@@ -254,6 +254,7 @@
   /* box-shadow: 0 0 0 1px var(--color-border-base); */
   background-color: var(--color-bg-brand-f);
   color: #fff;
+  box-shadow: var(--color-btn-brand-shadow);
 }
 .title_area .btn.brand:hover {
   background-color: var(--color-bg-brand-f-deep);

@@ -711,7 +711,7 @@ const SalesTargetGridTableSubMemo = ({
                 share: _share,
                 share_first_half: _share_first_half,
                 share_second_half: _share_second_half,
-                entity_name: entitiesIdToObjMap.get(obj?.entity_id) ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
+                entity_name: entitiesIdToObjMap.get(obj?.entity_id)?.entity_name ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できない(entity_nameがnullで取得されてる)ので、ここでエンティティidに対応するエンティティ名を追加する
               };
             }) as (SalesTargetFYRowData & { share: number })[])
           : [];
@@ -3349,23 +3349,23 @@ const SalesTargetGridTableSubMemo = ({
                           // 仮想化した1行の中にデータセットの個数分の行が展開される
                           const top = (virtualRow.index * displayKeys.length + displayIndex) * rowHeight;
                           const ariaRowIndex = virtualRow.index * displayKeys.length + 2 + displayIndex;
-                          const rowKey =
-                            "row" + virtualRow.index.toString() + displayKey + displayRowData?.entity_id ??
+                          const rowKeyTest =
+                            "row" +
+                              virtualRow.index.toString() +
+                              displayKey +
+                              displayIndex.toString() +
+                              displayRowData?.entity_id ??
                             "no_entity" + displayRowData?.dataset_type ??
-                            "no_dataset_type" + "sub";
+                            "no_dataset_type" + "sub" + "text";
 
-                          console.log(
-                            "displayKeys.map()内 displayRowData",
-                            displayRowData,
-                            "top",
-                            top,
-                            "ariaRowIndex",
-                            ariaRowIndex
-                          );
+                          // console.log(
+                          //   "displayKeys.map()内 displayRowData",
+                          //   displayRowData,
+                          // );
 
                           return (
                             <div
-                              key={rowKey}
+                              key={rowKeyTest}
                               role="row"
                               tabIndex={-1}
                               // aria-rowindex={virtualRow.index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
@@ -3434,6 +3434,86 @@ const SalesTargetGridTableSubMemo = ({
                                     )}
                                 </div>
                               )}
+
+                              {displayRowData &&
+                                columnOrder &&
+                                columnOrder
+                                  .map((columnName) => displayRowData[columnName])
+                                  .map((value, colIndex) => {
+                                    const columnName = filteredSalesTargetColumnHeaderItemList[colIndex]?.columnName;
+                                    let displayValue = value;
+
+                                    // const gridCellKeyTest = `${rowKeyTest}_gridcell_${colIndex}_${columnName}_sub_test`;
+                                    const gridCellKeyTest = `${rowKeyTest}_gridcell_${colIndex}_${Math.random()}_sub_test`;
+
+                                    // 半期詳細はカラム数が11個でindexは10以下の場合、フォーマットが必要：['entity_name', 'dataset_type', 'first_half', 'first_quarter', 'second_quarter', 'month_01', 'month_02', 'month_03', 'month_04', 'month_05', 'month_06']
+                                    // if (displayTargetPeriodType !== "fiscal_year" && colIndex <= 10) {
+                                    //   displayValue = formatDisplayValue(displayKey, columnName, displayValue);
+                                    // }
+
+                                    // // 全てのカラム
+                                    // if (displayTargetPeriodType === "fiscal_year") {
+                                    //   displayValue = formatDisplayValue(displayKey, columnName, displayValue);
+                                    // }
+                                    displayValue = formatDisplayValue(displayKey, columnName, displayValue);
+
+                                    // console.log("こここここ", displayValue, displayKey, colIndex, columnName);
+                                    return (
+                                      <div
+                                        key={gridCellKeyTest}
+                                        // key={Math.random()}
+                                        role="gridcell"
+                                        aria-colindex={colIndex + 2} // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                        // aria-colindex={
+                                        //   salesTargetColumnHeaderItemList[colIndex]
+                                        //     ? salesTargetColumnHeaderItemList[colIndex]?.columnIndex
+                                        //     : colIndex + 2
+                                        // } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                        aria-selected={false}
+                                        tabIndex={-1}
+                                        // className={`${styles.grid_cell} ${
+                                        //   salesTargetColumnHeaderItemList[colIndex].isFrozen
+                                        //     ? styles.grid_column_frozen
+                                        //     : ""
+                                        // } ${
+                                        //   isFrozenCountRef.current === 1 && colIndex === 0
+                                        //     ? styles.grid_cell_frozen_last
+                                        //     : ""
+                                        // } ${
+                                        //   isFrozenCountRef.current === colIndex + 1 ? styles.grid_cell_frozen_last : ""
+                                        // }  ${styles.grid_cell_resizable} ${
+                                        //   columnName === "entity_name" ? `${styles.company_highlight}` : ``
+                                        // }`}
+                                        className={`${styles.grid_cell} ${
+                                          salesTargetColumnHeaderItemList[colIndex].isFrozen
+                                            ? styles.grid_column_frozen
+                                            : ""
+                                        } ${
+                                          isFrozenCountRef.current === 1 && colIndex === 0
+                                            ? styles.grid_cell_frozen_last
+                                            : ""
+                                        } ${
+                                          isFrozenCountRef.current === colIndex + 1 ? styles.grid_cell_frozen_last : ""
+                                        }  ${styles.grid_cell_resizable}`}
+                                        style={
+                                          salesTargetColumnHeaderItemList[colIndex].isFrozen
+                                            ? {
+                                                gridColumnStart: salesTargetColumnHeaderItemList[colIndex]
+                                                  ? salesTargetColumnHeaderItemList[colIndex]?.columnIndex
+                                                  : colIndex + 2,
+                                                left: `var(--frozen-left-${colIndex})`,
+                                              }
+                                            : {
+                                                gridColumnStart: salesTargetColumnHeaderItemList[colIndex]
+                                                  ? salesTargetColumnHeaderItemList[colIndex]?.columnIndex
+                                                  : colIndex + 2,
+                                              }
+                                        }
+                                      >
+                                        {displayValue ?? "-"}
+                                      </div>
+                                    );
+                                  })}
                             </div>
                           );
                         })}
@@ -3502,15 +3582,20 @@ const SalesTargetGridTableSubMemo = ({
                           const top = (virtualRow.index * displayKeys.length + displayIndex) * rowHeight;
                           const ariaRowIndex = virtualRow.index * displayKeys.length + 2 + displayIndex;
 
+                          const rowKey =
+                            "row" +
+                              virtualRow.index.toString() +
+                              displayKey +
+                              displayIndex.toString() +
+                              displayRowData?.entity_id ??
+                            "no_entity" + displayRowData?.dataset_type ??
+                            "no_dataset_type" + "sub";
+
                           console.log("displayKeys.map()内 displayRowData", displayRowData);
 
                           return (
                             <div
-                              key={
-                                "row" + virtualRow.index.toString() + displayKey + displayRowData?.entity_id ??
-                                "no_entity" + displayRowData?.dataset_type ??
-                                "no_dataset_type" + "sub"
-                              }
+                              key={rowKey}
                               role="row"
                               tabIndex={-1}
                               // aria-rowindex={virtualRow.index + 2} // ヘッダーの次からで+1、indexは0からなので+1で、index0に+2
@@ -3597,68 +3682,64 @@ const SalesTargetGridTableSubMemo = ({
                                   columnOrder
                                     // .map((columnName) => rowData[columnName])
                                     .map((columnName) => displayRowData[columnName])
-                                    .map((value, index) => {
+                                    .map((value, colIndex) => {
                                       // const columnName = salesTargetColumnHeaderItemList[index]?.columnName;
-                                      const columnName = filteredSalesTargetColumnHeaderItemList[index]?.columnName;
+                                      const columnName = filteredSalesTargetColumnHeaderItemList[colIndex]?.columnName;
                                       // const columnName = Object.keys(displayRowData)[];
                                       let displayValue = value;
 
                                       displayValue = formatDisplayValue(displayKey, columnName, displayValue);
 
+                                      const gridCellKey = `${rowKey}_gridcell_${colIndex}_${columnName}_sub`;
+
                                       if (columnName === "fiscal_year" && displayKey === "sales_targets") {
                                       }
                                       return (
                                         <div
-                                          key={
-                                            "gridcell" +
-                                              virtualRow.index.toString() +
-                                              index.toString() +
-                                              displayKey +
-                                              displayRowData?.entity_id ??
-                                            "no_entity" + displayRowData?.dataset_type ??
-                                            "no_dataset_type" + columnName + "sub"
-                                          }
+                                          key={gridCellKey}
                                           role="gridcell"
                                           aria-colindex={
-                                            salesTargetColumnHeaderItemList[index]
-                                              ? salesTargetColumnHeaderItemList[index]?.columnIndex
-                                              : index + 2
+                                            salesTargetColumnHeaderItemList[colIndex]
+                                              ? salesTargetColumnHeaderItemList[colIndex]?.columnIndex
+                                              : colIndex + 2
                                           } // カラムヘッダーの列StateのcolumnIndexと一致させる
                                           aria-selected={false}
                                           tabIndex={-1}
                                           className={`${styles.grid_cell} ${
-                                            salesTargetColumnHeaderItemList[index].isFrozen
+                                            salesTargetColumnHeaderItemList[colIndex].isFrozen
                                               ? styles.grid_column_frozen
                                               : ""
                                           } ${
-                                            isFrozenCountRef.current === 1 && index === 0
+                                            isFrozenCountRef.current === 1 && colIndex === 0
                                               ? styles.grid_cell_frozen_last
                                               : ""
                                           } ${
-                                            isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
+                                            isFrozenCountRef.current === colIndex + 1
+                                              ? styles.grid_cell_frozen_last
+                                              : ""
                                           }  ${styles.grid_cell_resizable} ${
                                             columnName === "entity_name" ? `${styles.company_highlight}` : ``
                                           }`}
                                           style={
-                                            salesTargetColumnHeaderItemList[index].isFrozen
+                                            salesTargetColumnHeaderItemList[colIndex].isFrozen
                                               ? {
-                                                  gridColumnStart: salesTargetColumnHeaderItemList[index]
-                                                    ? salesTargetColumnHeaderItemList[index]?.columnIndex
-                                                    : index + 2,
-                                                  left: `var(--frozen-left-${index})`,
+                                                  gridColumnStart: salesTargetColumnHeaderItemList[colIndex]
+                                                    ? salesTargetColumnHeaderItemList[colIndex]?.columnIndex
+                                                    : colIndex + 2,
+                                                  left: `var(--frozen-left-${colIndex})`,
                                                 }
                                               : {
-                                                  gridColumnStart: salesTargetColumnHeaderItemList[index]
-                                                    ? salesTargetColumnHeaderItemList[index]?.columnIndex
-                                                    : index + 2,
+                                                  gridColumnStart: salesTargetColumnHeaderItemList[colIndex]
+                                                    ? salesTargetColumnHeaderItemList[colIndex]?.columnIndex
+                                                    : colIndex + 2,
                                                 }
                                           }
                                           onClick={handleClickGridCell}
                                           onDoubleClick={(e) =>
                                             handleDoubleClick(
                                               e,
-                                              index,
-                                              salesTargetColumnHeaderItemList[index].columnName
+                                              colIndex,
+                                              salesTargetColumnHeaderItemList[colIndex].columnName
                                             )
                                           }
                                           onKeyDown={handleKeyDown}

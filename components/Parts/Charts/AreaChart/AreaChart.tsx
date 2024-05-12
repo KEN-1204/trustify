@@ -188,7 +188,7 @@ const AreaChartComponentMemo = ({
     }, delay);
   }, []);
 
-  console.log("🔥🔥🌠🌠🔥🔥🌠🌠🔥🔥🌠🌠エリアチャート: chartData", chartData);
+  console.log("エリアチャート: chartData", chartData, "labelValueGroupByPeriod", labelValueGroupByPeriod);
 
   return (
     <>
@@ -227,7 +227,10 @@ const AreaChartComponentMemo = ({
                 xAxisDateFormatter({ value: value, labelType: labelType, periodType: periodType })
               }
               fontSize={12}
-              dy={3}
+              // dy={3}
+              dy={6}
+              // stroke="var(--color-chart-axis)"
+              stroke="var(--color-text-sub)"
             />
 
             <YAxis
@@ -254,6 +257,7 @@ const AreaChartComponentMemo = ({
               //   // 🔹value1のdataKeyだけでなく、全てのエンティティのvalueから最大値をセット
               //   return [0, yAxisMax];
               // }}
+              stroke="var(--color-text-sub)"
             />
 
             <Tooltip
@@ -326,17 +330,17 @@ export const CustomTooltip = ({
 
   const labelValueGroup = periodToLabelValueMap.has(dateLabel) ? periodToLabelValueMap.get(dateLabel) : null;
 
-  console.log(
-    "🔥🔥🌠🌠🔥🔥🌠🌠🔥🔥🌠🌠dateLabel: ",
-    dateLabel,
-    "salesTargetDate: ",
-    salesTargetDate,
-    dateLabel === salesTargetDate,
-    "labelValueGroup",
-    labelValueGroup,
-    "periodToLabelValueMap",
-    periodToLabelValueMap
-  );
+  // console.log(
+  //   "🔥🔥🌠🌠🔥🔥🌠🌠🔥🔥🌠🌠dateLabel: ",
+  //   dateLabel,
+  //   "salesTargetDate: ",
+  //   salesTargetDate,
+  //   dateLabel === salesTargetDate,
+  //   "labelValueGroup",
+  //   labelValueGroup,
+  //   "periodToLabelValueMap",
+  //   periodToLabelValueMap
+  // );
 
   if (!labelValueGroup) return null;
 

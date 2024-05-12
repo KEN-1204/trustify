@@ -1,6 +1,6 @@
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
-import { Suspense, memo, useEffect, useMemo, useState } from "react";
+import { ChangeEvent, Suspense, memo, useEffect, useMemo, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import styles from "./SalesTargetsContainer.module.css";
 import { SalesTargetGridTable } from "./SalesTargetGridTable/SalesTargetGridTable";
@@ -583,6 +583,11 @@ const SalesTargetsContainerMemo = () => {
     } else {
       const year = Number(selectedPeriodDetailTrend.value.toString().substring(0, 4));
       const period = selectedPeriodDetailTrend.value.toString().substring(4);
+      // 04 => 4, 1 => 1
+      let periodWithoutZero = period;
+      if (selectedPeriodDetailTrend.period === "year_month") {
+        periodWithoutZero = String(parseInt(period, 10));
+      }
       const back = yearsBack;
       return {
         periodStart:
@@ -591,7 +596,7 @@ const SalesTargetsContainerMemo = () => {
             : selectedPeriodDetailTrend.period === "quarter"
             ? `${year - back}Q${period}`
             : selectedPeriodDetailTrend.period === "year_month"
-            ? `${year - back}年${period}月度`
+            ? `${year - back}年${periodWithoutZero}月度`
             : `${selectedPeriodDetailTrend.value - yearsBack}年度`,
         periodEnd:
           selectedPeriodDetailTrend.period === "half_year"
@@ -599,11 +604,14 @@ const SalesTargetsContainerMemo = () => {
             : selectedPeriodDetailTrend.period === "quarter"
             ? `${year}Q${period}`
             : selectedPeriodDetailTrend.period === "year_month"
-            ? `${year}年${period}月度`
+            ? `${year}年${periodWithoutZero}月度`
             : `${selectedPeriodDetailTrend.value}年度`,
       };
     }
   }, [selectedPeriodDetailTrend, yearsBack]);
+
+  // 売上推移に売上目標を追加した場合の期間タイトル置き換え用
+  const [periodEndTrend, setPeriodEndTrend] = useState<string | null>(null);
 
   // 案件状況の「2021H1」表示用
   // const salesProbabilityPeriodTitle = useMemo(() => {
@@ -660,6 +668,81 @@ const SalesTargetsContainerMemo = () => {
         : `${selectedPeriodDetailShare.value}年度`;
     }
   }, [selectedPeriodDetailShare]);
+
+  const handleChangePeriodChart = (e: ChangeEvent<HTMLSelectElement>) => {
+    // 最新期間を一旦nullに 2021年4月度 ~ 2024H1 のように別々の期間が表示されるのを防ぐため
+    if (periodEndTrend) setPeriodEndTrend(null);
+
+    const periodDetail = e.target.value as FiscalYearAllKeys;
+    let periodForTrend: "fiscal_year" | "half_year" | "quarter" | "year_month" = "fiscal_year";
+    let currPeriodValue = selectedFiscalYearTarget; // 今年度
+    let periodValue = selectedFiscalYearTarget - 1; // 前年度
+    if (periodDetail === "first_half") {
+      periodForTrend = "half_year";
+      currPeriodValue = selectedFiscalYearTarget * 10 + 1; // 上期
+      periodValue = (selectedFiscalYearTarget - 1) * 10 + 1; // 上期
+    }
+    if (periodDetail === "second_half") {
+      periodForTrend = "half_year";
+      currPeriodValue = selectedFiscalYearTarget * 10 + 2; // 下期
+      periodValue = (selectedFiscalYearTarget - 1) * 10 + 2; // 下期
+    }
+    if (periodDetail === "first_quarter") {
+      periodForTrend = "quarter";
+      currPeriodValue = selectedFiscalYearTarget * 10 + 1; // Q1
+      periodValue = (selectedFiscalYearTarget - 1) * 10 + 1; // Q1
+    }
+    if (periodDetail === "second_quarter") {
+      periodForTrend = "quarter";
+      currPeriodValue = selectedFiscalYearTarget * 10 + 2; // Q2
+      periodValue = (selectedFiscalYearTarget - 1) * 10 + 2; // Q2
+    }
+    if (periodDetail === "third_quarter") {
+      periodForTrend = "quarter";
+      currPeriodValue = selectedFiscalYearTarget * 10 + 3; // Q3
+      periodValue = (selectedFiscalYearTarget - 1) * 10 + 3; // Q3
+    }
+    if (periodDetail === "fourth_quarter") {
+      periodForTrend = "quarter";
+      currPeriodValue = selectedFiscalYearTarget * 10 + 4; // Q4
+      periodValue = (selectedFiscalYearTarget - 1) * 10 + 4; // Q4
+    }
+    if (
+      [
+        "month_01",
+        "month_02",
+        "month_03",
+        "month_04",
+        "month_05",
+        "month_06",
+        "month_07",
+        "month_08",
+        "month_09",
+        "month_10",
+        "month_11",
+        "month_12",
+      ].includes(periodDetail) &&
+      annualFiscalMonths
+    ) {
+      periodForTrend = "year_month";
+      const monthValue = Number(annualFiscalMonths[periodDetail as FiscalYearMonthKey].toString().substring(4)); // 5文字目以降の月次
+      currPeriodValue = selectedFiscalYearTarget * 100 + monthValue;
+      periodValue = (selectedFiscalYearTarget - 1) * 100 + monthValue;
+    }
+    // 両チャート表示期間選択用
+    setSelectedPeriodForChart(periodDetail);
+    // 売上推移用 propertiesテーブルから取得のためperiodは「"fiscal_year" | "half_year" | "quarter" | "year_month"」の期間タイプをセット 目標年度の1年前をbasePeriodとしてセット
+    setSelectedPeriodDetailTrend({
+      period: periodForTrend,
+      value: periodValue,
+    });
+    // 売上目標シェア sales_targetsテーブルから取得のためperiodはFiscalYearAllKeysをセット
+    setSelectedPeriodDetailShare({
+      period: periodDetail,
+      value: currPeriodValue,
+    });
+    handleCloseTooltip();
+  };
 
   // 売上目標シェア タイトル
   // const shareChartPeriodTitle = useMemo(() => {
@@ -783,13 +866,6 @@ const SalesTargetsContainerMemo = () => {
     parentEntityObj,
     "selectedPeriodDetailTrend",
     selectedPeriodDetailTrend,
-    "trueかどうか",
-    !!mainEntityTarget?.entityLevel &&
-      !!allFetched &&
-      !!selectedPeriodDetailTrend &&
-      !!fiscalYearQueryData &&
-      !!selectedPeriodForChart &&
-      !!(fiscalYearQueryData.is_confirmed_first_half_details || fiscalYearQueryData.is_confirmed_second_half_details),
     "selectedPeriodForChart",
     selectedPeriodForChart,
     "selectedPeriodDetailTrend",
@@ -1033,18 +1109,21 @@ const SalesTargetsContainerMemo = () => {
                     <div className={`${styles.card_title}`}>
                       <div className={`flex flex-col`}>
                         {/* <span>売上推移 {mappingEntityName[mainEntityTarget.entityLevel][language]}別</span> */}
-                        <span>
-                          売上推移{" "}
-                          {displayTypeForTrend === "sub_entities"
-                            ? `${mappingEntityName[mainEntityTarget.entityLevel][language]}別`
-                            : `${
-                                mainEntityTarget.parentEntityLevel === "company"
-                                  ? getDivName("company")
-                                  : mainEntityTarget.parentEntityName
-                              }`}
-                        </span>
+                        <div className={`flex items-center`}>
+                          <span>売上推移</span>
+                          <span className={`ml-[18px]`}>
+                            {displayTypeForTrend === "sub_entities"
+                              ? `${mappingEntityName[mainEntityTarget.entityLevel][language]}別`
+                              : `${
+                                  mainEntityTarget.parentEntityLevel === "company"
+                                    ? getDivName("company")
+                                    : mainEntityTarget.parentEntityName
+                                }`}
+                          </span>
+                        </div>
                         <span className={`text-[12px] text-[var(--color-text-sub)]`}>
-                          {trendPeriodTitle.periodStart} ~ {trendPeriodTitle.periodEnd}
+                          {trendPeriodTitle.periodStart} ~{" "}
+                          {periodEndTrend !== null ? periodEndTrend : trendPeriodTitle.periodEnd}
                         </span>
                       </div>
                     </div>
@@ -1130,6 +1209,8 @@ const SalesTargetsContainerMemo = () => {
                         fetchEnabled={true}
                         displayTypeForTrend={displayTypeForTrend}
                         selectedPeriodForChart={selectedPeriodForChart}
+                        periodEndTrend={periodEndTrend}
+                        setPeriodEndTrend={setPeriodEndTrend}
                       />
                     </Suspense>
                   </ErrorBoundary>
@@ -1147,13 +1228,205 @@ const SalesTargetsContainerMemo = () => {
                     <div className={`${styles.card_title_area} !items-start`}>
                       <div className={`${styles.card_title}`}>
                         <div className={`flex flex-col`}>
-                          <span>売上目標シェア {`${mappingEntityName[mainEntityTarget.entityLevel][language]}別`}</span>
+                          {/* <span>売上目標シェア {`${mappingEntityName[mainEntityTarget.entityLevel][language]}別`}</span> */}
+                          <div className={`flex items-center`}>
+                            <span>売上目標シェア</span>
+                            <span className={`ml-[18px]`}>
+                              {`${mappingEntityName[mainEntityTarget.entityLevel][language]}別`}
+                            </span>
+                          </div>
                           <span className={`text-[12px] text-[var(--color-text-sub)]`}>
                             {salesTargetSharePeriodTitle}
                           </span>
                         </div>
                       </div>
                       <div className={`flex h-full items-start justify-end pt-[3px]`}>
+                        {mainEntityTarget.entityLevel &&
+                        allFetched &&
+                        selectedPeriodDetailTrend &&
+                        fiscalYearQueryData &&
+                        selectedPeriodForChart &&
+                        (fiscalYearQueryData.is_confirmed_first_half_details ||
+                          fiscalYearQueryData.is_confirmed_second_half_details) ? (
+                          <div
+                            className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
+                            onMouseEnter={(e) => {
+                              handleOpenTooltip({
+                                e: e,
+                                display: "top",
+                                content: `チャートの表示期間を変更`,
+                                marginTop: 6,
+                              });
+                            }}
+                            onMouseLeave={handleCloseTooltip}
+                          >
+                            <select
+                              className={`z-10 cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[12px]`}
+                              value={selectedPeriodForChart}
+                              onChange={handleChangePeriodChart}
+                            >
+                              {/* 上期下期どちらも設定完了済み */}
+                              {fiscalYearQueryData.is_confirmed_first_half_details &&
+                                fiscalYearQueryData.is_confirmed_second_half_details && (
+                                  <>
+                                    <option value="fiscal_year">年度</option>
+                                    <option value="first_half">上期</option>
+                                    <option value="second_half">下期</option>
+                                    <option value="first_quarter">Q1</option>
+                                    <option value="second_quarter">Q2</option>
+                                    <option value="third_quarter">Q3</option>
+                                    <option value="fourth_quarter">Q4</option>
+                                    {formattedAnnualFiscalMonths && (
+                                      <>
+                                        <option value="month_01">
+                                          {formattedAnnualFiscalMonths.month_01[language]}
+                                        </option>
+                                        <option value="month_02">
+                                          {formattedAnnualFiscalMonths.month_02[language]}
+                                        </option>
+                                        <option value="month_03">
+                                          {formattedAnnualFiscalMonths.month_03[language]}
+                                        </option>
+                                        <option value="month_04">
+                                          {formattedAnnualFiscalMonths.month_04[language]}
+                                        </option>
+                                        <option value="month_05">
+                                          {formattedAnnualFiscalMonths.month_05[language]}
+                                        </option>
+                                        <option value="month_06">
+                                          {formattedAnnualFiscalMonths.month_06[language]}
+                                        </option>
+                                        <option value="month_07">
+                                          {formattedAnnualFiscalMonths.month_07[language]}
+                                        </option>
+                                        <option value="month_08">
+                                          {formattedAnnualFiscalMonths.month_08[language]}
+                                        </option>
+                                        <option value="month_09">
+                                          {formattedAnnualFiscalMonths.month_09[language]}
+                                        </option>
+                                        <option value="month_10">
+                                          {formattedAnnualFiscalMonths.month_10[language]}
+                                        </option>
+                                        <option value="month_11">
+                                          {formattedAnnualFiscalMonths.month_11[language]}
+                                        </option>
+                                        <option value="month_12">
+                                          {formattedAnnualFiscalMonths.month_12[language]}
+                                        </option>
+                                      </>
+                                    )}
+                                  </>
+                                )}
+                              {/* 上期のみ設定完了済みの場合 */}
+                              {fiscalYearQueryData.is_confirmed_first_half_details &&
+                                !fiscalYearQueryData.is_confirmed_second_half_details && (
+                                  <>
+                                    {/* メンバーレベル以外は年度・下期を入れる */}
+                                    {mainEntityTarget.entityLevel !== "member" && (
+                                      <>
+                                        <option value="fiscal_year">年度</option>
+                                        <option value="second_half">下期</option>
+                                      </>
+                                    )}
+                                    <option value="first_half">上期</option>
+                                    <option value="first_quarter">Q1</option>
+                                    <option value="second_quarter">Q2</option>
+                                    {formattedAnnualFiscalMonths && (
+                                      <>
+                                        <option value="month_01">
+                                          {formattedAnnualFiscalMonths.month_01[language]}
+                                        </option>
+                                        <option value="month_02">
+                                          {formattedAnnualFiscalMonths.month_02[language]}
+                                        </option>
+                                        <option value="month_03">
+                                          {formattedAnnualFiscalMonths.month_03[language]}
+                                        </option>
+                                        <option value="month_04">
+                                          {formattedAnnualFiscalMonths.month_04[language]}
+                                        </option>
+                                        <option value="month_05">
+                                          {formattedAnnualFiscalMonths.month_05[language]}
+                                        </option>
+                                        <option value="month_06">
+                                          {formattedAnnualFiscalMonths.month_06[language]}
+                                        </option>
+                                      </>
+                                    )}
+                                  </>
+                                )}
+                              {/* 下期のみ設定完了済みの場合 */}
+                              {!fiscalYearQueryData.is_confirmed_first_half_details &&
+                                fiscalYearQueryData.is_confirmed_second_half_details && (
+                                  <>
+                                    {/* メンバーレベル以外は年度・上期を入れる */}
+                                    {mainEntityTarget.entityLevel !== "member" && (
+                                      <>
+                                        <option value="fiscal_year">年度</option>
+                                        <option value="first_half">上期</option>
+                                      </>
+                                    )}
+                                    <option value="second_half">下期</option>
+                                    <option value="third_quarter">Q3</option>
+                                    <option value="fourth_quarter">Q4</option>
+                                    {formattedAnnualFiscalMonths && (
+                                      <>
+                                        <option value="month_07">
+                                          {formattedAnnualFiscalMonths.month_07[language]}
+                                        </option>
+                                        <option value="month_08">
+                                          {formattedAnnualFiscalMonths.month_08[language]}
+                                        </option>
+                                        <option value="month_09">
+                                          {formattedAnnualFiscalMonths.month_09[language]}
+                                        </option>
+                                        <option value="month_10">
+                                          {formattedAnnualFiscalMonths.month_10[language]}
+                                        </option>
+                                        <option value="month_11">
+                                          {formattedAnnualFiscalMonths.month_11[language]}
+                                        </option>
+                                        <option value="month_12">
+                                          {formattedAnnualFiscalMonths.month_12[language]}
+                                        </option>
+                                      </>
+                                    )}
+                                  </>
+                                )}
+                            </select>
+                            <div className={`${styles.select_arrow}`}>
+                              <HiOutlineSelector className="stroke-[2] text-[16px]" />
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            {/* セレクトボックス プレイスホルダー */}
+                            <div
+                              className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
+                              onMouseEnter={(e) => {
+                                handleOpenTooltip({
+                                  e: e,
+                                  display: "top",
+                                  content: `売上目標の設定完了後\nチャート表示期間の変更が可能です。`,
+                                  marginTop: 24,
+                                });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              <select
+                                className={`z-10 cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[12px]`}
+                                defaultValue={"fiscal_year"}
+                              >
+                                <option value="fiscal_year">年度</option>
+                              </select>
+                              {/* 上下矢印アイコン */}
+                              <div className={`${styles.select_arrow}`}>
+                                <HiOutlineSelector className="stroke-[2] text-[16px]" />
+                              </div>
+                            </div>
+                          </>
+                        )}
                         {/* <div
                           className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
                           // onMouseEnter={(e) => {
@@ -1291,79 +1564,7 @@ const SalesTargetsContainerMemo = () => {
                     <select
                       className={`z-10 min-h-[30px] cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[14px] font-bold`}
                       value={selectedPeriodForChart}
-                      onChange={(e) => {
-                        const periodDetail = e.target.value as FiscalYearAllKeys;
-                        let periodForTrend: "fiscal_year" | "half_year" | "quarter" | "year_month" = "fiscal_year";
-                        let currPeriodValue = selectedFiscalYearTarget; // 今年度
-                        let periodValue = selectedFiscalYearTarget - 1; // 前年度
-                        if (periodDetail === "first_half") {
-                          periodForTrend = "half_year";
-                          currPeriodValue = selectedFiscalYearTarget * 10 + 1; // 上期
-                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 1; // 上期
-                        }
-                        if (periodDetail === "second_half") {
-                          periodForTrend = "half_year";
-                          currPeriodValue = selectedFiscalYearTarget * 10 + 2; // 下期
-                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 2; // 下期
-                        }
-                        if (periodDetail === "first_quarter") {
-                          periodForTrend = "quarter";
-                          currPeriodValue = selectedFiscalYearTarget * 10 + 1; // Q1
-                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 1; // Q1
-                        }
-                        if (periodDetail === "second_quarter") {
-                          periodForTrend = "quarter";
-                          currPeriodValue = selectedFiscalYearTarget * 10 + 2; // Q2
-                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 2; // Q2
-                        }
-                        if (periodDetail === "third_quarter") {
-                          periodForTrend = "quarter";
-                          currPeriodValue = selectedFiscalYearTarget * 10 + 3; // Q3
-                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 3; // Q3
-                        }
-                        if (periodDetail === "fourth_quarter") {
-                          periodForTrend = "quarter";
-                          currPeriodValue = selectedFiscalYearTarget * 10 + 4; // Q4
-                          periodValue = (selectedFiscalYearTarget - 1) * 10 + 4; // Q4
-                        }
-                        if (
-                          [
-                            "month_01",
-                            "month_02",
-                            "month_03",
-                            "month_04",
-                            "month_05",
-                            "month_06",
-                            "month_07",
-                            "month_08",
-                            "month_09",
-                            "month_10",
-                            "month_11",
-                            "month_12",
-                          ].includes(periodDetail) &&
-                          annualFiscalMonths
-                        ) {
-                          periodForTrend = "year_month";
-                          const monthValue = Number(
-                            annualFiscalMonths[periodDetail as FiscalYearMonthKey].toString().substring(4)
-                          ); // 5文字目以降の月次
-                          currPeriodValue = selectedFiscalYearTarget * 100 + monthValue;
-                          periodValue = (selectedFiscalYearTarget - 1) * 100 + monthValue;
-                        }
-                        // 両チャート表示期間選択用
-                        setSelectedPeriodForChart(periodDetail);
-                        // 売上推移用 propertiesテーブルから取得のためperiodは「"fiscal_year" | "half_year" | "quarter" | "year_month"」の期間タイプをセット 目標年度の1年前をbasePeriodとしてセット
-                        setSelectedPeriodDetailTrend({
-                          period: periodForTrend,
-                          value: periodValue,
-                        });
-                        // 売上目標シェア sales_targetsテーブルから取得のためperiodはFiscalYearAllKeysをセット
-                        setSelectedPeriodDetailShare({
-                          period: periodDetail,
-                          value: currPeriodValue,
-                        });
-                        handleCloseTooltip();
-                      }}
+                      onChange={handleChangePeriodChart}
                     >
                       {/* 上期下期どちらも設定完了済み */}
                       {fiscalYearQueryData.is_confirmed_first_half_details &&

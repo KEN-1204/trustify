@@ -218,11 +218,14 @@ const DonutChartTargetSharesMemo = ({
             className={`fade08_forward flex h-full min-h-full w-full flex-col bg-[gray]/[0]`}
             style={{ minHeight: chartHeight }}
           >
-            <div className={`min-h-[21px] w-full`}>
+            {/* <div className={`min-h-[21px] w-full flex`}> */}
+            <div className={`flex min-h-[36px] w-full`}>
               {/* <h4 className={`text-[14px]`}>残ネタ獲得・売上予測</h4> */}
               {/* <h4 className={`min-h-[14px] text-[14px]`}></h4> */}
+              <div></div>
             </div>
-            <div className={`mt-[15px] flex w-full justify-between text-[12px] text-[var(--color-text-sub)]`}>
+            {/* <div className={`mt-[15px] flex w-full justify-between text-[12px] text-[var(--color-text-sub)]`}> */}
+            <div className={`mt-[0px] flex w-full justify-between text-[12px] text-[var(--color-text-sub)]`}>
               <div>
                 {/* <span>Category</span> */}
                 <span>{mappingEntityName[entityLevel][language]}</span>

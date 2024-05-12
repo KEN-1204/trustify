@@ -1,6 +1,6 @@
 import { AreaChartComponent } from "@/components/Parts/Charts/AreaChart/AreaChart";
 import styles from "../../../DashboardSalesTargetComponent.module.css";
-import { memo, useEffect, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, memo, useEffect, useMemo, useState } from "react";
 import { useQuerySalesTrends } from "@/hooks/useQuerySalesTrends";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import useDashboardStore from "@/store/useDashboardStore";
@@ -22,6 +22,8 @@ type Props = {
   noDataText?: string;
   displayTypeForTrend: "sub_entities" | "main_entity";
   selectedPeriodForChart: FiscalYearAllKeys;
+  periodEndTrend: string | null;
+  setPeriodEndTrend: Dispatch<SetStateAction<string | null>>;
 };
 
 // 過去3年分の売上実績に今回の売上目標を追加して4つ分のデータをエリアチャートに表示する
@@ -41,6 +43,8 @@ const AreaChartTrendWithTargetMemo = ({
   noDataText = `データがありません`,
   displayTypeForTrend,
   selectedPeriodForChart,
+  periodEndTrend,
+  setPeriodEndTrend,
 }: Props) => {
   // 選択中の会計年度
   const selectedFiscalYearTarget = useDashboardStore((state) => state.selectedFiscalYearTarget);
@@ -166,6 +170,20 @@ const AreaChartTrendWithTargetMemo = ({
 
         setConvertedChartData(newChartData);
         setConvertedLabelValueGroupByPeriod(newLabelValueGroupByPeriod);
+
+        // 04 => 4, 1 => 1
+        const periodWithoutZero = String(parseInt(month, 10));
+        const newPeriodEndTrend =
+          periodType === "fiscal_year"
+            ? `${selectedFiscalYearTarget}年度`
+            : periodType === "half_year"
+            ? `${selectedFiscalYearTarget}H${periodWithoutZero}`
+            : periodType === "quarter"
+            ? `${selectedFiscalYearTarget}Q${periodWithoutZero}`
+            : periodType === "year_month"
+            ? `${selectedFiscalYearTarget}年${periodWithoutZero}月度`
+            : `-`;
+        setPeriodEndTrend(newPeriodEndTrend);
       } catch (e: any) {
         console.error("売上推移 main 追加エラー", e);
       }
@@ -176,6 +194,7 @@ const AreaChartTrendWithTargetMemo = ({
       // 既に売上目標が追加されている状態かチェック(3年分の実績+目標1年分の計４つ)
       if (convertedChartData.length > 3) setConvertedChartData(chartData);
       if (convertedLabelValueGroupByPeriod.length > 3) setConvertedLabelValueGroupByPeriod(labelValueGroupByPeriod);
+      if (periodEndTrend) setPeriodEndTrend(null);
     }
 
     // 🔹各エンティティのサブ目標を追加
@@ -220,30 +239,30 @@ const AreaChartTrendWithTargetMemo = ({
             if (newSalesTarget === null) throw new Error("売上推移 chartData newSalesTarget is null エラー:009");
             newTargetChartObj[key] = newSalesTarget;
 
-            console.log(
-              "ここここnewTargetChartObj",
-              newTargetChartObj,
-              "valueToEntityIdMap",
-              valueToEntityIdMap,
-              "key",
-              key,
-              "entityIdToNameMapping",
-              entityIdToNameMapping,
-              "chartData",
-              chartData,
-              "chartData[0]",
-              chartData[0],
-              "subEntityIdToObjMap",
-              subEntityIdToObjMap,
-              "entityId",
-              entityId,
-              "subEntitySalesTarget",
-              subEntitySalesTarget,
-              "selectedPeriodForChart",
-              selectedPeriodForChart,
-              "newSalesTarget",
-              newSalesTarget
-            );
+            // console.log(
+            //   "ここここnewTargetChartObj",
+            //   newTargetChartObj,
+            //   "valueToEntityIdMap",
+            //   valueToEntityIdMap,
+            //   "key",
+            //   key,
+            //   "entityIdToNameMapping",
+            //   entityIdToNameMapping,
+            //   "chartData",
+            //   chartData,
+            //   "chartData[0]",
+            //   chartData[0],
+            //   "subEntityIdToObjMap",
+            //   subEntityIdToObjMap,
+            //   "entityId",
+            //   entityId,
+            //   "subEntitySalesTarget",
+            //   subEntitySalesTarget,
+            //   "selectedPeriodForChart",
+            //   selectedPeriodForChart,
+            //   "newSalesTarget",
+            //   newSalesTarget
+            // );
           }
         });
 
@@ -285,6 +304,20 @@ const AreaChartTrendWithTargetMemo = ({
 
         setConvertedChartData(newChartData);
         setConvertedLabelValueGroupByPeriod(newLabelValueGroupByPeriod);
+
+        // 04 => 4, 1 => 1
+        const periodWithoutZero = String(parseInt(month, 10));
+        const newPeriodEndTrend =
+          periodType === "fiscal_year"
+            ? `${selectedFiscalYearTarget}年度`
+            : periodType === "half_year"
+            ? `${selectedFiscalYearTarget}H${periodWithoutZero}`
+            : periodType === "quarter"
+            ? `${selectedFiscalYearTarget}Q${periodWithoutZero}`
+            : periodType === "year_month"
+            ? `${selectedFiscalYearTarget}年${periodWithoutZero}月度`
+            : `-`;
+        setPeriodEndTrend(newPeriodEndTrend);
       } catch (e: any) {
         console.error("売上推移 sub 追加エラー", e);
       }
@@ -294,6 +327,8 @@ const AreaChartTrendWithTargetMemo = ({
       console.log("🌠🌠🌠🌠✅✅✅✅売上推移 メイン目標削除");
       if (convertedChartData.length > 3) setConvertedChartData(chartData);
       if (convertedLabelValueGroupByPeriod.length > 3) setConvertedLabelValueGroupByPeriod(labelValueGroupByPeriod);
+
+      if (periodEndTrend) setPeriodEndTrend(null);
     }
 
     // ローディング終了
@@ -311,21 +346,21 @@ const AreaChartTrendWithTargetMemo = ({
 
   console.log(
     "エリアチャートトレンドコンポーネント data",
-    data,
-    "convertedChartData",
-    convertedChartData,
-    "convertedLabelValueGroupByPeriod",
-    convertedLabelValueGroupByPeriod,
-    "mainTotalTargets",
-    mainTotalTargets,
-    "subEntitiesSalesTargets",
-    subEntitiesSalesTargets,
-    "displayTypeForTrend",
-    displayTypeForTrend,
-    "selectedPeriodForChart",
-    selectedPeriodForChart,
-    "salesTargetDate",
-    salesTargetDate
+    data
+    // "convertedChartData",
+    // convertedChartData,
+    // "convertedLabelValueGroupByPeriod",
+    // convertedLabelValueGroupByPeriod,
+    // "mainTotalTargets",
+    // mainTotalTargets,
+    // "subEntitiesSalesTargets",
+    // subEntitiesSalesTargets,
+    // "displayTypeForTrend",
+    // displayTypeForTrend,
+    // "selectedPeriodForChart",
+    // selectedPeriodForChart,
+    // "salesTargetDate",
+    // salesTargetDate
   );
 
   return (

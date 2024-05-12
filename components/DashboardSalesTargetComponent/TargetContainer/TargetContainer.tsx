@@ -696,6 +696,7 @@ export const TargetContainer = () => {
 
   const setMainEntityTarget = useDashboardStore((state) => state.setMainEntityTarget);
   const setMainTotalTargets = useDashboardStore((state) => state.setMainTotalTargets);
+  const setSubEntitiesSalesTargets = useDashboardStore((state) => state.setSubEntitiesSalesTargets);
   const setDisplayTargetPeriodType = useDashboardStore((state) => state.setDisplayTargetPeriodType);
 
   // 目標設定モード開始(作成・編集ボタンクリック)❌一旦中止
@@ -737,6 +738,7 @@ export const TargetContainer = () => {
     // 目標トップページのメインエンティティをリセットしておく
     setMainEntityTarget(null);
     setMainTotalTargets(null); // 総合目標の合計値もリセット
+    setSubEntitiesSalesTargets(null); // サブ目標の合計値もリセット
     setDisplayTargetPeriodType("fiscal_year"); // 年度に戻す
   };
 
