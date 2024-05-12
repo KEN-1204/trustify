@@ -18,6 +18,7 @@ type Props = {
   fontSize?: string;
   errorText?: string;
   noDataText?: string;
+  selectedFiscalYear: number;
 };
 
 const AreaChartTrendMemo = ({
@@ -33,6 +34,7 @@ const AreaChartTrendMemo = ({
   fontSize = `13px`,
   errorText = `エラーが発生しました`,
   noDataText = `データがありません`,
+  selectedFiscalYear,
 }: Props) => {
   // キャッシュ用エンティティidをstringに
   const entityIdsStrKey = useMemo(() => {
@@ -47,6 +49,7 @@ const AreaChartTrendMemo = ({
     basePeriod,
     yearsBack,
     fetchEnabled: fetchEnabled,
+    selectedFiscalYear,
   });
 
   console.log("エリアチャートトレンドコンポーネント data", data, "isError", isError, "isLoading", isLoading);

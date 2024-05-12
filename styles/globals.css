@@ -1410,7 +1410,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-dashboard: #f2f3f4;
   --color-tab-underline: rgba(57, 76, 96, 0.15);
   --color-btn-basic-bg: #fff;
-  --color-btn-brand-shadow: 0 0px 1px 1px #33333333;
+  /* --color-btn-brand-shadow: 0 0px 1px 1px #33333333; */
+  --color-btn-brand-shadow: 0 0 0 1px var(--color-bg-brand-f), 0 0px 1px 2px #33333333;
   --color-btn-basic-bg-hover: #ececec;
   --color-btn-basic-bg-on-card: #fff;
   --color-btn-basic-bg-on-card-hover: #ececec;
@@ -2446,7 +2447,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-tab-underline: #383838;
   /* --color-btn-basic-bg: #333; */
   --color-btn-basic-bg: #393939;
-  --color-btn-brand-shadow: 0 0px 1px 1px #ffffff55;
+  /* --color-btn-brand-shadow:  0 0px 1px 1px #ffffff55; */
+  --color-btn-brand-shadow: 0 0 0 1px var(--color-bg-brand-f), 0 0px 1px 2px #ffffff39;
   --color-btn-basic-bg-hover: #666;
   --color-btn-basic-bg-on-card: #424242;
   --color-btn-basic-bg-on-card-hover: #666;
@@ -2560,6 +2562,7 @@ textarea {
   color: #fff;
   background-color: var(--color-brand-btn-active);
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f), 0 0px 1px 1px #ffffff55;
   cursor: pointer;
 }
 .brand_btn_active:hover {

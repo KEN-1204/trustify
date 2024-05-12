@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction, memo, useEffect, useMemo, useState } from "re
 import { useQuerySalesTrends } from "@/hooks/useQuerySalesTrends";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import useDashboardStore from "@/store/useDashboardStore";
-import { AreaChartObj, FiscalYearAllKeys, LabelValue, LabelValueGroupByPeriod } from "@/types";
+import { AreaChartObj, FiscalYearAllKeys, FiscalYearMonthKey, LabelValue, LabelValueGroupByPeriod } from "@/types";
 
 type Props = {
   companyId: string;
@@ -24,6 +24,7 @@ type Props = {
   selectedPeriodForChart: FiscalYearAllKeys;
   periodEndTrend: string | null;
   setPeriodEndTrend: Dispatch<SetStateAction<string | null>>;
+  selectedFiscalYear: number;
 };
 
 // 過去3年分の売上実績に今回の売上目標を追加して4つ分のデータをエリアチャートに表示する
@@ -45,6 +46,7 @@ const AreaChartTrendWithTargetMemo = ({
   selectedPeriodForChart,
   periodEndTrend,
   setPeriodEndTrend,
+  selectedFiscalYear,
 }: Props) => {
   // 選択中の会計年度
   const selectedFiscalYearTarget = useDashboardStore((state) => state.selectedFiscalYearTarget);
@@ -53,6 +55,7 @@ const AreaChartTrendWithTargetMemo = ({
   const entityIdsStrKey = useMemo(() => {
     return !!entityIdsArray?.length ? entityIdsArray.join(", ") : "";
   }, []);
+
   const { data, isLoading, isError } = useQuerySalesTrends({
     companyId,
     entityLevel,
@@ -62,6 +65,7 @@ const AreaChartTrendWithTargetMemo = ({
     basePeriod,
     yearsBack,
     fetchEnabled: fetchEnabled,
+    selectedFiscalYear,
   });
 
   // console.log("エリアチャートトレンドコンポーネント data", data, "isError", isError, "isLoading", isLoading);
@@ -98,6 +102,8 @@ const AreaChartTrendWithTargetMemo = ({
   // ------------- 売上目標を追加 -------------
   const mainTotalTargets = useDashboardStore((state) => state.mainTotalTargets);
   const subEntitiesSalesTargets = useDashboardStore((state) => state.subEntitiesSalesTargets);
+  // 🔹売上目標フェッチ時の年月度の12ヶ月分の配列
+  const annualFiscalMonths = useDashboardStore((state) => state.annualFiscalMonths);
 
   const [convertedChartData, setConvertedChartData] = useState<AreaChartObj[]>(chartData);
   const [convertedLabelValueGroupByPeriod, setConvertedLabelValueGroupByPeriod] =
@@ -113,30 +119,37 @@ const AreaChartTrendWithTargetMemo = ({
 
   const salesTargetDate = useMemo(() => {
     if (!chartData || !chartData?.length) return undefined;
-    const month = String(chartData[0].date).substring(4); // 年度以降の文字列を抜き出し
-    return `${selectedFiscalYearTarget}${month}`;
+
+    return `${periodType === "year_month" ? Number(chartData[2].date) + 100 : Number(chartData[2].date) + 10}`;
+    // const month = String(chartData[0].date).substring(4); // 年度以降の文字列を抜き出し
+    // return `${selectedFiscalYearTarget}${month}`;
   }, [chartData]);
 
   useEffect(() => {
-    if (!chartData || !labelValueGroupByPeriod) {
+    if (!chartData || !labelValueGroupByPeriod || !annualFiscalMonths) {
       setIsLoadingAddedTarget(false);
       return;
     }
     // ローディング開始
     setIsLoadingAddedTarget(true);
 
+    const month = String(chartData[0].date).substring(4); // 年度以降の文字列を抜き出し
+    const _date = `${periodType === "year_month" ? Number(chartData[2].date) + 100 : Number(chartData[2].date) + 10}`;
+    // const monthKey = `month_${month}`; // month_01, ... month_12
+
     // 🔹メイン目標を追加
     if (displayTypeForTrend === "main_entity" && mainTotalTargets) {
-      const month = String(chartData[0].date).substring(4); // 年度以降の文字列を抜き出し
       // entityIdsArrayの売上目標が設定されている場合は末尾に売上目標を追加
       try {
+        //  const _date = `${selectedFiscalYearTarget}${month}`
         const newTargetChartObj = {
-          date: `${selectedFiscalYearTarget}${month}`, // 現在選択中の期間の選択年度でセットして売上目標を追加
+          date: _date, // 現在選択中の期間の選択年度でセットして売上目標を追加
           value1: mainTotalTargets.sales_targets[selectedPeriodForChart],
         } as AreaChartObj;
 
         const newLabelValueGroupByPeriodObj = {
-          date: `${selectedFiscalYearTarget}${month}`,
+          // date: `${selectedFiscalYearTarget}${month}`,
+          date: _date,
           label_list: labelValueGroupByPeriod[0].label_list.map(
             (labelList) =>
               ({
@@ -160,12 +173,23 @@ const AreaChartTrendWithTargetMemo = ({
           newLabelValueGroupByPeriod.splice(-1, 1, newLabelValueGroupByPeriodObj);
         }
 
+        const targetYearMonthYear = String(_date).substring(0, 4);
+        const targetYearMonthMonth = String(parseInt(String(_date).substring(4), 10));
+
         console.log(
           "🌠🌠🌠🌠🌠🌠🌠🌠売上推移 メイン目標追加",
           "newChartData",
           newChartData,
           "newLabelValueGroupByPeriod",
-          newLabelValueGroupByPeriod
+          newLabelValueGroupByPeriod,
+          "monthKey",
+          `month_${month}`,
+          "_date",
+          _date,
+          "targetYearMonthYear",
+          targetYearMonthYear,
+          "targetYearMonthMonth",
+          targetYearMonthMonth
         );
 
         setConvertedChartData(newChartData);
@@ -173,6 +197,7 @@ const AreaChartTrendWithTargetMemo = ({
 
         // 04 => 4, 1 => 1
         const periodWithoutZero = String(parseInt(month, 10));
+
         const newPeriodEndTrend =
           periodType === "fiscal_year"
             ? `${selectedFiscalYearTarget}年度`
@@ -181,7 +206,7 @@ const AreaChartTrendWithTargetMemo = ({
             : periodType === "quarter"
             ? `${selectedFiscalYearTarget}Q${periodWithoutZero}`
             : periodType === "year_month"
-            ? `${selectedFiscalYearTarget}年${periodWithoutZero}月度`
+            ? `${targetYearMonthYear}年${targetYearMonthMonth}月度`
             : `-`;
         setPeriodEndTrend(newPeriodEndTrend);
       } catch (e: any) {
@@ -206,6 +231,7 @@ const AreaChartTrendWithTargetMemo = ({
     ) {
       // entityIdsArrayの売上目標が設定されている場合は末尾に売上目標を追加
       const month = String(chartData[0].date).substring(4); // 年度以降の文字列を抜き出し
+      const monthKey = `month_${month}`; // month_01, ... month_12
       console.log(
         "ここchartData[0].date",
         chartData[0].date,
@@ -224,7 +250,7 @@ const AreaChartTrendWithTargetMemo = ({
         // 新たなチャートデータ:「{date: xxx, value1: xxx, value2: xxx, ...}」を作成 valueXXはエンティティ数と同じ個数
         Object.keys(chartData[0]).forEach((key) => {
           if (key === "date") {
-            const _date = `${selectedFiscalYearTarget}${month}`;
+            // const _date = `${selectedFiscalYearTarget}${month}`;
             newTargetChartObj["date"] = _date;
             console.log("ここここnewTargetChartObj", newTargetChartObj, "_date", _date);
           } else {
@@ -268,7 +294,8 @@ const AreaChartTrendWithTargetMemo = ({
 
         // 新たなラベルデータを作成
         const newLabelValueGroupByPeriodObj = {
-          date: `${selectedFiscalYearTarget}${month}`,
+          // date: `${selectedFiscalYearTarget}${month}`,
+          date: _date,
           label_list: labelValueGroupByPeriod[0].label_list.map((labelList) => {
             const subEntitySalesTargetObj = subEntityIdToObjMap.get(labelList.id);
             if (!subEntitySalesTargetObj) throw new Error("売上推移 label entityId is undefined エラー:010");
@@ -294,12 +321,23 @@ const AreaChartTrendWithTargetMemo = ({
           newLabelValueGroupByPeriod.splice(-1, 1, newLabelValueGroupByPeriodObj);
         }
 
+        const targetYearMonthYear = String(_date).substring(0, 4);
+        const targetYearMonthMonth = String(parseInt(String(_date).substring(4), 10));
+
         console.log(
           "🌠🌠🌠🌠🌠🌠🌠🌠売上推移 サブ目標追加",
           "newChartData",
           newChartData,
           "newLabelValueGroupByPeriod",
-          newLabelValueGroupByPeriod
+          newLabelValueGroupByPeriod,
+          "monthKey",
+          `month_${month}`,
+          "_date",
+          _date,
+          "targetYearMonthYear",
+          targetYearMonthYear,
+          "targetYearMonthMonth",
+          targetYearMonthMonth
         );
 
         setConvertedChartData(newChartData);
@@ -315,7 +353,7 @@ const AreaChartTrendWithTargetMemo = ({
             : periodType === "quarter"
             ? `${selectedFiscalYearTarget}Q${periodWithoutZero}`
             : periodType === "year_month"
-            ? `${selectedFiscalYearTarget}年${periodWithoutZero}月度`
+            ? `${targetYearMonthYear}年${targetYearMonthMonth}月度`
             : `-`;
         setPeriodEndTrend(newPeriodEndTrend);
       } catch (e: any) {

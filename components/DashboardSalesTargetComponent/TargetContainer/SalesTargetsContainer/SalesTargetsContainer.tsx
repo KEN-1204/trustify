@@ -643,7 +643,7 @@ const SalesTargetsContainerMemo = () => {
       return `${selectedPeriodDetailShare.value}年度`;
     } else {
       const year = Number(selectedPeriodDetailShare.value.toString().substring(0, 4));
-      const period = selectedPeriodDetailShare.value.toString().substring(4);
+      const period = parseInt(selectedPeriodDetailShare.value.toString().substring(4), 10);
       return ["first_half", "second_half"].includes(selectedPeriodDetailShare.period)
         ? `${year}H${period}`
         : ["first_quarter", "second_quarter", "third_quarter", "fourth_quarter"].includes(
@@ -725,9 +725,13 @@ const SalesTargetsContainerMemo = () => {
       annualFiscalMonths
     ) {
       periodForTrend = "year_month";
+      const yearMonthCurrentPeriod = annualFiscalMonths[periodDetail as FiscalYearMonthKey];
       const monthValue = Number(annualFiscalMonths[periodDetail as FiscalYearMonthKey].toString().substring(4)); // 5文字目以降の月次
-      currPeriodValue = selectedFiscalYearTarget * 100 + monthValue;
-      periodValue = (selectedFiscalYearTarget - 1) * 100 + monthValue;
+      currPeriodValue = yearMonthCurrentPeriod; // シェア用
+      periodValue = yearMonthCurrentPeriod - 100; // 売上推移用
+      // const monthValue = Number(annualFiscalMonths[periodDetail as FiscalYearMonthKey].toString().substring(4)); // 5文字目以降の月次
+      // currPeriodValue = selectedFiscalYearTarget * 100 + monthValue;
+      // periodValue = (selectedFiscalYearTarget - 1) * 100 + monthValue;
     }
     // 両チャート表示期間選択用
     setSelectedPeriodForChart(periodDetail);
@@ -1211,6 +1215,7 @@ const SalesTargetsContainerMemo = () => {
                         selectedPeriodForChart={selectedPeriodForChart}
                         periodEndTrend={periodEndTrend}
                         setPeriodEndTrend={setPeriodEndTrend}
+                        selectedFiscalYear={selectedFiscalYearTarget}
                       />
                     </Suspense>
                   </ErrorBoundary>

@@ -24,6 +24,7 @@ type Props = {
   basePeriod: number;
   yearsBack: number;
   fetchEnabled?: boolean;
+  selectedFiscalYear: number;
 };
 
 // 過去3年分の売上実績と前年度の伸び率実績を取得するuseQuery
@@ -36,6 +37,7 @@ export const useQuerySalesTrends = ({
   basePeriod, // 起点となる時点
   yearsBack, // 遡る年数
   fetchEnabled = true,
+  selectedFiscalYear, // queryKey用 UPSERT完了時にinvalidate用
 }: Props) => {
   const supabase = useSupabaseClient();
 
@@ -178,7 +180,7 @@ export const useQuerySalesTrends = ({
   };
 
   return useQuery({
-    queryKey: ["sales_trends", basePeriod, yearsBack, entityLevel, entityIdsStrKey, periodType],
+    queryKey: ["sales_trends", selectedFiscalYear, entityLevel, basePeriod, yearsBack, entityIdsStrKey, periodType],
     queryFn: getSalesTrends,
     staleTime: Infinity,
     onError: (error) => {

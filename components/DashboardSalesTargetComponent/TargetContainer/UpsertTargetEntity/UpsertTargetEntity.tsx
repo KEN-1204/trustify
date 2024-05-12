@@ -1578,6 +1578,8 @@ const UpsertTargetEntityMemo = () => {
 
       // 目標トップページのドーナツチャート(売上目標シェア)をリセット
       await queryClient.invalidateQueries(["sales_targets_share", upsertSettingEntitiesObj.fiscalYear]);
+      // エリアチャートをリセット
+      await queryClient.invalidateQueries(["sales_trends", upsertSettingEntitiesObj.fiscalYear]);
 
       setIsLoading(false); // ローディング終了
       toast.success(
@@ -1741,6 +1743,8 @@ const UpsertTargetEntityMemo = () => {
 
         // 目標トップページのドーナツチャート(売上目標シェア)をリセット
         await queryClient.removeQueries(["sales_targets_share", upsertSettingEntitiesObj.fiscalYear]);
+        // エリアチャートをリセット
+        await queryClient.removeQueries(["sales_trends", upsertSettingEntitiesObj.fiscalYear]);
 
         setIsLoading(false); // ローディング終了
         setIsOpenResetTargetModal(false); // モーダルを閉じる
@@ -1867,6 +1871,8 @@ const UpsertTargetEntityMemo = () => {
 
         // 目標トップページのドーナツチャート(売上目標シェア)をリセット
         await queryClient.removeQueries(["sales_targets_share", upsertSettingEntitiesObj.fiscalYear]);
+        // エリアチャートをリセット
+        await queryClient.removeQueries(["sales_trends", upsertSettingEntitiesObj.fiscalYear]);
 
         // 🔹売上目標を全てリセットした後、モーダルを閉じて、ステップ1に戻る
         setStep(1);
@@ -3411,6 +3417,7 @@ const UpsertTargetEntityMemo = () => {
                           <button
                             className={`transition-bg01 flex-center max-h-[34px] max-w-max rounded-[8px] px-[15px] py-[10px] text-[13px] font-bold ${styleStepNextBtn()}`}
                             style={{
+                              // boxShadow: `var(--color-btn-brand-shadow)`,
                               ...(fiscalYearQueryData &&
                                 ((selectedPeriodTypeForMemberLevel === "first_half_details" &&
                                   fiscalYearQueryData.is_confirmed_first_half_details) ||

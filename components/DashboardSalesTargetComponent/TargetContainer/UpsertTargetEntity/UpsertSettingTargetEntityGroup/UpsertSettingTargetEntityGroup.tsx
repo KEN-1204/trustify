@@ -719,6 +719,11 @@ const UpsertSettingTargetEntityGroupMemo = ({
         await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
         await new Promise((resolve) => setTimeout(resolve, 300));
         await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+        await queryClient.invalidateQueries([
+          "sales_trends",
+          upsertSettingEntitiesObj.fiscalYear,
+          upsertSettingEntitiesObj.entityLevel,
+        ]);
 
         // addedEntityLevelListLocalに関しては、エンティティレベルのinvalidateでentityLevelsQueryDataが新しく生成され、useEffectで「setAddedEntityLevelListLocal(addedEntityLevelListLocal ?? []);」が実行されるため、特にstateの変更はこちらでは不要
 
@@ -876,6 +881,11 @@ const UpsertSettingTargetEntityGroupMemo = ({
         await queryClient.invalidateQueries(["entity_levels", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
         await new Promise((resolve) => setTimeout(resolve, 300));
         await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
+        await queryClient.invalidateQueries([
+          "sales_trends",
+          upsertSettingEntitiesObj.fiscalYear,
+          upsertSettingEntitiesObj.entityLevel,
+        ]);
 
         toast.success("目標設定が完了しました！🌟");
 
@@ -2331,6 +2341,7 @@ const UpsertSettingTargetEntityGroupMemo = ({
                                 basePeriod={selectedPeriodDetailTrend.value}
                                 yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
                                 fetchEnabled={true}
+                                selectedFiscalYear={upsertSettingEntitiesObj.fiscalYear}
                               />
                             </Suspense>
                           </ErrorBoundary>
@@ -2447,6 +2458,7 @@ const UpsertSettingTargetEntityGroupMemo = ({
                                 basePeriod={selectedPeriodDetailTrend.value}
                                 yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
                                 fetchEnabled={true}
+                                selectedFiscalYear={upsertSettingEntitiesObj.fiscalYear}
                               />
                             </Suspense>
                           </ErrorBoundary>

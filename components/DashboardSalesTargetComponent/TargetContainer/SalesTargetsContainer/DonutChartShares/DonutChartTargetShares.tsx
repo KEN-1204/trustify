@@ -98,6 +98,32 @@ const DonutChartTargetSharesMemo = ({
   //   }, []);
   // ------------------------- テストデータ ここまで -------------------------
 
+  // if (true) {
+  //   console.log(
+  //     "ここ✅",
+  //     fiscalYear,
+  //     "✅parentEntityId",
+  //     parentEntityId,
+  //     "✅parentEntityTotalMainTarget",
+  //     parentEntityTotalMainTarget,
+  //     "✅entityLevel",
+  //     entityLevel,
+  //     "✅entityLevelId",
+  //     entityLevelId,
+  //     "✅fiscalYearId",
+  //     fiscalYearId,
+  //     "✅entities",
+  //     entities,
+  //     "✅periodType",
+  //     periodType,
+  //     "✅basePeriod",
+  //     basePeriod
+  //   );
+
+  //   return null;
+  //   // return <p>{JSON.stringify(payload, null, 2)}</p>
+  // }
+
   // ------------------------- useQuery残ネタ取得 -------------------------
   const { data, isLoading, isError } = useQuerySalesTargetsShare({
     fiscalYear,
@@ -204,6 +230,7 @@ const DonutChartTargetSharesMemo = ({
                 chartCenterX={chartCenterX}
                 chartData={chartData}
                 labelListSalesTargetShare={donutLabelData}
+                mainEntityId={parentEntityId}
                 totalAmount={totalAmount}
                 periodType={periodType}
                 labelType={labelType}

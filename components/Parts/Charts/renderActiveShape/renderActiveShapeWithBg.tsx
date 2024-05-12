@@ -10,6 +10,7 @@ type CustomData = {
   mainEntity: string;
   mainSalesTarget: number;
   isHovering: boolean;
+  disabledTooltip?: boolean;
 };
 
 type Props = {
@@ -52,6 +53,55 @@ const RenderActiveShapeWithBgMemo = ({ props, customProps }: Props): any => {
   if (!value) return;
   // if (!payload?.name) return;
 
+  const disabledTooltip = customProps.disabledTooltip;
+
+  const [isMounted, setIsMounted] = useState(false);
+  const centerTextRef = useRef<SVGTextElement | null>(null);
+
+  const sectorName = props.name;
+
+  if (disabledTooltip === true) {
+    return (
+      <g>
+        {/* 中央のテキスト */}
+        <text
+          ref={centerTextRef}
+          x={cx}
+          y={cy}
+          // dy={8}
+          // style={{ maxWidth: `80px` }}
+          fontSize="11px"
+          fontWeight={700}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill={fill}
+          className={`fade05`}
+        >
+          {sectorName ?? ""}
+        </text>
+        <Sector
+          cx={cx}
+          cy={cy}
+          innerRadius={innerRadius}
+          outerRadius={outerRadius}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          fill={fill}
+        />
+        <Sector
+          cx={cx}
+          cy={cy}
+          startAngle={startAngle}
+          endAngle={endAngle}
+          innerRadius={outerRadius + 6}
+          outerRadius={outerRadius + 10}
+          fill={fill}
+          className={`fade05`}
+        />
+      </g>
+    );
+  }
+
   // まずパイチャートの中心座標からセクターの端点（開始点）を求める *3
   const sin = Math.sin(-RADIAN * midAngle); // パイチャートの中心x座標からセクターまでの水平方向（x方向）の距離
   const cos = Math.cos(-RADIAN * midAngle); // パイチャートの中心y座標からセクターまでの垂直方向（y方向）の距離
@@ -88,7 +138,7 @@ const RenderActiveShapeWithBgMemo = ({ props, customProps }: Props): any => {
   const paddingX = 6;
   const paddingY = 10;
   const rateText = `シェア：${(percent * 100).toFixed(2)}%`;
-  const rateOnlyText = `${(percent * 100).toFixed(2)}%`;
+  // const rateOnlyText = `${(percent * 100).toFixed(2)}%`;
   const displayValueText = `目標：${formattedValue}`;
   // const textWidth = Math.max(formattedValue.length, rateText.length) * fontSize * 0.6; // 0.6はおおよその比率
   // 小数点一つの大きさX方向の幅が狭いため1文字分加算
@@ -116,12 +166,11 @@ const RenderActiveShapeWithBgMemo = ({ props, customProps }: Props): any => {
   const descId = customProps.mainEntity;
   const isHovering = customProps.isHovering;
   const mainSalesTarget = customProps.mainSalesTarget;
-  const sectorName = props.name;
 
   // 中央のセクター名が68pxを超えていたら折り返す
-  const [isMounted, setIsMounted] = useState(false);
-  const centerTextRef = useRef<SVGTextElement | null>(null);
+
   useEffect(() => {
+    if (disabledTooltip === false) return;
     // if (isMounted) return;
     if (centerTextRef.current) {
       const centerTextWidth = centerTextRef.current.getComputedTextLength();
@@ -211,6 +260,7 @@ const RenderActiveShapeWithBgMemo = ({ props, customProps }: Props): any => {
         fill="white"
         fillOpacity={0.75}
       /> */}
+
       <defs>
         <linearGradient id={`sales_Target_${customProps.mainEntity}`} x1={x1} y1={y1} x2={x2} y2={y2}>
           {/* <stop offset="0%" stopColor="#27272ac0" />

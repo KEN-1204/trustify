@@ -1,5 +1,5 @@
 import useStore from "@/store";
-import { Dispatch, Fragment, SetStateAction, memo, useEffect, useMemo, useRef, useState } from "react";
+import { Dispatch, Fragment, SetStateAction, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SpinnerX } from "../../SpinnerX/SpinnerX";
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip, TooltipProps } from "recharts";
 import { DonutChartObj, LabelDataSalesProbability, LabelDataSalesTargetsShare } from "@/types";
@@ -10,6 +10,8 @@ import styles from "../Charts.module.css";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 import { formatSalesTarget } from "@/utils/Helpers/formatSalesTarget";
+import { PieSectorDataItem } from "recharts/types/polar/Pie";
+import { RenderActiveShapeWithBg } from "../renderActiveShape/renderActiveShapeWithBg";
 
 type Props = {
   //   data: { date: string | number | null; value: number | null }[];
@@ -26,6 +28,7 @@ type Props = {
   centerTextFontSize?: number;
   delay?: number;
   chartData: DonutChartObj[];
+  mainEntityId: string;
   totalAmount: number;
   labelListSalesProbability?: LabelDataSalesProbability[];
   labelListSalesTargetShare?: LabelDataSalesTargetsShare[];
@@ -48,6 +51,7 @@ const DonutChartCustomComponentMemo = ({
   centerTextFontSize = 15,
   delay = 0,
   chartData,
+  mainEntityId,
   totalAmount,
   labelListSalesProbability,
   labelListSalesTargetShare,
@@ -112,6 +116,22 @@ const DonutChartCustomComponentMemo = ({
 
   const displayChartData = totalAmount > 0 ? chartData : placeholderData;
 
+  // -------------------------- ツールチップ --------------------------
+  type ShapeCustomProps = {
+    mainEntity: string;
+    mainSalesTarget: number;
+    isHovering: boolean;
+    disabledTooltip?: true;
+  };
+  type ShapeProps = {
+    props: PieSectorDataItem;
+    customProps: ShapeCustomProps;
+  };
+  const renderActiveShapeWithBg = useCallback(({ props, customProps }: ShapeProps) => {
+    return <RenderActiveShapeWithBg props={props} customProps={customProps} />;
+  }, []);
+  // -------------------------- ツールチップ --------------------------
+
   console.log("DonutChartコンポーネントレンダリング");
   return (
     <>
@@ -139,6 +159,18 @@ const DonutChartCustomComponentMemo = ({
               endAngle={90}
               onMouseEnter={!isNoData ? onPieEnter : undefined}
               onMouseLeave={!isNoData ? onPieLeave : undefined}
+              activeIndex={activeIndexParent}
+              activeShape={(props: PieSectorDataItem) =>
+                renderActiveShapeWithBg({
+                  props: props,
+                  customProps: {
+                    mainEntity: mainEntityId,
+                    mainSalesTarget: totalAmount,
+                    isHovering: activeIndexParent !== 100,
+                    disabledTooltip: true,
+                  },
+                })
+              }
             >
               {displayChartData.map((entry, index) => (
                 <Cell
