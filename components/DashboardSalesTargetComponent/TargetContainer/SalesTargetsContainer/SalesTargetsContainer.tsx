@@ -852,12 +852,23 @@ const SalesTargetsContainerMemo = () => {
 
   // // 全子コンポーネントがフェッチ完了したかを監視
   useEffect(() => {
-    if (allFetched) return;
+    if (allFetched) {
+      if (
+        // !(mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
+        currentActiveIndex < 2
+      ) {
+        console.log("setAllFetched false実行 currentActiveIndex >= 2ルート", currentActiveIndex, allFetched);
+        setAllFetched(false);
+      }
+      return;
+    }
     // サブ目標リストよりactiveIndexが大きくなった場合、全てフェッチが完了
-    if (currentActiveIndex >= 1) {
+    if (currentActiveIndex >= 2) {
+      console.log("setAllFetched true実行 currentActiveIndex >= 2ルート", currentActiveIndex, allFetched);
       setAllFetched(true);
     }
     if (mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") {
+      console.log("setAllFetched true実行 どちらも全社ルート allFetched", allFetched);
       setAllFetched(true);
       // if (currentActiveIndex >= upsertSettingEntitiesObj.entities.length) {
       //   setAllFetched(true);
@@ -865,23 +876,42 @@ const SalesTargetsContainerMemo = () => {
     }
   }, [currentActiveIndex]);
 
+  const subEntitiesSalesTargets = useDashboardStore((state) => state.subEntitiesSalesTargets);
+  const setSubEntitiesSalesTargets = useDashboardStore((state) => state.setSubEntitiesSalesTargets);
   // 総合目標のエンティティの変更か、選択年度の変更があった場合にフェッチ完了状態をリセットする
   const onResetFetchComplete = () => {
     console.log("onResetFetchComplete実行");
     setCurrentActiveIndex(0);
     setAllFetched(false);
+    setSubEntitiesSalesTargets(null);
   };
 
   // 総合目標のフェッチが完了したら
   const onFetchComplete = (tableIndex: number) => {
     // 既に現在のテーブルのindexよりcurrentActiveIndexが大きければリターン
-    if (tableIndex < currentActiveIndex || allFetched) return;
+    if (tableIndex < currentActiveIndex || allFetched) {
+      console.log(
+        "onFetchComplete関数実行 リターン",
+        tableIndex,
+        "currentActiveIndex",
+        currentActiveIndex,
+        tableIndex < currentActiveIndex,
+        "allFetched",
+        allFetched
+      );
+      if (allFetched && currentActiveIndex < 2) {
+        setCurrentActiveIndex((prevIndex) => prevIndex + 1);
+      }
+      return;
+    }
     console.log(
       "onFetchComplete関数実行 tableIndex",
       tableIndex,
       "currentActiveIndex",
       currentActiveIndex,
-      tableIndex < currentActiveIndex
+      tableIndex < currentActiveIndex,
+      "allFetched",
+      allFetched
     );
     setCurrentActiveIndex((prevIndex) => prevIndex + 1); // activeIndexを+1して次のコンポーネントのフェッチを許可
   };
@@ -939,14 +969,14 @@ const SalesTargetsContainerMemo = () => {
     entitiesForShareChart,
     "parentEntityTotalMainTarget",
     parentEntityTotalMainTarget,
-    "currentActiveIndex",
-    currentActiveIndex,
-    "allFetched",
-    allFetched,
     "displayTypeForTrend",
     displayTypeForTrend,
     "displayTargetPeriodType",
-    displayTargetPeriodType
+    displayTargetPeriodType,
+    "currentActiveIndex",
+    currentActiveIndex,
+    "allFetched",
+    allFetched
     // "stickyRow",
     // stickyRow
     // "entityLevelList",
@@ -996,6 +1026,7 @@ const SalesTargetsContainerMemo = () => {
                       setStickyRow={setStickyRow}
                       onFetchComplete={() => onFetchComplete(0)} // メイン目標は0をセット
                       onResetFetchComplete={onResetFetchComplete}
+                      currentActiveIndex={currentActiveIndex}
                     />
                   </Suspense>
                 </ErrorBoundary>
@@ -1033,6 +1064,7 @@ const SalesTargetsContainerMemo = () => {
                       setStickyRow={setStickyRow}
                       onFetchComplete={() => onFetchComplete(0)} // メイン目標は0をセット
                       onResetFetchComplete={onResetFetchComplete}
+                      currentActiveIndex={currentActiveIndex}
                     />
                   </Suspense>
                 </ErrorBoundary>
@@ -1160,6 +1192,8 @@ const SalesTargetsContainerMemo = () => {
         {/* 上下どちらも未設定 */}
         {allFetched &&
           !(
+            subEntitiesSalesTargets &&
+            currentActiveIndex >= 2 &&
             (fiscalYearQueryData?.is_confirmed_first_half_details ||
               fiscalYearQueryData?.is_confirmed_second_half_details) &&
             trendPeriodTitle &&
@@ -1213,6 +1247,8 @@ const SalesTargetsContainerMemo = () => {
         {/* 上期or下期を設定済み */}
         {allFetched &&
           !!(
+            subEntitiesSalesTargets &&
+            currentActiveIndex >= 2 &&
             (fiscalYearQueryData?.is_confirmed_first_half_details ||
               fiscalYearQueryData?.is_confirmed_second_half_details) &&
             trendPeriodTitle &&
@@ -1848,7 +1884,9 @@ const SalesTargetsContainerMemo = () => {
                           companyId={userProfileState.company_id}
                           stickyRow={stickyRow}
                           setStickyRow={setStickyRow}
-                          fetchEnabled={currentActiveIndex > 0} // 総合目標のフェッチが完了済みならフェッチを許可
+                          fetchEnabled={1 <= currentActiveIndex} // 総合目標のフェッチが完了済みならフェッチを許可
+                          onFetchComplete={() => onFetchComplete(1)} // サブ目標は1をセット
+                          currentActiveIndex={currentActiveIndex}
                         />
                       </Suspense>
                     </ErrorBoundary>

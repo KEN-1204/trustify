@@ -120,7 +120,13 @@ const AreaChartTrendWithTargetMemo = ({
   const salesTargetDate = useMemo(() => {
     if (!chartData || !chartData?.length) return undefined;
 
-    return `${periodType === "year_month" ? Number(chartData[2].date) + 100 : Number(chartData[2].date) + 10}`;
+    return `${
+      periodType === "year_month"
+        ? Number(chartData[2].date) + 100
+        : periodType === "fiscal_year"
+        ? Number(chartData[2].date) + 1
+        : Number(chartData[2].date) + 10
+    }`;
     // const month = String(chartData[0].date).substring(4); // 年度以降の文字列を抜き出し
     // return `${selectedFiscalYearTarget}${month}`;
   }, [chartData]);
@@ -134,7 +140,13 @@ const AreaChartTrendWithTargetMemo = ({
     setIsLoadingAddedTarget(true);
 
     const month = String(chartData[0].date).substring(4); // 年度以降の文字列を抜き出し
-    const _date = `${periodType === "year_month" ? Number(chartData[2].date) + 100 : Number(chartData[2].date) + 10}`;
+    const _date = `${
+      periodType === "year_month"
+        ? Number(chartData[2].date) + 100
+        : periodType === "fiscal_year"
+        ? Number(chartData[2].date) + 1
+        : Number(chartData[2].date) + 10
+    }`;
     // const monthKey = `month_${month}`; // month_01, ... month_12
 
     // 🔹メイン目標を追加
@@ -265,7 +277,19 @@ const AreaChartTrendWithTargetMemo = ({
             if (!subEntitySalesTarget) {
               console.log(
                 "❌売上推移 chartData 売上目標データが見つかりませんでした。 エラー:008",
-                subEntitySalesTarget
+                subEntitySalesTarget,
+                "subEntitiesSalesTargets",
+                subEntitiesSalesTargets,
+                "subEntityIdToObjMap",
+                subEntityIdToObjMap,
+                "entityId",
+                entityId,
+                "valueToEntityIdMap",
+                valueToEntityIdMap,
+                "key",
+                key,
+                "chartData",
+                chartData
               );
               throw new Error("売上推移 chartData 売上目標データが見つかりませんでした。 エラー:008");
             }

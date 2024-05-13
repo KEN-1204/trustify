@@ -67,6 +67,7 @@ type Props = {
   //   isMain: boolean;
   fetchEnabled?: boolean; // メイン目標でない場合はfetchEnabledがtrueに変更されたらフェッチを許可する
   onFetchComplete?: () => void;
+  currentActiveIndex: number;
   companyId: string;
   stickyRow: string | null;
   setStickyRow: Dispatch<SetStateAction<string | null>>;
@@ -84,6 +85,7 @@ const SalesTargetGridTableSubMemo = ({
   divName,
   fetchEnabled,
   onFetchComplete,
+  currentActiveIndex,
   companyId,
   stickyRow,
   setStickyRow,
@@ -120,6 +122,14 @@ const SalesTargetGridTableSubMemo = ({
   if (!annualFiscalMonths) return null;
   if (!selectedFiscalYearTarget) return null;
   if (!lastAnnualFiscalMonths) return null;
+
+  // ========================= 🌟年度・レベル・エンティティuseQuery キャッシュ🌟 =========================
+  const fiscalYearQueryData: FiscalYears | undefined = queryClient.getQueryData([
+    "fiscal_year",
+    "sales_target",
+    selectedFiscalYearTarget,
+  ]);
+  // ========================= 🌟年度・レベル・エンティティuseQuery キャッシュ🌟 =========================
 
   // エンティティMap
   const entitiesIdToObjMap = useMemo(() => {
@@ -238,12 +248,17 @@ const SalesTargetGridTableSubMemo = ({
   // ========================= 🌟総合目標の目標と前年度売上を取得useQuery キャッシュ🌟 =========================
 
   // ================== 🌟useInfiniteQueryフック🌟 ==================
-  function ensureTargetsRowData(data: any): SalesTargetFYRowData[] {
+  const ensureTargetsRowData = async (data: any): Promise<SalesTargetFYRowData[]> => {
     console.log(
       "サブ目標 ensureTargetsRowData 売上目標の取得結果の個数とentitiesの個数が一致しているか",
       data?.length,
-      entities.length
+      entities.length,
+      "data",
+      data
     );
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     if (!Array.isArray(data) || !data?.length || data?.length !== entities.length) {
       // entitiesの全てのエンティティが取得できているわけではなく、一部のエンティティのみ売上があった場合は、取得できなかったエンティティのみプレイスホルダーで保管し、取得できたエンティティはそのまま取得できたデータを使用する
       let dataIdToObjMap: Map<string, SalesTargetFYRowData> | null = null;
@@ -306,12 +321,27 @@ const SalesTargetGridTableSubMemo = ({
     }
     // `data` is `SalesTargetsRowDataWithYoY[] | null`
     if (entityLevel !== "member") {
+      console.log('サブ目標リスト entityLevel !== "member"ルート', entityLevel);
       return data as SalesTargetFYRowData[];
     } else {
+      console.log('サブ目標リスト entityLevel === "member"ルート', entityLevel);
       const memberSalesTargetArray = (data as SalesTargetFYRowData[]).map((row) => {
         // メンバーエンティティで年度目標が取得できている場合はそのままrowをリターン
         if (Object.keys(row).includes("fiscal_year") && row?.fiscal_year !== null && row?.fiscal_year !== undefined) {
+          console.log('サブ目標リスト entityLevel === "member"ルート そのまま返す', row);
           return row;
+        }
+        // 上期と下期のどちらかが未設定の場合にはfiscal_yearはnullをセット
+        if (
+          fiscalYearQueryData &&
+          (!fiscalYearQueryData.is_confirmed_first_half_details ||
+            !fiscalYearQueryData.is_confirmed_second_half_details)
+        ) {
+          console.log('サブ目標リスト entityLevel === "member"ルート fiscal_year: nullで返す');
+          return {
+            ...row,
+            fiscal_year: null,
+          };
         }
         // メンバーエンティティで年度目標が取得できていない場合は上期と下期の売上目標を合算して年度目標を追加
         let totalFiscalYear = 0;
@@ -324,21 +354,30 @@ const SalesTargetGridTableSubMemo = ({
           console.log("❌memberSalesTargetArray totalFiscalYear Decimalエラー", totalFiscalYear);
         }
 
+        console.log('サブ目標リスト entityLevel === "member"ルート totalFiscalYearで返す', totalFiscalYear);
         return {
           ...row,
           fiscal_year: totalFiscalYear,
         };
       });
 
+      console.log(
+        'サブ目標リスト entityLevel === "member"ルート 最終結果memberSalesTargetArray',
+        memberSalesTargetArray
+      );
+
       return memberSalesTargetArray;
     }
-  }
-  function ensureLastSalesRowData(data: any): SalesTargetFYRowData[] {
+  };
+  const ensureLastSalesRowData = async (data: any): Promise<SalesTargetFYRowData[]> => {
     console.log(
       "サブ目標 ensureTargetsRowData 前年度売上の取得結果の個数とentitiesの個数が一致しているか",
       data?.length,
       entities.length
     );
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
     if (!Array.isArray(data) || !data?.length || data?.length !== entities.length) {
       // entitiesの全てのエンティティが取得できているわけではなく、一部のエンティティのみ売上があった場合は、取得できなかったエンティティのみプレイスホルダーで保管し、取得できたエンティティはそのまま取得できたデータを使用する
       let dataIdToObjMap: Map<string, SalesTargetFYRowData> | null = null;
@@ -400,7 +439,7 @@ const SalesTargetGridTableSubMemo = ({
     }
     // `data` is `SalesTargetsRowDataWithYoY[] | null`
     return data as SalesTargetFYRowData[];
-  }
+  };
 
   // ================== 🌟活動履歴を取得する関数🌟 ==================
   // let fetchServerPage: any;
@@ -531,13 +570,13 @@ const SalesTargetGridTableSubMemo = ({
         console.log("✅get_sales_targets_and_ly_sales_for_fy_all実行成功 salesTargetData", salesTargetData);
 
         // メンバーレベルの年度目標はここで上期と下期の目標を合算して補完
-        salesTargetRows = ensureTargetsRowData(salesTargetData?.sales_targets); // SalesTargetFYRowData型チェック
-        lastYearSalesRows = ensureLastSalesRowData(salesTargetData?.last_year_sales); // SalesTargetFYRowData型チェック
+        salesTargetRows = await ensureTargetsRowData(salesTargetData?.sales_targets); // SalesTargetFYRowData型チェック
+        lastYearSalesRows = await ensureLastSalesRowData(salesTargetData?.last_year_sales); // SalesTargetFYRowData型チェック
 
         let lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
 
         console.log(
-          "🌠サブ目標リスト",
+          "🌠サブ目標リスト1",
           "salesTargetData?.sales_targets",
           salesTargetData?.sales_targets,
           "salesTargetRows",
@@ -606,13 +645,14 @@ const SalesTargetGridTableSubMemo = ({
           } as SalesTargetFYRowData;
         });
 
-        console.log("✅前年比算出結果 yoyGrowthRows", yoyGrowthRows);
+        console.log("✅前年比算出結果 yoyGrowthRows", yoyGrowthRows, "salesTargetRows", salesTargetRows);
 
         const yoyGrowthRowsMap = new Map(yoyGrowthRows.map((row) => [row.entity_id, row]));
 
         // 売上目標と前年度売上は先頭にシェアを追加(メインのため100%)
         salesTargetRows = salesTargetRows?.length
           ? (salesTargetRows.map((obj) => {
+              console.log("サブ目標リスト2-5 obj", obj, "salesTargetRows", salesTargetRows);
               if (!isSetCompleteTarget) {
                 return obj;
               }
@@ -669,7 +709,9 @@ const SalesTargetGridTableSubMemo = ({
                 _share_first_half,
                 _share_second_half,
                 "mainTotalTargets",
-                mainTotalTargets
+                mainTotalTargets,
+                "obj",
+                obj
               );
 
               return {
@@ -744,7 +786,7 @@ const SalesTargetGridTableSubMemo = ({
         lastYearSalesRowsMap = new Map(lastYearSalesRows.map((row) => [row.entity_id, row]));
 
         console.log(
-          "🌠サブ目標リスト",
+          "🌠サブ目標リスト3",
           "lastYearSalesRowsMap",
           lastYearSalesRowsMap,
           "salesTargetRows",
@@ -753,6 +795,7 @@ const SalesTargetGridTableSubMemo = ({
 
         // １行３セット(３行)にまとめてrowsを生成して返す
         rows = salesTargetRows.map((target, index) => {
+          console.log("🌠サブ目標リスト4 map target", target);
           const targetEntityId = target.entity_id;
           return {
             sales_targets: target,
@@ -831,9 +874,14 @@ const SalesTargetGridTableSubMemo = ({
 
   useEffect(() => {
     // 総合目標のフェッチが完了したら、子エンティティのフェッチを許可する。=> 総合目標の各目標金額を子エンティティテーブルで取得してシェアを算出する
+    console.log(
+      "✅✅✅✅✅✅✅✅✅✅✅✅サブ目標をZustandに格納 isSuccessQuery",
+      isSuccessQuery,
+      "currentActiveIndex",
+      currentActiveIndex
+    );
+    if (2 <= currentActiveIndex) return;
     if (isSuccessQuery || isErrorQuery) {
-      // if (onFetchComplete) onFetchComplete();
-
       // 取得した各エンティティの売上目標をZustandにセットして売上推移の末尾に追加してチャートに反映する
       const newQueryTarget = !!data?.pages?.length && !!data?.pages[0].rows?.length ? data?.pages[0].rows : null;
       const queryTargetRowsMapByEntityId = newQueryTarget
@@ -844,10 +892,9 @@ const SalesTargetGridTableSubMemo = ({
         queryTargetRowsMapByEntityId,
         newQueryTarget,
         entities,
-        entities.length,
         entities.length
       );
-      if (newQueryTarget && entities && entities.length === entities.length && queryTargetRowsMapByEntityId) {
+      if (newQueryTarget && entities && queryTargetRowsMapByEntityId) {
         try {
           const newSubEntitySalesTargetArray = entities.map((entity) => {
             const salesTargetObj = queryTargetRowsMapByEntityId.get(entity.entity_id);
@@ -934,12 +981,16 @@ const SalesTargetGridTableSubMemo = ({
           );
 
           setSubEntitiesSalesTargets(newSubEntitySalesTargetArray);
+
+          if (onFetchComplete) onFetchComplete();
         } catch (e: any) {
           console.error("エラー：", e);
         }
+      } else {
+        console.error("エラー：", newQueryTarget, entities, queryTargetRowsMapByEntityId);
       }
     }
-  }, [isSuccessQuery, isErrorQuery]);
+  }, [isSuccessQuery, isErrorQuery, currentActiveIndex]);
   // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
 
   const Rows = data && data.pages[0]?.rows ? data.pages.flatMap((d) => d?.rows) : [];
@@ -2886,7 +2937,9 @@ const SalesTargetGridTableSubMemo = ({
   console.log(
     "✅SalesTargetGridTableSubコンポーネントレンダリング",
     "=============================================data",
-    data
+    data,
+    "currentActiveIndex",
+    currentActiveIndex
     // "rowVirtualizer.getVirtualItems()",
     // rowVirtualizer.getVirtualItems(),
     // "1年分の年月度annualFiscalMonths",
@@ -3351,7 +3404,7 @@ const SalesTargetGridTableSubMemo = ({
                       );
                     }
 
-                    console.log("rowVirtualizer.getVirtualItems()内 rowData", rowData);
+                    // console.log("rowVirtualizer.getVirtualItems()内 rowData", rowData);
 
                     return (
                       <Fragment key={"row" + virtualRow.index.toString() + "sub"}>

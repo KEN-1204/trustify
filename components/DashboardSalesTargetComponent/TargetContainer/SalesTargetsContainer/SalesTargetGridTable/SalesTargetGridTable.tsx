@@ -74,6 +74,7 @@ type Props = {
   fetchEnabled?: boolean; // メイン目標でない場合はfetchEnabledがtrueに変更されたらフェッチを許可する
   onFetchComplete?: () => void;
   onResetFetchComplete?: () => void;
+  currentActiveIndex: number;
   companyId: string;
   stickyRow: string | null;
   setStickyRow: Dispatch<SetStateAction<string | null>>;
@@ -92,6 +93,7 @@ const SalesTargetGridTableMemo = ({
   fetchEnabled,
   onFetchComplete,
   onResetFetchComplete,
+  currentActiveIndex,
   companyId,
   stickyRow,
   setStickyRow,
@@ -1239,7 +1241,13 @@ const SalesTargetGridTableMemo = ({
   useEffect(() => {
     // 総合目標のフェッチが完了したら、子エンティティのフェッチを許可する。=> 総合目標の各目標金額を子エンティティテーブルで取得してシェアを算出する
     if (isMain) {
-      console.log("✅✅✅✅✅✅✅✅✅✅✅✅総合目標をZustandに格納 isSuccessQuery", isSuccessQuery);
+      if (1 <= currentActiveIndex) return;
+      console.log(
+        "✅✅✅✅✅✅✅✅✅✅✅✅総合目標をZustandに格納 isSuccessQuery",
+        isSuccessQuery,
+        "currentActiveIndex",
+        currentActiveIndex
+      );
       if (isSuccessQuery || isErrorQuery) {
         // 総合目標をZustandに格納
         const newQueryTarget = !!data?.pages?.length && !!data?.pages[0].rows?.length ? data?.pages[0].rows[0] : null;
@@ -1318,7 +1326,7 @@ const SalesTargetGridTableMemo = ({
         if (onFetchComplete) onFetchComplete();
       }
     }
-  }, [isSuccessQuery, isErrorQuery]);
+  }, [isSuccessQuery, isErrorQuery, currentActiveIndex]);
   // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
 
   const Rows = data && data.pages[0]?.rows ? data.pages.flatMap((d) => d?.rows) : [];
@@ -3615,6 +3623,41 @@ const SalesTargetGridTableMemo = ({
                     entityName: mainEntityTarget.parentEntityName ?? "",
                     entityId: mainEntityTarget.parentEntityId ?? "",
                   });
+
+                  if (["department", "section", "unit"].includes(mainEntityTarget.parentEntityLevel)) {
+                    if (!entitiesHierarchyMap) return console.error(`entitiesHierarchyMap なし`);
+                    if (!entitiesHierarchyQueryData) return console.error(`entitiesHierarchyQueryData なし`);
+                    // if (!entityLevelToParentLevelMap) return console.error(`entityLevelToParentLevelMap なし`);
+
+                    const entityGroupsByParent = entitiesHierarchyQueryData[mainEntityTarget.parentEntityLevel];
+
+                    if (!entityGroupsByParent?.length)
+                      return console.error(`entityGroupsByParent.lengthなし ${entityGroupsByParent.length}`);
+
+                    const flattenedEntities = entityGroupsByParent
+                      .map((group) => group.entities)
+                      .flatMap((array) => array);
+
+                    // 最初の親エンティティグループのオブジェクトを取得
+                    // department: 全社-事業部エンティティ配列
+                    // section: 事業部1-課エンティティ配列, 事業部2-課エンティティ配列, ...
+
+                    if (!flattenedEntities.length) {
+                      console.error(
+                        "エラー：flattenedEntities.lengthなし firstEntityGroupByParent",
+                        flattenedEntities,
+                        "entityGroupsByParent",
+                        entityGroupsByParent,
+                        "flattenedEntities.length",
+                        flattenedEntities.length
+                      );
+                      return;
+                    }
+
+                    // クリックしたレベルの選択肢をセット
+                    setOptionsEntities(flattenedEntities);
+                  }
+
                   // クリックした位置が上半分か下半分かで上下表示方向を出し分ける
                   const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
 
@@ -3684,6 +3727,7 @@ const SalesTargetGridTableMemo = ({
                     value={selectedFiscalYearTarget ?? ""}
                     onChange={(e) => {
                       setSelectedFiscalYearTarget(Number(e.target.value));
+                      if (onResetFetchComplete) onResetFetchComplete();
                     }}
                     onClick={handleCloseTooltip}
                   >
@@ -4684,8 +4728,13 @@ const SalesTargetGridTableMemo = ({
                                   | "section"
                                   | "unit", // company
                               });
-                              setActiveEntityLocal(null);
-                              setOpenSectionMenu(null);
+
+                              // リセット
+                              if (onResetFetchComplete) onResetFetchComplete();
+
+                              handleCloseSectionMenu();
+                              // setActiveEntityLocal(null);
+                              // setOpenSectionMenu(null);
                             }
                             // 事業部~係までは、エンティティ区分タイプ+表示するエンティティ名が必要なため、一旦ローカルstateに区分タイプを保存して、右側の選択エリアでエンティティ名をセレクトで選択してもらう
                             else if (["department", "section", "unit"].includes(obj.title)) {
