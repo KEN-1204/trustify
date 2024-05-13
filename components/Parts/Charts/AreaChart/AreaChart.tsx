@@ -454,7 +454,7 @@ export const CustomLegend = ({ props, labelType, language, legendList }: LegendC
   const legendsRef = useRef<HTMLDivElement | null>(null);
   const legendUListRef = useRef<HTMLUListElement | null>(null);
 
-  console.log("レジェンド", "props", props, "labelType", labelType, "legendList", legendList);
+  console.log("レジェンド");
 
   //   useEffect(() => {
   //     if (legendUListRef.current) {

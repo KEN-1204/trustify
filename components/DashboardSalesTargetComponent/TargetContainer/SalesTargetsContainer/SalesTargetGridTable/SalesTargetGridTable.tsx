@@ -14,6 +14,7 @@ import {
   EntityLevels,
   FiscalYearMonthKey,
   FiscalYears,
+  MainEntityTarget,
   Office,
   SalesTargetFHRowData,
   SalesTargetFYRowData,
@@ -255,13 +256,38 @@ const SalesTargetGridTableMemo = ({
   } | null>(null);
 
   // 総合目標変更時の選択中のレベルのエンティティグループの選択肢
-  const [optionsBySelectedLevel, setOptionsBySelectedLevel] = useState<EntityGroupByParent[]>([]);
+  // const [optionsBySelectedLevel, setOptionsBySelectedLevel] = useState<EntityGroupByParent[]>([]);
+  const [optionsEntities, setOptionsEntities] = useState<Entity[]>([]);
+
+  const entityIdToEntityObjMap = useMemo(() => {
+    if (!optionsEntities) return null;
+    return new Map(optionsEntities.map((entity) => [entity.entity_id, entity]));
+  }, [optionsEntities]);
 
   // 上位エンティティidからエンティティグループを取得するMapオブジェクト
-  const parentIdToEntityGroupMap = useMemo(() => {
-    if (!optionsBySelectedLevel.length) return null;
-    return new Map(optionsBySelectedLevel.map((group) => [group.parent_entity_id, group]));
-  }, [optionsBySelectedLevel]);
+  // const parentIdToChildEntityGroupsMap = useMemo(() => {
+  //   if (!entitiesHierarchyQueryData) return null;
+  //   if (!optionsEntities.length) return null;
+  //   if (!entityLevelToChildLevelMap) return null;
+  //   if (!activeEntityLocal) return null;
+  //   const childLevelName = entityLevelToChildLevelMap.get(activeEntityLocal.entityLevel);
+  //   if (!childLevelName) return null;
+  //   if (!(childLevelName in entitiesHierarchyQueryData)) return null;
+  //   const childEntityGroupsByParent = entitiesHierarchyQueryData[childLevelName];
+  //   if (!childEntityGroupsByParent.length) return null;
+  //   if (childEntityGroupsByParent.some((group) => group.parent_entity_id === null)) return null;
+  //   const _parentIdToChildEntityGroupsMap = new Map(
+  //     childEntityGroupsByParent.map((group) => [group.parent_entity_id!, group])
+  //   );
+  //   if (!_parentIdToChildEntityGroupsMap) return null;
+
+  //   return _parentIdToChildEntityGroupsMap;
+  // }, [optionsEntities, entitiesHierarchyQueryData, entityLevelToChildLevelMap, activeEntityLocal?.entityLevel]);
+
+  // const parentIdToEntityGroupMap = useMemo(() => {
+  //   if (!optionsBySelectedLevel.length) return null;
+  //   return new Map(optionsBySelectedLevel.map((group) => [group.parent_entity_id, group]));
+  // }, [optionsBySelectedLevel]);
 
   // ===================== 🌟ユーザーが作成したエンティティのみでレベル選択肢リストを再生成🌟 =====================
   // ✅ステップ1の選択肢で追加
@@ -319,6 +345,8 @@ const SalesTargetGridTableMemo = ({
       const addedLevelsMap = new Map(entityLevelsQueryData.map((level) => [level.entity_level, level]));
 
       let newOptionsLevelList = [...mainEntityLevelList];
+
+      // 総合目標で親エンティティを表示するため、メンバーエンティティを除く
       if (addedLevelsMap.has("unit")) {
         newOptionsLevelList = newOptionsLevelList.filter((obj) =>
           ["company", "department", "section", "unit"].includes(obj.title)
@@ -525,7 +553,19 @@ const SalesTargetGridTableMemo = ({
       entities.length
     );
     if (!Array.isArray(data) || !data?.length || data?.length !== entities.length) {
+      // entitiesの全てのエンティティが取得できているわけではなく、一部のエンティティのみ売上があった場合は、取得できなかったエンティティのみプレイスホルダーで保管し、取得できたエンティティはそのまま取得できたデータを使用する
+      let dataIdToObjMap: Map<string, SalesTargetFYRowData> | null = null;
+      if (Array.isArray(data) && data.length > 0) {
+        dataIdToObjMap = new Map(data.map((obj: SalesTargetFYRowData) => [obj.entity_id, obj]));
+      }
       const placeholderSalesTargetArray = entities.map((entity) => {
+        // 一部のエンティティのみ取得できている場合には、取得できているエンティティをチェックし、取得できているエンティティには取得済みのデータを返す
+        if (Array.isArray(data) && data.length > 0 && dataIdToObjMap !== null) {
+          if (dataIdToObjMap.has(entity.entity_id)) {
+            const salesTargetRow = dataIdToObjMap.get(entity.entity_id);
+            if (salesTargetRow) return salesTargetRow;
+          }
+        }
         return {
           // share: entityLevel === "company" ? 100 : 0,
           // share: 100, // 総合目標のため常に100
@@ -611,7 +651,19 @@ const SalesTargetGridTableMemo = ({
       entities.length
     );
     if (!Array.isArray(data) || !data?.length || data?.length !== entities.length) {
+      // entitiesの全てのエンティティが取得できているわけではなく、一部のエンティティのみ売上があった場合は、取得できなかったエンティティのみプレイスホルダーで保管し、取得できたエンティティはそのまま取得できたデータを使用する
+      let dataIdToObjMap: Map<string, SalesTargetFYRowData> | null = null;
+      if (Array.isArray(data) && data.length > 0) {
+        dataIdToObjMap = new Map(data.map((obj: SalesTargetFYRowData) => [obj.entity_id, obj]));
+      }
       const placeholderLastYearSalesArray = entities.map((entity) => {
+        // 一部のエンティティのみ取得できている場合には、取得できているエンティティをチェックし、取得できているエンティティには取得済みのデータを返す
+        if (Array.isArray(data) && data.length > 0 && dataIdToObjMap !== null) {
+          if (dataIdToObjMap.has(entity.entity_id)) {
+            const lastSalesRow = dataIdToObjMap.get(entity.entity_id);
+            if (lastSalesRow) return lastSalesRow;
+          }
+        }
         return {
           // share: entityLevel === "company" ? 100 : 0,
           share: 100, // 総合目標のため常に100
@@ -888,7 +940,7 @@ const SalesTargetGridTableMemo = ({
                 share: 100,
                 share_first_half: 100,
                 share_second_half: 100,
-                entity_name: entitiesIdToObjMap.get(obj?.entity_id) ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
+                entity_name: entitiesIdToObjMap.get(obj?.entity_id)?.entity_name ?? "No Data", // propertiesテーブルから取得する前年度売上にはエンティティ名は取得できないので、ここでエンティティidに対応するエンティティ名を追加する
               })) as (SalesTargetFYRowData & { share: number })[])
             : [];
 
@@ -908,6 +960,12 @@ const SalesTargetGridTableMemo = ({
           }) as SalesTargetsRowDataWithYoY[];
 
           console.log("✅rows結果", rows);
+
+          // if (true) {
+          //   console.log("メインメインメイン", "mainEntityTarget", mainEntityTarget, "rows", rows);
+
+          //   return { rows: null, nextOffset: offset + 1, isLastPage: true, count: null };
+          // }
 
           // rows = ensureClientCompanies(data);
           isLastPage = rows === null || rows.length < limit; // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
@@ -1181,6 +1239,7 @@ const SalesTargetGridTableMemo = ({
   useEffect(() => {
     // 総合目標のフェッチが完了したら、子エンティティのフェッチを許可する。=> 総合目標の各目標金額を子エンティティテーブルで取得してシェアを算出する
     if (isMain) {
+      console.log("✅✅✅✅✅✅✅✅✅✅✅✅総合目標をZustandに格納 isSuccessQuery", isSuccessQuery);
       if (isSuccessQuery || isErrorQuery) {
         // 総合目標をZustandに格納
         const newQueryTarget = !!data?.pages?.length && !!data?.pages[0].rows?.length ? data?.pages[0].rows[0] : null;
@@ -1255,6 +1314,7 @@ const SalesTargetGridTableMemo = ({
           });
         }
         // フェッチ完了を通知
+        console.log("✅✅✅✅✅✅✅✅✅✅✅✅総合目標をZustandに格納 フェッチ完了を通知");
         if (onFetchComplete) onFetchComplete();
       }
     }
@@ -3234,6 +3294,7 @@ const SalesTargetGridTableMemo = ({
 
     // setOpenSectionMenu(null);
     if (openSectionMenu) setOpenSectionMenu(null);
+    if (optionsEntities) setOptionsEntities([]);
     if (errorMsg) console.error(`${errorMsg}`);
     if (alertMsg) alert(alertMsg);
   };
@@ -3396,49 +3457,24 @@ const SalesTargetGridTableMemo = ({
     "✅SalesTargetGridTableコンポーネントレンダリング",
     "=============================================data",
     data,
-    // "rowVirtualizer.getVirtualItems()",
-    // rowVirtualizer.getVirtualItems(),
-    "1年分の年月度annualFiscalMonths",
-    annualFiscalMonths,
-    "entities",
-    entities,
-    "allRows",
-    allRows,
-    "fiscalYearQueryData",
-    fiscalYearQueryData,
-    "entityLevelsQueryData",
-    entityLevelsQueryData,
-    "entitiesHierarchyQueryData",
-    entitiesHierarchyQueryData,
-    "mainEntityLevelList",
-    mainEntityLevelList,
-    "entityLevelToParentLevelMap",
-    entityLevelToParentLevelMap,
-    "entityLevelToChildLevelMap",
-    entityLevelToChildLevelMap,
     "salesTrends",
     salesTrends,
     "displayTargetPeriodType",
     displayTargetPeriodType,
-    "salesSummaryRowDataTrend",
-    salesSummaryRowDataTrend,
-    "mainEntityObj",
-    mainEntityObj
-    // `virtualItems:${rowVirtualizer.getVirtualItems().length}`
-    // "colsWidth",
-    // colsWidth,
-    // "currentColsWidths.current",
-    // currentColsWidths.current,
-    // "フローズンの個数isFrozenCountRef.current",
-    // isFrozenCountRef.current,
-    // "レフトポジションcolumnLeftPositions.current",
-    // columnLeftPositions.current,
-    // "選択中のアクティブセルselectedGridCellRef",
-    // selectedGridCellRef,
-    // "選択中のアクティブセルactiveCell",
-    // activeCell,
-    // "clickedActiveRow",
-    // clickedActiveRow
+    "entityLevel",
+    entityLevel,
+    "mainEntityLevelList",
+    mainEntityLevelList,
+    "entityLevelsQueryData",
+    entityLevelsQueryData,
+    "entityLevelToChildLevelMap",
+    entityLevelToChildLevelMap,
+    "activeEntityLocal",
+    activeEntityLocal,
+    "optionsEntities",
+    optionsEntities,
+    "entityIdToEntityObjMap",
+    entityIdToEntityObjMap
   );
 
   //
@@ -3528,7 +3564,7 @@ const SalesTargetGridTableMemo = ({
   return (
     <>
       {/* タイトルエリア */}
-      <div className={`${styles.card_title_area} ${styles.main} fade08_forward`}>
+      <div className={`${styles.card_title_area} ${salesTrends ? `${styles.main}` : ``} fade08_forward`}>
         <div className={`${styles.title_left_wrapper}`}>
           {isMain && mainEntityTarget && (
             <>
@@ -3854,6 +3890,7 @@ const SalesTargetGridTableMemo = ({
                     fiscalYearQueryData.is_confirmed_first_half_details &&
                     !fiscalYearQueryData.is_confirmed_second_half_details && (
                       <>
+                        <option value="fiscal_year">全て</option>
                         <option value="first_half">上期</option>
                       </>
                     )}
@@ -3861,10 +3898,15 @@ const SalesTargetGridTableMemo = ({
                     !fiscalYearQueryData.is_confirmed_first_half_details &&
                     fiscalYearQueryData.is_confirmed_second_half_details && (
                       <>
+                        <option value="fiscal_year">全て</option>
                         <option value="second_half">下期</option>
                       </>
                     )}
-                  {!fiscalYearQueryData && <option value="fiscal_year">全て</option>}
+                  {(!fiscalYearQueryData ||
+                    (!fiscalYearQueryData.is_confirmed_first_half_details &&
+                      !fiscalYearQueryData.is_confirmed_second_half_details)) && (
+                    <option value="fiscal_year">全て</option>
+                  )}
                 </select>
                 {/* 上下矢印アイコン */}
                 <div className={`${styles.select_arrow}`}>
@@ -3947,10 +3989,10 @@ const SalesTargetGridTableMemo = ({
               } ${styles.share} ${displayTargetPeriodType !== "fiscal_year" ? `${styles.drag_disabled}` : ``}`}
               // style={{ gridColumnStart: 1, left: columnHeaderLeft(0), position: "sticky" }}
               style={{ gridColumnStart: 1, left: "0px", position: "sticky" }}
-              onClick={(e) => {
-                if (displayTargetPeriodType !== "fiscal_year") return;
-                handleClickGridCell(e);
-              }}
+              // onClick={(e) => {
+              //   // if (displayTargetPeriodType !== "fiscal_year") return;
+              //   handleClickGridCell(e);
+              // }}
             >
               <div
                 // className={styles.grid_select_cell_header}
@@ -4297,7 +4339,7 @@ const SalesTargetGridTableMemo = ({
                                   className={`${styles.grid_cell} ${styles.grid_column_frozen} ${styles.share}`}
                                   // style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
                                   style={{ gridColumnStart: 1, left: "0px" }}
-                                  onClick={(e) => handleClickGridCell(e)}
+                                  // onClick={(e) => handleClickGridCell(e)}
                                 >
                                   {(displayKey === "sales_targets" || displayKey === "last_year_sales") &&
                                     displayRowData && (
@@ -4410,15 +4452,15 @@ const SalesTargetGridTableMemo = ({
                                                     : index + 2,
                                                 }
                                           }
-                                          onClick={handleClickGridCell}
-                                          onDoubleClick={(e) =>
-                                            handleDoubleClick(
-                                              e,
-                                              index,
-                                              salesTargetColumnHeaderItemList[index].columnName
-                                            )
-                                          }
-                                          onKeyDown={handleKeyDown}
+                                          // onClick={handleClickGridCell}
+                                          // onDoubleClick={(e) =>
+                                          //   handleDoubleClick(
+                                          //     e,
+                                          //     index,
+                                          //     salesTargetColumnHeaderItemList[index].columnName
+                                          //   )
+                                          // }
+                                          // onKeyDown={handleKeyDown}
                                         >
                                           {displayValue}
                                           {/* <span className={`z-0`}>{displayValue}</span>
@@ -4620,6 +4662,7 @@ const SalesTargetGridTableMemo = ({
 
                               if (!childEntityGroups) return handleCloseSectionMenu(`childEntityGroups なし`);
 
+                              // 親エンティティレベルの選択肢から一番上の親エンティティのidに紐づく子エンティティグループを取得
                               const childEntityGroup = childEntityGroups.find(
                                 (group) => group.parent_entity_id === companyEntityObj.entity_id
                               );
@@ -4628,6 +4671,8 @@ const SalesTargetGridTableMemo = ({
                               if (!childEntityGroup.entities.length)
                                 return handleCloseSectionMenu(`childEntityGroup.entities.length なし`);
 
+                              // 選択肢の一番上の親エンティティとそれに紐づくエンティティグループを初期値としてセット
+                              // 全社エンティティは１つのみなのでそのままメインエンティティstateを更新
                               setMainEntityTarget({
                                 ...mainEntityTarget,
                                 entityLevel: childEntityGroup.entities[0].entity_level as EntityLevelNames,
@@ -4643,27 +4688,40 @@ const SalesTargetGridTableMemo = ({
                               setOpenSectionMenu(null);
                             }
                             // 事業部~係までは、エンティティ区分タイプ+表示するエンティティ名が必要なため、一旦ローカルstateに区分タイプを保存して、右側の選択エリアでエンティティ名をセレクトで選択してもらう
-                            else if (["departments", "sections", "unit"].includes(obj.title)) {
+                            else if (["department", "section", "unit"].includes(obj.title)) {
                               if (!entitiesHierarchyMap) return handleCloseSectionMenu(`entitiesHierarchyMap なし`);
                               if (!entityLevelToParentLevelMap)
                                 return handleCloseSectionMenu(`entityLevelToParentLevelMap なし`);
 
                               const entityGroupsByParent = entitiesHierarchyQueryData[obj.title];
 
-                              if (entityGroupsByParent?.length !== 1)
+                              if (!entityGroupsByParent?.length)
                                 return handleCloseSectionMenu(
-                                  `entityGroupsByParent.lengthが1ではない ${entityGroupsByParent.length}`
+                                  `entityGroupsByParent.lengthなし ${entityGroupsByParent.length}`
                                 );
 
-                              const firstEntityGroupByParent = entityGroupsByParent[0];
+                              const flattenedEntities = entityGroupsByParent
+                                .map((group) => group.entities)
+                                .flatMap((array) => array);
 
-                              if (firstEntityGroupByParent.entities?.length !== 1)
-                                return handleCloseSectionMenu(
-                                  `firstEntityGroupByParent.entities.lengthが1ではない ${firstEntityGroupByParent.entities.length}`
+                              // 最初の親エンティティグループのオブジェクトを取得
+                              // department: 全社-事業部エンティティ配列
+                              // section: 事業部1-課エンティティ配列, 事業部2-課エンティティ配列, ...
+
+                              if (!flattenedEntities.length) {
+                                console.error(
+                                  "エラー：firstEntityGroupByParent",
+                                  flattenedEntities,
+                                  "entityGroupsByParent",
+                                  entityGroupsByParent
                                 );
+                                return handleCloseSectionMenu(
+                                  `flattenedEntities.lengthなし ${flattenedEntities.length}`
+                                );
+                              }
 
-                              // 一番目のエンティティ
-                              const firstEntity = firstEntityGroupByParent.entities[0];
+                              // 一番目のエンティティ(事業部1-課エンティティ配列)
+                              const firstEntity = flattenedEntities[0];
 
                               setActiveEntityLocal({
                                 entityLevel: firstEntity.entity_level as "company" | "department" | "section" | "unit",
@@ -4672,7 +4730,8 @@ const SalesTargetGridTableMemo = ({
                               });
 
                               // クリックしたレベルの選択肢をセット
-                              setOptionsBySelectedLevel(entityGroupsByParent);
+                              // setOptionsBySelectedLevel(entityGroupsByParent);
+                              setOptionsEntities(flattenedEntities);
                             }
                             // handleClosePopupMenu();
                           }}
@@ -5266,38 +5325,39 @@ const SalesTargetGridTableMemo = ({
                           </div>
                         </div>
                         <div className={`${styles.list_item_content}`}>
-                          {(!activeEntityLocal || !parentIdToEntityGroupMap) && (
-                            <span className={`${styles.empty_text}`}>
-                              {mappingEntityName[activeEntityLocal.entityLevel][language]}が見つかりません
-                            </span>
-                          )}
-                          {activeEntityLocal && parentIdToEntityGroupMap && (
+                          {activeEntityLocal && entityIdToEntityObjMap ? (
                             <select
                               className={`h-full ${styles.select_box} truncate`}
                               value={activeEntityLocal.entityId}
                               onChange={(e) => {
-                                const selectedEntityGroup = parentIdToEntityGroupMap.get(e.target.value);
-                                if (!selectedEntityGroup) return handleCloseSectionMenu(`selectedEntityGroup なし`);
-                                if (!selectedEntityGroup.parent_entity_id)
-                                  return handleCloseSectionMenu(`selectedEntityGroup.parent_entity_id なし`);
+                                // const selectedChildEntityGroup = parentIdToChildEntityGroupsMap.get(e.target.value);
+                                // if (!selectedChildEntityGroup)
+                                //   return handleCloseSectionMenu(`selectedChildEntityGroup なし`);
+                                // if (!selectedChildEntityGroup.parent_entity_id)
+                                //   return handleCloseSectionMenu(`selectedChildEntityGroup.parent_entity_id なし`);
+
+                                const newMainEntity = entityIdToEntityObjMap.get(e.target.value);
+                                if (!newMainEntity) return handleCloseSectionMenu(`newMainEntity なし`);
                                 setActiveEntityLocal({
                                   ...activeEntityLocal,
-                                  entityName: selectedEntityGroup.parent_entity_name,
-                                  entityId: selectedEntityGroup.parent_entity_id,
+                                  entityName: newMainEntity.entity_name,
+                                  entityId: newMainEntity.entity_id,
                                 });
                               }}
                             >
-                              {!!optionsBySelectedLevel?.length &&
-                                optionsBySelectedLevel.map(
-                                  (entity, index) =>
-                                    !!entity &&
-                                    entity.parent_entity_name && (
-                                      <option key={entity.parent_entity_id} value={entity.parent_entity_id ?? ""}>
-                                        {entity.parent_entity_name}
-                                      </option>
-                                    )
-                                )}
+                              {!!optionsEntities?.length &&
+                                optionsEntities.map((entity, index) => (
+                                  <option key={entity.entity_id} value={entity.entity_id ?? ""}>
+                                    {entity.entity_name}
+                                  </option>
+                                ))}
                             </select>
+                          ) : (
+                            <>
+                              <span className={`${styles.empty_text}`}>
+                                {mappingEntityName[activeEntityLocal.entityLevel][language]}が見つかりません
+                              </span>
+                            </>
                           )}
                         </div>
                       </li>
@@ -5368,53 +5428,56 @@ const SalesTargetGridTableMemo = ({
                             if (!activeEntityLocal) return;
                             if (!activeEntityLocal.entityName) return;
                             if (!activeEntityLocal.entityId) return;
-                            // 選択、確定するエンティティの子の配列をフィルター
-                            // setMainEntityTarget({
-                            //   entityLevel: activeEntityLocal.entityLevel,
-                            //   entityName: activeEntityLocal.entityName,
-                            //   entityId: activeEntityLocal.entityId,
-                            // });
+                            if (!entityIdToEntityObjMap) return;
 
-                            const parentEntityLevel = entityLevelsQueryData.find(
-                              (level) => level.entity_level === activeEntityLocal.entityLevel
+                            if (!entitiesHierarchyQueryData) return;
+                            if (!optionsEntities.length) return;
+                            if (!entityLevelToChildLevelMap) return;
+                            if (!activeEntityLocal) return;
+
+                            const childLevelName = entityLevelToChildLevelMap.get(activeEntityLocal.entityLevel);
+                            if (!childLevelName) return handleCloseSectionMenu(`childLevelName なし`);
+
+                            if (!(childLevelName in entitiesHierarchyQueryData)) return;
+
+                            const childEntityGroupsByParent = entitiesHierarchyQueryData[childLevelName];
+
+                            if (!childEntityGroupsByParent.length)
+                              return handleCloseSectionMenu(`childEntityGroupsByParent なし`);
+                            if (childEntityGroupsByParent.some((group) => group.parent_entity_id === null))
+                              return handleCloseSectionMenu(`group なし`);
+
+                            const parentIdToChildEntityGroupsMap = new Map(
+                              childEntityGroupsByParent.map((group) => [group.parent_entity_id!, group])
                             );
 
-                            if (!parentEntityLevel) return handleCloseSectionMenu;
-                            `parentEntityLevel なし`;
+                            if (!parentIdToChildEntityGroupsMap)
+                              return handleCloseSectionMenu(`parentIdToChildEntityGroupsMap なし`);
 
-                            // 総合目標のエンティティidに紐づく子エンティティグループ
-                            const childLevel = entityLevelToChildLevelMap.get(activeEntityLocal.entityLevel);
-
-                            if (!childLevel) return handleCloseSectionMenu(`childLevel なし`);
-
-                            const childEntityGroups = entitiesHierarchyMap.get(childLevel);
-
-                            if (!childEntityGroups) return handleCloseSectionMenu(`childEntityGroups なし`);
-
-                            const childEntityGroup = childEntityGroups.find(
-                              (group) => group.parent_entity_id === activeEntityLocal.entityId
+                            const childEntitiesByMainEntity = parentIdToChildEntityGroupsMap.get(
+                              activeEntityLocal.entityId
                             );
 
-                            if (!childEntityGroup) return handleCloseSectionMenu(`childEntityGroup なし`);
-                            if (!childEntityGroup.entities.length)
-                              return handleCloseSectionMenu(`childEntityGroup.entities.length なし`);
+                            if (!childEntitiesByMainEntity)
+                              return handleCloseSectionMenu(`childEntitiesByMainEntity なし`);
+                            if (!childEntitiesByMainEntity.entities.length)
+                              return handleCloseSectionMenu(`childEntitiesByMainEntity.entities.length なし`);
 
-                            if (
-                              !["member", "company", "department", "section", "unit", "office"].includes(
-                                childEntityGroup.entities[0].entity_level
-                              )
-                            )
-                              return handleCloseSectionMenu(`entity_level エラー`);
+                            const newMainEntityObj = entityIdToEntityObjMap.get(activeEntityLocal.entityId);
 
-                            setMainEntityTarget({
+                            if (!newMainEntityObj) return handleCloseSectionMenu(`newMainEntityObj なし`);
+
+                            const newMainEntityTarget = {
                               ...mainEntityTarget,
+                              entityLevel: childEntitiesByMainEntity.entities[0].entity_level,
+                              entities: childEntitiesByMainEntity.entities,
                               parentEntityLevel: activeEntityLocal.entityLevel,
-                              parentEntityLevelId: parentEntityLevel.id,
+                              parentEntityLevelId: newMainEntityObj.entity_level_id,
                               parentEntityId: activeEntityLocal.entityId,
                               parentEntityName: activeEntityLocal.entityName,
-                              entityLevel: childEntityGroup.entities[0].entity_level as EntityLevelNames,
-                              entities: childEntityGroup.entities,
-                            });
+                            } as MainEntityTarget;
+
+                            setMainEntityTarget(newMainEntityTarget);
 
                             if (onResetFetchComplete) onResetFetchComplete();
                           }

@@ -166,7 +166,7 @@ const DonutChartCustomComponentMemo = ({
                   customProps: {
                     mainEntity: mainEntityId,
                     mainSalesTarget: totalAmount,
-                    isHovering: activeIndexParent !== 100,
+                    isHovering: activeIndexParent !== 1000,
                     disabledTooltip: true,
                   },
                 })
@@ -257,7 +257,7 @@ export const CustomTooltip = ({
   if (payload === undefined) return null;
   if (payload[0].value === undefined) return null;
 
-  console.log("ドーナツチャートツールチップ payload", payload, "props", props);
+  // console.log("ドーナツチャートツールチップ payload", payload, "props", props);
 
   // ---------------------------- 売上目標シェア ----------------------------
   if (labelType === "sales_target_share") {
@@ -279,7 +279,7 @@ export const CustomTooltip = ({
 
     const orderedKeys = useMemo(() => desiredOrder.filter((key) => key in shareDataObj), []);
 
-    console.log("ドーナツチャートツールチップ shareDataObj", shareDataObj);
+    // console.log("ドーナツチャートツールチップ shareDataObj", shareDataObj);
 
     const mappingRowTitle: { [key: string]: { [key: string]: string } } = {
       amount: { ja: "目標金額", en: "Sales Target" },
@@ -360,7 +360,7 @@ export const CustomTooltip = ({
 
     const orderedKeys = useMemo(() => desiredOrder.filter((key) => key in dealObj), []);
 
-    console.log("ドーナツチャートツールチップ dealObj", dealObj);
+    // console.log("ドーナツチャートツールチップ dealObj", dealObj);
 
     const mappingRowTitle: { [key: string]: { [key: string]: string } } = {
       average_price: { ja: "平均単価", en: "Average Price" },

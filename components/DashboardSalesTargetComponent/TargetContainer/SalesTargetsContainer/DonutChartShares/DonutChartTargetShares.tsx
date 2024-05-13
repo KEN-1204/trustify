@@ -223,6 +223,22 @@ const DonutChartTargetSharesMemo = ({
             }}
           >
             <div className={`absolute left-0 top-0 flex h-full w-[448px] items-center bg-[blue]/[0]`}>
+              {/* <div
+                className={`flex-center absolute left-[0] top-[0] h-full min-w-[224px] max-w-[224px] text-[11px] font-semibold`}
+              >
+                <div className={`flex-center max-w-[110px] whitespace-pre-wrap`}>
+                  <span>{formattedLabelDataArray[0].entity_name}</span>
+                </div>
+              </div> */}
+              {activeIndex !== 1000 && activeIndex <= formattedLabelDataArray.length - 1 && (
+                <div
+                  className={`flex-center absolute left-[0] top-[0] h-full min-w-[224px] max-w-[224px] text-[11px] font-semibold`}
+                >
+                  <div className={`flex-center max-w-[110px] whitespace-pre-wrap text-center`}>
+                    <span>{formattedLabelDataArray[activeIndex].entity_name}</span>
+                  </div>
+                </div>
+              )}
               <DonutChartCustomComponent
                 colors={colors}
                 colorsSheer={colorsSheer}
@@ -275,7 +291,7 @@ const DonutChartTargetSharesMemo = ({
                         className={`w-full border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px] ${
                           styles.deal_list
                         } ${activeIndex === 1000 ? `` : activeIndex === index ? `` : `${styles.inactive}`}`}
-                        style={{ display: `grid`, gridTemplateColumns: `80px 1fr` }}
+                        style={{ display: `grid`, gridTemplateColumns: `200px 1fr` }}
                       >
                         <div className={`flex items-center`}>
                           <div

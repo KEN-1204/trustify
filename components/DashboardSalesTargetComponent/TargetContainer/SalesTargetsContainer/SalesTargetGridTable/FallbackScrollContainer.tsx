@@ -19,15 +19,18 @@ export const FallbackScrollContainer = ({ title }: Props) => {
         </div>
       </div> */}
       {/* タイトルエリア */}
-      <div className={`${styles.card_title_area}`}>
+      <div className={`${styles.card_title_area} !min-h-[51px]`}>
         <div className={`${styles.card_title}`}>
           <span>{title}</span>
         </div>
       </div>
       {/* コンテンツエリア */}
-      <div className={`flex h-full max-h-[102px] min-h-[102px] w-full justify-center pt-[30px]`}>
+      <div className={`flex h-full max-h-[204px] min-h-[204px] w-full items-center justify-center`}>
         <SpinnerX />
       </div>
+      {/* <div className={`flex h-full max-h-[102px] min-h-[102px] w-full justify-center pt-[30px]`}>
+        <SpinnerX />
+      </div> */}
     </>
   );
 };

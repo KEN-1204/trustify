@@ -980,7 +980,9 @@
 .btn.brand.inactive {
   background-color: var(--color-bg-brand-f-disabled) !important;
   color: var(--color-text-disabled-on-brand) !important;
-  cursor: not-allowed;
+  cursor: not-allowed !important;
+  /* box-shadow: var(--color-btn-brand-shadow-inactive) !important; */
+  box-shadow: unset !important;
 }
 .btn.brand.inactive svg {
   color: var(--color-text-disabled-on-brand) !important;
@@ -1584,6 +1586,7 @@
 .main_container_entity .btn.brand:hover {
   background-color: var(--color-bg-brand-f-deep);
 }
+
 /*
 background: var(--color-sales-card-bg);
     box-shadow: var(--color-sales-card-border);

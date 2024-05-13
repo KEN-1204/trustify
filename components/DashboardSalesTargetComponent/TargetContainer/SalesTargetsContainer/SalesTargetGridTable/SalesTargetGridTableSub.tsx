@@ -245,7 +245,19 @@ const SalesTargetGridTableSubMemo = ({
       entities.length
     );
     if (!Array.isArray(data) || !data?.length || data?.length !== entities.length) {
+      // entitiesの全てのエンティティが取得できているわけではなく、一部のエンティティのみ売上があった場合は、取得できなかったエンティティのみプレイスホルダーで保管し、取得できたエンティティはそのまま取得できたデータを使用する
+      let dataIdToObjMap: Map<string, SalesTargetFYRowData> | null = null;
+      if (Array.isArray(data) && data.length > 0) {
+        dataIdToObjMap = new Map(data.map((obj: SalesTargetFYRowData) => [obj.entity_id, obj]));
+      }
       const placeholderSalesTargetArray = entities.map((entity) => {
+        // 一部のエンティティのみ取得できている場合には、取得できているエンティティをチェックし、取得できているエンティティには取得済みのデータを返す
+        if (Array.isArray(data) && data.length > 0 && dataIdToObjMap !== null) {
+          if (dataIdToObjMap.has(entity.entity_id)) {
+            const salesTargetRow = dataIdToObjMap.get(entity.entity_id);
+            if (salesTargetRow) return salesTargetRow;
+          }
+        }
         return {
           // share: entityLevel === "company" ? 100 : 0,
           share: 0, // 売上目標が未設定の場合には常に0
@@ -328,7 +340,19 @@ const SalesTargetGridTableSubMemo = ({
       entities.length
     );
     if (!Array.isArray(data) || !data?.length || data?.length !== entities.length) {
+      // entitiesの全てのエンティティが取得できているわけではなく、一部のエンティティのみ売上があった場合は、取得できなかったエンティティのみプレイスホルダーで保管し、取得できたエンティティはそのまま取得できたデータを使用する
+      let dataIdToObjMap: Map<string, SalesTargetFYRowData> | null = null;
+      if (Array.isArray(data) && data.length > 0) {
+        dataIdToObjMap = new Map(data.map((obj: SalesTargetFYRowData) => [obj.entity_id, obj]));
+      }
       const placeholderLastYearSalesArray = entities.map((entity) => {
+        // 一部のエンティティのみ取得できている場合には、取得できているエンティティをチェックし、取得できているエンティティには取得済みのデータを返す
+        if (Array.isArray(data) && data.length > 0 && dataIdToObjMap !== null) {
+          if (dataIdToObjMap.has(entity.entity_id)) {
+            const lastSalesRow = dataIdToObjMap.get(entity.entity_id);
+            if (lastSalesRow) return lastSalesRow;
+          }
+        }
         return {
           share: entityLevel === "company" ? 100 : 0,
           dataset_type: "last_year_sales",
@@ -2862,23 +2886,23 @@ const SalesTargetGridTableSubMemo = ({
   console.log(
     "✅SalesTargetGridTableSubコンポーネントレンダリング",
     "=============================================data",
-    data,
+    data
     // "rowVirtualizer.getVirtualItems()",
     // rowVirtualizer.getVirtualItems(),
-    "1年分の年月度annualFiscalMonths",
-    annualFiscalMonths,
-    "総合目標state mainTotalTargets",
-    mainTotalTargets,
-    "allRows",
-    allRows,
-    "entities",
-    entities,
-    "filteredSalesTargetColumnHeaderItemList",
-    filteredSalesTargetColumnHeaderItemList,
-    "rowVirtualizer.getVirtualItems()",
-    rowVirtualizer.getVirtualItems(),
-    "columnOrder",
-    columnOrder
+    // "1年分の年月度annualFiscalMonths",
+    // annualFiscalMonths,
+    // "総合目標state mainTotalTargets",
+    // mainTotalTargets,
+    // "allRows",
+    // allRows,
+    // "entities",
+    // entities,
+    // "filteredSalesTargetColumnHeaderItemList",
+    // filteredSalesTargetColumnHeaderItemList,
+    // "rowVirtualizer.getVirtualItems()",
+    // rowVirtualizer.getVirtualItems(),
+    // "columnOrder",
+    // columnOrder
   );
 
   //
@@ -3054,10 +3078,10 @@ const SalesTargetGridTableSubMemo = ({
               } ${styles.share} ${displayTargetPeriodType !== "fiscal_year" ? `${styles.drag_disabled}` : ``}`}
               // style={{ gridColumnStart: 1, left: columnHeaderLeft(0), position: "sticky" }}
               style={{ gridColumnStart: 1, left: "0px", position: "sticky" }}
-              onClick={(e) => {
-                if (displayTargetPeriodType !== "fiscal_year") return;
-                handleClickGridCell(e);
-              }}
+              // onClick={(e) => {
+              //   // if (displayTargetPeriodType !== "fiscal_year") return;
+              //   handleClickGridCell(e);
+              // }}
             >
               <div
                 // className={styles.grid_select_cell_header}
@@ -3394,7 +3418,7 @@ const SalesTargetGridTableSubMemo = ({
                                   tabIndex={-1}
                                   className={`${styles.grid_cell} ${styles.grid_column_frozen} ${styles.share}`}
                                   style={{ gridColumnStart: 1, left: "0px" }}
-                                  onClick={(e) => handleClickGridCell(e)}
+                                  // onClick={(e) => handleClickGridCell(e)}
                                 >
                                   {(displayKey === "sales_targets" || displayKey === "last_year_sales") &&
                                     displayRowData && (
@@ -3494,7 +3518,9 @@ const SalesTargetGridTableSubMemo = ({
                                             : ""
                                         } ${
                                           isFrozenCountRef.current === colIndex + 1 ? styles.grid_cell_frozen_last : ""
-                                        }  ${styles.grid_cell_resizable}`}
+                                        }  ${styles.grid_cell_resizable} ${
+                                          columnName === "entity_name" ? `${styles.company_highlight}` : ``
+                                        }`}
                                         style={
                                           salesTargetColumnHeaderItemList[colIndex].isFrozen
                                             ? {

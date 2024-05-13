@@ -176,7 +176,7 @@ const SalesTargetsContainerMemo = () => {
   // ===================== 🌠エンティティuseQuery🌠 =====================
 
   // -------------------------- 親エンティティのEntityオブジェクト --------------------------
-  const [parentEntityObj, setParentEntityObj] = useState<Entity | null>(null);
+  // const [parentEntityObj, setParentEntityObj] = useState<Entity | null>(null);
 
   const parentAllEntityGroupMap = useMemo(() => {
     if (!mainEntityTarget) return null;
@@ -187,17 +187,28 @@ const SalesTargetsContainerMemo = () => {
     return _parentAllEntityGroupMap;
   }, [entitiesHierarchyQueryData, mainEntityTarget?.parentEntityLevel]);
 
-  useEffect(() => {
-    if (!mainEntityTarget) return;
-    if (!mainEntityTarget?.parentEntityId) return;
-    if (!parentAllEntityGroupMap) return;
+  const parentMainEntityObj = useMemo(() => {
+    if (!mainEntityTarget || !mainEntityTarget?.parentEntityId || !parentAllEntityGroupMap) {
+      return null;
+    }
 
     const newParentEntityObj = parentAllEntityGroupMap.get(mainEntityTarget.parentEntityId);
-    setParentEntityObj(newParentEntityObj ?? null);
-  }, [mainEntityTarget?.parentEntityId]);
+    if (!newParentEntityObj) return null;
+    return newParentEntityObj;
+  }, [mainEntityTarget?.parentEntityId, parentAllEntityGroupMap]);
+
+  // useEffect(() => {
+  //   if (!mainEntityTarget || !mainEntityTarget?.parentEntityId || !parentAllEntityGroupMap) {
+  //     if (!!parentEntityObj) setParentEntityObj(null);
+  //     return;
+  //   }
+
+  //   const newParentEntityObj = parentAllEntityGroupMap.get(mainEntityTarget.parentEntityId);
+  //   setParentEntityObj(newParentEntityObj ?? null);
+  // }, [mainEntityTarget?.parentEntityId, parentAllEntityGroupMap]);
   // -------------------------- 親エンティティのEntityオブジェクト --------------------------
 
-  // -------------------------- Zustand上位エンティティグループをセット --------------------------
+  // -------------------------- ✅初回マウントZustand上位エンティティグループをセット✅ --------------------------
   useEffect(() => {
     // if (mainEntityTarget !== null) return;
     if (!userProfileState) return;
@@ -241,13 +252,17 @@ const SalesTargetsContainerMemo = () => {
 
             setMainEntityTarget(newMainEntityTarget);
 
+            // エンティティ・選択年度の変更時に売上推移の表示がメイン目標になっている場合はサブ目標にリセットする
+            console.log("🌠🌠🌠🌠🌠🌠🌠🌠🌠ここ-----");
+            setDisplayTypeForTrend("sub_entities");
+
             // 子エンティティのレベルがメンバーレベルだった場合には「上期か下期」の設定済みの方に変更する
             if (childEntityGroup.entities[0].entity_level === "member") {
               if (
                 fiscalYearQueryData.is_confirmed_first_half_details &&
                 fiscalYearQueryData.is_confirmed_second_half_details
               ) {
-                if (displayTargetPeriodType !== "fiscal_year") setDisplayTargetPeriodType("fiscal_year");
+                setDisplayTargetPeriodType("fiscal_year");
               } else if (
                 fiscalYearQueryData.is_confirmed_first_half_details &&
                 !fiscalYearQueryData.is_confirmed_second_half_details
@@ -258,17 +273,25 @@ const SalesTargetsContainerMemo = () => {
                 fiscalYearQueryData.is_confirmed_second_half_details
               ) {
                 setDisplayTargetPeriodType("second_half");
+              } else {
+                setDisplayTargetPeriodType("fiscal_year");
               }
+            } else {
+              // 子エンティティがメンバーレベル以外は年度を表示
+              setDisplayTargetPeriodType("fiscal_year");
             }
             return;
           }
         }
       }
+      return;
     }
-
     // fiscal_yearsのis_confirmed_xxx_half_detailsのどちらも未完了で、
     // かつ、companyレベルは存在していれば初期値はroot-companyのエンティティグループをセット
-    if (
+    else if (
+      fiscalYearQueryData &&
+      !fiscalYearQueryData.is_confirmed_first_half_details &&
+      !fiscalYearQueryData.is_confirmed_second_half_details &&
       entitiesHierarchyQueryData &&
       "company" in entitiesHierarchyQueryData &&
       entitiesHierarchyQueryData["company"].length > 0 &&
@@ -287,7 +310,10 @@ const SalesTargetsContainerMemo = () => {
 
       setMainEntityTarget(newMainEntityTarget);
 
+      console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥ここ-----");
       setDisplayTypeForTrend("main_entity");
+      setDisplayTargetPeriodType("fiscal_year");
+      return;
     }
     // まだエンティティが設定されていない場合は、ユーザーの会社データからセット
     else {
@@ -321,10 +347,13 @@ const SalesTargetsContainerMemo = () => {
       } as MainEntityTarget;
       setMainEntityTarget(newMainEntityTarget);
 
+      console.log("✅✅✅✅✅✅✅✅✅✅ここ-----");
       setDisplayTypeForTrend("main_entity");
+      setDisplayTargetPeriodType("fiscal_year");
+      return;
     }
-  }, []);
-  // -------------------------- Zustand上位エンティティグループをセット ここまで --------------------------
+  }, [fiscalYearQueryData]);
+  // -------------------------- ✅初回マウントZustand上位エンティティグループをセット✅ ここまで --------------------------
 
   // ========================= 🌟目標年度・レベル・エンティティuseQuery キャッシュ🌟 =========================
   // const fiscalYearQueryData: FiscalYears | undefined = queryClient.getQueryData([
@@ -486,31 +515,41 @@ const SalesTargetsContainerMemo = () => {
     }
     // 上期詳細のみtrueなら上期を初期表示(メンバー) メンバーレベル以外は年度を表示
     else if (fiscalYearQueryData.is_confirmed_first_half_details) {
-      if (mainEntityTarget.entityLevel !== "member") {
-        return {
-          period: "fiscal_year",
-          value: selectedFiscalYearTarget - 1,
-        };
-      } else {
-        return {
-          period: "half_year", // propertiesテーブルから取得のため上期・下期の詳細は分けずにセット
-          value: (selectedFiscalYearTarget - 1) * 10 + 1,
-        }; // 1が上期、2が下期
-      }
+      return {
+        period: "half_year", // propertiesテーブルから取得のため上期・下期の詳細は分けずにセット
+        value: (selectedFiscalYearTarget - 1) * 10 + 1,
+      }; // 1が上期、2が下期
+
+      // if (mainEntityTarget.entityLevel !== "member") {
+      //   return {
+      //     period: "fiscal_year",
+      //     value: selectedFiscalYearTarget - 1,
+      //   };
+      // } else {
+      //   return {
+      //     period: "half_year", // propertiesテーブルから取得のため上期・下期の詳細は分けずにセット
+      //     value: (selectedFiscalYearTarget - 1) * 10 + 1,
+      //   }; // 1が上期、2が下期
+      // }
     }
     // 下期詳細のみtrueなら下期を初期表示(メンバー) メンバーレベル以外は年度を表示
     else if (fiscalYearQueryData.is_confirmed_second_half_details) {
-      if (mainEntityTarget.entityLevel !== "member") {
-        return {
-          period: "fiscal_year",
-          value: selectedFiscalYearTarget - 1,
-        };
-      } else {
-        return {
-          period: "half_year", // propertiesテーブルから取得のため上期・下期の詳細は分けずにセット
-          value: (selectedFiscalYearTarget - 1) * 10 + 2,
-        }; // 1が上期、2が下期
-      }
+      return {
+        period: "half_year", // propertiesテーブルから取得のため上期・下期の詳細は分けずにセット
+        value: (selectedFiscalYearTarget - 1) * 10 + 2,
+      }; // 1が上期、2が下期
+
+      // if (mainEntityTarget.entityLevel !== "member") {
+      //   return {
+      //     period: "fiscal_year",
+      //     value: selectedFiscalYearTarget - 1,
+      //   };
+      // } else {
+      //   return {
+      //     period: "half_year", // propertiesテーブルから取得のため上期・下期の詳細は分けずにセット
+      //     value: (selectedFiscalYearTarget - 1) * 10 + 2,
+      //   }; // 1が上期、2が下期
+      // }
     }
     return null;
   };
@@ -530,38 +569,49 @@ const SalesTargetsContainerMemo = () => {
     }
     // 上期詳細のみtrueなら上期を初期表示
     else if (fiscalYearQueryData.is_confirmed_first_half_details) {
-      if (mainEntityTarget.entityLevel !== "member") {
-        return {
-          period: "fiscal_year",
-          value: selectedFiscalYearTarget,
-        };
-      } else {
-        return {
-          period: "first_half", // sales_targetsテーブルから取得のため上期・下期の詳細を分けてセット
-          value: selectedFiscalYearTarget * 10 + 1,
-        }; // 1が上期、2が下期
-      }
+      return {
+        period: "first_half", // sales_targetsテーブルから取得のため上期・下期の詳細を分けてセット
+        value: selectedFiscalYearTarget * 10 + 1,
+      }; // 1が上期、2が下期
+
+      // if (mainEntityTarget.entityLevel !== "member") {
+      //   return {
+      //     period: "fiscal_year",
+      //     value: selectedFiscalYearTarget,
+      //   };
+      // } else {
+      //   return {
+      //     period: "first_half", // sales_targetsテーブルから取得のため上期・下期の詳細を分けてセット
+      //     value: selectedFiscalYearTarget * 10 + 1,
+      //   }; // 1が上期、2が下期
+      // }
     }
     // 下期詳細のみtrueなら下期を初期表示
     else if (fiscalYearQueryData.is_confirmed_second_half_details) {
-      if (mainEntityTarget.entityLevel !== "member") {
-        return {
-          period: "fiscal_year",
-          value: selectedFiscalYearTarget,
-        };
-      } else {
-        return {
-          period: "second_half", // sales_targetsテーブルから取得のため上期・下期の詳細を分けてセット
-          value: selectedFiscalYearTarget * 10 + 2,
-        }; // 1が上期、2が下期
-      }
+      return {
+        period: "second_half", // sales_targetsテーブルから取得のため上期・下期の詳細を分けてセット
+        value: selectedFiscalYearTarget * 10 + 2,
+      }; // 1が上期、2が下期
+
+      // if (mainEntityTarget.entityLevel !== "member") {
+      //   return {
+      //     period: "fiscal_year",
+      //     value: selectedFiscalYearTarget,
+      //   };
+      // } else {
+      //   return {
+      //     period: "second_half", // sales_targetsテーブルから取得のため上期・下期の詳細を分けてセット
+      //     value: selectedFiscalYearTarget * 10 + 2,
+      //   }; // 1が上期、2が下期
+      // }
     }
     return null;
   };
 
+  // ----------------------- ✅初回マウント✅ -----------------------
   useEffect(() => {
     if (!mainEntityTarget) return;
-    if (!!selectedPeriodForChart && !!selectedPeriodDetailTrend && !!selectedPeriodDetailShare) return;
+    // if (!!selectedPeriodForChart && !!selectedPeriodDetailTrend && !!selectedPeriodDetailShare) return;
     // 初期値セット
     // 売上推移 両チャートの表示切り替え セレクトボックスで使用
     setSelectedPeriodForChart(getInitialPeriodForChart());
@@ -569,7 +619,10 @@ const SalesTargetsContainerMemo = () => {
     setSelectedPeriodDetailTrend(getInitialTrend());
     // 売上目標シェア 選択中
     setSelectedPeriodDetailShare(getInitialShare());
+    // エンティティ・選択年度の変更時に売上推移の表示がメイン目標になっている場合はサブ目標にリセットする
+    // if (displayTypeForTrend !== "sub_entities") setDisplayTypeForTrend("sub_entities");
   }, [mainEntityTarget]);
+  // ----------------------- ✅初回マウント✅ -----------------------
 
   // 🔹売上推移の「2021H1 ~ 2023H1」表示用
   const trendPeriodTitle = useMemo(() => {
@@ -814,7 +867,9 @@ const SalesTargetsContainerMemo = () => {
 
   // 総合目標のエンティティの変更か、選択年度の変更があった場合にフェッチ完了状態をリセットする
   const onResetFetchComplete = () => {
+    console.log("onResetFetchComplete実行");
     setCurrentActiveIndex(0);
+    setAllFetched(false);
   };
 
   // 総合目標のフェッチが完了したら
@@ -858,6 +913,8 @@ const SalesTargetsContainerMemo = () => {
     "🌟SalesTargetsContainerコンポーネントレンダリング",
     "mainEntityTarget",
     mainEntityTarget,
+    "parentAllEntityGroupMap",
+    parentAllEntityGroupMap,
     "selectedFiscalYearTarget",
     selectedFiscalYearTarget,
     "fiscalYearQueryData",
@@ -866,8 +923,10 @@ const SalesTargetsContainerMemo = () => {
     entityLevelsQueryData,
     "entitiesHierarchyQueryData",
     entitiesHierarchyQueryData,
-    "parentEntityObj",
-    parentEntityObj,
+    // "parentEntityObj",
+    // parentEntityObj,
+    "parentMainEntityObj",
+    parentMainEntityObj,
     "selectedPeriodDetailTrend",
     selectedPeriodDetailTrend,
     "selectedPeriodForChart",
@@ -880,10 +939,16 @@ const SalesTargetsContainerMemo = () => {
     entitiesForShareChart,
     "parentEntityTotalMainTarget",
     parentEntityTotalMainTarget,
+    "currentActiveIndex",
+    currentActiveIndex,
     "allFetched",
     allFetched,
-    "stickyRow",
-    stickyRow
+    "displayTypeForTrend",
+    displayTypeForTrend,
+    "displayTargetPeriodType",
+    displayTargetPeriodType
+    // "stickyRow",
+    // stickyRow
     // "entityLevelList",
     // entityLevelList,
     // departmentDataArray,
@@ -902,41 +967,93 @@ const SalesTargetsContainerMemo = () => {
         >
           <div className={`${styles.grid_content_card} `}>
             {mainEntityTarget &&
-              mainEntityTarget.parentEntityLevel === "company" &&
-              mainEntityTarget.entityLevel === "company" && (
-                <div className={`${styles.card_wrapper} fade08_forward`}>
-                  <ErrorBoundary FallbackComponent={ErrorFallback}>
-                    <Suspense
-                      fallback={
-                        <FallbackScrollContainer
-                          title={
-                            mainEntityTarget.entityLevel === "company"
-                              ? language === "ja"
-                                ? `全社`
-                                : `Company`
-                              : mainEntityTarget.entities[0].entity_name
-                          }
-                        />
-                      }
-                    >
-                      <SalesTargetGridTable
-                        entityLevel={mainEntityTarget.entities[0].entity_level as "company"}
-                        // entityNameTitle={mainEntityTarget.entities[0].entity_name}
-                        // entityId={mainEntityTarget.entities[0].entity_id}
-                        entities={mainEntityTarget.entities}
-                        divName={getDivName("company")}
-                        companyId={userProfileState.company_id}
-                        isMain={true}
-                        stickyRow={stickyRow}
-                        setStickyRow={setStickyRow}
-                        onFetchComplete={() => onFetchComplete(0)} // メイン目標は0をセット
-                        onResetFetchComplete={onResetFetchComplete}
+            mainEntityTarget.parentEntityLevel === "company" &&
+            mainEntityTarget.entityLevel === "company" ? (
+              <div className={`${styles.card_wrapper} fade08_forward`}>
+                <ErrorBoundary FallbackComponent={ErrorFallback}>
+                  <Suspense
+                    fallback={
+                      <FallbackScrollContainer
+                        title={
+                          mainEntityTarget.entityLevel === "company"
+                            ? language === "ja"
+                              ? `全社`
+                              : `Company`
+                            : mainEntityTarget.entities[0].entity_name
+                        }
                       />
-                    </Suspense>
-                  </ErrorBoundary>
+                    }
+                  >
+                    <SalesTargetGridTable
+                      entityLevel={mainEntityTarget.entities[0].entity_level as "company"}
+                      // entityNameTitle={mainEntityTarget.entities[0].entity_name}
+                      // entityId={mainEntityTarget.entities[0].entity_id}
+                      entities={mainEntityTarget.entities}
+                      divName={getDivName("company")}
+                      companyId={userProfileState.company_id}
+                      isMain={true}
+                      stickyRow={stickyRow}
+                      setStickyRow={setStickyRow}
+                      onFetchComplete={() => onFetchComplete(0)} // メイン目標は0をセット
+                      onResetFetchComplete={onResetFetchComplete}
+                    />
+                  </Suspense>
+                </ErrorBoundary>
+              </div>
+            ) : mainEntityTarget &&
+              !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
+              parentMainEntityObj ? (
+              <>
+                <ErrorBoundary FallbackComponent={ErrorFallback}>
+                  <Suspense
+                    fallback={
+                      <FallbackScrollContainer
+                        title={
+                          mainEntityTarget.parentEntityLevel === "company"
+                            ? getDivName("company")
+                            : mainEntityTarget.parentEntityName
+                        }
+                      />
+                    }
+                  >
+                    <SalesTargetGridTable
+                      entityLevel={mainEntityTarget.parentEntityLevel}
+                      // entityNameTitle={mainEntityTarget.entities[0].entity_name}
+                      // entityId={mainEntityTarget.entities[0].entity_id}
+                      entities={[parentMainEntityObj]} // 総合目標は親エンティティ一つ
+                      // divName={getDivName(mainEntityTarget.parentEntityLevel)}
+                      divName={
+                        mainEntityTarget.parentEntityLevel === "company"
+                          ? getDivName("company")
+                          : mainEntityTarget.parentEntityName
+                      }
+                      companyId={userProfileState.company_id}
+                      isMain={true}
+                      stickyRow={stickyRow}
+                      setStickyRow={setStickyRow}
+                      onFetchComplete={() => onFetchComplete(0)} // メイン目標は0をセット
+                      onResetFetchComplete={onResetFetchComplete}
+                    />
+                  </Suspense>
+                </ErrorBoundary>
+              </>
+            ) : (
+              <>
+                <div className={`${styles.card_title_area} !min-h-[51px]`}>
+                  <div className={`${styles.card_title}`}></div>
                 </div>
-              )}
-            {mainEntityTarget &&
+                <div
+                  className={`flex min-h-[204px] w-full min-w-[calc(100vw-72px-62px-30px)] items-center justify-center pb-[33px] text-[12px] text-[var(--color-text-sub)]`}
+                  // className={`flex min-h-[66px] w-full min-w-[calc(100vw-72px-62px-30px)] items-end justify-center pb-[33px] text-[12px] text-[var(--color-text-sub)]`}
+                >
+                  {(isLoadingQueryFiscalYear || isLoadingQueryLevel || isLoadingQueryEntities) && <SpinnerX />}
+                </div>
+              </>
+            )}
+
+            {/* <span>データがありません。</span> */}
+
+            {/* {mainEntityTarget &&
               !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
               parentEntityObj && (
                 <>
@@ -976,7 +1093,7 @@ const SalesTargetsContainerMemo = () => {
                 // <div className={`${styles.card_wrapper} fade08_forward`}>
 
                 // </div>
-              )}
+              )} */}
             {/* {mainEntityTarget &&
               !(mainEntityTarget.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
               !parentEntityObj && (
@@ -1084,7 +1201,6 @@ const SalesTargetsContainerMemo = () => {
                       <div
                         className={`flex h-full w-full items-center justify-center text-[13px] text-[var(--color-text-sub)]`}
                       >
-                        {/* <span>データがありません。</span> */}
                         <span>売上目標が設定されていません。</span>
                       </div>
                     </div>
@@ -1329,12 +1445,15 @@ const SalesTargetsContainerMemo = () => {
                                   <>
                                     {/* メンバーレベル以外は年度・下期を入れる */}
                                     {mainEntityTarget.entityLevel !== "member" && (
-                                      <>
-                                        <option value="fiscal_year">年度</option>
-                                        <option value="second_half">下期</option>
-                                      </>
+                                      <option value="fiscal_year">年度</option>
                                     )}
+
                                     <option value="first_half">上期</option>
+
+                                    {mainEntityTarget.entityLevel !== "member" && (
+                                      <option value="second_half">下期</option>
+                                    )}
+
                                     <option value="first_quarter">Q1</option>
                                     <option value="second_quarter">Q2</option>
                                     {formattedAnnualFiscalMonths && (
@@ -1714,10 +1833,9 @@ const SalesTargetsContainerMemo = () => {
                   </div>
                 </>
               )} */}
-                {currentActiveIndex < 1 && (
+                {currentActiveIndex < 1 ? (
                   <FallbackScrollContainer title={mainEntityTarget ? getDivName(mainEntityTarget.entityLevel) : ""} />
-                )}
-                {currentActiveIndex <= 1 && mainTotalTargets && parentEntityObj && (
+                ) : 1 <= currentActiveIndex && mainTotalTargets && parentMainEntityObj ? (
                   <>
                     <ErrorBoundary FallbackComponent={ErrorFallback}>
                       <Suspense fallback={<FallbackScrollContainer title={getDivName(mainEntityTarget.entityLevel)} />}>
@@ -1735,7 +1853,28 @@ const SalesTargetsContainerMemo = () => {
                       </Suspense>
                     </ErrorBoundary>
                   </>
+                ) : (
+                  <></>
                 )}
+                {/* {currentActiveIndex <= 1 && mainTotalTargets && parentMainEntityObj && (
+                  <>
+                    <ErrorBoundary FallbackComponent={ErrorFallback}>
+                      <Suspense fallback={<FallbackScrollContainer title={getDivName(mainEntityTarget.entityLevel)} />}>
+                        <SalesTargetGridTableSub
+                          entityLevel={mainEntityTarget.entityLevel}
+                          // entityNameTitle={mainEntityTarget.entities[0].entity_name}
+                          // entityId={mainEntityTarget.entities[0].entity_id}
+                          entities={mainEntityTarget.entities}
+                          divName={getDivName(mainEntityTarget.entityLevel)}
+                          companyId={userProfileState.company_id}
+                          stickyRow={stickyRow}
+                          setStickyRow={setStickyRow}
+                          fetchEnabled={currentActiveIndex > 0} // 総合目標のフェッチが完了済みならフェッチを許可
+                        />
+                      </Suspense>
+                    </ErrorBoundary>
+                  </>
+                )} */}
               </div>
             </div>
           )}

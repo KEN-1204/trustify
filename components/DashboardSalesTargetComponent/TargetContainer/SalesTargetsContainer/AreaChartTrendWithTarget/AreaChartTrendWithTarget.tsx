@@ -179,17 +179,17 @@ const AreaChartTrendWithTargetMemo = ({
         console.log(
           "🌠🌠🌠🌠🌠🌠🌠🌠売上推移 メイン目標追加",
           "newChartData",
-          newChartData,
-          "newLabelValueGroupByPeriod",
-          newLabelValueGroupByPeriod,
-          "monthKey",
-          `month_${month}`,
-          "_date",
-          _date,
-          "targetYearMonthYear",
-          targetYearMonthYear,
-          "targetYearMonthMonth",
-          targetYearMonthMonth
+          newChartData
+          // "newLabelValueGroupByPeriod",
+          // newLabelValueGroupByPeriod,
+          // "monthKey",
+          // `month_${month}`,
+          // "_date",
+          // _date,
+          // "targetYearMonthYear",
+          // targetYearMonthYear,
+          // "targetYearMonthMonth",
+          // targetYearMonthMonth
         );
 
         setConvertedChartData(newChartData);
@@ -257,12 +257,23 @@ const AreaChartTrendWithTargetMemo = ({
             // keyがvalueXXのルート valueXXに対応するエンティティidを取得してからidに対応する売上目標をセット
 
             const entityId = valueToEntityIdMap.get(key); // エンティティidを取得
-            if (!entityId) throw new Error("売上推移 chartData entityId is undefined エラー:007");
+            if (!entityId) {
+              console.log("❌売上推移 chartData entityId is undefined エラー:007", entityId);
+              throw new Error("売上推移 chartData entityId is undefined エラー:007");
+            }
             const subEntitySalesTarget = subEntityIdToObjMap.get(entityId);
-            if (!subEntitySalesTarget)
+            if (!subEntitySalesTarget) {
+              console.log(
+                "❌売上推移 chartData 売上目標データが見つかりませんでした。 エラー:008",
+                subEntitySalesTarget
+              );
               throw new Error("売上推移 chartData 売上目標データが見つかりませんでした。 エラー:008");
+            }
             const newSalesTarget = subEntitySalesTarget.sales_target_obj.sales_targets[selectedPeriodForChart];
-            if (newSalesTarget === null) throw new Error("売上推移 chartData newSalesTarget is null エラー:009");
+            if (newSalesTarget === null) {
+              console.log("❌売上推移 chartData newSalesTarget is null エラー:009", newSalesTarget);
+              throw new Error("売上推移 chartData newSalesTarget is null エラー:009");
+            }
             newTargetChartObj[key] = newSalesTarget;
 
             // console.log(
@@ -298,7 +309,10 @@ const AreaChartTrendWithTargetMemo = ({
           date: _date,
           label_list: labelValueGroupByPeriod[0].label_list.map((labelList) => {
             const subEntitySalesTargetObj = subEntityIdToObjMap.get(labelList.id);
-            if (!subEntitySalesTargetObj) throw new Error("売上推移 label entityId is undefined エラー:010");
+            if (!subEntitySalesTargetObj) {
+              console.log("❌売上推移 label entityId is undefined エラー:010", subEntitySalesTargetObj);
+              throw new Error("売上推移 label entityId is undefined エラー:010");
+            }
             const subObj = subEntitySalesTargetObj.sales_target_obj;
             return {
               id: labelList.id,
@@ -327,17 +341,17 @@ const AreaChartTrendWithTargetMemo = ({
         console.log(
           "🌠🌠🌠🌠🌠🌠🌠🌠売上推移 サブ目標追加",
           "newChartData",
-          newChartData,
-          "newLabelValueGroupByPeriod",
-          newLabelValueGroupByPeriod,
-          "monthKey",
-          `month_${month}`,
-          "_date",
-          _date,
-          "targetYearMonthYear",
-          targetYearMonthYear,
-          "targetYearMonthMonth",
-          targetYearMonthMonth
+          newChartData
+          // "newLabelValueGroupByPeriod",
+          // newLabelValueGroupByPeriod,
+          // "monthKey",
+          // `month_${month}`,
+          // "_date",
+          // _date,
+          // "targetYearMonthYear",
+          // targetYearMonthYear,
+          // "targetYearMonthMonth",
+          // targetYearMonthMonth
         );
 
         setConvertedChartData(newChartData);

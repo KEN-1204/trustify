@@ -64,7 +64,7 @@ const RenderActiveShapeWithBgMemo = ({ props, customProps }: Props): any => {
     return (
       <g>
         {/* 中央のテキスト */}
-        <text
+        {/* <text
           ref={centerTextRef}
           x={cx}
           y={cy}
@@ -74,11 +74,12 @@ const RenderActiveShapeWithBgMemo = ({ props, customProps }: Props): any => {
           fontWeight={700}
           textAnchor="middle"
           dominantBaseline="central"
-          fill={fill}
+          // fill={fill}
+          fill={`var(--color-text-title)`}
           className={`fade05`}
         >
           {sectorName ?? ""}
-        </text>
+        </text> */}
         <Sector
           cx={cx}
           cy={cy}
@@ -212,7 +213,7 @@ const RenderActiveShapeWithBgMemo = ({ props, customProps }: Props): any => {
   return (
     <g>
       {/* 中央のテキスト */}
-      <text
+      {/* <text
         ref={centerTextRef}
         x={cx}
         y={cy}
@@ -222,16 +223,12 @@ const RenderActiveShapeWithBgMemo = ({ props, customProps }: Props): any => {
         fontWeight={700}
         textAnchor="middle"
         dominantBaseline="central"
-        fill={fill}
+        // fill={fill}
+        fill={`var(--color-text-title)`}
         className={`fade05`}
       >
-        {/* {payload.name} */}
-        {/* {!isHovering && mainSalesTarget}
-        {isHovering && formattedMainValue} */}
-        {/* {formattedMainValue} */}
-        {/* {rateOnlyText} */}
         {sectorName ?? ""}
-      </text>
+      </text> */}
       <Sector
         cx={cx}
         cy={cy}

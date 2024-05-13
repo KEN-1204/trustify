@@ -1616,6 +1616,70 @@ const UpsertTargetEntityMemo = () => {
   // ステップ3のメンバーレベルで半期詳細の売上目標のみ設定している状態、ステップ4の全レイヤーの半期詳細を集計していない状態(fiscal_yearsテーブルのis_confirmed_xxx_half_detailsがfalseの状態)
   // ----------------------- 🌟ステップ3で設定したメンバーレベルの目標のみリセット🌟 -----------------------
 
+  const handleResetA = () => {
+    if (!entitiesHierarchyQueryData) return;
+    if (!addedEntityLevelsListQueryData) return;
+    const levelOrder = {
+      member: 1,
+      unit: 2,
+      section: 3,
+      department: 4,
+      company: 5,
+    };
+
+    // 🔹【会社〜メンバーレベル】officeを除いたエンティティレベルのみの配列を作成
+    const filteredAddedEntitiesLevel = Object.keys(entitiesHierarchyLocal).filter(
+      (key) => !!entitiesHierarchyLocal[key as EntityLevelNames].length
+    );
+    // const entityGroupsWithoutOffice = Object.keys(entitiesHierarchyLocal)
+    const entityGroupsWithoutOffice = filteredAddedEntitiesLevel
+      .filter(
+        (key): key is "company" | "department" | "section" | "unit" | "member" =>
+          key !== "office" && key in entitiesHierarchyQueryData
+      )
+      .sort((a, b) => levelOrder[a] - levelOrder[b]) // カスタム順序に基づいてソート
+      .map((key) => {
+        // 上位エンティティごとにグループ化されたエンティティグループ群
+        const parentEntityGroup = entitiesHierarchyLocal[key];
+        // 上位エンティティごとにグループ化されているエンティティを全て平坦化して「Entity[]」の形で返す
+        const flattenEntities = parentEntityGroup.flatMap((group) => group.entities);
+        const entityIds = flattenEntities.map((entity) => entity.entity_id);
+        const entityStructureIds = flattenEntities.map((entity) => entity.id);
+
+        const entityLevelObj = addedEntityLevelsListQueryData.find((level) => level.entity_level === key);
+
+        if (!entityLevelObj) throw new Error("レイヤーデータが見つかりませんでした。E01");
+
+        let deleteCountSalesTarget = 0;
+        if (entityLevelObj.entity_level === "member") {
+          // メンバーレベルに年度目標は存在しないためそれぞれの半期詳細がtrueで+9
+          if (entityLevelObj.is_confirmed_first_half_details) deleteCountSalesTarget += 9;
+          if (entityLevelObj.is_confirmed_second_half_details) deleteCountSalesTarget += 9;
+        } else {
+          // 全社〜係レベルは、半期詳細で上期、下期を除く8行INSERTしているためそれぞれtrueなら+8
+          if (entityLevelObj.is_confirmed_first_half_details) deleteCountSalesTarget += 8;
+          if (entityLevelObj.is_confirmed_second_half_details) deleteCountSalesTarget += 8;
+          // 全社〜係レベルは「年度〜半期」での3行分は確実にINSERTされているため+3
+          if (entityLevelObj.is_confirmed_annual_half) deleteCountSalesTarget += 3;
+        }
+
+        return {
+          entity_level: key, // "company" | "department" | "section" | "unit"
+          entity_ids: entityIds,
+          entity_structure_ids: entityStructureIds,
+          entity_level_id: entityLevelObj.id, // レベルid
+          delete_count_sales_targets: deleteCountSalesTarget,
+          // entities_data: formattedEntities,
+        };
+      });
+    console.log(
+      "entityGroupsWithoutOffice",
+      entityGroupsWithoutOffice,
+      "filteredAddedEntitiesLevel",
+      filteredAddedEntitiesLevel
+    );
+  };
+
   // ----------------------- 🌟ステップ5 目標をリセット🌟 -----------------------
   const handleResetTarget = async () => {
     if (!addedEntityLevelsListQueryData) return alert("エラー：レイヤーデータが見つかりませんでした。E00");
@@ -1642,7 +1706,11 @@ const UpsertTargetEntityMemo = () => {
         };
 
         // 🔹【会社〜メンバーレベル】officeを除いたエンティティレベルのみの配列を作成
-        const entityGroupsWithoutMember = Object.keys(entitiesHierarchyLocal)
+        const filteredAddedEntitiesLevel = Object.keys(entitiesHierarchyLocal).filter(
+          (key) => !!entitiesHierarchyLocal[key as EntityLevelNames].length
+        );
+        // const entityGroupsWithoutMember = Object.keys(entitiesHierarchyLocal)
+        const entityGroupsWithoutMember = filteredAddedEntitiesLevel
           .filter(
             (key): key is "company" | "department" | "section" | "unit" | "member" =>
               key !== "office" && key in entitiesHierarchyQueryData
@@ -1775,7 +1843,11 @@ const UpsertTargetEntityMemo = () => {
         };
 
         // 🔹【会社〜メンバーレベル】officeを除いたエンティティレベルのみの配列を作成
-        const entityGroupsWithoutOffice = Object.keys(entitiesHierarchyLocal)
+        const filteredAddedEntitiesLevel = Object.keys(entitiesHierarchyLocal).filter(
+          (key) => !!entitiesHierarchyLocal[key as EntityLevelNames].length
+        );
+        // const entityGroupsWithoutOffice = Object.keys(entitiesHierarchyLocal)
+        const entityGroupsWithoutOffice = filteredAddedEntitiesLevel
           .filter(
             (key): key is "company" | "department" | "section" | "unit" | "member" =>
               key !== "office" && key in entitiesHierarchyQueryData
@@ -3536,6 +3608,31 @@ const UpsertTargetEntityMemo = () => {
                             </span>
                           </button>
                         )}
+                        {step === 3 && fiscalYearQueryData && (
+                          <>
+                            <button
+                              className={`transition-bg01 flex-center max-h-[34px] max-w-max cursor-pointer rounded-[8px] ${styles.cancel_btn} ml-[20px] px-[15px] py-[10px] text-[13px] font-bold`}
+                              onMouseEnter={(e) => {
+                                // `メンバーレイヤーの${mappingHalfDetails[selectedPeriodTypeForMemberLevel][language]}の売上目標を全てリセットして`
+                                handleOpenTooltip({
+                                  e: e,
+                                  display: "top",
+                                  content: `${upsertSettingEntitiesObj.fiscalYear}年度の売上目標を全てリセットして\n新しく売上目標を設定します。`,
+                                  marginTop: 24,
+                                  itemsPosition: `left`,
+                                });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => {
+                                setResetTargetType("fiscal_year");
+                                setIsOpenResetTargetModal(true);
+                                handleCloseTooltip();
+                              }}
+                            >
+                              リセット
+                            </button>
+                          </>
+                        )}
                         {/* 半期詳細 or 年度全てをリセット方法を選択 */}
                         {/* {step === 5 && currentLevel === "member" && (
                           <select
@@ -4525,7 +4622,7 @@ const UpsertTargetEntityMemo = () => {
       {/* ---------------------------- エンティティリスト編集モーダル ここまで ---------------------------- */}
 
       {/* ---------------------- 売上目標リセットタイプ選択 リセットモーダル ---------------------- */}
-      {isOpenResetTargetModal && (
+      {isOpenResetTargetModal && step === 5 && (
         <ConfirmationModal
           titleText={`売上目標をリセットしてもよろしいですか？`}
           sectionP1={`確定することで${
@@ -4561,6 +4658,27 @@ const UpsertTargetEntityMemo = () => {
           onChangeEventSelect={(e) => {
             setResetTargetType(e.target.value as "half_detail" | "fiscal_year");
           }}
+        />
+      )}
+      {/* ---------------------- 売上目標リセットタイプ選択 リセットモーダル ここまで ---------------------- */}
+      {/* ---------------------- 売上目標リセットタイプ選択 リセットモーダル ---------------------- */}
+      {isOpenResetTargetModal && step === 3 && (
+        <ConfirmationModal
+          titleText={`売上目標をリセットしてもよろしいですか？`}
+          sectionP1={`確定することで${`${upsertSettingEntitiesObj.fiscalYear}年度の売上目標を全てリセットして、最初から目標設定を始めます。 `}\nこの操作は確定後、取り消すことができません。`}
+          cancelText="戻る"
+          submitText="リセットを確定"
+          buttonColor="red"
+          zIndex="6000px"
+          zIndexOverlay="5800px"
+          withAnnotation={true}
+          annotationText="注：この操作は少し時間がかかります。画面を閉じずにお待ちください。"
+          clickEventClose={() => {
+            setIsOpenResetTargetModal(false);
+          }}
+          clickEventSubmit={handleResetTarget}
+          // clickEventSubmit={handleResetA}
+          withSelect={false}
         />
       )}
       {/* ---------------------- 売上目標リセットタイプ選択 リセットモーダル ここまで ---------------------- */}

@@ -700,47 +700,47 @@ export const TargetContainer = () => {
   const setDisplayTargetPeriodType = useDashboardStore((state) => state.setDisplayTargetPeriodType);
 
   // 目標設定モード開始(作成・編集ボタンクリック)❌一旦中止
-  const handleStartUpsertMode = () => {
-    if (!activeEntityLocal) return alert("エラー：グループデータが見つかりませんでした。");
-    // セクション・サブメニュー閉じる
-    handleCloseSectionMenu();
+  // const handleStartUpsertMode = () => {
+  //   if (!activeEntityLocal) return alert("エラー：グループデータが見つかりませんでした。");
+  //   // セクション・サブメニュー閉じる
+  //   handleCloseSectionMenu();
 
-    // 設定するエンティティの子エンティティタイプを特定してセット(Upsertコンポーネント側で子エンティティの配列を取得)
-    let _childEntityLevel = "member";
-    if (endEntity === activeEntityLocal.entityLevel) {
-      _childEntityLevel = "member";
-    } else {
-      if (activeEntityLocal.entityLevel === "company" && departmentDataArray && departmentDataArray.length > 0) {
-        _childEntityLevel = "department";
-      } else if (activeEntityLocal.entityLevel === "company" && officeDataArray && officeDataArray.length > 0) {
-        _childEntityLevel = "office";
-      } else if (activeEntityLocal.entityLevel === "department" && sectionDataArray && sectionDataArray.length > 0) {
-        _childEntityLevel = "section";
-      } else if (activeEntityLocal.entityLevel === "section" && unitDataArray && unitDataArray.length > 0) {
-        _childEntityLevel = "unit";
-      } else {
-        _childEntityLevel = "member";
-      }
-    }
+  //   // 設定するエンティティの子エンティティタイプを特定してセット(Upsertコンポーネント側で子エンティティの配列を取得)
+  //   let _childEntityLevel = "member";
+  //   if (endEntity === activeEntityLocal.entityLevel) {
+  //     _childEntityLevel = "member";
+  //   } else {
+  //     if (activeEntityLocal.entityLevel === "company" && departmentDataArray && departmentDataArray.length > 0) {
+  //       _childEntityLevel = "department";
+  //     } else if (activeEntityLocal.entityLevel === "company" && officeDataArray && officeDataArray.length > 0) {
+  //       _childEntityLevel = "office";
+  //     } else if (activeEntityLocal.entityLevel === "department" && sectionDataArray && sectionDataArray.length > 0) {
+  //       _childEntityLevel = "section";
+  //     } else if (activeEntityLocal.entityLevel === "section" && unitDataArray && unitDataArray.length > 0) {
+  //       _childEntityLevel = "unit";
+  //     } else {
+  //       _childEntityLevel = "member";
+  //     }
+  //   }
 
-    setUpsertTargetObj({
-      fiscalYear: selectedFiscalYearLocal,
-      entityLevel: activeEntityLocal.entityLevel,
-      entityId: activeEntityLocal.entityId,
-      entityName: activeEntityLocal.entityName,
-      childEntityLevel: _childEntityLevel,
-    });
+  //   setUpsertTargetObj({
+  //     fiscalYear: selectedFiscalYearLocal,
+  //     entityLevel: activeEntityLocal.entityLevel,
+  //     entityId: activeEntityLocal.entityId,
+  //     entityName: activeEntityLocal.entityName,
+  //     childEntityLevel: _childEntityLevel,
+  //   });
 
-    // setUpsertTargetMode(true);
-    setOpenPopupMenu(null);
-    setUpsertTargetMode("settingTarget");
+  //   // setUpsertTargetMode(true);
+  //   setOpenPopupMenu(null);
+  //   setUpsertTargetMode("settingTarget");
 
-    // 目標トップページのメインエンティティをリセットしておく
-    setMainEntityTarget(null);
-    setMainTotalTargets(null); // 総合目標の合計値もリセット
-    setSubEntitiesSalesTargets(null); // サブ目標の合計値もリセット
-    setDisplayTargetPeriodType("fiscal_year"); // 年度に戻す
-  };
+  //   // 目標トップページのメインエンティティをリセットしておく
+  //   setMainEntityTarget(null);
+  //   setMainTotalTargets(null); // 総合目標の合計値もリセット
+  //   setSubEntitiesSalesTargets(null); // サブ目標の合計値もリセット
+  //   setDisplayTargetPeriodType("fiscal_year"); // 年度に戻す
+  // };
 
   // 目標設定モード開始 エンティティレベルとエンティティの追加から ✅こちらを使用
   const handleStartUpsertEntityMode = () => {
@@ -767,6 +767,13 @@ export const TargetContainer = () => {
       parentEntityName: "",
     });
     setUpsertTargetMode("settingEntity");
+
+    // 目標トップページのメインエンティティをリセットしておく
+    setMainEntityTarget(null);
+    setMainTotalTargets(null); // 総合目標の合計値もリセット
+    setSubEntitiesSalesTargets(null); // サブ目標の合計値もリセット
+    setDisplayTargetPeriodType("fiscal_year"); // 年度に戻す
+    setSelectedFiscalYearTarget(currentFiscalYear); // 選択年度を初期値にリセット
   };
 
   // 目標設定モードを終了
@@ -1864,7 +1871,7 @@ export const TargetContainer = () => {
                       className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
                       onClick={() => {
                         handleClosePopupMenu();
-                        if (openSectionMenu.title === "settingSalesTarget") handleStartUpsertMode();
+                        // if (openSectionMenu.title === "settingSalesTarget") handleStartUpsertMode();
                       }}
                     >
                       {openSectionMenu.title !== "settingSalesTarget" && <span>適用</span>}
