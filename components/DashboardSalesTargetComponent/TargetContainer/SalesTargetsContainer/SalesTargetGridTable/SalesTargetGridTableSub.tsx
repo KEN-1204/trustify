@@ -870,6 +870,7 @@ const SalesTargetGridTableSubMemo = ({
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
 
   // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
+  const subEntitiesSalesTargets = useDashboardStore((state) => state.subEntitiesSalesTargets);
   const setSubEntitiesSalesTargets = useDashboardStore((state) => state.setSubEntitiesSalesTargets);
 
   useEffect(() => {
@@ -880,7 +881,7 @@ const SalesTargetGridTableSubMemo = ({
       "currentActiveIndex",
       currentActiveIndex
     );
-    if (2 <= currentActiveIndex) return;
+    if (2 <= currentActiveIndex && subEntitiesSalesTargets !== null) return;
     if (isSuccessQuery || isErrorQuery) {
       // 取得した各エンティティの売上目標をZustandにセットして売上推移の末尾に追加してチャートに反映する
       const newQueryTarget = !!data?.pages?.length && !!data?.pages[0].rows?.length ? data?.pages[0].rows : null;
@@ -2934,6 +2935,33 @@ const SalesTargetGridTableSubMemo = ({
 
   // }, [allRows]);
 
+  const getFrozenBg = (index: number) => {
+    switch (index) {
+      case 0:
+        return styles.sub_frozen_grad1;
+        break;
+      case 1:
+        return styles.sub_frozen_grad2;
+        break;
+      case 2:
+        return styles.sub_frozen_grad3;
+        break;
+      case 3:
+        return styles.sub_frozen_grad4;
+        break;
+      case 4:
+        return styles.sub_frozen_grad5;
+        break;
+      case 5:
+        return styles.sub_frozen_grad6;
+        break;
+
+      default:
+        return styles.sub_frozen_bg;
+        break;
+    }
+  };
+
   console.log(
     "✅SalesTargetGridTableSubコンポーネントレンダリング",
     "=============================================data",
@@ -3128,7 +3156,9 @@ const SalesTargetGridTableSubMemo = ({
               tabIndex={-1}
               className={`${styles.grid_column_header_all} ${styles.grid_column_frozen} ${
                 styles.grid_column_header_checkbox_column
-              } ${styles.share} ${displayTargetPeriodType !== "fiscal_year" ? `${styles.drag_disabled}` : ``}`}
+              } ${styles.share} ${
+                displayTargetPeriodType !== "fiscal_year" ? `${styles.drag_disabled}` : ``
+              } ${getFrozenBg(0)}`}
               // style={{ gridColumnStart: 1, left: columnHeaderLeft(0), position: "sticky" }}
               style={{ gridColumnStart: 1, left: "0px", position: "sticky" }}
               // onClick={(e) => {
@@ -3203,7 +3233,9 @@ const SalesTargetGridTableSubMemo = ({
                       key.isFrozen ? `${styles.grid_column_frozen} cursor-default` : ""
                     } ${isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""} ${
                       isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
-                    } ${styles.grid_cell_resizable} dropzone ${key.isOverflow ? `${styles.is_overflow}` : ""}`}
+                    } ${styles.grid_cell_resizable} dropzone ${
+                      key.isOverflow ? `${styles.is_overflow}` : ""
+                    } ${getFrozenBg(0)}`}
                     style={
                       key.isFrozen
                         ? { gridColumnStart: index + 2, left: `var(--frozen-left-${index})` }
@@ -3469,7 +3501,9 @@ const SalesTargetGridTableSubMemo = ({
                                   aria-selected={false}
                                   aria-readonly={true}
                                   tabIndex={-1}
-                                  className={`${styles.grid_cell} ${styles.grid_column_frozen} ${styles.share}`}
+                                  className={`${styles.grid_cell} ${styles.grid_column_frozen} ${
+                                    styles.share
+                                  } ${getFrozenBg(virtualRow.index * displayKeys.length + displayIndex + 1)}`}
                                   style={{ gridColumnStart: 1, left: "0px" }}
                                   // onClick={(e) => handleClickGridCell(e)}
                                 >
@@ -3573,7 +3607,7 @@ const SalesTargetGridTableSubMemo = ({
                                           isFrozenCountRef.current === colIndex + 1 ? styles.grid_cell_frozen_last : ""
                                         }  ${styles.grid_cell_resizable} ${
                                           columnName === "entity_name" ? `${styles.company_highlight}` : ``
-                                        }`}
+                                        } ${getFrozenBg(virtualRow.index * displayKeys.length + displayIndex + 1)}`}
                                         style={
                                           salesTargetColumnHeaderItemList[colIndex].isFrozen
                                             ? {
@@ -3600,22 +3634,18 @@ const SalesTargetGridTableSubMemo = ({
                     );
                   })}
 
-                {false &&
+                {/* {false &&
                   rowVirtualizer.getVirtualItems().length > 0 &&
                   rowVirtualizer.getVirtualItems().map((virtualRow) => {
                     const isLoaderRow = virtualRow.index > allRows.length - 1;
                     const rowData = allRows[virtualRow.index];
 
-                    // console.log("rowData", rowData);
 
-                    // ========= 🌟初回表示時はデータがindexしか取得できないのでnullを表示 =========
                     if ("index" in rowData && Object.keys(rowData).length === 1) {
                       console.log("🌟初回表示時はデータがindexしか取得できないのでnullを表示", rowData);
                       return null;
                     }
 
-                    // ========= 🌟ローディング中の行トラック =========
-                    // if (isLoaderRow) return hasNextPage ? "Loading more" : "Nothing more to load";
                     if (isLoaderRow) {
                       return (
                         <div
@@ -3632,14 +3662,6 @@ const SalesTargetGridTableSubMemo = ({
                         </div>
                       );
                     }
-                    // ========= 🌟ローディング中の行トラック ここまで =========
-
-                    console.log("rowVirtualizer.getVirtualItems()内 rowData", rowData);
-
-                    /* ======================== Grid列トラック Row ======================== */
-
-                    // ========= 🌠各データセットを展開するためのループ🌠 =========
-                    // 最大３行１セットで展開(売上目標・前年度売上・前年比)
                     return (
                       <Fragment key={"row" + virtualRow.index.toString() + "sub"}>
                         {displayKeys.map((displayKey, displayIndex) => {
@@ -3695,7 +3717,6 @@ const SalesTargetGridTableSubMemo = ({
                                 top: `${top}px`,
                               }}
                             >
-                              {/* ======== gridセル チェックボックスセル ======== */}
                               {displayRowData && (
                                 <div
                                   ref={(ref) => (gridRowTracksRefs.current[virtualRow.index] = ref)}
@@ -3752,19 +3773,14 @@ const SalesTargetGridTableSubMemo = ({
                                     )}
                                 </div>
                               )}
-                              {/* ======== gridセル 全てのプロパティ(フィールド)セル  ======== */}
 
-                              {/* {rowData ? ( */}
                               {displayRowData ? (
                                 // カラム順番が変更されているなら順番を合わせてからmap()で展開 上はcolumnNameで呼び出し
                                 columnOrder ? (
                                   columnOrder
-                                    // .map((columnName) => rowData[columnName])
                                     .map((columnName) => displayRowData[columnName])
                                     .map((value, colIndex) => {
-                                      // const columnName = salesTargetColumnHeaderItemList[index]?.columnName;
                                       const columnName = filteredSalesTargetColumnHeaderItemList[colIndex]?.columnName;
-                                      // const columnName = Object.keys(displayRowData)[];
                                       let displayValue = value;
 
                                       displayValue = formatDisplayValue(displayKey, columnName, displayValue);
@@ -3781,7 +3797,7 @@ const SalesTargetGridTableSubMemo = ({
                                             salesTargetColumnHeaderItemList[colIndex]
                                               ? salesTargetColumnHeaderItemList[colIndex]?.columnIndex
                                               : colIndex + 2
-                                          } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                          } 
                                           aria-selected={false}
                                           tabIndex={-1}
                                           className={`${styles.grid_cell} ${
@@ -3828,10 +3844,10 @@ const SalesTargetGridTableSubMemo = ({
                                       );
                                     })
                                 ) : (
-                                  // カラム順番が変更されていない場合には、初期のallRows[0]のrowからmap()で展開
+                                 
                                   Object.values(rowData).map((value, index) => (
                                     <div
-                                      // key={"row" + virtualRow.index.toString() + index.toString()}
+                                     
                                       key={
                                         "gridcell" +
                                           virtualRow.index.toString() +
@@ -3843,20 +3859,17 @@ const SalesTargetGridTableSubMemo = ({
                                           filteredSalesTargetColumnHeaderItemList[index]?.columnName +
                                           "sub"
                                       }
-                                      // ref={(ref) => (colsRef.current[index] = ref)}
                                       role="gridcell"
-                                      // aria-colindex={index + 2}
                                       aria-colindex={
                                         salesTargetColumnHeaderItemList[index]
                                           ? salesTargetColumnHeaderItemList[index]?.columnIndex
                                           : index + 2
-                                      } // カラムヘッダーの列StateのcolumnIndexと一致させる
+                                      } 
                                       aria-selected={false}
                                       tabIndex={-1}
                                       className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""} ${
                                         index === 0 ? styles.grid_cell_frozen_last : ""
                                       } ${styles.grid_cell_resizable}`}
-                                      // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                                       style={
                                         salesTargetColumnHeaderItemList[index].isFrozen
                                           ? {
@@ -3892,13 +3905,12 @@ const SalesTargetGridTableSubMemo = ({
                                   </div>
                                 </>
                               )}
-                              {/* ======== ヘッダーセル idを除く全てのプロパティ(フィールド)Column  ======== */}
                             </div>
                           );
                         })}
                       </Fragment>
                     );
-                  })}
+                  })} */}
               </div>
               {/* ======================== Grid列トラック Row ======================== */}
             </>

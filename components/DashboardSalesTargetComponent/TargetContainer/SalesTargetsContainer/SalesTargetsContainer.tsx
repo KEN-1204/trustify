@@ -851,69 +851,93 @@ const SalesTargetsContainerMemo = () => {
   const [allFetched, setAllFetched] = useState(false); // サブ目標コンポーネントのフェッチが全て完了したらtrueに変更
 
   // // 全子コンポーネントがフェッチ完了したかを監視
-  useEffect(() => {
-    if (allFetched) {
-      if (
-        // !(mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
-        currentActiveIndex < 2
-      ) {
-        console.log("setAllFetched false実行 currentActiveIndex >= 2ルート", currentActiveIndex, allFetched);
-        setAllFetched(false);
-      }
-      return;
-    }
-    // サブ目標リストよりactiveIndexが大きくなった場合、全てフェッチが完了
-    if (currentActiveIndex >= 2) {
-      console.log("setAllFetched true実行 currentActiveIndex >= 2ルート", currentActiveIndex, allFetched);
-      setAllFetched(true);
-    }
-    if (mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") {
-      console.log("setAllFetched true実行 どちらも全社ルート allFetched", allFetched);
-      setAllFetched(true);
-      // if (currentActiveIndex >= upsertSettingEntitiesObj.entities.length) {
-      //   setAllFetched(true);
-      // }
-    }
-  }, [currentActiveIndex]);
+  // useEffect(() => {
+  //   if (allFetched) {
+  //     if (
+  //       // !(mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") &&
+  //       currentActiveIndex < 2
+  //     ) {
+  //       console.log("setAllFetched false実行 currentActiveIndex >= 2ルート", currentActiveIndex, allFetched);
+  //       setAllFetched(false);
+  //     }
+  //     return;
+  //   }
+  //   // サブ目標リストよりactiveIndexが大きくなった場合、全てフェッチが完了
+  //   if (currentActiveIndex >= 2) {
+  //     console.log("setAllFetched true実行 currentActiveIndex >= 2ルート", currentActiveIndex, allFetched);
+  //     setAllFetched(true);
+  //   }
+  //   if (mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") {
+  //     console.log("setAllFetched true実行 どちらも全社ルート allFetched", allFetched);
+  //     setAllFetched(true);
+  //     // if (currentActiveIndex >= upsertSettingEntitiesObj.entities.length) {
+  //     //   setAllFetched(true);
+  //     // }
+  //   }
+  // }, [currentActiveIndex]);
 
+  const setMainTotalTargets = useDashboardStore((state) => state.setMainTotalTargets);
   const subEntitiesSalesTargets = useDashboardStore((state) => state.subEntitiesSalesTargets);
   const setSubEntitiesSalesTargets = useDashboardStore((state) => state.setSubEntitiesSalesTargets);
+
   // 総合目標のエンティティの変更か、選択年度の変更があった場合にフェッチ完了状態をリセットする
   const onResetFetchComplete = () => {
     console.log("onResetFetchComplete実行");
     setCurrentActiveIndex(0);
     setAllFetched(false);
+    setMainTotalTargets(null);
     setSubEntitiesSalesTargets(null);
   };
 
   // 総合目標のフェッチが完了したら
-  const onFetchComplete = (tableIndex: number) => {
-    // 既に現在のテーブルのindexよりcurrentActiveIndexが大きければリターン
-    if (tableIndex < currentActiveIndex || allFetched) {
+  const onFetchComplete = (tableIndex: number, type: "main" | "sub") => {
+    if (type === "main") {
       console.log(
-        "onFetchComplete関数実行 リターン",
+        "onFetchComplete関数実行 メイン リターン",
         tableIndex,
         "currentActiveIndex",
         currentActiveIndex,
+        "tableIndex < currentActiveIndex",
         tableIndex < currentActiveIndex,
         "allFetched",
         allFetched
       );
-      if (allFetched && currentActiveIndex < 2) {
-        setCurrentActiveIndex((prevIndex) => prevIndex + 1);
+      if (allFetched) return;
+      if (tableIndex < currentActiveIndex) {
+      } else {
+        setCurrentActiveIndex((prevIndex) => prevIndex + 1); // activeIndexを+1して次のコンポーネントのフェッチを許可
+      }
+      // 目標未設定の場合はサブ目標は存在しないので、メイン目標テーブルのフェッチが完了次第allFetchedをtrueに変更
+      if (mainEntityTarget?.parentEntityLevel === "company" && mainEntityTarget.entityLevel === "company") {
+        setAllFetched(true);
       }
       return;
+    } else if (type === "sub") {
+      console.log(
+        "onFetchComplete関数実行 サブ リターン",
+        tableIndex,
+        "currentActiveIndex",
+        currentActiveIndex,
+        "tableIndex < currentActiveIndex",
+        tableIndex < currentActiveIndex,
+        "allFetched",
+        allFetched
+      );
+      if (allFetched) {
+        return;
+        // if (currentActiveIndex < 2) setCurrentActiveIndex(2);
+      }
+      // 既に現在のテーブルのindexよりcurrentActiveIndexが大きければリターン
+      else if (tableIndex < currentActiveIndex) {
+      }
+      //
+      else {
+        setCurrentActiveIndex(2); // activeIndexを+1して次のコンポーネントのフェッチを許可
+        // setCurrentActiveIndex((prevIndex) => prevIndex + 1); // activeIndexを+1して次のコンポーネントのフェッチを許可
+      }
+      // サブ目標のフェッチが完了したら必ずtrueに
+      setAllFetched(true);
     }
-    console.log(
-      "onFetchComplete関数実行 tableIndex",
-      tableIndex,
-      "currentActiveIndex",
-      currentActiveIndex,
-      tableIndex < currentActiveIndex,
-      "allFetched",
-      allFetched
-    );
-    setCurrentActiveIndex((prevIndex) => prevIndex + 1); // activeIndexを+1して次のコンポーネントのフェッチを許可
   };
   // --------------------------- 🌠子コンポーネントを順番にフェッチさせる🌠 ---------------------------
 
@@ -1024,7 +1048,7 @@ const SalesTargetsContainerMemo = () => {
                       isMain={true}
                       stickyRow={stickyRow}
                       setStickyRow={setStickyRow}
-                      onFetchComplete={() => onFetchComplete(0)} // メイン目標は0をセット
+                      onFetchComplete={() => onFetchComplete(0, "main")} // メイン目標は0をセット
                       onResetFetchComplete={onResetFetchComplete}
                       currentActiveIndex={currentActiveIndex}
                     />
@@ -1062,7 +1086,7 @@ const SalesTargetsContainerMemo = () => {
                       isMain={true}
                       stickyRow={stickyRow}
                       setStickyRow={setStickyRow}
-                      onFetchComplete={() => onFetchComplete(0)} // メイン目標は0をセット
+                      onFetchComplete={() => onFetchComplete(0, "main")} // メイン目標は0をセット
                       onResetFetchComplete={onResetFetchComplete}
                       currentActiveIndex={currentActiveIndex}
                     />
@@ -1193,7 +1217,7 @@ const SalesTargetsContainerMemo = () => {
         {allFetched &&
           !(
             subEntitiesSalesTargets &&
-            currentActiveIndex >= 2 &&
+            2 <= currentActiveIndex &&
             (fiscalYearQueryData?.is_confirmed_first_half_details ||
               fiscalYearQueryData?.is_confirmed_second_half_details) &&
             trendPeriodTitle &&
@@ -1248,7 +1272,7 @@ const SalesTargetsContainerMemo = () => {
         {allFetched &&
           !!(
             subEntitiesSalesTargets &&
-            currentActiveIndex >= 2 &&
+            2 <= currentActiveIndex &&
             (fiscalYearQueryData?.is_confirmed_first_half_details ||
               fiscalYearQueryData?.is_confirmed_second_half_details) &&
             trendPeriodTitle &&
@@ -1885,7 +1909,7 @@ const SalesTargetsContainerMemo = () => {
                           stickyRow={stickyRow}
                           setStickyRow={setStickyRow}
                           fetchEnabled={1 <= currentActiveIndex} // 総合目標のフェッチが完了済みならフェッチを許可
-                          onFetchComplete={() => onFetchComplete(1)} // サブ目標は1をセット
+                          onFetchComplete={() => onFetchComplete(1, "sub")} // サブ目標は1をセット
                           currentActiveIndex={currentActiveIndex}
                         />
                       </Suspense>

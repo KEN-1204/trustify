@@ -1237,11 +1237,12 @@ const SalesTargetGridTableMemo = ({
   // ================== 🌟useInfiniteQueryフック🌟 ここまで ==================
 
   // -------------------- 🌠useQueryでフェッチが完了したら次のテーブルをアクティブにする🌠 --------------------
+  const mainTotalTargets = useDashboardStore((state) => state.mainTotalTargets);
   const setMainTotalTargets = useDashboardStore((state) => state.setMainTotalTargets);
   useEffect(() => {
     // 総合目標のフェッチが完了したら、子エンティティのフェッチを許可する。=> 総合目標の各目標金額を子エンティティテーブルで取得してシェアを算出する
     if (isMain) {
-      if (1 <= currentActiveIndex) return;
+      if (1 <= currentActiveIndex && mainTotalTargets !== null) return;
       console.log(
         "✅✅✅✅✅✅✅✅✅✅✅✅総合目標をZustandに格納 isSuccessQuery",
         isSuccessQuery,
@@ -3461,6 +3462,27 @@ const SalesTargetGridTableMemo = ({
   }, [filteredSalesTargetColumnHeaderItemList, displayTargetPeriodType]); // columnNameのみの配列を取得
   // 上半期のみ 売上目標のみ、前年比のみなどのフィルターはここで行う
 
+  const getFrozenBg = (index: number) => {
+    switch (index) {
+      case 0:
+        return styles.frozen_grad1;
+        break;
+      case 1:
+        return styles.frozen_grad2;
+        break;
+      case 2:
+        return styles.frozen_grad3;
+        break;
+      case 3:
+        return styles.frozen_grad4;
+        break;
+
+      default:
+        return styles.frozen_bg;
+        break;
+    }
+  };
+
   console.log(
     "✅SalesTargetGridTableコンポーネントレンダリング",
     "=============================================data",
@@ -4030,7 +4052,9 @@ const SalesTargetGridTableMemo = ({
               tabIndex={-1}
               className={`${styles.grid_column_header_all} ${styles.grid_column_frozen} ${
                 styles.grid_column_header_checkbox_column
-              } ${styles.share} ${displayTargetPeriodType !== "fiscal_year" ? `${styles.drag_disabled}` : ``}`}
+              } ${styles.share} ${
+                displayTargetPeriodType !== "fiscal_year" ? `${styles.drag_disabled}` : ``
+              } ${getFrozenBg(0)}`}
               // style={{ gridColumnStart: 1, left: columnHeaderLeft(0), position: "sticky" }}
               style={{ gridColumnStart: 1, left: "0px", position: "sticky" }}
               // onClick={(e) => {
@@ -4107,7 +4131,9 @@ const SalesTargetGridTableMemo = ({
                       key.isFrozen ? `${styles.grid_column_frozen} cursor-default` : ""
                     } ${isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""} ${
                       isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
-                    } ${styles.grid_cell_resizable} dropzone ${key.isOverflow ? `${styles.is_overflow}` : ""}`}
+                    } ${styles.grid_cell_resizable} dropzone ${
+                      key.isOverflow ? `${styles.is_overflow}` : ""
+                    } ${getFrozenBg(0)}`}
                     // styles.drag_disabled
                     style={
                       key.isFrozen
@@ -4380,7 +4406,9 @@ const SalesTargetGridTableMemo = ({
                                   aria-readonly={true}
                                   tabIndex={-1}
                                   // className={`${styles.grid_cell} ${styles.grid_column_frozen} ${styles.checkbox_cell}`}
-                                  className={`${styles.grid_cell} ${styles.grid_column_frozen} ${styles.share}`}
+                                  className={`${styles.grid_cell} ${styles.grid_column_frozen} ${
+                                    styles.share
+                                  } ${getFrozenBg(virtualRow.index * displayKeys.length + displayIndex + 1)}`}
                                   // style={{ gridColumnStart: 1, left: columnHeaderLeft(0) }}
                                   style={{ gridColumnStart: 1, left: "0px" }}
                                   // onClick={(e) => handleClickGridCell(e)}
@@ -4480,7 +4508,7 @@ const SalesTargetGridTableMemo = ({
                                             isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
                                           }  ${styles.grid_cell_resizable} ${
                                             columnName === "entity_name" ? `${styles.company_highlight}` : ``
-                                          }`}
+                                          } ${getFrozenBg(virtualRow.index * displayKeys.length + displayIndex + 1)}`}
                                           style={
                                             salesTargetColumnHeaderItemList[index].isFrozen
                                               ? {
@@ -4540,7 +4568,9 @@ const SalesTargetGridTableMemo = ({
                                       tabIndex={-1}
                                       className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""} ${
                                         index === 0 ? styles.grid_cell_frozen_last : ""
-                                      } ${styles.grid_cell_resizable}`}
+                                      } ${styles.grid_cell_resizable} ${getFrozenBg(
+                                        virtualRow.index * displayKeys.length + displayIndex + 1
+                                      )}`}
                                       // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                                       style={
                                         salesTargetColumnHeaderItemList[index].isFrozen

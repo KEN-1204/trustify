@@ -356,10 +356,7 @@
   font-family: sans-serif;
   font-weight: 600;
 }
-.grid_row:hover .grid_cell {
-  background-color: var(--color-table-row-hover);
-  /* background-color: var(--color-table-bg-selected); */
-}
+
 .grid_row .grid_cell.share {
   padding: 0;
 }
@@ -422,7 +419,68 @@
   position: sticky;
   z-index: 1;
   /* backdrop-filter: blur(12px); */
+  /* background: var(--color-sales-card-bg); */
+  /* background: #242424; */
 }
+
+.grid_column_frozen.frozen_grad1 {
+  background: var(--color-sales-card-frozen-grad1);
+}
+.grid_column_frozen.frozen_grad2 {
+  background: var(--color-sales-card-frozen-grad2);
+}
+.grid_column_frozen.frozen_grad3 {
+  background: var(--color-sales-card-frozen-grad3);
+}
+.grid_column_frozen.frozen_grad4 {
+  background: var(--color-sales-card-frozen-grad4);
+}
+.grid_column_frozen.frozen_bg {
+  background: var(--color-sales-card-frozen-bg);
+}
+
+.grid_column_frozen.sub_frozen_grad1 {
+  background: var(--color-sales-card-sub-frozen-grad1);
+}
+.grid_column_frozen.sub_frozen_grad2 {
+  background: var(--color-sales-card-sub-frozen-grad2);
+}
+.grid_column_frozen.sub_frozen_grad3 {
+  background: var(--color-sales-card-sub-frozen-grad3);
+}
+.grid_column_frozen.sub_frozen_grad4 {
+  background: var(--color-sales-card-sub-frozen-grad4);
+}
+.grid_column_frozen.sub_frozen_grad5 {
+  background: var(--color-sales-card-sub-frozen-grad5);
+}
+.grid_column_frozen.sub_frozen_grad6 {
+  background: var(--color-sales-card-sub-frozen-grad6);
+}
+.grid_column_frozen.sub_frozen_bg {
+  background: var(--color-sales-card-sub-frozen-bg);
+}
+
+/* background: var(--color-table-row-hover) !important; */
+.grid_row:hover .grid_cell {
+  background: var(--color-table-row-hover) !important;
+  /* background-color: var(--color-table-bg-selected); */
+}
+
+.grid_header_row .grid_column_header_all.grid_column_frozen,
+.grid_row .grid_cell.grid_column_frozen {
+  /* backdrop-filter: blur(10px) !important; */
+}
+/* .grid_column_frozen::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  backdrop-filter: blur(10px);
+  z-index: -1;
+} */
 
 .grid_cell_frozen_last {
   border-right-width: 4px;
@@ -1232,11 +1290,6 @@
 .icon_path_stroke path,
 .icon_path_stroke svg {
   pointer-events: none;
-}
-
-.grid_header_row .grid_column_header_all.grid_column_frozen,
-.grid_row .grid_cell.grid_column_frozen {
-  backdrop-filter: blur(10px) !important;
 }
 
 .select_btn_wrapper select {
