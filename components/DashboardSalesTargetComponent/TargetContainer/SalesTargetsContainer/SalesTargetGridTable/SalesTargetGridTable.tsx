@@ -1212,10 +1212,10 @@ const SalesTargetGridTableMemo = ({
     queryKey: [
       "sales_targets",
       `${selectedFiscalYearTarget}`,
-      mainEntityTarget?.parentEntityLevel ?? null,
       mainEntityTarget?.entityLevel ?? null,
-      mainEntityTarget?.parentEntityId ?? null,
       "main",
+      mainEntityTarget?.parentEntityLevel ?? null,
+      mainEntityTarget?.parentEntityId ?? null,
     ],
     queryFn: async (ctx) => {
       console.log("🔥queryFn実行");
@@ -3831,8 +3831,14 @@ const SalesTargetGridTableMemo = ({
                     await queryClient.invalidateQueries([
                       "sales_targets",
                       `${selectedFiscalYearTarget}`,
-                      entityLevel ?? null,
+                      // entityLevel ?? null,
                     ]);
+                    // 目標タブトップ画面の設定年度の売上目標を更新
+                    await queryClient.invalidateQueries(["sales_targets_share", `${selectedFiscalYearTarget}`]);
+                    // 目標タブトップ画面の設定年度の売上目標を更新
+                    await queryClient.invalidateQueries(["sales_trends", `${selectedFiscalYearTarget}`]);
+
+                    if (onResetFetchComplete) onResetFetchComplete();
                     await new Promise((resolve) => setTimeout(resolve, 300));
                     setIsLoadingRefresh(false);
                     handleCloseTooltip();

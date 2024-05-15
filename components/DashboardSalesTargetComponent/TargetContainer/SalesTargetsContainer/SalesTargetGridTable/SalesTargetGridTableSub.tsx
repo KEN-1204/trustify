@@ -845,10 +845,10 @@ const SalesTargetGridTableSubMemo = ({
     queryKey: [
       "sales_targets",
       `${selectedFiscalYearTarget}`,
-      mainEntityTarget?.parentEntityLevel ?? null,
       mainEntityTarget?.entityLevel ?? null,
-      mainEntityTarget?.parentEntityId ?? null,
       "sub",
+      mainEntityTarget?.parentEntityLevel ?? null,
+      mainEntityTarget?.parentEntityId ?? null,
     ],
     queryFn: async (ctx) => {
       console.log("🔥queryFn実行サブ mainTotalTargets", mainTotalTargets);
@@ -2961,6 +2961,11 @@ const SalesTargetGridTableSubMemo = ({
         break;
     }
   };
+  const getHeaderBg = (index: number) => {
+    if (index <= 5) return styles.sub_header_left;
+    if (5 < index) return styles.sub_header_right;
+    return styles.sub_header_right;
+  };
 
   console.log(
     "✅SalesTargetGridTableSubコンポーネントレンダリング",
@@ -3146,7 +3151,13 @@ const SalesTargetGridTableSubMemo = ({
           // }}
         >
           {/* ======================== 🌟Grid列トラック Rowヘッダー🌟 ======================== */}
-          <div role="row" tabIndex={-1} aria-rowindex={1} aria-selected={false} className={`${styles.grid_header_row}`}>
+          <div
+            role="row"
+            tabIndex={-1}
+            aria-rowindex={1}
+            aria-selected={false}
+            className={`${styles.grid_header_row} ${styles.sub}`}
+          >
             {/* ======== ヘッダーセル チェックボックスColumn ======== */}
             <div
               ref={rowHeaderRef}
@@ -3158,7 +3169,7 @@ const SalesTargetGridTableSubMemo = ({
                 styles.grid_column_header_checkbox_column
               } ${styles.share} ${
                 displayTargetPeriodType !== "fiscal_year" ? `${styles.drag_disabled}` : ``
-              } ${getFrozenBg(0)}`}
+              } ${getFrozenBg(0)} ${getHeaderBg(0)}`}
               // style={{ gridColumnStart: 1, left: columnHeaderLeft(0), position: "sticky" }}
               style={{ gridColumnStart: 1, left: "0px", position: "sticky" }}
               // onClick={(e) => {
@@ -3235,7 +3246,7 @@ const SalesTargetGridTableSubMemo = ({
                       isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
                     } ${styles.grid_cell_resizable} dropzone ${
                       key.isOverflow ? `${styles.is_overflow}` : ""
-                    } ${getFrozenBg(0)}`}
+                    } ${getFrozenBg(0)} ${getHeaderBg(index)}`}
                     style={
                       key.isFrozen
                         ? { gridColumnStart: index + 2, left: `var(--frozen-left-${index})` }

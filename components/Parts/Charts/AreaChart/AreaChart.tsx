@@ -330,17 +330,17 @@ export const CustomTooltip = ({
 
   const labelValueGroup = periodToLabelValueMap.has(dateLabel) ? periodToLabelValueMap.get(dateLabel) : null;
 
-  console.log(
-    "🔥🔥🌠🌠🔥🔥🌠🌠🔥🔥🌠🌠dateLabel: ",
-    dateLabel,
-    "salesTargetDate: ",
-    salesTargetDate,
-    dateLabel === salesTargetDate,
-    "labelValueGroup",
-    labelValueGroup,
-    "periodToLabelValueMap",
-    periodToLabelValueMap
-  );
+  // console.log(
+  //   "🔥🔥🌠🌠🔥🔥🌠🌠🔥🔥🌠🌠dateLabel: ",
+  //   dateLabel,
+  //   "salesTargetDate: ",
+  //   salesTargetDate,
+  //   dateLabel === salesTargetDate,
+  //   "labelValueGroup",
+  //   labelValueGroup,
+  //   "periodToLabelValueMap",
+  //   periodToLabelValueMap
+  // );
 
   if (!labelValueGroup) return null;
 
@@ -454,7 +454,7 @@ export const CustomLegend = ({ props, labelType, language, legendList }: LegendC
   const legendsRef = useRef<HTMLDivElement | null>(null);
   const legendUListRef = useRef<HTMLUListElement | null>(null);
 
-  console.log("レジェンド");
+  // console.log("レジェンド");
 
   //   useEffect(() => {
   //     if (legendUListRef.current) {

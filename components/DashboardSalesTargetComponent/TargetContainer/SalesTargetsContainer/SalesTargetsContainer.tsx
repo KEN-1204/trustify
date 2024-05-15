@@ -1510,9 +1510,9 @@ const SalesTargetsContainerMemo = () => {
 
                                     <option value="first_half">上期</option>
 
-                                    {mainEntityTarget.entityLevel !== "member" && (
+                                    {/* {mainEntityTarget.entityLevel !== "member" && (
                                       <option value="second_half">下期</option>
-                                    )}
+                                    )} */}
 
                                     <option value="first_quarter">Q1</option>
                                     <option value="second_quarter">Q2</option>
@@ -1548,7 +1548,7 @@ const SalesTargetsContainerMemo = () => {
                                     {mainEntityTarget.entityLevel !== "member" && (
                                       <>
                                         <option value="fiscal_year">年度</option>
-                                        <option value="first_half">上期</option>
+                                        {/* <option value="first_half">上期</option> */}
                                       </>
                                     )}
                                     <option value="second_half">下期</option>

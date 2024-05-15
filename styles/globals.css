@@ -1448,6 +1448,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sales-card-sub-frozen-grad5: #fff;
   --color-sales-card-sub-frozen-grad6: #fff;
   --color-sales-card-sub-frozen-bg: #fff;
+  --color-sales-card-sub-frozen-grad-header-l: #fff;
+  --color-sales-card-sub-frozen-grad-header-r: #fff;
   /* -------- ✅売上目標✅ light -------- */
 
   /* -------- 🌟カスタムモーダル🌟 light -------- */
@@ -2495,13 +2497,16 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sales-card-frozen-grad4: linear-gradient(to bottom, #1f1f1f 0%, #1d1d1d 100%);
   --color-sales-card-frozen-bg: #1d1d1d;
 
-  --color-sales-card-sub-frozen-grad1: linear-gradient(to bottom, #272727 0%, #242424 100%);
-  --color-sales-card-sub-frozen-grad2: linear-gradient(to bottom, #242424 0%, #222 100%);
-  --color-sales-card-sub-frozen-grad3: linear-gradient(to bottom, #222 0%, #212121 100%);
-  --color-sales-card-sub-frozen-grad4: linear-gradient(to bottom, #212121 0%, #202020 100%);
-  --color-sales-card-sub-frozen-grad5: linear-gradient(to bottom, #202020 0%, #1f1f1f 100%);
-  --color-sales-card-sub-frozen-grad6: linear-gradient(to bottom, #1f1f1f 0%, #1d1d1d 100%);
-  --color-sales-card-sub-frozen-bg: #1d1d1d;
+  --color-sales-card-sub-frozen-grad1: linear-gradient(to bottom, #272727 0%, #252525 100%);
+  --color-sales-card-sub-frozen-grad2: linear-gradient(to bottom, #252525 0%, #242424 100%);
+  --color-sales-card-sub-frozen-grad3: linear-gradient(to bottom, #242424 0%, #232323 100%);
+  --color-sales-card-sub-frozen-grad4: linear-gradient(to bottom, #232323 0%, #222 100%);
+  --color-sales-card-sub-frozen-grad5: linear-gradient(to bottom, #222 0%, #212121 100%);
+  --color-sales-card-sub-frozen-grad6: linear-gradient(to bottom, #212121 0%, #202020 100%);
+  --color-sales-card-sub-frozen-bg: #202020;
+
+  --color-sales-card-sub-frozen-grad-header-l: linear-gradient(to bottom, #292929 0%, #272727 100%);
+  --color-sales-card-sub-frozen-grad-header-r: linear-gradient(to bottom, #2b2b2b 0%, #292929 100%);
   /* -------- ✅売上目標✅ dark -------- */
 
   /* -------- 🌟カスタムモーダル🌟 dark -------- */

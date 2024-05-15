@@ -413,7 +413,7 @@ export const EntityLevelColumn = ({
                             (step === 3 &&
                               currentLevel === entityLevel &&
                               currentLevel !== "member" &&
-                              levelObj.is_confirmed_annual_half) ||
+                              (levelObj.is_confirmed_annual_half || isCompleteAllEntitiesInGroup)) ||
                             (step === 3 &&
                               currentLevel === entityLevel &&
                               currentLevel === "member" &&

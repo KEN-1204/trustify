@@ -149,19 +149,21 @@ export const COLORS = [
 export const COLORS_DEAL = [
   "var(--color-chart-fill-f)",
   "var(--color-chart-fill-brand-grd2)",
-  "var(--color-chart-fill-brand-sub)",
-  "#625afa",
+  // "var(--color-chart-fill-brand-sub)",
+  "#1bc0dd", //
   // "var(--color-chart-fill-sky)",
-  // "var(--color-chart-fill-indigo)",
+  "var(--color-chart-fill-indigo)",
+  // "#625afa",
   // "var(--color-chart-fill-fuchsia)",
 ];
 export const COLORS_DEAL_SHEER = [
   "var(--color-chart-fill-f)",
   "var(--color-chart-fill-brand-grd2)",
-  "var(--color-chart-fill-brand-sub)",
-  "#625afa",
+  // "var(--color-chart-fill-brand-sub)",
+  "#1bc0dd", //
   // "var(--color-chart-fill-sky)",
-  // "var(--color-chart-fill-indigo)",
+  "var(--color-chart-fill-indigo)",
+  // "#625afa",
   // "var(--color-chart-fill-fuchsia)",
 ];
 

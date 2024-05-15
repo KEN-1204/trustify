@@ -1568,6 +1568,7 @@ const UpsertTargetEntityMemo = () => {
       await queryClient.invalidateQueries(["entities", "sales_target", upsertSettingEntitiesObj.fiscalYear]);
 
       // 目標タブトップ画面の設定年度の売上目標を更新
+      await new Promise((resolve) => setTimeout(resolve, 200));
       await queryClient.invalidateQueries(["sales_targets", upsertSettingEntitiesObj.fiscalYear]);
 
       // 目標トップページのスパークチャートをリセット  過去3年分の売上実績と前年度伸び率実績は全てpropertiesテーブルなので不要

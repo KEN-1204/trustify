@@ -439,7 +439,17 @@
   background: var(--color-sales-card-frozen-bg);
 }
 
-.grid_column_frozen.sub_frozen_grad1 {
+/*
+--color-sales-card-bg: linear-gradient(to bottom left, #2d2d2d 0%, #292929 33%, #222 66%, #1c1c1c 100%);
+*/
+.grid_column_header_all.sub_header_left {
+  background: var(--color-sales-card-sub-frozen-grad-header-l);
+}
+.grid_column_header_all.sub_header_right {
+  background: var(--color-sales-card-sub-frozen-grad-header-r);
+}
+
+.grid_header_row.sub .grid_column_header_all.grid_column_frozen.sub_frozen_grad1 {
   background: var(--color-sales-card-sub-frozen-grad1);
 }
 .grid_column_frozen.sub_frozen_grad2 {
@@ -457,6 +467,7 @@
 .grid_column_frozen.sub_frozen_grad6 {
   background: var(--color-sales-card-sub-frozen-grad6);
 }
+
 .grid_column_frozen.sub_frozen_bg {
   background: var(--color-sales-card-sub-frozen-bg);
 }

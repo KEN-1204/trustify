@@ -61,14 +61,14 @@ export function formatSalesTarget(
   // 末尾の不要な0を削除
   const formattedNumberWithoutZero = parseFloat(formattedNumber).toString();
 
-  console.log(
-    "formattedNumber",
-    formattedNumber,
-    "formattedNumberWithoutZero",
-    formattedNumberWithoutZero,
-    "dividedNum",
-    dividedNum
-  );
+  // console.log(
+  //   "formattedNumber",
+  //   formattedNumber,
+  //   "formattedNumberWithoutZero",
+  //   formattedNumberWithoutZero,
+  //   "dividedNum",
+  //   dividedNum
+  // );
 
   // isIntegerの場合は小数点ではなく、四捨五入して整数を返す
   if (isInteger) {

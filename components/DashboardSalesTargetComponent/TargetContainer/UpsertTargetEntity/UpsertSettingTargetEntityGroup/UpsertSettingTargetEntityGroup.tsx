@@ -724,6 +724,19 @@ const UpsertSettingTargetEntityGroupMemo = ({
           upsertSettingEntitiesObj.fiscalYear,
           upsertSettingEntitiesObj.entityLevel,
         ]);
+        // 目標トップ画面 設定したエンティティレベルの売上目標をinvalidate
+        await queryClient.invalidateQueries([
+          "sales_targets",
+          upsertSettingEntitiesObj.fiscalYear,
+          upsertSettingEntitiesObj.entityLevel,
+        ]);
+        // 目標トップ画面 メイン目標用スパークチャート
+        await queryClient.invalidateQueries([
+          "sales_summary_and_growth",
+          upsertSettingEntitiesObj.fiscalYear,
+          `year_half`,
+          upsertSettingEntitiesObj.entityLevel,
+        ]);
 
         // addedEntityLevelListLocalに関しては、エンティティレベルのinvalidateでentityLevelsQueryDataが新しく生成され、useEffectで「setAddedEntityLevelListLocal(addedEntityLevelListLocal ?? []);」が実行されるため、特にstateの変更はこちらでは不要
 
@@ -885,6 +898,19 @@ const UpsertSettingTargetEntityGroupMemo = ({
           "sales_trends",
           upsertSettingEntitiesObj.fiscalYear,
           upsertSettingEntitiesObj.entityLevel,
+        ]);
+        // 目標トップ画面 設定したエンティティレベルの売上目標をinvalidate
+        await queryClient.invalidateQueries([
+          "sales_targets",
+          upsertSettingEntitiesObj.fiscalYear,
+          upsertSettingEntitiesObj.entityLevel,
+        ]);
+        // 目標トップ画面 メイン目標用スパークチャート
+        await queryClient.invalidateQueries([
+          "sales_summary_and_growth",
+          upsertSettingEntitiesObj.fiscalYear,
+          // `year_half`,
+          // upsertSettingEntitiesObj.entityLevel,
         ]);
 
         toast.success("目標設定が完了しました！🌟");
@@ -1951,18 +1977,24 @@ const UpsertSettingTargetEntityGroupMemo = ({
     "🌠🌠🌠UpsertSettingTargetEntityGroupコンポーネントレンダリング",
     "upsertSettingEntitiesObj",
     upsertSettingEntitiesObj,
-    "メイン目標キャッシュsalesTargetsYearHalf",
-    salesTargetsYearHalf,
-    "半期詳細ステータスsalesTargetsHalfDetailsStatus",
-    salesTargetsHalfDetailsStatus,
-    "合計目標と個別エンティティ目標totalInputSalesTargetsYearHalf",
-    totalInputSalesTargetsYearHalf,
-    "収集したデータinputSalesTargetsIdToDataMap",
+    "inputSalesTargetsIdToDataMap",
     inputSalesTargetsIdToDataMap,
-    "monthTargetStatusMapForAllMembers",
-    monthTargetStatusMapForAllMembers,
-    "isAllCompleteMonthTargetsForMember",
-    isAllCompleteMonthTargetsForMember
+    "currentActiveIndexSave",
+    currentActiveIndexSave,
+    "allSaved",
+    allSaved
+    // "メイン目標キャッシュsalesTargetsYearHalf",
+    // salesTargetsYearHalf,
+    // "半期詳細ステータスsalesTargetsHalfDetailsStatus",
+    // salesTargetsHalfDetailsStatus,
+    // "合計目標と個別エンティティ目標totalInputSalesTargetsYearHalf",
+    // totalInputSalesTargetsYearHalf,
+    // "収集したデータinputSalesTargetsIdToDataMap",
+    // inputSalesTargetsIdToDataMap,
+    // "monthTargetStatusMapForAllMembers",
+    // monthTargetStatusMapForAllMembers,
+    // "isAllCompleteMonthTargetsForMember",
+    // isAllCompleteMonthTargetsForMember
     // "memberDataArray",
     // memberDataArray,
     // "settingEntityLevel",
@@ -2978,6 +3010,11 @@ const UpsertSettingTargetEntityGroupMemo = ({
           clickEventClose={() => {
             setSaveTriggerSalesTarget(false); //トリガーをリセット
             setInputSalesTargetsIdToDataMap({}); // 収集したデータをリセット
+            // ローディング終了
+            setIsLoading(false);
+            // save関連のstateをリセット
+            setCurrentActiveIndexSave(0);
+            setAllSaved(false);
             setIsOpenConfirmDialog(false); // ダイアログを閉じる
           }}
           clickEventSubmit={handleSaveTarget}
