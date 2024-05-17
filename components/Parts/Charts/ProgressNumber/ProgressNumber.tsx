@@ -7,6 +7,7 @@ type Props = {
   startNumber?: number;
   duration: number;
   fontSize?: number;
+  fontWeight?: number;
   textColor?: string;
   margin?: string;
   padding?: string;
@@ -25,6 +26,7 @@ const ProgressNumberMemo = ({
   startNumber = 0,
   duration = 3000,
   fontSize = 15,
+  fontWeight = 500,
   textColor = "var(--color-text-title)",
   margin,
   padding,
@@ -111,6 +113,7 @@ const ProgressNumberMemo = ({
     <span
       style={{
         fontSize: `${fontSize}px`,
+        fontWeight: fontWeight,
         color: `${textColor}`,
         ...(margin && { margin: `${margin}`, ...(padding && { padding: `${padding}` }) }),
       }}

@@ -79,6 +79,7 @@
   min-height: var(--header-height);
   width: 100%;
 }
+
 .main_contents_container {
   width: 100%;
   height: calc(100vh - var(--header-height));

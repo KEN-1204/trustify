@@ -20,8 +20,21 @@ export const DashboardSDBComponent = () => {
     // テーマカラーをローカルストレージから取得して反映
     const themeColor = localStorage.getItem("theme_color");
     console.log("DashboardSDBComponentコンポーネントローカルストレージから取得 themeColor", themeColor);
-    if (!!themeColor && activeThemeColor !== themeColor) {
-      setActiveThemeColor(themeColor); // 既に存在する場合のみ反映
+    if (
+      !!themeColor &&
+      activeThemeColor !== themeColor &&
+      ["theme-brand-f", "theme-brand-f-gradient", "theme-black-gradient", "theme-simple12", "theme-simple17"].includes(
+        themeColor
+      )
+    ) {
+      setActiveThemeColor(
+        themeColor as
+          | "theme-brand-f"
+          | "theme-brand-f-gradient"
+          | "theme-black-gradient"
+          | "theme-simple12"
+          | "theme-simple17"
+      ); // 既に存在する場合のみ反映
     }
     if (themeColor === null) {
       // テーマをdarkに変更
@@ -57,7 +70,12 @@ export const DashboardSDBComponent = () => {
         {isOpenSidebar && <div className={`${styles.sidebar_overlay}`} onClick={() => setIsOpenSidebar(false)}></div>}
         <div className={`${styles.main_contents_wrapper} `}>
           {/* 上ヘッダーサイズ分のスペーサー */}
-          <div className={`${styles.spacer_top}`}></div>
+          <div
+            // className={`${styles.spacer_top} ${
+            //   activeThemeColor === "theme-simple12" ? `bg-[var(--color-sdb-header-white)]` : ``
+            // }`}
+            className={`${styles.spacer_top}`}
+          ></div>
           {/* ===================== スクロールコンテナ ここから ===================== */}
           <div className={`${styles.main_contents_container}`}>
             {/* １画面目  */}

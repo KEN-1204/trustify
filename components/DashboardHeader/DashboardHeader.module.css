@@ -35,7 +35,7 @@
   /* background-color: var(--color-sdb-bg); */
   --shadow-header: var(--shadow-header-sdb);
   /* box-shadow: var(--shadow-sidebar); */
-  border-bottom: 1px solid var(--color-border);
+  /* border-bottom: 1px solid var(--color-border); */
   background-color: transparent;
 }
 .app_header.sdb .sdb_icon {

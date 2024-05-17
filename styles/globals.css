@@ -1220,9 +1220,12 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sdb-bg-black-gradient: var(--color-bg-dashboard);
   --color-sdb-bg-simple12: var(--color-bg-dashboard);
   --color-sdb-bg-simple17: #fff;
-  --color-sdb-section-title-bg: var(--color-bg-brand-subf0);
+  /* --color-sdb-section-title-bg: var(--color-bg-brand-subf0);
   --color-sdb-section-title-bg-hover: var(--color-bg-brand-sub-hover-light);
-  --color-sdb-section-title-border: var(--color-bg-brand-sub-hover-light);
+  --color-sdb-section-title-border: var(--color-bg-brand-sub-hover-light); */
+  --color-sdb-section-title-bg: var(--color-bg-brand-fd0);
+  --color-sdb-section-title-bg-hover: var(--color-bg-brand-f-deep);
+  --color-sdb-section-title-border: var(--color-bg-brand-f);
   --color-sdb-section-title-text: #fff;
   --color-table-text: var(--color-text-title);
   --color-deal-board-bg: #ffffff66;
@@ -1234,15 +1237,19 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-deal-board--bg-theme-simple12-prev: transparent;
   --color-deal-board--bg-theme-simple12: var(--color-sales-card-bg);
   /* --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 4px #999; */
-  --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 2px 9px 3px #99999990;
+  --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0px 3px 2px #00000039;
+  /* --color-deal-board-theme-f-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 2px 9px 3px #99999990; */
+  --color-deal-board-theme-f-border: 0 0 0 1px #ccc, 0 0px 3px 2px #00000039;
   --color-deal-board-theme-simple12-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 2px 12px 3px #99999990;
   --color-deal-board-theme-simple12-border: 0 1px 2px 1px #cccccc60;
-  --color-deal-board-theme-simple17-bg: linear-gradient(
+  --color-deal-board-theme-simple17-bg: #fff;
+  /* --color-deal-board-theme-simple17-bg: linear-gradient(
     90deg,
     rgba(240, 240, 240, 0.33) 1.21%,
     rgba(255, 255, 255, 0.56) 49.45%,
     rgba(240, 240, 240, 0.33) 90.83%
-  );
+  ); */
+  --color-deal-board-theme-simple17-border: 0 0 0 1px #ccc, 0 0px 3px 2px #00000039;
   --color-award: rgb(252, 70, 204);
   --color-eighty: var(--main-color-tk);
   --color-fifty: rgb(30, 209, 102);
@@ -1427,6 +1434,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sales-card-border: 0 1px 2px 1px #cccccc60;
   --color-sales-card-border-brand: 0 0 0 1px var(--color-bg-brand-f), 0 1px 2px 2px #cccccc60;
   --color-sales-card-border-sticky: 0 1px 2px 1px #cccccc60, 0 6px 12px 3px #00000056;
+
+  --color-sdb-header-white: #fff;
+
   --color-sales-card-label-bg: var(--color-bg-sub);
   --color-sales-card-label-text: var(--color-text-title);
   /* --color-sales-card-border: 0 0 0 1px #cccccc90; */
@@ -1456,6 +1466,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-modal-border-shadow-custom: 0 6px 12px 9px #00000042;
   --color-modal-border-shadow-custom: 0 0 0 1px var(--color-border-light), 0 0 0 2px #999, 0 6px 12px 9px #00000042;
   /* -------- ✅カスタムモーダル✅ light ここまで -------- */
+  --refresh-icon-bg: var(--color-bg-brand-f);
+  --refresh-icon-bg-hover: var(--color-bg-brand-f);
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -2138,8 +2150,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --shadow-header: 0px 1px 6px 0px rgba(255, 255, 255, 0.12); */
   --shadow-header: 0px 2px 6px 0px rgba(0, 0, 0, 0.6);
   /* --shadow-header: 0px 1px 6px 2px rgba(0, 0, 0, 0.33); */
-  --shadow-header-sdb: 0px 1px 6px 0px rgba(0, 0, 0, 0.33);
-  --shadow-header-sdb: 0px 1px 6px -1px rgba(255, 255, 255, 0.12);
+  /* --shadow-header-sdb: 0px 1px 6px 0px rgba(0, 0, 0, 0.33); */
+  /* --shadow-header-sdb: 0px 1px 6px -1px rgba(255, 255, 255, 0.12); */
+  --shadow-header-sdb: 0px 2px 6px 0px rgba(0, 0, 0, 0.6);
   /* --shadow-sidebar: 1px 0px 6px -2px rgba(255, 255, 255, 0.12); */
   --shadow-sidebar: 2px 0px 6px 0px rgba(0, 0, 0, 0.6);
   /* --shadow-sidebar: 1px 0px 6px 1px rgba(0, 0, 0, 0.33); */
@@ -2240,10 +2253,13 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   );
   --color-sdb-bg-simple12: #121212;
   --color-sdb-bg-simple17: #171717;
-  --color-sdb-section-title-bg: var(--color-bg-brand30);
+  /* --color-sdb-section-title-bg: var(--color-bg-brand30);
   --color-sdb-section-title-bg-hover: var(--color-bg-brandc0);
+  --color-sdb-section-title-border: var(--color-bg-brand); */
+  --color-sdb-section-title-bg: var(--color-bg-brand-f40);
+  --color-sdb-section-title-bg-hover: var(--color-bg-brand-f);
+  --color-sdb-section-title-border: var(--color-bg-brand-f);
   --color-sdb-section-title-text: #fff;
-  --color-sdb-section-title-border: var(--color-bg-brand);
   --color-sdb-text: #fafafa;
   --color-deal-board-bg: #00000099;
   /* --color-deal-board-bg-black-gradient: linear-gradient(
@@ -2270,7 +2286,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-deal-board--bg-theme-simple12-prev: var(--color-sales-card-bg);
   --color-deal-board--bg-theme-simple12: var(--color-sales-card-bg);
   /* --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 3px #999999; */
-  --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 3px #999999;
+  --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 6px 3px #ffffff39;
+  --color-deal-board-theme-f-border: 0 0 0 1px #ffffffd0, 0 0 9px 2px var(--color-bg-brand-f);
   /* --color-deal-board-theme-simple12-border: 0 0 0 1px #ffffffd0, 0 0 12px 2px var(--color-bg-brand-f); */
   --color-deal-board-theme-simple12-border: var(--color-sales-card-border);
   --color-deal-board-theme-simple17-bg: linear-gradient(
@@ -2279,6 +2296,13 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     rgba(53, 53, 53, 0.56) 49.45%,
     rgba(15, 15, 15, 0.33) 90.83%
   );
+  --color-deal-board-theme-simple17-border: 0 0 0 1px #ccc, 0 0 6px 3px #ffffff39;
+
+  /* sticky */
+  --color-deal-board-theme-f-border-sticky: 0 0 0 1px #ffffffd0, 0 0 9px 2px var(--color-bg-brand-f),
+    0 6px 12px 9px #000000dd;
+  --color-deal-board-theme-black-border-sticky: 0 0 0 1px #ccc, 0 0 6px 3px #ffffff39, 0 6px 12px 9px #000000dd;
+
   /* --color-award: rgb(236 72 153 / 1);
   --color-eighty: var(--main-color-tk);
   --color-fifty: rgb(16 185 129 / 1);
@@ -2483,6 +2507,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sales-card-border: 0 0 0 1px #333;
   --color-sales-card-border-brand: 0 0 0 1px var(--color-bg-brand-f);
 
+  --color-sdb-header-white: transparent;
+
   --color-donut-share-bg: #666;
   --color-sales-card-label-bg: #565656;
   --color-sales-card-label-text: var(--color-text-sub);
@@ -2513,6 +2539,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-modal-border-shadow-custom: 0px 0px 0px 1px #cccccc90, 0px 0px 0px 2px #33333390, 0 6px 12px 9px #00000042;
   --color-modal-border-shadow-custom: 0px 0px 0px 1px #cccccc90, 0px 0px 0px 2px #33333390, 0 6px 12px 9px #00000066;
   /* -------- ✅カスタムモーダル✅ dark ここまで -------- */
+  --refresh-icon-bg: var(--color-bg-brand-f90);
+  --refresh-icon-bg-hover: var(--color-bg-brand-f);
 }
 
 /* html {
@@ -3831,6 +3859,9 @@ textarea {
   border-radius: 50%;
   /* background-color: var(--color-bg-brand-f30); */
   cursor: pointer;
+  /* transform: scale(-1, 1); */
+}
+.refresh_icon.invert {
   transform: scale(-1, 1);
 }
 .refresh_icon path {
@@ -3844,7 +3875,8 @@ textarea {
 .refresh_icon:hover {
   /* background-color: var(--color-bg-brand-f); */
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
-  background-color: var(--color-bg-brand-f90);
+  /* background-color: var(--color-bg-brand-f90); */
+  background-color: var(--refresh-icon-bg-hover);
 }
 .refresh_icon:hover path {
   stroke: #ffffff;

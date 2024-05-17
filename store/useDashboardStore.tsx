@@ -600,8 +600,16 @@ type State = {
   setIsRequiredInputSoldProduct: (payload: boolean) => void;
 
   // テーマカラー
-  activeThemeColor: string;
-  setActiveThemeColor: (payload: string) => void;
+  // activeThemeColor: string;
+  activeThemeColor:
+    | "theme-brand-f"
+    | "theme-brand-f-gradient"
+    | "theme-black-gradient"
+    | "theme-simple12"
+    | "theme-simple17";
+  setActiveThemeColor: (
+    payload: "theme-brand-f" | "theme-brand-f-gradient" | "theme-black-gradient" | "theme-simple12" | "theme-simple17"
+  ) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({

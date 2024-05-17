@@ -23,6 +23,7 @@ import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/Progres
 import { GradientModal } from "@/components/Parts/GradientModal/GradientModal";
 import { EditModalDealCard } from "./EditModalDealCard/EditModalDealCard";
 import { formatDisplayPrice } from "@/utils/Helpers/formatDisplayPrice";
+import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 
 type Props = {
   memberList: MemberAccounts[];
@@ -84,11 +85,15 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
 
   const FallbackDealBoard = () => {
     return (
-      <div className="flex-center h-[50dvh] w-[100vw]">
-        <SpinnerBrand
-          bgColor="var(--color-sdb-bg)"
+      <div className={`flex-center h-[288px] w-[100vw] px-[24px] py-[12px]`}>
+        {/* <SpinnerBrand
+          // bgColor="var(--color-sdb-bg)"
+          bgColor="#121212"
+          withBorder
+          withShadow
           bgTransition={`${activeThemeColor !== "theme-black-gradient" ? `transition-bg05` : ``}`}
-        />
+        /> */}
+        <SpinnerX />
       </div>
     );
   };
@@ -108,7 +113,54 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
   return (
     <>
       {/* <section className={`${styles.company_table_screen} h-screen w-full bg-neutral-900 text-neutral-50`}> */}
-      <section className={`${styles.screen_deal_boards} transition-bg05 w-full`}>
+      <section
+        className={`${styles.screen_deal_boards} transition-bg05 w-full ${
+          activeThemeColor === "theme-brand-f" ? `` : ``
+        } 
+                 ${activeThemeColor === "theme-brand-f-gradient" ? `${styles.theme_f_gradient}` : ``} 
+                 ${activeThemeColor === "theme-black-gradient" ? `${styles.theme_black}` : ``} 
+                ${activeThemeColor === "theme-simple17" ? `${styles.theme_simple17}` : ``} ${
+          activeThemeColor === "theme-simple12" ? `${styles.theme_simple12}` : ``
+        }`}
+      >
+        {/* ------------------- Row チャートエリア ------------------- */}
+        <div className={`${styles.grid_row} ${styles.col2} fade08_forward mb-[20px] min-h-[369px] w-full`}>
+          <div className={`${styles.grid_content_card}`}>
+            <div className={`${styles.card_wrapper} fade08_forward`}>
+              <div className={`${styles.card_title_area}`}>
+                <div className={`${styles.card_title}`}>
+                  <span>売上推移</span>
+                </div>
+              </div>
+              <div className={`${styles.main_container} flex-center`}>
+                <div
+                  className={`flex h-full w-full items-center justify-center text-[13px] text-[var(--color-text-sub)]`}
+                >
+                  <span>売上目標が設定されていません。</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className={`${styles.grid_content_card}`}>
+            <div className={`${styles.card_wrapper} fade08_forward`}>
+              <div className={`${styles.card_title_area}`}>
+                <div className={`${styles.card_title}`}>
+                  <span>売上目標シェア</span>
+                </div>
+              </div>
+              <div className={`${styles.main_container} flex-center`}>
+                <div
+                  className={`flex h-full w-full items-center justify-center text-[13px] text-[var(--color-text-sub)]`}
+                >
+                  <span>売上目標が設定されていません。</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {/* ------------------- Row チャートエリア ------------------- */}
+
         {/* ------------------- ネタ表ボード ------------------- */}
         {memberList.map((memberObj, index) => {
           return (
@@ -177,6 +229,7 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                             // easeFn="Quartic"
                             easeFn="Quintic"
                             fontSize={27}
+                            fontWeight={500}
                             margin="0 0 -3px 0"
                             isReady={isRenderProgress}
                             fade={`fade08_forward`}
@@ -191,9 +244,10 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                           {/* <span className="text-[16px]">12,000,000,000</span> */}
                         </div>
                       </div>
-                      <div className={`relative h-[56px] w-[66px]`} style={{ margin: `0` }}>
+                      {/* <div className={`relative h-[56px] w-[66px]`} style={{ margin: `0` }}> */}
+                      <div className={`relative h-[56px] w-[56px]`} style={{ margin: `0` }}>
                         <div className="absolute bottom-[-6px] right-0">
-                          <ProgressCircle
+                          {/* <ProgressCircle
                             circleId="1"
                             textId="1"
                             progress={78}
@@ -204,6 +258,22 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                             size={66}
                             strokeWidth={7}
                             fontSize={14}
+                            textColor="var(--color-text-title)"
+                            isReady={isRenderProgress}
+                            fade={`fade08_forward`}
+                            // fade={`fade10_forward`}
+                          /> */}
+                          <ProgressCircle
+                            circleId="1"
+                            textId="1"
+                            progress={78}
+                            // progress={100}
+                            // progress={0}
+                            duration={5000}
+                            easeFn="Quartic"
+                            size={56}
+                            strokeWidth={6}
+                            fontSize={11}
                             textColor="var(--color-text-title)"
                             isReady={isRenderProgress}
                             fade={`fade08_forward`}
@@ -299,6 +369,7 @@ const ScreenDealBoardsMemo = ({ memberList, periodType, period }: Props) => {
                     />
                   </Suspense>
                 </ErrorBoundary>
+                {/* <FallbackDealBoard /> */}
               </div>
               {/* {isRenderProgress && (
                 <div className="flex-center fade08_forward my-[12px] w-full px-[24px]">

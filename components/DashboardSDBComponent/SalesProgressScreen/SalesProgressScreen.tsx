@@ -309,63 +309,106 @@ const SalesProgressScreenMemo = () => {
   };
   // -------------------------- ✅説明ポップアップメニュー✅ --------------------------
 
-  // ==================================== 🌟ツールチップ🌟 ====================================
-  const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
-  const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
+  // // ==================================== 🌟ツールチップ🌟 ====================================
+  // const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
+  // const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
+  // type TooltipParams = {
+  //   e: React.MouseEvent<HTMLElement, MouseEvent | globalThis.MouseEvent>;
+  //   display?: "top" | "right" | "bottom" | "left" | "";
+  //   marginTop?: number;
+  //   itemsPosition?: string;
+  //   whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+  //   content?: string;
+  //   content2?: string;
+  //   content3?: string;
+  //   content4?: string;
+  // };
+  // const handleOpenTooltip = ({
+  //   e,
+  //   display = "",
+  //   marginTop,
+  //   itemsPosition,
+  //   whiteSpace,
+  //   content,
+  //   content2,
+  //   content3,
+  //   content4,
+  // }: TooltipParams) => {
+  //   // ホバーしたアイテムにツールチップを表示
+  //   const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+  //   // console.log("ツールチップx, y width , height", x, y, width, height);
+  //   const dataText2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+  //     ? ((e.target as HTMLDivElement).dataset.text2 as string)
+  //     : "";
+  //   const dataText3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+  //     ? ((e.target as HTMLDivElement).dataset.text3 as string)
+  //     : "";
+  //   const dataText4 = ((e.target as HTMLDivElement).dataset.text4 as string)
+  //     ? ((e.target as HTMLDivElement).dataset.text4 as string)
+  //     : "";
+  //   setHoveredItemPosWrap({
+  //     x: x,
+  //     y: y,
+  //     itemWidth: width,
+  //     itemHeight: height,
+  //     content: ((e.target as HTMLDivElement).dataset.text as string) || (content ?? ""),
+  //     content2: dataText2 || content2 || "",
+  //     content3: dataText3 || content3 || "",
+  //     content4: dataText4 || content4 || "",
+  //     display: display,
+  //     marginTop: marginTop,
+  //     itemsPosition: itemsPosition,
+  //     whiteSpace: whiteSpace,
+  //   });
+  // };
+  // // ツールチップを非表示
+  // const handleCloseTooltip = () => {
+  //   setHoveredItemPosWrap(null);
+  // };
+  // // ==================================== ✅ツールチップ✅ ====================================
+
+  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
+  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
   type TooltipParams = {
-    e: React.MouseEvent<HTMLElement, MouseEvent | globalThis.MouseEvent>;
-    display?: "top" | "right" | "bottom" | "left" | "";
+    // e: MouseEvent<HTMLDivElement, MouseEvent>;
+    e: MouseEvent<HTMLDivElement | HTMLSpanElement, globalThis.MouseEvent>;
+    // e: MouseEvent<HTMLElement, MouseEvent<Element, globalThis.MouseEvent>> | MouseEvent<HTMLDivElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
     marginTop?: number;
     itemsPosition?: string;
-    whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
-    content?: string;
-    content2?: string;
-    content3?: string;
-    content4?: string;
   };
   const handleOpenTooltip = ({
     e,
-    display = "",
-    marginTop,
-    itemsPosition,
-    whiteSpace,
+    display,
     content,
     content2,
-    content3,
-    content4,
+    marginTop = 0,
+    itemsPosition = "center",
   }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
-    const dataText2 = ((e.target as HTMLDivElement).dataset.text2 as string)
-      ? ((e.target as HTMLDivElement).dataset.text2 as string)
-      : "";
-    const dataText3 = ((e.target as HTMLDivElement).dataset.text3 as string)
-      ? ((e.target as HTMLDivElement).dataset.text3 as string)
-      : "";
-    const dataText4 = ((e.target as HTMLDivElement).dataset.text4 as string)
-      ? ((e.target as HTMLDivElement).dataset.text4 as string)
-      : "";
-    setHoveredItemPosWrap({
+
+    setHoveredItemPos({
       x: x,
       y: y,
       itemWidth: width,
       itemHeight: height,
-      content: ((e.target as HTMLDivElement).dataset.text as string) || (content ?? ""),
-      content2: dataText2 || content2 || "",
-      content3: dataText3 || content3 || "",
-      content4: dataText4 || content4 || "",
+      content: content,
+      content2: content2,
       display: display,
       marginTop: marginTop,
       itemsPosition: itemsPosition,
-      whiteSpace: whiteSpace,
     });
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    if (hoveredItemPosWrap) setHoveredItemPosWrap(null);
+    if (hoveredItemPos) setHoveredItemPos(null);
   };
-  // ==================================== ✅ツールチップ✅ ====================================
+  // ==================================================================================
 
   // ポップアップのフェードタイプ
   const getFadeTypeClass = (fadeType: string) => {
@@ -429,10 +472,10 @@ const SalesProgressScreenMemo = () => {
     optionsFiscalQuarter,
     "optionsFiscalMonth",
     optionsFiscalMonth,
-    "activePeriodSDB.period.toString().slice(0, 4)",
-    activePeriodSDB?.period?.toString()?.slice(0, 4),
-    "activePeriodSDBLocal.period.toString().slice(4)",
-    activePeriodSDBLocal?.period?.toString()?.slice(4),
+    // "activePeriodSDB.period.toString().slice(0, 4)",
+    // activePeriodSDB?.period?.toString()?.slice(0, 4),
+    // "activePeriodSDBLocal.period.toString().slice(4)",
+    // activePeriodSDBLocal?.period?.toString()?.slice(4),
     "選択中のメンバー selectedObjSectionSDBMember",
     selectedObjSectionSDBMember
   );
@@ -455,12 +498,13 @@ const SalesProgressScreenMemo = () => {
                   handleCloseTooltip();
                 }}
                 onMouseEnter={(e) => {
+                  console.log(e);
                   handleOpenTooltip({
                     e: e,
                     display: "top",
                     content: `売上進捗・営業指数・プロセス・期間ごとの案件一覧・エリア毎の売上マップなど`,
                     content2: `各用途毎のダッシュボードの表示切り替えが可能です。`,
-                    marginTop: 28,
+                    marginTop: 27,
                     itemsPosition: "left",
                   });
                 }}
@@ -478,7 +522,7 @@ const SalesProgressScreenMemo = () => {
                 className={`${styles.entity_level} ${openSectionMenu?.title === "entity" ? `${styles.active}` : ``}`}
               >
                 <div
-                  className={`underline_area mb-[-1px] flex cursor-pointer flex-col hover:text-[var(--color-bg-brand-f)]`}
+                  className={`underline_area mb-[-1px] flex cursor-pointer flex-col hover:text-[var(--main-color-f)]`}
                   onClick={(e) => {
                     handleOpenSectionMenu({
                       e,
@@ -495,7 +539,7 @@ const SalesProgressScreenMemo = () => {
                       display: "top",
                       content: `「全社・事業部・係/チーム・メンバー個人」を変更することで`,
                       content2: `各セクション毎にダッシュボードを確認が可能です。`,
-                      marginTop: 28,
+                      marginTop: 27,
                       itemsPosition: "left",
                     });
                   }}
@@ -507,7 +551,7 @@ const SalesProgressScreenMemo = () => {
               </div>
               <div className={`${styles.period_type} ${openSectionMenu?.title === "period" ? `${styles.active}` : ``}`}>
                 <div
-                  className={`underline_area mb-[-1px] flex cursor-pointer flex-col hover:text-[var(--color-bg-brand-f)]`}
+                  className={`underline_area mb-[-1px] flex cursor-pointer flex-col hover:text-[var(--main-color-f)]`}
                   onClick={(e) => {
                     console.log(
                       "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 activePeriodSDB.period.toString().slice(0, 4)",
@@ -536,7 +580,7 @@ const SalesProgressScreenMemo = () => {
                       display: "top",
                       content: `期間を「月次・四半期・半期・年度」のタイプと期間を選択することで`,
                       content2: `その期間内でフィルターしたデータをダッシュボードに反映します。`,
-                      marginTop: 28,
+                      marginTop: 27,
                       itemsPosition: "left",
                     });
                   }}
@@ -572,10 +616,11 @@ const SalesProgressScreenMemo = () => {
                       e: e,
                       display: "top",
                       content: `リフレッシュ`,
+                      marginTop: 6,
                     });
                   }}
                   onMouseLeave={() => {
-                    if (hoveredItemPosWrap) handleCloseTooltip();
+                    handleCloseTooltip();
                   }}
                 >
                   <GrPowerReset className="" />
@@ -818,7 +863,7 @@ const SalesProgressScreenMemo = () => {
                             }
                           }}
                           onMouseLeave={() => {
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           伊藤 謙太
@@ -840,7 +885,7 @@ const SalesProgressScreenMemo = () => {
                         });
                       }}
                       onMouseLeave={() => {
-                        if (hoveredItemPosWrap) handleCloseTooltip();
+                        handleCloseTooltip();
                       }}
                       // onClick={() => {
                       //   setSelectedMemberObj(null);

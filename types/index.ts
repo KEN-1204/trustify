@@ -2465,6 +2465,13 @@ export type SelectedDealCard = {
   dealCard: DealCardType;
 } | null;
 
+// export type ThemeColorSDB =
+//   | "theme-brand-f"
+//   | "theme-brand-f-gradient"
+//   | "theme-black-gradient"
+//   | "theme-simple12"
+//   | "theme-simple17";
+
 // SDB 売上進捗 期間
 export type PeriodSDB = { periodType: string; period: number };
 
