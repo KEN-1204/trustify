@@ -2472,9 +2472,6 @@ export type SelectedDealCard = {
 //   | "theme-simple12"
 //   | "theme-simple17";
 
-// SDB 売上進捗 期間
-export type PeriodSDB = { periodType: string; period: number };
-
 // SDB セクション関連
 export type SectionMenuParams = {
   // e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -2690,6 +2687,31 @@ export type SecondHalfDetailsKeys =
   | "month_10"
   | "month_11"
   | "month_12";
+
+// 売上目標・前年度売上フェッチ時の年月度の12ヶ月分の配列
+export type FiscalYearMonthKey =
+  | "month_01"
+  | "month_02"
+  | "month_03"
+  | "month_04"
+  | "month_05"
+  | "month_06"
+  | "month_07"
+  | "month_08"
+  | "month_09"
+  | "month_10"
+  | "month_11"
+  | "month_12";
+export type QuarterKey = "first_quarter" | "second_quarter" | "third_quarter" | "fourth_quarter";
+export type HalfYearKey = "first_half" | "second_half";
+export type PropertiesPeriodKey = "fiscal_year" | "half_year" | "quarter" | "year_month";
+
+// マップされた型（Mapped Types）*1
+export type FiscalYearMonthObjForTarget = { [K in FiscalYearMonthKey]: number };
+
+// SDB 売上進捗 期間
+export type PeriodSDB = { periodType: PropertiesPeriodKey; period: number };
+// export type PeriodSDB = { periodType: FiscalYearAllKeys; period: number };
 
 // 前年度売上実績 案件テーブルからFUNCTIONで取得
 export type LastYearSalesRowData = {
@@ -3089,23 +3111,6 @@ export type SubEntitySalesTarget = {
 //     [K in FiscalYearAllKeys]: number;
 //   };
 // };
-
-// 売上目標・前年度売上フェッチ時の年月度の12ヶ月分の配列
-export type FiscalYearMonthKey =
-  | "month_01"
-  | "month_02"
-  | "month_03"
-  | "month_04"
-  | "month_05"
-  | "month_06"
-  | "month_07"
-  | "month_08"
-  | "month_09"
-  | "month_10"
-  | "month_11"
-  | "month_12";
-// マップされた型（Mapped Types）*1
-export type FiscalYearMonthObjForTarget = { [K in FiscalYearMonthKey]: number };
 
 /**
 *1

@@ -1,3 +1,4 @@
+import { isWithinInterval, subMonths } from "date-fns";
 import { calculateCurrentFiscalYear } from "./Helpers/calculateCurrentFiscalYear";
 
 // ローカルタイムゾーン
@@ -1677,27 +1678,35 @@ export const optionsColorPalette = [
 ];
 
 export type SdbTabsListItem = {
+  title: "sales_progress" | "sales_dashboard" | "sales_process" | "sales_area_map";
+  name: { [key: string]: string };
+};
+export type PeriodListItem = {
+  title: "fiscal_year" | "half_year" | "quarter" | "year_month";
+  name: { [key: string]: string };
+};
+export type TabsListItem = {
   title: string;
   name: { [key: string]: string };
 };
 // ダッシュボードタブ
 export const sdbTabsList: SdbTabsListItem[] = [
-  { title: "salesProgress", name: { ja: "売上進捗", en: "Sales Progress" } },
-  { title: "salesDashboard", name: { ja: "セールスダッシュボード", en: "Sales Dashboard" } },
-  { title: "salesProcess", name: { ja: "営業プロセス", en: "Sales Process" } },
-  { title: "dealsStatus", name: { ja: "案件ステータス", en: "Deals Status" } },
-  { title: "salesAreaMap", name: { ja: "売上エリアマップ", en: "Sales Area Map" } },
+  { title: "sales_progress", name: { ja: "売上進捗", en: "Sales Progress" } },
+  { title: "sales_dashboard", name: { ja: "セールスダッシュボード", en: "Sales Dashboard" } },
+  { title: "sales_process", name: { ja: "営業プロセス", en: "Sales Process" } },
+  // { title: "dealsStatus", name: { ja: "案件ステータス", en: "Deals Status" } },
+  { title: "sales_area_map", name: { ja: "売上エリアマップ", en: "Sales Area Map" } },
 ];
 
 export const mappingSdbTabName: { [key: string]: { [key: string]: string } } = {
-  salesProgress: { ja: "売上進捗", en: "Sales Progress" },
-  salesDashboard: { ja: "セールスダッシュボード", en: "Sales Dashboard" },
-  salesProcess: { ja: "営業プロセス", en: "Sales Process" },
-  dealsStatus: { ja: "案件ステータス", en: "Deals Status" },
-  salesAreaMap: { ja: "売上エリアマップ", en: "Sales Area Map" },
+  sales_progress: { ja: "売上進捗", en: "Sales Progress" },
+  sales_dashboard: { ja: "セールスダッシュボード", en: "Sales Dashboard" },
+  sales_process: { ja: "営業プロセス", en: "Sales Process" },
+  // deals_status: { ja: "案件ステータス", en: "Deals Status" },
+  sales_area_map: { ja: "売上エリアマップ", en: "Sales Area Map" },
 };
 // セクションタブ 全社・事業部・係・メンバー
-export const sectionList: SdbTabsListItem[] = [
+export const sectionList: TabsListItem[] = [
   { title: "company", name: { ja: "全社", en: "Company" } },
   { title: "department", name: { ja: "事業部", en: "Department" } },
   { title: "section", name: { ja: "課・セクション", en: "Section" } },
@@ -1705,7 +1714,7 @@ export const sectionList: SdbTabsListItem[] = [
   { title: "member", name: { ja: "メンバー", en: "Member" } },
   { title: "office", name: { ja: "事業所", en: "Office" } },
 ];
-export const sectionListForSalesTarget: SdbTabsListItem[] = [
+export const sectionListForSalesTarget: TabsListItem[] = [
   { title: "company", name: { ja: "全社", en: "Company" } },
   { title: "department", name: { ja: "事業部", en: "Department" } },
   { title: "section", name: { ja: "課・セクション", en: "Section" } },
@@ -1721,11 +1730,11 @@ export const mappingSectionName: { [key: string]: { [key: string]: string } } = 
   office: { ja: "事業所", en: "Office" },
 };
 // 期間タブ 年度(FiscalYear)・半期(Half)・四半期(Quarter)・月次(Monthly)
-export const periodList: SdbTabsListItem[] = [
-  { title: "fiscalYear", name: { ja: "年度", en: "Fiscal Year" } },
-  { title: "half", name: { ja: "半期", en: "Half" } },
+export const periodList: PeriodListItem[] = [
+  { title: "fiscal_year", name: { ja: "年度", en: "Fiscal Year" } },
+  { title: "half_year", name: { ja: "半期", en: "Half" } },
   { title: "quarter", name: { ja: "四半期", en: "Quarter" } },
-  { title: "monthly", name: { ja: "月度", en: "Monthly" } },
+  { title: "year_month", name: { ja: "月度", en: "Monthly" } },
 ];
 export const mappingPeriodName: { [key: string]: { [key: string]: string } } = {
   fiscalYear: { ja: "年度", en: "Fiscal Year" },
@@ -1737,16 +1746,21 @@ export const mappingPeriodName: { [key: string]: { [key: string]: string } } = {
 type FiscalYearProps = {
   fiscalYearEnd: string | Date | null;
   fiscalYearBasis: string;
+  currentFiscalYearEndDate: Date | null;
 };
 type CalendarYearProps = {
-  currentDate: Date;
+  currentFiscalYearEndDate: Date;
 };
 export type PeriodOption = {
   key: string;
   value: string;
   name: { [key: string]: string };
 };
-export const getOptionsFiscalYear = ({ fiscalYearEnd, fiscalYearBasis }: FiscalYearProps): PeriodOption[] => {
+export const getOptionsFiscalYear = ({
+  fiscalYearEnd,
+  fiscalYearBasis,
+  currentFiscalYearEndDate,
+}: FiscalYearProps): PeriodOption[] => {
   const currentFiscalYear = calculateCurrentFiscalYear({
     fiscalYearEnd: fiscalYearEnd,
     fiscalYearBasis: fiscalYearBasis,
@@ -1761,16 +1775,60 @@ export const getOptionsFiscalYear = ({ fiscalYearEnd, fiscalYearBasis }: FiscalY
     yearList.push(yearOption);
   }
 
+  if (currentFiscalYearEndDate === null) {
+    return yearList;
+  }
+
+  // 現在の日付が決算日から３ヶ月以内かどうかをチェック subMonths: 特定のDateから3ヶ月前の日付を計算
+  const threeMonthsBeforeFiscalEnd = subMonths(currentFiscalYearEndDate, 3);
+
+  // isWithinInterval: 第一引数に指定された日付が、第二引数に指定された期間内にあるかどうかを真偽値で返す
+  const isWithin3Months = isWithinInterval(new Date(), {
+    start: threeMonthsBeforeFiscalEnd,
+    end: currentFiscalYearEndDate,
+  });
+
+  if (isWithin3Months) {
+    // ３ヶ月以内であれば翌年度も追加
+    const currentEndCalendarYear = currentFiscalYearEndDate.getFullYear();
+    const yearOptionNext = {
+      key: `year${currentEndCalendarYear + 1}`,
+      value: `${currentEndCalendarYear + 1}`,
+      name: { ja: `${currentEndCalendarYear + 1}年`, en: `${currentEndCalendarYear + 1}` },
+    };
+    yearList.push(yearOptionNext);
+  }
+
   return yearList;
 };
-// 会計年度ではないカレンダー年のオプション
-export const getOptionsCalendarYear = ({ currentDate }: CalendarYearProps): PeriodOption[] => {
+
+// 会計年度ではないカレンダー年のオプション 引数に決算日のDateオブジェクトを受け取る
+export const getOptionsCalendarYear = ({ currentFiscalYearEndDate }: CalendarYearProps): PeriodOption[] => {
   const initialYear = 2020;
-  const currentCalendarYear = currentDate.getFullYear();
+  const currentEndCalendarYear = currentFiscalYearEndDate.getFullYear();
   let yearList = [];
-  for (let year = initialYear; year <= currentCalendarYear; year++) {
+  for (let year = initialYear; year <= currentEndCalendarYear; year++) {
     const yearOption = { key: `calendarYear${year}`, value: `${year}`, name: { ja: `${year}年`, en: `${year}` } };
     yearList.push(yearOption);
+  }
+
+  // 現在の日付が決算日から３ヶ月以内かどうかをチェック subMonths: 特定のDateから3ヶ月前の日付を計算
+  const threeMonthsBeforeFiscalEnd = subMonths(currentFiscalYearEndDate, 3);
+
+  // isWithinInterval: 第一引数に指定された日付が、第二引数に指定された期間内にあるかどうかを真偽値で返す
+  const isWithin3Months = isWithinInterval(new Date(), {
+    start: threeMonthsBeforeFiscalEnd,
+    end: currentFiscalYearEndDate,
+  });
+
+  if (isWithin3Months) {
+    // ３ヶ月以内であれば翌年度も追加
+    const yearOptionNext = {
+      key: `calendarYear${currentEndCalendarYear + 1}`,
+      value: `${currentEndCalendarYear + 1}`,
+      name: { ja: `${currentEndCalendarYear + 1}年`, en: `${currentEndCalendarYear + 1}` },
+    };
+    yearList.push(yearOptionNext);
   }
 
   return yearList;
@@ -1789,18 +1847,18 @@ export const optionsFiscalQuarter: PeriodOption[] = [
 ];
 // 月度・月次を選択した際の選択肢
 export const optionsFiscalMonth: PeriodOption[] = [
-  { key: `month1`, value: "01", name: { ja: `1月度`, en: `Jan.` } },
-  { key: `month2`, value: "02", name: { ja: `2月度`, en: `Feb.` } },
-  { key: `month3`, value: "03", name: { ja: `3月度`, en: `Mar.` } },
-  { key: `month4`, value: "04", name: { ja: `4月度`, en: `Apr.` } },
-  { key: `month5`, value: "05", name: { ja: `5月度`, en: `May` } },
-  { key: `month6`, value: "06", name: { ja: `6月度`, en: `Jun.` } },
-  { key: `month7`, value: "07", name: { ja: `7月度`, en: `Jul.` } },
-  { key: `month8`, value: "08", name: { ja: `8月度`, en: `Aug.` } },
-  { key: `month9`, value: "09", name: { ja: `9月度`, en: `Sep.` } },
-  { key: `month10`, value: "10", name: { ja: `10月度`, en: `Oct.` } },
-  { key: `month11`, value: "11", name: { ja: `11月度`, en: `Nov.` } },
-  { key: `month12`, value: "12", name: { ja: `12月度`, en: `Dec.` } },
+  { key: `month_01`, value: "01", name: { ja: `1月度`, en: `Jan.` } },
+  { key: `month_02`, value: "02", name: { ja: `2月度`, en: `Feb.` } },
+  { key: `month_03`, value: "03", name: { ja: `3月度`, en: `Mar.` } },
+  { key: `month_04`, value: "04", name: { ja: `4月度`, en: `Apr.` } },
+  { key: `month_05`, value: "05", name: { ja: `5月度`, en: `May` } },
+  { key: `month_06`, value: "06", name: { ja: `6月度`, en: `Jun.` } },
+  { key: `month_07`, value: "07", name: { ja: `7月度`, en: `Jul.` } },
+  { key: `month_08`, value: "08", name: { ja: `8月度`, en: `Aug.` } },
+  { key: `month_09`, value: "09", name: { ja: `9月度`, en: `Sep.` } },
+  { key: `month_10`, value: "10", name: { ja: `10月度`, en: `Oct.` } },
+  { key: `month_11`, value: "11", name: { ja: `11月度`, en: `Nov.` } },
+  { key: `month_12`, value: "12", name: { ja: `12月度`, en: `Dec.` } },
 ];
 
 // 売上目標

@@ -91,11 +91,13 @@ const mappingColumnIndexToTitle: { [key: number]: number } = {
 type Props = {
   companyId: string;
   userId: string;
-  periodType: string;
-  period: number;
+  // periodType: string;
+  // period: number;
+  onFetchComplete?: () => void;
+  fetchEnabled?: boolean; // trueに変更されたらフェッチを許可する
 };
 
-const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
+const DealBoardMemo = ({ companyId, userId, onFetchComplete, fetchEnabled }: Props) => {
   const language = useStore((state) => state.language);
   // const [cards, setCards] = useState<DealCardType[]>([]);
 
@@ -109,8 +111,16 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   const isRequiredInputSoldProduct = useDashboardStore((state) => state.isRequiredInputSoldProduct);
   const isOpenDealCardModal = useDashboardStore((state) => state.isOpenDealCardModal);
 
+  const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
+
   const queryClient = useQueryClient();
   const supabase = useSupabaseClient();
+
+  if (!activePeriodSDB) return null;
+  if (!companyId || !userId) return null;
+
+  const periodType = activePeriodSDB.periodType;
+  const period = activePeriodSDB.period;
 
   // ---------------------------- useQuery ----------------------------
   // 🔸Propsで受け取ったuserIdを使ってuseQueryで指定された期間のネタリストを取得し、useEffectでcardsのローカルstateに格納
@@ -137,7 +147,7 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
     userId,
     periodType,
     period,
-    isReady: true,
+    isReady: fetchEnabled,
   });
 
   if (error) return null;
@@ -172,6 +182,10 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
 
       setCards(filteredCards);
       setIsMountedQuery(true);
+
+      // フェッチ完了を通知
+      console.log("案件をネタ表テーブルのローカルstateに格納 フェッチ完了を通知");
+      if (onFetchComplete) onFetchComplete();
     }
   }, [isSuccess]);
 
@@ -1721,27 +1735,27 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
   console.log(
     "DealBoardレンダリング",
     "cards",
-    cards,
-    "categorizedCardsMapObj",
-    categorizedCardsMapObj,
-    "dealColumnList",
-    dealColumnList,
-    "✅ボード isLoadingQuery",
-    isLoadingQuery,
-    "isMountedQuery",
-    isMountedQuery,
-    "isSuccess",
-    isSuccess,
-    "queryData",
-    queryData,
-    "cards",
-    cards,
-    "selectedDealCard",
-    selectedDealCard,
-    "isRequiredRefreshDealCards",
-    isRequiredRefreshDealCards,
-    "isRequiredInputSoldProduct",
-    isRequiredInputSoldProduct
+    cards
+    // "categorizedCardsMapObj",
+    // categorizedCardsMapObj,
+    // "dealColumnList",
+    // dealColumnList,
+    // "✅ボード isLoadingQuery",
+    // isLoadingQuery,
+    // "isMountedQuery",
+    // isMountedQuery,
+    // "isSuccess",
+    // isSuccess,
+    // "queryData",
+    // queryData,
+    // "cards",
+    // cards,
+    // "selectedDealCard",
+    // selectedDealCard,
+    // "isRequiredRefreshDealCards",
+    // isRequiredRefreshDealCards,
+    // "isRequiredInputSoldProduct",
+    // isRequiredInputSoldProduct
   );
 
   const getCardStyle = () => {};
@@ -1763,7 +1777,7 @@ const DealBoardMemo = ({ companyId, userId, periodType, period }: Props) => {
         {dealColumnList.map((column: ColumnLane, columnIndex: number) => {
           // const filteredCards = categorizedCardsMapObj.get(column.titleNum);
           const filteredCards = column.cards;
-          console.log("filteredCards", filteredCards, "column.title", column.titleNum);
+          // console.log("filteredCards", filteredCards, "column.title", column.titleNum);
           if (!filteredCards) return;
           if (!column.titleNum) return;
 

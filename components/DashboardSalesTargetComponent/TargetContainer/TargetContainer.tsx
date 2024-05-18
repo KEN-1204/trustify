@@ -313,7 +313,7 @@ export const TargetContainer = () => {
     );
   }, [fiscalYearEndDate]);
 
-  // 🔹ユーザーの会計年度の期首と期末の年月(カレンダー年月)
+  // 🔹ユーザーの会計年度の期首と期末のDateオブジェクト
   const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
   const setFiscalYearStartEndDate = useDashboardStore((state) => state.setFiscalYearStartEndDate);
   // 🔹現在の顧客の会計年月度 202303

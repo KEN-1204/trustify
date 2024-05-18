@@ -4,13 +4,14 @@ import {
   FormEvent,
   MouseEvent,
   SetStateAction,
+  Suspense,
   memo,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-import styles from "./SalesProgressScreen.module.css";
+import styles from "../DashboardSDBComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { IoCaretDownOutline } from "react-icons/io5";
 import { MdOutlineDataSaverOff } from "react-icons/md";
@@ -31,12 +32,32 @@ import {
 } from "@/utils/selectOptions";
 import { ScreenDealBoards } from "../ScreenDealBoards/ScreenDealBoards";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
-import { MemberAccounts, PeriodSDB, PopupDescMenuParams, SectionMenuParams } from "@/types";
+import {
+  EntityGroupByParent,
+  FiscalYearAllKeys,
+  FiscalYearMonthKey,
+  HalfYearKey,
+  MemberAccounts,
+  PeriodSDB,
+  PopupDescMenuParams,
+  PropertiesPeriodKey,
+  QuarterKey,
+  SectionMenuParams,
+} from "@/types";
 import { ImInfo } from "react-icons/im";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { FaExchangeAlt } from "react-icons/fa";
 import { GrPowerReset } from "react-icons/gr";
+import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
+import { calculateCurrentFiscalYear } from "@/utils/Helpers/calculateCurrentFiscalYear";
+import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurrentFiscalYearEndDate";
+import { useQueryFiscalYear } from "@/hooks/useQueryFiscalYear";
+import { useQueryEntityLevels } from "@/hooks/useQueryEntityLevels";
+import { useQueryEntities } from "@/hooks/useQueryEntities";
+import { FallbackSalesProgressScreen } from "./FallbackSalesProgressScreen";
 
 const SalesProgressScreenMemo = () => {
   const language = useStore((state) => state.language);
@@ -50,138 +71,253 @@ const SalesProgressScreenMemo = () => {
   // 期間
   const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
   const setActivePeriodSDB = useDashboardStore((state) => state.setActivePeriodSDB);
-  const [activePeriodSDBLocal, setActivePeriodSDBLocal] = useState<{ periodType: string; period: number } | null>(null);
-  // エンティティ選択中コンテンツ
-  // メンバーエンティティ
-  const selectedObjSectionSDBMember = useDashboardStore((state) => state.selectedObjSectionSDBMember);
-  const setSelectedObjSectionSDBMember = useDashboardStore((state) => state.setSelectedObjSectionSDBMember);
+  // 選択中の期間が上期か下期か
+  const selectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.selectedPeriodTypeForMemberLevel);
+  const setSelectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.setSelectedPeriodTypeForMemberLevel);
+
+  const [activePeriodSDBLocal, setActivePeriodSDBLocal] = useState<{
+    // periodType: FiscalYearAllKeys;
+    // periodType: PropertiesPeriodKey;
+    periodType: "fiscal_year" | "half_year" | "quarter" | "year_month";
+    period: number;
+  } | null>(null);
+
+  // // 半期のSetオブジェクト
+  // const halfYearKeySet = useMemo(() => new Set<HalfYearKey>(["first_half", "second_half"]), []);
+  // // 四半期のSetオブジェクト
+  // const quarterKeySet = useMemo(
+  //   () => new Set<QuarterKey>(["first_quarter", "second_quarter", "third_quarter", "fourth_quarter"]),
+  //   []
+  // );
+  // // month_xxのSetオブジェクト
+  // const monthKeySet = useMemo(
+  //   () =>
+  //     new Set<FiscalYearMonthKey>([
+  //       "month_01",
+  //       "month_02",
+  //       "month_03",
+  //       "month_04",
+  //       "month_05",
+  //       "month_06",
+  //       "month_07",
+  //       "month_08",
+  //       "month_09",
+  //       "month_10",
+  //       "month_11",
+  //       "month_12",
+  //     ]),
+  //   []
+  // );
 
   // infoアイコン
   const infoIconProgressRef = useRef<HTMLDivElement | null>(null);
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  const handleErrorReturn = () => {
+    // setUpsertSettingEntitiesObj(null);
+    // setUpsertTargetMode(null);
+    return null;
+  };
+
+  if (!userProfileState) return handleErrorReturn();
+  if (!userProfileState.company_id) return handleErrorReturn();
+
   // --------------------------- 変数定義 ---------------------------
 
-  // ネタ表ボードに渡すid配列に変換
-  const memberListSectionMember: MemberAccounts[] = useMemo(() => {
-    if (!selectedObjSectionSDBMember) return [];
-    const newIdList = [selectedObjSectionSDBMember];
-    return newIdList;
-  }, [selectedObjSectionSDBMember]);
+  // 🔹表示中の会計年度(グローバル)
+  const selectedFiscalYearTarget = useDashboardStore((state) => state.selectedFiscalYearTarget);
+  const setSelectedFiscalYearTarget = useDashboardStore((state) => state.setSelectedFiscalYearTarget);
 
-  // メンバーエンティティの選択中のメンバーの初期値をユーザー自身にセットする
+  // 🔹現在の会計年度
+  const currentFiscalYear = useMemo(
+    () =>
+      calculateCurrentFiscalYear({
+        fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+        fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
+      }),
+    []
+  );
+
+  // 🔹初回マウント時に現在の会計年度をZustandにセット
   useEffect(() => {
-    // 既にセット済みでnullでない場合はリターン
-    if (selectedObjSectionSDBMember) return;
-    if (!userProfileState) return;
-    // ユーザー自身を初期値にセット
-    const u = userProfileState;
-    const initialMemberObj = {
-      id: u.id,
-      created_at: u.created_at,
-      updated_at: u.updated_at,
-      avatar_url: u.avatar_url,
-      is_subscriber: u.is_subscriber,
-      company_role: u.company_role,
-      role: u.role,
-      stripe_customer_id: u.stripe_customer_id,
-      last_name: u.last_name,
-      first_name: u.first_name,
-      email: u.email,
-      department: u.department,
-      position_name: u.position_name,
-      position_class: u.position_class,
-      direct_line: u.direct_line,
-      company_cell_phone: u.company_cell_phone,
-      personal_cell_phone: u.personal_cell_phone,
-      occupation: u.occupation,
-      direct_fax: u.direct_fax,
-      signature_stamp_id: u.signature_stamp_id,
-      employee_id: u.employee_id,
-      is_active: u.is_active,
-      profile_name: u.profile_name,
-      accept_notification: u.accept_notification,
-      first_time_login: u.first_time_login,
-      office: u.office,
-      section: u.section,
-      unit: u.unit,
-      usage: u.usage,
-      purpose_of_use: u.purpose_of_use,
-      subscribed_account_id: u.subscribed_account_id,
-      account_created_at: u.account_created_at,
-      account_company_role: u.account_company_role,
-      account_state: u.account_state,
-      account_invited_email: null,
-      assigned_department_id: u.assigned_department_id,
-      assigned_department_name: u.assigned_department_name,
-      assigned_section_id: u.assigned_section_id,
-      assigned_section_name: u.assigned_section_name,
-      assigned_unit_id: u.assigned_unit_id,
-      assigned_unit_name: u.assigned_unit_name,
-      assigned_office_id: u.assigned_office_id,
-      assigned_office_name: u.assigned_office_name,
-      assigned_employee_id: u.assigned_employee_id,
-      assigned_employee_id_name: u.assigned_employee_id_name,
-      assigned_signature_stamp_id: u.assigned_signature_stamp_id,
-      assigned_signature_stamp_url: u.assigned_signature_stamp_url,
-    } as MemberAccounts;
-    setSelectedObjSectionSDBMember(initialMemberObj);
+    // 🔸会計年度をセット
+    setSelectedFiscalYearTarget(currentFiscalYear);
   }, []);
 
-  // 決算日を取得して変数に格納
-  const fiscalYearEndDate = useMemo(() => {
-    return userProfileState?.customer_fiscal_end_month
-      ? new Date(userProfileState.customer_fiscal_end_month)
-      : new Date(new Date().getFullYear(), 2, 31);
+  // 🔹現在の日付の会計年度の決算日Dateオブジェクト(現在の会計年度の決算日Date) 決算日を取得して変数に格納
+  const currentFiscalYearEndDate = useMemo(() => {
+    return (
+      calculateCurrentFiscalYearEndDate({
+        fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+        selectedYear: currentFiscalYear,
+      }) ?? new Date(new Date().getFullYear(), 2, 31)
+    );
   }, [userProfileState?.customer_fiscal_end_month]);
+  // 🔹選択した会計年度の決算日Dateオブジェクト(現在の会計年度の決算日Date) 決算日を取得して変数に格納
+  const fiscalYearEndDate = useMemo(() => {
+    return (
+      calculateCurrentFiscalYearEndDate({
+        fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+        selectedYear: selectedFiscalYearTarget ?? currentFiscalYear,
+      }) ?? new Date(new Date().getFullYear(), 2, 31)
+    );
+  }, [userProfileState?.customer_fiscal_end_month, selectedFiscalYearTarget]);
 
-  // 現在の会計年度(現在の日付からユーザーの会計年度を取得)
-  const currentFiscalYearDateObj = useMemo(() => {
+  // // 決算日を取得して変数に格納
+  // const fiscalYearEndDate = useMemo(() => {
+  //   return userProfileState?.customer_fiscal_end_month
+  //     ? new Date(userProfileState.customer_fiscal_end_month)
+  //     : new Date(new Date().getFullYear(), 2, 31);
+  // }, [userProfileState?.customer_fiscal_end_month]);
+
+  // 🔹現在の会計年度の期首のDateオブジェクト(現在の日付からユーザーの会計年度を取得)
+  const fiscalYearStartDateObj = useMemo(() => {
     return (
       calculateFiscalYearStart({
         fiscalYearEnd: fiscalYearEndDate,
         fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+        selectedYear: selectedFiscalYearTarget ?? currentFiscalYear,
       }) ?? new Date()
     );
-  }, [fiscalYearEndDate, userProfileState?.customer_fiscal_year_basis]);
+  }, [fiscalYearEndDate]);
 
-  // 月度用カレンダー年の選択年
-  const [selectedCalendarYear, setSelectedCalendarYear] = useState<number>(new Date().getFullYear());
-  // 四半期、半期用の会計年度の選択年
-  const [selectedFiscalYear, setSelectedFiscalYear] = useState<number>(currentFiscalYearDateObj.getFullYear());
+  // 🔹現在の顧客の会計年月度 202303
+  const currentFiscalStartYearMonth = useDashboardStore((state) => state.currentFiscalStartYearMonth);
+  const setCurrentFiscalStartYearMonth = useDashboardStore((state) => state.setCurrentFiscalStartYearMonth);
+  // 🔹売上目標・前年度売上フェッチ時の年月度の12ヶ月分の配列
+  const annualFiscalMonths = useDashboardStore((state) => state.annualFiscalMonths);
+  const setAnnualFiscalMonths = useDashboardStore((state) => state.setAnnualFiscalMonths);
+
+  // 年月度のカレンダー年を除く月部分のみをvalueにセットしたannualFiscalMonthsを生成
+  const annualFiscalMonthWithoutYearToMonthKeyMap = useMemo(() => {
+    if (!annualFiscalMonths) return null;
+    const _newMonths = new Map(
+      Object.entries(annualFiscalMonths).map(([monthKey, value]) => {
+        const firstYearMonthStr = String(value);
+        const _month = firstYearMonthStr.substring(4); // 月部分のみ取得
+        return [_month, monthKey as FiscalYearMonthKey];
+        // return { [_month]: monthKey as FiscalYearMonthKey };
+      })
+    );
+    return _newMonths;
+  }, [annualFiscalMonths]);
+
+  // 🔹ユーザーの会計年度の期首と期末のDateオブジェクト
+  const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
+  const setFiscalYearStartEndDate = useDashboardStore((state) => state.setFiscalYearStartEndDate);
 
   // ユーザーの会計基準の現在の月度を初期値にセットする
   useEffect(() => {
+    // 🔸顧客の期首と期末のDateオブジェクトをセット
+    setFiscalYearStartEndDate({ startDate: fiscalYearStartDateObj, endDate: fiscalYearEndDate });
+
+    // 🔸顧客の選択している会計年度の開始年月度 期首の年月度を6桁の数値で取得 202404
+    const newStartYearMonth = calculateDateToYearMonth(fiscalYearStartDateObj, fiscalYearEndDate.getDate());
+    setCurrentFiscalStartYearMonth(newStartYearMonth);
+
+    // 🔸年度初めから12ヶ月分の年月度の配列
+    const fiscalMonths = calculateFiscalYearMonths(newStartYearMonth);
+    setAnnualFiscalMonths(fiscalMonths);
+    // // 🔸前年度の年度初めから12ヶ月分の年月度の配列
+    // const lastStartYearMonth = newStartYearMonth - 100;
+    // const lastFiscalMonths = calculateFiscalYearMonths(lastStartYearMonth);
+    // setLastAnnualFiscalMonths(lastFiscalMonths);
+
     // 現在の日付からユーザーの財務サイクルに応じた年月度を取得(年月度の年はカレンダー年)
     const currentFiscalYearMonth = calculateDateToYearMonth(new Date(), fiscalYearEndDate.getDate());
-    const newCurrentPeriod = { periodType: "monthly", period: currentFiscalYearMonth } as PeriodSDB;
-    console.log("✅newCurrentPeriod", newCurrentPeriod, "決算日Date", fiscalYearEndDate);
-    setActivePeriodSDB(newCurrentPeriod);
-  }, []);
+    // 現在のカレンダー年月度を表示するため、currentFiscalYearMonthの月度を取り出してmonth_xxに結合してperiodTypeにセット
+    // const currentFiscalMonth = `month_${String(currentFiscalYearMonth).substring(4)}` as FiscalYearMonthKey; // 0あり month_04, month_12
+    // if (monthKeySet.has(currentFiscalMonth)) {
+    if (String(currentFiscalYearMonth).length === 6) {
+      const newCurrentPeriod = {
+        // periodType: currentFiscalMonth as FiscalYearAllKeys,
+        periodType: "year_month",
+        period: currentFiscalYearMonth,
+      } as PeriodSDB;
+      console.log("✅newCurrentPeriod", newCurrentPeriod, "決算日Date", fiscalYearEndDate);
+      setActivePeriodSDB(newCurrentPeriod);
+
+      // 上期と下期どちらを選択中か更新
+      const firstHalfDetailSet = new Set([
+        String(fiscalMonths.month_01).substring(4),
+        String(fiscalMonths.month_02).substring(4),
+        String(fiscalMonths.month_03).substring(4),
+        String(fiscalMonths.month_04).substring(4),
+        String(fiscalMonths.month_05).substring(4),
+        String(fiscalMonths.month_06).substring(4),
+      ]);
+      const _newMonth = String(currentFiscalYearMonth).substring(4);
+      const newHalfDetail = firstHalfDetailSet.has(_newMonth) ? "first_half_details" : "second_half_details";
+      setSelectedPeriodTypeForMemberLevel(newHalfDetail);
+    } else {
+      setErrorMsg("エラー：会計年月度が取得できませんでした...🙇‍♀️");
+    }
+    // const newCurrentPeriod = { periodType: "monthly", period: currentFiscalYearMonth } as PeriodSDB;
+  }, [fiscalYearStartDateObj]);
+
+  // 月度用カレンダー年の選択年(ローカル)
+  const [selectedCalendarYear, setSelectedCalendarYear] = useState<number>(new Date().getFullYear());
+  // 四半期、半期用の会計年度の選択年(ローカル)
+  const [selectedFiscalYearLocal, setSelectedFiscalYearLocal] = useState<number>(fiscalYearStartDateObj.getFullYear());
 
   // 会計年度の選択肢
   const optionsFiscalYear = useMemo(() => {
     if (!userProfileState?.customer_fiscal_end_month) return [];
+
     return getOptionsFiscalYear({
       fiscalYearEnd: userProfileState.customer_fiscal_end_month,
       fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+      currentFiscalYearEndDate: currentFiscalYearEndDate,
     });
   }, [userProfileState?.customer_fiscal_end_month, userProfileState?.customer_fiscal_year_basis]);
 
-  // カレンダー年の選択肢
+  // カレンダー年の選択肢 202304始まりの2023年度が会計年度なら202403の決算月の2024も年月度に含まれるため現在の会計年度の年月度のカレンダー年を選択肢にセットする
   const optionsCalendarYear = useMemo(() => {
-    return getOptionsCalendarYear({ currentDate: new Date() });
-  }, []);
+    return getOptionsCalendarYear({ currentFiscalYearEndDate: currentFiscalYearEndDate });
+  }, [currentFiscalYearEndDate]);
+
+  const selectedPeriodWithoutYear = useMemo(() => {
+    if (!activePeriodSDBLocal) return null;
+    return activePeriodSDBLocal.periodType === "fiscal_year"
+      ? activePeriodSDBLocal.period.toString().slice(0, 4)
+      : activePeriodSDBLocal.period.toString().slice(4);
+  }, [activePeriodSDBLocal]);
 
   // 期間選択メニューの選択肢を期間タイプに応じて取得する関数
-  const getPeriodTimeValue = (period: string): PeriodOption[] => {
+  // const getPeriodTimeValue = (period: FiscalYearAllKeys): PeriodOption[] => {
+  const getPeriodTimeValue = (period: "fiscal_year" | "half_year" | "quarter" | "year_month"): PeriodOption[] => {
     switch (period) {
-      case "fiscalYear":
+      // case "fiscal_year":
+      //   return optionsFiscalYear;
+      // case "first_half":
+      // case "second_half":
+      //   return optionsFiscalHalf;
+      // case "first_quarter":
+      // case "second_quarter":
+      // case "third_quarter":
+      // case "fourth_quarter":
+      //   return optionsFiscalQuarter;
+      // case "month_01":
+      // case "month_02":
+      // case "month_03":
+      // case "month_04":
+      // case "month_05":
+      // case "month_06":
+      // case "month_07":
+      // case "month_08":
+      // case "month_09":
+      // case "month_10":
+      // case "month_11":
+      // case "month_12":
+      //   return optionsFiscalMonth;
+      case "fiscal_year":
         return optionsFiscalYear;
-      case "half":
+      case "half_year":
         return optionsFiscalHalf;
       case "quarter":
         return optionsFiscalQuarter;
-      case "monthly":
+      case "year_month":
         return optionsFiscalMonth;
 
       default:
@@ -190,13 +326,92 @@ const SalesProgressScreenMemo = () => {
     }
   };
 
-  // --------------------------- 変数定義 ここまで ---------------------------
-  // --------------------------------- useQuery ---------------------------------
-  // -------------- 🌟エンティティのデータを取得🌟 => 係の場合は係のメンバー一覧、メンバーなら選択されたメンバー
-  // 1. D&Dボードは、係・メンバーの時のみだと、事業部のみ登録した中小企業にフィットしないため、初期はメンバーの自分を表示する(初期表示で事業部以上はメンバー数が多くなりすぎるため)
-  // -------------- ✅エンティティのデータを取得✅
+  // ------------------------- 🌟useQuery売上目標 年度・レベル・エンティティ🌟 -------------------------
+  // ================================ 🌟設定済み年度useQuery🌟 ================================
+  // const fiscalYearsQueryData = queryClient.getQueriesData(["fiscal_years", "sales_target"]);
+  const {
+    data: fiscalYearQueryData,
+    isLoading: isLoadingQueryFiscalYear,
+    isError: isErrorQueryFiscalYear,
+  } = useQueryFiscalYear(
+    userProfileState.company_id,
+    "sales_target",
+    selectedFiscalYearTarget ?? currentFiscalYear,
+    true
+  );
 
-  // --------------------------------- useQuery ここまで ---------------------------------
+  // ================================ 🌟設定済み年度useQuery🌟 ================================
+
+  // ===================== 🌠エンティティレベルuseQuery🌠 =====================
+  const {
+    data: addedEntityLevelsListQueryData,
+    isLoading: isLoadingQueryLevel,
+    isError: isErrorQueryLevel,
+    isSuccess: isSuccessQueryLevel,
+  } = useQueryEntityLevels(
+    userProfileState.company_id,
+    selectedFiscalYearTarget ?? currentFiscalYear,
+    "sales_target",
+    true
+  );
+  // ===================== 🌠エンティティレベルuseQuery🌠 =====================
+
+  // ===================== 🌠エンティティuseQuery🌠 =====================
+  // エンティティレベルのidのみで配列を作成(エンティティuseQuery用)
+  const entityLevelIds = useMemo(() => {
+    if (!addedEntityLevelsListQueryData) return [];
+    return addedEntityLevelsListQueryData.map((obj) => obj.id);
+  }, [addedEntityLevelsListQueryData]);
+
+  // 現在追加済みの全てのレベルidに紐づくそれぞれのエンティティ
+  const {
+    data: entitiesHierarchyQueryData,
+    isLoading: isLoadingQueryEntities,
+    isError: isErrorQueryEntities,
+  } = useQueryEntities(
+    userProfileState.company_id,
+    selectedFiscalYearTarget ?? currentFiscalYear,
+    "sales_target",
+    entityLevelIds,
+    isSuccessQueryLevel
+  );
+  // ===================== 🌠エンティティuseQuery🌠 =====================
+  // ------------------------- 🌟useQuery売上目標 年度・レベル・エンティティ🌟 ここまで -------------------------
+
+  // 🔹entitiesHierarchyQueryDataからメンバーレベルの全てのエンティティグループから自分が所属する親エンティティグループを取得
+  const initialMemberGroupByParentEntity = useMemo(() => {
+    if (!fiscalYearQueryData) return null;
+    // 上期詳細、下期詳細の売上目標がどちらも未設定の場合はnullを返し、ユーザー自身のみの売上推移とネタ表を表示し、売上目標チャートは非表示
+    if (!fiscalYearQueryData.is_confirmed_first_half_details && !fiscalYearQueryData.is_confirmed_second_half_details)
+      return null;
+    if (!entitiesHierarchyQueryData) return null;
+    const memberGroups = entitiesHierarchyQueryData.member;
+    if (!memberGroups?.length) return null;
+    const flattenedMemberGroups = memberGroups.map((group) => group.entities).flatMap((array) => array);
+    if (!flattenedMemberGroups?.length) return null;
+    const myEntityObj = flattenedMemberGroups.find((member) => member.entity_id === userProfileState.id);
+    if (!myEntityObj) return null;
+    const myMemberGroup = memberGroups.find((group) => group.parent_entity_id === myEntityObj.parent_entity_id);
+    if (!myMemberGroup) return null;
+    return {
+      ...myMemberGroup,
+      parent_entity_level: myEntityObj.parent_entity_level,
+      parent_entity_level_id: myEntityObj.parent_entity_level_id,
+    } as EntityGroupByParent & { parent_entity_level: string; parent_entity_level_id: string };
+  }, [entitiesHierarchyQueryData]);
+
+  const [displayEntityGroup, setDisplayEntityGroup] = useState<
+    (EntityGroupByParent & { parent_entity_level: string; parent_entity_level_id: string }) | null
+  >(null);
+
+  // ✅初回マウント時 現在の会計年度の売上目標とエンティティ構成が設定されている場合はZustandにセット
+  useEffect(() => {
+    if (!initialMemberGroupByParentEntity) return;
+
+    setDisplayEntityGroup(initialMemberGroupByParentEntity);
+  }, []);
+
+  // --------------------------- 変数定義 ここまで ---------------------------
 
   const [openSectionMenu, setOpenSectionMenu] = useState<{
     x?: number;
@@ -255,6 +470,7 @@ const SalesProgressScreenMemo = () => {
     }
   };
 
+  // メニューを開いた時に左下、真ん中、右下に表示する位置を動的に変更
   useEffect(() => {
     if (!openSectionMenu?.displayX || openSectionMenu?.displayX !== "center") return;
     if (openSectionMenu?.displayX === "center" && sectionMenuRef.current && openSectionMenu.x) {
@@ -265,11 +481,15 @@ const SalesProgressScreenMemo = () => {
     }
   }, [openSectionMenu?.displayX]);
 
-  // メニューを閉じる
+  // 🔹メニューを閉じる
   const handleCloseSectionMenu = () => {
+    if (openSectionMenu?.title === "period") {
+      setActivePeriodSDBLocal(null);
+    }
     setOpenSectionMenu(null);
   };
-  // -------------------------- ✅セクションメニュー✅ --------------------------
+  // -------------------------- 🌟セクションメニュー🌟 --------------------------
+
   // -------------------------- 🌟説明ポップアップメニュー🌟 --------------------------
   const handleOpenPopupMenu = ({ e, title, displayX, maxWidth, fadeType, isHoverable }: PopupDescMenuParams) => {
     if (!displayX) {
@@ -419,14 +639,67 @@ const SalesProgressScreenMemo = () => {
 
   // 期間をメニューから適用ボタンで変更する関数
   const handleChangePeriod = () => {
-    if (!activePeriodSDBLocal) return;
+    if (!activePeriodSDBLocal || !activePeriodSDB || !annualFiscalMonthWithoutYearToMonthKeyMap || !annualFiscalMonths)
+      return handleCloseSectionMenu();
     if (
       activePeriodSDB.periodType === activePeriodSDBLocal.periodType &&
       activePeriodSDB.period === activePeriodSDBLocal.period
-    )
+    ) {
+      handleCloseSectionMenu(); // リセットしてメニューを閉じる
       return;
+    }
+
+    // 変更したのが期間が現在の年度と異なる場合は年度のstateも同時に更新する
+    if (activePeriodSDBLocal.periodType === "year_month") {
+      // 年月度の場合にはカレンダー年を会計年度基準に変換してから選択年度stateを更新
+      // 月の部分を取得
+      const _month = String(activePeriodSDBLocal.period).substring(4);
+      if (!annualFiscalMonthWithoutYearToMonthKeyMap.has(_month)) return handleCloseSectionMenu();
+      const _monthKey = annualFiscalMonthWithoutYearToMonthKeyMap.get(_month);
+      if (!_monthKey) return handleCloseSectionMenu();
+
+      // 取得した月と期首の月の両者のカレンダー年を比較して新たなカレンダー年から新たな会計年度を算出して更新する
+      const newMonthYear = String(annualFiscalMonths[_monthKey]).substring(0, 4);
+      const firstMonthYear = String(annualFiscalMonths.month_01).substring(0, 4);
+      if (!newMonthYear || !firstMonthYear) return handleCloseSectionMenu();
+
+      if (firstMonthYear === newMonthYear) {
+        setSelectedFiscalYearTarget(selectedCalendarYear);
+      }
+      // カレンダー年より会計年度が1年小さい場合には選択中のカレンダー年から1年引いた値を新たに選択中の会計年度として更新する
+      else if (firstMonthYear < newMonthYear) {
+        setSelectedFiscalYearTarget(selectedCalendarYear - 1);
+      } else {
+        console.error("エラー：会計年度が算出できませんでした。 E09");
+        return handleCloseSectionMenu(); // 上記2つに当てはまらない場合にはエラー
+      }
+    }
+    // 年月度以外はselectedFiscalYearLocalをそのままセットして選択中の会計年度として更新
+    else {
+      if (selectedFiscalYearLocal !== selectedFiscalYearTarget) {
+        setSelectedFiscalYearTarget(selectedFiscalYearLocal);
+      }
+    }
+
     const newPeriod = { periodType: activePeriodSDBLocal.periodType, period: activePeriodSDBLocal.period };
     setActivePeriodSDB(newPeriod);
+
+    // 上期と下期どちらを選択中か更新
+    const firstHalfDetailSet = new Set([
+      String(annualFiscalMonths.month_01).substring(4),
+      String(annualFiscalMonths.month_02).substring(4),
+      String(annualFiscalMonths.month_03).substring(4),
+      String(annualFiscalMonths.month_04).substring(4),
+      String(annualFiscalMonths.month_05).substring(4),
+      String(annualFiscalMonths.month_06).substring(4),
+    ]);
+
+    const _month = String(activePeriodSDBLocal.period).substring(4);
+
+    const newHalfDetail = firstHalfDetailSet.has(_month) ? "first_half_details" : "second_half_details";
+    setSelectedPeriodTypeForMemberLevel(newHalfDetail);
+
+    handleCloseSectionMenu(); // リセットしてメニューを閉じる
   };
 
   const handleEnterInfoIcon = (
@@ -439,46 +712,46 @@ const SalesProgressScreenMemo = () => {
   };
 
   // 年月度の年と月を分けて取得する(ディスプレイ用)
-  const displayYearMonth = useMemo(() => {
-    const periodStr = activePeriodSDB.period.toString();
-    const year = periodStr.length >= 4 ? periodStr.slice(0, 4) : "-"; // 1文字目~4文字目
-    const month = periodStr.length >= 4 ? parseInt(periodStr.slice(4, 6), 10).toString() : "-"; // 5文字目~6文字目
-    return { year: year, month: month };
-  }, [activePeriodSDB.period]);
+  const displayYearPeriod = useMemo(() => {
+    if (!activePeriodSDB) return null;
+    const periodStr = String(activePeriodSDB.period);
+    if (activePeriodSDB.periodType === "year_month") {
+      const year = periodStr.length >= 4 ? periodStr.slice(0, 4) : "-"; // 1文字目~4文字目
+      const month = periodStr.length >= 4 ? String(parseInt(periodStr.slice(4, 6), 10)) : "-"; // 5文字目~6文字目 parseIntで0を除去
+      return { year: year, period: month };
+    } else if (["half_year", "quarter"].includes(activePeriodSDB.periodType)) {
+      const year = periodStr.length >= 4 ? periodStr.substring(0, 4) : "-"; // 1文字目~4文字目
+      const _period = periodStr.length >= 4 ? String(periodStr.substring(4)) : "-"; // 20241, 20242の5文字目
+      const sign = activePeriodSDB.periodType === "half_year" ? `H` : `Q`;
+      return { year: year, period: `${sign}${_period}` };
+    } else if (activePeriodSDB.periodType === "fiscal_year") {
+      return { year: periodStr, period: "-" }; // 年度 2024
+    } else {
+      return null;
+    }
+  }, [activePeriodSDB?.period]);
 
-  console.log(
-    "SalesProgressScreenコンポーネントレンダリング",
-    "ユーザーの現在の期首Dateオブジェクト",
-    currentFiscalYearDateObj,
-    "選択中のカレンダー年",
-    selectedCalendarYear,
-    "選択中の会計年度の年",
-    selectedFiscalYear,
-    "activeTabSDB",
-    activeTabSDB,
-    "activeSectionSDB",
-    activeSectionSDB,
-    "activePeriodSDB",
-    activePeriodSDB,
-    "activePeriodSDBLocal",
-    activePeriodSDBLocal,
-    "mappingSdbTabName",
-    mappingSdbTabName,
-    "optionsFiscalYear",
-    optionsFiscalYear,
-    "optionsFiscalHalf",
-    optionsFiscalHalf,
-    "optionsFiscalQuarter",
-    optionsFiscalQuarter,
-    "optionsFiscalMonth",
-    optionsFiscalMonth,
-    // "activePeriodSDB.period.toString().slice(0, 4)",
-    // activePeriodSDB?.period?.toString()?.slice(0, 4),
-    // "activePeriodSDBLocal.period.toString().slice(4)",
-    // activePeriodSDBLocal?.period?.toString()?.slice(4),
-    "選択中のメンバー selectedObjSectionSDBMember",
-    selectedObjSectionSDBMember
-  );
+  // ------------------- ✅初回マウント✅ -------------------
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    if (isMounted) return;
+
+    setIsMounted(true);
+  }, []);
+  // ------------------- ✅初回マウント✅ -------------------
+
+  console.log("SalesProgressScreenコンポーネントレンダリング");
+
+  if (!isMounted || activePeriodSDB === null) return <FallbackSalesProgressScreen />;
+
+  if (!annualFiscalMonths || !currentFiscalStartYearMonth)
+    return (
+      <FallbackSalesProgressScreen
+        errorMsg={`会計年度データが見つかりませんでした。\n設定画面の「会社・チーム」タブから決算日の設定をしてください。`}
+      />
+    );
+  if (errorMsg) return <FallbackSalesProgressScreen errorMsg={errorMsg} />;
+
   return (
     <>
       {/* <div className={`${styles.menu_overlay} flex-center`}>
@@ -558,7 +831,9 @@ const SalesProgressScreenMemo = () => {
                       activePeriodSDB.period.toString().slice(0, 4),
                       activePeriodSDB
                     );
-                    if (activePeriodSDB.periodType === "monthly" && activePeriodSDB.period) {
+                    // 月度のみ年が会計年度ではなくカレンダーなので別途年月度のperiodの年の部分をselectedCalendarYearにセットする
+                    // if (monthKeySet.has(activePeriodSDB.periodType as FiscalYearMonthKey)) {
+                    if (activePeriodSDB.periodType === "year_month") {
                       setSelectedCalendarYear(Number(activePeriodSDB.period.toString().slice(0, 4)));
                     }
                     setActivePeriodSDBLocal({
@@ -578,18 +853,31 @@ const SalesProgressScreenMemo = () => {
                     handleOpenTooltip({
                       e: e,
                       display: "top",
-                      content: `期間を「月次・四半期・半期・年度」のタイプと期間を選択することで`,
-                      content2: `その期間内でフィルターしたデータをダッシュボードに反映します。`,
-                      marginTop: 27,
+                      content: `選択した年月度のデータをダッシュボードに反映します。`,
+                      marginTop: 9,
+                      // content: `期間を「月次・四半期・半期・年度」のタイプと期間を選択することで`,
+                      // content2: `その期間内でフィルターしたデータをダッシュボードに反映します。`,
+                      // marginTop: 27,
                       itemsPosition: "left",
                     });
                   }}
                   onMouseLeave={handleCloseTooltip}
                 >
-                  {activePeriodSDB.periodType === "monthly" && activePeriodSDB.period !== 0 && (
-                    <span>
-                      {displayYearMonth.year} - {displayYearMonth.month}月度
-                    </span>
+                  {displayYearPeriod && (
+                    <>
+                      {activePeriodSDB.periodType === "year_month" && (
+                        <span>
+                          {displayYearPeriod.year} - {displayYearPeriod.period}月度
+                        </span>
+                      )}
+                      {["half_year", "quarter"].includes(activePeriodSDB.periodType) && (
+                        <span>
+                          {displayYearPeriod.year}
+                          {displayYearPeriod.period}
+                        </span>
+                      )}
+                      {activePeriodSDB.periodType === "fiscal_year" && <span>{displayYearPeriod.year}年度</span>}
+                    </>
                   )}
                   <div className={`flow_underline brand_light one_px w-full`} />
                 </div>
@@ -636,12 +924,28 @@ const SalesProgressScreenMemo = () => {
         {/* ------------------- 売上目標+現売実績ホワイトボード ここまで ------------------- */}
 
         {/* ------------------- 🌟ネタ表ボードスクリーン🌟 ------------------- */}
-        {activeTabSDB === "salesProgress" && activePeriodSDB.period !== 0 && (
-          <ScreenDealBoards
-            memberList={memberListSectionMember}
-            periodType={activePeriodSDB.periodType}
-            period={activePeriodSDB.period}
-          />
+        {isMounted && activeTabSDB === "sales_progress" && activePeriodSDB !== null && (
+          <>
+            <ErrorBoundary FallbackComponent={ErrorFallback}>
+              <Suspense
+                fallback={
+                  <div
+                    className={`flex-center w-full`}
+                    style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}
+                  >
+                    <SpinnerBrand withBorder withShadow />
+                  </div>
+                }
+              >
+                <ScreenDealBoards
+                  // memberList={memberListSectionMember}
+                  displayEntityGroup={displayEntityGroup}
+                  // periodType={activePeriodSDB.periodType}
+                  // period={activePeriodSDB.period}
+                />
+              </Suspense>
+            </ErrorBoundary>
+          </>
         )}
         {/* ------------------- 🌟ネタ表ボードスクリーン🌟 ここまで ------------------- */}
       </div>
@@ -923,7 +1227,7 @@ const SalesProgressScreenMemo = () => {
           {/* ------------------------ エンティティ選択メニュー ------------------------ */}
 
           {/* ------------------------ 期間選択メニュー ------------------------ */}
-          {openSectionMenu.title === "period" && activePeriodSDBLocal && (
+          {openSectionMenu.title === "period" && activePeriodSDBLocal && selectedPeriodWithoutYear && (
             <>
               <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
                 <div className="flex max-w-max flex-col">
@@ -947,26 +1251,9 @@ const SalesProgressScreenMemo = () => {
                       <span>会計年度</span>
                       <div className={`${styles.underline} w-full`} />
                     </div>
-                    {/* <div className="pointer-events-none flex min-w-[130px] items-center">
-                      <div className="flex max-w-max flex-col">
-                        <span>会計年度</span>
-                        <div className={`${styles.underline} w-full`} />
-                      </div>
-                    </div> */}
-                    {/* <div className="flex items-center">
-                      <span>{activePeriodSDBLocal.period}</span>
-                    </div> */}
                   </li>
                   {/* ------------------------------------ */}
-                  <li
-                    className={`${styles.list}`}
-                    // onMouseEnter={(e) => {
-                    //   handleOpenPopupMenu({ e, title: "displayFiscalYear", displayX: "right" });
-                    // }}
-                    // onMouseLeave={() => {
-                    //   if (openPopupMenu) handleClosePopupMenu();
-                    // }}
-                  >
+                  <li className={`${styles.list}`}>
                     <div className="pointer-events-none flex min-w-[130px] items-center">
                       <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
                       <div className="flex select-none items-center space-x-[2px]">
@@ -974,32 +1261,43 @@ const SalesProgressScreenMemo = () => {
                         <span className={``}>：</span>
                       </div>
                     </div>
+                    {/* 期間タイプの変更 */}
                     <select
                       className={`${styles.select_box} truncate`}
                       value={activePeriodSDBLocal.periodType}
                       onChange={(e) => {
-                        if (e.target.value === "monthly") {
-                          const newPeriod = Number(`${selectedCalendarYear}${new Date().getMonth() + 1}`);
-                          setActivePeriodSDBLocal({ periodType: e.target.value, period: newPeriod });
-                        } else if (e.target.value === "fiscalYear") {
-                          setActivePeriodSDBLocal({ periodType: e.target.value, period: selectedFiscalYear });
-                        } else {
+                        if (e.target.value === "year_month") {
+                          const initialCurrentMonth = String(currentFiscalStartYearMonth).substring(4);
+                          const initialPeriod = Number(`${selectedCalendarYear}${initialCurrentMonth}`);
+                          setActivePeriodSDBLocal({ periodType: e.target.value, period: initialPeriod });
+                        } else if (e.target.value === "fiscal_year") {
+                          setActivePeriodSDBLocal({ periodType: e.target.value, period: selectedFiscalYearLocal });
+                        } else if (["half_year", "quarter"].includes(e.target.value)) {
                           // 四半期と半期は両方1をセットして、1QとH1を初期値として更新する
-                          const newPeriod = Number(`${selectedFiscalYear}1`);
-                          setActivePeriodSDBLocal({ periodType: e.target.value, period: newPeriod });
+                          const initialPeriod = Number(`${selectedFiscalYearLocal}1`);
+                          setActivePeriodSDBLocal({
+                            periodType: e.target.value as "half_year" | "quarter",
+                            period: initialPeriod,
+                          });
                         }
                       }}
                     >
-                      {periodList.map((option) => (
-                        <option key={option.title} value={option.title}>
-                          {option.name[language]}
-                        </option>
-                      ))}
+                      <>
+                        {activeTabSDB === "sales_progress" && (
+                          <option value={`year_month`}>{{ ja: "月度", en: "Monthly" }[language]}</option>
+                        )}
+                        {activeTabSDB !== "sales_progress" &&
+                          periodList.map((option) => (
+                            <option key={option.title} value={option.title}>
+                              {option.name[language]}
+                            </option>
+                          ))}
+                      </>
                     </select>
                   </li>
                   {/* ------------------------------------ */}
-                  {/* ------------------------------------ 年度以外は年を選択 */}
-                  {activePeriodSDBLocal.periodType !== "fiscalYear" && (
+                  {/* ------------------------------------ 年度以外は必ず同時に年も選択 */}
+                  {activePeriodSDBLocal.periodType !== "fiscal_year" && (
                     <li className={`${styles.list}`}>
                       <div className="pointer-events-none flex min-w-[130px] items-center">
                         <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
@@ -1008,20 +1306,23 @@ const SalesProgressScreenMemo = () => {
                           <span className={``}>：</span>
                         </div>
                       </div>
-                      {activePeriodSDBLocal.periodType === "monthly" && (
+                      {/* {monthKeySet.has(activePeriodSDBLocal.periodType as FiscalYearMonthKey) && ( */}
+                      {activePeriodSDBLocal.periodType === "year_month" && (
                         <select
                           className={`${styles.select_box} truncate`}
                           value={selectedCalendarYear.toString()}
                           onChange={(e) => {
-                            setSelectedCalendarYear(Number(e.target.value));
+                            const _year = e.target.value;
+                            setSelectedCalendarYear(Number(_year));
                             // 月度は202403の6桁なので-2
-                            const valueWithoutYear = activePeriodSDBLocal.period.toString().slice(-2);
+                            const _month = activePeriodSDBLocal.period.toString().slice(-2);
                             // 年と現在の月度か四半期か半期の値を結合して数値型に変換
-                            const newPeriod = Number(`${e.target.value}${valueWithoutYear}`);
-                            console.log("newPeriod", newPeriod, "valueWithoutYear", valueWithoutYear);
+                            const newPeriod = Number(`${_year}${_month}`);
+                            console.log("newPeriod", newPeriod, "_month", _month);
                             setActivePeriodSDBLocal({ ...activePeriodSDBLocal, period: newPeriod });
                           }}
                         >
+                          {/* カレンダー年 */}
                           {optionsCalendarYear.map((option) => (
                             <option key={option.key} value={option.value}>
                               {option.name[language]}
@@ -1029,20 +1330,24 @@ const SalesProgressScreenMemo = () => {
                           ))}
                         </select>
                       )}
-                      {["half", "quarter"].includes(activePeriodSDBLocal.periodType) && (
+                      {/* {(halfYearKeySet.has(activePeriodSDBLocal.periodType as HalfYearKey) ||
+                        quarterKeySet.has(activePeriodSDBLocal.periodType as QuarterKey)) && ( */}
+                      {["half_year", "quarter"].includes(activePeriodSDBLocal.periodType) && (
                         <select
                           className={`${styles.select_box} truncate`}
-                          value={selectedFiscalYear.toString()}
+                          value={selectedFiscalYearLocal.toString()}
                           onChange={(e) => {
-                            setSelectedFiscalYear(Number(e.target.value));
+                            const _year = e.target.value;
+                            setSelectedFiscalYearLocal(Number(_year));
                             // 四半期、半期は20243や20241の5桁なので-1
-                            const valueWithoutYear = activePeriodSDBLocal.period.toString().slice(-1);
+                            const _period = activePeriodSDBLocal.period.toString().slice(-1);
                             // 年と現在の月度か四半期か半期の値を結合して数値型に変換
-                            const newPeriod = Number(`${e.target.value}${valueWithoutYear}`);
-                            console.log("newPeriod", newPeriod, "valueWithoutYear", valueWithoutYear);
+                            const newPeriod = Number(`${_year}${_period}`);
+                            console.log("newPeriod", newPeriod, "_period", _period);
                             setActivePeriodSDBLocal({ ...activePeriodSDBLocal, period: newPeriod });
                           }}
                         >
+                          {/* 会計基準年 */}
                           {optionsFiscalYear.map((option) => (
                             <option key={option.key} value={option.value}>
                               {option.name[language]}
@@ -1067,38 +1372,34 @@ const SalesProgressScreenMemo = () => {
                       <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
                       <div className="flex select-none items-center space-x-[2px]">
                         <span className={`${styles.list_title}`}>
-                          {activePeriodSDBLocal.periodType === "fiscalYear" && "年度"}
-                          {activePeriodSDBLocal.periodType === "half" && "半期"}
+                          {activePeriodSDBLocal.periodType === "fiscal_year" && "年度"}
+                          {activePeriodSDBLocal.periodType === "half_year" && "半期"}
                           {activePeriodSDBLocal.periodType === "quarter" && "四半期"}
-                          {activePeriodSDBLocal.periodType === "monthly" && "月度"}
+                          {activePeriodSDBLocal.periodType === "year_month" && "月度"}
                         </span>
                         <span className={``}>：</span>
                       </div>
                     </div>
                     <select
                       className={`${styles.select_box} truncate`}
-                      value={
-                        activePeriodSDBLocal.periodType === "fiscalYear"
-                          ? activePeriodSDBLocal.period.toString().slice(0, 4)
-                          : activePeriodSDBLocal.period.toString().slice(4)
-                      }
+                      value={selectedPeriodWithoutYear}
                       onChange={(e) => {
-                        if (activePeriodSDBLocal.periodType === "fiscalYear") {
+                        if (activePeriodSDBLocal.periodType === "fiscal_year") {
                           setActivePeriodSDBLocal({ ...activePeriodSDBLocal, period: Number(e.target.value) });
                         } else {
                           // 月度、四半期、半期は年と結合してstateを更新
-                          // 月度はカレンダー年の選択年と結合
-                          if (activePeriodSDBLocal.periodType === "monthly") {
-                            // 年と現在の月度の値を結合して数値型に変換
-                            const newPeriod = Number(`${selectedCalendarYear}${e.target.value}`);
-                            console.log("newPeriod", newPeriod, "e.target.value", e.target.value);
-                            setActivePeriodSDBLocal({ ...activePeriodSDBLocal, period: newPeriod });
-                          } else {
-                            // 年と現在の四半期or半期の値を結合して数値型に変換
-                            const newPeriod = Number(`${selectedFiscalYear}${e.target.value}`);
-                            console.log("newPeriod", newPeriod, "e.target.value", e.target.value);
-                            setActivePeriodSDBLocal({ ...activePeriodSDBLocal, period: newPeriod });
-                          }
+                          // 月度はカレンダー年と結合 / 半期・四半期は会計基準年と結合
+                          const _year =
+                            activePeriodSDBLocal.periodType === "year_month"
+                              ? selectedCalendarYear
+                              : ["half_year", "quarter"].includes(activePeriodSDBLocal.periodType)
+                              ? selectedFiscalYearLocal
+                              : null;
+                          if (!_year) return;
+                          // 年と現在の月度の値を結合して数値型に変換
+                          const newPeriod = Number(`${_year}${e.target.value}`);
+                          console.log("newPeriod", newPeriod, "e.target.value", e.target.value);
+                          setActivePeriodSDBLocal({ ...activePeriodSDBLocal, period: newPeriod });
                         }
                       }}
                     >

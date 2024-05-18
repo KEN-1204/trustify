@@ -563,15 +563,16 @@ type State = {
   setStatusAnnualClosingDaysArray: (payload: StatusClosingDays[] | null) => void;
 
   // =================== SDB ===================
-  // ネタ表, 進捗ホワイトボード, SDBなどのタブ
-  activeTabSDB: string;
-  setActiveTabSDB: (payload: string) => void;
+  // ネタ表, 進捗ホワイトボード, SDBなどのタブ "salesProgress"
+  activeTabSDB: "sales_progress" | "sales_dashboard" | "sales_process" | "sales_area_map";
+  setActiveTabSDB: (payload: "sales_progress" | "sales_dashboard" | "sales_process" | "sales_area_map") => void;
   // 全社, 事業部, 係, メンバー個人ごとのデータの範囲別
   activeSectionSDB: string;
   setActiveSectionSDB: (payload: string) => void;
   // 月次・四半期・半期・年度ごとの期間データの範囲別
-  activePeriodSDB: PeriodSDB;
-  setActivePeriodSDB: (payload: PeriodSDB) => void;
+  // FiscalYearAllKeys: 売上推移と売上目標のどちらにも対応できるように期間タイプは「"fiscal_year" | "half_year" | "quarter" | "year_month"」ではなく詳細で保持
+  activePeriodSDB: PeriodSDB | null;
+  setActivePeriodSDB: (payload: PeriodSDB | null) => void;
 
   // 選択中のコンテンツ(どの事業部か、どの係か、どのメンバーか)
   // セクション関連
@@ -1330,15 +1331,15 @@ const useDashboardStore = create<State>((set) => ({
 
   // =================== SDB ===================
   // ネタ表, 進捗ホワイトボード, SDBなどのタブ
-  activeTabSDB: "salesProgress",
+  activeTabSDB: "sales_progress",
   setActiveTabSDB: (payload) => set({ activeTabSDB: payload }),
   // 全社, 事業部, 係, メンバー個人ごとのデータの範囲別
   activeSectionSDB: "member",
   setActiveSectionSDB: (payload) => set({ activeSectionSDB: payload }),
   // 月次・四半期・半期・年度ごとの期間データの範囲別
   // 年度以外 半期20241, 四半期20244, 月度202403で保持
-  // monthly, quarter, half, fiscalYear
-  activePeriodSDB: { periodType: "monthly", period: 0 },
+  // FiscalYearAllKeys: 売上推移と売上目標のどちらにも対応できるように期間タイプは「"fiscal_year" | "half_year" | "quarter" | "year_month"」ではなく詳細で保持
+  activePeriodSDB: null,
   setActivePeriodSDB: (payload) => set({ activePeriodSDB: payload }),
 
   // 選択中のコンテンツ(どの事業部か、どの係か、どのメンバーか)

@@ -188,7 +188,9 @@ export const DashboardHeaderMemo: FC = () => {
   // テーマカラー変更
   const handleSwitchThemeColor = (color: string) => {
     if (color === activeThemeColor) return;
-    setActiveThemeColor(color);
+    setActiveThemeColor(
+      color as "theme-brand-f" | "theme-brand-f-gradient" | "theme-black-gradient" | "theme-simple12" | "theme-simple17"
+    );
     // ローカルストレージにセット 文字列のためparseは不要
     localStorage.setItem("theme_color", color);
   };

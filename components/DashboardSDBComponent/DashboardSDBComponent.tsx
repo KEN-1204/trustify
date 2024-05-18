@@ -3,10 +3,13 @@ import styles from "./DashboardSDBComponent.module.css";
 import { ScreenDealBoards } from "./ScreenDealBoards/ScreenDealBoards";
 import { ScreenTaskBoards } from "./TaskBoard/ScreenTaskBoards";
 import useThemeStore from "@/store/useThemeStore";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { DotsGradient } from "../Parts/DotsGradient/DotsGradient";
 import { EditModalDealCard } from "./ScreenDealBoards/EditModalDealCard/EditModalDealCard";
 import { SalesProgressScreen } from "./SalesProgressScreen/SalesProgressScreen";
+import { ErrorBoundary } from "react-error-boundary";
+import { FallbackSalesProgressScreen } from "./SalesProgressScreen/FallbackSalesProgressScreen";
+import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
 
 export const DashboardSDBComponent = () => {
   const setTheme = useThemeStore((state) => state.setTheme);
@@ -15,6 +18,17 @@ export const DashboardSDBComponent = () => {
   const activeTabSDB = useDashboardStore((state) => state.activeTabSDB);
   const activeThemeColor = useDashboardStore((state) => state.activeThemeColor);
   const setActiveThemeColor = useDashboardStore((state) => state.setActiveThemeColor);
+
+  // 上期・下期割り当てをアンマウント時に上期に戻す
+  const selectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.selectedPeriodTypeForMemberLevel);
+  const setSelectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.setSelectedPeriodTypeForMemberLevel);
+
+  useEffect(() => {
+    return () => {
+      if (selectedPeriodTypeForMemberLevel === "second_half_details")
+        setSelectedPeriodTypeForMemberLevel("first_half_details");
+    };
+  }, []);
 
   useEffect(() => {
     // テーマカラーをローカルストレージから取得して反映
@@ -79,10 +93,13 @@ export const DashboardSDBComponent = () => {
           {/* ===================== スクロールコンテナ ここから ===================== */}
           <div className={`${styles.main_contents_container}`}>
             {/* １画面目  */}
-            {/* {activeTabSDB === "Deals" && <ScreenDealBoards />} */}
-            {/* {activeTabSDB === "SalesProgress" && <ScreenDealBoards />} */}
-            {activeTabSDB === "salesProgress" && <SalesProgressScreen />}
-            {/* <ScreenTaskBoards /> */}
+            {activeTabSDB === "sales_progress" && (
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense fallback={<FallbackSalesProgressScreen />}>
+                  <SalesProgressScreen />
+                </Suspense>
+              </ErrorBoundary>
+            )}
           </div>
         </div>
       </div>

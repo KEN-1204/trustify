@@ -1250,6 +1250,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     rgba(240, 240, 240, 0.33) 90.83%
   ); */
   --color-deal-board-theme-simple17-border: 0 0 0 1px #ccc, 0 0px 3px 2px #00000039;
+  /* sticky */
+  --color-deal-board-theme-f-border-sticky: 0 0 0 1px #ccc, 0 0px 3px 2px #00000039, 0 9px 12px 3px #00000056;
+  --color-deal-board-theme-black-border-sticky: 0 0 0 1px #ccc, 0 0px 3px 2px #00000039, 0 9px 12px 3px #00000056;
+
   --color-award: rgb(252, 70, 204);
   --color-eighty: var(--main-color-tk);
   --color-fifty: rgb(30, 209, 102);
@@ -2299,9 +2303,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-deal-board-theme-simple17-border: 0 0 0 1px #ccc, 0 0 6px 3px #ffffff39;
 
   /* sticky */
-  --color-deal-board-theme-f-border-sticky: 0 0 0 1px #ffffffd0, 0 0 9px 2px var(--color-bg-brand-f),
-    0 6px 12px 9px #000000dd;
-  --color-deal-board-theme-black-border-sticky: 0 0 0 1px #ccc, 0 0 6px 3px #ffffff39, 0 6px 12px 9px #000000dd;
+  --color-deal-board-theme-f-border-sticky: 0 0 0 1px #ffffffd0, 0 1px 9px 2px var(--color-bg-brand-f),
+    0 9px 15px 9px #000000dd;
+  --color-deal-board-theme-black-border-sticky: 0 0 0 1px #ccc, 0 3px 6px 3px #ffffff39, 0 9px 15px 9px #000000dd;
 
   /* --color-award: rgb(236 72 153 / 1);
   --color-eighty: var(--main-color-tk);
@@ -2899,6 +2903,10 @@ textarea {
 .fade10_forward {
   opacity: 0;
   animation: fade 1s ease forwards;
+}
+.fade15_forward {
+  opacity: 0;
+  animation: fade 1.5s ease forwards;
 }
 .fadeout03_forward {
   opacity: 0;
