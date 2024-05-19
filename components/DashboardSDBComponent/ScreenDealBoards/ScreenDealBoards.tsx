@@ -514,39 +514,34 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
                 </div>
               </div>
 
-              {true ? (
-                <>
-                  <ErrorBoundary FallbackComponent={ErrorFallback}>
-                    <Suspense
-                      fallback={
-                        <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
-                          <SpinnerX />
-                        </div>
-                      }
-                    >
-                      <AreaChartTrend
-                        companyId={userProfileState.company_id}
-                        entityLevel={displayEntityGroup ? displayEntityGroup.entity_level : "member"}
-                        entityIdsArray={entityIds ? entityIds : [userProfileState.id]}
-                        periodType={activePeriodSDB.periodType}
-                        basePeriod={activePeriodSDB.period}
-                        yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
-                        fetchEnabled={true}
-                        selectedFiscalYear={selectedFiscalYearTargetSDB}
-                        hoveringLegendBg={`var(--sdb-card-bg)`}
-                      />
-                    </Suspense>
-                  </ErrorBoundary>
-                </>
-              ) : (
-                <div className={`${styles.main_container} flex-center`}>
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense
+                  fallback={
+                    <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
+                      <SpinnerX />
+                    </div>
+                  }
+                >
+                  <AreaChartTrend
+                    companyId={userProfileState.company_id}
+                    entityLevel={displayEntityGroup ? displayEntityGroup.entity_level : "member"}
+                    entityIdsArray={entityIds ? entityIds : [userProfileState.id]}
+                    periodType={activePeriodSDB.periodType}
+                    basePeriod={activePeriodSDB.period}
+                    yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
+                    fetchEnabled={true}
+                    selectedFiscalYear={selectedFiscalYearTargetSDB}
+                    hoveringLegendBg={`var(--sdb-card-bg)`}
+                  />
+                </Suspense>
+              </ErrorBoundary>
+              {/* <div className={`${styles.main_container} flex-center`}>
                   <div
                     className={`flex h-full w-full items-center justify-center text-[13px] text-[var(--color-text-sub)]`}
                   >
                     <span>売上目標が設定されていません。</span>
                   </div>
-                </div>
-              )}
+                </div> */}
             </div>
 
             {/* 選択中の月度が上期の場合には上期の売上目標が設定済み・月度が下期の場合には下期の売上目標が設定済みであれば、売上目標チャートを表示 */}
@@ -667,20 +662,21 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
           displayMemberList.map((memberObj, tableIndex) => {
             return (
               <Fragment key={`${memberObj.id}_${tableIndex}_board`}>
-                <div
-                  // className={`${styles.entity_board_container} bg-[red]/[0]`}
-                  className={`${styles.entity_board_container} fade15_forward bg-[red]/[0] ${
-                    stickyRow === `deal_board_${memberObj.id}` ? `${styles.sticky_row}` : ``
-                  }`}
-                  // className={`${styles.entity_board_container} bg-[red]/[0] ${isRenderProgress ? `${styles.fade_bg}` : ``}
-                  //  ${activeThemeColor === "theme-brand-f" ? `` : ``}
-                  //  ${activeThemeColor === "theme-brand-f-gradient" ? `${styles.theme_f_gradient}` : ``}
-                  //  ${activeThemeColor === "theme-black-gradient" ? `${styles.theme_black}` : ``}
-                  // ${activeThemeColor === "theme-simple17" ? `${styles.theme_simple17}` : ``} ${
-                  //   activeThemeColor === "theme-simple12" ? `${styles.theme_simple12}` : ``
-                  // } ${stickyRow === `deal_board_${index}` ? `${styles.sticky_row}` : ``}`}
-                >
-                  {/* <div className={`${styles.entity_detail_container} fade08_forward bg-[green]/[0]`}>
+                {(tableIndex <= currentActiveIndex || allFetched) && (
+                  <div
+                    // className={`${styles.entity_board_container} bg-[red]/[0]`}
+                    className={`${styles.entity_board_container} fade15_forward bg-[red]/[0] ${
+                      stickyRow === `deal_board_${memberObj.id}` ? `${styles.sticky_row}` : ``
+                    }`}
+                    // className={`${styles.entity_board_container} bg-[red]/[0] ${isRenderProgress ? `${styles.fade_bg}` : ``}
+                    //  ${activeThemeColor === "theme-brand-f" ? `` : ``}
+                    //  ${activeThemeColor === "theme-brand-f-gradient" ? `${styles.theme_f_gradient}` : ``}
+                    //  ${activeThemeColor === "theme-black-gradient" ? `${styles.theme_black}` : ``}
+                    // ${activeThemeColor === "theme-simple17" ? `${styles.theme_simple17}` : ``} ${
+                    //   activeThemeColor === "theme-simple12" ? `${styles.theme_simple12}` : ``
+                    // } ${stickyRow === `deal_board_${index}` ? `${styles.sticky_row}` : ``}`}
+                  >
+                    {/* <div className={`${styles.entity_detail_container} fade08_forward bg-[green]/[0]`}>
                     <div className={`${styles.entity_detail_wrapper}`}>
                       <div className={`${styles.entity_detail} space-x-[12px] text-[12px]`}>
                         <AvatarIcon
@@ -779,24 +775,25 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
                       </div>
                     </div>
                   </div> */}
-                  <ErrorBoundary FallbackComponent={ErrorFallback}>
-                    <Suspense fallback={<FallbackDealBoard memberObj={memberObj} isFade={true} />}>
-                      <DealBoard
-                        companyId={userProfileState.company_id!}
-                        userId={memberObj.id}
-                        memberObj={memberObj}
-                        stickyRow={stickyRow}
-                        setStickyRow={setStickyRow}
-                        // periodType={activePeriodSDB.periodType}
-                        // period={activePeriodSDB.period}
-                        onFetchComplete={() => onFetchComplete(tableIndex)} // ネタ表ボードのindexを渡す
-                        fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
-                        isRenderProgress={isRenderProgress}
-                      />
-                    </Suspense>
-                  </ErrorBoundary>
-                  {/* <FallbackDealBoard /> */}
-                </div>
+                    <ErrorBoundary FallbackComponent={ErrorFallback}>
+                      <Suspense fallback={<FallbackDealBoard memberObj={memberObj} isFade={true} />}>
+                        <DealBoard
+                          companyId={userProfileState.company_id!}
+                          userId={memberObj.id}
+                          memberObj={memberObj}
+                          stickyRow={stickyRow}
+                          setStickyRow={setStickyRow}
+                          // periodType={activePeriodSDB.periodType}
+                          // period={activePeriodSDB.period}
+                          onFetchComplete={() => onFetchComplete(tableIndex)} // ネタ表ボードのindexを渡す
+                          fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
+                          isRenderProgress={isRenderProgress}
+                        />
+                      </Suspense>
+                    </ErrorBoundary>
+                    {/* <FallbackDealBoard /> */}
+                  </div>
+                )}
                 {/* {isRenderProgress && (
                 <div className="flex-center fade08_forward my-[12px] w-full px-[24px]">
                   <hr className="min-h-[1px] w-full bg-[var(--color-border-base)]" />

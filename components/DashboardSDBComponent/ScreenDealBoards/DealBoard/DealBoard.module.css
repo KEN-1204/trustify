@@ -8,30 +8,45 @@
   /* background-color: var(--color-card-bg); */
   /* border: 1px solid var(--color-card-border); */
   /* box-shadow: var(--card-shadow); */
+
+  --sdb-card-btn-bg: var(--color-btn-basic-bg-on-card-black);
+  --sdb-card-btn-bg-hover: var(--color-btn-basic-bg-on-card-black-hover);
 }
 .board.theme_f_gradient:global {
   --deal-card-bg: var(--color-card-bg-gradient);
   --deal-card-bg-rejected: var(--color-card-bg-rejected-gray);
   --deal-card-border-rejected: var(--color-card-border-rejected-gray);
   --deal-card-text-rejected: var(--color-card-text-rejected-gray);
+
+  --sdb-card-btn-bg: var(--color-btn-basic-bg-on-card-black);
+  --sdb-card-btn-bg-hover: var(--color-btn-basic-bg-on-card-black-hover);
 }
 .board.theme_black:global {
   --deal-card-bg: var(--color-card-bg-gradient);
   --deal-card-bg-rejected: var(--color-card-bg-rejected-gray);
   --deal-card-border-rejected: var(--color-card-border-rejected-gray);
   --deal-card-text-rejected: var(--color-card-text-rejected-gray);
+
+  --sdb-card-btn-bg: var(--color-btn-basic-bg-on-card-black);
+  --sdb-card-btn-bg-hover: var(--color-btn-basic-bg-on-card-black-hover);
 }
 .board.theme_simple12:global {
   --deal-card-bg: var(--color-card-bg-gradient);
   --deal-card-bg-rejected: var(--color-card-bg-rejected-gray);
   --deal-card-border-rejected: var(--color-card-border-rejected-gray);
   --deal-card-text-rejected: var(--color-card-text-rejected-gray);
+
+  --sdb-card-btn-bg: var(--color-btn-basic-bg-on-card);
+  --sdb-card-btn-bg-hover: var(--color-btn-basic-bg-on-card-hover);
 }
 .board.theme_simple17:global {
   --deal-card-bg: var(--color-card-bg-gray);
   --deal-card-bg-rejected: var(--color-card-bg-rejected-gray);
   --deal-card-border-rejected: var(--color-card-border-rejected-gray);
   --deal-card-text-rejected: var(--color-card-text-rejected-gray);
+
+  --sdb-card-btn-bg: var(--color-btn-basic-bg-on-card-black);
+  --sdb-card-btn-bg-hover: var(--color-btn-basic-bg-on-card-black-hover);
 }
 
 .board {
@@ -518,11 +533,13 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 .btn.basic {
-  background-color: var(--color-btn-basic-bg-on-card);
+  /* background-color: var(--color-btn-basic-bg-on-card); */
+  background-color: var(--sdb-card-btn-bg);
   box-shadow: 0 0 0 1px var(--color-border-base);
 }
 .btn.basic:hover {
-  background-color: var(--color-btn-basic-bg-on-card-hover);
+  /* background-color: var(--color-btn-basic-bg-on-card-hover); */
+  background-color: var(--sdb-card-btn-bg-hover);
   color: var(--color-btn-basic-text-hover);
 }
 .btn.brand {

@@ -3,30 +3,45 @@
   --sdb-card-box-shadow: var(--color-deal-board-theme-f-border);
   --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-f-border-sticky);
   --sdb-card-box-blur: blur(10px);
+
+  --sdb-card-btn-bg: var(--color-btn-basic-bg-on-card-black);
+  --sdb-card-btn-bg-hover: var(--color-btn-basic-bg-on-card-black-hover);
 }
 .screen_deal_boards.theme_f_gradient:global {
   --sdb-card-bg: var(--color-deal-board-bg-black-gradient);
   --sdb-card-box-shadow: var(--color-deal-board-theme-f-border);
   --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-f-border-sticky);
   --sdb-card-box-blur: blur(10px);
+
+  --sdb-card-btn-bg: var(--color-btn-basic-bg-on-card-black);
+  --sdb-card-btn-bg-hover: var(--color-btn-basic-bg-on-card-black-hover);
 }
 .screen_deal_boards.theme_black:global {
   --sdb-card-bg: var(--color-deal-board-bg-theme-black);
   --sdb-card-box-shadow: var(--color-deal-board-theme-black-border);
   --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-black-border-sticky);
   --sdb-card-box-blur: blur(10px);
-}
-.screen_deal_boards.theme_simple17:global {
-  --sdb-card-bg: var(--color-deal-board-theme-simple17-bg);
-  --sdb-card-box-shadow: var(--color-deal-board-theme-simple17-border);
-  --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-black-border-sticky);
-  --sdb-card-box-blur: blur(10px);
+
+  --sdb-card-btn-bg: var(--color-btn-basic-bg-on-card-black);
+  --sdb-card-btn-bg-hover: var(--color-btn-basic-bg-on-card-black-hover);
 }
 .screen_deal_boards.theme_simple12:global {
   --sdb-card-bg: var(--color-deal-board-bg-theme-simple12);
   --sdb-card-box-shadow: var(--color-deal-board-theme-simple12-border);
   --sdb-card-box-shadow-sticky: var(--color-sales-card-border-sticky);
   --sdb-card-box-blur: unset;
+
+  --sdb-card-btn-bg: var(--color-btn-basic-bg-on-card);
+  --sdb-card-btn-bg-hover: var(--color-btn-basic-bg-on-card-hover);
+}
+.screen_deal_boards.theme_simple17:global {
+  --sdb-card-bg: var(--color-deal-board-theme-simple17-bg);
+  --sdb-card-box-shadow: var(--color-deal-board-theme-simple17-border);
+  --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-black-border-sticky);
+  --sdb-card-box-blur: blur(10px);
+
+  --sdb-card-btn-bg: var(--color-btn-basic-bg-on-card-black);
+  --sdb-card-btn-bg-hover: var(--color-btn-basic-bg-on-card-black-hover);
 }
 /* .screen_deal_boards.is_sticky:global {
   --sdb-card-box-shadow: var(--color-sales-card-border-sticky);
@@ -362,11 +377,13 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 .btn.basic {
-  background-color: var(--color-btn-basic-bg-on-card);
+  /* background-color: var(--color-btn-basic-bg-on-card); */
+  background-color: var(--sdb-card-btn-bg);
   box-shadow: 0 0 0 1px var(--color-border-base);
 }
 .btn.basic:hover {
-  background-color: var(--color-btn-basic-bg-on-card-hover);
+  /* background-color: var(--color-btn-basic-bg-on-card-hover); */
+  background-color: var(--sdb-card-btn-bg-hover);
   color: var(--color-btn-basic-text-hover);
 }
 .btn.brand {
