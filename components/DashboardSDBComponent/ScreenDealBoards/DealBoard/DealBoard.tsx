@@ -26,7 +26,7 @@ import { MdOutlineMoreTime } from "react-icons/md";
 import { ImFire } from "react-icons/im";
 import { AiFillFire, AiOutlineFire } from "react-icons/ai";
 import { BsFire } from "react-icons/bs";
-import { DealCardType } from "@/types";
+import { DealCardType, MemberAccounts } from "@/types";
 import { companyColumnHeaderItemListData } from "@/utils/companyColumnHeaderItemListData";
 import { SEED_CARDS } from "./data";
 import { format } from "date-fns";
@@ -35,6 +35,12 @@ import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { runFireworks } from "@/utils/confetti";
+import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
+import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
+import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/ProgressCircle";
+import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/ProgressNumber";
+import { AvatarIcon } from "@/components/Parts/AvatarIcon/AvatarIcon";
+import { FallbackDealBoard } from "./FallbackDealBoard";
 
 type ColumnSizeInfo = {
   prevColumnHeight: number;
@@ -91,13 +97,29 @@ const mappingColumnIndexToTitle: { [key: number]: number } = {
 type Props = {
   companyId: string;
   userId: string;
+  memberObj: MemberAccounts & {
+    company_id: string;
+    company_name: string;
+  };
+  stickyRow: string | null;
+  setStickyRow: Dispatch<SetStateAction<string | null>>;
   // periodType: string;
   // period: number;
   onFetchComplete?: () => void;
   fetchEnabled?: boolean; // trueに変更されたらフェッチを許可する
+  isRenderProgress?: boolean; // ProgressCircleレンダリングを許可
 };
 
-const DealBoardMemo = ({ companyId, userId, onFetchComplete, fetchEnabled }: Props) => {
+const DealBoardMemo = ({
+  companyId,
+  userId,
+  memberObj,
+  stickyRow,
+  setStickyRow,
+  onFetchComplete,
+  fetchEnabled,
+  isRenderProgress,
+}: Props) => {
   const language = useStore((state) => state.language);
   // const [cards, setCards] = useState<DealCardType[]>([]);
 
@@ -112,6 +134,9 @@ const DealBoardMemo = ({ companyId, userId, onFetchComplete, fetchEnabled }: Pro
   const isOpenDealCardModal = useDashboardStore((state) => state.isOpenDealCardModal);
 
   const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
+
+  // 選択されたメンバーのidをDealBoardにpropsで渡す
+  const activeThemeColor = useDashboardStore((state) => state.activeThemeColor);
 
   const queryClient = useQueryClient();
   const supabase = useSupabaseClient();
@@ -1732,6 +1757,47 @@ const DealBoardMemo = ({ companyId, userId, onFetchComplete, fetchEnabled }: Pro
   // --------------- ゴミ箱 受 Drop ここまで ---------------
   /* ---------------------------------- ✅ゴミ箱✅ ---------------------------------- */
 
+  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
+  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    marginTop = 0,
+    itemsPosition = "center",
+  }: TooltipParams) => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+
+    setHoveredItemPos({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: content,
+      content2: content2,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    if (hoveredItemPos) setHoveredItemPos(null);
+  };
+  // ==================================================================================
+
   console.log(
     "DealBoardレンダリング",
     "cards",
@@ -1758,21 +1824,140 @@ const DealBoardMemo = ({ companyId, userId, onFetchComplete, fetchEnabled }: Pro
     // isRequiredInputSoldProduct
   );
 
-  const getCardStyle = () => {};
+  const getStyleTheme = () => {
+    switch (activeThemeColor) {
+      case "theme-brand-f":
+        return ``;
+      case "theme-brand-f-gradient":
+        return `${styles.theme_f_gradient}`;
+      case "theme-black-gradient":
+        return `${styles.theme_black}`;
+      case "theme-simple17":
+        return `${styles.theme_simple17}`;
+      case "theme-simple12":
+        return `${styles.theme_simple12}`;
+        break;
+      default:
+        return ``;
+        break;
+    }
+  };
 
-  // useQueryの取得中とcardsの初期値がまだセットされていない場合はローディングを返す
+  // useQueryの取得中とcardsの初期値がまだセットされていない場合はローディングを返す h: 48(タイトル) 288(ボード)
   if (isLoadingQuery || !isMountedQuery) {
     return (
-      <div className="flex-center h-[50dvh] w-[100vw]">
-        <SpinnerBrand bgColor="var(--color-sdb-bg)" />
-      </div>
+      <>
+        <FallbackDealBoard memberObj={memberObj} />
+      </>
+      // <div className={`flex-center h-[336px] w-full px-[24px] py-[12px]`}>
+      //   <SpinnerX />
+      // </div>
     );
   }
 
   return (
     <>
+      {/* ------------------------ タイトルエリア ------------------------ */}
+      <div className={`${styles.entity_detail_container} bg-[green]/[0]`}>
+        <div className={`${styles.entity_detail_wrapper}`}>
+          <div className={`${styles.entity_detail} space-x-[12px] text-[12px]`}>
+            <AvatarIcon
+              // size={33}
+              size={36}
+              name={memberObj.profile_name ?? "未設定"}
+              withCircle={false}
+              hoverEffect={false}
+              textSize={16}
+              // imgUrl={memberObj.avatar_url ?? null}
+            />
+            <div className={`${styles.entity_name} text-[19px] font-bold`}>
+              <span>{memberObj.profile_name}</span>
+            </div>
+            <div className={`${styles.sub_info} pt-[6px]`}>{memberObj.position_name ?? "役職未設定"}</div>
+            <div className={`${styles.sub_info} pt-[6px]`}>{memberObj.assigned_employee_id_name ?? ""}</div>
+            <div className={`relative !ml-[24px] !mr-[12px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}>
+              <div className="flex h-full min-w-[150px] items-end justify-end">
+                <ProgressNumber
+                  targetNumber={6200000}
+                  // targetNumber={0}
+                  // startNumber={Math.round(68000 / 2)}
+                  // startNumber={Number((68000 * 0.1).toFixed(0))}
+                  startNumber={0}
+                  duration={3000}
+                  easeFn="Quintic"
+                  fontSize={27}
+                  fontWeight={500}
+                  margin="0 0 -3px 0"
+                  isReady={isRenderProgress}
+                  fade={`fade08_forward`}
+                />
+              </div>
+              <div className="relative h-full min-w-[33px]">
+                <div className="absolute left-[66%] top-[68%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[var(--color-text-title)]"></div>
+              </div>
+              <div className="mr-[12px] flex h-full min-w-max items-end justify-start">
+                <span className="text-[16px]">9,000,000</span>
+              </div>
+            </div>
+            <div className={`relative h-[56px] w-[56px]`} style={{ margin: `0` }}>
+              <div className="absolute bottom-[-6px] right-0">
+                <ProgressCircle
+                  circleId={`${userId}_board`}
+                  textId={`${userId}_board`}
+                  progress={78}
+                  // progress={100}
+                  // progress={0}
+                  duration={5000}
+                  easeFn="Quartic"
+                  size={56}
+                  strokeWidth={6}
+                  fontSize={11}
+                  textColor="var(--color-text-title)"
+                  isReady={isRenderProgress}
+                  fade={`fade08_forward`}
+                  // fade={`fade10_forward`}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className={`${styles.status_col_wrapper}`}>
+          <div className={`flex h-full items-start pt-[10px]`}>
+            <div
+              className={`${styles.btn} ${styles.basic} space-x-[4px]`}
+              onMouseEnter={(e) => {
+                // 売上目標が設定されていない状態ではエンティティidが存在せず、stickyが機能しなくなるので、main_entity_targetの文字列をセット
+                const entityId = "main_entity_target";
+                handleOpenTooltip({
+                  e: e,
+                  display: "top",
+                  content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
+                  marginTop: 9,
+                });
+              }}
+              onMouseLeave={handleCloseTooltip}
+              onClick={() => {
+                const entityId = `deal_board_${userId}`;
+                if (!entityId) return;
+                if (entityId === stickyRow) {
+                  setStickyRow(null);
+                } else {
+                  setStickyRow(entityId);
+                }
+                handleCloseTooltip();
+              }}
+            >
+              {stickyRow === `deal_board_${userId}` && <TbSnowflakeOff />}
+              {stickyRow !== `deal_board_${userId}` && <TbSnowflake />}
+              {stickyRow === `deal_board_${userId}` && <span>解除</span>}
+              {stickyRow !== `deal_board_${userId}` && <span>固定</span>}
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* ------------------------ タイトルエリア ------------------------ */}
       {/* ------------------------ ボード ------------------------ */}
-      <div ref={boardRef} className={`${styles.board} flex  w-full overflow-scroll`}>
+      <div ref={boardRef} className={`${styles.board} flex  w-full overflow-scroll ${getStyleTheme()}`}>
         {/* ------------ Columnレーングループ ------------ */}
         {dealColumnList.map((column: ColumnLane, columnIndex: number) => {
           // const filteredCards = categorizedCardsMapObj.get(column.titleNum);

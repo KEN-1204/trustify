@@ -1407,8 +1407,8 @@ export const getOrderCertaintyStartOfMonth = (
       break;
     case 2:
       return language === "ja"
-        ? `⚪️${withLabel ? `ネタ` : ``} (80%以上の確率で受注)`
-        : `⚪️ An 80% probability of winning the order`;
+        ? `○${withLabel ? `ネタ` : ``} (80%以上の確率で受注)`
+        : `○ An 80% probability of winning the order`;
       break;
     case 3:
       return language === "ja"
@@ -1437,8 +1437,8 @@ export const getOrderCertaintyStartOfMonthZenkaku = (
       break;
     case 2:
       return language === "ja"
-        ? `⚪️${withLabel ? `ネタ` : ``}（80%以上の確率で受注）`
-        : `⚪️ An 80% probability of winning the order`;
+        ? `○${withLabel ? `ネタ` : ``}（80%以上の確率で受注）`
+        : `○ An 80% probability of winning the order`;
       break;
     case 3:
       return language === "ja"
@@ -1470,7 +1470,8 @@ export const mappingOrderCertaintyStartOfMonthToast: { [key: number]: { [key: st
 };
 export const mappingSalesProbablyShort: { [key: number]: { [key: string]: string } } = {
   1: { ja: `A`, en: "A" },
-  2: { ja: `⚪️ネタ`, en: "⚪️" },
+  2: { ja: `○ネタ`, en: "○" },
+  // 2: { ja: `⚪️ネタ`, en: "⚪️" },
   3: { ja: `△ネタ`, en: "△" },
   4: { ja: `▲ネタ`, en: "▲" },
 };

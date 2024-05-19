@@ -44,6 +44,7 @@ type Props = {
   fallbackHeight: string;
   fallbackPadding: string;
   salesTargetDate?: string | undefined;
+  hoveringLegendBg?: string | undefined;
 };
 
 const AreaChartComponentMemo = ({
@@ -58,6 +59,7 @@ const AreaChartComponentMemo = ({
   fallbackHeight,
   fallbackPadding,
   salesTargetDate,
+  hoveringLegendBg = `var(--color-sales-card-bg)`,
 }: Props) => {
   const language = useStore((state) => state.language);
 
@@ -279,7 +281,13 @@ const AreaChartComponentMemo = ({
               verticalAlign="top"
               height={36}
               content={(props) => (
-                <CustomLegend props={props} labelType={labelType} language={language} legendList={legendList} />
+                <CustomLegend
+                  props={props}
+                  labelType={labelType}
+                  language={language}
+                  legendList={legendList}
+                  hoveringLegendBg={hoveringLegendBg}
+                />
               )}
             />
 
@@ -444,9 +452,16 @@ type LegendCustomProps = {
   labelType: string;
   language: string;
   legendList: LegendNameId[];
+  hoveringLegendBg?: string;
 };
 
-export const CustomLegend = ({ props, labelType, language, legendList }: LegendCustomProps) => {
+export const CustomLegend = ({
+  props,
+  labelType,
+  language,
+  legendList,
+  hoveringLegendBg = `var(--color-sales-card-bg)`,
+}: LegendCustomProps) => {
   const { payload } = props;
 
   const [isHoveringLegend, setIsHoveringLegend] = useState(false);
@@ -497,6 +512,7 @@ export const CustomLegend = ({ props, labelType, language, legendList }: LegendC
           ref={legendsRef}
           // className={`${styles.list_legends} fade08_forward absolute left-[60px] right-[0px] top-[0] z-10 flex  max-w-[calc(100vw-72px-62px-6px-24px)] flex-wrap items-center justify-end leading-[24px]`}
           className={`${styles.list_legends} fade08_forward absolute left-[72px] right-[0px] top-[0] z-10 flex  max-w-[calc(100vw-72px-62px-6px-24px)] flex-wrap items-center justify-end leading-[24px]`}
+          style={{ background: `${hoveringLegendBg}` }}
           onMouseLeave={handleLeaveLegend}
         >
           {legendList.map((obj, index) => (

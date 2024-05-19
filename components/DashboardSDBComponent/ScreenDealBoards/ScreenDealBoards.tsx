@@ -14,7 +14,7 @@ import {
 import styles from "./ScreenDealBoards.module.css";
 import { DealBoard } from "./DealBoard/DealBoard";
 import { AvatarIcon } from "@/components/Parts/AvatarIcon/AvatarIcon";
-import { EntityGroupByParent, FiscalYears, MemberAccounts } from "@/types";
+import { Entity, EntityGroupByParent, EntityLevelNames, FiscalYears, MemberAccounts } from "@/types";
 import useDashboardStore from "@/store/useDashboardStore";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { ErrorBoundary } from "react-error-boundary";
@@ -29,16 +29,22 @@ import { TbSnowflake, TbSnowflakeOff } from "react-icons/tb";
 import useStore from "@/store";
 import { useQueryMemberListByParentEntity } from "@/hooks/useQueryMemberListByParentEntity";
 import { useQueryClient } from "@tanstack/react-query";
+import { mappingEntityName } from "@/utils/mappings";
+import { AreaChartTrend } from "@/components/DashboardSalesTargetComponent/TargetContainer/UpsertTargetEntity/UpsertSettingTargetEntityGroup/AreaChartTrend/AreaChartTrend";
+import { FallbackDealBoard } from "./DealBoard/FallbackDealBoard";
 
 type Props = {
   // memberList: Entity[];
-  displayEntityGroup: (EntityGroupByParent & { parent_entity_level: string; parent_entity_level_id: string }) | null;
+  displayEntityGroup:
+    | (EntityGroupByParent & { parent_entity_level: string; parent_entity_level_id: string; entity_level: string })
+    | null;
   // periodType: string;
   // period: number;
 };
 
 // 🌠各メンバーのネタ表を一覧で表示するコンポーネント
 const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
+  const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const isOpenCongratulationsModal = useDashboardStore((state) => state.isOpenCongratulationsModal);
   const setIsOpenCongratulationsModal = useDashboardStore((state) => state.setIsOpenCongratulationsModal);
@@ -47,6 +53,11 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
   const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
   // 期間
   const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
+  // 上期か下期か
+  const selectedPeriodTypeHalfDetailSDB = useDashboardStore((state) => state.selectedPeriodTypeHalfDetailSDB);
+  // 🔹表示中の会計年度(グローバル)(SDB用)
+  const selectedFiscalYearTargetSDB = useDashboardStore((state) => state.selectedFiscalYearTargetSDB);
+
   // 選択中のネタカード
   const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
   // ネタカードクリック時に表示する概要モーダル
@@ -57,28 +68,71 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
   // stickyを付与するrow
   const [stickyRow, setStickyRow] = useState<string | null>(null);
 
+  // 売上推移を表示する対象の切り替え用state 総合目標かサブ目標
+  const [displayTypeForTrend, setDisplayTypeForTrend] = useState<"sub_entities" | "main_entity">("sub_entities");
+
+  // 部門別の名称
+  const getDivName = (level: EntityLevelNames) => {
+    switch (level) {
+      case "company":
+        return language === "ja" ? `全社` : `Company`;
+      case "department":
+        return language === "ja" ? `事業部` : `Departments`;
+      case "section":
+        return language === "ja" ? `課・セクション` : `Sections`;
+      case "unit":
+        return language === "ja" ? `係・チーム` : `Units`;
+      case "office":
+        return language === "ja" ? `事業所` : `Offices`;
+      case "member":
+        return language === "ja" ? `メンバー` : `Members`;
+      default:
+        return language === "ja" ? `部門` : `Division`;
+        break;
+    }
+  };
+
+  // displayTypeForTrendがサブエンティティの時に、売上目標チャート(達成率)を表示するメンバー
+  const [displaySubEntityForAchievement, setDisplaySubEntityForAchievement] = useState<{
+    entity_id: string;
+    entity_name: string;
+    entity_level: string;
+    entity_level_id: string;
+  } | null>(() => {
+    if (!displayEntityGroup) return null;
+    if (!displayEntityGroup.parent_entity_id) return null;
+    if (!displayEntityGroup.entities.length) return null;
+    return {
+      entity_id: displayEntityGroup.parent_entity_id,
+      entity_name:
+        displayEntityGroup.parent_entity_level === "company"
+          ? getDivName("company")
+          : displayEntityGroup.parent_entity_name,
+      entity_level: displayEntityGroup.parent_entity_level,
+      entity_level_id: displayEntityGroup.parent_entity_level_id,
+    };
+    // return displayEntityGroup.entities[0];
+  });
+
+  if (selectedFiscalYearTargetSDB === null) return null;
+
   if (!userProfileState || !userProfileState?.company_id) return null;
 
   // if (!periodType || !period) {
   if (!activePeriodSDB) {
     return (
       <div className="flex-center h-[80dvh] w-[100vw]">
-        {/* <SpinnerBrand bgColor="var(--color-sdb-bg)" /> */}
         <span></span>
       </div>
     );
   }
 
   const queryClient = useQueryClient();
-  // 🔹表示中の会計年度(グローバル)
-  const selectedFiscalYearTarget = useDashboardStore((state) => state.selectedFiscalYearTarget);
-
-  if (selectedFiscalYearTarget === null) return null;
 
   const fiscalYearQueryData: FiscalYears | undefined = queryClient.getQueryData([
     "fiscal_year",
     "sales_target",
-    selectedFiscalYearTarget,
+    selectedFiscalYearTargetSDB,
   ]);
 
   const entityIds = useMemo(() => {
@@ -200,32 +254,13 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
     setIsMounted(true);
   }, []);
 
-  // 全てのボードがマウントした後にProgressCircleをマウントさせる
-  const [isRenderProgress, setIsRenderProgress] = useState(false);
-
-  useEffect(() => {
-    if (activePeriodSDB.periodType && activePeriodSDB.period) {
-      setTimeout(() => {
-        setIsRenderProgress(true);
-        console.log("ProgressCircleレンダリング");
-      }, 1500);
-    }
-  }, []);
-
-  const FallbackDealBoard = () => {
-    return (
-      <div className={`flex-center h-[288px] w-[100vw] px-[24px] py-[12px]`}>
-        {/* <SpinnerBrand
-          // bgColor="var(--color-sdb-bg)"
-          bgColor="#121212"
-          withBorder
-          withShadow
-          bgTransition={`${activeThemeColor !== "theme-black-gradient" ? `transition-bg05` : ``}`}
-        /> */}
-        <SpinnerX />
-      </div>
-    );
-  };
+  // const FallbackDealBoard = () => {
+  //   return (
+  //     <div className={`flex-center h-[288px] w-full px-[24px] py-[12px]`}>
+  //       <SpinnerX />
+  //     </div>
+  //   );
+  // };
 
   // 受注済みに変更後に表示するモーダルの「反映する」ボタンクリック時に実行される関数
   const handleClickActiveSoldModal = () => {
@@ -238,6 +273,70 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
     setSelectedRowDataProperty(null); // 選択中のRowDataをリセット
     setIsOpenCongratulationsModal(false); // お祝いモーダルを閉じる
   };
+
+  // -------------------------- 売上推移 --------------------------
+  // 🌟売上推移で表示するperiodType テーブルの年度・上期・下期の表示期間のdisplayTargetPeriodTypeとは切り離して期間タイプ全てで管理する
+  // 遡る年数
+  const [yearsBack, setYearsBack] = useState(3); // SDBでは3年間遡り、目標は入れずに全て売上実績を表示する
+
+  const trendPeriodTitle = useMemo(() => {
+    if (!activePeriodSDB) return null;
+
+    if (activePeriodSDB.periodType === "fiscal_year") {
+      return {
+        periodStart: `${activePeriodSDB.period - yearsBack}年度`,
+        periodEnd: `${activePeriodSDB.period}年度`,
+      };
+    } else {
+      const year = Number(activePeriodSDB.period.toString().substring(0, 4));
+      const period = activePeriodSDB.period.toString().substring(4);
+      // 04 => 4, 1 => 1
+      let periodWithoutZero = period;
+      if (activePeriodSDB.periodType === "year_month") {
+        periodWithoutZero = String(parseInt(period, 10));
+      }
+      const back = yearsBack;
+      return {
+        periodStart:
+          activePeriodSDB.periodType === "half_year"
+            ? `${year - back}H${period}`
+            : activePeriodSDB.periodType === "quarter"
+            ? `${year - back}Q${period}`
+            : activePeriodSDB.periodType === "year_month"
+            ? `${year - back}年${periodWithoutZero}月度`
+            : `${activePeriodSDB.period - yearsBack}年度`,
+        periodEnd:
+          activePeriodSDB.periodType === "half_year"
+            ? `${year}H${period}`
+            : activePeriodSDB.periodType === "quarter"
+            ? `${year}Q${period}`
+            : activePeriodSDB.periodType === "year_month"
+            ? `${year}年${periodWithoutZero}月度`
+            : `${activePeriodSDB.period}年度`,
+      };
+    }
+  }, [activePeriodSDB, yearsBack]);
+  // -------------------------- 売上推移 --------------------------
+  // -------------------------- 売上総額・達成率 --------------------------
+  // 売上総額・達成率の「2021H1」表示用
+  const salesAchievementPeriodTitle = useMemo(() => {
+    if (!activePeriodSDB) return `-`;
+
+    if (activePeriodSDB.periodType === "fiscal_year") {
+      return `${activePeriodSDB.period}年度`;
+    } else {
+      const year = Number(activePeriodSDB.period.toString().substring(0, 4));
+      const period = parseInt(activePeriodSDB.period.toString().substring(4), 10);
+      return activePeriodSDB.periodType === "half_year"
+        ? `${year}H${period}`
+        : activePeriodSDB.periodType === "quarter"
+        ? `${year}Q${period}`
+        : activePeriodSDB.periodType === "year_month"
+        ? `${year}年${period}月度`
+        : `-`;
+    }
+  }, [activePeriodSDB?.period]);
+  // -------------------------- 売上総額・達成率 --------------------------
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
@@ -310,6 +409,19 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
   };
   // --------------------------- 🌠子コンポーネントを順番にフェッチさせる🌠 ---------------------------
 
+  // 全てのボードがマウントした後にProgressCircleをマウントさせる
+  const [isRenderProgress, setIsRenderProgress] = useState(false);
+
+  useEffect(() => {
+    if (isRenderProgress) return;
+    if (allFetched) {
+      setTimeout(() => {
+        setIsRenderProgress(true);
+        console.log("ProgressCircleレンダリング");
+      }, 1500);
+    }
+  }, [allFetched]);
+
   if (!isMounted)
     return (
       <div className={`flex-center w-full`} style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}>
@@ -317,19 +429,48 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
       </div>
     );
 
+  const getStyleTheme = () => {
+    switch (activeThemeColor) {
+      case "theme-brand-f":
+        return ``;
+      case "theme-brand-f-gradient":
+        return `${styles.theme_f_gradient}`;
+      case "theme-black-gradient":
+        return `${styles.theme_black}`;
+      case "theme-simple17":
+        return `${styles.theme_simple17}`;
+      case "theme-simple12":
+        return `${styles.theme_simple12}`;
+        break;
+      default:
+        return ``;
+        break;
+    }
+  };
+
+  console.log(
+    "ScreenDealBoardsコンポーネントレンダリング",
+    "displayEntityGroup",
+    displayEntityGroup,
+    "queryDataMemberGroupByParentEntity",
+    queryDataMemberGroupByParentEntity,
+    "memberList",
+    memberList,
+    "displayMemberList",
+    displayMemberList,
+    "entityIds",
+    entityIds
+  );
+
   return (
     <>
       {/* <section className={`${styles.company_table_screen} h-screen w-full bg-neutral-900 text-neutral-50`}> */}
       <section
-        className={`${styles.screen_deal_boards} transition-bg05 w-full ${
-          activeThemeColor === "theme-brand-f" ? `` : ``
-        } ${activeThemeColor === "theme-brand-f-gradient" ? `${styles.theme_f_gradient}` : ``} 
-                 ${activeThemeColor === "theme-black-gradient" ? `${styles.theme_black}` : ``} 
-                ${activeThemeColor === "theme-simple17" ? `${styles.theme_simple17}` : ``} ${
-          activeThemeColor === "theme-simple12" ? `${styles.theme_simple12}` : ``
-        } ${stickyRow !== null ? `${styles.is_sticky}` : ``}`}
+        className={`${styles.screen_deal_boards} transition-bg05 w-full ${getStyleTheme()} ${
+          stickyRow !== null ? `${styles.is_sticky}` : ``
+        }`}
       >
-        {/* ------------------- Row チャートエリア ------------------- */}
+        {/* ------------------- Row 売上推移・達成率チャートエリア ------------------- */}
         {!allFetched && (
           <div className={`flex-center fade08_forward mb-[20px] max-h-[369px] min-h-[369px] w-full`}>
             <SpinnerX />
@@ -341,11 +482,125 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
               stickyRow === "row_trend" ? `${styles.sticky_row}` : ``
             }`}
           >
-            <div className={`${styles.grid_content_card}`}>
-              <div className={`${styles.card_wrapper} fade08_forward`}>
-                <div className={`${styles.card_title_area}`}>
+            <div className={`${styles.grid_content_card}`} style={{ minHeight: `369px` }}>
+              <div className={`${styles.card_title_area}`}>
+                <div className={`${styles.card_title}`}>
+                  {/* <span>売上推移</span> */}
+                  <div className={`flex flex-col`}>
+                    <div className={`flex items-center`}>
+                      <span>売上推移</span>
+                      <span className={`ml-[18px]`}>
+                        {displayEntityGroup
+                          ? displayTypeForTrend === "sub_entities"
+                            ? `${mappingEntityName[displayEntityGroup.entity_level][language]}別`
+                            : `${
+                                displayEntityGroup.parent_entity_name === "company"
+                                  ? getDivName("company")
+                                  : displayEntityGroup.parent_entity_name
+                              }`
+                          : `${userProfileState.profile_name}`}
+                      </span>
+                    </div>
+                    <span className={`text-[12px] text-[var(--color-text-sub)]`}>
+                      {trendPeriodTitle ? (
+                        <>
+                          {trendPeriodTitle.periodStart} ~ {trendPeriodTitle.periodEnd}
+                        </>
+                      ) : (
+                        <>{`-`}</>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {true ? (
+                <>
+                  <ErrorBoundary FallbackComponent={ErrorFallback}>
+                    <Suspense
+                      fallback={
+                        <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
+                          <SpinnerX />
+                        </div>
+                      }
+                    >
+                      <AreaChartTrend
+                        companyId={userProfileState.company_id}
+                        entityLevel={displayEntityGroup ? displayEntityGroup.entity_level : "member"}
+                        entityIdsArray={entityIds ? entityIds : [userProfileState.id]}
+                        periodType={activePeriodSDB.periodType}
+                        basePeriod={activePeriodSDB.period}
+                        yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
+                        fetchEnabled={true}
+                        selectedFiscalYear={selectedFiscalYearTargetSDB}
+                        hoveringLegendBg={`var(--sdb-card-bg)`}
+                      />
+                    </Suspense>
+                  </ErrorBoundary>
+                </>
+              ) : (
+                <div className={`${styles.main_container} flex-center`}>
+                  <div
+                    className={`flex h-full w-full items-center justify-center text-[13px] text-[var(--color-text-sub)]`}
+                  >
+                    <span>売上目標が設定されていません。</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 選択中の月度が上期の場合には上期の売上目標が設定済み・月度が下期の場合には下期の売上目標が設定済みであれば、売上目標チャートを表示 */}
+            {displayEntityGroup !== null &&
+            !!queryDataMemberGroupByParentEntity?.length &&
+            !!fiscalYearQueryData &&
+            ((selectedPeriodTypeHalfDetailSDB === "first_half_details" &&
+              fiscalYearQueryData.is_confirmed_first_half_details) ||
+              (selectedPeriodTypeHalfDetailSDB === "second_half_details" &&
+                fiscalYearQueryData.is_confirmed_second_half_details)) ? (
+              <div className={`${styles.grid_content_card}`} style={{ minHeight: `300px` }}>
+                <div className={`${styles.card_title_area} !items-start`}>
                   <div className={`${styles.card_title}`}>
-                    <span>売上推移</span>
+                    <div className={`flex flex-col`}>
+                      <div className={`flex items-center`}>
+                        <span>売上総額・達成率</span>
+                        <span className={`ml-[18px]`}>
+                          {queryDataMemberGroupByParentEntity && displaySubEntityForAchievement
+                            ? displaySubEntityForAchievement.entity_name
+                            : userProfileState.profile_name}
+                        </span>
+                      </div>
+                      <span className={`text-[12px] text-[var(--color-text-sub)]`}>{salesAchievementPeriodTitle}</span>
+                    </div>
+                  </div>
+
+                  <div
+                    className={`${styles.btn} ${styles.basic} space-x-[4px]`}
+                    onMouseEnter={(e) => {
+                      // 売上目標が設定されていない状態ではエンティティidが存在せず、stickyが機能しなくなるので、main_entity_targetの文字列をセット
+                      const entityId = "main_entity_target";
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
+                        marginTop: 9,
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                    onClick={() => {
+                      const entityId = "row_trend";
+                      if (!entityId) return;
+                      if (entityId === stickyRow) {
+                        setStickyRow(null);
+                      } else {
+                        setStickyRow(entityId);
+                      }
+                      handleCloseTooltip();
+                    }}
+                  >
+                    {stickyRow === "row_trend" && <TbSnowflakeOff />}
+                    {stickyRow !== "row_trend" && <TbSnowflake />}
+                    {stickyRow === "row_trend" && <span>解除</span>}
+                    {stickyRow !== "row_trend" && <span>固定</span>}
                   </div>
                 </div>
                 <div className={`${styles.main_container} flex-center`}>
@@ -355,58 +610,33 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
                     <span>売上目標が設定されていません。</span>
                   </div>
                 </div>
+                {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
+                  <Suspense
+                    fallback={
+                      <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
+                        <SpinnerX />
+                      </div>
+                    }
+                  >
+                    <ProgressCircleSalesAchievement
+                      fiscalYear={selectedFiscalYearTargetSDB}
+                      companyId={userProfileState.company_id}
+                      parentEntityId={mainEntityTarget.parentEntityId}
+                      parentEntityTotalMainTarget={parentEntityTotalMainTarget}
+                      entityLevel={mainEntityTarget.entityLevel}
+                      entityLevelId={entityLevelMap.get(mainEntityTarget.entityLevel)!.id}
+                      fiscalYearId={fiscalYearQueryData.id}
+                      entities={entitiesForShareChart}
+                      periodTitle={salesTargetSharePeriodTitle}
+                      periodType={selectedPeriodDetailShare.period}
+                      basePeriod={selectedPeriodDetailShare.value}
+                      fetchEnabled={true}
+                      // periodType={periodTypeTrend}
+                    />
+                  </Suspense>
+                </ErrorBoundary> */}
               </div>
-            </div>
-
-            {displayEntityGroup !== null && !!queryDataMemberGroupByParentEntity?.length && (
-              <div className={`${styles.grid_content_card}`}>
-                <div className={`${styles.card_wrapper} fade08_forward`}>
-                  <div className={`${styles.card_title_area}`}>
-                    <div className={`${styles.card_title}`}>
-                      <span>売上目標シェア</span>
-                    </div>
-
-                    <div
-                      className={`${styles.btn} ${styles.basic} space-x-[4px]`}
-                      onMouseEnter={(e) => {
-                        // 売上目標が設定されていない状態ではエンティティidが存在せず、stickyが機能しなくなるので、main_entity_targetの文字列をセット
-                        const entityId = "main_entity_target";
-                        handleOpenTooltip({
-                          e: e,
-                          display: "top",
-                          content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
-                          marginTop: 9,
-                        });
-                      }}
-                      onMouseLeave={handleCloseTooltip}
-                      onClick={() => {
-                        const entityId = "row_trend";
-                        if (!entityId) return;
-                        if (entityId === stickyRow) {
-                          setStickyRow(null);
-                        } else {
-                          setStickyRow(entityId);
-                        }
-                        handleCloseTooltip();
-                      }}
-                    >
-                      {stickyRow === "row_trend" && <TbSnowflakeOff />}
-                      {stickyRow !== "row_trend" && <TbSnowflake />}
-                      {stickyRow === "row_trend" && <span>解除</span>}
-                      {stickyRow !== "row_trend" && <span>固定</span>}
-                    </div>
-                  </div>
-                  <div className={`${styles.main_container} flex-center`}>
-                    <div
-                      className={`flex h-full w-full items-center justify-center text-[13px] text-[var(--color-text-sub)]`}
-                    >
-                      <span>売上目標が設定されていません。</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-            {displayEntityGroup === null && (
+            ) : (
               <div className={`${styles.grid_content_card}`}>
                 <div className={`${styles.card_wrapper} fade08_forward`}>
                   <div className={`${styles.card_title_area}`}>
@@ -430,7 +660,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
             )}
           </div>
         )}
-        {/* ------------------- Row チャートエリア ------------------- */}
+        {/* ------------------- Row 売上推移・達成率チャートエリア ------------------- */}
 
         {/* ------------------- ネタ表ボード ------------------- */}
         {displayMemberList &&
@@ -450,8 +680,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
                   //   activeThemeColor === "theme-simple12" ? `${styles.theme_simple12}` : ``
                   // } ${stickyRow === `deal_board_${index}` ? `${styles.sticky_row}` : ``}`}
                 >
-                  {activeThemeColor === "theme-black-gradient" && <div className={`${styles.bg_black}`}></div>}
-                  <div className={`${styles.entity_detail_container} fade08_forward bg-[green]/[0]`}>
+                  {/* <div className={`${styles.entity_detail_container} fade08_forward bg-[green]/[0]`}>
                     <div className={`${styles.entity_detail_wrapper}`}>
                       <div className={`${styles.entity_detail} space-x-[12px] text-[12px]`}>
                         <AvatarIcon
@@ -472,7 +701,6 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
                           className={`relative !ml-[24px] !mr-[12px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}
                         >
                           <div className="flex h-full min-w-[150px] items-end justify-end">
-                            {/* <span className="mb-[-3px] text-[27px]">12,000,000,000</span> */}
                             <ProgressNumber
                               targetNumber={6200000}
                               // targetNumber={0}
@@ -493,10 +721,8 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
                           </div>
                           <div className="mr-[12px] flex h-full min-w-max items-end justify-start">
                             <span className="text-[16px]">9,000,000</span>
-                            {/* <span className="text-[16px]">12,000,000,000</span> */}
                           </div>
                         </div>
-                        {/* <div className={`relative h-[56px] w-[66px]`} style={{ margin: `0` }}> */}
                         <div className={`relative h-[56px] w-[56px]`} style={{ margin: `0` }}>
                           <div className="absolute bottom-[-6px] right-0">
                             <ProgressCircle
@@ -551,20 +777,21 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
                           {stickyRow !== `deal_board_${memberObj.id}` && <span>固定</span>}
                         </div>
                       </div>
-                      {/* <div className={`${styles.status_flex_wrapper}`}>
-                      <div className={`${styles.right_spacer}`}></div>
-                    </div> */}
                     </div>
-                  </div>
+                  </div> */}
                   <ErrorBoundary FallbackComponent={ErrorFallback}>
-                    <Suspense fallback={<FallbackDealBoard />}>
+                    <Suspense fallback={<FallbackDealBoard memberObj={memberObj} isFade={true} />}>
                       <DealBoard
                         companyId={userProfileState.company_id!}
                         userId={memberObj.id}
+                        memberObj={memberObj}
+                        stickyRow={stickyRow}
+                        setStickyRow={setStickyRow}
                         // periodType={activePeriodSDB.periodType}
                         // period={activePeriodSDB.period}
                         onFetchComplete={() => onFetchComplete(tableIndex)} // ネタ表ボードのindexを渡す
                         fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
+                        isRenderProgress={isRenderProgress}
                       />
                     </Suspense>
                   </ErrorBoundary>
@@ -609,7 +836,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
       {/* ------------------- 受注済みに変更後の売上入力モーダル ------------------- */}
       {isOpenCongratulationsModal && (
         <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <Suspense fallback={<FallbackDealBoard />}>
+          <Suspense fallback={<div></div>}>
             <GradientModal
               title1="受注おめでとう🎉"
               title2="ダッシュボードに売上を反映させましょう！"

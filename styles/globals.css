@@ -1232,10 +1232,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-deal-board-bg-black-gradient: #ffffff66; */
   --color-deal-board-bg-black-gradient-prev: transparent;
   --color-deal-board-bg-black-gradient: #ffffff;
-  --color-deal-board--bg-theme-black-prev: transparent;
-  --color-deal-board--bg-theme-black: var(--color-sales-card-bg);
-  --color-deal-board--bg-theme-simple12-prev: transparent;
-  --color-deal-board--bg-theme-simple12: var(--color-sales-card-bg);
+  --color-deal-board-bg-theme-black-prev: transparent;
+  --color-deal-board-bg-theme-black: var(--color-sales-card-bg);
+  --color-deal-board-bg-theme-simple12-prev: transparent;
+  --color-deal-board-bg-theme-simple12: var(--color-sales-card-bg);
   /* --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 4px #999; */
   --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0px 3px 2px #00000039;
   /* --color-deal-board-theme-f-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 2px 9px 3px #99999990; */
@@ -1279,13 +1279,20 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-column-border-active: inset 0px 0px 0px 1px #ff3b5b90, 0px 0px 0px 1px #ff3b5b; */
   /* --color-column-lane-active: #0ab5ff15; */
   --color-card-bg: rgb(248, 248, 248);
+  --color-card-bg-gray: rgb(248, 248, 248);
+  --color-card-bg-gradient: rgb(248, 248, 248);
   --color-card-bg-disabled: rgba(248, 248, 248, 0.3);
   --color-card-border: rgb(190, 190, 190);
+  --color-card-border-black: rgb(190, 190, 190);
   --color-card-text: var(--color-text-title-black);
   --color-card-bg-rejected: rgb(252, 252, 252);
   --color-card-border-rejected: rgb(220, 220, 220);
   --color-card-text-rejected: var(--color-text-disabled);
   --color-card-line-rejected: #555;
+  --color-card-bg-rejected-gray: rgb(252, 252, 252);
+  --color-card-border-rejected-gray: rgb(220, 220, 220);
+  --color-card-text-rejected-gray: var(--color-text-disabled);
+  --color-card-pending-icon: var(--color-bg-brand-f);
   --card-shadow: var(--shadow-sm);
   --color-card-dragging-bg: linear-gradient(to bottom left, #0affffd0, #0abeffd0, #0066ffd0);
   --color-barrel-text: rgb(115 115 115 / 1);
@@ -2284,11 +2291,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     rgba(53, 53, 53, 0.56) 49.45%,
     rgba(0, 0, 0, 0.56) 90.83%
   );
-  --color-deal-board--bg-theme-black-prev: transparent;
-  --color-deal-board--bg-theme-black: transparent;
-  /* --color-deal-board--bg-theme-simple12: var(--color-deal-board-bg); */
-  --color-deal-board--bg-theme-simple12-prev: var(--color-sales-card-bg);
-  --color-deal-board--bg-theme-simple12: var(--color-sales-card-bg);
+  --color-deal-board-bg-theme-black-prev: transparent;
+  --color-deal-board-bg-theme-black: transparent;
+  /* --color-deal-board-bg-theme-simple12: var(--color-deal-board-bg); */
+  --color-deal-board-bg-theme-simple12-prev: var(--color-sales-card-bg);
+  --color-deal-board-bg-theme-simple12: var(--color-sales-card-bg);
   /* --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 3px #999999; */
   --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 6px 3px #ffffff39;
   --color-deal-board-theme-f-border: 0 0 0 1px #ffffffd0, 0 0 9px 2px var(--color-bg-brand-f);
@@ -2296,10 +2303,16 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-deal-board-theme-simple12-border: var(--color-sales-card-border);
   --color-deal-board-theme-simple17-bg: linear-gradient(
     90deg,
+    rgba(15, 15, 15, 0.56) 1.21%,
+    rgba(53, 53, 53, 0.56) 49.45%,
+    rgba(15, 15, 15, 0.56) 90.83%
+  );
+  /* --color-deal-board-theme-simple17-bg: linear-gradient(
+    90deg,
     rgba(15, 15, 15, 0.33) 1.21%,
     rgba(53, 53, 53, 0.56) 49.45%,
     rgba(15, 15, 15, 0.33) 90.83%
-  );
+  ); */
   --color-deal-board-theme-simple17-border: 0 0 0 1px #ccc, 0 0 6px 3px #ffffff39;
 
   /* sticky */
@@ -2327,14 +2340,21 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-card-bg: rgb(38 38 38 / 1); */
   /* --color-card-bg: #262626; */
   --color-card-bg: #292929;
+  --color-card-bg-gray: #363636;
+  --color-card-bg-gradient: var(--color-tooltip-gradient-black);
   --color-card-bg-disabled: rgba(38 38 38, 0.3);
-  --color-card-border: #404040;
-  --color-card-border: #666;
+  /* --color-card-border: #404040; */
+  --color-card-border: #999;
+  /* --color-card-border-black: #999; */
   --color-card-text: rgb(245 245 245 / 1);
   --color-card-bg-rejected: rgb(24, 24, 24);
   --color-card-border-rejected: #292929;
   --color-card-text-rejected: #999;
   --color-card-line-rejected: #ccc;
+  --color-card-bg-rejected-gray: #1d1d1d;
+  --color-card-border-rejected-gray: #393939;
+  --color-card-text-rejected-gray: #787878;
+  --color-card-pending-icon: var(--color-text-title);
   --card-shadow: 0 2px 4px -1px rgba(57, 76, 96, 0.15);
   --color-card-dragging-bg: linear-gradient(to bottom left, #0affffc0, #0abeffc0, #0066ffc0);
   --color-barrel-bg: rgb(115 115 115 / 0.2);

@@ -71,9 +71,9 @@ const SalesProgressScreenMemo = () => {
   // 期間
   const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
   const setActivePeriodSDB = useDashboardStore((state) => state.setActivePeriodSDB);
-  // 選択中の期間が上期か下期か
-  const selectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.selectedPeriodTypeForMemberLevel);
-  const setSelectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.setSelectedPeriodTypeForMemberLevel);
+  // 選択中の期間が上期か下期か(SDB用)
+  const selectedPeriodTypeHalfDetailSDB = useDashboardStore((state) => state.selectedPeriodTypeHalfDetailSDB);
+  const setSelectedPeriodTypeHalfDetailSDB = useDashboardStore((state) => state.setSelectedPeriodTypeHalfDetailSDB);
 
   const [activePeriodSDBLocal, setActivePeriodSDBLocal] = useState<{
     // periodType: FiscalYearAllKeys;
@@ -125,9 +125,9 @@ const SalesProgressScreenMemo = () => {
 
   // --------------------------- 変数定義 ---------------------------
 
-  // 🔹表示中の会計年度(グローバル)
-  const selectedFiscalYearTarget = useDashboardStore((state) => state.selectedFiscalYearTarget);
-  const setSelectedFiscalYearTarget = useDashboardStore((state) => state.setSelectedFiscalYearTarget);
+  // 🔹表示中の会計年度(グローバル)(SDB用)
+  const selectedFiscalYearTargetSDB = useDashboardStore((state) => state.selectedFiscalYearTargetSDB);
+  const setSelectedFiscalYearTargetSDB = useDashboardStore((state) => state.setSelectedFiscalYearTargetSDB);
 
   // 🔹現在の会計年度
   const currentFiscalYear = useMemo(
@@ -142,7 +142,7 @@ const SalesProgressScreenMemo = () => {
   // 🔹初回マウント時に現在の会計年度をZustandにセット
   useEffect(() => {
     // 🔸会計年度をセット
-    setSelectedFiscalYearTarget(currentFiscalYear);
+    setSelectedFiscalYearTargetSDB(currentFiscalYear);
   }, []);
 
   // 🔹現在の日付の会計年度の決算日Dateオブジェクト(現在の会計年度の決算日Date) 決算日を取得して変数に格納
@@ -159,10 +159,10 @@ const SalesProgressScreenMemo = () => {
     return (
       calculateCurrentFiscalYearEndDate({
         fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
-        selectedYear: selectedFiscalYearTarget ?? currentFiscalYear,
+        selectedYear: selectedFiscalYearTargetSDB ?? currentFiscalYear,
       }) ?? new Date(new Date().getFullYear(), 2, 31)
     );
-  }, [userProfileState?.customer_fiscal_end_month, selectedFiscalYearTarget]);
+  }, [userProfileState?.customer_fiscal_end_month, selectedFiscalYearTargetSDB]);
 
   // // 決算日を取得して変数に格納
   // const fiscalYearEndDate = useMemo(() => {
@@ -177,23 +177,23 @@ const SalesProgressScreenMemo = () => {
       calculateFiscalYearStart({
         fiscalYearEnd: fiscalYearEndDate,
         fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
-        selectedYear: selectedFiscalYearTarget ?? currentFiscalYear,
+        selectedYear: selectedFiscalYearTargetSDB ?? currentFiscalYear,
       }) ?? new Date()
     );
   }, [fiscalYearEndDate]);
 
-  // 🔹現在の顧客の会計年月度 202303
-  const currentFiscalStartYearMonth = useDashboardStore((state) => state.currentFiscalStartYearMonth);
-  const setCurrentFiscalStartYearMonth = useDashboardStore((state) => state.setCurrentFiscalStartYearMonth);
-  // 🔹売上目標・前年度売上フェッチ時の年月度の12ヶ月分の配列
-  const annualFiscalMonths = useDashboardStore((state) => state.annualFiscalMonths);
-  const setAnnualFiscalMonths = useDashboardStore((state) => state.setAnnualFiscalMonths);
+  // 🔹現在の顧客の会計年月度 202303(SDB用)
+  const currentFiscalStartYearMonthSDB = useDashboardStore((state) => state.currentFiscalStartYearMonthSDB);
+  const setCurrentFiscalStartYearMonthSDB = useDashboardStore((state) => state.setCurrentFiscalStartYearMonthSDB);
+  // 🔹売上目標・前年度売上フェッチ時の年月度の12ヶ月分の配列(SDB用)
+  const annualFiscalMonthsSDB = useDashboardStore((state) => state.annualFiscalMonthsSDB);
+  const setAnnualFiscalMonthsSDB = useDashboardStore((state) => state.setAnnualFiscalMonthsSDB);
 
-  // 年月度のカレンダー年を除く月部分のみをvalueにセットしたannualFiscalMonthsを生成
+  // 年月度のカレンダー年を除く月部分のみをvalueにセットしたannualFiscalMonthsSDBを生成
   const annualFiscalMonthWithoutYearToMonthKeyMap = useMemo(() => {
-    if (!annualFiscalMonths) return null;
+    if (!annualFiscalMonthsSDB) return null;
     const _newMonths = new Map(
-      Object.entries(annualFiscalMonths).map(([monthKey, value]) => {
+      Object.entries(annualFiscalMonthsSDB).map(([monthKey, value]) => {
         const firstYearMonthStr = String(value);
         const _month = firstYearMonthStr.substring(4); // 月部分のみ取得
         return [_month, monthKey as FiscalYearMonthKey];
@@ -201,28 +201,28 @@ const SalesProgressScreenMemo = () => {
       })
     );
     return _newMonths;
-  }, [annualFiscalMonths]);
+  }, [annualFiscalMonthsSDB]);
 
-  // 🔹ユーザーの会計年度の期首と期末のDateオブジェクト
-  const fiscalYearStartEndDate = useDashboardStore((state) => state.fiscalYearStartEndDate);
-  const setFiscalYearStartEndDate = useDashboardStore((state) => state.setFiscalYearStartEndDate);
+  // 🔹ユーザーの会計年度の期首と期末のDateオブジェクト(SDB用)
+  const fiscalYearStartEndDateSDB = useDashboardStore((state) => state.fiscalYearStartEndDateSDB);
+  const setFiscalYearStartEndDateSDB = useDashboardStore((state) => state.setFiscalYearStartEndDateSDB);
 
   // ユーザーの会計基準の現在の月度を初期値にセットする
   useEffect(() => {
     // 🔸顧客の期首と期末のDateオブジェクトをセット
-    setFiscalYearStartEndDate({ startDate: fiscalYearStartDateObj, endDate: fiscalYearEndDate });
+    setFiscalYearStartEndDateSDB({ startDate: fiscalYearStartDateObj, endDate: fiscalYearEndDate });
 
     // 🔸顧客の選択している会計年度の開始年月度 期首の年月度を6桁の数値で取得 202404
     const newStartYearMonth = calculateDateToYearMonth(fiscalYearStartDateObj, fiscalYearEndDate.getDate());
-    setCurrentFiscalStartYearMonth(newStartYearMonth);
+    setCurrentFiscalStartYearMonthSDB(newStartYearMonth);
 
     // 🔸年度初めから12ヶ月分の年月度の配列
     const fiscalMonths = calculateFiscalYearMonths(newStartYearMonth);
-    setAnnualFiscalMonths(fiscalMonths);
+    setAnnualFiscalMonthsSDB(fiscalMonths);
     // // 🔸前年度の年度初めから12ヶ月分の年月度の配列
     // const lastStartYearMonth = newStartYearMonth - 100;
     // const lastFiscalMonths = calculateFiscalYearMonths(lastStartYearMonth);
-    // setLastAnnualFiscalMonths(lastFiscalMonths);
+    // setLastAnnualFiscalMonthsSDB(lastFiscalMonths);
 
     // 現在の日付からユーザーの財務サイクルに応じた年月度を取得(年月度の年はカレンダー年)
     const currentFiscalYearMonth = calculateDateToYearMonth(new Date(), fiscalYearEndDate.getDate());
@@ -249,7 +249,7 @@ const SalesProgressScreenMemo = () => {
       ]);
       const _newMonth = String(currentFiscalYearMonth).substring(4);
       const newHalfDetail = firstHalfDetailSet.has(_newMonth) ? "first_half_details" : "second_half_details";
-      setSelectedPeriodTypeForMemberLevel(newHalfDetail);
+      setSelectedPeriodTypeHalfDetailSDB(newHalfDetail);
     } else {
       setErrorMsg("エラー：会計年月度が取得できませんでした...🙇‍♀️");
     }
@@ -336,7 +336,7 @@ const SalesProgressScreenMemo = () => {
   } = useQueryFiscalYear(
     userProfileState.company_id,
     "sales_target",
-    selectedFiscalYearTarget ?? currentFiscalYear,
+    selectedFiscalYearTargetSDB ?? currentFiscalYear,
     true
   );
 
@@ -344,13 +344,13 @@ const SalesProgressScreenMemo = () => {
 
   // ===================== 🌠エンティティレベルuseQuery🌠 =====================
   const {
-    data: addedEntityLevelsListQueryData,
+    data: entityLevelsQueryData,
     isLoading: isLoadingQueryLevel,
     isError: isErrorQueryLevel,
     isSuccess: isSuccessQueryLevel,
   } = useQueryEntityLevels(
     userProfileState.company_id,
-    selectedFiscalYearTarget ?? currentFiscalYear,
+    selectedFiscalYearTargetSDB ?? currentFiscalYear,
     "sales_target",
     true
   );
@@ -359,9 +359,9 @@ const SalesProgressScreenMemo = () => {
   // ===================== 🌠エンティティuseQuery🌠 =====================
   // エンティティレベルのidのみで配列を作成(エンティティuseQuery用)
   const entityLevelIds = useMemo(() => {
-    if (!addedEntityLevelsListQueryData) return [];
-    return addedEntityLevelsListQueryData.map((obj) => obj.id);
-  }, [addedEntityLevelsListQueryData]);
+    if (!entityLevelsQueryData) return [];
+    return entityLevelsQueryData.map((obj) => obj.id);
+  }, [entityLevelsQueryData]);
 
   // 現在追加済みの全てのレベルidに紐づくそれぞれのエンティティ
   const {
@@ -370,7 +370,7 @@ const SalesProgressScreenMemo = () => {
     isError: isErrorQueryEntities,
   } = useQueryEntities(
     userProfileState.company_id,
-    selectedFiscalYearTarget ?? currentFiscalYear,
+    selectedFiscalYearTargetSDB ?? currentFiscalYear,
     "sales_target",
     entityLevelIds,
     isSuccessQueryLevel
@@ -397,11 +397,12 @@ const SalesProgressScreenMemo = () => {
       ...myMemberGroup,
       parent_entity_level: myEntityObj.parent_entity_level,
       parent_entity_level_id: myEntityObj.parent_entity_level_id,
-    } as EntityGroupByParent & { parent_entity_level: string; parent_entity_level_id: string };
+      entity_level: myEntityObj.entity_level,
+    } as EntityGroupByParent & { parent_entity_level: string; parent_entity_level_id: string; entity_level: string };
   }, [entitiesHierarchyQueryData]);
 
   const [displayEntityGroup, setDisplayEntityGroup] = useState<
-    (EntityGroupByParent & { parent_entity_level: string; parent_entity_level_id: string }) | null
+    (EntityGroupByParent & { parent_entity_level: string; parent_entity_level_id: string; entity_level: string }) | null
   >(null);
 
   // ✅初回マウント時 現在の会計年度の売上目標とエンティティ構成が設定されている場合はZustandにセット
@@ -639,7 +640,12 @@ const SalesProgressScreenMemo = () => {
 
   // 期間をメニューから適用ボタンで変更する関数
   const handleChangePeriod = () => {
-    if (!activePeriodSDBLocal || !activePeriodSDB || !annualFiscalMonthWithoutYearToMonthKeyMap || !annualFiscalMonths)
+    if (
+      !activePeriodSDBLocal ||
+      !activePeriodSDB ||
+      !annualFiscalMonthWithoutYearToMonthKeyMap ||
+      !annualFiscalMonthsSDB
+    )
       return handleCloseSectionMenu();
     if (
       activePeriodSDB.periodType === activePeriodSDBLocal.periodType &&
@@ -659,16 +665,16 @@ const SalesProgressScreenMemo = () => {
       if (!_monthKey) return handleCloseSectionMenu();
 
       // 取得した月と期首の月の両者のカレンダー年を比較して新たなカレンダー年から新たな会計年度を算出して更新する
-      const newMonthYear = String(annualFiscalMonths[_monthKey]).substring(0, 4);
-      const firstMonthYear = String(annualFiscalMonths.month_01).substring(0, 4);
+      const newMonthYear = String(annualFiscalMonthsSDB[_monthKey]).substring(0, 4);
+      const firstMonthYear = String(annualFiscalMonthsSDB.month_01).substring(0, 4);
       if (!newMonthYear || !firstMonthYear) return handleCloseSectionMenu();
 
       if (firstMonthYear === newMonthYear) {
-        setSelectedFiscalYearTarget(selectedCalendarYear);
+        setSelectedFiscalYearTargetSDB(selectedCalendarYear);
       }
       // カレンダー年より会計年度が1年小さい場合には選択中のカレンダー年から1年引いた値を新たに選択中の会計年度として更新する
       else if (firstMonthYear < newMonthYear) {
-        setSelectedFiscalYearTarget(selectedCalendarYear - 1);
+        setSelectedFiscalYearTargetSDB(selectedCalendarYear - 1);
       } else {
         console.error("エラー：会計年度が算出できませんでした。 E09");
         return handleCloseSectionMenu(); // 上記2つに当てはまらない場合にはエラー
@@ -676,8 +682,8 @@ const SalesProgressScreenMemo = () => {
     }
     // 年月度以外はselectedFiscalYearLocalをそのままセットして選択中の会計年度として更新
     else {
-      if (selectedFiscalYearLocal !== selectedFiscalYearTarget) {
-        setSelectedFiscalYearTarget(selectedFiscalYearLocal);
+      if (selectedFiscalYearLocal !== selectedFiscalYearTargetSDB) {
+        setSelectedFiscalYearTargetSDB(selectedFiscalYearLocal);
       }
     }
 
@@ -686,18 +692,18 @@ const SalesProgressScreenMemo = () => {
 
     // 上期と下期どちらを選択中か更新
     const firstHalfDetailSet = new Set([
-      String(annualFiscalMonths.month_01).substring(4),
-      String(annualFiscalMonths.month_02).substring(4),
-      String(annualFiscalMonths.month_03).substring(4),
-      String(annualFiscalMonths.month_04).substring(4),
-      String(annualFiscalMonths.month_05).substring(4),
-      String(annualFiscalMonths.month_06).substring(4),
+      String(annualFiscalMonthsSDB.month_01).substring(4),
+      String(annualFiscalMonthsSDB.month_02).substring(4),
+      String(annualFiscalMonthsSDB.month_03).substring(4),
+      String(annualFiscalMonthsSDB.month_04).substring(4),
+      String(annualFiscalMonthsSDB.month_05).substring(4),
+      String(annualFiscalMonthsSDB.month_06).substring(4),
     ]);
 
     const _month = String(activePeriodSDBLocal.period).substring(4);
 
     const newHalfDetail = firstHalfDetailSet.has(_month) ? "first_half_details" : "second_half_details";
-    setSelectedPeriodTypeForMemberLevel(newHalfDetail);
+    setSelectedPeriodTypeHalfDetailSDB(newHalfDetail);
 
     handleCloseSectionMenu(); // リセットしてメニューを閉じる
   };
@@ -740,11 +746,21 @@ const SalesProgressScreenMemo = () => {
   }, []);
   // ------------------- ✅初回マウント✅ -------------------
 
-  console.log("SalesProgressScreenコンポーネントレンダリング");
+  console.log(
+    "SalesProgressScreenコンポーネントレンダリング",
+    "annualFiscalMonthsSDB",
+    annualFiscalMonthsSDB,
+    "fiscalYearQueryData",
+    fiscalYearQueryData,
+    "entityLevelsQueryData",
+    entityLevelsQueryData,
+    "entitiesHierarchyQueryData",
+    entitiesHierarchyQueryData
+  );
 
   if (!isMounted || activePeriodSDB === null) return <FallbackSalesProgressScreen />;
 
-  if (!annualFiscalMonths || !currentFiscalStartYearMonth)
+  if (!annualFiscalMonthsSDB || !currentFiscalStartYearMonthSDB)
     return (
       <FallbackSalesProgressScreen
         errorMsg={`会計年度データが見つかりませんでした。\n設定画面の「会社・チーム」タブから決算日の設定をしてください。`}
@@ -762,7 +778,7 @@ const SalesProgressScreenMemo = () => {
         {/* ------------------- 🌟セクションタイトル🌟 ------------------- */}
 
         <div className={`${styles.section_container} bg-[green]/[0]`}>
-          <div className={`${styles.section_wrapper}`}>
+          <div className={`${styles.section_wrapper} fade08_forward`}>
             <div className={`${styles.left_wrapper} flex items-end`}>
               <div
                 className={`${styles.section_title}`}
@@ -931,7 +947,8 @@ const SalesProgressScreenMemo = () => {
                 fallback={
                   <div
                     className={`flex-center w-full`}
-                    style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}
+                    // style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}
+                    style={{ minHeight: `calc(100vh - 87px - 56px)`, paddingBottom: `87px` }}
                   >
                     <SpinnerBrand withBorder withShadow />
                   </div>
@@ -945,6 +962,9 @@ const SalesProgressScreenMemo = () => {
                 />
               </Suspense>
             </ErrorBoundary>
+            {/* <div className={`flex-center w-full`} style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}>
+              <SpinnerBrand withBorder withShadow />
+            </div> */}
           </>
         )}
         {/* ------------------- 🌟ネタ表ボードスクリーン🌟 ここまで ------------------- */}
@@ -1267,7 +1287,7 @@ const SalesProgressScreenMemo = () => {
                       value={activePeriodSDBLocal.periodType}
                       onChange={(e) => {
                         if (e.target.value === "year_month") {
-                          const initialCurrentMonth = String(currentFiscalStartYearMonth).substring(4);
+                          const initialCurrentMonth = String(currentFiscalStartYearMonthSDB).substring(4);
                           const initialPeriod = Number(`${selectedCalendarYear}${initialCurrentMonth}`);
                           setActivePeriodSDBLocal({ periodType: e.target.value, period: initialPeriod });
                         } else if (e.target.value === "fiscal_year") {

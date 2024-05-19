@@ -20,15 +20,15 @@ export const DashboardSDBComponent = () => {
   const setActiveThemeColor = useDashboardStore((state) => state.setActiveThemeColor);
 
   // 上期・下期割り当てをアンマウント時に上期に戻す
-  const selectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.selectedPeriodTypeForMemberLevel);
-  const setSelectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.setSelectedPeriodTypeForMemberLevel);
+  // const selectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.selectedPeriodTypeForMemberLevel);
+  // const setSelectedPeriodTypeForMemberLevel = useDashboardStore((state) => state.setSelectedPeriodTypeForMemberLevel);
 
-  useEffect(() => {
-    return () => {
-      if (selectedPeriodTypeForMemberLevel === "second_half_details")
-        setSelectedPeriodTypeForMemberLevel("first_half_details");
-    };
-  }, []);
+  // useEffect(() => {
+  //   return () => {
+  //     if (selectedPeriodTypeForMemberLevel === "second_half_details")
+  //       setSelectedPeriodTypeForMemberLevel("first_half_details");
+  //   };
+  // }, []);
 
   useEffect(() => {
     // テーマカラーをローカルストレージから取得して反映

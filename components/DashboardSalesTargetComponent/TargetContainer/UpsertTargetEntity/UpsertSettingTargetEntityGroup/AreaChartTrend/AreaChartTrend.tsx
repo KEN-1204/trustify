@@ -19,6 +19,7 @@ type Props = {
   errorText?: string;
   noDataText?: string;
   selectedFiscalYear: number;
+  hoveringLegendBg?: string;
 };
 
 const AreaChartTrendMemo = ({
@@ -35,6 +36,7 @@ const AreaChartTrendMemo = ({
   errorText = `エラーが発生しました`,
   noDataText = `データがありません`,
   selectedFiscalYear,
+  hoveringLegendBg,
 }: Props) => {
   // キャッシュ用エンティティidをstringに
   const entityIdsStrKey = useMemo(() => {
@@ -91,6 +93,7 @@ const AreaChartTrendMemo = ({
         legendList={legendList}
         fallbackHeight={fallbackHeight}
         fallbackPadding={`0px 6px 8px 24px`}
+        hoveringLegendBg={hoveringLegendBg ?? undefined}
       />
       {/* エリアチャート ここまで */}
     </div>

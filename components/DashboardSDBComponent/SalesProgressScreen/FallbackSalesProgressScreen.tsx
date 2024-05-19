@@ -16,21 +16,25 @@ export const FallbackSalesProgressScreen = ({ errorMsg }: Props) => {
     <>
       <div className={`${styles.sales_progress_screen}`}>
         <div className={`${styles.section_container}`}>
-          <div className={`${styles.section_wrapper}`}>
+          <div className={`${styles.section_wrapper}`} style={{ minHeight: `39px` }}>
             <div className={`${styles.left_wrapper} flex items-end`}>
-              <div className={`${styles.section_title}`}>
+              {/* <div className={`${styles.section_title}`}>
                 <div className={`${styles.div_wrapper} flex-center gap-[6px]`}>
                   <span className={``}>{mappingSdbTabName[activeTabSDB][language]}</span>
                   <div className={`${styles.down_icon} flex-center`}>
                     <IoCaretDownOutline className={``} />
                   </div>
                 </div>
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
 
-        <div className={`flex-center w-full`} style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}>
+        <div
+          className={`flex-center w-full`}
+          // style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}
+          style={{ minHeight: `calc(100vh - 87px - 56px)`, paddingBottom: `87px` }}
+        >
           {!errorMsg ? (
             <SpinnerBrand withBorder withShadow />
           ) : (

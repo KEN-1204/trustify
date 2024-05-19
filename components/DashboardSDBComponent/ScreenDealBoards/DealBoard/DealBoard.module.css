@@ -1,3 +1,39 @@
+.board:global {
+  --deal-card-bg: var(--color-card-bg);
+  --deal-card-border: var(--color-card-border);
+  --deal-card-box-shadow: var(--card-shadow);
+  --deal-card-bg-rejected: var(--color-card-bg-rejected);
+  --deal-card-border-rejected: var(--color-card-border-rejected);
+  --deal-card-text-rejected: var(--color-card-text-rejected);
+  /* background-color: var(--color-card-bg); */
+  /* border: 1px solid var(--color-card-border); */
+  /* box-shadow: var(--card-shadow); */
+}
+.board.theme_f_gradient:global {
+  --deal-card-bg: var(--color-card-bg-gradient);
+  --deal-card-bg-rejected: var(--color-card-bg-rejected-gray);
+  --deal-card-border-rejected: var(--color-card-border-rejected-gray);
+  --deal-card-text-rejected: var(--color-card-text-rejected-gray);
+}
+.board.theme_black:global {
+  --deal-card-bg: var(--color-card-bg-gradient);
+  --deal-card-bg-rejected: var(--color-card-bg-rejected-gray);
+  --deal-card-border-rejected: var(--color-card-border-rejected-gray);
+  --deal-card-text-rejected: var(--color-card-text-rejected-gray);
+}
+.board.theme_simple12:global {
+  --deal-card-bg: var(--color-card-bg-gradient);
+  --deal-card-bg-rejected: var(--color-card-bg-rejected-gray);
+  --deal-card-border-rejected: var(--color-card-border-rejected-gray);
+  --deal-card-text-rejected: var(--color-card-text-rejected-gray);
+}
+.board.theme_simple17:global {
+  --deal-card-bg: var(--color-card-bg-gray);
+  --deal-card-bg-rejected: var(--color-card-bg-rejected-gray);
+  --deal-card-border-rejected: var(--color-card-border-rejected-gray);
+  --deal-card-text-rejected: var(--color-card-text-rejected-gray);
+}
+
 .board {
   min-height: max-content;
   display: flex;
@@ -123,21 +159,24 @@
   align-items: center;
   color: var(--color-card-text);
   /* color: rgba(255, 0, 0, 0.9); */
-  background-color: var(--color-card-bg);
+  /* background-color: var(--color-card-bg); */
+  background: var(--deal-card-bg);
   /* background-color: #262626; */
   /* background-color: #292929; */
   /* background-color: rgba(255, 117, 117, 0.2); */
   /* background-color: var(--color-bg-sub-re); */
   /* border-color: #404040; */
   /* border-color: rgb(64 64 64 / 1); */
-  border: 1px solid var(--color-card-border);
+  /* border: 1px solid var(--color-card-border); */
+  border: 1px solid var(--deal-card-border);
   /* border: 1px solid #404040; */
   /* border: 1px solid #565656; */
   /* border: 1px solid #666; */
   /* border-color: var(--color-card-border); */
   /* border-color: rgb(239 68 68 / 1); */
   /* border-color: var(--color-bg-brand-f); */
-  box-shadow: var(--card-shadow);
+  /* box-shadow: var(--card-shadow); */
+  box-shadow: var(--deal-card-box-shadow);
   user-select: none;
   /* padding: 9px 12px; */
   padding: 9px 10px;
@@ -205,7 +244,7 @@
 }
 .column .column_lane .row_card:hover {
   border-color: var(--color-bg-brand-f);
-  background-color: var(--color-bg-brand-f20);
+  background: var(--color-bg-brand-f20);
   /* border-color: var(--vivid-green); */
   /* border-color: var(--bright-green); */
   /* border-color: var(--color-bg-brand); */
@@ -279,8 +318,10 @@
   background-color: rgb(24, 24, 24); */
   text-decoration: line-through var(--color-card-line-rejected);
   cursor: pointer;
-  border-color: var(--color-card-border-rejected);
-  background-color: var(--color-card-bg-rejected);
+  /* border-color: var(--color-card-border-rejected);
+  background: var(--color-card-bg-rejected); */
+  border-color: var(--deal-card-border-rejected);
+  background: var(--deal-card-bg-rejected);
   /* text-decoration: line-through #666;
   cursor: pointer;
   border-color: rgb(210, 210, 210);
@@ -289,16 +330,20 @@
 .column .column_lane .row_card.rejected * {
   /* color: #999; dark */
   /* color: #bcbcbc; light */
-  color: var(--color-card-text-rejected);
+  /* color: var(--color-card-text-rejected); */
+  color: var(--deal-card-text-rejected);
 }
 /* ペンディング */
 .column .column_lane .row_card.pending {
   cursor: pointer;
-  border-color: var(--color-card-border-rejected);
-  background-color: var(--color-card-bg-rejected);
+  /* border-color: var(--color-card-border-rejected);
+  background: var(--color-card-bg-rejected); */
+  border-color: var(--deal-card-border-rejected);
+  background: var(--deal-card-bg-rejected);
 }
 .column .column_lane .row_card.pending * {
-  color: var(--color-card-text-rejected);
+  /* color: var(--color-card-text-rejected); */
+  color: var(--deal-card-text-rejected);
 }
 .column .column_lane .row_card .rejected_icon,
 .column .column_lane .row_card .pending_icon {
@@ -309,7 +354,8 @@
   z-index: 5;
 }
 .column .column_lane .row_card .pending_icon svg {
-  fill: var(--color-text-title);
+  /* fill: var(--color-text-title); */
+  fill: var(--color-card-pending-icon);
   /* fill: var(--main-color-tk); */
 }
 .column .column_lane .row_card .rejected_icon svg {
@@ -330,7 +376,7 @@
   background-color: #ff3b5b; */
   /* background-color: var(--color-bg-brand); */
   /* background-color: #063c13; */
-  background-color: var(--color-drop-indicator-active);
+  background: var(--color-drop-indicator-active);
 }
 .spacer {
   transition: height 0.3s ease;
@@ -348,7 +394,7 @@
   background-color: rgb(115 115 115 / 0.2);
   border: 1px solid rgb(115 115 115 / 1); */
   color: var(--color-barrel-text);
-  background-color: var(--color-barrel-bg);
+  background: var(--color-barrel-bg);
   border: 1px solid var(--color-barrel-border);
   margin-left: 15px;
 }
@@ -358,7 +404,7 @@
   color: rgb(239 68 68 / 1);
   border: 1px solid rgb(153 27 27 / 1); */
   color: var(--color-barrel-text-active);
-  background-color: var(--color-barrel-bg-active);
+  background: var(--color-barrel-bg-active);
   border: 1px solid var(--color-barrel-border-active);
 }
 
@@ -385,7 +431,7 @@
   /* border: 1px solid var(--color-bg-brand-f);
   background-color: var(--color-bg-brand-f30); */
   border: 1px solid var(--bright-green);
-  background-color: var(--bright-green29);
+  background: var(--bright-green29);
   color: rgb(250 250 250 / 1);
   padding: 12px;
   font-size: 14px;
@@ -402,3 +448,89 @@
 .board .add_textarea:focus {
   outline-width: 0px;
 }
+
+/* ------------------------ タイトルエリア ------------------------ */
+.entity_detail_container {
+  width: 100%;
+  max-width: 1440px;
+  /* height: 65px; */
+  height: 48px;
+  display: flex;
+  justify-content: space-between;
+  /* padding: 0 48px 0px; */
+  padding: 0 24px 0px;
+  margin-bottom: 6px;
+}
+.entity_detail_container .entity_detail_wrapper {
+  /* width: 300px; */
+  /* height: 80px; */
+  /* height: 56px; */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  /* background-color: #0000ff30; */
+  /* box-shadow: 0 0 0 1px #333; */
+}
+.entity_detail_container .entity_detail_wrapper .entity_detail {
+  display: flex;
+  align-items: flex-end;
+  /* height: 48px; */
+}
+.entity_detail_container .entity_detail_wrapper .entity_name {
+}
+.entity_detail_container .entity_detail_wrapper .sub_info {
+  color: var(--color-text-sub);
+  /* font-size: 12px;
+  line-height: 15px; */
+}
+.entity_detail_container .status_col_wrapper {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.entity_detail_container .status_col_wrapper .status_flex_wrapper {
+  display: flex;
+  /* flex-direction: row-reverse; */
+  align-items: flex-end;
+  /* height: 48px; */
+  background: #0000ff10;
+}
+.entity_detail_container .status_col_wrapper .status_flex_wrapper .right_spacer {
+  height: 100%;
+  width: 239px;
+  /* background: #ff000030; */
+}
+
+.progress_circle {
+  opacity: 0;
+  animation: fade5 0.8s ease forwards;
+}
+
+.btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+.btn.basic {
+  background-color: var(--color-btn-basic-bg-on-card);
+  box-shadow: 0 0 0 1px var(--color-border-base);
+}
+.btn.basic:hover {
+  background-color: var(--color-btn-basic-bg-on-card-hover);
+  color: var(--color-btn-basic-text-hover);
+}
+.btn.brand {
+  /* box-shadow: 0 0 0 1px var(--color-border-base); */
+  background-color: var(--color-bg-brand-f);
+  color: #fff;
+}
+.btn.brand:hover {
+  background-color: var(--color-bg-brand-f-deep);
+}
+/* ------------------------ タイトルエリア ここまで ------------------------ */

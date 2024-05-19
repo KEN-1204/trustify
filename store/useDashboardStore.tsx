@@ -581,6 +581,22 @@ type State = {
   selectedObjSectionSDBMember: MemberAccounts | null;
   setSelectedObjSectionSDBMember: (payload: MemberAccounts | null) => void;
 
+  // 「上期詳細」「下期詳細」を切り替えるstate
+  selectedPeriodTypeHalfDetailSDB: "first_half_details" | "second_half_details";
+  setSelectedPeriodTypeHalfDetailSDB: (payload: "first_half_details" | "second_half_details") => void;
+  // 現在表示中の会計年度(SDB用)
+  selectedFiscalYearTargetSDB: number | null;
+  setSelectedFiscalYearTargetSDB: (payload: number | null) => void;
+  // 現在の会計年月度 202303(SDB用)
+  currentFiscalStartYearMonthSDB: number | null;
+  setCurrentFiscalStartYearMonthSDB: (payload: number | null) => void;
+  // 売上目標フェッチ時の年月度の12ヶ月分の配列(SDB用)
+  annualFiscalMonthsSDB: FiscalYearMonthObjForTarget | null;
+  setAnnualFiscalMonthsSDB: (payload: FiscalYearMonthObjForTarget | null) => void;
+  // ユーザーの会計年度の期首と期末の年月(カレンダー年月)(SDB用)
+  fiscalYearStartEndDateSDB: { startDate: Date; endDate: Date } | null;
+  setFiscalYearStartEndDateSDB: (payload: { startDate: Date; endDate: Date } | null) => void;
+
   // --------- ネタ表ボード ---------
   editedTaskCard: EditedCard;
   setEditedTaskCard: (payload: EditedCard) => void;
@@ -1348,6 +1364,22 @@ const useDashboardStore = create<State>((set) => ({
   // エンティティidとディスプレイ個別メンバー配列(中小だと全社のみで良い企業もあるため、全社でも個別メンバーのネタ表を表示できるようにする)
   selectedObjSectionSDBMember: null,
   setSelectedObjSectionSDBMember: (payload) => set({ selectedObjSectionSDBMember: payload }),
+
+  // 「上期詳細」「下期詳細」を切り替えるstate
+  selectedPeriodTypeHalfDetailSDB: "first_half_details",
+  setSelectedPeriodTypeHalfDetailSDB: (payload) => set({ selectedPeriodTypeHalfDetailSDB: payload }),
+  // 現在表示中の会計年度(SDB用)
+  selectedFiscalYearTargetSDB: null,
+  setSelectedFiscalYearTargetSDB: (payload) => set({ selectedFiscalYearTargetSDB: payload }),
+  // 現在の会計年月度 202303(SDB用)
+  currentFiscalStartYearMonthSDB: null,
+  setCurrentFiscalStartYearMonthSDB: (payload) => set({ currentFiscalStartYearMonthSDB: payload }),
+  // 売上目標フェッチ時の年月度の12ヶ月分の配列(SDB用)
+  annualFiscalMonthsSDB: null,
+  setAnnualFiscalMonthsSDB: (payload) => set({ annualFiscalMonthsSDB: payload }),
+  // ユーザーの会計年度の期首と期末の年月(カレンダー年月)(SDB用)
+  fiscalYearStartEndDateSDB: null,
+  setFiscalYearStartEndDateSDB: (payload) => set({ fiscalYearStartEndDateSDB: payload }),
 
   // --------- ネタ表ボード ---------
   editedTaskCard: null,

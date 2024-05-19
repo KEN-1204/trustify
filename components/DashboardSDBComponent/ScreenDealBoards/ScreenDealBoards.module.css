@@ -2,26 +2,31 @@
   --sdb-card-bg: var(--color-deal-board-bg);
   --sdb-card-box-shadow: var(--color-deal-board-theme-f-border);
   --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-f-border-sticky);
+  --sdb-card-box-blur: blur(10px);
 }
 .screen_deal_boards.theme_f_gradient:global {
   --sdb-card-bg: var(--color-deal-board-bg-black-gradient);
   --sdb-card-box-shadow: var(--color-deal-board-theme-f-border);
   --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-f-border-sticky);
+  --sdb-card-box-blur: blur(10px);
 }
 .screen_deal_boards.theme_black:global {
-  --sdb-card-bg: var(--color-deal-board--bg-theme-black);
+  --sdb-card-bg: var(--color-deal-board-bg-theme-black);
   --sdb-card-box-shadow: var(--color-deal-board-theme-black-border);
   --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-black-border-sticky);
+  --sdb-card-box-blur: blur(10px);
 }
 .screen_deal_boards.theme_simple17:global {
   --sdb-card-bg: var(--color-deal-board-theme-simple17-bg);
   --sdb-card-box-shadow: var(--color-deal-board-theme-simple17-border);
   --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-black-border-sticky);
+  --sdb-card-box-blur: blur(10px);
 }
 .screen_deal_boards.theme_simple12:global {
-  --sdb-card-bg: var(--color-deal-board--bg-theme-simple12);
+  --sdb-card-bg: var(--color-deal-board-bg-theme-simple12);
   --sdb-card-box-shadow: var(--color-deal-board-theme-simple12-border);
   --sdb-card-box-shadow-sticky: var(--color-sales-card-border-sticky);
+  --sdb-card-box-blur: unset;
 }
 /* .screen_deal_boards.is_sticky:global {
   --sdb-card-box-shadow: var(--color-sales-card-border-sticky);
@@ -112,6 +117,7 @@
   box-shadow: 0 0 0 1px transparent; */
   background: var(--sdb-card-bg);
   box-shadow: var(--sdb-card-box-shadow);
+  backdrop-filter: var(--sdb-card-box-blur);
 }
 /* 🌟スティッキー */
 .entity_board_container.sticky_row {
@@ -152,7 +158,7 @@
   }
 }
 .entity_board_container.theme_simple12 {
-  background: var(--color-deal-board--bg-theme-simple12-prev);
+  background: var(--color-deal-board-bg-theme-simple12-prev);
   box-shadow: 0 0 0 1px transparent, 0 0 9px 2px transparent;
 }
 .entity_board_container.fade_bg.theme_simple12 {
@@ -160,16 +166,16 @@
 }
 @keyframes fadeBg12 {
   0% {
-    background: var(--color-deal-board--bg-theme-simple12-prev);
+    background: var(--color-deal-board-bg-theme-simple12-prev);
     box-shadow: 0 0 0 1px transparent, 0 0 9px 2px transparent;
   }
   100% {
-    background: var(--color-deal-board--bg-theme-simple12);
+    background: var(--color-deal-board-bg-theme-simple12);
     box-shadow: var(--sdb-card-box-shadow);
   }
 }
 .entity_board_container.theme_black {
-  background: var(--color-deal-board--bg-theme-black-prev);
+  background: var(--color-deal-board-bg-theme-black-prev);
   box-shadow: 0 0 0 1px transparent;
 }
 .entity_board_container.fade_bg.theme_black {
@@ -177,16 +183,16 @@
 }
 @keyframes fadeBgBlack {
   0% {
-    background: var(--color-deal-board--bg-theme-black-prev);
+    background: var(--color-deal-board-bg-theme-black-prev);
     box-shadow: 0 0 0 1px transparent, 0 0 9px 2px transparent;
   }
   100% {
-    background: var(--color-deal-board--bg-theme-black);
+    background: var(--color-deal-board-bg-theme-black);
     box-shadow: var(--sdb-card-box-shadow);
   }
 }
 .entity_board_container.theme_simple17 {
-  background: var(--color-deal-board--bg-theme-simple12-prev);
+  background: var(--color-deal-board-bg-theme-simple12-prev);
   box-shadow: 0 0 0 1px transparent, 0 0 9px 2px transparent;
 }
 .entity_board_container.fade_bg.theme_simple17 {
@@ -194,7 +200,7 @@
 }
 @keyframes fadeBg17 {
   0% {
-    background: var(--color-deal-board--bg-theme-simple12-prev);
+    background: var(--color-deal-board-bg-theme-simple12-prev);
     box-shadow: 0 0 0 1px transparent, 0 0 9px 2px transparent;
   }
   100% {
@@ -203,6 +209,7 @@
   }
 }
 
+/* タイトルエリア */
 .entity_board_container .entity_detail_container {
   width: 100%;
   max-width: 1440px;
@@ -260,6 +267,7 @@
   opacity: 0;
   animation: fade5 0.8s ease forwards;
 }
+/* タイトルエリア ここまで */
 
 /* ---------------------------- ネタ表ボードここまで ---------------------------- */
 
@@ -272,6 +280,8 @@
   grid-template-columns: 1fr;
   column-gap: 20px;
   margin-bottom: 20px;
+  /*  */
+  max-width: 1440px;
 }
 .grid_row:last-of-type {
   margin-bottom: 0px;
@@ -294,10 +304,11 @@
   /* max-width: calc(100vw - 62px); */
   /* background: var(--color-sales-card-bg);
   box-shadow: var(--color-sales-card-border); */
-  background: var(--sdb-card-bg);
-  box-shadow: var(--sdb-card-box-shadow);
   border-radius: 12px;
   transition: background-color 0.5s ease, box-shadow 0.5s ease;
+  background: var(--sdb-card-bg);
+  box-shadow: var(--sdb-card-box-shadow);
+  backdrop-filter: var(--sdb-card-box-blur);
 }
 .grid_row .grid_content_card .card_wrapper {
   /* background: var(--color-sales-card-bg);

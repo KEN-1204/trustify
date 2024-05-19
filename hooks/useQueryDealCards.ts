@@ -1,5 +1,5 @@
 import useDashboardStore from "@/store/useDashboardStore";
-import { Product, Property_row_data } from "@/types";
+import { Product, PropertiesPeriodKey, Property_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
@@ -7,7 +7,8 @@ import React from "react";
 type Props = {
   companyId: string | null | undefined;
   userId: string | null;
-  periodType: string | null; // 年度、半期、四半期、月度
+  // periodType: string | null; // 年度、半期、四半期、月度
+  periodType: PropertiesPeriodKey | null; // 年度、半期、四半期、月度 "fiscal_year" | "half_year" | "quarter" | "year_month"
   period: number | null; // 年度: 2024, 半期: 20241(上期), 四半期: 20243(3Q), 月度: 202401(1月度)
   isReady?: boolean;
 };
@@ -16,13 +17,15 @@ export const useQueryDealCards = ({ companyId, userId, periodType, period, isRea
   const supabase = useSupabaseClient();
 
   const getDealCards = async () => {
-    if (!companyId) return;
+    if (!companyId) return null;
+    if (!periodType) return null;
 
     // periodType: monthly(月度), quarter(四半期), half(半期), fiscalYear(年度)
 
     // paramsを期間タイプごとに生成
     let params;
-    if (periodType === "monthly") {
+    // if (periodType === "monthly") {
+    if (periodType === "year_month") {
       params = {
         "properties.created_by_company_id": companyId,
         "properties.created_by_user_id": userId,
@@ -36,14 +39,14 @@ export const useQueryDealCards = ({ companyId, userId, periodType, period, isRea
         expected_order_quarter: period,
       };
     }
-    if (periodType === "half") {
+    if (periodType === "half_year") {
       params = {
         "properties.created_by_company_id": companyId,
         "properties.created_by_user_id": userId,
         expected_order_year_month: period,
       };
     }
-    if (periodType === "fiscalYear") {
+    if (periodType === "fiscal_year") {
       params = {
         "properties.created_by_company_id": companyId,
         "properties.created_by_user_id": userId,
