@@ -10,7 +10,7 @@ import { CompanyDetail } from "./CompanyDetail/CompanyDetail";
 import { FallbackGridTableAll } from "../GridTable/GridTableAll/FallbackGridTableAll";
 
 export const DashboardCompanyComponent: FC = () => {
-  console.log("🔥 DashboardCompanyComponentレンダリング レンダリング");
+  console.log("DashboardCompanyComponentレンダリング レンダリング");
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
   const isOpenChangeSizeMenu = useDashboardStore((state) => state.isOpenChangeSizeMenu);
@@ -20,6 +20,9 @@ export const DashboardCompanyComponent: FC = () => {
   // ハーフとallの時はheight指定を無しにして、コンテンツ全体を表示できるようにする
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+
+  // サーチモード時MeetingGridTableAllとpadding上下を無くしてMainContainerを全画面にする
+  const searchMode = useDashboardStore((state) => state.searchMode);
 
   return (
     <div
@@ -52,13 +55,8 @@ export const DashboardCompanyComponent: FC = () => {
             className={`${styles.company_table_screen} ${
               tableContainerSize === "half" ? `${styles.company_table_screen_pr}` : ``
             } ${tableContainerSize === "all" ? `${styles.company_table_screen_pr}` : ``} ${
-              activeMenuTab === "HOME" ||
-              activeMenuTab == "Contacts000" ||
-              activeMenuTab === "Activity" ||
-              activeMenuTab === "Meeting0000"
-                ? `${styles.all_container} space-y-0 !px-0 !py-0`
-                : "py-[20px] pl-[20px]"
-            }`}
+              activeMenuTab === "HOME" ? `${styles.all_container} space-y-0 !px-0 !py-0` : "py-[20px] pl-[20px]"
+            } ${searchMode ? `${styles.is_search_mode}` : ``}`}
           >
             {/* {activeMenuTab === "Company" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>

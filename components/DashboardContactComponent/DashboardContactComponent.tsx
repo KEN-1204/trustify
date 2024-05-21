@@ -16,11 +16,14 @@ export const DashboardContactComponent: FC = () => {
   const isOpenChangeSizeMenu = useDashboardStore((state) => state.isOpenChangeSizeMenu);
   const setIsOpenChangeSizeMenu = useDashboardStore((state) => state.setIsOpenChangeSizeMenu);
   const setClickedItemPos = useStore((state) => state.setClickedItemPos);
-  console.log("🔥 DashboardContactComponentレンダリング レンダリング activeMenuTab", activeMenuTab);
+  console.log("DashboardContactComponentレンダリング レンダリング");
 
   // ハーフとallの時はheight指定を無しにして、コンテンツ全体を表示できるようにする
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+
+  // サーチモード時MeetingGridTableAllとpadding上下を無くしてMainContainerを全画面にする
+  const searchMode = useDashboardStore((state) => state.searchMode);
 
   return (
     <div
@@ -53,13 +56,8 @@ export const DashboardContactComponent: FC = () => {
             className={`${styles.company_table_screen} ${
               tableContainerSize === "half" ? `${styles.company_table_screen_pr}` : ``
             } ${tableContainerSize === "all" ? `${styles.company_table_screen_pr}` : ``} ${
-              activeMenuTab === "HOME" ||
-              activeMenuTab == "Contacts000" ||
-              activeMenuTab === "Activity" ||
-              activeMenuTab === "Meeting0000"
-                ? `${styles.all_container} space-y-0 !px-0 !py-0`
-                : "py-[20px] pl-[20px]"
-            }`}
+              activeMenuTab === "HOME" ? `${styles.all_container} space-y-0 !px-0 !py-0` : "py-[20px] pl-[20px]"
+            } ${searchMode ? `${styles.is_search_mode}` : ``}`}
           >
             {activeMenuTab === "Contacts" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>

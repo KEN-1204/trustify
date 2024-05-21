@@ -685,7 +685,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // useInfiniteQueryのキャッシュのクエリキーの第二引数に割り当てる
   // const [newSearchParamsString, setNewSearchParamsString] = useState<string | null>(null);
   const newSearchParamsStringRef = useRef<string | null>(null);
-  console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
+  // console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
   if (newSearchCompanyParams) {
     newSearchParamsStringRef.current = Object.entries(newSearchCompanyParams)
       .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
@@ -693,7 +693,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       // .map((key, index) => `${key}:${key[index]} `)
       .join(", ");
     // .join("");
-    console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
+    // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
   }
   // console.log(
   //   "✅🔥newSearchCompanyParams",
@@ -2571,35 +2571,36 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // console.log("✅ 選択中のアクティブセルactiveCell", activeCell);
   // console.log("✅ 全てのカラムcolsRef", colsRef);
   console.log(
-    "✅ 全てのカラムcolsRef",
-    colsRef,
-    "checkedRows個数, checkedRows",
-    Object.keys(checkedRows).length,
-    checkedRows,
-    "selectedCheckBox",
-    selectedCheckBox,
-    "allRows",
-    allRows,
-    `virtualItems:${rowVirtualizer.getVirtualItems().length}`,
-    "columnHeaderItemList, columnOrder",
-    columnHeaderItemList,
-    columnOrder,
-    "colsWidth                ",
-    colsWidth,
-    "currentColsWidths.current",
-    currentColsWidths.current,
-    "フローズンの個数isFrozenCountRef.current",
-    isFrozenCountRef.current,
-    "レフトポジションcolumnLeftPositions.current",
-    columnLeftPositions.current,
-    "選択中のアクティブセルselectedGridCellRef",
-    selectedGridCellRef,
-    "選択中のアクティブセルactiveCell",
-    activeCell,
-    "clickedActiveRow",
-    clickedActiveRow,
-    "選択中のRowデータselectedRowDataCompany",
-    selectedRowDataCompany
+    "GridTableAllコンポーネントレンダリング"
+    // "✅ 全てのカラムcolsRef",
+    // colsRef,
+    // "checkedRows個数, checkedRows",
+    // Object.keys(checkedRows).length,
+    // checkedRows,
+    // "selectedCheckBox",
+    // selectedCheckBox,
+    // "allRows",
+    // allRows,
+    // `virtualItems:${rowVirtualizer.getVirtualItems().length}`,
+    // "columnHeaderItemList, columnOrder",
+    // columnHeaderItemList,
+    // columnOrder,
+    // "colsWidth                ",
+    // colsWidth,
+    // "currentColsWidths.current",
+    // currentColsWidths.current,
+    // "フローズンの個数isFrozenCountRef.current",
+    // isFrozenCountRef.current,
+    // "レフトポジションcolumnLeftPositions.current",
+    // columnLeftPositions.current,
+    // "選択中のアクティブセルselectedGridCellRef",
+    // selectedGridCellRef,
+    // "選択中のアクティブセルactiveCell",
+    // activeCell,
+    // "clickedActiveRow",
+    // clickedActiveRow,
+    // "選択中のRowデータselectedRowDataCompany",
+    // selectedRowDataCompany
   );
   //   console.log("✅ window", window.innerHeight);
 
@@ -2658,7 +2659,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
           tableContainerSize === "one_third" ? `${styles.main_container_one_third}` : ``
         } ${tableContainerSize === "half" ? `${styles.main_container_half}` : ``} ${
           theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
-        }`}
+        } ${searchMode ? `${styles.is_search_mode}` : ``}`}
       >
         {/* ================== Gridテーブルヘッダー ================== */}
         {/* <GridTableHeader /> */}

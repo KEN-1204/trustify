@@ -438,8 +438,6 @@ const ContactMainContainerMemo: FC = () => {
       created_by_user_id: _created_by_user_id,
     };
 
-    // console.log("✅ 条件 params", params);
-
     // const { data, error } = await supabase.rpc("", { params });
     // const { data, error } = await supabase.rpc("search_companies", { params });
 
@@ -513,6 +511,11 @@ const ContactMainContainerMemo: FC = () => {
     // console.log("✅ 検索結果データ取得 data", data);
 
     // setLoadingGlobalState(false);
+
+    // スクロールコンテナを最上部に戻す
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+    }
   };
 
   // ================== 🌟ツールチップ🌟 ==================
@@ -936,14 +939,19 @@ const ContactMainContainerMemo: FC = () => {
   };
   // ================== ✅セレクトボックスで個別フィールドをアップデート ==================
 
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
       {/* ------------------------- スクロールコンテナ ------------------------- */}
       {/* <div className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] `}> */}
       <div
+        ref={scrollContainerRef}
         className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] ${
           tableContainerSize === "half" && underDisplayFullScreen ? `${styles.height_all}` : ``
-        } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``}`}
+        } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``} ${
+          searchMode ? `${styles.is_search_mode}` : ``
+        }`}
       >
         {/* ------------------------- 左コンテナ ------------------------- */}
         <div
@@ -3440,7 +3448,9 @@ const ContactMainContainerMemo: FC = () => {
                       >
                         <input
                           type="checkbox"
-                          className={`${styles.grid_select_cell_header_input} `}
+                          className={`${styles.grid_select_cell_header_input} ${
+                            !selectedRowDataContact ? `pointer-events-none` : ``
+                          }`}
                           // checked={!!checkedColumnHeader} // 初期値
                           // checked={!!selectedRowDataContact?.call_careful_flag}
                           // onChange={() => {
@@ -3634,7 +3644,9 @@ const ContactMainContainerMemo: FC = () => {
                       >
                         <input
                           type="checkbox"
-                          className={`${styles.grid_select_cell_header_input}`}
+                          className={`${styles.grid_select_cell_header_input} ${
+                            !selectedRowDataContact ? `pointer-events-none` : ``
+                          }`}
                           // checked={!!checkedColumnHeader} // 初期値
                           // checked={!!selectedRowDataContact?.email_ban_flag}
                           checked={checkboxEmailBanFlag}
@@ -3680,7 +3692,9 @@ const ContactMainContainerMemo: FC = () => {
                       >
                         <input
                           type="checkbox"
-                          className={`${styles.grid_select_cell_header_input}`}
+                          className={`${styles.grid_select_cell_header_input} ${
+                            !selectedRowDataContact ? `pointer-events-none` : ``
+                          }`}
                           // checked={!!checkedColumnHeader} // 初期値
                           // checked={!!selectedRowDataContact?.sending_materials_ban_flag}
                           checked={checkboxSendingMaterialFlag}
@@ -3730,7 +3744,9 @@ const ContactMainContainerMemo: FC = () => {
                       >
                         <input
                           type="checkbox"
-                          className={`${styles.grid_select_cell_header_input}`}
+                          className={`${styles.grid_select_cell_header_input} ${
+                            !selectedRowDataContact ? `pointer-events-none` : ``
+                          }`}
                           // checked={!!checkedColumnHeader} // 初期値
                           // checked={!!selectedRowDataContact?.fax_dm_ban_flag}
                           checked={checkboxFaxDmFlag}
@@ -4046,7 +4062,7 @@ const ContactMainContainerMemo: FC = () => {
                   </button>
                 </div> */}
                 <div
-                  className={`mt-[10px] flex ${
+                  className={`mt-[15px] flex ${
                     isOpenSidebar ? "min-h-[34px]" : `min-h-[42px]`
                   } w-full items-center justify-between space-x-[15px]`}
                 >
@@ -4058,6 +4074,11 @@ const ContactMainContainerMemo: FC = () => {
                       setSearchMode(false);
                       // 編集モード中止
                       if (editSearchMode) setEditSearchMode(false);
+
+                      // スクロールコンテナを最上部に戻す
+                      if (scrollContainerRef.current) {
+                        scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+                      }
                     }}
                   >
                     戻る

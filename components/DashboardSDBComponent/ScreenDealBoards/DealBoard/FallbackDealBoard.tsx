@@ -2,10 +2,10 @@ import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import styles from "./DealBoard.module.css";
 import { AvatarIcon } from "@/components/Parts/AvatarIcon/AvatarIcon";
 import { TbSnowflake } from "react-icons/tb";
-import { MemberAccounts } from "@/types";
+import { MemberAccounts, MemberAccountsDealBoard } from "@/types";
 
 type Props = {
-  memberObj: MemberAccounts & {
+  memberObj: MemberAccountsDealBoard & {
     company_id: string;
     company_name: string;
   };

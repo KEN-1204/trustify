@@ -1,4 +1,15 @@
-import React, { ChangeEvent, FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  FC,
+  FormEvent,
+  Suspense,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "../MeetingDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -1044,6 +1055,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     // console.log("✅ 検索結果データ取得 data", data);
 
     // setLoadingGlobalState(false);
+
+    // スクロールコンテナを最上部に戻す
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+    }
   };
 
   // ==================================== 🌟ツールチップ🌟 ====================================
@@ -1544,9 +1560,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     }
   };
 
-  const hours = Array.from({ length: 24 }, (_, index) => (index < 10 ? "0" + index : "" + index));
-  const minutes5 = Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
-  const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
+  const hours = useMemo(() => {
+    return Array.from({ length: 24 }, (_, index) => (index < 10 ? "0" + index : "" + index));
+  }, []);
+  const minutes5 = useMemo(() => {
+    return Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
+  }, []);
+  const minutes = useMemo(() => {
+    return Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
+  }, []);
 
   // 同席者リストから各同席者を「 / \n」で区切った一つの文字列に変換する関数
   // 形式は「佐藤(株式会社X・営業部・部長) / \n ...」
@@ -1568,29 +1590,35 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   };
 
   console.log(
-    "🔥MeetingMainContainerレンダリング",
-    "selectedRowDataMeeting",
-    selectedRowDataMeeting,
-    "newSearchMeeting_Contact_CompanyParams",
-    newSearchMeeting_Contact_CompanyParams,
-    "inputPlannedStartTime",
-    inputPlannedStartTime,
-    "inputPlannedStartTimeHour",
-    inputPlannedStartTimeHour,
-    "inputPlannedStartTimeMinute",
-    inputPlannedStartTimeMinute
+    "MeetingMainContainerレンダリング"
+    // "selectedRowDataMeeting",
+    // selectedRowDataMeeting,
+    // "newSearchMeeting_Contact_CompanyParams",
+    // newSearchMeeting_Contact_CompanyParams,
+    // "inputPlannedStartTime",
+    // inputPlannedStartTime,
+    // "inputPlannedStartTimeHour",
+    // inputPlannedStartTimeHour,
+    // "inputPlannedStartTimeMinute",
+    // inputPlannedStartTimeMinute
     // "✅✅✅✅✅✅✅✅✅✅✅同席者リスト",
     // formatAttendees(selectedRowDataMeeting?.attendees_info)
   );
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
+
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
       {/* ------------------------- スクロールコンテナ ------------------------- */}
       {/* <div className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] `}> */}
       <div
+        ref={scrollContainerRef}
         className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] ${
           tableContainerSize === "half" && underDisplayFullScreen ? `${styles.height_all}` : ``
-        } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``}`}
+        } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``} ${
+          searchMode ? `${styles.is_search_mode}` : ``
+        }`}
       >
         {/* ---------------- 通常モード 左コンテナ ---------------- */}
         {!searchMode && (
@@ -5918,7 +5946,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
               {/* 面談開始・WEBツール サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span
                       className={`${styles.title_search_mode}`}
@@ -5937,9 +5965,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     </span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      onMouseEnter={(e) => {
+                        handleOpenTooltip(e, "top");
+                      }}
+                      onMouseLeave={(e) => {
+                        handleCloseTooltip();
+                      }}
                       placeholder="時"
                       value={inputPlannedStartTimeHour}
-                      onChange={(e) => setInputPlannedStartTimeHour(e.target.value === "" ? "" : e.target.value)}
+                      onChange={(e) => {
+                        setInputPlannedStartTimeHour(e.target.value === "" ? "" : e.target.value);
+                        handleCloseTooltip();
+                      }}
                     >
                       <option value=""></option>
                       {hours.map((hour) => (
@@ -5953,9 +5992,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      onMouseEnter={(e) => {
+                        handleOpenTooltip(e, "top");
+                      }}
+                      onMouseLeave={(e) => {
+                        handleCloseTooltip();
+                      }}
                       placeholder="分"
                       value={inputPlannedStartTimeMinute}
-                      onChange={(e) => setInputPlannedStartTimeMinute(e.target.value === "" ? "" : e.target.value)}
+                      onChange={(e) => {
+                        setInputPlannedStartTimeMinute(e.target.value === "" ? "" : e.target.value);
+                        handleCloseTooltip();
+                      }}
                     >
                       <option value=""></option>
                       {minutes5.map((minute) => (
@@ -5967,6 +6017,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <span className="mx-[10px]">分</span>
                   </div>
                   <div className={`${styles.underline}`}></div>
+                  <div
+                    className={`absolute left-0 top-[100%] z-[10] hidden h-full w-full items-center bg-[var(--color-bg-base)] pr-[20px] group-hover:flex`}
+                  ></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
@@ -6381,11 +6434,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       data-text={`〜時台のデータを検索する場合は時間のみ、`}
                       data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
                       onMouseEnter={(e) => {
-                        // e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         handleOpenTooltip(e, "top");
                       }}
                       onMouseLeave={(e) => {
-                        // e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         handleCloseTooltip();
                       }}
                     >
@@ -6393,9 +6444,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     </span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      onMouseEnter={(e) => {
+                        handleOpenTooltip(e, "top");
+                      }}
+                      onMouseLeave={(e) => {
+                        handleCloseTooltip();
+                      }}
                       placeholder="時"
                       value={inputResultStartTimeHour}
-                      onChange={(e) => setInputResultStartTimeHour(e.target.value === "" ? "" : e.target.value)}
+                      onChange={(e) => {
+                        setInputResultStartTimeHour(e.target.value === "" ? "" : e.target.value);
+                        handleCloseTooltip();
+                      }}
                     >
                       <option value=""></option>
                       {hours.map((hour) => (
@@ -6409,9 +6471,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      onMouseEnter={(e) => {
+                        handleOpenTooltip(e, "top");
+                      }}
+                      onMouseLeave={(e) => {
+                        handleCloseTooltip();
+                      }}
                       placeholder="分"
                       value={inputResultStartTimeMinute}
-                      onChange={(e) => setInputResultStartTimeMinute(e.target.value === "" ? "" : e.target.value)}
+                      onChange={(e) => {
+                        setInputResultStartTimeMinute(e.target.value === "" ? "" : e.target.value);
+                        handleCloseTooltip();
+                      }}
                     >
                       <option value=""></option>
                       {minutes.map((minute) => (
@@ -6431,11 +6504,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       data-text={`〜時台のデータを検索する場合は時間のみ、`}
                       data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
                       onMouseEnter={(e) => {
-                        // e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         handleOpenTooltip(e, "top");
                       }}
                       onMouseLeave={(e) => {
-                        // e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         handleCloseTooltip();
                       }}
                     >
@@ -6443,9 +6514,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     </span>
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      onMouseEnter={(e) => {
+                        handleOpenTooltip(e, "top");
+                      }}
+                      onMouseLeave={(e) => {
+                        handleCloseTooltip();
+                      }}
                       placeholder="時"
                       value={inputResultEndTimeHour}
-                      onChange={(e) => setInputResultEndTimeHour(e.target.value === "" ? "" : e.target.value)}
+                      onChange={(e) => {
+                        setInputResultEndTimeHour(e.target.value === "" ? "" : e.target.value);
+                        handleCloseTooltip();
+                      }}
                     >
                       <option value=""></option>
                       {hours.map((hour) => (
@@ -6459,9 +6541,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                     <select
                       className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      onMouseEnter={(e) => {
+                        handleOpenTooltip(e, "top");
+                      }}
+                      onMouseLeave={(e) => {
+                        handleCloseTooltip();
+                      }}
                       placeholder="分"
                       value={inputResultEndTimeMinute}
-                      onChange={(e) => setInputResultEndTimeMinute(e.target.value === "" ? "" : e.target.value)}
+                      onChange={(e) => {
+                        setInputResultEndTimeMinute(e.target.value === "" ? "" : e.target.value);
+                        handleCloseTooltip();
+                      }}
                     >
                       <option value=""></option>
                       {minutes.map((minute) => (
@@ -7733,7 +7826,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </button>
                 </div> */}
                 <div
-                  className={`mt-[10px] flex ${
+                  className={`mt-[15px] flex ${
                     isOpenSidebar ? "min-h-[34px]" : `min-h-[42px]`
                   } w-full items-center justify-between space-x-[15px]`}
                 >
@@ -7745,6 +7838,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       setSearchMode(false);
                       // 編集モード中止
                       if (editSearchMode) setEditSearchMode(false);
+
+                      // スクロールコンテナを最上部に戻す
+                      if (scrollContainerRef.current) {
+                        scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+                      }
                     }}
                   >
                     戻る
@@ -7759,6 +7857,16 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </button>
                 </div>
               </div>
+              {/* <div
+                className={`flex-center h-[50px] w-[300px] bg-[var(--color-bg-brand-f)] mt-[30px] cursor-pointer`}
+                onClick={() => {
+                  if (scrollContainerRef.current) {
+                    scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+                  }
+                }}
+              >
+                スクロール
+              </div> */}
             </div>
           </div>
         )}

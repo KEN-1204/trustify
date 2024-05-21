@@ -209,6 +209,22 @@ const SalesProgressScreenMemo = () => {
     return _newMonths;
   }, [annualFiscalMonthsSDB]);
 
+  // 現在の表示中の年月度のmonth_xxを取得(ScreenDealBoardsコンポーネントのuseQueryのpayloadで月度の売上目標と実績を取得するために使用)
+  const monthKey = useMemo(() => {
+    if (!activePeriodSDB) return null;
+    if (activePeriodSDB.periodType !== "year_month") return null;
+    if (!annualFiscalMonthWithoutYearToMonthKeyMap) return null;
+    // 月の部分を取得
+    const _month = String(activePeriodSDB.period).substring(4);
+    if (!annualFiscalMonthWithoutYearToMonthKeyMap.has(_month)) return null;
+
+    const _monthKey = annualFiscalMonthWithoutYearToMonthKeyMap.get(_month);
+
+    if (!_monthKey) return null;
+
+    return _monthKey;
+  }, [activePeriodSDB, annualFiscalMonthWithoutYearToMonthKeyMap]);
+
   // 🔹ユーザーの会計年度の期首と期末のDateオブジェクト(SDB用)
   const fiscalYearStartEndDateSDB = useDashboardStore((state) => state.fiscalYearStartEndDateSDB);
   const setFiscalYearStartEndDateSDB = useDashboardStore((state) => state.setFiscalYearStartEndDateSDB);
@@ -762,7 +778,17 @@ const SalesProgressScreenMemo = () => {
   // ------------------- ✅初回マウント✅ -------------------
 
   console.log(
-    "SalesProgressScreenコンポーネントレンダリング"
+    "SalesProgressScreenコンポーネントレンダリング",
+    "monthKey",
+    monthKey,
+    "annualFiscalMonthWithoutYearToMonthKeyMap",
+    annualFiscalMonthWithoutYearToMonthKeyMap,
+    "annualFiscalMonthsSDB",
+    annualFiscalMonthsSDB,
+    "activePeriodSDB",
+    activePeriodSDB,
+    "activePeriodSDBLocal",
+    activePeriodSDBLocal
     // "entityLevelsMap",
     // entityLevelsMap,
     // "annualFiscalMonthsSDB",
@@ -1030,6 +1056,7 @@ const SalesProgressScreenMemo = () => {
                 <ScreenDealBoards
                   // memberList={memberListSectionMember}
                   displayEntityGroup={displayEntityGroup}
+                  monthKey={monthKey}
                   // periodType={activePeriodSDB.periodType}
                   // period={activePeriodSDB.period}
                 />

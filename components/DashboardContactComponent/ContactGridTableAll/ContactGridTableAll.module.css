@@ -160,6 +160,15 @@
   /* 全体に表示 ファンクションヘッダー有り height: 45px; */
   /* ヘッダー56px */
 }
+/* サーチモード時 非表示 */
+.main_container.is_search_mode,
+.main_container_half.is_search_mode,
+.main_container_one_third.is_search_mode {
+  max-height: 0px;
+  overflow: hidden;
+  visibility: hidden;
+}
+
 /* 🌟テーブルヘッダー タブエリア */
 .grid_header {
   /* height: 35px;

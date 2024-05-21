@@ -1,5 +1,5 @@
 import useDashboardStore from "@/store/useDashboardStore";
-import { FiscalYearMonthKey, MemberAccounts, PropertiesPeriodKey } from "@/types";
+import { FiscalYearMonthKey, MemberAccounts, MemberAccountsDealBoard, PropertiesPeriodKey } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -95,6 +95,8 @@ export const useQueryMemberListByParentEntity = ({
       payload
     );
 
+    if (true) return null;
+
     // -- sales_dateはIS NOT NULLを指定しない 受注済みで出荷日がまだの案件も取得するため
     // get_members_and_parent_with_sales_achievement_data
     // get_members_filtered_by_entity_ids
@@ -102,7 +104,7 @@ export const useQueryMemberListByParentEntity = ({
     const { data, error } = await supabase.rpc("get_members_and_parent_with_sales_achievement_data", payload);
 
     if (error) {
-      console.log("get_members_and_parent_with_sales_achievement_dataエラー発生", error.message);
+      console.log("❌get_members_and_parent_with_sales_achievement_dataエラー発生", error.message);
       throw new Error(error.message);
     }
 
@@ -118,7 +120,7 @@ export const useQueryMemberListByParentEntity = ({
     await new Promise((resolve) => setTimeout(resolve, 800));
 
     return responseObj as {
-      members_sales_data: (MemberAccounts & {
+      members_sales_data: (MemberAccountsDealBoard & {
         company_id: string;
         company_name: string;
         current_sales_amount: number; // COALESCEで0をセットしているため必ずnumber型で返却される
@@ -145,9 +147,9 @@ export const useQueryMemberListByParentEntity = ({
     queryFn: getMemberGroupsByParentEntity,
     staleTime: Infinity,
     onError: (error: any) => {
-      alert(error.message);
+      // alert(error.message);
       console.error("useQueryMemberListByParentEntityカスタムフック error:", error);
-      return [];
+      return null;
     },
     enabled: !!entityIds && !!parentEntityLevel && !!parentEntityId && isReady,
   });

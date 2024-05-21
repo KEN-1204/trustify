@@ -412,8 +412,6 @@ const CompanyMainContainerMemo: FC = () => {
       member: _member,
     };
 
-    console.log("✅ 条件 params", params);
-
     setInputName("");
     setInputDepartment("");
     setInputTel("");
@@ -469,6 +467,11 @@ const CompanyMainContainerMemo: FC = () => {
 
     // if (error) return alert(error.message);
     // console.log("✅ 検索結果データ取得 data", data);
+
+    // スクロールコンテナを最上部に戻す
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+    }
   };
 
   // ================== 🌟ツールチップ ==================
@@ -834,6 +837,9 @@ const CompanyMainContainerMemo: FC = () => {
   );
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
+
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
       <div className={`absolute left-0 top-[62px] z-10 h-0 w-full`}></div>
@@ -847,9 +853,12 @@ const CompanyMainContainerMemo: FC = () => {
       {/* ------------------------- スクロールコンテナ ------------------------- */}
       {/* <div className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] `}> */}
       <div
+        ref={scrollContainerRef}
         className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] ${
           tableContainerSize === "half" && underDisplayFullScreen ? `${styles.height_all}` : ``
-        } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``}`}
+        } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``} ${
+          searchMode ? `${styles.is_search_mode}` : ``
+        }`}
       >
         {/* ------------------------- 左コンテナ ------------------------- */}
         <div
@@ -5227,7 +5236,7 @@ const CompanyMainContainerMemo: FC = () => {
                 </div>
                 {/* <div className="mt-[10px] flex h-[30px] w-full items-center justify-between"> */}
                 <div
-                  className={`mt-[10px] flex ${
+                  className={`mt-[15px] flex ${
                     isOpenSidebar ? "min-h-[34px]" : `min-h-[42px]`
                   } w-full items-center justify-between space-x-[15px]`}
                 >
@@ -5239,6 +5248,11 @@ const CompanyMainContainerMemo: FC = () => {
                       setSearchMode(false);
                       // 編集モード中止
                       if (editSearchMode) setEditSearchMode(false);
+
+                      // スクロールコンテナを最上部に戻す
+                      if (scrollContainerRef.current) {
+                        scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+                      }
                     }}
                   >
                     戻る

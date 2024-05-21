@@ -51,7 +51,7 @@ const TooltipMemo = () => {
     if (menuRef.current) {
       const tooltipWidth = menuRef.current.offsetWidth;
       // const tooltipRectWidth = menuRef.current.getBoundingClientRect().width;
-      console.log("tooltipOffsetWidth,", tooltipWidth);
+      // console.log("tooltipOffsetWidth,", tooltipWidth);
       const tooltipHalfWidth = tooltipWidth / 2;
       const viewportWidth = window.innerWidth;
       const viewportRightOneThird = (viewportWidth / 3) * 2; // 画面3分の2の幅
@@ -75,7 +75,7 @@ const TooltipMemo = () => {
         if (adjustedLeft > viewportRightHalf) {
           const tooltipText = menuRef.current.querySelector(`.tooltip_text`);
           const tooltipTextWidth = tooltipText?.getBoundingClientRect().width;
-          console.log("tooltipWidth", tooltipWidth, "tooltipTextWidth", tooltipTextWidth, "tooltipText", tooltipText);
+          // console.log("tooltipWidth", tooltipWidth, "tooltipTextWidth", tooltipTextWidth, "tooltipText", tooltipText);
           // menuRef.current.style.minWidth = `${tooltipWidth}px`;
           menuRef.current.style.minWidth = `max-content`;
           // テスト
@@ -116,7 +116,7 @@ const TooltipMemo = () => {
     }
   }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth, hoveredItemDisplay]);
 
-  // console.log("Tooltipコンポーネントレンダリング", hoveredItemPos?.content2, hoveredItemPos?.itemsPosition);
+  console.log("Tooltipコンポーネントレンダリング");
 
   // 0は許容し、それ以外のfalsyはリターン
   if (

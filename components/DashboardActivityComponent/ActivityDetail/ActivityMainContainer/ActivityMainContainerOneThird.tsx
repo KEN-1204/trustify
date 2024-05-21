@@ -755,8 +755,6 @@ const ActivityMainContainerOneThirdMemo = () => {
       activity_year_month: _activity_year_month,
     };
 
-    // console.log("✅ 条件 params", params);
-
     // const { data, error } = await supabase.rpc("", { params });
     // const { data, error } = await supabase.rpc("search_companies", { params });
 
@@ -855,6 +853,11 @@ const ActivityMainContainerOneThirdMemo = () => {
     // console.log("✅ 検索結果データ取得 data", data);
 
     // setLoadingGlobalState(false);
+
+    // スクロールコンテナを最上部に戻す
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+    }
   };
 
   // ==================================== 🌟ツールチップ🌟 ====================================
@@ -1363,20 +1366,20 @@ const ActivityMainContainerOneThirdMemo = () => {
   };
 
   console.log(
-    "🔥 ActivityMainContainerレンダリング searchMode",
-    searchMode,
-    "useMedia isDesktopGTE1600",
-    isDesktopGTE1600,
-    "事業部useQuery",
-    departmentDataArray,
-    "課useQuery",
-    sectionDataArray,
-    "係useQuery",
-    unitDataArray,
-    "事業所useQuery",
-    officeDataArray,
-    "selectedRowDataActivity",
-    selectedRowDataActivity
+    "🔥 ActivityMainContainerレンダリング searchMode"
+    // searchMode,
+    // "useMedia isDesktopGTE1600",
+    // isDesktopGTE1600,
+    // "事業部useQuery",
+    // departmentDataArray,
+    // "課useQuery",
+    // sectionDataArray,
+    // "係useQuery",
+    // unitDataArray,
+    // "事業所useQuery",
+    // officeDataArray,
+    // "selectedRowDataActivity",
+    // selectedRowDataActivity
     // "selectedRowDataActivity.scheduled_follow_up_date",
     // selectedRowDataActivity?.scheduled_follow_up_date,
     // selectedRowDataActivity?.scheduled_follow_up_date &&
@@ -1385,13 +1388,19 @@ const ActivityMainContainerOneThirdMemo = () => {
   );
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
+
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
       {/* ------------------------- スクロールコンテナ ------------------------- */}
       <div
+        ref={scrollContainerRef}
         className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] ${
           tableContainerSize === "half" && underDisplayFullScreen ? `${styles.height_all}` : ``
-        } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``}`}
+        } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``} ${
+          searchMode ? `${styles.is_search_mode}` : ``
+        }`}
       >
         {/* ---------------- 通常モード 左コンテナ ---------------- */}
         {!searchMode && (
@@ -6139,7 +6148,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                   </button>
                 </div> */}
                 <div
-                  className={`mt-[10px] flex ${
+                  className={`mt-[15px] flex ${
                     isOpenSidebar ? "min-h-[34px]" : `min-h-[42px]`
                   } w-full items-center justify-between space-x-[15px]`}
                 >
@@ -6151,6 +6160,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                       setSearchMode(false);
                       // 編集モード中止
                       if (editSearchMode) setEditSearchMode(false);
+
+                      // スクロールコンテナを最上部に戻す
+                      if (scrollContainerRef.current) {
+                        scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+                      }
                     }}
                   >
                     戻る

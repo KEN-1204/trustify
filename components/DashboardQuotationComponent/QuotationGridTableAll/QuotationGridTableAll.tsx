@@ -69,10 +69,10 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
   // カラム入れ替えモーダルで更新した内容を取得
   const editedColumnHeaderItemList = useDashboardStore((state) => state.editedColumnHeaderItemList);
   const setEditedColumnHeaderItemList = useDashboardStore((state) => state.setEditedColumnHeaderItemList);
-  console.log(
-    "🔥QuotationGridTableAllMemoコンポーネント 入れ替え後のカラム editedColumnHeaderItemList ",
-    editedColumnHeaderItemList
-  );
+  // console.log(
+  //   "🔥QuotationGridTableAllMemoコンポーネント 入れ替え後のカラム editedColumnHeaderItemList ",
+  //   editedColumnHeaderItemList
+  // );
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const [refetchLoading, setRefetchLoading] = useState(false);
   // 上テーブル検索条件変更用サーチモード用Zustand =================
@@ -126,7 +126,7 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟🌟Zustandから指定したカラムを最初から表示
   const quotationColumnHeaderItemList = useDashboardStore((state) => state.quotationColumnHeaderItemList);
   const setQuotationColumnHeaderItemList = useDashboardStore((state) => state.setQuotationColumnHeaderItemList);
-  console.log("quotationColumnHeaderItemList", quotationColumnHeaderItemList);
+  // console.log("quotationColumnHeaderItemList", quotationColumnHeaderItemList);
   // ================= 🔥🔥テスト🔥🔥==================
   // 各カラムの横幅を管理
   const [colsWidth, setColsWidth] = useState<string[] | null>(null);
@@ -745,10 +745,10 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
   // const [newSearchParamsString, setNewSearchParamsString] = useState<string | null>(null);
   const newSearchParamsStringRef = useRef<string | null>(null);
   //   console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
-  console.log(
-    "キャッシュに割り当てるparamsキー newSearchQuotation_Contact_CompanyParams",
-    newSearchQuotation_Contact_CompanyParams
-  );
+  // console.log(
+  //   "キャッシュに割り当てるparamsキー newSearchQuotation_Contact_CompanyParams",
+  //   newSearchQuotation_Contact_CompanyParams
+  // );
   if (newSearchQuotation_Contact_CompanyParams) {
     newSearchParamsStringRef.current = Object.entries(newSearchQuotation_Contact_CompanyParams)
       .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
@@ -756,7 +756,7 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
       // .map((key, index) => `${key}:${key[index]} `)
       .join(", ");
     // .join("");
-    console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
+    // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
   }
   // console.log(
   //   "✅🔥newSearchCompanyParams",
@@ -2608,35 +2608,36 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
   // console.log("✅ 選択中のアクティブセルactiveCell", activeCell);
   // console.log("✅ 全てのカラムcolsRef", colsRef);
   console.log(
-    "✅ 全てのカラムcolsRef",
-    colsRef,
-    "checkedRows個数, checkedRows",
-    Object.keys(checkedRows).length,
-    checkedRows,
-    "selectedCheckBox",
-    selectedCheckBox,
-    "allRows",
-    allRows,
-    `virtualItems:${rowVirtualizer.getVirtualItems().length}`,
-    "quotationColumnHeaderItemList, columnOrder",
-    quotationColumnHeaderItemList,
-    columnOrder,
-    "colsWidth                ",
-    colsWidth,
-    "currentColsWidths.current",
-    currentColsWidths.current,
-    "フローズンの個数isFrozenCountRef.current",
-    isFrozenCountRef.current,
-    "レフトポジションcolumnLeftPositions.current",
-    columnLeftPositions.current,
-    "選択中のアクティブセルselectedGridCellRef",
-    selectedGridCellRef,
-    "選択中のアクティブセルactiveCell",
-    activeCell,
-    "clickedActiveRow",
-    clickedActiveRow,
-    "選択中のRowデータselectedRowDataQuotation",
-    selectedRowDataQuotation
+    "QuotationGridTableAllコンポーネントレンダリング"
+    // "✅ 全てのカラムcolsRef",
+    // colsRef,
+    // "checkedRows個数, checkedRows",
+    // Object.keys(checkedRows).length,
+    // checkedRows,
+    // "selectedCheckBox",
+    // selectedCheckBox,
+    // "allRows",
+    // allRows,
+    // `virtualItems:${rowVirtualizer.getVirtualItems().length}`,
+    // "quotationColumnHeaderItemList, columnOrder",
+    // quotationColumnHeaderItemList,
+    // columnOrder,
+    // "colsWidth                ",
+    // colsWidth,
+    // "currentColsWidths.current",
+    // currentColsWidths.current,
+    // "フローズンの個数isFrozenCountRef.current",
+    // isFrozenCountRef.current,
+    // "レフトポジションcolumnLeftPositions.current",
+    // columnLeftPositions.current,
+    // "選択中のアクティブセルselectedGridCellRef",
+    // selectedGridCellRef,
+    // "選択中のアクティブセルactiveCell",
+    // activeCell,
+    // "clickedActiveRow",
+    // clickedActiveRow,
+    // "選択中のRowデータselectedRowDataQuotation",
+    // selectedRowDataQuotation
   );
   //   console.log("✅ window", window.innerHeight);
 
@@ -2803,7 +2804,7 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
           tableContainerSize === "one_third" ? `${styles.main_container_one_third}` : ``
         } ${tableContainerSize === "half" ? `${styles.main_container_half} ${styles.medium}` : ``} ${
           theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
-        }`}
+        } ${searchMode ? `${styles.is_search_mode}` : ``}`}
       >
         {/* ================== Gridテーブルヘッダー ================== */}
         {/* <GridTableHeader /> */}

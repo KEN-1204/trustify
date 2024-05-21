@@ -207,7 +207,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputRejectedFlag, setInputRejectedFlag] = useState<boolean | null>(null);
   const [inputProductName, setInputProductName] = useState(""); // 商品
   const [inputProductSales, setInputProductSales] = useState<number | null>(null); // 予定売上台数
-  const [inputExpectedOrderDate, setInputExpectedOrderDate] = useState<Date | null>(null); // 獲得予定時期
   // const [inputExpectedSalesPrice, setInputExpectedSalesPrice] = useState<number | null>(null); // 予定売上合計
   const [inputExpectedSalesPrice, setInputExpectedSalesPrice] = useState<string>(""); // 予定売上合計
   const [inputTermDivision, setInputTermDivision] = useState(""); // 今・来期
@@ -263,6 +262,20 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputPropertyFiscalYear, setInputPropertyFiscalYear] = useState<number | null>(null);
   const [inputExpansionFiscalYear, setInputExpansionFiscalYear] = useState<number | null>(null);
   const [inputSalesFiscalYear, setInputSalesFiscalYear] = useState<number | null>(null);
+  // 獲得予定
+  const [inputExpectedOrderDate, setInputExpectedOrderDate] = useState<Date | null>(null); // 獲得予定時期
+  const [inputExpectedOrderYearMonth, setInputExpectedOrderYearMonth] = useState<number | null>(null); // 獲得予定年月度
+  const [inputExpectedOrderQuarter, setInputExpectedOrderQuarter] = useState<number | null>(null); // 獲得予定四半期
+  const [inputExpectedOrderHalfYear, setInputExpectedOrderHalfYear] = useState<number | null>(null); // 獲得予定半期
+  const [inputExpectedOrderFiscalYear, setInputExpectedOrderFiscalYear] = useState<number | null>(null); // 獲得予定年度
+
+  // 獲得予定 年度 半期 四半期 月度 それぞれの期間選択用 stringから最終的に結合してnumber型に変換する
+  const [selectedExpectedOrderYearForHalf, setSelectedExpectedOrderYearForHalf] = useState<string>("");
+  const [selectedExpectedOrderHalf, setSelectedExpectedOrderHalf] = useState<string>("");
+  const [selectedExpectedOrderYearForQuarter, setSelectedExpectedOrderYearForQuarter] = useState<string>("");
+  const [selectedExpectedOrderQuarter, setSelectedExpectedOrderQuarter] = useState<string>("");
+  const [selectedExpectedOrderCalendarYear, setSelectedExpectedOrderCalendarYear] = useState<string>(""); // 年月度用
+  const [selectedExpectedOrderMonth, setSelectedExpectedOrderMonth] = useState<string>("");
 
   // ================================ 🌟フィールドエディットモード関連state🌟 ================================
   const [inputExpectedOrderDateForFieldEditMode, setInputExpectedOrderDateForFieldEditMode] = useState<Date | null>(
@@ -661,6 +674,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       setInputPropertyFiscalYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.property_fiscal_year));
       setInputExpansionFiscalYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.expansion_half_year));
       setInputSalesFiscalYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.sales_half_year));
+      // 獲得予定
+      setInputExpectedOrderYearMonth(newSearchProperty_Contact_CompanyParams.expected_order_year_month);
+      setInputExpectedOrderQuarter(newSearchProperty_Contact_CompanyParams.expected_order_quarter);
+      setInputExpectedOrderHalfYear(newSearchProperty_Contact_CompanyParams.expected_order_half_year);
+      setInputExpectedOrderFiscalYear(newSearchProperty_Contact_CompanyParams.expected_order_fiscal_year);
     } else if (!editSearchMode && searchMode) {
       console.log(
         "🔥Meetingメインコンテナー useEffect 新規サーチモード inputを初期化",
@@ -777,6 +795,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       if (!!inputPropertyFiscalYear) setInputPropertyFiscalYear(null);
       if (!!inputExpansionFiscalYear) setInputExpansionFiscalYear(null);
       if (!!inputSalesFiscalYear) setInputSalesFiscalYear(null);
+      // 獲得予定
+      if (!!inputExpectedOrderYearMonth) setInputExpectedOrderYearMonth(null);
+      if (!!inputExpectedOrderQuarter) setInputExpectedOrderQuarter(null);
+      if (!!inputExpectedOrderHalfYear) setInputExpectedOrderHalfYear(null);
+      if (!!inputExpectedOrderFiscalYear) setInputExpectedOrderFiscalYear(null);
     }
   }, [editSearchMode, searchMode]);
 
@@ -928,6 +951,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     let _property_fiscal_year = adjustFieldValueNumber(inputPropertyFiscalYear);
     let _expansion_fiscal_year = adjustFieldValueNumber(inputExpansionFiscalYear);
     let _sales_fiscal_year = adjustFieldValueNumber(inputSalesFiscalYear);
+    let _expected_order_year_month = adjustFieldValueNumber(inputExpectedOrderYearMonth); // 獲得予定
+    let _expected_order_quarter = adjustFieldValueNumber(inputExpectedOrderQuarter); // 獲得予定
+    let _expected_order_half_year = adjustFieldValueNumber(inputExpectedOrderHalfYear); // 獲得予定
+    let _expected_order_fiscal_year = adjustFieldValueNumber(inputExpectedOrderFiscalYear); // 獲得予定
 
     const params = {
       "client_companies.name": _company_name,
@@ -1039,9 +1066,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       property_fiscal_year: _property_fiscal_year,
       expansion_fiscal_year: _expansion_fiscal_year,
       sales_fiscal_year: _sales_fiscal_year,
+      // 獲得予定
+      expected_order_year_month: _expected_order_year_month,
+      expected_order_quarter: _expected_order_quarter,
+      expected_order_half_year: _expected_order_half_year,
+      expected_order_fiscal_year: _expected_order_fiscal_year,
     };
-
-    // console.log("✅ 条件 params", params);
 
     // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
     // const { data, error } = await supabase.rpc("search_companies", { params });
@@ -1154,6 +1184,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     setInputPropertyFiscalYear(null);
     setInputExpansionFiscalYear(null);
     setInputSalesFiscalYear(null);
+    // 獲得予定
+    setInputExpectedOrderYearMonth(null);
+    setInputExpectedOrderQuarter(null);
+    setInputExpectedOrderHalfYear(null);
+    setInputExpectedOrderFiscalYear(null);
 
     // サーチモードオフ
     setSearchMode(false);
@@ -1187,6 +1222,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     // console.log("✅ 検索結果データ取得 data", data);
 
     // setLoadingGlobalState(false);
+
+    // スクロールコンテナを最上部に戻す
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+    }
   };
 
   // ================== 🌟ユーザーの決算月の締め日を初回マウント時に取得🌟 ==================
@@ -1991,15 +2031,15 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     }
   };
 
-  const hours = Array.from({ length: 24 }, (_, index) => (index < 10 ? "0" + index : "" + index));
-  const minutes5 = Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
-  const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
+  // const hours = Array.from({ length: 24 }, (_, index) => (index < 10 ? "0" + index : "" + index));
+  // const minutes5 = Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
+  // const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
 
   // time型のplanned_start_time、result_start_time、result_end_timeを時間と分のみに変換する関数
-  function formatTime(timeStr: string) {
-    const [hour, minute] = timeStr.split(":");
-    return `${hour}:${minute}`;
-  }
+  // function formatTime(timeStr: string) {
+  //   const [hour, minute] = timeStr.split(":");
+  //   return `${hour}:${minute}`;
+  // }
 
   // 四半期のselectタグの選択肢 20211, 20214
   const optionsYearQuarter = useMemo((): number[] => {
@@ -2019,14 +2059,20 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   }, []);
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
+
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
       {/* ------------------------- スクロールコンテナ ------------------------- */}
       {/* <div className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] `}> */}
       <div
+        ref={scrollContainerRef}
         className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] ${
           tableContainerSize === "half" && underDisplayFullScreen ? `${styles.height_all}` : ``
-        } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``}`}
+        } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``} ${
+          searchMode ? `${styles.is_search_mode}` : ``
+        }`}
       >
         {/* ---------------- 通常モード 左コンテナ ---------------- */}
         {!searchMode && (
@@ -2243,7 +2289,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     <span className={`${styles.title} ${styles.title_sm}`}>案件概要</span>
                     {!searchMode && isEditModeField !== "property_summary" && (
                       <div
-                        className={`${styles.textarea_box} ${styles.editable_field}`}
+                        className={`${styles.textarea_box} ${
+                          selectedRowDataProperty ? `${styles.editable_field}` : `${styles.uneditable_field}`
+                        }`}
                         onClick={handleSingleClickField}
                         onDoubleClick={(e) => {
                           // if (!selectedRowDataProperty?.activity_type) return;
@@ -7890,6 +7938,77 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
               </div>
 
+              {/* 獲得予定年度・獲得予定半期 サーチ */}
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title_search_mode}`}>獲得予定時期</span>
+                    <DatePickerCustomInput
+                      startDate={inputExpectedOrderDate}
+                      setStartDate={setInputExpectedOrderDate}
+                      required={false}
+                    />
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title_search_mode}`}>予定売上合計</span>
+
+                    <input
+                      type="text"
+                      // placeholder="例：600万円 → 6000000　※半角で入力"
+                      className={`${styles.input_box}`}
+                      value={!!inputExpectedSalesPrice ? inputExpectedSalesPrice : ""}
+                      onChange={(e) => setInputExpectedSalesPrice(e.target.value)}
+                      onBlur={() => {
+                        setInputExpectedSalesPrice(
+                          !!inputExpectedSalesPrice &&
+                            inputExpectedSalesPrice !== "" &&
+                            convertToYen(inputExpectedSalesPrice.trim()) !== null
+                            ? (convertToYen(inputExpectedSalesPrice.trim()) as number).toLocaleString()
+                            : ""
+                        );
+                      }}
+                    />
+                    {/* バツボタン */}
+                    {inputExpectedSalesPrice !== "" && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setInputExpectedSalesPrice("")}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )}
+                    {/* <input
+                      type="number"
+                      min="0"
+                      className={`${styles.input_box}`}
+                      placeholder=""
+                      value={inputExpectedSalesPrice === null ? "" : inputExpectedSalesPrice}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === "") {
+                          setInputExpectedSalesPrice(null);
+                        } else {
+                          const numValue = Number(val);
+
+                          // 入力値がマイナスかチェック
+                          if (numValue < 0) {
+                            setInputExpectedSalesPrice(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                          } else {
+                            setInputExpectedSalesPrice(numValue);
+                          }
+                        }
+                      }}
+                    />
+                    {inputExpectedSalesPrice !== null && inputExpectedSalesPrice !== 0 && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setInputExpectedSalesPrice(null)}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )} */}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
               {/*  */}
               {/*  */}
 
@@ -10064,7 +10183,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   </button>
                 </div> */}
                 <div
-                  className={`mt-[10px] flex ${
+                  className={`mt-[15px] flex ${
                     isOpenSidebar ? "min-h-[34px]" : `min-h-[42px]`
                   } w-full items-center justify-between space-x-[15px]`}
                 >
@@ -10076,6 +10195,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       setSearchMode(false);
                       // 編集モード中止
                       if (editSearchMode) setEditSearchMode(false);
+
+                      // スクロールコンテナを最上部に戻す
+                      if (scrollContainerRef.current) {
+                        scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+                      }
                     }}
                   >
                     戻る

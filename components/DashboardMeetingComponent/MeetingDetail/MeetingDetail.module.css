@@ -229,11 +229,18 @@
   );
   background: var(--color-bg-base);
 }
+
 /* 🌟サイズ切り替えでサイズがallとhalfの時はmaxではなくh-100%にする */
 .scroll_container.height_all {
   max-height: none;
   height: 100%;
   overflow-y: visible;
+}
+/* サーチモード */
+.scroll_container.is_search_mode,
+.scroll_container.height_all.is_search_mode {
+  max-height: calc(100vh - var(--header-height) - 20px - 22px - 40px - 2px);
+  overflow-y: auto;
 }
 
 .left_container {
@@ -557,13 +564,16 @@
 /* サーチモードの時はstickyになり、スクロールコンテナの上下padding20px分の40pxを引いたサイズ */
 .right_sticky_container {
   height: 100%;
+  padding-right: 10px;
 }
 .right_sticky_contents_wrapper {
   /* calc(画面サイズ - ヘッダー56px) - テーブルサイズ(calc() 上pt20px - 下pt20px - ?20px - タブヘッダー22px - ファンクションヘッダー40px - コンテナボーダー分上下1+1=2px) - (スクロールコンテナー上下padding20px+20px) pt=padding-top */
-  height: calc(
+  /* height: calc(
     100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px - 20px - 22px - 40px - 2px -
       20px - 20px
-  );
+  ); */
+  height: auto;
+  padding: 6px 20px 18px;
 }
 .right_table_tab_header {
   /* height: 35px;

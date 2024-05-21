@@ -1310,8 +1310,6 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       "e.employee_id_name": _in_charge_user_employee_id_name,
     };
 
-    // console.log("✅ 条件 params", params);
-
     // const { data, error } = await supabase.rpc("", { params });
     // const { data, error } = await supabase.rpc("search_companies", { params });
 
@@ -1376,6 +1374,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setSelectedRowDataQuotation(null);
 
     console.log("✅ 条件 params", params);
+
+    // スクロールコンテナを最上部に戻す
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+    }
   };
 
   // ==================================== 🌟ツールチップ🌟 ====================================
@@ -2581,26 +2584,29 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const fieldEditTitle = (title: string) => (isEditModeField === title ? `${styles.field_edit}` : ``);
 
   console.log(
-    "🔥MeetingMainContainerレンダリング",
-    "selectedRowDataQuotation",
-    selectedRowDataQuotation,
-    "newSearchQuotation_Contact_CompanyParams",
-    newSearchQuotation_Contact_CompanyParams,
-    "価格合計inputTotalPriceEdit",
-    inputTotalPriceEdit,
-    "値引金額inputDiscountAmountEdit",
-    inputDiscountAmountEdit,
-    "合計金額inputTotalAmountEdit",
-    inputTotalAmountEdit,
-    "値引率inputDiscountRateEdit",
-    inputDiscountRateEdit,
-    "編集中商品リストselectedProductsArray",
-    selectedProductsArray,
-    "selectedRowDataQuotation.quotation_products_details",
-    selectedRowDataQuotation?.quotation_products_details
+    "🔥MeetingMainContainerレンダリング"
+    // "selectedRowDataQuotation",
+    // selectedRowDataQuotation,
+    // "newSearchQuotation_Contact_CompanyParams",
+    // newSearchQuotation_Contact_CompanyParams,
+    // "価格合計inputTotalPriceEdit",
+    // inputTotalPriceEdit,
+    // "値引金額inputDiscountAmountEdit",
+    // inputDiscountAmountEdit,
+    // "合計金額inputTotalAmountEdit",
+    // inputTotalAmountEdit,
+    // "値引率inputDiscountRateEdit",
+    // inputDiscountRateEdit,
+    // "編集中商品リストselectedProductsArray",
+    // selectedProductsArray,
+    // "selectedRowDataQuotation.quotation_products_details",
+    // selectedRowDataQuotation?.quotation_products_details
   );
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
+
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
   return (
     <>
       {/* アラートポップアップ */}
@@ -2786,11 +2792,14 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           {/* ------------------------- スクロールコンテナ ------------------------- */}
           {/* <div className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] `}> */}
           <div
+            ref={scrollContainerRef}
             className={`${styles.scroll_container} ${
               isInsertModeQuotation ? `${styles.insert_mode}` : ``
             } relative flex w-full overflow-y-auto pl-[10px] ${searchMode ? `` : `pb-[60px]`} ${
               tableContainerSize === "half" && underDisplayFullScreen ? `${styles.height_all}` : ``
-            } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``}`}
+            } ${tableContainerSize === "all" && underDisplayFullScreen ? `${styles.height_all}` : ``} ${
+              searchMode ? `${styles.is_search_mode}` : ``
+            }`}
           >
             {/* ---------------- 🌟通常モード 左コンテナ🌟 ---------------- */}
             {!searchMode && (
@@ -6152,7 +6161,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     content3: `お客様毎の値引や御見積書の提出ルールをメンバーに周知する際に使用します。`,
                                     // content4: ``,
                                     marginTop: 28,
-                                    itemsPosition: "center",
+                                    itemsPosition: "left",
                                   });
                                 }}
                                 onMouseLeave={() => {
@@ -6169,7 +6178,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                   <div className="flex-center relative h-[15px] w-[15px] rounded-full">
                                     <div
                                       ref={infoIconRule}
-                                      className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)]`}
+                                      className={`flex-center absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
                                     ></div>
                                     <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
                                   </div>
@@ -9686,7 +9695,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   </button>
                 </div> */}
                     <div
-                      className={`mt-[10px] flex ${
+                      className={`mt-[15px] flex ${
                         isOpenSidebar ? "min-h-[34px]" : `min-h-[42px]`
                       } w-full items-center justify-between space-x-[15px]`}
                     >
@@ -9698,6 +9707,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           setSearchMode(false);
                           // 編集モード中止
                           if (editSearchMode) setEditSearchMode(false);
+
+                          // スクロールコンテナを最上部に戻す
+                          if (scrollContainerRef.current) {
+                            scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+                          }
                         }}
                       >
                         戻る

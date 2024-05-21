@@ -18,11 +18,14 @@ export const DashboardQuotationComponent: FC = () => {
   const setClickedItemPos = useStore((state) => state.setClickedItemPos);
   // Upsert用ローディング
   const isLoadingUpsertGlobal = useDashboardStore((state) => state.isLoadingUpsertGlobal);
-  console.log("🔥 DashboardQuotationComponentレンダリング レンダリング activeMenuTab", activeMenuTab);
+  console.log("DashboardQuotationComponentレンダリング");
 
   // ハーフとallの時はheight指定を無しにして、コンテンツ全体を表示できるようにする
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
+
+  // サーチモード時MeetingGridTableAllとpadding上下を無くしてMainContainerを全画面にする
+  const searchMode = useDashboardStore((state) => state.searchMode);
 
   return (
     <div
@@ -62,13 +65,8 @@ export const DashboardQuotationComponent: FC = () => {
             className={`${styles.company_table_screen} ${
               tableContainerSize === "half" ? `${styles.company_table_screen_pr}` : ``
             } ${tableContainerSize === "all" ? `${styles.company_table_screen_pr}` : ``} ${
-              activeMenuTab === "HOME" ||
-              activeMenuTab == "Contacts000" ||
-              activeMenuTab === "Quotation0" ||
-              activeMenuTab === "Quotation0000"
-                ? `${styles.all_container} space-y-0 !px-0 !py-0`
-                : "py-[20px] pl-[20px]"
-            }`}
+              activeMenuTab === "HOME" ? `${styles.all_container} space-y-0 !px-0 !py-0` : "py-[20px] pl-[20px]"
+            } ${searchMode ? `${styles.is_search_mode}` : ``}`}
           >
             {activeMenuTab === "Quotation" && (
               <ErrorBoundary FallbackComponent={ErrorFallback}>

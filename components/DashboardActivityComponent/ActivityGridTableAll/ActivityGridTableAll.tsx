@@ -120,7 +120,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟🌟Zustandから指定したカラムを最初から表示
   const activityColumnHeaderItemList = useDashboardStore((state) => state.activityColumnHeaderItemList);
   const setActivityColumnHeaderItemList = useDashboardStore((state) => state.setActivityColumnHeaderItemList);
-  console.log("activityColumnHeaderItemList", activityColumnHeaderItemList);
+  // console.log("activityColumnHeaderItemList", activityColumnHeaderItemList);
   // ================= 🔥🔥テスト🔥🔥==================
   // 各カラムの横幅を管理
   const [colsWidth, setColsWidth] = useState<string[] | null>(null);
@@ -2790,7 +2790,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
           tableContainerSize === "one_third" ? `${styles.main_container_one_third}` : ``
         } ${tableContainerSize === "half" ? `${styles.main_container_half} ${styles.medium}` : ``} ${
           theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
-        }`}
+        } ${searchMode ? `${styles.is_search_mode}` : ``}`}
       >
         {/* ================== Gridテーブルヘッダー ================== */}
         {/* <GridTableHeader /> */}

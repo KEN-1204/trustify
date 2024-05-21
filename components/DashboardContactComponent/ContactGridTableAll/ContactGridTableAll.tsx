@@ -104,7 +104,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟🌟Zustandから指定したカラムを最初から表示
   const contactColumnHeaderItemList = useDashboardStore((state) => state.contactColumnHeaderItemList);
   const setContactColumnHeaderItemList = useDashboardStore((state) => state.setContactColumnHeaderItemList);
-  console.log("contactColumnHeaderItemList", contactColumnHeaderItemList);
+  // console.log("contactColumnHeaderItemList", contactColumnHeaderItemList);
   // ================= 🔥🔥テスト🔥🔥==================
   // 各カラムの横幅を管理
   const [colsWidth, setColsWidth] = useState<string[] | null>(null);
@@ -2342,35 +2342,36 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   // console.log("✅ 全てのカラムcolsRef", colsRef);
 
   console.log(
-    "✅ 全てのカラムcolsRef",
-    colsRef,
-    "checkedRows個数, checkedRows",
-    Object.keys(checkedRows).length,
-    checkedRows,
-    "selectedCheckBox",
-    selectedCheckBox,
-    "allRows",
-    allRows,
-    `virtualItems:${rowVirtualizer.getVirtualItems().length}`,
-    "contactColumnHeaderItemList, columnOrder",
-    contactColumnHeaderItemList,
-    columnOrder,
-    "colsWidth                ",
-    colsWidth,
-    "currentColsWidths.current",
-    currentColsWidths.current,
-    "フローズンの個数isFrozenCountRef.current",
-    isFrozenCountRef.current,
-    "レフトポジションcolumnLeftPositions.current",
-    columnLeftPositions.current,
-    "選択中のアクティブセルselectedGridCellRef",
-    selectedGridCellRef,
-    "選択中のアクティブセルactiveCell",
-    activeCell,
-    "clickedActiveRow",
-    clickedActiveRow,
-    "選択中のRowデータselectedRowDataContact",
-    selectedRowDataContact
+    "ContactGridTableAllコンポーネントレンダリング"
+    // "✅ 全てのカラムcolsRef",
+    // colsRef,
+    // "checkedRows個数, checkedRows",
+    // Object.keys(checkedRows).length,
+    // checkedRows,
+    // "selectedCheckBox",
+    // selectedCheckBox,
+    // "allRows",
+    // allRows,
+    // `virtualItems:${rowVirtualizer.getVirtualItems().length}`,
+    // "contactColumnHeaderItemList, columnOrder",
+    // contactColumnHeaderItemList,
+    // columnOrder,
+    // "colsWidth                ",
+    // colsWidth,
+    // "currentColsWidths.current",
+    // currentColsWidths.current,
+    // "フローズンの個数isFrozenCountRef.current",
+    // isFrozenCountRef.current,
+    // "レフトポジションcolumnLeftPositions.current",
+    // columnLeftPositions.current,
+    // "選択中のアクティブセルselectedGridCellRef",
+    // selectedGridCellRef,
+    // "選択中のアクティブセルactiveCell",
+    // activeCell,
+    // "clickedActiveRow",
+    // clickedActiveRow,
+    // "選択中のRowデータselectedRowDataContact",
+    // selectedRowDataContact
   );
   //   console.log("✅ window", window.innerHeight);
 
@@ -2471,8 +2472,6 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     }
   };
 
-  console.log("tableContainerSize🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠", tableContainerSize);
-
   return (
     <>
       {/* ================== メインコンテナ ================== */}
@@ -2481,7 +2480,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
           tableContainerSize === "one_third" ? `${styles.main_container_one_third}` : ``
         } ${tableContainerSize === "half" ? `${styles.main_container_half} ${styles.medium}` : ``} ${
           theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
-        }`}
+        } ${searchMode ? `${styles.is_search_mode}` : ``}`}
       >
         {/* ================== Gridテーブルヘッダー ================== */}
         {/* <GridTableHeader /> */}

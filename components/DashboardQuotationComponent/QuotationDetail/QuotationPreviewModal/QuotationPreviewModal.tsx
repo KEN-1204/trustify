@@ -1776,16 +1776,18 @@ const QuotationPreviewModalMemo = () => {
                             } flex items-end`}
                           >
                             {/* <span>￥6,000,000-</span> */}
-                            {/* {totalAmount && <span>{formatDisplayPrice(6000000)}-</span>} */}
+                            {/* {totalAmount && <span>{formatDisplayPrice(6000000)}-−</span>} */}
                             {totalAmount && quotationDivision === "A standard" && (
-                              <span>{formatDisplayPrice(totalAmount, language, true)}-</span>
+                              <span>{formatDisplayPrice(totalAmount, language, true)}−</span>
                             )}
                             {quotationDivision === "B set" && (
-                              <span>{formatDisplayPrice(selectedRowDataQuotation.set_price ?? 0, language, true)}</span>
+                              <span>
+                                {formatDisplayPrice(selectedRowDataQuotation.set_price ?? 0, language, true)}−
+                              </span>
                             )}
                             {quotationDivision === "C lease" && (
                               <span>
-                                {formatDisplayPrice(selectedRowDataQuotation.lease_monthly_fee ?? 0, language, true)}
+                                {formatDisplayPrice(selectedRowDataQuotation.lease_monthly_fee ?? 0, language, true)}−
                               </span>
                             )}
                           </div>

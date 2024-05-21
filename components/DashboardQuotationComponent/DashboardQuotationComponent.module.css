@@ -88,6 +88,10 @@
 .company_table_screen_pr {
   padding: 20px 10px 20px 20px;
 }
+/* サーチモード時はメインコンテナを全画面にするため上下のpaddingを除去する */
+.company_table_screen.is_search_mode {
+  padding: 0px 0px 0px 20px;
+}
 
 .company_screen_under_one_third {
   /* min-height: calc(100vh - var(--header-height)); */

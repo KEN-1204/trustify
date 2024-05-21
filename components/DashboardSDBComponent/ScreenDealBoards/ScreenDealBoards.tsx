@@ -21,6 +21,7 @@ import {
   FiscalYearMonthKey,
   FiscalYears,
   MemberAccounts,
+  MemberAccountsDealBoard,
 } from "@/types";
 import useDashboardStore from "@/store/useDashboardStore";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
@@ -170,7 +171,8 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
   // const setSelectedObjSectionSDBMember = useDashboardStore((state) => state.setSelectedObjSectionSDBMember);
 
   const [memberList, setMemberList] = useState<
-    | (MemberAccounts & {
+    // | (MemberAccounts & {
+    | (MemberAccountsDealBoard & {
         company_id: string;
         company_name: string;
         current_sales_amount: number | null;
@@ -200,7 +202,10 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     // メンバーデータを取得できている場合はmemberListにセット
     if (queryDataObjMemberGroupAndParentEntity) return;
 
-    if (displayEntityGroup === null) {
+    if (
+      displayEntityGroup === null ||
+      (!!entityIds?.length && !!monthKey && queryDataObjMemberGroupAndParentEntity === null)
+    ) {
       // 売上目標と組織構成が未設定の場合には、自身のデータのみ表示する
       // ユーザー自身を初期値にセット
       const u = userProfileState;
@@ -258,7 +263,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
         current_sales_amount: null,
         current_sales_target: null,
         current_achievement_rate: null,
-      } as MemberAccounts & {
+      } as MemberAccountsDealBoard & {
         company_id: string;
         company_name: string;
         current_sales_amount: number | null;
@@ -484,7 +489,9 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     "displayMemberList",
     displayMemberList,
     "entityIds",
-    entityIds
+    entityIds,
+    "monthKey",
+    monthKey
   );
 
   return (

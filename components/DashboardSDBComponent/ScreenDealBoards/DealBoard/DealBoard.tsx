@@ -26,7 +26,7 @@ import { MdOutlineMoreTime } from "react-icons/md";
 import { ImFire } from "react-icons/im";
 import { AiFillFire, AiOutlineFire } from "react-icons/ai";
 import { BsFire } from "react-icons/bs";
-import { DealCardType, MemberAccounts } from "@/types";
+import { DealCardType, MemberAccounts, MemberAccountsDealBoard } from "@/types";
 import { companyColumnHeaderItemListData } from "@/utils/companyColumnHeaderItemListData";
 import { SEED_CARDS } from "./data";
 import { format } from "date-fns";
@@ -98,7 +98,8 @@ const mappingColumnIndexToTitle: { [key: number]: number } = {
 type Props = {
   companyId: string;
   userId: string;
-  memberObj: MemberAccounts & {
+  // memberObj: MemberAccounts & {
+  memberObj: MemberAccountsDealBoard & {
     company_id: string;
     company_name: string;
     current_sales_amount: number | null;

@@ -122,7 +122,6 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟🌟Zustandから指定したカラムを最初から表示
   const meetingColumnHeaderItemList = useDashboardStore((state) => state.meetingColumnHeaderItemList);
   const setMeetingColumnHeaderItemList = useDashboardStore((state) => state.setMeetingColumnHeaderItemList);
-  console.log("meetingColumnHeaderItemList", meetingColumnHeaderItemList);
   // ================= 🔥🔥テスト🔥🔥==================
   // 各カラムの横幅を管理
   const [colsWidth, setColsWidth] = useState<string[] | null>(null);
@@ -760,7 +759,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       // .map((key, index) => `${key}:${key[index]} `)
       .join(", ");
     // .join("");
-    console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
+    // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
   }
   // console.log(
   //   "✅🔥newSearchCompanyParams",
@@ -2612,39 +2611,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
   // console.log("✅ 選択中のアクティブセルselectedGridCellRef", selectedGridCellRef);
   // console.log("✅ 選択中のアクティブセルactiveCell", activeCell);
   // console.log("✅ 全てのカラムcolsRef", colsRef);
-  console.log(
-    "✅ 全てのカラムcolsRef",
-    colsRef,
-    "checkedRows個数, checkedRows",
-    Object.keys(checkedRows).length,
-    checkedRows,
-    "selectedCheckBox",
-    selectedCheckBox,
-    "allRows",
-    allRows,
-    `virtualItems:${rowVirtualizer.getVirtualItems().length}`,
-    "meetingColumnHeaderItemList, columnOrder",
-    meetingColumnHeaderItemList,
-    columnOrder,
-    "colsWidth                ",
-    colsWidth,
-    "currentColsWidths.current",
-    currentColsWidths.current,
-    "フローズンの個数isFrozenCountRef.current",
-    isFrozenCountRef.current,
-    "レフトポジションcolumnLeftPositions.current",
-    columnLeftPositions.current,
-    "選択中のアクティブセルselectedGridCellRef",
-    selectedGridCellRef,
-    "選択中のアクティブセルactiveCell",
-    activeCell,
-    "clickedActiveRow",
-    clickedActiveRow,
-    "✅選択中のRowデータselectedRowDataMeeting",
-    selectedRowDataMeeting,
-    "allRows",
-    allRows
-  );
+
   //   console.log("✅ window", window.innerHeight);
 
   // 🌟カラム3点リーダー表示中はホバー時にツールチップを有効化
@@ -2873,6 +2840,41 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
     }
   };
 
+  console.log(
+    "MeetingGridTableAllコンポーネントレンダリング"
+    //  "✅ 全てのカラムcolsRef",
+    //  colsRef
+    // "checkedRows個数, checkedRows",
+    // Object.keys(checkedRows).length,
+    // checkedRows,
+    // "selectedCheckBox",
+    // selectedCheckBox,
+    // "allRows",
+    // allRows,
+    // `virtualItems:${rowVirtualizer.getVirtualItems().length}`,
+    // "meetingColumnHeaderItemList, columnOrder",
+    // meetingColumnHeaderItemList,
+    // columnOrder,
+    // "colsWidth                ",
+    // colsWidth,
+    // "currentColsWidths.current",
+    // currentColsWidths.current,
+    // "フローズンの個数isFrozenCountRef.current",
+    // isFrozenCountRef.current,
+    // "レフトポジションcolumnLeftPositions.current",
+    // columnLeftPositions.current,
+    // "選択中のアクティブセルselectedGridCellRef",
+    // selectedGridCellRef,
+    // "選択中のアクティブセルactiveCell",
+    // activeCell,
+    // "clickedActiveRow",
+    // clickedActiveRow,
+    // "✅選択中のRowデータselectedRowDataMeeting",
+    // selectedRowDataMeeting,
+    // "allRows",
+    // allRows
+  );
+
   return (
     <>
       {/* ================== メインコンテナ ================== */}
@@ -2881,7 +2883,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
           tableContainerSize === "one_third" ? `${styles.main_container_one_third}` : ``
         } ${tableContainerSize === "half" ? `${styles.main_container_half} ${styles.medium}` : ``} ${
           theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
-        }`}
+        } ${searchMode ? `${styles.is_search_mode}` : ``}`}
       >
         {/* ================== Gridテーブルヘッダー ================== */}
         {/* <GridTableHeader /> */}

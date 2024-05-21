@@ -73,10 +73,10 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   // カラム入れ替えモーダルで更新した内容を取得
   const editedColumnHeaderItemList = useDashboardStore((state) => state.editedColumnHeaderItemList);
   const setEditedColumnHeaderItemList = useDashboardStore((state) => state.setEditedColumnHeaderItemList);
-  console.log(
-    "🔥PropertyGridTableAllMemoコンポーネント 入れ替え後のカラム editedColumnHeaderItemList ",
-    editedColumnHeaderItemList
-  );
+  // console.log(
+  //   "🔥PropertyGridTableAllMemoコンポーネント 入れ替え後のカラム editedColumnHeaderItemList ",
+  //   editedColumnHeaderItemList
+  // );
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const [refetchLoading, setRefetchLoading] = useState(false);
   // 上テーブル検索条件変更用サーチモード用Zustand =================
@@ -2905,7 +2905,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
           tableContainerSize === "one_third" ? `${styles.main_container_one_third}` : ``
         } ${tableContainerSize === "half" ? `${styles.main_container_half} ${styles.medium}` : ``} ${
           theme === "light" ? `${styles.theme_f_light}` : `${styles.theme_f_dark}`
-        }`}
+        } ${searchMode ? `${styles.is_search_mode}` : ``}`}
       >
         {/* ================== Gridテーブルヘッダー ================== */}
         {/* <GridTableHeader /> */}

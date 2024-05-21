@@ -578,6 +578,30 @@ export type MemberAccounts = {
   assigned_signature_stamp_url: string | null;
 };
 
+// データ節約ver MemberAccounts ネタ表ボード
+export type MemberAccountsDealBoard = {
+  id: string;
+  avatar_url: string | null;
+  email: string | null;
+  profile_name: string | null;
+  position_name: string | null;
+  account_company_role: string | null;
+  // 事業部、課、係、事業所、社員番号
+  assigned_department_id: string | null;
+  assigned_department_name: string | null;
+  assigned_section_id: string | null;
+  assigned_section_name: string | null;
+  assigned_unit_id: string | null;
+  assigned_unit_name: string | null;
+  assigned_office_id: string | null;
+  assigned_office_name: string | null;
+  assigned_employee_id: string | null;
+  assigned_employee_id_name: string | null;
+  // 印鑑データ
+  assigned_signature_stamp_id: string | null;
+  assigned_signature_stamp_url: string | null;
+};
+
 export type Invitation = {
   id: string;
   created_at: string;
@@ -1631,7 +1655,6 @@ export type NewSearchProperty_Contact_CompanyParams = {
   // expected_product_id: string | null;
   expected_product: string | null;
   product_sales: number | null;
-  expected_order_date: string | null;
   // expected_sales_price: number | null;
   expected_sales_price: string | null;
   term_division: string | null;
@@ -1651,22 +1674,28 @@ export type NewSearchProperty_Contact_CompanyParams = {
   property_date: string | null;
   expansion_date: string | null;
   sales_date: string | null;
+  expected_order_date: string | null;
   // 年月度(会計基準の)
   property_year_month: number | null;
   expansion_year_month: number | null;
   sales_year_month: number | null;
+  expected_order_year_month: number | null; // 🌠追加
   // 四半期(会計基準の)
   property_quarter: number | null; // 🌠追加
   expansion_quarter: number | null;
   sales_quarter: number | null;
+  expected_order_quarter: number | null; // 🌠追加
   // 半期(会計基準の)
   property_half_year: number | null; // 🌠追加
   expansion_half_year: number | null; // 🌠追加
   sales_half_year: number | null; // 🌠追加
+  expected_order_half_year: number | null; // 🌠追加
   // 年度(会計基準の)
   property_fiscal_year: number | null; // 🌠追加
   expansion_fiscal_year: number | null; // 🌠追加
   sales_fiscal_year: number | null; // 🌠追加
+  expected_order_fiscal_year: number | null; // 🌠追加
+
   subscription_start_date: string | null;
   subscription_canceled_at: string | null;
   leasing_company: string | null;

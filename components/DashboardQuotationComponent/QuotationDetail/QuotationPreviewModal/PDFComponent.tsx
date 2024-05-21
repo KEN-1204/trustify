@@ -7,6 +7,7 @@ import { useDownloadUrl } from "@/hooks/useDownloadUrl";
 import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
 import { splitCompanyNameWithPosition } from "@/utils/Helpers/splitCompanyName";
 import { ImInfo } from "react-icons/im";
+import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 
 type Props = {
   isSample: boolean;
@@ -490,7 +491,8 @@ const PDFComponentMemo = ({ isSample = true, modalPosLeft }: Props) => {
                       {/* <span>￥6,000,000-</span> */}
                       {/* <span>{formatDisplayPrice(6645200)}-</span> */}
                       {/* <span>{formatDisplayPrice(6646800)}-</span> */}
-                      <span>{formatDisplayPrice(6636900)}-</span>
+                      {/* <span>¥{formatDisplayPrice(6636900)}-</span> */}
+                      <span>{formatToJapaneseYen(6636900)}−</span>
                     </div>
                   </div>
                   <div className={`${styles.section_underline}`} />

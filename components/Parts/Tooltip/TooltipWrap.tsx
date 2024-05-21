@@ -29,7 +29,7 @@ const TooltipWrapMemo = () => {
     if (menuRef.current) {
       const tooltipWidth = menuRef.current.offsetWidth;
       // const tooltipRectWidth = menuRef.current.getBoundingClientRect().width;
-      console.log("tooltipOffsetWidth,", tooltipWidth);
+      // console.log("tooltipOffsetWidth,", tooltipWidth);
       const tooltipHalfWidth = tooltipWidth / 2;
       const viewportWidth = window.innerWidth;
       const viewportRightOneThird = (viewportWidth / 3) * 2; // 画面3分の2の幅
@@ -52,7 +52,7 @@ const TooltipWrapMemo = () => {
           // if (adjustedLeft > viewportRightHalf) {
           const tooltipText = menuRef.current.querySelector(`.tooltip_text`);
           const tooltipTextWidth = tooltipText?.getBoundingClientRect().width;
-          console.log("tooltipWidth", tooltipWidth, "tooltipTextWidth", tooltipTextWidth, "tooltipText", tooltipText);
+          // console.log("tooltipWidth", tooltipWidth, "tooltipTextWidth", tooltipTextWidth, "tooltipText", tooltipText);
           menuRef.current.style.minWidth = `max-content`;
           // menuRef.current.style.whiteSpace = "nowrap";
           // if (!!tooltipTextWidth && tooltipTextWidth - 20 >= tooltipWidth) {
@@ -100,6 +100,8 @@ const TooltipWrapMemo = () => {
   ) {
     return;
   }
+
+  console.log("tooltipWrapコンポーネントレンダリング");
 
   // 右寄りのアイテムに対してのルート
   if (hoveredItemPosWrap?.display === "right") {
