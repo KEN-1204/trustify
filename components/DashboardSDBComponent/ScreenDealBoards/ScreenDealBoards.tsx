@@ -14,7 +14,14 @@ import {
 import styles from "./ScreenDealBoards.module.css";
 import { DealBoard } from "./DealBoard/DealBoard";
 import { AvatarIcon } from "@/components/Parts/AvatarIcon/AvatarIcon";
-import { Entity, EntityGroupByParent, EntityLevelNames, FiscalYears, MemberAccounts } from "@/types";
+import {
+  Entity,
+  EntityGroupByParent,
+  EntityLevelNames,
+  FiscalYearMonthKey,
+  FiscalYears,
+  MemberAccounts,
+} from "@/types";
 import useDashboardStore from "@/store/useDashboardStore";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { ErrorBoundary } from "react-error-boundary";
@@ -38,12 +45,13 @@ type Props = {
   displayEntityGroup:
     | (EntityGroupByParent & { parent_entity_level: string; parent_entity_level_id: string; entity_level: string })
     | null;
+  monthKey: FiscalYearMonthKey | null;
   // periodType: string;
   // period: number;
 };
 
 // 🌠各メンバーのネタ表を一覧で表示するコンポーネント
-const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
+const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const isOpenCongratulationsModal = useDashboardStore((state) => state.isOpenCongratulationsModal);
@@ -142,14 +150,19 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
 
   // 🔹売上目標が設定されている場合にはエンティティグループ内の各エンティティのメンバーアカウントデータを取得
   const {
-    data: queryDataMemberGroupByParentEntity,
+    data: queryDataObjMemberGroupAndParentEntity,
     error: isErrorQueryMemberList,
     isLoading: IsLoadingQueryMemberList,
   } = useQueryMemberListByParentEntity({
     entityIds: entityIds,
+    parentEntityLevelId: displayEntityGroup?.parent_entity_level_id ?? null,
     parentEntityLevel: displayEntityGroup?.parent_entity_level ?? null,
     parentEntityId: displayEntityGroup?.parent_entity_id ?? null,
-    isReady: !!entityIds?.length,
+    periodTypeForTarget: monthKey,
+    periodTypeForSales: activePeriodSDB.periodType,
+    period: activePeriodSDB.period,
+    fiscalYearId: fiscalYearQueryData?.id ?? null,
+    isReady: !!entityIds?.length && !!monthKey,
   });
 
   // // メンバーエンティティ
@@ -160,13 +173,18 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
     | (MemberAccounts & {
         company_id: string;
         company_name: string;
+        current_sales_amount: number | null;
+        current_sales_target: number | null;
+        current_achievement_rate: number | null;
       })[]
     | null
   >(null);
 
   const displayMemberList = useMemo(() => {
-    return queryDataMemberGroupByParentEntity ? queryDataMemberGroupByParentEntity : memberList ?? null;
-  }, [queryDataMemberGroupByParentEntity, memberList]);
+    return queryDataObjMemberGroupAndParentEntity
+      ? queryDataObjMemberGroupAndParentEntity.members_sales_data
+      : memberList ?? null;
+  }, [queryDataObjMemberGroupAndParentEntity, memberList]);
 
   // ネタ表ボードに渡すid配列に変換
   // const memberListSectionMember: MemberAccounts[] = useMemo(() => {
@@ -180,7 +198,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
   useEffect(() => {
     if (!userProfileState) return;
     // メンバーデータを取得できている場合はmemberListにセット
-    if (queryDataMemberGroupByParentEntity) return;
+    if (queryDataObjMemberGroupAndParentEntity) return;
 
     if (displayEntityGroup === null) {
       // 売上目標と組織構成が未設定の場合には、自身のデータのみ表示する
@@ -236,9 +254,16 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
         assigned_signature_stamp_url: u.assigned_signature_stamp_url,
         company_id: u.company_id,
         company_name: u.customer_name,
+        target_type: u.target_type,
+        current_sales_amount: null,
+        current_sales_target: null,
+        current_achievement_rate: null,
       } as MemberAccounts & {
         company_id: string;
         company_name: string;
+        current_sales_amount: number | null;
+        current_sales_target: number | null;
+        current_achievement_rate: number | null;
       };
       setMemberList([initialMemberObj]);
     }
@@ -452,8 +477,8 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
     "ScreenDealBoardsコンポーネントレンダリング",
     "displayEntityGroup",
     displayEntityGroup,
-    "queryDataMemberGroupByParentEntity",
-    queryDataMemberGroupByParentEntity,
+    "queryDataObjMemberGroupAndParentEntity",
+    queryDataObjMemberGroupAndParentEntity,
     "memberList",
     memberList,
     "displayMemberList",
@@ -546,7 +571,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
 
             {/* 選択中の月度が上期の場合には上期の売上目標が設定済み・月度が下期の場合には下期の売上目標が設定済みであれば、売上目標チャートを表示 */}
             {displayEntityGroup !== null &&
-            !!queryDataMemberGroupByParentEntity?.length &&
+            !!queryDataObjMemberGroupAndParentEntity &&
             !!fiscalYearQueryData &&
             ((selectedPeriodTypeHalfDetailSDB === "first_half_details" &&
               fiscalYearQueryData.is_confirmed_first_half_details) ||
@@ -559,7 +584,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
                       <div className={`flex items-center`}>
                         <span>売上総額・達成率</span>
                         <span className={`ml-[18px]`}>
-                          {queryDataMemberGroupByParentEntity && displaySubEntityForAchievement
+                          {queryDataObjMemberGroupAndParentEntity && displaySubEntityForAchievement
                             ? displaySubEntityForAchievement.entity_name
                             : userProfileState.profile_name}
                         </span>
