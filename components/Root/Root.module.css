@@ -787,6 +787,7 @@
   /* border-color: var(--color-horizon); */
   /* margin-bottom: 60px; */
   position: relative;
+  overflow-x: hidden;
 }
 
 @keyframes animate_meter_slide {
@@ -1017,14 +1018,16 @@
   /* background: rgba(15, 15, 15, 0.1); */
   /* color: #555; */
   background: rgba(255, 255, 255, 0);
-  margin-left: 20px;
   width: 100%;
   height: 100%;
+  /* margin-left: 18px; */
+  margin-left: 12px;
+  padding-top: 6px;
 }
 .email_auth .input_box label {
   position: absolute;
   top: 4px;
-  left: 20px;
+  left: 15px;
   padding: 10px 0;
   font-size: 18px;
   color: #9ca3af;

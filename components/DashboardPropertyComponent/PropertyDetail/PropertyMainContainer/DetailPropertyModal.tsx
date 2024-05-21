@@ -979,7 +979,7 @@ const DetailPropertyModalMemo = () => {
     <>
       {/* オーバーレイ */}
       <div
-        className={` fixed inset-0 z-[3900] h-[100vh] w-[100vw] bg-[#00000033] backdrop-blur-[6px]`}
+        className={`fixed inset-0 z-[3900] h-[100vh] w-[100vw] bg-[#00000033] backdrop-blur-[6px]`}
         onClick={handleCloseDetailModalProperty}
       ></div>
 
@@ -993,10 +993,10 @@ const DetailPropertyModalMemo = () => {
         </div>
         {/* ------------------------- スクロールコンテナ ------------------------- */}
         <div
-          className={`${styles.scroll_container} ${styles.detail_modal} relative flex w-full overflow-y-auto pl-[10px]`}
+          className={`${styles.scroll_container} ${styles.detail_modal} relative flex w-full overflow-y-auto`}
           //   className={`${styles.scroll_container} relative flex w-full overflow-y-auto pl-[10px] ${styles.height_all}`}
         >
-          <div className="h-full min-w-[20px]"></div>
+          {/* <div className="left-spacer h-full min-w-[20px]"></div> */}
           {/* ---------------- 通常モード 左コンテナ ---------------- */}
           <div
             // className={`${styles.left_container1 h-full min-w-[calc((100vw-var(--sidebar-width))/3)1 pb-[35px] pt-[10px]`}
@@ -5872,8 +5872,12 @@ const DetailPropertyModalMemo = () => {
             </div>
           </div>
           {/* ---------------- 通常モード 右コンテナここまで ---------------- */}
-          <div className="h-full min-w-[20px]"></div>
+          {/* <div className="right-spacer h-full min-w-[20px]"></div> */}
         </div>
+        <div
+          className={`absolute bottom-0 left-[1px] z-[100] h-[20px] w-[calc(100%-2px)] rounded-b-[12px]`}
+          style={{ background: `linear-gradient(to top, var(--color-bg-base), transparent)` }}
+        ></div>
       </div>
     </>
   );

@@ -48,14 +48,14 @@ const EditModalDealCardMemo = () => {
     setSelectedDealCard(null); // 選択を解除
     setIsOpenDealCardModal(false); // モーダルを閉じる
   };
+  // キャッシュのクエリキー
+  const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
 
-  if (!selectedDealCard || !selectedDealCard?.dealCard) {
+  if (!selectedDealCard || !selectedDealCard?.dealCard || !activePeriodSDB) {
     handleClose();
     return;
   }
 
-  // キャッシュのクエリキー
-  const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
   const currentQueryKey = ["deals", selectedDealCard.ownerId, activePeriodSDB.periodType, activePeriodSDB.period];
 
   useEffect(() => {

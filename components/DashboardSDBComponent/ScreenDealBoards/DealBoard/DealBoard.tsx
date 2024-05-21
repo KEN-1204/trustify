@@ -41,6 +41,7 @@ import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/Progres
 import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/ProgressNumber";
 import { AvatarIcon } from "@/components/Parts/AvatarIcon/AvatarIcon";
 import { FallbackDealBoard } from "./FallbackDealBoard";
+import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 
 type ColumnSizeInfo = {
   prevColumnHeight: number;
@@ -100,6 +101,9 @@ type Props = {
   memberObj: MemberAccounts & {
     company_id: string;
     company_name: string;
+    current_sales_amount: number | null;
+    current_sales_target: number | null;
+    current_achievement_rate: number | null;
   };
   stickyRow: string | null;
   setStickyRow: Dispatch<SetStateAction<string | null>>;
@@ -1877,6 +1881,34 @@ const DealBoardMemo = ({
             <div className={`${styles.sub_info} pt-[6px]`}>{memberObj.assigned_employee_id_name ?? ""}</div>
             <div className={`relative !ml-[24px] !mr-[12px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}>
               <div className="flex h-full min-w-[150px] items-end justify-end">
+                {/* {memberObj.current_sales_amount !== null ? (
+                  <ProgressNumber
+                    targetNumber={memberObj.current_sales_amount}
+                    // targetNumber={0}
+                    // startNumber={Math.round(68000 / 2)}
+                    // startNumber={Number((68000 * 0.1).toFixed(0))}
+                    startNumber={0}
+                    duration={3000}
+                    easeFn="Quintic"
+                    fontSize={27}
+                    fontWeight={500}
+                    margin="0 0 -3px 0"
+                    isReady={isRenderProgress}
+                    fade={`fade08_forward`}
+                  />
+                ) : (
+                  <span
+                    style={{
+                      fontSize: `27px`,
+                      fontWeight: 500,
+                      color: `var(--color-text-title)`,
+                      margin: `0 0 -3px 0`,
+                    }}
+                    className={`${!isRenderProgress ? `opacity-0` : ``} ${
+                      isRenderProgress ? `fade08_forward` : ``
+                    }`}
+                  ></span>
+                )} */}
                 <ProgressNumber
                   targetNumber={6200000}
                   // targetNumber={0}
@@ -1896,11 +1928,34 @@ const DealBoardMemo = ({
                 <div className="absolute left-[66%] top-[68%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[var(--color-text-title)]"></div>
               </div>
               <div className="mr-[12px] flex h-full min-w-max items-end justify-start">
-                <span className="text-[16px]">9,000,000</span>
+                {/* {memberObj.current_sales_target !== null ? (
+                  <span className="text-[16px]">
+                    {formatToJapaneseYen(memberObj.current_sales_target, false, false)}
+                  </span>
+                ) : (
+                  <span className="text-[16px]">-</span>
+                )} */}
+                {<span className="text-[16px]">9,000,000</span>}
               </div>
             </div>
             <div className={`relative h-[56px] w-[56px]`} style={{ margin: `0` }}>
               <div className="absolute bottom-[-6px] right-0">
+                {/* <ProgressCircle
+                  circleId={`${userId}_board`}
+                  textId={`${userId}_board`}
+                  progress={memberObj.current_achievement_rate ?? 0}
+                  // progress={100}
+                  // progress={0}
+                  duration={5000}
+                  easeFn="Quartic"
+                  size={56}
+                  strokeWidth={6}
+                  fontSize={11}
+                  textColor="var(--color-text-title)"
+                  isReady={isRenderProgress}
+                  fade={`fade08_forward`}
+                  // fade={`fade10_forward`}
+                /> */}
                 <ProgressCircle
                   circleId={`${userId}_board`}
                   textId={`${userId}_board`}

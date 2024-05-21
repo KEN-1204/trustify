@@ -155,7 +155,6 @@
   width: 100%;
   max-width: 1385px;
   /* padding: 15px 20px 0px; */
-  padding: 15px 0px 0px;
   /* height: 87vh; */
   height: 693px;
   /* min-height: 693px;
@@ -164,9 +163,14 @@
   max-height: 708px;
   /* background-color: #000000f0; */
   /* background-color: #fffffff0; */
-  background-color: var(--color-detail-modal-bg);
   backdrop-filter: blur(6px);
   border-radius: 12px;
+  /* background-color: var(--color-detail-modal-bg); */
+  /* padding: 15px 0px 0px; */
+  /* SDB */
+  background: var(--color-bg-base);
+  padding: 15px 1px 0;
+  /* SDB */
 }
 .scroll_container.detail_modal {
   /* calc(画面サイズ - ヘッダー56px) - テーブルサイズ(calc() 上pt20px - 下pt20px - ?20px - タブヘッダー22px - ファンクションヘッダー40px - コンテナボーダー分上下1+1=2px) pt=padding-top */
@@ -175,6 +179,13 @@
   /* max-height: calc(
     100vh - var(--header-height) - calc(100vh / 3 - var(--header-height) / 3) - 20px - 20px - 20px - 22px - 40px - 2px
   ); */
+  /* SDB */
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  padding-left: 20px;
+  padding-bottom: 10vh;
+  /* justify-content: flex-end; */
+  /* SDB */
 }
 /* 🌟サイズ切り替えでサイズがallとhalfの時はmaxではなくh-100%にする */
 .scroll_container.detail_modal.height_all {
@@ -184,8 +195,10 @@
 }
 .left_container.detail_modal,
 .right_container.detail_modal {
-  min-width: calc((100% - 40px) / 3);
-  max-width: calc((100% - 40px) / 3);
+  /* min-width: calc((100% - 40px) / 3);
+  max-width: calc((100% - 40px) / 3); */
+  min-width: calc(100% / 3);
+  max-width: calc(100% / 3);
   /* max-width: calc(100% / 3); */
 }
 /* ------------------------------- 案件詳細モーダル ここまで ------------------------------- */

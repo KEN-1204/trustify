@@ -25,19 +25,17 @@ import { EntityLevelNames, EntityObjForChart, FiscalYearAllKeys } from "@/types"
 import { DonutChartCustomComponent } from "@/components/Parts/Charts/DonutChart/DonutChartCustom";
 import { mappingEntityName } from "@/utils/mappings";
 import { roundTo } from "@/utils/Helpers/PercentHelpers/roundTo";
+import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/ProgressCircle";
 
 type Props = {
   fiscalYear: number;
   companyId: string;
-  parentEntityId: string; // queryKey用
-  parentEntityTotalMainTarget: number;
+  entityId: string;
+  entityName: string;
   entityLevel: EntityLevelNames;
   entityLevelId: string;
   fiscalYearId: string;
-  entities: EntityObjForChart[];
-  // entityId: string;
   periodTitle: string;
-  // periodType: "fiscal_year" | "half_year" | "quarter" | "year_month";
   periodType: FiscalYearAllKeys;
   basePeriod: number;
   fetchEnabled?: boolean;
@@ -48,16 +46,14 @@ type Props = {
   noDataText?: string;
 };
 
-const DonutChartTargetSharesMemo = ({
+const ProgressCircleSalesAchievementMemo = ({
   fiscalYear,
   companyId,
-  parentEntityId,
-  parentEntityTotalMainTarget,
+  entityId,
+  entityName,
   entityLevel,
   entityLevelId,
   fiscalYearId,
-  entities,
-  // entityId,
   periodTitle,
   periodType,
   basePeriod,
@@ -140,7 +136,7 @@ const DonutChartTargetSharesMemo = ({
   });
   // ------------------------- useQuery残ネタ取得 ここまで -------------------------
 
-  console.log("DonutChartTargetSharesレンダリング data", data, "isError", isError, "isLoading", isLoading);
+  console.log("ProgressCircleSalesAchievementレンダリング data", data, "isError", isError, "isLoading", isLoading);
 
   if (isLoading)
     return (
@@ -239,7 +235,7 @@ const DonutChartTargetSharesMemo = ({
                   </div>
                 </div>
               )}
-              <DonutChartCustomComponent
+              {/* <DonutChartCustomComponent
                 colors={colors}
                 colorsSheer={colorsSheer}
                 chartHeight={chartHeight}
@@ -254,7 +250,25 @@ const DonutChartTargetSharesMemo = ({
                 fallbackPadding={`0px 6px 8px 24px`}
                 activeIndexParent={activeIndex}
                 setActiveIndexParent={setActiveIndex}
-              />
+              /> */}
+              <div className={`fade08_forward relative z-[100] w-full`} style={{ height: `${chartHeight}px` }}>
+                <ProgressCircle
+                  circleId={`${entityId}_achievement_board`}
+                  textId={`${entityId}_achievement_board`}
+                  progress={78}
+                  // progress={100}
+                  // progress={0}
+                  duration={5000}
+                  easeFn="Quartic"
+                  size={56}
+                  strokeWidth={6}
+                  fontSize={11}
+                  textColor="var(--color-text-title)"
+                  isReady={true}
+                  fade={`fade08_forward`}
+                  // fade={`fade10_forward`}
+                />
+              </div>
             </div>
           </div>
           <div
@@ -435,4 +449,4 @@ const DonutChartTargetSharesMemo = ({
   );
 };
 
-export const DonutChartTargetShares = memo(DonutChartTargetSharesMemo);
+export const ProgressCircleSalesAchievement = memo(ProgressCircleSalesAchievementMemo);

@@ -74,6 +74,11 @@ export const DashboardSDBComponent = () => {
     }
   };
 
+  // 選択中のネタカード
+  const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
+  // ネタカードクリック時に表示する概要モーダル
+  const isOpenDealCardModal = useDashboardStore((state) => state.isOpenDealCardModal);
+
   console.log("DashboardSDBComponentレンダリング activeThemeColor", activeThemeColor);
 
   return (
@@ -103,6 +108,9 @@ export const DashboardSDBComponent = () => {
           </div>
         </div>
       </div>
+      {/* ------------------- ネタ表 詳細・編集モーダル ------------------- */}
+      {isOpenDealCardModal && selectedDealCard && <EditModalDealCard />}
+      {/* ------------------- ネタ表 詳細・編集モーダル ここまで ------------------- */}
     </>
   );
 };

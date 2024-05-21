@@ -13,7 +13,7 @@ import {
 } from "react";
 import styles from "../DashboardSDBComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
-import { IoCaretDownOutline } from "react-icons/io5";
+import { IoCaretDownOutline, IoChevronDownOutline } from "react-icons/io5";
 import { MdOutlineDataSaverOff } from "react-icons/md";
 import { BsCheck2 } from "react-icons/bs";
 import useStore from "@/store";
@@ -58,6 +58,7 @@ import { useQueryFiscalYear } from "@/hooks/useQueryFiscalYear";
 import { useQueryEntityLevels } from "@/hooks/useQueryEntityLevels";
 import { useQueryEntities } from "@/hooks/useQueryEntities";
 import { FallbackSalesProgressScreen } from "./FallbackSalesProgressScreen";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SalesProgressScreenMemo = () => {
   const language = useStore((state) => state.language);
@@ -81,6 +82,9 @@ const SalesProgressScreenMemo = () => {
     periodType: "fiscal_year" | "half_year" | "quarter" | "year_month";
     period: number;
   } | null>(null);
+
+  // ローディングリフレッシュ
+  const [isLoadingRefresh, setIsLoadingRefresh] = useState(false);
 
   // // 半期のSetオブジェクト
   // const halfYearKeySet = useMemo(() => new Set<HalfYearKey>(["first_half", "second_half"]), []);
@@ -122,6 +126,8 @@ const SalesProgressScreenMemo = () => {
 
   if (!userProfileState) return handleErrorReturn();
   if (!userProfileState.company_id) return handleErrorReturn();
+
+  const queryClient = useQueryClient();
 
   // --------------------------- 変数定義 ---------------------------
 
@@ -354,6 +360,11 @@ const SalesProgressScreenMemo = () => {
     "sales_target",
     true
   );
+  // { エンティティレベル名: エンティティレベルオブジェクト }のMapオブジェクト
+  const entityLevelsMap = useMemo(() => {
+    if (!entityLevelsQueryData) return null;
+    return new Map(entityLevelsQueryData.map((levelObj) => [levelObj.entity_level, levelObj]));
+  }, [entityLevelsQueryData]);
   // ===================== 🌠エンティティレベルuseQuery🌠 =====================
 
   // ===================== 🌠エンティティuseQuery🌠 =====================
@@ -737,6 +748,10 @@ const SalesProgressScreenMemo = () => {
     }
   }, [activePeriodSDB?.period]);
 
+  // ------------------- 🌟リフレッシュ🌟 -------------------
+
+  // ------------------- 🌟リフレッシュ🌟 -------------------
+
   // ------------------- ✅初回マウント✅ -------------------
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
@@ -747,15 +762,17 @@ const SalesProgressScreenMemo = () => {
   // ------------------- ✅初回マウント✅ -------------------
 
   console.log(
-    "SalesProgressScreenコンポーネントレンダリング",
-    "annualFiscalMonthsSDB",
-    annualFiscalMonthsSDB,
-    "fiscalYearQueryData",
-    fiscalYearQueryData,
-    "entityLevelsQueryData",
-    entityLevelsQueryData,
-    "entitiesHierarchyQueryData",
-    entitiesHierarchyQueryData
+    "SalesProgressScreenコンポーネントレンダリング"
+    // "entityLevelsMap",
+    // entityLevelsMap,
+    // "annualFiscalMonthsSDB",
+    // annualFiscalMonthsSDB,
+    // "fiscalYearQueryData",
+    // fiscalYearQueryData,
+    // "entityLevelsQueryData",
+    // entityLevelsQueryData,
+    // "entitiesHierarchyQueryData",
+    // entitiesHierarchyQueryData
   );
 
   if (!isMounted || activePeriodSDB === null) return <FallbackSalesProgressScreen />;
@@ -813,6 +830,11 @@ const SalesProgressScreenMemo = () => {
                 <div
                   className={`underline_area mb-[-1px] flex cursor-pointer flex-col hover:text-[var(--main-color-f)]`}
                   onClick={(e) => {
+                    if (!entityLevelsMap || entityLevelsMap.size <= 2) {
+                      return alert(
+                        `売上目標に「全社・メンバー」以外のレイヤーが含まれている場合、\nレイヤーごとに表示を切り替えることが可能です。`
+                      );
+                    }
                     handleOpenSectionMenu({
                       e,
                       title: "entity",
@@ -823,18 +845,44 @@ const SalesProgressScreenMemo = () => {
                     handleCloseTooltip();
                   }}
                   onMouseEnter={(e) => {
-                    handleOpenTooltip({
-                      e: e,
-                      display: "top",
-                      content: `「全社・事業部・係/チーム・メンバー個人」を変更することで`,
-                      content2: `各セクション毎にダッシュボードを確認が可能です。`,
-                      marginTop: 27,
-                      itemsPosition: "left",
-                    });
+                    let tooltipContent = ``;
+                    if (activeTabSDB === "sales_progress") {
+                      if (!entityLevelsMap) {
+                        tooltipContent = `「目標」タブから売上目標を設定することで\n「全社・事業部・課・係・メンバー」ごとに売上進捗や営業プロセス指数をダッシュボードで確認できます。`;
+                      } else {
+                        if (entityLevelsMap.has("unit")) {
+                          tooltipContent = `「全社・事業部・課・係」のレイヤーを変更することで\n各レイヤーごとの売上進捗をダッシュボードに反映します。`;
+                        } else if (entityLevelsMap.has("section")) {
+                          tooltipContent = `「全社・事業部・課」のレイヤーを変更することで\n各レイヤーごとの売上進捗をダッシュボードに反映します。`;
+                        } else if (entityLevelsMap.has("department")) {
+                          tooltipContent = `「全社・事業部」のレイヤーを変更することで\n各レイヤーごとの売上進捗をダッシュボードに反映します。`;
+                        } else if (entityLevelsMap.size <= 2) {
+                          tooltipContent = ``; // 全社・メンバーのみの場合には変更は不可
+                        }
+                      }
+                    }
+                    if (tooltipContent !== "")
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: tooltipContent,
+                        marginTop: 27,
+                        itemsPosition: "left",
+                      });
                   }}
                   onMouseLeave={handleCloseTooltip}
                 >
-                  <span>{mappingSectionName[activeSectionSDB][language]}</span>
+                  <div className={`flex items-center space-x-[3px]`}>
+                    {/* <span>{mappingSectionName[activeSectionSDB][language]}</span> */}
+                    <span>
+                      {displayEntityGroup
+                        ? displayEntityGroup.parent_entity_level === "company"
+                          ? mappingSectionName["company"][language]
+                          : displayEntityGroup.parent_entity_name
+                        : userProfileState.profile_name}
+                    </span>
+                    <IoChevronDownOutline className={`text-[18px]`} />
+                  </div>
                   <div className={`flow_underline brand_light one_px w-full`} />
                 </div>
               </div>
@@ -879,26 +927,29 @@ const SalesProgressScreenMemo = () => {
                   }}
                   onMouseLeave={handleCloseTooltip}
                 >
-                  {displayYearPeriod && (
-                    <>
-                      {activePeriodSDB.periodType === "year_month" && (
-                        <span>
-                          {displayYearPeriod.year} - {displayYearPeriod.period}月度
-                        </span>
-                      )}
-                      {["half_year", "quarter"].includes(activePeriodSDB.periodType) && (
-                        <span>
-                          {displayYearPeriod.year}
-                          {displayYearPeriod.period}
-                        </span>
-                      )}
-                      {activePeriodSDB.periodType === "fiscal_year" && <span>{displayYearPeriod.year}年度</span>}
-                    </>
-                  )}
+                  <div className={`flex items-center`}>
+                    {displayYearPeriod && (
+                      <>
+                        {activePeriodSDB.periodType === "year_month" && (
+                          <span>
+                            {displayYearPeriod.year} / {displayYearPeriod.period}月度
+                          </span>
+                        )}
+                        {["half_year", "quarter"].includes(activePeriodSDB.periodType) && (
+                          <span>
+                            {displayYearPeriod.year}
+                            {displayYearPeriod.period}
+                          </span>
+                        )}
+                        {activePeriodSDB.periodType === "fiscal_year" && <span>{displayYearPeriod.year}年度</span>}
+                      </>
+                    )}
+                    <IoChevronDownOutline className={`ml-[3px] text-[18px]`} />
+                  </div>
                   <div className={`flow_underline brand_light one_px w-full`} />
                 </div>
               </div>
-              <div className={`${styles.info_area} flex-center min-h-[36px] px-[6px] py-[6px]`}>
+              <div className={`${styles.info_area} flex-center ml-[3px] min-h-[36px] px-[3px] py-[6px]`}>
                 <div
                   className="flex-center relative h-[18px] w-[18px] rounded-full"
                   onMouseEnter={(e) => handleEnterInfoIcon(e, infoIconProgressRef.current)}
@@ -914,7 +965,7 @@ const SalesProgressScreenMemo = () => {
 
               <div className={`flex-center ml-[6px] min-h-[36px] min-w-[36px]`}>
                 <div
-                  className={`refresh_icon flex-center transition-bg02 ml-[6px] min-h-[27px] min-w-[27px]`}
+                  className={`refresh_icon flex-center transition-bg02 min-h-[27px] min-w-[27px]`}
                   onMouseEnter={(e) => {
                     handleOpenTooltip({
                       e: e,
@@ -924,6 +975,19 @@ const SalesProgressScreenMemo = () => {
                     });
                   }}
                   onMouseLeave={() => {
+                    handleCloseTooltip();
+                  }}
+                  onClick={async () => {
+                    setIsLoadingRefresh(true);
+                    // ローディングを挟んでDealBoardsコンポーネントを再マウントしてcurrentActiveIndexのstateをリセットする
+                    await queryClient.invalidateQueries(["fiscal_year", "sales_target"]);
+                    await queryClient.invalidateQueries(["entity_levels", "sales_target"]);
+                    await queryClient.invalidateQueries(["entities", "sales_target"]);
+                    await queryClient.invalidateQueries(["member_accounts", "sdb"]);
+                    await queryClient.invalidateQueries(["deals"]);
+
+                    await new Promise((resolve) => setTimeout(resolve, 800));
+                    setIsLoadingRefresh(false);
                     handleCloseTooltip();
                   }}
                 >
@@ -940,7 +1004,16 @@ const SalesProgressScreenMemo = () => {
         {/* ------------------- 売上目標+現売実績ホワイトボード ここまで ------------------- */}
 
         {/* ------------------- 🌟ネタ表ボードスクリーン🌟 ------------------- */}
-        {isMounted && activeTabSDB === "sales_progress" && activePeriodSDB !== null && (
+        {isLoadingRefresh && (
+          <div
+            className={`flex-center w-full`}
+            // style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}
+            style={{ minHeight: `calc(100vh - 87px - 56px)`, paddingBottom: `87px` }}
+          >
+            <SpinnerBrand withBorder withShadow />
+          </div>
+        )}
+        {isMounted && activeTabSDB === "sales_progress" && activePeriodSDB !== null && !isLoadingRefresh && (
           <>
             <ErrorBoundary FallbackComponent={ErrorFallback}>
               <Suspense

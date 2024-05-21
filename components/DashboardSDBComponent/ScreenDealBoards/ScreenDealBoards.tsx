@@ -243,7 +243,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
       setMemberList([initialMemberObj]);
     }
   }, [displayEntityGroup]);
-  // ------------------------- ✅初回マウント時✅ -------------------------
+  // ------------------------- ✅初回マウント時✅ ここまで -------------------------
 
   // useEffectでメンバーリストが取得できた状態でJSXをレンダリングする
   const [isMounted, setIsMounted] = useState(false);
@@ -828,7 +828,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup }: Props) => {
         {/* ------------------- テストここまで ------------------- */}
       </section>
       {/* ------------------- ネタ表 詳細・編集モーダル ------------------- */}
-      {isOpenDealCardModal && selectedDealCard && <EditModalDealCard />}
+      {/* {isOpenDealCardModal && selectedDealCard && <EditModalDealCard />} */}
       {/* ------------------- ネタ表 詳細・編集モーダル ここまで ------------------- */}
       {/* ------------------- 受注済みに変更後の売上入力モーダル ------------------- */}
       {isOpenCongratulationsModal && (

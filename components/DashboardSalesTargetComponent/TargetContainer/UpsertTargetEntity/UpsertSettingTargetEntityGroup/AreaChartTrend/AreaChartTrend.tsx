@@ -94,6 +94,7 @@ const AreaChartTrendMemo = ({
         fallbackHeight={fallbackHeight}
         fallbackPadding={`0px 6px 8px 24px`}
         hoveringLegendBg={hoveringLegendBg ?? undefined}
+        withTransition="background-color 0.5s ease"
       />
       {/* エリアチャート ここまで */}
     </div>

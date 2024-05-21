@@ -45,6 +45,7 @@ type Props = {
   fallbackPadding: string;
   salesTargetDate?: string | undefined;
   hoveringLegendBg?: string | undefined;
+  withTransition?: string | undefined;
 };
 
 const AreaChartComponentMemo = ({
@@ -60,6 +61,7 @@ const AreaChartComponentMemo = ({
   fallbackPadding,
   salesTargetDate,
   hoveringLegendBg = `var(--color-sales-card-bg)`,
+  withTransition,
 }: Props) => {
   const language = useStore((state) => state.language);
 
@@ -287,6 +289,7 @@ const AreaChartComponentMemo = ({
                   language={language}
                   legendList={legendList}
                   hoveringLegendBg={hoveringLegendBg}
+                  withTransition={withTransition}
                 />
               )}
             />
@@ -453,6 +456,7 @@ type LegendCustomProps = {
   language: string;
   legendList: LegendNameId[];
   hoveringLegendBg?: string;
+  withTransition?: string | undefined;
 };
 
 export const CustomLegend = ({
@@ -461,6 +465,7 @@ export const CustomLegend = ({
   language,
   legendList,
   hoveringLegendBg = `var(--color-sales-card-bg)`,
+  withTransition,
 }: LegendCustomProps) => {
   const { payload } = props;
 
@@ -512,7 +517,10 @@ export const CustomLegend = ({
           ref={legendsRef}
           // className={`${styles.list_legends} fade08_forward absolute left-[60px] right-[0px] top-[0] z-10 flex  max-w-[calc(100vw-72px-62px-6px-24px)] flex-wrap items-center justify-end leading-[24px]`}
           className={`${styles.list_legends} fade08_forward absolute left-[72px] right-[0px] top-[0] z-10 flex  max-w-[calc(100vw-72px-62px-6px-24px)] flex-wrap items-center justify-end leading-[24px]`}
-          style={{ background: `${hoveringLegendBg}` }}
+          style={{
+            background: `${hoveringLegendBg}`,
+            ...(withTransition && { transition: withTransition }),
+          }}
           onMouseLeave={handleLeaveLegend}
         >
           {legendList.map((obj, index) => (

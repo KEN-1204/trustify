@@ -1,5 +1,6 @@
 .board:global {
   --deal-card-bg: var(--color-card-bg);
+  /* --deal-card-bg: var(--color-card-bg-gradient); */
   --deal-card-border: var(--color-card-border);
   --deal-card-box-shadow: var(--card-shadow);
   --deal-card-bg-rejected: var(--color-card-bg-rejected);
@@ -130,10 +131,7 @@
 .column .title_area {
   user-select: none;
   font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
-}
-.column .title_area {
-  user-select: none;
-  font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
+  font-size: 15px;
 }
 .column .title_area .award {
   color: var(--color-award);

@@ -323,11 +323,14 @@
   margin-left: 18px;
   font-weight: 600;
   /* font-family: "Hiragino Sans", sans-serif, Roboto, system-ui; */
+  font-family: sans-serif, Roboto, system-ui;
+  user-select: none;
 }
 .section_container .section_wrapper .left_wrapper .period_type {
   padding: 6px 6px;
-  margin: 0 6px 0 9px;
-  font-weight: 600;
+  margin: 0 3px;
+  user-select: none;
+  /* font-weight: 600; */
   /* font-family: "Hiragino Sans", sans-serif, Roboto, system-ui; */
 }
 .section_container .section_wrapper .left_wrapper .entity_level.active,
