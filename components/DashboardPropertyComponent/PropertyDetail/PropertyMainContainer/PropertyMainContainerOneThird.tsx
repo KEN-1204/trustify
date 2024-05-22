@@ -45,6 +45,9 @@ import {
   optionsCompetitionState,
   optionsCurrentStatus,
   optionsDecisionMakerNegotiation,
+  optionsFiscalHalf,
+  optionsFiscalMonth,
+  optionsFiscalQuarter,
   optionsIndustryType,
   optionsLeaseDivision,
   optionsMonth,
@@ -82,6 +85,7 @@ import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { UnderRightActivityLogCustom } from "./UnderRightActivityLogCustom/UnderRightActivityLogCustom";
 import { FallbackUnderRightActivityLogCustom } from "./UnderRightActivityLogCustom/FallbackUnderRightActivityLogCustom";
 import { useQuerySections } from "@/hooks/useQuerySections";
+import { splitYearAndPeriod } from "@/utils/Helpers/CalendarHelpers/splitYearAndPeriod";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -143,6 +147,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const queryClient = useQueryClient();
 
   const { updatePropertyFieldMutation } = useMutateProperty();
+
+  if (!userProfileState) {
+    alert("エラー：ユーザーデータが見つかりませんでした...🙇‍♀️ EQM01");
+    return;
+  }
 
   // メディアクエリState
   // デスクトップモニター
@@ -220,12 +229,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputDiscountedPrice, setInputDiscountedPrice] = useState<string>(""); // 値引価格
   const [inputDiscountRate, setInputDiscountRate] = useState<string>(""); // 値引率
   const [inputSalesClass, setInputSalesClass] = useState("");
-  const [inputExpansionDate, setInputExpansionDate] = useState<Date | null>(null);
-  const [inputSalesDate, setInputSalesDate] = useState<Date | null>(null);
   // const [inputExpansionQuarter, setInputExpansionQuarter] = useState("");
   // const [inputSalesQuarter, setInputSalesQuarter] = useState("");
-  const [inputExpansionQuarter, setInputExpansionQuarter] = useState<number | null>(null);
-  const [inputSalesQuarter, setInputSalesQuarter] = useState<number | null>(null);
   const [inputSubscriptionStartDate, setInputSubscriptionStartDate] = useState<Date | null>(null);
   const [inputSubscriptionCanceledAt, setInputSubscriptionCanceledAt] = useState<Date | null>(null);
   const [inputLeasingCompany, setInputLeasingCompany] = useState("");
@@ -243,39 +248,101 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   // const [inputCustomerBudget, setInputCustomerBudget] = useState<number | null>(null);
   const [inputCustomerBudget, setInputCustomerBudget] = useState<string>("");
   const [inputDecisionMakerNegotiation, setInputDecisionMakerNegotiation] = useState("");
-  const [inputExpansionYearMonth, setInputExpansionYearMonth] = useState<number | null>(null);
-  const [inputSalesYearMonth, setInputSalesYearMonth] = useState<number | null>(null);
   const [inputSubscriptionInterval, setInputSubscriptionInterval] = useState("");
   const [inputCompetitionState, setInputCompetitionState] = useState("");
-  const [inputPropertyYearMonth, setInputPropertyYearMonth] = useState<number | null>(null);
   const [inputPropertyDepartment, setInputPropertyDepartment] = useState("");
   const [inputPropertyBusinessOffice, setInputPropertyBusinessOffice] = useState("");
   const [inputPropertyMemberName, setInputPropertyMemberName] = useState("");
-  const [inputPropertyDate, setInputPropertyDate] = useState<Date | null>(null);
   // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
-  const [inputPropertyQuarter, setInputPropertyQuarter] = useState<number | null>(null);
-  // 半期
-  const [inputPropertyHalfYear, setInputPropertyHalfYear] = useState<number | null>(null);
-  const [inputExpansionHalfYear, setInputExpansionHalfYear] = useState<number | null>(null);
-  const [inputSalesHalfYear, setInputSalesHalfYear] = useState<number | null>(null);
   // 会計年度
-  const [inputPropertyFiscalYear, setInputPropertyFiscalYear] = useState<number | null>(null);
-  const [inputExpansionFiscalYear, setInputExpansionFiscalYear] = useState<number | null>(null);
-  const [inputSalesFiscalYear, setInputSalesFiscalYear] = useState<number | null>(null);
-  // 獲得予定
-  const [inputExpectedOrderDate, setInputExpectedOrderDate] = useState<Date | null>(null); // 獲得予定時期
-  const [inputExpectedOrderYearMonth, setInputExpectedOrderYearMonth] = useState<number | null>(null); // 獲得予定年月度
-  const [inputExpectedOrderQuarter, setInputExpectedOrderQuarter] = useState<number | null>(null); // 獲得予定四半期
-  const [inputExpectedOrderHalfYear, setInputExpectedOrderHalfYear] = useState<number | null>(null); // 獲得予定半期
-  const [inputExpectedOrderFiscalYear, setInputExpectedOrderFiscalYear] = useState<number | null>(null); // 獲得予定年度
 
-  // 獲得予定 年度 半期 四半期 月度 それぞれの期間選択用 stringから最終的に結合してnumber型に変換する
+  // 🔹案件発生関連
+  // 案件発生日付
+  const [inputPropertyDate, setInputPropertyDate] = useState<Date | null>(null);
+  // 案件発生年度
+  const [inputPropertyFiscalYear, setInputPropertyFiscalYear] = useState<number | null>(null);
+  // 案件発生半期 年・H
+  // const [inputPropertyHalfYear, setInputPropertyHalfYear] = useState<number | null>(null);
+  const [selectedPropertyYearForHalf, setSelectedPropertyYearForHalf] = useState<string>("");
+  const [selectedPropertyHalf, setSelectedPropertyHalf] = useState<string>("");
+  // 案件発生四半期 年・Q
+  // const [inputPropertyQuarter, setInputPropertyQuarter] = useState<number | null>(null);
+  const [selectedPropertyYearForQuarter, setSelectedPropertyYearForQuarter] = useState<string>("");
+  const [selectedPropertyQuarter, setSelectedPropertyQuarter] = useState<string>("");
+  // 案件発生年月度 年・月
+  // const [inputPropertyYearMonth, setInputPropertyYearMonth] = useState<number | null>(null);
+  const [selectedPropertyYearForMonth, setSelectedPropertyYearForMonth] = useState<string>("");
+  const [selectedPropertyMonth, setSelectedPropertyMonth] = useState<string>("");
+
+  // 🔹展開関連
+  // 展開日付
+  const [inputExpansionDate, setInputExpansionDate] = useState<Date | null>(null);
+  // 展開年度
+  const [inputExpansionFiscalYear, setInputExpansionFiscalYear] = useState<number | null>(null);
+  // 展開半期 年・H
+  // const [inputExpansionHalfYear, setInputExpansionHalfYear] = useState<number | null>(null);
+  const [selectedExpansionYearForHalf, setSelectedExpansionYearForHalf] = useState<string>("");
+  const [selectedExpansionHalf, setSelectedExpansionHalf] = useState<string>("");
+  // 展開四半期 年・Q
+  // const [inputExpansionQuarter, setInputExpansionQuarter] = useState<number | null>(null);
+  const [selectedExpansionYearForQuarter, setSelectedExpansionYearForQuarter] = useState<string>("");
+  const [selectedExpansionQuarter, setSelectedExpansionQuarter] = useState<string>("");
+  // 展開年月度 年・月
+  // const [inputExpansionYearMonth, setInputExpansionYearMonth] = useState<number | null>(null);
+  const [selectedExpansionYearForMonth, setSelectedExpansionYearForMonth] = useState<string>("");
+  const [selectedExpansionMonth, setSelectedExpansionMonth] = useState<string>("");
+
+  // 🔹売上関連
+  // 売上日付
+  const [inputSalesDate, setInputSalesDate] = useState<Date | null>(null);
+  // 売上年度
+  const [inputSalesFiscalYear, setInputSalesFiscalYear] = useState<number | null>(null);
+  // 売上半期 年・H
+  // const [inputSalesHalfYear, setInputSalesHalfYear] = useState<number | null>(null);
+  const [selectedSalesYearForHalf, setSelectedSalesYearForHalf] = useState<string>("");
+  const [selectedSalesHalf, setSelectedSalesHalf] = useState<string>("");
+  // 売上四半期 年・Q
+  // const [inputSalesQuarter, setInputSalesQuarter] = useState<number | null>(null);
+  const [selectedSalesYearForQuarter, setSelectedSalesYearForQuarter] = useState<string>("");
+  const [selectedSalesQuarter, setSelectedSalesQuarter] = useState<string>("");
+  // 売上年月度 年・月
+  // const [inputSalesYearMonth, setInputSalesYearMonth] = useState<number | null>(null);
+  const [selectedSalesYearForMonth, setSelectedSalesYearForMonth] = useState<string>("");
+  const [selectedSalesMonth, setSelectedSalesMonth] = useState<string>("");
+
+  // 🔹獲得予定関連 年度 半期 四半期 月度 それぞれの期間選択用 stringから最終的に結合してnumber型に変換する
+  // 獲得予定日付
+  const [inputExpectedOrderDate, setInputExpectedOrderDate] = useState<Date | null>(null);
+  // 獲得予定年度
+  const [inputExpectedOrderFiscalYear, setInputExpectedOrderFiscalYear] = useState<number | null>(null);
+  // 獲得予定半期 年・H
+  // const [inputExpectedOrderHalfYear, setInputExpectedOrderHalfYear] = useState<number | null>(null);
   const [selectedExpectedOrderYearForHalf, setSelectedExpectedOrderYearForHalf] = useState<string>("");
   const [selectedExpectedOrderHalf, setSelectedExpectedOrderHalf] = useState<string>("");
+  // 獲得予定四半期 年・Q
+  // const [inputExpectedOrderQuarter, setInputExpectedOrderQuarter] = useState<number | null>(null);
   const [selectedExpectedOrderYearForQuarter, setSelectedExpectedOrderYearForQuarter] = useState<string>("");
   const [selectedExpectedOrderQuarter, setSelectedExpectedOrderQuarter] = useState<string>("");
-  const [selectedExpectedOrderCalendarYear, setSelectedExpectedOrderCalendarYear] = useState<string>(""); // 年月度用
+  // 獲得予定年月度 年・月
+  // const [inputExpectedOrderYearMonth, setInputExpectedOrderYearMonth] = useState<number | null>(null);
+  const [selectedExpectedOrderYearForMonth, setSelectedExpectedOrderYearForMonth] = useState<string>("");
   const [selectedExpectedOrderMonth, setSelectedExpectedOrderMonth] = useState<string>("");
+
+  // 年度のselectタグの選択肢 獲得予定時期は再来期など先の年度も含むため現在から2年後までを選択肢で表示
+  const optionsFiscalYear = useMemo((): string[] => {
+    const startYear = 2010; // 2010年から現在の年の2年後まで
+    const endYear = new Date().getFullYear() + 2;
+
+    let years: string[] = [];
+
+    for (let year = startYear; year <= endYear; year++) {
+      // const yearQuarter = parseInt(`${year}`, 10);
+      const yearStr = String(year);
+      years.push(yearStr);
+    }
+    const sortedYears = years.reverse();
+    return sortedYears;
+  }, []);
 
   // ================================ 🌟フィールドエディットモード関連state🌟 ================================
   const [inputExpectedOrderDateForFieldEditMode, setInputExpectedOrderDateForFieldEditMode] = useState<Date | null>(
@@ -566,11 +633,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       // setInputProductName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.product_name));
       setInputProductName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.expected_product));
       setInputProductSales(newSearchProperty_Contact_CompanyParams.product_sales);
-      setInputExpectedOrderDate(
-        newSearchProperty_Contact_CompanyParams.expected_order_date
-          ? new Date(newSearchProperty_Contact_CompanyParams.expected_order_date)
-          : null
-      );
       // setInputExpectedSalesPrice(newSearchProperty_Contact_CompanyParams.expected_sales_price);
       setInputExpectedSalesPrice(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.expected_sales_price));
       setInputTermDivision(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.term_division));
@@ -587,20 +649,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       // setInputDiscountRate(newSearchProperty_Contact_CompanyParams.discount_rate);
       setInputDiscountRate(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.discount_rate));
       setInputSalesClass(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.sales_class));
-      setInputExpansionDate(
-        newSearchProperty_Contact_CompanyParams.expansion_date
-          ? new Date(newSearchProperty_Contact_CompanyParams.expansion_date)
-          : null
-      );
-      setInputSalesDate(
-        newSearchProperty_Contact_CompanyParams.sales_date
-          ? new Date(newSearchProperty_Contact_CompanyParams.sales_date)
-          : null
-      );
       // setInputExpansionQuarter(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.expansion_quarter));
       // setInputSalesQuarter(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.sales_quarter));
-      setInputExpansionQuarter(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.expansion_quarter));
-      setInputSalesQuarter(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.sales_quarter));
       setInputSubscriptionStartDate(
         newSearchProperty_Contact_CompanyParams.subscription_start_date
           ? new Date(newSearchProperty_Contact_CompanyParams.subscription_start_date)
@@ -649,8 +699,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       setInputDecisionMakerNegotiation(
         beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.decision_maker_negotiation)
       );
-      setInputExpansionYearMonth(newSearchProperty_Contact_CompanyParams.expansion_year_month);
-      setInputSalesYearMonth(newSearchProperty_Contact_CompanyParams.sales_year_month);
       setInputSubscriptionInterval(
         beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.subscription_interval)
       );
@@ -660,25 +708,133 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       );
       setInputPropertyDepartment(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.property_department));
       setInputPropertyMemberName(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.property_member_name));
-      setInputPropertyYearMonth(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.property_year_month));
+      // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
+
+      // ------------------------------ 案件発生関連 ------------------------------
+      // 案件発生日付
       setInputPropertyDate(
         newSearchProperty_Contact_CompanyParams.property_date
           ? new Date(newSearchProperty_Contact_CompanyParams.property_date)
           : null
       );
-      // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
-      setInputPropertyQuarter(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.property_quarter));
-      setInputPropertyHalfYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.property_half_year));
-      setInputExpansionHalfYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.expansion_half_year));
-      setInputSalesHalfYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.sales_half_year));
+      // 案件発生年度
       setInputPropertyFiscalYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.property_fiscal_year));
+      // 案件発生半期
+      // setInputPropertyHalfYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.property_half_year));
+      const [_propertyYearForHalf, _propertyHalf] = splitYearAndPeriod(
+        newSearchProperty_Contact_CompanyParams.property_half_year
+      );
+      setSelectedPropertyYearForHalf(_propertyYearForHalf);
+      setSelectedPropertyHalf(_propertyYearForHalf);
+      // 案件発生四半期
+      // setInputPropertyQuarter(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.property_quarter));
+      const [_propertyYearForQuarter, _propertyQuarter] = splitYearAndPeriod(
+        newSearchProperty_Contact_CompanyParams.property_quarter
+      );
+      setSelectedPropertyYearForQuarter(_propertyYearForQuarter);
+      setSelectedPropertyQuarter(_propertyQuarter);
+      // 案件発生年月度
+      // setInputPropertyYearMonth(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.property_year_month));
+      const [_propertyYearForMonth, _propertyMonth] = splitYearAndPeriod(
+        newSearchProperty_Contact_CompanyParams.property_year_month
+      );
+      setSelectedPropertyYearForMonth(_propertyYearForMonth);
+      setSelectedPropertyMonth(_propertyMonth);
+      // ------------------------------ 案件発生関連 ここまで ------------------------------
+      // ------------------------------ 展開関連 ------------------------------
+      // 展開日付
+      setInputExpansionDate(
+        newSearchProperty_Contact_CompanyParams.expansion_date
+          ? new Date(newSearchProperty_Contact_CompanyParams.expansion_date)
+          : null
+      );
+      // 展開年度
       setInputExpansionFiscalYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.expansion_half_year));
+      // 展開半期
+      // setInputExpansionHalfYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.expansion_half_year));
+      const [_expansionYearForHalf, _expansionHalf] = splitYearAndPeriod(
+        newSearchProperty_Contact_CompanyParams.expansion_half_year
+      );
+      setSelectedExpansionYearForHalf(_expansionYearForHalf);
+      setSelectedExpansionHalf(_expansionYearForHalf);
+      // 展開四半期
+      // setInputExpansionQuarter(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.expansion_quarter));
+      const [_expansionYearForQuarter, _expansionQuarter] = splitYearAndPeriod(
+        newSearchProperty_Contact_CompanyParams.expansion_quarter
+      );
+      setSelectedExpansionYearForQuarter(_expansionYearForQuarter);
+      setSelectedExpansionQuarter(_expansionQuarter);
+      // 展開年月度
+      // setInputExpansionYearMonth(newSearchProperty_Contact_CompanyParams.expansion_year_month);
+      const [_expansionYearForMonth, _expansionMonth] = splitYearAndPeriod(
+        newSearchProperty_Contact_CompanyParams.expansion_year_month
+      );
+      setSelectedExpansionYearForMonth(_expansionYearForMonth);
+      setSelectedExpansionMonth(_expansionMonth);
+      // ------------------------------ 展開関連 ここまで ------------------------------
+      // ------------------------------ 売上関連 ------------------------------
+      // 売上日付
+      setInputSalesDate(
+        newSearchProperty_Contact_CompanyParams.sales_date
+          ? new Date(newSearchProperty_Contact_CompanyParams.sales_date)
+          : null
+      );
+      // 売上年度
       setInputSalesFiscalYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.sales_half_year));
-      // 獲得予定
-      setInputExpectedOrderYearMonth(newSearchProperty_Contact_CompanyParams.expected_order_year_month);
-      setInputExpectedOrderQuarter(newSearchProperty_Contact_CompanyParams.expected_order_quarter);
-      setInputExpectedOrderHalfYear(newSearchProperty_Contact_CompanyParams.expected_order_half_year);
+      // 売上半期
+      // setInputSalesHalfYear(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.sales_half_year));
+      const [_salesYearForHalf, _salesHalf] = splitYearAndPeriod(
+        newSearchProperty_Contact_CompanyParams.sales_half_year
+      );
+      setSelectedSalesYearForHalf(_salesYearForHalf);
+      setSelectedSalesHalf(_salesYearForHalf);
+      // 売上四半期
+      // setInputSalesQuarter(adjustFieldValueNumber(newSearchProperty_Contact_CompanyParams.sales_quarter));
+      const [_salesYearForQuarter, _salesQuarter] = splitYearAndPeriod(
+        newSearchProperty_Contact_CompanyParams.sales_quarter
+      );
+      setSelectedSalesYearForQuarter(_salesYearForQuarter);
+      setSelectedSalesQuarter(_salesQuarter);
+      // 売上年月度
+      // setInputSalesYearMonth(newSearchProperty_Contact_CompanyParams.sales_year_month);
+      const [_salesYearForMonth, _salesMonth] = splitYearAndPeriod(
+        newSearchProperty_Contact_CompanyParams.sales_year_month
+      );
+      setSelectedSalesYearForMonth(_salesYearForMonth);
+      setSelectedSalesMonth(_salesMonth);
+      // ------------------------------ 売上関連 ここまで ------------------------------
+
+      // ------------------------------ 獲得予定関連 ------------------------------
+      // 獲得予定日付
+      setInputExpectedOrderDate(
+        newSearchProperty_Contact_CompanyParams.expected_order_date
+          ? new Date(newSearchProperty_Contact_CompanyParams.expected_order_date)
+          : null
+      );
+      // 獲得予定年度
       setInputExpectedOrderFiscalYear(newSearchProperty_Contact_CompanyParams.expected_order_fiscal_year);
+      // 獲得予定半期
+      // setInputExpectedOrderHalfYear(newSearchProperty_Contact_CompanyParams.expected_order_half_year);
+      const [_expectedOrderYearForHalf, _expectedOrderHalf] = splitYearAndPeriod(
+        newSearchProperty_Contact_CompanyParams.expected_order_half_year
+      );
+      setSelectedExpectedOrderYearForHalf(_expectedOrderYearForHalf);
+      setSelectedExpectedOrderHalf(_expectedOrderYearForHalf);
+      // 獲得予定四半期
+      // setInputExpectedOrderQuarter(newSearchProperty_Contact_CompanyParams.expected_order_quarter);
+      const [_expectedOrderYearForQuarter, _expectedOrderQuarter] = splitYearAndPeriod(
+        newSearchProperty_Contact_CompanyParams.expected_order_quarter
+      );
+      setSelectedExpectedOrderYearForQuarter(_expectedOrderYearForQuarter);
+      setSelectedExpectedOrderQuarter(_expectedOrderQuarter);
+      // 獲得予定年月度
+      // setInputExpectedOrderYearMonth(newSearchProperty_Contact_CompanyParams.expected_order_year_month);
+      const [_expectedOrderYearForMonth, _expectedOrderMonth] = splitYearAndPeriod(
+        newSearchProperty_Contact_CompanyParams.expected_order_year_month
+      );
+      setSelectedExpectedOrderYearForMonth(_expectedOrderYearForMonth);
+      setSelectedExpectedOrderMonth(_expectedOrderMonth);
+      // ------------------------------ 獲得予定関連 ここまで ------------------------------
     } else if (!editSearchMode && searchMode) {
       console.log(
         "🔥Meetingメインコンテナー useEffect 新規サーチモード inputを初期化",
@@ -741,7 +897,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       if (!!inputRejectedFlag) setInputRejectedFlag(null);
       if (!!inputProductName) setInputProductName("");
       if (!!inputProductSales) setInputProductSales(null);
-      if (!!inputExpectedOrderDate) setInputExpectedOrderDate(null);
       // if (!!inputExpectedSalesPrice) setInputExpectedSalesPrice(null);
       if (!!inputExpectedSalesPrice) setInputExpectedSalesPrice("");
       if (!!inputTermDivision) setInputTermDivision("");
@@ -755,12 +910,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       if (!!inputDiscountedPrice) setInputDiscountedPrice("");
       if (!!inputDiscountRate) setInputDiscountRate("");
       if (!!inputSalesClass) setInputSalesClass("");
-      if (!!inputExpansionDate) setInputExpansionDate(null);
-      if (!!inputSalesDate) setInputSalesDate(null);
       // if (!!inputExpansionQuarter) setInputExpansionQuarter("");
       // if (!!inputSalesQuarter) setInputSalesQuarter("");
-      if (!!inputExpansionQuarter) setInputExpansionQuarter(null);
-      if (!!inputSalesQuarter) setInputSalesQuarter(null);
       if (!!inputSubscriptionStartDate) setInputSubscriptionStartDate(null);
       if (!!inputSubscriptionCanceledAt) setInputSubscriptionCanceledAt(null);
       if (!!inputLeasingCompany) setInputLeasingCompany("");
@@ -778,28 +929,88 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       // if (!!inputCustomerBudget) setInputCustomerBudget(null);
       if (!!inputCustomerBudget) setInputCustomerBudget("");
       if (!!inputDecisionMakerNegotiation) setInputDecisionMakerNegotiation("");
-      if (!!inputExpansionYearMonth) setInputExpansionYearMonth(null);
-      if (!!inputSalesYearMonth) setInputSalesYearMonth(null);
       if (!!inputSubscriptionInterval) setInputSubscriptionInterval("");
       if (!!inputCompetitionState) setInputCompetitionState("");
-      if (!!inputPropertyYearMonth) setInputPropertyYearMonth(null);
       if (!!inputPropertyDepartment) setInputPropertyDepartment("");
       if (!!inputPropertyBusinessOffice) setInputPropertyBusinessOffice("");
       if (!!inputPropertyMemberName) setInputPropertyMemberName("");
-      if (!!inputPropertyDate) setInputPropertyDate(null);
       // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
-      if (!!inputPropertyQuarter) setInputPropertyQuarter(null);
-      if (!!inputPropertyHalfYear) setInputPropertyHalfYear(null);
-      if (!!inputExpansionHalfYear) setInputExpansionHalfYear(null);
-      if (!!inputSalesHalfYear) setInputSalesHalfYear(null);
+
+      // -------------------- 案件発生関連 --------------------
+      // 案件発生日付
+      if (!!inputPropertyDate) setInputPropertyDate(null);
+      // 案件発生年度
       if (!!inputPropertyFiscalYear) setInputPropertyFiscalYear(null);
+      // 案件発生半期
+      // if (!!inputPropertyHalfYear) setInputPropertyHalfYear(null);
+      if (!!selectedPropertyYearForHalf) setSelectedPropertyYearForHalf("");
+      if (!!selectedPropertyHalf) setSelectedPropertyHalf("");
+      // 案件発生四半期
+      // if (!!inputPropertyQuarter) setInputPropertyQuarter(null);
+      if (!!selectedPropertyYearForQuarter) setSelectedPropertyYearForQuarter("");
+      if (!!selectedPropertyQuarter) setSelectedPropertyQuarter("");
+      // 案件発生年月度
+      // if (!!inputPropertyYearMonth) setInputPropertyYearMonth(null);
+      if (!!selectedPropertyYearForMonth) setSelectedPropertyYearForMonth("");
+      if (!!selectedPropertyMonth) setSelectedPropertyMonth("");
+      // -------------------- 案件発生関連 ここまで --------------------
+
+      // -------------------- 展開関連 --------------------
+      // 展開日付
+      if (!!inputExpansionDate) setInputExpansionDate(null);
+      // 展開年度
       if (!!inputExpansionFiscalYear) setInputExpansionFiscalYear(null);
+      // 展開半期
+      // if (!!inputExpansionHalfYear) setInputExpansionHalfYear(null);
+      if (!!selectedExpansionYearForHalf) setSelectedExpansionYearForHalf("");
+      if (!!selectedExpansionHalf) setSelectedExpansionHalf("");
+      // 展開四半期
+      // if (!!inputExpansionQuarter) setInputExpansionQuarter(null);
+      if (!!selectedExpansionYearForQuarter) setSelectedExpansionYearForQuarter("");
+      if (!!selectedExpansionQuarter) setSelectedExpansionQuarter("");
+      // 展開年月度
+      // if (!!inputExpansionYearMonth) setInputExpansionYearMonth(null);
+      if (!!selectedExpansionYearForMonth) setSelectedExpansionYearForMonth("");
+      if (!!selectedExpansionMonth) setSelectedExpansionMonth("");
+      // -------------------- 展開関連 ここまで --------------------
+
+      // -------------------- 売上関連 --------------------
+      // 売上日付
+      if (!!inputSalesDate) setInputSalesDate(null);
+      // 売上年度
       if (!!inputSalesFiscalYear) setInputSalesFiscalYear(null);
-      // 獲得予定
-      if (!!inputExpectedOrderYearMonth) setInputExpectedOrderYearMonth(null);
-      if (!!inputExpectedOrderQuarter) setInputExpectedOrderQuarter(null);
-      if (!!inputExpectedOrderHalfYear) setInputExpectedOrderHalfYear(null);
+      // 売上半期
+      // if (!!inputSalesHalfYear) setInputSalesHalfYear(null);
+      if (!!selectedSalesYearForHalf) setSelectedSalesYearForHalf("");
+      if (!!selectedSalesHalf) setSelectedSalesHalf("");
+      // 売上四半期
+      // if (!!inputSalesQuarter) setInputSalesQuarter(null);
+      if (!!selectedSalesYearForQuarter) setSelectedSalesYearForQuarter("");
+      if (!!selectedSalesQuarter) setSelectedSalesQuarter("");
+      // 売上年月度
+      // if (!!inputSalesYearMonth) setInputSalesYearMonth(null);
+      if (!!selectedSalesYearForMonth) setSelectedSalesYearForMonth("");
+      if (!!selectedSalesMonth) setSelectedSalesMonth("");
+      // -------------------- 売上関連 ここまで --------------------
+
+      // -------------------- 獲得予定関連 --------------------
+      // 獲得予定日付
+      if (!!inputExpectedOrderDate) setInputExpectedOrderDate(null);
+      // 獲得予定年度
       if (!!inputExpectedOrderFiscalYear) setInputExpectedOrderFiscalYear(null);
+      // 獲得予定半期
+      // if (!!inputExpectedOrderHalfYear) setInputExpectedOrderHalfYear(null);
+      if (!!selectedExpectedOrderYearForHalf) setSelectedExpectedOrderYearForHalf("");
+      if (!!selectedExpectedOrderHalf) setSelectedExpectedOrderHalf("");
+      // 獲得予定四半期
+      // if (!!inputExpectedOrderQuarter) setInputExpectedOrderQuarter(null);
+      if (!!selectedExpectedOrderYearForQuarter) setSelectedExpectedOrderYearForQuarter("");
+      if (!!selectedExpectedOrderQuarter) setSelectedExpectedOrderQuarter("");
+      // 獲得予定年月度
+      // if (!!inputExpectedOrderYearMonth) setInputExpectedOrderYearMonth(null);
+      if (!!selectedExpectedOrderYearForMonth) setSelectedExpectedOrderYearForMonth("");
+      if (!!selectedExpectedOrderMonth) setSelectedExpectedOrderMonth("");
+      // -------------------- 獲得予定関連 ここまで --------------------
     }
   }, [editSearchMode, searchMode]);
 
@@ -817,12 +1028,18 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       // if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
       if (value === "") return null; // 全てのデータ
       if (value === null) return null; // 全てのデータ
+      // if (searchType === "manual" && value.includes("%")) value = value.replace(/%/g, "\\%");
+      // if (searchType === "manual" && value.includes("％")) value = value.replace(/％/g, "\\%");
+      // if (searchType === "manual" && value.includes("_")) value = value.replace(/_/g, "\\_");
+      // if (searchType === "manual" && value.includes("＿")) value = value.replace(/＿/g, "\\_");
+      // if (value.includes("*")) value = value.replace(/\*/g, "%");
+      // if (value.includes("＊")) value = value.replace(/\＊/g, "%");
+      if (value.includes("*")) value = value.replace(/\*/g, "%");
+      if (value.includes("＊")) value = value.replace(/\＊/g, "%");
       if (searchType === "manual" && value.includes("%")) value = value.replace(/%/g, "\\%");
       if (searchType === "manual" && value.includes("％")) value = value.replace(/％/g, "\\%");
       if (searchType === "manual" && value.includes("_")) value = value.replace(/_/g, "\\_");
       if (searchType === "manual" && value.includes("＿")) value = value.replace(/＿/g, "\\_");
-      if (value.includes("*")) value = value.replace(/\*/g, "%");
-      if (value.includes("＊")) value = value.replace(/\＊/g, "%");
       if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
       // if (value === "is not null") return "%%";
       if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
@@ -886,7 +1103,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     // let _product_name = adjustFieldValue(inputProductName);
     let _expected_product = adjustFieldValue(inputProductName);
     let _product_sales = adjustFieldValueNumber(inputProductSales);
-    let _expected_order_date = inputExpectedOrderDate ? inputExpectedOrderDate.toISOString() : null;
     // let _expected_sales_price = adjustFieldValueNumber(inputExpectedSalesPrice);
     let _expected_sales_price = adjustFieldValue(
       inputExpectedSalesPrice ? inputExpectedSalesPrice.replace(/,/g, "") : ""
@@ -903,12 +1119,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     let _discounted_price = adjustFieldValue(inputDiscountedPrice ? inputDiscountedPrice.replace(/,/g, "") : "");
     let _discount_rate = adjustFieldValue(inputDiscountRate ? inputDiscountRate.replace(/,/g, "") : "");
     let _sales_class = adjustFieldValue(inputSalesClass);
-    let _expansion_date = inputExpansionDate ? inputExpansionDate.toISOString() : null;
-    let _sales_date = inputSalesDate ? inputSalesDate.toISOString() : null;
     // let _expansion_quarter = adjustFieldValue(inputExpansionQuarter);
     // let _sales_quarter = adjustFieldValue(inputSalesQuarter);
-    let _expansion_quarter = adjustFieldValueNumber(inputExpansionQuarter);
-    let _sales_quarter = adjustFieldValueNumber(inputSalesQuarter);
     let _subscription_start_date = inputSubscriptionStartDate ? inputSubscriptionStartDate.toISOString() : null;
     let _subscription_canceled_at = inputSubscriptionCanceledAt ? inputSubscriptionCanceledAt.toISOString() : null;
     let _leasing_company = adjustFieldValue(inputLeasingCompany);
@@ -934,27 +1146,131 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     // let _customer_budget = adjustFieldValueNumber(inputCustomerBudget ? inputCustomerBudget.replace(/,/g, "") : '');
     let _customer_budget = adjustFieldValue(inputCustomerBudget ? inputCustomerBudget.replace(/,/g, "") : "");
     let _decision_maker_negotiation = adjustFieldValue(inputDecisionMakerNegotiation);
-    let _expansion_year_month = adjustFieldValueNumber(inputExpansionYearMonth);
-    let _sales_year_month = adjustFieldValueNumber(inputSalesYearMonth);
     let _subscription_interval = adjustFieldValue(inputSubscriptionInterval);
     let _competition_state = adjustFieldValue(inputCompetitionState);
-    let _property_year_month = adjustFieldValueNumber(inputPropertyYearMonth);
     let _property_department = adjustFieldValue(inputPropertyDepartment);
     let _property_business_office = adjustFieldValue(inputPropertyBusinessOffice);
     let _property_member_name = adjustFieldValue(inputPropertyMemberName);
-    let _property_date = inputPropertyDate ? inputPropertyDate.toISOString() : null;
+
     // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
-    let _property_quarter = adjustFieldValueNumber(inputPropertyQuarter);
-    let _property_half_year = adjustFieldValueNumber(inputPropertyHalfYear);
-    let _expansion_half_year = adjustFieldValueNumber(inputExpansionHalfYear);
-    let _sales_half_year = adjustFieldValueNumber(inputSalesHalfYear);
+    // -------------------------- 案件発生関連 --------------------------
+    let _property_date = inputPropertyDate ? inputPropertyDate.toISOString() : null;
     let _property_fiscal_year = adjustFieldValueNumber(inputPropertyFiscalYear);
+    // 案件発生半期
+    // let _property_half_year = adjustFieldValueNumber(inputPropertyHalfYear);
+    let _property_half_year = null;
+    if (!!selectedPropertyYearForHalf && !!selectedPropertyHalf) {
+      const parsedHalfYear = parseInt(`${selectedPropertyYearForHalf}${selectedPropertyHalf}`, 10) ?? null;
+      _property_half_year = isNaN(parsedHalfYear) ? null : parsedHalfYear;
+    }
+    _property_half_year = adjustFieldValueNumber(_property_half_year);
+    // 案件発生四半期
+    // let _property_quarter = adjustFieldValueNumber(inputPropertyQuarter);
+    let _property_quarter = null;
+    if (!!selectedPropertyYearForQuarter && !!selectedPropertyQuarter) {
+      const parsedQuarter = parseInt(`${selectedPropertyYearForQuarter}${selectedPropertyQuarter}`, 10) ?? null;
+      _property_quarter = isNaN(parsedQuarter) ? null : parsedQuarter;
+    }
+    _property_quarter = adjustFieldValueNumber(_property_quarter);
+    // 案件発生年月度
+    // let _property_year_month = adjustFieldValueNumber(inputPropertyYearMonth);
+    let _property_year_month = null;
+    if (!!selectedPropertyYearForMonth && !!selectedPropertyMonth) {
+      const parsedYearMonth = parseInt(`${selectedPropertyYearForMonth}${selectedPropertyMonth}`, 10) ?? null;
+      _property_year_month = isNaN(parsedYearMonth) ? null : parsedYearMonth;
+    }
+    _property_year_month = adjustFieldValueNumber(_property_year_month);
+    // -------------------------- 案件発生関連 ここまで --------------------------
+
+    // -------------------------- 展開関連 --------------------------
+    let _expansion_date = inputExpansionDate ? inputExpansionDate.toISOString() : null;
     let _expansion_fiscal_year = adjustFieldValueNumber(inputExpansionFiscalYear);
+    // 展開半期
+    // let _expansion_half_year = adjustFieldValueNumber(inputExpansionHalfYear);
+    let _expansion_half_year = null;
+    if (!!selectedExpansionYearForHalf && !!selectedExpansionHalf) {
+      const parsedHalfYear = parseInt(`${selectedExpansionYearForHalf}${selectedExpansionHalf}`, 10) ?? null;
+      _expansion_half_year = isNaN(parsedHalfYear) ? null : parsedHalfYear;
+    }
+    _expansion_half_year = adjustFieldValueNumber(_expansion_half_year);
+    // 展開四半期
+    // let _expansion_quarter = adjustFieldValueNumber(inputExpansionQuarter);
+    let _expansion_quarter = null;
+    if (!!selectedExpansionYearForQuarter && !!selectedExpansionQuarter) {
+      const parsedQuarter = parseInt(`${selectedExpansionYearForQuarter}${selectedExpansionQuarter}`, 10) ?? null;
+      _expansion_quarter = isNaN(parsedQuarter) ? null : parsedQuarter;
+    }
+    _expansion_quarter = adjustFieldValueNumber(_expansion_quarter);
+    // 展開年月度
+    // let _expansion_year_month = adjustFieldValueNumber(inputExpansionYearMonth);
+    let _expansion_year_month = null;
+    if (!!selectedExpansionYearForMonth && !!selectedExpansionMonth) {
+      const parsedYearMonth = parseInt(`${selectedExpansionYearForMonth}${selectedExpansionMonth}`, 10) ?? null;
+      _expansion_year_month = isNaN(parsedYearMonth) ? null : parsedYearMonth;
+    }
+    _expansion_year_month = adjustFieldValueNumber(_expansion_year_month);
+    // -------------------------- 展開関連 ここまで --------------------------
+
+    // -------------------------- 売上関連 --------------------------
+    let _sales_date = inputSalesDate ? inputSalesDate.toISOString() : null;
     let _sales_fiscal_year = adjustFieldValueNumber(inputSalesFiscalYear);
-    let _expected_order_year_month = adjustFieldValueNumber(inputExpectedOrderYearMonth); // 獲得予定
-    let _expected_order_quarter = adjustFieldValueNumber(inputExpectedOrderQuarter); // 獲得予定
-    let _expected_order_half_year = adjustFieldValueNumber(inputExpectedOrderHalfYear); // 獲得予定
-    let _expected_order_fiscal_year = adjustFieldValueNumber(inputExpectedOrderFiscalYear); // 獲得予定
+    // 売上半期
+    // let _sales_half_year = adjustFieldValueNumber(inputSalesHalfYear);
+    let _sales_half_year = null;
+    if (!!selectedSalesYearForHalf && !!selectedSalesHalf) {
+      const parsedHalfYear = parseInt(`${selectedSalesYearForHalf}${selectedSalesHalf}`, 10) ?? null;
+      _sales_half_year = isNaN(parsedHalfYear) ? null : parsedHalfYear;
+    }
+    _sales_half_year = adjustFieldValueNumber(_sales_half_year);
+    // 売上四半期
+    // let _sales_quarter = adjustFieldValueNumber(inputSalesQuarter);
+    let _sales_quarter = null;
+    if (!!selectedSalesYearForQuarter && !!selectedSalesQuarter) {
+      const parsedQuarter = parseInt(`${selectedSalesYearForQuarter}${selectedSalesQuarter}`, 10) ?? null;
+      _sales_quarter = isNaN(parsedQuarter) ? null : parsedQuarter;
+    }
+    _sales_quarter = adjustFieldValueNumber(_sales_quarter);
+    // 売上年月度
+    // let _sales_year_month = adjustFieldValueNumber(inputSalesYearMonth);
+    let _sales_year_month = null;
+    if (!!selectedSalesYearForMonth && !!selectedSalesMonth) {
+      const parsedYearMonth = parseInt(`${selectedSalesYearForMonth}${selectedSalesMonth}`, 10) ?? null;
+      _sales_year_month = isNaN(parsedYearMonth) ? null : parsedYearMonth;
+    }
+    _sales_year_month = adjustFieldValueNumber(_sales_year_month);
+    // -------------------------- 売上関連 ここまで --------------------------
+
+    // -------------------------- 獲得予定関連 --------------------------
+    // 獲得予定日付
+    let _expected_order_date = inputExpectedOrderDate ? inputExpectedOrderDate.toISOString() : null;
+    // 獲得予定年度
+    let _expected_order_fiscal_year = adjustFieldValueNumber(inputExpectedOrderFiscalYear);
+    // 獲得予定半期
+    // let _expected_order_half_year = adjustFieldValueNumber(inputExpectedOrderHalfYear);
+    let _expected_order_half_year = null;
+    if (!!selectedExpectedOrderYearForHalf && !!selectedExpectedOrderHalf) {
+      const parsedHalfYear = parseInt(`${selectedExpectedOrderYearForHalf}${selectedExpectedOrderHalf}`, 10) ?? null;
+      _expected_order_half_year = isNaN(parsedHalfYear) ? null : parsedHalfYear;
+    }
+    _expected_order_half_year = adjustFieldValueNumber(_expected_order_half_year);
+    // 獲得予定四半期
+    // let _expected_order_quarter = adjustFieldValueNumber(inputExpectedOrderQuarter);
+    let _expected_order_quarter = null;
+    if (!!selectedExpectedOrderYearForQuarter && !!selectedExpectedOrderQuarter) {
+      const parsedQuarter =
+        parseInt(`${selectedExpectedOrderYearForQuarter}${selectedExpectedOrderQuarter}`, 10) ?? null;
+      _expected_order_quarter = isNaN(parsedQuarter) ? null : parsedQuarter;
+    }
+    _expected_order_quarter = adjustFieldValueNumber(_expected_order_quarter);
+    // 獲得予定年月度
+    // let _expected_order_year_month = adjustFieldValueNumber(inputExpectedOrderYearMonth);
+    let _expected_order_year_month = null;
+    if (!!selectedExpectedOrderYearForMonth && !!selectedExpectedOrderMonth) {
+      const parsedYearMonth = parseInt(`${selectedExpectedOrderYearForMonth}${selectedExpectedOrderMonth}`, 10) ?? null;
+      _expected_order_year_month = isNaN(parsedYearMonth) ? null : parsedYearMonth;
+    }
+    _expected_order_year_month = adjustFieldValueNumber(_expected_order_year_month);
+    // -------------------------- 獲得予定関連 ここまで --------------------------
 
     const params = {
       "client_companies.name": _company_name,
@@ -1066,11 +1382,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       property_fiscal_year: _property_fiscal_year,
       expansion_fiscal_year: _expansion_fiscal_year,
       sales_fiscal_year: _sales_fiscal_year,
-      // 獲得予定
-      expected_order_year_month: _expected_order_year_month,
-      expected_order_quarter: _expected_order_quarter,
-      expected_order_half_year: _expected_order_half_year,
+      // 🔹獲得予定関連
       expected_order_fiscal_year: _expected_order_fiscal_year,
+      expected_order_half_year: _expected_order_half_year,
+      expected_order_quarter: _expected_order_quarter,
+      expected_order_year_month: _expected_order_year_month,
     };
 
     // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
@@ -1130,7 +1446,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     setInputRejectedFlag(null);
     setInputProductName("");
     setInputProductSales(null);
-    setInputExpectedOrderDate(null);
     // setInputExpectedSalesPrice(null);
     setInputExpectedSalesPrice("");
     setInputTermDivision("");
@@ -1144,12 +1459,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     setInputDiscountedPrice("");
     setInputDiscountRate("");
     setInputSalesClass("");
-    setInputExpansionDate(null);
-    setInputSalesDate(null);
     // setInputExpansionQuarter("");
     // setInputSalesQuarter("");
-    setInputExpansionQuarter(null);
-    setInputSalesQuarter(null);
     setInputSubscriptionStartDate(null);
     setInputSubscriptionCanceledAt(null);
     setInputLeasingCompany("");
@@ -1167,28 +1478,88 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     // setInputCustomerBudget(null);
     setInputCustomerBudget("");
     setInputDecisionMakerNegotiation("");
-    setInputExpansionYearMonth(null);
-    setInputSalesYearMonth(null);
     setInputSubscriptionInterval("");
     setInputCompetitionState("");
-    setInputPropertyYearMonth(null);
     setInputPropertyDepartment("");
     setInputPropertyBusinessOffice("");
     setInputPropertyMemberName("");
-    setInputPropertyDate(null);
     // 🌠追加 案件四半期・半期(案件、展開、売上)・会計年度(案件、展開、売上)
-    setInputPropertyQuarter(null);
-    setInputPropertyHalfYear(null);
-    setInputExpansionHalfYear(null);
-    setInputSalesHalfYear(null);
+
+    // -------------------------- 案件発生関連 --------------------------
+    // 案件発生日付
+    setInputPropertyDate(null);
+    // 案件発生年度
     setInputPropertyFiscalYear(null);
+    // 案件発生半期
+    // setInputPropertyHalfYear(null);
+    if (!!selectedPropertyYearForHalf) setSelectedPropertyYearForHalf("");
+    if (!!selectedPropertyHalf) setSelectedPropertyHalf("");
+    // 案件発生四半期
+    // setInputPropertyQuarter(null);
+    if (!!selectedPropertyYearForQuarter) setSelectedPropertyYearForQuarter("");
+    if (!!selectedPropertyQuarter) setSelectedPropertyQuarter("");
+    // 案件発生年月度
+    // setInputPropertyYearMonth(null);
+    if (!!selectedPropertyYearForMonth) setSelectedPropertyYearForMonth("");
+    if (!!selectedPropertyMonth) setSelectedPropertyMonth("");
+    // -------------------------- 案件発生関連 ここまで --------------------------
+
+    // -------------------------- 展開関連 --------------------------
+    // 展開日付
+    setInputExpansionDate(null);
+    // 展開年度
     setInputExpansionFiscalYear(null);
+    // 展開半期
+    // setInputExpansionHalfYear(null);
+    if (!!selectedExpansionYearForHalf) setSelectedExpansionYearForHalf("");
+    if (!!selectedExpansionHalf) setSelectedExpansionHalf("");
+    // 展開四半期
+    // setInputExpansionQuarter(null);
+    if (!!selectedExpansionYearForQuarter) setSelectedExpansionYearForQuarter("");
+    if (!!selectedExpansionQuarter) setSelectedExpansionQuarter("");
+    // 展開年月度
+    // setInputExpansionYearMonth(null);
+    if (!!selectedExpansionYearForMonth) setSelectedExpansionYearForMonth("");
+    if (!!selectedExpansionMonth) setSelectedExpansionMonth("");
+    // -------------------------- 展開関連 ここまで --------------------------
+
+    // -------------------------- 売上関連 --------------------------
+    // 売上日付
+    setInputSalesDate(null);
+    // 売上年度
     setInputSalesFiscalYear(null);
-    // 獲得予定
-    setInputExpectedOrderYearMonth(null);
-    setInputExpectedOrderQuarter(null);
-    setInputExpectedOrderHalfYear(null);
+    // 売上半期
+    // setInputSalesHalfYear(null);
+    if (!!selectedSalesYearForHalf) setSelectedSalesYearForHalf("");
+    if (!!selectedSalesHalf) setSelectedSalesHalf("");
+    // 売上四半期
+    // setInputSalesQuarter(null);
+    if (!!selectedSalesYearForQuarter) setSelectedSalesYearForQuarter("");
+    if (!!selectedSalesQuarter) setSelectedSalesQuarter("");
+    // 売上年月度
+    // setInputSalesYearMonth(null);
+    if (!!selectedSalesYearForMonth) setSelectedSalesYearForMonth("");
+    if (!!selectedSalesMonth) setSelectedSalesMonth("");
+    // -------------------------- 売上関連 ここまで --------------------------
+
+    // -------------------------- 獲得予定関連 --------------------------
+    // 獲得予定日付
+    setInputExpectedOrderDate(null);
+    // 獲得予定年度
     setInputExpectedOrderFiscalYear(null);
+    // 獲得予定半期
+    // setInputExpectedOrderHalfYear(null);
+    if (!!selectedExpectedOrderYearForHalf) setSelectedExpectedOrderYearForHalf("");
+    if (!!selectedExpectedOrderHalf) setSelectedExpectedOrderHalf("");
+    // 獲得予定四半期
+    // setInputExpectedOrderQuarter(null);
+    if (!!selectedExpectedOrderYearForQuarter) setSelectedExpectedOrderYearForQuarter("");
+    if (!!selectedExpectedOrderQuarter) setSelectedExpectedOrderQuarter("");
+    // 獲得予定年月度
+    // setInputExpectedOrderYearMonth(null);
+    if (!!selectedExpectedOrderYearForMonth) setSelectedExpectedOrderYearForMonth("");
+    if (!!selectedExpectedOrderMonth) setSelectedExpectedOrderMonth("");
+    // -------------------------- 獲得予定関連 ここまで --------------------------
 
     // サーチモードオフ
     setSearchMode(false);
@@ -2042,21 +2413,21 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   // }
 
   // 四半期のselectタグの選択肢 20211, 20214
-  const optionsYearQuarter = useMemo((): number[] => {
-    const startYear = 2010;
-    const endYear = new Date().getFullYear();
+  // const optionsYearQuarter = useMemo((): number[] => {
+  //   const startYear = 2010;
+  //   const endYear = new Date().getFullYear();
 
-    let yearQuarters: number[] = [];
+  //   let yearQuarters: number[] = [];
 
-    for (let year = startYear; year <= endYear; year++) {
-      for (let i = 1; i <= 4; i++) {
-        const yearQuarter = parseInt(`${year}${i}`, 10); // 20201, 20203
-        yearQuarters.push(yearQuarter);
-      }
-    }
-    const sortedYearQuarters = yearQuarters.reverse();
-    return sortedYearQuarters;
-  }, []);
+  //   for (let year = startYear; year <= endYear; year++) {
+  //     for (let i = 1; i <= 4; i++) {
+  //       const yearQuarter = parseInt(`${year}${i}`, 10); // 20201, 20203
+  //       yearQuarters.push(yearQuarter);
+  //     }
+  //   }
+  //   const sortedYearQuarters = yearQuarters.reverse();
+  //   return sortedYearQuarters;
+  // }, []);
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
 
@@ -7871,7 +8242,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title_search_mode}`}>獲得予定時期</span>
+                    {/* <span className={`${styles.title_search_mode}`}>獲得予定時期</span> */}
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span>獲得予定</span>
+                      <span>日付</span>
+                    </div>
                     <DatePickerCustomInput
                       startDate={inputExpectedOrderDate}
                       setStartDate={setInputExpectedOrderDate}
@@ -7882,7 +8257,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title_search_mode}`}>予定売上合計</span>
+                    {/* <span className={`${styles.title_search_mode}`}>予定売上合計</span> */}
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span>予定売上</span>
+                      <span>合計</span>
+                    </div>
 
                     <input
                       type="text"
@@ -7937,79 +8316,232 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
+              {/* ------------------------------------------------ */}
 
               {/* 獲得予定年度・獲得予定半期 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title_search_mode}`}>獲得予定時期</span>
-                    <DatePickerCustomInput
-                      startDate={inputExpectedOrderDate}
-                      setStartDate={setInputExpectedOrderDate}
-                      required={false}
-                    />
+                    {/* <span className={`${styles.title_search_mode}`}>獲得予定年度</span> */}
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span>獲得予定</span>
+                      <span>年度</span>
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      // placeholder="時"
+                      value={inputExpectedOrderFiscalYear === null ? "" : inputExpectedOrderFiscalYear}
+                      onChange={(e) => {
+                        setInputExpectedOrderFiscalYear(e.target.value === "" ? null : Number(e.target.value));
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_year_expected`} value={year}>
+                          {language === "ja" ? `${year}年度` : `FY ${year}`}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title_search_mode}`}>予定売上合計</span>
+                    {/* <span className={`${styles.title_search_mode}`}>獲得予定半期</span> */}
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span>獲得予定</span>
+                      <span>半期</span>
+                    </div>
 
-                    <input
-                      type="text"
-                      // placeholder="例：600万円 → 6000000　※半角で入力"
-                      className={`${styles.input_box}`}
-                      value={!!inputExpectedSalesPrice ? inputExpectedSalesPrice : ""}
-                      onChange={(e) => setInputExpectedSalesPrice(e.target.value)}
-                      onBlur={() => {
-                        setInputExpectedSalesPrice(
-                          !!inputExpectedSalesPrice &&
-                            inputExpectedSalesPrice !== "" &&
-                            convertToYen(inputExpectedSalesPrice.trim()) !== null
-                            ? (convertToYen(inputExpectedSalesPrice.trim()) as number).toLocaleString()
-                            : ""
-                        );
-                      }}
-                    />
-                    {/* バツボタン */}
-                    {inputExpectedSalesPrice !== "" && (
-                      <div className={`${styles.close_btn_number}`} onClick={() => setInputExpectedSalesPrice("")}>
-                        <MdClose className="text-[20px] " />
-                      </div>
-                    )}
-                    {/* <input
-                      type="number"
-                      min="0"
-                      className={`${styles.input_box}`}
-                      placeholder=""
-                      value={inputExpectedSalesPrice === null ? "" : inputExpectedSalesPrice}
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      // data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      // data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      // onMouseEnter={(e) => {
+                      //   handleOpenTooltip({ e, display: "top" });
+                      // }}
+                      // onMouseLeave={(e) => {
+                      //   handleCloseTooltip();
+                      // }}
+                      // placeholder="時"
+                      value={selectedExpectedOrderYearForHalf}
                       onChange={(e) => {
-                        const val = e.target.value;
-                        if (val === "") {
-                          setInputExpectedSalesPrice(null);
-                        } else {
-                          const numValue = Number(val);
-
-                          // 入力値がマイナスかチェック
-                          if (numValue < 0) {
-                            setInputExpectedSalesPrice(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
-                          } else {
-                            setInputExpectedSalesPrice(numValue);
-                          }
-                        }
+                        setSelectedExpectedOrderYearForHalf(e.target.value);
+                        // handleCloseTooltip();
                       }}
-                    />
-                    {inputExpectedSalesPrice !== null && inputExpectedSalesPrice !== 0 && (
-                      <div className={`${styles.close_btn_number}`} onClick={() => setInputExpectedSalesPrice(null)}>
-                        <MdClose className="text-[20px] " />
-                      </div>
-                    )} */}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_half_expected`} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+                    {/* <span className="mx-[10px]">年度</span> */}
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      // data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      // data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      // onMouseEnter={(e) => {
+                      //   handleOpenTooltip({ e, display: "top" });
+                      // }}
+                      // onMouseLeave={(e) => {
+                      //   handleCloseTooltip();
+                      // }}
+                      // placeholder="分"
+                      value={selectedExpectedOrderHalf}
+                      onChange={(e) => {
+                        setSelectedExpectedOrderHalf(e.target.value);
+                        // handleCloseTooltip();
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalHalf.map((obj) => (
+                        <option key={obj.key} value={obj.value}>
+                          {obj.key}
+                        </option>
+                      ))}
+                    </select>
+                    {/* <span className="mx-[10px]">分</span> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
+              {/* ------------------------------------------------ */}
 
-              {/*  */}
+              {/* 獲得予定四半期・獲得予定年月度 サーチ */}
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <span className={`${styles.title_search_mode}`}>獲得予定四半期</span> */}
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span>獲得予定</span>
+                      <span>四半期</span>
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      // data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      // data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      // onMouseEnter={(e) => {
+                      //   handleOpenTooltip({ e, display: "top" });
+                      // }}
+                      // onMouseLeave={(e) => {
+                      //   handleCloseTooltip();
+                      // }}
+                      // placeholder="時"
+                      value={selectedExpectedOrderYearForQuarter}
+                      onChange={(e) => {
+                        setSelectedExpectedOrderYearForQuarter(e.target.value);
+                        // handleCloseTooltip();
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_quarter_expected`} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      // data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      // data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      // onMouseEnter={(e) => {
+                      //   handleOpenTooltip({ e, display: "top" });
+                      // }}
+                      // onMouseLeave={(e) => {
+                      //   handleCloseTooltip();
+                      // }}
+                      // placeholder="分"
+                      value={selectedExpectedOrderQuarter}
+                      onChange={(e) => {
+                        setSelectedExpectedOrderQuarter(e.target.value);
+                        // handleCloseTooltip();
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalQuarter.map((obj) => (
+                        <option key={obj.key} value={obj.value}>
+                          {obj.key}
+                        </option>
+                      ))}
+                    </select>
+                    {/* <span className="mx-[10px]">分</span> */}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    {/* <span className={`${styles.title_search_mode}`}>獲得予定年月度</span> */}
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span>獲得予定</span>
+                      <span>年月度</span>
+                    </div>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      // data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      // data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      // onMouseEnter={(e) => {
+                      //   handleOpenTooltip({ e, display: "top" });
+                      // }}
+                      // onMouseLeave={(e) => {
+                      //   handleCloseTooltip();
+                      // }}
+                      // placeholder="時"
+                      value={selectedExpectedOrderYearForMonth}
+                      onChange={(e) => {
+                        setSelectedExpectedOrderYearForMonth(e.target.value);
+                        // handleCloseTooltip();
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_month_expected`} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      // data-text={`〜時台のデータを検索する場合は時間のみ、`}
+                      // data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
+                      // onMouseEnter={(e) => {
+                      //   handleOpenTooltip({ e, display: "top" });
+                      // }}
+                      // onMouseLeave={(e) => {
+                      //   handleCloseTooltip();
+                      // }}
+                      // placeholder="分"
+                      value={selectedExpectedOrderMonth}
+                      onChange={(e) => {
+                        setSelectedExpectedOrderMonth(e.target.value);
+                        // handleCloseTooltip();
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalMonth.map((obj) => (
+                        <option key={obj.key} value={obj.value}>
+                          {obj.name[language]}
+                        </option>
+                      ))}
+                    </select>
+                    {/* <span className="mx-[10px]">分</span> */}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/* ------------------------------------------------ */}
+
               {/*  */}
 
               {/* 今・来期 サーチ */}
@@ -8521,12 +9053,47 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-              {/* 展開年月度・売上年月度 */}
+              {/* ------------------------------------------------ */}
+
+              {/* 展開年月度・売上年月度 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode} text-[12px]`}>展開年月度</span>
-                    <input
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedExpansionYearForMonth}
+                      onChange={(e) => {
+                        setSelectedExpansionYearForMonth(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_month_expansion`} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedExpansionMonth}
+                      onChange={(e) => {
+                        setSelectedExpansionMonth(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalMonth.map((obj) => (
+                        <option key={obj.key} value={obj.value}>
+                          {obj.name[language]}
+                        </option>
+                      ))}
+                    </select>
+                    {/* <span className="mx-[10px]">分</span> */}
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
@@ -8548,19 +9115,50 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }
                       }}
                     />
-                    {/* バツボタン */}
                     {!!inputExpansionYearMonth && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputExpansionYearMonth(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_search_mode} text-[12px]`}>売上年月度</span>
-                    <input
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedSalesYearForMonth}
+                      onChange={(e) => {
+                        setSelectedSalesYearForMonth(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_month_sales`} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedSalesMonth}
+                      onChange={(e) => {
+                        setSelectedSalesMonth(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalMonth.map((obj) => (
+                        <option key={obj.key} value={obj.value}>
+                          {obj.name[language]}
+                        </option>
+                      ))}
+                    </select>
+                    {/* <input
                       type="number"
                       min="0"
                       className={`${styles.input_box}`}
@@ -8582,29 +9180,55 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }
                       }}
                     />
-                    {/* バツボタン */}
                     {!!inputSalesYearMonth && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputSalesYearMonth(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )}
+                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-              {/* 展開四半期・売上四半期 */}
+              {/* ------------------------------------------------ */}
+
+              {/* 展開四半期・売上四半期 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode} text-[12px]`}>展開四半期</span>
-                    {/* <input
-                      type="text"
-                      className={`${styles.input_box}`}
-                      placeholder=""
-                      value={inputExpansionQuarter}
-                      onChange={(e) => setInputExpansionQuarter(e.target.value)}
-                    /> */}
+
                     <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedExpansionYearForQuarter}
+                      onChange={(e) => {
+                        setSelectedExpansionYearForQuarter(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_quarter_expansion`} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedExpansionQuarter}
+                      onChange={(e) => {
+                        setSelectedExpansionQuarter(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalQuarter.map((obj) => (
+                        <option key={obj.key} value={obj.value}>
+                          {obj.key}
+                        </option>
+                      ))}
+                    </select>
+                    {/* <select
                       className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                       value={inputExpansionQuarter === null ? "" : inputExpansionQuarter.toString()}
                       onChange={(e) => {
@@ -8616,35 +9240,52 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }
                       }}
                     >
-                      {/* <option value=""></option>
-                      <option value="1 代表者">1 代表者</option>
-                      <option value="2 取締役/役員">2 取締役/役員</option>
-                      <option value="3 部長">3 部長</option>
-                      <option value="4 課長">4 課長</option>
-                      <option value="5 課長未満">5 課長未満</option>
-                      <option value="6 所長・工場長">6 所長・工場長</option>
-                      <option value="7 不明">7 不明</option> */}
                       <option value=""></option>
                       {optionsYearQuarter.map((option) => (
                         <option key={option} value={option.toString()}>
                           {option}Q
                         </option>
                       ))}
-                    </select>
+                    </select> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     <span className={`${styles.title_search_mode} text-[12px]`}>売上四半期</span>
-                    {/* <input
-                      type="text"
-                      className={`${styles.input_box}`}
-                      placeholder=""
-                      value={inputSalesQuarter}
-                      onChange={(e) => setInputSalesQuarter(e.target.value)}
-                    /> */}
+
                     <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedSalesYearForQuarter}
+                      onChange={(e) => {
+                        setSelectedSalesYearForQuarter(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_quarter_sales`} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedSalesQuarter}
+                      onChange={(e) => {
+                        setSelectedSalesQuarter(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalQuarter.map((obj) => (
+                        <option key={obj.key} value={obj.value}>
+                          {obj.key}
+                        </option>
+                      ))}
+                    </select>
+                    {/* <select
                       className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                       value={inputSalesQuarter === null ? "" : inputSalesQuarter.toString()}
                       // onChange={(e) => setInputSalesQuarter(Number(e.target.value))}
@@ -8657,18 +9298,91 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }
                       }}
                     >
-                      {/* <option value=""></option>
-                      <option value="1 代表者">1 代表者</option>
-                      <option value="2 取締役/役員">2 取締役/役員</option>
-                      <option value="3 部長">3 部長</option>
-                      <option value="4 課長">4 課長</option>
-                      <option value="5 課長未満">5 課長未満</option>
-                      <option value="6 所長・工場長">6 所長・工場長</option>
-                      <option value="7 不明">7 不明</option> */}
                       <option value=""></option>
                       {optionsYearQuarter.map((option) => (
                         <option key={option} value={option.toString()}>
                           {option}Q
+                        </option>
+                      ))}
+                    </select> */}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/* ------------------------------------------------ */}
+
+              {/* 展開半期・売上半期 サーチ */}
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title_search_mode} text-[12px]`}>展開半期</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedExpansionYearForHalf}
+                      onChange={(e) => {
+                        setSelectedExpansionYearForHalf(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_half_expansion`} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedExpansionHalf}
+                      onChange={(e) => {
+                        setSelectedExpansionHalf(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalHalf.map((obj) => (
+                        <option key={obj.key} value={obj.value}>
+                          {obj.key}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title_search_mode} text-[12px]`}>売上半期</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedSalesYearForHalf}
+                      onChange={(e) => {
+                        setSelectedSalesYearForHalf(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_half_sales`} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedSalesHalf}
+                      onChange={(e) => {
+                        setSelectedSalesHalf(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalHalf.map((obj) => (
+                        <option key={obj.key} value={obj.value}>
+                          {obj.key}
                         </option>
                       ))}
                     </select>
@@ -8676,19 +9390,215 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
+              {/* ------------------------------------------------ */}
+
+              {/* 展開年度・売上年度 サーチ */}
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title_search_mode} text-[12px]`}>展開年度</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={inputExpansionFiscalYear === null ? "" : inputExpansionFiscalYear}
+                      onChange={(e) => {
+                        setInputExpansionFiscalYear(e.target.value === "" ? null : Number(e.target.value));
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_year_expansion`} value={year}>
+                          {language === "ja" ? `${year}年度` : `FY ${year}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title_search_mode} text-[12px]`}>売上年度</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={inputSalesFiscalYear === null ? "" : inputSalesFiscalYear}
+                      onChange={(e) => {
+                        setInputSalesFiscalYear(e.target.value === "" ? null : Number(e.target.value));
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_year_sales`} value={year}>
+                          {language === "ja" ? `${year}年度` : `FY ${year}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/* ------------------------------------------------ */}
+
+              {/* 案件発生年度・案件発生半期 サーチ */}
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span>案件発生</span>
+                      <span>年度</span>
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={inputPropertyFiscalYear === null ? "" : inputPropertyFiscalYear}
+                      onChange={(e) => {
+                        setInputPropertyFiscalYear(e.target.value === "" ? null : Number(e.target.value));
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_year_property`} value={year}>
+                          {language === "ja" ? `${year}年度` : `FY ${year}`}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span>案件発生</span>
+                      <span>半期</span>
+                    </div>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedPropertyYearForHalf}
+                      onChange={(e) => {
+                        setSelectedPropertyYearForHalf(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_half_property`} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedPropertyHalf}
+                      onChange={(e) => {
+                        setSelectedPropertyHalf(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalHalf.map((obj) => (
+                        <option key={obj.key} value={obj.value}>
+                          {obj.key}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/* ------------------------------------------------ */}
+
+              {/* 案件発生四半期・案件発生年月度 サーチ */}
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span>案件発生</span>
+                      <span>四半期</span>
+                    </div>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedPropertyYearForQuarter}
+                      onChange={(e) => {
+                        setSelectedPropertyYearForQuarter(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_quarter_property`} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedPropertyQuarter}
+                      onChange={(e) => {
+                        setSelectedPropertyQuarter(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalQuarter.map((obj) => (
+                        <option key={obj.key} value={obj.value}>
+                          {obj.key}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span>案件発生</span>
+                      <span>年月度</span>
+                    </div>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedPropertyYearForMonth}
+                      onChange={(e) => {
+                        setSelectedPropertyYearForMonth(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalYear.map((year) => (
+                        <option key={`${year}_month_property`} value={year}>
+                          {year}
+                        </option>
+                      ))}
+                    </select>
+
+                    <span className="mx-[10px]">年</span>
+
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                      value={selectedPropertyMonth}
+                      onChange={(e) => {
+                        setSelectedPropertyMonth(e.target.value);
+                      }}
+                    >
+                      <option value=""></option>
+                      {optionsFiscalMonth.map((obj) => (
+                        <option key={obj.key} value={obj.value}>
+                          {obj.name[language]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+              {/* ------------------------------------------------ */}
 
               {/* 事業部名 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>事業部名</span>
-                    {/* <input
-                      type="text"
-                      className={`${styles.input_box}`}
-                      placeholder=""
-                      value={inputPropertyDepartment}
-                      onChange={(e) => setInputPropertyDepartment(e.target.value)}
-                    /> */}
                     {searchMode && (
                       <select
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}

@@ -489,10 +489,9 @@ const PDFComponentMemo = ({ isSample = true, modalPosLeft }: Props) => {
 
                     <div className={`text-[13px] ${styles.amount_content} flex items-end`}>
                       {/* <span>￥6,000,000-</span> */}
-                      {/* <span>{formatDisplayPrice(6645200)}-</span> */}
-                      {/* <span>{formatDisplayPrice(6646800)}-</span> */}
-                      {/* <span>¥{formatDisplayPrice(6636900)}-</span> */}
-                      <span>{formatToJapaneseYen(6636900)}−</span>
+                      {/* <span>{formatDisplayPrice(66K636900)}-</span> */}
+                      {/* <span>{formatToJapaneseYen(6636900)}−</span> */}
+                      <span>{formatToJapaneseYen(6636900)}-</span>
                     </div>
                   </div>
                   <div className={`${styles.section_underline}`} />

@@ -1092,6 +1092,24 @@ const SalesTargetsContainerMemo = () => {
                     />
                   </Suspense>
                 </ErrorBoundary>
+                {/* <>
+                  <div className={`${styles.card_title_area} !min-h-[51px]`}>
+                    <div className={`${styles.card_title}`}></div>
+                  </div>
+                  <div
+                    className={`flex min-h-[204px] w-full min-w-[calc(100vw-72px-62px-30px)] items-center justify-center pb-[33px] text-[12px] text-[var(--color-text-sub)]`}
+                    // className={`flex min-h-[66px] w-full min-w-[calc(100vw-72px-62px-30px)] items-end justify-center pb-[33px] text-[12px] text-[var(--color-text-sub)]`}
+                  >
+                    {(isLoadingQueryFiscalYear || isLoadingQueryLevel || isLoadingQueryEntities) && <SpinnerX />}
+                  </div>
+                </> */}
+                {/* <FallbackScrollContainer
+                  title={
+                    mainEntityTarget.parentEntityLevel === "company"
+                      ? getDivName("company")
+                      : mainEntityTarget.parentEntityName
+                  }
+                /> */}
               </>
             ) : (
               <>

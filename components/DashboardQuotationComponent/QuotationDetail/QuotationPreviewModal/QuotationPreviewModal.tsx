@@ -1,6 +1,7 @@
 import {
   CSSProperties,
   Dispatch,
+  Fragment,
   SetStateAction,
   Suspense,
   memo,
@@ -323,7 +324,7 @@ const QuotationPreviewModalMemo = () => {
     return stampsArray.filter((obj) => obj.isFrame).length;
   }, [isFrameInChargeStamp, isFrameSupervisorStamp1, isFrameSupervisorStamp2]);
   console.log("🔥stampFrameDisplayCount", stampFrameDisplayCount);
-  // -------------------------- ✅印鑑データ関連✅ --------------------------
+  // -------------------------- ✅印鑑データ関連✅ ここまで --------------------------
 
   // 見積No
   // const initialQuotationNo = `123456789012`;
@@ -386,12 +387,17 @@ const QuotationPreviewModalMemo = () => {
 
   // 🔹事業部
   // const initialDepartmentName = "マイクロスコープ事業部マイクロスコープ事業部マイクロスコープ事業部";
-  const initialDepartmentName = userProfileState?.assigned_department_name ?? "";
+  // const initialDepartmentName = userProfileState?.assigned_department_name ?? "";
+  const initialDepartmentName = selectedRowDataQuotation?.assigned_department_name ?? "";
   const [departmentName, setDepartmentName] = useState(initialDepartmentName);
   // 🔹事業所・営業所
   // const initialOfficeName = "東京営業所東京営業所東京営業所";
-  const initialOfficeName = userProfileState?.assigned_office_name ?? "";
+  // const initialOfficeName = userProfileState?.assigned_office_name ?? "";
+  const initialOfficeName = selectedRowDataQuotation?.assigned_office_name ?? "";
   const [officeName, setOfficeName] = useState(initialOfficeName);
+
+  // 事業所と担当者名の順番を入れ替える配列state
+  const [firstDisplayOfficeAndMember, setFirstDisplayOfficeAndMember] = useState<boolean>(true);
 
   // 🔹郵便番号
   const zipCode = userProfileState?.customer_zipcode ?? "";
@@ -1473,14 +1479,16 @@ const QuotationPreviewModalMemo = () => {
   console.log(
     "🌠PDFプレビューモーダル レンダリング pdfURL",
     pdfURL,
-    "isEditMode",
-    isEditMode,
-    "footnotes.length",
-    footnotes.length,
-    "companyNameRef.current.style.fontSize",
-    companyNameRef.current?.style?.fontSize,
-    "companyTypeRef.current.style.fontSize",
-    companyTypeRef.current?.style?.fontSize
+    "selectedRowDataQuotation",
+    selectedRowDataQuotation
+    // "isEditMode",
+    // isEditMode,
+    // "footnotes.length",
+    // footnotes.length,
+    // "companyNameRef.current.style.fontSize",
+    // companyNameRef.current?.style?.fontSize,
+    // "companyTypeRef.current.style.fontSize",
+    // companyTypeRef.current?.style?.fontSize
   );
 
   return (
@@ -1778,16 +1786,16 @@ const QuotationPreviewModalMemo = () => {
                             {/* <span>￥6,000,000-</span> */}
                             {/* {totalAmount && <span>{formatDisplayPrice(6000000)}-−</span>} */}
                             {totalAmount && quotationDivision === "A standard" && (
-                              <span>{formatDisplayPrice(totalAmount, language, true)}−</span>
+                              <span>{formatDisplayPrice(totalAmount, language, true)}-</span>
                             )}
                             {quotationDivision === "B set" && (
                               <span>
-                                {formatDisplayPrice(selectedRowDataQuotation.set_price ?? 0, language, true)}−
+                                {formatDisplayPrice(selectedRowDataQuotation.set_price ?? 0, language, true)}-
                               </span>
                             )}
                             {quotationDivision === "C lease" && (
                               <span>
-                                {formatDisplayPrice(selectedRowDataQuotation.lease_monthly_fee ?? 0, language, true)}−
+                                {formatDisplayPrice(selectedRowDataQuotation.lease_monthly_fee ?? 0, language, true)}-
                               </span>
                             )}
                           </div>
@@ -1938,76 +1946,153 @@ const QuotationPreviewModalMemo = () => {
                             </div>
 
                             <div className={`${styles.row_area} ${styles.office_name_area} flex items-center`}>
-                              {!isEditMode.includes("assigned_office_name") && (
-                                <div className={`min-w-[50%] max-w-[50%] truncate`}>
-                                  {/* <span className={``}>東京営業所</span> */}
-                                  <span
-                                    className={`${styles.value}`}
-                                    onClick={handleSingleClickField}
-                                    onDoubleClick={(e) => {
-                                      handleDoubleClickField({
-                                        e,
-                                        field: "assigned_office_name",
-                                      });
-                                    }}
-                                  >
-                                    {officeName}
-                                  </span>
-                                </div>
-                              )}
-                              {isEditMode.includes("assigned_office_name") && (
+                              {firstDisplayOfficeAndMember ? (
                                 <>
-                                  <div className={`min-w-[50%] max-w-[50%]`}>
-                                    <input
-                                      className={`w-full truncate ${styles.info_input_box}`}
-                                      value={officeName}
-                                      onChange={(e) => {
-                                        // console.log("e.target.value.length", e.target.value.length);
-                                        // setOfficeName(e.target.value);
+                                  {!isEditMode.includes("assigned_office_name") && (
+                                    <div className={`min-w-[50%] max-w-[50%] truncate`}>
+                                      {/* <span className={``}>東京営業所</span> */}
+                                      <span
+                                        className={`${styles.value}`}
+                                        onClick={handleSingleClickField}
+                                        onDoubleClick={(e) => {
+                                          handleDoubleClickField({
+                                            e,
+                                            field: "assigned_office_name",
+                                          });
+                                        }}
+                                      >
+                                        {officeName}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {isEditMode.includes("assigned_office_name") && (
+                                    <>
+                                      <div className={`min-w-[50%] max-w-[50%]`}>
+                                        <input
+                                          className={`w-full truncate ${styles.info_input_box}`}
+                                          value={officeName}
+                                          onChange={(e) => {
+                                            // console.log("e.target.value.length", e.target.value.length);
+                                            // setOfficeName(e.target.value);
 
-                                        const inputValue = e.target.value;
-                                        const textarea = e.target;
-                                        const limitLength = 11;
-                                        // const lengthExceeded =
-                                        //   inputValue.length > limitLength ||
-                                        //   textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
-                                        const lengthExceeded = textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
+                                            const inputValue = e.target.value;
+                                            const textarea = e.target;
+                                            const limitLength = 11;
+                                            // const lengthExceeded =
+                                            //   inputValue.length > limitLength ||
+                                            //   textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
+                                            const lengthExceeded = textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
 
-                                        if (lengthExceeded) {
-                                          // ポップアップメッセージを表示
-                                          if (lengthExceeded) showAlertPopup("length");
-                                          return;
+                                            if (lengthExceeded) {
+                                              // ポップアップメッセージを表示
+                                              if (lengthExceeded) showAlertPopup("length");
+                                              return;
 
-                                          // // 制限を超えた場合の処理 1文字目から245文字のみ残す
-                                          // // let trimmedText = inputValue.slice(0, limitLength);
-                                          // let trimmedText;
+                                              // // 制限を超えた場合の処理 1文字目から245文字のみ残す
+                                              // // let trimmedText = inputValue.slice(0, limitLength);
+                                              // let trimmedText;
 
-                                          // // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
-                                          // // 文字数制限を超えている場合、再度文字数制限でトリム
-                                          // if (inputValue.length > limitLength) {
-                                          //   // 一文字のみの入力で表示領域を超えた場合はstateを更新せずにそのままリターン
-                                          //   if (inputValue.length === officeName.length + 1)
-                                          //     return console.log("一文字");
-                                          //   trimmedText = inputValue.slice(0, limitLength);
-                                          // } else {
-                                          //   // 文字数を超えずに表示可能領域のみ超えた場合はstateを更新せずにリターン
-                                          //   return;
-                                          // }
+                                              // // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
+                                              // // 文字数制限を超えている場合、再度文字数制限でトリム
+                                              // if (inputValue.length > limitLength) {
+                                              //   // 一文字のみの入力で表示領域を超えた場合はstateを更新せずにそのままリターン
+                                              //   if (inputValue.length === officeName.length + 1)
+                                              //     return console.log("一文字");
+                                              //   trimmedText = inputValue.slice(0, limitLength);
+                                              // } else {
+                                              //   // 文字数を超えずに表示可能領域のみ超えた場合はstateを更新せずにリターン
+                                              //   return;
+                                              // }
 
-                                          // setOfficeName(trimmedText);
-                                        } else {
-                                          // 制限内の場合はそのままセット
-                                          setOfficeName(inputValue);
-                                        }
-                                      }}
-                                      autoFocus={isEditMode.every((field) => field === "assigned_office_name")}
-                                    />
+                                              // setOfficeName(trimmedText);
+                                            } else {
+                                              // 制限内の場合はそのままセット
+                                              setOfficeName(inputValue);
+                                            }
+                                          }}
+                                          autoFocus={isEditMode.every((field) => field === "assigned_office_name")}
+                                        />
+                                      </div>
+                                    </>
+                                  )}
+                                  <div className={`min-w-[50%]`}>
+                                    <span className={``}>{selectedRowDataQuotation?.quotation_member_name ?? ""}</span>
                                   </div>
                                 </>
+                              ) : (
+                                <>
+                                  <div className={`min-w-[50%]`}>
+                                    <span className={``}>{selectedRowDataQuotation?.quotation_member_name ?? ""}</span>
+                                  </div>
+                                  {!isEditMode.includes("assigned_office_name") && (
+                                    <div className={`min-w-[50%] max-w-[50%] truncate`}>
+                                      {/* <span className={``}>東京営業所</span> */}
+                                      <span
+                                        className={`${styles.value}`}
+                                        onClick={handleSingleClickField}
+                                        onDoubleClick={(e) => {
+                                          handleDoubleClickField({
+                                            e,
+                                            field: "assigned_office_name",
+                                          });
+                                        }}
+                                      >
+                                        {officeName}
+                                      </span>
+                                    </div>
+                                  )}
+                                  {isEditMode.includes("assigned_office_name") && (
+                                    <>
+                                      <div className={`min-w-[50%] max-w-[50%]`}>
+                                        <input
+                                          className={`w-full truncate ${styles.info_input_box}`}
+                                          value={officeName}
+                                          onChange={(e) => {
+                                            // console.log("e.target.value.length", e.target.value.length);
+                                            // setOfficeName(e.target.value);
+
+                                            const inputValue = e.target.value;
+                                            const textarea = e.target;
+                                            const limitLength = 11;
+                                            // const lengthExceeded =
+                                            //   inputValue.length > limitLength ||
+                                            //   textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
+                                            const lengthExceeded = textarea.scrollWidth > textarea.offsetWidth; // 文字数超過可否
+
+                                            if (lengthExceeded) {
+                                              // ポップアップメッセージを表示
+                                              if (lengthExceeded) showAlertPopup("length");
+                                              return;
+
+                                              // // 制限を超えた場合の処理 1文字目から245文字のみ残す
+                                              // // let trimmedText = inputValue.slice(0, limitLength);
+                                              // let trimmedText;
+
+                                              // // 行数制限を考慮した後のテキストが再び文字数制限を超えていないか確認し、
+                                              // // 文字数制限を超えている場合、再度文字数制限でトリム
+                                              // if (inputValue.length > limitLength) {
+                                              //   // 一文字のみの入力で表示領域を超えた場合はstateを更新せずにそのままリターン
+                                              //   if (inputValue.length === officeName.length + 1)
+                                              //     return console.log("一文字");
+                                              //   trimmedText = inputValue.slice(0, limitLength);
+                                              // } else {
+                                              //   // 文字数を超えずに表示可能領域のみ超えた場合はstateを更新せずにリターン
+                                              //   return;
+                                              // }
+
+                                              // setOfficeName(trimmedText);
+                                            } else {
+                                              // 制限内の場合はそのままセット
+                                              setOfficeName(inputValue);
+                                            }
+                                          }}
+                                          autoFocus={isEditMode.every((field) => field === "assigned_office_name")}
+                                        />
+                                      </div>
+                                    </>
+                                  )}
+                                </>
                               )}
-                              <div className={`min-w-[50%]`}>
-                                <span className={``}>斎藤礼司</span>
-                              </div>
                             </div>
                             <div className={`${styles.address_area} flex`}>
                               {/* <span className={`min-w-max ${styles.zip_code}`}>〒123-0024</span> */}
@@ -2240,7 +2325,7 @@ const QuotationPreviewModalMemo = () => {
                       >
                         {productsArray?.length > 0 &&
                           productsArray.map((obj: QuotationProductsDetail, rowIndex: number) => {
-                            console.log("商品 obj", obj.product_id, obj);
+                            // console.log("商品 obj", obj.product_id, obj);
                             if (!obj.product_id) return;
                             return (
                               <div
@@ -2262,7 +2347,7 @@ const QuotationPreviewModalMemo = () => {
                                         <>
                                           {!!productNameArray.length &&
                                             productNameArray[rowIndex]?.map((value, nameIndex) => {
-                                              console.log("value", value, "rowIndex", rowIndex);
+                                              // console.log("value", value, "rowIndex", rowIndex);
                                               return (
                                                 <div
                                                   key={
@@ -3272,6 +3357,32 @@ const QuotationPreviewModalMemo = () => {
                           ref={nameSizeSliderRef}
                           onInput={handleChangeInputRange}
                         />
+                      </li>
+                      {/* ------------------------------------ */}
+
+                      {/* ------------------------------------ */}
+                      <li className={`${styles.section_title} min-h-max w-full font-bold`}>
+                        <div className="flex max-w-max flex-col">
+                          <span>担当者名レイアウト</span>
+                          <div className={`${styles.underline} w-full`} />
+                        </div>
+                      </li>
+                      <li
+                        className={`${styles.list} relative`}
+                        // onMouseEnter={(e) => {
+                        //   handleOpenPopupMenu({ e, title: "footnotes" });
+                        // }}
+                        // onMouseLeave={handleClosePopupMenu}
+                      >
+                        <div className="pointer-events-none relative flex min-w-[110px] items-center">
+                          <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" />
+                          <div className="flex select-none items-center space-x-[2px]">
+                            <span className={`${styles.list_title}`}>表示位置</span>
+                            <span className={``}>：</span>
+                          </div>
+                        </div>
+
+                        <ToggleSwitch state={firstDisplayOfficeAndMember} dispatch={setFirstDisplayOfficeAndMember} />
                       </li>
                       {/* ------------------------------------ */}
 

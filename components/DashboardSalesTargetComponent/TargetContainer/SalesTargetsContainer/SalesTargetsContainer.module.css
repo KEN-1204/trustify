@@ -37,6 +37,7 @@
   /* background: var(--color-sales-card-bg-single); */
   box-shadow: var(--color-sales-card-border);
   border-radius: 12px;
+  /* transition: box-shadow 0.5s ease, height 0.5s ease, min-height 0.5s ease; */
   transition: box-shadow 0.5s ease;
 }
 .contents_area .grid_row .grid_content_card .card_wrapper {

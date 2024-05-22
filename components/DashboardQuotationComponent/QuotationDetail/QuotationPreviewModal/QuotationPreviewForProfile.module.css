@@ -871,6 +871,7 @@
 }
 .table_area .row_margin_bottom {
   /* background-color: #00a6ff30; */
+  letter-spacing: 10px;
 }
 
 /* ----------------- table_area 4部構成(top_margin_row含む)ここまで ----------------- */
