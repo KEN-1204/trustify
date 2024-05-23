@@ -764,6 +764,14 @@ export const InsertNewPropertyModal = () => {
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
+    // 現ステータスが「受注」の場合には、「月初確度か中間見直確度」のどちらかをA(受注済み)に更新してもらう(SDBで正確に受注Colエリアに表示するため)
+    if (currentStatus === "D Order Received") {
+      if (orderCertaintyStartOfMonth !== "1" && reviewOrderCertainty !== "1")
+        return alert(
+          "現ステータスを「受注」に更新する場合には、「月初確度」か「中間見直確度」のどちらかを「A(受注済み)」に変更してください。"
+        );
+    }
+
     // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
     const currentObj1 = suggestedProductIdNameArray.find((obj) => obj.fullName === expectedProductFullNameInput);
@@ -975,6 +983,14 @@ export const InsertNewPropertyModal = () => {
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
+    // 現ステータスが「受注」の場合には、「月初確度か中間見直確度」のどちらかをA(受注済み)に更新してもらう(SDBで正確に受注Colエリアに表示するため)
+    if (currentStatus === "D Order Received") {
+      if (orderCertaintyStartOfMonth !== "1" && reviewOrderCertainty !== "1")
+        return alert(
+          "現ステータスを「受注」に更新する場合には、「月初確度」か「中間見直確度」のどちらかを「A(受注済み)」に変更してください。"
+        );
+    }
+
     // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
     const currentObj1 = suggestedProductIdNameArray.find((obj) => obj.fullName === expectedProductFullNameInput);
@@ -1177,6 +1193,14 @@ export const InsertNewPropertyModal = () => {
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
+    // 現ステータスが「受注」の場合には、「月初確度か中間見直確度」のどちらかをA(受注済み)に更新してもらう(SDBで正確に受注Colエリアに表示するため)
+    if (currentStatus === "D Order Received") {
+      if (orderCertaintyStartOfMonth !== "1" && reviewOrderCertainty !== "1")
+        return alert(
+          "現ステータスを「受注」に更新する場合には、「月初確度」か「中間見直確度」のどちらかを「A(受注済み)」に変更してください。"
+        );
+    }
+
     // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
     const currentObj1 = suggestedProductIdNameArray.find((obj) => obj.fullName === expectedProductFullNameInput);
@@ -1371,6 +1395,14 @@ export const InsertNewPropertyModal = () => {
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
+
+    // 現ステータスが「受注」の場合には、「月初確度か中間見直確度」のどちらかをA(受注済み)に更新してもらう(SDBで正確に受注Colエリアに表示するため)
+    if (currentStatus === "D Order Received") {
+      if (orderCertaintyStartOfMonth !== "1" && reviewOrderCertainty !== "1")
+        return alert(
+          "現ステータスを「受注」に更新する場合には、「月初確度」か「中間見直確度」のどちらかを「A(受注済み)」に変更してください。"
+        );
+    }
 
     // -------------------------- 商品idと入力されてる商品名が同じかチェック --------------------------
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認

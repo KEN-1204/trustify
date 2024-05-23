@@ -83,6 +83,8 @@ export const useQueryDealCards = ({ companyId, userId, periodType, period, isRea
       throw error;
     }
 
+    console.log("✅useQueryDealCards getDealCards関数実行成功", "data", data);
+
     // // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     await new Promise((resolve) => setTimeout(resolve, 300));
     // await new Promise((resolve) => setTimeout(resolve, 600));

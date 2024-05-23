@@ -240,7 +240,7 @@ const UnderRightActivityLogCustomMemo = ({ isHoverableBorder = false }: Props) =
       const isLastPage = true;
       const count = null;
 
-      console.log("右下活動履歴 未選択 selectedRowDataCompany", selectedData);
+      // console.log("右下活動履歴 未選択 selectedRowDataCompany", selectedData);
 
       // 0.5秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       await new Promise((resolve) => setTimeout(resolve, 300));
@@ -276,7 +276,9 @@ const UnderRightActivityLogCustomMemo = ({ isHoverableBorder = false }: Props) =
           .rpc("get_activities_and_contacts", selectPayload, { count: "exact" })
           .range(from, to)
           // .order("activity_date", { ascending: true });
-          .order("activity_date", { ascending: false });
+          .order("activity_date", { ascending: false })
+          // .order("activity_updated_at", { ascending: false })
+          .order("activity_created_at", { ascending: false });
 
         if (error) throw error;
 

@@ -12,14 +12,10 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // 部署名
   {
-    columnName: "address",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "department_name",
+    // columnName: "department_name",
+    columnName: "company_department_name",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -30,14 +26,30 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // 現ステータス
   {
-    columnName: "position_class",
+    columnName: "current_status",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
+  // 案件名
   {
-    columnName: "position_name",
+    columnName: "property_name",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // 案件概要
+  {
+    columnName: "property_summary",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // 商品名
+  {
+    columnName: "expected_product",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -50,12 +62,18 @@ const propertyColumnHeaderItemListArray: Obj[] = [
   //   isOverflow: false,
   // },
   {
+    columnName: "property_member_name",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
     columnName: "assigned_department_name",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
-  // 自社課
+
   {
     columnName: "assigned_section_name",
     columnWidth: "100px",
@@ -80,27 +98,37 @@ const propertyColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // 月初確度
   {
-    columnName: "property_member_name",
+    columnName: "order_certainty_start_of_month",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
-
+  // 中間見直確度
   {
-    columnName: "current_status",
+    columnName: "review_order_certainty",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
+  // 住所
   {
-    columnName: "property_name",
+    columnName: "address",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
+  // 職位
   {
-    columnName: "property_summary",
+    columnName: "position_class",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // 役職名
+  {
+    columnName: "position_name",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -129,12 +157,6 @@ const propertyColumnHeaderItemListArray: Obj[] = [
   //   isFrozen: false,
   //   isOverflow: false,
   // },
-  {
-    columnName: "expected_product",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
   {
     columnName: "product_sales",
     columnWidth: "100px",
@@ -362,18 +384,6 @@ const propertyColumnHeaderItemListArray: Obj[] = [
   },
   {
     columnName: "repeat_flag",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "order_certainty_start_of_month",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "review_order_certainty",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,

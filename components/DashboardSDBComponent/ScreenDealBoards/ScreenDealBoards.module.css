@@ -1,5 +1,6 @@
 .screen_deal_boards:global {
   --sdb-card-bg: var(--color-deal-board-bg);
+  --sdb-card-bg-chart-legend: var(--color-deal-board-bg-chart-legend);
   --sdb-card-box-shadow: var(--color-deal-board-theme-f-border);
   --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-f-border-sticky);
   --sdb-card-box-blur: blur(10px);
@@ -9,6 +10,7 @@
 }
 .screen_deal_boards.theme_f_gradient:global {
   --sdb-card-bg: var(--color-deal-board-bg-black-gradient);
+  --sdb-card-bg-chart-legend: var(--color-deal-board-bg-black-gradient-chart-legend);
   --sdb-card-box-shadow: var(--color-deal-board-theme-f-border);
   --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-f-border-sticky);
   --sdb-card-box-blur: blur(10px);
@@ -18,6 +20,7 @@
 }
 .screen_deal_boards.theme_black:global {
   --sdb-card-bg: var(--color-deal-board-bg-theme-black);
+  --sdb-card-bg-chart-legend: var(--color-deal-board-bg-theme-black-chart-legend);
   --sdb-card-box-shadow: var(--color-deal-board-theme-black-border);
   --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-black-border-sticky);
   --sdb-card-box-blur: blur(10px);
@@ -27,6 +30,7 @@
 }
 .screen_deal_boards.theme_simple12:global {
   --sdb-card-bg: var(--color-deal-board-bg-theme-simple12);
+  --sdb-card-bg-chart-legend: var(--color-deal-board-bg-theme-simple12-chart-legend);
   --sdb-card-box-shadow: var(--color-deal-board-theme-simple12-border);
   --sdb-card-box-shadow-sticky: var(--color-sales-card-border-sticky);
   --sdb-card-box-blur: unset;
@@ -36,6 +40,7 @@
 }
 .screen_deal_boards.theme_simple17:global {
   --sdb-card-bg: var(--color-deal-board-theme-simple17-bg);
+  --sdb-card-bg-chart-legend: var(--color-deal-board-theme-simple17-bg-chart-legend);
   --sdb-card-box-shadow: var(--color-deal-board-theme-simple17-border);
   --sdb-card-box-shadow-sticky: var(--color-deal-board-theme-black-border-sticky);
   --sdb-card-box-blur: blur(10px);
@@ -751,3 +756,37 @@
 .animate_ping {
   animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
+
+/* ------------- セレクトボタン ------------- */
+.select_btn_wrapper select {
+  box-shadow: 0 0 0 1px var(--color-border-base);
+  background-color: var(--color-btn-basic-bg);
+  max-width: 300px;
+  padding: 4px 24px 4px 12px;
+  transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+.select_btn_wrapper select:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  background-color: var(--color-btn-basic-bg-hover);
+  color: var(--color-btn-basic-text-hover);
+}
+
+/* セレクトボタン用の上下アイコン */
+.select_arrow {
+  /* color: #404452; */
+  /* color: rgb(64, 68, 82); */
+  /* color: rgb(48, 49, 61); */
+  /* color: #30313d; */
+  position: absolute;
+  right: 1px;
+  top: 50%;
+  z-index: 100;
+  transform: translateY(-50%);
+  width: 25px;
+  height: 25px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+}
+/* ------------- セレクトボタン ------------- */

@@ -83,6 +83,7 @@ export const columnNameToJapaneseMeeting = (columnName: string) => {
       return "法人番号";
       break;
     case "department_name":
+    case "company_department_name":
       return "部署名";
       break;
     case "representative_name":

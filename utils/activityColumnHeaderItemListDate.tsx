@@ -19,7 +19,8 @@ const activityColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "department_name",
+    // columnName: "department_name",
+    columnName: "company_department_name",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -30,10 +31,24 @@ const activityColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  // 活動エリア
+  // 活動日付
   {
     columnName: "activity_date",
     columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // 活動タイプ
+  {
+    columnName: "activity_type",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  // 概要
+  {
+    columnName: "summary",
+    columnWidth: "600px",
     isFrozen: false,
     isOverflow: false,
   },
@@ -83,18 +98,7 @@ const activityColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  {
-    columnName: "activity_type",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "summary",
-    columnWidth: "600px",
-    isFrozen: false,
-    isOverflow: false,
-  },
+
   {
     columnName: "scheduled_follow_up_date",
     columnWidth: "100px",

@@ -10,6 +10,7 @@ export const columnNameToJapanese = (columnName: string) => {
       return "会社名";
       break;
     case "department_name":
+    case "company_department_name":
       return "部署名";
       break;
     case "representative_name":

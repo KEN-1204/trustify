@@ -986,6 +986,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-text-sub-deep: rgba(25, 23, 17, 0.6); /* #19171199 */
   --color-text-sub-light: rgba(25, 23, 17, 0.5); /* #19171199 */
   --color-text-disabled: #bcbcbc;
+  --color-card-text-disabled-light: #ccc;
   --color-text-disabled-on-brand: #fff;
   --color-text-third: #333;
   --color-text-secondary: rgba(0, 0, 0, 0.5); /* テキストサブカラー or #7d7d7d */
@@ -1229,13 +1230,16 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sdb-section-title-text: #fff;
   --color-table-text: var(--color-text-title);
   --color-deal-board-bg: #ffffff66;
+  --color-deal-board-bg-chart-legend: #ffffff;
   /* --color-deal-board-bg-black-gradient: #ffffff66; */
   --color-deal-board-bg-black-gradient-prev: transparent;
   --color-deal-board-bg-black-gradient: #ffffff;
   --color-deal-board-bg-theme-black-prev: transparent;
   --color-deal-board-bg-theme-black: var(--color-sales-card-bg);
+  --color-deal-board-bg-theme-black-chart-legend: #fff;
   --color-deal-board-bg-theme-simple12-prev: transparent;
   --color-deal-board-bg-theme-simple12: var(--color-sales-card-bg);
+  --color-deal-board-bg-theme-simple12-chart-legend: var(--color-sales-card-bg);
   /* --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 4px #999; */
   --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0px 3px 2px #00000039;
   /* --color-deal-board-theme-f-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 2px 9px 3px #99999990; */
@@ -1243,6 +1247,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-deal-board-theme-simple12-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 2px 12px 3px #99999990;
   --color-deal-board-theme-simple12-border: 0 1px 2px 1px #cccccc60;
   --color-deal-board-theme-simple17-bg: #fff;
+  --color-deal-board-theme-simple17-bg-chart-legend: #fff;
   /* --color-deal-board-theme-simple17-bg: linear-gradient(
     90deg,
     rgba(240, 240, 240, 0.33) 1.21%,
@@ -1410,6 +1415,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-chart-fill-red-sheer: #ef4444;
 
   --color-chart-dot-stroke: #fff;
+  --color-chart-inactive: #cccccca0;
   /* -------- ✅グラフ・チャート関連✅ light -------- */
 
   /* -------- 🌟売上目標🌟 light -------- */
@@ -2002,6 +2008,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-text-sub-deep: #ddd;
   --color-text-sub-light: #ccccccd0;
   --color-text-disabled: #999;
+  --color-card-text-disabled-light: #ccc;
   --color-text-disabled-on-brand: #999;
   --color-text-third: #eee;
   --color-text-secondary: rgba(255, 255, 255, 0.7); /* テキストサブカラー or #7d7d7d */
@@ -2275,6 +2282,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sdb-section-title-text: #fff;
   --color-sdb-text: #fafafa;
   --color-deal-board-bg: #00000099;
+  --color-deal-board-bg-chart-legend: #000000;
   /* --color-deal-board-bg-black-gradient: linear-gradient(
     90deg,
     rgba(15, 15, 15, 0.33) 1.21%,
@@ -2293,11 +2301,14 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     rgba(53, 53, 53, 0.56) 49.45%,
     rgba(0, 0, 0, 0.56) 90.83%
   );
+  --color-deal-board-bg-black-gradient-chart-legend: rgba(24, 24, 24, 1);
   --color-deal-board-bg-theme-black-prev: transparent;
   --color-deal-board-bg-theme-black: transparent;
+  --color-deal-board-bg-theme-black-chart-legend: #151515;
   /* --color-deal-board-bg-theme-simple12: var(--color-deal-board-bg); */
   --color-deal-board-bg-theme-simple12-prev: var(--color-sales-card-bg);
   --color-deal-board-bg-theme-simple12: var(--color-sales-card-bg);
+  --color-deal-board-bg-theme-simple12-chart-legend: var(--color-sales-card-bg);
   /* --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 0 2px #999, 0 0 12px 3px #999999; */
   --color-deal-board-theme-black-border: 0 0 0 1px #ccc, 0 0 6px 3px #ffffff39;
   --color-deal-board-theme-f-border: 0 0 0 1px #ffffffd0, 0 0 9px 2px var(--color-bg-brand-f);
@@ -2309,6 +2320,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     rgba(53, 53, 53, 0.56) 49.45%,
     rgba(15, 15, 15, 0.56) 90.83%
   );
+  --color-deal-board-theme-simple17-bg-chart-legend: rgba(24, 24, 24, 1);
   /* --color-deal-board-theme-simple17-bg: linear-gradient(
     90deg,
     rgba(15, 15, 15, 0.33) 1.21%,
@@ -2498,6 +2510,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-chart-fill-red-sheer: #ef4444b9;
 
   --color-chart-dot-stroke: #565656;
+  --color-chart-inactive: #565656a0;
   /* -------- ✅グラフ・チャート関連✅ dark -------- */
 
   /* -------- 🌟売上目標🌟 dark -------- */

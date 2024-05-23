@@ -99,7 +99,8 @@ const quotationColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "department_name",
+    // columnName: "department_name",
+    columnName: "company_department_name",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,

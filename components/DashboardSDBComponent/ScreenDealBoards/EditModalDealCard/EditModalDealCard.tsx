@@ -137,6 +137,8 @@ const EditModalDealCardMemo = () => {
 
   // 🌟案件没
   const handleClickRejected = async () => {
+    // 受注済みの場合にはリターン
+    if (selectedDealCard.dealCard.column_title_num === 1) return;
     // まだ案件没ではない場合は案件没に変更
     if (!isRejected) {
       updateProperty({
@@ -159,6 +161,8 @@ const EditModalDealCardMemo = () => {
 
   // 🌟ペンディング
   const handleClickPending = async () => {
+    // 受注済みの場合にはリターン
+    if (selectedDealCard.dealCard.column_title_num === 1) return;
     // まだペンディングではない場合はペンディングに変更
     if (!isPending) {
       updateProperty({
@@ -336,7 +340,12 @@ const EditModalDealCardMemo = () => {
               <div className={`${styles.action_area} min-w-[150px] bg-[red]/[0]`}>
                 <h3 className={`${styles.sub_title}`}>アクション</h3>
                 <div className={`${styles.btn_area} flex flex-col`}>
-                  <div className={`${styles.action_btn} flex items-center space-x-[6px]`} onClick={handleClickRejected}>
+                  <div
+                    className={`${styles.action_btn} flex items-center space-x-[6px] ${
+                      selectedDealCard.dealCard.column_title_num === 1 ? `${styles.disabled}` : ``
+                    }`}
+                    onClick={handleClickRejected}
+                  >
                     {isRejected && (
                       <>
                         <div className="flex-center h-[22px] w-[18px]">
@@ -354,7 +363,12 @@ const EditModalDealCardMemo = () => {
                       </>
                     )}
                   </div>
-                  <div className={`${styles.action_btn} flex items-center space-x-[6px]`} onClick={handleClickPending}>
+                  <div
+                    className={`${styles.action_btn} flex items-center space-x-[6px] ${
+                      selectedDealCard.dealCard.column_title_num === 1 ? `${styles.disabled}` : ``
+                    }`}
+                    onClick={handleClickPending}
+                  >
                     {isPending && (
                       <>
                         <div className="flex-center h-[22px] w-[18px]">

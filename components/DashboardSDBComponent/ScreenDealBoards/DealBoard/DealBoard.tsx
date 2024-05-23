@@ -1806,7 +1806,9 @@ const DealBoardMemo = ({
   console.log(
     "DealBoardレンダリング",
     "cards",
-    cards
+    cards,
+    "queryData",
+    queryData
     // "categorizedCardsMapObj",
     // categorizedCardsMapObj,
     // "dealColumnList",
@@ -1817,8 +1819,6 @@ const DealBoardMemo = ({
     // isMountedQuery,
     // "isSuccess",
     // isSuccess,
-    // "queryData",
-    // queryData,
     // "cards",
     // cards,
     // "selectedDealCard",

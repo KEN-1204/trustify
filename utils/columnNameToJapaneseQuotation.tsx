@@ -80,6 +80,7 @@ export const columnNameToJapaneseQuotation = (columnName: string) => {
       return "法人番号";
       break;
     case "department_name":
+    case "company_department_namedepartment_name":
       return "部署名";
       break;
     case "representative_name":

@@ -1,6 +1,6 @@
 import { formatSalesTarget } from "@/utils/Helpers/formatSalesTarget";
 import { format, parseISO, subDays } from "date-fns";
-import { Fragment, memo, useEffect, useMemo, useRef, useState } from "react";
+import { Dispatch, Fragment, SetStateAction, memo, useEffect, useMemo, useRef, useState } from "react";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -192,6 +192,14 @@ const AreaChartComponentMemo = ({
     }, delay);
   }, []);
 
+  // ハイライト中のエンティティid
+  const [highlightEntityId, setHighlightEntityId] = useState<string | null>(null);
+
+  // チャートの表示対象のエンティティグループが変更された場合には、ハイライトをリセット
+  useEffect(() => {
+    if (highlightEntityId) setHighlightEntityId(null);
+  }, [legendList]);
+
   console.log("エリアチャート: chartData", chartData, "labelValueGroupByPeriod", labelValueGroupByPeriod);
 
   return (
@@ -205,23 +213,53 @@ const AreaChartComponentMemo = ({
         <ResponsiveContainer width="100%" height={chartHeight} className={`fade08_forward`}>
           <AreaChart data={chartData} margin={{ top: 0, bottom: 0, right: 0, left: 0 }}>
             {/* <Area dataKey={`value`} stroke={trendColor} fill={`url(#spark_chart_gradient_${id})`} /> */}
-            {legendList.map((obj, index) => (
-              <Fragment key={`value_${obj.entity_id}`}>
-                <defs>
-                  <linearGradient id={`area_chart_gradient_${obj.entity_id}_${index}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="12%" stopColor={colorsHEXTrend[index]} stopOpacity={0.4} />
-                    <stop offset="98%" stopColor={colorsHEXTrend[index]} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
+            {legendList.map((obj, index) => {
+              const isHighlight = highlightEntityId !== null;
+              const isActiveEntity = highlightEntityId === obj.entity_id;
+              return (
+                <Fragment key={`value_${obj.entity_id}`}>
+                  {/* <defs>
+                      <linearGradient id={`area_chart_gradient_${obj.entity_id}_${index}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="12%" stopColor={colorsHEXTrend[index]} stopOpacity={0.4} />
+                        <stop offset="98%" stopColor={colorsHEXTrend[index]} stopOpacity={0} />
+                      </linearGradient>
+                    </defs> */}
+                  <defs>
+                    <linearGradient id={`area_chart_gradient_${obj.entity_id}_${index}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop
+                        offset="12%"
+                        stopColor={
+                          !isHighlight || (isHighlight && isActiveEntity)
+                            ? colorsHEXTrend[index]
+                            : `var(--color-chart-inactive)`
+                        }
+                        stopOpacity={0.4}
+                      />
+                      <stop
+                        offset="98%"
+                        stopColor={
+                          !isHighlight || (isHighlight && isActiveEntity)
+                            ? colorsHEXTrend[index]
+                            : `var(--color-chart-inactive)`
+                        }
+                        stopOpacity={0}
+                      />
+                    </linearGradient>
+                  </defs>
 
-                <Area
-                  dataKey={`value${index + 1}`}
-                  stroke={colorsHEXTrend[index]}
-                  fill={`url(#area_chart_gradient_${obj.entity_id}_${index})`}
-                  activeDot={{ strokeWidth: 2, r: 5, stroke: `var(--color-chart-dot-stroke)` }}
-                />
-              </Fragment>
-            ))}
+                  <Area
+                    dataKey={`value${index + 1}`}
+                    stroke={
+                      !isHighlight || (isHighlight && isActiveEntity)
+                        ? colorsHEXTrend[index]
+                        : `var(--color-chart-inactive)`
+                    }
+                    fill={`url(#area_chart_gradient_${obj.entity_id}_${index})`}
+                    activeDot={{ strokeWidth: 2, r: 5, stroke: `var(--color-chart-dot-stroke)` }}
+                  />
+                </Fragment>
+              );
+            })}
 
             <XAxis
               dataKey="date"
@@ -290,6 +328,8 @@ const AreaChartComponentMemo = ({
                   legendList={legendList}
                   hoveringLegendBg={hoveringLegendBg}
                   withTransition={withTransition}
+                  highlightEntityId={!!legendList && legendList.length >= 2 ? highlightEntityId : undefined}
+                  setHighlightEntityId={!!legendList && legendList.length >= 2 ? setHighlightEntityId : undefined}
                 />
               )}
             />
@@ -457,6 +497,8 @@ type LegendCustomProps = {
   legendList: LegendNameId[];
   hoveringLegendBg?: string;
   withTransition?: string | undefined;
+  highlightEntityId?: string | null | undefined;
+  setHighlightEntityId?: Dispatch<SetStateAction<string | null>> | undefined;
 };
 
 export const CustomLegend = ({
@@ -466,6 +508,8 @@ export const CustomLegend = ({
   legendList,
   hoveringLegendBg = `var(--color-sales-card-bg)`,
   withTransition,
+  highlightEntityId,
+  setHighlightEntityId,
 }: LegendCustomProps) => {
   const { payload } = props;
 
@@ -494,6 +538,13 @@ export const CustomLegend = ({
   //       }
   //     }
   //   }, []);
+
+  const highlightEntityObj = useMemo(() => {
+    if (!highlightEntityId) return null;
+    const highlightIndex = legendList.findIndex((obj) => obj.entity_id === highlightEntityId);
+    if (highlightIndex === -1) return null;
+    return { ...legendList[highlightIndex], activeColor: colorsHEXTrend[highlightIndex] };
+  }, [highlightEntityId]);
 
   const handleEnterLegend = () => {
     setIsHoveringLegend(true);
@@ -526,8 +577,18 @@ export const CustomLegend = ({
           {legendList.map((obj, index) => (
             <li
               key={`legend-item-${obj.entity_id}_${index}_hovered`}
-              className={`ml-[18px] flex items-center truncate text-[13px]`}
-              style={{ gridColumnStart: `${index + 1}` }}
+              className={`ml-[18px] flex items-center truncate text-[13px] hover:cursor-pointer hover:text-[var(--color-bg-brand-f)]`}
+              style={{
+                gridColumnStart: `${index + 1}`,
+                ...(highlightEntityId === obj.entity_id && { color: `var(--bright-green)` }),
+              }}
+              onClick={() => {
+                if (highlightEntityId === null || highlightEntityId !== obj.entity_id) {
+                  if (setHighlightEntityId) setHighlightEntityId(obj.entity_id);
+                } else {
+                  if (setHighlightEntityId) setHighlightEntityId(null);
+                }
+              }}
             >
               <div
                 className={`mr-[6px] min-h-[8px] min-w-[8px] rounded-full`}
@@ -543,22 +604,36 @@ export const CustomLegend = ({
         className={`w-full  overflow-x-hidden ${styles.ul_flex} justify-end`}
         // style={{ gridTemplateColumns: `repeat(auto-fit, minmax(max-content, 1fr))` }}
         // style={{ gridTemplateColumns: `repeat(4, 1fr)` }}
-        onMouseEnter={handleEnterLegend}
+        onMouseEnter={legendList && legendList.length >= 2 ? handleEnterLegend : undefined}
       >
-        {legendList.map((obj, index) => (
-          <li
-            key={`legend-item-${obj.entity_id}_${index}`}
-            //   className={`mr-[18px] flex items-center text-[13px] ${isOverflow ? `truncate` : `whitespace-nowrap`}`}
-            className={`ml-[18px] flex items-center truncate text-[13px]`}
-            style={{ gridColumnStart: `${index + 1}` }}
-          >
+        {highlightEntityObj === null &&
+          legendList.map((obj, index) => (
+            <li
+              key={`legend-item-${obj.entity_id}_${index}`}
+              //   className={`mr-[18px] flex items-center text-[13px] ${isOverflow ? `truncate` : `whitespace-nowrap`}`}
+              className={`ml-[18px] flex items-center truncate text-[13px]`}
+              style={{ gridColumnStart: `${index + 1}` }}
+            >
+              <div
+                className={`mr-[6px] min-h-[8px] min-w-[8px] rounded-full`}
+                style={{ background: `${colorsHEXTrend[index]}` }}
+              />
+              <span className={`truncate`}>{obj.entity_name}</span>
+            </li>
+          ))}
+        {highlightEntityObj !== null && (
+          <li className={`ml-[18px] flex items-center truncate text-[13px]`}>
             <div
               className={`mr-[6px] min-h-[8px] min-w-[8px] rounded-full`}
-              style={{ background: `${colorsHEXTrend[index]}` }}
+              style={{
+                background: `${highlightEntityObj.activeColor}`,
+              }}
             />
-            <span className={`truncate`}>{obj.entity_name}</span>
+            <span className={`truncate`} style={{ color: `var(--bright-green)` }}>
+              {highlightEntityObj.entity_name}
+            </span>
           </li>
-        ))}
+        )}
       </ul>
       {/* ------------------------ テスト ------------------------ */}
       {/* {isHoveringLegend && (

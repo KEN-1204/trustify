@@ -1096,6 +1096,14 @@ export const UpdatePropertyModal = () => {
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
 
+    // 現ステータスが「受注」の場合には、「月初確度か中間見直確度」のどちらかをA(受注済み)に更新してもらう(SDBで正確に受注Colエリアに表示するため)
+    if (currentStatus === "D Order Received") {
+      if (orderCertaintyStartOfMonth !== "1" && reviewOrderCertainty !== "1")
+        return alert(
+          "現ステータスを「受注」に更新する場合には、「月初確度」か「中間見直確度」のどちらかを「A(受注済み)」に変更してください。"
+        );
+    }
+
     // -------------------------- ネタ表からの売上入力用 --------------------------
     // 売上商品・売上合計・売上日付が未入力の状態でサブミットされた場合はリターンする
     if (isRequiredInputSoldProduct) {

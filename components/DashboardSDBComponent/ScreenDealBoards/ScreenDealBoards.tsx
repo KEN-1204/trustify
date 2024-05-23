@@ -40,6 +40,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { mappingEntityName } from "@/utils/mappings";
 import { AreaChartTrend } from "@/components/DashboardSalesTargetComponent/TargetContainer/UpsertTargetEntity/UpsertSettingTargetEntityGroup/AreaChartTrend/AreaChartTrend";
 import { FallbackDealBoard } from "./DealBoard/FallbackDealBoard";
+import { HiOutlineSelector } from "react-icons/hi";
 
 type Props = {
   // memberList: Entity[];
@@ -346,6 +347,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
       };
     }
   }, [activePeriodSDB, yearsBack]);
+
   // -------------------------- 売上推移 --------------------------
   // -------------------------- 売上総額・達成率 --------------------------
   // 売上総額・達成率の「2021H1」表示用
@@ -491,7 +493,9 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     "entityIds",
     entityIds,
     "monthKey",
-    monthKey
+    monthKey,
+    "activePeriodSDB",
+    activePeriodSDB
   );
 
   return (
@@ -522,7 +526,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                     <div className={`flex items-center`}>
                       <span>売上推移</span>
                       <span className={`ml-[18px]`}>
-                        {displayEntityGroup
+                        {displayEntityGroup && displayEntityGroup.parent_entity_id
                           ? displayTypeForTrend === "sub_entities"
                             ? `${mappingEntityName[displayEntityGroup.entity_level][language]}別`
                             : `${
@@ -544,6 +548,47 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                     </span>
                   </div>
                 </div>
+
+                <div className={`flex h-full items-start justify-end pt-[3px]`}>
+                  {displayEntityGroup && displayEntityGroup?.parent_entity_id && (
+                    <div
+                      className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
+                      onMouseEnter={(e) => {
+                        let tooltipContent = `チャート表示対象を切り替える`;
+                        if (tooltipContent)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: tooltipContent,
+                            marginTop: 9,
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <select
+                        className={`z-10 cursor-pointer select-none  appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[12px]`}
+                        // style={{ boxShadow: `0 0 0 1px var(--color-border-base)` }}
+                        value={displayTypeForTrend}
+                        onChange={(e) => {
+                          setDisplayTypeForTrend(e.target.value as "sub_entities" | "main_entity");
+                        }}
+                      >
+                        <option value={"sub_entities"}>
+                          {mappingEntityName[displayEntityGroup.entity_level][language]}別
+                        </option>
+                        <option value={"main_entity"}>
+                          {displayEntityGroup.parent_entity_level === "company"
+                            ? getDivName("company")
+                            : displayEntityGroup.parent_entity_name}
+                        </option>
+                      </select>
+                      <div className={`${styles.select_arrow}`}>
+                        {/* <IoChevronDownOutline className={`text-[12px]`} /> */}
+                        <HiOutlineSelector className="stroke-[2] text-[16px]" />
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <ErrorBoundary FallbackComponent={ErrorFallback}>
@@ -556,14 +601,26 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                 >
                   <AreaChartTrend
                     companyId={userProfileState.company_id}
-                    entityLevel={displayEntityGroup ? displayEntityGroup.entity_level : "member"}
-                    entityIdsArray={entityIds ? entityIds : [userProfileState.id]}
+                    entityLevel={
+                      displayEntityGroup && displayEntityGroup.parent_entity_id
+                        ? displayTypeForTrend === "main_entity"
+                          ? displayEntityGroup.parent_entity_level
+                          : displayEntityGroup.entity_level
+                        : "member"
+                    }
+                    entityIdsArray={
+                      displayTypeForTrend === "main_entity" && displayEntityGroup?.parent_entity_id
+                        ? [displayEntityGroup.parent_entity_id]
+                        : entityIds
+                        ? entityIds
+                        : [userProfileState.id]
+                    }
                     periodType={activePeriodSDB.periodType}
                     basePeriod={activePeriodSDB.period}
                     yearsBack={yearsBack} // デフォルトはbasePeriodの年から2年遡って過去3年分を表示する
                     fetchEnabled={true}
                     selectedFiscalYear={selectedFiscalYearTargetSDB}
-                    hoveringLegendBg={`var(--sdb-card-bg)`}
+                    hoveringLegendBg={`var(--sdb-card-bg-chart-legend)`}
                   />
                 </Suspense>
               </ErrorBoundary>
@@ -576,7 +633,8 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                 </div> */}
             </div>
 
-            {/* 選択中の月度が上期の場合には上期の売上目標が設定済み・月度が下期の場合には下期の売上目標が設定済みであれば、売上目標チャートを表示 */}
+            {/* 売上進捗・達成率チャート */}
+            {/* 選択中の月度が上期の場合には上期の売上目標が設定済みであること・月度が下期の場合には下期の売上目標が設定済みであることをチェックし、trueなら売上目標チャートを表示 */}
             {displayEntityGroup !== null &&
             !!queryDataObjMemberGroupAndParentEntity &&
             !!fiscalYearQueryData &&
@@ -589,7 +647,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                   <div className={`${styles.card_title}`}>
                     <div className={`flex flex-col`}>
                       <div className={`flex items-center`}>
-                        <span>売上総額・達成率</span>
+                        <span>売上進捗・達成率</span>
                         <span className={`ml-[18px]`}>
                           {queryDataObjMemberGroupAndParentEntity && displaySubEntityForAchievement
                             ? displaySubEntityForAchievement.entity_name

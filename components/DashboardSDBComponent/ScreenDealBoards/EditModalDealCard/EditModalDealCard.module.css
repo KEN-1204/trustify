@@ -199,6 +199,7 @@
 .edit_modal .container .description_area .action_area .btn_area .action_btn {
   width: 100%;
   /* background-color: #40576d12; */
+  /* background-color: #f0f2f7; */
   background-color: #ebedf2;
   border-radius: 9px;
   font-size: 13px;
@@ -210,6 +211,13 @@
 .edit_modal .container .description_area .action_area .btn_area .action_btn:hover {
   background-color: #394c6026;
   cursor: pointer;
+}
+/* 受注済みの場合にはアクションを無効化 */
+.edit_modal .container .description_area .action_area .btn_area .action_btn.disabled,
+.edit_modal .container .description_area .action_area .btn_area .action_btn.disabled:hover {
+  color: var(--color-card-text-disabled-light);
+  background: #f0f2f7;
+  cursor: not-allowed;
 }
 
 /* TikTok

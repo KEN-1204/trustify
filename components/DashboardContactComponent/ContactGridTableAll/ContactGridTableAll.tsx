@@ -495,7 +495,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   // const [newSearchParamsString, setNewSearchParamsString] = useState<string | null>(null);
   const newSearchParamsStringRef = useRef<string | null>(null);
   //   console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
-  console.log("キャッシュに割り当てるparamsキー newSearchContact_CompanyParams", newSearchContact_CompanyParams);
+  // console.log("キャッシュに割り当てるparamsキー newSearchContact_CompanyParams", newSearchContact_CompanyParams);
   if (newSearchContact_CompanyParams) {
     newSearchParamsStringRef.current = Object.entries(newSearchContact_CompanyParams)
       .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
@@ -503,7 +503,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       // .map((key, index) => `${key}:${key[index]} `)
       .join(", ");
     // .join("");
-    console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
+    // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
   }
   // console.log(
   //   "✅🔥newSearchCompanyParams",

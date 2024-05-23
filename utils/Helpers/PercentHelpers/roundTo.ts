@@ -6,7 +6,7 @@ export function roundTo(n: number, digits: number, forceDecimal = false) {
   const multiplicator = Math.pow(10, digits);
   n = parseFloat((n * multiplicator).toFixed(11));
   const roundedValue = Math.round(n) / multiplicator;
-  // forceDecimalがtrueの場合、toFixedを使って小数点以下を保持
+  // forceDecimalがtrueの場合、toFixedを使って小数点以下を保持 ex) 12 => 12.0(true), 12(false)
   return forceDecimal ? roundedValue.toFixed(digits) : roundedValue.toString();
 }
 
