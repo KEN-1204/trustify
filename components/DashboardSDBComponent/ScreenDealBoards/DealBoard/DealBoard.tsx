@@ -1880,7 +1880,10 @@ const DealBoardMemo = ({
             </div>
             <div className={`${styles.sub_info} pt-[6px]`}>{memberObj.position_name ?? "役職未設定"}</div>
             <div className={`${styles.sub_info} pt-[6px]`}>{memberObj.assigned_employee_id_name ?? ""}</div>
-            <div className={`relative !ml-[24px] !mr-[12px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}>
+            <div
+              // className={`relative !ml-[24px] !mr-[12px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}
+              className={`relative !ml-[24px] !mr-[12px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}
+            >
               <div className="flex h-full min-w-[150px] items-end justify-end">
                 {/* {memberObj.current_sales_amount !== null ? (
                   <ProgressNumber
@@ -1911,8 +1914,8 @@ const DealBoardMemo = ({
                   ></span>
                 )} */}
                 <ProgressNumber
-                  targetNumber={6200000}
-                  // targetNumber={0}
+                  // targetNumber={6200000}
+                  targetNumber={0}
                   // startNumber={Math.round(68000 / 2)}
                   // startNumber={Number((68000 * 0.1).toFixed(0))}
                   startNumber={0}
@@ -1928,7 +1931,10 @@ const DealBoardMemo = ({
               <div className="relative h-full min-w-[33px]">
                 <div className="absolute left-[66%] top-[68%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[var(--color-text-title)]"></div>
               </div>
-              <div className="mr-[12px] flex h-full min-w-max items-end justify-start">
+              <div
+                // className="mr-[12px] flex h-full min-w-max items-end justify-start"
+                className="mr-[9px] flex h-full min-w-max items-end justify-start"
+              >
                 {/* {memberObj.current_sales_target !== null ? (
                   <span className="text-[16px]">
                     {formatToJapaneseYen(memberObj.current_sales_target, false, false)}
@@ -1936,7 +1942,9 @@ const DealBoardMemo = ({
                 ) : (
                   <span className="text-[16px]">-</span>
                 )} */}
-                {<span className="text-[16px]">9,000,000</span>}
+                {/* <span className="ml-[6px] text-[16px]">9,000,000</span> */}
+                {/* <span className="ml-[0px] text-[16px]">-</span> */}
+                <span className="ml-[12px] text-[16px]">-</span>
               </div>
             </div>
             <div className={`relative h-[56px] w-[56px]`} style={{ margin: `0` }}>
@@ -1960,18 +1968,25 @@ const DealBoardMemo = ({
                 <ProgressCircle
                   circleId={`${userId}_board`}
                   textId={`${userId}_board`}
-                  progress={78}
+                  progress={24}
                   // progress={100}
                   // progress={0}
                   duration={5000}
                   easeFn="Quartic"
                   size={56}
                   strokeWidth={6}
-                  fontSize={11}
+                  // fontSize={11}
+                  fontSize={13}
+                  fontWeight={500}
+                  fontFamily="var(--font-family-str)"
                   textColor="var(--color-text-title)"
                   isReady={isRenderProgress}
                   fade={`fade08_forward`}
                   // fade={`fade10_forward`}
+                  withShadow={false}
+                  // withShadow={true}
+                  // boxShadow={`var(--color-progress-chart-shadow-white)`}
+                  // boxShadow={`0 0 1px 1px #ffffff90, 0 0 3px 2px #ffffff36, 0 0 3px 3px #ffffff15`}
                 />
               </div>
             </div>

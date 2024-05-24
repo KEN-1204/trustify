@@ -1364,6 +1364,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* 背景 */
   --color-progress-chart-bg: #ddd;
   --color-progress-chart-shadow: 0 0 3px 1px var(--color-bg-brand-light);
+  --color-progress-chart-shadow-white: 0 0 3px 1px var(--color-bg-brand-light);
   /* パイチャート */
   --color-pie-chart-stroke-line: #565656;
   --color-pie-chart-stroke-line: #666;
@@ -2459,6 +2460,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-progress-chart-bg: #333;
   /* --color-progress-chart-shadow: 0 0 1px 1px #ffffff90, 0 0 3px 2px #fff, 0 0 3px 3px var(--color-bg-brand); */
   --color-progress-chart-shadow: 0 0 1px 1px #ffffff90, 0 0 3px 2px #0ab5ff, 0 0 3px 3px var(--color-bg-brand);
+  --color-progress-chart-shadow-white: 0 0 1px 1px #ffffff60, 0 0 3px 2px #ffffff15;
 
   /* パイチャート */
   --color-pie-chart-stroke-line: #ddd;

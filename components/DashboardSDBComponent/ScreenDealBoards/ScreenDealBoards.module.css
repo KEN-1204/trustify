@@ -760,14 +760,16 @@
 /* ------------- セレクトボタン ------------- */
 .select_btn_wrapper select {
   box-shadow: 0 0 0 1px var(--color-border-base);
-  background-color: var(--color-btn-basic-bg);
+  /* background-color: var(--color-btn-basic-bg); */
+  background: var(--sdb-card-btn-bg);
   max-width: 300px;
   padding: 4px 24px 4px 12px;
   transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 .select_btn_wrapper select:hover {
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
-  background-color: var(--color-btn-basic-bg-hover);
+  /* background-color: var(--color-btn-basic-bg-hover); */
+  background: var(--sdb-card-btn-bg-hover);
   color: var(--color-btn-basic-text-hover);
 }
 

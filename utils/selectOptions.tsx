@@ -1049,6 +1049,7 @@ export const optionsPlannedPurpose = [
   "O Other(Customer Request Support)",
   "P Others",
 ];
+// ○能動：営業担当によるアクションきっかけ ○受動：営業担当によるアクション以外からのきっかけ
 export const getPlannedPurpose = (value: string, language: string = "ja") => {
   switch (value) {
     case "A New Company (No Previous Meetings)/Proactive":
@@ -1057,14 +1058,14 @@ export const getPlannedPurpose = (value: string, language: string = "ja") => {
     case "B Overlap Company (Previous Meetings Held)/Proactive":
       return language === "ja" ? `被り会社(過去面談有り)/能動` : `Overlap Company (Previous Meetings Held)/Proactive`;
       break;
+    case "E Salesperson's Email/Reactive":
+      return language === "ja" ? `営業メール/能動` : `Salesperson's Email/Reactive`;
+      break;
     case "C Internal Referral/Proactive":
-      return language === "ja" ? `社内ID/能動` : `Internal Referral/Proactive`;
+      return language === "ja" ? `社内ID(紹介)/能動` : `Internal Referral/Proactive`;
       break;
     case "D Client Referral/Proactive":
-      return language === "ja" ? `社外･客先ID/能動` : `Client Referral/Proactive`;
-      break;
-    case "E Salesperson's Email/Reactive":
-      return language === "ja" ? `営業メール/受動` : `Salesperson's Email/Reactive`;
+      return language === "ja" ? `社外･客先ID(紹介)/能動` : `Client Referral/Proactive`;
       break;
     case "F Direct Product Engagement Inquiry/Reactive":
       return language === "ja" ? `見･聞引合/受動` : `Direct Product Engagement Inquiry/Reactive`;
@@ -1090,10 +1091,12 @@ export const getPlannedPurpose = (value: string, language: string = "ja") => {
     case "M Other(Delivery Explanation)":
       return language === "ja" ? `他(納品説明)` : `Other(Delivery Explanation)`;
       break;
-    case "N Other(Pre-Sales Follow-Up)":
+    // "N Other(Proactive Sales Support)",
+    // "O Other(Customer Request Support)",
+    case "N Other(Proactive Sales Support)":
       return language === "ja" ? `他(営業能動サポート)` : `Other(Proactive Sales Support)`;
       break;
-    case "O Other(Pre-Sales Follow-Up)":
+    case "O Other(Customer Request Support)":
       return language === "ja" ? `他(客先要望サポート)` : `Other(Customer Request Support)`;
       break;
     case "P Others":

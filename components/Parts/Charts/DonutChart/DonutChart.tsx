@@ -219,7 +219,7 @@ export const CustomTooltip = ({
 
   // console.log("ドーナツチャートツールチップ payload", payload, "props", props);
 
-  if (labelType === "sales_probably") {
+  if (labelType === "sales_probability") {
     if (!labelListSalesProbabilities) return null;
     if (!probablyNameToObjMap) return null;
 

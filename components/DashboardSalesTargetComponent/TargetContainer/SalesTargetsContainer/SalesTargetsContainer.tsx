@@ -1019,7 +1019,7 @@ const SalesTargetsContainerMemo = () => {
         <div
           className={`${styles.grid_row} ${styles.col1} ${stickyRow === "main_entity_target" ? styles.sticky_row : ``}`}
         >
-          <div className={`${styles.grid_content_card} `}>
+          <div className={`${styles.grid_content_card} fade08_forward`} style={{ minHeight: `256px` }}>
             {mainEntityTarget &&
             mainEntityTarget.parentEntityLevel === "company" &&
             mainEntityTarget.entityLevel === "company" ? (

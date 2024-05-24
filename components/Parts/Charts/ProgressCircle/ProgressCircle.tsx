@@ -8,6 +8,8 @@ type Props = {
   size?: number;
   strokeWidth?: number;
   fontSize?: number;
+  fontWeight?: number;
+  fontFamily?: string;
   strokeBg?: string;
   direction?: "bl_tr" | "br_tl" | "tr_bl" | "tl_br";
   textVerticalDirReverse?: boolean;
@@ -18,7 +20,11 @@ type Props = {
   isReady?: boolean;
   fade?: string;
   withShadow?: boolean;
+  boxShadow?: string;
   hiddenCenterText?: boolean;
+  customText?: string | undefined;
+  customFontSize?: number | undefined;
+  customTextTop?: string | undefined;
 };
 
 // https://chat.openai.com/chat?model=gpt-4 // こちらを確認
@@ -33,6 +39,8 @@ const ProgressCircleMemo = ({
   size = 150,
   strokeWidth = 12,
   fontSize = 34,
+  fontWeight = 600,
+  fontFamily = `sans-serif`,
   strokeBg = "var(--color-progress-chart-bg)",
   direction,
   textVerticalDirReverse = false,
@@ -43,7 +51,11 @@ const ProgressCircleMemo = ({
   isReady = true,
   fade,
   withShadow = true,
+  boxShadow = `var(--color-progress-chart-shadow)`,
   hiddenCenterText = false,
+  customText,
+  customFontSize,
+  customTextTop,
 }: Props) => {
   // プログレスアニメーション用state
   const [animatedProgress, setAnimatedProgress] = useState(0);
@@ -200,10 +212,25 @@ const ProgressCircleMemo = ({
             filter: `blur(5px)`,
             // border: `${strokeWidth}px solid var(--color-bg-brand)`,
             // boxShadow: `0 0 1px 1px #ffffff90, 0 0 3px 2px #fff, 0 0 3px 3px var(--color-bg-brand)`,
-            boxShadow: `var(--color-progress-chart-shadow)`,
+            // boxShadow: `var(--color-progress-chart-shadow)`,
+            boxShadow: boxShadow,
             ...(isReady && { opacity: `0.9` }),
           }}
         ></div>
+      )}
+      {customText && (
+        <>
+          <div
+            className={`absolute left-[50%] top-[50%]`}
+            style={{
+              fontSize: customFontSize ? customFontSize : fontSize / 2,
+              top: customTextTop,
+              transform: `translate(-50%, -50%)`,
+            }}
+          >
+            {customText}
+          </div>
+        </>
       )}
       {/* ProgressCIrcle */}
       <svg
@@ -218,11 +245,16 @@ const ProgressCircleMemo = ({
               {/* //   <linearGradient id="circleLinearGradient" x1={x1} y1={y1} x2={x2} y2={y2}> */}
               {/* <stop offset="6%" stopColor="#ffffffe9" /> */}
               {/* <stop offset="18%" stopColor="#cffcfde9" /> */}
-              <stop offset="3%" stopColor="#ffffffe9" />
+              {/* <stop offset="3%" stopColor="#ffffffe9" />
               <stop offset="12%" stopColor="#cffcfde9" />
               <stop offset="33%" stopColor="#0affffe9" />
               <stop offset="56%" stopColor="#0abeffe9" />
-              <stop offset="87%" stopColor="#0066ffe9" />
+              <stop offset="87%" stopColor="#0066ffe9" /> */}
+              <stop offset="3%" stopColor="#ffffffe9" />
+              <stop offset="12%" stopColor="#cffcfde9" />
+              <stop offset="33%" stopColor="#0affffe9" />
+              <stop offset="52%" stopColor="#0abeffe9" />
+              <stop offset="78%" stopColor="#0066ffe9" />
               {/* <stop offset="0%" stopColor="#a445b2" />
           <stop offset="100%" stopColor="#fa4299" /> */}
               {/* インスタカラー */}
@@ -305,14 +337,57 @@ const ProgressCircleMemo = ({
               x={size / 2}
               y={size / 2}
               textAnchor="middle"
-              dy=".3em" // テキストを垂直方向に少し下げるオプション（調整が必要な場合）
+              // dy=".3em" // テキストを垂直方向に少し下げるオプション（調整が必要な場合）
+              dy={customText ? `.3rem` : `.3em`} // テキストを垂直方向に少し下げるオプション（調整が必要な場合）
               fontSize={fontSize} // フォントサイズ（必要に応じて調整）
-              fontWeight={600}
-              fontFamily="sans-serif"
+              fontWeight={fontWeight}
+              // fontFamily="sans-serif"
+              fontFamily={fontFamily}
               fill={`${textColor ? textColor : `url(#textLinearGradient_${textId})`}`}
             >
               {displayProgress}%
             </text>
+            {/* {!customText ? (
+              <text
+                x={size / 2}
+                y={size / 2}
+                textAnchor="middle"
+                dy=".3em" // テキストを垂直方向に少し下げるオプション（調整が必要な場合）
+                fontSize={fontSize} // フォントサイズ（必要に応じて調整）
+                fontWeight={600}
+                fontFamily="sans-serif"
+                fill={`${textColor ? textColor : `url(#textLinearGradient_${textId})`}`}
+              >
+                {displayProgress}%
+              </text>
+            ) : (
+              <>
+                <text
+                  x={size / 2}
+                  y={size / 2}
+                  textAnchor="middle"
+                  dy={`.3rem`} // テキストを垂直方向に少し下げるオプション（調整が必要な場合）
+                  fontSize={fontSize} // フォントサイズ（必要に応じて調整）
+                  fontWeight={600}
+                  fontFamily="sans-serif"
+                  fill={`${textColor ? textColor : `url(#textLinearGradient_${textId})`}`}
+                >
+                  {displayProgress}%
+                </text>
+                <text
+                  x={size / 2}
+                  y={size / 2}
+                  textAnchor="middle"
+                  dy={`${fontSize}px`} // テキストを垂直方向に少し下げるオプション（調整が必要な場合）
+                  fontSize={customFontSize ? customFontSize : fontSize / 2} // フォントサイズ（必要に応じて調整）
+                  fontWeight={500}
+                  fontFamily="sans-serif"
+                  fill={`${textColor ? textColor : `url(#textLinearGradient_${textId})`}`}
+                >
+                  {customText}
+                </text>
+              </>
+            )} */}
           </>
         )}
       </svg>

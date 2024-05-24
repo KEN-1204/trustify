@@ -41,6 +41,7 @@ import { mappingEntityName } from "@/utils/mappings";
 import { AreaChartTrend } from "@/components/DashboardSalesTargetComponent/TargetContainer/UpsertTargetEntity/UpsertSettingTargetEntityGroup/AreaChartTrend/AreaChartTrend";
 import { FallbackDealBoard } from "./DealBoard/FallbackDealBoard";
 import { HiOutlineSelector } from "react-icons/hi";
+import { ProgressCircleSalesAchievement } from "./ProgressCircleSalesAchievement/ProgressCircleSalesAchievement";
 
 type Props = {
   // memberList: Entity[];
@@ -102,28 +103,6 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     }
   };
 
-  // displayTypeForTrendがサブエンティティの時に、売上目標チャート(達成率)を表示するメンバー
-  const [displaySubEntityForAchievement, setDisplaySubEntityForAchievement] = useState<{
-    entity_id: string;
-    entity_name: string;
-    entity_level: string;
-    entity_level_id: string;
-  } | null>(() => {
-    if (!displayEntityGroup) return null;
-    if (!displayEntityGroup.parent_entity_id) return null;
-    if (!displayEntityGroup.entities.length) return null;
-    return {
-      entity_id: displayEntityGroup.parent_entity_id,
-      entity_name:
-        displayEntityGroup.parent_entity_level === "company"
-          ? getDivName("company")
-          : displayEntityGroup.parent_entity_name,
-      entity_level: displayEntityGroup.parent_entity_level,
-      entity_level_id: displayEntityGroup.parent_entity_level_id,
-    };
-    // return displayEntityGroup.entities[0];
-  });
-
   if (selectedFiscalYearTargetSDB === null) return null;
 
   if (!userProfileState || !userProfileState?.company_id) return null;
@@ -148,7 +127,13 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
   const entityIds = useMemo(() => {
     if (!displayEntityGroup) return null;
     return displayEntityGroup.entities.map((entity) => entity.entity_id);
-  }, []);
+  }, [displayEntityGroup]);
+
+  // id => entityデータMapオブジェクト
+  const entityIdToEntityObjMap = useMemo(() => {
+    if (!displayEntityGroup) return null;
+    return new Map(displayEntityGroup.entities.map((entity) => [entity.entity_id, entity]));
+  }, [displayEntityGroup]);
 
   // 🔹売上目標が設定されている場合にはエンティティグループ内の各エンティティのメンバーアカウントデータを取得
   const {
@@ -274,7 +259,6 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
       setMemberList([initialMemberObj]);
     }
   }, [displayEntityGroup]);
-  // ------------------------- ✅初回マウント時✅ ここまで -------------------------
 
   // useEffectでメンバーリストが取得できた状態でJSXをレンダリングする
   const [isMounted, setIsMounted] = useState(false);
@@ -284,6 +268,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
 
     setIsMounted(true);
   }, []);
+  // ------------------------- ✅初回マウント時✅ ここまで -------------------------
 
   // const FallbackDealBoard = () => {
   //   return (
@@ -349,8 +334,8 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
   }, [activePeriodSDB, yearsBack]);
 
   // -------------------------- 売上推移 --------------------------
-  // -------------------------- 売上総額・達成率 --------------------------
-  // 売上総額・達成率の「2021H1」表示用
+  // -------------------------- 売上進捗・達成率 --------------------------
+  // 売上進捗・達成率の「2021H1」表示用
   const salesAchievementPeriodTitle = useMemo(() => {
     if (!activePeriodSDB) return `-`;
 
@@ -368,7 +353,68 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
         : `-`;
     }
   }, [activePeriodSDB?.period]);
-  // -------------------------- 売上総額・達成率 --------------------------
+
+  // 売上進捗・達成率チャートに表示するエンティティ 最初は親エンティティを表示
+  const [selectedEntityForAchievement, setSelectedEntityForAchievement] = useState<{
+    entity_id: string;
+    entity_name: string;
+    entity_level: EntityLevelNames;
+    entity_level_id: string;
+  } | null>(() => {
+    if (!displayEntityGroup) return null;
+    if (!displayEntityGroup.parent_entity_id) return null;
+    if (!displayEntityGroup.entities.length) return null;
+    return {
+      entity_id: displayEntityGroup.parent_entity_id,
+      entity_name:
+        displayEntityGroup.parent_entity_level === "company"
+          ? getDivName("company")
+          : displayEntityGroup.parent_entity_name,
+      entity_level: displayEntityGroup.parent_entity_level as EntityLevelNames,
+      entity_level_id: displayEntityGroup.parent_entity_level_id,
+    };
+    // return displayEntityGroup.entities[0];
+  });
+
+  const memberIdToAccountDataMap = useMemo(() => {
+    if (!queryDataObjMemberGroupAndParentEntity?.members_sales_data) return;
+
+    return new Map(queryDataObjMemberGroupAndParentEntity.members_sales_data.map((member) => [member.id, member]));
+  }, [queryDataObjMemberGroupAndParentEntity?.members_sales_data]);
+
+  const displayEntityForAchievement = useMemo(() => {
+    if (!queryDataObjMemberGroupAndParentEntity) return null;
+    if (!selectedEntityForAchievement) return null;
+    if (!memberIdToAccountDataMap) return null;
+    if (!entityIdToEntityObjMap) return null;
+
+    if (selectedEntityForAchievement.entity_level === "member") {
+      const newMemberAccount = memberIdToAccountDataMap.get(selectedEntityForAchievement.entity_id);
+      if (!newMemberAccount) return null;
+      return {
+        entity_id: selectedEntityForAchievement.entity_id,
+        entity_name: selectedEntityForAchievement.entity_name,
+        entity_level: selectedEntityForAchievement.entity_level,
+        entity_level_id: selectedEntityForAchievement.entity_level_id,
+        current_sales_amount: newMemberAccount.current_sales_amount,
+        current_sales_target: newMemberAccount.current_sales_target,
+        current_achievement_rate: newMemberAccount.current_achievement_rate,
+      };
+    } else {
+      const parentData = queryDataObjMemberGroupAndParentEntity.parent_entity_sales_data;
+      if (!parentData) return null;
+      return {
+        entity_id: selectedEntityForAchievement.entity_id,
+        entity_name: selectedEntityForAchievement.entity_name,
+        entity_level: selectedEntityForAchievement.entity_level as EntityLevelNames,
+        entity_level_id: selectedEntityForAchievement.entity_level_id,
+        current_sales_amount: parentData.current_sales_amount,
+        current_sales_target: parentData.current_sales_target,
+        current_achievement_rate: parentData.current_achievement_rate,
+      };
+    }
+  }, []);
+  // -------------------------- 売上進捗・達成率 --------------------------
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
   const hoveredItemPos = useStore((state) => state.hoveredItemPos);
@@ -514,7 +560,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
         )}
         {allFetched && (
           <div
-            className={`${styles.grid_row} ${styles.col2} fade15_forward mb-[20px] min-h-[369px] w-full ${
+            className={`${styles.grid_row} ${styles.col2} fade15_forward mb-[20px] max-h-[369px] min-h-[369px] w-full ${
               stickyRow === "row_trend" ? `${styles.sticky_row}` : ``
             }`}
           >
@@ -594,7 +640,10 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
               <ErrorBoundary FallbackComponent={ErrorFallback}>
                 <Suspense
                   fallback={
-                    <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
+                    <div
+                      className={`flex-center w-full`}
+                      style={{ minHeight: `304px`, maxHeight: `304px`, padding: `0px 0px 6px` }}
+                    >
                       <SpinnerX />
                     </div>
                   }
@@ -638,6 +687,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
             {displayEntityGroup !== null &&
             !!queryDataObjMemberGroupAndParentEntity &&
             !!fiscalYearQueryData &&
+            !!displayEntityForAchievement &&
             ((selectedPeriodTypeHalfDetailSDB === "first_half_details" &&
               fiscalYearQueryData.is_confirmed_first_half_details) ||
               (selectedPeriodTypeHalfDetailSDB === "second_half_details" &&
@@ -649,8 +699,8 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                       <div className={`flex items-center`}>
                         <span>売上進捗・達成率</span>
                         <span className={`ml-[18px]`}>
-                          {queryDataObjMemberGroupAndParentEntity && displaySubEntityForAchievement
-                            ? displaySubEntityForAchievement.entity_name
+                          {queryDataObjMemberGroupAndParentEntity && selectedEntityForAchievement
+                            ? selectedEntityForAchievement.entity_name
                             : userProfileState.profile_name}
                         </span>
                       </div>
@@ -688,14 +738,14 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                     {stickyRow !== "row_trend" && <span>固定</span>}
                   </div>
                 </div>
-                <div className={`${styles.main_container} flex-center`}>
+                {/* <div className={`${styles.main_container} flex-center`}>
                   <div
                     className={`flex h-full w-full items-center justify-center text-[13px] text-[var(--color-text-sub)]`}
                   >
                     <span>売上目標が設定されていません。</span>
                   </div>
-                </div>
-                {/* <ErrorBoundary FallbackComponent={ErrorFallback}>
+                </div> */}
+                <ErrorBoundary FallbackComponent={ErrorFallback}>
                   <Suspense
                     fallback={
                       <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
@@ -705,35 +755,36 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                   >
                     <ProgressCircleSalesAchievement
                       fiscalYear={selectedFiscalYearTargetSDB}
-                      companyId={userProfileState.company_id}
-                      parentEntityId={mainEntityTarget.parentEntityId}
-                      parentEntityTotalMainTarget={parentEntityTotalMainTarget}
-                      entityLevel={mainEntityTarget.entityLevel}
-                      entityLevelId={entityLevelMap.get(mainEntityTarget.entityLevel)!.id}
                       fiscalYearId={fiscalYearQueryData.id}
-                      entities={entitiesForShareChart}
-                      periodTitle={salesTargetSharePeriodTitle}
-                      periodType={selectedPeriodDetailShare.period}
-                      basePeriod={selectedPeriodDetailShare.value}
+                      companyId={userProfileState.company_id}
+                      entityId={displayEntityForAchievement.entity_id}
+                      entityName={displayEntityForAchievement.entity_name}
+                      entityLevel={displayEntityForAchievement.entity_level}
+                      entityLevelId={displayEntityForAchievement.entity_level_id}
+                      periodType={activePeriodSDB.periodType}
+                      basePeriod={activePeriodSDB.period}
+                      current_sales_amount={displayEntityForAchievement.current_sales_amount}
+                      current_sales_target={displayEntityForAchievement.current_sales_target}
+                      current_achievement_rate={displayEntityForAchievement.current_achievement_rate}
                       fetchEnabled={true}
-                      // periodType={periodTypeTrend}
+                      isRenderProgress={isRenderProgress}
                     />
                   </Suspense>
-                </ErrorBoundary> */}
+                </ErrorBoundary>
               </div>
             ) : (
               <div className={`${styles.grid_content_card}`}>
                 <div className={`${styles.card_wrapper} fade08_forward`}>
                   <div className={`${styles.card_title_area}`}>
                     <div className={`${styles.card_title}`}>
-                      <span>売上目標シェア</span>
+                      <span>売上進捗・達成率</span>
                     </div>
 
                     <div className={`${styles.btn} ${styles.basic} space-x-[4px]`}>
                       <span>固定</span>
                     </div>
                   </div>
-                  <div className={`${styles.main_container} flex-center`}>
+                  <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
                     <div
                       className={`flex h-full w-full items-center justify-center text-[13px] text-[var(--color-text-sub)]`}
                     >

@@ -799,3 +799,19 @@
   z-index: 1;
 }
 /* -------------------------------------- 🌟SalesProgressScreen🌟 ここまで -------------------------------------- */
+
+/* 売上進捗・達成率チャート */
+/* ドーナツチャート and プログレスチャート */
+.area_chart_container {
+  /* padding: 0px 24px 5px 6px; */
+  padding: 0px 24px 16px 6px;
+}
+.deal_list {
+  color: var(--color-text-title);
+}
+.deal_list.inactive {
+  color: var(--color-text-disabled);
+  /* background:#f2f3f4; */
+  /* background: #f4f7f9; */
+  /* background: #f0f3f5; */
+}

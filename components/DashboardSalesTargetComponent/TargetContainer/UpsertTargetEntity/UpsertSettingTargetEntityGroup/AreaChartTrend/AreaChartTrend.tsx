@@ -30,7 +30,7 @@ const AreaChartTrendMemo = ({
   basePeriod,
   yearsBack,
   fetchEnabled,
-  fallbackHeight = "302px",
+  fallbackHeight = "304px",
   fallbackPadding = `0px 0px 6px`,
   fontSize = `13px`,
   errorText = `エラーが発生しました`,
@@ -58,14 +58,20 @@ const AreaChartTrendMemo = ({
 
   if (isLoading)
     return (
-      <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
+      <div
+        className={`flex-center w-full`}
+        style={{ minHeight: fallbackHeight, maxHeight: fallbackHeight, padding: fallbackPadding }}
+      >
         <SpinnerX />
       </div>
     );
 
   if (!data || isError)
     return (
-      <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
+      <div
+        className={`flex-center w-full`}
+        style={{ minHeight: fallbackHeight, maxHeight: fallbackHeight, padding: fallbackPadding }}
+      >
         <span style={{ fontSize: fontSize }}>
           {(!data || !data.chartData?.length) && !isError && noDataText}
           {isError && errorText}

@@ -33,7 +33,7 @@ type Props = {
   labelListSalesProbability?: LabelDataSalesProbability[];
   labelListSalesTargetShare?: LabelDataSalesTargetsShare[];
   periodType?: string;
-  labelType: "date" | "sales_probably" | "sales_target_share";
+  labelType: "date" | "sales_probability" | "sales_target_share";
   //   labelValueGroupByPeriod: LabelValueGroupByPeriod[];
   //   legendList: LegendNameId[];
   tickCount?: number;
@@ -235,7 +235,7 @@ export const DonutChartCustomComponent = memo(DonutChartCustomComponentMemo);
 // ------------------------------ 🌠カスタムTooltip🌠 ------------------------------
 type TooltipCustomProps = {
   props: TooltipProps<ValueType, NameType>;
-  labelType: "date" | "sales_probably" | "sales_target_share";
+  labelType: "date" | "sales_probability" | "sales_target_share";
   periodType?: string;
   language: string;
   labelList?: LabelDataSalesProbability[] | LabelDataSalesTargetsShare[];
@@ -341,7 +341,7 @@ export const CustomTooltip = ({
   }
 
   // ---------------------------- 受注確度 ----------------------------
-  if (labelType === "sales_probably") {
+  if (labelType === "sales_probability") {
     if (!labelList) return null;
     if (!labelNameToObjMap) return null;
 

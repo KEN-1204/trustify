@@ -126,7 +126,7 @@ const DonutChartDealsMemo = ({
   //   const chartCenterX = 124;
   const chartCenterX = 112;
 
-  const labelType = "sales_probably";
+  const labelType = "sales_probability";
 
   // チャート マウントを0.6s遅らせる
   const [isMounted, setIsMounted] = useState(false);
