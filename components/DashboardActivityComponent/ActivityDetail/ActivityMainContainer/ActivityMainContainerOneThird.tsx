@@ -899,11 +899,70 @@ const ActivityMainContainerOneThirdMemo = () => {
     // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
     const fiscalEndMonth = userProfileState?.customer_fiscal_end_month
       ? new Date(userProfileState.customer_fiscal_end_month)
-      : new Date(new Date().getFullYear(), 2, 31); // 決算日が未設定なら3月31日に自動設定
+      : new Date(new Date().getFullYear(), 2, 31, 23, 59, 59, 999); // 決算日が未設定なら3月31日に自動設定
     const closingDay = fiscalEndMonth.getDate(); //ユーザーの締め日
     fiscalEndMonthObjRef.current = fiscalEndMonth; //refに格納
     closingDayRef.current = closingDay; //refに格納
   }, []);
+
+  // 🔹現在の会計年度の12ヶ月間
+  const annualFiscalMonths = useMemo(() => {
+    if (!fiscalEndMonthObjRef.current) return null;
+    if (!closingDayRef.current) return null;
+    if (!userProfileState) return null;
+
+    const currentFiscalYear = getFiscalYear(
+      new Date(), // 会計年度順の12ヶ月間の月のみ取得できれば良いので、new Date()でOK
+      fiscalEndMonthObjRef.current.getMonth() + 1,
+      fiscalEndMonthObjRef.current.getDate(),
+      userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis"
+    );
+    // 期首を取得
+    const currentFiscalYearStartDate = calculateFiscalYearStart({
+      fiscalYearEnd: fiscalEndMonthObjRef.current ?? userProfileState.customer_fiscal_end_month,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+      selectedYear: currentFiscalYear,
+    });
+
+    if (!currentFiscalYearStartDate) return null;
+
+    // 🔸現在の会計年度の開始年月度 期首の年月度を6桁の数値で取得 202404
+    const newStartYearMonth = calculateDateToYearMonth(currentFiscalYearStartDate, closingDayRef.current);
+    // 🔸年度初めから12ヶ月分の年月度の配列
+    const fiscalMonths = calculateFiscalYearMonths(newStartYearMonth);
+
+    return fiscalMonths;
+  }, [fiscalEndMonthObjRef.current, closingDayRef.current]);
+
+  // 上期の月のSetオブジェクト
+  const firstHalfDetailSet = useMemo(() => {
+    if (!annualFiscalMonths) return null;
+    return new Set([
+      String(annualFiscalMonths.month_01).substring(4),
+      String(annualFiscalMonths.month_02).substring(4),
+      String(annualFiscalMonths.month_03).substring(4),
+      String(annualFiscalMonths.month_04).substring(4),
+      String(annualFiscalMonths.month_05).substring(4),
+      String(annualFiscalMonths.month_06).substring(4),
+    ]);
+  }, [annualFiscalMonths]);
+
+  // 四半期のQ1とQ3の月のSetオブジェクト
+  const quarterDetailsSet = useMemo(() => {
+    if (!annualFiscalMonths) return null;
+    return {
+      firstQuarterMonthSet: new Set([
+        String(annualFiscalMonths.month_01).substring(4),
+        String(annualFiscalMonths.month_02).substring(4),
+        String(annualFiscalMonths.month_03).substring(4),
+      ]),
+      thirdQuarterMonthSet: new Set([
+        String(annualFiscalMonths.month_07).substring(4),
+        String(annualFiscalMonths.month_08).substring(4),
+        String(annualFiscalMonths.month_09).substring(4),
+      ]),
+    };
+  }, [annualFiscalMonths]);
   // ================== ✅ユーザーの決算月の締め日を初回マウント時に取得✅ ==================
 
   // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
@@ -1212,8 +1271,14 @@ const ActivityMainContainerOneThirdMemo = () => {
         console.log("日付チェック 新たな日付のためこのまま更新 newValue", newValue);
         // フィールドがactivity_date（活動日）の場合は活動年月度も同時に更新
         if (fieldName === "activity_date") {
-          if (!closingDayRef.current)
+          if (!closingDayRef.current || !fiscalEndMonthObjRef.current) {
+            alert("決算日データが取得できませんでした。エラー：AMC02");
             return toast.error("決算日データが確認できないため、活動を更新できませんでした...🙇‍♀️");
+          }
+          if (!firstHalfDetailSet || !quarterDetailsSet) {
+            alert("会計年度データが取得できませんでした。エラー：AMC03");
+            return toast.error("会計年度データが確認できないため、活動を更新できませんでした...🙇‍♀️");
+          }
           // if (!(newValue instanceof Date)) return toast.error("エラー：無効な日付です。");
           type ExcludeKeys = "company_id" | "contact_id" | "activity_id"; // 除外するキー idはUPDATEすることは無いため
           type ActivityFieldNamesForSelectedRowData = Exclude<keyof Activity_row_data, ExcludeKeys>;
@@ -1228,6 +1293,50 @@ const ActivityMainContainerOneThirdMemo = () => {
 
           if (!fiscalYearMonth) return toast.error("日付の更新に失敗しました。");
 
+          // -------- 面談年度~四半期を算出 --------
+          // 選択した日付の会計年度
+          const selectedFiscalYear = getFiscalYear(
+            new Date(newValue),
+            fiscalEndMonthObjRef.current.getMonth() + 1,
+            fiscalEndMonthObjRef.current.getDate(),
+            userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis"
+          );
+
+          // 上期と下期どちらを選択中か更新
+          const _activityMonth = String(fiscalYearMonth).substring(4);
+          const halfDetailValue = firstHalfDetailSet.has(_activityMonth) ? 1 : 2;
+
+          // 半期
+          const activityHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+
+          // 四半期
+          let activityQuarter = 0;
+          // 上期ルート
+          if (halfDetailValue === 1) {
+            // Q1とQ2どちらを選択中か更新
+            const firstQuarterSet = quarterDetailsSet.firstQuarterMonthSet;
+            const quarterValue = firstQuarterSet.has(_activityMonth) ? 1 : 2;
+            activityQuarter = selectedFiscalYear * 10 + quarterValue;
+          }
+          // 下期ルート
+          else {
+            // Q3とQ4どちらを選択中か更新
+            const thirdQuarterSet = quarterDetailsSet.thirdQuarterMonthSet;
+            const quarterValue = thirdQuarterSet.has(_activityMonth) ? 3 : 4;
+            activityQuarter = selectedFiscalYear * 10 + quarterValue;
+          }
+
+          if (activityQuarter === 0) {
+            return alert("会計年度データが取得できませんでした。エラー: AMC04");
+          }
+          if (String(activityHalfYear).length !== 5 || String(activityQuarter).length !== 5) {
+            if (String(activityHalfYear).length !== 5)
+              return alert("会計年度データが取得できませんでした。エラー: AMC05");
+            if (String(activityQuarter).length !== 5)
+              return alert("会計年度データが取得できませんでした。エラー: AMC06");
+          }
+          // -------- 面談年度~四半期を算出 --------
+
           const updatePayload = {
             updateArray: [
               {
@@ -1239,6 +1348,21 @@ const ActivityMainContainerOneThirdMemo = () => {
                 fieldName: "activity_year_month",
                 fieldNameForSelectedRowData: "activity_year_month",
                 newValue: !!fiscalYearMonth ? fiscalYearMonth : null,
+              },
+              {
+                fieldName: "activity_quarter",
+                fieldNameForSelectedRowData: "activity_quarter",
+                newValue: !!activityQuarter ? activityQuarter : null,
+              },
+              {
+                fieldName: "activity_half_year",
+                fieldNameForSelectedRowData: "activity_half_year",
+                newValue: !!activityHalfYear ? activityHalfYear : null,
+              },
+              {
+                fieldName: "activity_fiscal_year",
+                fieldNameForSelectedRowData: "activity_fiscal_year",
+                newValue: !!selectedFiscalYear ? selectedFiscalYear : null,
               },
             ] as UpdateObject[],
             id: id,

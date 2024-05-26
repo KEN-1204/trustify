@@ -1100,27 +1100,27 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
     const fiscalEndMonth = userProfileState?.customer_fiscal_end_month
       ? new Date(userProfileState.customer_fiscal_end_month)
-      : new Date(new Date().getFullYear(), 2, 31); // 決算日が未設定なら3月31日に自動設定
+      : new Date(new Date().getFullYear(), 2, 31, 23, 59, 59, 999); // 決算日が未設定なら3月31日に自動設定
     const closingDay = fiscalEndMonth.getDate(); //ユーザーの締め日
     fiscalEndMonthObjRef.current = fiscalEndMonth; //refに格納
     closingDayRef.current = closingDay; //refに格納
   }, []);
 
-  // 現在の会計年度の12ヶ月間
+  // 🔹現在の会計年度の12ヶ月間
   const annualFiscalMonths = useMemo(() => {
     if (!fiscalEndMonthObjRef.current) return null;
     if (!closingDayRef.current) return null;
     if (!userProfileState) return null;
 
     const currentFiscalYear = getFiscalYear(
-      new Date(),
+      new Date(), // 会計年度順の12ヶ月間の月のみ取得できれば良いので、new Date()でOK
       fiscalEndMonthObjRef.current.getMonth() + 1,
       fiscalEndMonthObjRef.current.getDate(),
       userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis"
     );
     // 期首を取得
     const currentFiscalYearStartDate = calculateFiscalYearStart({
-      fiscalYearEnd: userProfileState.customer_fiscal_end_month,
+      fiscalYearEnd: fiscalEndMonthObjRef.current ?? userProfileState.customer_fiscal_end_month,
       fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
       selectedYear: currentFiscalYear,
     });
@@ -1450,6 +1450,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
           if (!fiscalYearMonth) return toast.error("日付の更新に失敗しました。");
 
+          // -------- 面談年度~四半期を算出 --------
           // 選択した日付の会計年度
           const selectedFiscalYear = getFiscalYear(
             new Date(newValue),
@@ -1487,6 +1488,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
             if (String(meetingQuarter).length !== 5)
               return alert("会計年度データが取得できませんでした。エラー: MMC04");
           }
+          // -------- 面談年度~四半期を算出 --------
 
           // 面談予定日付のみ存在している場合
           if (selectedRowDataMeeting.planned_date && !selectedRowDataMeeting.result_date) {

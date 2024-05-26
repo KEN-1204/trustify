@@ -191,7 +191,14 @@ export const useMutateActivity = () => {
       id: string;
     }) => {
       console.log("updateActivityFieldMutation実行 引数", fieldData);
+
       const { fieldName, fieldNameForSelectedRowData, newValue, id } = fieldData;
+
+      // // フィールド名がactivity_dateの場合には同時に年月度・四半期・半期・年度も同時に更新する
+      // if (fieldName === 'activity_date') {
+      // } else {
+      // }
+
       const { data, error } = await supabase
         .from("activities")
         .update({ [fieldName]: newValue })
@@ -245,7 +252,7 @@ export const useMutateActivity = () => {
   );
 
   // 【Activityの複数フィールドを編集UPDATE用updateActivityFieldMutation関数】
-  // 活動日を編集の際に同時に活動年月度も編集する
+  // 活動日を編集の際に同時に活動年月度・四半期・半期・年度も編集する
 
   // type UpdateObject = { [key: string]: any };
   type UpdateObject = {
@@ -262,7 +269,7 @@ export const useMutateActivity = () => {
       const updatePayload = newActualKeyValueArray.reduce((acc, obj) => ({ ...acc, ...obj }), {});
 
       console.log(
-        "updateActivityFieldMutation実行 更新実行 updatePayload",
+        "🔥updateActivityFieldMutation実行 更新実行 updatePayload",
         updatePayload,
         "変換前配列",
         newActualKeyValueArray,
@@ -280,7 +287,7 @@ export const useMutateActivity = () => {
         {}
       );
 
-      console.log("updateActivityFieldMutation実行完了");
+      console.log("✅updateActivityFieldMutation実行完了 data", data);
 
       return { data, updateKeyValueArrayForSelectedRowData };
     },

@@ -906,7 +906,12 @@ export type Activity_row_data = {
   priority: string | null;
   activity_date: string | null;
   department: string | null;
+  // 年月度
   activity_year_month: number | null;
+  // 年度〜四半期
+  activity_quarter: number | null;
+  activity_half_year: number | null;
+  activity_fiscal_year: number | null;
   meeting_id: string | null;
   property_id: string | null;
   quotation_id: string | null;
@@ -1761,7 +1766,12 @@ export type Activity = {
   activity_date: string | null;
   department: string | null;
   meeting_id: string | null;
+  // 年月度
   activity_year_month: number | null;
+  // 年度〜四半期
+  activity_quarter: number | null;
+  activity_half_year: number | null;
+  activity_fiscal_year: number | null;
   property_id: string | null;
   quotation_id: string | null;
 };
