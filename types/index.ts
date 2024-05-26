@@ -912,6 +912,7 @@ export type Activity_row_data = {
   activity_quarter: number | null;
   activity_half_year: number | null;
   activity_fiscal_year: number | null;
+  //
   meeting_id: string | null;
   property_id: string | null;
   quotation_id: string | null;
@@ -1497,7 +1498,9 @@ export type NewSearchActivity_Contact_CompanyParams = {
   priority: string | null;
   activity_date: string | null;
   department: string | null;
+  // 年月度
   activity_year_month: number | null;
+  // 条件検索用のパラメータには年度〜四半期は入れず
 };
 // 面談サーチパラメータ用
 export type NewSearchMeeting_Contact_CompanyParams = {
@@ -1772,6 +1775,7 @@ export type Activity = {
   activity_quarter: number | null;
   activity_half_year: number | null;
   activity_fiscal_year: number | null;
+  //
   property_id: string | null;
   quotation_id: string | null;
 };
@@ -2107,7 +2111,12 @@ export type Quotation = {
   quotation_member_name: string | null;
   quotation_business_office: string | null;
   quotation_department: string | null;
+  // 年月度〜年度
   quotation_year_month: number | null;
+  quotation_quarter: number | null;
+  quotation_half_year: number | null;
+  quotation_fiscal_year: number | null;
+  //
   quotation_title: string | null;
   in_charge_stamp_flag: boolean | null;
   supervisor1_stamp_flag: boolean | null;
@@ -2322,7 +2331,12 @@ export type Quotation_row_data = {
   quotation_department: string | null;
   quotation_business_office: string | null;
   quotation_member_name: string | null;
+  // 年月度〜年度
   quotation_year_month: number | null;
+  quotation_quarter: number | null;
+  quotation_half_year: number | null;
+  quotation_fiscal_year: number | null;
+  //
   quotation_title: string | null;
   // -- 🔹送付先会社
   destination_company_name: string | null;
@@ -2452,6 +2466,7 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   // quotation_department: string | null;
   // quotation_business_office: string | null;
   quotation_member_name: string | null;
+  // 年月度のみパラメータに渡す
   quotation_year_month: number | null;
   quotation_title: string | null;
   // 担当印 担当者名

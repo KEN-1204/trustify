@@ -1,4 +1,15 @@
-import React, { ChangeEvent, FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  FC,
+  FormEvent,
+  Suspense,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "../QuotationDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -88,6 +99,10 @@ import { calculateLeaseMonthlyFee } from "@/utils/Helpers/calculateLeaseMonthlyF
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import Decimal from "decimal.js";
 import { useQuerySections } from "@/hooks/useQuerySections";
+import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
+import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurrentFiscalYearEndDate";
+import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
+import { getFiscalYear } from "@/utils/Helpers/getFiscalYear";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -358,6 +373,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputQuotationBusinessOffice, setInputQuotationBusinessOffice] = useState("");
   const [inputQuotationDepartment, setInputQuotationDepartment] = useState("");
   const [inputQuotationMemberName, setInputQuotationMemberName] = useState("");
+  // 年月度〜年度
   const [inputQuotationYearMonth, setInputQuotationYearMonth] = useState<number | null>(null);
 
   // ================================ 🌟フィールドエディットモード関連state🌟 ================================
@@ -1513,6 +1529,65 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     fiscalEndMonthObjRef.current = fiscalEndMonth; //refに格納
     closingDayRef.current = closingDay; //refに格納
   }, []);
+
+  // 🔹現在の会計年度の12ヶ月間
+  const annualFiscalMonths = useMemo(() => {
+    if (!fiscalEndMonthObjRef.current) return null;
+    if (!closingDayRef.current) return null;
+    if (!userProfileState) return null;
+
+    const currentFiscalYear = getFiscalYear(
+      new Date(), // 会計年度順の12ヶ月間の月のみ取得できれば良いので、new Date()でOK
+      fiscalEndMonthObjRef.current.getMonth() + 1,
+      fiscalEndMonthObjRef.current.getDate(),
+      userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis"
+    );
+    // 期首を取得
+    const currentFiscalYearStartDate = calculateFiscalYearStart({
+      fiscalYearEnd: fiscalEndMonthObjRef.current ?? userProfileState.customer_fiscal_end_month,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+      selectedYear: currentFiscalYear,
+    });
+
+    if (!currentFiscalYearStartDate) return null;
+
+    // 🔸現在の会計年度の開始年月度 期首の年月度を6桁の数値で取得 202404
+    const newStartYearMonth = calculateDateToYearMonth(currentFiscalYearStartDate, closingDayRef.current);
+    // 🔸年度初めから12ヶ月分の年月度の配列
+    const fiscalMonths = calculateFiscalYearMonths(newStartYearMonth);
+
+    return fiscalMonths;
+  }, [fiscalEndMonthObjRef.current, closingDayRef.current]);
+
+  // 上期の月のSetオブジェクト
+  const firstHalfDetailSet = useMemo(() => {
+    if (!annualFiscalMonths) return null;
+    return new Set([
+      String(annualFiscalMonths.month_01).substring(4),
+      String(annualFiscalMonths.month_02).substring(4),
+      String(annualFiscalMonths.month_03).substring(4),
+      String(annualFiscalMonths.month_04).substring(4),
+      String(annualFiscalMonths.month_05).substring(4),
+      String(annualFiscalMonths.month_06).substring(4),
+    ]);
+  }, [annualFiscalMonths]);
+
+  // 四半期のQ1とQ3の月のSetオブジェクト
+  const quarterDetailsSet = useMemo(() => {
+    if (!annualFiscalMonths) return null;
+    return {
+      firstQuarterMonthSet: new Set([
+        String(annualFiscalMonths.month_01).substring(4),
+        String(annualFiscalMonths.month_02).substring(4),
+        String(annualFiscalMonths.month_03).substring(4),
+      ]),
+      thirdQuarterMonthSet: new Set([
+        String(annualFiscalMonths.month_07).substring(4),
+        String(annualFiscalMonths.month_08).substring(4),
+        String(annualFiscalMonths.month_09).substring(4),
+      ]),
+    };
+  }, [annualFiscalMonths]);
   // ================== ✅ユーザーの決算月の締め日を初回マウント時に取得✅ ==================
 
   // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
@@ -1796,8 +1871,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
         console.log("日付チェック 新たな日付のためこのまま更新 newValue", newValue);
         // フィールドがactivity_date（活動日）の場合は活動年月度も同時に更新
         if (fieldName === "quotation_date") {
-          if (!closingDayRef.current)
+          if (!closingDayRef.current || !fiscalEndMonthObjRef.current) {
             return toast.error("決算日データが確認できないため、データを更新できませんでした...🙇‍♀️");
+          }
+          if (!firstHalfDetailSet || !quarterDetailsSet) {
+            alert("会計年度データが取得できませんでした。エラー：QMC012");
+            return toast.error("会計年度データが確認できないため、活動を更新できませんでした...🙇‍♀️");
+          }
           // if (!(newValue instanceof Date)) return toast.error("エラー：無効な日付です。");
           type ExcludeKeys = "company_id" | "contact_id" | "quotation_id"; // 除外するキー idはUPDATEすることは無いため
           type QuotationFieldNamesForSelectedRowData = Exclude<keyof Quotation_row_data, ExcludeKeys>;
@@ -1807,6 +1887,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
             newValue: any;
             id: string;
             quotationYearMonth?: number | null;
+            quotationQuarter?: number | null;
+            quotationHalfYear?: number | null;
+            quotationFiscalYear?: number | null;
           };
 
           const fiscalYearMonth = calculateDateToYearMonth(new Date(newValue), closingDayRef.current);
@@ -1814,12 +1897,59 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
           if (!fiscalYearMonth) return toast.error("日付の更新に失敗しました。");
 
+          // -------- 面談年度~四半期を算出 --------
+          // 選択した日付の会計年度
+          const selectedFiscalYear = getFiscalYear(
+            new Date(newValue),
+            fiscalEndMonthObjRef.current.getMonth() + 1,
+            fiscalEndMonthObjRef.current.getDate(),
+            userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis"
+          );
+
+          // 上期と下期どちらを選択中か更新
+          const _quotationMonth = String(fiscalYearMonth).substring(4);
+          const halfDetailValue = firstHalfDetailSet.has(_quotationMonth) ? 1 : 2;
+          // 半期
+          const quotationHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+          // 四半期
+          let quotationQuarter = 0;
+          // 上期ルート
+          if (halfDetailValue === 1) {
+            // Q1とQ2どちらを選択中か更新
+            const firstQuarterSet = quarterDetailsSet.firstQuarterMonthSet;
+            const quarterValue = firstQuarterSet.has(_quotationMonth) ? 1 : 2;
+            quotationQuarter = selectedFiscalYear * 10 + quarterValue;
+          }
+          // 下期ルート
+          else {
+            // Q3とQ4どちらを選択中か更新
+            const thirdQuarterSet = quarterDetailsSet.thirdQuarterMonthSet;
+            const quarterValue = thirdQuarterSet.has(_quotationMonth) ? 3 : 4;
+            quotationQuarter = selectedFiscalYear * 10 + quarterValue;
+          }
+
+          if (quotationQuarter === 0) {
+            {
+              return alert("会計年度データが取得できませんでした。エラー: MMC02");
+            }
+          }
+          if (String(quotationHalfYear).length !== 5 || String(quotationQuarter).length !== 5) {
+            if (String(quotationHalfYear).length !== 5)
+              return alert("会計年度データが取得できませんでした。エラー: MMC03");
+            if (String(quotationQuarter).length !== 5)
+              return alert("会計年度データが取得できませんでした。エラー: MMC04");
+          }
+          // -------- 面談年度~四半期を算出 --------
+
           const updatePayload: UpdateObject = {
             fieldName: fieldName,
             fieldNameForSelectedRowData: fieldNameForSelectedRowData,
             newValue: !!newValue ? newValue : null,
             id: id,
             quotationYearMonth: fiscalYearMonth,
+            quotationQuarter: quotationQuarter,
+            quotationHalfYear: quotationHalfYear,
+            quotationFiscalYear: selectedFiscalYear,
           };
           // 入力変換確定状態でエンターキーが押された場合の処理
           console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
@@ -2286,6 +2416,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     if (!memberObj.memberId) return alert("自社担当を入力してください");
     if (!inputCompanyId) return alert("依頼元の会社が無効なデータです。");
     if (!inputContactId) return alert("依頼元の担当者が無効なデータです。");
+    if (!fiscalEndMonthObjRef.current) return alert("決算日データが取得できませんでした。エラー：QMC01");
+    if (!firstHalfDetailSet) return alert("決算日データが取得できませんでした。エラー：QMC011");
+    if (!quarterDetailsSet) return alert("決算日データが取得できませんでした。エラー：QMC012");
 
     // ローディング開始
     setIsLoadingUpsertGlobal(true);
@@ -2293,7 +2426,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     // 見積年月度の作成
     const quotationFiscalYearMonth = calculateDateToYearMonth(
       inputQuotationDate,
-      closingDayRef.current ?? new Date(new Date().getFullYear(), 2, 31).getDate()
+      closingDayRef.current ?? new Date(new Date().getFullYear(), 2, 31, 23, 59, 59, 999).getDate()
     );
 
     // 部署名
@@ -2349,6 +2482,51 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           product_id: product.product_id,
         };
       });
+
+      // ------------------ 年月度から年度・半期・四半期を算出 ------------------
+      // 🔹年度 現在の年度を取得
+      const selectedFiscalYear = getFiscalYear(
+        inputQuotationDate,
+        fiscalEndMonthObjRef.current.getMonth() + 1,
+        fiscalEndMonthObjRef.current.getDate(),
+        userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis"
+      );
+
+      // 上期と下期どちらを選択中か更新
+      const _quotationMonth = String(quotationFiscalYearMonth).substring(4);
+      const halfDetailValue = firstHalfDetailSet.has(_quotationMonth) ? 1 : 2;
+
+      // 🔹半期
+      const quotationHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+
+      // 🔹四半期
+      let quotationQuarter = 0;
+      // 上期ルート
+      if (halfDetailValue === 1) {
+        // Q1とQ2どちらを選択中か更新
+        const firstQuarterSet = quarterDetailsSet.firstQuarterMonthSet;
+        const quarterValue = firstQuarterSet.has(_quotationMonth) ? 1 : 2;
+        quotationQuarter = selectedFiscalYear * 10 + quarterValue;
+      }
+      // 下期ルート
+      else {
+        // Q3とQ4どちらを選択中か更新
+        const thirdQuarterSet = quarterDetailsSet.thirdQuarterMonthSet;
+        const quarterValue = thirdQuarterSet.has(_quotationMonth) ? 3 : 4;
+        quotationQuarter = selectedFiscalYear * 10 + quarterValue;
+      }
+
+      if (quotationQuarter === 0) {
+        setIsLoadingUpsertGlobal(false);
+        return alert("会計年度データが取得できませんでした。エラー: QMC03");
+      }
+
+      if (String(quotationHalfYear).length !== 5 || String(quotationQuarter).length !== 5) {
+        setIsLoadingUpsertGlobal(false);
+        if (String(quotationHalfYear).length !== 5) return alert("会計年度データが取得できませんでした。エラー: QMC04");
+        if (String(quotationQuarter).length !== 5) return alert("会計年度データが取得できませんでした。エラー: QMC05");
+      }
+      // ------------------ 年月度から年度・半期・四半期を算出 ここまで ------------------
 
       try {
         // 見積テーブルと見積商品リストテーブルにINSERT
@@ -2412,7 +2590,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           quotation_member_name: memberObj.memberName,
           quotation_business_office: officeName ?? null,
           quotation_department: departmentName ?? null,
+          // 年月度〜年度
           quotation_year_month: quotationFiscalYearMonth || null,
+          quotation_quarter: quotationQuarter,
+          quotation_half_year: quotationHalfYear,
+          quotation_fiscal_year: selectedFiscalYear,
+          //
           quotation_title: inputQuotationTitle ?? null,
           in_charge_stamp_flag: checkboxInChargeFlagEdit,
           supervisor1_stamp_flag: checkboxSupervisor1FlagEdit,
@@ -2476,6 +2659,55 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
         (product) => !newProductIdsSetObj.has(product.product_id)
       ).length;
 
+      // ------------------ 年月度から年度・半期・四半期を算出 ------------------
+      let quotationQuarter = selectedRowDataQuotation.quotation_quarter;
+      let quotationHalfYear = selectedRowDataQuotation.quotation_half_year;
+      let selectedFiscalYear = selectedRowDataQuotation.quotation_fiscal_year;
+
+      // 🔹年度 現在の年度を取得
+      selectedFiscalYear = getFiscalYear(
+        inputQuotationDate,
+        fiscalEndMonthObjRef.current.getMonth() + 1,
+        fiscalEndMonthObjRef.current.getDate(),
+        userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis"
+      );
+
+      // 上期と下期どちらを選択中か更新
+      const _quotationMonth = String(quotationFiscalYearMonth).substring(4);
+      const halfDetailValue = firstHalfDetailSet.has(_quotationMonth) ? 1 : 2;
+
+      // 🔹半期
+      quotationHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+
+      // 🔹四半期
+      // let quotationQuarter = 0;
+      // 上期ルート
+      if (halfDetailValue === 1) {
+        // Q1とQ2どちらを選択中か更新
+        const firstQuarterSet = quarterDetailsSet.firstQuarterMonthSet;
+        const quarterValue = firstQuarterSet.has(_quotationMonth) ? 1 : 2;
+        quotationQuarter = selectedFiscalYear * 10 + quarterValue;
+      }
+      // 下期ルート
+      else {
+        // Q3とQ4どちらを選択中か更新
+        const thirdQuarterSet = quarterDetailsSet.thirdQuarterMonthSet;
+        const quarterValue = thirdQuarterSet.has(_quotationMonth) ? 3 : 4;
+        quotationQuarter = selectedFiscalYear * 10 + quarterValue;
+      }
+
+      if (quotationQuarter === 0) {
+        setIsLoadingUpsertGlobal(false);
+        return alert("会計年度データが取得できませんでした。エラー: QMC03");
+      }
+
+      if (String(quotationHalfYear).length !== 5 || String(quotationQuarter).length !== 5) {
+        setIsLoadingUpsertGlobal(false);
+        if (String(quotationHalfYear).length !== 5) return alert("会計年度データが取得できませんでした。エラー: QMC04");
+        if (String(quotationQuarter).length !== 5) return alert("会計年度データが取得できませんでした。エラー: QMC05");
+      }
+      // ------------------ 年月度から年度・半期・四半期を算出 ここまで ------------------
+
       try {
         // 見積テーブルと見積商品リストテーブルにINSERT
         const updatePayload = {
@@ -2538,7 +2770,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           quotation_member_name: memberObj.memberName,
           quotation_business_office: officeName ?? null,
           quotation_department: departmentName ?? null,
+          // 年月度〜年度
           quotation_year_month: quotationFiscalYearMonth || null,
+          quotation_quarter: quotationQuarter,
+          quotation_half_year: quotationHalfYear,
+          quotation_fiscal_year: selectedFiscalYear,
+          //
           quotation_title: inputQuotationTitle ?? null,
           in_charge_stamp_flag: checkboxInChargeFlagEdit,
           supervisor1_stamp_flag: checkboxSupervisor1FlagEdit,

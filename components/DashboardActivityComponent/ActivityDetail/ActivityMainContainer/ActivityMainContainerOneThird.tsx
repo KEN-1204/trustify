@@ -1,4 +1,15 @@
-import React, { ChangeEvent, FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  FC,
+  FormEvent,
+  Suspense,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "../ActivityDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -50,6 +61,9 @@ import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { useQuerySections } from "@/hooks/useQuerySections";
+import { getFiscalYear } from "@/utils/Helpers/getFiscalYear";
+import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
+import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート

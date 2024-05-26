@@ -134,6 +134,9 @@ export const useMutateProperty = () => {
         _priority: null,
         _activity_date: newProperty.property_date,
         _activity_year_month: newProperty.property_year_month,
+        _activity_quarter: newProperty.property_quarter,
+        _activity_half_year: newProperty.property_half_year,
+        _activity_fiscal_year: newProperty.property_fiscal_year,
         _meeting_id: null,
         // -- _property_id: newProperty.-,
         _quotation_id: null,
@@ -351,6 +354,9 @@ export const useMutateProperty = () => {
         // _priority: null,
         _activity_date: newProperty.property_date,
         _activity_year_month: newProperty.property_year_month,
+        _activity_quarter: newProperty.property_quarter,
+        _activity_half_year: newProperty.property_half_year,
+        _activity_fiscal_year: newProperty.property_fiscal_year,
         // _meeting_id: null,
         // -- _property_id: newProperty.-,
         // _quotation_id: null,
@@ -558,7 +564,7 @@ export const useMutateProperty = () => {
 
       // 🔹rpcでpropertiesとactivitiesテーブルを同時に更新
       if (["property_summary", "property_date"].includes(fieldName)) {
-        // 🔹property_date meetingsテーブル案件年月度、activitiesのactivity_dateとactivity_year_monthも更新
+        // 🔹property_date meetingsテーブル案件年月度、activitiesのactivity_dateとactivity_year_monthも更新 活動年月度〜活動年度までも同時に更新する
         if (fieldName === "property_date" && !!yearMonth) {
           const jsonValue = { value: newValue };
           const updatePayload = {

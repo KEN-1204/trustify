@@ -11,7 +11,7 @@ import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
 import { FiLock, FiRefreshCw, FiSearch } from "react-icons/fi";
 import { columnNameToJapaneseContacts } from "@/utils/columnNameToJapaneseContacts";
-import { Client_company, Client_company_row_data } from "@/types";
+import { Client_company, Client_company_row_data, Contact_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditColumnsModalDisplayOnly } from "../../GridTable/EditColumns/EditColumnsModalDisplayOnly";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
@@ -2968,6 +2968,11 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                       );
                     }
                     // ========= 🌟ローディング中の行トラック ここまで =========
+
+                    // クレームかTEL要注意フラグが付いていたら色を赤にする
+                    const isAlert =
+                      (rowData as Contact_row_data)?.call_careful_flag || !!(rowData as Contact_row_data)?.claim;
+
                     /* ======================== Grid列トラック Row ======================== */
                     return (
                       <div
@@ -2982,7 +2987,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                         }
                         // // ================= 🔥🔥テスト🔥🔥==================
                         // className={`${styles.grid_row} ${rowData.id === 1 ? "first" : ""}`}
-                        className={`${styles.grid_row} ${evenRowColorChange ? `${styles.even_color_change}` : ``}`}
+                        className={`${styles.grid_row} ${evenRowColorChange ? `${styles.even_color_change}` : ``} ${
+                          isAlert ? `${styles.alert_row}` : ``
+                        }`}
                         // ================= 🔥🔥テスト🔥🔥==================
                         style={{
                           // gridTemplateColumns: colsWidth.join(" "),

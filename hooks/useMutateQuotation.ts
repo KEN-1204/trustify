@@ -94,7 +94,12 @@ export const useMutateQuotation = () => {
         _quotation_member_name: newQuotation.quotation_member_name,
         _quotation_business_office: newQuotation.quotation_business_office,
         _quotation_department: newQuotation.quotation_department,
+        // 年月度〜年度
         _quotation_year_month: newQuotation.quotation_year_month,
+        _quotation_quarter: newQuotation.quotation_quarter,
+        _quotation_half_year: newQuotation.quotation_half_year,
+        _quotation_fiscal_year: newQuotation.quotation_fiscal_year,
+        //
         _quotation_title: newQuotation.quotation_title,
         _in_charge_stamp_flag: newQuotation.in_charge_stamp_flag,
         _supervisor1_stamp_flag: newQuotation.supervisor1_stamp_flag,
@@ -122,7 +127,11 @@ export const useMutateQuotation = () => {
         _member_name: newQuotation.quotation_member_name,
         _priority: null,
         _activity_date: newQuotation.quotation_date,
+        // 年月度〜年度
         _activity_year_month: newQuotation.quotation_year_month,
+        _activity_quarter: newQuotation.quotation_quarter,
+        _activity_half_year: newQuotation.quotation_half_year,
+        _activity_fiscal_year: newQuotation.quotation_fiscal_year,
         _meeting_id: null,
         _property_id: null,
       };
@@ -231,7 +240,12 @@ export const useMutateQuotation = () => {
         _quotation_member_name: newQuotation.quotation_member_name,
         _quotation_business_office: newQuotation.quotation_business_office,
         _quotation_department: newQuotation.quotation_department,
+        // 年月度〜年度
         _quotation_year_month: newQuotation.quotation_year_month,
+        _quotation_quarter: newQuotation.quotation_quarter,
+        _quotation_half_year: newQuotation.quotation_half_year,
+        _quotation_fiscal_year: newQuotation.quotation_fiscal_year,
+        //
         _quotation_title: newQuotation.quotation_title,
         _in_charge_stamp_flag: newQuotation.in_charge_stamp_flag,
         _supervisor1_stamp_flag: newQuotation.supervisor1_stamp_flag,
@@ -261,7 +275,12 @@ export const useMutateQuotation = () => {
         _member_name: newQuotation.quotation_member_name,
         // _priority: null,
         _activity_date: newQuotation.quotation_date,
+        // 年月度〜年度
         _activity_year_month: newQuotation.quotation_year_month,
+        _activity_quarter: newQuotation.quotation_quarter,
+        _activity_half_year: newQuotation.quotation_half_year,
+        _activity_fiscal_year: newQuotation.quotation_fiscal_year,
+        //
         // _meeting_id: null,
         // _property_id: null,
         // _quotation_id: null,
@@ -321,21 +340,40 @@ export const useMutateQuotation = () => {
       newValue: any;
       id: string;
       quotationYearMonth?: number | null;
+      quotationQuarter?: number | null;
+      quotationHalfYear?: number | null;
+      quotationFiscalYear?: number | null;
       leaseMonthlyFee?: string | null;
     }) => {
       console.log("updateQuotationFieldMutation 引数取得", fieldData);
-      const { fieldName, fieldNameForSelectedRowData, newValue, id, quotationYearMonth, leaseMonthlyFee } = fieldData;
+      const {
+        fieldName,
+        fieldNameForSelectedRowData,
+        newValue,
+        id,
+        quotationYearMonth,
+        leaseMonthlyFee,
+        quotationQuarter,
+        quotationHalfYear,
+        quotationFiscalYear,
+      } = fieldData;
 
       // 🔹rpcでquotationsとactivitiesテーブルを同時に更新
       if (["quotation_date"].includes(fieldName)) {
         // quotation_dateの場合は見積年月度も同時にquotationsテーブルに更新 同時にactivitiesテーブルも更新
         if (fieldName === "quotation_date" && !!quotationYearMonth) {
+          if (!quotationYearMonth || !quotationQuarter || !quotationHalfYear || !quotationFiscalYear)
+            throw new Error("会計年度データが見つかりませんでした。");
+
           const jsonValue = { value: newValue };
           const updatePayload = {
             _quotation_id: id,
             _column_name: fieldName,
             _json_value: jsonValue,
             _quotation_year_month: quotationYearMonth,
+            _quotation_quarter: quotationQuarter,
+            _quotation_half_year: quotationHalfYear,
+            _quotation_fiscal_year: quotationFiscalYear,
           };
 
           console.log("updateQuotationFieldMutation rpc実行 ", "カラム名", fieldName, "updatePayload", updatePayload);

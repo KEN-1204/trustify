@@ -251,7 +251,7 @@ export const InsertNewActivityModal = () => {
     // ------------------ 年月度から年度・半期・四半期を算出 ------------------
     if (fiscalEndMonthObjRef.current === null) return alert("決算日データが見つかりませんでした。");
 
-    // 現在の年度を取得
+    // 🔹年度 現在の年度を取得
     const selectedFiscalYear = getFiscalYear(
       activityDate,
       fiscalEndMonthObjRef.current.getMonth() + 1,
@@ -261,7 +261,9 @@ export const InsertNewActivityModal = () => {
     // 期首を取得
     const fiscalYearStartDate = calculateFiscalYearStart({
       fiscalYearEnd:
-        userProfileState.customer_fiscal_end_month ?? new Date(new Date().getFullYear(), 2, 31, 23, 59, 59, 999),
+        fiscalEndMonthObjRef.current ??
+        userProfileState.customer_fiscal_end_month ??
+        new Date(new Date().getFullYear(), 2, 31, 23, 59, 59, 999),
       fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
       selectedYear: selectedFiscalYear,
     });
@@ -273,7 +275,9 @@ export const InsertNewActivityModal = () => {
     const fiscalYearEndDate =
       calculateCurrentFiscalYearEndDate({
         fiscalYearEnd:
-          userProfileState?.customer_fiscal_end_month ?? new Date(new Date().getFullYear(), 2, 31, 23, 59, 59, 999),
+          fiscalEndMonthObjRef.current ??
+          userProfileState?.customer_fiscal_end_month ??
+          new Date(new Date().getFullYear(), 2, 31, 23, 59, 59, 999),
         selectedYear: selectedFiscalYear,
       }) ?? new Date(new Date().getFullYear(), 2, 31, 23, 59, 59, 999);
     // 🔸現在の会計年度の開始年月度 期首の年月度を6桁の数値で取得 202404
@@ -291,7 +295,11 @@ export const InsertNewActivityModal = () => {
     ]);
     const _activityMonth = String(activityYearMonth).substring(4);
     const halfDetailValue = firstHalfDetailSet.has(_activityMonth) ? 1 : 2;
+
+    // 🔹半期
     const activityHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+
+    // 🔹四半期
     let activityQuarter = 0;
     // 上期ルート
     if (halfDetailValue === 1) {
@@ -369,10 +377,24 @@ export const InsertNewActivityModal = () => {
       activity_quarter: activityQuarter ? activityQuarter : null,
       activity_half_year: activityHalfYear ? activityHalfYear : null,
       activity_fiscal_year: selectedFiscalYear ? selectedFiscalYear : null,
+      //
       meeting_id: null,
       property_id: null,
       quotation_id: null,
     };
+
+    console.log(
+      "活動 新規作成 newActivity",
+      newActivity,
+      "activityYearMonth",
+      activityYearMonth,
+      "activityQuarter",
+      activityQuarter,
+      "activityHalfYear",
+      activityHalfYear,
+      "selectedFiscalYear",
+      selectedFiscalYear
+    );
 
     // supabaseにINSERT,ローディング終了, モーダルを閉じる
     createActivityMutation.mutate(newActivity);
@@ -407,7 +429,7 @@ export const InsertNewActivityModal = () => {
     // ------------------ 年月度から年度・半期・四半期を算出 ------------------
     if (fiscalEndMonthObjRef.current === null) return alert("決算日データが見つかりませんでした。");
 
-    // 現在の年度を取得
+    // 🔹年度 現在の年度を取得
     const selectedFiscalYear = getFiscalYear(
       activityDate,
       fiscalEndMonthObjRef.current.getMonth() + 1,
@@ -447,7 +469,11 @@ export const InsertNewActivityModal = () => {
     ]);
     const _activityMonth = String(activityYearMonth).substring(4);
     const halfDetailValue = firstHalfDetailSet.has(_activityMonth) ? 1 : 2;
+
+    // 🔹半期
     const activityHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+
+    // 🔹四半期
     let activityQuarter = 0;
     // 上期ルート
     if (halfDetailValue === 1) {
@@ -524,10 +550,24 @@ export const InsertNewActivityModal = () => {
       activity_quarter: activityQuarter ? activityQuarter : null,
       activity_half_year: activityHalfYear ? activityHalfYear : null,
       activity_fiscal_year: selectedFiscalYear ? selectedFiscalYear : null,
+      //
       meeting_id: null, //面談作成時用
       property_id: null, //案件作成時用
       quotation_id: null, //見積作成時用
     };
+
+    console.log(
+      "活動 新規作成 newActivity",
+      newActivity,
+      "activityYearMonth",
+      activityYearMonth,
+      "activityQuarter",
+      activityQuarter,
+      "activityHalfYear",
+      activityHalfYear,
+      "selectedFiscalYear",
+      selectedFiscalYear
+    );
 
     // supabaseにINSERT,ローディング終了, モーダルを閉じる
     createActivityMutation.mutate(newActivity);
@@ -559,7 +599,7 @@ export const InsertNewActivityModal = () => {
     // ------------------ 年月度から年度・半期・四半期を算出 ------------------
     if (fiscalEndMonthObjRef.current === null) return alert("決算日データが見つかりませんでした。");
 
-    // 現在の年度を取得
+    // 🔹年度 現在の年度を取得
     const selectedFiscalYear = getFiscalYear(
       activityDate,
       fiscalEndMonthObjRef.current.getMonth() + 1,
@@ -599,7 +639,11 @@ export const InsertNewActivityModal = () => {
     ]);
     const _activityMonth = String(activityYearMonth).substring(4);
     const halfDetailValue = firstHalfDetailSet.has(_activityMonth) ? 1 : 2;
+
+    // 🔹半期
     const activityHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+
+    // 🔹四半期
     let activityQuarter = 0;
     // 上期ルート
     if (halfDetailValue === 1) {
@@ -671,15 +715,30 @@ export const InsertNewActivityModal = () => {
       member_name: memberObj.memberName ? memberObj.memberName : null,
       priority: priority ? priority : null,
       activity_date: activityDate ? activityDate.toISOString() : null,
+      // 年月度
       activity_year_month: activityYearMonth ? activityYearMonth : null,
       // 年度〜四半期
       activity_quarter: activityQuarter ? activityQuarter : null,
       activity_half_year: activityHalfYear ? activityHalfYear : null,
       activity_fiscal_year: selectedFiscalYear ? selectedFiscalYear : null,
+      //
       meeting_id: null, //面談作成時用
       property_id: null, //案件作成時用
       quotation_id: null, //見積作成時用
     };
+
+    console.log(
+      "活動 新規作成 newActivity",
+      newActivity,
+      "activityYearMonth",
+      activityYearMonth,
+      "activityQuarter",
+      activityQuarter,
+      "activityHalfYear",
+      activityHalfYear,
+      "selectedFiscalYear",
+      selectedFiscalYear
+    );
 
     // supabaseにINSERT,ローディング終了, モーダルを閉じる
     createActivityMutation.mutate(newActivity);
@@ -711,7 +770,7 @@ export const InsertNewActivityModal = () => {
     // ------------------ 年月度から年度・半期・四半期を算出 ------------------
     if (fiscalEndMonthObjRef.current === null) return alert("決算日データが見つかりませんでした。");
 
-    // 現在の年度を取得
+    // 🔹年度 現在の年度を取得
     const selectedFiscalYear = getFiscalYear(
       activityDate,
       fiscalEndMonthObjRef.current.getMonth() + 1,
@@ -751,7 +810,11 @@ export const InsertNewActivityModal = () => {
     ]);
     const _activityMonth = String(activityYearMonth).substring(4);
     const halfDetailValue = firstHalfDetailSet.has(_activityMonth) ? 1 : 2;
+
+    // 🔹半期
     const activityHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+
+    // 🔹四半期
     let activityQuarter = 0;
     // 上期ルート
     if (halfDetailValue === 1) {
@@ -828,10 +891,24 @@ export const InsertNewActivityModal = () => {
       activity_quarter: activityQuarter ? activityQuarter : null,
       activity_half_year: activityHalfYear ? activityHalfYear : null,
       activity_fiscal_year: selectedFiscalYear ? selectedFiscalYear : null,
+      //
       meeting_id: null, //面談作成時用
       property_id: null, //案件作成時用
       quotation_id: null, //見積作成時用
     };
+
+    console.log(
+      "活動 新規作成 newActivity",
+      newActivity,
+      "activityYearMonth",
+      activityYearMonth,
+      "activityQuarter",
+      activityQuarter,
+      "activityHalfYear",
+      activityHalfYear,
+      "selectedFiscalYear",
+      selectedFiscalYear
+    );
 
     // supabaseにINSERT,ローディング終了, モーダルを閉じる
     createActivityMutation.mutate(newActivity);

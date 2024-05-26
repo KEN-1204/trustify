@@ -525,7 +525,7 @@ export const InsertNewMeetingModal = () => {
       calculateCurrentFiscalYearEndDate({
         fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
         selectedYear: selectedFiscalYear,
-      }) ?? new Date(new Date().getFullYear(), 2, 31);
+      }) ?? new Date(new Date().getFullYear(), 2, 31, 23, 59, 59, 999);
     // 🔸現在の会計年度の開始年月度 期首の年月度を6桁の数値で取得 202404
     const newStartYearMonth = calculateDateToYearMonth(fiscalYearStartDate, fiscalYearEndDate.getDate());
     // 🔸年度初めから12ヶ月分の年月度の配列

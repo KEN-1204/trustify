@@ -448,6 +448,18 @@
   background-color: var(--color-table-even-color-changed-bg);
 }
 
+/* アラート行 */
+.grid_row.alert_row .grid_cell:not(.checkbox_cell) {
+  /* background: var(--main-color-tk) !important; */
+  color: var(--main-color-tk) !important;
+}
+.grid_row[aria-selected="true"].alert_row .grid_cell:not(.checkbox_cell),
+.grid_row.even_color_change[aria-selected="true"].alert_row .grid_cell:not(.checkbox_cell) {
+  background: var(--color-table-alert) !important;
+  color: #fff !important;
+}
+/* アラート行 ここまで */
+
 .grid_column_header_all {
   color: var(--color-text);
   color: var(--color-text-title);

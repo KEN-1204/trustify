@@ -796,7 +796,7 @@ export const UpdateMeetingModal = () => {
     // ユーザーの決算月から締め日を取得、決算つきが未設定の場合は現在の年と3月31日を設定
     const fiscalEndMonth = userProfileState?.customer_fiscal_end_month
       ? new Date(userProfileState.customer_fiscal_end_month)
-      : new Date(new Date().getFullYear(), 2, 31);
+      : new Date(new Date().getFullYear(), 2, 31, 23, 59, 59, 999);
     const closingDay = fiscalEndMonth.getDate(); //ユーザーの締め日
     fiscalEndMonthObjRef.current = fiscalEndMonth; //refに格納
     closingDayRef.current = closingDay; //refに格納
@@ -846,6 +846,7 @@ export const UpdateMeetingModal = () => {
     setIsOpenUpdateMeetingModal(false);
   };
 
+  // ------------------------ 🌟更新実行🌟 ------------------------
   // 🌟面談データの更新
   const handleSaveAndClose = async () => {
     // if (!summary) return alert("活動概要を入力してください");
@@ -965,7 +966,7 @@ export const UpdateMeetingModal = () => {
 
       // 期首を取得
       const fiscalYearStartDate = calculateFiscalYearStart({
-        fiscalYearEnd: userProfileState.customer_fiscal_end_month,
+        fiscalYearEnd: fiscalEndMonthObjRef.current ?? userProfileState.customer_fiscal_end_month,
         fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
         selectedYear: selectedFiscalYear,
       });
@@ -976,9 +977,9 @@ export const UpdateMeetingModal = () => {
       // 期末を取得
       const fiscalYearEndDate =
         calculateCurrentFiscalYearEndDate({
-          fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+          fiscalYearEnd: fiscalEndMonthObjRef.current ?? userProfileState?.customer_fiscal_end_month ?? null,
           selectedYear: selectedFiscalYear,
-        }) ?? new Date(new Date().getFullYear(), 2, 31);
+        }) ?? new Date(new Date().getFullYear(), 2, 31, 23, 59, 59, 999);
       // 🔸現在の会計年度の開始年月度 期首の年月度を6桁の数値で取得 202404
       const newStartYearMonth = calculateDateToYearMonth(fiscalYearStartDate, fiscalYearEndDate.getDate());
       // 🔸年度初めから12ヶ月分の年月度の配列
@@ -1190,19 +1191,22 @@ export const UpdateMeetingModal = () => {
     if (!newMeeting)
       return toast.error("エラーが発生しました🙇‍♀️ サポートにご報告の上しばらく経ってからやり直してください。");
 
-    console.log("面談予定 新規作成 newMeeting", newMeeting);
-    console.log("productIdToNameMap", productIdToNameMap);
-    console.log("attendeeIdsArray", attendeeIdsArray);
-    console.log("attendeeIdsArray", resultPresentationProductsArray);
+    console.log("面談 更新 newMeeting", newMeeting);
     console.log(
-      "productIdToNameMap[resultProductsArrayExcludeNull[0]]",
-      productIdToNameMap[resultProductsArrayExcludeNull[0]]
+      "面談 更新 meetingYearMonth",
+      meetingYearMonth,
+      "_meetingQuarter",
+      _meetingQuarter,
+      "_meetingHalfYear",
+      _meetingHalfYear,
+      "_meetingFiscalYear",
+      _meetingFiscalYear
     );
-    // console.log("面談予定 新規作成 newMeeting.planned_start_time", newMeeting.planned_start_time);
-    console.log(
-      "面談予定 新規作成 newMeeting.planned_start_time 一致するか",
-      newMeeting.planned_start_time === "08:30"
-    );
+
+    // if (true) {
+    //   setLoadingGlobalState(false);
+    //   return;
+    // }
 
     // setLoadingGlobalState(false);
     // return;
