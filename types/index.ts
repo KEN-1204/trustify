@@ -1799,7 +1799,11 @@ export type Meeting = {
   meeting_business_office: string | null;
   meeting_department: string | null;
   meeting_member_name: string | null;
+  // 年度〜年月度
   meeting_year_month: number | null;
+  meeting_quarter: number | null;
+  meeting_half_year: number | null;
+  meeting_fiscal_year: number | null;
 };
 
 // 製品 productsテーブル
@@ -2021,7 +2025,11 @@ export type ResultMeetingWithProductsAttendees = {
   meeting_business_office: string | null;
   meeting_department: string | null;
   meeting_member_name: string | null;
+  // 年度〜年月度
   meeting_year_month: number | null;
+  meeting_quarter: number | null;
+  meeting_half_year: number | null;
+  meeting_fiscal_year: number | null;
   // 実施商品テーブル用と、同席者テーブル用
   product_ids: (string | null)[];
   attendee_ids: (string | null)[];
@@ -3405,14 +3413,14 @@ export type SalesProcessesForSDB = {
     | "expansion_rate"
     | "f_expansion"
     | "f_expansion_rate"
-    | "f_expansion_award"
-    | "f_expansion_award_rate"
+    | "half_year_f_expansion"
+    | "half_year_f_expansion_award"
+    | "half_year_f_expansion_award_rate"
     | "award"
-    | "award_rate_per_meeting"
-    | "total_amount"
+    | "sales_total_amount"
     | "sales_target"
     | "achievement_rate"
-    | "total_amount_half_year"
+    | "sales_total_amount_half_year"
     | "sales_target_half_year"
     | "achievement_rate_half_year";
   result: number;

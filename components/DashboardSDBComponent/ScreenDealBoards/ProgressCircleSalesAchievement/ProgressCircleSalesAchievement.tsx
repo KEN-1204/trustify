@@ -13,6 +13,8 @@ import { mappingEntityName } from "@/utils/mappings";
 import { roundTo } from "@/utils/Helpers/PercentHelpers/roundTo";
 import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/ProgressCircle";
 import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/ProgressNumber";
+import { useQuerySDBSalesProcessesForProgress } from "@/hooks/useQuerySDBSalesProcessesForProgress";
+import useDashboardStore from "@/store/useDashboardStore";
 
 type Props = {
   fiscalYear: number;
@@ -24,8 +26,11 @@ type Props = {
   entityLevelId: string;
   entityStructureId: string;
   // periodType: FiscalYearAllKeys;
-  periodType: PropertiesPeriodKey;
+  periodTypeForTarget: FiscalYearAllKeys | null;
+  periodTypeForProperty: PropertiesPeriodKey;
   basePeriod: number;
+  // halfYearPeriod: number;
+  // halfYearPeriodTypeForTarget: "first_half" | "second_half";
   current_sales_amount: number | null;
   current_sales_target: number | null;
   current_achievement_rate: number | null;
@@ -47,8 +52,11 @@ const ProgressCircleSalesAchievementMemo = ({
   entityLevel,
   entityLevelId,
   entityStructureId,
-  periodType,
+  periodTypeForTarget,
+  periodTypeForProperty,
   basePeriod,
+  // halfYearPeriod,
+  // halfYearPeriodTypeForTarget,
   fetchEnabled,
   fallbackHeight = "302px",
   fallbackPadding = `0px 0px 6px`,
@@ -68,40 +76,75 @@ const ProgressCircleSalesAchievementMemo = ({
     setIsDesktopGTE1600(isDesktopGTE1600Media);
   }, [isDesktopGTE1600Media]);
 
+  // 🔹表示中の会計年度(グローバル)(SDB用)
+  const selectedFiscalYearTargetSDB = useDashboardStore((state) => state.selectedFiscalYearTargetSDB);
+  // 選択中の期間が上期か下期か(SDB用)
+  const selectedPeriodTypeHalfDetailSDB = useDashboardStore((state) => state.selectedPeriodTypeHalfDetailSDB);
+
+  const halfYearPeriodValue = useMemo(() => {
+    if (!selectedFiscalYearTargetSDB) return null;
+    const periodValue = selectedPeriodTypeHalfDetailSDB === "first_half_details" ? 1 : 2;
+    return selectedFiscalYearTargetSDB * 10 + periodValue;
+  }, [selectedFiscalYearTargetSDB, selectedPeriodTypeHalfDetailSDB]);
+
   // ------------------------- useQuery各プロセスの進捗を取得 -------------------------
-  // const { data, isLoading, isError } = useQuerySalesProcess({
-  //   fiscalYear,
-  //   companyId,
-  //   parentEntityId,
-  //   parentEntityTotalMainTarget,
-  //   entityLevel,
-  //   entityLevelId,
-  //   fiscalYearId,
-  //   entities,
-  //   periodType, // 期間タイプ FiscalYearAllKeysの全ての期間タイプ
-  //   basePeriod, // 起点となる時点
-  //   fetchEnabled,
-  // });
+  const { data, isLoading, isError } = useQuerySDBSalesProcessesForProgress({
+    fiscalYear,
+    fiscalYearId,
+    entityLevelId,
+    entityStructureId,
+    companyId,
+    entityId,
+    entityLevel,
+    periodTypeForTarget,
+    periodTypeForProperty,
+    basePeriod,
+    halfYearPeriod: halfYearPeriodValue,
+    halfYearPeriodTypeForTarget:
+      selectedPeriodTypeHalfDetailSDB === "first_half_details" ? "first_half" : "second_half",
+    fetchEnabled: halfYearPeriodValue !== null && !!periodTypeForTarget,
+  });
   // ------------------------- useQuery各プロセスの進捗を取得 ここまで -------------------------
 
-  // console.log("ProgressCircleSalesAchievementレンダリング data", data);
+  // プロセスに関しては、企業ごとにやり方が異なるので、目標と達成率は売上のみ管理する
+  // テスト TELPRと面談は別途最初に表示 CV率は表示しない fiscal_year 今期 next_fiscal_year 来期
 
-  // if (isLoading)
-  //   return (
-  //     <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
-  //       <SpinnerX />
-  //     </div>
-  //   );
+  // 【TEL関連】は一旦無し => メール・TEL・訪問中のダイレクトなど面談にこぎつける手法はなんでも良いため
+  // TELタイトル：TEL発信/PR(通電)/アポ率/PR(通電) (アポ率に総架電は含めない 理由は売り前フォロー時やサポート時のTEL不在が含まれ、正確なTELPR目的のみのTEL発信を表さないため)
+  // TEL発信：不在、能動、受動、売り前フォロー、売り後フォロー、アポ組、TEL発信の全ての件数(総架電件数)
+  // PR(通電)：活動タイプのTEL発信(能動)とTEL発信(受動)
 
-  // if (!data || isError)
-  //   return (
-  //     <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
-  //       <span style={{ fontSize: fontSize }}>
-  //         {(!data || !data.chartData?.length) && !isError && noDataText}
-  //         {isError && errorText}
-  //       </span>
-  //     </div>
-  //   );
+  // 【TEL関連】
+  // TELPR件数：活動タイプ：「TEL発信(能動)」「TEL発信(受動)」「TEL発信()
+
+  // ✅【面談関連】
+  // 面談：総面談(全ての面談)・新規面談(面談目的の能動と受動のみ)
+
+  // 展開/A：展開・展開F・展開F獲得数・A数
+
+  // 標準プロセス 結果(メンバーの場合は親エンティティAveを表示)
+
+  console.log("ProgressCircleSalesAchievementレンダリング data", data);
+
+  if (isLoading)
+    return (
+      <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
+        <SpinnerX />
+      </div>
+    );
+
+  if (!halfYearPeriodValue)
+    return <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}></div>;
+
+  if (!data || isError)
+    return (
+      <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
+        <span style={{ fontSize: fontSize }}>
+          {(!data || !data.length) && !isError && noDataText}
+          {isError && errorText}
+        </span>
+      </div>
+    );
 
   // const totalAmount = data.total_amount;
   const formattedTotalAmount = useMemo(
@@ -126,35 +169,6 @@ const ProgressCircleSalesAchievementMemo = ({
   // const colorsSheer = COLORS_DEAL_SHEER;
   const colors = colorsHEXTrend; // COLORS_DEAL
   const colorsSheer = colorsHEXTrend;
-
-  // プロセスに関しては、企業ごとにやり方が異なるので、目標と達成率は売上のみ管理する
-  // テスト TELPRと面談は別途最初に表示 CV率は表示しない fiscal_year 今期 next_fiscal_year 来期
-
-  // 【TEL関連】は一旦無し => メール・TEL・訪問中のダイレクトなど面談にこぎつける手法はなんでも良いため
-  // TELタイトル：TEL発信/PR(通電)/アポ率/PR(通電) (アポ率に総架電は含めない 理由は売り前フォロー時やサポート時のTEL不在が含まれ、正確なTELPR目的のみのTEL発信を表さないため)
-  // TEL発信：不在、能動、受動、売り前フォロー、売り後フォロー、アポ組、TEL発信の全ての件数(総架電件数)
-  // PR(通電)：活動タイプのTEL発信(能動)とTEL発信(受動)
-
-  // 【TEL関連】
-  // TELPR件数：活動タイプ：「TEL発信(能動)」「TEL発信(受動)」「TEL発信()
-
-  // ✅【面談関連】
-  // 面談：総面談(全ての面談)・新規面談(面談目的の能動と受動のみ)
-
-  // 展開/A：展開・展開F・展開F獲得数・A数
-
-  // 標準プロセス 結果(メンバーの場合は親エンティティAveを表示)
-
-  // ------------------------- useQuery残ネタ取得 -------------------------
-  // const { data, isLoading, isError } = useQuerySDBSalesProcesses({
-  //   companyId,
-  //   entityId,
-  //   entityLevel,
-  //   basePeriod,
-  //   periodType,
-  //   fetchEnabled,
-  // });
-  // ------------------------- useQuery残ネタ取得 ここまで -------------------------
 
   const processArrayTest = [
     // { category: `call_pr`, result: 30 },

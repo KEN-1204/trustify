@@ -79,6 +79,9 @@ import { IoIosSend } from "react-icons/io";
 import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/CompanyMainContainer/InputSendAndCloseBtn/InputSendAndCloseBtn";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { useQuerySections } from "@/hooks/useQuerySections";
+import { getFiscalYear } from "@/utils/Helpers/getFiscalYear";
+import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
+import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -1102,6 +1105,64 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     fiscalEndMonthObjRef.current = fiscalEndMonth; //refに格納
     closingDayRef.current = closingDay; //refに格納
   }, []);
+
+  // 現在の会計年度の12ヶ月間
+  const annualFiscalMonths = useMemo(() => {
+    if (!fiscalEndMonthObjRef.current) return null
+    if (!closingDayRef.current) return null
+
+    const currentFiscalYear = getFiscalYear(
+            new Date(),
+            fiscalEndMonthObjRef.current.getMonth() + 1,
+            fiscalEndMonthObjRef.current.getDate(),
+            userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis"
+          );
+    // 期首を取得
+    const currentFiscalYearStartDate = calculateFiscalYearStart({
+      fiscalYearEnd: userProfileState.customer_fiscal_end_month,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+      selectedYear: currentFiscalYear,
+    });
+
+    if (!currentFiscalYearStartDate) return null;
+
+    // 🔸現在の会計年度の開始年月度 期首の年月度を6桁の数値で取得 202404
+    const newStartYearMonth = calculateDateToYearMonth(currentFiscalYearStartDate, closingDayRef.current);
+    // 🔸年度初めから12ヶ月分の年月度の配列
+    const fiscalMonths = calculateFiscalYearMonths(newStartYearMonth);
+
+    return fiscalMonths
+  }, [fiscalEndMonthObjRef.current, closingDayRef.current])
+
+  // 上期の月のSetオブジェクト
+  const firstHalfDetailSet = useMemo(() => {
+    if (!annualFiscalMonths) return null
+    return new Set([
+      String(annualFiscalMonths.month_01).substring(4),
+      String(annualFiscalMonths.month_02).substring(4),
+      String(annualFiscalMonths.month_03).substring(4),
+      String(annualFiscalMonths.month_04).substring(4),
+      String(annualFiscalMonths.month_05).substring(4),
+      String(annualFiscalMonths.month_06).substring(4),
+    ]);
+  }, [annualFiscalMonths])
+
+  // 四半期のQ1とQ3の月のSetオブジェクト
+  const quarterDetailsSet = useMemo(() => {
+    if (!annualFiscalMonths) return null
+    return {
+      firstQuarterMonthSet: new Set([
+        String(annualFiscalMonths.month_01).substring(4),
+        String(annualFiscalMonths.month_02).substring(4),
+        String(annualFiscalMonths.month_03).substring(4),
+      ]),
+      thirdQuarterMonthSet: new Set([
+        String(annualFiscalMonths.month_07).substring(4),
+        String(annualFiscalMonths.month_08).substring(4),
+        String(annualFiscalMonths.month_09).substring(4),
+      ])
+    };
+  }, [annualFiscalMonths])
   // ================== ✅ユーザーの決算月の締め日を初回マウント時に取得✅ ==================
 
   // ================== 🌟シングルクリック、ダブルクリックイベント🌟 ==================
@@ -1359,8 +1420,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
         console.log("日付チェック 新たな日付のためこのまま更新 newValue", newValue);
         // フィールドがactivity_date（活動日）の場合は活動年月度も同時に更新
         if (fieldName === "planned_date" || fieldName === "result_date") {
-          if (!closingDayRef.current)
-            return toast.error("決算日データが確認できないため、活動を更新できませんでした...🙇‍♀️");
+          if (!closingDayRef.current || !fiscalEndMonthObjRef.current)
+            {
+              alert('決算日データが取得できませんでした。エラー：MMC02')
+              return toast.error("決算日データが確認できないため、活動を更新できませんでした...🙇‍♀️")};
+          if (!firstHalfDetailSet || !quarterDetailsSet)
+            {
+              alert('会計年度データが取得できませんでした。エラー：MMC03')
+              return toast.error("会計年度データが確認できないため、活動を更新できませんでした...🙇‍♀️")};
           // if (!(newValue instanceof Date)) return toast.error("エラー：無効な日付です。");
           type ExcludeKeys = "company_id" | "contact_id" | "meeting_id"; // 除外するキー idはUPDATEすることは無いため
           type MeetingFieldNamesForSelectedRowData = Exclude<keyof Meeting_row_data, ExcludeKeys>;
@@ -1370,12 +1437,57 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
             newValue: any;
             id: string;
             meetingYearMonth?: number | null;
+            meetingQuarter?: number | null;
+            meetingHalfYear?: number | null;
+            meetingFiscalYear?: number | null;
+            requireUpdateActivityDate?: boolean | undefined;
           };
 
+          // 年月度
           const fiscalYearMonth = calculateDateToYearMonth(new Date(newValue), closingDayRef.current);
           console.log("新たに生成された年月度", fiscalYearMonth);
 
           if (!fiscalYearMonth) return toast.error("日付の更新に失敗しました。");
+
+          // 選択した日付の会計年度
+          const selectedFiscalYear = getFiscalYear(
+            new Date(newValue),
+            fiscalEndMonthObjRef.current.getMonth() + 1,
+            fiscalEndMonthObjRef.current.getDate(),
+            userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis"
+          );
+
+    // 上期と下期どちらを選択中か更新
+    const _meetingMonth = String(fiscalYearMonth).substring(4);
+    const halfDetailValue = firstHalfDetailSet.has(_meetingMonth) ? 1 : 2;
+    const meetingHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+    let meetingQuarter = 0;
+    // 上期ルート
+    if (halfDetailValue === 1) {
+      // Q1とQ2どちらを選択中か更新
+      const firstQuarterSet = quarterDetailsSet.firstQuarterMonthSet
+      const quarterValue = firstQuarterSet.has(_meetingMonth) ? 1 : 2;
+      meetingQuarter = selectedFiscalYear * 10 + quarterValue;
+    }
+    // 下期ルート
+    else {
+      // Q3とQ4どちらを選択中か更新
+      const thirdQuarterSet = quarterDetailsSet.thirdQuarterMonthSet
+      const quarterValue = thirdQuarterSet.has(_meetingMonth) ? 3 : 4;
+      meetingQuarter = selectedFiscalYear * 10 + quarterValue;
+    }
+
+    if (meetingQuarter === 0) {
+      setLoadingGlobalState(false);
+      return alert("会計年度データが取得できませんでした。エラー: INM02");
+    }
+    if (String(meetingHalfYear).length !== 5 || String(meetingQuarter).length !== 5) {
+      setLoadingGlobalState(false);
+      if (String(meetingHalfYear).length !== 5) return alert("会計年度データが取得できませんでした。エラー: INM03");
+      if (String(meetingQuarter).length !== 5) return alert("会計年度データが取得できませんでした。エラー: INM04");
+    }
+
+
 
           // 面談予定日付のみ存在している場合
           if (selectedRowDataMeeting.planned_date && !selectedRowDataMeeting.result_date) {
@@ -1384,22 +1496,42 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               fieldNameForSelectedRowData: fieldNameForSelectedRowData,
               newValue: !!newValue ? newValue : null,
               id: id,
+              meetingYearMonth: fiscalYearMonth,
+              meetingQuarter: ,
+              requireUpdateActivityDate: true
             };
 
             // 入力変換確定状態でエンターキーが押された場合の処理
             console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
             await updateMeetingFieldMutation.mutateAsync(updatePayload);
-          } else if (selectedRowDataMeeting.planned_date && selectedRowDataMeeting.result_date) {
-            const updatePayload: UpdateObject = {
+          } 
+          // 面談予定日と面談日(結果)が両方存在している場合はresult_dateに基づいて、年月度と活動日を変更
+          else if (selectedRowDataMeeting.planned_date && selectedRowDataMeeting.result_date) {
+            if (fieldName === 'result_date') {
+              const updatePayload: UpdateObject = {
+                fieldName: fieldName,
+                fieldNameForSelectedRowData: fieldNameForSelectedRowData,
+                newValue: !!newValue ? newValue : null,
+                id: id,
+                meetingYearMonth: fiscalYearMonth,
+                meetingQuarter: ,
+              };
+              // 入力変換確定状態でエンターキーが押された場合の処理
+              console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
+              await updateMeetingFieldMutation.mutateAsync(updatePayload);
+            } else if (fieldName === 'planned_date') {
+               const updatePayload: UpdateObject = {
               fieldName: fieldName,
               fieldNameForSelectedRowData: fieldNameForSelectedRowData,
               newValue: !!newValue ? newValue : null,
               id: id,
-              meetingYearMonth: fiscalYearMonth,
+              requireUpdateActivityDate: false
             };
+
             // 入力変換確定状態でエンターキーが押された場合の処理
             console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
             await updateMeetingFieldMutation.mutateAsync(updatePayload);
+            }
           }
           originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
           setIsEditModeField(null); // エディットモードを終了

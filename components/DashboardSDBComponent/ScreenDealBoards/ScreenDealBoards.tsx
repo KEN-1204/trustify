@@ -772,7 +772,8 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                       entityLevel={displayEntityForAchievement.entity_level}
                       entityLevelId={displayEntityForAchievement.entity_level_id}
                       entityStructureId={displayEntityForAchievement.entity_structure_id}
-                      periodType={activePeriodSDB.periodType}
+                      periodTypeForTarget={monthKey}
+                      periodTypeForProperty={activePeriodSDB.periodType}
                       basePeriod={activePeriodSDB.period}
                       current_sales_amount={displayEntityForAchievement.current_sales_amount}
                       current_sales_target={displayEntityForAchievement.current_sales_target}

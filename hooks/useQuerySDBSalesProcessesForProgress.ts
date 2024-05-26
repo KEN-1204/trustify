@@ -1,51 +1,78 @@
-import { SalesProcessesForSDB } from "@/types";
+import { FiscalYearAllKeys, PropertiesPeriodKey, SalesProcessesForSDB } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 
 type Props = {
+  fiscalYear: number;
+  fiscalYearId: string;
+  entityLevelId: string;
+  entityStructureId: string;
   companyId: string;
-  entityLevel: string;
   entityId: string;
-  // periodType: string;
-  periodType: "fiscal_year" | "half_year" | "quarter" | "year_month";
+  entityLevel: string;
+  periodTypeForTarget: FiscalYearAllKeys | null;
+  periodTypeForProperty: PropertiesPeriodKey;
   basePeriod: number;
+  halfYearPeriod: number | null;
+  halfYearPeriodTypeForTarget: "first_half" | "second_half";
   fetchEnabled?: boolean;
 };
 
 // 過去3年分の売上実績と前年度の伸び率実績を取得するuseQuery
-export const useQuerySDBSalesProcesses = ({
+export const useQuerySDBSalesProcessesForProgress = ({
+  fiscalYear,
+  fiscalYearId,
+  entityLevelId,
+  entityStructureId,
   companyId,
-  entityLevel,
   entityId,
-  periodType, // 期間タイプ fiscal_year, half_year, quarter, year_month
-  basePeriod, // 起点となる時点
+  entityLevel,
+  periodTypeForTarget,
+  periodTypeForProperty,
+  basePeriod,
+  halfYearPeriod,
+  halfYearPeriodTypeForTarget,
   fetchEnabled = true,
 }: Props) => {
   const supabase = useSupabaseClient();
 
   const getSalesProcesses = async (): Promise<SalesProcessesForSDB[] | null> => {
+    if (!halfYearPeriod) return null;
+    if (!periodTypeForTarget) return null;
     // FUNCTIONの返り値
     let responseData = null;
 
-    // 指定した期間タイプ(年度、半期、四半期、月度)の、
-    // 指定した各エンティティの、
-    // 指定した年度から指定した年数分遡った期間の
-    // 「現年度売上、前年度売上、成長率、エンティティid、エンティティ名」を渡したエンティティの数分取得する
+    // 指定したエンティティ
+    // プロセス：指定した期間 (配列でstartとendを渡して一定期間のプロセスを取得できるようにする)
+    // プロセス：
+    // TELPR・TEL発信All
+    // 新規面談・面談All
+    // 展開・展開率
+    // 展開F・展開F率
+    // A数(今月度)
+    // 展開F(今期)・F獲得(今期)・F獲得率
+    //
+    //
+    // 売上：指定した期間と半期
+    //
 
     const payload = {
+      _fiscal_year_id: fiscalYearId,
+      _entity_level_id: entityLevelId, // エンティティテーブルid
+      _entity_structure_id: entityStructureId, // エンティティテーブルid
       _company_id: companyId, // 会社id
       _entity_id: entityId, // エンティティid
       _entity_level: entityLevel, // エンティティレベルの割り当て
-      _base_period: basePeriod, // 取得する期間
-      _period_type: periodType, // 期間タイプ
+      _period_type_for_target: periodTypeForTarget, // 期間タイプ(sales_targetsテーブル用)
+      _period_type_for_sales: periodTypeForProperty, // 期間タイプ(propertiesテーブル用)
+      _period: basePeriod, // 期間
+      _half_year_period: halfYearPeriod,
+      _half_year_period_type_for_target: halfYearPeriodTypeForTarget,
     };
 
-    console.log("🔥useQuerySDBSalesProcesses rpc get_sales_processes_by_entity関数実行 payload", payload);
+    console.log("🔥useQuerySDBSalesProcessesForProgress rpc get_sales_processes_for_progress関数実行 payload", payload);
 
-    const { data, error } = await supabase
-      // .rpc("get_sales_probability_by_entity", { payload })
-      .rpc("get_sales_processes_by_entity", payload);
-    // .eq("created_by_company_id", companyId);
+    const { data, error } = await supabase.rpc("get_sales_processes_for_progress", payload);
 
     if (error) {
       console.error("❌getSalesProcessesエラー発生", error);
@@ -63,12 +90,12 @@ export const useQuerySDBSalesProcesses = ({
   };
 
   return useQuery({
-    queryKey: ["sales_processes", entityLevel, entityId, periodType, basePeriod],
+    queryKey: ["sales_processes_for_progress", fiscalYear, basePeriod, entityId],
     queryFn: getSalesProcesses,
     staleTime: Infinity,
     onError: (error) => {
       console.error("useQueryDepartments error:", error);
     },
-    enabled: !!companyId && !!entityLevel && !!entityId && !!periodType && !!basePeriod && fetchEnabled,
+    enabled: fetchEnabled && !!halfYearPeriod && !!periodTypeForTarget,
   });
 };
