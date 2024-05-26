@@ -1356,8 +1356,15 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
         {/* <ul id="price" className={styles.accordion}> */}
         <ul id="price" className={styles.accordion} style={{ fontFamily: "var(--font-family-discord)" }}>
           <li>
-            <input type="radio" name="accordion" id="first" value="about" checked={selectedFAQ === "about"} readOnly />
-            <label htmlFor="first" onClick={(e) => handleRadioChange(e, "about")}>
+            <input
+              type="radio"
+              name="accordion"
+              id="about_accordion"
+              value="about"
+              checked={selectedFAQ === "about"}
+              readOnly
+            />
+            <label htmlFor="about_accordion" onClick={(e) => handleRadioChange(e, "about")}>
               {language === "ja" && "TRUSTiFYとは？"}
               {language === "en" && "What is TRUSTiFY?"}
             </label>
@@ -1379,8 +1386,43 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             </div>
           </li>
           <li>
-            <input type="radio" name="accordion" id="second" value="price" checked={selectedFAQ === "price"} readOnly />
-            <label htmlFor="second" onClick={(e) => handleRadioChange(e, "price")}>
+            <input
+              type="radio"
+              name="accordion"
+              id="target_accordion"
+              value="target"
+              checked={selectedFAQ === "target"}
+              readOnly
+            />
+            <label htmlFor="target_accordion" onClick={(e) => handleRadioChange(e, "target")}>
+              {language === "ja" && "TRUSTiFYは全ての会社・チームに適していますか？"}
+              {language === "en" && "Is this service suitable for all companies and teams?"}
+            </label>
+            <div className={`${styles.content}`}>
+              <p className={`relative z-0 ${language === "en" ? `!tracking-[0.5px]` : ``}`}>
+                {language === "ja" &&
+                  `いいえ、全ての会社・チームに適してはいません。\nすでに会社・チーム内に優秀なエンジニアと自社に適したデータベースを有していて、今後も時代の流れとともに技術進化を常に取り入れデータベースをアップデートしていき、かつ、優秀なエンジニアへの数百万から数千万の人件費を確保し他社への人材流出のリスクヘッジが取れた体制が整っている会社・チームであればTRUSTiFYは必要ではありません。`}
+                {language === "en" &&
+                  "No, it is not suitable for all companies and teams. \nIf your company or team already has excellent engineers and a database tailored to your needs, and if you are committed to continually updating your database with the latest technological advancements while securing millions in salaries to retain top engineers and mitigate the risk of talent loss, then this service is unnecessary for you."}
+              </p>
+              <p className={`${language === "en" ? `!tracking-[0.5px]` : ``}`}>
+                {language === "ja" &&
+                  "TRUSTiFYは、利益を上げ続けるために必要な機能を備えたデータベースを構築し、常に技術の進化に伴いアップデートし続け、かつ、これを低価格に抑えて利用するため労力を私たちが引き受けることで、\nお客様の優秀なエンジニア獲得のための多額の固定費の支出や、人材流出リスクの悩みを解消し、最小のコストで最大の経済効果を生み出し続ける体制を整えたい会社・チームのために存在しています。"}
+                {language === "en" &&
+                  "Our service exists for companies and teams that aim to build a database equipped with the necessary functions to continuously generate profit, keep it updated with evolving technology, and minimize costs. \nWe take on the effort of maintaining and updating the database, thereby allowing our customers to avoid significant fixed costs for acquiring top engineers and the worry of talent loss. This enables them to create a system that delivers maximum economic benefits with minimal cost."}
+              </p>
+            </div>
+          </li>
+          <li>
+            <input
+              type="radio"
+              name="accordion"
+              id="price_accordion"
+              value="price"
+              checked={selectedFAQ === "price"}
+              readOnly
+            />
+            <label htmlFor="price_accordion" onClick={(e) => handleRadioChange(e, "price")}>
               {language === "ja" && "TRUSTiFYの利用料金は？"}
               {language === "en" && "How much does TRUSTiFY cost?"}
             </label>
@@ -1405,12 +1447,12 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             <input
               type="radio"
               name="accordion"
-              id="third"
+              id="difference_accordion"
               value="difference"
               checked={selectedFAQ === "difference"}
               readOnly
             />
-            <label htmlFor="third" onClick={(e) => handleRadioChange(e, "difference")}>
+            <label htmlFor="difference_accordion" onClick={(e) => handleRadioChange(e, "difference")}>
               {/* {language === "ja" && "広告つきプランと通常のプランとの違いは何ですか？"} */}
               {language === "ja" && "ビジネスプランとプレミアムプランとの違いは何ですか？"}
               {/* {language === "en" && "What's different on an ad-supported plan?"} */}
@@ -1455,12 +1497,12 @@ export const Root: FC<Props> = ({ logoSrc, blurDataURL, logoSrcDark, blurDataURL
             <input
               type="radio"
               name="accordion"
-              id="fifth"
+              id="cancel_accordion"
               value="cancel"
               checked={selectedFAQ === "cancel"}
               readOnly
             />
-            <label htmlFor="fifth" onClick={(e) => handleRadioChange(e, "cancel")}>
+            <label htmlFor="cancel_accordion" onClick={(e) => handleRadioChange(e, "cancel")}>
               {language === "ja" && "キャンセルするには？"}
               {language === "en" && "How do I cancel?"}
             </label>

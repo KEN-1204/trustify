@@ -3391,3 +3391,29 @@ export type SalesTargetsShareChartData = {
 export type EntityObjForChart = {
   [K in "entity_name" | "entity_id" | "entity_structure_id"]: string;
 };
+
+// ---------------- SDB関連 ----------------
+// 売上進捗・達成率チャート用 営業プロセス結果
+// 面談ALL・新規面談・展開・展開率・展開F・展開F率・F獲得・F獲得率・A数・面談効率
+export type SalesProcessesForSDB = {
+  category:
+    | "call_pr"
+    | "call_all"
+    | "meeting_all"
+    | "meeting_new"
+    | "expansion_all"
+    | "expansion_rate"
+    | "f_expansion"
+    | "f_expansion_rate"
+    | "f_expansion_award"
+    | "f_expansion_award_rate"
+    | "award"
+    | "award_rate_per_meeting"
+    | "total_amount"
+    | "sales_target"
+    | "achievement_rate"
+    | "total_amount_half_year"
+    | "sales_target_half_year"
+    | "achievement_rate_half_year";
+  result: number;
+};

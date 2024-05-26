@@ -859,8 +859,10 @@ export const UpdateMeetingModal = () => {
         productId !== null && productId !== "" && productId !== undefined && typeof productId === "string"
     );
 
-    if (!resultProductsArrayExcludeNull || resultProductsArrayExcludeNull.length === 0) {
-      return alert("「実施商品を最低1つ入力してください。");
+    if (!!resultDate) {
+      if (!resultProductsArrayExcludeNull || resultProductsArrayExcludeNull.length === 0) {
+        return alert("「実施商品」を最低1つ入力してください。");
+      }
     }
 
     // 新たな紹介ずみ商品id配列に、元々の紹介ずみ商品配列の中で含まれていない商品idの数を取得し、削除が必要な数値をパラメータに渡す
@@ -891,6 +893,18 @@ export const UpdateMeetingModal = () => {
       : 0;
 
     // return console.log("リターン", resultProductsArrayExcludeNull);
+
+    // 結果 面談日が入力されている場合は、面談結果を入力するようにアラート
+    if (!!resultDate) {
+      if (resultStartTime === "")
+        return alert("結果セクションに「面談日」を入力している場合は、「面談開始時間」を入力してください。");
+      if (resultEndTime === "")
+        return alert("結果セクションに「面談日」を入力している場合は、「面談終了時間」を入力してください。");
+      if (resultCategory === "")
+        return alert("結果セクションに「面談日」を入力している場合は、「面談結果」を選択してください。");
+      if (resultProductObjArrayExcludeNull.length === 0)
+        return alert("結果セクションに「面談日」を入力している場合は、「実施商品」を少なくとも1つ入力してください。");
+    }
 
     setLoadingGlobalState(true);
 

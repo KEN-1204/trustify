@@ -1914,8 +1914,8 @@ const DealBoardMemo = ({
                   ></span>
                 )} */}
                 <ProgressNumber
-                  // targetNumber={6200000}
-                  targetNumber={0}
+                  targetNumber={6200000}
+                  // targetNumber={0}
                   // startNumber={Math.round(68000 / 2)}
                   // startNumber={Number((68000 * 0.1).toFixed(0))}
                   startNumber={0}
@@ -1942,9 +1942,9 @@ const DealBoardMemo = ({
                 ) : (
                   <span className="text-[16px]">-</span>
                 )} */}
-                {/* <span className="ml-[6px] text-[16px]">9,000,000</span> */}
+                <span className="ml-[6px] text-[16px]">9,000,000</span>
                 {/* <span className="ml-[0px] text-[16px]">-</span> */}
-                <span className="ml-[12px] text-[16px]">-</span>
+                {/* <span className="ml-[12px] text-[16px]">-</span> */}
               </div>
             </div>
             <div className={`relative h-[56px] w-[56px]`} style={{ margin: `0` }}>

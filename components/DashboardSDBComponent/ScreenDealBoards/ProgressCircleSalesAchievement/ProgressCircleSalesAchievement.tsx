@@ -22,6 +22,7 @@ type Props = {
   entityName: string;
   entityLevel: EntityLevelNames;
   entityLevelId: string;
+  entityStructureId: string;
   // periodType: FiscalYearAllKeys;
   periodType: PropertiesPeriodKey;
   basePeriod: number;
@@ -45,6 +46,7 @@ const ProgressCircleSalesAchievementMemo = ({
   entityName,
   entityLevel,
   entityLevelId,
+  entityStructureId,
   periodType,
   basePeriod,
   fetchEnabled,
@@ -101,9 +103,6 @@ const ProgressCircleSalesAchievementMemo = ({
   //     </div>
   //   );
 
-  // ホバー中のセクター
-  const [activeIndex, setActiveIndex] = useState(1000);
-
   // const totalAmount = data.total_amount;
   const formattedTotalAmount = useMemo(
     () => (current_sales_amount ? formatToJapaneseYen(current_sales_amount, true) : null),
@@ -146,27 +145,54 @@ const ProgressCircleSalesAchievementMemo = ({
 
   // 標準プロセス 結果(メンバーの場合は親エンティティAveを表示)
 
+  // ------------------------- useQuery残ネタ取得 -------------------------
+  // const { data, isLoading, isError } = useQuerySDBSalesProcesses({
+  //   companyId,
+  //   entityId,
+  //   entityLevel,
+  //   basePeriod,
+  //   periodType,
+  //   fetchEnabled,
+  // });
+  // ------------------------- useQuery残ネタ取得 ここまで -------------------------
+
   const processArrayTest = [
+    // { category: `call_pr`, result: 30 },
+    // { category: `call_all`, result: 30 },
+    // { category: `meeting_new`, result: 25.4 }, // 事前にCTEで作成
     // { category: `meeting_all`, result: 30 },
-    // { category: `meeting_new`, result: 25.4 },
-    // { category: `expansion_all`, result: 25.4 },
-    // { category: `expansion_rate`, result: 25.4 },
-    // { category: `fiscal_year_expansion`, result: 25.4 },
-    // { category: `fiscal_year_expansion_rate`, result: 25.4 },
-    // { category: `fiscal_year_expansion_award`, result: 25.4 },
-    // { category: `fiscal_year_expansion_award_rate`, result: 25.4 },
+    // { category: `expansion_all`, result: 25.4 }, // 事前にCTEで作成
+    // { category: `expansion_rate`, result: 25.4 }, // 事前にCTEで作成
+    // { category: `f_expansion`, result: 25.4 }, // 事前にCTEで作成
+    // { category: `f_expansion_rate`, result: 25.4 }, // 事前にCTEで作成
+    // { category: `half_year_f_expansion`, result: 25.4 }, // 事前にCTEで作成
+    // { category: `half_year_f_expansion_award`, result: 25.4 }, // 事前にCTEで作成
+    // { category: `half_year_f_expansion_award_rate`, result: 25.4 }, // 事前にCTEで作成
     // { category: `award`, result: 25.4 },
-    // { category: `fiscal_year_expansion_award_rate_per_meeting`, result: 25.4 },
-    { category: `新規面談`, result: 25.4 },
-    { category: `面談（All）`, result: 30 },
-    { category: `展開`, result: 25.4 },
-    { category: `展開率`, result: 25.4 },
-    { category: `展開F`, result: 25.4 },
-    { category: `展開F率`, result: 25.4 },
-    { category: `F獲得`, result: 25.4 },
-    { category: `F獲得率`, result: 25.4 },
-    { category: `A数`, result: 25.4 },
-    { category: `面談効率`, result: 25.4 },
+    // { category: `sales_total_amount`, result: 25.4 }, // 事前にCTEで作成
+    // { category: `sales_target`, result: 25.4 }, // 事前にCTEで作成
+    // { category: `achievement_rate`, result: 25.4 }, // 事前にCTEで作成
+    // { category: `half_year_sales_total_amount`, result: 25.4 }, // 事前にCTEで作成
+    // { category: `half_year_sales_target`, result: 25.4 }, // 事前にCTEで作成
+    // { category: `half_year_achievement_rate`, result: 25.4 }, // 事前にCTEで作成
+    { category: `TEL発信PR`, result: 25.4 },
+    { category: `TEL発信All`, result: 25.4 },
+    { category: `新規面談`, result: 25.4 }, // 事前にCTEで作成
+    { category: `面談All`, result: 30 },
+    { category: `展開`, result: 25.4 }, // 事前にCTEで作成
+    { category: `展開率`, result: 25.4 }, // 事前にCTEで作成
+    { category: `展開F`, result: 25.4 }, // 事前にCTEで作成
+    { category: `展開F率`, result: 25.4 }, // 事前にCTEで作成
+    { category: `A数(6月度)`, result: 25.4 },
+    { category: `展開F(半期)`, result: 25.4 }, // 事前にCTEで作成
+    { category: `F獲得(半期)`, result: 25.4 }, // 事前にCTEで作成
+    { category: `F獲得率(半期)`, result: 25.4 }, // 事前にCTEで作成
+    { category: `売上総額(6月度)`, result: 25.4 }, // 事前にCTEで作成
+    { category: `目標(6月度)`, result: 25.4 }, // 事前にCTEで作成
+    { category: `達成率(6月度)`, result: 25.4 }, // 事前にCTEで作成
+    { category: `売上総額(半期)`, result: 25.4 }, // 事前にCTEで作成
+    { category: `目標(半期)`, result: 25.4 }, // 事前にCTEで作成
+    { category: `達成率(半期)`, result: 25.4 }, // 事前にCTEで作成
   ];
 
   // const formattedLabelDataArrayTest = useMemo(() => {
@@ -216,47 +242,53 @@ const ProgressCircleSalesAchievementMemo = ({
               className={`flex-center relative`}
               style={{
                 minWidth: chartContainerWidth,
-                height: `219px`,
+                // height: `219px`,
+                // height: `236px`,
+                height: `226px`,
                 // minWidth: chartContainerWidth ? chartContainerWidth : `calc(${pieChartRadius * 2 + paddingX * 2})`,
               }}
             >
               {/* <div className={`absolute left-0 top-0 flex h-auto w-full items-center bg-[blue]/[0]`}> */}
               <div className={`absolute left-0 top-0 flex h-auto w-full flex-col justify-center bg-[blue]/[0]`}>
-                <div className={`min-h-[62px] w-full`}></div>
-                <div
-                  className={`relative z-[100] flex w-full items-center pl-[34px]`}
-                  // style={{ height: `${chartHeight}px` }}
-                  style={{ height: `156px` }}
-                  // style={{ height: `269px` }}
-                >
-                  <ProgressCircle
-                    circleId={`${entityId}_achievement_board`}
-                    textId={`${entityId}_achievement_board`}
-                    // progress={78}
-                    progress={69}
-                    // progress={100}
-                    // progress={0}
-                    duration={5000}
-                    easeFn="Quartic"
-                    size={156}
-                    strokeWidth={14}
-                    fontSize={33}
-                    // fontSize={28}
-                    // fontWeight={600}
-                    fontWeight={500}
-                    fontFamily="var(--font-family-str)"
-                    textColor="var(--color-text-title)"
-                    isReady={true}
-                    // withShadow={true}
-                    withShadow={false}
-                    // boxShadow={`0 0 1px 1px #ffffff90, 0 0 3px 2px #ffffff36, 0 0 3px 3px #ffffff15`}
-                    // boxShadow={`0 0 1px 1px #ffffff90, 0 0 3px 2px #ffffff24, 0 0 3px 3px #ffffff12`}
-                    fade={`fade08_forward`}
-                    // fade={`fade10_forward`}
-                    customText="達成率"
-                    customFontSize={12}
-                    customTextTop={`calc(50% + 28px)`}
-                  />
+                {/* <div className={`min-h-[57px] w-full`}></div> */}
+                <div className={`min-h-[57px] w-full`}></div>
+                <div className="flex h-full w-full pl-[30px]">
+                  <div
+                    // className={`relative z-[100] mb-[5px] flex w-full items-center pl-[34px]`}
+                    className={`relative z-[100] mb-[5px] flex w-full items-center`}
+                    // style={{ height: `${chartHeight}px` }}
+                    style={{ height: `156px`, width: `156px` }}
+                    // style={{ height: `269px` }}
+                  >
+                    <ProgressCircle
+                      circleId={`${entityId}_achievement_board`}
+                      textId={`${entityId}_achievement_board`}
+                      // progress={78}
+                      progress={69}
+                      // progress={100}
+                      // progress={0}
+                      duration={5000}
+                      easeFn="Quartic"
+                      size={156}
+                      strokeWidth={14}
+                      fontSize={33}
+                      // fontSize={28}
+                      // fontWeight={600}
+                      fontWeight={500}
+                      fontFamily="var(--font-family-str)"
+                      textColor="var(--color-text-title)"
+                      isReady={true}
+                      // withShadow={true}
+                      withShadow={false}
+                      // boxShadow={`0 0 1px 1px #ffffff90, 0 0 3px 2px #ffffff36, 0 0 3px 3px #ffffff15`}
+                      // boxShadow={`0 0 1px 1px #ffffff90, 0 0 3px 2px #ffffff24, 0 0 3px 3px #ffffff12`}
+                      fade={`fade08_forward`}
+                      // fade={`fade10_forward`}
+                      customText="達成率"
+                      customFontSize={12}
+                      customTextTop={`calc(50% + 28px)`}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -264,8 +296,11 @@ const ProgressCircleSalesAchievementMemo = ({
               className={`fade08_forward flex h-full min-h-full w-full flex-col bg-[gray]/[0]`}
               // style={{ minHeight: chartHeight }}
             >
-              <div className={`mt-[10px] flex h-auto w-full`}>
-                <h4 className={`text-[14px]`}>各プロセス 結果</h4>
+              <div
+                // className={`mt-[10px] flex h-auto w-full`}
+                className={`mt-[0px] flex h-auto w-full`}
+              >
+                <h4 className={`text-[14px] font-bold`}>営業プロセス 結果</h4>
               </div>
               <div className={`mt-[5px] flex w-full justify-between text-[12px] text-[var(--color-text-sub)]`}></div>
               {/* <div className={`mt-[0px] flex w-full justify-between text-[12px] text-[var(--color-text-sub)]`}>
@@ -282,7 +317,7 @@ const ProgressCircleSalesAchievementMemo = ({
             </div> */}
 
               {/* <div className={`flex- relative max-h-[187px] w-full flex-col overflow-y-auto`}> */}
-              <div className={`relative flex w-full flex-col`}>
+              <div className={`relative flex max-h-[200px] w-full flex-col overflow-y-auto`}>
                 <div
                   className={`relative w-full`}
                   style={{ display: `grid`, gridTemplateColumns: `repeat(2, 1fr)`, columnGap: `20px` }}
@@ -349,11 +384,21 @@ const ProgressCircleSalesAchievementMemo = ({
                       <div
                         key={`standard_process_${index}_test`}
                         className={`w-full border-b border-solid border-[var(--color-border-base)] pb-[7px] pt-[9px] text-[var(--color-text-title)] `}
-                        style={{ display: `grid`, gridTemplateColumns: `80px 1fr` }}
+                        // style={{ display: `grid`, gridTemplateColumns: `90px 1fr` }}
+                        style={{ display: `grid`, gridTemplateColumns: `max-content 1fr` }}
                       >
                         <div className={`flex items-center`}>
                           {/* <div className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`} /> */}
-                          <div className="text-[13px]">
+                          {/* {index % 2 === 0 && (
+                            <div
+                              className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`}
+                              style={{
+                                background: `${colors[Math.floor(index / 2)]}`,
+                                // background: `var(--color-bg-brand-f)`,
+                              }}
+                            />
+                          )} */}
+                          <div className="text-[13px] font-bold">
                             <span>{obj.category}</span>
                           </div>
                         </div>
@@ -434,10 +479,16 @@ const ProgressCircleSalesAchievementMemo = ({
           </div>
 
           {isRenderProgress && (
-            <div className={`fade_forward08 flex h-full min-h-[58px] w-full items-end justify-start`}>
-              <div className={`relative !ml-[24px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}>
+            <div
+              // className={`fade_forward08 flex h-full min-h-[58px] w-full items-end justify-start`}
+              className={`fade_forward08 flex h-full min-h-[48px] w-full items-end justify-start`}
+            >
+              <div
+                // className={`relative !ml-[24px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}
+                className={`relative !ml-[24px] flex h-full min-h-[40px] w-auto items-end bg-[red]/[0]`}
+              >
                 {/* <div className="flex h-full min-w-[150px] items-end justify-end"> */}
-                <div className="flex h-full min-w-[66px] items-end justify-end">
+                <div className="relative flex h-full min-w-[66px] items-end justify-end">
                   <ProgressNumber
                     targetNumber={6200000}
                     // targetNumber={0}
@@ -448,18 +499,32 @@ const ProgressCircleSalesAchievementMemo = ({
                     easeFn="Quintic"
                     fontSize={29}
                     fontWeight={500}
-                    margin="0 0 -3px 0"
+                    // margin="0 0 -3px 0"
+                    margin="0 0 -5px 0"
                     // isReady={isRenderProgress}
                     isReady={true}
                     fade={`fade08_forward`}
                   />
+                  <div
+                    className={`absolute bottom-[-18px] right-[0] flex min-w-max space-x-[6px] text-[10px] text-[var(--color-text-sub)]`}
+                  >
+                    <div className={`min-w-max whitespace-nowrap`}>売上</div>
+                  </div>
                 </div>
                 <div className="relative h-full min-w-[33px]">
                   <div className="absolute bottom-[15px] left-[66%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[var(--color-text-title)]"></div>
                 </div>
-                <div className="mr-[12px] flex h-full min-w-max items-end justify-start">
+                <div className="relative mr-[12px] flex h-full min-w-max items-end justify-start">
                   <span className="ml-[6px] text-[18px]">9,000,000</span>
-                  {/* <span className="text-[18px] ml-[12px]">-</span> */}
+                  {/* <span className="ml-[12px] text-[18px]">-</span> */}
+                  <div
+                    // className={`absolute right-[0] top-[-18px] flex min-w-max space-x-[6px] text-[10px] text-[var(--color-text-sub)]`}
+                    className={`absolute bottom-[-18px] right-[0] flex min-w-max space-x-[6px] text-[10px] text-[var(--color-text-sub)]`}
+                  >
+                    {/* <div className={`min-w-max whitespace-nowrap`}>売上</div> */}
+                    {/* <div className={`min-w-max whitespace-nowrap`}>/</div> */}
+                    <div className={`min-w-max whitespace-nowrap`}>目標</div>
+                  </div>
                 </div>
               </div>
             </div>

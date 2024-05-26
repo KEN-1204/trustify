@@ -34,6 +34,7 @@ import { ScreenDealBoards } from "../ScreenDealBoards/ScreenDealBoards";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 import {
   EntityGroupByParent,
+  EntityLevelNames,
   FiscalYearAllKeys,
   FiscalYearMonthKey,
   HalfYearKey,
@@ -420,21 +421,52 @@ const SalesProgressScreenMemo = () => {
     if (!myEntityObj) return null;
     const myMemberGroup = memberGroups.find((group) => group.parent_entity_id === myEntityObj.parent_entity_id);
     if (!myMemberGroup) return null;
+    const parentEntityLevelGroup = entitiesHierarchyQueryData[myEntityObj.parent_entity_level as EntityLevelNames];
+    if (!parentEntityLevelGroup) return null;
+    const parentEntityGroups = parentEntityLevelGroup.map((group) => group.entities).flatMap((array) => array);
+    if (!parentEntityGroups) return null;
+    const parentEntity = parentEntityGroups.find((entity) => entity.entity_id === myEntityObj.parent_entity_id);
+    if (!parentEntity) return null;
+
+    // console.log(
+    //   "ここparentEntity",
+    //   parentEntity,
+    //   "myEntityObj.parent_entity_level",
+    //   myEntityObj.parent_entity_level,
+    //   "parentEntityLevelGroup",
+    //   parentEntityLevelGroup,
+    //   "parentEntityGroups",
+    //   parentEntityGroups
+    // );
     return {
       ...myMemberGroup,
       parent_entity_level: myEntityObj.parent_entity_level,
       parent_entity_level_id: myEntityObj.parent_entity_level_id,
+      parent_entity_structure_id: parentEntity.id,
       entity_level: myEntityObj.entity_level,
-    } as EntityGroupByParent & { parent_entity_level: string; parent_entity_level_id: string; entity_level: string };
+    } as EntityGroupByParent & {
+      parent_entity_level: string;
+      parent_entity_level_id: string;
+      parent_entity_structure_id: string;
+      entity_level: string;
+    };
   }, [entitiesHierarchyQueryData]);
 
   const [displayEntityGroup, setDisplayEntityGroup] = useState<
-    (EntityGroupByParent & { parent_entity_level: string; parent_entity_level_id: string; entity_level: string }) | null
+    | (EntityGroupByParent & {
+        parent_entity_level: string;
+        parent_entity_level_id: string;
+        parent_entity_structure_id: string;
+        entity_level: string;
+      })
+    | null
   >(null);
 
   // ✅初回マウント時 現在の会計年度の売上目標とエンティティ構成が設定されている場合はZustandにセット
   useEffect(() => {
     if (!initialMemberGroupByParentEntity) return;
+
+    // console.log("ここinitialMemberGroupByParentEntity", initialMemberGroupByParentEntity);
 
     setDisplayEntityGroup(initialMemberGroupByParentEntity);
   }, []);

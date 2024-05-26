@@ -46,7 +46,12 @@ import { ProgressCircleSalesAchievement } from "./ProgressCircleSalesAchievement
 type Props = {
   // memberList: Entity[];
   displayEntityGroup:
-    | (EntityGroupByParent & { parent_entity_level: string; parent_entity_level_id: string; entity_level: string })
+    | (EntityGroupByParent & {
+        parent_entity_level: string;
+        parent_entity_level_id: string;
+        parent_entity_structure_id: string;
+        entity_level: string;
+      })
     | null;
   monthKey: FiscalYearMonthKey | null;
   // periodType: string;
@@ -144,6 +149,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     entityIds: entityIds,
     parentEntityLevelId: displayEntityGroup?.parent_entity_level_id ?? null,
     parentEntityLevel: displayEntityGroup?.parent_entity_level ?? null,
+    parentEntityStructureId: displayEntityGroup?.parent_entity_structure_id ?? null,
     parentEntityId: displayEntityGroup?.parent_entity_id ?? null,
     periodTypeForTarget: monthKey,
     periodTypeForSales: activePeriodSDB.periodType,
@@ -360,6 +366,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     entity_name: string;
     entity_level: EntityLevelNames;
     entity_level_id: string;
+    entity_structure_id: string;
   } | null>(() => {
     if (!displayEntityGroup) return null;
     if (!displayEntityGroup.parent_entity_id) return null;
@@ -372,6 +379,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
           : displayEntityGroup.parent_entity_name,
       entity_level: displayEntityGroup.parent_entity_level as EntityLevelNames,
       entity_level_id: displayEntityGroup.parent_entity_level_id,
+      entity_structure_id: displayEntityGroup.parent_entity_structure_id,
     };
     // return displayEntityGroup.entities[0];
   });
@@ -396,6 +404,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
         entity_name: selectedEntityForAchievement.entity_name,
         entity_level: selectedEntityForAchievement.entity_level,
         entity_level_id: selectedEntityForAchievement.entity_level_id,
+        entity_structure_id: selectedEntityForAchievement.entity_structure_id,
         current_sales_amount: newMemberAccount.current_sales_amount,
         current_sales_target: newMemberAccount.current_sales_target,
         current_achievement_rate: newMemberAccount.current_achievement_rate,
@@ -408,6 +417,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
         entity_name: selectedEntityForAchievement.entity_name,
         entity_level: selectedEntityForAchievement.entity_level as EntityLevelNames,
         entity_level_id: selectedEntityForAchievement.entity_level_id,
+        entity_structure_id: selectedEntityForAchievement.entity_structure_id,
         current_sales_amount: parentData.current_sales_amount,
         current_sales_target: parentData.current_sales_target,
         current_achievement_rate: parentData.current_achievement_rate,
@@ -761,6 +771,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                       entityName={displayEntityForAchievement.entity_name}
                       entityLevel={displayEntityForAchievement.entity_level}
                       entityLevelId={displayEntityForAchievement.entity_level_id}
+                      entityStructureId={displayEntityForAchievement.entity_structure_id}
                       periodType={activePeriodSDB.periodType}
                       basePeriod={activePeriodSDB.period}
                       current_sales_amount={displayEntityForAchievement.current_sales_amount}

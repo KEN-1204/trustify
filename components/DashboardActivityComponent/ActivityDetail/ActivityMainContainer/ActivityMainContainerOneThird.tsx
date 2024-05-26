@@ -915,20 +915,24 @@ const ActivityMainContainerOneThirdMemo = () => {
     !!selectedRowDataActivity?.activity_created_by_company_id &&
     selectedRowDataActivity.activity_created_by_company_id === userProfileState.company_id;
   // 活動タイプが活動テーブルのものであるか => 面談・訪問、案件発生、見積は除外
-  const isNotActivityTypeArray: string[] = ["面談・訪問", "案件発生", "見積"];
+  // const isNotActivityTypeArray: string[] = ["面談・訪問", "案件発生", "見積"];
+  const isNotActivityTypeArray: string[] = ["meeting", "property", "quotation"];
   const isOurActivityAndIsTypeActivity =
     isOurActivity &&
     selectedRowDataActivity?.activity_type &&
     !isNotActivityTypeArray.includes(selectedRowDataActivity.activity_type);
   const returnMessageNotActivity = (type: string) => {
     switch (type) {
-      case "面談・訪問":
+      // case "面談・訪問":
+      case "meeting":
         return `活動タイプ「面談・訪問」のデータを活動画面から編集できるのは「次回フォロー予定日、フォロー完了フラグ、クレーム」のみです。それ以外はタブから「面談・訪問」をクリックして面談・訪問画面から編集してください。`;
         break;
-      case "案件発生":
+      // case "案件発生":
+      case "property":
         return `活動タイプ「案件発生」のデータを活動画面から編集できるのは「次回フォロー予定日、フォロー完了フラグ、クレーム」のみです。それ以外はタブから「案件」をクリックして案件画面から編集してください。`;
         break;
-      case "見積":
+      // case "見積":
+      case "quotation":
         return `活動タイプ「見積」のデータを活動画面から編集できるのは「次回フォロー予定日、フォロー完了フラグ、クレーム」のみです。それ以外タブから「見積」をクリックして見積画面から編集してください。`;
         break;
 
@@ -1447,11 +1451,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth || isOpenSidebar) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataActivity?.activity_date
@@ -1624,11 +1629,20 @@ const ActivityMainContainerOneThirdMemo = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          console.log(
+                            "🔥🔥🔥🔥🔥🔥🔥🔥🔥 el.scrollWidth > el.offsetWidth",
+                            el.scrollWidth > el.offsetWidth,
+                            "el.scrollWidth",
+                            el.scrollWidth,
+                            "el.offsetWidth",
+                            el.offsetWidth
+                          );
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataActivity?.activity_type
@@ -2072,11 +2086,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataActivity?.assigned_department_name
@@ -2100,11 +2115,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataActivity?.assigned_unit_name ? selectedRowDataActivity?.assigned_unit_name : ""}
@@ -2402,7 +2418,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                         // onMouseEnter={(e) => handleOpenTooltip(e, "right")}
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -2761,11 +2778,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataActivity?.direct_line ? selectedRowDataActivity?.direct_line : ""}
@@ -2799,11 +2817,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                           data-text={`${selectedRowDataActivity?.extension ? selectedRowDataActivity?.extension : ""}`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataActivity?.extension ? selectedRowDataActivity?.extension : ""}
@@ -2832,11 +2851,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataActivity?.main_phone_number ? selectedRowDataActivity?.main_phone_number : ""}
@@ -2872,11 +2892,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataActivity?.direct_fax ? selectedRowDataActivity?.direct_fax : ""}
@@ -2903,11 +2924,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                           data-text={`${selectedRowDataActivity?.main_fax ? selectedRowDataActivity?.main_fax : ""}`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataActivity?.main_fax ? selectedRowDataActivity?.main_fax : ""}
@@ -2951,11 +2973,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataActivity?.company_cell_phone
@@ -2987,11 +3010,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                           }`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            if (!isDesktopGTE1600) handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataActivity?.personal_cell_phone
@@ -3177,11 +3201,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600) handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (!isDesktopGTE1600 || hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataActivity?.position_name ? selectedRowDataActivity?.position_name : ""}
@@ -3204,11 +3229,21 @@ const ActivityMainContainerOneThirdMemo = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataActivity &&
+                          selectedRowDataActivity?.position_class &&
+                          mappingPositionClass[selectedRowDataActivity.position_class]?.[language]
+                            ? mappingPositionClass[selectedRowDataActivity.position_class]?.[language]
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataActivity?.position_class ? selectedRowDataActivity?.position_class : ""} */}
@@ -3252,11 +3287,29 @@ const ActivityMainContainerOneThirdMemo = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataActivity &&
+                          selectedRowDataActivity?.occupation &&
+                          mappingOccupation[selectedRowDataActivity.occupation]?.[language]
+                            ? mappingOccupation[selectedRowDataActivity.occupation]?.[language]
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          console.log(
+                            "🔥🔥🔥🔥🔥🔥🔥🔥🔥 el.scrollWidth > el.offsetWidth",
+                            el.scrollWidth > el.offsetWidth,
+                            "el.scrollWidth",
+                            el.scrollWidth,
+                            "el.offsetWidth",
+                            el.offsetWidth
+                          );
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataActivity?.occupation ? selectedRowDataActivity?.occupation : ""} */}
@@ -3294,11 +3347,17 @@ const ActivityMainContainerOneThirdMemo = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataActivity?.approval_amount ? selectedRowDataActivity?.approval_amount : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataActivity?.approval_amount ? selectedRowDataActivity?.approval_amount : ""}
@@ -3328,11 +3387,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataActivity?.number_of_employees_class
@@ -3372,7 +3432,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                         }}
                       >
-                        {selectedRowDataActivity?.fiscal_end_month ? selectedRowDataActivity?.fiscal_end_month : ""}
+                        {selectedRowDataActivity?.fiscal_end_month
+                          ? selectedRowDataActivity?.fiscal_end_month + language === "ja"
+                            ? `月`
+                            : ``
+                          : ""}
                       </span>
                     )}
                     {/* {searchMode && (
@@ -3412,7 +3476,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                         }}
                       >
                         {selectedRowDataActivity?.budget_request_month1
-                          ? selectedRowDataActivity?.budget_request_month1
+                          ? selectedRowDataActivity?.budget_request_month1 + language === "ja"
+                            ? `月`
+                            : ``
                           : ""}
                       </span>
                     )}
@@ -3445,7 +3511,9 @@ const ActivityMainContainerOneThirdMemo = () => {
                         }}
                       >
                         {selectedRowDataActivity?.budget_request_month2
-                          ? selectedRowDataActivity?.budget_request_month2
+                          ? selectedRowDataActivity?.budget_request_month2 + language === "ja"
+                            ? `月`
+                            : ``
                           : ""}
                       </span>
                     )}
@@ -3474,11 +3542,19 @@ const ActivityMainContainerOneThirdMemo = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value}`}
+                        data-text={`${
+                          selectedRowDataActivity?.capital
+                            ? convertToJapaneseCurrencyFormat(selectedRowDataActivity.capital)
+                            : ""
+                        }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
@@ -3596,7 +3672,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                         // onMouseEnter={(e) => handleOpenTooltip(e)}
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -3636,7 +3713,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                         // onMouseEnter={(e) => handleOpenTooltip(e)}
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -3726,7 +3804,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                         // onMouseEnter={(e) => handleOpenTooltip(e)}
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -3760,7 +3839,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                         // onMouseEnter={(e) => handleOpenTooltip(e)}
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -3802,7 +3882,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                         // onMouseEnter={(e) => handleOpenTooltip(e)}
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -4207,11 +4288,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                         }`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          if (!isDesktopGTE1600 && isOpenSidebar) handleOpenTooltip(e);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if ((!isDesktopGTE1600 && isOpenSidebar) || hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataActivity?.corporate_number ? selectedRowDataActivity?.corporate_number : ""}

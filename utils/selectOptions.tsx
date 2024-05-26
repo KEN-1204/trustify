@@ -886,53 +886,80 @@ export const optionsSearchEmployeesClass = [
 // 🌠活動画面
 
 // 活動タイプ
+// export const optionsActivityType = [
+//   "Phone Call Made (Absent)",
+//   "Phone Call Made (Proactive)",
+//   "Phone Call Made (Reactive)",
+//   "Phone Call Made (Pre-Sales Follow-Up)",
+//   "Phone Call Made (Post-Sales Follow-Up)",
+//   "Phone Call Made (Appointment Scheduling)",
+//   "Phone Call Made (Other)",
+//   "Email Received",
+//   "Email Sent",
+//   "Other",
+//   "Handover",
+// ];
 export const optionsActivityType = [
-  "Phone Call Made (Absent)",
-  "Phone Call Made (Proactive)",
-  "Phone Call Made (Reactive)",
-  "Phone Call Made (Pre-Sales Follow-Up)",
-  "Phone Call Made (Post-Sales Follow-Up)",
-  "Phone Call Made (Appointment Scheduling)",
-  "Phone Call Made (Other)",
-  "Email Received",
-  "Email Sent",
-  "Other",
-  "Handover",
+  "call_no_answer",
+  "call_proactive",
+  "call_reactive",
+  "call_expo",
+  "call_pre_sales_follow_up",
+  "call_post_sales_follow_up",
+  "call_appointment_scheduling",
+  "call_other",
+  "email_received",
+  "email_sent",
+  "other",
+  "handover",
 ];
 export const getActivityType = (value: string, language: string = "ja") => {
   switch (value) {
-    case "Phone Call Made (Absent)":
-      return language === "ja" ? `TEL発信(不在)` : `Phone Call Made (Absent)`;
+    case "call_no_answer":
+      return language === "ja" ? `TEL発信(不在)` : `call (No Answer)`;
       break;
-    case "Phone Call Made (Proactive)":
-      return language === "ja" ? `TEL発信(能動)` : `Phone Call Made (Proactive)`;
+    case "call_proactive":
+      return language === "ja" ? `TEL発信(能動)` : `call (Proactive)`;
       break;
-    case "Phone Call Made (Reactive)":
-      return language === "ja" ? `TEL発信(受動)` : `Phone Call Made (Reactive)`;
+    case "call_reactive":
+      return language === "ja" ? `TEL発信(受動)` : `call (Reactive)`;
       break;
-    case "Phone Call Made (Pre-Sales Follow-Up)":
-      return language === "ja" ? `TEL発信(売前ﾌｫﾛｰ)` : `Phone Call Made (Pre-Sales Follow-Up)`;
+    case "call_expo":
+      return language === "ja" ? `TEL発信(展示会)` : `call (Expo)`;
       break;
-    case "Phone Call Made (Post-Sales Follow-Up)":
-      return language === "ja" ? `TEL発信(売後ﾌｫﾛｰ)` : `Phone Call Made (Post-Sales Follow-Up)`;
+    case "call_pre_sales_follow_up":
+      return language === "ja" ? `TEL発信(売前ﾌｫﾛｰ)` : `call (Pre-Sales Follow-Up)`;
       break;
-    case "Phone Call Made (Appointment Scheduling)":
-      return language === "ja" ? `TEL発信(ｱﾎﾟ組み)` : `Phone Call Made (Appointment Scheduling)`;
+    case "call_post_sales_follow_up":
+      return language === "ja" ? `TEL発信(売後ﾌｫﾛｰ)` : `call (Post-Sales Follow-Up)`;
       break;
-    case "Phone Call Made (Other)":
-      return language === "ja" ? `TEL発信(その他)` : `Phone Call Made (Other)`;
+    case "call_appointment_scheduling":
+      return language === "ja" ? `TEL発信(ｱﾎﾟ組み)` : `call (Appointment Scheduling)`;
       break;
-    case "Email Received":
+    case "call_other":
+      return language === "ja" ? `TEL発信(その他)` : `call (Other)`;
+      break;
+    case "email_received":
       return language === "ja" ? `Email受信` : `Email Received`;
       break;
-    case "Email Sent":
+    case "email_sent":
       return language === "ja" ? `Email送信` : `Email Sent`;
       break;
-    case "Other":
+    case "other":
       return language === "ja" ? `その他` : `Other`;
       break;
-    case "Handover":
+    case "handover":
       return language === "ja" ? `引継ぎ` : `Handover`;
+      break;
+    // 面談・案件発生・見積 関連
+    case "meeting":
+      return language === "ja" ? `面談・訪問` : `Meeting`;
+      break;
+    case "property":
+      return language === "ja" ? `案件発生` : `Deal`;
+      break;
+    case "quotation":
+      return language === "ja" ? `見積` : `Quotation`;
       break;
 
     default:
@@ -1031,75 +1058,107 @@ export const getWebTool = (value: string, language: string = "ja") => {
 //   "その他",
 // ];
 // 面談目的
+// export const optionsPlannedPurpose = [
+//   "A New Company (No Previous Meetings)/Proactive",
+//   "B Overlap Company (Previous Meetings Held)/Proactive",
+//   "C Internal Referral/Proactive",
+//   "D Client Referral/Proactive",
+//   "E Salesperson's Email/Reactive",
+//   "F Direct Product Engagement Inquiry/Reactive",
+//   "G DM/Reactive",
+//   "H Email/Reactive",
+//   "I Website/Reactive",
+//   "J Webinar/Reactive",
+//   "K Trade Show/Reactive",
+//   "L Other(Pre-Sales Follow-Up)",
+//   "M Other(Delivery Explanation)",
+//   "N Other(Proactive Sales Support)",
+//   "O Other(Customer Request Support)",
+//   "P Others",
+// ];
 export const optionsPlannedPurpose = [
-  "A New Company (No Previous Meetings)/Proactive",
-  "B Overlap Company (Previous Meetings Held)/Proactive",
-  "C Internal Referral/Proactive",
-  "D Client Referral/Proactive",
-  "E Salesperson's Email/Reactive",
-  "F Direct Product Engagement Inquiry/Reactive",
-  "G DM/Reactive",
-  "H Email/Reactive",
-  "I Website/Reactive",
-  "J Webinar/Reactive",
-  "K Trade Show/Reactive",
-  "L Other(Pre-Sales Follow-Up)",
-  "M Other(Delivery Explanation)",
-  "N Other(Proactive Sales Support)",
-  "O Other(Customer Request Support)",
-  "P Others",
+  "A new_company/proactive",
+  "B overlap_company/proactive",
+  "C internal_referral/proactive",
+  "D client_referral/proactive",
+  "E salesperson_email/proactive",
+  "F direct_product_engagement_inquiry/reactive",
+  "G dm/reactive",
+  "H email/reactive",
+  "I website/reactive",
+  "J webinar/reactive",
+  "K expo/reactive",
+  "L other_pre_sales_follow_up",
+  "M other_delivery_explanation",
+  "N other_proactive_sales_support",
+  "O other_customer_request_support",
+  "P others",
 ];
 // ○能動：営業担当によるアクションきっかけ ○受動：営業担当によるアクション以外からのきっかけ
 export const getPlannedPurpose = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A New Company (No Previous Meetings)/Proactive":
+    // case "A New Company (No Previous Meetings)/Proactive":
+    case "A new_company/proactive":
       return language === "ja" ? `新規会社(過去面談無し)/能動` : `New Company (No Previous Meetings)/Proactive`;
       break;
-    case "B Overlap Company (Previous Meetings Held)/Proactive":
+    // case "B Overlap Company (Previous Meetings Held)/Proactive":
+    case "B overlap_company/proactive":
       return language === "ja" ? `被り会社(過去面談有り)/能動` : `Overlap Company (Previous Meetings Held)/Proactive`;
       break;
-    case "E Salesperson's Email/Reactive":
-      return language === "ja" ? `営業メール/能動` : `Salesperson's Email/Reactive`;
-      break;
-    case "C Internal Referral/Proactive":
+    // case "C Internal Referral/Proactive":
+    case "C internal_referral/proactive":
       return language === "ja" ? `社内ID(紹介)/能動` : `Internal Referral/Proactive`;
       break;
-    case "D Client Referral/Proactive":
+    // case "D Client Referral/Proactive":
+    case "D client_referral/proactive":
       return language === "ja" ? `社外･客先ID(紹介)/能動` : `Client Referral/Proactive`;
       break;
-    case "F Direct Product Engagement Inquiry/Reactive":
+    // case "E Salesperson's Email/Reactive":
+    case "E salesperson_email/proactive":
+      return language === "ja" ? `営業メール/能動` : `Salesperson's Email/Reactive`;
+      break;
+    // case "F Direct Product Engagement Inquiry/Reactive":
+    case "F direct_product_engagement_inquiry/reactive":
       return language === "ja" ? `見･聞引合/受動` : `Direct Product Engagement Inquiry/Reactive`;
       break;
-    case "G DM/Reactive":
+    // case "G DM/Reactive":
+    case "G dm/reactive":
       return language === "ja" ? `DM/受動` : `DM/Reactive`;
       break;
-    case "H Email/Reactive":
+    // case "H Email/Reactive":
+    case "H email/reactive":
       return language === "ja" ? `メール/受動` : `Email/Reactive`;
       break;
-    case "I Website/Reactive":
+    // case "I Website/Reactive":
+    case "I website/reactive":
       return language === "ja" ? `ホームページ/受動` : `Website/Reactive`;
       break;
-    case "J Webinar/Reactive":
+    // case "J Webinar/Reactive":
+    case "J webinar/reactive":
       return language === "ja" ? `ウェビナー/受動` : `Webinar/Reactive`;
       break;
-    case "K Trade Show/Reactive":
+    // case "K Trade Show/Reactive":
+    case "K expo/reactive":
       return language === "ja" ? `展示会/受動` : `Trade Show/Reactive`;
       break;
-    case "L Other(Pre-Sales Follow-Up)":
+    // case "L Other(Pre-Sales Follow-Up)":
+    case "L other_pre_sales_follow_up":
       return language === "ja" ? `他(売前ﾌｫﾛｰ)` : `Other(Pre-Sales Follow-Up)`;
       break;
-    case "M Other(Delivery Explanation)":
+    // case "M Other(Delivery Explanation)":
+    case "M other_delivery_explanation":
       return language === "ja" ? `他(納品説明)` : `Other(Delivery Explanation)`;
       break;
     // "N Other(Proactive Sales Support)",
-    // "O Other(Customer Request Support)",
-    case "N Other(Proactive Sales Support)":
+    case "N other_proactive_sales_support":
       return language === "ja" ? `他(営業能動サポート)` : `Other(Proactive Sales Support)`;
       break;
-    case "O Other(Customer Request Support)":
+    // case "O Other(Customer Request Support)":
+    case "O other_customer_request_support":
       return language === "ja" ? `他(客先要望サポート)` : `Other(Customer Request Support)`;
       break;
-    case "P Others":
+    // case "P Others":
+    case "P others":
       return language === "ja" ? `その他` : `Others`;
       break;
 
@@ -1110,59 +1169,81 @@ export const getPlannedPurpose = (value: string, language: string = "ja") => {
 };
 
 // 面談結果
+// export const optionsResultCategory = [
+//   "A Deal Development F(Potential for Implementation This Fiscal Period)",
+//   "B Deal Development N(Potential for Implementation Next Fiscal Period)",
+//   "C Deal Continuation",
+//   "D Premature Timing",
+//   "E Low Usage Frequency (Needs Present but Insufficient for Implementation)",
+//   "F Inconclusive Results (Further Meetings or Verification Needed)",
+//   "G Lack of Drive from Representative (Needs Identified but Requires Engagement with Superiors or Key Persons)",
+//   "H No Application or Need Identified",
+//   "I Other (Post-Implementation Setup, Support)",
+//   "J Other",
+// ];
 export const optionsResultCategory = [
-  "A Deal Development F(Potential for Implementation This Fiscal Period)",
-  "B Deal Development N(Potential for Implementation Next Fiscal Period)",
-  "C Deal Continuation",
-  "D Premature Timing",
-  "E Low Usage Frequency (Needs Present but Insufficient for Implementation)",
-  "F Inconclusive Results (Further Meetings or Verification Needed)",
-  "G Lack of Drive from Representative (Needs Identified but Requires Engagement with Superiors or Key Persons)",
-  "H No Application or Need Identified",
-  "I Other (Post-Implementation Setup, Support)",
-  "J Other",
+  "A deal_f",
+  "B deal_n",
+  "C deal_continuation",
+  "D premature",
+  "E low_usage_frequency",
+  "F no_results",
+  "G lack_of_contact_drive",
+  "H no_need",
+  "I other_post_setup_support",
+  "J others",
 ];
 export const getResultCategory = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A Deal Development F(Potential for Implementation This Fiscal Period)":
+    // case "A Deal Development F(Potential for Implementation This Fiscal Period)":
+    case "A deal_f":
       return language === "ja"
         ? `展開F(当期中に導入の可能性あり)`
         : `Deal Development F(Potential for Implementation This Fiscal Period)`;
       break;
-    case "B Deal Development N(Potential for Implementation Next Fiscal Period)":
+    // case "B Deal Development N(Potential for Implementation Next Fiscal Period)":
+    case "B deal_n":
       return language === "ja"
         ? `展開N(来期導入の可能性あり)`
         : `Deal Development N(Potential for Implementation Next Fiscal Period)`;
       break;
-    case "C Deal Continuation":
+    // case "C Deal Continuation":
+    case "C deal_continuation":
       return language === "ja" ? `展開継続` : `Project Continuation`;
       break;
-    case "D Premature Timing":
+    // case "D Premature Timing":
+    case "D premature":
       return language === "ja" ? `時期尚早` : `Premature Timing`;
       break;
-    case "E Low Usage Frequency (Needs Present but Insufficient for Implementation)":
+    // case "E Low Usage Frequency (Needs Present but Insufficient for Implementation)":
+    case "E low_usage_frequency":
       return language === "ja"
         ? `頻度低い(ニーズあるが頻度低く導入には及ばず)`
         : `Low Usage Frequency (Needs Present but Insufficient for Implementation)`;
       break;
-    case "F Inconclusive Results (Further Meetings or Verification Needed)":
+    // case "F Inconclusive Results (Further Meetings or Verification Needed)":
+    case "F no_results":
       return language === "ja"
         ? `結果出ず(再度面談や検証が必要)`
         : `Inconclusive Results (Further Meetings or Verification Needed)`;
       break;
-    case "G Lack of Drive from Representative (Needs Identified but Requires Engagement with Superiors or Key Persons)":
+    // case "G Lack of Drive from Representative (Needs Identified but Requires Engagement with Superiors or Key Persons)":
+    case "G lack_of_contact_drive":
       return language === "ja"
         ? `担当者の推進力無し(ニーズあるが、上長・キーマンにあたる必要有り)`
         : `Lack of Drive from Representative (Needs Identified but Requires Engagement with Superiors or Key Persons)`;
       break;
-    case "H No Application or Need Identified":
+    // case "H No Application or Need Identified":
+    case "H no_need":
       return language === "ja" ? `用途・ニーズなし` : `No Application or Need Identified`;
       break;
-    case "I Other (Post-Implementation Setup, Support)":
+    // case "I Other (Post-Implementation Setup, Support)":
+    case "I other_post_setup_support":
       return language === "ja" ? `他(立ち上げ、サポート)` : `Other (Post-Implementation Setup, Support)`;
       break;
-    case "J Other":
-      return language === "ja" ? `その他` : `Other`;
+    // case "J Other":
+    case "J others":
+      return language === "ja" ? `その他` : `Others`;
       break;
 
     default:
@@ -1173,17 +1254,20 @@ export const getResultCategory = (value: string, language: string = "ja") => {
 
 // 面談時_決裁者商談有無
 // export const optionsResultNegotiateDecisionMaker = ["決裁者と未商談", "決裁者と商談済み"];
-export const optionsResultNegotiateDecisionMaker = [
-  "A No Discussion with Decision-Maker",
-  "B Discussion Held with Decision-Maker",
-];
+// export const optionsResultNegotiateDecisionMaker = [
+//   "A No Discussion with Decision-Maker",
+//   "B Discussion Held with Decision-Maker",
+// ];
+export const optionsResultNegotiateDecisionMaker = ["A no_meeting_d", "B meeting_d"];
 export const getResultNegotiateDecisionMaker = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A No Discussion with Decision-Maker":
-      return language === "ja" ? `決裁者と未商談` : `No Discussion with Decision-Maker`;
+    // case "A No Discussion with Decision-Maker":
+    case "A no_meeting_decision_maker":
+      return language === "ja" ? `決裁者と未商談` : `No Meeting with Decision-Maker`;
       break;
-    case "B Discussion Held with Decision-Maker":
-      return language === "ja" ? `決裁者と商談済み` : `Discussion Held with Decision-Maker`;
+    // case "B Discussion Held with Decision-Maker":
+    case "B meeting_decision_maker":
+      return language === "ja" ? `決裁者と商談済み` : `Meeting with Decision-Maker`;
       break;
 
     default:
@@ -1193,20 +1277,24 @@ export const getResultNegotiateDecisionMaker = (value: string, language: string 
 };
 
 // 面談時同席依頼
-export const optionsMeetingParticipationRequest = [
-  "A No Request for Accompaniment",
-  "B Request for Accompaniment Made, Accompaniment Approved",
-  "C Request for Accompaniment Made, Accompaniment Denied",
-];
+// export const optionsMeetingParticipationRequest = [
+//   "A No Request for Accompaniment",
+//   "B Request for Accompaniment Made, Accompaniment Approved",
+//   "C Request for Accompaniment Made, Accompaniment Denied",
+// ];
+export const optionsMeetingParticipationRequest = ["A no_request", "B request_success", "C request_denied"];
 export const getMeetingParticipationRequest = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A No Request for Accompaniment":
+    // case "A No Request for Accompaniment":
+    case "A no_request":
       return language === "ja" ? `同席依頼無し` : `No Request for Accompaniment`;
       break;
-    case "B Request for Accompaniment Made, Accompaniment Approved":
+    // case "B Request for Accompaniment Made, Accompaniment Approved":
+    case "B request_success":
       return language === "ja" ? `同席依頼済み 同席OK` : `Request for Accompaniment Made, Accompaniment Approved`;
       break;
-    case "C Request for Accompaniment Made, Accompaniment Denied":
+    // case "C Request for Accompaniment Made, Accompaniment Denied":
+    case "C request_denied":
       return language === "ja" ? `同席依頼済み 同席NG` : `Request for Accompaniment Made, Accompaniment Denied`;
       break;
 
@@ -1244,56 +1332,82 @@ export const getCurrentStatus = (value: string, language: string = "ja") => {
 };
 
 // 案件発生動機
+// export const optionsReasonClass = [
+//   "A New Company (No Previous Meetings)/Proactive",
+//   "B Overlap Company (Previous Meetings Held)/Proactive",
+//   "C Internal Referral/Proactive",
+//   "D Client Referral/Proactive",
+//   "E Salesperson's Email/Reactive",
+//   "F Direct Product Engagement Inquiry/Reactive",
+//   "G DM/Reactive",
+//   "H Email/Reactive",
+//   "I Website/Reactive",
+//   "J Webinar/Reactive",
+//   "K Trade Show/Reactive",
+//   "L Others",
+// ];
 export const optionsReasonClass = [
-  "A New Company (No Previous Meetings)/Proactive",
-  "B Overlap Company (Previous Meetings Held)/Proactive",
-  "C Internal Referral/Proactive",
-  "D Client Referral/Proactive",
-  "E Salesperson's Email/Reactive",
-  "F Direct Product Engagement Inquiry/Reactive",
-  "G DM/Reactive",
-  "H Email/Reactive",
-  "I Website/Reactive",
-  "J Webinar/Reactive",
-  "K Trade Show/Reactive",
-  "L Others",
+  "A new_company/proactive",
+  "B overlap_company/proactive",
+  "C internal_referral/proactive",
+  "D client_referral/proactive",
+  "E salesperson_email/proactive",
+  "F direct_product_engagement_inquiry/reactive",
+  "G dm/reactive",
+  "H email/reactive",
+  "I website/reactive",
+  "J webinar/reactive",
+  "K expo/reactive",
+  "L others",
 ];
 export const getReasonClass = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A New Company (No Previous Meetings)/Proactive":
+    // case "A New Company (No Previous Meetings)/Proactive":
+    case "A new_company/proactive":
       return language === "ja" ? `新規会社(過去面談無し)/能動` : `New Company (No Previous Meetings)/Proactive`;
       break;
-    case "B Overlap Company (Previous Meetings Held)/Proactive":
+    // case "B Overlap Company (Previous Meetings Held)/Proactive":
+    case "B overlap_company/proactive":
       return language === "ja" ? `被り会社(過去面談有り)/能動` : `Overlap Company (Previous Meetings Held)/Proactive`;
       break;
-    case "C Internal Referral/Proactive":
+    // case "C Internal Referral/Proactive":
+    case "C internal_referral/proactive":
       return language === "ja" ? `社内ID/能動` : `Internal Referral/Proactive`;
       break;
-    case "D Client Referral/Proactive":
+    // case "D Client Referral/Proactive":
+    case "D client_referral/proactive":
       return language === "ja" ? `社外･客先ID/能動` : `Client Referral/Proactive`;
       break;
-    case "E Salesperson's Email/Reactive":
-      return language === "ja" ? `営業メール/受動` : `Salesperson's Email/Reactive`;
+    // case "E Salesperson's Email/Reactive":
+    case "E salesperson_email/proactive":
+      return language === "ja" ? `営業メール/能動` : `Salesperson's Email/Proactive`;
       break;
-    case "F Direct Product Engagement Inquiry/Reactive":
+    // case "F Direct Product Engagement Inquiry/Reactive":
+    case "F direct_product_engagement_inquiry/reactive":
       return language === "ja" ? `見･聞引合/受動` : `Direct Product Engagement Inquiry/Reactive`;
       break;
-    case "G DM/Reactive":
+    // case "G DM/Reactive":
+    case "G dm/reactive":
       return language === "ja" ? `DM/受動` : `DM/Reactive`;
       break;
-    case "H Email/Reactive":
+    // case "H Email/Reactive":
+    case "H email/reactive":
       return language === "ja" ? `メール/受動` : `Email/Reactive`;
       break;
-    case "I Website/Reactive":
+    // case "I Website/Reactive":
+    case "I website/reactive":
       return language === "ja" ? `ホームページ/受動` : `Website/Reactive`;
       break;
-    case "J Webinar/Reactive":
+    // case "J Webinar/Reactive":
+    case "J webinar/reactive":
       return language === "ja" ? `ウェビナー/受動` : `Webinar/Reactive`;
       break;
-    case "K Trade Show/Reactive":
+    // case "K Trade Show/Reactive":
+    case "K expo/reactive":
       return language === "ja" ? `展示会/受動` : `Trade Show/Reactive`;
       break;
-    case "L Others":
+    // case "L Others":
+    case "L others":
       return language === "ja" ? `その他` : `Others`;
       break;
 
@@ -1344,14 +1458,17 @@ export const getSalesClass = (value: string, language: string = "ja") => {
 };
 
 // 今期・来期
-export const optionsTermDivision = ["A This Fiscal Year", "B Next Fiscal Year"];
+// export const optionsTermDivision = ["A This Fiscal Year", "B Next Fiscal Year"];
+export const optionsTermDivision = ["A fiscal_period", "B next_period"];
 export const getTermDivision = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A This Fiscal Year":
-      return language === "ja" ? `今期 (今期に獲得予定)` : `This Fiscal Year`;
+    // case "A This Fiscal Year":
+    case "A fiscal_period":
+      return language === "ja" ? `今期 (今期に獲得予定)` : `This Fiscal Period`;
       break;
-    case "B Next Fiscal Year":
-      return language === "ja" ? `来期 (来期に獲得予定)` : `Next Fiscal Year`;
+    // case "B Next Fiscal Year":
+    case "B next_period":
+      return language === "ja" ? `来期 (来期に獲得予定)` : `Next Fiscal Period`;
       break;
 
     default:
@@ -1695,7 +1812,7 @@ export type TabsListItem = {
 };
 // ダッシュボードタブ
 export const sdbTabsList: SdbTabsListItem[] = [
-  { title: "sales_progress", name: { ja: "売上進捗", en: "Sales Progress" } },
+  { title: "sales_progress", name: { ja: "売上進捗・ネタ表", en: "Sales Progress" } },
   { title: "sales_dashboard", name: { ja: "セールスダッシュボード", en: "Sales Dashboard" } },
   { title: "sales_process", name: { ja: "営業プロセス", en: "Sales Process" } },
   // { title: "dealsStatus", name: { ja: "案件ステータス", en: "Deals Status" } },
@@ -1703,7 +1820,7 @@ export const sdbTabsList: SdbTabsListItem[] = [
 ];
 
 export const mappingSdbTabName: { [key: string]: { [key: string]: string } } = {
-  sales_progress: { ja: "売上進捗", en: "Sales Progress" },
+  sales_progress: { ja: "売上進捗・ネタ表", en: "Sales Progress" },
   sales_dashboard: { ja: "セールスダッシュボード", en: "Sales Dashboard" },
   sales_process: { ja: "営業プロセス", en: "Sales Process" },
   // deals_status: { ja: "案件ステータス", en: "Deals Status" },

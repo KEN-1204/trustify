@@ -120,7 +120,8 @@ export const useMutateProperty = () => {
         _scheduled_follow_up_date: null,
         _follow_up_flag: false,
         _document_url: null,
-        _activity_type: "案件発生",
+        // _activity_type: "案件発生",
+        _activity_type: "property",
         _claim_flag: false,
         _product_introduction1: null,
         _product_introduction2: null,
@@ -427,8 +428,8 @@ export const useMutateProperty = () => {
           const currentQueryKey = [
             "deal",
             selectedDealCard.ownerId,
-            activePeriodSDB.periodType,
-            activePeriodSDB.period,
+            activePeriodSDB?.periodType,
+            activePeriodSDB?.period,
           ];
           const prevCacheDeals: Property_row_data[] | undefined = queryClient.getQueryData(currentQueryKey);
           // キャッシュの配列から今回更新した案件idのオブジェクトのみ更新してキャッシュを更新

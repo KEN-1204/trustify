@@ -8,6 +8,7 @@ type Props = {
   entityIds: string[] | null;
   parentEntityLevelId: string | null;
   parentEntityLevel: string | null;
+  parentEntityStructureId: string | null;
   parentEntityId: string | null;
   periodTypeForTarget: FiscalYearMonthKey | null;
   periodTypeForSales: PropertiesPeriodKey;
@@ -21,6 +22,7 @@ export const useQueryMemberListByParentEntity = ({
   entityIds,
   parentEntityLevelId,
   parentEntityLevel,
+  parentEntityStructureId,
   parentEntityId,
   periodTypeForTarget,
   periodTypeForSales,
@@ -83,6 +85,7 @@ export const useQueryMemberListByParentEntity = ({
       _company_id: userProfileState.company_id,
       _parent_entity_level_id: parentEntityLevelId,
       _parent_entity_level: parentEntityLevel,
+      _parent_entity_structure_id: parentEntityStructureId,
       _parent_entity_id: parentEntityId,
       _entity_ids: entityIds,
       _period_type_for_target: periodTypeForTarget,

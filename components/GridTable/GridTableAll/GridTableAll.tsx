@@ -1,4 +1,4 @@
-import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./GridTableAll.module.css";
 import useStore from "@/store";
 import { GridTableFooter } from "../GridTableFooter/GridTableFooter";
@@ -59,10 +59,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // カラム入れ替えモーダルで更新した内容を取得
   const editedColumnHeaderItemList = useDashboardStore((state) => state.editedColumnHeaderItemList);
   const setEditedColumnHeaderItemList = useDashboardStore((state) => state.setEditedColumnHeaderItemList);
-  console.log(
-    "🔥GridTableHomeコンポーネント 入れ替え後のカラム editedColumnHeaderItemList ",
-    editedColumnHeaderItemList
-  );
+  // console.log(
+  //   "🔥GridTableHomeコンポーネント 入れ替え後のカラム editedColumnHeaderItemList ",
+  //   editedColumnHeaderItemList
+  // );
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState); // グローバルローディング
   const [refetchLoading, setRefetchLoading] = useState(false); // refetchローディング
 
@@ -106,6 +106,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟🌟Zustandから指定したカラムを最初から表示
   const columnHeaderItemList = useDashboardStore((state) => state.columnHeaderItemList);
   const setColumnHeaderItemList = useDashboardStore((state) => state.setColumnHeaderItemList);
+  // key: columnIndex, value: objのMapオブジェクト
+  const columnIndexToHeaderObjMap = useMemo(() => {
+    return new Map(columnHeaderItemList.map((obj) => [obj.columnIndex, obj]));
+  }, [columnHeaderItemList]);
   // ================= 🔥🔥テスト🔥🔥==================
   // 各カラムの横幅を管理
   const [colsWidth, setColsWidth] = useState<string[] | null>(null);
@@ -2845,36 +2849,44 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                     console.log("クリック フローズン");
                   }
                 }}
-                // onMouseEnter={(e) =>
-                //   handleOpenTooltip(
-                //     e,
-                //     "top",
-                //     `${
-                //       activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
-                //         ? `カラムを固定`
-                //         : `カラムを選択することで、左右スクロール時にカラムを左端に固定できます`
-                //     }`,
-                //     5
-                //   )
-                // }
-                onMouseEnter={(e) =>
+                onMouseEnter={(e) => {
+                  let isColumnHeader = false;
+                  let selectedColumn = undefined;
+                  let tooltipContent = `カラムヘッダーを選択することで、\n左右スクロール時にカラムを左端に固定できます`;
+                  if (activeCell?.ariaColIndex) {
+                    isColumnHeader = activeCell?.role === "columnheader";
+                    selectedColumn = columnIndexToHeaderObjMap.get(Number(activeCell?.ariaColIndex));
+                    if (isColumnHeader && selectedColumn) {
+                      if (selectedColumn.isFrozen) tooltipContent = `選択中のカラムの固定を解除`;
+                      if (!selectedColumn.isFrozen) tooltipContent = `選択中のカラムを左端に固定`;
+                    }
+                  }
                   handleOpenTooltip({
                     e: e,
                     display: "top",
-                    content: `${
-                      activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
-                        ? `選択中のカラムを左端に固定`
-                        : `カラムヘッダーを選択することで、`
-                    }`,
-                    content2: `${
-                      activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex)
-                        ? ``
-                        : `左右スクロール時にカラムを左端に固定できます`
-                    }`,
-                    marginTop: activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) ? 8 : 22,
+                    content: tooltipContent,
+                    marginTop: isColumnHeader && selectedColumn ? 8 : 22,
                     itemsPosition: "center",
-                  })
-                }
+                  });
+                }}
+                // onMouseEnter={(e) =>
+                //   handleOpenTooltip({
+                //     e: e,
+                //     display: "top",
+                //     content: `${
+                //       activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
+                //         ? `選択中のカラムを左端に固定`
+                //         : `カラムヘッダーを選択することで、`
+                //     }`,
+                //     content2: `${
+                //       activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex)
+                //         ? ``
+                //         : `左右スクロール時にカラムを左端に固定できます`
+                //     }`,
+                //     marginTop: activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) ? 8 : 22,
+                //     itemsPosition: "center",
+                //   })
+                // }
                 onMouseLeave={handleCloseTooltip}
               >
                 <FiLock className="pointer-events-none" />

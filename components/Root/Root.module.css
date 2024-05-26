@@ -960,6 +960,7 @@
 .accordion .content p {
   font-size: 20px;
   letter-spacing: 1.5px;
+  white-space: pre-wrap;
 }
 
 .accordion input[type="radio"]:checked + label + .content {
@@ -1300,6 +1301,9 @@
   }
   .accordion .content {
     font-size: 14px;
+  }
+  .accordion .content p {
+    white-space: pre-wrap;
   }
   .accordion li label {
     padding: 10px;

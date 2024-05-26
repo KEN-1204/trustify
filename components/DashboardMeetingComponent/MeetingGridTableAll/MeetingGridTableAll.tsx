@@ -1,4 +1,4 @@
-import React, { FC, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, { FC, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./MeetingGridTableAll.module.css";
 import useStore from "@/store";
 // import { MeetingGridTableFooter } from "./MeetingGridTableFooter/MeetingGridTableFooter";
@@ -122,6 +122,11 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
   // 🌟🌟Zustandから指定したカラムを最初から表示
   const meetingColumnHeaderItemList = useDashboardStore((state) => state.meetingColumnHeaderItemList);
   const setMeetingColumnHeaderItemList = useDashboardStore((state) => state.setMeetingColumnHeaderItemList);
+
+  // key: columnIndex, value: objのMapオブジェクト
+  const columnIndexToHeaderObjMap = useMemo(() => {
+    return new Map(meetingColumnHeaderItemList.map((obj) => [obj.columnIndex, obj]));
+  }, [meetingColumnHeaderItemList]);
   // ================= 🔥🔥テスト🔥🔥==================
   // 各カラムの横幅を管理
   const [colsWidth, setColsWidth] = useState<string[] | null>(null);
@@ -2841,7 +2846,9 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
   };
 
   console.log(
-    "MeetingGridTableAllコンポーネントレンダリング"
+    "MeetingGridTableAllコンポーネントレンダリング",
+    "activeCell",
+    activeCell
     //  "✅ 全てのカラムcolsRef",
     //  colsRef
     // "checkedRows個数, checkedRows",
@@ -2999,24 +3006,38 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                     console.log("クリック フローズン");
                   }
                 }}
-                onMouseEnter={(e) =>
+                onMouseEnter={(e) => {
+                  let isColumnHeader = false;
+                  let selectedColumn = undefined;
+                  let tooltipContent = `カラムヘッダーを選択することで、\n左右スクロール時にカラムを左端に固定できます`;
+                  if (activeCell?.ariaColIndex) {
+                    isColumnHeader = activeCell?.role === "columnheader";
+                    selectedColumn = columnIndexToHeaderObjMap.get(Number(activeCell?.ariaColIndex));
+                    if (isColumnHeader && selectedColumn) {
+                      if (selectedColumn.isFrozen) tooltipContent = `選択中のカラムの固定を解除`;
+                      if (!selectedColumn.isFrozen) tooltipContent = `選択中のカラムを左端に固定`;
+                    }
+                  }
+
                   handleOpenTooltip({
                     e: e,
                     display: "top",
-                    content: `${
-                      activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
-                        ? `カラムを固定`
-                        : `カラムヘッダーを選択することで、`
-                    }`,
-                    content2: `${
-                      activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex)
-                        ? ``
-                        : `左右スクロール時にカラムを左端に固定できます`
-                    }`,
-                    marginTop: activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) ? 8 : 22,
+                    content: tooltipContent,
+                    // content: `${
+                    //   isColumnHeader && Number(activeCell?.ariaColIndex) !== 1
+                    //     ? `カラムを固定`
+                    //     : `カラムヘッダーを選択することで、`
+                    // }`,
+                    // content2: `${
+                    //   isColumnHeader && Number(activeCell?.ariaColIndex)
+                    //     ? ``
+                    //     : `左右スクロール時にカラムを左端に固定できます`
+                    // }`,
+                    marginTop: isColumnHeader && selectedColumn ? 8 : 22,
+                    // marginTop: isColumnHeader && Number(activeCell?.ariaColIndex) ? 8 : 22,
                     itemsPosition: "center",
-                  })
-                }
+                  });
+                }}
                 onMouseLeave={handleCloseTooltip}
               >
                 <FiLock className="pointer-events-none" />
