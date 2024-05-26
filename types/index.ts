@@ -1050,6 +1050,9 @@ export type Meeting_row_data = {
   meeting_department: string | null;
   meeting_member_name: string | null;
   meeting_year_month: number | null;
+  meeting_quarter: number | null;
+  meeting_half_year: number | null;
+  meeting_fiscal_year: number | null;
   //🌠追加 事業部、係、事業所
   assigned_department_name: string | null;
   assigned_section_name: string | null;
@@ -1174,6 +1177,9 @@ export type ValidMeeting = {
   meeting_department: string | null;
   meeting_member_name: string | null;
   meeting_year_month: number | null;
+  meeting_quarter: number | null;
+  meeting_half_year: number | null;
+  meeting_fiscal_year: number | null;
   //🌠追加 事業部、係、事業所
   assigned_department_name: string | null;
   assigned_section_name: string | null;
@@ -1581,6 +1587,9 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   meeting_department: string | null;
   meeting_member_name: string | null;
   meeting_year_month: number | null;
+  // meeting_quarter: number | null;
+  // meeting_half_year: number | null;
+  // meeting_fiscal_year: number | null;
 };
 
 export type NewSearchProperty_Contact_CompanyParams = {

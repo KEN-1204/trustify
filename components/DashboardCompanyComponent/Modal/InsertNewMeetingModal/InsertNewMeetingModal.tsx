@@ -464,8 +464,6 @@ export const InsertNewMeetingModal = () => {
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
     // if (meetingMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
-    if (plannedDate === null) return alert("面談日付(予定)が未入力です。");
-    if (fiscalEndMonthObjRef.current === null) return alert("決算日データが見つかりませんでした。");
 
     // 紹介予定商品メイン、サブの選択されているidが現在現在入力されてるnameのidと一致しているかを確認
     const currentId1 = suggestedProductIdNameArray.find((obj) => obj.fullName === plannedProduct1InputName)?.id;
@@ -496,6 +494,9 @@ export const InsertNewMeetingModal = () => {
       officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
     // ------------------ 年月度から年度・半期・四半期を算出 ------------------
+    if (plannedDate === null) return alert("面談日付(予定)が未入力です。");
+    if (fiscalEndMonthObjRef.current === null) return alert("決算日データが見つかりませんでした。");
+
     // // 現在の会計年度
     // const currentFiscalYear = calculateCurrentFiscalYear({
     //   fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
@@ -632,10 +633,10 @@ export const InsertNewMeetingModal = () => {
       // meeting_member_name: meetingMemberName ? meetingMemberName : null,
       meeting_member_name: memberObj.memberName ? memberObj.memberName : null,
       // 年度~年月度
-      meeting_fiscal_year: currentFiscalYear ? currentFiscalYear : null,
-      meeting_half_year: meetingHalfYear ? meetingHalfYear : null,
-      meeting_quarter: meetingQuarter ? meetingQuarter : null,
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
+      meeting_quarter: meetingQuarter ? meetingQuarter : null,
+      meeting_half_year: meetingHalfYear ? meetingHalfYear : null,
+      meeting_fiscal_year: selectedFiscalYear ? selectedFiscalYear : null,
     };
 
     console.log("面談予定 新規作成 newMeeting", newMeeting);
@@ -694,6 +695,90 @@ export const InsertNewMeetingModal = () => {
       memberObj.officeId &&
       officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
+    // ------------------ 年月度から年度・半期・四半期を算出 ------------------
+    if (plannedDate === null) return alert("面談日付(予定)が未入力です。");
+    if (fiscalEndMonthObjRef.current === null) return alert("決算日データが見つかりませんでした。");
+
+    // // 現在の会計年度
+    // const currentFiscalYear = calculateCurrentFiscalYear({
+    //   fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+    //   fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
+    //   selectedYear:
+    // });
+    // 現在の年度を取得
+    const selectedFiscalYear = getFiscalYear(
+      plannedDate,
+      fiscalEndMonthObjRef.current.getMonth() + 1,
+      fiscalEndMonthObjRef.current.getDate(),
+      userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis"
+    );
+    // 期首を取得
+    const fiscalYearStartDate = calculateFiscalYearStart({
+      fiscalYearEnd: userProfileState.customer_fiscal_end_month,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+      selectedYear: selectedFiscalYear,
+    });
+    if (!fiscalYearStartDate) {
+      setLoadingGlobalState(false);
+      return alert("会計年度データが取得できませんでした。エラー: INM01");
+    }
+    // 期末を取得
+    const fiscalYearEndDate =
+      calculateCurrentFiscalYearEndDate({
+        fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+        selectedYear: selectedFiscalYear,
+      }) ?? new Date(new Date().getFullYear(), 2, 31);
+    // 🔸現在の会計年度の開始年月度 期首の年月度を6桁の数値で取得 202404
+    const newStartYearMonth = calculateDateToYearMonth(fiscalYearStartDate, fiscalYearEndDate.getDate());
+    // 🔸年度初めから12ヶ月分の年月度の配列
+    const fiscalMonths = calculateFiscalYearMonths(newStartYearMonth);
+    // 上期と下期どちらを選択中か更新
+    const firstHalfDetailSet = new Set([
+      String(fiscalMonths.month_01).substring(4),
+      String(fiscalMonths.month_02).substring(4),
+      String(fiscalMonths.month_03).substring(4),
+      String(fiscalMonths.month_04).substring(4),
+      String(fiscalMonths.month_05).substring(4),
+      String(fiscalMonths.month_06).substring(4),
+    ]);
+    const _meetingMonth = String(meetingYearMonth).substring(4);
+    const halfDetailValue = firstHalfDetailSet.has(_meetingMonth) ? 1 : 2;
+    const meetingHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+    let meetingQuarter = 0;
+    // 上期ルート
+    if (halfDetailValue === 1) {
+      // Q1とQ2どちらを選択中か更新
+      const firstQuarterSet = new Set([
+        String(fiscalMonths.month_01).substring(4),
+        String(fiscalMonths.month_02).substring(4),
+        String(fiscalMonths.month_03).substring(4),
+      ]);
+      const quarterValue = firstQuarterSet.has(_meetingMonth) ? 1 : 2;
+      meetingQuarter = selectedFiscalYear * 10 + quarterValue;
+    }
+    // 下期ルート
+    else {
+      // Q3とQ4どちらを選択中か更新
+      const thirdQuarterSet = new Set([
+        String(fiscalMonths.month_07).substring(4),
+        String(fiscalMonths.month_08).substring(4),
+        String(fiscalMonths.month_09).substring(4),
+      ]);
+      const quarterValue = thirdQuarterSet.has(_meetingMonth) ? 3 : 4;
+      meetingQuarter = selectedFiscalYear * 10 + quarterValue;
+    }
+
+    if (meetingQuarter === 0) {
+      setLoadingGlobalState(false);
+      return alert("会計年度データが取得できませんでした。エラー: INM02");
+    }
+    if (String(meetingHalfYear).length !== 5 || String(meetingQuarter).length !== 5) {
+      setLoadingGlobalState(false);
+      if (String(meetingHalfYear).length !== 5) return alert("会計年度データが取得できませんでした。エラー: INM03");
+      if (String(meetingQuarter).length !== 5) return alert("会計年度データが取得できませんでした。エラー: INM04");
+    }
+    // ------------------ 年月度から年度・半期・四半期を算出 ここまで ------------------
+
     // 新規作成するデータをオブジェクトにまとめる
     const newMeeting = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
@@ -749,7 +834,11 @@ export const InsertNewMeetingModal = () => {
       meeting_business_office: officeName ? officeName : null,
       // meeting_member_name: meetingMemberName ? meetingMemberName : null,
       meeting_member_name: memberObj.memberName ? memberObj.memberName : null,
+      // 年度~年月度
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
+      meeting_quarter: meetingQuarter ? meetingQuarter : null,
+      meeting_half_year: meetingHalfYear ? meetingHalfYear : null,
+      meeting_fiscal_year: selectedFiscalYear ? selectedFiscalYear : null,
     };
 
     console.log("面談予定 新規作成 newMeeting", newMeeting);
@@ -808,6 +897,90 @@ export const InsertNewMeetingModal = () => {
       memberObj.officeId &&
       officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
+    // ------------------ 年月度から年度・半期・四半期を算出 ------------------
+    if (plannedDate === null) return alert("面談日付(予定)が未入力です。");
+    if (fiscalEndMonthObjRef.current === null) return alert("決算日データが見つかりませんでした。");
+
+    // // 現在の会計年度
+    // const currentFiscalYear = calculateCurrentFiscalYear({
+    //   fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+    //   fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
+    //   selectedYear:
+    // });
+    // 現在の年度を取得
+    const selectedFiscalYear = getFiscalYear(
+      plannedDate,
+      fiscalEndMonthObjRef.current.getMonth() + 1,
+      fiscalEndMonthObjRef.current.getDate(),
+      userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis"
+    );
+    // 期首を取得
+    const fiscalYearStartDate = calculateFiscalYearStart({
+      fiscalYearEnd: userProfileState.customer_fiscal_end_month,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+      selectedYear: selectedFiscalYear,
+    });
+    if (!fiscalYearStartDate) {
+      setLoadingGlobalState(false);
+      return alert("会計年度データが取得できませんでした。エラー: INM01");
+    }
+    // 期末を取得
+    const fiscalYearEndDate =
+      calculateCurrentFiscalYearEndDate({
+        fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+        selectedYear: selectedFiscalYear,
+      }) ?? new Date(new Date().getFullYear(), 2, 31);
+    // 🔸現在の会計年度の開始年月度 期首の年月度を6桁の数値で取得 202404
+    const newStartYearMonth = calculateDateToYearMonth(fiscalYearStartDate, fiscalYearEndDate.getDate());
+    // 🔸年度初めから12ヶ月分の年月度の配列
+    const fiscalMonths = calculateFiscalYearMonths(newStartYearMonth);
+    // 上期と下期どちらを選択中か更新
+    const firstHalfDetailSet = new Set([
+      String(fiscalMonths.month_01).substring(4),
+      String(fiscalMonths.month_02).substring(4),
+      String(fiscalMonths.month_03).substring(4),
+      String(fiscalMonths.month_04).substring(4),
+      String(fiscalMonths.month_05).substring(4),
+      String(fiscalMonths.month_06).substring(4),
+    ]);
+    const _meetingMonth = String(meetingYearMonth).substring(4);
+    const halfDetailValue = firstHalfDetailSet.has(_meetingMonth) ? 1 : 2;
+    const meetingHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+    let meetingQuarter = 0;
+    // 上期ルート
+    if (halfDetailValue === 1) {
+      // Q1とQ2どちらを選択中か更新
+      const firstQuarterSet = new Set([
+        String(fiscalMonths.month_01).substring(4),
+        String(fiscalMonths.month_02).substring(4),
+        String(fiscalMonths.month_03).substring(4),
+      ]);
+      const quarterValue = firstQuarterSet.has(_meetingMonth) ? 1 : 2;
+      meetingQuarter = selectedFiscalYear * 10 + quarterValue;
+    }
+    // 下期ルート
+    else {
+      // Q3とQ4どちらを選択中か更新
+      const thirdQuarterSet = new Set([
+        String(fiscalMonths.month_07).substring(4),
+        String(fiscalMonths.month_08).substring(4),
+        String(fiscalMonths.month_09).substring(4),
+      ]);
+      const quarterValue = thirdQuarterSet.has(_meetingMonth) ? 3 : 4;
+      meetingQuarter = selectedFiscalYear * 10 + quarterValue;
+    }
+
+    if (meetingQuarter === 0) {
+      setLoadingGlobalState(false);
+      return alert("会計年度データが取得できませんでした。エラー: INM02");
+    }
+    if (String(meetingHalfYear).length !== 5 || String(meetingQuarter).length !== 5) {
+      setLoadingGlobalState(false);
+      if (String(meetingHalfYear).length !== 5) return alert("会計年度データが取得できませんでした。エラー: INM03");
+      if (String(meetingQuarter).length !== 5) return alert("会計年度データが取得できませんでした。エラー: INM04");
+    }
+    // ------------------ 年月度から年度・半期・四半期を算出 ここまで ------------------
+
     // 新規作成するデータをオブジェクトにまとめる
     const newMeeting = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
@@ -863,7 +1036,11 @@ export const InsertNewMeetingModal = () => {
       meeting_business_office: officeName ? officeName : null,
       // meeting_member_name: meetingMemberName ? meetingMemberName : null,
       meeting_member_name: memberObj.memberName ? memberObj.memberName : null,
+      // 年度~年月度
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
+      meeting_quarter: meetingQuarter ? meetingQuarter : null,
+      meeting_half_year: meetingHalfYear ? meetingHalfYear : null,
+      meeting_fiscal_year: selectedFiscalYear ? selectedFiscalYear : null,
     };
 
     console.log("面談予定 新規作成 newMeeting", newMeeting);
@@ -922,6 +1099,90 @@ export const InsertNewMeetingModal = () => {
       memberObj.officeId &&
       officeDataArray.find((obj) => obj.id === memberObj.officeId)?.office_name;
 
+    // ------------------ 年月度から年度・半期・四半期を算出 ------------------
+    if (plannedDate === null) return alert("面談日付(予定)が未入力です。");
+    if (fiscalEndMonthObjRef.current === null) return alert("決算日データが見つかりませんでした。");
+
+    // // 現在の会計年度
+    // const currentFiscalYear = calculateCurrentFiscalYear({
+    //   fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+    //   fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? null,
+    //   selectedYear:
+    // });
+    // 現在の年度を取得
+    const selectedFiscalYear = getFiscalYear(
+      plannedDate,
+      fiscalEndMonthObjRef.current.getMonth() + 1,
+      fiscalEndMonthObjRef.current.getDate(),
+      userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis"
+    );
+    // 期首を取得
+    const fiscalYearStartDate = calculateFiscalYearStart({
+      fiscalYearEnd: userProfileState.customer_fiscal_end_month,
+      fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+      selectedYear: selectedFiscalYear,
+    });
+    if (!fiscalYearStartDate) {
+      setLoadingGlobalState(false);
+      return alert("会計年度データが取得できませんでした。エラー: INM01");
+    }
+    // 期末を取得
+    const fiscalYearEndDate =
+      calculateCurrentFiscalYearEndDate({
+        fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+        selectedYear: selectedFiscalYear,
+      }) ?? new Date(new Date().getFullYear(), 2, 31);
+    // 🔸現在の会計年度の開始年月度 期首の年月度を6桁の数値で取得 202404
+    const newStartYearMonth = calculateDateToYearMonth(fiscalYearStartDate, fiscalYearEndDate.getDate());
+    // 🔸年度初めから12ヶ月分の年月度の配列
+    const fiscalMonths = calculateFiscalYearMonths(newStartYearMonth);
+    // 上期と下期どちらを選択中か更新
+    const firstHalfDetailSet = new Set([
+      String(fiscalMonths.month_01).substring(4),
+      String(fiscalMonths.month_02).substring(4),
+      String(fiscalMonths.month_03).substring(4),
+      String(fiscalMonths.month_04).substring(4),
+      String(fiscalMonths.month_05).substring(4),
+      String(fiscalMonths.month_06).substring(4),
+    ]);
+    const _meetingMonth = String(meetingYearMonth).substring(4);
+    const halfDetailValue = firstHalfDetailSet.has(_meetingMonth) ? 1 : 2;
+    const meetingHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+    let meetingQuarter = 0;
+    // 上期ルート
+    if (halfDetailValue === 1) {
+      // Q1とQ2どちらを選択中か更新
+      const firstQuarterSet = new Set([
+        String(fiscalMonths.month_01).substring(4),
+        String(fiscalMonths.month_02).substring(4),
+        String(fiscalMonths.month_03).substring(4),
+      ]);
+      const quarterValue = firstQuarterSet.has(_meetingMonth) ? 1 : 2;
+      meetingQuarter = selectedFiscalYear * 10 + quarterValue;
+    }
+    // 下期ルート
+    else {
+      // Q3とQ4どちらを選択中か更新
+      const thirdQuarterSet = new Set([
+        String(fiscalMonths.month_07).substring(4),
+        String(fiscalMonths.month_08).substring(4),
+        String(fiscalMonths.month_09).substring(4),
+      ]);
+      const quarterValue = thirdQuarterSet.has(_meetingMonth) ? 3 : 4;
+      meetingQuarter = selectedFiscalYear * 10 + quarterValue;
+    }
+
+    if (meetingQuarter === 0) {
+      setLoadingGlobalState(false);
+      return alert("会計年度データが取得できませんでした。エラー: INM02");
+    }
+    if (String(meetingHalfYear).length !== 5 || String(meetingQuarter).length !== 5) {
+      setLoadingGlobalState(false);
+      if (String(meetingHalfYear).length !== 5) return alert("会計年度データが取得できませんでした。エラー: INM03");
+      if (String(meetingQuarter).length !== 5) return alert("会計年度データが取得できませんでした。エラー: INM04");
+    }
+    // ------------------ 年月度から年度・半期・四半期を算出 ここまで ------------------
+
     // 新規作成するデータをオブジェクトにまとめる
     const newMeeting = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
@@ -977,7 +1238,11 @@ export const InsertNewMeetingModal = () => {
       meeting_business_office: officeName ? officeName : null,
       // meeting_member_name: meetingMemberName ? meetingMemberName : null,
       meeting_member_name: memberObj.memberName ? memberObj.memberName : null,
+      // 年度~年月度
       meeting_year_month: meetingYearMonth ? meetingYearMonth : null,
+      meeting_quarter: meetingQuarter ? meetingQuarter : null,
+      meeting_half_year: meetingHalfYear ? meetingHalfYear : null,
+      meeting_fiscal_year: selectedFiscalYear ? selectedFiscalYear : null,
     };
 
     console.log("面談予定 新規作成 newMeeting", newMeeting);

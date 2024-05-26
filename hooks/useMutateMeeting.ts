@@ -108,7 +108,11 @@ export const useMutateMeeting = () => {
         _meeting_department: newMeeting.meeting_department,
         _meeting_business_office: newMeeting.meeting_business_office,
         _meeting_member_name: newMeeting.meeting_member_name,
+        // 年度〜年月度
         _meeting_year_month: newMeeting.meeting_year_month,
+        _meeting_quarter: newMeeting.meeting_quarter,
+        _meeting_half_year: newMeeting.meeting_half_year,
+        _meeting_fiscal_year: newMeeting.meeting_fiscal_year,
         // -- 活動テーブル用
         _summary: newMeeting.result_summary,
         _scheduled_follow_up_date: null,
@@ -300,7 +304,11 @@ export const useMutateMeeting = () => {
         _meeting_department: newMeeting.meeting_department,
         _meeting_business_office: newMeeting.meeting_business_office,
         _meeting_member_name: newMeeting.meeting_member_name,
+        // 年度〜年月度
         _meeting_year_month: newMeeting.meeting_year_month,
+        _meeting_quarter: newMeeting.meeting_quarter,
+        _meeting_half_year: newMeeting.meeting_half_year,
+        _meeting_fiscal_year: newMeeting.meeting_fiscal_year,
         // -- 🌠活動テーブル用
         // created_by_company_id: newMeeting.created_by_company_id,
         // _created_by_user_id: newMeeting.created_by_user_id,
@@ -414,22 +422,83 @@ export const useMutateMeeting = () => {
       newValue: any;
       id: string;
       meetingYearMonth?: number | null;
+      meetingQuarter?: number | null;
+      meetingHalfYear?: number | null;
+      meetingFiscalYear?: number | null;
+      requireUpdateActivityDate?: boolean | undefined;
     }) => {
       console.log("updateActivityFieldMutation 引数取得", fieldData);
-      const { fieldName, fieldNameForSelectedRowData, newValue, id, meetingYearMonth } = fieldData;
+      const {
+        fieldName,
+        fieldNameForSelectedRowData,
+        newValue,
+        id,
+        meetingYearMonth,
+        meetingQuarter,
+        meetingHalfYear,
+        meetingFiscalYear,
+        requireUpdateActivityDate,
+      } = fieldData;
 
       const isRequireUpdateActivityFieldArray = ["result_summary", "result_date", "planned_date"];
 
       // 🔹rpcでmeetingsとactivitiesテーブルを同時に更新
       if (isRequireUpdateActivityFieldArray.includes(fieldName)) {
         // result_dateの場合は面談年月度も同時にmeetingsテーブルに更新
-        if (fieldName === "result_date" && !!meetingYearMonth) {
+        if (fieldName === "result_date") {
+          if (!meetingYearMonth || !meetingQuarter || !meetingHalfYear)
+            throw new Error("会計年度データが見つかりませんでした。");
+
           const jsonValue = { value: newValue };
           const updatePayload = {
             _meeting_id: id,
             _column_name: fieldName,
             _json_value: jsonValue,
             _meeting_year_month: meetingYearMonth,
+            // 追加
+            _meeting_quarter: meetingQuarter,
+            _meeting_half_year: meetingHalfYear,
+            _meeting_fiscal_year: meetingFiscalYear,
+          };
+
+          console.log("updateActivityFieldMutation rpc実行 ", "カラム名", fieldName, "updatePayload", updatePayload);
+
+          const { error } = await supabase.rpc("update_meetings_field", updatePayload);
+
+          if (error) throw error;
+        }
+        // 🔹planned_dateカラム更新時にresult_dateが存在しない場合にはactivity_dateを同時に更新
+        else if (fieldName === "planned_date" && requireUpdateActivityDate) {
+          if (!meetingYearMonth || !meetingQuarter || !meetingHalfYear)
+            throw new Error("会計年度データが見つかりませんでした。");
+
+          const jsonValue = { value: newValue };
+          const updatePayload = {
+            _meeting_id: id,
+            _column_name: fieldName,
+            _json_value: jsonValue,
+            _meeting_year_month: meetingYearMonth,
+            // 追加
+            _meeting_quarter: meetingQuarter,
+            _meeting_half_year: meetingHalfYear,
+            _meeting_fiscal_year: meetingFiscalYear,
+            _require_update_activity_date: requireUpdateActivityDate,
+          };
+
+          console.log("updateActivityFieldMutation rpc実行 ", "カラム名", fieldName, "updatePayload", updatePayload);
+
+          const { error } = await supabase.rpc("update_meetings_field", updatePayload);
+
+          if (error) throw error;
+        }
+        // planned_dateの更新 既にresult_dateが存在するルート activity_dateは更新不要
+        else if (fieldName === "planned_date" && !requireUpdateActivityDate) {
+          const jsonValue = { value: newValue };
+          const updatePayload = {
+            _meeting_id: id,
+            _column_name: fieldName,
+            _json_value: jsonValue,
+            _require_update_activity_date: false,
           };
 
           console.log("updateActivityFieldMutation rpc実行 ", "カラム名", fieldName, "updatePayload", updatePayload);
@@ -468,7 +537,15 @@ export const useMutateMeeting = () => {
         // return data;
       }
 
-      return { fieldNameForSelectedRowData, newValue, meetingYearMonth };
+      return {
+        fieldNameForSelectedRowData,
+        newValue,
+        meetingYearMonth,
+        meetingQuarter,
+        meetingHalfYear,
+        meetingFiscalYear,
+        requireUpdateActivityDate,
+      };
       // 活動履歴で面談タイプ 訪問・面談を更新 実施商品は一旦一括編集のみにする
       // activity_dateは面談結果の面談日が存在する場合には、result_dateで更新し、面談予定の面談日しか存在しなければplanned_dateで更新する
       // const newMeetingData = {
@@ -494,7 +571,15 @@ export const useMutateMeeting = () => {
     },
     {
       onSuccess: async (data) => {
-        const { fieldNameForSelectedRowData, newValue, meetingYearMonth } = data;
+        const {
+          fieldNameForSelectedRowData,
+          newValue,
+          meetingYearMonth,
+          meetingQuarter,
+          meetingHalfYear,
+          meetingFiscalYear,
+          requireUpdateActivityDate,
+        } = data;
         console.log(
           "✅✅✅✅✅✅✅updateMeetingFieldMutation実行完了 キャッシュを更新して選択中のセルを再度クリックして更新 onSuccess ",
           "fieldNameForSelectedRowData",
@@ -515,6 +600,9 @@ export const useMutateMeeting = () => {
             ...selectedRowDataMeeting,
             [fieldNameForSelectedRowData]: newValue,
             meeting_year_month: meetingYearMonth,
+            meeting_quarter: meetingQuarter ?? null,
+            meeting_half_year: meetingHalfYear ?? null,
+            meeting_fiscal_year: meetingFiscalYear ?? null,
           };
           setSelectedRowDataMeeting(newRowDataMeeting);
         } else if (fieldNameForSelectedRowData === "planned_date") {
