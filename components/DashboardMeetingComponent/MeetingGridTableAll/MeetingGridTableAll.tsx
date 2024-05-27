@@ -2579,7 +2579,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPos(null);
+    if (hoveredItemPos) setHoveredItemPos(null);
   };
   // ==================================================================================
 
@@ -3061,11 +3061,11 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
 
                           if (error) throw error;
 
-                          // 選択行を空にリセット
-                          setSelectedRowDataMeeting(null);
-
                           // 削除後にキャッシュをリフレッシュ
                           await queryClient.invalidateQueries({ queryKey: ["meetings"] });
+
+                          // 選択行を空にリセット
+                          setSelectedRowDataMeeting(null);
 
                           toast.success("レコードデータの削除が完了しました！🌠");
 

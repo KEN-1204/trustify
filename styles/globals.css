@@ -512,6 +512,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-notification-modal: #fff;
   --color-overlay: #00000070;
   --color-overlay-light: #00000033;
+  --color-overlay-black-sm: #00000033;
   --color-overlay-black-md: #00000099;
 
   --color-wrap-border: rgba(220, 220, 220, 0.6);
@@ -1624,6 +1625,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-notification-modal: linear-gradient(to bottom left, #292929 0%, #222 33%, #121212 66%, #0f0f0f 100%);
   --color-overlay: #ffffff10;
   --color-overlay-light: #ffffff10;
+  --color-overlay-black-sm: #05050533;
   --color-overlay-black-md: #05050599;
 
   /* テーブルカラー dark */

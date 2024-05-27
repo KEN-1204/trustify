@@ -519,7 +519,8 @@ const ContactMainContainerMemo: FC = () => {
   };
 
   // ================== 🌟ツールチップ🌟 ==================
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
+  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
+  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "top") => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);

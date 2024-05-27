@@ -24,6 +24,7 @@ type Props = {
   optionsSelect?: { [K in "value" | "displayValue"]: any }[];
   selectState?: any;
   background?: string;
+  isOverlayBgBlack?: boolean;
 };
 
 export const ConfirmationModal: FC<Props> = ({
@@ -46,6 +47,7 @@ export const ConfirmationModal: FC<Props> = ({
   optionsSelect,
   selectState,
   background = `var(--color-bg-notification-modal)`,
+  isOverlayBgBlack = true,
 }) => {
   return (
     // --color-sales-card-bg
@@ -54,7 +56,10 @@ export const ConfirmationModal: FC<Props> = ({
       <div
         // className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay)] backdrop-blur-sm"
         className="fixed left-[-100vw] top-[-100vh] z-[1000] h-[200vh] w-[200vw] bg-[var(--color-overlay-light)] backdrop-blur-sm"
-        style={{ ...(zIndexOverlay && { zIndex: zIndexOverlay }) }}
+        style={{
+          ...(zIndexOverlay && { zIndex: zIndexOverlay }),
+          ...(isOverlayBgBlack && { background: `var(--color-overlay-black-sm)` }),
+        }}
         // onClick={() => {
         //   setShowConfirmCancelModal(null);
         // }}
@@ -92,7 +97,10 @@ export const ConfirmationModal: FC<Props> = ({
 
         {titleText2 && <h3 className={`flex min-h-[32px] w-full items-center text-[22px] font-bold`}>{titleText2}</h3>}
         {sectionP1 && (
-          <section className={`mt-[20px] flex h-auto w-full flex-col space-y-2 text-[14px]`}>
+          <section
+            // className={`mt-[20px] flex h-auto w-full flex-col space-y-2 text-[14px]`}
+            className={`mt-[15px] flex h-auto w-full flex-col space-y-2 text-[14px]`}
+          >
             {/* <p>この操作を実行した後にキャンセルすることはできません。</p> */}
             {/* <p className="font-bold">
                   注：この操作により、該当ユーザーのデータは、他のチームメンバーと共有されていないものを含めて全てアクセスできなくなります。

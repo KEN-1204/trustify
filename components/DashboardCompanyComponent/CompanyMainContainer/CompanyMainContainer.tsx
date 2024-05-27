@@ -479,7 +479,7 @@ const CompanyMainContainerMemo: FC = () => {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
     display?: "top" | "right" | "bottom" | "left" | "";
   };
-  const handleOpenTooltip = ({ e, display = "" }: TooltipParams) => {
+  const handleOpenTooltip = ({ e, display = "top" }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);

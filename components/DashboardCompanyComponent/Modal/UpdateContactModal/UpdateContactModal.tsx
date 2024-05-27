@@ -176,6 +176,12 @@ export const UpdateContactModal = () => {
       created_by_office_of_user: selectedRowDataContact?.created_by_office_of_user
         ? selectedRowDataContact.created_by_office_of_user
         : null,
+      // 削除時の復旧プレイスホルダー
+      initial_client_company_name: selectedRowDataContact?.initial_client_company_name ?? null,
+      initial_client_company_address: selectedRowDataContact?.initial_client_company_address ?? null,
+      initial_client_company_main_phone_number:
+        selectedRowDataContact?.initial_client_company_main_phone_number ?? null,
+      initial_client_company_department_name: selectedRowDataContact?.initial_client_company_department_name ?? null,
     };
 
     console.log("INSERT newContact", newContact);

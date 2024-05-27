@@ -20,6 +20,11 @@ import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchMode } from "./DropDownMenuSearchMode/DropDownMenuSearchMode";
 import { getNumberOfEmployeesClass, mappingIndustryType } from "@/utils/selectOptions";
+import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
+import { toast } from "react-toastify";
+import { MdDeleteOutline } from "react-icons/md";
+import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 type TableDataType = {
   id: number;
@@ -65,6 +70,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // );
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState); // グローバルローディング
   const [refetchLoading, setRefetchLoading] = useState(false); // refetchローディング
+  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
+  // 行レコード削除確認モーダル開閉state
+  const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 
   // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataCompanyに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   const isUpdateRequiredForLatestSelectedRowDataCompany = useDashboardStore(
@@ -2530,7 +2538,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPos(null);
+    if (hoveredItemPos) setHoveredItemPos(null);
   };
   // ==================================================================================
 
@@ -2657,6 +2665,14 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
 
   return (
     <>
+      {/* ローディング */}
+      {isLoadingDelete && (
+        <div
+          className={`flex-center fixed left-0 top-0 z-[5000] h-full w-full bg-[var(--overlay-loading-modal-inside)]`}
+        >
+          <SpinnerBrand withBorder withShadow />
+        </div>
+      )}
       {/* ================== メインコンテナ ================== */}
       <div
         className={`${styles.main_container} ${
@@ -2834,6 +2850,58 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
               </button>
             </div>
             <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
+              {isLoadingDelete && (
+                <div className={`flex-center min-h-[25px] min-w-[72px]`}>
+                  <SpinnerX w="w-[20px]" h="h-[20px]" />
+                </div>
+              )}
+              {selectedRowDataCompany &&
+                selectedRowDataCompany.created_by_company_id === userProfileState?.company_id && (
+                  <>
+                    {!isLoadingDelete && (
+                      <button
+                        className={`flex-center transition-bg03 h-[26px] space-x-2 rounded-[4px]  px-[12px] text-[12px] ${styles.fh_text_btn} ${styles.delete_btn}`}
+                        onClick={async () => {
+                          handleCloseTooltip();
+
+                          if (!userProfileState) return alert("ユーザーデータが見つかりませんでした。エラー：GTA020");
+                          if (!userProfileState.account_company_role)
+                            return alert("ユーザーデータが見つかりませんでした。エラー：GTA021");
+                          // 自分が作成した行か確認 or 自分以外の行を削除できるのはマネージャークラス以上
+                          if (selectedRowDataCompany.created_by_user_id !== userProfileState.id) {
+                            if (
+                              !["company_owner", "company_admin", "company_manager"].includes(
+                                userProfileState.account_company_role
+                              )
+                            ) {
+                              return alert(
+                                "レコードデータを削除できるのはレコード所有者(自社担当)かマネージャークラス以上の権限を持つユーザーのみです。"
+                              );
+                            }
+                          }
+
+                          // 削除モーダルを開く
+                          setIsOpenDeleteModal(true);
+                        }}
+                        onMouseEnter={(e) => {
+                          if (isLoadingDelete) return;
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: `選択中の行レコードデータを削除`,
+                            marginTop: 9,
+                            itemsPosition: "center",
+                          });
+                        }}
+                        onMouseLeave={handleCloseTooltip}
+                      >
+                        <MdDeleteOutline className="pointer-events-none text-[16px]" />
+                        <span className="pointer-events-none">削除</span>
+                      </button>
+                    )}
+                  </>
+                )}
+
               <button
                 className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
@@ -3594,6 +3662,69 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       {isOpenEditColumns && <EditColumnsModalDisplayOnly columnHeaderItemList={columnHeaderItemList} />}
       {/* ================== 🌟カラム編集モーダル🌟 ここまで ================== */}
       {/* ================== メインコンテナ ここまで ================== */}
+
+      {/* ================== 行レコード削除時の確認モーダル ================== */}
+      {isOpenDeleteModal &&
+        selectedRowDataCompany &&
+        userProfileState &&
+        selectedRowDataCompany.created_by_company_id === userProfileState?.company_id && (
+          <ConfirmationModal
+            titleText={`削除してもよろしいですか？`}
+            sectionP1={`確定することで${selectedRowDataCompany.name}は完全に削除され、この会社データに紐づく全ての営業データも確認できなくなります。\nこの操作は確定後、取り消すことができません。`}
+            cancelText="戻る"
+            submitText="削除を確定"
+            buttonColor="red"
+            zIndex="3000px"
+            zIndexOverlay="2800px"
+            withAnnotation={false}
+            // annotationText="注：この操作は少し時間がかかります。画面を閉じずにお待ちください。"
+            // clickEventSubmit={handleResetA}
+            withSelect={false}
+            isOverlayBgBlack={true}
+            clickEventClose={() => {
+              setIsOpenDeleteModal(false);
+            }}
+            clickEventSubmit={async () => {
+              // ローディング開始
+              setIsLoadingDelete(true);
+
+              try {
+                const companyId = selectedRowDataCompany.id;
+
+                console.log("🔥削除実行 companyId", companyId, "selectedRowDataCompany", selectedRowDataCompany);
+
+                // activitiesテーブルにはmeeting_idでカスケードデリートが設定済みでactivitiesの行も同時に削除されるため、別途DELETEクエリの必要なし
+                const { error } = await supabase.from("client_companies").delete().eq("id", companyId);
+
+                if (error) throw error;
+
+                // 削除後にキャッシュをリフレッシュ
+                await queryClient.invalidateQueries({ queryKey: ["companies"] });
+
+                // 選択行を空にリセット
+                setSelectedRowDataCompany(null);
+
+                toast.success("レコードデータの削除が完了しました！🌠");
+
+                // ローディング終了
+                setIsLoadingDelete(false);
+
+                // 削除モーダルを閉じる
+                setIsOpenDeleteModal(false);
+              } catch (error: any) {
+                console.error("削除エラー： GTA022", error);
+                toast.error("レコードデータの削除に失敗しました...🙇‍♀️");
+
+                // ローディング終了
+                setIsLoadingDelete(false);
+
+                // 削除モーダルを閉じる
+                setIsOpenDeleteModal(false);
+              }
+            }}
+          />
+        )}
+      {/* ================== 行レコード削除時の確認モーダル ここまで ================== */}
     </>
   );
 };

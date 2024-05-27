@@ -266,6 +266,16 @@
   background: var(--color-function-header-text-btn-active);
 }
 
+.fh_text_btn.delete_btn {
+  color: var(--color-text-brand-f);
+}
+.fh_text_btn.delete_btn:hover {
+  /* color: #fff; */
+  color: var(--main-color-tk);
+  box-shadow: 0 0 0 1px var(--main-color-tk);
+  background: var(--main-color-tk30);
+}
+
 .page_transition_button {
   font-size: 14px;
   color: var(--color-text);

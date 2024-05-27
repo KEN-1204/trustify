@@ -704,6 +704,10 @@ export type Contact = {
   created_by_section_of_user: string | null;
   created_by_unit_of_user: string | null;
   created_by_office_of_user: string | null;
+  initial_client_company_name: string | null;
+  initial_client_company_address: string | null;
+  initial_client_company_main_phone_number: string | null;
+  initial_client_company_department_name: string | null;
 };
 // 【Contact一括編集UPDATE用updateContactMutation関数】
 export type EditedContact = {
@@ -807,6 +811,11 @@ export type Contact_row_data = {
   fax_dm_ban_flag: boolean | null;
   ban_reason: string | null;
   claim: string | null;
+  // 削除時の復旧プレイスホルダー
+  initial_client_company_name: string | null;
+  initial_client_company_address: string | null;
+  initial_client_company_main_phone_number: string | null;
+  initial_client_company_department_name: string | null;
   // 🌠追加 事業部、係、事業所
   assigned_department_name: string | null;
   assigned_section_name: string | null;

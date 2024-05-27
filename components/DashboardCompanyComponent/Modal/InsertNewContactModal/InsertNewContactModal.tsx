@@ -98,6 +98,15 @@ export const InsertNewContactModal = () => {
       created_by_section_of_user: userProfileState?.assigned_section_id ? userProfileState.assigned_section_id : null,
       created_by_unit_of_user: userProfileState?.assigned_unit_id ? userProfileState.assigned_unit_id : null,
       created_by_office_of_user: userProfileState?.assigned_office_id ? userProfileState.assigned_office_id : null,
+      // 削除時の復旧プレイスホルダー
+      initial_client_company_name: selectedRowDataCompany?.name ? selectedRowDataCompany?.name : null,
+      initial_client_company_address: selectedRowDataCompany?.address ? selectedRowDataCompany?.address : null,
+      initial_client_company_main_phone_number: selectedRowDataCompany?.main_phone_number
+        ? selectedRowDataCompany?.main_phone_number
+        : null,
+      initial_client_company_department_name: selectedRowDataCompany?.department_name
+        ? selectedRowDataCompany?.department_name
+        : null,
     };
 
     // supabaseにINSERT,ローディング終了, モーダルを閉じる

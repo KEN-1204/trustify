@@ -24,6 +24,9 @@ import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { format } from "date-fns";
 import { getNumberOfEmployeesClass, mappingIndustryType } from "@/utils/selectOptions";
 import { DropDownMenuSearchMode } from "@/components/GridTable/GridTableAll/DropDownMenuSearchMode/DropDownMenuSearchMode";
+import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
+import { toast } from "react-toastify";
+import { MdDeleteOutline } from "react-icons/md";
 
 type TableDataType = {
   id: number;
@@ -65,6 +68,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   // refetchローディング
   const [refetchLoading, setRefetchLoading] = useState(false);
+  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
 
   // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataContactに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   const isUpdateRequiredForLatestSelectedRowDataContact = useDashboardStore(
@@ -2299,7 +2303,7 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPos(null);
+    if (hoveredItemPos) setHoveredItemPos(null);
   };
   // ==================================================================================
 
@@ -2571,6 +2575,89 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
               </button>
             </div>
             <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
+              {isLoadingDelete && (
+                <div className={`flex-center min-h-[25px] min-w-[72px]`}>
+                  <SpinnerX w="w-[20px]" h="h-[20px]" />
+                </div>
+              )}
+              {selectedRowDataContact && (
+                <>
+                  {!isLoadingDelete && (
+                    <button
+                      className={`flex-center transition-bg03 h-[26px] space-x-2 rounded-[4px]  px-[12px] text-[12px] ${styles.fh_text_btn} ${styles.delete_btn}`}
+                      onClick={async () => {
+                        handleCloseTooltip();
+
+                        if (!userProfileState) return alert("ユーザーデータが見つかりませんでした。エラー：CGTA020");
+                        if (!userProfileState.account_company_role)
+                          return alert("ユーザーデータが見つかりませんでした。エラー：CGTA021");
+                        // 自分が作成した行か確認 or 自分以外の行を削除できるのはマネージャークラス以上
+                        if (selectedRowDataContact.created_by_user_id !== userProfileState.id) {
+                          if (
+                            !["company_owner", "company_admin", "company_manager"].includes(
+                              userProfileState.account_company_role
+                            )
+                          ) {
+                            return alert(
+                              "レコードデータを削除できるのはレコード所有者(自社担当)かマネージャークラス以上の権限を持つユーザーのみです。"
+                            );
+                          }
+                        }
+                        // ローディング開始
+                        setIsLoadingDelete(true);
+
+                        try {
+                          const contactId = selectedRowDataContact.contact_id;
+
+                          console.log(
+                            "🔥削除実行 contactId",
+                            contactId,
+                            "selectedRowDataContact",
+                            selectedRowDataContact
+                          );
+
+                          // activitiesテーブルにはmeeting_idでカスケードデリートが設定済みでactivitiesの行も同時に削除されるため、別途DELETEクエリの必要なし
+                          const { error } = await supabase.from("contacts").delete().eq("id", contactId);
+
+                          if (error) throw error;
+
+                          // 削除後にキャッシュをリフレッシュ
+                          await queryClient.invalidateQueries({ queryKey: ["contacts"] });
+
+                          // 選択行を空にリセット
+                          setSelectedRowDataContact(null);
+
+                          toast.success("レコードデータの削除が完了しました！🌠");
+
+                          // ローディング終了
+                          setIsLoadingDelete(false);
+                        } catch (error: any) {
+                          console.error("削除エラー： CGTA022", error);
+                          toast.error("レコードデータの削除に失敗しました...🙇‍♀️");
+
+                          // ローディング終了
+                          setIsLoadingDelete(false);
+                        }
+                      }}
+                      onMouseEnter={(e) => {
+                        if (isLoadingDelete) return;
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: `選択中の行レコードデータを削除`,
+                          marginTop: 9,
+                          itemsPosition: "center",
+                        });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <MdDeleteOutline className="pointer-events-none text-[16px]" />
+                      <span className="pointer-events-none">削除</span>
+                    </button>
+                  )}
+                </>
+              )}
+
               <button
                 className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1

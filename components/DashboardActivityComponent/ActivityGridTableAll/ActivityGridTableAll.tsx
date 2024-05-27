@@ -2574,7 +2574,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPos(null);
+    if (hoveredItemPos) setHoveredItemPos(null);
   };
   // ==================================================================================
 
@@ -2911,9 +2911,9 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                       onClick={async () => {
                         handleCloseTooltip();
 
-                        if (!userProfileState) return alert("ユーザーデータが見つかりませんでした。エラー：MGTA020");
+                        if (!userProfileState) return alert("ユーザーデータが見つかりませんでした。エラー：AGTA020");
                         if (!userProfileState.account_company_role)
-                          return alert("ユーザーデータが見つかりませんでした。エラー：MGTA021");
+                          return alert("ユーザーデータが見つかりませんでした。エラー：AGTA021");
                         // 自分が作成した行か確認 or 自分以外の行を削除できるのはマネージャークラス以上
                         if (selectedRowDataActivity.activity_created_by_user_id !== userProfileState.id) {
                           if (
@@ -2944,18 +2944,18 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
 
                           if (error) throw error;
 
-                          // 選択行を空にリセット
-                          setSelectedRowDataActivity(null);
-
                           // 削除後にキャッシュをリフレッシュ
                           await queryClient.invalidateQueries({ queryKey: ["activities"] });
+
+                          // 選択行を空にリセット
+                          setSelectedRowDataActivity(null);
 
                           toast.success("レコードデータの削除が完了しました！🌠");
 
                           // ローディング終了
                           setIsLoadingDelete(false);
                         } catch (error: any) {
-                          console.error("削除エラー： MGTA022", error);
+                          console.error("削除エラー： AGTA022", error);
                           toast.error("レコードデータの削除に失敗しました...🙇‍♀️");
 
                           // ローディング終了
