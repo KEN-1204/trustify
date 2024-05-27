@@ -1594,10 +1594,11 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   meeting_business_office: string | null;
   meeting_department: string | null;
   meeting_member_name: string | null;
+  // 年月度〜年度
   meeting_year_month: number | null;
-  // meeting_quarter: number | null;
-  // meeting_half_year: number | null;
-  // meeting_fiscal_year: number | null;
+  meeting_quarter: number | null;
+  meeting_half_year: number | null;
+  meeting_fiscal_year: number | null;
 };
 
 export type NewSearchProperty_Contact_CompanyParams = {

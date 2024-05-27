@@ -53,6 +53,7 @@ import {
   getMeetingType,
   getPlannedPurpose,
   getPositionClassName,
+  getPreMeetingParticipationRequest,
   getResultCategory,
   getResultNegotiateDecisionMaker,
   getWebTool,
@@ -60,6 +61,7 @@ import {
   optionsMeetingType,
   optionsPlannedPurpose,
   optionsPositionsClass,
+  optionsPreMeetingParticipationRequest,
   optionsResultCategory,
   optionsResultNegotiateDecisionMaker,
   optionsWebTool,
@@ -1669,8 +1671,13 @@ export const UpdateMeetingModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="同席依頼無し">同席依頼無し</option>
-                      <option value="同席依頼済み">同席依頼済み</option>
+                      {optionsPreMeetingParticipationRequest.map((option) => (
+                        <option key={`${option}_pre`} value={option}>
+                          {getPreMeetingParticipationRequest(option)}
+                        </option>
+                      ))}
+                      {/* <option value="同席依頼無し">同席依頼無し</option>
+                      <option value="同席依頼済み">同席依頼済み</option> */}
                       {/* <option value="同席依頼済み 同席OK">同席依頼済み 同席OK</option>
                       <option value="同席依頼済み 同席NG">同席依頼済み 同席NG</option> */}
                     </select>

@@ -25,6 +25,7 @@ import {
   getMeetingType,
   getNumberOfEmployeesClass,
   getPlannedPurpose,
+  getPreMeetingParticipationRequest,
   getResultCategory,
   getResultNegotiateDecisionMaker,
   getWebTool,
@@ -34,6 +35,9 @@ import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
 import { CiFilter } from "react-icons/ci";
 import { DropDownMenuSearchMode } from "@/components/GridTable/GridTableAll/DropDownMenuSearchMode/DropDownMenuSearchMode";
+import { MdDeleteOutline } from "react-icons/md";
+import { toast } from "react-toastify";
+import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 
 type TableDataType = {
   id: number;
@@ -74,6 +78,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
   );
   const loadingGlobalState = useDashboardStore((state) => state.loadingGlobalState);
   const [refetchLoading, setRefetchLoading] = useState(false);
+  const [isLoadingDelete, setIsLoadingDelete] = useState(false);
   // 上テーブル検索条件変更用サーチモード用Zustand =================
   // 「自事業部・全事業部」「自係・全係」「自営業所・全営業所」の抽出条件を保持
   const isFetchAllDepartments = useDashboardStore((state) => state.isFetchAllDepartments);
@@ -1062,9 +1067,11 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
     //   Object.keys(data?.pages[0].rows[0] as object)
     // );
     // const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("120px");
-    const newColsWidths = new Array(meetingColumnHeaderItemList.length + 1).fill("120px");
+    // const newColsWidths = new Array(meetingColumnHeaderItemList.length + 1).fill("120px");
+    const newColsWidths = new Array(meetingColumnHeaderItemList.length + 1).fill("100px"); // 全て100px
     newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更
-    newColsWidths.fill("100px", 1, 2); // 2列目を100pxに変更 id
+    // newColsWidths.fill("150px", 0, 1); // 1列目を65pxに変更
+    newColsWidths.fill("150px", 1, 2); // 2列目を100pxに変更 id
     // newColsWidths.fill("100px", 2, 3); // 2列目を100pxに変更 法人番号
     // newColsWidths.fill("200px", 3, 4); // 4列目を100pxに変更 会社名
     console.log("Stateにカラムwidthを保存", newColsWidths);
@@ -2803,6 +2810,11 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
         if (!value) return null;
         return getNumberOfEmployeesClass(value);
 
+      // 事前同席依頼
+      case "pre_meeting_participation_request":
+        if (!value) return null;
+        return getPreMeetingParticipationRequest(value);
+
       // 面談時同席依頼
       case "meeting_participation_request":
         if (!value) return null;
@@ -2838,6 +2850,18 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
         if (!value) return null;
         if (typeof value !== "number") return value;
         return mappingIndustryType[value][language];
+
+      // // 紹介予定メイン
+      // case "planned_product1":
+      //   if (!value) return null;
+      //   if (typeof value !== "number") return value;
+      //   return mappingIndustryType[value][language];
+
+      // // 紹介予定サブ
+      // case "planned_product2":
+      //   if (!value) return null;
+      //   if (typeof value !== "number") return value;
+      //   return mappingIndustryType[value][language];
 
       default:
         return value;
@@ -2991,6 +3015,89 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
               </button>
             </div>
             <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
+              {isLoadingDelete && (
+                <div className={`flex-center min-h-[25px] min-w-[72px]`}>
+                  <SpinnerX w="w-[20px]" h="h-[20px]" />
+                </div>
+              )}
+              {selectedRowDataMeeting && (
+                <>
+                  {!isLoadingDelete && (
+                    <button
+                      className={`flex-center transition-bg03 h-[26px] space-x-2 rounded-[4px]  px-[12px] text-[12px] ${styles.fh_text_btn} ${styles.delete_btn}`}
+                      onClick={async () => {
+                        handleCloseTooltip();
+
+                        if (!userProfileState) return alert("ユーザーデータが見つかりませんでした。エラー：MGTA020");
+                        if (!userProfileState.account_company_role)
+                          return alert("ユーザーデータが見つかりませんでした。エラー：MGTA021");
+                        // 自分が作成した行か確認 or 自分以外の行を削除できるのはマネージャークラス以上
+                        if (selectedRowDataMeeting.meeting_created_by_user_id !== userProfileState.id) {
+                          if (
+                            !["company_owner", "company_admin", "company_manager"].includes(
+                              userProfileState.account_company_role
+                            )
+                          ) {
+                            return alert(
+                              "レコードデータを削除できるのはレコード所有者(自社担当)かマネージャークラス以上の権限を持つユーザーのみです。"
+                            );
+                          }
+                        }
+                        // ローディング開始
+                        setIsLoadingDelete(true);
+
+                        try {
+                          const meetingId = selectedRowDataMeeting.meeting_id;
+
+                          console.log(
+                            "🔥削除実行 meetingId",
+                            meetingId,
+                            "selectedRowDataMeeting",
+                            selectedRowDataMeeting
+                          );
+
+                          // activitiesテーブルにはmeeting_idでカスケードデリートが設定済みでactivitiesの行も同時に削除されるため、別途DELETEクエリの必要なし
+                          const { error } = await supabase.from("meetings").delete().eq("id", meetingId);
+
+                          if (error) throw error;
+
+                          // 選択行を空にリセット
+                          setSelectedRowDataMeeting(null);
+
+                          // 削除後にキャッシュをリフレッシュ
+                          await queryClient.invalidateQueries({ queryKey: ["meetings"] });
+
+                          toast.success("レコードデータの削除が完了しました！🌠");
+
+                          // ローディング終了
+                          setIsLoadingDelete(false);
+                        } catch (error: any) {
+                          console.error("削除エラー： MGTA022", error);
+                          toast.error("レコードデータの削除に失敗しました...🙇‍♀️");
+
+                          // ローディング終了
+                          setIsLoadingDelete(false);
+                        }
+                      }}
+                      onMouseEnter={(e) => {
+                        if (isLoadingDelete) return;
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: `選択中の行レコードデータを削除`,
+                          marginTop: 9,
+                          itemsPosition: "center",
+                        });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <MdDeleteOutline className="pointer-events-none text-[16px]" />
+                      <span className="pointer-events-none">削除</span>
+                    </button>
+                  )}
+                </>
+              )}
+
               <button
                 className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
@@ -3033,7 +3140,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                     //     ? ``
                     //     : `左右スクロール時にカラムを左端に固定できます`
                     // }`,
-                    marginTop: isColumnHeader && selectedColumn ? 8 : 22,
+                    marginTop: isColumnHeader && selectedColumn ? 9 : 22,
                     // marginTop: isColumnHeader && Number(activeCell?.ariaColIndex) ? 8 : 22,
                     itemsPosition: "center",
                   });
@@ -3514,7 +3621,32 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
                                 // if (columnName in flagMapping && value !== null) {
                                 //   displayValue = flagMapping[columnName][String(value)];
                                 // }
-                                displayValue = formatDisplayValue(columnName, displayValue);
+
+                                // 紹介予定メインとサブはplanned_product1がidなので、short_name1かproduct_name1を代わりに表示する
+                                if (columnName === "planned_product1" || columnName === "planned_product2") {
+                                  if (columnName === "planned_product1") {
+                                    displayValue =
+                                      displayValue !== null
+                                        ? (rowData as Meeting_row_data).planned_inside_short_name1
+                                          ? (rowData as Meeting_row_data).planned_inside_short_name1
+                                          : (rowData as Meeting_row_data).planned_product_name1
+                                          ? (rowData as Meeting_row_data).planned_product_name1
+                                          : "商品名未設定"
+                                        : ``;
+                                  } else {
+                                    displayValue =
+                                      displayValue !== null
+                                        ? (rowData as Meeting_row_data).planned_inside_short_name2
+                                          ? (rowData as Meeting_row_data).planned_inside_short_name2
+                                          : (rowData as Meeting_row_data).planned_product_name2
+                                          ? (rowData as Meeting_row_data).planned_product_name2
+                                          : "商品名未設定"
+                                        : ``;
+                                  }
+                                } else {
+                                  displayValue = formatDisplayValue(columnName, displayValue);
+                                }
+
                                 return (
                                   <div
                                     key={"row" + virtualRow.index.toString() + index.toString()}

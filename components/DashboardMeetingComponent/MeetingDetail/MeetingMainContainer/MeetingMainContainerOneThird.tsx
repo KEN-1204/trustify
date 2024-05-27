@@ -112,8 +112,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
-  const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
-  const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
+
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
   const underDisplayFullScreen = useDashboardStore((state) => state.underDisplayFullScreen);
@@ -236,7 +235,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputMeetingBusinessOffice, setInputMeetingBusinessOffice] = useState("");
   const [inputMeetingDepartment, setInputMeetingDepartment] = useState("");
   const [inputMeetingMemberName, setInputMeetingMemberName] = useState("");
-  const [inputMeetingYearMonth, setInputMeetingYearMonth] = useState<number | null>(null);
+  // 年月度〜年度
+  const [inputMeetingYearMonth, setInputMeetingYearMonth] = useState<string>("");
+  const [inputMeetingQuarter, setInputMeetingQuarter] = useState<string>("");
+  const [inputMeetingHalfYear, setInputMeetingHalfYear] = useState<string>("");
+  const [inputMeetingFiscalYear, setInputMeetingFiscalYear] = useState<string>("");
 
   // ================================ 🌟フィールドエディットモード関連state🌟 ================================
   const [inputPlannedDateForFieldEditMode, setInputPlannedDateForFieldEditMode] = useState<Date | null>(null);
@@ -373,11 +376,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     if (value.includes("%")) value = value.replace(/\%/g, "＊");
     if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
     if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-    return value;
-  }
-  // 数値型のフィールド用
-  function adjustFieldValueNumber(value: number | null) {
-    if (value === null) return null; // 全てのデータ
     return value;
   }
 
@@ -573,7 +571,28 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       );
       setInputMeetingDepartment(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.meeting_department));
       setInputMeetingMemberName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.meeting_member_name));
-      setInputMeetingYearMonth(adjustFieldValueNumber(newSearchMeeting_Contact_CompanyParams.meeting_year_month));
+      // 年月度 ~ 年度
+      // setInputMeetingYearMonth(adjustFieldValueNumber(newSearchMeeting_Contact_CompanyParams.meeting_year_month));
+      setInputMeetingYearMonth(
+        newSearchMeeting_Contact_CompanyParams.meeting_year_month !== null
+          ? String(newSearchMeeting_Contact_CompanyParams.meeting_year_month)
+          : ""
+      );
+      setInputMeetingQuarter(
+        newSearchMeeting_Contact_CompanyParams.meeting_quarter !== null
+          ? String(newSearchMeeting_Contact_CompanyParams.meeting_quarter)
+          : ""
+      );
+      setInputMeetingHalfYear(
+        newSearchMeeting_Contact_CompanyParams.meeting_half_year !== null
+          ? String(newSearchMeeting_Contact_CompanyParams.meeting_half_year)
+          : ""
+      );
+      setInputMeetingFiscalYear(
+        newSearchMeeting_Contact_CompanyParams.meeting_fiscal_year !== null
+          ? String(newSearchMeeting_Contact_CompanyParams.meeting_fiscal_year)
+          : ""
+      );
     } else if (!editSearchMode && searchMode) {
       console.log(
         "🔥Meetingメインコンテナー useEffect 新規サーチモード inputを初期化",
@@ -662,7 +681,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       if (!!inputMeetingBusinessOffice) setInputMeetingBusinessOffice("");
       if (!!inputMeetingDepartment) setInputMeetingDepartment("");
       if (!!inputMeetingMemberName) setInputMeetingMemberName("");
-      if (!!inputMeetingYearMonth) setInputMeetingYearMonth(null);
+      // 年月度 ~ 年度
+      // if (!!inputMeetingYearMonth) setInputMeetingYearMonth(null);
+      if (!!inputMeetingYearMonth) setInputMeetingYearMonth("");
+      if (!!inputMeetingQuarter) setInputMeetingQuarter("");
+      if (!!inputMeetingHalfYear) setInputMeetingHalfYear("");
+      if (!!inputMeetingFiscalYear) setInputMeetingFiscalYear("");
     }
   }, [editSearchMode, searchMode]);
 
@@ -751,6 +775,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       // setInputResultEndTime(""); // or setResultStartTime("");
     }
   }, [inputResultEndTimeHour, inputResultEndTimeMinute]);
+
+  // 数値型のフィールド用
+  function adjustFieldValueNumber(value: number | null) {
+    if (value === null) return null; // 全てのデータ
+    return value;
+  }
 
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -858,7 +888,28 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _meeting_business_office = adjustFieldValue(inputMeetingBusinessOffice);
     let _meeting_department = adjustFieldValue(inputMeetingDepartment);
     let _meeting_member_name = adjustFieldValue(inputMeetingMemberName);
-    let _meeting_year_month = adjustFieldValueNumber(inputMeetingYearMonth);
+    // 年月度 ~ 年度
+    // let _meeting_year_month = adjustFieldValueNumber(inputMeetingYearMonth);
+    const parsedMeetingYearMonth = parseInt(inputMeetingYearMonth, 10);
+    let _meeting_year_month =
+      !isNaN(parsedMeetingYearMonth) && inputMeetingYearMonth === parsedMeetingYearMonth.toString()
+        ? parsedMeetingYearMonth
+        : null;
+    const parsedMeetingQuarter = parseInt(inputMeetingQuarter, 10);
+    let _meeting_quarter =
+      !isNaN(parsedMeetingQuarter) && inputMeetingQuarter === parsedMeetingQuarter.toString()
+        ? parsedMeetingQuarter
+        : null;
+    const parsedMeetingHalfYear = parseInt(inputMeetingHalfYear, 10);
+    let _meeting_half_year =
+      !isNaN(parsedMeetingHalfYear) && inputMeetingHalfYear === parsedMeetingHalfYear.toString()
+        ? parsedMeetingHalfYear
+        : null;
+    const parsedMeetingFiscalYear = parseInt(inputMeetingFiscalYear, 10);
+    let _meeting_fiscal_year =
+      !isNaN(parsedMeetingFiscalYear) && inputMeetingFiscalYear === parsedMeetingFiscalYear.toString()
+        ? parsedMeetingFiscalYear
+        : null;
 
     const params = {
       "client_companies.name": _company_name,
@@ -943,7 +994,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       meeting_business_office: _meeting_business_office,
       meeting_department: _meeting_department,
       meeting_member_name: _meeting_member_name,
+      // 年月度〜年度
       meeting_year_month: _meeting_year_month,
+      meeting_quarter: _meeting_quarter,
+      meeting_half_year: _meeting_half_year,
+      meeting_fiscal_year: _meeting_fiscal_year,
     };
 
     // console.log("✅ 条件 params", params);
@@ -1024,7 +1079,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     setInputMeetingBusinessOffice("");
     setInputMeetingDepartment("");
     setInputMeetingMemberName("");
-    setInputMeetingYearMonth(null);
+    // 年月度〜年度
+    // setInputMeetingYearMonth(null);
+    setInputMeetingYearMonth("");
+    setInputMeetingQuarter("");
+    setInputMeetingHalfYear("");
+    setInputMeetingFiscalYear("");
 
     // サーチモードオフ
     setSearchMode(false);
@@ -1066,7 +1126,16 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   };
 
   // ==================================== 🌟ツールチップ🌟 ====================================
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
+  const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
+  const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
+  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
+  const handleOpenTooltip = (
+    e: React.MouseEvent<HTMLElement, MouseEvent>,
+    display: string = "top",
+    marginTop: number = 0,
+    itemsPosition: string = "center",
+    whiteSpace: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined = undefined
+  ) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
@@ -1085,11 +1154,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       content2: content2,
       content3: content3,
       display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+      whiteSpace: whiteSpace,
     });
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPosWrap(null);
+    if (!!hoveredItemPosWrap) setHoveredItemPosWrap(null);
   };
   // ==================================== ✅ツールチップ✅ ====================================
 
@@ -1135,7 +1207,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     return fiscalMonths;
   }, [fiscalEndMonthObjRef.current, closingDayRef.current]);
 
-  // 上期の月のSetオブジェクト
+  // 🔹上期の月のSetオブジェクト
   const firstHalfDetailSet = useMemo(() => {
     if (!annualFiscalMonths) return null;
     return new Set([
@@ -1148,7 +1220,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     ]);
   }, [annualFiscalMonths]);
 
-  // 四半期のQ1とQ3の月のSetオブジェクト
+  // 🔹四半期のQ1とQ3の月のSetオブジェクト
   const quarterDetailsSet = useMemo(() => {
     if (!annualFiscalMonths) return null;
     return {
@@ -1444,7 +1516,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
             requireUpdateActivityDate?: boolean | undefined;
           };
 
-          // 年月度
+          // 🔹年月度
           const fiscalYearMonth = calculateDateToYearMonth(new Date(newValue), closingDayRef.current);
           console.log("新たに生成された年月度", fiscalYearMonth);
 
@@ -1462,7 +1534,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
           // 上期と下期どちらを選択中か更新
           const _meetingMonth = String(fiscalYearMonth).substring(4);
           const halfDetailValue = firstHalfDetailSet.has(_meetingMonth) ? 1 : 2;
+
+          // 🔹半期
           const meetingHalfYear = selectedFiscalYear * 10 + halfDetailValue;
+
+          // 🔹四半期
           let meetingQuarter = 0;
           // 上期ルート
           if (halfDetailValue === 1) {
@@ -6518,6 +6594,120 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.section_underline}`}></div>
                 </div>
               </div>
+              {/*  */}
+
+              {/* 面談年度・面談半期 サーチ */}
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title_search_mode}`}>面談年度</span>
+                    {searchMode && (
+                      <input
+                        type="text"
+                        placeholder="年度を入力 例) 2024 など"
+                        data-text={`「2024」や「2023」などフィルターしたい年度を入力してください`}
+                        onMouseEnter={(e) => handleOpenTooltip(e)}
+                        onMouseLeave={handleCloseTooltip}
+                        className={`${styles.input_box}`}
+                        value={inputMeetingFiscalYear}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInputMeetingFiscalYear(val);
+                        }}
+                      />
+                    )}
+                    {!!inputMeetingFiscalYear && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setInputMeetingFiscalYear("")}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title_search_mode}`}>面談半期</span>
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        placeholder="年度と1か2を入力 例) 20241 など"
+                        data-text={`「20241」や「20242」など「年度」+「1か2」を入力してください。\n上期(H1)は1、下期(H2)は2\n例) 2024年上期は「20241」 2024年下期は「20242」`}
+                        onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                        onMouseLeave={handleCloseTooltip}
+                        value={inputMeetingHalfYear}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInputMeetingHalfYear(val);
+                        }}
+                      />
+                    )}
+                    {!!inputMeetingHalfYear && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setInputMeetingHalfYear("")}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {/*  */}
+
+              {/* 面談四半期・面談年月度 サーチ */}
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title_search_mode}`}>面談四半期</span>
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        placeholder="年度と1~4(Q1~Q4)を入力 例) 20244 など"
+                        data-text={`「20241」や「20242」など「年度」+「1~4」を入力してください。\n第一四半期(Q1)は1、第二四半期(Q2)は2、第三四半期(Q3)は3、第四四半期(Q4)は4\n例) 2024年Q1は「20241」 2024年Q4は「20244」`}
+                        onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                        onMouseLeave={handleCloseTooltip}
+                        value={inputMeetingQuarter}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInputMeetingQuarter(val);
+                        }}
+                      />
+                    )}
+                    {!!inputMeetingQuarter && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setInputMeetingQuarter("")}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title_search_mode}`}>面談年月度</span>
+                    {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        placeholder="年月を入力 例) 202412 など"
+                        data-text={`「202312」や「202304」など「年度」+「01~12」を入力してください。\n1月は「01」、2月は「02」...12月は「12」\n例) 2024年1月度は「202401」 2024年12月度は「202412」`}
+                        onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                        onMouseLeave={handleCloseTooltip}
+                        value={inputMeetingYearMonth}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInputMeetingYearMonth(val);
+                        }}
+                      />
+                    )}
+                    {!!inputMeetingYearMonth && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setInputMeetingYearMonth("")}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {/*  */}
+
               {/* 面談日・面談年月度 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
@@ -6533,8 +6723,25 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title_search_mode}`}>面談年月度</span>
+                    {/* <span className={`${styles.title_search_mode}`}>面談年月度</span>
                     {searchMode && (
+                      <input
+                        type="text"
+                        className={`${styles.input_box}`}
+                        placeholder='"202312" など年月を入力'
+                        value={inputMeetingYearMonth}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setInputMeetingYearMonth(val);
+                        }}
+                      />
+                    )}
+                    {!!inputMeetingYearMonth && (
+                      <div className={`${styles.close_btn_number}`} onClick={() => setInputMeetingYearMonth("")}>
+                        <MdClose className="text-[20px] " />
+                      </div>
+                    )} */}
+                    {/* {searchMode && (
                       <input
                         type="number"
                         min="0"
@@ -6558,15 +6765,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         }}
                       />
                     )}
-                    {/* バツボタン */}
                     {!!inputMeetingYearMonth && (
                       <div className={`${styles.close_btn_number}`} onClick={() => setInputMeetingYearMonth(null)}>
                         <MdClose className="text-[20px] " />
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>
+              {/*  */}
 
               {/* 結果 面談開始・面談終了 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>

@@ -354,6 +354,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [memberObj, setMemberObj] = useState<MemberDetail>(initialMemberObj);
   // =========営業担当データここまで
   const [inputQuotationDate, setInputQuotationDate] = useState<Date | null>(null);
+  console.log("見積日付inputQuotationDate", inputQuotationDate);
   const [inputExpirationDate, setInputExpirationDate] = useState<Date | null>(null);
   const [inputQuotationNotes, setInputQuotationNotes] = useState("");
   const [inputQuotationRemarks, setInputQuotationRemarks] = useState("");
@@ -561,7 +562,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _quotation_no_system = "";
     let _quotation_title = "";
     let _submission_class = "A submission";
-    let _quotation_date = new Date();
+    const initialDate = new Date()
+    initialDate.setHours(0,0,0,0)
+    let _quotation_date = initialDate;
     let _expiration_date = null;
     let _deadline = "当日出荷";
     let _delivery_place = "お打ち合わせにより決定";

@@ -64,6 +64,7 @@ export const InsertNewActivityModal = () => {
   // const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
+  // 時間ではなく日付で管理するため0に時間を初期化
   const initialDate = new Date();
   initialDate.setHours(0, 0, 0, 0);
   const year = initialDate.getFullYear(); // 例: 2023

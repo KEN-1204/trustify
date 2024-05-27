@@ -38,7 +38,13 @@ export const useMutateActivity = () => {
         // https://zenn.dev/masatakaitoh/articles/3c2f8602d2bb9d
 
         if (loadingGlobalState) setLoadingGlobalState(false);
+
+        // 行が追加されて選択行と順番が変わるため選択行をリセット
+        setSelectedRowDataActivity(null);
+
+        // モーダルを閉じる
         setIsOpenInsertNewActivityModal(false);
+
         toast.success("活動の作成が完了しました🌟", {
           position: "top-right",
           autoClose: 3000,

@@ -132,6 +132,7 @@ export const useMutateQuotation = () => {
         _activity_quarter: newQuotation.quotation_quarter,
         _activity_half_year: newQuotation.quotation_half_year,
         _activity_fiscal_year: newQuotation.quotation_fiscal_year,
+        //
         _meeting_id: null,
         _property_id: null,
       };
@@ -160,7 +161,13 @@ export const useMutateQuotation = () => {
         // setSelectedRowDataQuotation(null);
 
         // setIsOpenInsertNewQuotationModal(false);
+
+        // 行が追加されて選択行と順番が変わるため選択行をリセット
+        setSelectedRowDataQuotation(null);
+
+        // INSERTモードを終了
         setIsInsertModeQuotation(false);
+
         toast.success("見積の作成が完了しました🌟", {
           position: "top-right",
           autoClose: 3000,

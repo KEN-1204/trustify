@@ -1276,6 +1276,30 @@ export const getResultNegotiateDecisionMaker = (value: string, language: string 
   }
 };
 
+// 事前同席依頼
+// export const optionsMeetingParticipationRequest = [
+//   "A No Request for Accompaniment",
+//   "B Request for Accompaniment Made, Accompaniment Approved",
+//   "C Request for Accompaniment Made, Accompaniment Denied",
+// ];
+export const optionsPreMeetingParticipationRequest = ["A no_request", "B request"];
+export const getPreMeetingParticipationRequest = (value: string, language: string = "ja") => {
+  switch (value) {
+    // case "A No Request for Accompaniment":
+    case "A no_request":
+      return language === "ja" ? `同席依頼無し` : `No Request for Accompaniment`;
+      break;
+    // case "B Request for Accompaniment Made, Accompaniment Approved":
+    case "B request":
+      return language === "ja" ? `同席依頼済み` : `Request for Accompaniment Made`;
+      break;
+
+    default:
+      return value;
+      break;
+  }
+};
+
 // 面談時同席依頼
 // export const optionsMeetingParticipationRequest = [
 //   "A No Request for Accompaniment",

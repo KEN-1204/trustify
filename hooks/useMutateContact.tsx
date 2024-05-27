@@ -5,7 +5,6 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "react-toastify";
-import { ContainerInstance } from "react-toastify/dist/hooks";
 
 export const useMutateContact = () => {
   const theme = useThemeStore((state) => state.theme);
@@ -40,6 +39,10 @@ export const useMutateContact = () => {
 
         // ローディングを終了する
         if (loadingGlobalState) setLoadingGlobalState(false);
+
+        // 行が追加されて選択行と順番が変わるため選択行をリセット
+        setSelectedRowDataContact(null);
+
         //  モーダルを閉じる
         setIsOpenInsertNewContactModal(false);
         toast.success("担当者の作成が完了しました🌟", {

@@ -205,7 +205,12 @@ export const useMutateProperty = () => {
         // console.log("選択中の行をリセット");
         // setSelectedRowDataProperty(null);
 
+        // 行が追加されて選択行と順番が変わるため選択行をリセット
+        setSelectedRowDataProperty(null);
+
+        // モーダルを閉じる
         setIsOpenInsertNewPropertyModal(false);
+
         toast.success("案件の作成が完了しました🌟", {
           position: "top-right",
           autoClose: 1500,

@@ -34,9 +34,11 @@ import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import {
   getMeetingType,
   getPlannedPurpose,
+  getPreMeetingParticipationRequest,
   getWebTool,
   optionsMeetingType,
   optionsPlannedPurpose,
+  optionsPreMeetingParticipationRequest,
   optionsWebTool,
 } from "@/utils/selectOptions";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
@@ -1713,10 +1715,13 @@ export const InsertNewMeetingModal = () => {
                       }}
                     >
                       <option value=""></option>
-                      <option value="同席依頼無し">同席依頼無し</option>
-                      <option value="同席依頼済み">同席依頼済み</option>
-                      {/* <option value="同席依頼済み 承諾無し">同席依頼済み 承諾無し</option> */}
-                      {/* <option value="同席依頼済み 承諾有り">同席依頼済み 承諾有り</option> */}
+                      {/* <option value="同席依頼無し">同席依頼無し</option>
+                      <option value="同席依頼済み">同席依頼済み</option> */}
+                      {optionsPreMeetingParticipationRequest.map((option) => (
+                        <option key={`${option}_pre`} value={option}>
+                          {getPreMeetingParticipationRequest(option)}
+                        </option>
+                      ))}
                     </select>
                   </div>
                   <div className={`${styles.underline}`}></div>

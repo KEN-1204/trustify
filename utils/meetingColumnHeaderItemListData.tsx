@@ -8,6 +8,50 @@ interface Obj {
 const meetingColumnHeaderItemListArray: Obj[] = [
   // ================================ 🌟面談エリア
   {
+    columnName: "company_name",
+    columnWidth: "150px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "address",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    // columnName: "department_name",
+    columnName: "company_department_name",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "contact_name",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "position_class",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+
+  {
+    columnName: "meeting_member_name",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "planned_appoint_check_flag",
+    columnWidth: "70px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
     columnName: "planned_date",
     columnWidth: "100px",
     isFrozen: false,
@@ -19,8 +63,35 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+
   {
-    columnName: "result_presentation_product1",
+    columnName: "planned_purpose",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+
+  {
+    columnName: "planned_product1",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+
+  {
+    columnName: "planned_product2",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "planned_comment",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "planned_duration",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -52,70 +123,24 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  // 事業所
+  // 自社事業所
   {
     columnName: "assigned_office_name",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
-  {
-    columnName: "meeting_member_name",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "planned_appoint_check_flag",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  // ================================ ✅面談エリアここまで
-  {
-    columnName: "company_name",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "address",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    // columnName: "department_name",
-    columnName: "company_department_name",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "contact_name",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "position_class",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
+
   {
     columnName: "position_name",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
+  // ================================ ✅面談エリアここまで
+
   // ================================ 🌟面談エリア
-  {
-    columnName: "planned_purpose",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
+
   {
     columnName: "result_category",
     columnWidth: "100px",
@@ -135,7 +160,7 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
-  // 最上位職位
+  // 面談時_最上位職位
   {
     columnName: "result_top_position_class",
     columnWidth: "100px",
@@ -172,26 +197,21 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // 年月度〜年度
   {
-    columnName: "planned_duration",
+    columnName: "meeting_fiscal_year",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "planned_product1",
+    columnName: "meeting_quarter",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "planned_product2",
-    columnWidth: "100px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-  {
-    columnName: "planned_comment",
+    columnName: "meeting_half_year",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -202,6 +222,7 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  //
   {
     columnName: "result_date",
     columnWidth: "100px",
@@ -228,6 +249,12 @@ const meetingColumnHeaderItemListArray: Obj[] = [
   },
   {
     columnName: "result_number_of_meeting_participants",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "result_presentation_product1",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,

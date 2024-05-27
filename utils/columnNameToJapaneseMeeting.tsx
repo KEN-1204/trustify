@@ -272,10 +272,12 @@ export const columnNameToJapaneseMeeting = (columnName: string) => {
       return "決裁者商談有無";
       break;
     case "pre_meeting_participation_request":
-      return "面談前_同席依頼有無";
+      return "事前同席依頼";
+      // return "面談前_同席依頼有無";
       break;
     case "meeting_participation_request":
-      return "面談時_同席依頼有無";
+      return "面談時_同席依頼";
+      // return "面談時_同席依頼有無";
       break;
     // case "meeting_business_office":
     //   return "所属事業所(自社)";
@@ -304,14 +306,24 @@ export const columnNameToJapaneseMeeting = (columnName: string) => {
     case "meeting_updated_at":
       return "更新日時";
       break;
+    // 年月度〜年度
     case "meeting_year_month":
       return "面談年月度";
+      break;
+    case "meeting_quarter":
+      return "面談四半期";
+      break;
+    case "meeting_half_year":
+      return "面談半期";
+      break;
+    case "meeting_fiscal_year":
+      return "面談年度";
       break;
     case "attendees_info":
       return "同席者";
       break;
     case "result_top_position_class":
-      return "最上位職位";
+      return "面談時_最上位職位";
       break;
 
     default:

@@ -6,34 +6,41 @@ export const EditModal = () => {
   const textareaInput = useDashboardStore((state) => state.textareaInput);
   const setTextareaInput = useDashboardStore((state) => state.setTextareaInput);
   const setIsOpenEditModal = useDashboardStore((state) => state.setIsOpenEditModal);
-  const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
-  const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
+  // const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
+  // const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
 
   const handleClickOverlay = () => {
     setTextareaInput("");
     setIsOpenEditModal(false);
   };
 
-  console.log("🔥EditModalレンダリング textareaInput", textareaInput, "selectedRowDataContact", selectedRowDataContact);
+  // console.log("🔥EditModalレンダリング textareaInput", textareaInput, "selectedRowDataContact", selectedRowDataContact);
+  console.log("🔥EditModalレンダリング");
 
-  const handleSave = () => {
-    if (activeMenuTab === "Company") {
-    }
-    if (activeMenuTab === "Contacts") {
-    }
-  };
+  // const handleSave = () => {
+  //   if (activeMenuTab === "Company") {
+  //   }
+  //   if (activeMenuTab === "Contacts") {
+  //   }
+  // };
 
   return (
     <>
       {/* オーバーレイ */}
       <div className={`flex-center ${styles.overlay}`} onClick={handleClickOverlay}></div>
       {/* モーダル */}
-      <div className={`${styles.modal_container} transition-base fade02`} onClick={handleClickOverlay}>
+      <div
+        className={`${styles.modal_container} transition-base fade02`}
+        // onClick={handleClickOverlay}
+      >
         <div className={`${styles.contents} group relative !h-full w-full !bg-transparent`}>
           {/* <div className={`${styles.contents} group relative !h-full min-w-[70vw] !bg-transparent`}> */}
           {/* 保存キャンセルエリア */}
           <div className="flex w-full  items-center justify-between py-[10px] text-center text-[18px]">
-            <div className="w-[54px] cursor-pointer hover:text-[#aaa]" onClick={handleClickOverlay}>
+            <div
+              className="w-[54px] cursor-pointer hover:text-[#aaa]"
+              // onClick={handleClickOverlay}
+            >
               {/* キャンセル */}
             </div>
             {/* <div className="font-bold">編集</div> */}
@@ -42,10 +49,10 @@ export const EditModal = () => {
             </div>
             <div
               className={`w-[54px] cursor-pointer font-bold text-[#0D99FF] ${styles.save_text} select-none`}
-              onClick={() => console.log("クリック")}
+              onClick={handleClickOverlay}
             >
               {/* 保存 */}
-              {/* 閉じる */}
+              閉じる
             </div>
           </div>
           {/* Divider、区切り線 */}

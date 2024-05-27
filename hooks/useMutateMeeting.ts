@@ -162,7 +162,12 @@ export const useMutateMeeting = () => {
         // console.log("選択中の行をリセット");
         // setSelectedRowDataMeeting(null);
 
+        // 行が追加されて選択行と順番が変わるため選択行をリセット
+        setSelectedRowDataMeeting(null);
+
+        // モーダルを閉じる
         setIsOpenInsertNewMeetingModal(false);
+
         toast.success("面談予定の作成が完了しました🌟", {
           position: "top-right",
           autoClose: 1500,
