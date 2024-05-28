@@ -117,8 +117,27 @@ const activityColumnHeaderItemListArray: Obj[] = [
     isFrozen: false,
     isOverflow: false,
   },
+  // 年月度〜年度
   {
     columnName: "activity_year_month",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "activity_quarter",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "activity_half_year",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "activity_fiscal_year",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,

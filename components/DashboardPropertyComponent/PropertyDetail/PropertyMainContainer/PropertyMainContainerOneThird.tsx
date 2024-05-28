@@ -1018,6 +1018,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    handleCloseTooltip();
+
     // フィールド編集モードがtrueならサブミットせずにリターン
     if (isEditModeField) return console.log("サブミット フィールドエディットモードのためリターン");
 
@@ -1648,7 +1650,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPosWrap(null);
+    if (hoveredItemPosWrap) setHoveredItemPosWrap(null);
   };
   // ==================================== ✅ツールチップ✅ ====================================
 

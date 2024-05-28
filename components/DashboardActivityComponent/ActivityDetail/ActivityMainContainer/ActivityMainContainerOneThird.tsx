@@ -207,7 +207,12 @@ const ActivityMainContainerOneThirdMemo = () => {
   const [inputActivityDate, setInputActivityDate] = useState<Date | null | "is not null" | "is null">(null); //活動日
   const [inputActivityDateForFieldEditMode, setInputActivityDateForFieldEditMode] = useState<Date | null>(null); //活動日
   const [inputDepartment, setInputDepartment] = useState(""); // 事業部名
-  const [inputActivityYearMonth, setInputActivityYearMonth] = useState<number | null>(null); //活動年月度
+  // 年月度〜年度
+  const [inputActivityYearMonth, setInputActivityYearMonth] = useState<string>(""); //活動年月度
+  const [inputActivityQuarter, setInputActivityQuarter] = useState<string>("");
+  const [inputActivityHalfYear, setInputActivityHalfYear] = useState<string>("");
+  const [inputActivityFiscalYear, setInputActivityFiscalYear] = useState<string>("");
+
   // フラグ関連 フィールドエディット用 初期はfalseにしておき、useEffectでselectedRowDataのフラグを反映する
   const [checkboxClaimFlagForFieldEdit, setCheckboxClaimFlagForFieldEdit] = useState(false); // クレームフラグ フィールドエディット用
   const [checkboxFollowUpFlagForFieldEdit, setCheckboxFollowUpFlagForFieldEdit] = useState(false); //フォロー完了フラグ
@@ -513,7 +518,28 @@ const ActivityMainContainerOneThirdMemo = () => {
           : null
       );
       setInputDepartment(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.department));
-      setInputActivityYearMonth(adjustFieldValueNumber(newSearchActivity_Contact_CompanyParams.activity_year_month));
+      // 年月度〜年度
+      // setInputActivityYearMonth(adjustFieldValueNumber(newSearchActivity_Contact_CompanyParams.activity_year_month));
+      setInputActivityYearMonth(
+        newSearchActivity_Contact_CompanyParams.activity_year_month !== null
+          ? String(newSearchActivity_Contact_CompanyParams.activity_year_month)
+          : ""
+      );
+      setInputActivityQuarter(
+        newSearchActivity_Contact_CompanyParams.activity_quarter !== null
+          ? String(newSearchActivity_Contact_CompanyParams.activity_quarter)
+          : ""
+      );
+      setInputActivityHalfYear(
+        newSearchActivity_Contact_CompanyParams.activity_half_year !== null
+          ? String(newSearchActivity_Contact_CompanyParams.activity_half_year)
+          : ""
+      );
+      setInputActivityFiscalYear(
+        newSearchActivity_Contact_CompanyParams.activity_fiscal_year !== null
+          ? String(newSearchActivity_Contact_CompanyParams.activity_fiscal_year)
+          : ""
+      );
     } else if (!editSearchMode && searchMode) {
       console.log(
         "🔥Activityメインコンテナー useEffect 新規サーチモード inputを初期化",
@@ -585,13 +611,20 @@ const ActivityMainContainerOneThirdMemo = () => {
       if (!!inputPriority) setInputPriority("");
       if (!!inputActivityDate) setInputActivityDate(null);
       if (!!inputDepartment) setInputDepartment(""); // 事業部名(自社)
-      if (!!inputActivityYearMonth) setInputActivityYearMonth(null);
+      // 年月度〜年度
+      // if (!!inputActivityYearMonth) setInputActivityYearMonth(null);
+      if (!!inputActivityYearMonth) setInputActivityYearMonth("");
+      if (!!inputActivityQuarter) setInputActivityQuarter("");
+      if (!!inputActivityHalfYear) setInputActivityHalfYear("");
+      if (!!inputActivityFiscalYear) setInputActivityFiscalYear("");
     }
   }, [editSearchMode, searchMode]);
 
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    handleCloseTooltip();
 
     // フィールド編集モードがtrueならサブミットせずにリターン
     if (isEditModeField) return console.log("サブミット フィールドエディットモードのためリターン");
@@ -695,7 +728,28 @@ const ActivityMainContainerOneThirdMemo = () => {
         ? adjustFieldValue(inputActivityDate)
         : null;
     let _department = adjustFieldValue(inputDepartment);
-    let _activity_year_month = adjustFieldValueNumber(inputActivityYearMonth);
+    // 年月度〜年度
+    // let _activity_year_month = adjustFieldValueNumber(inputActivityYearMonth);
+    const parsedActivityYearMonth = parseInt(inputActivityYearMonth, 10);
+    let _activity_year_month =
+      !isNaN(parsedActivityYearMonth) && inputActivityYearMonth === parsedActivityYearMonth.toString()
+        ? parsedActivityYearMonth
+        : null;
+    const parsedActivityQuarter = parseInt(inputActivityQuarter, 10);
+    let _activity_quarter =
+      !isNaN(parsedActivityQuarter) && inputActivityQuarter === parsedActivityQuarter.toString()
+        ? parsedActivityQuarter
+        : null;
+    const parsedActivityHalfYear = parseInt(inputActivityHalfYear, 10);
+    let _activity_half_year =
+      !isNaN(parsedActivityHalfYear) && inputActivityHalfYear === parsedActivityHalfYear.toString()
+        ? parsedActivityHalfYear
+        : null;
+    const parsedActivityFiscalYear = parseInt(inputActivityFiscalYear, 10);
+    let _activity_fiscal_year =
+      !isNaN(parsedActivityFiscalYear) && inputActivityFiscalYear === parsedActivityFiscalYear.toString()
+        ? parsedActivityFiscalYear
+        : null;
 
     const params = {
       "client_companies.name": _company_name,
@@ -766,7 +820,11 @@ const ActivityMainContainerOneThirdMemo = () => {
       priority: _priority,
       activity_date: _activity_date,
       department: _department,
+      // 年月度〜年度
       activity_year_month: _activity_year_month,
+      activity_quarter: _activity_quarter,
+      activity_half_year: _activity_half_year,
+      activity_fiscal_year: _activity_fiscal_year,
     };
 
     // const { data, error } = await supabase.rpc("", { params });
@@ -835,7 +893,12 @@ const ActivityMainContainerOneThirdMemo = () => {
     setInputPriority("");
     setInputActivityDate(null);
     setInputDepartment("");
-    setInputActivityYearMonth(null);
+    // 年月度〜年度
+    // setInputActivityYearMonth(null);
+    setInputActivityYearMonth("");
+    setInputActivityQuarter("");
+    setInputActivityHalfYear("");
+    setInputActivityFiscalYear("");
 
     setSearchMode(false);
     setEditSearchMode(false);
@@ -878,7 +941,10 @@ const ActivityMainContainerOneThirdMemo = () => {
   // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
   const handleOpenTooltip = (
     e: React.MouseEvent<HTMLElement, MouseEvent>,
-    display: "top" | "right" | "bottom" | "left" | "" = ""
+    display: "top" | "right" | "bottom" | "left" | "" = "top",
+    marginTop: number = 0,
+    itemsPosition: string = "center",
+    whiteSpace: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined = undefined
   ) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
@@ -5791,6 +5857,140 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.section_underline}`}></div>
                   </div>
                 </div>
+
+                {/* 活動年度・活動半期 サーチ */}
+                <div
+                  className={`${styles.row_area} ${searchMode ? `${styles.row_area_search_mode}` : ``} ${
+                    styles.row_area_search_mode
+                  } flex h-[30px] w-full items-center`}
+                >
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>活動年度</span>
+                      {searchMode && (
+                        <>
+                          <input
+                            type="text"
+                            // placeholder="例) 2024 など"
+                            data-text={`「2024」や「2023」などフィルターしたい年度を入力してください`}
+                            onMouseEnter={(e) => handleOpenTooltip(e)}
+                            onMouseLeave={handleCloseTooltip}
+                            className={`${styles.input_box}`}
+                            value={inputActivityFiscalYear}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setInputActivityFiscalYear(val);
+                            }}
+                          />
+                          {!!inputActivityFiscalYear && (
+                            <div
+                              className={`${styles.close_btn_number}`}
+                              onClick={() => setInputActivityFiscalYear("")}
+                            >
+                              <MdClose className="text-[20px] " />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>活動半期</span>
+                      {searchMode && (
+                        <>
+                          <input
+                            type="text"
+                            // placeholder="例) 2024 など"
+                            data-text={`「20241」や「20242」など「年度」+「1か2」を入力してください。\n上期(H1)は1、下期(H2)は2\n例) 2024年上期は「20241」 2024年下期は「20242」`}
+                            onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                            onMouseLeave={handleCloseTooltip}
+                            className={`${styles.input_box}`}
+                            value={inputActivityHalfYear}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setInputActivityHalfYear(val);
+                            }}
+                          />
+                          {!!inputActivityHalfYear && (
+                            <div className={`${styles.close_btn_number}`} onClick={() => setInputActivityHalfYear("")}>
+                              <MdClose className="text-[20px] " />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+                {/*  */}
+
+                {/* 活動四半期・活動年月度 サーチ */}
+                <div
+                  className={`${styles.row_area} ${searchMode ? `${styles.row_area_search_mode}` : ``} ${
+                    styles.row_area_search_mode
+                  } flex h-[30px] w-full items-center`}
+                >
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>活動四半期</span>
+                      {searchMode && (
+                        <>
+                          <input
+                            type="text"
+                            // placeholder="例) 2024 など"
+                            data-text={`「20241」や「20242」など「年度」+「1~4」を入力してください。\n第一四半期(Q1)は1、第二四半期(Q2)は2、第三四半期(Q3)は3、第四四半期(Q4)は4\n例) 2024年Q1は「20241」 2024年Q4は「20244」`}
+                            onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                            onMouseLeave={handleCloseTooltip}
+                            className={`${styles.input_box}`}
+                            value={inputActivityQuarter}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setInputActivityQuarter(val);
+                            }}
+                          />
+                          {!!inputActivityQuarter && (
+                            <div className={`${styles.close_btn_number}`} onClick={() => setInputActivityQuarter("")}>
+                              <MdClose className="text-[20px] " />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title}`}>活動年月度</span>
+                      {searchMode && (
+                        <>
+                          <input
+                            type="text"
+                            // placeholder="例) 2024 など"
+                            data-text={`「202312」や「202304」など「年度」+「01~12」を入力してください。\n1月は「01」、2月は「02」...12月は「12」\n例) 2024年1月度は「202401」 2024年12月度は「202412」`}
+                            onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                            onMouseLeave={handleCloseTooltip}
+                            className={`${styles.input_box}`}
+                            value={inputActivityYearMonth}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setInputActivityYearMonth(val);
+                            }}
+                          />
+                          {!!inputActivityYearMonth && (
+                            <div className={`${styles.close_btn_number}`} onClick={() => setInputActivityYearMonth("")}>
+                              <MdClose className="text-[20px] " />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                  </div>
+                </div>
+                {/*  */}
+
                 {/* 活動日・クレームフラグ サーチ */}
                 <div
                   className={`${styles.row_area} ${searchMode ? `${styles.row_area_search_mode}` : ``} ${
@@ -5852,6 +6052,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.underline}`}></div>
                   </div>
                 </div>
+                {/*  */}
 
                 {/* 活動タイプ・優先度 サーチ */}
                 <div
@@ -6278,8 +6479,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     <div className={`${styles.underline}`}></div>
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center`}>
-                      {/* <span className={`${styles.title}`}>活動年月度</span> */}
+                    {/* <div className={`${styles.title_box} flex h-full items-center`}>
                       <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
                         <span>活動</span>
                         <span>年月度</span>
@@ -6308,14 +6508,13 @@ const ActivityMainContainerOneThirdMemo = () => {
                           }}
                         />
                       )}
-                      {/* バツボタン */}
                       {!!inputActivityYearMonth && (
                         <div className={`${styles.close_btn_number}`} onClick={() => setInputActivityYearMonth(null)}>
                           <MdClose className="text-[20px] " />
                         </div>
                       )}
                     </div>
-                    <div className={`${styles.underline}`}></div>
+                    <div className={`${styles.underline}`}></div> */}
                   </div>
                 </div>
               </>

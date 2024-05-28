@@ -786,6 +786,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    handleCloseTooltip();
+
     // フィールド編集モードがtrueならサブミットせずにリターン
     if (isEditModeField) return console.log("サブミット フィールドエディットモードのためリターン");
 
@@ -6604,7 +6606,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     {searchMode && (
                       <input
                         type="text"
-                        placeholder="年度を入力 例) 2024 など"
+                        // placeholder="例) 2024 など"
                         data-text={`「2024」や「2023」などフィルターしたい年度を入力してください`}
                         onMouseEnter={(e) => handleOpenTooltip(e)}
                         onMouseLeave={handleCloseTooltip}
@@ -6631,7 +6633,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <input
                         type="text"
                         className={`${styles.input_box}`}
-                        placeholder="年度と1か2を入力 例) 20241 など"
+                        // placeholder="例) 20241 など"
                         data-text={`「20241」や「20242」など「年度」+「1か2」を入力してください。\n上期(H1)は1、下期(H2)は2\n例) 2024年上期は「20241」 2024年下期は「20242」`}
                         onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
                         onMouseLeave={handleCloseTooltip}
@@ -6661,7 +6663,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <input
                         type="text"
                         className={`${styles.input_box}`}
-                        placeholder="年度と1~4(Q1~Q4)を入力 例) 20244 など"
+                        // placeholder="年度と1~4(Q1~Q4)を入力 例) 20244 など"
                         data-text={`「20241」や「20242」など「年度」+「1~4」を入力してください。\n第一四半期(Q1)は1、第二四半期(Q2)は2、第三四半期(Q3)は3、第四四半期(Q4)は4\n例) 2024年Q1は「20241」 2024年Q4は「20244」`}
                         onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
                         onMouseLeave={handleCloseTooltip}
@@ -6687,7 +6689,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <input
                         type="text"
                         className={`${styles.input_box}`}
-                        placeholder="年月を入力 例) 202412 など"
+                        // placeholder="年月を入力 例) 202412 など"
                         data-text={`「202312」や「202304」など「年度」+「01~12」を入力してください。\n1月は「01」、2月は「02」...12月は「12」\n例) 2024年1月度は「202401」 2024年12月度は「202412」`}
                         onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
                         onMouseLeave={handleCloseTooltip}
@@ -6708,7 +6710,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div>
               {/*  */}
 
-              {/* 面談日・面談年月度 サーチ */}
+              {/* 面談日 サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>

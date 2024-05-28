@@ -244,6 +244,15 @@ export const columnNameToJapaneseActivity = (columnName: string) => {
     case "activity_year_month":
       return "活動年月度";
       break;
+    case "activity_quarter":
+      return "活動四半期";
+      break;
+    case "activity_half_year":
+      return "活動半期";
+      break;
+    case "activity_fiscal_year":
+      return "活動年度";
+      break;
     case "claim_flag":
       return "クレームフラグ";
       break;

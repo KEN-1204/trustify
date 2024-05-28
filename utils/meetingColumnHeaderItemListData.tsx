@@ -199,7 +199,7 @@ const meetingColumnHeaderItemListArray: Obj[] = [
   },
   // 年月度〜年度
   {
-    columnName: "meeting_fiscal_year",
+    columnName: "meeting_year_month",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,
@@ -217,7 +217,7 @@ const meetingColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "meeting_year_month",
+    columnName: "meeting_fiscal_year",
     columnWidth: "100px",
     isFrozen: false,
     isOverflow: false,

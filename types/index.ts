@@ -1509,6 +1509,9 @@ export type NewSearchActivity_Contact_CompanyParams = {
   department: string | null;
   // 年月度
   activity_year_month: number | null;
+  activity_quarter: number | null;
+  activity_half_year: number | null;
+  activity_fiscal_year: number | null;
   // 条件検索用のパラメータには年度〜四半期は入れず
 };
 // 面談サーチパラメータ用
@@ -2478,6 +2481,9 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   quotation_member_name: string | null;
   // 年月度のみパラメータに渡す
   quotation_year_month: number | null;
+  quotation_quarter: number | null;
+  quotation_half_year: number | null;
+  quotation_fiscal_year: number | null;
   quotation_title: string | null;
   // 担当印 担当者名
   "q.in_charge_stamp_name": string | null;

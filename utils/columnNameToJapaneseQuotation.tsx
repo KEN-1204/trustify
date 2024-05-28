@@ -317,6 +317,15 @@ export const columnNameToJapaneseQuotation = (columnName: string) => {
     case "quotation_year_month":
       return "見積年月度";
       break;
+    case "quotation_quarter":
+      return "見積四半期";
+      break;
+    case "quotation_half_year":
+      return "見積半期";
+      break;
+    case "quotation_fiscal_year":
+      return "見積年度";
+      break;
     case "quotation_created_at":
       return "作成日時";
       break;

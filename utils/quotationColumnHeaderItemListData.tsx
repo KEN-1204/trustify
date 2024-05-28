@@ -334,6 +334,24 @@ const quotationColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
+    columnName: "quotation_quarter",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "quotation_half_year",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "quotation_fiscal_year",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
     columnName: "quotation_created_at",
     columnWidth: "100px",
     isFrozen: false,

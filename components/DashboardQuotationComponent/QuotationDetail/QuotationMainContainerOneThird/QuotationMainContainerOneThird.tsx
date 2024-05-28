@@ -375,7 +375,11 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputQuotationDepartment, setInputQuotationDepartment] = useState("");
   const [inputQuotationMemberName, setInputQuotationMemberName] = useState("");
   // 年月度〜年度
-  const [inputQuotationYearMonth, setInputQuotationYearMonth] = useState<number | null>(null);
+  // const [inputQuotationYearMonth, setInputQuotationYearMonth] = useState<number | null>(null);
+  const [inputQuotationYearMonth, setInputQuotationYearMonth] = useState<string>("");
+  const [inputQuotationQuarter, setInputQuotationQuarter] = useState<string>("");
+  const [inputQuotationHalfYear, setInputQuotationHalfYear] = useState<string>("");
+  const [inputQuotationFiscalYear, setInputQuotationFiscalYear] = useState<string>("");
 
   // ================================ 🌟フィールドエディットモード関連state🌟 ================================
   // const [inputQuotationDateEdit, setInputQuotationDateEdit] = useState<Date | null>(null);
@@ -562,8 +566,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _quotation_no_system = "";
     let _quotation_title = "";
     let _submission_class = "A submission";
-    const initialDate = new Date()
-    initialDate.setHours(0,0,0,0)
+    const initialDate = new Date();
+    initialDate.setHours(0, 0, 0, 0);
     let _quotation_date = initialDate;
     let _expiration_date = null;
     let _deadline = "当日出荷";
@@ -1086,7 +1090,29 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       // setInputQuotationDepartment(
       //   beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_department)
       // );
-      setInputQuotationYearMonth(adjustFieldValueNumber(newSearchQuotation_Contact_CompanyParams.quotation_year_month));
+      // 年月度〜年度
+      // setInputQuotationYearMonth(adjustFieldValueNumber(newSearchQuotation_Contact_CompanyParams.quotation_year_month));
+      setInputQuotationYearMonth(
+        newSearchQuotation_Contact_CompanyParams.quotation_year_month !== null
+          ? String(newSearchQuotation_Contact_CompanyParams.quotation_year_month)
+          : ""
+      );
+      setInputQuotationQuarter(
+        newSearchQuotation_Contact_CompanyParams.quotation_quarter !== null
+          ? String(newSearchQuotation_Contact_CompanyParams.quotation_quarter)
+          : ""
+      );
+      setInputQuotationHalfYear(
+        newSearchQuotation_Contact_CompanyParams.quotation_half_year !== null
+          ? String(newSearchQuotation_Contact_CompanyParams.quotation_half_year)
+          : ""
+      );
+      setInputQuotationFiscalYear(
+        newSearchQuotation_Contact_CompanyParams.quotation_fiscal_year !== null
+          ? String(newSearchQuotation_Contact_CompanyParams.quotation_fiscal_year)
+          : ""
+      );
+      //
       setInputInChargeUserName(
         beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.in_charge_stamp_name"])
       );
@@ -1143,7 +1169,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       if (!!inputQuotationBusinessOffice) setInputQuotationBusinessOffice("");
       if (!!inputQuotationDepartment) setInputQuotationDepartment("");
       if (!!inputQuotationMemberName) setInputQuotationMemberName("");
-      if (!!inputQuotationYearMonth) setInputQuotationYearMonth(null);
+      // 年月度〜年度
+      if (!!inputQuotationYearMonth) setInputQuotationYearMonth("");
+      if (!!inputQuotationQuarter) setInputQuotationQuarter("");
+      if (!!inputQuotationHalfYear) setInputQuotationHalfYear("");
+      if (!!inputQuotationFiscalYear) setInputQuotationFiscalYear("");
+      //
       if (!!inputEmployeeIdName) setInputEmployeeIdName("");
     }
   }, [editSearchMode, searchMode]);
@@ -1153,6 +1184,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // ----------------------------- 🌟サーチ・サブミット関数実行🌟 -----------------------------
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    handleCloseTooltip();
 
     // upsertモードがtrueならサブミットせずにリターン
     if (isInsertModeQuotation) return console.log("サブミット INSERTモードのためリターン");
@@ -1224,8 +1257,29 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _quotation_division = adjustFieldValue(inputQuotationDivision);
     let _quotation_notes = adjustFieldValue(inputQuotationNotes);
     let _quotation_remarks = adjustFieldValue(inputQuotationRemarks);
-    // 年月度
-    let _quotation_year_month = adjustFieldValueNumber(inputQuotationYearMonth);
+    // 年月度〜年度
+    // let _quotation_year_month = adjustFieldValueNumber(inputQuotationYearMonth);
+    const parsedQuotationYearMonth = parseInt(inputQuotationYearMonth, 10);
+    let _quotation_year_month =
+      !isNaN(parsedQuotationYearMonth) && inputQuotationYearMonth === parsedQuotationYearMonth.toString()
+        ? parsedQuotationYearMonth
+        : null;
+    const parsedQuotationQuarter = parseInt(inputQuotationQuarter, 10);
+    let _quotation_quarter =
+      !isNaN(parsedQuotationQuarter) && inputQuotationQuarter === parsedQuotationQuarter.toString()
+        ? parsedQuotationQuarter
+        : null;
+    const parsedQuotationHalfYear = parseInt(inputQuotationHalfYear, 10);
+    let _quotation_half_year =
+      !isNaN(parsedQuotationHalfYear) && inputQuotationHalfYear === parsedQuotationHalfYear.toString()
+        ? parsedQuotationHalfYear
+        : null;
+    const parsedQuotationFiscalYear = parseInt(inputQuotationFiscalYear, 10);
+    let _quotation_fiscal_year =
+      !isNaN(parsedQuotationFiscalYear) && inputQuotationFiscalYear === parsedQuotationFiscalYear.toString()
+        ? parsedQuotationFiscalYear
+        : null;
+    //
     let _in_charge_user_name_name = adjustFieldValue(inputInChargeUserName);
     let _in_charge_user_employee_id_name = adjustFieldValue(inputEmployeeIdName);
 
@@ -1324,7 +1378,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       quotation_remarks: _quotation_remarks,
       // quotation_business_office: _quotation_business_office,
       // quotation_department: _quotation_department,
+      // 年月度〜年度
       quotation_year_month: _quotation_year_month,
+      quotation_quarter: _quotation_quarter,
+      quotation_half_year: _quotation_half_year,
+      quotation_fiscal_year: _quotation_fiscal_year,
+      //
       "q.in_charge_stamp_name": _in_charge_user_name_name,
       "e.employee_id_name": _in_charge_user_employee_id_name,
     };
@@ -1378,7 +1437,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     //
     // setInputQuotationBusinessOffice("");
     // setInputQuotationDepartment("");
-    setInputQuotationYearMonth(null);
+    // 年月度〜年度
+    setInputQuotationYearMonth("");
+    setInputQuotationQuarter("");
+    setInputQuotationHalfYear("");
+    setInputQuotationFiscalYear("");
+    //
     setInputInChargeUserName("");
     setInputEmployeeIdName("");
 
@@ -1452,7 +1516,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPosWrap(null);
+    if (hoveredItemPosWrap) setHoveredItemPosWrap(null);
   };
   // ==================================== ✅ツールチップ✅ ====================================
 
@@ -9255,7 +9319,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.underline}`}></div>
                     </div>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                      <div className={`${styles.title_box} flex h-full items-center`}>
+                      {/* <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title_search_mode}`}>見積年月度</span>
                         <input
                           type="number"
@@ -9280,7 +9344,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           }}
                         />
                       </div>
-                      <div className={`${styles.underline}`}></div>
+                      <div className={`${styles.underline}`}></div> */}
                     </div>
                   </div>
                   {/*  */}
@@ -9490,6 +9554,164 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           value={inputQuotationRemarks}
                           onChange={(e) => setInputQuotationRemarks(e.target.value)}
                         ></textarea>
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 見積年度・見積半期 サーチ */}
+                  <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title_search_mode}`}>見積年度</span>
+                        {searchMode && (
+                          <>
+                            <input
+                              type="text"
+                              // placeholder="例) 2024 など"
+                              data-text={`「2024」や「2023」などフィルターしたい年度を入力してください`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
+                              onMouseLeave={handleCloseTooltip}
+                              className={`${styles.input_box}`}
+                              value={inputQuotationFiscalYear}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setInputQuotationFiscalYear(val);
+                              }}
+                            />
+                            {!!inputQuotationFiscalYear && (
+                              <div
+                                className={`${styles.close_btn_number}`}
+                                onClick={() => setInputQuotationFiscalYear("")}
+                              >
+                                <MdClose className="text-[20px] " />
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.title_search_mode}`}>見積半期</span>
+                        {searchMode && (
+                          <>
+                            <input
+                              type="text"
+                              // placeholder="例) 2024 など"
+                              data-text={`「20241」や「20242」など「年度」+「1か2」を入力してください。\n上期(H1)は1、下期(H2)は2\n例) 2024年上期は「20241」 2024年下期は「20242」`}
+                              onMouseEnter={(e) =>
+                                handleOpenTooltip({
+                                  e,
+                                  display: "top",
+                                  marginTop: 24,
+                                  itemsPosition: "left",
+                                  whiteSpace: "pre-wrap",
+                                })
+                              }
+                              onMouseLeave={handleCloseTooltip}
+                              className={`${styles.input_box}`}
+                              value={inputQuotationHalfYear}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setInputQuotationHalfYear(val);
+                              }}
+                            />
+                            {!!inputQuotationHalfYear && (
+                              <div
+                                className={`${styles.close_btn_number}`}
+                                onClick={() => setInputQuotationHalfYear("")}
+                              >
+                                <MdClose className="text-[20px] " />
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 見積四半期・見積年月度 サーチ */}
+                  <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title_search_mode}`}>見積四半期</span>
+                        {searchMode && (
+                          <>
+                            <input
+                              type="text"
+                              // placeholder="例) 2024 など"
+                              data-text={`「20241」や「20242」など「年度」+「1~4」を入力してください。\n第一四半期(Q1)は1、第二四半期(Q2)は2、第三四半期(Q3)は3、第四四半期(Q4)は4\n例) 2024年Q1は「20241」 2024年Q4は「20244」`}
+                              onMouseEnter={(e) =>
+                                handleOpenTooltip({
+                                  e,
+                                  display: "top",
+                                  marginTop: 24,
+                                  itemsPosition: "left",
+                                  whiteSpace: "pre-wrap",
+                                })
+                              }
+                              onMouseLeave={handleCloseTooltip}
+                              className={`${styles.input_box}`}
+                              value={inputQuotationQuarter}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setInputQuotationQuarter(val);
+                              }}
+                            />
+                            {!!inputQuotationQuarter && (
+                              <div
+                                className={`${styles.close_btn_number}`}
+                                onClick={() => setInputQuotationQuarter("")}
+                              >
+                                <MdClose className="text-[20px] " />
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <span className={`${styles.title_search_mode}`}>見積年月度</span>
+                        {searchMode && (
+                          <>
+                            <input
+                              type="text"
+                              // placeholder="例) 2024 など"
+                              data-text={`「202312」や「202304」など「年度」+「01~12」を入力してください。\n1月は「01」、2月は「02」...12月は「12」\n例) 2024年1月度は「202401」 2024年12月度は「202412」`}
+                              onMouseEnter={(e) =>
+                                handleOpenTooltip({
+                                  e,
+                                  display: "top",
+                                  marginTop: 24,
+                                  itemsPosition: "left",
+                                  whiteSpace: "pre-wrap",
+                                })
+                              }
+                              onMouseLeave={handleCloseTooltip}
+                              className={`${styles.input_box}`}
+                              value={inputQuotationYearMonth}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setInputQuotationYearMonth(val);
+                              }}
+                            />
+                            {!!inputQuotationYearMonth && (
+                              <div
+                                className={`${styles.close_btn_number}`}
+                                onClick={() => setInputQuotationYearMonth("")}
+                              >
+                                <MdClose className="text-[20px] " />
+                              </div>
+                            )}
+                          </>
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
