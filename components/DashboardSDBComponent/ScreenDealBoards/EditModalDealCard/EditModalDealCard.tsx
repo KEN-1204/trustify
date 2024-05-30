@@ -123,7 +123,8 @@ const EditModalDealCardMemo = () => {
         dealCard: { ...selectedDealCard.dealCard, ...updatePayload },
       });
 
-      // ローカルstateを更新するためのトリガーをON
+      // ローカルstateを更新するためのトリガーをON ボード内のcardsから選択中のカードの
+      // rejected_flag, pending_flag, property_summaryカラムの更新内容を反映
       setIsRequiredRefreshDealCards(true);
 
       toast.success(successMessage);
@@ -283,7 +284,10 @@ const EditModalDealCardMemo = () => {
       >
         <div className={`${styles.container}`}>
           {/* ----------------- 会社名 ----------------- */}
-          <div className={`${styles.title_area} h-[90px] bg-[green]/[0]`}>
+          <div
+            // className={`${styles.title_area} h-[90px] bg-[green]/[0]`}
+            className={`${styles.title_area} h-[80px] bg-[green]/[0]`}
+          >
             <div className={`${styles.icon_area} min-w-[39px] bg-[red]/[0]`}>
               <div className={`flex h-[36px] w-full items-center`}>
                 <FiLayout className={`text-[24px]`} />

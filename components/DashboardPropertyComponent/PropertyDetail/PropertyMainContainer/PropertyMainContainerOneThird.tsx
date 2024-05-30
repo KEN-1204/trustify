@@ -4892,7 +4892,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       >
                         {/* {selectedRowDataProperty?.expansion_quarter ? selectedRowDataProperty?.expansion_quarter : ""} */}
                         {selectedRowDataProperty?.expansion_quarter
-                          ? `${selectedRowDataProperty.expansion_quarter.toString()}Q`
+                          ? `${selectedRowDataProperty.expansion_quarter}Q`
                           : null}
                       </span>
                     )}
@@ -4914,6 +4914,52 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       >
                         {/* {selectedRowDataProperty?.sales_quarter ? selectedRowDataProperty?.sales_quarter : ""} */}
                         {selectedRowDataProperty?.sales_quarter ? `${selectedRowDataProperty.sales_quarter}Q` : null}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 展開半期・売上半期 通常 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span className={`${styles.title} text-[12px]`}>展開半期</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataProperty?.expansion_half_year
+                          ? `${selectedRowDataProperty.expansion_half_year}H`
+                          : null}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+                <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center`}>
+                    <span className={`${styles.title} text-[12px]`}>売上半期</span>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        }}
+                      >
+                        {selectedRowDataProperty?.sales_half_year
+                          ? `${selectedRowDataProperty.sales_half_year}H`
+                          : null}
                       </span>
                     )}
                   </div>

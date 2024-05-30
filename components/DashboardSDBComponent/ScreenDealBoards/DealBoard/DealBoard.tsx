@@ -42,6 +42,7 @@ import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/Progres
 import { AvatarIcon } from "@/components/Parts/AvatarIcon/AvatarIcon";
 import { FallbackDealBoard } from "./FallbackDealBoard";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
+import Decimal from "decimal.js";
 
 type ColumnSizeInfo = {
   prevColumnHeight: number;
@@ -137,8 +138,11 @@ const DealBoardMemo = ({
   const setIsRequiredRefreshDealCards = useDashboardStore((state) => state.setIsRequiredRefreshDealCards);
   const isRequiredInputSoldProduct = useDashboardStore((state) => state.isRequiredInputSoldProduct);
   const isOpenDealCardModal = useDashboardStore((state) => state.isOpenDealCardModal);
+  // A受注済み => 他に移った時に売上データをリセットするかどうか確認モーダル
+  const setIsOpenResetSalesConfirmationModal = useDashboardStore((state) => state.setIsOpenResetSalesConfirmationModal);
 
   const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
+  const selectedFiscalYearTargetSDB = useDashboardStore((state) => state.selectedFiscalYearTargetSDB);
 
   // 選択されたメンバーのidをDealBoardにpropsで渡す
   const activeThemeColor = useDashboardStore((state) => state.activeThemeColor);
@@ -163,6 +167,72 @@ const DealBoardMemo = ({
 
   const [cards, setCards] = useState<DealCardType[]>([]);
   const [isMountedQuery, setIsMountedQuery] = useState(false);
+
+  // 現在のA(受注済み)の売上金額の合計をProgressNumberに渡して達成率と同時に更新する
+  // const [awardSalesAmount, setAwardSalesAmount] = useState(0);
+
+  const awardSalesAmount = useMemo(() => {
+    if (!cards) return 0;
+    if (cards.length === 0) return 0;
+
+    // 売上日付は未定で受注する場合もあるため、フィルター条件は売上日付を除く
+    // 「月初確度 or 中間見直確度」「現ステータス」「売上金額」「売上商品」
+    // const awardCards = cards.filter(
+    //   (card) =>
+    //     (!!card.review_order_certainty
+    //       ? card.review_order_certainty === 1
+    //       : card.order_certainty_start_of_month === 1) &&
+    //     card.current_status === "D Order Received" &&
+    //     card.sales_price !== null &&
+    //     card.sold_product !== null
+    // );
+
+    // 「現ステータス」「売上金額」「売上商品」のみを売上済みフィルター条件として「月初確度 or 中間見直確度」は条件に入れない
+    const awardCards = cards.filter(
+      (card) =>
+        (!!card.order_certainty_start_of_month || !!card.review_order_certainty) &&
+        card.current_status === "D Order Received" &&
+        card.sales_price !== null &&
+        card.sold_product !== null
+    );
+
+    let _salesAmount = 0;
+    if (awardCards && awardCards.length >= 1) {
+      awardCards.forEach((card) => {
+        if (isValidNumber(card.sales_price)) {
+          _salesAmount += Number(card.sales_price) ?? 0;
+        }
+      });
+    }
+
+    const formattedAmount = Number(_salesAmount.toFixed(0));
+
+    console.log(
+      "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥awardCards",
+      awardCards,
+      "cards",
+      cards,
+      "_salesAmount",
+      _salesAmount,
+      "formattedAmount",
+      formattedAmount,
+      `${memberObj.profile_name}`
+    );
+
+    return formattedAmount;
+  }, [cards]);
+
+  const achievementRate = useMemo(() => {
+    if (!awardSalesAmount) return null;
+    if (!memberObj?.current_sales_target) return null;
+
+    const salesAmountDecimal = new Decimal(awardSalesAmount);
+    const targetDecimal = new Decimal(memberObj?.current_sales_target);
+
+    if (targetDecimal.isZero()) return null;
+
+    return Number(salesAmountDecimal.dividedBy(targetDecimal).times(100).toFixed(0, Decimal.ROUND_HALF_UP)) ?? null;
+  }, [awardSalesAmount, memberObj?.current_sales_target]);
 
   // 現在のクエリキー(queryKey) キャッシュ更新時に使用
   const currentQueryKey = ["deals", userId, periodType, period];
@@ -196,14 +266,14 @@ const DealBoardMemo = ({
               : null;
             if (newColumnTitleNum === null) return null;
             const newCard = { column_title_num: newColumnTitleNum, ...obj };
-            console.log(
-              "mapメソッド内 newColumnTitleNum",
-              newColumnTitleNum,
-              "obj.review_order_certainty",
-              obj.review_order_certainty,
-              "obj.order_certainty_start_of_month",
-              obj.order_certainty_start_of_month
-            );
+            // console.log(
+            //   "mapメソッド内 newColumnTitleNum",
+            //   newColumnTitleNum,
+            //   "obj.review_order_certainty",
+            //   obj.review_order_certainty,
+            //   "obj.order_certainty_start_of_month",
+            //   obj.order_certainty_start_of_month
+            // );
             return newCard;
           })
         : [];
@@ -211,9 +281,11 @@ const DealBoardMemo = ({
       console.log("ローカルstateにネタカードを格納 initialCards", initialCards, "filteredCards", filteredCards);
 
       setCards(filteredCards);
+
+      // クエリを完了
       setIsMountedQuery(true);
 
-      // フェッチ完了を通知
+      // フェッチ完了を通知して次のネタ表ボードのフェッチを許可する
       console.log("案件をネタ表テーブルのローカルstateに格納 フェッチ完了を通知");
       if (onFetchComplete) onFetchComplete();
     }
@@ -1334,6 +1406,20 @@ const DealBoardMemo = ({
       return;
     }
 
+    // console.log(
+    //   "🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥 ",
+    //   "draggingCardIndexRef.current.currentColumnIndex",
+    //   draggingCardIndexRef.current.currentColumnIndex,
+    //   "originDraggingCardIndexRef.current.originColumnIndex",
+    //   originDraggingCardIndexRef.current.originColumnIndex,
+    //   "ドラッグ先タイトル",
+    //   mappingColumnIndexToTitle[draggingCardIndexRef.current.currentColumnIndex],
+    //   "ドラッグ元タイトル",
+    //   mappingColumnIndexToTitle[originDraggingCardIndexRef.current.originColumnIndex]
+    // );
+
+    // ドロップ先のカラムタイトル
+    const originDragColumnTitle = mappingColumnIndexToTitle[originDraggingCardIndexRef.current.originColumnIndex];
     // ドロップ先のカラムタイトル
     const dropColumnTitle = mappingColumnIndexToTitle[draggingCardIndexRef.current.currentColumnIndex];
     // ドロップ先の列のカード配列
@@ -1462,13 +1548,43 @@ const DealBoardMemo = ({
     // ドラッグしてるカードを削除して、ドロップした位置に挿入
     const deleteAt = newCards.findIndex((card) => card.property_id === draggingCardObj.property_id);
     const deleteCard = newCards.splice(deleteAt, 1)[0];
-    const newInsertCard = {
-      ...deleteCard,
-      property_id: deleteCard.property_id,
-      company_name: deleteCard.company_name,
-      company_department_name: deleteCard.company_department_name,
-      column_title_num: dropColumnTitle,
-    } as DealCardType;
+    // -------------------- テスト 前 --------------------
+    // const newInsertCard =  {
+    //   ...deleteCard,
+    //   property_id: deleteCard.property_id,
+    //   company_name: deleteCard.company_name,
+    //   company_department_name: deleteCard.company_department_name,
+    //   column_title_num: dropColumnTitle,
+    // } as DealCardType;
+    // -------------------- テスト 前 --------------------
+    // -------------------- テスト 後 --------------------
+    const newInsertCard =
+      originDragColumnTitle !== 1 && dropColumnTitle === 1
+        ? ({
+            ...deleteCard,
+            property_id: deleteCard.property_id,
+            company_name: deleteCard.company_name,
+            company_department_name: deleteCard.company_department_name,
+            column_title_num: dropColumnTitle,
+            current_status: "D Order Received", // 「A (受注済み)」に変更
+          } as DealCardType)
+        : originDragColumnTitle === 1 && dropColumnTitle !== 1 && deleteCard.current_status === "D Order Received"
+        ? ({
+            ...deleteCard,
+            property_id: deleteCard.property_id,
+            company_name: deleteCard.company_name,
+            company_department_name: deleteCard.company_department_name,
+            column_title_num: dropColumnTitle,
+            current_status: "B Deal Development", // 「展開」に変更
+          } as DealCardType)
+        : ({
+            ...deleteCard,
+            property_id: deleteCard.property_id,
+            company_name: deleteCard.company_name,
+            company_department_name: deleteCard.company_department_name,
+            column_title_num: dropColumnTitle,
+          } as DealCardType);
+    // -------------------- テスト 後 --------------------
 
     if (draggingCardIndexRef.current?.currentRowIndex === -1) {
       newCards.push(newInsertCard);
@@ -1482,11 +1598,19 @@ const DealBoardMemo = ({
       }
     }
 
-    // 🔹カラムが変更された場合 中間見直確度が存在するなら中間見直確度を更新 なければ月初確度を更新
+    // 🔹カラムが変更された場合 中間見直確度が存在するなら中間見直確度を更新 なければ月初確度を更新 => ローカルstateにセットするカードの「月初確度or中間見直確度」カラムの値をドロップ位置の値に変更してからsetCardsのstate更新関数を実行する
     if (dropColumnIndex !== originDragColumnIndex) {
+      // 既に中間見直確度が存在する場合は、中間見直確度を「受注」に変更する
       if (!!newInsertCard.review_order_certainty) {
         newInsertCard.review_order_certainty = newInsertCard.column_title_num;
-      } else if (newInsertCard.order_certainty_start_of_month) {
+      }
+      // 中間見直確度がnullで月初確度の入力されている場合は、月初確度をそのまま保持し、中間見直確度を「受注」に変更する
+      else if (!!newInsertCard.order_certainty_start_of_month) {
+        newInsertCard.review_order_certainty = newInsertCard.column_title_num;
+        // newInsertCard.order_certainty_start_of_month = newInsertCard.column_title_num;
+      }
+      // 中間見直確度と月初確度がどちらもnullの場合には、月初確度を「受注」に変更する
+      else if (newInsertCard.order_certainty_start_of_month) {
         newInsertCard.order_certainty_start_of_month = newInsertCard.column_title_num;
       } else {
         return console.error("❌エラー：月初確度、中間見直確度ともにデータが見つかりませんでした。");
@@ -1502,16 +1626,49 @@ const DealBoardMemo = ({
     if (dropColumnIndex !== originDragColumnIndex) {
       try {
         // カラムが異なる場合はDBの確度を変更
-        // 中間見直確度が存在するなら中間見直確度を更新 なければ月初確度を更新
-        const updatePayload: { [key: string]: number } = {};
+        // 中間見直確度が存在するなら中間見直確度を更新 なければ月初確度を更新 => payload用に更新するカラムと更新する値をオブジェクトにセット
+        const updatePayload: { [key: string]: number | string } = {};
+        // 既に中間見直確度が存在する場合は、中間見直確度を「受注」に変更する
         if (!!newInsertCard.review_order_certainty) {
           updatePayload.review_order_certainty = newInsertCard.column_title_num;
-        } else if (newInsertCard.order_certainty_start_of_month) {
+        }
+        // 中間見直確度がnullで月初確度の入力されている場合は、月初確度をそのまま保持し、中間見直確度を「受注」に変更する
+        else if (!!newInsertCard.order_certainty_start_of_month) {
+          updatePayload.review_order_certainty = newInsertCard.column_title_num;
+          // updatePayload.order_certainty_start_of_month = newInsertCard.column_title_num;
+        }
+        // 中間見直確度と月初確度がどちらもnullの場合には、月初確度を「受注」に変更する
+        else if (!newInsertCard.order_certainty_start_of_month) {
           updatePayload.order_certainty_start_of_month = newInsertCard.column_title_num;
         } else {
           throw new Error("❌エラー：月初確度、中間見直確度ともにデータが見つかりませんでした。");
         }
-        console.log("🚀ネタの確度を更新 updatePayload", updatePayload);
+
+        // -------------------- テスト 後 --------------------
+        // 🔹現ステータスも更新(理由は売上の取得クエリの条件が現ステータスが「D Order Received」である案件を売上データとして取得するため)
+        // 売上フィルター条件：current_status, sales_price, sold_product
+        // dropColumnTitleが1の「A(受注済み)」にドロップされた場合には、「月初確度or中間見直確度」を1に変更すると共に「現ステータス」も「展開」から「受注済み」に変更する
+        if (originDragColumnTitle !== 1 && dropColumnTitle === 1) {
+          updatePayload["current_status"] = "D Order Received";
+        }
+        // 元々のドラッグ位置が「A(受注済み)」から別に移った時には、「月初確度or中間見直確度」と共に「現ステータス」が「受注済み」の場合には「展開」に変更する
+        if (originDragColumnTitle === 1 && dropColumnTitle !== 1) {
+          // 現ステータスを「受注」から「展開」
+          updatePayload["current_status"] = "B Deal Development";
+        }
+        // -------------------- テスト 後 --------------------
+
+        console.log(
+          "🚀ネタの確度を更新 updatePayload",
+          updatePayload,
+          "ドラッグ元",
+          originDragColumnTitle,
+          "ドロップ先",
+          dropColumnTitle,
+          "現在のcurrent_status",
+          newInsertCard.current_status
+        );
+
         const { data, error } = await supabase
           .from("properties")
           .update(updatePayload)
@@ -1553,23 +1710,73 @@ const DealBoardMemo = ({
         // ) {
         if (newInsertCard.column_title_num === 1) {
           // 新たな売物件をZustandに格納 分割代入の残余演算子の組み合わせで、DealCardType型からcolumn_title_numプロパティを除いた残りのプロパティ全て(Property_row_data型)をpropertyRowData変数に格納 column_title_numプロパティはcolumn_title_num変数に格納(除去用なので使用はしない)
+          // キャッシュを更新
+          await queryClient.invalidateQueries({ queryKey: ["properties"] });
+          // await queryClient.invalidateQueries({ queryKey: ["activities"] });
           // 花吹雪の後に1秒後に開く
           // setTimeout(() => {
           // }, 1000);
           setTimeout(() => {
             runFireworks();
             setSelectedDealCard({ ownerId: userId, dealCard: newInsertCard }); // column_title_numありのネタカード
+            // 分割代入でcolumn_title_numとpropertyRowDataを分割して、案件テーブルの選択行保持stateのZustandにpropertyRowDataをセット => Updateモーダルに受注済みデータを渡す
             const { column_title_num, ...propertyRowData } = newInsertCard;
             setSelectedRowDataProperty(propertyRowData); // 案件RowData
             setIsOpenCongratulationsModal(true);
           }, 900);
           // setIsOpenUpdatePropertyModal(true); // 売上入力するオプションモーダルで入力を選択した時に編集モーダルを開く
         }
+
+        // 🔹受注済み => 他へ移動した時には、売上データをリセットして、売上実績と達成率に反映させるか確認モーダルを表示する => 売上データをリセットをユーザーに選んでもらってから、ネタ表ボードの実績と達成率、売上推移チャートと達成率チャートに反映する
+        // 元々のドラッグ位置が「A(受注済み)」から別に移った時
+        if (originDragColumnTitle === 1 && dropColumnTitle !== 1) {
+          // 確度と共に現ステータスも「受注」から「展開」に変更しているため、売上フィルター条件に該当しているため、
+          // useMemoの売上実績・達成率は反映される => 売上データリセット確認モーダルでチャートも同時に更新
+
+          // キャッシュを更新
+          await queryClient.invalidateQueries({ queryKey: ["properties"] });
+          // await queryClient.invalidateQueries({ queryKey: ["activities"] });
+
+          // 移動した案件の「売上商品・売上金額」が入力済みだったならキャッシュを更新
+          if (!!newInsertCard.sales_price && !!newInsertCard.sold_product && !!newInsertCard.sold_product_id) {
+            // 🔹売上進捗キャッシュを更新 ---------------------------------
+            // ["sales_trends", selectedFiscalYear, entityLevel, basePeriod, yearsBack, entityIdsStrKey, periodType]
+            const queryKeySalesTrend = [
+              "sales_trends",
+              selectedFiscalYearTargetSDB,
+              "member",
+              activePeriodSDB?.period,
+              3,
+            ];
+            await queryClient.invalidateQueries({ queryKey: queryKeySalesTrend });
+            // 🔹売上進捗キャッシュを更新 ここまで ---------------------------------
+
+            // 🔹達成率キャッシュを更新 ---------------------------------
+            // ["sales_processes_for_progress", fiscalYear, periodTypeForProperty, basePeriod, entityId]
+            const queryKeySalesProcesses = [
+              "sales_processes_for_progress",
+              selectedFiscalYearTargetSDB,
+              activePeriodSDB?.periodType,
+              activePeriodSDB?.period,
+              // selectedDealCard.ownerId,
+            ];
+            await queryClient.invalidateQueries({ queryKey: queryKeySalesProcesses });
+            // 🔹達成率キャッシュを更新 ここまで ---------------------------------
+
+            // 売上データリセットモーダルを表示
+            setTimeout(() => {
+              setSelectedDealCard({ ownerId: userId, dealCard: newInsertCard }); // column_title_numありのネタカード
+              const { column_title_num, ...propertyRowData } = newInsertCard;
+              setSelectedRowDataProperty(propertyRowData); // 案件RowData
+              setIsOpenResetSalesConfirmationModal(true);
+            }, 100);
+          }
+        }
       } catch (error: any) {
         console.error("エラー", error);
         // DBへの更新が失敗した場合は、prevCardsを使ってローカルstateを元々の確度に戻す
         setCards(prevCards);
-        toast.success(
+        toast.error(
           `${deleteCard.company_name}の${mappingOrderCertaintyStartOfMonthToast[dropColumnTitle][language]}への更新に失敗しました...🙇‍♀️`
         );
       }
@@ -1803,32 +2010,6 @@ const DealBoardMemo = ({
   };
   // ==================================================================================
 
-  console.log(
-    "DealBoardレンダリング",
-    "cards",
-    cards,
-    "queryData",
-    queryData
-    // "categorizedCardsMapObj",
-    // categorizedCardsMapObj,
-    // "dealColumnList",
-    // dealColumnList,
-    // "✅ボード isLoadingQuery",
-    // isLoadingQuery,
-    // "isMountedQuery",
-    // isMountedQuery,
-    // "isSuccess",
-    // isSuccess,
-    // "cards",
-    // cards,
-    // "selectedDealCard",
-    // selectedDealCard,
-    // "isRequiredRefreshDealCards",
-    // isRequiredRefreshDealCards,
-    // "isRequiredInputSoldProduct",
-    // isRequiredInputSoldProduct
-  );
-
   const getStyleTheme = () => {
     switch (activeThemeColor) {
       case "theme-brand-f":
@@ -1847,6 +2028,46 @@ const DealBoardMemo = ({
         break;
     }
   };
+
+  // const formattedSalesTarget = useMemo(() => {
+  //   if (memberObj.current_sales_target === null) return "-";
+
+  // }, [memberObj?.current_sales_target]);
+
+  /** memberObj
+   * current_sales_amount: number | null;
+    current_sales_target: number | null;
+    current_achievement_rate: number | null;
+   */
+
+  console.log(
+    "DealBoardレンダリング",
+    "cards",
+    cards,
+    "queryData",
+    queryData,
+    // "awardSalesAmount",
+    // awardSalesAmount,
+    // "achievementRate",
+    // achievementRate,
+    `${memberObj.profile_name}`
+    // "categorizedCardsMapObj",
+    // categorizedCardsMapObj,
+    // "dealColumnList",
+    // dealColumnList,
+    // "✅ボード isLoadingQuery",
+    // isLoadingQuery,
+    // "isSuccess",
+    // isSuccess,
+    // "cards",
+    // cards,
+    // "selectedDealCard",
+    // selectedDealCard,
+    // "isRequiredRefreshDealCards",
+    // isRequiredRefreshDealCards,
+    // "isRequiredInputSoldProduct",
+    // isRequiredInputSoldProduct
+  );
 
   // useQueryの取得中とcardsの初期値がまだセットされていない場合はローディングを返す h: 48(タイトル) 288(ボード)
   if (isLoadingQuery || !isMountedQuery) {
@@ -1885,9 +2106,11 @@ const DealBoardMemo = ({
               className={`relative !ml-[24px] !mr-[12px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}
             >
               <div className="flex h-full min-w-[150px] items-end justify-end">
-                {/* {memberObj.current_sales_amount !== null ? (
+                {memberObj.current_sales_amount !== null ? (
                   <ProgressNumber
-                    targetNumber={memberObj.current_sales_amount}
+                    // targetNumber={memberObj.current_sales_amount}
+                    targetNumber={awardSalesAmount}
+                    // targetNumber={6200000}
                     // targetNumber={0}
                     // startNumber={Math.round(68000 / 2)}
                     // startNumber={Number((68000 * 0.1).toFixed(0))}
@@ -1906,27 +2129,13 @@ const DealBoardMemo = ({
                       fontSize: `27px`,
                       fontWeight: 500,
                       color: `var(--color-text-title)`,
-                      margin: `0 0 -3px 0`,
+                      margin: "0 0 -3px 0",
                     }}
-                    className={`${!isRenderProgress ? `opacity-0` : ``} ${
-                      isRenderProgress ? `fade08_forward` : ``
-                    }`}
-                  ></span>
-                )} */}
-                <ProgressNumber
-                  targetNumber={6200000}
-                  // targetNumber={0}
-                  // startNumber={Math.round(68000 / 2)}
-                  // startNumber={Number((68000 * 0.1).toFixed(0))}
-                  startNumber={0}
-                  duration={3000}
-                  easeFn="Quintic"
-                  fontSize={27}
-                  fontWeight={500}
-                  margin="0 0 -3px 0"
-                  isReady={isRenderProgress}
-                  fade={`fade08_forward`}
-                />
+                    className={`${!isRenderProgress ? `opacity-0` : ``} ${isRenderProgress ? `fade08_forward` : ``}`}
+                  >
+                    {formatToJapaneseYen(0, true)}
+                  </span>
+                )}
               </div>
               <div className="relative h-full min-w-[33px]">
                 <div className="absolute left-[66%] top-[68%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[var(--color-text-title)]"></div>
@@ -1935,40 +2144,30 @@ const DealBoardMemo = ({
                 // className="mr-[12px] flex h-full min-w-max items-end justify-start"
                 className="mr-[9px] flex h-full min-w-max items-end justify-start"
               >
-                {/* {memberObj.current_sales_target !== null ? (
-                  <span className="text-[16px]">
-                    {formatToJapaneseYen(memberObj.current_sales_target, false, false)}
-                  </span>
-                ) : (
-                  <span className="text-[16px]">-</span>
-                )} */}
-                <span className="ml-[6px] text-[16px]">9,000,000</span>
+                <span className="ml-[6px] text-[16px]">
+                  {memberObj.current_sales_target !== null
+                    ? `${formatToJapaneseYen(memberObj.current_sales_target, false)}`
+                    : `-`}
+                </span>
+                {/* <span className="ml-[6px] text-[16px]">9,000,000</span> */}
                 {/* <span className="ml-[0px] text-[16px]">-</span> */}
                 {/* <span className="ml-[12px] text-[16px]">-</span> */}
               </div>
             </div>
             <div className={`relative h-[56px] w-[56px]`} style={{ margin: `0` }}>
               <div className="absolute bottom-[-6px] right-0">
-                {/* <ProgressCircle
-                  circleId={`${userId}_board`}
-                  textId={`${userId}_board`}
-                  progress={memberObj.current_achievement_rate ?? 0}
-                  // progress={100}
-                  // progress={0}
-                  duration={5000}
-                  easeFn="Quartic"
-                  size={56}
-                  strokeWidth={6}
-                  fontSize={11}
-                  textColor="var(--color-text-title)"
-                  isReady={isRenderProgress}
-                  fade={`fade08_forward`}
-                  // fade={`fade10_forward`}
-                /> */}
                 <ProgressCircle
                   circleId={`${userId}_board`}
                   textId={`${userId}_board`}
-                  progress={24}
+                  // progress={
+                  //   memberObj.current_achievement_rate !== null
+                  //     ? 100 <= memberObj.current_achievement_rate
+                  //       ? 100
+                  //       : Number(memberObj.current_achievement_rate.toFixed(0))
+                  //     : 0
+                  // }
+                  progress={achievementRate !== null ? (100 <= achievementRate ? 100 : achievementRate) : 0}
+                  // progress={24}
                   // progress={100}
                   // progress={0}
                   duration={5000}

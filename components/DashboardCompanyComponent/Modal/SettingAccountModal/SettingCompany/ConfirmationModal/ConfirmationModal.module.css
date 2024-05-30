@@ -1,12 +1,13 @@
 /* 画面全体でのローディング */
 .loading_overlay {
   position: fixed;
-  z-index: 5000;
+  z-index: 10000;
   inset: 0;
   background: #00000090;
   display: flex;
   justify-content: center;
   align-items: center;
+  border-radius: 8px;
 }
 
 .loading_spinner_outside {

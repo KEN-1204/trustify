@@ -973,7 +973,7 @@ const DetailPropertyModalMemo = () => {
     setIsOpenPropertyDetailModal(false);
   };
 
-  console.log("DetailPropertyModalコンポーネントレンダリング");
+  console.log("DetailPropertyModalコンポーネントレンダリング selectedRowDataProperty", selectedRowDataProperty);
 
   return (
     <>

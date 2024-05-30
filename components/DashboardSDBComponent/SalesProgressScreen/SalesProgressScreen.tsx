@@ -60,6 +60,10 @@ import { useQueryEntityLevels } from "@/hooks/useQueryEntityLevels";
 import { useQueryEntities } from "@/hooks/useQueryEntities";
 import { FallbackSalesProgressScreen } from "./FallbackSalesProgressScreen";
 import { useQueryClient } from "@tanstack/react-query";
+import { useQueryDepartments } from "@/hooks/useQueryDepartments";
+import { useQuerySections } from "@/hooks/useQuerySections";
+import { useQueryUnits } from "@/hooks/useQueryUnits";
+import { useQueryOffices } from "@/hooks/useQueryOffices";
 
 const SalesProgressScreenMemo = () => {
   const language = useStore((state) => state.language);
@@ -405,6 +409,52 @@ const SalesProgressScreenMemo = () => {
   );
   // ===================== 🌠エンティティuseQuery🌠 =====================
   // ------------------------- 🌟useQuery売上目標 年度・レベル・エンティティ🌟 ここまで -------------------------
+
+  // ------------------------- 🌟事業部・課・係・事業所useQuery🌟 -------------------------
+  // 受注済み売上入力用のUpdatePropertyモーダルを開いた時にキャッシュを格納しておかないとgetQueryClientで取得ができないため、SDBの初期画面のProgressScreenコンポーネントでフェッチしておく。
+  // ================================ 🌟事業部リスト取得useQuery🌟 ================================
+  const {
+    data: departmentDataArray,
+    isLoading: isLoadingQueryDepartment,
+    refetch: refetchQUeryDepartments,
+  } = useQueryDepartments(userProfileState?.company_id, true);
+
+  // 事業部のMapオブジェクト
+  // ================================ ✅事業部リスト取得useQuery✅ ================================
+  // ================================ 🌟課・セクションリスト取得useQuery🌟 ================================
+  const {
+    data: sectionDataArray,
+    isLoading: isLoadingQuerySection,
+    refetch: refetchQUerySections,
+  } = useQuerySections(userProfileState?.company_id, true);
+  // console.log("unitDataArray", unitDataArray);
+
+  // useMutation
+  // const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
+  // useMutateUnit();
+  // ================================ ✅課・セクションリスト取得useQuery✅ ================================
+  // ================================ 🌟係・チームリスト取得useQuery🌟 ================================
+  const {
+    data: unitDataArray,
+    isLoading: isLoadingQueryUnit,
+    refetch: refetchQUeryUnits,
+  } = useQueryUnits(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createUnitMutation, updateUnitFieldMutation, updateMultipleUnitFieldsMutation, deleteUnitMutation } =
+  // useMutateUnit();
+  // ================================ ✅係・チームリスト取得useQuery✅ ================================
+  // ================================ 🌟事業所・営業所リスト取得useQuery🌟 ================================
+  const {
+    data: officeDataArray,
+    isLoading: isLoadingQueryOffice,
+    refetch: refetchQUeryOffices,
+  } = useQueryOffices(userProfileState?.company_id, true);
+
+  // useMutation
+  // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
+  // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
+  // ------------------------- 🌟事業部・課・係・事業所useQuery🌟 ここまで -------------------------
 
   // 🔹entitiesHierarchyQueryDataからメンバーレベルの全てのエンティティグループから自分が所属する親エンティティグループを取得
   const initialMemberGroupByParentEntity = useMemo(() => {
@@ -1042,6 +1092,8 @@ const SalesProgressScreenMemo = () => {
                     await queryClient.invalidateQueries(["entity_levels", "sales_target"]);
                     await queryClient.invalidateQueries(["entities", "sales_target"]);
                     await queryClient.invalidateQueries(["member_accounts", "sdb"]);
+                    await queryClient.invalidateQueries(["sales_trends"]);
+                    await queryClient.invalidateQueries(["sales_processes_for_progress"]);
                     await queryClient.invalidateQueries(["deals"]);
 
                     await new Promise((resolve) => setTimeout(resolve, 800));

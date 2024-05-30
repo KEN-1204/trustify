@@ -302,7 +302,10 @@ export const UpdateMeetingModal = () => {
   const [resultCategory, setResultCategory] = useState("");
   const [resultSummary, setResultSummary] = useState("");
   const [resultNegotiateDecisionMaker, setResultNegotiateDecisionMaker] = useState("");
-  const [resultTopPositionClass, setResultTopPositionClass] = useState("1 代表者");
+  // const [resultTopPositionClass, setResultTopPositionClass] = useState("1 代表者");
+  const [resultTopPositionClass, setResultTopPositionClass] = useState(
+    selectedRowDataMeeting?.position_class ? String(selectedRowDataMeeting.position_class) : ""
+  );
   const [preMeetingParticipationRequest, setPreMeetingParticipationRequest] = useState("");
   const [meetingParticipationRequest, setMeetingParticipationRequest] = useState("");
   // 事業部
@@ -617,8 +620,8 @@ export const UpdateMeetingModal = () => {
       ? selectedRowDataMeeting.result_negotiate_decision_maker
       : "";
     let _result_top_position_class = selectedRowDataMeeting.result_top_position_class
-      ? selectedRowDataMeeting.result_top_position_class.toString()
-      : "1";
+      ? String(selectedRowDataMeeting.result_top_position_class)
+      : "";
     let _pre_meeting_participation_request = selectedRowDataMeeting.pre_meeting_participation_request
       ? selectedRowDataMeeting.pre_meeting_participation_request
       : "";
@@ -3468,7 +3471,7 @@ export const UpdateMeetingModal = () => {
                 {/* <div className="flex h-full w-[50%] flex-col pr-[20px]"> */}
                 <div className="flex h-full w-[100%] flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} !min-w-[140px]`}>面談結果</span>
+                    <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>面談結果</span>
                     <select
                       className={`mr-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={resultCategory}
@@ -3626,6 +3629,7 @@ export const UpdateMeetingModal = () => {
                         setResultTopPositionClass(e.target.value);
                       }}
                     >
+                      <option value=""></option>
                       {optionsPositionsClass.map((classNum) => (
                         <option key={classNum} value={`${classNum}`}>
                           {getPositionClassName(classNum)}
@@ -3669,7 +3673,7 @@ export const UpdateMeetingModal = () => {
                         setResultNegotiateDecisionMaker(e.target.value);
                       }}
                     >
-                      <option value="">選択してください</option>
+                      <option value=""></option>
                       {optionsResultNegotiateDecisionMaker.map((option) => (
                         <option key={option} value={`${option}`}>
                           {getResultNegotiateDecisionMaker(option)}

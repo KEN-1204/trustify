@@ -25,6 +25,8 @@ export const useMutateProperty = () => {
   const setIsRequiredInputSoldProduct = useDashboardStore((state) => state.setIsRequiredInputSoldProduct);
   // ネタ表のクエリキー
   const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
+  // 🔹表示中の会計年度(グローバル)(SDB用)
+  const selectedFiscalYearTargetSDB = useDashboardStore((state) => state.selectedFiscalYearTargetSDB);
   // 選択中のネタカード(ローカルのネタカードを最新状態に更新する用)
   const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
   const setSelectedDealCard = useDashboardStore((state) => state.setSelectedDealCard);
@@ -433,11 +435,39 @@ export const useMutateProperty = () => {
 
         // -------------------------- ネタ表からの売上入力用 --------------------------
         if (isRequiredInputSoldProduct && selectedDealCard && selectedDealCard.dealCard) {
-          // キャッシュを更新
+          // 🔹売上推移のキャッシュを更新 ---------------------------------
+          // queryKey: ["sales_trends", selectedFiscalYear, entityLevel, basePeriod, yearsBack, entityIdsStrKey, periodType]
+          const queryKeySalesTrend = [
+            "sales_trends",
+            selectedFiscalYearTargetSDB,
+            "member",
+            activePeriodSDB?.period,
+            3,
+          ];
+
+          await queryClient.invalidateQueries({ queryKey: queryKeySalesTrend });
+          // 🔹売上推移のキャッシュを更新 ここまで ---------------------------------
+
+          // 🔹達成率のキャッシュを更新 ---------------------------------
+          // 親エンティティも更新する必要あるためbasePeriodまで指定
+          // queryKey: ["sales_processes_for_progress", fiscalYear, basePeriod, entityId]
+          const queryKeySalesProcesses = [
+            "sales_processes_for_progress",
+            selectedFiscalYearTargetSDB,
+            activePeriodSDB?.periodType,
+            activePeriodSDB?.period,
+            // selectedDealCard.ownerId,
+          ];
+
+          await queryClient.invalidateQueries({ queryKey: queryKeySalesProcesses });
+          // 🔹達成率のキャッシュを更新 ここまで ---------------------------------
+
           // const currentQueryKey = ["deals", userId, periodType, period];
           // const userId = newProperty.created_by_user_id;
+          // 🔹ネタ表ボードのキャッシュを更新 ---------------------------------
+          // queryKey: ["deals", userId, periodType, period], // ユーザーID, 期間タイプ, 期間
           const currentQueryKey = [
-            "deal",
+            "deals",
             selectedDealCard.ownerId,
             activePeriodSDB?.periodType,
             activePeriodSDB?.period,
@@ -464,6 +494,7 @@ export const useMutateProperty = () => {
 
           // ローカルstateを更新するためのトリガーをON
           setIsRequiredRefreshDealCards(true);
+          // 🔹ネタ表ボードのキャッシュを更新 ここまで ---------------------------------
 
           if (loadingGlobalState) setLoadingGlobalState(false);
 
@@ -480,7 +511,7 @@ export const useMutateProperty = () => {
           // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataPropertyを最新状態にする
           setIsUpdateRequiredForLatestSelectedRowDataProperty(true);
 
-          // ネタ表からの受注後の売上入力でない場合
+          // ネタ表からの受注後の売上入力でない場合は特定のエンティティのdealsのみinvalidateはできないため、dealsキャッシュ全体invalidateしておく
           await queryClient.invalidateQueries({ queryKey: ["deals"] });
 
           if (loadingGlobalState) setLoadingGlobalState(false);

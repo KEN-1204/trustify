@@ -615,6 +615,10 @@ type State = {
   setIsOpenCongratulationsModal: (payload: boolean) => void;
   isRequiredInputSoldProduct: boolean;
   setIsRequiredInputSoldProduct: (payload: boolean) => void;
+  // モーダル開閉stateを共通化はしない 複数モーダルを同時にひらけなくなるため
+  // A受注済み => 他の確度に変更した際に売上データをリセットするか確認モーダル(ユーザーに確認してもらってから売上実績と達成率を反映させるため)
+  isOpenResetSalesConfirmationModal: boolean;
+  setIsOpenResetSalesConfirmationModal: (payload: boolean) => void;
 
   // テーマカラー
   // activeThemeColor: string;
@@ -1399,6 +1403,10 @@ const useDashboardStore = create<State>((set) => ({
   setIsOpenCongratulationsModal: (payload) => set({ isOpenCongratulationsModal: payload }),
   isRequiredInputSoldProduct: false,
   setIsRequiredInputSoldProduct: (payload) => set({ isRequiredInputSoldProduct: payload }),
+  // モーダル開閉stateを共通化はしない 複数モーダルを同時にひらけなくなるため
+  // A受注済み => 他の確度に変更した際に売上データをリセットするか確認モーダル(ユーザーに確認してもらってから売上実績と達成率を反映させるため)
+  isOpenResetSalesConfirmationModal: false,
+  setIsOpenResetSalesConfirmationModal: (payload) => set({ isOpenResetSalesConfirmationModal: payload }),
 
   // テーマカラー theme-brand-f, theme-black-gradient, theme-simple12, theme-simple17
   activeThemeColor: "theme-brand-f",

@@ -29,7 +29,7 @@ import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { format } from "date-fns";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 import { getFiscalQuarterTest } from "@/utils/Helpers/getFiscalQuarterTest";
-import { Department, Office, Section, Unit } from "@/types";
+import { Department, Office, Property_row_data, Section, Unit } from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { convertToYen } from "@/utils/Helpers/convertToYen";
 import Decimal from "decimal.js";
@@ -112,6 +112,11 @@ export const UpdatePropertyModal = () => {
   // -------------- 🔹ネタ表から受注済みに移行された時の売上入力関連🔹 --------------
   const isRequiredInputSoldProduct = useDashboardStore((state) => state.isRequiredInputSoldProduct);
   const setIsRequiredInputSoldProduct = useDashboardStore((state) => state.setIsRequiredInputSoldProduct);
+  const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
+  const setSelectedDealCard = useDashboardStore((state) => state.setSelectedDealCard);
+  const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
+  const setIsRequiredRefreshDealCards = useDashboardStore((state) => state.setIsRequiredRefreshDealCards);
+  const selectedFiscalYearTargetSDB = useDashboardStore((state) => state.selectedFiscalYearTargetSDB);
   // -------------- 🔹ネタ表から受注済みに移行された時の売上入力関連🔹 ここまで --------------
 
   // ドロップダウンメニューの表示位置
@@ -737,35 +742,141 @@ export const UpdatePropertyModal = () => {
 
   // ---------------------------- 🌟値引率の自動計算🌟 ----------------------------
   useEffect(() => {
-    if (unitSales === "0" || unitSales === "０") {
-      setUnitSales("");
-      if (discountedPrice !== "") setDiscountedPrice("");
-      if (discountedRate !== "") setDiscountedRate("");
-    }
-    if (!!salesPrice && !!discountedPrice && !!unitSales && !isComposing) {
+    // 値引率を売上合計の入力値から算出するため売上台数が入力してあるかどうかは無視
+    // if (unitSales === "0" || unitSales === "０") {
+    //   setUnitSales("");
+    //   if (discountedPrice !== "") setDiscountedPrice("");
+    //   if (discountedRate !== "") setDiscountedRate("");
+    // }
+    if (!!salesPrice && !!discountedPrice && !isComposing) {
       // 売上合計が0円の場合は、値引価格と値引率を0にする
       if (salesPrice === "0") {
+        console.log(
+          "値引率リターン 1 salesPrice",
+          salesPrice,
+          "discountedPrice",
+          discountedPrice,
+          "discountedRate",
+          discountedRate
+        );
         if (discountedPrice !== "0") setDiscountedPrice("0");
         if (discountedRate !== "0") setDiscountedRate("0");
         return;
       }
+
+      // 値引額 / 売上合計で計算 売上合計で算出するため売上台数は無視する
       const payload = {
         salesPriceStr: salesPrice.replace(/,/g, ""),
         discountPriceStr: discountedPrice.replace(/,/g, ""),
         // salesQuantityStr: unitSales.toString(),
-        salesQuantityStr: unitSales,
+        salesQuantityStr: "1",
       };
+      // const payload = {
+      //   salesPriceStr: salesPrice.replace(/,/g, ""),
+      //   discountPriceStr: discountedPrice.replace(/,/g, ""),
+      //   // salesQuantityStr: unitSales.toString(),
+      //   salesQuantityStr: unitSales,
+      // };
       const result = calculateDiscountRate(payload);
 
       const _discountRate = result.discountRate;
-      if (!_discountRate || result.error) return console.log("値引率取得エラー リターン：", result.error);
+      if (!_discountRate || result.error) {
+        console.log(
+          "値引率リターン 2 result.error salesPrice",
+          salesPrice,
+          "discountedPrice",
+          discountedPrice,
+          "discountedRate",
+          discountedRate,
+          "_discountRate",
+          _discountRate,
+          "result.error",
+          result.error,
+          "payload",
+          payload
+        );
+        return console.log("値引率取得エラー リターン：", result.error);
+      }
 
-      console.log("値引率", _discountRate, "payload", payload);
+      console.log("値引率算出結果✅", _discountRate, "payload", payload);
       setDiscountedRate(_discountRate);
     } else {
       // if (!!discountedRate) setDiscountedRate("");
     }
-  }, [salesPrice, discountedPrice, unitSales]);
+  }, [salesPrice, discountedPrice]);
+  // }, [salesPrice, discountedPrice, unitSales]);
+
+  // 値引き率自動計算 売上台数使用バージョン
+  // useEffect(() => {
+  //   if (unitSales === "0" || unitSales === "０") {
+  //     console.log(
+  //         "値引率リターン 1 salesPrice",
+  //         salesPrice,
+  //         "discountedPrice",
+  //         discountedPrice,
+  //         "discountedRate",
+  //         discountedRate
+  //       );
+  //     setUnitSales("");
+  //     if (discountedPrice !== "") setDiscountedPrice("");
+  //     if (discountedRate !== "") setDiscountedRate("");
+  //   }
+  //   if (!!salesPrice && !!discountedPrice && !!unitSales && !isComposing) {
+  //     // 売上合計が0円の場合は、値引価格と値引率を0にする
+  //     if (salesPrice === "0") {
+  //       console.log(
+  //         "値引率リターン salesPrice",
+  //         salesPrice,
+  //         "discountedPrice",
+  //         discountedPrice,
+  //         "discountedRate",
+  //         discountedRate
+  //       );
+  //       if (discountedPrice !== "0") setDiscountedPrice("0");
+  //       if (discountedRate !== "0") setDiscountedRate("0");
+  //       return;
+  //     }
+
+  //     // 値引額
+  //     const payload = {
+  //       salesPriceStr: salesPrice.replace(/,/g, ""),
+  //       discountPriceStr: discountedPrice.replace(/,/g, ""),
+  //       // salesQuantityStr: unitSales.toString(),
+  //       salesQuantityStr: unitSales,
+  //     };
+  //     // const payload = {
+  //     //   salesPriceStr: salesPrice.replace(/,/g, ""),
+  //     //   discountPriceStr: discountedPrice.replace(/,/g, ""),
+  //     //   // salesQuantityStr: unitSales.toString(),
+  //     //   salesQuantityStr: unitSales,
+  //     // };
+  //     const result = calculateDiscountRate(payload);
+
+  //     const _discountRate = result.discountRate;
+  //     if (!_discountRate || result.error) {
+  //       console.log(
+  //         "値引率result.error salesPrice",
+  //         salesPrice,
+  //         "discountedPrice",
+  //         discountedPrice,
+  //         "discountedRate",
+  //         discountedRate,
+  //         "_discountRate",
+  //         _discountRate,
+  //         "result.error",
+  //         result.error,
+  //         "payload",
+  //         payload
+  //       );
+  //       return console.log("値引率取得エラー リターン：", result.error);
+  //     }
+
+  //     console.log("値引率", _discountRate, "payload", payload);
+  //     setDiscountedRate(_discountRate);
+  //   } else {
+  //     // if (!!discountedRate) setDiscountedRate("");
+  //   }
+  // }, [salesPrice, discountedPrice, unitSales]);
   // ---------------------------- ✅値引率の自動計算✅ ----------------------------
 
   // ------------------ 🌟初回マウント時に選択中の担当者&会社の列データの情報をStateに格納🌟 ------------------
@@ -1095,6 +1206,15 @@ export const UpdatePropertyModal = () => {
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
+    // 「展開」「申請」「受注」の場合は、「月初確度か中間見直確度」のどちらかを入力してもらう(SDBで使用。客先側の意味合いとしては、管理者が将来の売上予測と在庫管理をする際に必要な情報源となるため)
+    if (
+      ["B Deal Development", "C Application", "D Order Received"].includes(currentStatus) &&
+      orderCertaintyStartOfMonth === "" &&
+      reviewOrderCertainty === ""
+    )
+      return alert(
+        "現ステータスが「展開」「申請」「受注」の場合は、「月初確度」か「中間見直確度」のどちらかを入力してください。"
+      );
 
     // 現ステータスが「受注」の場合には、「月初確度か中間見直確度」のどちらかをA(受注済み)に更新してもらう(SDBで正確に受注Colエリアに表示するため)
     if (currentStatus === "D Order Received") {
@@ -1107,17 +1227,28 @@ export const UpdatePropertyModal = () => {
     // -------------------------- ネタ表からの売上入力用 --------------------------
     // 売上商品・売上合計・売上日付が未入力の状態でサブミットされた場合はリターンする
     if (isRequiredInputSoldProduct) {
+      // 売上日付
       if (!salesDate || !salesYearMonth || !salesQuarter)
         return alert(
           '"売上日付が未入力です。 売上商品・売上合計・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。'
         );
+      // 売上商品
       if (!soldProductId || !soldProductName)
         return alert(
           '"売上商品が未入力です。 売上商品・売上合計・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。'
         );
+      // 売上金額
       if (salesPrice === null || salesPrice === undefined || salesPrice === "")
         return alert(
           "売上合計が未入力です。 売上商品・売上合計・売上日付が未入力の場合、売上実績と達成率はダッシュボードへは反映されません。"
+        );
+      // 現ステータス
+      if (currentStatus !== "D Order Received")
+        return alert("現ステータスが「受注」ではありません。受注時の売上入力では現ステータスを受注にしてください。");
+      // 月初確度 or 中間見直確度
+      if (orderCertaintyStartOfMonth !== "1" && reviewOrderCertainty !== "1")
+        return alert(
+          "受注時の売上入力では「月初確度」か「中間見直確度」のどちらかを「A (受注済み)」に設定してください。"
         );
     }
     // -------------------------- ネタ表からの売上入力用 ここまで --------------------------
@@ -1444,36 +1575,38 @@ export const UpdatePropertyModal = () => {
   const isRequired = isRequiredInputSoldProduct ? `${styles.is_required}` : ``;
 
   console.log(
-    "案件編集モーダル",
-    "selectedRowDataProperty",
-    selectedRowDataProperty,
-    "expectedProductName",
-    expectedProductName,
-    "expectedProductFullNameInput",
-    expectedProductFullNameInput,
-    "soldProductName",
-    soldProductName,
-    "soldProductFullNameInput",
-    soldProductFullNameInput,
-    "suggestedProductIdNameArray",
-    suggestedProductIdNameArray,
-    "✅獲得予定関連",
-    "expectedOrderDate",
-    expectedOrderDate,
-    "expectedOrderYearMonth",
-    expectedOrderYearMonth,
-    "expectedOrderQuarter",
-    expectedOrderQuarter,
-    "expectedOrderQuarterSelectedYear",
-    expectedOrderQuarterSelectedYear,
-    "expectedOrderQuarterSelectedQuarter",
-    expectedOrderQuarterSelectedQuarter,
-    "salesDate",
-    salesDate,
-    "salesYearMonth",
-    salesYearMonth,
-    "salesQuarter",
-    salesQuarter
+    "案件編集モーダルレンダリング"
+    // "selectedRowDataProperty",
+    // selectedRowDataProperty,
+    // "expectedProductName",
+    // expectedProductName,
+    // "expectedProductFullNameInput",
+    // expectedProductFullNameInput,
+    // "soldProductName",
+    // soldProductName,
+    // "soldProductFullNameInput",
+    // soldProductFullNameInput,
+    // "suggestedProductIdNameArray",
+    // suggestedProductIdNameArray,
+    // "✅獲得予定関連",
+    // "expectedOrderDate",
+    // expectedOrderDate,
+    // "expectedOrderYearMonth",
+    // expectedOrderYearMonth,
+    // "expectedOrderQuarter",
+    // expectedOrderQuarter,
+    // "expectedOrderQuarterSelectedYear",
+    // expectedOrderQuarterSelectedYear,
+    // "expectedOrderQuarterSelectedQuarter",
+    // expectedOrderQuarterSelectedQuarter,
+    // "salesDate",
+    // salesDate,
+    // "salesYearMonth",
+    // salesYearMonth,
+    // "salesQuarter",
+    // salesQuarter,
+    // "memberObj",
+    // memberObj
   );
 
   return (
@@ -1577,6 +1710,11 @@ export const UpdatePropertyModal = () => {
                       }`}
                       value={currentStatus}
                       onChange={(e) => {
+                        if (isRequiredInputSoldProduct) {
+                          return alert(
+                            "受注時の売上入力では現ステータスの変更はできません。一度案件画面に戻ってから修正してください。"
+                          );
+                        }
                         // if (e.target.value === "") return alert("訪問目的を選択してください");
                         setCurrentStatus(e.target.value);
                       }}
@@ -2209,74 +2347,6 @@ export const UpdatePropertyModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 月初確度 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>月初確度</span>
-                    <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={orderCertaintyStartOfMonth}
-                      onChange={(e) => {
-                        setOrderCertaintyStartOfMonth(e.target.value);
-                      }}
-                    >
-                      <option value={""}></option>
-                      {optionsOrderCertaintyStartOfMonth.map((option) => (
-                        <option key={option} value={`${option}`}>
-                          {getOrderCertaintyStartOfMonth(option)}
-                        </option>
-                      ))}
-                      {/* <option value="○ (80%以上の確率で受注)">○ (80%以上の確率で受注)</option>
-                      <option value="△ (50%以上の確率で受注)">△ (50%以上の確率で受注)</option>
-                      <option value="▲ (30%以上の確率で受注)">▲ (30%以上の確率で受注)</option> */}
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 左ラッパーここまで */}
-            </div>
-
-            {/* --------- 右ラッパー --------- */}
-            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
-              {/* 中間見直確度 */}
-              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} !min-w-[140px]`}>中間見直確度</span>
-                    <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      value={reviewOrderCertainty}
-                      onChange={(e) => {
-                        setReviewOrderCertainty(e.target.value);
-                      }}
-                    >
-                      <option value={""}></option>
-                      {optionsOrderCertaintyStartOfMonth.map((option) => (
-                        <option key={option} value={`${option}`}>
-                          {getOrderCertaintyStartOfMonth(option)}
-                        </option>
-                      ))}
-                      {/* <option value="○ (80%以上の確率で受注)">○ (80%以上の確率で受注)</option>
-                      <option value="△ (50%以上の確率で受注)">△ (50%以上の確率で受注)</option>
-                      <option value="▲ (30%以上の確率で受注)">▲ (30%以上の確率で受注)</option> */}
-                    </select>
-                  </div>
-                  <div className={`${styles.underline}`}></div>
-                </div>
-              </div>
-
-              {/* 右ラッパーここまで */}
-            </div>
-          </div>
-          {/* --------- 横幅全体ラッパーここまで --------- */}
-
-          {/* --------- 横幅全体ラッパー --------- */}
-          <div className={`${styles.full_contents_wrapper} flex w-full`}>
-            {/* --------- 左ラッパー --------- */}
-            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* ペンディング */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
@@ -2319,6 +2389,96 @@ export const UpdatePropertyModal = () => {
                         <path d="M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z" />
                       </svg>
                     </div>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 月初確度 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span
+                      className={`${styles.title} !min-w-[140px] ${
+                        isRequiredInputSoldProduct && !selectedRowDataProperty?.review_order_certainty
+                          ? `${styles.required_title}`
+                          : ``
+                      }`}
+                    >
+                      月初確度
+                    </span>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={orderCertaintyStartOfMonth}
+                      onChange={(e) => {
+                        if (isRequiredInputSoldProduct && e.target.value !== `1`) {
+                          return alert("受注時の売上入力では「A (受注済み)」以外には変更できません。");
+                        }
+                        setOrderCertaintyStartOfMonth(e.target.value);
+                      }}
+                    >
+                      <option value={""}></option>
+                      {optionsOrderCertaintyStartOfMonth.map((option) => (
+                        <option key={option} value={`${option}`}>
+                          {getOrderCertaintyStartOfMonth(option)}
+                        </option>
+                      ))}
+                      {/* <option value="○ (80%以上の確率で受注)">○ (80%以上の確率で受注)</option>
+                      <option value="△ (50%以上の確率で受注)">△ (50%以上の確率で受注)</option>
+                      <option value="▲ (30%以上の確率で受注)">▲ (30%以上の確率で受注)</option> */}
+                    </select>
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 中間見直確度 */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <span
+                      className={`${styles.title} !min-w-[140px] ${
+                        isRequiredInputSoldProduct && !!selectedRowDataProperty?.review_order_certainty
+                          ? `${styles.required_title}`
+                          : ``
+                      }`}
+                    >
+                      中間見直確度
+                    </span>
+                    <select
+                      className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      value={reviewOrderCertainty}
+                      onChange={(e) => {
+                        if (isRequiredInputSoldProduct && e.target.value !== `1`) {
+                          return alert("受注時の売上入力では「A (受注済み)」以外には変更できません。");
+                        }
+                        setReviewOrderCertainty(e.target.value);
+                      }}
+                    >
+                      <option value={""}></option>
+                      {optionsOrderCertaintyStartOfMonth.map((option) => (
+                        <option key={option} value={`${option}`}>
+                          {getOrderCertaintyStartOfMonth(option)}
+                        </option>
+                      ))}
+                      {/* <option value="○ (80%以上の確率で受注)">○ (80%以上の確率で受注)</option>
+                      <option value="△ (50%以上の確率で受注)">△ (50%以上の確率で受注)</option>
+                      <option value="▲ (30%以上の確率で受注)">▲ (30%以上の確率で受注)</option> */}
+                    </select>
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -2800,7 +2960,7 @@ export const UpdatePropertyModal = () => {
                           // setPlannedProduct1(toHalfWidth(plannedProduct1.trim()));
                           if (!!resultRefs.current[1]) resultRefs.current[1].style.opacity = "0";
                           // Blur時に候補が１つのみならその候補のidとNameをセット
-                          if (suggestedProductName[1].length === 1) {
+                          if (suggestedProductName[1]?.length === 1) {
                             const matchProduct = suggestedProductName[1][0];
                             const _productName = matchProduct.product_name;
                             const _productInsideName = matchProduct.inside_short_name;
@@ -2819,53 +2979,59 @@ export const UpdatePropertyModal = () => {
                         }}
                       />
                       {/* 予測変換結果 */}
-                      {suggestedProductName && suggestedProductName[1] && suggestedProductName[1]?.length > 0 && (
-                        <div
-                          ref={(el) => (resultRefs.current[1] = el)}
-                          className={`${styles.result_box}`}
-                          style={
-                            {
-                              "--color-border-custom": "#ccc",
-                              // ...(!isFocusInputProducts[1] && { opacity: 0 }),
-                            } as CSSProperties
-                          }
-                        >
-                          {suggestedProductName && suggestedProductName[1] && suggestedProductName[1]?.length > 0 && (
-                            <div className="sticky top-0 flex min-h-[5px] w-full flex-col items-center justify-end">
-                              <hr className={`min-h-[4px] w-full bg-[var(--color-bg-under-input)]`} />
-                              <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
-                            </div>
-                          )}
-                          <ul>
-                            {suggestedProductName[1]?.map((productIdName, index) => (
-                              <li
-                                key={index}
-                                onClick={(e) => {
-                                  // console.log("🌟innerText", e.currentTarget.innerText);
-                                  const _productName = productIdName.product_name;
-                                  const _productInsideName = productIdName.inside_short_name;
-                                  const _productOutsideName = productIdName.outside_short_name;
-                                  const productFullName = productIdName.fullName;
-                                  const productName = _productInsideName
-                                    ? _productInsideName
-                                    : (_productName ?? "") + " " + (_productOutsideName ?? "");
-                                  const productId = productIdName.id;
-                                  // setPlannedProduct1(e.currentTarget.innerText);
-                                  setSoldProductFullNameInput(productFullName);
-                                  setSoldProductName(productName);
-                                  setSoldProductId(productId);
-                                  const newSuggestedProductName = [...suggestedProductName];
-                                  newSuggestedProductName[1] = [];
-                                  setSuggestedProductName(newSuggestedProductName);
-                                  // setSuggestedProductName([]);
-                                }}
-                              >
-                                {productIdName.fullName}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
+                      {suggestedProductName &&
+                        !!suggestedProductName?.length &&
+                        suggestedProductName[1] &&
+                        suggestedProductName[1]?.length > 0 && (
+                          <div
+                            ref={(el) => (resultRefs.current[1] = el)}
+                            className={`${styles.result_box}`}
+                            style={
+                              {
+                                "--color-border-custom": "#ccc",
+                                // ...(!isFocusInputProducts[1] && { opacity: 0 }),
+                              } as CSSProperties
+                            }
+                          >
+                            {suggestedProductName &&
+                              !!suggestedProductName?.length &&
+                              suggestedProductName[1] &&
+                              suggestedProductName[1]?.length > 0 && (
+                                <div className="sticky top-0 flex min-h-[5px] w-full flex-col items-center justify-end">
+                                  <hr className={`min-h-[4px] w-full bg-[var(--color-bg-under-input)]`} />
+                                  <hr className={`min-h-[1px] w-[93%] bg-[#ccc]`} />
+                                </div>
+                              )}
+                            <ul>
+                              {suggestedProductName[1]?.map((productIdName, index) => (
+                                <li
+                                  key={index}
+                                  onClick={(e) => {
+                                    // console.log("🌟innerText", e.currentTarget.innerText);
+                                    const _productName = productIdName.product_name;
+                                    const _productInsideName = productIdName.inside_short_name;
+                                    const _productOutsideName = productIdName.outside_short_name;
+                                    const productFullName = productIdName.fullName;
+                                    const productName = _productInsideName
+                                      ? _productInsideName
+                                      : (_productName ?? "") + " " + (_productOutsideName ?? "");
+                                    const productId = productIdName.id;
+                                    // setPlannedProduct1(e.currentTarget.innerText);
+                                    setSoldProductFullNameInput(productFullName);
+                                    setSoldProductName(productName);
+                                    setSoldProductId(productId);
+                                    const newSuggestedProductName = [...suggestedProductName];
+                                    newSuggestedProductName[1] = [];
+                                    setSuggestedProductName(newSuggestedProductName);
+                                    // setSuggestedProductName([]);
+                                  }}
+                                >
+                                  {productIdName.fullName}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
                       {/* 予測変換結果 */}
                       <div
                         className={`flex-center absolute right-[3px] top-[50%] min-h-[20px] min-w-[20px] translate-y-[-50%] cursor-pointer rounded-full hover:bg-[var(--color-bg-sub-icon)]`}
@@ -4209,11 +4375,13 @@ export const UpdatePropertyModal = () => {
           sectionP2="注：現在の入力データは破棄されます。"
           cancelText="戻る"
           submitText="中断する"
-          clickEventSubmit={() => {
-            // setMemberObj(prevMemberObj);
+          clickEventSubmit={async () => {
+            // ✅既にDealBoardでdealsキャッシュと売上進捗、達成率チャートのキャッシュは更新済みのためそのまま閉じてOK
+
             setIsOpenConfirmationModal(null); // キャンセル確認モーダルを閉じる
             setIsOpenUpdatePropertyModal(false); // モーダルを閉じる
             setSelectedRowDataProperty(null); // 選択中の売り物件を空にする
+            // setSelectedDealCard(null); // 選択中の案件カードを空にする ネタ表ボードで更新後にリセット
             setIsRequiredInputSoldProduct(false); // ネタ表の受注ずみ売り入力をfalseに変更
           }}
         />

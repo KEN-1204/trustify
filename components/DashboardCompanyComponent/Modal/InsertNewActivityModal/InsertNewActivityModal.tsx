@@ -225,8 +225,8 @@ export const InsertNewActivityModal = () => {
 
   // 🌟担当者画面から活動を作成 担当者画面で選択したRowデータを使用する
   const handleSaveAndCloseFromContact = async () => {
-    if (!summary) return alert("活動概要を入力してください");
     if (!activityType) return alert("活動タイプを選択してください");
+    if (!summary) return alert("活動概要を入力してください");
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
     if (!selectedRowDataContact?.company_id) return alert("相手先の会社情報が存在しません");
     if (!selectedRowDataContact?.contact_id) return alert("担当者情報が存在しません");
@@ -408,8 +408,8 @@ export const InsertNewActivityModal = () => {
 
   // 🌟活動画面から活動を作成 活動画面で選択したRowデータを使用する
   const handleSaveAndCloseFromActivity = async () => {
-    if (!summary) return alert("活動概要を入力してください");
     if (!activityType) return alert("活動タイプを選択してください");
+    if (!summary) return alert("活動概要を入力してください");
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
     if (!selectedRowDataActivity?.company_id) return alert("相手先の会社情報が存在しません");
     if (!selectedRowDataActivity?.contact_id) return alert("担当者情報が存在しません");
@@ -578,8 +578,8 @@ export const InsertNewActivityModal = () => {
 
   // 🌟面談画面から活動を作成 面談画面で選択したRowデータを使用する
   const handleSaveAndCloseFromMeeting = async () => {
-    if (!summary) return alert("活動概要を入力してください");
     if (!activityType) return alert("活動タイプを選択してください");
+    if (!summary) return alert("活動概要を入力してください");
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
     if (!selectedRowDataMeeting?.company_id) return alert("相手先の会社情報が存在しません");
     if (!selectedRowDataMeeting?.contact_id) return alert("担当者情報が存在しません");
@@ -749,8 +749,8 @@ export const InsertNewActivityModal = () => {
 
   // 🌟案件画面から活動を作成 案件画面で選択したRowデータを使用する
   const handleSaveAndCloseFromProperty = async () => {
-    if (!summary) return alert("活動概要を入力してください");
     if (!activityType) return alert("活動タイプを選択してください");
+    if (!summary) return alert("活動概要を入力してください");
     if (!userProfileState?.id) return alert("ユーザー情報が存在しません");
     if (!selectedRowDataProperty?.company_id) return alert("相手先の会社情報が存在しません");
     if (!selectedRowDataProperty?.contact_id) return alert("担当者情報が存在しません");

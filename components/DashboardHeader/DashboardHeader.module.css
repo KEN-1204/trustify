@@ -37,6 +37,7 @@
   /* box-shadow: var(--shadow-sidebar); */
   /* border-bottom: 1px solid var(--color-border); */
   background-color: transparent;
+  backdrop-filter: blur(6px);
 }
 .app_header.sdb .sdb_icon {
   /* color: #fff; */

@@ -90,7 +90,7 @@ export const useQuerySDBSalesProcessesForProgress = ({
   };
 
   return useQuery({
-    queryKey: ["sales_processes_for_progress", fiscalYear, basePeriod, entityId],
+    queryKey: ["sales_processes_for_progress", fiscalYear, periodTypeForProperty, basePeriod, entityId],
     queryFn: getSalesProcesses,
     staleTime: Infinity,
     onError: (error) => {

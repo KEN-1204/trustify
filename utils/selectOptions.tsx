@@ -1262,11 +1262,13 @@ export const optionsResultNegotiateDecisionMaker = ["A no_meeting_d", "B meeting
 export const getResultNegotiateDecisionMaker = (value: string, language: string = "ja") => {
   switch (value) {
     // case "A No Discussion with Decision-Maker":
-    case "A no_meeting_decision_maker":
+    // case "A no_meeting_decision_maker":
+    case "A no_meeting_d":
       return language === "ja" ? `決裁者と未商談` : `No Meeting with Decision-Maker`;
       break;
     // case "B Discussion Held with Decision-Maker":
-    case "B meeting_decision_maker":
+    // case "B meeting_decision_maker":
+    case "B meeting_d":
       return language === "ja" ? `決裁者と商談済み` : `Meeting with Decision-Maker`;
       break;
 

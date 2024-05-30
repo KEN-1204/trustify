@@ -62,11 +62,13 @@ type Props = {
 const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
-  const isOpenCongratulationsModal = useDashboardStore((state) => state.isOpenCongratulationsModal);
-  const setIsOpenCongratulationsModal = useDashboardStore((state) => state.setIsOpenCongratulationsModal);
-  const setIsRequiredInputSoldProduct = useDashboardStore((state) => state.setIsRequiredInputSoldProduct);
-  const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
-  const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
+  // ------------------------------ お祝いモーダル関連 ------------------------------
+  // const isOpenCongratulationsModal = useDashboardStore((state) => state.isOpenCongratulationsModal);
+  // const setIsOpenCongratulationsModal = useDashboardStore((state) => state.setIsOpenCongratulationsModal);
+  // const setIsRequiredInputSoldProduct = useDashboardStore((state) => state.setIsRequiredInputSoldProduct);
+  // const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
+  // const setIsOpenUpdatePropertyModal = useDashboardStore((state) => state.setIsOpenUpdatePropertyModal);
+  // ------------------------------ お祝いモーダル関連 ------------------------------
   // 期間
   const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
   // 上期か下期か
@@ -283,18 +285,6 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
   //     </div>
   //   );
   // };
-
-  // 受注済みに変更後に表示するモーダルの「反映する」ボタンクリック時に実行される関数
-  const handleClickActiveSoldModal = () => {
-    setIsOpenUpdatePropertyModal(true); // 案件編集モーダルを開く
-    setIsRequiredInputSoldProduct(true); // 案件編集モーダルに受注後売上入力ステータスを渡す
-    setIsOpenCongratulationsModal(false); // お祝いモーダルを閉じる
-  };
-  // 受注済みに変更後に表示するモーダルの「反映する」ボタンクリック時に実行される関数
-  const handleClickCancelSoldModal = () => {
-    setSelectedRowDataProperty(null); // 選択中のRowDataをリセット
-    setIsOpenCongratulationsModal(false); // お祝いモーダルを閉じる
-  };
 
   // -------------------------- 売上推移 --------------------------
   // 🌟売上推移で表示するperiodType テーブルの年度・上期・下期の表示期間のdisplayTargetPeriodTypeとは切り離して期間タイプ全てで管理する
@@ -984,7 +974,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
       {/* {isOpenDealCardModal && selectedDealCard && <EditModalDealCard />} */}
       {/* ------------------- ネタ表 詳細・編集モーダル ここまで ------------------- */}
       {/* ------------------- 受注済みに変更後の売上入力モーダル ------------------- */}
-      {isOpenCongratulationsModal && (
+      {/* {isOpenCongratulationsModal && (
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<div></div>}>
             <GradientModal
@@ -1000,7 +990,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
             />
           </Suspense>
         </ErrorBoundary>
-      )}
+      )} */}
       {/* ------------------- 受注済みに変更後の売上入力モーダル ここまで ------------------- */}
     </>
   );

@@ -3463,15 +3463,15 @@ export type SalesProcessesForSDB = {
     | "expansion_rate"
     | "f_expansion"
     | "f_expansion_rate"
+    | "award"
     | "half_year_f_expansion"
     | "half_year_f_expansion_award"
     | "half_year_f_expansion_award_rate"
-    | "award"
     | "sales_total_amount"
     | "sales_target"
     | "achievement_rate"
-    | "sales_total_amount_half_year"
-    | "sales_target_half_year"
-    | "achievement_rate_half_year";
+    | "half_year_sales_total_amount"
+    | "half_year_sales_target"
+    | "half_year_achievement_rate";
   result: number;
 };

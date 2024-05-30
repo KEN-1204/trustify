@@ -763,6 +763,15 @@ export const InsertNewPropertyModal = () => {
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
+    // 「展開」「申請」「受注」の場合は、「月初確度か中間見直確度」のどちらかを入力してもらう(SDBで使用。客先側の意味合いとしては、管理者が将来の売上予測と在庫管理をする際に必要な情報源となるため)
+    if (
+      ["B Deal Development", "C Application", "D Order Received"].includes(currentStatus) &&
+      orderCertaintyStartOfMonth === "" &&
+      reviewOrderCertainty === ""
+    )
+      return alert(
+        "現ステータスが「展開」「申請」「受注」の場合は、「月初確度」か「中間見直確度」のどちらかを入力してください。"
+      );
 
     // 現ステータスが「受注」の場合には、「月初確度か中間見直確度」のどちらかをA(受注済み)に更新してもらう(SDBで正確に受注Colエリアに表示するため)
     if (currentStatus === "D Order Received") {
@@ -982,6 +991,15 @@ export const InsertNewPropertyModal = () => {
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
+    // 「展開」「申請」「受注」の場合は、「月初確度か中間見直確度」のどちらかを入力してもらう(SDBで使用。客先側の意味合いとしては、管理者が将来の売上予測と在庫管理をする際に必要な情報源となるため)
+    if (
+      ["B Deal Development", "C Application", "D Order Received"].includes(currentStatus) &&
+      orderCertaintyStartOfMonth === "" &&
+      reviewOrderCertainty === ""
+    )
+      return alert(
+        "現ステータスが「展開」「申請」「受注」の場合は、「月初確度」か「中間見直確度」のどちらかを入力してください。"
+      );
 
     // 現ステータスが「受注」の場合には、「月初確度か中間見直確度」のどちらかをA(受注済み)に更新してもらう(SDBで正確に受注Colエリアに表示するため)
     if (currentStatus === "D Order Received") {
@@ -1192,6 +1210,15 @@ export const InsertNewPropertyModal = () => {
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
+    // 「展開」「申請」「受注」の場合は、「月初確度か中間見直確度」のどちらかを入力してもらう(SDBで使用。客先側の意味合いとしては、管理者が将来の売上予測と在庫管理をする際に必要な情報源となるため)
+    if (
+      ["B Deal Development", "C Application", "D Order Received"].includes(currentStatus) &&
+      orderCertaintyStartOfMonth === "" &&
+      reviewOrderCertainty === ""
+    )
+      return alert(
+        "現ステータスが「展開」「申請」「受注」の場合は、「月初確度」か「中間見直確度」のどちらかを入力してください。"
+      );
 
     // 現ステータスが「受注」の場合には、「月初確度か中間見直確度」のどちらかをA(受注済み)に更新してもらう(SDBで正確に受注Colエリアに表示するため)
     if (currentStatus === "D Order Received") {
@@ -1395,6 +1422,15 @@ export const InsertNewPropertyModal = () => {
     if (!PropertyYearMonth) return alert("案件年月度を入力してください");
     // if (PropertyMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
+    // 「展開」「申請」「受注」の場合は、「月初確度か中間見直確度」のどちらかを入力してもらう(SDBで使用。客先側の意味合いとしては、管理者が将来の売上予測と在庫管理をする際に必要な情報源となるため)
+    if (
+      ["B Deal Development", "C Application", "D Order Received"].includes(currentStatus) &&
+      orderCertaintyStartOfMonth === "" &&
+      reviewOrderCertainty === ""
+    )
+      return alert(
+        "現ステータスが「展開」「申請」「受注」の場合は、「月初確度」か「中間見直確度」のどちらかを入力してください。"
+      );
 
     // 現ステータスが「受注」の場合には、「月初確度か中間見直確度」のどちらかをA(受注済み)に更新してもらう(SDBで正確に受注Colエリアに表示するため)
     if (currentStatus === "D Order Received") {

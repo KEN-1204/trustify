@@ -8,7 +8,13 @@ import { useMedia } from "react-use";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 import useStore from "@/store";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
-import { EntityLevelNames, EntityObjForChart, FiscalYearAllKeys, PropertiesPeriodKey } from "@/types";
+import {
+  EntityLevelNames,
+  EntityObjForChart,
+  FiscalYearAllKeys,
+  PropertiesPeriodKey,
+  SalesProcessesForSDB,
+} from "@/types";
 import { mappingEntityName } from "@/utils/mappings";
 import { roundTo } from "@/utils/Helpers/PercentHelpers/roundTo";
 import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/ProgressCircle";
@@ -124,8 +130,6 @@ const ProgressCircleSalesAchievementMemo = ({
 
   // 標準プロセス 結果(メンバーの場合は親エンティティAveを表示)
 
-  console.log("ProgressCircleSalesAchievementレンダリング data", data);
-
   if (isLoading)
     return (
       <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: fallbackPadding }}>
@@ -146,87 +150,233 @@ const ProgressCircleSalesAchievementMemo = ({
       </div>
     );
 
-  // const totalAmount = data.total_amount;
-  const formattedTotalAmount = useMemo(
-    () => (current_sales_amount ? formatToJapaneseYen(current_sales_amount, true) : null),
-    [current_sales_amount]
-  );
-  // const processData = data;
-  // const donutLabelData = data.labelListSalesProbabilities;
-
+  // // const chartHeight = 286;
   // const chartHeight = 286;
-  const chartHeight = 286;
-  const pieChartRadius = 78;
-  const paddingX = 60;
-  //   const chartContainerWidth = 248;
+  // const pieChartRadius = 78;
+  // const paddingX = 60;
+  // //   const chartContainerWidth = 248;
   const chartContainerWidth = 224;
-  //   const chartCenterX = 124;
-  const chartCenterX = 112;
+  // //   const chartCenterX = 124;
+  // const chartCenterX = 112;
 
   const labelType = "sales_target_share";
 
-  // const colors = COLORS_DEAL;
-  // const colorsSheer = COLORS_DEAL_SHEER;
-  const colors = colorsHEXTrend; // COLORS_DEAL
-  const colorsSheer = colorsHEXTrend;
+  // const colors = colorsHEXTrend; // COLORS_DEAL
+  // const colorsSheer = colorsHEXTrend;
 
-  const processArrayTest = [
-    // { category: `call_pr`, result: 30 },
-    // { category: `call_all`, result: 30 },
-    // { category: `meeting_new`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `meeting_all`, result: 30 },
-    // { category: `expansion_all`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `expansion_rate`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `f_expansion`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `f_expansion_rate`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `half_year_f_expansion`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `half_year_f_expansion_award`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `half_year_f_expansion_award_rate`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `award`, result: 25.4 },
-    // { category: `sales_total_amount`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `sales_target`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `achievement_rate`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `half_year_sales_total_amount`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `half_year_sales_target`, result: 25.4 }, // 事前にCTEで作成
-    // { category: `half_year_achievement_rate`, result: 25.4 }, // 事前にCTEで作成
-    { category: `TEL発信PR`, result: 25.4 },
-    { category: `TEL発信All`, result: 25.4 },
-    { category: `新規面談`, result: 25.4 }, // 事前にCTEで作成
-    { category: `面談All`, result: 30 },
-    { category: `展開`, result: 25.4 }, // 事前にCTEで作成
-    { category: `展開率`, result: 25.4 }, // 事前にCTEで作成
-    { category: `展開F`, result: 25.4 }, // 事前にCTEで作成
-    { category: `展開F率`, result: 25.4 }, // 事前にCTEで作成
-    { category: `A数(6月度)`, result: 25.4 },
-    { category: `展開F(半期)`, result: 25.4 }, // 事前にCTEで作成
-    { category: `F獲得(半期)`, result: 25.4 }, // 事前にCTEで作成
-    { category: `F獲得率(半期)`, result: 25.4 }, // 事前にCTEで作成
-    { category: `売上総額(6月度)`, result: 25.4 }, // 事前にCTEで作成
-    { category: `目標(6月度)`, result: 25.4 }, // 事前にCTEで作成
-    { category: `達成率(6月度)`, result: 25.4 }, // 事前にCTEで作成
-    { category: `売上総額(半期)`, result: 25.4 }, // 事前にCTEで作成
-    { category: `目標(半期)`, result: 25.4 }, // 事前にCTEで作成
-    { category: `達成率(半期)`, result: 25.4 }, // 事前にCTEで作成
-  ];
+  // const processArrayTest = [
+  //   // { category: `call_pr`, result: 30 },
+  //   // { category: `call_all`, result: 30 },
+  //   // { category: `meeting_new`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `meeting_all`, result: 30 },
+  //   // { category: `expansion_all`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `expansion_rate`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `f_expansion`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `f_expansion_rate`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `half_year_f_expansion`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `half_year_f_expansion_award`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `half_year_f_expansion_award_rate`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `award`, result: 25.4 },
+  //   // { category: `sales_total_amount`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `sales_target`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `achievement_rate`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `half_year_sales_total_amount`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `half_year_sales_target`, result: 25.4 }, // 事前にCTEで作成
+  //   // { category: `half_year_achievement_rate`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `TEL発信PR`, result: 25.4 },
+  //   { category: `TEL発信All`, result: 25.4 },
+  //   { category: `新規面談`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `面談All`, result: 30 },
+  //   { category: `展開`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `展開率`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `展開F`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `展開F率`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `A数(6月度)`, result: 25.4 },
+  //   { category: `展開F(半期)`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `F獲得(半期)`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `F獲得率(半期)`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `売上総額(6月度)`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `目標(6月度)`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `達成率(6月度)`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `売上総額(半期)`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `目標(半期)`, result: 25.4 }, // 事前にCTEで作成
+  //   { category: `達成率(半期)`, result: 25.4 }, // 事前にCTEで作成
+  // ];
 
-  // const formattedLabelDataArrayTest = useMemo(() => {
-  //   return donutLabelData.map((obj, indx) => {
-  //     return {
-  //       entity_name: obj.entity_name,
-  //       amount: isValidNumber(obj.amount) ? formatToJapaneseYen(obj.amount) : `¥ -`,
-  //       share: roundTo(obj.share, 1, true),
-  //     };
-  //   });
-  // }, [processData]);
-  // const formattedLabelDataArray = useMemo(() => {
-  //   return donutLabelData.map((obj, indx) => {
-  //     return {
-  //       entity_name: obj.entity_name,
-  //       amount: isValidNumber(obj.amount) ? formatToJapaneseYen(obj.amount) : `¥ -`,
-  //       share: roundTo(obj.share, 1, true),
-  //     };
-  //   });
-  // }, [processData]);
+  // ProgressCircle用売上(今月度)
+  // const formattedTotalAmount = useMemo(
+  //   () => (current_sales_amount !== null ? formatToJapaneseYen(current_sales_amount, true) : 0),
+  //   [current_sales_amount]
+  // );
+
+  // key: category, value: objのMapオブジェクト
+  const salesProcessesMap = useMemo(() => {
+    if (!data) return null;
+    return new Map(data.map((obj) => [obj.category, obj]));
+  }, [data]);
+
+  // 売上目標(今月度)
+  const formattedSalesTarget = useMemo(
+    () => (current_sales_target !== null ? formatToJapaneseYen(current_sales_target, false) : `-`),
+    [current_sales_target]
+  );
+
+  // 売上実績(今月度)
+  const formattedSalesAmount = useMemo(() => {
+    if (!salesProcessesMap) return 0;
+    return salesProcessesMap.get("sales_total_amount")?.result ?? 0;
+  }, [salesProcessesMap]);
+
+  // ProgressCircle用売上(今月度)
+  const formattedAchievementRate = useMemo(() => {
+    if (salesProcessesMap === null) return 0;
+    const _achievement_rate = salesProcessesMap.get("achievement_rate")?.result;
+    if (_achievement_rate === undefined || _achievement_rate === null) return 0;
+    // 達成率が100以上なら100%で留める
+    return 100 <= _achievement_rate ? 100 : Number(_achievement_rate.toFixed(0));
+  }, [salesProcessesMap]);
+  // const formattedAchievementRate = useMemo(() => {
+  //   if (current_achievement_rate === null) return 0;
+  //   // 達成率が100以上なら100%で留める
+  //   return 100 <= current_achievement_rate ? 100 : Number(current_achievement_rate.toFixed(0));
+  // }, [current_achievement_rate]);
+
+  // 右側プロセス詳細
+  const formattedResultArray = useMemo(() => {
+    return data.map((obj) => {
+      const getFormatResult = (processObj: SalesProcessesForSDB) => {
+        if (!processObj) return `-`;
+
+        switch (processObj.category) {
+          case "call_pr":
+          case "call_all":
+          case "meeting_all":
+          case "meeting_new":
+          case "expansion_all":
+          case "f_expansion":
+          case "half_year_f_expansion":
+          case "half_year_f_expansion_award":
+          case "award":
+          case "f_expansion":
+            return processObj.result !== null ? `${processObj.result}件` : `- 件`;
+            break;
+
+          case "expansion_rate":
+          case "f_expansion_rate":
+          case "half_year_f_expansion_award_rate":
+          case "f_expansion_rate":
+          case "achievement_rate":
+          case "half_year_achievement_rate":
+            return processObj.result !== null ? `${processObj.result}%` : `- %`;
+            break;
+
+          case "sales_total_amount":
+          case "sales_target":
+          case "half_year_sales_total_amount":
+          case "half_year_sales_target":
+            return processObj.result !== null ? `${formatToJapaneseYen(processObj.result, true)}` : `-`;
+            break;
+
+          default:
+            return `${processObj.result}`;
+            break;
+        }
+      };
+      const getFormatCategory = (processObj: SalesProcessesForSDB) => {
+        if (!processObj) return `-`;
+
+        const isJa = language === "ja";
+
+        const isFirstHalf = selectedPeriodTypeHalfDetailSDB === "first_half_details";
+
+        switch (processObj.category) {
+          case "call_pr":
+            return isJa ? `TEL PR` : `PR Call`;
+          case "call_all":
+            return isJa ? `TEL All` : `All Call`;
+
+          case "meeting_all":
+            return isJa ? `面談All` : `All Meeting`;
+          case "meeting_new":
+            return isJa ? `新規面談` : `New Meeting`;
+
+          case "expansion_all":
+            return isJa ? `展開数` : `All Expansion`;
+          case "expansion_rate":
+            return isJa ? `展開率` : `Expansion Rate`;
+
+          case "f_expansion":
+            return isJa ? `展開F` : `F Expansion`;
+          case "f_expansion_rate":
+            return isJa ? `展開F率` : `F Expansion Rate`;
+
+          case "award":
+            return isJa ? `A数` : `Award`;
+
+          case "half_year_f_expansion":
+            return isJa
+              ? `展開F（${isFirstHalf ? `上期` : `下期`}）`
+              : `${isFirstHalf ? `First` : `Second`} Half F Expansion`;
+          case "half_year_f_expansion_award":
+            return isJa
+              ? `F獲得数（${isFirstHalf ? `上期` : `下期`}）`
+              : `${isFirstHalf ? `First` : `Second`} Half F Expansion Award`;
+          case "half_year_f_expansion_award_rate":
+            return isJa
+              ? `F獲得率（${isFirstHalf ? `上期` : `下期`}）`
+              : `${isFirstHalf ? `First` : `Second`} Half F Expansion Award rate`;
+
+          case "sales_total_amount":
+            return isJa ? `売上` : `Sales Total Amount`;
+          case "sales_target":
+            return isJa ? `目標` : `Sales Target`;
+          case "achievement_rate":
+            return isJa ? `達成率` : `Achievement Rate`;
+
+          case "half_year_sales_total_amount":
+            return isJa
+              ? `${isFirstHalf ? `上期` : `下期`}売上`
+              : `${isFirstHalf ? `First` : `Second`} Half Sales Total Amount`;
+          case "half_year_sales_target":
+            return isJa
+              ? `${isFirstHalf ? `上期` : `下期`}目標`
+              : `${isFirstHalf ? `First` : `Second`} Half Sales Target`;
+          case "half_year_achievement_rate":
+            return isJa
+              ? `${isFirstHalf ? `上期` : `下期`}達成率`
+              : `${isFirstHalf ? `First` : `Second`} Half Achievement Rate`;
+          default:
+            return `${processObj.category}`;
+            break;
+        }
+      };
+
+      const formattedCategory = getFormatCategory(obj);
+      const formattedResult = getFormatResult(obj);
+
+      return {
+        category: formattedCategory,
+        result: formattedResult,
+      };
+    });
+  }, [data]);
+
+  console.log(
+    "ProgressCircleSalesAchievementレンダリング data",
+    data
+    // "current_sales_amount",
+    // current_sales_amount,
+    // "current_sales_target",
+    // current_sales_target,
+    // "current_achievement_rate",
+    // current_achievement_rate,
+    // "formattedSalesTarget",
+    // formattedSalesTarget,
+    // "formattedAchievementRate",
+    // formattedAchievementRate,
+    // "formattedResultArray",
+    // formattedResultArray
+  );
 
   // チャート マウントを0.6s遅らせる
   const [isMounted, setIsMounted] = useState(false);
@@ -278,7 +428,9 @@ const ProgressCircleSalesAchievementMemo = ({
                       circleId={`${entityId}_achievement_board`}
                       textId={`${entityId}_achievement_board`}
                       // progress={78}
-                      progress={69}
+                      // progress={69}
+                      progress={formattedAchievementRate}
+                      // progress={110}
                       // progress={100}
                       // progress={0}
                       duration={5000}
@@ -331,9 +483,11 @@ const ProgressCircleSalesAchievementMemo = ({
             </div> */}
 
               {/* <div className={`flex- relative max-h-[187px] w-full flex-col overflow-y-auto`}> */}
-              <div className={`relative flex max-h-[200px] w-full flex-col overflow-y-auto`}>
+              {/* <div className={`relative flex max-h-[200px] w-full flex-col overflow-y-auto`}> */}
+              <div className={`relative flex max-h-[200px] w-full max-w-[432px] flex-col overflow-auto`}>
                 <div
                   className={`relative w-full`}
+                  // style={{ display: `grid`, gridTemplateColumns: `repeat(2, minmax(196px, 1fr))`, columnGap: `20px` }}
                   style={{ display: `grid`, gridTemplateColumns: `repeat(2, 1fr)`, columnGap: `20px` }}
                 >
                   {/* {formattedLabelDataArray &&
@@ -393,13 +547,13 @@ const ProgressCircleSalesAchievementMemo = ({
                     );
                   })} */}
                   {/*  */}
-                  {processArrayTest.map((obj, index) => {
+                  {formattedResultArray.map((obj, index) => {
                     return (
                       <div
                         key={`standard_process_${index}_test`}
                         className={`w-full border-b border-solid border-[var(--color-border-base)] pb-[7px] pt-[9px] text-[var(--color-text-title)] `}
                         // style={{ display: `grid`, gridTemplateColumns: `90px 1fr` }}
-                        style={{ display: `grid`, gridTemplateColumns: `max-content 1fr` }}
+                        style={{ display: `grid`, gridTemplateColumns: `max-content 1fr`, columnGap: `10px` }}
                       >
                         <div className={`flex items-center`}>
                           {/* <div className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`} /> */}
@@ -421,7 +575,8 @@ const ProgressCircleSalesAchievementMemo = ({
                           // style={{ ...(!isDesktopGTE1600 && { maxWidth: `312px` }) }}
                         >
                           <div className={`flex justify-end text-end`}>
-                            <span>{obj.category === "meeting_new" ? `${obj.result}` : `${obj.result}%`}</span>
+                            {/* <span>{obj.category === "meeting_new" ? `${obj.result}` : `${obj.result}%`}</span> */}
+                            <span>{obj.result}</span>
                           </div>
                         </div>
                       </div>
@@ -503,22 +658,38 @@ const ProgressCircleSalesAchievementMemo = ({
               >
                 {/* <div className="flex h-full min-w-[150px] items-end justify-end"> */}
                 <div className="relative flex h-full min-w-[66px] items-end justify-end">
-                  <ProgressNumber
-                    targetNumber={6200000}
-                    // targetNumber={0}
-                    // startNumber={Math.round(68000 / 2)}
-                    // startNumber={Number((68000 * 0.1).toFixed(0))}
-                    startNumber={0}
-                    duration={3000}
-                    easeFn="Quintic"
-                    fontSize={29}
-                    fontWeight={500}
-                    // margin="0 0 -3px 0"
-                    margin="0 0 -5px 0"
-                    // isReady={isRenderProgress}
-                    isReady={true}
-                    fade={`fade08_forward`}
-                  />
+                  {formattedSalesAmount !== null && formattedSalesAmount !== 0 ? (
+                    <ProgressNumber
+                      targetNumber={formattedSalesAmount}
+                      // targetNumber={6200000}
+                      // targetNumber={0}
+                      // startNumber={Math.round(68000 / 2)}
+                      // startNumber={Number((68000 * 0.1).toFixed(0))}
+                      startNumber={0}
+                      duration={3000}
+                      easeFn="Quintic"
+                      fontSize={29}
+                      fontWeight={500}
+                      // margin="0 0 -3px 0"
+                      margin="0 0 -5px 0"
+                      // isReady={isRenderProgress}
+                      isReady={true}
+                      fade={`fade08_forward`}
+                    />
+                  ) : (
+                    <span
+                      style={{
+                        fontSize: `29px`,
+                        fontWeight: 500,
+                        color: `var(--color-text-title)`,
+                        margin: `0 0 -5px 0`,
+                      }}
+                      className={`fade08_forward`}
+                    >
+                      {formatToJapaneseYen(0, true)}
+                    </span>
+                  )}
+
                   <div
                     className={`absolute bottom-[-18px] right-[0] flex min-w-max space-x-[6px] text-[10px] text-[var(--color-text-sub)]`}
                   >
@@ -529,7 +700,8 @@ const ProgressCircleSalesAchievementMemo = ({
                   <div className="absolute bottom-[15px] left-[66%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[var(--color-text-title)]"></div>
                 </div>
                 <div className="relative mr-[12px] flex h-full min-w-max items-end justify-start">
-                  <span className="ml-[6px] text-[18px]">9,000,000</span>
+                  <span className="ml-[6px] text-[18px]">{formattedSalesTarget}</span>
+                  {/* <span className="ml-[6px] text-[18px]">9,000,000</span> */}
                   {/* <span className="ml-[12px] text-[18px]">-</span> */}
                   <div
                     // className={`absolute right-[0] top-[-18px] flex min-w-max space-x-[6px] text-[10px] text-[var(--color-text-sub)]`}

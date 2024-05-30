@@ -3,6 +3,7 @@ import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import React, { ChangeEvent, FC } from "react";
 import { MdClose } from "react-icons/md";
 import styles from "./ConfirmationModal.module.css";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 type Props = {
   clickEventClose: () => void;
@@ -11,6 +12,7 @@ type Props = {
   titleText2?: string;
   sectionP1?: string;
   sectionP2?: string;
+  marginTopP1?: string;
   cancelText: string;
   submitText: string;
   clickEventSubmit: () => void;
@@ -34,6 +36,7 @@ export const ConfirmationModal: FC<Props> = ({
   titleText2,
   sectionP1,
   sectionP2,
+  marginTopP1 = "20px",
   cancelText = "戻る",
   submitText = "削除する",
   clickEventSubmit,
@@ -78,9 +81,10 @@ export const ConfirmationModal: FC<Props> = ({
         )} */}
         {isLoadingState && (
           <div className={`${styles.loading_overlay}`}>
-            <div className={`${styles.loading_spinner_outside} flex-center bg-[#fff]`}>
+            {/* <div className={`${styles.loading_spinner_outside} flex-center bg-[#fff]`}>
               <SpinnerComet w="56px" h="56px" s="6px" />
-            </div>
+            </div> */}
+            <SpinnerBrand withBorder withShadow />
           </div>
         )}
         {/* クローズボタン */}
@@ -100,6 +104,7 @@ export const ConfirmationModal: FC<Props> = ({
           <section
             // className={`mt-[20px] flex h-auto w-full flex-col space-y-2 text-[14px]`}
             className={`mt-[15px] flex h-auto w-full flex-col space-y-2 text-[14px]`}
+            style={{ marginTop: marginTopP1 }}
           >
             {/* <p>この操作を実行した後にキャンセルすることはできません。</p> */}
             {/* <p className="font-bold">

@@ -264,8 +264,8 @@ export const DashboardHeaderMemo: FC = () => {
 
   console.log(
     "DashboardHeaderレンダリング",
-    "notificationData?.length",
-    notificationsCacheData?.length,
+    // "notificationData?.length",
+    // notificationsCacheData?.length,
     "notificationキャッシュのdata",
     notificationsCacheData,
     "incompleteNotifications",
