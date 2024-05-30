@@ -14,7 +14,7 @@ import { GradientModal } from "../Parts/GradientModal/GradientModal";
 import { ConfirmationModal } from "../DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { DealCardType, Property_row_data } from "@/types";
+import { DealCardType, Property, Property_row_data } from "@/types";
 import { toast } from "react-toastify";
 
 export const DashboardSDBComponent = () => {
@@ -299,7 +299,7 @@ export const DashboardSDBComponent = () => {
 
               if (error) throw error;
 
-              console.log("削除実行成功✅ data", data);
+              console.log("削除実行成功✅ data", data, "selectedRowDataProperty", selectedRowDataProperty);
 
               // キャッシュを更新
               await queryClient.invalidateQueries({ queryKey: ["properties"] });
@@ -324,12 +324,82 @@ export const DashboardSDBComponent = () => {
                 queryClient.setQueryData(currentQueryKey, newDeals);
               }
 
+              const _new = data[0] as Property;
               // Zustandの選択中のカードも更新して、ローカルstateのネタカードも同時更新してUIに反映
               const updatedCard = {
                 ownerId: selectedDealCard.ownerId,
-                dealCard: { ...data[0], column_title_num: selectedDealCard.dealCard.column_title_num } as DealCardType,
+                // dealCard: { ...data[0], column_title_num: selectedDealCard.dealCard.column_title_num } as DealCardType,
+                dealCard: {
+                  ...selectedDealCard.dealCard,
+                  current_status: _new.current_status,
+                  property_name: _new.property_name,
+                  property_summary: _new.property_summary,
+                  pending_flag: _new.pending_flag,
+                  rejected_flag: _new.rejected_flag,
+                  expected_product_id: _new.expected_product_id,
+                  expected_product: _new.expected_product,
+                  product_sales: _new.product_sales,
+                  expected_sales_price: _new.expected_sales_price,
+                  term_division: _new.term_division,
+                  sold_product_id: _new.sold_product_id,
+                  sold_product: _new.sold_product,
+                  unit_sales: _new.unit_sales,
+                  sales_contribution_category: _new.sales_contribution_category,
+                  sales_price: _new.sales_price,
+                  discounted_price: _new.discounted_price,
+                  discount_rate: _new.discount_rate,
+                  sales_class: _new.sales_class,
+                  property_date: _new.property_date,
+                  expansion_date: _new.expansion_date,
+                  sales_date: _new.sales_date,
+                  expected_order_date: _new.expected_order_date,
+                  property_year_month: _new.property_year_month,
+                  expansion_year_month: _new.expansion_year_month,
+                  sales_year_month: _new.sales_year_month,
+                  expected_order_year_month: _new.expected_order_year_month,
+                  property_quarter: _new.property_quarter,
+                  expansion_quarter: _new.expansion_quarter,
+                  sales_quarter: _new.sales_quarter,
+                  expected_order_quarter: _new.expected_order_quarter,
+                  property_half_year: _new.property_half_year,
+                  expansion_half_year: _new.expansion_half_year,
+                  sales_half_year: _new.sales_half_year,
+                  expected_order_half_year: _new.expected_order_half_year,
+                  property_fiscal_year: _new.property_fiscal_year,
+                  expansion_fiscal_year: _new.expansion_fiscal_year,
+                  sales_fiscal_year: _new.sales_fiscal_year,
+                  expected_order_fiscal_year: _new.expected_order_fiscal_year,
+                  subscription_start_date: _new.subscription_start_date,
+                  subscription_canceled_at: _new.subscription_canceled_at,
+                  leasing_company: _new.leasing_company,
+                  lease_division: _new.lease_division,
+                  lease_expiration_date: _new.lease_expiration_date,
+                  step_in_flag: _new.step_in_flag,
+                  repeat_flag: _new.repeat_flag,
+                  order_certainty_start_of_month: _new.order_certainty_start_of_month,
+                  review_order_certainty: _new.review_order_certainty,
+                  competitor_appearance_date: _new.competitor_appearance_date,
+                  competitor: _new.competitor,
+                  competitor_product: _new.competitor_product,
+                  reason_class: _new.reason_class,
+                  reason_detail: _new.reason_detail,
+                  customer_budget: _new.customer_budget,
+                  decision_maker_negotiation: _new.decision_maker_negotiation,
+                  subscription_interval: _new.subscription_interval,
+                  competition_state: _new.competition_state,
+                  property_department: _new.property_department,
+                  property_business_office: _new.property_business_office,
+                  property_member_name: _new.property_member_name,
+                } as DealCardType,
               };
-              console.log("🔥Zustandも更新 updatedCard", updatedCard);
+              console.log(
+                "🔥Zustandも更新 updatedCard",
+                updatedCard,
+                "selectedDealCard.dealCard",
+                selectedDealCard.dealCard,
+                "data[0]",
+                data[0]
+              );
               setSelectedDealCard(updatedCard);
 
               // ローカルstateを更新するためのトリガーをON

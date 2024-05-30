@@ -740,6 +740,74 @@ export const UpdatePropertyModal = () => {
   // console.log("売上四半期 Q", salesQuarterSelectedQuarter);
   // console.log("売上四半期 ", salesQuarter);
 
+  // -------------------------- 🌟ポップアップメッセージ🌟 --------------------------
+  const alertPopupRef = useRef<HTMLDivElement | null>(null);
+  const hideTimeoutIdRef = useRef<number | null>(null);
+
+  // 文字数制限を超えた際にポップアップアラートメッセージを表示する
+  const showAlertPopup = (type: "over_discount" | "length" | "lines" | "both") => {
+    const alertPopup = alertPopupRef.current;
+    if (!alertPopup) return;
+
+    // 表示するメッセージを格納する変数
+    let message = "";
+    switch (type) {
+      case "over_discount":
+        message = "値引価格が売上合計を超えています";
+        break;
+      case "length":
+        message = "文字数制限を超えています";
+        break;
+      case "lines":
+        message = "行数制限を超えています";
+        break;
+      case "both":
+        message = "文字数・行数制限を超えています";
+        break;
+      default:
+        message = "制限を超えています"; // デフォルトのメッセージ
+        break;
+    }
+
+    // 既存のタイマーをクリアする
+    if (hideTimeoutIdRef.current !== null) {
+      clearTimeout(hideTimeoutIdRef.current); // 既存の非表示タイマーをキャンセル
+      hideTimeoutIdRef.current = null;
+    }
+
+    // ポップアップの内容を更新
+    alertPopup.innerHTML = `<span>${message}</span>`; // innerHTMLを使用してメッセージを設定
+
+    // ポップアップを即時表示するためのスタイルを設定
+    alertPopup.style.display = "flex"; // ポップアップを表示
+    alertPopup.style.animation = "popupShow 0.1s ease forwards"; // 表示アニメーション
+
+    // 3秒後に非表示アニメーションを適用
+    // 新たに非表示にするためのタイマーを設定(windowオブジェクトのsetTimeoutの結果はnumber型 clearTimeoutで使用)
+    hideTimeoutIdRef.current = window.setTimeout(() => {
+      alertPopup.style.animation = "popupHide 0.2s ease forwards"; // 非表示アニメーション
+
+      // アニメーションが完了した後に要素を非表示にする
+      setTimeout(() => {
+        alertPopup.style.display = "none";
+      }, 200); // 非表示アニメーションの時間に合わせる
+
+      // タイマーIDをリセット
+      hideTimeoutIdRef.current = null;
+    }, 3000); // 表示される時間
+  };
+
+  // コンポーネントのクリーンアップで既存のタイマーがあればクリアする
+  useEffect(() => {
+    return () => {
+      // タイマーのクリア
+      if (hideTimeoutIdRef.current !== null) {
+        clearTimeout(hideTimeoutIdRef.current);
+      }
+    };
+  }, []);
+  // -------------------------- ✅ポップアップメッセージ✅ --------------------------
+
   // ---------------------------- 🌟値引率の自動計算🌟 ----------------------------
   useEffect(() => {
     // 値引率を売上合計の入力値から算出するため売上台数が入力してあるかどうかは無視
@@ -764,9 +832,23 @@ export const UpdatePropertyModal = () => {
         return;
       }
 
-      // 値引額 / 売上合計で計算 売上合計で算出するため売上台数は無視する
+      // 売上合計がnumber型でない場合にはリターン
+      const parsedSalesAmount = parseInt(salesPrice.replace(/,/g, ""), 10);
+      if (isNaN(parsedSalesAmount)) {
+        return;
+      }
+      // 値引き価格がnumber型でない場合にはリターン
+      const parsedDiscountPrice = parseInt(discountedPrice.replace(/,/g, ""), 10);
+      if (isNaN(parsedDiscountPrice)) {
+        return;
+      }
+
+      // 値引額 売上合計で計算 売上合計で算出するため売上台数は無視する
+      // 売上合計は値引き後の金額のため、元々の金額は売上合計+値引額が元々の合計になるため、元々の価格と値引き額を使用して値引率を算出する
+      const originalPrice = parsedSalesAmount + parsedDiscountPrice;
       const payload = {
-        salesPriceStr: salesPrice.replace(/,/g, ""),
+        // salesPriceStr: salesPrice.replace(/,/g, ""),
+        salesPriceStr: String(originalPrice),
         discountPriceStr: discountedPrice.replace(/,/g, ""),
         // salesQuantityStr: unitSales.toString(),
         salesQuantityStr: "1",
@@ -798,7 +880,12 @@ export const UpdatePropertyModal = () => {
         return console.log("値引率取得エラー リターン：", result.error);
       }
 
-      console.log("値引率算出結果✅", _discountRate, "payload", payload);
+      console.log("値引率算出結果✅", _discountRate, "payload", payload, "parseInt", parseInt(_discountRate, 10));
+      if (!!_discountRate && 100 < parseInt(_discountRate, 10)) {
+        showAlertPopup("over_discount"); // アラート表示
+        setDiscountedPrice("0");
+        setDiscountedRate("0");
+      }
       setDiscountedRate(_discountRate);
     } else {
       // if (!!discountedRate) setDiscountedRate("");
@@ -1612,6 +1699,10 @@ export const UpdatePropertyModal = () => {
   return (
     <>
       <div className={`${styles.overlay} `} onClick={handleCancelAndReset} />
+
+      {/* アラートポップアップ */}
+      <div ref={alertPopupRef} className={`flex-center alert_popup h-[50px] w-[300px] bg-[#333] text-[#fff]`}></div>
+
       {/* {loadingGlobalState && (
         <div className={`${styles.loading_overlay} `}>
           <SpinnerIDS scale={"scale-[0.5]"} />
@@ -3222,9 +3313,19 @@ export const UpdatePropertyModal = () => {
                         setSalesPrice(e.target.value);
                       }}
                       onBlur={() => {
-                        if (!salesPrice || salesPrice === "") return setSalesPrice("");
+                        if (!salesPrice || salesPrice === "") {
+                          setSalesPrice("");
+                          if (!!discountedPrice) setDiscountedPrice("");
+                          if (!!discountedRate) setDiscountedRate("");
+                          return;
+                        }
                         const converted = convertToYen(salesPrice.trim());
-                        if (converted === null) return setSalesPrice("");
+                        if (converted === null) {
+                          setSalesPrice("");
+                          if (!!discountedPrice) setDiscountedPrice("");
+                          if (!!discountedRate) setDiscountedRate("");
+                          return;
+                        }
                         setSalesPrice(converted.toLocaleString());
                         // setSalesPrice(
                         //   !!salesPrice && salesPrice !== "" && convertToYen(salesPrice.trim()) !== null
@@ -3410,9 +3511,17 @@ export const UpdatePropertyModal = () => {
                       value={!!discountedPrice ? discountedPrice : ""}
                       onChange={(e) => setDiscountedPrice(e.target.value)}
                       onBlur={() => {
-                        if (!discountedPrice || discountedPrice === "") return setDiscountedPrice("");
+                        if (!discountedPrice || discountedPrice === "") {
+                          setDiscountedPrice("");
+                          if (!!discountedRate) setDiscountedRate("");
+                          return;
+                        }
                         const converted = convertToYen(discountedPrice.trim());
-                        if (converted === null) return setDiscountedPrice("");
+                        if (converted === null) {
+                          setDiscountedPrice("");
+                          if (!!discountedRate) setDiscountedRate("");
+                          return;
+                        }
                         setDiscountedPrice(converted.toLocaleString());
                         //   setDiscountedPrice(
                         //     !!discountedPrice && discountedPrice !== "" && convertToYen(discountedPrice.trim()) !== null
