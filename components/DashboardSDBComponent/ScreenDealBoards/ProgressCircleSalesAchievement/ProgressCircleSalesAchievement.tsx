@@ -1,4 +1,4 @@
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { MouseEvent, memo, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../../DashboardSDBComponent.module.css";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { DonutChartComponent } from "@/components/Parts/Charts/DonutChart/DonutChart";
@@ -14,6 +14,7 @@ import {
   FiscalYearAllKeys,
   PropertiesPeriodKey,
   SalesProcessesForSDB,
+  SectionMenuParams,
 } from "@/types";
 import { mappingEntityName } from "@/utils/mappings";
 import { roundTo } from "@/utils/Helpers/PercentHelpers/roundTo";
@@ -21,6 +22,7 @@ import { ProgressCircle } from "@/components/Parts/Charts/ProgressCircle/Progres
 import { ProgressNumber } from "@/components/Parts/Charts/ProgressNumber/ProgressNumber";
 import { useQuerySDBSalesProcessesForProgress } from "@/hooks/useQuerySDBSalesProcessesForProgress";
 import useDashboardStore from "@/store/useDashboardStore";
+import { ImInfo } from "react-icons/im";
 
 type Props = {
   fiscalYear: number;
@@ -37,9 +39,9 @@ type Props = {
   basePeriod: number;
   // halfYearPeriod: number;
   // halfYearPeriodTypeForTarget: "first_half" | "second_half";
-  current_sales_amount: number | null;
-  current_sales_target: number | null;
-  current_achievement_rate: number | null;
+  // current_sales_amount: number | null;
+  // current_sales_target: number | null;
+  // current_achievement_rate: number | null;
   fetchEnabled?: boolean;
   fallbackHeight?: string;
   fallbackPadding?: string;
@@ -69,9 +71,9 @@ const ProgressCircleSalesAchievementMemo = ({
   fontSize = `13px`,
   errorText = `エラーが発生しました`,
   noDataText = `データがありません`,
-  current_sales_amount,
-  current_sales_target,
-  current_achievement_rate,
+  // current_sales_amount,
+  // current_sales_target,
+  // current_achievement_rate,
   isRenderProgress,
 }: Props) => {
   const language = useStore((state) => state.language);
@@ -81,6 +83,9 @@ const ProgressCircleSalesAchievementMemo = ({
   useEffect(() => {
     setIsDesktopGTE1600(isDesktopGTE1600Media);
   }, [isDesktopGTE1600Media]);
+
+  // 営業プロセス アクション項目説明モーダル
+  const setIsOpenModalSDB = useDashboardStore((state) => state.setIsOpenModalSDB);
 
   // 🔹表示中の会計年度(グローバル)(SDB用)
   const selectedFiscalYearTargetSDB = useDashboardStore((state) => state.selectedFiscalYearTargetSDB);
@@ -216,10 +221,13 @@ const ProgressCircleSalesAchievementMemo = ({
   }, [data]);
 
   // 売上目標(今月度)
-  const formattedSalesTarget = useMemo(
-    () => (current_sales_target !== null ? formatToJapaneseYen(current_sales_target, false) : `-`),
-    [current_sales_target]
-  );
+  // const formattedSalesTarget = useMemo(
+  //   () => (current_sales_target !== null ? formatToJapaneseYen(current_sales_target, false) : `-`),
+  //   [current_sales_target]
+  const formattedSalesTarget = useMemo(() => {
+    if (!salesProcessesMap) return `0`;
+    return formatToJapaneseYen(salesProcessesMap.get("sales_target")?.result ?? 0, false);
+  }, [salesProcessesMap]);
 
   // 売上実績(今月度)
   const formattedSalesAmount = useMemo(() => {
@@ -361,6 +369,161 @@ const ProgressCircleSalesAchievementMemo = ({
     });
   }, [data]);
 
+  // infoアイコン
+  const infoIconProcessRef = useRef<HTMLDivElement | null>(null);
+
+  const handleEnterInfoIcon = (
+    // e: MouseEvent<HTMLDivElement, MouseEvent | globalThis.MouseEvent>,
+    infoIconRef: HTMLDivElement | null
+  ) => {
+    if (infoIconRef && infoIconRef.classList.contains(styles.animate_ping)) {
+      infoIconRef.classList.remove(styles.animate_ping);
+    }
+  };
+
+  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
+  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
+  type TooltipParams = {
+    // e: MouseEvent<HTMLDivElement, MouseEvent>;
+    e: MouseEvent<HTMLDivElement | HTMLSpanElement, globalThis.MouseEvent>;
+    // e: MouseEvent<HTMLElement, MouseEvent<Element, globalThis.MouseEvent>> | MouseEvent<HTMLDivElement, MouseEvent>;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    marginTop = 0,
+    itemsPosition = "center",
+  }: TooltipParams) => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+
+    setHoveredItemPos({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: content,
+      content2: content2,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    if (hoveredItemPos) setHoveredItemPos(null);
+  };
+  // ==================================================================================
+
+  // -------------------------- 🌟セクションメニュー🌟 --------------------------
+  // const [openSectionMenu, setOpenSectionMenu] = useState<{
+  //   x?: number;
+  //   y: number;
+  //   title?: string;
+  //   //  displayType?: 'left' | 'under';
+  //   displayX?: string;
+  //   maxWidth?: number;
+  //   fadeType?: string;
+  // } | null>(null);
+  // const handleOpenSectionMenu = ({ e, title, displayX, maxWidth, fadeType }: SectionMenuParams) => {
+  //   const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+  //   let positionX = 0;
+  //   positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : 0;
+  //   positionX = displayX === "left" ? window.innerWidth - x : 0;
+  //   //   positionX = displayX === "center" ? x + width / 2 : 0;
+  //   console.log("クリック", displayX, e, x, y, width, height);
+
+  //   // 真横に表示
+  //   setOpenSectionMenu({
+  //     x: positionX,
+  //     y: y,
+  //     title: title,
+  //     displayX: displayX,
+  //     maxWidth: maxWidth,
+  //     fadeType: fadeType,
+  //   });
+  // };
+  // // 🔹セクションメニューを閉じる
+  // const handleCloseSectionMenu = () => {
+  //   if (openSectionMenu?.title === "period") {
+  //     setActivePeriodSDBLocal(null);
+  //   }
+  //   setOpenSectionMenu(null);
+  // };
+  // -------------------------- 🌟セクションメニュー🌟 --------------------------
+  // -------------------------- 🌟ポップアップメニュー🌟 --------------------------
+  // const [isOpenPopupOverlay, setIsOpenPopupOverlay] = useState(false);
+  // const [openPopupMenu, setOpenPopupMenu] = useState<{
+  //   x?: number;
+  //   y: number;
+  //   title: string;
+  //   displayX?: string;
+  //   maxWidth?: number;
+  // } | null>(null);
+  // const mappingPopupTitle: { [key: string]: { [key: string]: string } } = {
+  //   compressionRatio: { en: "Compression Ratio", ja: "解像度" },
+  //   footnotes: { en: "Footnotes", ja: "脚注" },
+  //   print: { en: "Print Tips", ja: "印刷Tips" },
+  //   pdf: { en: "PDF Download", ja: "PDFダウンロード" },
+  //   settings: { en: "Settings", ja: "各種設定メニュー" },
+  //   edit: { en: "Edit Mode", ja: "編集モード" },
+  //   change_theme: { en: "Change theme", ja: "テーマカラー変更" },
+  // };
+  // type PopupMenuParams = {
+  //   e: React.MouseEvent<HTMLElement, MouseEvent>;
+  //   title: string;
+  //   displayX?: string;
+  //   maxWidth?: number;
+  // };
+  // const handleOpenPopupMenu = ({ e, title, displayX, maxWidth }: PopupMenuParams) => {
+  //   if (!displayX) {
+  //     const { y, height } = e.currentTarget.getBoundingClientRect();
+  //     setOpenPopupMenu({
+  //       y: y - height / 2,
+  //       title: title,
+  //     });
+  //   } else {
+  //     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+  //     // right: 見積書の右端から-18px, アイコンサイズ35px, ポップアップメニュー400px
+  //     let positionX = 0;
+  //     positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : 0;
+  //     positionX = displayX === "left" ? window.innerWidth - x : 0;
+  //     console.log("クリック", displayX, e, x, y, width, height);
+
+  //     setOpenPopupMenu({
+  //       x: positionX,
+  //       // y: y - height / 2,
+  //       y: y,
+  //       title: title,
+  //       displayX: displayX,
+  //       maxWidth: maxWidth,
+  //     });
+  //   }
+  // };
+  // const handleClosePopupMenu = () => {
+  //   setOpenPopupMenu(null);
+  // };
+  // const handleCloseSettings = () => {
+  //   setIsOpenSettingsSDB(false);
+  // };
+  // const handleCloseClickPopup = () => {
+  //   if (!!openPopupMenu && isOpenPopupOverlay) {
+  //     handleClosePopupMenu();
+  //     setIsOpenPopupOverlay(false);
+  //   }
+  // };
+
+  // -------------------------- ✅ポップアップメニュー✅ --------------------------
+
   console.log(
     "ProgressCircleSalesAchievementレンダリング data",
     data
@@ -388,88 +551,129 @@ const ProgressCircleSalesAchievementMemo = ({
   }, []);
 
   return (
-    <div
-      className={`${styles.area_chart_container} flex w-full flex-col ${
-        isDesktopGTE1600 ? `` : `max-w-[686px]`
-      } bg-[red]/[0]`}
-      style={{ padding: `0px 24px 6px 6px`, minHeight: `304px` }}
-    >
-      {!isMounted && (
-        <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: `0px 6px 8px 24px` }}>
-          <SpinnerX />
-        </div>
-      )}
-      {isMounted && (
-        <>
-          <div className={`flex w-full`}>
-            <div
-              className={`flex-center relative`}
-              style={{
-                minWidth: chartContainerWidth,
-                // height: `219px`,
-                // height: `236px`,
-                height: `226px`,
-                // minWidth: chartContainerWidth ? chartContainerWidth : `calc(${pieChartRadius * 2 + paddingX * 2})`,
-              }}
-            >
-              {/* <div className={`absolute left-0 top-0 flex h-auto w-full items-center bg-[blue]/[0]`}> */}
-              <div className={`absolute left-0 top-0 flex h-auto w-full flex-col justify-center bg-[blue]/[0]`}>
-                {/* <div className={`min-h-[57px] w-full`}></div> */}
-                <div className={`min-h-[57px] w-full`}></div>
-                <div className="flex h-full w-full pl-[30px]">
-                  <div
-                    // className={`relative z-[100] mb-[5px] flex w-full items-center pl-[34px]`}
-                    className={`relative z-[100] mb-[5px] flex w-full items-center`}
-                    // style={{ height: `${chartHeight}px` }}
-                    style={{ height: `156px`, width: `156px` }}
-                    // style={{ height: `269px` }}
-                  >
-                    <ProgressCircle
-                      circleId={`${entityId}_achievement_board`}
-                      textId={`${entityId}_achievement_board`}
-                      // progress={78}
-                      // progress={69}
-                      progress={formattedAchievementRate}
-                      // progress={110}
-                      // progress={100}
-                      // progress={0}
-                      duration={5000}
-                      easeFn="Quartic"
-                      size={156}
-                      strokeWidth={14}
-                      fontSize={33}
-                      // fontSize={28}
-                      // fontWeight={600}
-                      fontWeight={500}
-                      fontFamily="var(--font-family-str)"
-                      textColor="var(--color-text-title)"
-                      isReady={true}
-                      // withShadow={true}
-                      withShadow={false}
-                      // boxShadow={`0 0 1px 1px #ffffff90, 0 0 3px 2px #ffffff36, 0 0 3px 3px #ffffff15`}
-                      // boxShadow={`0 0 1px 1px #ffffff90, 0 0 3px 2px #ffffff24, 0 0 3px 3px #ffffff12`}
-                      fade={`fade08_forward`}
-                      // fade={`fade10_forward`}
-                      customText="達成率"
-                      customFontSize={12}
-                      customTextTop={`calc(50% + 28px)`}
-                    />
+    <>
+      <div
+        className={`${styles.area_chart_container} flex w-full flex-col ${
+          isDesktopGTE1600 ? `` : `max-w-[686px]`
+        } bg-[red]/[0]`}
+        style={{ padding: `0px 24px 6px 6px`, minHeight: `304px` }}
+      >
+        {!isMounted && (
+          <div className={`flex-center w-full`} style={{ minHeight: fallbackHeight, padding: `0px 6px 8px 24px` }}>
+            <SpinnerX />
+          </div>
+        )}
+        {isMounted && (
+          <>
+            <div className={`flex w-full`}>
+              <div
+                className={`flex-center relative`}
+                style={{
+                  minWidth: chartContainerWidth,
+                  // height: `219px`,
+                  // height: `236px`,
+                  height: `226px`,
+                  // minWidth: chartContainerWidth ? chartContainerWidth : `calc(${pieChartRadius * 2 + paddingX * 2})`,
+                }}
+              >
+                {/* <div className={`absolute left-0 top-0 flex h-auto w-full items-center bg-[blue]/[0]`}> */}
+                <div className={`absolute left-0 top-0 flex h-auto w-full flex-col justify-center bg-[blue]/[0]`}>
+                  {/* <div className={`min-h-[57px] w-full`}></div> */}
+                  <div className={`min-h-[57px] w-full`}></div>
+                  <div className="flex h-full w-full pl-[30px]">
+                    <div
+                      // className={`relative z-[100] mb-[5px] flex w-full items-center pl-[34px]`}
+                      className={`relative z-[100] mb-[5px] flex w-full items-center`}
+                      // style={{ height: `${chartHeight}px` }}
+                      style={{ height: `156px`, width: `156px` }}
+                      // style={{ height: `269px` }}
+                    >
+                      <ProgressCircle
+                        circleId={`${entityId}_achievement_board`}
+                        textId={`${entityId}_achievement_board`}
+                        // progress={78}
+                        // progress={69}
+                        progress={formattedAchievementRate}
+                        // progress={110}
+                        // progress={100}
+                        // progress={0}
+                        duration={5000}
+                        easeFn="Quartic"
+                        size={156}
+                        strokeWidth={14}
+                        fontSize={33}
+                        // fontSize={28}
+                        // fontWeight={600}
+                        fontWeight={500}
+                        fontFamily="var(--font-family-str)"
+                        textColor="var(--color-text-title)"
+                        isReady={true}
+                        // withShadow={true}
+                        withShadow={false}
+                        // boxShadow={`0 0 1px 1px #ffffff90, 0 0 3px 2px #ffffff36, 0 0 3px 3px #ffffff15`}
+                        // boxShadow={`0 0 1px 1px #ffffff90, 0 0 3px 2px #ffffff24, 0 0 3px 3px #ffffff12`}
+                        fade={`fade08_forward`}
+                        // fade={`fade10_forward`}
+                        customText="達成率"
+                        customFontSize={12}
+                        customTextTop={`calc(50% + 28px)`}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-            <div
-              className={`fade08_forward flex h-full min-h-full w-full flex-col bg-[gray]/[0]`}
-              // style={{ minHeight: chartHeight }}
-            >
               <div
-                // className={`mt-[10px] flex h-auto w-full`}
-                className={`mt-[0px] flex h-auto w-full`}
+                className={`fade08_forward flex h-full min-h-full w-full flex-col bg-[gray]/[0]`}
+                // style={{ minHeight: chartHeight }}
               >
-                <h4 className={`text-[14px] font-bold`}>営業プロセス 結果</h4>
-              </div>
-              <div className={`mt-[5px] flex w-full justify-between text-[12px] text-[var(--color-text-sub)]`}></div>
-              {/* <div className={`mt-[0px] flex w-full justify-between text-[12px] text-[var(--color-text-sub)]`}>
+                <div
+                  // className={`mt-[10px] flex h-auto w-full`}
+                  className={`mt-[0px] flex h-auto max-h-[21px] w-full`}
+                >
+                  <div
+                    className="flex h-auto max-w-max cursor-pointer items-center hover:text-[var(--color-text-brand-f)]"
+                    onMouseEnter={(e) => {
+                      // handleEnterInfoIcon(infoIconProcessRef?.current);
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: `クリックして各プロセスの詳細を確認する`,
+                        marginTop: 9,
+                        itemsPosition: "center",
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                    onClick={() => {
+                      setIsOpenModalSDB("process_actions");
+                    }}
+                  >
+                    <h4 className={`text-[14px] font-bold`}>営業プロセス 結果</h4>
+                    <div className={`${styles.info_area} ml-[12px] flex h-full max-h-[21px] min-h-[21px] items-center`}>
+                      <div
+                        className="flex-center relative h-[18px] w-[18px] rounded-full"
+                        // onMouseEnter={(e) => {
+                        //   handleEnterInfoIcon(infoIconProcessRef?.current);
+                        //   handleOpenTooltip({
+                        //     e: e,
+                        //     display: "top",
+                        //     content: `クリックして各プロセスの詳細を確認する`,
+                        //     marginTop: 9,
+                        //     itemsPosition: "center",
+                        //   });
+                        // }}
+                        // onMouseLeave={handleCloseTooltip}
+                      >
+                        {/* <div
+                        ref={infoIconProcessRef}
+                        className={`flex-center absolute left-0 top-0 z-50 h-[18px] w-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                      ></div> */}
+                        <ImInfo className={`min-h-[18px] min-w-[18px] text-[var(--color-bg-brand-f)]`} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className={`mt-[5px] flex w-full justify-between text-[12px] text-[var(--color-text-sub)]`}></div>
+                {/* <div className={`mt-[0px] flex w-full justify-between text-[12px] text-[var(--color-text-sub)]`}>
               <div>
                 <span>カテゴリー</span>
               </div>
@@ -482,15 +686,15 @@ const ProgressCircleSalesAchievementMemo = ({
               </div>
             </div> */}
 
-              {/* <div className={`flex- relative max-h-[187px] w-full flex-col overflow-y-auto`}> */}
-              {/* <div className={`relative flex max-h-[200px] w-full flex-col overflow-y-auto`}> */}
-              <div className={`relative flex max-h-[200px] w-full max-w-[432px] flex-col overflow-auto`}>
-                <div
-                  className={`relative w-full`}
-                  // style={{ display: `grid`, gridTemplateColumns: `repeat(2, minmax(196px, 1fr))`, columnGap: `20px` }}
-                  style={{ display: `grid`, gridTemplateColumns: `repeat(2, 1fr)`, columnGap: `20px` }}
-                >
-                  {/* {formattedLabelDataArray &&
+                {/* <div className={`flex- relative max-h-[187px] w-full flex-col overflow-y-auto`}> */}
+                {/* <div className={`relative flex max-h-[200px] w-full flex-col overflow-y-auto`}> */}
+                <div className={`relative flex max-h-[200px] w-full max-w-[432px] flex-col overflow-auto`}>
+                  <div
+                    className={`relative w-full`}
+                    // style={{ display: `grid`, gridTemplateColumns: `repeat(2, minmax(196px, 1fr))`, columnGap: `20px` }}
+                    style={{ display: `grid`, gridTemplateColumns: `repeat(2, 1fr)`, columnGap: `20px` }}
+                  >
+                    {/* {formattedLabelDataArray &&
                   formattedLabelDataArray.map((shareObj, index) => {
                     return (
                       <li
@@ -546,18 +750,18 @@ const ProgressCircleSalesAchievementMemo = ({
                       </li>
                     );
                   })} */}
-                  {/*  */}
-                  {formattedResultArray.map((obj, index) => {
-                    return (
-                      <div
-                        key={`standard_process_${index}_test`}
-                        className={`w-full border-b border-solid border-[var(--color-border-base)] pb-[7px] pt-[9px] text-[var(--color-text-title)] `}
-                        // style={{ display: `grid`, gridTemplateColumns: `90px 1fr` }}
-                        style={{ display: `grid`, gridTemplateColumns: `max-content 1fr`, columnGap: `10px` }}
-                      >
-                        <div className={`flex items-center`}>
-                          {/* <div className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`} /> */}
-                          {/* {index % 2 === 0 && (
+                    {/*  */}
+                    {formattedResultArray.map((obj, index) => {
+                      return (
+                        <div
+                          key={`standard_process_${index}_test`}
+                          className={`w-full border-b border-solid border-[var(--color-border-base)] pb-[7px] pt-[9px] text-[var(--color-text-title)] `}
+                          // style={{ display: `grid`, gridTemplateColumns: `90px 1fr` }}
+                          style={{ display: `grid`, gridTemplateColumns: `max-content 1fr`, columnGap: `10px` }}
+                        >
+                          <div className={`flex items-center`}>
+                            {/* <div className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`} /> */}
+                            {/* {index % 2 === 0 && (
                             <div
                               className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`}
                               style={{
@@ -566,26 +770,26 @@ const ProgressCircleSalesAchievementMemo = ({
                               }}
                             />
                           )} */}
-                          <div className="text-[13px] font-bold">
-                            <span>{obj.category}</span>
+                            <div className="text-[13px] font-bold">
+                              <span>{obj.category}</span>
+                            </div>
+                          </div>
+                          <div
+                            className={`flex items-center justify-end text-[13px]`}
+                            // style={{ ...(!isDesktopGTE1600 && { maxWidth: `312px` }) }}
+                          >
+                            <div className={`flex justify-end text-end`}>
+                              {/* <span>{obj.category === "meeting_new" ? `${obj.result}` : `${obj.result}%`}</span> */}
+                              <span>{obj.result}</span>
+                            </div>
                           </div>
                         </div>
-                        <div
-                          className={`flex items-center justify-end text-[13px]`}
-                          // style={{ ...(!isDesktopGTE1600 && { maxWidth: `312px` }) }}
-                        >
-                          <div className={`flex justify-end text-end`}>
-                            {/* <span>{obj.category === "meeting_new" ? `${obj.result}` : `${obj.result}%`}</span> */}
-                            <span>{obj.result}</span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  {/*  */}
+                      );
+                    })}
+                    {/*  */}
+                  </div>
                 </div>
-              </div>
-              {/* <li className={` flex w-full justify-between pb-[9px] pt-[12px]`}>
+                {/* <li className={` flex w-full justify-between pb-[9px] pt-[12px]`}>
               <div className={`flex items-center`}>
                 <div
                   className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`}
@@ -618,7 +822,7 @@ const ProgressCircleSalesAchievementMemo = ({
               </div>
             </li> */}
 
-              {/* <div className={`flex h-full w-full items-end justify-end`}>
+                {/* <div className={`flex h-full w-full items-end justify-end`}>
               <div className={`relative !ml-[24px] !mr-[12px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}>
                 <div className="flex h-full min-w-[150px] items-end justify-end">
                   <ProgressNumber
@@ -644,80 +848,198 @@ const ProgressCircleSalesAchievementMemo = ({
                 </div>
               </div>
             </div> */}
+              </div>
             </div>
-          </div>
 
-          {isRenderProgress && (
-            <div
-              // className={`fade_forward08 flex h-full min-h-[58px] w-full items-end justify-start`}
-              className={`fade_forward08 flex h-full min-h-[48px] w-full items-end justify-start`}
-            >
+            {isRenderProgress && (
               <div
-                // className={`relative !ml-[24px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}
-                className={`relative !ml-[24px] flex h-full min-h-[40px] w-auto items-end bg-[red]/[0]`}
+                // className={`fade_forward08 flex h-full min-h-[58px] w-full items-end justify-start`}
+                className={`fade_forward08 flex h-full min-h-[48px] w-full items-end justify-start`}
               >
-                {/* <div className="flex h-full min-w-[150px] items-end justify-end"> */}
-                <div className="relative flex h-full min-w-[66px] items-end justify-end">
-                  {formattedSalesAmount !== null && formattedSalesAmount !== 0 ? (
-                    <ProgressNumber
-                      targetNumber={formattedSalesAmount}
-                      // targetNumber={6200000}
-                      // targetNumber={0}
-                      // startNumber={Math.round(68000 / 2)}
-                      // startNumber={Number((68000 * 0.1).toFixed(0))}
-                      startNumber={0}
-                      duration={3000}
-                      easeFn="Quintic"
-                      fontSize={29}
-                      fontWeight={500}
-                      // margin="0 0 -3px 0"
-                      margin="0 0 -5px 0"
-                      // isReady={isRenderProgress}
-                      isReady={true}
-                      fade={`fade08_forward`}
-                    />
-                  ) : (
-                    <span
-                      style={{
-                        fontSize: `29px`,
-                        fontWeight: 500,
-                        color: `var(--color-text-title)`,
-                        margin: `0 0 -5px 0`,
-                      }}
-                      className={`fade08_forward`}
-                    >
-                      {formatToJapaneseYen(0, true)}
-                    </span>
-                  )}
+                <div
+                  // className={`relative !ml-[24px] flex h-full min-h-[56px] w-auto items-end bg-[red]/[0]`}
+                  className={`relative !ml-[24px] flex h-full min-h-[40px] w-auto items-end bg-[red]/[0]`}
+                >
+                  {/* <div className="flex h-full min-w-[150px] items-end justify-end"> */}
+                  <div className="relative flex h-full min-w-[66px] items-end justify-end">
+                    {formattedSalesAmount !== null && formattedSalesAmount !== 0 ? (
+                      <ProgressNumber
+                        targetNumber={formattedSalesAmount}
+                        // targetNumber={6200000}
+                        // targetNumber={0}
+                        // startNumber={Math.round(68000 / 2)}
+                        // startNumber={Number((68000 * 0.1).toFixed(0))}
+                        startNumber={0}
+                        duration={3000}
+                        easeFn="Quintic"
+                        fontSize={29}
+                        fontWeight={500}
+                        // margin="0 0 -3px 0"
+                        margin="0 0 -5px 0"
+                        // isReady={isRenderProgress}
+                        isReady={true}
+                        fade={`fade08_forward`}
+                      />
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: `29px`,
+                          fontWeight: 500,
+                          color: `var(--color-text-title)`,
+                          margin: `0 0 -5px 0`,
+                        }}
+                        className={`fade08_forward`}
+                      >
+                        {formatToJapaneseYen(0, true)}
+                      </span>
+                    )}
 
-                  <div
-                    className={`absolute bottom-[-18px] right-[0] flex min-w-max space-x-[6px] text-[10px] text-[var(--color-text-sub)]`}
-                  >
-                    <div className={`min-w-max whitespace-nowrap`}>売上</div>
+                    <div
+                      className={`absolute bottom-[-18px] right-[0] flex min-w-max space-x-[6px] text-[10px] text-[var(--color-text-sub)]`}
+                    >
+                      <div className={`min-w-max whitespace-nowrap`}>売上</div>
+                    </div>
                   </div>
-                </div>
-                <div className="relative h-full min-w-[33px]">
-                  <div className="absolute bottom-[15px] left-[66%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[var(--color-text-title)]"></div>
-                </div>
-                <div className="relative mr-[12px] flex h-full min-w-max items-end justify-start">
-                  <span className="ml-[6px] text-[18px]">{formattedSalesTarget}</span>
-                  {/* <span className="ml-[6px] text-[18px]">9,000,000</span> */}
-                  {/* <span className="ml-[12px] text-[18px]">-</span> */}
-                  <div
-                    // className={`absolute right-[0] top-[-18px] flex min-w-max space-x-[6px] text-[10px] text-[var(--color-text-sub)]`}
-                    className={`absolute bottom-[-18px] right-[0] flex min-w-max space-x-[6px] text-[10px] text-[var(--color-text-sub)]`}
-                  >
-                    {/* <div className={`min-w-max whitespace-nowrap`}>売上</div> */}
-                    {/* <div className={`min-w-max whitespace-nowrap`}>/</div> */}
-                    <div className={`min-w-max whitespace-nowrap`}>目標</div>
+                  <div className="relative h-full min-w-[33px]">
+                    <div className="absolute bottom-[15px] left-[66%] min-h-[2px] w-[30px] translate-x-[-50%] translate-y-[-50%] rotate-[120deg] bg-[var(--color-text-title)]"></div>
+                  </div>
+                  <div className="relative mr-[12px] flex h-full min-w-max items-end justify-start">
+                    <span className="ml-[6px] text-[18px]">{formattedSalesTarget}</span>
+                    {/* <span className="ml-[6px] text-[18px]">9,000,000</span> */}
+                    {/* <span className="ml-[12px] text-[18px]">-</span> */}
+                    <div
+                      // className={`absolute right-[0] top-[-18px] flex min-w-max space-x-[6px] text-[10px] text-[var(--color-text-sub)]`}
+                      className={`absolute bottom-[-18px] right-[0] flex min-w-max space-x-[6px] text-[10px] text-[var(--color-text-sub)]`}
+                    >
+                      {/* <div className={`min-w-max whitespace-nowrap`}>売上</div> */}
+                      {/* <div className={`min-w-max whitespace-nowrap`}>/</div> */}
+                      <div className={`min-w-max whitespace-nowrap`}>目標</div>
+                    </div>
                   </div>
                 </div>
               </div>
+            )}
+          </>
+        )}
+      </div>
+      {/* ---------------------- 説明ポップアップ ---------------------- */}
+      {/* クリック時のオーバーレイ */}
+      {/* {isOpenPopupOverlay && (
+        <div
+          className={`${styles.menu_overlay} ${styles.above_setting_menu} bg-[#ffffff00]`}
+          onClick={handleCloseClickPopup}
+        ></div>
+      )} */}
+      {/* 説明ポップアップ */}
+      {/* {openPopupMenu && (
+        <div
+          // className={`${styles.description_menu} shadow-all-md border-real-with-shadow fixed right-[-18px] z-[3500] flex min-h-max flex-col rounded-[6px]`}
+          className={`${styles.description_menu} shadow-all-md border-real-with-shadow ${
+            isOpenPopupOverlay ? `` : `pointer-events-none`
+          } fixed z-[3500] flex min-h-max flex-col rounded-[6px]`}
+          style={{
+            top: `${openPopupMenu.y}px`,
+            ...(openPopupMenu?.displayX === "right" && {
+              left: `${openPopupMenu.x}px`,
+              maxWidth: `${openPopupMenu.maxWidth}px`,
+            }),
+            ...(openPopupMenu?.displayX === "left" && {
+              right: `${openPopupMenu.x}px`,
+              maxWidth: `${openPopupMenu.maxWidth}px`,
+            }),
+          }}
+        >
+          <div className={`min-h-max w-full font-bold ${styles.title}`}>
+            <div className="flex max-w-max flex-col">
+              <span>{mappingPopupTitle[openPopupMenu.title][language]}</span>
+              <div className={`${styles.underline} w-full`} />
+            </div>
+          </div>
+
+          {openPopupMenu.title !== "change_theme" && (
+            <ul className={`flex flex-col rounded-[6px] ${styles.u_list}`}>
+              {["guide"].includes(openPopupMenu.title) &&
+                mappingDescriptionsSDB[openPopupMenu.title].map((item, index) => (
+                  <li
+                    key={item.title + index.toString()}
+                    className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}
+                    style={{ ...(openPopupMenu.title === "printTips" && { padding: "3px 14px" }) }}
+                  >
+                    <div className="flex min-w-max items-center space-x-[3px]">
+                      <RxDot className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                      <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                        {item.title}
+                      </span>
+                    </div>
+                    <p className="select-none text-[12px]" style={{ whiteSpace: "pre-wrap" }}>
+                      {item.content}
+                    </p>
+                  </li>
+                ))}
+              {!["guide"].includes(openPopupMenu.title) && (
+                <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
+                  <p className="select-none whitespace-pre-wrap text-[12px]">
+                    {openPopupMenu.title === "edit_mode" &&
+                      "定休日を適用後、個別に日付を「営業日から休日へ」または「休日から営業日へ」変更が可能です。"}
+                    {openPopupMenu.title === "print" &&
+                      "印刷ボタンクリック後に印刷ダイアログが開かれた後、「詳細設定」の「余白」を「なし」に切り替えることで綺麗に印刷ができます。また、「用紙サイズ」のそれぞれの選択肢については下記の通りです。"}
+                  </p>
+                </li>
+              )}
+            </ul>
+          )}
+          {openPopupMenu.title === "change_theme" && (
+            <div className={`${styles.change_menu} flex w-full max-w-[280px] flex-col`}>
+              <div className={`${styles.description_area} w-full px-[20px] pt-[12px] text-[12px]`}>
+                <p>下記のカラーパレットからお好きなカラーを選択することでテーマカラーの変更が可能です。</p>
+              </div>
+              <div role="grid" className={`${styles.grid}`}>
+                {optionsColorPalette.map((value, index) => {
+                  const isActive = value === activeThemeColor;
+                  return (
+                    <Fragment key={value + "palette"}>
+                      <div role="gridcell" className={`${styles.palette_cell} flex-center h-[66px]`}>
+                        {isActive && (
+                          <div
+                            className={`${styles.active_color} flex-center h-[39px] w-[39px] rounded-full bg-[var(--main-color-tk)]`}
+                          >
+                            <div className={`${styles.space} flex-center h-[35px] w-[35px] rounded-full`}>
+                              <div
+                                className={`${styles.color_option} flex-center relative h-[31px] w-[31px] rounded-full bg-[var(--color-bg-brand-sub)]`}
+                                style={{ background: `${mappingPaletteStyle[value]}` }}
+                              >
+                                {!isActive && (
+                                  <div className="absolute left-0 top-0 z-[10] h-full w-full rounded-full hover:bg-[#00000020]" />
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        {!isActive && (
+                          <div
+                            className={`${styles.space_inactive} flex-center h-[39px] w-[39px] rounded-full`}
+                            onClick={() => {
+                              console.log("value", value, "activeThemeColor", activeThemeColor);
+                              handleSwitchThemeColor(value);
+                            }}
+                          >
+                            <div
+                              className={`${styles.color_option} flex-center bg-brand-gradient-light h-[35px] w-[35px] rounded-full`}
+                              style={{ background: `${mappingPaletteStyle[value]}` }}
+                            ></div>
+                          </div>
+                        )}
+                      </div>
+                    </Fragment>
+                  );
+                })}
+              </div>
             </div>
           )}
-        </>
-      )}
-    </div>
+        </div>
+      )} */}
+      {/* ---------------------- 説明ポップアップ ここまで ---------------------- */}
+    </>
   );
 };
 

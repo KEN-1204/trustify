@@ -16,6 +16,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { DealCardType, Property, Property_row_data } from "@/types";
 import { toast } from "react-toastify";
+import { DescriptionActionsModal } from "../Modal/DescriptionModal/DescriptionActionsModal";
 
 export const DashboardSDBComponent = () => {
   const supabase = useSupabaseClient();
@@ -182,6 +183,9 @@ export const DashboardSDBComponent = () => {
   const setIsOpenResetSalesConfirmationModal = useDashboardStore((state) => state.setIsOpenResetSalesConfirmationModal);
   const setIsRequiredRefreshDealCards = useDashboardStore((state) => state.setIsRequiredRefreshDealCards);
   // ------------------------------ 売上データリセット確認モーダル関連 ------------------------------
+  // ------------------------------ プロセス結果アクション項目説明モーダル関連 ------------------------------
+  const isOpenModalSDB = useDashboardStore((state) => state.isOpenModalSDB);
+  // ------------------------------ プロセス結果アクション項目説明モーダル関連 ------------------------------
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -422,7 +426,14 @@ export const DashboardSDBComponent = () => {
           }}
         />
       )}
-      {/* -------------------------- 受注済みから他へ移動時の売上リセット確認モーダル -------------------------- */}
+      {/* -------------------------- 受注済みから他へ移動時の売上リセット確認モーダル ここまで -------------------------- */}
+      {/* -------------------------- プロセス結果アクション項目説明モーダル -------------------------- */}
+      {isOpenModalSDB && isOpenModalSDB === "process_actions" && (
+        <>
+          <DescriptionActionsModal />
+        </>
+      )}
+      {/* -------------------------- プロセス結果アクション項目説明モーダル ここまで -------------------------- */}
     </>
   );
 };

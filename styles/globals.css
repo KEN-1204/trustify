@@ -896,6 +896,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* 🌟EditColumnsモーダル カラム変更モーダル light */
   --color-edit-bg: #ffffffe0;
+  --color-modal-solid-bg: #f7f9fb;
   --color-bg-light: #ffffff;
   --color-bg-solid: #ffffff;
   --color-bg-sub-solid: #ffffff;
@@ -1924,6 +1925,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* 🌟EditColumnsモーダル カラム変更モーダル dark */
   --color-edit-bg: #252525e0;
+  --color-modal-solid-bg: #131313;
   --color-bg-light: #ffffff;
   --color-bg-solid: #252525;
   --color-bg-sub-solid: #383838;
@@ -3026,6 +3028,82 @@ textarea {
   opacity: 0;
   animation: fade 0.5s 5s ease forwards;
 }
+
+/* モーダル共通 */
+.modal_overlay {
+  position: fixed;
+  z-index: 500;
+  inset: 0;
+  background-color: var(--color-overlay-insert-update-modal);
+  backdrop-filter: blur(4px);
+}
+/* ローディング */
+.loading_overlay_modal_outside {
+  position: fixed;
+  z-index: 2100;
+  left: -50vw;
+  top: -50vh;
+  width: 200vw;
+  height: 200vh;
+  background: #00000033;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.loading_overlay_modal_inside {
+  position: fixed;
+  z-index: 2500;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vw;
+  height: 90vh;
+  max-width: 1150px;
+  max-height: 730px;
+  background: var(--overlay-loading-modal-inside);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+.modal_container {
+  position: fixed;
+  z-index: 1000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vw;
+  height: 90vh;
+  max-width: 1150px;
+  max-height: 730px;
+  /* background: var(--color-edit-bg); */
+  /* background: var(--color-sdb-bg); */
+  /* background: #f7f9fb; */
+  background: var(--color-modal-solid-bg);
+  border-radius: 8px;
+  box-shadow: var(--color-edit-border-with-shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px 40px;
+  color: var(--color-edit-text);
+  font-family: sans-serif;
+}
+.modal_main_contents_container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding: 0px 0 20px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  overflow-y: scroll;
+}
+
+/* モーダル共通 ここまで */
 
 /* クリア オーバーレイ absolute z-indexは個別につける */
 .clear_overlay_absolute {

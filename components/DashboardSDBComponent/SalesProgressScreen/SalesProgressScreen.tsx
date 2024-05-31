@@ -912,7 +912,7 @@ const SalesProgressScreenMemo = () => {
                   handleCloseTooltip();
                 }}
                 onMouseEnter={(e) => {
-                  console.log(e);
+                  // console.log(e);
                   handleOpenTooltip({
                     e: e,
                     display: "top",

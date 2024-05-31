@@ -1245,10 +1245,7 @@ const SalesTargetsContainerMemo = () => {
             mainTotalTargets
           ) && (
             <>
-              <div
-                className={`${styles.grid_row} ${styles.col2} fade08_forward`}
-                //  style={{ marginBottom: `13px` }}
-              >
+              <div className={`${styles.grid_row} ${styles.col2} fade08_forward`} style={{ maxHeight: `369px` }}>
                 <div className={`${styles.grid_content_card}`}>
                   <div className={`${styles.card_wrapper} fade08_forward`}>
                     <div className={`${styles.card_title_area}`}>
@@ -1301,7 +1298,7 @@ const SalesTargetsContainerMemo = () => {
             mainTotalTargets
           ) && (
             <>
-              <div className={`${styles.grid_row} ${styles.col2} fade08_forward`}>
+              <div className={`${styles.grid_row} ${styles.col2} fade08_forward`} style={{ maxHeight: `369px` }}>
                 <div className={`${styles.grid_content_card}`} style={{ minHeight: `369px` }}>
                   <div className={`${styles.card_title_area}`}>
                     <div className={`${styles.card_title}`}>

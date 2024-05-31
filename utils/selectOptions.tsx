@@ -1342,7 +1342,7 @@ export const getCurrentStatus = (value: string, language: string = "ja") => {
       return language === "ja" ? `リード` : `Lead`;
       break;
     case "B Deal Development":
-      return language === "ja" ? `展開 (案件・商談化)` : `Deal Development`;
+      return language === "ja" ? `展開 (案件化・商談化)` : `Deal Development`;
       break;
     case "C Application":
       return language === "ja" ? `申請 (予算申請案件)` : `Application`;

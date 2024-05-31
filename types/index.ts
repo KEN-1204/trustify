@@ -3475,3 +3475,6 @@ export type SalesProcessesForSDB = {
     | "half_year_achievement_rate";
   result: number;
 };
+
+// SDBモーダル開閉タイプ
+// type OpenModalSDBType = ''

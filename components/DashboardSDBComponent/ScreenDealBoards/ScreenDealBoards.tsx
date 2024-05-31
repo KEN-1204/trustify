@@ -351,17 +351,40 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
   }, [activePeriodSDB?.period]);
 
   // 売上進捗・達成率チャートに表示するエンティティ 最初は親エンティティを表示
-  const [selectedEntityForAchievement, setSelectedEntityForAchievement] = useState<{
+  type SelectedEntityForAchievement = {
     entity_id: string;
     entity_name: string;
     entity_level: EntityLevelNames;
     entity_level_id: string;
     entity_structure_id: string;
-  } | null>(() => {
+  };
+  const [selectedEntityForAchievement, setSelectedEntityForAchievement] = useState<SelectedEntityForAchievement | null>(
+    () => {
+      if (!displayEntityGroup) return null;
+      if (!displayEntityGroup.parent_entity_id) return null;
+      if (!displayEntityGroup.entities.length) return null;
+      return {
+        entity_id: displayEntityGroup.parent_entity_id,
+        entity_name:
+          displayEntityGroup.parent_entity_level === "company"
+            ? getDivName("company")
+            : displayEntityGroup.parent_entity_name,
+        entity_level: displayEntityGroup.parent_entity_level as EntityLevelNames,
+        entity_level_id: displayEntityGroup.parent_entity_level_id,
+        entity_structure_id: displayEntityGroup.parent_entity_structure_id,
+      };
+      // return displayEntityGroup.entities[0];
+    }
+  );
+
+  // 達成率チャートの選択肢 親エンティティと子エンティティの全てのメンバー
+  const optionsForAchievement = useMemo(() => {
     if (!displayEntityGroup) return null;
     if (!displayEntityGroup.parent_entity_id) return null;
     if (!displayEntityGroup.entities.length) return null;
-    return {
+
+    let options = [] as SelectedEntityForAchievement[];
+    options.push({
       entity_id: displayEntityGroup.parent_entity_id,
       entity_name:
         displayEntityGroup.parent_entity_level === "company"
@@ -370,9 +393,25 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
       entity_level: displayEntityGroup.parent_entity_level as EntityLevelNames,
       entity_level_id: displayEntityGroup.parent_entity_level_id,
       entity_structure_id: displayEntityGroup.parent_entity_structure_id,
-    };
-    // return displayEntityGroup.entities[0];
-  });
+    });
+
+    displayEntityGroup.entities.forEach((member) => {
+      options.push({
+        entity_id: member.entity_id,
+        entity_name: member.entity_name,
+        entity_level: member.entity_level as EntityLevelNames,
+        entity_level_id: member.entity_level_id,
+        entity_structure_id: member.id,
+      });
+    });
+
+    return options;
+  }, [displayEntityGroup]);
+
+  const selectedEntityForAchievementMapObj = useMemo(() => {
+    if (!optionsForAchievement) return null;
+    return new Map(optionsForAchievement.map((entity) => [entity.entity_id, entity]));
+  }, [optionsForAchievement]);
 
   const memberIdToAccountDataMap = useMemo(() => {
     if (!queryDataObjMemberGroupAndParentEntity?.members_sales_data) return;
@@ -380,40 +419,40 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     return new Map(queryDataObjMemberGroupAndParentEntity.members_sales_data.map((member) => [member.id, member]));
   }, [queryDataObjMemberGroupAndParentEntity?.members_sales_data]);
 
-  const displayEntityForAchievement = useMemo(() => {
-    if (!queryDataObjMemberGroupAndParentEntity) return null;
-    if (!selectedEntityForAchievement) return null;
-    if (!memberIdToAccountDataMap) return null;
-    if (!entityIdToEntityObjMap) return null;
+  // const displayEntityForAchievement = useMemo(() => {
+  //   if (!queryDataObjMemberGroupAndParentEntity) return null;
+  //   if (!selectedEntityForAchievement) return null;
+  //   if (!memberIdToAccountDataMap) return null;
+  //   if (!entityIdToEntityObjMap) return null;
 
-    if (selectedEntityForAchievement.entity_level === "member") {
-      const newMemberAccount = memberIdToAccountDataMap.get(selectedEntityForAchievement.entity_id);
-      if (!newMemberAccount) return null;
-      return {
-        entity_id: selectedEntityForAchievement.entity_id,
-        entity_name: selectedEntityForAchievement.entity_name,
-        entity_level: selectedEntityForAchievement.entity_level,
-        entity_level_id: selectedEntityForAchievement.entity_level_id,
-        entity_structure_id: selectedEntityForAchievement.entity_structure_id,
-        current_sales_amount: newMemberAccount.current_sales_amount,
-        current_sales_target: newMemberAccount.current_sales_target,
-        current_achievement_rate: newMemberAccount.current_achievement_rate,
-      };
-    } else {
-      const parentData = queryDataObjMemberGroupAndParentEntity.parent_entity_sales_data;
-      if (!parentData) return null;
-      return {
-        entity_id: selectedEntityForAchievement.entity_id,
-        entity_name: selectedEntityForAchievement.entity_name,
-        entity_level: selectedEntityForAchievement.entity_level as EntityLevelNames,
-        entity_level_id: selectedEntityForAchievement.entity_level_id,
-        entity_structure_id: selectedEntityForAchievement.entity_structure_id,
-        current_sales_amount: parentData.current_sales_amount,
-        current_sales_target: parentData.current_sales_target,
-        current_achievement_rate: parentData.current_achievement_rate,
-      };
-    }
-  }, []);
+  //   if (selectedEntityForAchievement.entity_level === "member") {
+  //     const newMemberAccount = memberIdToAccountDataMap.get(selectedEntityForAchievement.entity_id);
+  //     if (!newMemberAccount) return null;
+  //     return {
+  //       entity_id: selectedEntityForAchievement.entity_id,
+  //       entity_name: selectedEntityForAchievement.entity_name,
+  //       entity_level: selectedEntityForAchievement.entity_level,
+  //       entity_level_id: selectedEntityForAchievement.entity_level_id,
+  //       entity_structure_id: selectedEntityForAchievement.entity_structure_id,
+  //       // current_sales_amount: newMemberAccount.current_sales_amount,
+  //       // current_sales_target: newMemberAccount.current_sales_target,
+  //       // current_achievement_rate: newMemberAccount.current_achievement_rate,
+  //     };
+  //   } else {
+  //     const parentData = queryDataObjMemberGroupAndParentEntity.parent_entity_sales_data;
+  //     if (!parentData) return null;
+  //     return {
+  //       entity_id: selectedEntityForAchievement.entity_id,
+  //       entity_name: selectedEntityForAchievement.entity_name,
+  //       entity_level: selectedEntityForAchievement.entity_level as EntityLevelNames,
+  //       entity_level_id: selectedEntityForAchievement.entity_level_id,
+  //       entity_structure_id: selectedEntityForAchievement.entity_structure_id,
+  //       // current_sales_amount: parentData.current_sales_amount,
+  //       // current_sales_target: parentData.current_sales_target,
+  //       // current_achievement_rate: parentData.current_achievement_rate,
+  //     };
+  //   }
+  // }, []);
   // -------------------------- 売上進捗・達成率 --------------------------
 
   // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
@@ -528,20 +567,26 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
 
   console.log(
     "ScreenDealBoardsコンポーネントレンダリング",
-    "displayEntityGroup",
-    displayEntityGroup,
-    "queryDataObjMemberGroupAndParentEntity",
-    queryDataObjMemberGroupAndParentEntity,
-    "memberList",
-    memberList,
-    "displayMemberList",
-    displayMemberList,
-    "entityIds",
-    entityIds,
-    "monthKey",
-    monthKey,
-    "activePeriodSDB",
-    activePeriodSDB
+    // "displayEntityGroup",
+    // displayEntityGroup,
+    // "queryDataObjMemberGroupAndParentEntity",
+    // queryDataObjMemberGroupAndParentEntity,
+    // "memberList",
+    // memberList,
+    // "displayMemberList",
+    // displayMemberList,
+    // "entityIds",
+    // entityIds,
+    // "monthKey",
+    // monthKey,
+    // "activePeriodSDB",
+    // activePeriodSDB,
+    "selectedEntityForAchievement",
+    selectedEntityForAchievement,
+    "optionsForAchievement",
+    optionsForAchievement,
+    "selectedEntityForAchievementMapObj",
+    selectedEntityForAchievementMapObj
   );
 
   return (
@@ -687,7 +732,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
             {displayEntityGroup !== null &&
             !!queryDataObjMemberGroupAndParentEntity &&
             !!fiscalYearQueryData &&
-            !!displayEntityForAchievement &&
+            !!selectedEntityForAchievement &&
             ((selectedPeriodTypeHalfDetailSDB === "first_half_details" &&
               fiscalYearQueryData.is_confirmed_first_half_details) ||
               (selectedPeriodTypeHalfDetailSDB === "second_half_details" &&
@@ -698,7 +743,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                     <div className={`flex flex-col`}>
                       <div className={`flex items-center`}>
                         <span>売上進捗・達成率</span>
-                        <span className={`ml-[18px]`}>
+                        <span className={`ml-[18px] max-w-[240px] truncate`}>
                           {queryDataObjMemberGroupAndParentEntity && selectedEntityForAchievement
                             ? selectedEntityForAchievement.entity_name
                             : userProfileState.profile_name}
@@ -708,34 +753,75 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                     </div>
                   </div>
 
-                  <div
-                    className={`${styles.btn} ${styles.basic} space-x-[4px]`}
-                    onMouseEnter={(e) => {
-                      // 売上目標が設定されていない状態ではエンティティidが存在せず、stickyが機能しなくなるので、main_entity_targetの文字列をセット
-                      const entityId = "main_entity_target";
-                      handleOpenTooltip({
-                        e: e,
-                        display: "top",
-                        content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
-                        marginTop: 9,
-                      });
-                    }}
-                    onMouseLeave={handleCloseTooltip}
-                    onClick={() => {
-                      const entityId = "row_trend";
-                      if (!entityId) return;
-                      if (entityId === stickyRow) {
-                        setStickyRow(null);
-                      } else {
-                        setStickyRow(entityId);
-                      }
-                      handleCloseTooltip();
-                    }}
-                  >
-                    {stickyRow === "row_trend" && <TbSnowflakeOff />}
-                    {stickyRow !== "row_trend" && <TbSnowflake />}
-                    {stickyRow === "row_trend" && <span>解除</span>}
-                    {stickyRow !== "row_trend" && <span>固定</span>}
+                  <div className={`flex items-start justify-end space-x-[12px]`}>
+                    {selectedEntityForAchievement && optionsForAchievement && selectedEntityForAchievementMapObj && (
+                      <div
+                        className={`${styles.select_btn_wrapper} relative flex items-center text-[var(--color-text-title-g)]`}
+                        onMouseEnter={(e) => {
+                          let tooltipContent = `表示対象を切り替える`;
+                          if (tooltipContent)
+                            handleOpenTooltip({
+                              e: e,
+                              display: "top",
+                              content: tooltipContent,
+                              marginTop: 9,
+                            });
+                        }}
+                        onMouseLeave={handleCloseTooltip}
+                      >
+                        <select
+                          className={`z-10 cursor-pointer select-none appearance-none truncate rounded-[6px] py-[4px] pl-[8px] pr-[24px] text-[12px]`}
+                          style={{ maxWidth: `130px` }}
+                          // style={{ boxShadow: `0 0 0 1px var(--color-border-base)` }}
+                          value={selectedEntityForAchievement.entity_id}
+                          onChange={(e) => {
+                            if (selectedEntityForAchievementMapObj.get(e.target.value))
+                              setSelectedEntityForAchievement(
+                                selectedEntityForAchievementMapObj.get(e.target.value) as SelectedEntityForAchievement
+                              );
+                          }}
+                        >
+                          {optionsForAchievement.map((option) => (
+                            <option key={option.entity_id} value={option.entity_id}>
+                              {option.entity_name ?? "-"}
+                            </option>
+                          ))}
+                        </select>
+                        <div className={`${styles.select_arrow}`}>
+                          {/* <IoChevronDownOutline className={`text-[12px]`} /> */}
+                          <HiOutlineSelector className="stroke-[2] text-[16px]" />
+                        </div>
+                      </div>
+                    )}
+                    <div
+                      className={`${styles.btn} ${styles.basic} space-x-[4px]`}
+                      onMouseEnter={(e) => {
+                        // 売上目標が設定されていない状態ではエンティティidが存在せず、stickyが機能しなくなるので、main_entity_targetの文字列をセット
+                        const entityId = "main_entity_target";
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: stickyRow === entityId ? `固定を解除` : `画面内に固定`,
+                          marginTop: 9,
+                        });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
+                      onClick={() => {
+                        const entityId = "row_trend";
+                        if (!entityId) return;
+                        if (entityId === stickyRow) {
+                          setStickyRow(null);
+                        } else {
+                          setStickyRow(entityId);
+                        }
+                        handleCloseTooltip();
+                      }}
+                    >
+                      {stickyRow === "row_trend" && <TbSnowflakeOff />}
+                      {stickyRow !== "row_trend" && <TbSnowflake />}
+                      {stickyRow === "row_trend" && <span>解除</span>}
+                      {stickyRow !== "row_trend" && <span>固定</span>}
+                    </div>
                   </div>
                 </div>
                 {/* <div className={`${styles.main_container} flex-center`}>
@@ -757,17 +843,17 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                       fiscalYear={selectedFiscalYearTargetSDB}
                       fiscalYearId={fiscalYearQueryData.id}
                       companyId={userProfileState.company_id}
-                      entityId={displayEntityForAchievement.entity_id}
-                      entityName={displayEntityForAchievement.entity_name}
-                      entityLevel={displayEntityForAchievement.entity_level}
-                      entityLevelId={displayEntityForAchievement.entity_level_id}
-                      entityStructureId={displayEntityForAchievement.entity_structure_id}
+                      entityId={selectedEntityForAchievement.entity_id}
+                      entityName={selectedEntityForAchievement.entity_name}
+                      entityLevel={selectedEntityForAchievement.entity_level}
+                      entityLevelId={selectedEntityForAchievement.entity_level_id}
+                      entityStructureId={selectedEntityForAchievement.entity_structure_id}
                       periodTypeForTarget={monthKey}
                       periodTypeForProperty={activePeriodSDB.periodType}
                       basePeriod={activePeriodSDB.period}
-                      current_sales_amount={displayEntityForAchievement.current_sales_amount}
-                      current_sales_target={displayEntityForAchievement.current_sales_target}
-                      current_achievement_rate={displayEntityForAchievement.current_achievement_rate}
+                      // current_sales_amount={displayEntityForAchievement.current_sales_amount}
+                      // current_sales_target={displayEntityForAchievement.current_sales_target}
+                      // current_achievement_rate={displayEntityForAchievement.current_achievement_rate}
                       fetchEnabled={true}
                       isRenderProgress={isRenderProgress}
                     />

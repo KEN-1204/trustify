@@ -381,12 +381,13 @@
   display: flex;
   align-items: center;
   cursor: pointer;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  /* transition: background-color 0.3s ease, color 0.3s ease; */
 }
 .btn.basic {
   /* background-color: var(--color-btn-basic-bg-on-card); */
   background-color: var(--sdb-card-btn-bg);
   box-shadow: 0 0 0 1px var(--color-border-base);
+  transition: background-color 0.3s ease;
 }
 .btn.basic:hover {
   /* background-color: var(--color-btn-basic-bg-on-card-hover); */
@@ -397,6 +398,7 @@
   /* box-shadow: 0 0 0 1px var(--color-border-base); */
   background-color: var(--color-bg-brand-f);
   color: #fff;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 .btn.brand:hover {
   background-color: var(--color-bg-brand-f-deep);
