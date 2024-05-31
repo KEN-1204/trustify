@@ -904,6 +904,7 @@ export const optionsActivityType = [
   "call_proactive",
   "call_reactive",
   "call_expo",
+  "call_deal_intervention",
   "call_pre_sales_follow_up",
   "call_post_sales_follow_up",
   "call_appointment_scheduling",
@@ -926,6 +927,9 @@ export const getActivityType = (value: string, language: string = "ja") => {
       break;
     case "call_expo":
       return language === "ja" ? `TEL発信(展示会)` : `call (Expo)`;
+      break;
+    case "call_deal_intervention":
+      return language === "ja" ? `TEL発信(案件介入)` : `call (Deal Intervention)`;
       break;
     case "call_pre_sales_follow_up":
       return language === "ja" ? `TEL発信(売前ﾌｫﾛｰ)` : `call (Pre-Sales Follow-Up)`;
