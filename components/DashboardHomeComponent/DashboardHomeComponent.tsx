@@ -2,31 +2,9 @@ import useStore from "@/store";
 import React, { FC, Suspense, useEffect, useRef, useState } from "react";
 import styles from "./DashboardHomeComponent.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
-
-import { ErrorBoundary } from "react-error-boundary";
-
-import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
-
-import { Fallback } from "../Fallback/Fallback";
-
-import { GridTableSmallAll } from "../GridTable/GridTableSmallAll/GridTableSmallAll";
-import { GridTableAll } from "../GridTable/GridTableAll/GridTableAll";
-
 import { BsChevronRight } from "react-icons/bs";
 import { home_cards } from "./data";
-import { useQueryProducts } from "@/hooks/useQueryProducts";
-import { toast } from "react-toastify";
-import { useQueryNotifications } from "@/hooks/useQueryNotifications";
-import { FallbackDashboardHomeComponent } from "./FallbackDashboardHomeComponent";
-import {
-  neonCycleIcon,
-  neonIconsSettingsGear,
-  neonMailIcon,
-  neonMessageIconBg,
-  neonPieChart,
-  neonSearchIcon,
-} from "../assets";
-import { DescriptionActionsModal } from "../Modal/DescriptionModal/DescriptionActionsModal";
+import { neonCycleIcon, neonIconsSettingsGear, neonMailIcon, neonPieChart, neonSearchIcon } from "../assets";
 
 // export const DashboardHomeComponent = ({ user_id }: { user_id: string }) => {
 export const DashboardHomeComponent = () => {
@@ -192,7 +170,6 @@ export const DashboardHomeComponent = () => {
 
   return (
     <>
-      <DescriptionActionsModal />
       <div
         className={`flex-center ${styles.app_main_container}  relative ${
           isOpenSidebar ? `${styles.open}` : `${styles.close}`
