@@ -58,7 +58,8 @@ export const useQueryEntities = (
     onError: (error) => {
       console.error("❌useQueryEntities error:", error);
     },
-    enabled: !!company_id && !!fiscalYear && !!targetType && !!entityLevelIds && entityLevelIds.length > 0 && isReady,
+    enabled: !!company_id && !!fiscalYear && !!targetType && isReady,
+    // enabled: !!company_id && !!fiscalYear && !!targetType && !!entityLevelIds && entityLevelIds.length > 0 && isReady,
   });
 };
 

@@ -64,6 +64,8 @@ import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQuerySections } from "@/hooks/useQuerySections";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
+import { RxDot } from "react-icons/rx";
+import { format } from "date-fns";
 
 const SalesProgressScreenMemo = () => {
   const language = useStore((state) => state.language);
@@ -150,11 +152,13 @@ const SalesProgressScreenMemo = () => {
     []
   );
 
+  // ---------------------- ✅初回マウント✅ ----------------------
   // 🔹初回マウント時に現在の会計年度をZustandにセット
   useEffect(() => {
     // 🔸会計年度をセット
     setSelectedFiscalYearTargetSDB(currentFiscalYear);
   }, []);
+  // ---------------------- ✅初回マウント✅ ----------------------
 
   // 🔹現在の日付の会計年度の決算日Dateオブジェクト(現在の会計年度の決算日Date) 決算日を取得して変数に格納
   const currentFiscalYearEndDate = useMemo(() => {
@@ -234,6 +238,7 @@ const SalesProgressScreenMemo = () => {
   const fiscalYearStartEndDateSDB = useDashboardStore((state) => state.fiscalYearStartEndDateSDB);
   const setFiscalYearStartEndDateSDB = useDashboardStore((state) => state.setFiscalYearStartEndDateSDB);
 
+  // ---------------------------- ✅初回マウント✅ ----------------------------
   // ユーザーの会計基準の現在の月度を初期値にセットする
   useEffect(() => {
     // 🔸顧客の期首と期末のDateオブジェクトをセット
@@ -281,7 +286,9 @@ const SalesProgressScreenMemo = () => {
       setErrorMsg("エラー：会計年月度が取得できませんでした...🙇‍♀️");
     }
     // const newCurrentPeriod = { periodType: "monthly", period: currentFiscalYearMonth } as PeriodSDB;
-  }, [fiscalYearStartDateObj]);
+    // }, [fiscalYearStartDateObj]);
+  }, []);
+  // ---------------------------- ✅初回マウント✅ ----------------------------
 
   // 月度用カレンダー年の選択年(ローカル)
   const [selectedCalendarYear, setSelectedCalendarYear] = useState<number>(new Date().getFullYear());
@@ -304,6 +311,7 @@ const SalesProgressScreenMemo = () => {
     return getOptionsCalendarYear({ currentFiscalYearEndDate: currentFiscalYearEndDate });
   }, [currentFiscalYearEndDate]);
 
+  // 年度を除いた期間部分
   const selectedPeriodWithoutYear = useMemo(() => {
     if (!activePeriodSDBLocal) return null;
     return activePeriodSDBLocal.periodType === "fiscal_year"
@@ -359,6 +367,7 @@ const SalesProgressScreenMemo = () => {
   const {
     data: fiscalYearQueryData,
     isLoading: isLoadingQueryFiscalYear,
+    isSuccess: isSuccessQueryFiscalYear,
     isError: isErrorQueryFiscalYear,
   } = useQueryFiscalYear(
     userProfileState.company_id,
@@ -373,13 +382,14 @@ const SalesProgressScreenMemo = () => {
   const {
     data: entityLevelsQueryData,
     isLoading: isLoadingQueryLevel,
-    isError: isErrorQueryLevel,
     isSuccess: isSuccessQueryLevel,
+    isError: isErrorQueryLevel,
   } = useQueryEntityLevels(
     userProfileState.company_id,
     selectedFiscalYearTargetSDB ?? currentFiscalYear,
     "sales_target",
     true
+    // !isLoadingQueryFiscalYear && isSuccessQueryFiscalYear
   );
   // { エンティティレベル名: エンティティレベルオブジェクト }のMapオブジェクト
   const entityLevelsMap = useMemo(() => {
@@ -399,6 +409,7 @@ const SalesProgressScreenMemo = () => {
   const {
     data: entitiesHierarchyQueryData,
     isLoading: isLoadingQueryEntities,
+    isSuccess: isSuccessQueryEntities,
     isError: isErrorQueryEntities,
   } = useQueryEntities(
     userProfileState.company_id,
@@ -406,6 +417,7 @@ const SalesProgressScreenMemo = () => {
     "sales_target",
     entityLevelIds,
     isSuccessQueryLevel
+    // !isLoadingQueryFiscalYear && isSuccessQueryFiscalYear && !isLoadingQueryLevel && isSuccessQueryLevel
   );
   // ===================== 🌠エンティティuseQuery🌠 =====================
   // ------------------------- 🌟useQuery売上目標 年度・レベル・エンティティ🌟 ここまで -------------------------
@@ -457,6 +469,7 @@ const SalesProgressScreenMemo = () => {
   // ------------------------- 🌟事業部・課・係・事業所useQuery🌟 ここまで -------------------------
 
   // 🔹entitiesHierarchyQueryDataからメンバーレベルの全てのエンティティグループから自分が所属する親エンティティグループを取得
+  // const displayEntityGroup = useMemo(() => {
   const initialMemberGroupByParentEntity = useMemo(() => {
     if (!fiscalYearQueryData) return null;
     // 上期詳細、下期詳細の売上目標がどちらも未設定の場合はnullを返し、ユーザー自身のみの売上推移とネタ表を表示し、売上目標チャートは非表示
@@ -478,16 +491,17 @@ const SalesProgressScreenMemo = () => {
     const parentEntity = parentEntityGroups.find((entity) => entity.entity_id === myEntityObj.parent_entity_id);
     if (!parentEntity) return null;
 
-    // console.log(
-    //   "ここparentEntity",
-    //   parentEntity,
-    //   "myEntityObj.parent_entity_level",
-    //   myEntityObj.parent_entity_level,
-    //   "parentEntityLevelGroup",
-    //   parentEntityLevelGroup,
-    //   "parentEntityGroups",
-    //   parentEntityGroups
-    // );
+    console.log(
+      "🔥🔥🔥🔥🔥🔥displayEntityGroup",
+      "ここparentEntity",
+      parentEntity,
+      "myEntityObj.parent_entity_level",
+      myEntityObj.parent_entity_level,
+      "parentEntityLevelGroup",
+      parentEntityLevelGroup,
+      "parentEntityGroups",
+      parentEntityGroups
+    );
     return {
       ...myMemberGroup,
       parent_entity_level: myEntityObj.parent_entity_level,
@@ -514,15 +528,22 @@ const SalesProgressScreenMemo = () => {
 
   // ✅初回マウント時 現在の会計年度の売上目標とエンティティ構成が設定されている場合はZustandにセット
   useEffect(() => {
-    if (!initialMemberGroupByParentEntity) return;
+    if (isLoadingQueryFiscalYear || isLoadingQueryLevel || isLoadingQueryEntities) return;
 
-    // console.log("ここinitialMemberGroupByParentEntity", initialMemberGroupByParentEntity);
+    if (!initialMemberGroupByParentEntity) {
+      if (displayEntityGroup !== null) setDisplayEntityGroup(null);
+    } else {
+      // console.log("ここinitialMemberGroupByParentEntity", initialMemberGroupByParentEntity);
 
-    setDisplayEntityGroup(initialMemberGroupByParentEntity);
-  }, []);
+      // 初回マウント時か期間変更時にする
+      // if (displayEntityGroup === null) setDisplayEntityGroup(initialMemberGroupByParentEntity);
+      setDisplayEntityGroup(initialMemberGroupByParentEntity);
+    }
+  }, [entitiesHierarchyQueryData, isLoadingQueryFiscalYear, isLoadingQueryLevel, isLoadingQueryEntities]);
 
   // --------------------------- 変数定義 ここまで ---------------------------
 
+  // -------------------------- 🌟セクションメニュー🌟 --------------------------
   const [openSectionMenu, setOpenSectionMenu] = useState<{
     x?: number;
     y: number;
@@ -532,20 +553,8 @@ const SalesProgressScreenMemo = () => {
     fadeType?: string;
   } | null>(null);
 
-  // 説明メニュー(onClickイベントで開いてホバー可能な状態はisHoverableをtrueにする)
-  const [openPopupMenu, setOpenPopupMenu] = useState<{
-    x?: number;
-    y: number;
-    title: string;
-    displayX?: string;
-    maxWidth?: number;
-    fadeType?: string;
-    isHoverable?: boolean;
-  } | null>(null);
-
   const sectionMenuRef = useRef<HTMLDivElement | null>(null);
 
-  // -------------------------- 🌟セクションメニュー🌟 --------------------------
   const handleOpenSectionMenu = ({ e, title, displayX, maxWidth, fadeType }: SectionMenuParams) => {
     if (!displayX || displayX === "center") {
       const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
@@ -593,6 +602,7 @@ const SalesProgressScreenMemo = () => {
 
   // 🔹メニューを閉じる
   const handleCloseSectionMenu = () => {
+    // if (!!errorMsg) console.error(errorMsg)
     if (openSectionMenu?.title === "period") {
       setActivePeriodSDBLocal(null);
     }
@@ -601,6 +611,56 @@ const SalesProgressScreenMemo = () => {
   // -------------------------- 🌟セクションメニュー🌟 --------------------------
 
   // -------------------------- 🌟説明ポップアップメニュー🌟 --------------------------
+  // 説明メニュー(onClickイベントで開いてホバー可能な状態はisHoverableをtrueにする)
+  const [openPopupMenu, setOpenPopupMenu] = useState<{
+    x?: number;
+    y: number;
+    title: string;
+    displayX?: string;
+    maxWidth?: number;
+    fadeType?: string;
+    isHoverable?: boolean;
+  } | null>(null);
+
+  const mappingPopupTitle: { [key: string]: { [key: string]: string } } = {
+    // compressionRatio: { en: "Compression Ratio", ja: "解像度" },
+    // guide: { en: "Guide", ja: "使い方 Tips" },
+    // step: { en: "Step", ja: "カレンダー設定手順" },
+    // print: { en: "Print Tips", ja: "印刷Tips" },
+    // printTips: { en: "Print Tips", ja: "印刷Tips" },
+    // printSize: { en: "Print Size", ja: "印刷・PDFサイズ" },
+    // pdf: { en: "PDF Download", ja: "PDFダウンロード" },
+    // settings: { en: "Settings", ja: "各種設定メニュー" },
+    // edit_mode: { en: "Edit mode", ja: "編集モード" },
+    // applyClosingDays: { en: "Apply Closing Days", ja: "定休日一括設定" },
+    // displayFiscalYear: { en: "Display fiscal year", ja: "会計年度" },
+    // working_to_closing: { en: "Working days to Closing days", ja: "営業日 → 休日" },
+    // closing_to_working: { en: "Closing days to Working days", ja: "休日 → 営業日" },
+    sales_progress: { en: "Sales Progress", ja: "売上進捗・ネタ表" },
+  };
+
+  const descriptionSalesProgress = [
+    {
+      title: "売上推移",
+      content:
+        "現在の売上が過去の同時期と比較して伸びを出せているか、2年前から1年前の前年伸び実績に対して、今年度の前年伸びはどうかの過去比較が可能です。\nまた、メンバー別にすることで過去比較と同時に他者比較が可能です。",
+    },
+    {
+      title: "売上進捗・達成率",
+      content:
+        "売上実績と目標に対する達成率・各プロセスの結果を確認することで現在の進捗とプロセスごとの良し悪しを確認して目標達成までの打ち手の策定に使用します。",
+    },
+    {
+      title: "ネタ表",
+      content:
+        "各メンバーの今月度の案件を確度別に一覧で表示して現在の状況を確認し、各案件ごとに受注までに必要なプロセスを踏めているか、目標達成までに案件が足りているかを確認できます。",
+    },
+  ];
+
+  const mappingDescriptions: { [key: string]: { [key: string]: string }[] } = {
+    sales_progress: descriptionSalesProgress,
+  };
+
   const handleOpenPopupMenu = ({ e, title, displayX, maxWidth, fadeType, isHoverable }: PopupDescMenuParams) => {
     if (!displayX) {
       const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
@@ -617,8 +677,9 @@ const SalesProgressScreenMemo = () => {
     } else {
       const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
       let positionX = 0;
-      positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : 0;
-      positionX = displayX === "left" ? window.innerWidth - x : 0;
+      // positionX = displayX === "right" ? -18 - 50 - (maxWidth ?? 400) : 0;
+      if (displayX === "right") positionX = x + width + 10;
+      if (displayX === "left") positionX = window.innerWidth - x;
       console.log("クリック", displayX, e, x, y, width, height);
 
       setOpenPopupMenu({
@@ -635,7 +696,7 @@ const SalesProgressScreenMemo = () => {
 
   // メニューを閉じる
   const handleClosePopupMenu = () => {
-    setOpenPopupMenu(null);
+    if (!!openPopupMenu) setOpenPopupMenu(null);
   };
   // -------------------------- ✅説明ポップアップメニュー✅ --------------------------
 
@@ -747,55 +808,127 @@ const SalesProgressScreenMemo = () => {
     if (fadeType === "fade") return styles.fade;
   };
 
-  // 期間をメニューから適用ボタンで変更する関数
-  const handleChangePeriod = () => {
+  // ----------------------------- 🌟期間をメニューから適用ボタンで変更する関数🌟 -----------------------------
+  const isLoadingSDB = useDashboardStore((state) => state.isLoadingSDB);
+  const setIsLoadingSDB = useDashboardStore((state) => state.setIsLoadingSDB);
+  const handleChangePeriod = async () => {
+    console.log("handleChangePeriodクリック");
+
+    // ローディング開始
+    setIsLoadingSDB(true);
+
     if (
       !activePeriodSDBLocal ||
       !activePeriodSDB ||
       !annualFiscalMonthWithoutYearToMonthKeyMap ||
       !annualFiscalMonthsSDB
-    )
+    ) {
+      console.error(
+        "期間変更エラー：SPS01",
+        "activePeriodSDBLocal",
+        activePeriodSDBLocal,
+        "activePeriodSDB",
+        activePeriodSDB,
+        "annualFiscalMonthWithoutYearToMonthKeyMap",
+        annualFiscalMonthWithoutYearToMonthKeyMap,
+        "annualFiscalMonthsSDB",
+        annualFiscalMonthsSDB
+      );
       return handleCloseSectionMenu();
+    }
+
+    // 現在選択している期間と同じ場合にはリターンしてメニューを閉じる
     if (
       activePeriodSDB.periodType === activePeriodSDBLocal.periodType &&
       activePeriodSDB.period === activePeriodSDBLocal.period
     ) {
-      handleCloseSectionMenu(); // リセットしてメニューを閉じる
+      {
+        console.error(
+          "期間変更エラー：SPS02",
+          "activePeriodSDB.periodType",
+          activePeriodSDB.periodType,
+          "activePeriodSDBLocal.periodType",
+          activePeriodSDBLocal.periodType,
+          "activePeriodSDB.period",
+          activePeriodSDB.period,
+          "activePeriodSDBLocal.period",
+          activePeriodSDBLocal.period
+        );
+        handleCloseSectionMenu();
+      } // リセットしてメニューを閉じる
       return;
     }
 
-    // 変更したのが期間が現在の年度と異なる場合は年度のstateも同時に更新する
+    // typeが年月度の場合には年部分が現在の会計年度と異なる場合があるため選択中の年月度から会計年度に変換して会計年度stateを更新
+    let newSelectedFiscalYearTargetSDB = selectedFiscalYearLocal;
     if (activePeriodSDBLocal.periodType === "year_month") {
       // 年月度の場合にはカレンダー年を会計年度基準に変換してから選択年度stateを更新
-      // 月の部分を取得
+
+      // ------------------- 🔹選択中の会計年度stateを更新 -------------------
+      // 年月度の月を取得
       const _month = String(activePeriodSDBLocal.period).substring(4);
-      if (!annualFiscalMonthWithoutYearToMonthKeyMap.has(_month)) return handleCloseSectionMenu();
+      if (!annualFiscalMonthWithoutYearToMonthKeyMap.has(_month)) {
+        console.error("期間変更エラー：SPS03");
+        return handleCloseSectionMenu();
+      }
       const _monthKey = annualFiscalMonthWithoutYearToMonthKeyMap.get(_month);
-      if (!_monthKey) return handleCloseSectionMenu();
+      if (!_monthKey) {
+        console.error("期間変更エラー：SPS04");
+        return handleCloseSectionMenu();
+      }
 
       // 取得した月と期首の月の両者のカレンダー年を比較して新たなカレンダー年から新たな会計年度を算出して更新する
       const newMonthYear = String(annualFiscalMonthsSDB[_monthKey]).substring(0, 4);
       const firstMonthYear = String(annualFiscalMonthsSDB.month_01).substring(0, 4);
-      if (!newMonthYear || !firstMonthYear) return handleCloseSectionMenu();
 
-      if (firstMonthYear === newMonthYear) {
-        setSelectedFiscalYearTargetSDB(selectedCalendarYear);
+      console.log(
+        "🌠🌠🌠🌠🌠🌠🌠🌠",
+        "newMonthYear",
+        newMonthYear,
+        "firstMonthYear",
+        firstMonthYear,
+        "_monthKey",
+        _monthKey,
+        "annualFiscalMonthsSDB",
+        annualFiscalMonthsSDB,
+        "activePeriodSDBLocal",
+        activePeriodSDBLocal
+      );
+
+      if (!newMonthYear || !firstMonthYear) {
+        console.error("期間変更エラー：SPS05");
+        return handleCloseSectionMenu();
       }
-      // カレンダー年より会計年度が1年小さい場合には選択中のカレンダー年から1年引いた値を新たに選択中の会計年度として更新する
-      else if (firstMonthYear < newMonthYear) {
-        setSelectedFiscalYearTargetSDB(selectedCalendarYear - 1);
+
+      // 現在選択中の年月度の年と期首の月の年が一致するならそのままカレンダー年を選択中の会計年度stateとして更新
+      if (firstMonthYear === newMonthYear) {
+        // setSelectedFiscalYearTargetSDB(selectedCalendarYear);
+        newSelectedFiscalYearTargetSDB = selectedCalendarYear;
+      }
+      // 現在選択中の年月度の年が期首より1年大きく、かつ期首を会計年度とするなら選択中のカレンダー年から1年引いた年を選択中の会計年度stateとして更新する
+      else if (firstMonthYear < newMonthYear && userProfileState.customer_fiscal_year_basis === "firstDayBasis") {
+        // setSelectedFiscalYearTargetSDB(selectedCalendarYear - 1);
+        newSelectedFiscalYearTargetSDB = selectedCalendarYear - 1;
+      }
+      // 現在選択中の年月度の年が期首より1年大きく、かつ期末を会計年度とするなら選択中のカレンダー年を選択中の会計年度stateとして更新する
+      else if (firstMonthYear < newMonthYear && userProfileState.customer_fiscal_year_basis !== "firstDayBasis") {
+        // setSelectedFiscalYearTargetSDB(selectedCalendarYear);
+        newSelectedFiscalYearTargetSDB = selectedCalendarYear;
       } else {
-        console.error("エラー：会計年度が算出できませんでした。 E09");
+        console.error("期間変更エラー：会計年度が算出できませんでした。 SPS06");
         return handleCloseSectionMenu(); // 上記2つに当てはまらない場合にはエラー
       }
+      // ------------------- 🔹選択中の会計年度stateを更新 ここまで -------------------
     }
     // 年月度以外はselectedFiscalYearLocalをそのままセットして選択中の会計年度として更新
     else {
       if (selectedFiscalYearLocal !== selectedFiscalYearTargetSDB) {
-        setSelectedFiscalYearTargetSDB(selectedFiscalYearLocal);
+        // setSelectedFiscalYearTargetSDB(selectedFiscalYearLocal);
+        newSelectedFiscalYearTargetSDB = selectedFiscalYearLocal;
       }
     }
 
+    // 🔹選択年のみ変更すればよいかも 選択年stateがuseMemoの依存配列に指定されていて再計算が走る最初の起点となっているため
     const newPeriod = { periodType: activePeriodSDBLocal.periodType, period: activePeriodSDBLocal.period };
     setActivePeriodSDB(newPeriod);
 
@@ -812,10 +945,75 @@ const SalesProgressScreenMemo = () => {
     const _month = String(activePeriodSDBLocal.period).substring(4);
 
     const newHalfDetail = firstHalfDetailSet.has(_month) ? "first_half_details" : "second_half_details";
+    console.log(
+      "🌠🌠🌠🌠🌠🌠🌠🌠",
+      "newHalfDetail",
+      newHalfDetail,
+      "_month",
+      _month,
+      "firstHalfDetailSet",
+      firstHalfDetailSet,
+      "activePeriodSDBLocal",
+      activePeriodSDBLocal
+    );
+
+    // 選択中の半期stateを更新
     setSelectedPeriodTypeHalfDetailSDB(newHalfDetail);
 
-    handleCloseSectionMenu(); // リセットしてメニューを閉じる
+    // ---------------------------------- テスト ----------------------------------
+    // 🔸会計年度が変更された場合には一度displayEntityGroupをnullにリセットする
+    if (newSelectedFiscalYearTargetSDB !== selectedFiscalYearTargetSDB) {
+      setDisplayEntityGroup(null);
+    }
+    // 🔸会計年度をセット
+    setSelectedFiscalYearTargetSDB(newSelectedFiscalYearTargetSDB);
+    const _newFiscalYearEndDate =
+      calculateCurrentFiscalYearEndDate({
+        fiscalYearEnd: userProfileState?.customer_fiscal_end_month ?? null,
+        selectedYear: newSelectedFiscalYearTargetSDB,
+      }) ?? new Date(new Date().getFullYear(), 2, 31);
+
+    const _newFiscalYearStartDateObj =
+      calculateFiscalYearStart({
+        fiscalYearEnd: _newFiscalYearEndDate,
+        fiscalYearBasis: userProfileState?.customer_fiscal_year_basis ?? "firstDayBasis",
+        selectedYear: newSelectedFiscalYearTargetSDB,
+      }) ?? new Date();
+
+    // 🔸顧客の期首と期末のDateオブジェクトをセット
+    setFiscalYearStartEndDateSDB({ startDate: _newFiscalYearStartDateObj, endDate: _newFiscalYearEndDate });
+
+    // 🔸顧客の選択している会計年度の開始年月度 期首の年月度を6桁の数値で取得 202404
+    const newStartYearMonth = calculateDateToYearMonth(_newFiscalYearStartDateObj, _newFiscalYearEndDate.getDate());
+    setCurrentFiscalStartYearMonthSDB(newStartYearMonth);
+
+    // 🔸年度初めから12ヶ月分の年月度の配列
+    const fiscalMonths = calculateFiscalYearMonths(newStartYearMonth);
+    setAnnualFiscalMonthsSDB(fiscalMonths);
+
+    console.log(
+      "🌠🌠🌠🌠🌠🌠🌠🌠",
+      "selectedCalendarYear",
+      selectedCalendarYear,
+      "newSelectedFiscalYearTargetSDB",
+      newSelectedFiscalYearTargetSDB,
+      "_newFiscalYearEndDate",
+      format(_newFiscalYearEndDate, "yyyy/MM/dd HH:mm:ss"),
+      "newStartYearMonth",
+      newStartYearMonth,
+      "fiscalMonths",
+      fiscalMonths
+    );
+
+    // ---------------------------------- テスト ここまで ----------------------------------
+
+    handleCloseSectionMenu(); // 初期化してメニューを閉じる
+
+    // await new Promise((resolve) => setTimeout(resolve, 500));
+    // // ローディング終了
+    // setIsLoadingSDB(false);
   };
+  // ----------------------------- 🌟期間をメニューから適用ボタンで変更する関数🌟 ここまで -----------------------------
 
   const handleEnterInfoIcon = (
     e: MouseEvent<HTMLDivElement, MouseEvent | globalThis.MouseEvent>,
@@ -860,27 +1058,55 @@ const SalesProgressScreenMemo = () => {
   // ------------------- ✅初回マウント✅ -------------------
 
   console.log(
-    "SalesProgressScreenコンポーネントレンダリング",
-    "monthKey",
-    monthKey,
-    "annualFiscalMonthWithoutYearToMonthKeyMap",
-    annualFiscalMonthWithoutYearToMonthKeyMap,
-    "annualFiscalMonthsSDB",
-    annualFiscalMonthsSDB,
-    "activePeriodSDB",
+    "🔸SalesProgressScreenコンポーネントレンダリング",
+    "🔸現在の会計年度currentFiscalYear",
+    currentFiscalYear,
+    "🔸selectedFiscalYearTargetSDB",
+    selectedFiscalYearTargetSDB,
+    "🔸selectedPeriodTypeHalfDetailSDB",
+    selectedPeriodTypeHalfDetailSDB,
+    "🔸activePeriodSDB",
     activePeriodSDB,
-    "activePeriodSDBLocal",
-    activePeriodSDBLocal
-    // "entityLevelsMap",
-    // entityLevelsMap,
-    // "annualFiscalMonthsSDB",
-    // annualFiscalMonthsSDB,
-    // "fiscalYearQueryData",
-    // fiscalYearQueryData,
-    // "entityLevelsQueryData",
-    // entityLevelsQueryData,
-    // "entitiesHierarchyQueryData",
-    // entitiesHierarchyQueryData
+    "🔸現在の決算日currentFiscalYearEndDate",
+    format(currentFiscalYearEndDate, "yyyy/MM/dd HH:mm:ss"),
+    "🔸選択年の決算日fiscalYearEndDate",
+    format(fiscalYearEndDate, "yyyy/MM/dd HH:mm:ss"),
+    "🔸選択年の期首fiscalYearStartDateObj",
+    format(fiscalYearStartDateObj, "yyyy/MM/dd HH:mm:ss"),
+    "🔸顧客の期首と期末のDateオブジェクトfiscalYearStartEndDateSDB",
+    "選択年の期首",
+    fiscalYearStartEndDateSDB?.startDate && format(fiscalYearStartEndDateSDB?.startDate, "yyyy/MM/dd HH:mm:ss"),
+    "選択年の決算日",
+    fiscalYearStartEndDateSDB?.endDate && format(fiscalYearStartEndDateSDB?.endDate, "yyyy/MM/dd HH:mm:ss"),
+    "🔸顧客の選択している会計年度の開始年月度currentFiscalStartYearMonthSDB",
+    currentFiscalStartYearMonthSDB,
+    "🔸年度初めから12ヶ月分の年月度の配列annualFiscalMonthsSDB",
+    annualFiscalMonthsSDB,
+    "🔸annualFiscalMonthWithoutYearToMonthKeyMap",
+    annualFiscalMonthWithoutYearToMonthKeyMap,
+    "🔸現在の年度キャッシュfiscalYearQueryData",
+    fiscalYearQueryData,
+    "🔸現在のレベルキャッシュentityLevelsQueryData",
+    entityLevelsQueryData,
+    "🔸現在のエンティティキャッシュentitiesHierarchyQueryData",
+    entitiesHierarchyQueryData,
+    "🔸isSuccessQueryFiscalYear isLoadingQueryFiscalYear",
+    isSuccessQueryFiscalYear,
+    isLoadingQueryFiscalYear,
+    "🔸isSuccessQueryLevel isLoadingQueryLevel",
+    isSuccessQueryLevel,
+    isLoadingQueryLevel,
+    "🔸isSuccessQueryEntities isLoadingQueryEntities",
+    isSuccessQueryEntities,
+    isLoadingQueryEntities,
+    "🔸entityLevelsMap",
+    entityLevelsMap,
+    "🔸activePeriodSDBLocal",
+    activePeriodSDBLocal,
+    "🔸monthKey",
+    monthKey,
+    "🔸displayEntityGroup",
+    displayEntityGroup
   );
 
   if (!isMounted || activePeriodSDB === null) return <FallbackSalesProgressScreen />;
@@ -908,6 +1134,7 @@ const SalesProgressScreenMemo = () => {
               <div
                 className={`${styles.section_title}`}
                 onClick={(e) => {
+                  if (!!openPopupMenu) setOpenPopupMenu(null);
                   handleOpenSectionMenu({ e, title: "dashboard", fadeType: "fade_down", maxWidth: 310 });
                   handleCloseTooltip();
                 }}
@@ -938,6 +1165,7 @@ const SalesProgressScreenMemo = () => {
                 <div
                   className={`underline_area mb-[-1px] flex cursor-pointer flex-col hover:text-[var(--main-color-f)]`}
                   onClick={(e) => {
+                    if (!!openPopupMenu) setOpenPopupMenu(null);
                     if (!entityLevelsMap || entityLevelsMap.size <= 2) {
                       return alert(
                         `売上目標に「全社・メンバー」以外のレイヤーが含まれている場合、\nレイヤーごとに表示を切り替えることが可能です。`
@@ -1003,8 +1231,7 @@ const SalesProgressScreenMemo = () => {
                       activePeriodSDB.period.toString().slice(0, 4),
                       activePeriodSDB
                     );
-                    // 月度のみ年が会計年度ではなくカレンダーなので別途年月度のperiodの年の部分をselectedCalendarYearにセットする
-                    // if (monthKeySet.has(activePeriodSDB.periodType as FiscalYearMonthKey)) {
+                    // 【年月度】年月度のみ年が会計年度ではなくカレンダーなので別途年月度のperiodの年の部分をselectedCalendarYearにセットする
                     if (activePeriodSDB.periodType === "year_month") {
                       setSelectedCalendarYear(Number(activePeriodSDB.period.toString().slice(0, 4)));
                     }
@@ -1060,8 +1287,14 @@ const SalesProgressScreenMemo = () => {
               <div className={`${styles.info_area} flex-center ml-[3px] min-h-[36px] px-[3px] py-[6px]`}>
                 <div
                   className="flex-center relative h-[18px] w-[18px] rounded-full"
-                  onMouseEnter={(e) => handleEnterInfoIcon(e, infoIconProgressRef.current)}
-                  onMouseLeave={handleCloseTooltip}
+                  onMouseEnter={(e) => {
+                    handleEnterInfoIcon(e, infoIconProgressRef.current);
+                    handleOpenPopupMenu({ e, title: "sales_progress", displayX: "right", maxWidth: 360 });
+                  }}
+                  onMouseLeave={(e) => {
+                    // handleCloseTooltip();
+                    handleClosePopupMenu();
+                  }}
                 >
                   <div
                     ref={infoIconProgressRef}
@@ -1123,34 +1356,40 @@ const SalesProgressScreenMemo = () => {
             <SpinnerBrand withBorder withShadow />
           </div>
         )}
-        {isMounted && activeTabSDB === "sales_progress" && activePeriodSDB !== null && !isLoadingRefresh && (
-          <>
-            <ErrorBoundary FallbackComponent={ErrorFallback}>
-              <Suspense
-                fallback={
-                  <div
-                    className={`flex-center w-full`}
-                    // style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}
-                    style={{ minHeight: `calc(100vh - 87px - 56px)`, paddingBottom: `87px` }}
-                  >
-                    <SpinnerBrand withBorder withShadow />
-                  </div>
-                }
-              >
-                <ScreenDealBoards
-                  // memberList={memberListSectionMember}
-                  displayEntityGroup={displayEntityGroup}
-                  monthKey={monthKey}
-                  // periodType={activePeriodSDB.periodType}
-                  // period={activePeriodSDB.period}
-                />
-              </Suspense>
-            </ErrorBoundary>
-            {/* <div className={`flex-center w-full`} style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}>
+        {isMounted &&
+          activeTabSDB === "sales_progress" &&
+          activePeriodSDB !== null &&
+          !isLoadingRefresh &&
+          isSuccessQueryFiscalYear &&
+          isSuccessQueryLevel &&
+          isSuccessQueryEntities && (
+            <>
+              <ErrorBoundary FallbackComponent={ErrorFallback}>
+                <Suspense
+                  fallback={
+                    <div
+                      className={`flex-center w-full`}
+                      // style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}
+                      style={{ minHeight: `calc(100vh - 87px - 56px)`, paddingBottom: `87px` }}
+                    >
+                      <SpinnerBrand withBorder withShadow />
+                    </div>
+                  }
+                >
+                  <ScreenDealBoards
+                    // memberList={memberListSectionMember}
+                    displayEntityGroup={displayEntityGroup}
+                    monthKey={monthKey}
+                    // periodType={activePeriodSDB.periodType}
+                    // period={activePeriodSDB.period}
+                  />
+                </Suspense>
+              </ErrorBoundary>
+              {/* <div className={`flex-center w-full`} style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}>
               <SpinnerBrand withBorder withShadow />
             </div> */}
-          </>
-        )}
+            </>
+          )}
         {/* ------------------- 🌟ネタ表ボードスクリーン🌟 ここまで ------------------- */}
       </div>
       {/* -------------------------------- 売上進捗スクリーン ここまで -------------------------------- */}
@@ -1465,39 +1704,47 @@ const SalesProgressScreenMemo = () => {
                         <span className={``}>：</span>
                       </div>
                     </div>
+
+                    {activePeriodSDBLocal.periodType === "year_month" && (
+                      <div className={`min-h-[30px] w-full truncate px-[10px] py-[5px] text-[14px]`}>
+                        <span>{{ ja: "月度", en: "Monthly" }[language]}</span>
+                      </div>
+                    )}
                     {/* 期間タイプの変更 */}
-                    <select
-                      className={`${styles.select_box} truncate`}
-                      value={activePeriodSDBLocal.periodType}
-                      onChange={(e) => {
-                        if (e.target.value === "year_month") {
-                          const initialCurrentMonth = String(currentFiscalStartYearMonthSDB).substring(4);
-                          const initialPeriod = Number(`${selectedCalendarYear}${initialCurrentMonth}`);
-                          setActivePeriodSDBLocal({ periodType: e.target.value, period: initialPeriod });
-                        } else if (e.target.value === "fiscal_year") {
-                          setActivePeriodSDBLocal({ periodType: e.target.value, period: selectedFiscalYearLocal });
-                        } else if (["half_year", "quarter"].includes(e.target.value)) {
-                          // 四半期と半期は両方1をセットして、1QとH1を初期値として更新する
-                          const initialPeriod = Number(`${selectedFiscalYearLocal}1`);
-                          setActivePeriodSDBLocal({
-                            periodType: e.target.value as "half_year" | "quarter",
-                            period: initialPeriod,
-                          });
-                        }
-                      }}
-                    >
-                      <>
-                        {activeTabSDB === "sales_progress" && (
-                          <option value={`year_month`}>{{ ja: "月度", en: "Monthly" }[language]}</option>
-                        )}
-                        {activeTabSDB !== "sales_progress" &&
-                          periodList.map((option) => (
-                            <option key={option.title} value={option.title}>
-                              {option.name[language]}
-                            </option>
-                          ))}
-                      </>
-                    </select>
+                    {activePeriodSDBLocal.periodType !== "year_month" && (
+                      <select
+                        className={`${styles.select_box} truncate`}
+                        value={activePeriodSDBLocal.periodType}
+                        onChange={(e) => {
+                          if (e.target.value === "year_month") {
+                            const initialCurrentMonth = String(currentFiscalStartYearMonthSDB).substring(4);
+                            const initialPeriod = Number(`${selectedCalendarYear}${initialCurrentMonth}`);
+                            setActivePeriodSDBLocal({ periodType: e.target.value, period: initialPeriod });
+                          } else if (e.target.value === "fiscal_year") {
+                            setActivePeriodSDBLocal({ periodType: e.target.value, period: selectedFiscalYearLocal });
+                          } else if (["half_year", "quarter"].includes(e.target.value)) {
+                            // 四半期と半期は両方1をセットして、1QとH1を初期値として更新する
+                            const initialPeriod = Number(`${selectedFiscalYearLocal}1`);
+                            setActivePeriodSDBLocal({
+                              periodType: e.target.value as "half_year" | "quarter",
+                              period: initialPeriod,
+                            });
+                          }
+                        }}
+                      >
+                        <>
+                          {/* {activeTabSDB === "sales_progress" && (
+                            <option value={`year_month`}>{{ ja: "月度", en: "Monthly" }[language]}</option>
+                          )} */}
+                          {activeTabSDB !== "sales_progress" &&
+                            periodList.map((option) => (
+                              <option key={option.title} value={option.title}>
+                                {option.name[language]}
+                              </option>
+                            ))}
+                        </>
+                      </select>
+                    )}
                   </li>
                   {/* ------------------------------------ */}
                   {/* ------------------------------------ 年度以外は必ず同時に年も選択 */}
@@ -1602,7 +1849,7 @@ const SalesProgressScreenMemo = () => {
                           if (!_year) return;
                           // 年と現在の月度の値を結合して数値型に変換
                           const newPeriod = Number(`${_year}${e.target.value}`);
-                          console.log("newPeriod", newPeriod, "e.target.value", e.target.value);
+                          console.log("newPeriod", newPeriod, "_year", _year, "e.target.value", e.target.value);
                           setActivePeriodSDBLocal({ ...activePeriodSDBLocal, period: newPeriod });
                         }
                       }}
@@ -1655,6 +1902,84 @@ const SalesProgressScreenMemo = () => {
         </div>
       )}
       {/* ---------------------------- 🌟セッティングメニュー🌟 ここまで ---------------------------- */}
+
+      {/* ---------------------------- 🌟説明ポップアップメニュー🌟 ---------------------------- */}
+      {openPopupMenu && (
+        <div
+          // className={`${styles.description_menu} shadow-all-md border-real-with-shadow fixed right-[-18px] z-[3500] flex min-h-max flex-col rounded-[6px]`}
+          className={`${styles.description_menu} shadow-all-md border-real-with-shadow pointer-events-none fixed z-[3500] flex min-h-max flex-col rounded-[6px]`}
+          style={{
+            top: `${openPopupMenu.y}px`,
+            ...(openPopupMenu?.displayX === "right" && {
+              left: `${openPopupMenu.x}px`,
+              maxWidth: `${openPopupMenu.maxWidth}px`,
+            }),
+            ...(openPopupMenu?.displayX === "left" && {
+              right: `${openPopupMenu.x}px`,
+              maxWidth: `${openPopupMenu.maxWidth}px`,
+            }),
+          }}
+        >
+          <div className={`min-h-max w-full font-bold ${styles.title}`}>
+            <div className="flex max-w-max flex-col">
+              <span>{mappingPopupTitle[openPopupMenu.title][language]}</span>
+              <div className={`${styles.underline} w-full`} />
+            </div>
+          </div>
+
+          <ul className={`flex flex-col rounded-[6px] ${styles.u_list}`}>
+            {["sales_progress"].includes(openPopupMenu.title) &&
+              mappingDescriptions[openPopupMenu.title].map((item, index) => (
+                <li
+                  key={item.title + index.toString()}
+                  className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}
+                  style={{ ...(openPopupMenu.title === "printTips" && { padding: "3px 14px" }) }}
+                >
+                  <div className="flex min-w-max items-center space-x-[3px]">
+                    <RxDot className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                    <span className={`${styles.dropdown_list_item_title} select-none text-[14px] font-bold`}>
+                      {item.title}
+                    </span>
+                  </div>
+                  <p className="select-none text-[12px]" style={{ whiteSpace: "pre-wrap" }}>
+                    {item.content}
+                  </p>
+                </li>
+              ))}
+            {!["sales_progress"].includes(openPopupMenu.title) && (
+              <li className={`${styles.dropdown_list_item} flex  w-full cursor-pointer flex-col space-y-1 `}>
+                <p className="select-none whitespace-pre-wrap text-[12px]">
+                  {openPopupMenu.title === "edit_mode" &&
+                    "定休日を適用後、個別に日付を「営業日から休日へ」または「休日から営業日へ」変更が可能です。"}
+                </p>
+              </li>
+            )}
+            {openPopupMenu.title === "print" && <hr className="mb-[6px] min-h-[1px] w-full bg-[#666]" />}
+            {/* {openPopupMenu.title === "print" &&
+              descriptionPrintTips.map((obj, index) => (
+                <li key={obj.title} className={`flex w-full space-x-[3px] px-[14px] py-[3px] text-[12px]`}>
+                  <span className="min-w-[80px] max-w-[80px] font-bold">・{obj.title}：</span>
+                  <p className="whitespace-pre-wrap">{obj.content}</p>
+                </li>
+              ))} */}
+            {/* {openPopupMenu.title === "print" && (
+              <>
+                <li className={`flex w-full space-x-[3px] px-[14px] py-[3px] text-[12px]`}>
+                  <span>・A4：</span>
+                  <p className="whitespace-pre-wrap">国際標準の紙のサイズ(210x297mm)</p>
+                </li>
+                <li className={`flex w-full space-x-[3px] px-[14px] py-[3px] text-[12px]`}>
+                  <span className="min-w-max">・A4：</span>
+                  <p className="whitespace-pre-wrap">
+                    A4サイズの半分の大きさ(148x210mm)で、ノートや小冊子によく使用されます。
+                  </p>
+                </li>
+              </>
+            )} */}
+          </ul>
+        </div>
+      )}
+      {/* ---------------------------- 🌟説明ポップアップメニュー🌟 ここまで ---------------------------- */}
     </>
   );
 };

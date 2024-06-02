@@ -23,7 +23,7 @@ import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { toast } from "react-toastify";
 import { splitCompanyNameWithPosition } from "@/utils/Helpers/splitCompanyName";
 import { MdOutlineMoreTime } from "react-icons/md";
-import { ImFire } from "react-icons/im";
+import { ImFire, ImInfo } from "react-icons/im";
 import { AiFillFire, AiOutlineFire } from "react-icons/ai";
 import { BsFire } from "react-icons/bs";
 import { DealCardType, MemberAccounts, MemberAccountsDealBoard } from "@/types";
@@ -237,6 +237,9 @@ const DealBoardMemo = ({
   // 現在のクエリキー(queryKey) キャッシュ更新時に使用
   const currentQueryKey = ["deals", userId, periodType, period];
 
+  // 期間変更時のローディング
+  const isLoadingSDB = useDashboardStore((state) => state.isLoadingSDB);
+
   const {
     data: queryData,
     error,
@@ -255,6 +258,10 @@ const DealBoardMemo = ({
   // 🌟ローカルstateに格納
   useEffect(() => {
     if (isMountedQuery) return; // 既にマウント済みの場合はリターン
+
+    // 期間変更中はリターン
+    if (isLoadingSDB) return;
+    if (isLoadingQuery) return;
 
     if (isSuccess) {
       const initialCards = !!queryData?.length
@@ -289,7 +296,7 @@ const DealBoardMemo = ({
       console.log("案件をネタ表テーブルのローカルstateに格納 フェッチ完了を通知");
       if (onFetchComplete) onFetchComplete();
     }
-  }, [isSuccess]);
+  }, [isSuccess, queryData, isLoadingSDB, isLoadingQuery]);
 
   // 🌟ローカルstateをリフレッシュ(選択中のカードの最新状態を反映)
   useEffect(() => {
@@ -2046,6 +2053,10 @@ const DealBoardMemo = ({
     cards,
     "queryData",
     queryData,
+    "periodType",
+    periodType,
+    "period",
+    period,
     // "awardSalesAmount",
     // awardSalesAmount,
     // "achievementRate",
@@ -2249,7 +2260,38 @@ const DealBoardMemo = ({
             >
               {/* ------------ Columnタイトル ------------ */}
               <div className={`${styles.title_area} mb-3 flex items-center justify-between`}>
-                <h3 className={`font-medium ${column.headingColor}`}>{columnTitle}</h3>
+                <h3 className={`flex items-center font-medium ${column.headingColor}`}>
+                  <span>{columnTitle}</span>
+                  {columnIndex === 0 && (
+                    <div className={`${styles.info_area} flex-center ml-[9px] min-h-[22px]`}>
+                      <div
+                        className="flex-center relative h-[16px] w-[16px] rounded-full"
+                        onMouseEnter={(e) => {
+                          // handleEnterInfoIcon(e, infoIconProgressRef.current);
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: `「月初確度」か「中間見直確度」が「A (受注済み)」で、\nかつ「現ステータス」が「受注」の案件に星マークが付き売上実績に反映されます。`,
+                            marginTop: 39,
+                            // content: `期間を「月次・四半期・半期・年度」のタイプと期間を選択することで`,
+                            // content2: `その期間内でフィルターしたデータをダッシュボードに反映します。`,
+                            // marginTop: 27,
+                            itemsPosition: "left",
+                          });
+                        }}
+                        onMouseLeave={(e) => {
+                          handleCloseTooltip();
+                        }}
+                      >
+                        {/* <div
+                          // ref={infoIconProgressRef}
+                          className={`flex-center absolute left-0 top-0 h-[18px] w-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                        ></div> */}
+                        <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                      </div>
+                    </div>
+                  )}
+                </h3>
                 <span className={`${styles.card_count} rounded text-sm text-neutral-400`}>{filteredCards.length}</span>
               </div>
               {/* ------------ Columnレーン ------------ */}
@@ -2377,7 +2419,7 @@ const DealBoardMemo = ({
                             </div>
                           </div>
                         )}
-                        {columnIndex === 0 && (
+                        {columnIndex === 0 && card.current_status === "D Order Received" && (
                           <div className="relative ml-[-3px] mr-[6px]">
                             <FaStar
                               className={` ${styles.star_icon_up} z-[10]  min-h-[15px] min-w-[15px] text-[15px]`}

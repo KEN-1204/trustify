@@ -16,9 +16,13 @@ type Props = {
 export const useQueryDealCards = ({ companyId, userId, periodType, period, isReady = true }: Props) => {
   const supabase = useSupabaseClient();
 
+  // 期間変更時のローディング
+  const isLoadingSDB = useDashboardStore((state) => state.isLoadingSDB);
+
   const getDealCards = async () => {
     if (!companyId) return null;
     if (!periodType) return null;
+    if (isLoadingSDB) return null;
 
     // periodType: monthly(月度), quarter(四半期), half(半期), fiscalYear(年度)
 
@@ -61,7 +65,11 @@ export const useQueryDealCards = ({ companyId, userId, periodType, period, isRea
       "period",
       period,
       "params",
-      params
+      params,
+      "isLoadingSDB",
+      isLoadingSDB,
+      "isReady",
+      isReady
     );
 
     const { data, error } = await supabase
@@ -101,6 +109,6 @@ export const useQueryDealCards = ({ companyId, userId, periodType, period, isRea
     onError: (error) => {
       console.error("error:", error);
     },
-    enabled: !!companyId && !!userId && isReady && !!periodType && !!period,
+    enabled: !!companyId && !!userId && isReady && !!periodType && !!period && isReady,
   });
 };

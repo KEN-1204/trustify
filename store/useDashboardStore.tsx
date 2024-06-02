@@ -622,6 +622,9 @@ type State = {
   // SDB共通モーダル
   isOpenModalSDB: string | null;
   setIsOpenModalSDB: (payload: string | null) => void;
+  // SDBの期間変更時のローディング
+  isLoadingSDB: boolean;
+  setIsLoadingSDB: (payload: boolean) => void;
 
   // テーマカラー
   // activeThemeColor: string;
@@ -1413,6 +1416,9 @@ const useDashboardStore = create<State>((set) => ({
   // SDB共通モーダル
   isOpenModalSDB: null,
   setIsOpenModalSDB: (payload) => set({ isOpenModalSDB: payload }),
+  // SDBの期間変更時のローディング
+  isLoadingSDB: false,
+  setIsLoadingSDB: (payload) => set({ isLoadingSDB: payload }),
 
   // テーマカラー theme-brand-f, theme-black-gradient, theme-simple12, theme-simple17
   activeThemeColor: "theme-brand-f",

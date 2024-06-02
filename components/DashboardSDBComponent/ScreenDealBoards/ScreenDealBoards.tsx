@@ -377,6 +377,23 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     }
   );
 
+  useEffect(() => {
+    if (!displayEntityGroup) return;
+    if (!displayEntityGroup.parent_entity_id) return;
+    if (!displayEntityGroup.entities.length) return;
+
+    setSelectedEntityForAchievement({
+      entity_id: displayEntityGroup.parent_entity_id,
+      entity_name:
+        displayEntityGroup.parent_entity_level === "company"
+          ? getDivName("company")
+          : displayEntityGroup.parent_entity_name,
+      entity_level: displayEntityGroup.parent_entity_level as EntityLevelNames,
+      entity_level_id: displayEntityGroup.parent_entity_level_id,
+      entity_structure_id: displayEntityGroup.parent_entity_structure_id,
+    });
+  }, [displayEntityGroup]);
+
   // 達成率チャートの選択肢 親エンティティと子エンティティの全てのメンバー
   const optionsForAchievement = useMemo(() => {
     if (!displayEntityGroup) return null;
@@ -502,6 +519,10 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
   const [currentActiveIndex, setCurrentActiveIndex] = useState(0); // 順番にフェッチを許可
   const [allFetched, setAllFetched] = useState(false); // サブ目標コンポーネントのフェッチが全て完了したらtrueに変更
 
+  // 期間変更時のローディング
+  const isLoadingSDB = useDashboardStore((state) => state.isLoadingSDB);
+  const setIsLoadingSDB = useDashboardStore((state) => state.setIsLoadingSDB);
+
   // 全子コンポーネントがフェッチ完了したかを監視
   useEffect(() => {
     if (!displayMemberList) return;
@@ -524,6 +545,23 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     );
     setCurrentActiveIndex((prevIndex) => prevIndex + 1); // activeIndexを+1して次のコンポーネントのフェッチを許可
   };
+
+  // 🌠activePeriodSDBが変更されたらフェッチ完了状態をリセットする
+  useEffect(() => {
+    // 期間変更中はリターン
+    // if (isLoadingSDB) return;
+    const onResetFetchComplete = async () => {
+      setCurrentActiveIndex(0);
+      setAllFetched(false);
+      setIsRenderProgress(false);
+
+      // 期間変更ローディング終了
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      setIsLoadingSDB(false);
+    };
+
+    onResetFetchComplete();
+  }, [activePeriodSDB]);
   // --------------------------- 🌠子コンポーネントを順番にフェッチさせる🌠 ---------------------------
 
   // 全てのボードがマウントした後にProgressCircleをマウントさせる
@@ -567,14 +605,14 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
 
   console.log(
     "ScreenDealBoardsコンポーネントレンダリング",
-    // "displayEntityGroup",
-    // displayEntityGroup,
-    // "queryDataObjMemberGroupAndParentEntity",
-    // queryDataObjMemberGroupAndParentEntity,
-    // "memberList",
-    // memberList,
-    // "displayMemberList",
-    // displayMemberList,
+    "displayEntityGroup",
+    displayEntityGroup,
+    "queryDataObjMemberGroupAndParentEntity",
+    queryDataObjMemberGroupAndParentEntity,
+    "memberList",
+    memberList,
+    "displayMemberList",
+    displayMemberList,
     // "entityIds",
     // entityIds,
     // "monthKey",
@@ -598,12 +636,12 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
         }`}
       >
         {/* ------------------- Row 売上推移・達成率チャートエリア ------------------- */}
-        {!allFetched && (
+        {(!allFetched || isLoadingSDB) && (
           <div className={`flex-center fade08_forward mb-[20px] max-h-[369px] min-h-[369px] w-full`}>
             <SpinnerX />
           </div>
         )}
-        {allFetched && (
+        {allFetched && !isLoadingSDB && (
           <div
             className={`${styles.grid_row} ${styles.col2} fade15_forward mb-[20px] max-h-[369px] min-h-[369px] w-full ${
               stickyRow === "row_trend" ? `${styles.sticky_row}` : ``
@@ -887,11 +925,12 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
         {/* ------------------- Row 売上推移・達成率チャートエリア ------------------- */}
 
         {/* ------------------- ネタ表ボード ------------------- */}
-        {displayMemberList &&
+        {!isLoadingSDB &&
+          displayMemberList &&
           displayMemberList.map((memberObj, tableIndex) => {
             return (
               <Fragment key={`${memberObj.id}_${tableIndex}_board`}>
-                {(tableIndex <= currentActiveIndex || allFetched) && (
+                {!isLoadingSDB && (tableIndex <= currentActiveIndex || allFetched) && (
                   <div
                     // className={`${styles.entity_board_container} bg-[red]/[0]`}
                     className={`${styles.entity_board_container} fade15_forward bg-[red]/[0] ${
@@ -1015,7 +1054,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                           // periodType={activePeriodSDB.periodType}
                           // period={activePeriodSDB.period}
                           onFetchComplete={() => onFetchComplete(tableIndex)} // ネタ表ボードのindexを渡す
-                          fetchEnabled={tableIndex === currentActiveIndex || allFetched} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
+                          fetchEnabled={!isLoadingSDB && (tableIndex <= currentActiveIndex || allFetched)} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
                           isRenderProgress={isRenderProgress}
                         />
                       </Suspense>

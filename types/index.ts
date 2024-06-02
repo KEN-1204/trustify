@@ -422,7 +422,7 @@ export type UserProfileCompanySubscription = {
   customer_budget_request_month2: string | null;
   customer_website_url: string | null;
   customer_closing_days: number[];
-  customer_fiscal_year_basis: string;
+  customer_fiscal_year_basis: string; // firstDayBasis or endDayBasis
   // 🔹subscribed_accountsテーブル
   subscribed_account_id: string | null;
   account_created_at: string | null;

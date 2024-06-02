@@ -225,8 +225,10 @@ const ProgressCircleSalesAchievementMemo = ({
   //   () => (current_sales_target !== null ? formatToJapaneseYen(current_sales_target, false) : `-`),
   //   [current_sales_target]
   const formattedSalesTarget = useMemo(() => {
-    if (!salesProcessesMap) return `0`;
-    return formatToJapaneseYen(salesProcessesMap.get("sales_target")?.result ?? 0, false);
+    if (!salesProcessesMap) return `-`;
+    return isValidNumber(salesProcessesMap.get("sales_target")?.result)
+      ? formatToJapaneseYen(salesProcessesMap.get("sales_target")?.result ?? 0, false)
+      : `-`;
   }, [salesProcessesMap]);
 
   // 売上実績(今月度)
@@ -594,6 +596,8 @@ const ProgressCircleSalesAchievementMemo = ({
                         // progress={78}
                         // progress={69}
                         progress={formattedAchievementRate}
+                        // progress={89}
+                        // direction="bl_tr"
                         // progress={110}
                         // progress={100}
                         // progress={0}
