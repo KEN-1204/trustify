@@ -407,7 +407,8 @@ export const DashboardSDBComponent = () => {
               setSelectedDealCard(updatedCard);
 
               // ローカルstateを更新するためのトリガーをON
-              setIsRequiredRefreshDealCards(true);
+              // setIsRequiredRefreshDealCards(true);
+              setIsRequiredRefreshDealCards(selectedDealCard.ownerId);
               // 🔹ネタ表ボードのキャッシュを更新 ここまで ---------------------------------
 
               toast.success(`削除に成功しました🌟`);

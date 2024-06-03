@@ -115,7 +115,6 @@ export const UpdatePropertyModal = () => {
   const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
   const setSelectedDealCard = useDashboardStore((state) => state.setSelectedDealCard);
   const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
-  const setIsRequiredRefreshDealCards = useDashboardStore((state) => state.setIsRequiredRefreshDealCards);
   const selectedFiscalYearTargetSDB = useDashboardStore((state) => state.selectedFiscalYearTargetSDB);
   // -------------- 🔹ネタ表から受注済みに移行された時の売上入力関連🔹 ここまで --------------
 

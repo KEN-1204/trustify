@@ -301,6 +301,7 @@ const DealBoardMemo = ({
   // 🌟ローカルstateをリフレッシュ(選択中のカードの最新状態を反映)
   useEffect(() => {
     if (!isRequiredRefreshDealCards) return;
+    if (isRequiredRefreshDealCards !== userId) return;
     if (selectedDealCard) {
       // mapメソッドでローカルの現在のカード順を崩さずに選択中のカードの内容のみ更新
       const newDealCards: DealCardType[] = cards.map((obj) => {
@@ -311,15 +312,18 @@ const DealBoardMemo = ({
         }
       });
       console.log(
-        "🔥ローカルstateを最新状態に更新 新たなネタカード配列",
+        "🔥🔥🔥🔥🔥🔥🌠🌠🌠🌠🌠ローカルstateを最新状態に更新 新たなネタカード配列",
         newDealCards,
         "選択中のカード",
-        selectedDealCard
+        selectedDealCard,
+        "memberObj.profile_name",
+        memberObj.profile_name
       );
       setCards(newDealCards);
     }
     // ローカルstateの更新が完了したらfalseにして、選択中のカードを空にする
-    setIsRequiredRefreshDealCards(false);
+    // setIsRequiredRefreshDealCards(false);
+    setIsRequiredRefreshDealCards(null);
     // ネタカードの詳細モーダルを開いていなければ選択中のカードを空にする => useMutateで売上入力後、state反映後に空にする
     if (!isOpenDealCardModal) setSelectedDealCard(null);
   }, [isRequiredRefreshDealCards]);

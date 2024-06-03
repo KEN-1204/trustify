@@ -74,7 +74,7 @@ const ContactMainContainerMemo: FC = () => {
   // 編集サーチモード
   const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
-  console.log("🔥 ContactMainContainerレンダリング searchMode", searchMode);
+  // console.log("🔥 ContactMainContainerレンダリング searchMode", searchMode);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
@@ -603,6 +603,15 @@ const ContactMainContainerMemo: FC = () => {
 
         // console.log(e.detail);
         setTimeoutRef.current = null;
+
+        if (["position_class", "occupation"].includes(field)) {
+          // const numValue = getInvertOrderCertaintyStartOfMonth(selectedRowDataValue);
+          originalValueFieldEdit.current = selectedRowDataValue;
+          dispatch(selectedRowDataValue);
+          setIsEditModeField(field);
+          return;
+        }
+
         // ダブルクリック時に実行したい処理
         // クリックした要素のテキストを格納
         // const text = e.currentTarget.innerText;
@@ -941,6 +950,8 @@ const ContactMainContainerMemo: FC = () => {
   // ================== ✅セレクトボックスで個別フィールドをアップデート ==================
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  console.log("🔥ContactMainContainerレンダリング ", "selectedRowDataContact", selectedRowDataContact);
 
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
@@ -2068,6 +2079,7 @@ const ContactMainContainerMemo: FC = () => {
                           e,
                           field: "position_class",
                           dispatch: setInputPositionClass,
+                          selectedRowDataValue: selectedRowDataContact?.position_class ?? "",
                         });
                       }}
                       onMouseEnter={(e) => {
@@ -2113,15 +2125,17 @@ const ContactMainContainerMemo: FC = () => {
                             e,
                             fieldName: "position_class",
                             fieldNameForSelectedRowData: "position_class",
-                            newValue: e.target.value,
-                            originalValue: originalValueFieldEdit.current,
+                            newValue: isValidNumber(e.target.value) ? parseInt(e.target.value, 10) : null,
+                            originalValue: isValidNumber(originalValueFieldEdit.current)
+                              ? parseInt(originalValueFieldEdit.current, 10)
+                              : null,
                             id: selectedRowDataContact?.contact_id,
                           });
                         }}
                       >
                         {optionsPositionsClass.map((option) => (
                           <option key={option} value={option}>
-                            {option}
+                            {getPositionClassName(option, language)}
                           </option>
                         ))}
                       </select>
@@ -2163,6 +2177,7 @@ const ContactMainContainerMemo: FC = () => {
                           e,
                           field: "occupation",
                           dispatch: setInputOccupation,
+                          selectedRowDataValue: selectedRowDataContact?.occupation ?? "",
                         });
                       }}
                       onMouseEnter={(e) => {
@@ -2208,15 +2223,17 @@ const ContactMainContainerMemo: FC = () => {
                             e,
                             fieldName: "occupation",
                             fieldNameForSelectedRowData: "occupation",
-                            newValue: e.target.value,
-                            originalValue: originalValueFieldEdit.current,
+                            newValue: isValidNumber(e.target.value) ? parseInt(e.target.value, 10) : null,
+                            originalValue: isValidNumber(originalValueFieldEdit.current)
+                              ? parseInt(originalValueFieldEdit.current, 10)
+                              : null,
                             id: selectedRowDataContact?.contact_id,
                           });
                         }}
                       >
                         {optionsOccupation.map((option) => (
                           <option key={option} value={option}>
-                            {option}
+                            {getOccupationName(option)}
                           </option>
                         ))}
                       </select>

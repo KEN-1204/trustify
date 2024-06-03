@@ -23,6 +23,7 @@ const EditModalDealCardMemo = () => {
   // 選択中のネタカード
   const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
   const setSelectedDealCard = useDashboardStore((state) => state.setSelectedDealCard);
+  const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
   // ネタ確認モーダル
   const setIsOpenDealCardModal = useDashboardStore((state) => state.setIsOpenDealCardModal);
   // 案件詳細モーダル
@@ -125,7 +126,8 @@ const EditModalDealCardMemo = () => {
 
       // ローカルstateを更新するためのトリガーをON ボード内のcardsから選択中のカードの
       // rejected_flag, pending_flag, property_summaryカラムの更新内容を反映
-      setIsRequiredRefreshDealCards(true);
+      // setIsRequiredRefreshDealCards(true);
+      setIsRequiredRefreshDealCards(selectedDealCard.ownerId);
 
       toast.success(successMessage);
     } catch (error: any) {
@@ -198,6 +200,11 @@ const EditModalDealCardMemo = () => {
 
   // 詳細を確認 => 案件詳細モーダルを開く
   const handleOpenDetailModalProperty = () => {
+    // 分割代入
+    const { column_title_num, ..._selectedRowDataProperty } = selectedDealCard.dealCard;
+
+    setSelectedRowDataProperty(_selectedRowDataProperty);
+
     setIsOpenPropertyDetailModal(true);
   };
 

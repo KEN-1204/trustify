@@ -30,6 +30,8 @@ export const useMutateProperty = () => {
   // 選択中のネタカード(ローカルのネタカードを最新状態に更新する用)
   const selectedDealCard = useDashboardStore((state) => state.selectedDealCard);
   const setSelectedDealCard = useDashboardStore((state) => state.setSelectedDealCard);
+  // SDBから表示する案件詳細モーダル
+  const isOpenPropertyDetailModal = useDashboardStore((state) => state.isOpenPropertyDetailModal);
   // ローカルstateのネタカードを更新するトリガー
   const setIsRequiredRefreshDealCards = useDashboardStore((state) => state.setIsRequiredRefreshDealCards);
   // -------------------------- ネタ表からの売上入力用 ここまで --------------------------
@@ -569,7 +571,8 @@ export const useMutateProperty = () => {
           // });
 
           // ローカルstateを更新するためのトリガーをON
-          setIsRequiredRefreshDealCards(true);
+          // setIsRequiredRefreshDealCards(true);
+          setIsRequiredRefreshDealCards(selectedDealCard.ownerId);
           // 🔹ネタ表ボードのキャッシュを更新 ここまで ---------------------------------
 
           if (loadingGlobalState) setLoadingGlobalState(false);
@@ -1019,12 +1022,27 @@ export const useMutateProperty = () => {
               setSelectedRowDataProperty(newRowDataProperty);
             }
           } else if (fieldName === "expected_order_date") {
-            // 獲得予定日を更新すると順番が入れ替わり、選択中の行がメインテーブルの内容と異なるためリセット
-            console.log("プロパティにexpected_order_dateが含まれているため選択中の行をリセット");
-            setSelectedRowDataProperty(null);
-            if (!isRequiredInputSoldProduct) {
-              // ネタ表からの受注後の売上入力でない場合
-              await queryClient.invalidateQueries({ queryKey: ["deals"] });
+            // expected_order_date SDBの案件詳細モーダルから変更ルート SDBから表示する詳細画面で獲得予定日付を変更した場合には、GridTableAllの並び順の変更は影響しないためそのままZustandのstateを更新した日付〜年度まで更新する
+            if (isOpenPropertyDetailModal) {
+              const newRowDataProperty = {
+                ...selectedRowDataProperty,
+                [fieldNameForSelectedRowData]: newValue,
+                [fieldNameYearMonth(fieldName)]: yearMonth,
+                [fieldNameQuarter(fieldName)]: yearQuarter,
+                [fieldNameHalfYear(fieldName)]: yearHalf,
+                [fieldNameFiscalYear(fieldName)]: fiscalYear,
+              };
+              setSelectedRowDataProperty(newRowDataProperty);
+            }
+            // expected_order_date SDBの案件詳細モーダルでないルート
+            else {
+              // 獲得予定日を更新すると順番が入れ替わり、選択中の行がメインテーブルの内容と異なるためリセット
+              console.log("プロパティにexpected_order_dateが含まれているため選択中の行をリセット");
+              setSelectedRowDataProperty(null);
+              if (!isRequiredInputSoldProduct) {
+                // ネタ表からの受注後の売上入力でない場合
+                await queryClient.invalidateQueries({ queryKey: ["deals"] });
+              }
             }
           }
           // それ以外は単一のカラムを更新

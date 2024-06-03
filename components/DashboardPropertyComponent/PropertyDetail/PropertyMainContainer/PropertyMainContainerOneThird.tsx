@@ -5189,8 +5189,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                                 e,
                                 fieldName: "order_certainty_start_of_month",
                                 fieldNameForSelectedRowData: "order_certainty_start_of_month",
-                                newValue: e.target.value,
-                                originalValue: originalValueFieldEdit.current,
+                                newValue: isValidNumber(e.target.value) ? parseInt(e.target.value, 10) : null,
+                                originalValue: isValidNumber(originalValueFieldEdit?.current)
+                                  ? parseInt(originalValueFieldEdit.current!, 10)
+                                  : null,
                                 id: selectedRowDataProperty?.property_id,
                               });
                             }}
@@ -5285,8 +5287,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                                 e,
                                 fieldName: "review_order_certainty",
                                 fieldNameForSelectedRowData: "review_order_certainty",
-                                newValue: e.target.value,
-                                originalValue: originalValueFieldEdit.current,
+                                newValue: isValidNumber(e.target.value) ? parseInt(e.target.value, 10) : null,
+                                originalValue: isValidNumber(originalValueFieldEdit?.current)
+                                  ? parseInt(originalValueFieldEdit.current!, 10)
+                                  : null,
                                 id: selectedRowDataProperty?.property_id,
                               });
                             }}

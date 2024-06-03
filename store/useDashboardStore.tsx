@@ -607,8 +607,10 @@ type State = {
   isOpenDealCardModal: boolean;
   setIsOpenDealCardModal: (payload: boolean) => void;
   // ローカルネタ表カードリフレッシュ mapメソッドで選択中のカードを更新
-  isRequiredRefreshDealCards: boolean;
-  setIsRequiredRefreshDealCards: (payload: boolean) => void;
+  // isRequiredRefreshDealCards: boolean;
+  // setIsRequiredRefreshDealCards: (payload: boolean) => void;
+  isRequiredRefreshDealCards: string | null;
+  setIsRequiredRefreshDealCards: (payload: string | null) => void;
 
   // 受注済みに変更後の売上入力モーダルと編集モーダルに渡すstate
   isOpenCongratulationsModal: boolean;
@@ -1401,7 +1403,9 @@ const useDashboardStore = create<State>((set) => ({
   isOpenDealCardModal: false,
   setIsOpenDealCardModal: (payload) => set({ isOpenDealCardModal: payload }),
   // ローカルネタ表カードリフレッシュ mapメソッドで選択中のカードを更新
-  isRequiredRefreshDealCards: false,
+  // isRequiredRefreshDealCards: false,
+  // setIsRequiredRefreshDealCards: (payload) => set({ isRequiredRefreshDealCards: payload }),
+  isRequiredRefreshDealCards: null,
   setIsRequiredRefreshDealCards: (payload) => set({ isRequiredRefreshDealCards: payload }),
 
   // 受注済みに変更後の売上入力モーダルと編集モーダルに渡すstate

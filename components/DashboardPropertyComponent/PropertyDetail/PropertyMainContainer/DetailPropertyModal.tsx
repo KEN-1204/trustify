@@ -70,6 +70,7 @@ import { calculateDiscountRate } from "@/utils/Helpers/calculateDiscountRate";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { UnderRightActivityLogCustom } from "./UnderRightActivityLogCustom/UnderRightActivityLogCustom";
 import { FallbackUnderRightActivityLogCustom } from "./UnderRightActivityLogCustom/FallbackUnderRightActivityLogCustom";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 const DetailPropertyModalMemo = () => {
   const language = useStore((state) => state.language);
@@ -92,9 +93,19 @@ const DetailPropertyModalMemo = () => {
     return;
   }
   // 選択中のネタを選択中の物件に格納
-  let selectedRowDataProperty: DealCardType = selectedDealCard.dealCard;
+  // let selectedRowDataProperty: DealCardType = selectedDealCard.dealCard;
+  const setSelectedDealCard = useDashboardStore((state) => state.setSelectedDealCard);
+  const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
+  const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
+  const setIsRequiredRefreshDealCards = useDashboardStore((state) => state.setIsRequiredRefreshDealCards);
+  if (!selectedRowDataProperty) {
+    console.log("モーダル selectedRowDataPropertyなしリターン", selectedRowDataProperty);
+    setIsOpenPropertyDetailModal(false);
+    return;
+  }
+  // 1回でもフィールド編集を行った場合にsetSelectedDealCardを更新するためのstate
+  const [updatedDealCard, setUpdatedDealCard] = useState(false);
   // --------------------- 🌠選択中の列データ会社 ---------------------
-  // const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
 
   // 各フィールドの編集モード => ダブルクリックで各フィールド名をstateに格納し、各フィールドをエディットモードへ
   const isEditModeField = useDashboardStore((state) => state.isEditModeField);
@@ -525,6 +536,8 @@ const DetailPropertyModalMemo = () => {
           );
 
           await updatePropertyFieldMutation.mutateAsync(updatePayload);
+          // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+          if (!updatedDealCard) setUpdatedDealCard(true);
         }
         // 売上台数、売上合計が0円の場合
         else if (["unit_sales", "sales_price"].includes(fieldName) && ["0", "０", 0].includes(newValue)) {
@@ -542,6 +555,8 @@ const DetailPropertyModalMemo = () => {
           );
 
           await updatePropertyFieldMutation.mutateAsync(updatePayload);
+          // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+          if (!updatedDealCard) setUpdatedDealCard(true);
         }
         // それ以外
         else if (checkNotFalsyExcludeZero(newValue)) {
@@ -586,6 +601,8 @@ const DetailPropertyModalMemo = () => {
             selectedRowDataProperty.discounted_price
           );
           await updatePropertyFieldMutation.mutateAsync(updatePayload);
+          // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+          if (!updatedDealCard) setUpdatedDealCard(true);
         }
 
         originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
@@ -604,6 +621,8 @@ const DetailPropertyModalMemo = () => {
       // 入力変換確定状態でエンターキーが押された場合の処理
       console.log("onKeyDownイベント エンターキーが入力確定状態でクリック UPDATE実行 updatePayload", updatePayload);
       await updatePropertyFieldMutation.mutateAsync(updatePayload);
+      // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+      if (!updatedDealCard) setUpdatedDealCard(true);
       originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
       setIsEditModeField(null); // エディットモードを終了
     }
@@ -693,7 +712,12 @@ const DetailPropertyModalMemo = () => {
       else {
         console.log("日付チェック 新たな日付のためこのまま更新 newValue", newValue);
         // フィールドがproperty_date（案件日）は年月度も, expansion_date, sales_dateの場合は四半期と年月度も同時に更新
-        if (fieldName === "property_date" || fieldName === "expansion_date" || fieldName === "sales_date") {
+        if (
+          fieldName === "property_date" ||
+          fieldName === "expansion_date" ||
+          fieldName === "sales_date" ||
+          fieldName === "expected_order_date"
+        ) {
           if (!(newDateObj instanceof Date)) return console.log("Dateオブジェクトでないためリターン");
           if (!closingDayRef.current)
             return toast.error("決算日データが確認できないため、活動を更新できませんでした...🙇‍♀️");
@@ -707,11 +731,39 @@ const DetailPropertyModalMemo = () => {
             id: string;
             yearMonth?: number | null;
             yearQuarter?: number | null;
+            yearHalf?: number | null;
+            fiscalYear?: number | null;
           };
 
           // const fiscalYearMonth = calculateDateToYearMonth(new Date(newValue), closingDayRef.current);
+          // 年月度を取得
           const fiscalYearMonth = calculateDateToYearMonth(newDateObj, closingDayRef.current);
-          console.log("新たに生成された年月度", fiscalYearMonth, "fiedName", fieldName, "newValue", newValue);
+          console.log("新たに生成された年月度", fiscalYearMonth, "fieldName", fieldName, "newValue", newValue);
+
+          // ----------------- テスト -----------------
+          const fiscalBasis = userProfileState?.customer_fiscal_year_basis
+            ? userProfileState?.customer_fiscal_year_basis
+            : "firstDayBasis";
+          const fiscalEndDateObj = fiscalEndMonthObjRef.current;
+          if (!fiscalEndDateObj) return alert("エラー：決算日データが見つかりませんでした。");
+          const fiscalYear = getFiscalYear(
+            // newValue,
+            newDateObj,
+            fiscalEndDateObj.getMonth() + 1,
+            fiscalEndDateObj.getDate(),
+            fiscalBasis
+          );
+
+          const fiscalQuarter = getFiscalQuarterTest(fiscalEndDateObj, newDateObj);
+          const fiscalYearQuarter = fiscalYear * 10 + fiscalQuarter; // 2024年Q3 => 20243
+
+          // 四半期の20243から、年と四半期をそれぞれ取得して、半期の算出と年度を格納する
+          // const fiscalYearOnly = Number(fiscalYearQuarter.toString().slice(0, 4)); // 2024
+          const fiscalQuarterOnly = Number(fiscalYearQuarter.toString().slice(-1)); // 3
+          // 半期を算出
+          const fiscalHalf = [1, 2].includes(fiscalQuarterOnly) ? 1 : [3, 4].includes(fiscalQuarterOnly) ? 2 : null;
+          const fiscalHalfYear = Number(`${fiscalYear}${fiscalHalf}`);
+          // ----------------- テスト -----------------
 
           if (!fiscalYearMonth) return toast.error("日付の更新に失敗しました。");
 
@@ -722,29 +774,36 @@ const DetailPropertyModalMemo = () => {
               newValue: !!newValue ? newValue : null,
               id: id,
               yearMonth: fiscalYearMonth,
+              yearQuarter: fiscalYearQuarter,
+              yearHalf: fiscalHalfYear,
+              fiscalYear: fiscalYear,
             };
             // 入力変換確定状態でエンターキーが押された場合の処理
             console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
             await updatePropertyFieldMutation.mutateAsync(updatePayload);
+            // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+            if (!updatedDealCard) setUpdatedDealCard(true);
           }
           // 展開日付と売上日付は四半期と年月度も同時にUPDATEする
-          else if (fieldName === "expansion_date" || fieldName === "sales_date") {
-            if (!(newDateObj instanceof Date)) return console.log("Dateオブジェクトでないためリターン");
-            const fiscalEndDateObj = fiscalEndMonthObjRef.current;
-            if (!fiscalEndDateObj) return alert("エラー：決算日データが見つかりませんでした。");
-            const fiscalBasis = userProfileState?.customer_fiscal_year_basis
-              ? userProfileState?.customer_fiscal_year_basis
-              : "firstDayBasis";
-            const fiscalYear = getFiscalYear(
-              // newValue,
-              newDateObj,
-              fiscalEndDateObj.getMonth() + 1,
-              fiscalEndDateObj.getDate(),
-              fiscalBasis
-            );
-            // const fiscalQuarter = getFiscalQuarterTest(fiscalEndDateObj, newValue);
-            const fiscalQuarter = getFiscalQuarterTest(fiscalEndDateObj, newDateObj);
-            const fiscalYearQuarter = fiscalYear * 10 + fiscalQuarter;
+          else if (
+            fieldName === "expansion_date" ||
+            fieldName === "sales_date" ||
+            fieldName === "expected_order_date"
+          ) {
+            // if (!(newDateObj instanceof Date)) return console.log("Dateオブジェクトでないためリターン");
+            // const fiscalEndDateObj = fiscalEndMonthObjRef.current;
+            // if (!fiscalEndDateObj) return alert("エラー：決算日データが見つかりませんでした。");
+            // const fiscalYear = getFiscalYear(
+            //   // newValue,
+            //   newDateObj,
+            //   fiscalEndDateObj.getMonth() + 1,
+            //   fiscalEndDateObj.getDate(),
+            //   fiscalBasis
+            // );
+
+            // const fiscalQuarter = getFiscalQuarterTest(fiscalEndDateObj, newDateObj);
+            // const fiscalYearQuarter = fiscalYear * 10 + fiscalQuarter;
+
             const updatePayload: UpdateObject = {
               fieldName: fieldName,
               fieldNameForSelectedRowData: fieldNameForSelectedRowData,
@@ -752,6 +811,8 @@ const DetailPropertyModalMemo = () => {
               id: id,
               yearMonth: fiscalYearMonth,
               yearQuarter: fiscalYearQuarter,
+              yearHalf: fiscalHalfYear,
+              fiscalYear: fiscalYear,
             };
             // 入力変換確定状態でエンターキーが押された場合の処理
             console.log(
@@ -763,6 +824,8 @@ const DetailPropertyModalMemo = () => {
               fiscalYear
             );
             await updatePropertyFieldMutation.mutateAsync(updatePayload);
+            // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+            if (!updatedDealCard) setUpdatedDealCard(true);
           }
           originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
           setIsEditModeField(null); // エディットモードを終了
@@ -808,6 +871,8 @@ const DetailPropertyModalMemo = () => {
         );
 
         await updatePropertyFieldMutation.mutateAsync(updatePayload);
+        // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+        if (!updatedDealCard) setUpdatedDealCard(true);
       }
       // 売上台数、売上合計が0円の場合
       else if (["unit_sales", "sales_price"].includes(fieldName) && ["0", "０", 0].includes(newValue)) {
@@ -825,6 +890,8 @@ const DetailPropertyModalMemo = () => {
         );
 
         await updatePropertyFieldMutation.mutateAsync(updatePayload);
+        // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+        if (!updatedDealCard) setUpdatedDealCard(true);
       }
       // それ以外
       else if (checkNotFalsyExcludeZero(newValue)) {
@@ -869,6 +936,8 @@ const DetailPropertyModalMemo = () => {
           selectedRowDataProperty.discounted_price
         );
         await updatePropertyFieldMutation.mutateAsync(updatePayload);
+        // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+        if (!updatedDealCard) setUpdatedDealCard(true);
       }
 
       originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
@@ -889,6 +958,8 @@ const DetailPropertyModalMemo = () => {
     // 入力変換確定状態でエンターキーが押された場合の処理
     console.log("sendアイコンクリックでUPDATE実行 updatePayload", updatePayload);
     await updatePropertyFieldMutation.mutateAsync(updatePayload);
+    // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+    if (!updatedDealCard) setUpdatedDealCard(true);
     originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
     setIsEditModeField(null); // エディットモードを終了
   };
@@ -946,6 +1017,8 @@ const DetailPropertyModalMemo = () => {
     // 入力変換確定状態でエンターキーが押された場合の処理
     console.log("selectタグでUPDATE実行 updatePayload", updatePayload);
     await updatePropertyFieldMutation.mutateAsync(updatePayload);
+    // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+    if (!updatedDealCard) setUpdatedDealCard(true);
     originalValueFieldEdit.current = ""; // 元フィールドデータを空にする
     setIsEditModeField(null); // エディットモードを終了
   };
@@ -969,7 +1042,45 @@ const DetailPropertyModalMemo = () => {
   }, []);
 
   // モーダルを閉じる
-  const handleCloseDetailModalProperty = () => {
+  const [isLoadingUpdate, setIsLoadingUpdate] = useState(false);
+
+  const handleCloseDetailModalProperty = async () => {
+    // 一度以上フィールド編集モードで変更している場合は、モーダルを閉じる際に変更した内容をselectedDealCard.dealCardにも反映する
+    if (updatedDealCard) {
+      // 保存完了するまでローディング
+      setIsLoadingUpdate(true);
+
+      const newDealCard = {
+        ownerId: selectedDealCard.ownerId,
+        dealCard: { ...selectedRowDataProperty, column_title_num: selectedDealCard.dealCard.column_title_num },
+      };
+
+      console.log(
+        "🔥🔥🔥🔥🔥🔥🔥🔥DetailPropertyModalコンポーネントレンダリング",
+        "newDealCard",
+        newDealCard,
+        " selectedRowDataProperty",
+        selectedRowDataProperty,
+        "selectedDealCard",
+        selectedDealCard
+      );
+
+      setSelectedDealCard(newDealCard);
+
+      // selectedDealCardにselectedRowDataPropertyの内容が反映されたのを待ってからローカルstate更新通知を出してモーダルを閉じる
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // 保存完了するまでローディング
+      setIsLoadingUpdate(false);
+
+      // ローカルstateのネタ表を更新
+      setIsRequiredRefreshDealCards(selectedDealCard.ownerId);
+      // setIsRequiredRefreshDealCards(true);
+    }
+
+    // RowDataをリセット
+    setSelectedRowDataProperty(null);
+    // モーダルを閉じる
     setIsOpenPropertyDetailModal(false);
   };
 
@@ -987,6 +1098,12 @@ const DetailPropertyModalMemo = () => {
         className={`fixed inset-0 z-[3900] h-[100vh] w-[100vw] bg-[#00000033] backdrop-blur-[6px]`}
         onClick={handleCloseDetailModalProperty}
       ></div>
+
+      {isLoadingUpdate && (
+        <div className={`flex-center fixed inset-0 z-[5000] h-[100vh] w-[100vw] bg-[#00000033]`}>
+          <SpinnerBrand withBorder withShadow />
+        </div>
+      )}
 
       <div className={`${styles.main_container} ${styles.detail_modal} border-real-with-shadow fade05 w-full`}>
         {/* バツボタン */}
@@ -3561,8 +3678,10 @@ const DetailPropertyModalMemo = () => {
                                 e,
                                 fieldName: "order_certainty_start_of_month",
                                 fieldNameForSelectedRowData: "order_certainty_start_of_month",
-                                newValue: e.target.value,
-                                originalValue: originalValueFieldEdit.current,
+                                newValue: isValidNumber(e.target.value) ? parseInt(e.target.value, 10) : null,
+                                originalValue: isValidNumber(originalValueFieldEdit?.current)
+                                  ? parseInt(originalValueFieldEdit.current!, 10)
+                                  : null,
                                 id: selectedRowDataProperty?.property_id,
                               });
                             }}
@@ -3650,8 +3769,10 @@ const DetailPropertyModalMemo = () => {
                                 e,
                                 fieldName: "review_order_certainty",
                                 fieldNameForSelectedRowData: "review_order_certainty",
-                                newValue: e.target.value,
-                                originalValue: originalValueFieldEdit.current,
+                                newValue: isValidNumber(e.target.value) ? parseInt(e.target.value, 10) : null,
+                                originalValue: isValidNumber(originalValueFieldEdit?.current)
+                                  ? parseInt(originalValueFieldEdit.current!, 10)
+                                  : null,
                                 id: selectedRowDataProperty?.property_id,
                               });
                             }}
@@ -3748,6 +3869,8 @@ const DetailPropertyModalMemo = () => {
                             // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
                             updatePropertyFieldMutation.mutate(updatePayload);
                             setCheckRepeatFlagForFieldEdit(!checkRepeatFlagForFieldEdit);
+                            // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+                            if (!updatedDealCard) setUpdatedDealCard(true);
                           }}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -3813,6 +3936,8 @@ const DetailPropertyModalMemo = () => {
                             // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
                             updatePropertyFieldMutation.mutate(updatePayload);
                             setCheckStepInFlagForFieldEdit(!checkStepInFlagForFieldEdit);
+                            // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+                            if (!updatedDealCard) setUpdatedDealCard(true);
                           }}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -3878,6 +4003,8 @@ const DetailPropertyModalMemo = () => {
                             // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
                             updatePropertyFieldMutation.mutate(updatePayload);
                             setCheckPendingFlagForFieldEdit(!checkPendingFlagForFieldEdit);
+                            // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+                            if (!updatedDealCard) setUpdatedDealCard(true);
                           }}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
@@ -3939,6 +4066,8 @@ const DetailPropertyModalMemo = () => {
                             // 直感的にするためにmutateにして非同期処理のまま後続のローカルのチェックボックスを更新する
                             updatePropertyFieldMutation.mutate(updatePayload);
                             setCheckRejectedFlagForFieldEdit(!checkRejectedFlagForFieldEdit);
+                            // アップデート済みに変更 => 閉じる時にstateを更新・保存して閉じる
+                            if (!updatedDealCard) setUpdatedDealCard(true);
                           }}
                         />
                         <svg viewBox="0 0 16 16" fill="white" xmlns="http://www.w3.org/2000/svg">
