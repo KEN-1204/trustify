@@ -107,8 +107,9 @@ export const useQueryMemberListByParentEntity = ({
     const { data, error } = await supabase.rpc("get_members_and_parent_with_sales_achievement_data", payload);
 
     if (error) {
-      console.log("❌get_members_and_parent_with_sales_achievement_dataエラー発生", error.message);
-      throw new Error(error.message);
+      throw error;
+      // console.log("❌get_members_and_parent_with_sales_achievement_dataエラー発生", error.message);
+      // throw new Error(error.message);
     }
 
     console.log(

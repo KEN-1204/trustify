@@ -71,6 +71,7 @@ import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { UnderRightActivityLogCustom } from "./UnderRightActivityLogCustom/UnderRightActivityLogCustom";
 import { FallbackUnderRightActivityLogCustom } from "./UnderRightActivityLogCustom/FallbackUnderRightActivityLogCustom";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 
 const DetailPropertyModalMemo = () => {
   const language = useStore((state) => state.language);
@@ -92,13 +93,19 @@ const DetailPropertyModalMemo = () => {
     setIsOpenPropertyDetailModal(false);
     return;
   }
-  // 選択中のネタを選択中の物件に格納
+  const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
+  const selectedFiscalYearTargetSDB = useDashboardStore((state) => state.selectedFiscalYearTargetSDB);
   // let selectedRowDataProperty: DealCardType = selectedDealCard.dealCard;
+  // 選択中のネタを選択中の物件に格納
   const setSelectedDealCard = useDashboardStore((state) => state.setSelectedDealCard);
   const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
   const selectedRowDataProperty = useDashboardStore((state) => state.selectedRowDataProperty);
   const setIsRequiredRefreshDealCards = useDashboardStore((state) => state.setIsRequiredRefreshDealCards);
-  if (!selectedRowDataProperty) {
+  // 一括売上入力用編集モーダル
+  const setIsRequiredInputSoldProduct = useDashboardStore((state) => state.setIsRequiredInputSoldProduct);
+  // ネタ確認モーダル
+  const setIsOpenDealCardModal = useDashboardStore((state) => state.setIsOpenDealCardModal);
+  if (!selectedRowDataProperty || !activePeriodSDB) {
     console.log("モーダル selectedRowDataPropertyなしリターン", selectedRowDataProperty);
     setIsOpenPropertyDetailModal(false);
     return;
@@ -1050,9 +1057,14 @@ const DetailPropertyModalMemo = () => {
       // 保存完了するまでローディング
       setIsLoadingUpdate(true);
 
+      const newColumnTitleNum = selectedRowDataProperty.review_order_certainty
+        ? selectedRowDataProperty.review_order_certainty
+        : selectedRowDataProperty.order_certainty_start_of_month ?? 4;
+
       const newDealCard = {
         ownerId: selectedDealCard.ownerId,
-        dealCard: { ...selectedRowDataProperty, column_title_num: selectedDealCard.dealCard.column_title_num },
+        // dealCard: { ...selectedRowDataProperty, column_title_num: selectedDealCard.dealCard.column_title_num },
+        dealCard: { ...selectedRowDataProperty, column_title_num: newColumnTitleNum },
       };
 
       console.log(
@@ -1065,10 +1077,45 @@ const DetailPropertyModalMemo = () => {
         selectedDealCard
       );
 
+      // -------------------------- キャッシュを更新 --------------------------
+      // 🔹売上推移のキャッシュを更新 ---------------------------------
+      const queryKeySalesTrend = ["sales_trends", selectedFiscalYearTargetSDB, "member", activePeriodSDB?.period, 3];
+
+      await queryClient.invalidateQueries({ queryKey: queryKeySalesTrend });
+      // 🔹売上推移のキャッシュを更新 ここまで ---------------------------------
+
+      // 🔹達成率のキャッシュを更新 ---------------------------------
+      // 親エンティティも更新する必要あるためbasePeriodまで指定
+      const queryKeySalesProcesses = [
+        "sales_processes_for_progress",
+        selectedFiscalYearTargetSDB,
+        activePeriodSDB?.periodType,
+        activePeriodSDB?.period,
+        // selectedDealCard.ownerId,
+      ];
+
+      await queryClient.invalidateQueries({ queryKey: queryKeySalesProcesses });
+      // 🔹達成率のキャッシュを更新 ここまで ---------------------------------
+
+      // 🔹ネタ表ボードのキャッシュを更新 ---------------------------------
+      const currentQueryKey = ["deals", selectedDealCard.ownerId, activePeriodSDB.periodType, activePeriodSDB.period];
+
+      const prevCacheDeals: Property_row_data[] | undefined = queryClient.getQueryData(currentQueryKey);
+      // キャッシュの配列から今回更新した案件idのオブジェクトのみ更新してキャッシュを更新
+      if (!!prevCacheDeals?.length) {
+        const newDeals = prevCacheDeals.map((obj) => {
+          return obj.property_id === selectedRowDataProperty.property_id ? selectedRowDataProperty : obj;
+        });
+        console.log("キャッシュを更新", newDeals, "前のキャッシュ", prevCacheDeals);
+        queryClient.setQueryData(currentQueryKey, newDeals);
+      }
+      // -------------------------- キャッシュを更新 ここまで --------------------------
+
+      // Zustandの選択中カードを更新
       setSelectedDealCard(newDealCard);
 
       // selectedDealCardにselectedRowDataPropertyの内容が反映されたのを待ってからローカルstate更新通知を出してモーダルを閉じる
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       // 保存完了するまでローディング
       setIsLoadingUpdate(false);
@@ -1143,7 +1190,7 @@ const DetailPropertyModalMemo = () => {
                             e,
                             field: "current_status",
                             dispatch: setInputCurrentStatus,
-                            dateValue: selectedRowDataProperty?.current_status
+                            selectedRowDataValue: selectedRowDataProperty?.current_status
                               ? selectedRowDataProperty.current_status
                               : null,
                           });
@@ -3689,7 +3736,10 @@ const DetailPropertyModalMemo = () => {
                             //   setInputActivityType(e.target.value);
                             // }}
                           >
-                            <option value=""></option>
+                            {(selectedRowDataProperty?.order_certainty_start_of_month === null ||
+                              selectedRowDataProperty?.order_certainty_start_of_month === undefined) && (
+                              <option value=""></option>
+                            )}
                             {optionsOrderCertaintyStartOfMonth.map((option) => (
                               <option key={option} value={option}>
                                 {getOrderCertaintyStartOfMonth(option)}
@@ -3780,7 +3830,10 @@ const DetailPropertyModalMemo = () => {
                             //   setInputActivityType(e.target.value);
                             // }}
                           >
-                            <option value=""></option>
+                            {(selectedRowDataProperty?.review_order_certainty === null ||
+                              selectedRowDataProperty?.review_order_certainty === undefined) && (
+                              <option value=""></option>
+                            )}
                             {optionsOrderCertaintyStartOfMonth.map((option) => (
                               <option key={option} value={option}>
                                 {getOrderCertaintyStartOfMonth(option)}
@@ -5060,7 +5113,96 @@ const DetailPropertyModalMemo = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.section_title}`}>活動</span>
+                    <span className={`${styles.section_title} !min-w-[60px]`}>活動</span>
+                    <RippleButton
+                      title={`案件_売上入力`}
+                      classText={`select-none absolute left-[0px] bottom-0 z-10`}
+                      clickEventHandler={async () => {
+                        console.log("案件_売上入力 クリック");
+
+                        // 一度以上フィールド編集モードで変更している場合は、モーダルを閉じる際に変更した内容をselectedDealCard.dealCardにも反映する
+                        if (updatedDealCard) {
+                          // 保存完了するまでローディング
+                          // setIsLoadingUpdate(true);
+
+                          const newColumnTitleNum = selectedRowDataProperty.review_order_certainty
+                            ? selectedRowDataProperty.review_order_certainty
+                            : selectedRowDataProperty.order_certainty_start_of_month ?? 4;
+
+                          const newDealCard = {
+                            ownerId: selectedDealCard.ownerId,
+                            // dealCard: { ...selectedRowDataProperty, column_title_num: selectedDealCard.dealCard.column_title_num },
+                            dealCard: { ...selectedRowDataProperty, column_title_num: newColumnTitleNum },
+                          };
+
+                          // -------------------------- キャッシュを更新 --------------------------
+                          // 🔹売上推移のキャッシュを更新 ---------------------------------
+                          const queryKeySalesTrend = [
+                            "sales_trends",
+                            selectedFiscalYearTargetSDB,
+                            "member",
+                            activePeriodSDB?.period,
+                            3,
+                          ];
+
+                          await queryClient.invalidateQueries({ queryKey: queryKeySalesTrend });
+                          // 🔹売上推移のキャッシュを更新 ここまで ---------------------------------
+
+                          // 🔹達成率のキャッシュを更新 ---------------------------------
+                          // 親エンティティも更新する必要あるためbasePeriodまで指定
+                          const queryKeySalesProcesses = [
+                            "sales_processes_for_progress",
+                            selectedFiscalYearTargetSDB,
+                            activePeriodSDB?.periodType,
+                            activePeriodSDB?.period,
+                            // selectedDealCard.ownerId,
+                          ];
+
+                          await queryClient.invalidateQueries({ queryKey: queryKeySalesProcesses });
+                          // 🔹達成率のキャッシュを更新 ここまで ---------------------------------
+
+                          // 🔹ネタ表ボードのキャッシュを更新 ---------------------------------
+                          const currentQueryKey = [
+                            "deals",
+                            selectedDealCard.ownerId,
+                            activePeriodSDB.periodType,
+                            activePeriodSDB.period,
+                          ];
+
+                          const prevCacheDeals: Property_row_data[] | undefined =
+                            queryClient.getQueryData(currentQueryKey);
+                          // キャッシュの配列から今回更新した案件idのオブジェクトのみ更新してキャッシュを更新
+                          if (!!prevCacheDeals?.length) {
+                            const newDeals = prevCacheDeals.map((obj) => {
+                              return obj.property_id === selectedRowDataProperty.property_id
+                                ? selectedRowDataProperty
+                                : obj;
+                            });
+                            console.log("キャッシュを更新", newDeals, "前のキャッシュ", prevCacheDeals);
+                            queryClient.setQueryData(currentQueryKey, newDeals);
+                          }
+                          // -------------------------- キャッシュを更新 ここまで --------------------------
+
+                          // Zustandの選択中カードを更新
+                          setSelectedDealCard(newDealCard);
+
+                          // selectedDealCardにselectedRowDataPropertyの内容が反映されたのを待ってからローカルstate更新通知を出してモーダルを閉じる
+                          // await new Promise((resolve) => setTimeout(resolve, 300));
+
+                          // // 保存完了するまでローディング
+                          // setIsLoadingUpdate(false);
+
+                          // ローカルstateのネタ表を更新
+                          setIsRequiredRefreshDealCards(selectedDealCard.ownerId);
+                        }
+                        setIsOpenUpdatePropertyModal(true); // 案件編集モーダルを開く
+                        setIsRequiredInputSoldProduct(true); // 案件編集モーダルに受注後売上入力ステータスを渡す
+                        // 案件詳細モーダルを閉じる
+                        setIsOpenPropertyDetailModal(false);
+                        // ネタカードモーダルを閉じる
+                        setIsOpenDealCardModal(false);
+                      }}
+                    />
                   </div>
                   <div className={`${styles.section_underline}`}></div>
                 </div>

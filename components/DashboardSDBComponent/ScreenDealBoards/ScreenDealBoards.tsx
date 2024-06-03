@@ -659,7 +659,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                           ? displayTypeForTrend === "sub_entities"
                             ? `${mappingEntityName[displayEntityGroup.entity_level][language]}別`
                             : `${
-                                displayEntityGroup.parent_entity_name === "company"
+                                displayEntityGroup.parent_entity_level === "company"
                                   ? getDivName("company")
                                   : displayEntityGroup.parent_entity_name
                               }`

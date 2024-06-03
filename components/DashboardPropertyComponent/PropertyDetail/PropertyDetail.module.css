@@ -284,6 +284,7 @@
   font-family: "Hiragino Sans", sans-serif, Roboto, system-ui;
   font-family: sans-serif, "Hiragino Sans", Roboto, system-ui;
   /* font-family: system-ui; */
+  color: var(--color-text-title);
 }
 /* --sidebar-open-width: 240px;
   --sidebar-mini-width: 72px; */
