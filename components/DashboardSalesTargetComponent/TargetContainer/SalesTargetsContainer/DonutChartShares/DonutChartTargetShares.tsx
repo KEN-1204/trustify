@@ -18,7 +18,6 @@ import { useMedia } from "react-use";
 import { formatToJapaneseYen } from "@/utils/Helpers/formatToJapaneseYen";
 import { mappingSalesProbablyShort } from "@/utils/selectOptions";
 import useStore from "@/store";
-import { useQuerySalesProbability } from "@/hooks/useQuerySalesProbability";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { useQuerySalesTargetsShare } from "@/hooks/useQuerySalesTargetsShare";
 import { EntityLevelNames, EntityObjForChart, FiscalYearAllKeys } from "@/types";

@@ -42,6 +42,8 @@ import { AreaChartTrend } from "@/components/DashboardSalesTargetComponent/Targe
 import { FallbackDealBoard } from "./DealBoard/FallbackDealBoard";
 import { HiOutlineSelector } from "react-icons/hi";
 import { ProgressCircleSalesAchievement } from "./ProgressCircleSalesAchievement/ProgressCircleSalesAchievement";
+import { DealBoardSalesForecast } from "./DealBoardSalesForecast/DealBoardSalesForecast";
+import { FallbackDealBoardSalesForecast } from "./DealBoardSalesForecast/FallbackDealBoardSalesForecast";
 
 type Props = {
   // memberList: Entity[];
@@ -142,6 +144,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     return new Map(displayEntityGroup.entities.map((entity) => [entity.entity_id, entity]));
   }, [displayEntityGroup]);
 
+  // ------------------------ 🌠子エンティティレベルがmemberのルート🌠 ------------------------
   // 🔹売上目標が設定されている場合にはエンティティグループ内の各エンティティのメンバーアカウントデータを取得
   const {
     data: queryDataObjMemberGroupAndParentEntity,
@@ -157,12 +160,9 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     periodTypeForSales: activePeriodSDB.periodType,
     period: activePeriodSDB.period,
     fiscalYearId: fiscalYearQueryData?.id ?? null,
+    childEntityLevel: displayEntityGroup ? (displayEntityGroup.entity_level as EntityLevelNames) : "member",
     isReady: !!entityIds?.length && !!monthKey,
   });
-
-  // // メンバーエンティティ
-  // const selectedObjSectionSDBMember = useDashboardStore((state) => state.selectedObjSectionSDBMember);
-  // const setSelectedObjSectionSDBMember = useDashboardStore((state) => state.setSelectedObjSectionSDBMember);
 
   const [memberList, setMemberList] = useState<
     // | (MemberAccounts & {
@@ -267,6 +267,11 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
       setMemberList([initialMemberObj]);
     }
   }, [displayEntityGroup]);
+  // ------------------------ 🌠子エンティティレベルがmemberのルート🌠 ここまで ------------------------
+
+  // ------------------------ 🌠子エンティティレベルがmember以外のルート🌠 ------------------------
+  // 🔸確度別の件数と売上予想は売上予測ボードで取得
+  // ------------------------ 🌠子エンティティレベルがmember以外のルート🌠 ここまで ------------------------
 
   // useEffectでメンバーリストが取得できた状態でJSXをレンダリングする
   const [isMounted, setIsMounted] = useState(false);
@@ -525,10 +530,18 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
 
   // 全子コンポーネントがフェッチ完了したかを監視
   useEffect(() => {
-    if (!displayMemberList) return;
-    // メンバーリストよりactiveIndexが大きくなった場合、全てフェッチが完了
-    if (currentActiveIndex >= displayMemberList.length) {
-      setAllFetched(true);
+    // 子エンティティレベルがmemberの場合には、displayMemberListのメンバーリストを使用する
+    if (displayEntityGroup !== null && displayEntityGroup.entity_level === "member") {
+      if (!displayMemberList) return;
+      // メンバーリストよりactiveIndexが大きくなった場合、全てフェッチが完了
+      if (currentActiveIndex >= displayMemberList.length) {
+        setAllFetched(true);
+      }
+    } else if (displayEntityGroup !== null && displayEntityGroup.entity_level !== "member") {
+      // 子エンティティレベルがmemberではない場合の確度別売上金額予想ボードを使用するルート
+    } else if (displayEntityGroup === null) {
+      // displayEntityGroup === null の場合には、userProfileState.idのネタ表ボードが１つレンダリングして、そこでcurrentActiveIndexが1になり、displayMemberList.lengthが1でイコールになりallFetchedがtrueになるため別途trueにする必要なし
+      // if (!allFetched) setAllFetched(true);
     }
   }, [currentActiveIndex]);
 
@@ -603,6 +616,46 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
         break;
     }
   };
+
+  // 売上予測ボード用のsales_targetsテーブル用の期間タイプのパラメータ
+  const annualFiscalMonthsSDB = useDashboardStore((state) => state.annualFiscalMonthsSDB);
+
+  const periodKey = useMemo(() => {
+    if (!annualFiscalMonthsSDB) return null;
+    if (
+      (displayEntityGroup?.entity_level !== "member" && displayEntityGroup !== null) ||
+      (displayEntityGroup?.entity_level === "member" && activePeriodSDB.periodType !== "year_month")
+    ) {
+      if (activePeriodSDB.periodType === "fiscal_year") {
+        return "fiscal_year";
+      } else if (activePeriodSDB.periodType === "half_year") {
+        return selectedPeriodTypeHalfDetailSDB === "first_half_details" ? "first_half" : "second_half";
+      } else if (activePeriodSDB.periodType === "quarter") {
+        const periodValueStr = String(activePeriodSDB.period).substring(4);
+        if (selectedPeriodTypeHalfDetailSDB === "first_half_details") {
+          const firstQuarterDetailSet = new Set([
+            String(annualFiscalMonthsSDB.month_01).substring(4),
+            String(annualFiscalMonthsSDB.month_02).substring(4),
+            String(annualFiscalMonthsSDB.month_03).substring(4),
+          ]);
+
+          return firstQuarterDetailSet.has(periodValueStr) ? "first_quarter" : "second_quarter";
+        } else {
+          const thirdQuarterDetailSet = new Set([
+            String(annualFiscalMonthsSDB.month_10).substring(4),
+            String(annualFiscalMonthsSDB.month_11).substring(4),
+            String(annualFiscalMonthsSDB.month_12).substring(4),
+          ]);
+
+          return thirdQuarterDetailSet.has(periodValueStr) ? "third_quarter" : "fourth_quarter";
+        }
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }, [activePeriodSDB]);
 
   console.log(
     "ScreenDealBoardsコンポーネントレンダリング",
@@ -1097,6 +1150,100 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
           })}
 
         {/* ------------------- ネタ表ボードここまで ------------------- */}
+        {/* ------------------- 売上予測ボード ------------------- */}
+        {/* メンバーレベル以外のエンティティレベル or メンバーレベルで年月度以外の期間を表示する際に使用 */}
+        {!isLoadingSDB &&
+          ((displayEntityGroup?.entity_level !== "member" && displayEntityGroup !== null) ||
+            (displayEntityGroup?.entity_level === "member" && activePeriodSDB.periodType !== "year_month")) && (
+            <>
+              {displayEntityGroup?.entity_level !== "member" &&
+                displayEntityGroup !== null &&
+                displayEntityGroup.entities.map((entityObj, tableIndex) => {
+                  return (
+                    <Fragment key={`${entityObj.entity_id}_${tableIndex}_board`}>
+                      {fiscalYearQueryData && selectedEntityForAchievement && periodKey ? (
+                        <div
+                          className={`${styles.entity_board_container} fade15_forward bg-[red]/[0] ${
+                            stickyRow === `deal_board_${entityObj.entity_id}` ? `${styles.sticky_row}` : ``
+                          }`}
+                        >
+                          <ErrorBoundary FallbackComponent={ErrorFallback}>
+                            <Suspense
+                              fallback={
+                                <FallbackDealBoardSalesForecast entityName={entityObj.entity_name} isFade={true} />
+                              }
+                            >
+                              <DealBoardSalesForecast
+                                companyId={userProfileState.company_id!}
+                                entityId={entityObj.entity_id}
+                                entityLevel={entityObj.entity_level}
+                                periodTypeForTarget={periodKey}
+                                periodTypeForProperty={activePeriodSDB.periodType}
+                                period={activePeriodSDB.period}
+                                stickyRow={stickyRow}
+                                setStickyRow={setStickyRow}
+                                // periodType={activePeriodSDB.periodType}
+                                // period={activePeriodSDB.period}
+                                fetchEnabled={!isLoadingSDB && (tableIndex <= currentActiveIndex || allFetched)} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
+                                onFetchComplete={() => onFetchComplete(tableIndex)} // ネタ表ボードのindexを渡す
+                                isRenderProgress={isRenderProgress}
+                                entityName={selectedEntityForAchievement.entity_name}
+                                fiscalYearId={fiscalYearQueryData.id}
+                                entityLevelId={selectedEntityForAchievement.entity_level_id}
+                                entityStructureId={selectedEntityForAchievement.entity_structure_id}
+                              />
+                            </Suspense>
+                          </ErrorBoundary>
+                        </div>
+                      ) : (
+                        <div
+                          className={`${styles.entity_board_container} fade15_forward bg-[red]/[0] ${
+                            stickyRow === `deal_board_${entityObj.entity_id}` ? `${styles.sticky_row}` : ``
+                          }`}
+                        >
+                          <div
+                            className={`${styles.entity_detail_container} min-h-[48px] ${true ? `fade08_forward` : ``}`}
+                          >
+                            <div className={`${styles.entity_detail_wrapper}`}>
+                              <div className={`${styles.entity_detail} space-x-[12px] text-[12px]`}>
+                                <AvatarIcon
+                                  // size={33}
+                                  size={36}
+                                  name={selectedEntityForAchievement?.entity_name ?? entityObj.entity_name ?? "未設定"}
+                                  withCircle={false}
+                                  hoverEffect={false}
+                                  textSize={16}
+                                  // imgUrl={memberObj.avatar_url ?? null}
+                                />
+                                <div className={`${styles.entity_name} text-[19px] font-bold`}>
+                                  <span>{selectedEntityForAchievement?.entity_name ?? entityObj.entity_name}</span>
+                                </div>
+                                {/* {position_name && (
+                                  <div className={`${styles.sub_info} pt-[6px]`}>{position_name ?? "役職未設定"}</div>
+                                )}
+                                {assigned_employee_id_name && (
+                                  <div className={`${styles.sub_info} pt-[6px]`}>{assigned_employee_id_name ?? ""}</div>
+                                )} */}
+                              </div>
+                            </div>
+                            <div className={`${styles.status_col_wrapper}`}>
+                              <div className={`flex h-full items-start pt-[10px]`}>
+                                <div className={`${styles.btn} ${styles.basic} space-x-[4px]`}>
+                                  <TbSnowflake />
+                                  <span>固定</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className={`flex-center h-[288px] w-full px-[24px] py-[12px]`}>データがありません</div>
+                        </div>
+                      )}
+                    </Fragment>
+                  );
+                })}
+            </>
+          )}
+        {/* ------------------- 売上予測ボード ここまで ------------------- */}
 
         {/* ------------------- テスト ------------------- */}
         {/* {Array(3)

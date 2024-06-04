@@ -167,6 +167,14 @@ export const COLORS_DEAL_SHEER = [
   // "var(--color-chart-fill-fuchsia)",
 ];
 
+// ネタ表ボード用の確度別チャート用カラーパレット
+export const COLORS_DEAL_SDB = [
+  "var(--color-award)",
+  "var(--color-eighty)",
+  "var(--color-fifty)",
+  "var(--color-thirty)",
+];
+
 export const COLORS_BRAND = [
   "var(--color-chart-fill-f)",
   "var(--color-chart-fill-brand-grd2)",

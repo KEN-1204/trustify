@@ -41,6 +41,7 @@ type Props = {
   fallbackPadding: string;
   activeIndexParent: number;
   setActiveIndexParent: Dispatch<SetStateAction<number>>;
+  customPaddingAngle?: number | undefined;
 };
 
 const DonutChartCustomComponentMemo = ({
@@ -64,6 +65,7 @@ const DonutChartCustomComponentMemo = ({
   fallbackPadding,
   activeIndexParent,
   setActiveIndexParent,
+  customPaddingAngle,
 }: Props) => {
   const language = useStore((state) => state.language);
 
@@ -153,7 +155,9 @@ const DonutChartCustomComponentMemo = ({
               // outerRadius={60}
               innerRadius={60}
               outerRadius={78}
-              paddingAngle={displayChartData?.length === 1 ? 0 : 3} // セクター間の間隔 lengthが1の場合は間隔は0にする
+              paddingAngle={
+                displayChartData?.length === 1 ? 0 : customPaddingAngle === undefined ? 3 : customPaddingAngle
+              } // セクター間の間隔 lengthが1の場合は間隔は0にする
               // Rechartsでは、3時の方角が開始点で反時計回りが前提となるため、450度反時計回りの0時を開始点、そこから90度まで逆行(つまり、Rechartsでは時計回りに12時の方角までを描画する)
               startAngle={450}
               endAngle={90}

@@ -3419,6 +3419,17 @@ export type SalesProbabilitiesChartData = {
   chartData: DonutChartObj[];
   labelListSalesProbabilities: LabelDataSalesProbability[];
 };
+
+// ドーナツチャート SDB売上予測ボード
+export type SalesForecastChartData = {
+  current_sales_amount: number; // COALESCEで0をセットしているため必ずnumber型で返却される
+  current_sales_target: number | null;
+  current_achievement_rate: number | null;
+  total_amount: number;
+  chartData: DonutChartObj[];
+  labelListSalesProbabilities: LabelDataSalesProbability[];
+};
+
 // ドーナツチャート 売上目標シェア
 export type DonutChartShareObj = {
   name: string;

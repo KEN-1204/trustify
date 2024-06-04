@@ -223,8 +223,8 @@ const SalesProgressScreenMemo = () => {
   // 現在の表示中の年月度のmonth_xxを取得(ScreenDealBoardsコンポーネントのuseQueryのpayloadで月度の売上目標と実績を取得するために使用)
   const monthKey = useMemo(() => {
     if (!activePeriodSDB) return null;
-    if (activePeriodSDB.periodType !== "year_month") return null;
     if (!annualFiscalMonthWithoutYearToMonthKeyMap) return null;
+    if (activePeriodSDB.periodType !== "year_month") return null;
     // 月の部分を取得
     const _month = String(activePeriodSDB.period).substring(4);
     if (!annualFiscalMonthWithoutYearToMonthKeyMap.has(_month)) return null;

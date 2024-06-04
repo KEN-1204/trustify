@@ -1,5 +1,11 @@
 import useDashboardStore from "@/store/useDashboardStore";
-import { FiscalYearMonthKey, MemberAccounts, MemberAccountsDealBoard, PropertiesPeriodKey } from "@/types";
+import {
+  EntityLevelNames,
+  FiscalYearMonthKey,
+  MemberAccounts,
+  MemberAccountsDealBoard,
+  PropertiesPeriodKey,
+} from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
@@ -14,6 +20,7 @@ type Props = {
   periodTypeForSales: PropertiesPeriodKey;
   period: number;
   fiscalYearId: string | null;
+  childEntityLevel: EntityLevelNames;
   isReady: boolean;
 };
 
@@ -28,6 +35,7 @@ export const useQueryMemberListByParentEntity = ({
   periodTypeForSales,
   period,
   fiscalYearId,
+  childEntityLevel,
   isReady = true,
 }: Props) => {
   const userProfileState = useDashboardStore((state) => state.userProfileState);
@@ -44,6 +52,8 @@ export const useQueryMemberListByParentEntity = ({
     if (!userProfileState) return null;
     if (!periodTypeForTarget) return null;
     if (!fiscalYearId) return null;
+    // 子エンティティレベルがmemberでない場合にはフェッチしない
+    if (childEntityLevel !== "member") return null;
 
     // let rows: (MemberAccounts & {
     //   company_id: string;
@@ -147,7 +157,7 @@ export const useQueryMemberListByParentEntity = ({
   };
 
   return useQuery({
-    queryKey: ["member_accounts", "sdb", parentEntityId, entityIdsStr],
+    queryKey: ["member_accounts", "sdb", parentEntityId, entityIdsStr, childEntityLevel],
     queryFn: getMemberGroupsByParentEntity,
     staleTime: Infinity,
     onError: (error: any) => {
