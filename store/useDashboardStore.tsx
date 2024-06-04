@@ -567,12 +567,15 @@ type State = {
   activeTabSDB: "sales_progress" | "sales_dashboard" | "sales_process" | "sales_area_map";
   setActiveTabSDB: (payload: "sales_progress" | "sales_dashboard" | "sales_process" | "sales_area_map") => void;
   // 全社, 事業部, 係, メンバー個人ごとのデータの範囲別
-  activeSectionSDB: string;
-  setActiveSectionSDB: (payload: string) => void;
+  activeLevelSDB: { parent_entity_level: string; entity_level: string } | null;
+  setActiveLevelSDB: (payload: { parent_entity_level: string; entity_level: string } | null) => void;
   // 月次・四半期・半期・年度ごとの期間データの範囲別
   // FiscalYearAllKeys: 売上推移と売上目標のどちらにも対応できるように期間タイプは「"fiscal_year" | "half_year" | "quarter" | "year_month"」ではなく詳細で保持
   activePeriodSDB: PeriodSDB | null;
   setActivePeriodSDB: (payload: PeriodSDB | null) => void;
+  // エンティティ変更時にonResetFetchCompleteを実行するためのグローバルstate
+  isRequiredResetChangeEntity: boolean;
+  setIsRequiredResetChangeEntity: (payload: boolean) => void;
 
   // 選択中のコンテンツ(どの事業部か、どの係か、どのメンバーか)
   // セクション関連
@@ -1361,14 +1364,17 @@ const useDashboardStore = create<State>((set) => ({
   // ネタ表, 進捗ホワイトボード, SDBなどのタブ
   activeTabSDB: "sales_progress",
   setActiveTabSDB: (payload) => set({ activeTabSDB: payload }),
-  // 全社, 事業部, 係, メンバー個人ごとのデータの範囲別
-  activeSectionSDB: "member",
-  setActiveSectionSDB: (payload) => set({ activeSectionSDB: payload }),
+  // SDBで表示する全社, 事業部, 課, 係エンティティレベル 親エンティティグループを選択するためメンバーレベルは無し
+  activeLevelSDB: null,
+  setActiveLevelSDB: (payload) => set({ activeLevelSDB: payload }),
   // 月次・四半期・半期・年度ごとの期間データの範囲別
   // 年度以外 半期20241, 四半期20244, 月度202403で保持
   // FiscalYearAllKeys: 売上推移と売上目標のどちらにも対応できるように期間タイプは「"fiscal_year" | "half_year" | "quarter" | "year_month"」ではなく詳細で保持
   activePeriodSDB: null,
   setActivePeriodSDB: (payload) => set({ activePeriodSDB: payload }),
+  // エンティティ変更時にonResetFetchCompleteを実行するためのグローバルstate
+  isRequiredResetChangeEntity: false,
+  setIsRequiredResetChangeEntity: (payload) => set({ isRequiredResetChangeEntity: payload }),
 
   // 選択中のコンテンツ(どの事業部か、どの係か、どのメンバーか)
   // セクション関連

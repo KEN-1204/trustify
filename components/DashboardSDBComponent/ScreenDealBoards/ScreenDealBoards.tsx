@@ -562,27 +562,28 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
 
     onResetFetchComplete();
   }, [activePeriodSDB]);
-  // --------------------------- 🌠子コンポーネントを順番にフェッチさせる🌠 ---------------------------
 
-  // 全てのボードがマウントした後にProgressCircleをマウントさせる
-  const [isRenderProgress, setIsRenderProgress] = useState(false);
-
+  // 🌠displayEntityGroupが変更されたらフェッチ完了状態をリセットする
+  const isRequiredResetChangeEntity = useDashboardStore((state) => state.isRequiredResetChangeEntity);
+  const setIsRequiredResetChangeEntity = useDashboardStore((state) => state.setIsRequiredResetChangeEntity);
   useEffect(() => {
-    if (isRenderProgress) return;
-    if (allFetched) {
-      setTimeout(() => {
-        setIsRenderProgress(true);
-        console.log("ProgressCircleレンダリング");
-      }, 1500);
-    }
-  }, [allFetched]);
+    if (!isRequiredResetChangeEntity) return;
+    const onResetFetchComplete = async () => {
+      setCurrentActiveIndex(0);
+      setAllFetched(false);
+      setIsRenderProgress(false);
 
-  if (!isMounted)
-    return (
-      <div className={`flex-center w-full`} style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}>
-        <SpinnerBrand withBorder withShadow />
-      </div>
-    );
+      // // // エンティティ変更ローディング終了
+      // await new Promise((resolve) => setTimeout(resolve, 500));
+      // setIsRequiredResetChangeEntity(false);
+      // // エンティティ変更ローディング終了
+      // setIsLoadingSDB(false);
+      setIsRequiredResetChangeEntity(false);
+    };
+
+    onResetFetchComplete();
+  }, [isRequiredResetChangeEntity]);
+  // --------------------------- 🌠子コンポーネントを順番にフェッチさせる🌠 ---------------------------
 
   const getStyleTheme = () => {
     switch (activeThemeColor) {
@@ -626,6 +627,28 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     "selectedEntityForAchievementMapObj",
     selectedEntityForAchievementMapObj
   );
+
+  // 全てのボードがマウントした後にProgressCircleをマウントさせる
+  const [isRenderProgress, setIsRenderProgress] = useState(false);
+
+  useEffect(() => {
+    if (isRenderProgress) return;
+    if (allFetched) {
+      setTimeout(() => {
+        setIsRenderProgress(true);
+        console.log("ProgressCircleレンダリング");
+      }, 1500);
+    }
+  }, [allFetched]);
+
+  // 期間変更中 or エンティティ変更中もローディングを表示
+  // if (!isMounted || isLoadingSDB || isRequiredResetChangeEntity)
+  if (!isMounted || isRequiredResetChangeEntity)
+    return (
+      <div className={`flex-center w-full`} style={{ minHeight: `calc(732px - 87px)`, paddingBottom: `87px` }}>
+        <SpinnerBrand withBorder withShadow />
+      </div>
+    );
 
   return (
     <>
@@ -925,7 +948,9 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
         {/* ------------------- Row 売上推移・達成率チャートエリア ------------------- */}
 
         {/* ------------------- ネタ表ボード ------------------- */}
+        {/* displayEntityGroupのentity_levelがnullか目標設定がされていない場合のみネタ表ボードを表示する */}
         {!isLoadingSDB &&
+          (displayEntityGroup?.entity_level === "member" || displayEntityGroup === null) &&
           displayMemberList &&
           displayMemberList.map((memberObj, tableIndex) => {
             return (

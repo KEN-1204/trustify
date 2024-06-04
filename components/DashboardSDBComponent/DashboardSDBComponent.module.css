@@ -436,6 +436,8 @@
 }
 .settings_menu .list.select_list:last-of-type {
   margin-bottom: 0px;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
 }
 .settings_menu .list.select_list:hover {
   background-color: var(--color-bg-brand-f40);

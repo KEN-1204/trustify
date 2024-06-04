@@ -33,6 +33,7 @@ import {
 import { ScreenDealBoards } from "../ScreenDealBoards/ScreenDealBoards";
 import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMonth";
 import {
+  Entity,
   EntityGroupByParent,
   EntityLevelNames,
   FiscalYearAllKeys,
@@ -66,6 +67,7 @@ import { useQueryUnits } from "@/hooks/useQueryUnits";
 import { useQueryOffices } from "@/hooks/useQueryOffices";
 import { RxDot } from "react-icons/rx";
 import { format } from "date-fns";
+import { toast } from "react-toastify";
 
 const SalesProgressScreenMemo = () => {
   const language = useStore((state) => state.language);
@@ -74,8 +76,8 @@ const SalesProgressScreenMemo = () => {
   const activeTabSDB = useDashboardStore((state) => state.activeTabSDB);
   const setActiveTabSDB = useDashboardStore((state) => state.setActiveTabSDB);
   // エンティティセクション
-  const activeSectionSDB = useDashboardStore((state) => state.activeSectionSDB);
-  const setActiveSectionSDB = useDashboardStore((state) => state.setActiveSectionSDB);
+  // const activeLevelSDB = useDashboardStore((state) => state.activeLevelSDB);
+  // const setActiveLevelSDB = useDashboardStore((state) => state.setActiveLevelSDB);
   // 期間
   const activePeriodSDB = useDashboardStore((state) => state.activePeriodSDB);
   const setActivePeriodSDB = useDashboardStore((state) => state.setActivePeriodSDB);
@@ -391,11 +393,27 @@ const SalesProgressScreenMemo = () => {
     true
     // !isLoadingQueryFiscalYear && isSuccessQueryFiscalYear
   );
-  // { エンティティレベル名: エンティティレベルオブジェクト }のMapオブジェクト
+  // 🔸{ エンティティレベル名: エンティティレベルオブジェクト }のMapオブジェクト
   const entityLevelsMap = useMemo(() => {
     if (!entityLevelsQueryData) return null;
     return new Map(entityLevelsQueryData.map((levelObj) => [levelObj.entity_level, levelObj]));
   }, [entityLevelsQueryData]);
+
+  // 🔸エンティティレベルをkeyでvalueを子エンティティレベルにまとめたMapオブジェクト
+  const entityLevelToChildLevelMap = useMemo(() => {
+    if (!entityLevelsMap) return null;
+    const levelOrder = ["company", "department", "section", "unit", "member"];
+
+    const filteredLevels = levelOrder.filter((entity_level) => entityLevelsMap.has(entity_level));
+
+    // 最後のメンバーレベルに子レベルは存在しないため空文字をセット
+    return new Map(
+      filteredLevels.map((level, index) => [
+        level as EntityLevelNames,
+        (filteredLevels.length !== index + 1 ? filteredLevels[index + 1] : "") as EntityLevelNames | "",
+      ])
+    );
+  }, [entityLevelsMap]);
   // ===================== 🌠エンティティレベルuseQuery🌠 =====================
 
   // ===================== 🌠エンティティuseQuery🌠 =====================
@@ -419,6 +437,7 @@ const SalesProgressScreenMemo = () => {
     isSuccessQueryLevel
     // !isLoadingQueryFiscalYear && isSuccessQueryFiscalYear && !isLoadingQueryLevel && isSuccessQueryLevel
   );
+
   // ===================== 🌠エンティティuseQuery🌠 =====================
   // ------------------------- 🌟useQuery売上目標 年度・レベル・エンティティ🌟 ここまで -------------------------
 
@@ -467,6 +486,102 @@ const SalesProgressScreenMemo = () => {
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
   // ------------------------- 🌟事業部・課・係・事業所useQuery🌟 ここまで -------------------------
+
+  // ===================== 🌟ユーザーが作成したエンティティのみでレベル選択肢リストを再生成🌟 =====================
+  // ✅ステップ1の選択肢で追加
+  const initialOptionsEntityLevelList = (): {
+    title: EntityLevelNames;
+    name: {
+      [key: string]: string;
+    };
+  }[] => {
+    let newEntityList: {
+      title: EntityLevelNames;
+      name: {
+        [key: string]: string;
+      };
+    }[] = [{ title: "company", name: { ja: "全社", en: "Company" } }];
+    if (departmentDataArray && departmentDataArray.length > 0) {
+      newEntityList.push({ title: "department", name: { ja: "事業部", en: "Department" } });
+    }
+    if (sectionDataArray && sectionDataArray.length > 0) {
+      newEntityList.push({ title: "section", name: { ja: "課・セクション", en: "Section" } });
+    }
+    if (unitDataArray && unitDataArray.length > 0) {
+      newEntityList.push({ title: "unit", name: { ja: "係・チーム", en: "Unit" } });
+    }
+    // メンバーは必ず追加 親エンティティの選択肢なのでメンバーレベルは不要
+    // newEntityList.push({ title: "member", name: { ja: "メンバー", en: "Member" } });
+    // 事業所は一旦見合わせ
+    // if (officeDataArray && officeDataArray.length > 0) {
+    //   newEntityList.push({ title: "office", name: { ja: "事業所", en: "Office" } });
+    // }
+
+    return newEntityList;
+  };
+
+  // 🔸エンティティレベル変更時のレベル選択肢
+  const optionsEntityLevelList = useMemo(() => {
+    if (!entityLevelsMap) return null;
+    let newEntityLevelsList = initialOptionsEntityLevelList();
+    return newEntityLevelsList.filter((obj) => entityLevelsMap.has(obj.title));
+  }, [entityLevelsMap]);
+
+  // 🔸各エンティティレベルごとのフラット化したエンティティ配列をkey: エンティティレベル, value: エンティティ配列でMapオブジェクト化
+  const entitiesHierarchyLevelToFlatEntities = useMemo(() => {
+    if (!entitiesHierarchyQueryData) return null;
+    return new Map(
+      Object.entries(entitiesHierarchyQueryData).map(([key, value]) => [
+        key as EntityLevelNames,
+        value.map((group) => group.entities).flatMap((array) => array),
+      ])
+    );
+  }, [entitiesHierarchyQueryData]);
+
+  // const [optionsEntityLevelList, setOptionsEntityLevelList] = useState<
+  //   {
+  //     // title: string;
+  //     title: EntityLevelNames;
+  //     name: {
+  //       [key: string]: string;
+  //     };
+  //   }[]
+  // >(initialOptionsEntityLevelList());
+
+  // 🔸エンティティレベルを変更する際に選択中のレベルを保持するローカルstate
+  // const [selectedEntityLevelLocal, setSelectedEntityLevelLocal] = useState<{
+  //   parent_entity_level: EntityLevelNames;
+  //   entity_level: EntityLevelNames;
+  // } | null>(null);
+  // 🔸エンティティレベル変更時の選択中のレベル内での選択中のエンティティ
+  const [selectedEntityLocal, setSelectedEntityLocal] = useState<{
+    entity_level: string;
+    parent_entity_id: string;
+    parent_entity_name: string;
+    parent_entity_level: string;
+    parent_entity_level_id: string;
+    parent_entity_structure_id: string;
+  } | null>(null);
+
+  // 🔸エンティティレベル変更時の選択中のレベル内でのエンティティ選択肢 メンバーレベル以外の親エンティティを選択するためflatMapで全ての親エンティティグループごとではなくエンティティを全て一括でまとめた選択肢を表示する
+  // const optionsEntitiesList = useMemo(() => {
+  //   if (!selectedEntityLocal) return null;
+  //   if (!entitiesHierarchyQueryData) return null;
+  //   if (!Object.keys(entitiesHierarchyQueryData).includes(selectedEntityLocal.entity_level)) return null;
+
+  //   const newEntitiesArray = entitiesHierarchyQueryData[selectedEntityLocal.entity_level as EntityLevelNames]
+  //     .map((obj) => obj.entities)
+  //     .flatMap((array) => array);
+
+  //   return newEntitiesArray;
+  // }, [selectedEntityLocal, entitiesHierarchyQueryData]);
+  const [optionsEntitiesList, setOptionsEntitiesList] = useState<Entity[]>([]);
+  // 選択肢のエンティティidからエンティティオブジェクトを取得するためのMapオブジェクト
+  const optionEntityIdToObjMap = useMemo(() => {
+    if (!optionsEntitiesList) return;
+    return new Map(optionsEntitiesList.map((obj) => [obj.entity_id, obj]));
+  }, [optionsEntitiesList]);
+  // ===================== 🌟ユーザーが作成したエンティティのみでレベル選択肢リストを再生成🌟 ここまで =====================
 
   // 🔹entitiesHierarchyQueryDataからメンバーレベルの全てのエンティティグループから自分が所属する親エンティティグループを取得
   // const displayEntityGroup = useMemo(() => {
@@ -532,12 +647,19 @@ const SalesProgressScreenMemo = () => {
 
     if (!initialMemberGroupByParentEntity) {
       if (displayEntityGroup !== null) setDisplayEntityGroup(null);
+      // 目標が設定されていない場合にはアクティブレベルはcompanyにしておく
+      // setActiveLevelSDB(null)
     } else {
       // console.log("ここinitialMemberGroupByParentEntity", initialMemberGroupByParentEntity);
 
       // 初回マウント時か期間変更時にする
-      // if (displayEntityGroup === null) setDisplayEntityGroup(initialMemberGroupByParentEntity);
-      setDisplayEntityGroup(initialMemberGroupByParentEntity);
+      if (displayEntityGroup === null) setDisplayEntityGroup(initialMemberGroupByParentEntity);
+      // setDisplayEntityGroup(initialMemberGroupByParentEntity);
+      // 目標が設定されている場合は、アクティブレベルを現在表示中の親レベルにする
+      // setActiveLevelSDB({
+      //   parent_entity_level: initialMemberGroupByParentEntity.parent_entity_level,
+      //   entity_level: initialMemberGroupByParentEntity.entity_level
+      // });
     }
   }, [entitiesHierarchyQueryData, isLoadingQueryFiscalYear, isLoadingQueryLevel, isLoadingQueryEntities]);
 
@@ -606,6 +728,11 @@ const SalesProgressScreenMemo = () => {
     if (openSectionMenu?.title === "period") {
       setActivePeriodSDBLocal(null);
     }
+    if (openSectionMenu?.title === "entity") {
+      setSelectedEntityLocal(null); // 選択中のエンティティローカルstateをリセット
+      setOptionsEntitiesList([]); // 選択肢をリセット
+    }
+
     setOpenSectionMenu(null);
   };
   // -------------------------- 🌟セクションメニュー🌟 --------------------------
@@ -808,13 +935,97 @@ const SalesProgressScreenMemo = () => {
     if (fadeType === "fade") return styles.fade;
   };
 
+  // ----------------------------- 🌟表示エンティティをメニューから適用ボタンで変更する関数🌟 -----------------------------
+  // onResetFetchCompleteを実行通知するためのグローバルstate
+  const setIsRequiredResetChangeEntity = useDashboardStore((state) => state.setIsRequiredResetChangeEntity);
+  const handleChangeEntity = async () => {
+    try {
+      if (!selectedEntityLocal) throw new Error("エラー：SPS hCE01");
+      if (!entitiesHierarchyQueryData) throw new Error("エラー：SPS hCE02");
+
+      // if (true) {
+      //   console.log(
+      //     "selectedEntityLocal.entity_level",
+      //     selectedEntityLocal.entity_level,
+      //     "Object.keys(entitiesHierarchyQueryData)",
+      //     Object.keys(entitiesHierarchyQueryData),
+      //     "entitiesHierarchyQueryData",
+      //     entitiesHierarchyQueryData
+      //   );
+      //   return;
+      // }
+
+      // ローディング開始 エンティティ更新が終わる前の間のローディング中はフェッチを行わないようにしてonResetFetchCompleteを実行して初期化する
+      setIsLoadingSDB(true);
+
+      // ネタ表カードのリセットを通知
+      setIsRequiredResetChangeEntity(true);
+
+      // 子エンティティのEntity[]を取得する
+      if (!Object.keys(entitiesHierarchyQueryData).includes(selectedEntityLocal.entity_level))
+        throw new Error("エラー：SPS hCE03");
+      const childEntityGroupsByParent =
+        entitiesHierarchyQueryData[selectedEntityLocal.entity_level as EntityLevelNames];
+
+      if (!childEntityGroupsByParent) throw new Error("エラー：SPS hCE04");
+
+      // 選択中のparent_entity_idを持つ子エンティティ配列を取得する
+      const childEntityGroupByParent = childEntityGroupsByParent.find(
+        (group) => group.parent_entity_id === selectedEntityLocal.parent_entity_id
+      );
+
+      if (!childEntityGroupByParent) throw new Error("エラー：SPS hCE05");
+
+      const newEntityGroup = {
+        ...childEntityGroupByParent,
+        parent_entity_level: selectedEntityLocal.parent_entity_level,
+        parent_entity_level_id: selectedEntityLocal.parent_entity_level_id,
+        parent_entity_structure_id: selectedEntityLocal.parent_entity_structure_id,
+        entity_level: selectedEntityLocal.entity_level,
+      } as EntityGroupByParent & {
+        parent_entity_level: string;
+        parent_entity_level_id: string;
+        parent_entity_structure_id: string;
+        entity_level: string;
+      };
+
+      console.log(
+        "🌠🌠🌠🌠🌠🌠🌠🌠🌟🌟🌟🌟エンティティ変更",
+        "newEntityGroup",
+        newEntityGroup,
+        "childEntityGroupByParent",
+        childEntityGroupByParent,
+        "selectedEntityLocal",
+        selectedEntityLocal
+      );
+
+      // 表示中のエンティティを変更
+      setDisplayEntityGroup(newEntityGroup);
+
+      // エンティティ変更が完了したらローカルstateを初期化
+      handleCloseSectionMenu();
+
+      // 0.5秒の遅延を入れてからローディングを終了する
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // リセットを終了はScreenDealBoardsで行う
+      // ローディング終了
+      setIsLoadingSDB(false);
+    } catch (error: any) {
+      console.error("エラー：", error);
+      handleCloseSectionMenu();
+      setIsLoadingSDB(false);
+    }
+  };
+  // ----------------------------- 🌟表示エンティティをメニューから適用ボタンで変更する関数🌟 ここまで ----------------------------
+
   // ----------------------------- 🌟期間をメニューから適用ボタンで変更する関数🌟 -----------------------------
-  const isLoadingSDB = useDashboardStore((state) => state.isLoadingSDB);
+  // const isLoadingSDB = useDashboardStore((state) => state.isLoadingSDB);
   const setIsLoadingSDB = useDashboardStore((state) => state.setIsLoadingSDB);
   const handleChangePeriod = async () => {
     console.log("handleChangePeriodクリック");
 
-    // ローディング開始
+    // ローディング開始 期間更新が終わる前の間のローディング中はフェッチを行わないようにしてonResetFetchCompleteを実行して初期化する
     setIsLoadingSDB(true);
 
     if (
@@ -1012,6 +1223,7 @@ const SalesProgressScreenMemo = () => {
     // await new Promise((resolve) => setTimeout(resolve, 500));
     // // ローディング終了
     // setIsLoadingSDB(false);
+    // ローディング終了はScreenDealBoardsで行う
   };
   // ----------------------------- 🌟期間をメニューから適用ボタンで変更する関数🌟 ここまで -----------------------------
 
@@ -1106,7 +1318,9 @@ const SalesProgressScreenMemo = () => {
     "🔸monthKey",
     monthKey,
     "🔸displayEntityGroup",
-    displayEntityGroup
+    displayEntityGroup,
+    "🔸optionsEntityLevelList",
+    optionsEntityLevelList
   );
 
   if (!isMounted || activePeriodSDB === null) return <FallbackSalesProgressScreen />;
@@ -1165,12 +1379,46 @@ const SalesProgressScreenMemo = () => {
                 <div
                   className={`underline_area mb-[-1px] flex cursor-pointer flex-col hover:text-[var(--main-color-f)]`}
                   onClick={(e) => {
+                    // infoアイコンのポップアップメニューが開いた状態の場合があるため開いていた時用にnullで更新
                     if (!!openPopupMenu) setOpenPopupMenu(null);
+                    if (
+                      !displayEntityGroup ||
+                      !displayEntityGroup.parent_entity_id ||
+                      !entitiesHierarchyLevelToFlatEntities
+                    ) {
+                      return alert(`売上目標を設定することで各レイヤーごとに表示を切り替えることが可能です。`);
+                    }
                     if (!entityLevelsMap || entityLevelsMap.size <= 2) {
                       return alert(
                         `売上目標に「全社・メンバー」以外のレイヤーが含まれている場合、\nレイヤーごとに表示を切り替えることが可能です。`
                       );
                     }
+                    if (!optionsEntityLevelList) {
+                      return alert(
+                        `切り替え可能なレイヤーが見つかりませんでした。売上目標に「全社・メンバー」以外のレイヤーが含まれている場合、\nレイヤーごとに表示を切り替えることが可能です。`
+                      );
+                    }
+
+                    // 現在選択中の親エンティティが所属するレベルの選択肢リストstateを更新
+                    const newEntities = entitiesHierarchyLevelToFlatEntities.get(
+                      displayEntityGroup.parent_entity_level as EntityLevelNames
+                    );
+                    if (!newEntities)
+                      return alert(
+                        `レイヤー内のデータが見つかりませんでした。売上目標を設定することで各レイヤーごとに表示を切り替えることが可能です。エラー：SPS001`
+                      );
+                    setOptionsEntitiesList(newEntities);
+
+                    // ローカルstateに現在表示中の親エンティティと子エンティティレベルを格納
+                    setSelectedEntityLocal({
+                      entity_level: displayEntityGroup.entity_level,
+                      parent_entity_id: displayEntityGroup.parent_entity_id,
+                      parent_entity_name: displayEntityGroup.parent_entity_name,
+                      parent_entity_level: displayEntityGroup.parent_entity_level,
+                      parent_entity_level_id: displayEntityGroup.parent_entity_level_id,
+                      parent_entity_structure_id: displayEntityGroup.parent_entity_structure_id,
+                    });
+
                     handleOpenSectionMenu({
                       e,
                       title: "entity",
@@ -1181,10 +1429,11 @@ const SalesProgressScreenMemo = () => {
                     handleCloseTooltip();
                   }}
                   onMouseEnter={(e) => {
+                    if (!!openPopupMenu) setOpenPopupMenu(null); // infoアイコンのメニューが消えていなかった時用
                     let tooltipContent = ``;
                     if (activeTabSDB === "sales_progress") {
                       if (!entityLevelsMap) {
-                        tooltipContent = `「目標」タブから売上目標を設定することで\n「全社・事業部・課・係・メンバー」ごとに売上進捗や営業プロセス指数をダッシュボードで確認できます。`;
+                        tooltipContent = `「目標」タブから売上目標を設定することで\n「全社・事業部・課・係・メンバー」のレイヤーごとに売上進捗や営業プロセス指数をダッシュボードで確認できます。`;
                       } else {
                         if (entityLevelsMap.has("unit")) {
                           tooltipContent = `「全社・事業部・課・係」のレイヤーを変更することで\n各レイヤーごとの売上進捗をダッシュボードに反映します。`;
@@ -1209,7 +1458,7 @@ const SalesProgressScreenMemo = () => {
                   onMouseLeave={handleCloseTooltip}
                 >
                   <div className={`flex items-center space-x-[3px]`}>
-                    {/* <span>{mappingSectionName[activeSectionSDB][language]}</span> */}
+                    {/* <span>{mappingSectionName[activeLevelSDB][language]}</span> */}
                     <span>
                       {displayEntityGroup
                         ? displayEntityGroup.parent_entity_level === "company"
@@ -1217,7 +1466,7 @@ const SalesProgressScreenMemo = () => {
                           : displayEntityGroup.parent_entity_name
                         : userProfileState.profile_name}
                     </span>
-                    <IoChevronDownOutline className={`text-[18px]`} />
+                    {displayEntityGroup && <IoChevronDownOutline className={`text-[18px]`} />}
                   </div>
                   <div className={`flow_underline brand_light one_px w-full`} />
                 </div>
@@ -1485,112 +1734,177 @@ const SalesProgressScreenMemo = () => {
           )}
 
           {/* ------------------------ エンティティ選択メニュー ------------------------ */}
-          {openSectionMenu.title === "entity" && (
-            <>
-              <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
-                <div className="flex max-w-max flex-col">
-                  <span>セクションメニュー</span>
-                  <div className={`${styles.section_underline} w-full`} />
+          {openSectionMenu.title === "entity" &&
+            selectedEntityLocal &&
+            entitiesHierarchyQueryData &&
+            entitiesHierarchyLevelToFlatEntities &&
+            entityLevelToChildLevelMap && (
+              <>
+                <h3 className={`w-full px-[20px] pt-[20px] text-[15px] font-bold`}>
+                  <div className="flex max-w-max flex-col">
+                    <span>セクションメニュー</span>
+                    <div className={`${styles.section_underline} w-full`} />
+                  </div>
+                </h3>
+
+                <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
+                  下記メニューからレイヤーを変更することで、各レイヤーに応じたデータを反映します。
+                </p>
+
+                <hr className="min-h-[1px] w-full bg-[#999]" />
+
+                {/* -------- メニューコンテンツエリア -------- */}
+                <div className={`${styles.scroll_container} flex max-h-[240px] w-full flex-col overflow-y-auto`}>
+                  <ul className={`flex h-full w-full flex-col`}>
+                    {/* ------------------------------------ */}
+                    {optionsEntityLevelList &&
+                      optionsEntityLevelList.map((obj, index) => {
+                        const isActive = obj.title === selectedEntityLocal.parent_entity_level;
+                        return (
+                          <li
+                            key={obj.title}
+                            className={`${styles.list} ${styles.select_list} ${isActive ? styles.active : ``}`}
+                            onClick={(e) => {
+                              if (isActive) return;
+
+                              try {
+                                // 選択したレベルでレベル内の一番最初のエンティティを選択中のエンティティとしてセットする
+                                if (!entitiesHierarchyLevelToFlatEntities.has(obj.title))
+                                  throw new Error("エラー：SPS11");
+
+                                const newEntitiesArray = entitiesHierarchyLevelToFlatEntities.get(obj.title);
+
+                                if (!newEntitiesArray) throw new Error("エラー：SPS12");
+                                if (!newEntitiesArray[0]) throw new Error("エラー：SPS13");
+
+                                // 子エンティティレベルを取得する
+                                const childEntityLevel = entityLevelToChildLevelMap.get(obj.title);
+
+                                if (!childEntityLevel) throw new Error("エラー：SPS14");
+
+                                const childEntitiesArray = entitiesHierarchyLevelToFlatEntities.get(childEntityLevel);
+
+                                if (!childEntitiesArray) throw new Error("エラー：SPS15");
+                                if (!childEntitiesArray[0]) throw new Error("エラー：SPS16");
+
+                                // 選択肢をセット
+                                setOptionsEntitiesList(newEntitiesArray);
+
+                                // 選択中のエンティティとしてセット
+                                // setActiveLevelSDB(obj.title);
+                                setSelectedEntityLocal({
+                                  entity_level: childEntitiesArray[0].entity_level, // 紐づく子エンティティ配列
+                                  parent_entity_id: newEntitiesArray[0].entity_id, // 表示するメインエンティティ
+                                  parent_entity_name: newEntitiesArray[0].entity_name,
+                                  parent_entity_level: newEntitiesArray[0].entity_level,
+                                  parent_entity_level_id: newEntitiesArray[0].entity_level_id,
+                                  parent_entity_structure_id: newEntitiesArray[0].id,
+                                });
+                              } catch (error: any) {
+                                console.error("レイヤー選択時にエラーが発生しました。 SPS", error);
+                                toast.error("レイヤー変更に失敗しました...🙇‍♀️");
+                              }
+                              handleClosePopupMenu();
+                            }}
+                          >
+                            <div className="pointer-events-none flex min-w-[110px] items-center">
+                              <MdOutlineDataSaverOff
+                                className={`${styles.list_icon} mr-[16px] min-h-[20px] min-w-[20px] text-[20px]`}
+                              />
+                              <div className="flex select-none items-center space-x-[2px]">
+                                <span className={`${styles.select_item}`}>{obj.name[language]}</span>
+                                {/* <span className={``}>：</span> */}
+                              </div>
+                            </div>
+                            {isActive && (
+                              <div className={`${styles.icon_container}`}>
+                                <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
+                              </div>
+                            )}
+                          </li>
+                        );
+                      })}
+                    {/* ------------------------------------ */}
+                  </ul>
                 </div>
-              </h3>
-
-              <p className={`w-full px-[20px] pb-[12px] pt-[10px] text-[11px]`}>
-                下記メニューから「全社・事業部・係/チーム・メンバー個人」を変更することで、各セクションに応じたデータを反映します。
-              </p>
-
-              <hr className="min-h-[1px] w-full bg-[#999]" />
-
-              {/* -------- メニューコンテンツエリア -------- */}
-              <div className={`${styles.scroll_container} flex max-h-[240px] w-full flex-col overflow-y-auto`}>
-                <ul className={`flex h-full w-full flex-col`}>
+                {/* 右サイドエンティティ詳細メニュー 適用・戻るエリア */}
+                <div
+                  className={`${styles.settings_menu} ${styles.edit_mode}  z-[3000] h-auto w-[330px] overflow-hidden rounded-[6px] ${styles.fade_up}`}
+                  style={{
+                    // position: "absolute",
+                    // bottom: "-168px",
+                    // left: 0,
+                    position: "absolute",
+                    // ...(sectionMenuRef.current?.offsetWidth
+                    //   ? { bottom: "0px", left: sectionMenuRef.current?.offsetWidth + 10 }
+                    //   : { bottom: "-168px", left: 0 }),
+                    ...(sectionMenuRef.current?.offsetWidth
+                      ? { top: "0px", left: sectionMenuRef.current?.offsetWidth + 10 }
+                      : { bottom: "-168px", left: 0 }),
+                    animationDelay: `0.2s`,
+                    animationDuration: `0.5s`,
+                    ...(openSectionMenu.maxWidth && { maxWidth: `${openSectionMenu.maxWidth}px` }),
+                  }}
+                >
                   {/* ------------------------------------ */}
-                  {sectionList.map((obj, index) => {
-                    const isActive = obj.title === activeSectionSDB;
-                    return (
-                      <li
-                        key={obj.title}
-                        className={`${styles.list} ${styles.select_list} ${isActive ? styles.active : ``}`}
-                        onClick={(e) => {
-                          if (isActive) return;
-                          setActiveSectionSDB(obj.title);
-                          handleClosePopupMenu();
+                  <li className={`${styles.section_title} flex min-h-max w-full font-bold`}>
+                    <div className="flex max-w-max flex-col">
+                      <span>{mappingSectionName[selectedEntityLocal.parent_entity_level][language]}</span>
+                      <div className={`${styles.underline} w-full`} />
+                    </div>
+                  </li>
+                  {/* ------------------------------------ */}
+                  {/* ------------------------------------ */}
+                  <li
+                    className={`${styles.list}`}
+                    onMouseEnter={(e) => {
+                      // handleOpenPopupMenu({ e, title: "compressionRatio" });
+                    }}
+                    onMouseLeave={handleClosePopupMenu}
+                  >
+                    <div className="pointer-events-none flex min-w-[70px] items-center">
+                      {/* <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" /> */}
+                      <div className="flex select-none items-center space-x-[2px]">
+                        <span className={`${styles.list_title}`}>表示</span>
+                        <span className={``}>：</span>
+                      </div>
+                    </div>
+                    {!!optionsEntitiesList.length &&
+                    selectedEntityLocal &&
+                    optionEntityIdToObjMap &&
+                    selectedEntityLocal.parent_entity_level !== "company" ? (
+                      <select
+                        className={`${styles.select_box} truncate`}
+                        value={selectedEntityLocal.parent_entity_id}
+                        onChange={(e) => {
+                          const newEntity = optionEntityIdToObjMap.get(e.target.value);
+                          if (!newEntity) return;
+                          setSelectedEntityLocal({
+                            entity_level: selectedEntityLocal.entity_level, // 選択したレベル内でエンティティを変更するためエンティティレベルはここでは同じ
+                            parent_entity_id: newEntity.entity_id,
+                            parent_entity_name: newEntity.entity_name,
+                            parent_entity_level: newEntity.entity_level,
+                            parent_entity_level_id: newEntity.entity_level_id,
+                            parent_entity_structure_id: newEntity.id,
+                          });
                         }}
                       >
-                        <div className="pointer-events-none flex min-w-[110px] items-center">
-                          <MdOutlineDataSaverOff
-                            className={`${styles.list_icon} mr-[16px] min-h-[20px] min-w-[20px] text-[20px]`}
-                          />
-                          <div className="flex select-none items-center space-x-[2px]">
-                            <span className={`${styles.select_item}`}>{obj.name[language]}</span>
-                            {/* <span className={``}>：</span> */}
-                          </div>
-                        </div>
-                        {isActive && (
-                          <div className={`${styles.icon_container}`}>
-                            <BsCheck2 className="pointer-events-none min-h-[22px] min-w-[22px] stroke-1 text-[22px] text-[#00d436]" />
-                          </div>
-                        )}
-                      </li>
-                    );
-                  })}
-                  {/* ------------------------------------ */}
-                </ul>
-              </div>
-              {/* 右サイドエンティティ詳細メニュー 適用・戻るエリア */}
-              <div
-                className={`${styles.settings_menu} ${styles.edit_mode}  z-[3000] h-auto w-[330px] overflow-hidden rounded-[6px] ${styles.fade_up}`}
-                style={{
-                  // position: "absolute",
-                  // bottom: "-168px",
-                  // left: 0,
-                  position: "absolute",
-                  // ...(sectionMenuRef.current?.offsetWidth
-                  //   ? { bottom: "0px", left: sectionMenuRef.current?.offsetWidth + 10 }
-                  //   : { bottom: "-168px", left: 0 }),
-                  ...(sectionMenuRef.current?.offsetWidth
-                    ? { top: "0px", left: sectionMenuRef.current?.offsetWidth + 10 }
-                    : { bottom: "-168px", left: 0 }),
-                  animationDelay: `0.2s`,
-                  animationDuration: `0.5s`,
-                  ...(openSectionMenu.maxWidth && { maxWidth: `${openSectionMenu.maxWidth}px` }),
-                }}
-              >
-                {/* ------------------------------------ */}
-                <li className={`${styles.section_title} flex min-h-max w-full font-bold`}>
-                  <div className="flex max-w-max flex-col">
-                    <span>{mappingSectionName[activeSectionSDB][language]}</span>
-                    <div className={`${styles.underline} w-full`} />
-                  </div>
-                </li>
-                {/* ------------------------------------ */}
-                {/* ------------------------------------ */}
-                <li
-                  className={`${styles.list}`}
-                  onMouseEnter={(e) => {
-                    // handleOpenPopupMenu({ e, title: "compressionRatio" });
-                  }}
-                  onMouseLeave={handleClosePopupMenu}
-                >
-                  <div className="pointer-events-none flex min-w-[70px] items-center">
-                    {/* <MdOutlineDataSaverOff className="mr-[16px] min-h-[20px] min-w-[20px] text-[20px]" /> */}
-                    <div className="flex select-none items-center space-x-[2px]">
-                      <span className={`${styles.list_title}`}>表示中</span>
-                      <span className={``}>：</span>
-                    </div>
-                  </div>
-                  {/* <select
-                      className={`${styles.select_box} truncate`}
-                      value={compressionRatio}
-                      onChange={(e) => setCompressionRatio(e.target.value as CompressionRatio)}
-                    >
-                      {optionsCompressionRatio.map((value) => (
-                        <option key={value} value={value}>
-                          {getCompressionRatio(value, language)}
-                        </option>
-                      ))}
-                    </select> */}
+                        {optionsEntitiesList.map((obj) => (
+                          <option key={obj.entity_id} value={obj.entity_id}>
+                            {obj.entity_name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : !!optionsEntitiesList.length &&
+                      selectedEntityLocal &&
+                      optionEntityIdToObjMap &&
+                      selectedEntityLocal.parent_entity_level === "company" ? (
+                      <span className="truncate text-[13px]">{{ ja: `全社`, en: `Company` }[language]}</span>
+                    ) : (
+                      <span className="truncate text-[13px]">データがありません。</span>
+                    )}
 
-                  <div className="flex w-full items-center justify-end">
+                    {/* <div className="flex w-full items-center justify-end">
                     <div className="mb-[-1px] flex min-w-max  flex-col space-y-[3px]">
                       <div className="flex max-w-[160px] items-center px-[12px]">
                         <span
@@ -1641,32 +1955,32 @@ const SalesProgressScreenMemo = () => {
                     >
                       <FaExchangeAlt className="text-[13px]" />
                     </div>
-                  </div>
-                </li>
-                {/* ------------------------------------ */}
-                <hr className="min-h-[1px] w-full bg-[#999]" />
-                {/* ------------------------------------ */}
-                <li className={`${styles.list} ${styles.btn_area} space-x-[20px]`}>
-                  <div
-                    className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
-                    // onClick={handleChangePeriod}
-                  >
-                    <span>適用</span>
-                  </div>
-                  <div
-                    className={`transition-bg02 ${styles.edit_btn} ${styles.cancel}`}
-                    onClick={() => {
-                      handleCloseSectionMenu();
-                    }}
-                  >
-                    <span>戻る</span>
-                  </div>
-                </li>
-                {/* ------------------------------------ */}
-              </div>
-              {/* 右サイドエンティティ詳細メニュー 適用・戻るエリア */}
-            </>
-          )}
+                  </div> */}
+                  </li>
+                  {/* ------------------------------------ */}
+                  <hr className="min-h-[1px] w-full bg-[#999]" />
+                  {/* ------------------------------------ */}
+                  <li className={`${styles.list} ${styles.btn_area} space-x-[20px]`}>
+                    <div
+                      className={`transition-bg02 ${styles.edit_btn} ${styles.brand} ${styles.active}`}
+                      onClick={handleChangeEntity}
+                    >
+                      <span>適用</span>
+                    </div>
+                    <div
+                      className={`transition-bg02 ${styles.edit_btn} ${styles.cancel}`}
+                      onClick={() => {
+                        handleCloseSectionMenu();
+                      }}
+                    >
+                      <span>戻る</span>
+                    </div>
+                  </li>
+                  {/* ------------------------------------ */}
+                </div>
+                {/* 右サイドエンティティ詳細メニュー 適用・戻るエリア */}
+              </>
+            )}
           {/* ------------------------ エンティティ選択メニュー ------------------------ */}
 
           {/* ------------------------ 期間選択メニュー ------------------------ */}
