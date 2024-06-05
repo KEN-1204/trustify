@@ -182,6 +182,12 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
       : memberList ?? null;
   }, [queryDataObjMemberGroupAndParentEntity, memberList]);
 
+  // メンバーリストの各メンバーidからメンバーオブジェクトを取得するMapオブジェクト
+  const memberIdToMemberObjMap = useMemo(() => {
+    if (!displayMemberList) return null;
+    return new Map(displayMemberList.map((obj) => [obj.id, obj]));
+  }, [displayMemberList]);
+
   // ネタ表ボードに渡すid配列に変換
   // const memberListSectionMember: MemberAccounts[] = useMemo(() => {
   //   if (!selectedObjSectionSDBMember) return [];
@@ -539,9 +545,17 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
       }
     } else if (displayEntityGroup !== null && displayEntityGroup.entity_level !== "member") {
       // 子エンティティレベルがmemberではない場合の確度別売上金額予想ボードを使用するルート
+      if (currentActiveIndex >= displayEntityGroup.entities.length) {
+        setAllFetched(true);
+      }
     } else if (displayEntityGroup === null) {
       // displayEntityGroup === null の場合には、userProfileState.idのネタ表ボードが１つレンダリングして、そこでcurrentActiveIndexが1になり、displayMemberList.lengthが1でイコールになりallFetchedがtrueになるため別途trueにする必要なし
       // if (!allFetched) setAllFetched(true);
+      // if (!displayMemberList) return; // userProfileStateがdisplayMemberListに一人格納される
+      if (currentActiveIndex >= 1) {
+        // ユーザー自身のボードのフェッチが完了した後にAllFetchedをtrueに変更
+        setAllFetched(true);
+      }
     }
   }, [currentActiveIndex]);
 
@@ -649,13 +663,15 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
 
           return thirdQuarterDetailSet.has(periodValueStr) ? "third_quarter" : "fourth_quarter";
         }
+      } else if (activePeriodSDB.periodType === "year_month") {
+        return monthKey;
       } else {
         return null;
       }
     } else {
       return null;
     }
-  }, [activePeriodSDB]);
+  }, [displayEntityGroup, selectedPeriodTypeHalfDetailSDB, activePeriodSDB]);
 
   console.log(
     "ScreenDealBoardsコンポーネントレンダリング",
@@ -669,16 +685,22 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     displayMemberList,
     // "entityIds",
     // entityIds,
-    // "monthKey",
-    // monthKey,
-    // "activePeriodSDB",
-    // activePeriodSDB,
+    "monthKey",
+    monthKey,
+    "activePeriodSDB",
+    activePeriodSDB,
     "selectedEntityForAchievement",
     selectedEntityForAchievement,
     "optionsForAchievement",
     optionsForAchievement,
     "selectedEntityForAchievementMapObj",
-    selectedEntityForAchievementMapObj
+    selectedEntityForAchievementMapObj,
+    "annualFiscalMonthsSDB",
+    annualFiscalMonthsSDB,
+    "fiscalYearQueryData",
+    fiscalYearQueryData,
+    "periodKey",
+    periodKey
   );
 
   // 全てのボードがマウントした後にProgressCircleをマウントさせる
@@ -1004,6 +1026,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
         {/* displayEntityGroupのentity_levelがnullか目標設定がされていない場合のみネタ表ボードを表示する */}
         {!isLoadingSDB &&
           (displayEntityGroup?.entity_level === "member" || displayEntityGroup === null) &&
+          activePeriodSDB.periodType === "year_month" &&
           displayMemberList &&
           displayMemberList.map((memberObj, tableIndex) => {
             return (
@@ -1153,15 +1176,16 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
         {/* ------------------- 売上予測ボード ------------------- */}
         {/* メンバーレベル以外のエンティティレベル or メンバーレベルで年月度以外の期間を表示する際に使用 */}
         {!isLoadingSDB &&
-          ((displayEntityGroup?.entity_level !== "member" && displayEntityGroup !== null) ||
-            (displayEntityGroup?.entity_level === "member" && activePeriodSDB.periodType !== "year_month")) && (
+          !(
+            (displayEntityGroup?.entity_level === "member" || displayEntityGroup === null) &&
+            activePeriodSDB.periodType === "year_month"
+          ) && (
             <>
-              {displayEntityGroup?.entity_level !== "member" &&
-                displayEntityGroup !== null &&
+              {displayEntityGroup !== null &&
                 displayEntityGroup.entities.map((entityObj, tableIndex) => {
                   return (
                     <Fragment key={`${entityObj.entity_id}_${tableIndex}_board`}>
-                      {fiscalYearQueryData && selectedEntityForAchievement && periodKey ? (
+                      {periodKey ? (
                         <div
                           className={`${styles.entity_board_container} fade15_forward bg-[red]/[0] ${
                             stickyRow === `deal_board_${entityObj.entity_id}` ? `${styles.sticky_row}` : ``
@@ -1187,10 +1211,27 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                                 fetchEnabled={!isLoadingSDB && (tableIndex <= currentActiveIndex || allFetched)} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
                                 onFetchComplete={() => onFetchComplete(tableIndex)} // ネタ表ボードのindexを渡す
                                 isRenderProgress={isRenderProgress}
-                                entityName={selectedEntityForAchievement.entity_name}
-                                fiscalYearId={fiscalYearQueryData.id}
-                                entityLevelId={selectedEntityForAchievement.entity_level_id}
-                                entityStructureId={selectedEntityForAchievement.entity_structure_id}
+                                entityName={entityObj.entity_name}
+                                // fiscalYearId={fiscalYearQueryData.id}
+                                fiscalYearId={entityObj.fiscal_year_id}
+                                entityLevelId={entityObj.entity_level_id}
+                                entityStructureId={entityObj.id}
+                                position_name={
+                                  displayEntityGroup?.entity_level === "member" &&
+                                  activePeriodSDB.periodType !== "year_month" &&
+                                  memberIdToMemberObjMap
+                                    ? memberIdToMemberObjMap.get(entityObj.entity_id)?.position_name ?? undefined
+                                    : undefined
+                                }
+                                assigned_employee_id_name={
+                                  displayEntityGroup?.entity_level === "member" &&
+                                  activePeriodSDB.periodType !== "year_month" &&
+                                  memberIdToMemberObjMap
+                                    ? memberIdToMemberObjMap.get(entityObj.entity_id)?.assigned_employee_id_name ??
+                                      undefined
+                                    : undefined
+                                }
+                                periodTitle={trendPeriodTitle?.periodEnd ?? ""}
                               />
                             </Suspense>
                           </ErrorBoundary>
@@ -1209,14 +1250,14 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                                 <AvatarIcon
                                   // size={33}
                                   size={36}
-                                  name={selectedEntityForAchievement?.entity_name ?? entityObj.entity_name ?? "未設定"}
+                                  name={entityObj.entity_name ?? "未設定"}
                                   withCircle={false}
                                   hoverEffect={false}
                                   textSize={16}
                                   // imgUrl={memberObj.avatar_url ?? null}
                                 />
                                 <div className={`${styles.entity_name} text-[19px] font-bold`}>
-                                  <span>{selectedEntityForAchievement?.entity_name ?? entityObj.entity_name}</span>
+                                  <span>{entityObj.entity_name ?? "-"}</span>
                                 </div>
                                 {/* {position_name && (
                                   <div className={`${styles.sub_info} pt-[6px]`}>{position_name ?? "役職未設定"}</div>
@@ -1235,12 +1276,104 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                               </div>
                             </div>
                           </div>
-                          <div className={`flex-center h-[288px] w-full px-[24px] py-[12px]`}>データがありません</div>
+                          <div
+                            className={`flex-center h-[288px] w-full px-[24px] py-[12px] text-[var(--color-text-sub)]`}
+                          >
+                            データがありません
+                          </div>
                         </div>
                       )}
                     </Fragment>
                   );
                 })}
+              {displayEntityGroup === null && (
+                <>
+                  {periodKey ? (
+                    <div
+                      className={`${styles.entity_board_container} fade15_forward bg-[red]/[0] ${
+                        stickyRow === `deal_board_${userProfileState.id}` ? `${styles.sticky_row}` : ``
+                      }`}
+                    >
+                      <ErrorBoundary FallbackComponent={ErrorFallback}>
+                        <Suspense
+                          fallback={
+                            <FallbackDealBoardSalesForecast
+                              entityName={userProfileState.profile_name ?? "-"}
+                              isFade={true}
+                            />
+                          }
+                        >
+                          <DealBoardSalesForecast
+                            companyId={userProfileState.company_id!}
+                            entityId={userProfileState.id}
+                            entityLevel={"member"}
+                            periodTypeForTarget={periodKey}
+                            periodTypeForProperty={activePeriodSDB.periodType}
+                            period={activePeriodSDB.period}
+                            stickyRow={stickyRow}
+                            setStickyRow={setStickyRow}
+                            // periodType={activePeriodSDB.periodType}
+                            // period={activePeriodSDB.period}
+                            fetchEnabled={!isLoadingSDB && (0 <= currentActiveIndex || allFetched)} // インデックスが一致しているか、全てフェッチが完了している時のみフェッチを許可
+                            onFetchComplete={() => onFetchComplete(0)} // ネタ表ボードのindexを渡す
+                            isRenderProgress={isRenderProgress}
+                            entityName={userProfileState.profile_name ?? "-"}
+                            // fiscalYearId={fiscalYearQueryData.id}
+                            fiscalYearId={null}
+                            entityLevelId={null}
+                            entityStructureId={null}
+                            position_name={userProfileState.position_name ?? undefined}
+                            assigned_employee_id_name={userProfileState.assigned_employee_id_name ?? undefined}
+                            periodTitle={trendPeriodTitle?.periodEnd ?? ""}
+                          />
+                        </Suspense>
+                      </ErrorBoundary>
+                    </div>
+                  ) : (
+                    <div
+                      className={`${styles.entity_board_container} fade15_forward bg-[red]/[0] ${
+                        stickyRow === `deal_board_${userProfileState.id}` ? `${styles.sticky_row}` : ``
+                      }`}
+                    >
+                      <div className={`${styles.entity_detail_container} min-h-[48px] ${true ? `fade08_forward` : ``}`}>
+                        <div className={`${styles.entity_detail_wrapper}`}>
+                          <div className={`${styles.entity_detail} space-x-[12px] text-[12px]`}>
+                            <AvatarIcon
+                              // size={33}
+                              size={36}
+                              name={userProfileState.profile_name ?? "未設定"}
+                              withCircle={false}
+                              hoverEffect={false}
+                              textSize={16}
+                              // imgUrl={memberObj.avatar_url ?? null}
+                            />
+                            <div className={`${styles.entity_name} text-[19px] font-bold`}>
+                              <span>{userProfileState.profile_name ?? "-"}</span>
+                            </div>
+                            {/* {position_name && (
+                                  <div className={`${styles.sub_info} pt-[6px]`}>{position_name ?? "役職未設定"}</div>
+                                )}
+                                {assigned_employee_id_name && (
+                                  <div className={`${styles.sub_info} pt-[6px]`}>{assigned_employee_id_name ?? ""}</div>
+                                )} */}
+                          </div>
+                        </div>
+                        <div className={`${styles.status_col_wrapper}`}>
+                          <div className={`flex h-full items-start pt-[10px]`}>
+                            <div className={`${styles.btn} ${styles.basic} space-x-[4px]`}>
+                              <TbSnowflake />
+                              <span>固定</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className={`flex-center h-[288px] w-full px-[24px] py-[12px] text-[var(--color-text-sub)]`}>
+                        データがありません
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
             </>
           )}
         {/* ------------------- 売上予測ボード ここまで ------------------- */}

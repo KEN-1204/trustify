@@ -32,9 +32,10 @@ type Props = {
   entityName: string;
   position_name?: string; // memberレベルの場合に使用
   assigned_employee_id_name?: string; // memberレベルの場合に使用
-  fiscalYearId: string;
-  entityLevelId: string;
-  entityStructureId: string;
+  fiscalYearId: string | null;
+  entityLevelId: string | null;
+  entityStructureId: string | null;
+  periodTitle: string;
 };
 
 // 確度別のネタ件数と平均単価と確率込み売上予測
@@ -56,6 +57,7 @@ const DealBoardSalesForecastMemo = ({
   fiscalYearId,
   entityLevelId,
   entityStructureId,
+  periodTitle,
 }: Props) => {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const language = useStore((state) => state.language);
@@ -355,11 +357,14 @@ const DealBoardSalesForecastMemo = ({
         {/* --------- 確度別データ一覧 w: 70% --------- */}
         <div className={`fade08_forward flex min-h-full w-[70%] flex-col`}>
           <div className={`w-full`}>
-            <h4 className={`text-[14px] font-bold`}>確度別案件状況・売上予測</h4>
+            <h4 className={`space-x-[12px] text-[15px]`}>
+              <span>案件状況</span>
+              <span>{periodTitle}</span>
+            </h4>
           </div>
-          <div className={`mt-[15px] flex w-full justify-between text-[12px] text-[var(--color-text-sub)]`}>
+          <div className={`mt-[15px] flex w-full justify-between text-[13px] text-[var(--color-text-sub)]`}>
             <div>
-              <span>受注確度</span>
+              <span>受注確度別ネタ</span>
             </div>
             <div className={`flex space-x-[6px]`}>
               <span>平均単価</span>
@@ -394,7 +399,7 @@ const DealBoardSalesForecastMemo = ({
                             : `var(--color-text-disabled)`,
                       }}
                     />
-                    <div className="text-[13px]">
+                    <div className="text-[15px]" style={{ fontFamily: `sans-serif` }}>
                       {/* <span>A</span> */}
                       {/* <span>⚪️</span> */}
                       <span>
@@ -404,7 +409,8 @@ const DealBoardSalesForecastMemo = ({
                     </div>
                   </div>
                   <div
-                    className={`flex items-center justify-end text-[13px]`}
+                    className={`flex items-center justify-end text-[15px]`}
+                    style={{ display: `grid`, gridTemplateColumns: `repeat(4, max-content)`, columnGap: `12px` }}
                     // style={{ ...(!isDesktopGTE1600 && { maxWidth: `312px` }) }}
                     // style={{
                     //   display: `grid`,
@@ -412,25 +418,24 @@ const DealBoardSalesForecastMemo = ({
                     //   //   gridTemplateColumns: `repeat(4, max-content)`,
                     // }}
                   >
-                    <div className={`flex justify-end  ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}>
-                      <span className={`${isDesktopGTE1600 ? `` : `max-w-[85px]`} min-w-[85px] truncate text-end`}>
+                    {/* <div className={`flex justify-end  ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}> */}
+                    <div className={`flex justify-end `}>
+                      {/* <span className={`${isDesktopGTE1600 ? `` : `max-w-[85px]`} min-w-[85px] truncate text-end`}> */}
+                      <span className={`min-w-[85px] truncate text-end`}>
                         {isValidNumber(deal.average_price) ? formatToJapaneseYen(deal.average_price) : `¥ -`}
                       </span>
                     </div>
-                    <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : ` pl-[12px]`}`}>
-                      <span className={`${isDesktopGTE1600 ? `` : `max-w-[42px]`} min-w-[42px] truncate text-end`}>
-                        {deal.quantity}件
-                      </span>
+                    <div className={`flex justify-end`}>
+                      {/* <span className={`${isDesktopGTE1600 ? `` : `max-w-[42px]`} min-w-[42px] truncate text-end`}> */}
+                      <span className={`min-w-[42px] truncate text-end`}>{deal.quantity}件</span>
                     </div>
-                    <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : `pl-[12px]`}`}>
-                      <span className={`${isDesktopGTE1600 ? `` : `max-w-[35px]`} min-w-[35px] truncate text-end`}>
-                        {deal.probability}%
-                      </span>
+                    <div className={`flex justify-end`}>
+                      {/* <span className={`${isDesktopGTE1600 ? `` : `max-w-[35px]`} min-w-[35px] truncate text-end`}> */}
+                      <span className={`min-w-[42px] truncate text-end`}>{deal.probability}%</span>
                     </div>
-                    <div className={`flex justify-end ${isDesktopGTE1600 ? `pl-[15px]` : `pl-[12px]`}`}>
-                      <span className={`${isDesktopGTE1600 ? `` : `max-w-[102px]`} min-w-[102px] truncate text-end`}>
-                        {formatToJapaneseYen(deal.amount)}
-                      </span>
+                    <div className={`flex justify-end`}>
+                      {/* <span className={`${isDesktopGTE1600 ? `` : `max-w-[102px]`} min-w-[102px] truncate text-end`}> */}
+                      <span className={`min-w-[102px] truncate text-end`}>{formatToJapaneseYen(deal.amount)}</span>
                     </div>
                   </div>
                 </li>
@@ -442,11 +447,11 @@ const DealBoardSalesForecastMemo = ({
                   className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`}
                   // style={{ background: `${COLORS_DEAL[index]}` }}
                 />
-                <div className="text-[13px] font-bold text-[var(--color-text-title)]">
+                <div className="text-[14px] font-bold text-[var(--color-text-title)]">
                   <span>残ネタ獲得 合計予測</span>
                 </div>
               </div>
-              <div className={`flex items-center space-x-[12px] text-[13px] text-[var(--color-text-title)]`}>
+              <div className={`flex items-center space-x-[12px] text-[15px] text-[var(--color-text-title)]`}>
                 {/* <div className={``}>
                 <span>¥ 3,240,000</span>
               </div> */}

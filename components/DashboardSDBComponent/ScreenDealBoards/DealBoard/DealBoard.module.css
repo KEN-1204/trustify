@@ -549,3 +549,14 @@
   background-color: var(--color-bg-brand-f-deep);
 }
 /* ------------------------ タイトルエリア ここまで ------------------------ */
+
+/* ドーナツチャート */
+.deal_list {
+  color: var(--color-text-title);
+}
+.deal_list.inactive {
+  color: var(--color-text-disabled);
+  /* background:#f2f3f4; */
+  /* background: #f4f7f9; */
+  /* background: #f0f3f5; */
+}

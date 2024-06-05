@@ -11,9 +11,9 @@ type Props = {
   periodTypeForTarget: FiscalYearAllKeys | null;
   period: number;
   fetchEnabled?: boolean;
-  fiscalYearId: string;
-  entityLevelId: string;
-  entityStructureId: string;
+  fiscalYearId: string | null;
+  entityLevelId: string | null;
+  entityStructureId: string | null;
 };
 
 // 下記を取得するuseQuery
@@ -52,9 +52,9 @@ export const useQuerySalesProbabilityWithSalesTarget = ({
       //   _period_type: periodType, // 期間タイプ
       _period_type: periodTypeForProperty,
       _period_type_for_target: periodTypeForTarget,
-      _fiscal_year_id: fiscalYearId,
-      _entity_level_id: entityLevelId, // エンティティテーブルid
-      _entity_structure_id: entityStructureId, // エンティティテーブルid
+      _fiscal_year_id: fiscalYearId, // オプショナル 売上目標が設定されていて3つのidがNULLでない場合には売上目標と達成率を取得
+      _entity_level_id: entityLevelId, // オプショナル エンティティテーブルid
+      _entity_structure_id: entityStructureId, // オプショナル エンティティテーブルid
     };
 
     console.log("🔥useQuerySalesProbability rpc get_sales_forecast_with_sales_target関数実行 payload", payload);
@@ -104,7 +104,7 @@ export const useQuerySalesProbabilityWithSalesTarget = ({
     await new Promise((resolve) => setTimeout(resolve, 500));
 
     console.log(
-      "✅✅✅ useQuery getSalesProbabilityWithSalesTarget関数成功 salesForecastObj",
+      "✅✅✅useQuery getSalesProbabilityWithSalesTarget関数成功 salesForecastObj",
       salesForecastObj,
       "data",
       data
