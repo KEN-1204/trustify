@@ -1220,6 +1220,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* ------------- 🌟ネタ表SDB🌟 light ------------- */
   --color-header-icon-btn: rgba(64, 87, 109, 0.12);
+  --color-sdb-btn-brand-section: #eeeeeeaa;
   --color-sidebar-open-overlay: #00000015;
   --color-sidebar-open-overlay-dark: #00000024;
   /* --color-table-bg: #fdfdfd; */
@@ -2273,6 +2274,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* ------------- 🌟ネタ表SDB🌟 dark ------------- */
   --color-header-icon-btn: #99999960;
+  --color-sdb-btn-brand-section: #242424aa;
   --color-sidebar-open-overlay: #00000060;
   --color-sidebar-open-overlay-dark: #00000060;
   /* --color-sdb-bg: #171717; */
@@ -4010,6 +4012,9 @@ textarea {
 
 /* -------------- 🌟SDB🌟 -------------- */
 
+.svg_path_white path {
+  stroke: #ffffff;
+}
 /* リフレッシュアイコン */
 .refresh_icon {
   /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */

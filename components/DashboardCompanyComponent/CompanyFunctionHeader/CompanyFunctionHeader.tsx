@@ -252,6 +252,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
         >
           <span>MAP</span>
         </button> */}
+
         <button
           className={`flex-center transition-base03   !mr-[10px] h-[26px] min-w-[26px]  space-x-2 rounded-[4px] text-[16px]   ${
             tableContainerSize === "one_third"

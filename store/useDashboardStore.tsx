@@ -552,6 +552,8 @@ type State = {
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: boolean;
   setIsOpenBusinessCalendarSettingModal: (payload: boolean) => void;
+  isOpenBusinessCalendarModalDisplayOnly: boolean;
+  setIsOpenBusinessCalendarModalDisplayOnly: (payload: boolean) => void;
   // 選択中の会計年度
   selectedFiscalYearSetting: number | null;
   setSelectedFiscalYearSetting: (payload: number) => void;
@@ -1350,6 +1352,8 @@ const useDashboardStore = create<State>((set) => ({
   // =================== 営業カレンダー ===================
   isOpenBusinessCalendarSettingModal: false,
   setIsOpenBusinessCalendarSettingModal: (payload) => set({ isOpenBusinessCalendarSettingModal: payload }),
+  isOpenBusinessCalendarModalDisplayOnly: false,
+  setIsOpenBusinessCalendarModalDisplayOnly: (payload) => set({ isOpenBusinessCalendarModalDisplayOnly: payload }),
   // 選択中の会計年度
   selectedFiscalYearSetting: null,
   setSelectedFiscalYearSetting: (payload) => set({ selectedFiscalYearSetting: payload }),

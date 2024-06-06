@@ -13,7 +13,7 @@ export const useMutateSection = () => {
 
   // 【Section新規作成INSERT用createSectionMutation関数】
   const createSectionMutation = useMutation(
-    async (newSection: Omit<Section, "id" | "created_at">) => {
+    async (newSection: Omit<Section, "id" | "created_at" | "target_type">) => {
       setLoadingGlobalState(true);
       const { error } = await supabase.from("sections").insert(newSection);
       if (error) throw error;
@@ -41,7 +41,7 @@ export const useMutateSection = () => {
 
   // 【Section一括編集UPDATE用updateSectionMutation関数】
   const updateSectionMutation = useMutation(
-    async (newSection: Omit<Section, "created_at">) => {
+    async (newSection: Omit<Section, "created_at" | "target_type">) => {
       // setLoadingGlobalState(true);
       const { error } = await supabase.from("sections").update(newSection).eq("id", newSection.id);
       if (error) throw new Error(error.message);

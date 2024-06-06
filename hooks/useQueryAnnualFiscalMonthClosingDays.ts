@@ -215,7 +215,8 @@ Props) => {
     : null;
 
   const { data, status, isLoading, isError, error } = useQuery({
-    queryKey: ["annual_fiscal_month_closing_days", fiscalEndMonthKey, selectedYear],
+    // queryKey: ["annual_fiscal_month_closing_days", fiscalEndMonthKey, selectedYear],
+    queryKey: ["annual_fiscal_month_closing_days", selectedYear, fiscalEndMonthKey],
     // queryKey: ["annual_fiscal_month_closing_days", fiscalEndMonthKey, selectedYear, appliedAtOfSelectedYear],
     queryFn: getAnnualFiscalMonthClosingDays,
     staleTime: Infinity,

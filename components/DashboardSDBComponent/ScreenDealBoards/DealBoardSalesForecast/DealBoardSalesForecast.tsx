@@ -14,6 +14,7 @@ import { COLORS_DEAL_SDB } from "@/components/Parts/Charts/Seeds/seedData";
 import { mappingSalesProbablyShort } from "@/utils/selectOptions";
 import { useMedia } from "react-use";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import { ImInfo } from "react-icons/im";
 
 type Props = {
   companyId: string;
@@ -355,11 +356,37 @@ const DealBoardSalesForecastMemo = ({
         className={`${styles.board} flex min-h-[288px] w-full text-[var(--color-text-title)] ${getStyleTheme()}`}
       >
         {/* --------- 確度別データ一覧 w: 70% --------- */}
-        <div className={`fade08_forward flex min-h-full w-[70%] flex-col`}>
+        <div className={`fade08_forward flex min-h-full w-[73%] flex-col`}>
           <div className={`w-full`}>
-            <h4 className={`space-x-[12px] text-[15px]`}>
+            <h4 className={`flex min-h-[22px] items-center space-x-[12px] text-[15px]`}>
               <span>案件状況</span>
               <span>{periodTitle}</span>
+              <div className={`${styles.info_area} flex-center min-h-[22px]`}>
+                <div
+                  className="flex-center relative h-[16px] w-[16px] rounded-full"
+                  onMouseEnter={(e) => {
+                    // handleEnterInfoIcon(e, infoIconProgressRef.current);
+                    handleOpenTooltip({
+                      e: e,
+                      display: "top",
+                      // content: `「A（受注済み）」は「月初確度」か「中間見直確度」が「A (受注済み)」で、売上金額が入力済みの`,
+                      content: `獲得予定日が選択中の期間内にあり、「案件没・ペンディング」でない案件を確度別に集計しています。\n各案件の合計金額は「A（受注済み）」が「売上金額」、それ以外は「獲得予定金額」の合計値に対して、\nそれぞれの案件の受注確度を乗算した金額を算出しています。`,
+                      marginTop: 56,
+                      // marginTop: 39,
+                      itemsPosition: "left",
+                    });
+                  }}
+                  onMouseLeave={(e) => {
+                    handleCloseTooltip();
+                  }}
+                >
+                  {/* <div
+                          // ref={infoIconProgressRef}
+                          className={`flex-center absolute left-0 top-0 h-[18px] w-[18px] rounded-full border border-solid border-[var(--color-bg-brand-f)] ${styles.animate_ping}`}
+                        ></div> */}
+                  <ImInfo className={`min-h-[16px] min-w-[16px] text-[var(--color-bg-brand-f)]`} />
+                </div>
+              </div>
             </h4>
           </div>
           <div className={`mt-[15px] flex w-full justify-between text-[13px] text-[var(--color-text-sub)]`}>
@@ -384,22 +411,29 @@ const DealBoardSalesForecastMemo = ({
                   //   className={`flex w-full justify-between border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px]`}
                   className={`w-full border-b border-solid border-[var(--color-border-base)] pb-[9px] pt-[12px] ${
                     styles.deal_list
-                  } ${activeIndex === 1000 ? `` : activeIndex === index ? `` : `${styles.inactive}`}`}
-                  style={{ display: `grid`, gridTemplateColumns: `80px 1fr` }}
+                  } ${activeIndex === 1000 || activeIndex === index ? `` : `${styles.inactive}`}`}
+                  style={{ display: `grid`, gridTemplateColumns: `max-content 1fr` }}
                 >
                   <div className={`flex items-center`}>
                     <div
                       className={`mr-[9px] min-h-[9px] min-w-[9px] rounded-[12px]`}
                       style={{
                         background:
-                          activeIndex === 1000
-                            ? `${COLORS_DEAL_SDB[index]}`
-                            : activeIndex === index
+                          activeIndex === 1000 || activeIndex === index
                             ? `${COLORS_DEAL_SDB[index]}`
                             : `var(--color-text-disabled)`,
                       }}
                     />
-                    <div className="text-[15px]" style={{ fontFamily: `sans-serif` }}>
+                    <div
+                      className="text-[15px]"
+                      style={{
+                        fontFamily: `sans-serif`,
+                        color:
+                          activeIndex === 1000 || activeIndex === index
+                            ? `${COLORS_DEAL_SDB[index]}`
+                            : `var(--color-text-disabled)`,
+                      }}
+                    >
                       {/* <span>A</span> */}
                       {/* <span>⚪️</span> */}
                       <span>
@@ -467,7 +501,7 @@ const DealBoardSalesForecastMemo = ({
         </div>
         {/* --------- 確度別データ一覧 ここまで --------- */}
         {/* --------- ドーナツチャート w: 30% --------- */}
-        <div className={`flex h-full w-[30%] flex-col`}>
+        <div className={`flex h-full w-[27%] flex-col`}>
           <div
             className={`flex-center relative h-full`}
             style={{
@@ -475,14 +509,16 @@ const DealBoardSalesForecastMemo = ({
             }}
           >
             <div
-              className={`absolute left-0 top-0 flex h-full w-[448px] items-center bg-[blue]/[0]`}
+              // className={`absolute left-0 top-0 flex h-full w-[448px] items-center bg-[blue]/[0]`}
+              className={`absolute left-0 top-0 flex h-full w-full items-center bg-[blue]/[0]`}
               // style={{ maxWidth: `100%` }}
             >
               <DonutChartCustomComponent
                 colors={COLORS_DEAL_SDB}
                 colorsSheer={COLORS_DEAL_SDB}
                 chartHeight={286}
-                chartCenterX={112}
+                // chartCenterX={112}
+                chartCenterX={180}
                 chartData={chartData}
                 labelListSalesProbability={donutLabelData}
                 mainEntityId={entityId}
@@ -494,6 +530,9 @@ const DealBoardSalesForecastMemo = ({
                 activeIndexParent={activeIndex}
                 setActiveIndexParent={setActiveIndex}
                 customPaddingAngle={0}
+                innerRadius={70}
+                outerRadius={88}
+                centerTextFontSize={18}
               />
             </div>
           </div>

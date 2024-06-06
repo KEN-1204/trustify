@@ -18,6 +18,7 @@ import {
   Entity,
   EntityGroupByParent,
   EntityLevelNames,
+  FiscalYearAllKeys,
   FiscalYearMonthKey,
   FiscalYears,
   MemberAccounts,
@@ -56,12 +57,21 @@ type Props = {
       })
     | null;
   monthKey: FiscalYearMonthKey | null;
+  periodTypeForSalesTarget: FiscalYearAllKeys | null;
+  isRequiredRefresh: boolean;
+  setIsRequiredRefresh: Dispatch<SetStateAction<boolean>>;
   // periodType: string;
   // period: number;
 };
 
 // 🌠各メンバーのネタ表を一覧で表示するコンポーネント
-const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
+const ScreenDealBoardsMemo = ({
+  displayEntityGroup,
+  monthKey,
+  periodTypeForSalesTarget,
+  isRequiredRefresh,
+  setIsRequiredRefresh,
+}: Props) => {
   const language = useStore((state) => state.language);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   // ------------------------------ お祝いモーダル関連 ------------------------------
@@ -359,7 +369,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
         ? `${year}年${period}月度`
         : `-`;
     }
-  }, [activePeriodSDB?.period]);
+  }, [activePeriodSDB]);
 
   // 売上進捗・達成率チャートに表示するエンティティ 最初は親エンティティを表示
   type SelectedEntityForAchievement = {
@@ -538,10 +548,16 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
   useEffect(() => {
     // 子エンティティレベルがmemberの場合には、displayMemberListのメンバーリストを使用する
     if (displayEntityGroup !== null && displayEntityGroup.entity_level === "member") {
-      if (!displayMemberList) return;
-      // メンバーリストよりactiveIndexが大きくなった場合、全てフェッチが完了
-      if (currentActiveIndex >= displayMemberList.length) {
-        setAllFetched(true);
+      if (activePeriodSDB.periodType === "year_month") {
+        if (!displayMemberList) return;
+        // メンバーリストよりactiveIndexが大きくなった場合、全てフェッチが完了
+        if (currentActiveIndex >= displayMemberList.length) {
+          setAllFetched(true);
+        }
+      } else {
+        if (currentActiveIndex >= displayEntityGroup.entities.length) {
+          setAllFetched(true);
+        }
       }
     } else if (displayEntityGroup !== null && displayEntityGroup.entity_level !== "member") {
       // 子エンティティレベルがmemberではない場合の確度別売上金額予想ボードを使用するルート
@@ -610,6 +626,18 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
 
     onResetFetchComplete();
   }, [isRequiredResetChangeEntity]);
+  useEffect(() => {
+    if (!isRequiredRefresh) return;
+    const onResetFetchComplete = async () => {
+      setCurrentActiveIndex(0);
+      setAllFetched(false);
+      setIsRenderProgress(false);
+
+      setIsRequiredRefresh(false);
+    };
+
+    onResetFetchComplete();
+  }, [isRequiredRefresh]);
   // --------------------------- 🌠子コンポーネントを順番にフェッチさせる🌠 ---------------------------
 
   const getStyleTheme = () => {
@@ -635,7 +663,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
   const annualFiscalMonthsSDB = useDashboardStore((state) => state.annualFiscalMonthsSDB);
 
   const periodKey = useMemo(() => {
-    if (!annualFiscalMonthsSDB) return null;
+    // if (!annualFiscalMonthsSDB) return null;
     if (
       (displayEntityGroup?.entity_level !== "member" && displayEntityGroup !== null) ||
       (displayEntityGroup?.entity_level === "member" && activePeriodSDB.periodType !== "year_month")
@@ -645,23 +673,26 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
       } else if (activePeriodSDB.periodType === "half_year") {
         return selectedPeriodTypeHalfDetailSDB === "first_half_details" ? "first_half" : "second_half";
       } else if (activePeriodSDB.periodType === "quarter") {
-        const periodValueStr = String(activePeriodSDB.period).substring(4);
+        // const periodValueStr = String(activePeriodSDB.period).substring(4);
+        const periodValue = Number(String(activePeriodSDB.period).substring(4));
         if (selectedPeriodTypeHalfDetailSDB === "first_half_details") {
-          const firstQuarterDetailSet = new Set([
-            String(annualFiscalMonthsSDB.month_01).substring(4),
-            String(annualFiscalMonthsSDB.month_02).substring(4),
-            String(annualFiscalMonthsSDB.month_03).substring(4),
-          ]);
+          // const firstQuarterDetailSet = new Set([
+          //   String(annualFiscalMonthsSDB.month_01).substring(4),
+          //   String(annualFiscalMonthsSDB.month_02).substring(4),
+          //   String(annualFiscalMonthsSDB.month_03).substring(4),
+          // ]);
 
-          return firstQuarterDetailSet.has(periodValueStr) ? "first_quarter" : "second_quarter";
+          // return firstQuarterDetailSet.has(periodValueStr) ? "first_quarter" : "second_quarter";
+          return periodValue === 1 ? "first_quarter" : "second_quarter";
         } else {
-          const thirdQuarterDetailSet = new Set([
-            String(annualFiscalMonthsSDB.month_10).substring(4),
-            String(annualFiscalMonthsSDB.month_11).substring(4),
-            String(annualFiscalMonthsSDB.month_12).substring(4),
-          ]);
+          // const thirdQuarterDetailSet = new Set([
+          //   String(annualFiscalMonthsSDB.month_10).substring(4),
+          //   String(annualFiscalMonthsSDB.month_11).substring(4),
+          //   String(annualFiscalMonthsSDB.month_12).substring(4),
+          // ]);
 
-          return thirdQuarterDetailSet.has(periodValueStr) ? "third_quarter" : "fourth_quarter";
+          // return thirdQuarterDetailSet.has(periodValueStr) ? "third_quarter" : "fourth_quarter";
+          return periodValue === 3 ? "third_quarter" : "fourth_quarter";
         }
       } else if (activePeriodSDB.periodType === "year_month") {
         return monthKey;
@@ -687,6 +718,10 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     // entityIds,
     "monthKey",
     monthKey,
+    "periodTypeForSalesTarget",
+    periodTypeForSalesTarget,
+    "periodKey",
+    periodKey,
     "activePeriodSDB",
     activePeriodSDB,
     "selectedEntityForAchievement",
@@ -699,8 +734,10 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
     annualFiscalMonthsSDB,
     "fiscalYearQueryData",
     fiscalYearQueryData,
-    "periodKey",
-    periodKey
+    "currentActiveIndex",
+    currentActiveIndex,
+    "allFetched",
+    allFetched
   );
 
   // 全てのボードがマウントした後にProgressCircleをマウントさせる
@@ -866,7 +903,6 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
             {/* 売上進捗・達成率チャート */}
             {/* 選択中の月度が上期の場合には上期の売上目標が設定済みであること・月度が下期の場合には下期の売上目標が設定済みであることをチェックし、trueなら売上目標チャートを表示 */}
             {displayEntityGroup !== null &&
-            !!queryDataObjMemberGroupAndParentEntity &&
             !!fiscalYearQueryData &&
             !!selectedEntityForAchievement &&
             ((selectedPeriodTypeHalfDetailSDB === "first_half_details" &&
@@ -880,7 +916,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                       <div className={`flex items-center`}>
                         <span>売上進捗・達成率</span>
                         <span className={`ml-[18px] max-w-[240px] truncate`}>
-                          {queryDataObjMemberGroupAndParentEntity && selectedEntityForAchievement
+                          {selectedEntityForAchievement
                             ? selectedEntityForAchievement.entity_name
                             : userProfileState.profile_name}
                         </span>
@@ -984,7 +1020,9 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                       entityLevel={selectedEntityForAchievement.entity_level}
                       entityLevelId={selectedEntityForAchievement.entity_level_id}
                       entityStructureId={selectedEntityForAchievement.entity_structure_id}
-                      periodTypeForTarget={monthKey}
+                      periodTypeForTarget={
+                        activePeriodSDB.periodType === "year_month" ? monthKey : periodTypeForSalesTarget
+                      }
                       periodTypeForProperty={activePeriodSDB.periodType}
                       basePeriod={activePeriodSDB.period}
                       // current_sales_amount={displayEntityForAchievement.current_sales_amount}
@@ -995,6 +1033,59 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                     />
                   </Suspense>
                 </ErrorBoundary>
+              </div>
+            ) : displayEntityGroup === null &&
+              (activePeriodSDB.periodType === "year_month" ? !!monthKey : !!periodTypeForSalesTarget) ? (
+              <div className={`${styles.grid_content_card}`}>
+                <div className={`${styles.card_wrapper} fade08_forward`}>
+                  <div className={`${styles.card_title_area}`}>
+                    <div className={`${styles.card_title}`}>
+                      <div className={`flex flex-col`}>
+                        <div className={`flex items-center`}>
+                          <span>売上進捗・達成率</span>
+                          <span className={`ml-[18px] max-w-[240px] truncate`}>{userProfileState.profile_name}</span>
+                        </div>
+                        <span className={`text-[12px] text-[var(--color-text-sub)]`}>
+                          {salesAchievementPeriodTitle}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className={`${styles.btn} ${styles.basic} space-x-[4px]`}>
+                      <span>固定</span>
+                    </div>
+                  </div>
+                  <ErrorBoundary FallbackComponent={ErrorFallback}>
+                    <Suspense
+                      fallback={
+                        <div className={`flex-center w-full`} style={{ minHeight: `302px`, padding: `0px 0px 6px` }}>
+                          <SpinnerX />
+                        </div>
+                      }
+                    >
+                      <ProgressCircleSalesAchievement
+                        fiscalYear={selectedFiscalYearTargetSDB}
+                        fiscalYearId={null}
+                        companyId={userProfileState.company_id}
+                        entityId={userProfileState.id}
+                        entityName={userProfileState.profile_name ?? "未設定"}
+                        entityLevel={"member"}
+                        entityLevelId={null}
+                        entityStructureId={null}
+                        periodTypeForTarget={
+                          activePeriodSDB.periodType === "year_month" ? monthKey : periodTypeForSalesTarget
+                        }
+                        periodTypeForProperty={activePeriodSDB.periodType}
+                        basePeriod={activePeriodSDB.period}
+                        // current_sales_amount={displayEntityForAchievement.current_sales_amount}
+                        // current_sales_target={displayEntityForAchievement.current_sales_target}
+                        // current_achievement_rate={displayEntityForAchievement.current_achievement_rate}
+                        fetchEnabled={true}
+                        isRenderProgress={isRenderProgress}
+                      />
+                    </Suspense>
+                  </ErrorBoundary>
+                </div>
               </div>
             ) : (
               <div className={`${styles.grid_content_card}`}>
@@ -1183,6 +1274,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
             <>
               {displayEntityGroup !== null &&
                 displayEntityGroup.entities.map((entityObj, tableIndex) => {
+                  if (!(tableIndex <= currentActiveIndex || allFetched)) return;
                   return (
                     <Fragment key={`${entityObj.entity_id}_${tableIndex}_board`}>
                       {periodKey ? (
@@ -1288,7 +1380,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                 })}
               {displayEntityGroup === null && (
                 <>
-                  {periodKey ? (
+                  {periodTypeForSalesTarget ? (
                     <div
                       className={`${styles.entity_board_container} fade15_forward bg-[red]/[0] ${
                         stickyRow === `deal_board_${userProfileState.id}` ? `${styles.sticky_row}` : ``
@@ -1307,7 +1399,7 @@ const ScreenDealBoardsMemo = ({ displayEntityGroup, monthKey }: Props) => {
                             companyId={userProfileState.company_id!}
                             entityId={userProfileState.id}
                             entityLevel={"member"}
-                            periodTypeForTarget={periodKey}
+                            periodTypeForTarget={periodTypeForSalesTarget}
                             periodTypeForProperty={activePeriodSDB.periodType}
                             period={activePeriodSDB.period}
                             stickyRow={stickyRow}

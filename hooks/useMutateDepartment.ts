@@ -20,7 +20,7 @@ export const useMutateDepartment = () => {
 
   // 【Department新規作成INSERT用createDepartmentMutation関数】
   const createDepartmentMutation = useMutation(
-    async (newDepartment: Omit<Department, "id" | "created_at">) => {
+    async (newDepartment: Omit<Department, "id" | "created_at" | "target_type">) => {
       // async (newDepartment: insertPayload) => {
       // setLoadingGlobalState(true);
       const { error } = await supabase.from("departments").insert(newDepartment);

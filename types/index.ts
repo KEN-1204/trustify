@@ -3486,6 +3486,28 @@ export type SalesProcessesForSDB = {
     | "half_year_achievement_rate";
   result: number;
 };
+export type SalesProcessesOnlyHalfYearForSDB = {
+  category:
+    | "call_pr"
+    | "call_all"
+    | "meeting_all"
+    | "meeting_new"
+    | "expansion_all"
+    | "expansion_rate"
+    | "f_expansion"
+    | "f_expansion_rate"
+    | "award"
+    // | "half_year_f_expansion"
+    | "half_year_f_expansion_award"
+    | "half_year_f_expansion_award_rate"
+    | "sales_total_amount"
+    | "sales_target"
+    | "achievement_rate";
+  // | "half_year_sales_total_amount"
+  // | "half_year_sales_target"
+  // | "half_year_achievement_rate";
+  result: number;
+};
 
 // SDBモーダル開閉タイプ
 // type OpenModalSDBType = ''

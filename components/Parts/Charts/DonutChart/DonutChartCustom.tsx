@@ -42,6 +42,8 @@ type Props = {
   activeIndexParent: number;
   setActiveIndexParent: Dispatch<SetStateAction<number>>;
   customPaddingAngle?: number | undefined;
+  innerRadius?: number | undefined;
+  outerRadius?: number | undefined;
 };
 
 const DonutChartCustomComponentMemo = ({
@@ -66,6 +68,8 @@ const DonutChartCustomComponentMemo = ({
   activeIndexParent,
   setActiveIndexParent,
   customPaddingAngle,
+  innerRadius = 60,
+  outerRadius = 78,
 }: Props) => {
   const language = useStore((state) => state.language);
 
@@ -153,8 +157,10 @@ const DonutChartCustomComponentMemo = ({
               cy="50%"
               // innerRadius={45}
               // outerRadius={60}
-              innerRadius={60}
-              outerRadius={78}
+              // innerRadius={60}
+              // outerRadius={78}
+              innerRadius={innerRadius}
+              outerRadius={outerRadius}
               paddingAngle={
                 displayChartData?.length === 1 ? 0 : customPaddingAngle === undefined ? 3 : customPaddingAngle
               } // セクター間の間隔 lengthが1の場合は間隔は0にする

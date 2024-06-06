@@ -1,12 +1,17 @@
-import { FiscalYearAllKeys, PropertiesPeriodKey, SalesProcessesForSDB } from "@/types";
+import {
+  FiscalYearAllKeys,
+  PropertiesPeriodKey,
+  SalesProcessesForSDB,
+  SalesProcessesOnlyHalfYearForSDB,
+} from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 
 type Props = {
   fiscalYear: number;
-  fiscalYearId: string;
-  entityLevelId: string;
-  entityStructureId: string;
+  fiscalYearId: string | null;
+  entityLevelId: string | null;
+  entityStructureId: string | null;
   companyId: string;
   entityId: string;
   entityLevel: string;
@@ -36,7 +41,7 @@ export const useQuerySDBSalesProcessesForProgress = ({
 }: Props) => {
   const supabase = useSupabaseClient();
 
-  const getSalesProcesses = async (): Promise<SalesProcessesForSDB[] | null> => {
+  const getSalesProcesses = async (): Promise<SalesProcessesForSDB[] | SalesProcessesOnlyHalfYearForSDB[] | null> => {
     if (!halfYearPeriod) return null;
     if (!periodTypeForTarget) return null;
     // FUNCTIONの返り値
@@ -56,37 +61,73 @@ export const useQuerySDBSalesProcessesForProgress = ({
     // 売上：指定した期間と半期
     //
 
-    const payload = {
-      _fiscal_year_id: fiscalYearId,
-      _entity_level_id: entityLevelId, // エンティティテーブルid
-      _entity_structure_id: entityStructureId, // エンティティテーブルid
-      _company_id: companyId, // 会社id
-      _entity_id: entityId, // エンティティid
-      _entity_level: entityLevel, // エンティティレベルの割り当て
-      _period_type_for_target: periodTypeForTarget, // 期間タイプ(sales_targetsテーブル用)
-      _period_type_for_sales: periodTypeForProperty, // 期間タイプ(propertiesテーブル用)
-      _period: basePeriod, // 期間
-      _half_year_period: halfYearPeriod,
-      _half_year_period_type_for_target: halfYearPeriodTypeForTarget,
-    };
+    // 🔸year_month, quarterルート
+    if (["year_month", "quarter"].includes(periodTypeForProperty)) {
+      const payload = {
+        _fiscal_year_id: fiscalYearId,
+        _entity_level_id: entityLevelId, // エンティティテーブルid
+        _entity_structure_id: entityStructureId, // エンティティテーブルid
+        _company_id: companyId, // 会社id
+        _entity_id: entityId, // エンティティid
+        _entity_level: entityLevel, // エンティティレベルの割り当て
+        _period_type_for_target: periodTypeForTarget, // 期間タイプ(sales_targetsテーブル用)
+        _period_type_for_sales: periodTypeForProperty, // 期間タイプ(propertiesテーブル用)
+        _period: basePeriod, // 期間
+        _half_year_period: halfYearPeriod,
+        _half_year_period_type_for_target: halfYearPeriodTypeForTarget,
+      };
 
-    console.log("🔥useQuerySDBSalesProcessesForProgress rpc get_sales_processes_for_progress関数実行 payload", payload);
+      console.log(
+        "🔥useQuerySDBSalesProcessesForProgress rpc get_sales_processes_for_progress関数実行 payload",
+        payload
+      );
 
-    const { data, error } = await supabase.rpc("get_sales_processes_for_progress", payload);
+      const { data, error } = await supabase.rpc("get_sales_processes_for_progress", payload);
 
-    if (error) {
-      console.error("❌getSalesProcessesエラー発生", error);
-      throw error;
+      if (error) {
+        console.error("❌getSalesProcessesエラー発生", error);
+        throw error;
+      }
+
+      responseData = data as SalesProcessesForSDB[];
     }
+    // 🔸half_yearルート
+    else {
+      const payload = {
+        _company_id: companyId, // 会社id
+        _entity_id: entityId, // エンティティid
+        _entity_level: entityLevel, // エンティティレベルの割り当て
+        _period_type_for_target: periodTypeForTarget, // 期間タイプ(sales_targetsテーブル用)
+        _period_type_for_sales: periodTypeForProperty, // 期間タイプ(propertiesテーブル用)
+        _period: basePeriod, // 期間
+        _fiscal_year_id: fiscalYearId,
+        _entity_level_id: entityLevelId, // エンティティテーブルid
+        _entity_structure_id: entityStructureId, // エンティティテーブルid
+        // _half_year_period: halfYearPeriod,
+        // _half_year_period_type_for_target: halfYearPeriodTypeForTarget,
+      };
 
-    responseData = data as SalesProcessesForSDB[];
+      console.log(
+        "🔥useQuerySDBSalesProcessesForProgress rpc 半期ルート get_sales_processes_for_progress_for_half_year関数実行 payload",
+        payload
+      );
+
+      const { data, error } = await supabase.rpc("get_sales_processes_for_progress_for_half_year", payload);
+
+      if (error) {
+        console.error("❌getSalesProcessesエラー発生", error);
+        throw error;
+      }
+
+      responseData = data as SalesProcessesOnlyHalfYearForSDB[];
+    }
 
     // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     await new Promise((resolve) => setTimeout(resolve, 500));
 
-    console.log("✅✅✅ useQuery getSalesProcesses関数成功 responseData", responseData, "data", data);
+    console.log("✅✅✅ useQuery getSalesProcesses関数成功 responseData", responseData);
 
-    return responseData;
+    return responseData as SalesProcessesForSDB[] | SalesProcessesOnlyHalfYearForSDB[];
   };
 
   return useQuery({

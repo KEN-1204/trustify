@@ -15,7 +15,7 @@ export const useMutateUnit = () => {
 
   // 【Department新規作成INSERT用createUnitMutation関数】
   const createUnitMutation = useMutation(
-    async (newUnit: Omit<Unit, "id" | "created_at">) => {
+    async (newUnit: Omit<Unit, "id" | "created_at" | "target_type">) => {
       setLoadingGlobalState(true);
       const { error } = await supabase.from("units").insert(newUnit);
       if (error) throw error;
@@ -43,7 +43,7 @@ export const useMutateUnit = () => {
 
   // 【Department一括編集UPDATE用updateUnitMutation関数】
   const updateUnitMutation = useMutation(
-    async (newDepartment: Omit<Unit, "created_at">) => {
+    async (newDepartment: Omit<Unit, "created_at" | "target_type">) => {
       // setLoadingGlobalState(true);
       const { error } = await supabase.from("units").update(newDepartment).eq("id", newDepartment.id);
       if (error) throw new Error(error.message);

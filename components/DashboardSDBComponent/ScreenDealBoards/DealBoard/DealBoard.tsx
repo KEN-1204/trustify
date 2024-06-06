@@ -2242,7 +2242,8 @@ const DealBoardMemo = ({
       </div>
       {/* ------------------------ タイトルエリア ------------------------ */}
       {/* ------------------------ ボード ------------------------ */}
-      <div ref={boardRef} className={`${styles.board} flex  w-full overflow-scroll ${getStyleTheme()}`}>
+      {/* <div ref={boardRef} className={`${styles.board} flex  w-full overflow-scroll ${getStyleTheme()}`}> */}
+      <div ref={boardRef} className={`${styles.board} flex  w-full overflow-y-scroll ${getStyleTheme()}`}>
         {/* ------------ Columnレーングループ ------------ */}
         {dealColumnList.map((column: ColumnLane, columnIndex: number) => {
           // const filteredCards = categorizedCardsMapObj.get(column.titleNum);

@@ -15,7 +15,7 @@ export const useMutateOffice = () => {
 
   // 【Office新規作成INSERT用createOfficeMutation関数】
   const createOfficeMutation = useMutation(
-    async (newOffice: Omit<Office, "id" | "created_at">) => {
+    async (newOffice: Omit<Office, "id" | "created_at" | "target_type">) => {
       setLoadingGlobalState(true);
       const { error } = await supabase.from("offices").insert(newOffice);
       if (error) throw error;
@@ -43,7 +43,7 @@ export const useMutateOffice = () => {
 
   // 【Office一括編集UPDATE用updateOfficeMutation関数】
   const updateOfficeMutation = useMutation(
-    async (newOffice: Omit<Office, "created_at">) => {
+    async (newOffice: Omit<Office, "created_at" | "target_type">) => {
       // setLoadingGlobalState(true);
       const { error } = await supabase.from("offices").update(newOffice).eq("id", newOffice.id);
       if (error) throw new Error(error.message);

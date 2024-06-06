@@ -11,7 +11,13 @@ import jaLocale from "@fullcalendar/core/locales/ja"; //追加
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import useDashboardStore from "@/store/useDashboardStore";
 import { Meeting_row_data, ValidMeeting } from "@/types";
+import { LuCalendar } from "react-icons/lu";
+
 const CalendarMemo: FC = () => {
+  const setIsOpenBusinessCalendarModalDisplayOnly = useDashboardStore(
+    (state) => state.setIsOpenBusinessCalendarModalDisplayOnly
+  );
+
   //イベントはオブジェクトの配列をPropsとして渡します
   const eventExample = [
     //オブジェクトの中身はこんな感じ
@@ -118,7 +124,28 @@ const CalendarMemo: FC = () => {
 
   return (
     <>
-      <div className={`${styles.calendar_screen}`}>
+      <div className={`${styles.calendar_screen} relative`}>
+        <div className={`absolute right-[106px] top-[8px] z-10`}>
+          <div
+            className={`${styles.btn} ${styles.brand_section} space-x-[4px]`}
+            // onMouseEnter={(e) => {
+            //   handleOpenTooltip({
+            //     e: e,
+            //     display: "top",
+            //     content: `営業カレンダーを表示`,
+            //     marginTop: 9,
+            //   });
+            // }}
+            // onMouseLeave={handleCloseTooltip}
+            onClick={() => {
+              setIsOpenBusinessCalendarModalDisplayOnly(true);
+              // handleCloseTooltip();
+            }}
+          >
+            <LuCalendar className={`text-[13px]`} />
+            <span>カレンダー</span>
+          </div>
+        </div>
         <FullCalendar
           plugins={[dayGridPlugin, interactionPlugin, timeGridPlugin]}
           locale={jaLocale}

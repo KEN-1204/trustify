@@ -64,6 +64,7 @@ import { FallbackBusinessCalendarModal } from "./DashboardCompanyComponent/Modal
 import { BusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModal";
 import { EditModalDealCard } from "./DashboardSDBComponent/ScreenDealBoards/EditModalDealCard/EditModalDealCard";
 import { DetailPropertyModal } from "./DashboardPropertyComponent/PropertyDetail/PropertyMainContainer/DetailPropertyModal";
+import { BusinessCalendarModalDisplayOnly } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModalDisplayOnly";
 
 type Prop = {
   title?: string;
@@ -290,6 +291,9 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const isOpenQuotationPreviewForProfile = useDashboardStore((state) => state.isOpenQuotationPreviewForProfile);
   // 営業カレンダー編集プレビューモーダル
   const isOpenBusinessCalendarSettingModal = useDashboardStore((state) => state.isOpenBusinessCalendarSettingModal);
+  const isOpenBusinessCalendarModalDisplayOnly = useDashboardStore(
+    (state) => state.isOpenBusinessCalendarModalDisplayOnly
+  );
 
   // 印鑑データ設定サイドテーブル
   const isOpenSearchStampSideTable = useDashboardStore((state) => state.isOpenSearchStampSideTable);
@@ -668,6 +672,15 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<FallbackBusinessCalendarModal />}>
             <BusinessCalendarModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* <FallbackBusinessCalendarModal /> */}
+      {/* 営業カレンダーディスプレイ用プレビューモーダル */}
+      {isOpenBusinessCalendarModalDisplayOnly && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackBusinessCalendarModal />}>
+            <BusinessCalendarModalDisplayOnly />
           </Suspense>
         </ErrorBoundary>
       )}

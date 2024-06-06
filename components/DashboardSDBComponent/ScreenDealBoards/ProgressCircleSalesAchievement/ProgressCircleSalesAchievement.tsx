@@ -26,13 +26,13 @@ import { ImInfo } from "react-icons/im";
 
 type Props = {
   fiscalYear: number;
-  fiscalYearId: string;
   companyId: string;
   entityId: string;
   entityName: string;
   entityLevel: EntityLevelNames;
-  entityLevelId: string;
-  entityStructureId: string;
+  fiscalYearId: string | null;
+  entityLevelId: string | null;
+  entityStructureId: string | null;
   // periodType: FiscalYearAllKeys;
   periodTypeForTarget: FiscalYearAllKeys | null;
   periodTypeForProperty: PropertiesPeriodKey;
@@ -328,10 +328,16 @@ const ProgressCircleSalesAchievementMemo = ({
               ? `展開F（${isFirstHalf ? `上期` : `下期`}）`
               : `${isFirstHalf ? `First` : `Second`} Half F Expansion`;
           case "half_year_f_expansion_award":
+            if (periodTypeForProperty === "half_year") {
+              return isJa ? `F獲得数` : `F Expansion Award`;
+            }
             return isJa
               ? `F獲得数（${isFirstHalf ? `上期` : `下期`}）`
               : `${isFirstHalf ? `First` : `Second`} Half F Expansion Award`;
           case "half_year_f_expansion_award_rate":
+            if (periodTypeForProperty === "half_year") {
+              return isJa ? `F獲得率` : `F Expansion Award rate`;
+            }
             return isJa
               ? `F獲得率（${isFirstHalf ? `上期` : `下期`}）`
               : `${isFirstHalf ? `First` : `Second`} Half F Expansion Award rate`;

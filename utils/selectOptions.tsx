@@ -1620,7 +1620,7 @@ export const mappingOrderCertaintyStartOfMonthToast: { [key: number]: { [key: st
   4: { ja: `▲ネタ`, en: "" },
 };
 export const mappingSalesProbablyShort: { [key: number]: { [key: string]: string } } = {
-  1: { ja: `A`, en: "A" },
+  1: { ja: `A（受注済み）`, en: "A" },
   2: { ja: `○ネタ`, en: "○" },
   // 2: { ja: `⚪️ネタ`, en: "⚪️" },
   3: { ja: `△ネタ`, en: "△" },
@@ -1884,7 +1884,12 @@ export const mappingSectionName: { [key: string]: { [key: string]: string } } = 
 // 期間タブ 年度(FiscalYear)・半期(Half)・四半期(Quarter)・月次(Monthly)
 export const periodList: PeriodListItem[] = [
   { title: "fiscal_year", name: { ja: "年度", en: "Fiscal Year" } },
-  { title: "half_year", name: { ja: "半期", en: "Half" } },
+  { title: "half_year", name: { ja: "半期", en: "Half Year" } },
+  { title: "quarter", name: { ja: "四半期", en: "Quarter" } },
+  { title: "year_month", name: { ja: "月度", en: "Monthly" } },
+];
+export const periodListWithoutFiscalYear: PeriodListItem[] = [
+  { title: "half_year", name: { ja: "半期", en: "Half Year" } },
   { title: "quarter", name: { ja: "四半期", en: "Quarter" } },
   { title: "year_month", name: { ja: "月度", en: "Monthly" } },
 ];

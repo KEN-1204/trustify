@@ -209,3 +209,28 @@
   /* animation-play-state: running; */
   animation-play-state: paused;
 }
+
+/* ボタン */
+.btn {
+  padding: 4px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  /* transition: background-color 0.3s ease, color 0.3s ease; */
+}
+.btn.brand_section {
+  /* background-color: var(--color-btn-basic-bg-on-card); */
+  background-color: var(--color-sdb-btn-brand-section);
+  /* background-color: #242424aa; */
+  /* background-color: var(--sdb-card-btn-bg); */
+  box-shadow: 0 0 0 1px var(--color-border-base);
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.btn.brand_section:hover {
+  background-color: var(--color-btn-basic-bg-on-card-hover);
+  /* background-color: var(--sdb-card-btn-bg-hover); */
+  color: var(--color-btn-basic-text-hover);
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}

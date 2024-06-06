@@ -1,3 +1,4 @@
+// import { useEffect, useState } from "react";
 import styles from "./BusinessCalendarModal.module.css";
 import { SkeletonLoadingLineCustom } from "@/components/Parts/SkeletonLoading/SkeletonLoadingLineCustom";
 
@@ -14,6 +15,21 @@ export const FallbackBusinessCalendarModal = () => {
       return 1;
     }
   };
+  // const [scalePdf, setScalePdf] = useState(window.innerHeight / 788);
+  // const [scalePdf, setScalePdf] = useState(getScale(window.innerHeight));
+
+  // useEffect(() => {
+  //   const handleResize = () => {
+  //     setScalePdf(getScale(window.innerHeight));
+  //     // if (!pdfTargetRef.current) return;
+  //     // pdfTargetRef.current.style.transform = `scale(${getScale(window.innerHeight)})`;
+  //   };
+
+  //   window.addEventListener("resize", handleResize);
+
+  //   // コンポーネントのアンマウント時にイベントリスナーを削除
+  //   return () => window.removeEventListener("resize", handleResize);
+  // }, []);
   //   useEffect(() => {
   //     const handleResize = () => {
   //       setScalePdf(getScale(window.innerHeight));
@@ -37,7 +53,8 @@ export const FallbackBusinessCalendarModal = () => {
           {/* ----------------------------- 🌟カレンダーPDFコンポーネント🌟 ----------------------------- */}
           <div
             className={`${styles.pdf} ${styles.loading}`}
-            style={{ transform: `scale(${getScale(window.innerHeight)})`, padding: "0px", backgroundColor: "#aaa" }}
+            // style={{ transform: `scale(${getScale(window.innerHeight)})`, padding: "0px", backgroundColor: "#aaa" }}
+            style={{ padding: "0px", backgroundColor: "#aaa" }}
           >
             <SkeletonLoadingLineCustom h="100%" w="100%" rounded="0px" waveBg="var(--color-skeleton-bg-wave-light)" />
           </div>

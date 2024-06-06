@@ -1087,6 +1087,16 @@ export const DashboardHeaderMemo: FC = () => {
                   // prefetch={false}
                   className={`${styles.navbarItem} ${activeMenuTab === "SDB" ? styles.active : ""} `}
                   onClick={() => {
+                    if (
+                      !userProfileState ||
+                      !userProfileState?.customer_fiscal_end_month ||
+                      !userProfileState.customer_fiscal_year_basis
+                    ) {
+                      alert(
+                        "セールスダッシュボードではお客様の決算日と稼働日に合わせた営業プロセス結果からチャートを表示します。\n先にアカウント設定から「会社・チーム」タブの「決算日」「営業カレンダー」「会計年度基準」を設定してください。"
+                      );
+                      return;
+                    }
                     setIsOpenSidebar(false);
                     setActiveMenuTab("SDB");
                     handleCloseTooltip();
@@ -1294,7 +1304,7 @@ export const DashboardHeaderMemo: FC = () => {
                   <div className={`${styles.active_underline}`} />
                 </div>
               </li>
-              <li className={`${styles.navList2}`}>
+              {/* <li className={`${styles.navList2}`}>
                 <div
                   // href="/home"
                   // prefetch={false}
@@ -1311,21 +1321,10 @@ export const DashboardHeaderMemo: FC = () => {
                       {language === "ja" && "プレミアム"}
                       {language === "en" && "Premium"}
                     </span>
-                    {/* {!isLT1440 && (
-                    <span>
-                      {language === "ja" && "プレミアム"}
-                      {language === "en" && "Premium"}
-                    </span>
-                  )}
-                  {isLT1440 && (
-                    <span>
-                      <GrHomeRounded className={`text-[16px]`} />
-                    </span>
-                  )} */}
                   </div>
                   <div className={`${styles.active_underline}`} />
                 </div>
-              </li>
+              </li> */}
             </ul>
           </nav>
           {/* ============================= ２列目ナビゲーションタブ ここまで ============================= */}

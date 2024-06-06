@@ -22,9 +22,10 @@ import { DropDownMenuSearchMode } from "./DropDownMenuSearchMode/DropDownMenuSea
 import { getNumberOfEmployeesClass, mappingIndustryType } from "@/utils/selectOptions";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { toast } from "react-toastify";
-import { MdDeleteOutline } from "react-icons/md";
+import { MdDeleteOutline, MdOutlineSaveAlt } from "react-icons/md";
 import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { CiImport } from "react-icons/ci";
 
 type TableDataType = {
   id: number;
@@ -2901,6 +2902,32 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                     )}
                   </>
                 )}
+
+              <button
+                className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} fade08_forward relative cursor-pointer active:bg-[var(--color-function-header-text-btn-active)]`}
+                onClick={() => {
+                  // if (searchMode) setSearchMode(false); // サーチモード中止
+                  // if (editSearchMode) setEditSearchMode(false); // 編集モード中止
+                  // if (!isOpenDropdownMenuSearchMode) setIsOpenDropdownMenuSearchMode(true);
+                  if (hoveredItemPos) handleCloseTooltip();
+                }}
+                onMouseEnter={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `CSVデータから自社専用の会社情報をインポート`,
+                    // content2: `「全ての会社」に切り替えが可能です`,
+                    // marginTop: 28,
+                    marginTop: 9,
+                    itemsPosition: "center",
+                  })
+                }
+                onMouseLeave={handleCloseTooltip}
+              >
+                {/* <CiImport className="pointer-events-none stroke-[1] text-[15px]" /> */}
+                <MdOutlineSaveAlt className="pointer-events-none text-[15px]" />
+                <span>インポート</span>
+              </button>
 
               <button
                 className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${

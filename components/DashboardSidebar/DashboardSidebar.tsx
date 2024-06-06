@@ -702,14 +702,20 @@ export const DashboardSidebarMemo: FC = () => {
                 }  ${isOpenSidebar ? "w-[84px] pr-[20px]" : "flex-center w-full"}`}
                 data-text={`${
                   isOpenSidebar
-                    ? `${isOpenSideBarPickBox ? `クリックしてセクションを非表示` : `クリックしてセクションを表示`}`
+                    ? `${isOpenSideBarPickBox ? `開発・準備中` : `開発・準備中`}`
                     : `${isOpenSideBarPickBox ? `ピックボックス` : `ピックボックス`}`
                 }`}
-                data-text2={`${
-                  isOpenSidebar
-                    ? ``
-                    : `${isOpenSideBarPickBox ? `クリックしてセクションを非表示` : `クリックしてセクションを表示`}`
-                }`}
+                // data-text={`${
+                //   isOpenSidebar
+                //     ? `${isOpenSideBarPickBox ? `クリックしてセクションを非表示` : `クリックしてセクションを表示`}`
+                //     : `${isOpenSideBarPickBox ? `ピックボックス` : `ピックボックス`}`
+                // }`}
+                data-text2={`${isOpenSidebar ? `` : `${isOpenSideBarPickBox ? `開発・準備中` : `開発・準備中`}`}`}
+                // data-text2={`${
+                //   isOpenSidebar
+                //     ? ``
+                //     : `${isOpenSideBarPickBox ? `クリックしてセクションを非表示` : `クリックしてセクションを表示`}`
+                // }`}
                 onClick={() => setIsOpenSideBarPickBox(!isOpenSideBarPickBox)}
                 onMouseEnter={(e) => handleOpenTooltip(e, "left")}
                 onMouseLeave={handleCloseTooltip}
@@ -744,7 +750,7 @@ export const DashboardSidebarMemo: FC = () => {
               }`}
             >
               {/* ======================== メニューアイテム ここから ======================== */}
-              <Link
+              {/* <Link
                 href="/home"
                 prefetch={false}
                 className={`${styles.menu_item} ${activeMenuTab === "PickBox1" ? styles.active : ""} `}
@@ -1096,7 +1102,7 @@ export const DashboardSidebarMemo: FC = () => {
                     <span>ピックボックス１０</span>
                   </div>
                 </div>
-              </Link>
+              </Link> */}
               {/* ======================== メニューアイテム ここまで ======================== */}
             </div>
             {/* ========================= menu_container ここまで ========================= */}
