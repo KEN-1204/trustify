@@ -1,0 +1,109 @@
+.overlay {
+  position: fixed;
+  z-index: 500;
+  inset: 0;
+  background-color: var(--color-overlay-insert-update-modal);
+  backdrop-filter: blur(4px);
+}
+
+.select_time_modal {
+  position: fixed;
+  z-index: 1000;
+  top: 50%;
+  left: 50%;
+
+  transform: translate(-50%, -50%);
+  /* background: linear-gradient(to bottom left, #484848 0%, #363636 33%, #333 66%, #2d2d2d 100%); */
+  background: linear-gradient(to bottom left, #484848 0%, #363636 33%, #272727 66%, #242424 100%);
+  /* box-shadow: var(--border-real-with-shadow); */
+  box-shadow: var(--border-real-with-shadow-md);
+  /* box-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000, 0 4px 10px 2px #ffffff33; */
+  width: 500px;
+  height: 390px;
+  max-width: 500px;
+  max-height: 390px;
+  padding: 0 25px 25px;
+  /* background: linear-gradient(to bottom left, #2d2d2d 0%, #292929 33%, #222 66%, #1c1c1c 100%); */
+  /* box-shadow: 0 0 0 1px #666; */
+  /* height: 360px;
+  padding: 0 25px 25px; */
+  /* height: 410px;
+  padding: 0 25px 75px; */
+}
+
+.select_time_container {
+  background: #121212;
+}
+
+.input_time_container {
+  border-radius: 9px;
+  /* box-shadow: 0 0 0 1px #0d99ff; */
+}
+.input_time_container .input_box {
+  background: #24242478;
+  max-width: 80px;
+}
+
+.input_time_container .input_box input {
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #fff;
+  font-weight: 800;
+  font-size: 30px;
+  max-width: 80px;
+  height: 100%;
+  text-align: center;
+  background: #292929;
+  /* box-shadow: 0 0 0 1px #181818; */
+  box-shadow: 0 0 0 1px #666;
+  border-radius: 9px;
+}
+.input_time_container .input_box input:focus {
+  /* background: #0d99ff10; */
+  box-shadow: 0 0 0 1px #0d99ff;
+}
+
+.shadow_top {
+  /* background: linear-gradient(to top, transparent, #181818 90%); */
+  background: linear-gradient(to top, transparent, #121212 90%);
+  /* background: linear-gradient(to top, transparent, #242424 90%); */
+  /* background: linear-gradient(to top, transparent, #1c1c1c 90%); */
+  pointer-events: none;
+}
+.shadow_bottom {
+  /* background: linear-gradient(to bottom, transparent, #181818 90%); */
+  background: linear-gradient(to bottom, transparent, #121212 90%);
+  /* background: linear-gradient(to bottom, transparent, #242424 90%); */
+  /* background: linear-gradient(to bottom, transparent, #1c1c1c 90%); */
+  pointer-events: none;
+}
+
+.time_scroll_container {
+  /* background: linear-gradient(to bottom, transparent, #777, transparent); */
+  /* background: linear-gradient(to bottom, transparent, #555 25%, #666 40%, #787878, #666 60%, #555 75%, transparent); */
+  /* background: linear-gradient(to bottom, transparent, #707070 33%, #787878, #707070 66%, transparent); */
+  background: linear-gradient(to bottom, transparent, #707070 40%, #787878, #707070 60%, transparent);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow-y: hidden;
+  font-weight: 600;
+}
+
+.shadow_top_col {
+  /* background: linear-gradient(to top, transparent, #18181860); */
+  background: linear-gradient(to top, transparent, #12121260);
+  /* background: linear-gradient(to top, transparent, #24242460); */
+  /* background: linear-gradient(to top, transparent, #1c1c1c60); */
+  pointer-events: none;
+}
+.shadow_bottom_col {
+  /* background: linear-gradient(to bottom, transparent, #18181860); */
+  background: linear-gradient(to bottom, transparent, #12121260);
+  /* background: linear-gradient(to bottom, transparent, #24242460); */
+  /* background: linear-gradient(to bottom, transparent, #1c1c1c60); */
+  pointer-events: none;
+}

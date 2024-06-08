@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .scrollbar-hidden {
+    -ms-overflow-style: none; /* IE, Edge 対応 */
+    scrollbar-width: none; /* Firefox 対応 */
+  }
+  .scrollbar-hidden::-webkit-scrollbar {
+    /* Chrome, Safari 対応 */
+    display: none;
+  }
+}
+
 :root {
   /* --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
@@ -1179,7 +1190,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --box-shadow-tooltip-border-brand: inset 0px 0px 0px 1px var(--color-bg-brand-f60),
     0px 0px 0px 1px var(--color-bg-brand-f);
   --shadow-dropdown-menu: 0 4px 6px 2px #00000033;
+  --shadow-dropdown-menu-md: 0 4px 15px 5px #00000078;
   --border-real-with-shadow: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390, var(--shadow-dropdown-menu);
+  --border-real-with-shadow-md: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390,
+    var(--shadow-dropdown-menu-md);
   --border-real-with-shadow-f: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390,
     0 4px 10px 2px #ffffff33, var(--shadow-dropdown-menu);
   --border-real-with-shadow-dark: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390,
@@ -2227,8 +2241,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --box-shadow-tooltip-border-brand: inset 0px 0px 0px 1px var(--color-bg-brand-f-deep),
     0px 0px 0px 1px var(--color-bg-brand-f);
   --shadow-dropdown-menu: 0 4px 10px 2px #ffffff33;
+  --shadow-dropdown-menu-md: 0 4px 15px 4px #ffffff33;
   --shadow-dropdown-menu-dark: 0 4px 6px 2px #00000033;
   --border-real-with-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000, var(--shadow-dropdown-menu);
+  --border-real-with-shadow-md: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000, var(--shadow-dropdown-menu-md);
   --border-real-with-shadow-f: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390,
     0 4px 10px 2px #ffffff33, var(--shadow-dropdown-menu);
   --border-real-with-shadow-dark: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390,

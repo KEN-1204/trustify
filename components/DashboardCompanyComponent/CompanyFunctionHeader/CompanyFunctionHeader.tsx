@@ -252,6 +252,31 @@ const CompanyFunctionHeaderMemo: FC = () => {
         >
           <span>MAP</span>
         </button> */}
+        {/* <RippleButton
+          title={`インポート`}
+          classText="select-none mr-[12px]"
+          clickEventHandler={() => {
+            if (searchMode) return;
+            console.log("会社インポート クリック");
+            if (loadingGlobalState) setLoadingGlobalState(false);
+            // setIsOpenInsertNewClientCompanyModal(true);
+            // if (hoveredItemPos) handleCloseTooltip();
+          }}
+          onMouseEnterHandler={(e) =>
+            handleOpenTooltip({
+              e: e,
+              display: "top",
+              content: `CSVデータから会社データをインポートする`,
+              // content2: `会社・部署の作成を行います`,
+              // marginTop: 48,
+              // marginTop: 28,
+              marginTop: 9,
+            })
+          }
+          onMouseLeaveHandler={() => {
+            if (hoveredItemPos) handleCloseTooltip();
+          }}
+        /> */}
 
         <button
           className={`flex-center transition-base03   !mr-[10px] h-[26px] min-w-[26px]  space-x-2 rounded-[4px] text-[16px]   ${

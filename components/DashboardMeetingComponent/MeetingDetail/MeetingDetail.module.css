@@ -787,6 +787,25 @@
   background-color: var(--color-btn-brand-f-hover);
 }
 
+.btn_brand {
+  /* box-shadow: 0 0 0 1px var(--color-border-base); */
+  /* padding: 6px 12px; */
+  /* font-size: 12px; */
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.3s ease, color 0.3s ease;
+
+  background-color: var(--color-bg-brand-f);
+  color: #fff;
+  box-shadow: var(--color-btn-brand-shadow);
+}
+.btn_brand:hover {
+  background-color: var(--color-bg-brand-f-deep);
+}
+
 .edit_mode_overlay {
   position: fixed;
   left: 0;
