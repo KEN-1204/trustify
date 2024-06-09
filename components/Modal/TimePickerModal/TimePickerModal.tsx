@@ -1,8 +1,21 @@
-import { Dispatch, KeyboardEvent, SetStateAction, UIEvent, memo, useMemo, useRef, useState } from "react";
+import {
+  Dispatch,
+  FormEvent,
+  KeyboardEvent,
+  MouseEvent,
+  SetStateAction,
+  UIEvent,
+  memo,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "./TimePickerModal.module.css";
 import { FiRefreshCw } from "react-icons/fi";
 import { MdClose, MdOutlineDeleteOutline } from "react-icons/md";
 import { zenkakuToHankaku } from "@/utils/Helpers/zenkakuToHankaku";
+import useStore from "@/store";
 
 type Props = {
   incrementType: "all" | "5";
@@ -15,6 +28,7 @@ type Props = {
   // スタイル
   zIndexModal?: number;
   zIndexOverlay?: number;
+  columnName?: string;
 };
 
 const TimePickerModalMemo = ({
@@ -26,6 +40,7 @@ const TimePickerModalMemo = ({
   setIsOpenModal,
   zIndexModal,
   zIndexOverlay,
+  columnName,
 }: Props) => {
   // 日本語のように変換、確定が存在する言語入力の場合の日本語入力の変換中を保持するstate、日本語入力開始でtrue, エンターキーで変換確定した時にfalse
   const [isComposing, setIsComposing] = useState(false);
@@ -215,7 +230,8 @@ const TimePickerModalMemo = ({
       return;
     }
 
-    const timeNum = parseInt(timeValue, 10);
+    // 分で5分刻みなら5を除算する
+    const timeNum = parseInt(timeValue, 10) / (type === "minute" && incrementType === "5" ? 5 : 1);
 
     const targetTop = timeNum * 50;
 
@@ -241,8 +257,122 @@ const TimePickerModalMemo = ({
 
   // 🌠モーダルを閉じる
   const handleCloseModal = () => {
+    handleCloseTooltip();
     setIsOpenModal(false);
   };
+
+  // 🌠リセットボタンクリック
+  const handleReset = () => {
+    console.log("リセット クリック");
+    if (selectedHour !== initialHour) setSelectedHour(initialHour);
+    if (selectedMinute !== initialMinute) setSelectedMinute(initialMinute);
+
+    resetScrollTop(scrollWrapperHourRef.current, "hour");
+    resetScrollTop(scrollWrapperMinuteRef.current, "minute");
+
+    handleCloseTooltip();
+  };
+
+  // 🌠ゴミ箱ボタンクリック
+  const handleDeleteAndClose = () => {
+    console.log("ゴミ箱 クリック");
+    // ローカルstateに空文字をセットして閉じる
+    if (hourState !== "") setHourState("");
+    if (minuteState !== "") setMinuteState("");
+
+    handleCloseTooltip();
+    handleCloseModal();
+  };
+
+  // 🌠保存ボタンクリック
+  const handleSaveAndClose = () => {
+    console.log("保存 クリック");
+    // ローカルstateに空文字をセットして閉じる
+    setHourState(selectedHour);
+    setMinuteState(selectedMinute);
+
+    handleCloseTooltip();
+    handleCloseModal();
+  };
+
+  // 🌠form Submit
+  // const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  //   console.log("サブミット", e);
+  //   e.preventDefault();
+  //   handleCloseTooltip();
+
+  //   // stateが選択肢に含まれていれば保存して閉じる
+  //   if (!hoursSet.has(selectedHour) || !minutesSet.has(selectedMinute)) {
+  //     if (!hoursSet.has(selectedHour)) {
+  //       return alert("選択した時間が無効な値です。00時〜23時の中で入力してください。");
+  //     }
+
+  //     if (!hoursSet.has(selectedHour)) {
+  //       const sectionName = !!columnName ? columnName : `この項目`;
+  //       const alertText =
+  //         incrementType === "all"
+  //           ? `選択した分が無効な値です。00分〜59分の中で入力してください。`
+  //           : `選択した分が無効な値です。${sectionName}は00分〜55分までの間で5分刻みで入力してください。`;
+  //       return alert(alertText);
+  //     }
+  //   }
+
+  //   // 保存
+  //   handleSaveAndClose();
+  // };
+
+  // ------------------ ✅初回マウント時✅ ------------------
+  // 🌠hourStateとminuteStateのそれぞれが空文字でなかった場合には、時間、分を対応する値までスクロールさせる
+  useEffect(() => {
+    if (hourState !== "") {
+      updateScrollTop(hourState, scrollWrapperHourRef.current, "hour");
+    }
+    if (minuteState !== "") {
+      updateScrollTop(minuteState, scrollWrapperMinuteRef.current, "minute");
+    }
+  }, []);
+  // ------------------ ✅初回マウント時✅ ここまで ------------------
+
+  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
+  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
+  type TooltipParams = {
+    e: MouseEvent<HTMLElement, MouseEvent> | MouseEvent<HTMLButtonElement, globalThis.MouseEvent>;
+    display: string;
+    content?: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    marginTop = 0,
+    itemsPosition = "center",
+  }: TooltipParams) => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+
+    setHoveredItemPos({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: ((e.target as HTMLDivElement).dataset.text as string) || (content ?? ""),
+      content2: content2,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    if (hoveredItemPos) setHoveredItemPos(null);
+  };
+  // ==================================================================================
 
   console.log(selectedHour, selectedMinute, hourRefs, hoursSet);
   return (
@@ -254,12 +384,23 @@ const TimePickerModalMemo = ({
       />
 
       <div
-        className={`${styles.select_time_modal} fade08_forward flex flex-col items-center justify-end rounded-[12px]`}
+        className={`${styles.select_time_modal} fade05_forward flex flex-col items-center justify-end rounded-[12px]`}
         style={{ ...(zIndexModal && { zIndex: zIndexModal }) }}
+        // onSubmit={handleSubmit}
       >
         {/* クローズボタン */}
         <button
-          className={`flex-center z-100 absolute right-[-40px] top-0 h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+          type="button"
+          className={`flex-center z-100 absolute right-[-40px] top-[5px] h-[32px] w-[32px] rounded-full bg-[#00000090] hover:bg-[#000000c0]`}
+          onMouseEnter={(e) => {
+            handleOpenTooltip({
+              e: e,
+              display: "top",
+              content: `閉じる`,
+              marginTop: 6,
+            });
+          }}
+          onMouseLeave={handleCloseTooltip}
           onClick={handleCloseModal}
         >
           <MdClose className="pointer-events-none text-[20px] text-[#fff]" />
@@ -271,32 +412,58 @@ const TimePickerModalMemo = ({
           </div>
           <div className={`flex h-full w-[60%] items-center justify-end space-x-[12px]`}>
             <button
+              type="button"
               className={`flex-center transition-color03 relative max-h-[30px]  min-h-[30px] min-w-[30px] max-w-[30px] cursor-pointer space-x-1 rounded-full border border-solid border-[#666] bg-[#00000066] text-[12px] font-bold text-[#fff] hover:border-[#00d436] hover:bg-[#00d43656] active:bg-[#0d99ff]`}
-              style={{ cursor: `pointer` }}
-              onClick={() => {
-                console.log("リフレッシュ クリック");
+              // style={{ cursor: `pointer` }}
+              onMouseEnter={(e) => {
+                handleOpenTooltip({
+                  e: e,
+                  display: "top",
+                  content: `入力内容をリセット`,
+                  marginTop: 6,
+                });
               }}
+              onMouseLeave={handleCloseTooltip}
+              onClick={handleReset}
             >
               <FiRefreshCw className="pointer-events-none" />
             </button>
 
             <button
+              type="button"
               className={`flex-center transition-color03 relative max-h-[30px]  min-h-[30px] min-w-[30px] max-w-[30px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[12px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[#ff3b5b56] active:bg-[#0d99ff]`}
-              style={{ cursor: `pointer` }}
-              onClick={() => {
-                console.log("リフレッシュ クリック");
+              // style={{ cursor: `pointer` }}
+              onMouseEnter={(e) => {
+                handleOpenTooltip({
+                  e: e,
+                  display: "top",
+                  content: `時間設定を破棄して閉じる`,
+                  marginTop: 6,
+                });
               }}
+              onMouseLeave={handleCloseTooltip}
+              onClick={handleDeleteAndClose}
             >
               {/* <MdClose className="pointer-events-none text-[18px]" /> */}
               <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
             </button>
 
             <button
-              className={`flex-center transition-color03 relative max-h-[30px]  min-h-[30px] cursor-pointer space-x-1  rounded-[6px] border border-solid border-[#0d99ff] bg-[#0d99ff56] px-[15px] text-[12px] font-bold text-[#fff] hover:bg-[#0d99ff] active:bg-[#0d99ff]`}
-              style={{ cursor: `pointer` }}
-              onClick={() => {
-                console.log("リフレッシュ クリック");
+              // type="button"
+              type="submit"
+              className={`flex-center transition-color03 relative max-h-[30px]  min-h-[30px] cursor-pointer  space-x-1 rounded-[6px] border border-solid border-[#0d99ff] bg-[#0d99ff56] px-[15px] text-[12px] font-bold text-[#fff] hover:bg-[#0d99ff] active:bg-[#0d99ff]`}
+              // style={{ cursor: `pointer` }}
+              onMouseEnter={(e) => {
+                handleOpenTooltip({
+                  e: e,
+                  display: "top",
+                  content: `内容を保存して閉じる`,
+                  marginTop: 6,
+                });
               }}
+              onMouseLeave={handleCloseTooltip}
+              onClick={handleSaveAndClose}
+              // onClick={(e) => console.log(e)}
             >
               <span className="pointer-events-none">保存</span>
             </button>
@@ -426,7 +593,12 @@ const TimePickerModalMemo = ({
                     console.log("フォーマット", formattedValue, selectedMinute);
 
                     if (!minutesSet.has(formattedValue)) {
-                      alert("無効な値です。00時〜23時の中で入力してください。");
+                      const sectionName = !!columnName ? columnName : `この項目`;
+                      const alertText =
+                        incrementType === "all"
+                          ? `無効な値です。00分〜59分の中で入力してください。`
+                          : `無効な値です。${sectionName}は00分〜55分までの間で5分刻みで入力してください。`;
+                      alert(alertText);
                       setSelectedMinute(initialMinute);
                       resetScrollTop(scrollWrapperMinuteRef.current, "minute");
                       return;

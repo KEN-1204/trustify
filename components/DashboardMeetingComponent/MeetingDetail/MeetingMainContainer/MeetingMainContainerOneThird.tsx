@@ -22,7 +22,7 @@ import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import productCategoriesM, { moduleCategoryM } from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { format } from "date-fns";
-import { MdClose, MdMoreTime } from "react-icons/md";
+import { MdClose, MdMoreTime, MdOutlineDeleteOutline } from "react-icons/md";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
@@ -83,7 +83,6 @@ import { getFiscalYear } from "@/utils/Helpers/getFiscalYear";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
 import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
 import { TimePickerModal } from "@/components/Modal/TimePickerModal/TimePickerModal";
-import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -1833,30 +1832,43 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   const [isOpenTimePicker, setIsOpenTimePicker] = useState(false);
-  const timePickerTypeRef = useRef<"planned" | "result">("planned");
+  const timePickerTypeRef = useRef<"planned" | "result_start" | "result_end">("planned");
+  const timePickerIncrementTypeRef = useRef<"all" | "5">("all");
 
   // タイムピッカーに渡すstate
-  const getTimePickerState = (type: "planned" | "result") => {
+  const getTimePickerState = (type: "planned" | "result_start" | "result_end") => {
     switch (type) {
       case "planned":
         return {
+          columnName: language === "ja" ? `面談開始（予定）` : ``,
           hourState: inputPlannedStartTimeHour,
           setHourState: setInputPlannedStartTimeHour,
           minuteState: inputPlannedStartTimeMinute,
           setMinuteState: setInputPlannedStartTimeMinute,
         };
         break;
-      case "result":
+      case "result_start":
         return {
+          columnName: language === "ja" ? `面談開始（結果）` : ``,
           hourState: inputResultStartTimeHour,
           setHourState: setInputResultStartTimeHour,
           minuteState: inputResultStartTimeMinute,
           setMinuteState: setInputResultStartTimeMinute,
         };
         break;
+      case "result_end":
+        return {
+          columnName: language === "ja" ? `面談開始（結果）` : ``,
+          hourState: inputResultEndTimeHour,
+          setHourState: setInputResultEndTimeHour,
+          minuteState: inputResultEndTimeMinute,
+          setMinuteState: setInputResultEndTimeMinute,
+        };
+        break;
 
       default:
         return {
+          columnName: language === "ja" ? `面談開始（予定）` : ``,
           hourState: inputResultStartTimeHour,
           setHourState: setInputResultStartTimeHour,
           minuteState: inputResultStartTimeMinute,
@@ -6299,14 +6311,32 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                     <div
-                      className={`fade05_forward absolute left-0 top-[100%] z-[10] hidden h-full w-full items-center justify-end bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                      className={`fade05_forward absolute left-0 top-[100%] z-[10] hidden h-full w-full items-center justify-end space-x-[6px] bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
                     >
+                      <button
+                        type="button"
+                        className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[#0d99ff]`}
+                        data-text={`設定した時間を削除`}
+                        onMouseEnter={(e) => {
+                          handleOpenTooltip(e, "top");
+                        }}
+                        onMouseLeave={handleCloseTooltip}
+                        onClick={() => {
+                          if (inputPlannedStartTimeHour !== "") setInputPlannedStartTimeHour("");
+                          if (inputPlannedStartTimeMinute !== "") setInputPlannedStartTimeMinute("");
+                          handleCloseTooltip();
+                        }}
+                      >
+                        {/* <MdClose className="pointer-events-none text-[18px]" /> */}
+                        <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                      </button>
                       <div
                         // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
                         className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)]`}
                         onClick={() => {
                           setIsOpenTimePicker(true);
                           timePickerTypeRef.current = "planned";
+                          timePickerIncrementTypeRef.current = "5";
                           handleCloseTooltip();
                         }}
                         onMouseEnter={(e) => handleOpenTooltip(e, "top", 0, "center", undefined, "時間設定画面を開く")}
@@ -6315,21 +6345,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         <MdMoreTime className={`text-[15px] text-[#fff]`} />
                         <span>時間設定</span>
                       </div>
-                      {/* <RippleButton
-                        title={`設定画面`}
-                        classText={`select-none `}
-                        clickEventHandler={() => {
-                          setIsOpenTimePicker(true);
-                          timePickerTypeRef.current = "planned";
-                          handleCloseTooltip();
-                        }}
-                        onMouseEnterHandler={(e) =>
-                          handleOpenTooltip(e, "top", 0, "center", undefined, "時間設定画面を開く")
-                        }
-                        onMouseLeaveHandler={() => {
-                          handleCloseTooltip();
-                        }}
-                      /> */}
                     </div>
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
@@ -6871,7 +6886,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                 {/* 結果 面談開始・面談終了 サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span
                         className={`${styles.title_search_mode}`}
@@ -6940,8 +6955,44 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className="mx-[10px]">分</span>
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    <div
+                      className={`fade05_forward absolute left-0 top-[100%] z-[10] hidden h-full w-full items-center justify-end space-x-[6px] bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                    >
+                      <button
+                        type="button"
+                        className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[#ff3b5b56] active:bg-[#0d99ff]`}
+                        data-text={`設定した時間を削除`}
+                        onMouseEnter={(e) => {
+                          handleOpenTooltip(e, "top");
+                        }}
+                        onMouseLeave={handleCloseTooltip}
+                        onClick={() => {
+                          if (inputResultStartTimeHour !== "") setInputResultStartTimeHour("");
+                          if (inputResultStartTimeMinute !== "") setInputResultStartTimeMinute("");
+                          handleCloseTooltip();
+                        }}
+                      >
+                        {/* <MdClose className="pointer-events-none text-[18px]" /> */}
+                        <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                      </button>
+                      <div
+                        // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
+                        className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)]`}
+                        onClick={() => {
+                          setIsOpenTimePicker(true);
+                          timePickerTypeRef.current = "result_start";
+                          timePickerIncrementTypeRef.current = "all";
+                          handleCloseTooltip();
+                        }}
+                        onMouseEnter={(e) => handleOpenTooltip(e, "top", 0, "center", undefined, "時間設定画面を開く")}
+                        onMouseLeave={handleCloseTooltip}
+                      >
+                        <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                        <span>時間設定</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span
                         className={`${styles.title_search_mode}`}
@@ -7010,6 +7061,42 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className="mx-[10px]">分</span>
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    <div
+                      className={`fade05_forward absolute left-0 top-[100%] z-[10] hidden h-full w-full items-center justify-end space-x-[6px] bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                    >
+                      <button
+                        type="button"
+                        className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[#ff3b5b56] active:bg-[#0d99ff]`}
+                        data-text={`設定した時間を削除`}
+                        onMouseEnter={(e) => {
+                          handleOpenTooltip(e, "top");
+                        }}
+                        onMouseLeave={handleCloseTooltip}
+                        onClick={() => {
+                          if (inputResultEndTimeHour !== "") setInputResultEndTimeHour("");
+                          if (inputResultEndTimeMinute !== "") setInputResultEndTimeMinute("");
+                          handleCloseTooltip();
+                        }}
+                      >
+                        {/* <MdClose className="pointer-events-none text-[18px]" /> */}
+                        <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                      </button>
+                      <div
+                        // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
+                        className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)]`}
+                        onClick={() => {
+                          setIsOpenTimePicker(true);
+                          timePickerTypeRef.current = "result_end";
+                          timePickerIncrementTypeRef.current = "all";
+                          handleCloseTooltip();
+                        }}
+                        onMouseEnter={(e) => handleOpenTooltip(e, "top", 0, "center", undefined, "時間設定画面を開く")}
+                        onMouseLeave={handleCloseTooltip}
+                      >
+                        <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                        <span>時間設定</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -8330,8 +8417,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
           setHourState={getTimePickerState(timePickerTypeRef.current).setHourState}
           minuteState={getTimePickerState(timePickerTypeRef.current).minuteState}
           setMinuteState={getTimePickerState(timePickerTypeRef.current).setMinuteState}
-          incrementType="all"
+          incrementType={timePickerIncrementTypeRef.current}
           setIsOpenModal={setIsOpenTimePicker}
+          columnName={getTimePickerState(timePickerTypeRef.current).columnName}
         />
       )}
     </>

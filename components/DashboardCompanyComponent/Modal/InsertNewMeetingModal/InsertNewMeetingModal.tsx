@@ -9,7 +9,7 @@ import { isNaN } from "lodash";
 import { useMutateMeeting } from "@/hooks/useMutateMeeting";
 import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
-import { MdClose } from "react-icons/md";
+import { MdClose, MdMoreTime, MdOutlineDeleteOutline } from "react-icons/md";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft } from "react-icons/bs";
 import { ImInfo } from "react-icons/im";
@@ -48,6 +48,7 @@ import { calculateCurrentFiscalYear } from "@/utils/Helpers/calculateCurrentFisc
 import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurrentFiscalYearEndDate";
 import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
 import { getFiscalYear } from "@/utils/Helpers/getFiscalYear";
+import { TimePickerModal } from "@/components/Modal/TimePickerModal/TimePickerModal";
 
 export const InsertNewMeetingModal = () => {
   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
@@ -463,6 +464,12 @@ export const InsertNewMeetingModal = () => {
     if (plannedPurpose === "") return alert("面談目的を選択してください");
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
+    // 結合した時間が一致しているか確認
+    const formattedTime = `${plannedStartTimeHour}:${plannedStartTimeMinute}`;
+    if (plannedStartTime !== formattedTime) {
+      console.log(plannedStartTime, formattedTime);
+      return alert("面談開始データが見つかりません エラー：INM10");
+    }
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
     // if (meetingMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
@@ -667,6 +674,12 @@ export const InsertNewMeetingModal = () => {
     if (plannedPurpose === "") return alert("面談目的を選択してください");
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
+    // 結合した時間が一致しているか確認
+    const formattedTime = `${plannedStartTimeHour}:${plannedStartTimeMinute}`;
+    if (plannedStartTime !== formattedTime) {
+      console.log(plannedStartTime, formattedTime);
+      return alert("面談開始データが見つかりません エラー：INM11");
+    }
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
     // if (meetingMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
@@ -869,6 +882,12 @@ export const InsertNewMeetingModal = () => {
     if (plannedPurpose === "") return alert("面談目的を選択してください");
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
+    // 結合した時間が一致しているか確認
+    const formattedTime = `${plannedStartTimeHour}:${plannedStartTimeMinute}`;
+    if (plannedStartTime !== formattedTime) {
+      console.log(plannedStartTime, formattedTime);
+      return alert("面談開始データが見つかりません エラー：INM12");
+    }
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
     // if (meetingMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
@@ -1071,6 +1090,12 @@ export const InsertNewMeetingModal = () => {
     if (plannedPurpose === "") return alert("面談目的を選択してください");
     if (plannedStartTimeHour === "") return alert("面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("面談開始 分を選択してください");
+    // 結合した時間が一致しているか確認
+    const formattedTime = `${plannedStartTimeHour}:${plannedStartTimeMinute}`;
+    if (plannedStartTime !== formattedTime) {
+      console.log(plannedStartTime, formattedTime);
+      return alert("面談開始データが見つかりません エラー：INM13");
+    }
     if (!meetingYearMonth) return alert("面談年月度を入力してください");
     // if (meetingMemberName === "") return alert("自社担当を入力してください");
     if (memberObj.memberName === "") return alert("自社担当を入力してください");
@@ -1424,21 +1449,28 @@ export const InsertNewMeetingModal = () => {
   // ============================================================================================
   // ================================ ツールチップを非表示 ================================
   const handleCloseTooltip = () => {
-    setHoveredItemPosModal(null);
+    if (!!hoveredItemPosModal) setHoveredItemPosModal(null);
   };
   // ============================================================================================
+
+  const [isOpenTimePicker, setIsOpenTimePicker] = useState(false);
 
   console.log(
     "面談予定作成モーダル selectedRowDataActivity",
     selectedRowDataActivity,
     "selectedRowDataMeeting",
     selectedRowDataMeeting,
-    "plannedStartTime",
-    plannedStartTime,
-    "suggestedProductName[0].length",
-    suggestedProductName[0]?.length,
-    "suggestedProductName[1].length",
-    suggestedProductName[1]?.length
+    // "plannedStartTime",
+    // plannedStartTime,
+    // "plannedStartTimeHour",
+    // plannedStartTimeHour,
+    // "plannedStartTimeMinute",
+    // plannedStartTimeMinute,
+    // `${plannedStartTimeHour}:${plannedStartTimeMinute}` === plannedStartTime
+    // "suggestedProductName[0].length",
+    // suggestedProductName[0]?.length,
+    // "suggestedProductName[1].length",
+    // suggestedProductName[1]?.length
     // suggestedProductName &&
     //   suggestedProductName.length > 1 &&
     //   (suggestedProductName[0].length > 0 || suggestedProductName[1].length > 0)
@@ -1618,7 +1650,7 @@ export const InsertNewMeetingModal = () => {
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* 面談開始 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className="group relative flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●面談開始</span>
                     <select
@@ -1653,6 +1685,62 @@ export const InsertNewMeetingModal = () => {
                     <span className="mx-[10px]">分</span>
                   </div>
                   <div className={`${styles.underline}`}></div>
+
+                  {/*  */}
+                  <div
+                    className={`fade05_forward absolute left-0 top-[100%] z-[10] hidden h-full w-full items-center justify-end space-x-[6px] pl-[10px] pr-[30px] group-hover:flex`}
+                    // style={{ background: `var(--color-bg-base)` }}
+                    style={{ background: `var(--color-edit-bg-dropdown)` }}
+                  >
+                    <button
+                      type="button"
+                      className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[#0d99ff]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "設定した時間を削除",
+                          marginTop: 9,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                      onClick={() => {
+                        if (plannedStartTimeHour !== "") setPlannedStartTimeHour("");
+                        if (plannedStartTimeMinute !== "") setPlannedStartTimeMinute("");
+                        handleCloseTooltip();
+                      }}
+                    >
+                      {/* <MdClose className="pointer-events-none text-[18px]" /> */}
+                      <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                    </button>
+                    <div
+                      // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
+                      className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)]`}
+                      onClick={() => {
+                        setIsOpenTimePicker(true);
+                        // timePickerTypeRef.current = "planned";
+                        // timePickerIncrementTypeRef.current = "5";
+                        handleCloseTooltip();
+                      }}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "時間設定画面を開く",
+                          marginTop: 9,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                      <span>時間設定</span>
+                    </div>
+                  </div>
+                  {/*  */}
                 </div>
               </div>
 
@@ -2604,6 +2692,20 @@ export const InsertNewMeetingModal = () => {
             />
           </Suspense>
         </ErrorBoundary>
+      )}
+
+      {/* タイムピッカー */}
+      {isOpenTimePicker && (
+        <TimePickerModal
+          hourState={plannedStartTimeHour}
+          setHourState={setPlannedStartTimeHour}
+          minuteState={plannedStartTimeMinute}
+          setMinuteState={setPlannedStartTimeMinute}
+          incrementType={"5"}
+          setIsOpenModal={setIsOpenTimePicker}
+          zIndexOverlay={1500}
+          zIndexModal={1800}
+        />
       )}
     </>
   );

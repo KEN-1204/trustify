@@ -9,7 +9,7 @@ import { isNaN } from "lodash";
 import { useMutateMeeting } from "@/hooks/useMutateMeeting";
 import productCategoriesM from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
-import { MdClose, MdOutlineDataSaverOff } from "react-icons/md";
+import { MdClose, MdMoreTime, MdOutlineDataSaverOff, MdOutlineDeleteOutline } from "react-icons/md";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { ImInfo } from "react-icons/im";
@@ -72,6 +72,7 @@ import { calculateDateToYearMonth } from "@/utils/Helpers/calculateDateToYearMon
 import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
 import { getFiscalYear } from "@/utils/Helpers/getFiscalYear";
 import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearStart";
+import { TimePickerModal } from "@/components/Modal/TimePickerModal/TimePickerModal";
 
 type ModalProperties = {
   left: number;
@@ -83,6 +84,7 @@ type ModalProperties = {
 };
 
 export const UpdateMeetingModal = () => {
+  const language = useStore((state) => state.language);
   //   const selectedRowDataContact = useDashboardStore((state) => state.selectedRowDataContact);
   const selectedRowDataMeeting = useDashboardStore((state) => state.selectedRowDataMeeting);
   const setIsOpenUpdateMeetingModal = useDashboardStore((state) => state.setIsOpenUpdateMeetingModal);
@@ -862,6 +864,27 @@ export const UpdateMeetingModal = () => {
     if (plannedPurpose === "") return alert("面談目的を選択してください");
     if (plannedStartTimeHour === "") return alert("予定面談開始 時間を選択してください");
     if (plannedStartTimeMinute === "") return alert("予定面談開始 分を選択してください");
+    // 結合した時間が一致しているか確認
+    const formattedPlannedTime = `${plannedStartTimeHour}:${plannedStartTimeMinute}`;
+    if (plannedStartTime !== formattedPlannedTime) {
+      console.log(plannedStartTime, formattedPlannedTime);
+      return alert("面談開始データが見つかりません エラー：INM13");
+    }
+    // 面談開始・終了時間が存在するなら一致しているかチェック
+    if (!!resultStartTime) {
+      const formattedResultStartTime = `${resultStartTimeHour}:${resultStartTimeMinute}`;
+      if (resultStartTime !== formattedResultStartTime) {
+        console.log(resultStartTime, formattedResultStartTime);
+        return alert("面談開始（結果）データが見つかりません エラー：INM13");
+      }
+    }
+    if (!!resultEndTime) {
+      const formattedResultEndTime = `${resultEndTimeHour}:${resultEndTimeMinute}`;
+      if (resultEndTime !== formattedResultEndTime) {
+        console.log(resultEndTime, formattedResultEndTime);
+        return alert("面談終了（結果）データが見つかりません エラー：INM13");
+      }
+    }
     if (!plannedDate) return alert("予定面談日の入力は必須です");
     // if (resultStartTimeHour === "") return alert("結果面談開始 時間を選択してください");
     // if (resultStartTimeMinute === "") return alert("結果面談開始 分を選択してください");
@@ -1389,40 +1412,94 @@ export const UpdateMeetingModal = () => {
   };
   // ============================================================================================
 
+  const [isOpenTimePicker, setIsOpenTimePicker] = useState(false);
+  const timePickerTypeRef = useRef<"planned" | "result_start" | "result_end">("planned");
+  const timePickerIncrementTypeRef = useRef<"all" | "5">("all");
+
+  // タイムピッカーに渡すstate
+  const getTimePickerState = (type: "planned" | "result_start" | "result_end") => {
+    switch (type) {
+      case "planned":
+        return {
+          columnName: language === "ja" ? `面談開始（予定）` : ``,
+          hourState: plannedStartTimeHour,
+          setHourState: setPlannedStartTimeHour,
+          minuteState: plannedStartTimeMinute,
+          setMinuteState: setPlannedStartTimeMinute,
+        };
+        break;
+      case "result_start":
+        return {
+          columnName: language === "ja" ? `面談開始（結果）` : ``,
+          hourState: resultStartTimeHour,
+          setHourState: setResultStartTimeHour,
+          minuteState: resultStartTimeMinute,
+          setMinuteState: setResultStartTimeMinute,
+        };
+        break;
+      case "result_end":
+        return {
+          columnName: language === "ja" ? `面談開始（結果）` : ``,
+          hourState: resultEndTimeHour,
+          setHourState: setResultEndTimeHour,
+          minuteState: resultEndTimeMinute,
+          setMinuteState: setResultEndTimeMinute,
+        };
+        break;
+
+      default:
+        return {
+          columnName: language === "ja" ? `面談開始（予定）` : ``,
+          hourState: plannedStartTimeHour,
+          setHourState: setPlannedStartTimeHour,
+          minuteState: plannedStartTimeMinute,
+          setMinuteState: setPlannedStartTimeMinute,
+        };
+        break;
+    }
+  };
+
   console.log(
     "面談予定作成モーダル ",
     "✅selectedRowDataMeeting",
     selectedRowDataMeeting,
     "plannedStartTime",
     plannedStartTime,
-    "面談時間 result_duration",
-    resultDuration,
-    "plannedProduct1",
-    plannedProduct1,
-    "plannedProduct2",
-    plannedProduct2,
-    "resultPresentationProductsArray",
-    resultPresentationProductsArray,
-    "resultProductRows",
-    resultProductRows,
-    "overstate",
-    overstate,
-    "isOpenDropdownMenuFilterProductsArray",
-    isOpenDropdownMenuFilterProductsArray,
-    "productDataArray",
-    productDataArray,
-    "productIdToNameMap",
-    productIdToNameMap,
-    "plannedProduct1QueryObj",
-    plannedProduct1QueryObj,
-    "plannedProduct2QueryObj",
-    plannedProduct2QueryObj,
-    "selectedAttendeesArray",
-    selectedAttendeesArray,
-    "✅実施商品リストresultPresentationProductsArray",
-    resultPresentationProductsArray,
-    "✅同席者リストselectedAttendeesArray",
-    selectedAttendeesArray
+    plannedStartTime === `${plannedStartTimeHour}:${plannedStartTimeMinute}`,
+    "resultStartTime",
+    resultStartTime,
+    resultStartTime === `${resultStartTimeHour}:${resultStartTimeMinute}`,
+    "resultEndTime",
+    resultEndTime,
+    resultEndTime === `${resultEndTimeHour}:${resultEndTimeMinute}`
+    // "面談時間 result_duration",
+    // resultDuration,
+    // "plannedProduct1",
+    // plannedProduct1,
+    // "plannedProduct2",
+    // plannedProduct2,
+    // "resultPresentationProductsArray",
+    // resultPresentationProductsArray,
+    // "resultProductRows",
+    // resultProductRows,
+    // "overstate",
+    // overstate,
+    // "isOpenDropdownMenuFilterProductsArray",
+    // isOpenDropdownMenuFilterProductsArray,
+    // "productDataArray",
+    // productDataArray,
+    // "productIdToNameMap",
+    // productIdToNameMap,
+    // "plannedProduct1QueryObj",
+    // plannedProduct1QueryObj,
+    // "plannedProduct2QueryObj",
+    // plannedProduct2QueryObj,
+    // "selectedAttendeesArray",
+    // selectedAttendeesArray,
+    // "✅実施商品リストresultPresentationProductsArray",
+    // resultPresentationProductsArray,
+    // "✅同席者リストselectedAttendeesArray",
+    // selectedAttendeesArray
   );
 
   return (
@@ -1577,7 +1654,7 @@ export const UpdateMeetingModal = () => {
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* 面談開始 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className="group relative flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px] ${styles.required_title}`}>●面談開始</span>
                     <select
@@ -1612,6 +1689,59 @@ export const UpdateMeetingModal = () => {
                     <span className="mx-[10px]">分</span>
                   </div>
                   <div className={`${styles.underline}`}></div>
+                  {/*  */}
+                  <div
+                    className={`fade05_forward absolute left-0 top-[100%] z-[10] hidden h-full w-full items-center justify-end space-x-[6px] pl-[10px] pr-[30px] group-hover:flex`}
+                    // style={{ background: `var(--color-bg-base)` }}
+                    style={{ background: `var(--color-edit-bg-dropdown)` }}
+                  >
+                    <button
+                      type="button"
+                      className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[#0d99ff]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "設定した時間を削除",
+                          marginTop: 9,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                      onClick={() => {
+                        if (plannedStartTimeHour !== "") setPlannedStartTimeHour("");
+                        if (plannedStartTimeMinute !== "") setPlannedStartTimeMinute("");
+                        handleCloseTooltip();
+                      }}
+                    >
+                      <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                    </button>
+                    <div
+                      className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)]`}
+                      onClick={() => {
+                        setIsOpenTimePicker(true);
+                        timePickerTypeRef.current = "planned";
+                        timePickerIncrementTypeRef.current = "5";
+                        handleCloseTooltip();
+                      }}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "時間設定画面を開く",
+                          marginTop: 9,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                      <span>時間設定</span>
+                    </div>
+                  </div>
+                  {/*  */}
                 </div>
               </div>
 
@@ -2374,7 +2504,7 @@ export const UpdateMeetingModal = () => {
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
               {/* 面談開始 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className="group relative flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>面談開始</span>
                     <select
@@ -2409,6 +2539,59 @@ export const UpdateMeetingModal = () => {
                     <span className="mx-[10px]">分</span>
                   </div>
                   <div className={`${styles.underline}`}></div>
+                  {/*  */}
+                  <div
+                    className={`fade05_forward absolute left-0 top-[100%] z-[10] hidden h-full w-full items-center justify-end space-x-[6px] pl-[10px] pr-[30px] group-hover:flex`}
+                    // style={{ background: `var(--color-bg-base)` }}
+                    style={{ background: `var(--color-edit-bg-dropdown)` }}
+                  >
+                    <button
+                      type="button"
+                      className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[#0d99ff]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "設定した時間を削除",
+                          marginTop: 9,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                      onClick={() => {
+                        if (resultStartTimeHour !== "") setResultStartTimeHour("");
+                        if (resultStartTimeMinute !== "") setResultStartTimeMinute("");
+                        handleCloseTooltip();
+                      }}
+                    >
+                      <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                    </button>
+                    <div
+                      className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)]`}
+                      onClick={() => {
+                        setIsOpenTimePicker(true);
+                        timePickerTypeRef.current = "result_start";
+                        timePickerIncrementTypeRef.current = "all";
+                        handleCloseTooltip();
+                      }}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "時間設定画面を開く",
+                          marginTop: 9,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                      <span>時間設定</span>
+                    </div>
+                  </div>
+                  {/*  */}
                 </div>
               </div>
 
@@ -2419,7 +2602,7 @@ export const UpdateMeetingModal = () => {
             <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
               {/* 面談終了 */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className="group relative flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title} !min-w-[140px]`}>面談終了</span>
                     <select
@@ -2454,6 +2637,59 @@ export const UpdateMeetingModal = () => {
                     <span className="mx-[10px]">分</span>
                   </div>
                   <div className={`${styles.underline}`}></div>
+                  {/*  */}
+                  <div
+                    className={`fade05_forward absolute left-0 top-[100%] z-[10] hidden h-full w-full items-center justify-end space-x-[6px] pl-[10px] pr-[30px] group-hover:flex`}
+                    // style={{ background: `var(--color-bg-base)` }}
+                    style={{ background: `var(--color-edit-bg-dropdown)` }}
+                  >
+                    <button
+                      type="button"
+                      className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[#0d99ff]`}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "設定した時間を削除",
+                          marginTop: 9,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                      onClick={() => {
+                        if (resultEndTimeHour !== "") setResultEndTimeHour("");
+                        if (resultEndTimeMinute !== "") setResultEndTimeMinute("");
+                        handleCloseTooltip();
+                      }}
+                    >
+                      <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                    </button>
+                    <div
+                      className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)]`}
+                      onClick={() => {
+                        setIsOpenTimePicker(true);
+                        timePickerTypeRef.current = "result_end";
+                        timePickerIncrementTypeRef.current = "all";
+                        handleCloseTooltip();
+                      }}
+                      onMouseEnter={(e) =>
+                        handleOpenTooltip({
+                          e: e,
+                          display: "top",
+                          content: "時間設定画面を開く",
+                          marginTop: 9,
+                          itemsPosition: "center",
+                          whiteSpace: "nowrap",
+                        })
+                      }
+                      onMouseLeave={handleCloseTooltip}
+                    >
+                      <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                      <span>時間設定</span>
+                    </div>
+                  </div>
+                  {/*  */}
                 </div>
               </div>
 
@@ -3806,6 +4042,21 @@ export const UpdateMeetingModal = () => {
             />
           </Suspense>
         </ErrorBoundary>
+      )}
+
+      {/* タイムピッカー */}
+      {isOpenTimePicker && (
+        <TimePickerModal
+          hourState={getTimePickerState(timePickerTypeRef.current).hourState}
+          setHourState={getTimePickerState(timePickerTypeRef.current).setHourState}
+          minuteState={getTimePickerState(timePickerTypeRef.current).minuteState}
+          setMinuteState={getTimePickerState(timePickerTypeRef.current).setMinuteState}
+          incrementType={timePickerIncrementTypeRef.current}
+          setIsOpenModal={setIsOpenTimePicker}
+          zIndexOverlay={1500}
+          zIndexModal={1800}
+          columnName={getTimePickerState(timePickerTypeRef.current).columnName}
+        />
       )}
 
       {/* <>

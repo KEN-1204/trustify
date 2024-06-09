@@ -912,6 +912,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-solid: #ffffff;
   --color-bg-sub-solid: #ffffff;
   --color-edit-bg-solid: #ffffff;
+  --color-edit-bg-dropdown: #eff0f2;
   --color-edit-bg30: #ffffff30;
   --color-edit-bg-card: #fff;
   --color-edit-shadow-color: rgba(0, 0, 0, 0.2);
@@ -1510,6 +1511,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* -------- ✅カスタムモーダル✅ light ここまで -------- */
   --refresh-icon-bg: var(--color-bg-brand-f);
   --refresh-icon-bg-hover: var(--color-bg-brand-f);
+
+  /* アイコンボタン */
+  /* 削除 */
+  --color-btn-bg-delete: #ff3b5baa;
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -1950,6 +1955,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-solid: #252525;
   --color-bg-sub-solid: #383838;
   --color-edit-bg-solid: #252525;
+  --color-edit-bg-dropdown: #252525;
   --color-edit-bg30: #25252530;
   --color-edit-bg-card: #222;
   --color-edit-shadow-color: rgba(255, 255, 255, 0.5);
@@ -2617,6 +2623,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* -------- ✅カスタムモーダル✅ dark ここまで -------- */
   --refresh-icon-bg: var(--color-bg-brand-f90);
   --refresh-icon-bg-hover: var(--color-bg-brand-f);
+
+  /* アイコンボタン */
+  /* 削除 */
+  --color-btn-bg-delete: #ff3b5b56;
 }
 
 /* html {

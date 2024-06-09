@@ -61,6 +61,9 @@
   max-height: 730px;
   /* background: #ffffff48; */
   background: var(--overlay-loading-modal-inside);
+  /* background: #f7f9fb;
+  background: #eff1f3;
+  background: #eff0f2; */
   display: flex;
   justify-content: center;
   align-items: center;

@@ -3235,7 +3235,7 @@ const UpsertTargetEntityMemo = () => {
                       e: e,
                       display: "top",
                       content: isStickySidebar ? `固定を解除` : `画面内に固定`,
-                      marginTop: 9,
+                      marginTop: 6,
                     });
                   }}
                   onMouseLeave={handleCloseTooltip}
@@ -3712,7 +3712,7 @@ const UpsertTargetEntityMemo = () => {
                             e: e,
                             display: "top",
                             content: isStickyHeader ? `固定を解除` : `画面内に固定`,
-                            marginTop: 9,
+                            marginTop: 6,
                           });
                         }}
                         onMouseLeave={handleCloseTooltip}
