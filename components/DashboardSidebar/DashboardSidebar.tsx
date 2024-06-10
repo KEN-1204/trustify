@@ -1,4 +1,4 @@
-import React, { FC, memo, useState } from "react";
+import React, { FC, memo, useEffect, useRef, useState } from "react";
 import styles from "./DashboardSidebar.module.css";
 import Link from "next/link";
 import { GrHomeRounded, GrDocumentVerified, GrUserManager } from "react-icons/gr";
@@ -18,9 +18,11 @@ import {
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
 import { neonMessageIcon } from "../assets";
+import { SlCloudUpload } from "react-icons/sl";
 
 export const DashboardSidebarMemo: FC = () => {
   const language = useStore((state) => state.language);
+  const hoveredItemPosHorizon = useStore((state) => state.hoveredItemPosHorizon);
   const setHoveredItemPosHorizon = useStore((state) => state.setHoveredItemPosHorizon);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
   const activeMenuTab = useDashboardStore((state) => state.activeMenuTab);
@@ -74,16 +76,18 @@ export const DashboardSidebarMemo: FC = () => {
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPosHorizon(null);
+    if (hoveredItemPosHorizon) setHoveredItemPosHorizon(null);
   };
 
-  const openSettingInvitation = () => {
+  const openSalesTarget = () => {
     // if (userProfileState?.account_company_role !== ("company_owner" || "company_admin"))
     //   return alert("管理者権限が必要です。");
     // setIsOpenSettingAccountModal(true);
     // setSelectedSettingAccountMenu("Company");
 
+    if (activeMenuTab === "SalesTarget") return;
     setIsOpenSidebar(false);
+    resetSelectedRowData("SalesTarget", activeMenuTab);
     setActiveMenuTab("SalesTarget");
     handleCloseTooltip();
   };
@@ -109,7 +113,33 @@ export const DashboardSidebarMemo: FC = () => {
     // if (loadingGlobalState) setLoadingGlobalState(false);
     resetSelectedRowData(tabName, activeMenuTab);
     setActiveMenuTab(tabName);
+
+    handleCloseTooltip();
   };
+
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // 🌠会社画面 or ヘッダーからImportがクリックされたタイミングでサイドバーの表示位置ををインポートまで移動する
+  // useEffect(() => {
+  //   if (activeMenuTab !== "Import") return;
+
+  //   // 一番下までスクロール
+  //   console.log(
+  //     "サイドバー一番下までスクロール"
+  //     // scrollContainerRef.current?.scrollTop,
+  //     // scrollContainerRef.current?.offsetHeight
+  //   );
+
+  //   // 会社画面からクリックされた時用にリセット
+  //   setSelectedRowDataCompany(null);
+
+  //   if (scrollContainerRef.current) {
+  //     scrollContainerRef.current.scrollTo({ top: 422, behavior: "smooth" });
+  //   }
+  // }, [activeMenuTab]);
+  // ------------------------------------------------------------------------------------------------
+
+  console.log("サイドバーレンダリング");
 
   return (
     <div
@@ -130,9 +160,10 @@ export const DashboardSidebarMemo: FC = () => {
       <div className={`${styles.wrapper}`}>
         <div className={styles.spacer} />
         <div
+          ref={scrollContainerRef}
           className={`${styles.content_container} ${
             activeMenuTab !== "HOME" && activeMenuTab !== "SDB" ? `transition-bg01` : `transition-bg05`
-          } ${activeMenuTab === "SDB" ? `${styles.sdb}` : ``}`}
+          } ${activeMenuTab === "SDB" ? `${styles.sdb}` : ``} scrollbar-hidden`}
         >
           <div className={`${styles.section}`}>
             {/* ========================= メニュータイトル ========================= */}
@@ -614,12 +645,9 @@ export const DashboardSidebarMemo: FC = () => {
               </div>
 
               <div
-                // href="/home"
-                // prefetch={false}
-                // className={`${styles.menu_item} ${activeMenuTab === "Admin" ? styles.active : ""} `}
                 className={`${styles.menu_item} ${activeMenuTab === "SalesTarget" ? styles.active : ""} `}
                 // onClick={() => switchActiveTab("Admin")}
-                onClick={openSettingInvitation}
+                onClick={openSalesTarget}
               >
                 <div
                   className={styles.menu_item_inner}
@@ -684,6 +712,39 @@ export const DashboardSidebarMemo: FC = () => {
                   </div>
                 </div>
               </div>
+              {/* <div
+                className={`${styles.menu_item} ${activeMenuTab === "Import" ? styles.active : ""} `}
+                onClick={() => {
+                  if (activeMenuTab === "Import") return;
+                  setIsOpenSidebar(false);
+                  switchActiveTab("Import");
+                  handleCloseTooltip();
+                }}
+              >
+                <div
+                  className={styles.menu_item_inner}
+                  data-text="インポート"
+                  onMouseEnter={(e) => {
+                    if (isOpenSidebar) return;
+                    handleOpenTooltip(e, "left");
+                  }}
+                  onMouseLeave={() => {
+                    if (isOpenSidebar) return;
+                    handleCloseTooltip();
+                  }}
+                >
+                  <div className={styles.icon_wrapper}>
+                    <SlCloudUpload className={`${styles.sidebar_icon} text-[24px] text-[var(--color-text-title)]`} />
+                  </div>
+                  <div
+                    className={`${styles.text_wrapper} ${
+                      isOpenSidebar ? `opacity-1 transition-base-delay01` : `transition-base01 opacity-0`
+                    }`}
+                  >
+                    <span>インポート</span>
+                  </div>
+                </div>
+              </div> */}
               {/* ======================== メニューアイテム ここまで ======================== */}
             </div>
             {/* ========================= menu_container ここまで ========================= */}

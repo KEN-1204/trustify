@@ -908,6 +908,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* 🌟EditColumnsモーダル カラム変更モーダル light */
   --color-edit-bg: #ffffffe0;
   --color-modal-solid-bg: #f7f9fb;
+  --color-modal-solid-bg-main: #fff;
+  --color-modal-content-bg: #fff;
   --color-bg-light: #ffffff;
   --color-bg-solid: #ffffff;
   --color-bg-sub-solid: #ffffff;
@@ -1949,6 +1951,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-edit-bg: #252525e0;
   /* --color-modal-solid-bg: #131313; */
   --color-modal-solid-bg: #181818;
+  --color-modal-solid-bg-main: #333;
+  --color-modal-content-bg: #292929;
   /* --color-modal-solid-bg: #242424; */
   /* --color-modal-solid-bg: #272727; */
   --color-bg-light: #ffffff;

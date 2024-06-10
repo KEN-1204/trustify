@@ -37,6 +37,12 @@ import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "react-toastify";
 import Stripe from "stripe";
 
+// ------------------------------- 動的インポート -------------------------------
+import dynamic from "next/dynamic";
+
+// const ImportModal = dynamic(() => import("./Modal/ImportModal/ImportModal").then((mod) => mod.ImportModal));
+// ------------------------------- 動的インポート ここまで -------------------------------
+
 // type Plans = {
 //   id: string;
 //   name: string;
@@ -278,6 +284,7 @@ const DashboardHome = ({
       {activeMenuTab === "SDB" && <DashboardSDBComponent />}
       {activeMenuTab === "SalesTarget" && <DashboardSalesTargetComponent />}
       {activeMenuTab === "PreApproval" && <DashboardPreApprovalComponent />}
+      {activeMenuTab === "Import" && <div />}
       {/* {activeMenuTab === "Contacts" && <div className="flex-center w-screen h-screen bg-red-100">あい</div>} */}
     </DashboardLayout>
   );

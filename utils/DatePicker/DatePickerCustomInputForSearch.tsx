@@ -34,6 +34,8 @@ type Props = {
   px?: string;
   py?: string;
   placeholderText?: string;
+  isNotNullText?: string;
+  isNullText?: string;
 };
 
 export const DatePickerCustomInputForSearch: FC<Props> = ({
@@ -53,6 +55,8 @@ export const DatePickerCustomInputForSearch: FC<Props> = ({
   px = "px-[8px]",
   py = "py-[4px]",
   placeholderText = "placeholder:text-[12px]",
+  isNotNullText,
+  isNullText,
 }) => {
   const language = useStore((state) => state.language);
   // const [isNullForSearch, setIsNullForSearch] = useState(false);
@@ -77,8 +81,8 @@ export const DatePickerCustomInputForSearch: FC<Props> = ({
 
   // プレイスホルダー文字
   const getPlaceholderText = () => {
-    if (startDate === "is not null") return "フォロー予定有りのみ";
-    if (startDate === "is null") return "フォロー予定無しのみ";
+    if (startDate === "is not null") return isNotNullText ? isNotNullText : "フォロー予定有りのみ";
+    if (startDate === "is null") return isNullText ? isNullText : "フォロー予定無しのみ";
     return `日付を選択`;
   };
 

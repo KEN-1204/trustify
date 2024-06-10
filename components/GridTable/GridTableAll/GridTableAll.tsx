@@ -14,7 +14,6 @@ import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
 import { Client_company, Client_company_row_data } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditColumnsModalDisplayOnly } from "../EditColumns/EditColumnsModalDisplayOnly";
-import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { BsCheck2 } from "react-icons/bs";
@@ -22,10 +21,10 @@ import { DropDownMenuSearchMode } from "./DropDownMenuSearchMode/DropDownMenuSea
 import { getNumberOfEmployeesClass, mappingIndustryType } from "@/utils/selectOptions";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { toast } from "react-toastify";
-import { MdDeleteOutline, MdOutlineSaveAlt } from "react-icons/md";
+import { MdDeleteOutline } from "react-icons/md";
 import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
-import { CiImport } from "react-icons/ci";
+import { SlCloudUpload } from "react-icons/sl";
 
 type TableDataType = {
   id: number;
@@ -59,6 +58,12 @@ type Props = {
 const GridTableAllMemo: FC<Props> = ({ title }) => {
   const queryClient = useQueryClient();
   const theme = useRootStore(useThemeStore, (state) => state.theme);
+  // --------------- CSVインポート ---------------
+  // const setActiveMenuTab = useDashboardStore((state) => state.setActiveMenuTab);
+  // const setIsOpenSidebar = useDashboardStore((state) => state.setIsOpenSidebar);
+
+  const setIsOpenImportModal = useDashboardStore((state) => state.setIsOpenImportModal);
+  // --------------- CSVインポート ---------------
   // const theme = useThemeStore((state) => state.theme);
   // const theme = useStore((state) => state.theme);
   const language = useStore((state) => state.language);
@@ -2906,9 +2911,18 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
               <button
                 className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} fade08_forward relative cursor-pointer active:bg-[var(--color-function-header-text-btn-active)]`}
                 onClick={() => {
-                  // if (searchMode) setSearchMode(false); // サーチモード中止
-                  // if (editSearchMode) setEditSearchMode(false); // 編集モード中止
+                  if (searchMode) setSearchMode(false); // サーチモード中止
+                  if (editSearchMode) setEditSearchMode(false); // 編集モード中止
                   // if (!isOpenDropdownMenuSearchMode) setIsOpenDropdownMenuSearchMode(true);
+
+                  // ----------- インポート画面ルート -----------
+                  // // インポート画面を表示
+                  // setIsOpenSidebar(false);
+                  // setActiveMenuTab("Import");
+                  // ----------- インポート画面ルート ここまで -----------
+
+                  // setSelectedRowDataCompany(null);
+                  setIsOpenImportModal(true);
                   if (hoveredItemPos) handleCloseTooltip();
                 }}
                 onMouseEnter={(e) =>
@@ -2924,8 +2938,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 }
                 onMouseLeave={handleCloseTooltip}
               >
-                {/* <CiImport className="pointer-events-none stroke-[1] text-[15px]" /> */}
-                <MdOutlineSaveAlt className="pointer-events-none text-[15px]" />
+                <SlCloudUpload className="pointer-events-none text-[15px]" />
                 <span>インポート</span>
               </button>
 

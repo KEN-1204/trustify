@@ -203,6 +203,7 @@
   /* background: linear-gradient(to top right, var(--color-bg-brand-f), #0abeff, #0affff); */
   /* background: linear-gradient(to left bottom, #ffffff20 0%, #80e9ff 20%, #0abeff 65%, var(--color-bg-brand-f) 85%); */
   animation: fullWidthLeft 0.4s 0.4s forwards;
+  pointer-events: none;
 }
 .menu_item.active::after {
   content: "";

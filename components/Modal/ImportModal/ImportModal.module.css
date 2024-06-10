@@ -1,0 +1,154 @@
+.modal_container {
+  position: fixed;
+  z-index: 1000;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80vw;
+  height: 90vh;
+  max-width: 1150px;
+  max-height: 730px;
+  background: var(--color-modal-solid-bg);
+  border-radius: 9px;
+  box-shadow: var(--color-edit-border-with-shadow-light);
+  /* backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px); */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* padding: 15px 40px; */
+  /* padding: 15px 0px 0px; */
+  padding: 1px;
+  color: var(--color-edit-text);
+  font-family: sans-serif;
+}
+
+.title_area {
+  /* background: var(--color-modal-solid-bg-main); */
+}
+
+.section_step_area {
+}
+
+.contents_container {
+}
+
+.file_upload_box_container {
+  box-shadow: var(--color-sales-card-border);
+  background: var(--color-modal-content-bg);
+  border-radius: 9px;
+}
+
+.file_upload_box {
+  /* background: var(--color-modal-solid-bg-main); */
+  background: var(--color-modal-content-bg);
+  /* background: #043050; */
+  /* background: #08263b; */
+  /* background: #0f202b; */
+  /* border-radius: 5px; */
+  border-radius: 9px;
+  /* min-height: 240px; */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* border: 2px dashed #b1add4; */
+  border: 2px dashed var(--color-border-light);
+  transition: border 0.5s ease, background-color 0.5s ease, min-height 0.3s ease;
+}
+.file_upload_box.active {
+  border: 2px solid var(--main-color-f);
+  /* background: #f3f6ff; */
+  background: var(--color-bg-brand-f10);
+}
+
+/*  */
+.file_upload_box .box_title {
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: #626161;
+}
+.file_upload_box.active .box_title {
+  pointer-events: none;
+}
+
+.file_upload_box .box_title .file_browse_button {
+  color: var(--main-color-f);
+  cursor: pointer;
+}
+.file_upload_box .box_title .file_browse_button:hover {
+  text-decoration: underline;
+}
+.file_instruction {
+  color: var(--color-text-sub);
+}
+
+/* アップロードアイコン */
+.icon_area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* margin-top: 5px;
+  margin-bottom: -9px; */
+  margin-bottom: 0px;
+  margin-top: -15px;
+}
+
+.upload_icon,
+.drop_icon,
+.upload_icon *,
+.drop_icon * {
+  pointer-events: none;
+}
+
+.upload_icon {
+  display: block;
+
+  /* font-size: 24px; */
+  /* color: #aaa; */
+  /* color: var(--color-text-sub); */
+
+  font-size: 120px;
+  margin-top: -60px;
+  margin-bottom: 6px;
+  color: #aaa;
+}
+.upload_icon.active {
+  display: none;
+}
+.drop_icon {
+  display: none;
+
+  font-size: 120px;
+  margin-top: -60px;
+  margin-bottom: 6px;
+}
+.drop_icon.active {
+  display: block;
+}
+
+.upload_icon svg {
+  stroke-width: 6px;
+}
+
+.drop_icon svg {
+  /* font-size: 45px; */
+  stroke-width: 6px;
+  color: var(--main-color-f);
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    /* transform: translateY(-25%); */
+    transform: translateY(-12%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: none;
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+.animate_bounce {
+  animation: bounce 1s infinite;
+}

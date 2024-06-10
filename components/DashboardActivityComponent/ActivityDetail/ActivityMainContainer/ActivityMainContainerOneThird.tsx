@@ -6014,6 +6014,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                         handleOpenTooltip={handleOpenTooltip}
                         handleCloseTooltip={handleCloseTooltip}
                         tooltipDataText="活動日"
+                        isNotNullText="活動日有りのデータのみ"
+                        isNullText="活動日無しのデータのみ"
                       />
                     </div>
                     <div className={`${styles.underline}`}></div>

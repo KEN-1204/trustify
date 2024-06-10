@@ -262,22 +262,6 @@ export const DashboardHeaderMemo: FC = () => {
   const queryClient = useQueryClient();
   const notificationsCacheData = queryClient.getQueryData<Notification[]>(["my_notifications"]);
 
-  console.log(
-    "DashboardHeaderレンダリング",
-    // "notificationData?.length",
-    // notificationsCacheData?.length,
-    "notificationキャッシュのdata",
-    notificationsCacheData,
-    "incompleteNotifications",
-    incompleteNotifications,
-    "completedNotifications",
-    completedNotifications,
-    "activeMenuTab",
-    activeMenuTab,
-    "activeThemeColor",
-    activeThemeColor
-  );
-
   // ================================ お知らせ キャッシュから取得したnotificationsを、未読、既読、完了済みに振り分ける
   useEffect(() => {
     if (!notificationsCacheData || notificationsCacheData.length === 0)
@@ -692,6 +676,25 @@ export const DashboardHeaderMemo: FC = () => {
     // console.log("テスト クリック");
     toast.success("Thanks! by TRUSTiFY🌠");
   };
+
+  // インポートが会社画面からクリックされたらタブを右に移動
+  // useEffect(() => {}, [])
+
+  console.log(
+    "DashboardHeaderレンダリング",
+    // "notificationData?.length",
+    // notificationsCacheData?.length,
+    "notificationキャッシュのdata",
+    notificationsCacheData,
+    "incompleteNotifications",
+    incompleteNotifications,
+    "completedNotifications",
+    completedNotifications,
+    "activeMenuTab",
+    activeMenuTab,
+    "activeThemeColor",
+    activeThemeColor
+  );
 
   return (
     <header
@@ -1304,6 +1307,31 @@ export const DashboardHeaderMemo: FC = () => {
                   <div className={`${styles.active_underline}`} />
                 </div>
               </li>
+              {/* <li className={`${styles.navList2}`}>
+                <div
+                  // href="/home"
+                  // prefetch={false}
+                  className={`${styles.navbarItem} ${activeMenuTab === "Import" ? styles.active : ""} `}
+                  onClick={() => {
+                    if (tabPage !== 2) setTabPage(2);
+                    if (!!isOpenSidebar) setIsOpenSidebar(false);
+                    setActiveMenuTab("Import");
+                  }}
+                >
+                  <div
+                    className={`${styles.navbarItemInner} cursor-not-allowed`}
+                    data-text={`CSVデータから自社専用の会社情報をインポートする`}
+                    onMouseEnter={(e) => handleOpenTooltip(e, "center")}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <span>
+                      {language === "ja" && "インポート"}
+                      {language === "en" && "Import"}
+                    </span>
+                  </div>
+                  <div className={`${styles.active_underline}`} />
+                </div>
+              </li> */}
               {/* <li className={`${styles.navList2}`}>
                 <div
                   // href="/home"

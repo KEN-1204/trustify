@@ -644,6 +644,11 @@ type State = {
   setActiveThemeColor: (
     payload: "theme-brand-f" | "theme-brand-f-gradient" | "theme-black-gradient" | "theme-simple12" | "theme-simple17"
   ) => void;
+
+  // ------------ CSVインポート ------------
+  // CSVインポートモーダル
+  isOpenImportModal: boolean;
+  setIsOpenImportModal: (payload: boolean) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -1437,6 +1442,11 @@ const useDashboardStore = create<State>((set) => ({
   // テーマカラー theme-brand-f, theme-black-gradient, theme-simple12, theme-simple17
   activeThemeColor: "theme-brand-f",
   setActiveThemeColor: (payload) => set({ activeThemeColor: payload }),
+
+  // ------------ CSVインポート ------------
+  // CSVインポートモーダル
+  isOpenImportModal: false,
+  setIsOpenImportModal: (payload) => set({ isOpenImportModal: payload }),
 }));
 
 export default useDashboardStore;

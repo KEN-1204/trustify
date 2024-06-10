@@ -35,7 +35,6 @@ import { ErrorFallback } from "./ErrorFallback/ErrorFallback";
 import { Fallback } from "./Fallback/Fallback";
 import { UpdatePropertyModal } from "./DashboardCompanyComponent/Modal/UpdatePropertyModal/UpdatePropertyModal";
 import { SubscriptionPlanModalForFreeUser } from "./Modal/SubscriptionPlanModalForFreeUser/SubscriptionPlanModalForFreeUser";
-import { useSubscribeSubscription } from "@/hooks/useSubscribeSubscription";
 import { FirstLoginSettingUserProfileCompanyModal } from "./Modal/FirstLoginSettingUserProfileCompanyModal/FirstLoginSettingUserProfileCompanyModal";
 import { SettingInvitationModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingInvitationModal/SettingInvitationModal";
 import { FirstLoginSettingUserProfileAfterInvitationModal } from "./Modal/FirstLoginSettingUserProfileAfterInvitaionModal/FirstLoginSettingUserProfileAfterInvitaionModal";
@@ -43,8 +42,6 @@ import { Invitation } from "@/types";
 import { InvitationForLoggedInUser } from "./Modal/InvitationForLoggedInUser/InvitationForLoggedInUser";
 import { useQueryClient } from "@tanstack/react-query";
 import { ChangeTeamOwnerConfirmationModal } from "./DashboardCompanyComponent/Modal/Notifications/ChangeTeamOwnerConfirmationModal/ChangeTeamOwnerConfirmationModal";
-import { IoLogOutOutline } from "react-icons/io5";
-import { TooltipModal } from "./Parts/Tooltip/TooltipModal";
 import { IncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/IncreaseAccountCountsModal/IncreaseAccountCountsModal";
 import { FallbackIncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/IncreaseAccountCountsModal/FallbackIncreaseAccountCountsModal";
 import { DecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/DecreaseAccountCountsModal/DecreaseAccountCountsModal";
@@ -61,10 +58,32 @@ import { QuotationPreviewForProfile } from "./DashboardQuotationComponent/Quotat
 import { ClientCompanyDetailModal } from "./Modal/ClientCompanyDetailModal/ClientCompanyDetailModal";
 import { ContactDetailModal } from "./Modal/ContactDetailModal/ContactDetailModal";
 import { FallbackBusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/FallbackBusinessCalendarModal";
-import { BusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModal";
-import { EditModalDealCard } from "./DashboardSDBComponent/ScreenDealBoards/EditModalDealCard/EditModalDealCard";
-import { DetailPropertyModal } from "./DashboardPropertyComponent/PropertyDetail/PropertyMainContainer/DetailPropertyModal";
-import { BusinessCalendarModalDisplayOnly } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModalDisplayOnly";
+
+// ------------------------------- 動的インポート -------------------------------
+import dynamic from "next/dynamic";
+
+// import { BusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModal";
+const BusinessCalendarModal = dynamic(() =>
+  import(
+    "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModal"
+  ).then((mod) => mod.BusinessCalendarModal)
+);
+// import { DetailPropertyModal } from "./DashboardPropertyComponent/PropertyDetail/PropertyMainContainer/DetailPropertyModal";
+const DetailPropertyModal = dynamic(() =>
+  import("./DashboardPropertyComponent/PropertyDetail/PropertyMainContainer/DetailPropertyModal").then(
+    (mod) => mod.DetailPropertyModal
+  )
+);
+// import { BusinessCalendarModalDisplayOnly } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModalDisplayOnly";
+const BusinessCalendarModalDisplayOnly = dynamic(() =>
+  import(
+    "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModalDisplayOnly"
+  ).then((mod) => mod.BusinessCalendarModalDisplayOnly)
+);
+// import { ImportModal } from "./Modal/ImportModal/ImportModal";
+const ImportModal = dynamic(() => import("./Modal/ImportModal/ImportModal").then((mod) => mod.ImportModal));
+
+// ------------------------------- 動的インポート ここまで -------------------------------
 
 type Prop = {
   title?: string;
@@ -294,6 +313,8 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   const isOpenBusinessCalendarModalDisplayOnly = useDashboardStore(
     (state) => state.isOpenBusinessCalendarModalDisplayOnly
   );
+  // CSVインポートモーダル
+  const isOpenImportModal = useDashboardStore((state) => state.isOpenImportModal);
 
   // 印鑑データ設定サイドテーブル
   const isOpenSearchStampSideTable = useDashboardStore((state) => state.isOpenSearchStampSideTable);
@@ -676,11 +697,22 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         </ErrorBoundary>
       )}
       {/* <FallbackBusinessCalendarModal /> */}
+
       {/* 営業カレンダーディスプレイ用プレビューモーダル */}
       {isOpenBusinessCalendarModalDisplayOnly && (
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<FallbackBusinessCalendarModal />}>
             <BusinessCalendarModalDisplayOnly />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* {isOpenBusinessCalendarSettingModal && <FallbackBusinessCalendarModal />} */}
+
+      {/* CSVインポートモーダル */}
+      {isOpenImportModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<div />}>
+            <ImportModal />
           </Suspense>
         </ErrorBoundary>
       )}
