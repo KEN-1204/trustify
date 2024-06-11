@@ -1,0 +1,44 @@
+.app_main_container {
+  position: relative;
+  background-color: var(--color-bg-base);
+  color: var(--color-text);
+  display: flex;
+}
+.app_main_container.open {
+  --sidebar-width: 240px;
+}
+.app_main_container.close {
+  --sidebar-width: 72px;
+}
+
+.spacer_left {
+  min-width: var(--sidebar-width);
+  height: 100vh;
+}
+
+.main_contents_wrapper {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow-y: scroll;
+  overflow-x: inherit;
+}
+.spacer_top {
+  min-height: var(--header-height);
+  width: 100%;
+}
+
+.main_contents_container {
+  width: 100%;
+  height: calc(100vh - var(--header-height));
+  /* display: flex;
+  flex-direction: column;
+  justify-content: center; */
+  /* justify-content: flex-start;
+  overflow-y: scroll;
+  overflow-x: inherit; */
+
+  background: var(--color-bg-dashboard-table);
+}

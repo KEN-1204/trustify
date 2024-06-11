@@ -6,6 +6,9 @@ import { ContactTabHeader } from "./ContactTabHeader/ContactTabHeader";
 import { ContactFunctionHeader } from "./ContactFunctionHeader/ContactFunctionHeader";
 import { ContactMainContainer } from "./ContactMainContainer/ContactMainContainer";
 import useDashboardStore from "@/store/useDashboardStore";
+import { ErrorBoundary } from "react-error-boundary";
+import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
+import { Fallback } from "@/components/Fallback/Fallback";
 
 const ContactDetailMemo: FC = () => {
   console.log("🔥 ContactDetail レンダリング");
@@ -34,7 +37,16 @@ const ContactDetailMemo: FC = () => {
       {/* ファンクションヘッダー */}
       <ContactFunctionHeader />
       {/* メインコンテナ 左と右 */}
-      <ContactMainContainer />
+      {/* <ContactMainContainer /> */}
+      <ErrorBoundary FallbackComponent={ErrorFallback}>
+        <Suspense
+          fallback={
+            <Fallback className="h-full max-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)] min-h-[calc(100vh-var(--header-height)-calc(100vh/3-var(--header-height)/3)-20px-20px-20px-22px-40px-2px)]" />
+          }
+        >
+          <ContactMainContainer />
+        </Suspense>
+      </ErrorBoundary>
     </div>
   );
 };

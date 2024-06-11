@@ -1,87 +1,288 @@
-import useStore from "@/store";
-import Head from "next/head";
 import React, { FC, ReactNode, Suspense, useEffect, useRef, useState } from "react";
+import styles from "@/styles/DashboardLayout.module.css";
+
+// データ型
+import { Invitation } from "@/types";
+
+// ライブラリ
+import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { toast } from "react-toastify";
-import styles from "@/styles/DashboardLayout.module.css";
-import { Tooltip } from "./Parts/Tooltip/Tooltip";
+import { ErrorBoundary } from "react-error-boundary";
+
+// Zusntand
+import useStore from "@/store";
+import useDashboardStore from "@/store/useDashboardStore";
+import useThemeStore from "@/store/useThemeStore";
+import useRootStore from "@/store/useRootStore";
+
+// 共通コンポーネント
 import { DashboardHeader } from "./DashboardHeader/DashboardHeader";
 import { DashboardSidebar } from "./DashboardSidebar/DashboardSidebar";
 
+// ツールチップ
+import { Tooltip } from "./Parts/Tooltip/Tooltip";
 import { TooltipBlur } from "./Parts/Tooltip/TooltipBlur";
-import useDashboardStore from "@/store/useDashboardStore";
-import { EditModal } from "./EditModal/EditModal";
-
-import useThemeStore from "@/store/useThemeStore";
-import useRootStore from "@/store/useRootStore";
-import { ChangeSizeMenu } from "./Parts/ChangeSizeMenu/ChangeSizeMenu";
-import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 import { TooltipWrap } from "./Parts/Tooltip/TooltipWrap";
-import { InsertNewContactModal } from "./DashboardCompanyComponent/Modal/InsertNewContactModal/InsertNewContactModal";
-import { UpdateContactModal } from "./DashboardCompanyComponent/Modal/UpdateContactModal/UpdateContactModal";
-import { InsertNewClientCompanyModal } from "./DashboardCompanyComponent/Modal/InsertNewClientCompnayModal/InsertNewClientCompanyModal";
-import { UpdateClientCompanyModal } from "./DashboardCompanyComponent/Modal/UpdateClientCompanyModal/UpdateClientCompanyModal";
-import { InsertNewActivityModal } from "./DashboardCompanyComponent/Modal/InsertNewActivityModal/InsertNewActivityModal";
-import { SettingAccountModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingAccountModal";
-import { UpdateActivityModal } from "./DashboardCompanyComponent/Modal/UpdateActivityModal/UpdateActivityModal";
-import { InsertNewMeetingModal } from "./DashboardCompanyComponent/Modal/InsertNewMeetingModal/InsertNewMeetingModal";
-import { UpdateMeetingModal } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/UpdateMeetingModal";
-import { InsertNewProductModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/InsertNewProductModal/InsertNewProductModal";
-import { UpdateProductModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/UpdateProductModal/UpdateProductModal";
-import { InsertNewPropertyModal } from "./DashboardCompanyComponent/Modal/InsertNewPropertyModal/InsertNewPropertyModal";
-import { ErrorBoundary } from "react-error-boundary";
+
+// UIパーツコンポーネント
+import { ChangeSizeMenu } from "./Parts/ChangeSizeMenu/ChangeSizeMenu";
+
+// フォールバック
 import { ErrorFallback } from "./ErrorFallback/ErrorFallback";
 import { Fallback } from "./Fallback/Fallback";
-import { UpdatePropertyModal } from "./DashboardCompanyComponent/Modal/UpdatePropertyModal/UpdatePropertyModal";
+import { FallbackModal } from "./DashboardCompanyComponent/Modal/FallbackModal/FallbackModal";
+import { FallbackSideTableSearchSignatureStamp } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchSignatureStamp/FallbackSideTableSearchSignatureStamp";
+import { FallbackBusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/FallbackBusinessCalendarModal";
+import { FallbackIncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/IncreaseAccountCountsModal/FallbackIncreaseAccountCountsModal";
+import { FallbackDecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/DecreaseAccountCountsModal/FallbackDecreaseAccountCountsModal";
+
+// モーダル
+import { EditModal } from "./EditModal/EditModal";
 import { SubscriptionPlanModalForFreeUser } from "./Modal/SubscriptionPlanModalForFreeUser/SubscriptionPlanModalForFreeUser";
 import { FirstLoginSettingUserProfileCompanyModal } from "./Modal/FirstLoginSettingUserProfileCompanyModal/FirstLoginSettingUserProfileCompanyModal";
 import { SettingInvitationModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingInvitationModal/SettingInvitationModal";
 import { FirstLoginSettingUserProfileAfterInvitationModal } from "./Modal/FirstLoginSettingUserProfileAfterInvitaionModal/FirstLoginSettingUserProfileAfterInvitaionModal";
-import { Invitation } from "@/types";
 import { InvitationForLoggedInUser } from "./Modal/InvitationForLoggedInUser/InvitationForLoggedInUser";
-import { useQueryClient } from "@tanstack/react-query";
 import { ChangeTeamOwnerConfirmationModal } from "./DashboardCompanyComponent/Modal/Notifications/ChangeTeamOwnerConfirmationModal/ChangeTeamOwnerConfirmationModal";
 import { IncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/IncreaseAccountCountsModal/IncreaseAccountCountsModal";
-import { FallbackIncreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/IncreaseAccountCountsModal/FallbackIncreaseAccountCountsModal";
 import { DecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/DecreaseAccountCountsModal/DecreaseAccountCountsModal";
-import { FallbackDecreaseAccountCountsModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingPaymentAndPlan/DecreaseAccountCountsModal/FallbackDecreaseAccountCountsModal";
+import { BlockModal } from "./Modal/BlockModal/BlockModal";
+import { QuotationPreviewForProfile } from "./DashboardQuotationComponent/QuotationDetail/QuotationPreviewModal/QuotationPreviewForProfile";
+import { ContactDetailModal } from "./Modal/ContactDetailModal/ContactDetailModal";
+
+// サイドテーブル
+import { SideTableSearchSignatureStamp } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchSignatureStamp/SideTableSearchSignatureStamp";
+
+// ページ
 import { ResumeMembershipAfterCancel } from "./Modal/ResumeMembershipAfterCancel/ResumeMembershipAfterCancel";
 import { FallbackResumeMembershipAfterCancel } from "./Modal/ResumeMembershipAfterCancel/FallbackResumeMembershipAfterCancel";
-import { BlockModal } from "./Modal/BlockModal/BlockModal";
 import { RestartAfterCancelForMember } from "./Modal/RestartAfterCancelForMember/RestartAfterCancelForMember";
-import { FallbackModal } from "./DashboardCompanyComponent/Modal/FallbackModal/FallbackModal";
-import { FallbackSideTableSearchSignatureStamp } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchSignatureStamp/FallbackSideTableSearchSignatureStamp";
-import { SideTableSearchSignatureStamp } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/SideTableSearchSignatureStamp/SideTableSearchSignatureStamp";
-import { QuotationPreviewModal } from "./DashboardQuotationComponent/QuotationDetail/QuotationPreviewModal/QuotationPreviewModal";
-import { QuotationPreviewForProfile } from "./DashboardQuotationComponent/QuotationDetail/QuotationPreviewModal/QuotationPreviewForProfile";
-import { ClientCompanyDetailModal } from "./Modal/ClientCompanyDetailModal/ClientCompanyDetailModal";
-import { ContactDetailModal } from "./Modal/ContactDetailModal/ContactDetailModal";
-import { FallbackBusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/FallbackBusinessCalendarModal";
+
+// アイコン
+import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 
 // ------------------------------- 動的インポート -------------------------------
 import dynamic from "next/dynamic";
 
-// import { BusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModal";
-const BusinessCalendarModal = dynamic(() =>
-  import(
-    "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModal"
-  ).then((mod) => mod.BusinessCalendarModal)
-);
+// 🔸案件詳細モーダル(SDB用)
 // import { DetailPropertyModal } from "./DashboardPropertyComponent/PropertyDetail/PropertyMainContainer/DetailPropertyModal";
-const DetailPropertyModal = dynamic(() =>
-  import("./DashboardPropertyComponent/PropertyDetail/PropertyMainContainer/DetailPropertyModal").then(
-    (mod) => mod.DetailPropertyModal
-  )
+const DetailPropertyModal = dynamic(
+  () =>
+    import("./DashboardPropertyComponent/PropertyDetail/PropertyMainContainer/DetailPropertyModal").then(
+      (mod) => mod.DetailPropertyModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
 );
+// 🔸営業カレンダー(編集用)
+// import { BusinessCalendarModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModal";
+const BusinessCalendarModal = dynamic(
+  () =>
+    import(
+      "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModal"
+    ).then((mod) => mod.BusinessCalendarModal),
+  {
+    loading: (loadingProps) => <FallbackBusinessCalendarModal />,
+    ssr: false,
+  }
+);
+// 🔸営業カレンダー(閲覧用)
 // import { BusinessCalendarModalDisplayOnly } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModalDisplayOnly";
-const BusinessCalendarModalDisplayOnly = dynamic(() =>
-  import(
-    "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModalDisplayOnly"
-  ).then((mod) => mod.BusinessCalendarModalDisplayOnly)
+const BusinessCalendarModalDisplayOnly = dynamic(
+  () =>
+    import(
+      "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/BusinessCalendarModal/BusinessCalendarModalDisplayOnly"
+    ).then((mod) => mod.BusinessCalendarModalDisplayOnly),
+  {
+    loading: (loadingProps) => <FallbackBusinessCalendarModal />,
+    ssr: false, // サーバーサイドレンダリングを無効にする
+  }
 );
 // import { ImportModal } from "./Modal/ImportModal/ImportModal";
-const ImportModal = dynamic(() => import("./Modal/ImportModal/ImportModal").then((mod) => mod.ImportModal));
+const ImportModal = dynamic(() => import("./Modal/ImportModal/ImportModal").then((mod) => mod.ImportModal), {
+  loading: (loadingProps) => <FallbackModal />,
+  ssr: false, // サーバーサイドレンダリングを無効にする
+});
+
+// 🔸モーダル関連
+// INSERT関連
+// 🔸INSERT会社
+// import { InsertNewClientCompanyModal } from "./DashboardCompanyComponent/Modal/InsertNewClientCompnayModal/InsertNewClientCompanyModal";
+const InsertNewClientCompanyModal = dynamic(
+  () =>
+    import("./DashboardCompanyComponent/Modal/InsertNewClientCompnayModal/InsertNewClientCompanyModal").then(
+      (mod) => mod.InsertNewClientCompanyModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
+// 🔸INSERT担当者
+// import { InsertNewContactModal } from "./DashboardCompanyComponent/Modal/InsertNewContactModal/InsertNewContactModal";
+const InsertNewContactModal = dynamic(
+  () =>
+    import("./DashboardCompanyComponent/Modal/InsertNewContactModal/InsertNewContactModal").then(
+      (mod) => mod.InsertNewContactModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
+// 🔸INSERT活動
+// import { InsertNewActivityModal } from "./DashboardCompanyComponent/Modal/InsertNewActivityModal/InsertNewActivityModal";
+const InsertNewActivityModal = dynamic(
+  () =>
+    import("./DashboardCompanyComponent/Modal/InsertNewActivityModal/InsertNewActivityModal").then(
+      (mod) => mod.InsertNewActivityModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
+// 🔸INSERT面談
+// import { InsertNewMeetingModal } from "./DashboardCompanyComponent/Modal/InsertNewMeetingModal/InsertNewMeetingModal";
+const InsertNewMeetingModal = dynamic(
+  () =>
+    import("./DashboardCompanyComponent/Modal/InsertNewMeetingModal/InsertNewMeetingModal").then(
+      (mod) => mod.InsertNewMeetingModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
+// 🔸INSERT案件
+// import { InsertNewPropertyModal } from "./DashboardCompanyComponent/Modal/InsertNewPropertyModal/InsertNewPropertyModal";
+const InsertNewPropertyModal = dynamic(
+  () =>
+    import("./DashboardCompanyComponent/Modal/InsertNewPropertyModal/InsertNewPropertyModal").then(
+      (mod) => mod.InsertNewPropertyModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
+// 🔸INSERT商品
+// import { InsertNewProductModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/InsertNewProductModal/InsertNewProductModal";
+const InsertNewProductModal = dynamic(
+  () =>
+    import("./DashboardCompanyComponent/Modal/SettingAccountModal/InsertNewProductModal/InsertNewProductModal").then(
+      (mod) => mod.InsertNewProductModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
+
+// UPDATE関連
+// 🔸UPDATE会社
+// import { UpdateClientCompanyModal } from "./DashboardCompanyComponent/Modal/UpdateClientCompanyModal/UpdateClientCompanyModal";
+const UpdateClientCompanyModal = dynamic(
+  () =>
+    import("./DashboardCompanyComponent/Modal/UpdateClientCompanyModal/UpdateClientCompanyModal").then(
+      (mod) => mod.UpdateClientCompanyModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
+// 🔸UPDATE担当者
+// import { UpdateContactModal } from "./DashboardCompanyComponent/Modal/UpdateContactModal/UpdateContactModal";
+const UpdateContactModal = dynamic(
+  () =>
+    import("./DashboardCompanyComponent/Modal/UpdateContactModal/UpdateContactModal").then(
+      (mod) => mod.UpdateContactModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
+// 🔸UPDATE活動
+// import { UpdateActivityModal } from "./DashboardCompanyComponent/Modal/UpdateActivityModal/UpdateActivityModal";
+const UpdateActivityModal = dynamic(
+  () =>
+    import("./DashboardCompanyComponent/Modal/UpdateActivityModal/UpdateActivityModal").then(
+      (mod) => mod.UpdateActivityModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
+// 🔸UPDATE面談
+// import { UpdateMeetingModal } from "./DashboardCompanyComponent/Modal/UpdateMeetingModal/UpdateMeetingModal";
+const UpdateMeetingModal = dynamic(
+  () =>
+    import("./DashboardCompanyComponent/Modal/UpdateMeetingModal/UpdateMeetingModal").then(
+      (mod) => mod.UpdateMeetingModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
+// 🔸UPDATE案件
+// import { UpdatePropertyModal } from "./DashboardCompanyComponent/Modal/UpdatePropertyModal/UpdatePropertyModal";
+const UpdatePropertyModal = dynamic(
+  () =>
+    import("./DashboardCompanyComponent/Modal/UpdatePropertyModal/UpdatePropertyModal").then(
+      (mod) => mod.UpdatePropertyModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
+// 🔸UPDATE商品
+// import { UpdateProductModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/UpdateProductModal/UpdateProductModal";
+const UpdateProductModal = dynamic(
+  () =>
+    import("./DashboardCompanyComponent/Modal/SettingAccountModal/UpdateProductModal/UpdateProductModal").then(
+      (mod) => mod.UpdateProductModal
+    ),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
+
+// 他モーダル
+// 🔸アカウント設定モーダル
+import { SettingAccountModal } from "./DashboardCompanyComponent/Modal/SettingAccountModal/SettingAccountModal";
+// const SettingAccountModal = dynamic(
+//   () =>
+//     import("./DashboardCompanyComponent/Modal/SettingAccountModal/SettingAccountModal").then(
+//       (mod) => mod.SettingAccountModal
+//     ),
+//   {
+//     loading: (loadingProps) => <div />,
+//     ssr: false,
+//   }
+// );
+
+// 🔸見積モーダル
+import { QuotationPreviewModal } from "./DashboardQuotationComponent/QuotationDetail/QuotationPreviewModal/QuotationPreviewModal";
+
+// 🔸会社詳細モーダル
+// import { ClientCompanyDetailModal } from "./Modal/ClientCompanyDetailModal/ClientCompanyDetailModal";
+const ClientCompanyDetailModal = dynamic(
+  () => import("./Modal/ClientCompanyDetailModal/ClientCompanyDetailModal").then((mod) => mod.ClientCompanyDetailModal),
+  {
+    loading: (loadingProps) => <FallbackModal />,
+    ssr: false,
+  }
+);
 
 // ------------------------------- 動的インポート ここまで -------------------------------
 

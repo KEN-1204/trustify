@@ -6,7 +6,6 @@ import useThemeStore from "@/store/useThemeStore";
 import { Suspense, useEffect, useState } from "react";
 import { DotsGradient } from "../Parts/DotsGradient/DotsGradient";
 import { EditModalDealCard } from "./ScreenDealBoards/EditModalDealCard/EditModalDealCard";
-import { SalesProgressScreen } from "./SalesProgressScreen/SalesProgressScreen";
 import { ErrorBoundary } from "react-error-boundary";
 import { FallbackSalesProgressScreen } from "./SalesProgressScreen/FallbackSalesProgressScreen";
 import { ErrorFallback } from "../ErrorFallback/ErrorFallback";
@@ -17,6 +16,16 @@ import { useQueryClient } from "@tanstack/react-query";
 import { DealCardType, Property, Property_row_data } from "@/types";
 import { toast } from "react-toastify";
 import { DescriptionActionsModal } from "../Modal/DescriptionModal/DescriptionActionsModal";
+import dynamic from "next/dynamic";
+
+// import { SalesProgressScreen } from "./SalesProgressScreen/SalesProgressScreen";
+const SalesProgressScreen = dynamic(
+  () => import("./SalesProgressScreen/SalesProgressScreen").then((mod) => mod.SalesProgressScreen),
+  {
+    loading: (loadingProps) => <FallbackSalesProgressScreen />,
+    ssr: false,
+  }
+);
 
 export const DashboardSDBComponent = () => {
   const supabase = useSupabaseClient();

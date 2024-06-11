@@ -1,16 +1,7 @@
-import { DashboardActivityComponent } from "@/components/DashboardActivityComponent/DashboardActivityComponent";
-import { DashboardCalendarComponent } from "@/components/DashboardCalendarComponent/DashboardCalendarComponent";
-import { DashboardCompanyComponent } from "@/components/DashboardCompanyComponent/DashboardCompanyComponent";
-import { DashboardContactComponent } from "@/components/DashboardContactComponent/DashboardContactComponent";
-import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/DashboardHomeComponent";
-import { FallbackDashboardHomeComponent } from "@/components/DashboardHomeComponent/FallbackDashboardHomeComponent";
 import { DashboardLayout } from "@/components/DashboardLayout";
-import { DashboardMeetingComponent } from "@/components/DashboardMeetingComponent/DashboardMeetingComponent";
-import { DashboardPreApprovalComponent } from "@/components/DashboardPreApprovalComponent/DashboardPreApprovalComponent";
-import { DashboardPropertyComponent } from "@/components/DashboardPropertyComponent/DashboardPropertyComponent";
-import { DashboardQuotationComponent } from "@/components/DashboardQuotationComponent/DashboardQuotationComponent";
-import { DashboardSDBComponent } from "@/components/DashboardSDBComponent/DashboardSDBComponent";
-import { DashboardSalesTargetComponent } from "@/components/DashboardSalesTargetComponent/DashboardSalesTargetComponent";
+import { DashboardHomeComponent } from "@/components/DashboardHomeComponent/DashboardHomeComponent";
+import { DashboardCompanyComponent } from "@/components/DashboardCompanyComponent/DashboardCompanyComponent";
+
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { Fallback } from "@/components/Fallback/Fallback";
 import useBeforeUnload from "@/hooks/useBeforeUnload";
@@ -35,12 +26,106 @@ import { GetServerSidePropsContext } from "next";
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { toast } from "react-toastify";
-import Stripe from "stripe";
+import { FallbackDashboard } from "@/components/Fallback/FallbackDashboard";
 
 // ------------------------------- 動的インポート -------------------------------
 import dynamic from "next/dynamic";
 
-// const ImportModal = dynamic(() => import("./Modal/ImportModal/ImportModal").then((mod) => mod.ImportModal));
+// 担当者
+// import { DashboardContactComponent } from "@/components/DashboardContactComponent/DashboardContactComponent";
+const DashboardContactComponent = dynamic(
+  () =>
+    import("@/components/DashboardContactComponent/DashboardContactComponent").then(
+      (mod) => mod.DashboardContactComponent
+    ),
+  {
+    loading: (loadingProps) => <FallbackDashboard />,
+    ssr: false,
+  }
+);
+// 活動
+// import { DashboardActivityComponent } from "@/components/DashboardActivityComponent/DashboardActivityComponent";
+const DashboardActivityComponent = dynamic(
+  () =>
+    import("@/components/DashboardActivityComponent/DashboardActivityComponent").then(
+      (mod) => mod.DashboardActivityComponent
+    ),
+  {
+    loading: (loadingProps) => <FallbackDashboard />,
+    ssr: false,
+  }
+);
+// 面談
+// import { DashboardMeetingComponent } from "@/components/DashboardMeetingComponent/DashboardMeetingComponent";
+const DashboardMeetingComponent = dynamic(
+  () =>
+    import("@/components/DashboardMeetingComponent/DashboardMeetingComponent").then(
+      (mod) => mod.DashboardMeetingComponent
+    ),
+  {
+    loading: (loadingProps) => <FallbackDashboard />,
+    ssr: false,
+  }
+);
+// 案件
+// import { DashboardPropertyComponent } from "@/components/DashboardPropertyComponent/DashboardPropertyComponent";
+const DashboardPropertyComponent = dynamic(
+  () =>
+    import("@/components/DashboardPropertyComponent/DashboardPropertyComponent").then(
+      (mod) => mod.DashboardPropertyComponent
+    ),
+  {
+    loading: (loadingProps) => <FallbackDashboard />,
+    ssr: false,
+  }
+);
+// 見積
+// import { DashboardQuotationComponent } from "@/components/DashboardQuotationComponent/DashboardQuotationComponent";
+const DashboardQuotationComponent = dynamic(
+  () =>
+    import("@/components/DashboardQuotationComponent/DashboardQuotationComponent").then(
+      (mod) => mod.DashboardQuotationComponent
+    ),
+  {
+    loading: (loadingProps) => <FallbackDashboard />,
+    ssr: false,
+  }
+);
+// カレンダー
+// import { DashboardCalendarComponent } from "@/components/DashboardCalendarComponent/DashboardCalendarComponent";
+const DashboardCalendarComponent = dynamic(
+  () =>
+    import("@/components/DashboardCalendarComponent/DashboardCalendarComponent").then(
+      (mod) => mod.DashboardCalendarComponent
+    ),
+  {
+    loading: (loadingProps) => <FallbackDashboard />,
+    ssr: false,
+  }
+);
+// セールスダッシュボード
+import { DashboardSDBComponent } from "@/components/DashboardSDBComponent/DashboardSDBComponent";
+// const DashboardSDBComponent = dynamic(
+//   () => import("@/components/DashboardSDBComponent/DashboardSDBComponent").then((mod) => mod.DashboardSDBComponent),
+//   {
+//     loading: (loadingProps) => <FallbackDashboard hiddenLeftSpacer={true} />,
+//     ssr: false,
+//   }
+// );
+// 売上目標
+// import { DashboardSalesTargetComponent } from "@/components/DashboardSalesTargetComponent/DashboardSalesTargetComponent";
+const DashboardSalesTargetComponent = dynamic(
+  () =>
+    import("@/components/DashboardSalesTargetComponent/DashboardSalesTargetComponent").then(
+      (mod) => mod.DashboardSalesTargetComponent
+    ),
+  {
+    loading: (loadingProps) => <FallbackDashboard />,
+    ssr: false,
+  }
+);
+// 稟議
+import { DashboardPreApprovalComponent } from "@/components/DashboardPreApprovalComponent/DashboardPreApprovalComponent";
 // ------------------------------- 動的インポート ここまで -------------------------------
 
 // type Plans = {
@@ -276,6 +361,7 @@ const DashboardHome = ({
       )} */}
       {activeMenuTab === "Company" && <DashboardCompanyComponent />}
       {activeMenuTab === "Contacts" && <DashboardContactComponent />}
+      {/* {activeMenuTab === "Contacts" && <FallbackDashboard />} */}
       {activeMenuTab === "Activity" && <DashboardActivityComponent />}
       {activeMenuTab === "Meeting" && <DashboardMeetingComponent />}
       {activeMenuTab === "Property" && <DashboardPropertyComponent />}

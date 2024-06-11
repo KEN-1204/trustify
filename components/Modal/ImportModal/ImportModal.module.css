@@ -21,6 +21,16 @@
   padding: 1px;
   color: var(--color-edit-text);
   font-family: sans-serif;
+  transition: width 0.3s ease, height 0.3s ease, max-width 0.3s ease, max-height 0.3s ease;
+}
+
+.modal_container.small {
+  width: 300px;
+  height: 100px;
+  max-width: 300px;
+  max-height: 100px;
+  box-shadow: var(--color-edit-border-f-with-shadow-light);
+  background: var(--color-table-header);
 }
 
 .title_area {
@@ -135,6 +145,10 @@
   /* font-size: 45px; */
   stroke-width: 6px;
   color: var(--main-color-f);
+}
+
+.upload_icon_btn {
+  stroke-width: 27px;
 }
 
 @keyframes bounce {
