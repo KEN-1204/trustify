@@ -19,6 +19,7 @@ import {
   optionsClientCompaniesColumnFieldForInsertArray,
 } from "@/utils/selectOptions";
 import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
+import { CustomSelectMapping } from "@/components/Parts/CustomSelectMapping/CustomSelectMapping";
 
 const ImportModalMemo = () => {
   const language = useStore((state) => state.language);
@@ -131,12 +132,26 @@ const ImportModalMemo = () => {
   const [uploadedRowList, setUploadedRowList] = useState<any[]>([]);
   // --------- ステップ2用state ここまで ---------
 
-  // 🔸既に選択済みのカラムのSetオブジェクト
+  // 🔸既に選択済みのカラムのSetオブジェクト 空文字は除去
   const alreadySelectColumnsSetObj = useMemo(() => {
     const setObj = new Set([...selectedColumnFieldsArray]);
     if (setObj.has("")) setObj.delete("");
     return setObj;
   }, [selectedColumnFieldsArray]);
+
+  // 空文字を加えたカラム選択肢
+  const optionsColumnsForInsertWithEmpty = useMemo(() => {
+    return ["", ...optionsClientCompaniesColumnFieldForInsertArray];
+  }, []);
+  // カラムの名称取得関数 空文字はスキップにして返す
+  const getInsertColumnNames = (column: string) => {
+    if (column === "") {
+      return language === "ja" ? `スキップ` : `Skip`;
+    } else {
+      return mappingClientCompaniesFiledToNameForInsert[column][language];
+    }
+  };
+
   // 🔸選択肢から選択するごとに既に選択された選択肢は取り除いていく
   // const remainingOptionsColumnFieldsArray = useMemo(() => {
   //   const remainingOptions = optionsClientCompaniesColumnFieldForInsertArray.filter(
@@ -1057,7 +1072,7 @@ const ImportModalMemo = () => {
                               </div>
                               {/* <span>データベース項目</span> */}
                               {/* <span>{mappingClientCompaniesFiledToNameForInsert[fieldName][language]}</span> */}
-                              <select
+                              {/* <select
                                 className={`h-full max-h-[30px] w-full min-w-max max-w-max cursor-pointer ${styles.select_box}`}
                                 value={selectedColumnFieldsArray[colIndex]}
                                 onChange={(e) => {
@@ -1074,7 +1089,15 @@ const ImportModalMemo = () => {
                                     {mappingClientCompaniesFiledToNameForInsert[field][language]}
                                   </option>
                                 ))}
-                              </select>
+                              </select> */}
+                              <CustomSelectMapping
+                                stateArray={selectedColumnFieldsArray}
+                                dispatch={setSelectedColumnFieldsArray}
+                                targetIndex={colIndex}
+                                options={optionsColumnsForInsertWithEmpty}
+                                getOptionName={getInsertColumnNames}
+                                selectedSetObj={alreadySelectColumnsSetObj}
+                              />
                             </div>
                           );
                         })}

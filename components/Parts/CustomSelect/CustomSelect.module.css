@@ -1,0 +1,116 @@
+.select_wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  background: var(--color-bg-under-input);
+  color: var(--color-text-under-input);
+  /* padding: 0px 6px; */
+  /* padding: 6px 8px; */
+  padding: 1px;
+  border-radius: 6px;
+  padding-right: 3px;
+  /* min-height: 28px; */
+  /* min-height: 29px; */
+  min-height: 27px;
+}
+
+.select_wrapper.with_border {
+  box-shadow: var(--color-bg-under-input-box-shadow);
+}
+.select_wrapper.with_border:hover {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+
+.select_wrapper .value {
+  height: 100%;
+  width: 100%;
+  /* background: var(--color-bg-under-input); */
+  /* border-radius: 6px; */
+  /* padding: 6px 8px; */
+  padding: 6px 0px 6px 8px;
+  /* min-height: 27px; */
+  font-size: 13px;
+}
+.select_wrapper:hover {
+  color: var(--hovered-color-text, var(--color-bg-brand-f));
+}
+
+/* .select_wrapper:focus {
+  box-shadow: var(--color-bg-under-input-active-box-shadow);
+} */
+
+.select_wrapper .select_arrow {
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.select_wrapper .options {
+  position: absolute;
+  top: 100%;
+  /* top: 90%; */
+  /* left: 0; */
+  /* left: -50%; */
+  /* right: 0; */
+  z-index: 1000;
+  /* background: var(--color-bg-base); */
+  background: var(--color-select-box-bg);
+  list-style: none;
+  padding: 6px 6px;
+  margin: 0;
+  border-radius: 6px;
+  max-height: 281px;
+  overflow-y: auto;
+  /* border: 1px solid #ddd; */
+}
+.select_wrapper .options.display_top {
+  top: auto; /* 上に表示する場合、topプロパティを無効化 */
+  bottom: 100%;
+}
+.select_wrapper .options li {
+  min-height: 29px;
+  max-height: 29px;
+  font-size: 13px;
+  padding: 6px 13px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #fff;
+}
+.select_wrapper .options li:hover {
+  /* background-color: #f0f0f0; */
+  /* background-color: #2894ff; */
+  background-color: var(--color-select-box-hover);
+  /* background-color: #1188ff; */
+}
+
+.field_edit_mode_input_box {
+  min-height: 28px;
+  padding-right: 38px;
+  z-index: 2000;
+}
+.field_edit_mode_input_box_with_close {
+  min-height: 28px;
+  padding-right: 65px;
+  z-index: 2000;
+}
+
+.select_box {
+  box-shadow: var(--color-bg-under-input-box-shadow);
+  padding-left: 5px;
+  background: var(--color-bg-under-input);
+  border-radius: 6px;
+}
+.field_edit_mode_select_box {
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
+  min-height: 28px;
+  user-select: none;
+  z-index: 2000;
+}
+.field_edit_mode_select_box.select_box {
+  box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
+}
+
+/*  */
