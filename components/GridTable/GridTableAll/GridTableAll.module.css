@@ -339,6 +339,9 @@
   box-shadow: 0 0 0 1px var(--main-color-tk);
   background: var(--main-color-tk30);
 }
+.fh_text_btn.delete_btn:active {
+  background: var(--main-color-tk60);
+}
 
 .page_transition_button {
   font-size: 14px;

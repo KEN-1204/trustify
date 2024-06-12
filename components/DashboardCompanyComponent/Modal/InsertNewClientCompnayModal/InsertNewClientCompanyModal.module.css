@@ -94,8 +94,9 @@
   padding: 15px 40px;
   /* overflow: hidden; */
 
-  color: #333;
-  color: var(--color-edit-text);
+  /* color: #333;
+  color: var(--color-edit-text); */
+  color: var(--color-text-title);
   font-family: sans-serif;
 }
 .main_contents_container {

@@ -19,7 +19,8 @@
   /* padding: 15px 40px; */
   /* padding: 15px 0px 0px; */
   padding: 1px;
-  color: var(--color-edit-text);
+  /* color: var(--color-edit-text); */
+  color: var(--color-text-title);
   font-family: sans-serif;
   transition: width 0.3s ease, height 0.3s ease, max-width 0.3s ease, max-height 0.3s ease;
 }
@@ -43,6 +44,7 @@
 .contents_container {
 }
 
+.mapping_container,
 .file_upload_box_container {
   box-shadow: var(--color-sales-card-border);
   background: var(--color-modal-content-bg);

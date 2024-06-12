@@ -918,7 +918,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-edit-bg30: #ffffff30;
   --color-edit-bg-card: #fff;
   --color-edit-shadow-color: rgba(0, 0, 0, 0.2);
-  --color-edit-text: #333;
+  /* --color-edit-text: #333; */
+  --color-edit-text: var(--color-text-title);
   --color-edit-item-bg: #fff;
   --color-edit-item-bg-disabled: #ffffff60;
   --color-edit-item-border: 0 0 0 1px #ccc;
@@ -1965,7 +1966,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-edit-bg30: #25252530;
   --color-edit-bg-card: #222;
   --color-edit-shadow-color: rgba(255, 255, 255, 0.5);
-  --color-edit-text: #fff;
+  /* --color-edit-text: #fff; */
+  --color-edit-text: var(--color-text-title);
   --color-edit-item-bg: #252525;
   --color-edit-item-bg-disabled: #25252560;
   --color-edit-item-border: 0 0 0 1px #ccc;
@@ -2730,7 +2732,7 @@ textarea {
   background-color: var(--color-brand-btn-active-hover);
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
 }
-
+/* ノーマルボタン */
 .basic_btn {
   cursor: pointer;
   background-color: var(--color-btn-basic-bg);
@@ -2739,6 +2741,32 @@ textarea {
 .basic_btn:hover {
   background-color: var(--color-btn-basic-bg-hover);
   color: var(--color-btn-basic-text-hover);
+}
+/* 削除ボタン */
+.func_btn_red {
+  cursor: pointer;
+  color: var(--color-text-brand-f);
+}
+.func_btn_red:hover {
+  color: var(--main-color-tk);
+  box-shadow: 0 0 0 1px var(--main-color-tk);
+  background: var(--main-color-tk30);
+}
+.func_btn_red:active {
+  background: var(--main-color-tk60);
+}
+/* 並び替えボタン */
+.func_btn_green {
+  cursor: pointer;
+  color: var(--color-text-brand-f);
+}
+.func_btn_green:hover {
+  color: var(--bright-green);
+  box-shadow: 0 0 0 1px var(--bright-green);
+  background: var(--bright-green20);
+}
+.func_btn_green:active {
+  background: var(--bright-green60);
 }
 
 /* シャドウ */

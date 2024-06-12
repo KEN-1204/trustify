@@ -25,6 +25,7 @@ import { MdDeleteOutline } from "react-icons/md";
 import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { SlCloudUpload } from "react-icons/sl";
+import { RiSortDesc } from "react-icons/ri";
 
 type TableDataType = {
   id: number;
@@ -2820,7 +2821,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 }}
               />
               <button
-                className={`flex-center transition-color03 relative  h-[25px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] active:bg-[var(--color-function-header-text-btn-active)] ${styles.fh_text_btn}`}
+                // className={`flex-center transition-color03 relative  h-[25px] min-w-[118px]  cursor-pointer space-x-1  rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)] active:bg-[var(--color-function-header-text-btn-active)] ${styles.fh_text_btn}`}
+                className={`flex-center transition-bg03 func_btn_green  relative h-[25px] max-h-[25px]  min-h-[25px] min-w-[118px] cursor-pointer space-x-1 rounded-[4px] px-[15px] text-[12px] text-[var(--color-bg-brand-f)]`}
                 onClick={async () => {
                   console.log("リフレッシュ クリック");
                   setRefetchLoading(true);
@@ -2855,18 +2857,43 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 <span className="whitespace-nowrap">リフレッシュ</span>
               </button>
             </div>
-            <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
+            <div className={`flex max-h-[26px] w-full min-w-max items-center justify-end space-x-[6px]`}>
+              {activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1 && (
+                <>
+                  <button
+                    className={`flex-center transition-bg03 func_btn_green h-[26px] max-h-[25px] min-h-[25px] space-x-2 rounded-[4px] px-[12px] text-[12px]`}
+                    onClick={async () => {
+                      handleCloseTooltip();
+                    }}
+                    onMouseEnter={(e) => {
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: `選択中のカラムで行を並び替え`,
+                        marginTop: 9,
+                        itemsPosition: "center",
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <RiSortDesc className="pointer-events-none text-[16px]" />
+                    <span className="pointer-events-none">並び替え</span>
+                  </button>
+                </>
+              )}
+
               {isLoadingDelete && (
                 <div className={`flex-center min-h-[25px] min-w-[72px]`}>
                   <SpinnerX w="w-[20px]" h="h-[20px]" />
                 </div>
               )}
-              {selectedRowDataCompany &&
+              {activeCell?.role !== "columnheader" &&
+                selectedRowDataCompany &&
                 selectedRowDataCompany.created_by_company_id === userProfileState?.company_id && (
                   <>
                     {!isLoadingDelete && (
                       <button
-                        className={`flex-center transition-bg03 h-[26px] space-x-2 rounded-[4px]  px-[12px] text-[12px] ${styles.fh_text_btn} ${styles.delete_btn}`}
+                        className={`flex-center transition-bg03 func_btn_red h-[26px] max-h-[25px] min-h-[25px] space-x-2 rounded-[4px] px-[12px] text-[12px]`}
                         onClick={async () => {
                           handleCloseTooltip();
 
@@ -2909,7 +2936,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 )}
 
               <button
-                className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${styles.fh_text_btn} fade08_forward relative cursor-pointer active:bg-[var(--color-function-header-text-btn-active)]`}
+                className={`flex-center transition-bg03 func_btn_green fade08_forward relative h-[25px] max-h-[25px]  min-h-[25px] cursor-pointer space-x-[6px]  rounded-[4px] px-[12px] text-[12px] text-[var(--color-bg-brand-f)]`}
                 onClick={() => {
                   if (searchMode) setSearchMode(false); // サーチモード中止
                   if (editSearchMode) setEditSearchMode(false); // 編集モード中止
@@ -2943,9 +2970,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
               </button>
 
               <button
-                className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
+                className={`flex-center transition-bg03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
-                    ? `cursor-pointer  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
+                    ? `func_btn_green relative h-[25px] max-h-[25px] min-h-[25px] cursor-pointer text-[var(--color-bg-brand-f)]`
                     : "cursor-not-allowed text-[#999]"
                 }`}
                 onClick={() => {
@@ -3016,12 +3043,15 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 <span className="pointer-events-none">検索タイプ</span>
               </button> */}
               <button
-                className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${
-                  styles.fh_text_btn
-                } relative ${
-                  isOpenDropdownMenuSearchMode
-                    ? `cursor-default active:!bg-[var(--color-btn-brand-f)]`
-                    : `cursor-pointer active:bg-[var(--color-function-header-text-btn-active)]`
+                // className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${
+                //   styles.fh_text_btn
+                // } relative ${
+                //   isOpenDropdownMenuSearchMode
+                //     ? `cursor-default active:!bg-[var(--color-btn-brand-f)]`
+                //     : `cursor-pointer active:bg-[var(--color-function-header-text-btn-active)]`
+                // }`}
+                className={`flex-center transition-bg03 func_btn_green relative h-[25px] max-h-[25px] min-h-[25px]  space-x-[6px] rounded-[4px] px-[12px]  text-[12px] text-[var(--color-bg-brand-f)] ${
+                  isOpenDropdownMenuSearchMode ? `!cursor-default` : `cursor-pointer`
                 }`}
                 onClick={() => {
                   if (searchMode) setSearchMode(false); // サーチモード中止

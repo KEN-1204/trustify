@@ -752,6 +752,18 @@
   top: 50%;
   left: 5px; */
 }
+/* チェックボックスが入っていなければセルの背景色を適用 */
+.grid_row.even_color_change .grid_cell input[type="checkbox"]:not(:checked)::before,
+.grid_row.even_color_change[aria-selected="true"] .grid_cell input[type="checkbox"]:not(:checked)::before {
+  background-color: var(--color-table-cell-bg);
+}
+.grid_row.even_color_change:nth-of-type(even) .grid_cell input[type="checkbox"]:not(:checked)::before,
+.grid_row.even_color_change:nth-of-type(even)[aria-selected="true"]
+  .grid_cell
+  input[type="checkbox"]:not(:checked)::before {
+  background-color: var(--color-table-even-color-changed-bg);
+}
+/* チェックボックスが入っていなければセルの背景色を適用 ここまで */
 .main_container input[type="checkbox"]:checked::before {
   /* background-color: #3fcf8e; */
   background-color: var(--checkbox-bg-color);

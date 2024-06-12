@@ -10,8 +10,10 @@ import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import CheckingAnime from "@/components/assets/Animations/Checking";
 import { FaCompress } from "react-icons/fa";
 import { BiFullscreen } from "react-icons/bi";
-import { BsChevronLeft, BsChevronRight } from "react-icons/bs";
+import { BsCheck2, BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { RiDragMove2Fill } from "react-icons/ri";
+import { toast } from "react-toastify";
+import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 
 const ImportModalMemo = () => {
   const language = useStore((state) => state.language);
@@ -22,14 +24,62 @@ const ImportModalMemo = () => {
   const fileUploadBoxRef = useRef<HTMLDivElement | null>(null);
   const dropIconRef = useRef<HTMLDivElement | null>(null);
   const uploadTextRef = useRef<HTMLHeadingElement | null>(null);
+  const uploadSubTextRef = useRef<HTMLDivElement | null>(null);
   const fileBrowseTextRef = useRef<HTMLSpanElement | null>(null);
   const inputFileUploadRef = useRef<HTMLInputElement | null>(null);
+  const stepBtnRef = useRef<HTMLDivElement | null>(null);
 
   const [step, setStep] = useState(1);
+  // INSERTで必須カラムの選択済み個数
+  // not nullableのカラム: 「会社名、部署名、住所」の3個 => 部署名は選択していなかった場合は「.(ピリオド)」をプレイスホルダーでセットしてINSERTする（代表番号も経済産業省のリストが載せていないデータも多いため入れない。業種は一旦入れない）
+  const [selectedRequiredColumnCount, setSelectedRequiredColumnCount] = useState(0);
+
+  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
+  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLDivElement | HTMLSpanElement, globalThis.MouseEvent>;
+    // e: MouseEvent;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    marginTop = 0,
+    itemsPosition = "center",
+  }: TooltipParams) => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+
+    setHoveredItemPos({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: content,
+      content2: content2,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    if (hoveredItemPos) setHoveredItemPos(null);
+  };
+  // ==================================================================================
 
   // ------------------ CSV to JSON変換中ローディングテキストアニメーション ------------------
   // CSV to JSON変換中ローディング 5MB以上
   const [isConverting, setIsConverting] = useState(false);
+  const [isCompletedConvert, setIsCompletedConvert] = useState(false);
   const intervalIdRef = useRef<NodeJS.Timer | number | null>(null);
   // const [convertingText, setConvertingText] = useState("変換中");
   const convertingTextRef = useRef<HTMLParagraphElement | null>(null);
@@ -37,7 +87,7 @@ const ImportModalMemo = () => {
   useEffect(() => {
     if (!isConverting) {
       if (intervalIdRef.current) {
-        console.log("🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟ローディング終了したためクリア");
+        console.log("🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟ローディング終了したためクリア clearInterval");
         clearInterval(intervalIdRef.current as NodeJS.Timer | number);
         intervalIdRef.current = null;
       }
@@ -49,13 +99,13 @@ const ImportModalMemo = () => {
 
       const text = convertingTextRef.current.innerText;
       console.log("🌠🌠🌠🌠🌠🌠🌠🌠🌠🌠loadingTextEffect実行", text);
-      if (text === "変換中") {
-        convertingTextRef.current.innerText = `変換中.`;
-      } else if (text === "変換中.") {
-        convertingTextRef.current.innerText = `変換中..`;
-      } else if (text === "変換中..") {
-        convertingTextRef.current.innerText = `変換中...`;
-      } else if (text === "変換中...") convertingTextRef.current.innerText = `変換中`;
+      if (text === "読み込み中") {
+        convertingTextRef.current.innerText = `読み込み中.`;
+      } else if (text === "読み込み中.") {
+        convertingTextRef.current.innerText = `読み込み中..`;
+      } else if (text === "読み込み中..") {
+        convertingTextRef.current.innerText = `読み込み中...`;
+      } else if (text === "読み込み中...") convertingTextRef.current.innerText = `読み込み中`;
     };
 
     // 初回実行
@@ -69,7 +119,7 @@ const ImportModalMemo = () => {
     // クリーンアップ
     return () => {
       if (intervalIdRef.current) {
-        console.log("🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟クリーンアップ");
+        console.log("🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟🌟クリーンアップ clearInterval");
         clearInterval(intervalIdRef.current as NodeJS.Timer | number);
         intervalIdRef.current = null;
       }
@@ -78,13 +128,25 @@ const ImportModalMemo = () => {
   // ------------------ CSV to JSON変換中ローディングテキストアニメーション ここまで ------------------
 
   // ---------------- 🌠キャンセル🌠 ----------------
+  const [isOpenCancelConfirmationModal, setIsCancelConfirmationModal] = useState(false);
   const handleCancel = () => {
     if (isConverting) return;
+
+    // ステップ2以降はデータが保存されずに破棄される旨をポップアップで伝える
+    if (step === 2) {
+      setIsCancelConfirmationModal(true);
+      return;
+    }
+
+    setIsOpenImportModal(false);
+  };
+  const handleCloseModal = () => {
     setIsOpenImportModal(false);
   };
   // ----------------------------------------------
   // ---------------- 🌠Browse選択クリック🌠 ----------------
   const handleClickBrowseButton = () => {
+    if (isConverting) return;
     console.log("Browseクリック");
     if (inputFileUploadRef.current) inputFileUploadRef.current.click();
   };
@@ -100,7 +162,7 @@ const ImportModalMemo = () => {
   // => 1000未満は
   const [uploadedData, setUploadedData] = useState<any[]>([]);
 
-  // ---------------- 🌠ファイルを選択 or ファイルをドロップ🌠 ----------------
+  // ---------------- 🌠ファイルを選択 or ファイルをドロップ CSV読み込み🌠 ----------------
   const handleSelectedFiles = (files: FileList | null) => {
     if (!files) return;
     if (files.length === 0) return;
@@ -124,9 +186,10 @@ const ImportModalMemo = () => {
       const isRequiredWorker = selectedFile.size > 5 * 1024 * 1024;
 
       // 5MB以上の場合にはローディングを入れる
-      if (isRequiredWorker) {
-        setIsConverting(true);
-      }
+      // if (isRequiredWorker) {
+      //   setIsConverting(true);
+      // }
+      setIsConverting(true);
 
       console.log("------------------------------------------");
       console.log("チェック通過 ParseStart...", "isRequiredWorker: ", isRequiredWorker, selectedFile, extension);
@@ -154,6 +217,9 @@ const ImportModalMemo = () => {
           // 5MB以上の場合にはローディングを終了
           console.log("✅ローディング終了");
           setIsConverting(false);
+          setIsCompletedConvert(true);
+
+          // toast.success("CSVの読み込みが完了しました🌟");
         },
         error: (error) => {
           console.log("✅ローディング終了");
@@ -193,7 +259,21 @@ const ImportModalMemo = () => {
     // });
   };
 
-  // --------------- 🌠ドラッグ&ドロップ🌠 ---------------
+  // parse開始時点のisSmallの値が適用されてしまうため、parse実行以降でisSmallかどうかでトーストを表示するか否かを決める場合はuseEffectを使用する
+  useEffect(() => {
+    // ステップ1のCSV読み込み専用の処理
+    if (step !== 1) return;
+    // CSV読み込み完了時のみ
+    if (isConverting) return;
+    if (!isCompletedConvert) return;
+
+    // ミニサイズの場合にはトーストを表示
+    if (isSmallWindow && isCompletedConvert) {
+      toast.success("CSVの読み込みが完了しました🌟");
+    }
+  }, [isCompletedConvert]);
+
+  // --------------- 🌠ファイルを選択 or ファイルをドロップ CSV読み込み🌠 ---------------
 
   // Drag Enter
   const handleDragEnterUploadBox = (e: DragEvent<HTMLDivElement>) => {
@@ -211,6 +291,7 @@ const ImportModalMemo = () => {
       uploadText.innerText = language === "ja" ? "ファイルをドロップしてください" : "Release to upload or";
       uploadText.style.color = `var(--main-color-f)`;
     }
+    if (uploadSubTextRef.current) uploadSubTextRef.current.style.display = `none`;
     if (dropIconRef.current) dropIconRef.current.style.display = "block";
     if (dropIconRef.current) dropIconRef.current.classList.add(styles.animate_bounce);
   };
@@ -237,6 +318,7 @@ const ImportModalMemo = () => {
       uploadText.innerText = language === "ja" ? "ここにファイルをドラッグするか" : "Drag files here or";
       uploadText.style.color = `var(--color-text-sub)`;
     }
+    if (uploadSubTextRef.current) uploadSubTextRef.current.style.display = `flex`;
     if (dropIconRef.current) dropIconRef.current.style.display = "none";
     if (dropIconRef.current) dropIconRef.current.classList.remove(styles.animate_bounce);
   };
@@ -259,6 +341,7 @@ const ImportModalMemo = () => {
       uploadText.innerText = language === "ja" ? "ここにファイルをドラッグするか" : "Drag files here or";
       uploadText.style.color = `var(--color-text-sub)`;
     }
+    if (uploadSubTextRef.current) uploadSubTextRef.current.style.display = `flex`;
     if (dropIconRef.current) dropIconRef.current.style.display = "none";
     if (dropIconRef.current) dropIconRef.current.classList.remove(styles.animate_bounce);
   };
@@ -310,6 +393,7 @@ const ImportModalMemo = () => {
 
   // 隠す
   const handleHide = () => {
+    handleCloseTooltip();
     if (modalContainerRef.current) {
       modalContainerRef.current.style.transition = `width 0.3s ease, height 0.3s ease, max-width 0.3s ease, max-height 0.3s ease, top 0.3s ease, left 0.3s ease, right 0.3s ease`;
       modalContainerRef.current.style.left = smallHidePosition.left; // `unset`;
@@ -330,8 +414,9 @@ const ImportModalMemo = () => {
       }, 400);
     }
   };
-  // 現せる
+  // 現す
   const handleShow = () => {
+    handleCloseTooltip();
     if (modalContainerRef.current) {
       modalContainerRef.current.style.transition = `width 0.3s ease, height 0.3s ease, max-width 0.3s ease, max-height 0.3s ease, top 0.3s ease, left 0.3s ease, right 0.3s ease`;
       modalContainerRef.current.style.left = smallInitialPosition.left; // `unset`;
@@ -357,13 +442,13 @@ const ImportModalMemo = () => {
   const draggingRef = useRef<HTMLDivElement | null>(null);
   const isDraggingRef = useRef(false);
 
-  const handleDraggingDiv = ({ movementX, movementY }: MouseEvent) => {
+  const handleDraggingDiv = (e: MouseEvent) => {
     // ドラッグ状態でなければ何もしない
     if (!isDraggingRef.current) return;
-    // isHideの時はリターン
-    if (isHide) {
-      return;
-    }
+    // // isHideの時はリターン
+    // if (isHide) {
+    //   return;
+    // }
 
     if (!modalContainerRef.current) return;
 
@@ -374,21 +459,12 @@ const ImportModalMemo = () => {
 
     console.log("Dragging");
 
-    // if (isNaN(containerLeft)) return;
-    // if (isNaN(containerTop)) return;
-
-    // const newLeft = containerLeft + movementX;
-    // const newTop = containerTop + movementY;
-
-    modalContainerRef.current.style.left = `${containerLeft + movementX}px`;
-    modalContainerRef.current.style.top = `${containerTop + movementY}px`;
+    modalContainerRef.current.style.left = `${containerLeft + e.movementX}px`;
+    modalContainerRef.current.style.top = `${containerTop + e.movementY}px`;
   };
 
   const handleMouseDownDiv = useCallback(() => {
     // isHideの時にはリターン useCallbackを使用していて作成した関数をremoveEventListenerに指定する必要があるため新たな関数に再生成されないようにするためここでは記述しない
-    // if (isHide) return;
-
-    if (!isSmallWindow) return;
 
     // ドラッグを開始
     isDraggingRef.current = true;
@@ -401,18 +477,7 @@ const ImportModalMemo = () => {
       draggingRef.current.style.cursor = `grabbing`;
     }
   }, [modalContainerRef.current, draggingRef.current]);
-
-  // const mouseUpDivReset = () => {
-  //   if (!modalContainerRef.current) return;
-
-  //   // 画面ギリギリになったら元の位置に戻す
-  //   const { top, left, right } = modalContainerRef.current.getBoundingClientRect();
-  //   if (left < -200 || window.innerWidth + 260 < right || top < -70 || window.innerHeight - 30 < top) {
-  //     console.log("⚠️元に戻す", top, left);
-  //     modalContainerRef.current.style.left = smallInitialPosition.left;
-  //     modalContainerRef.current.style.top = smallInitialPosition.top;
-  //   }
-  // };
+  // }, []);
 
   const removeEvent = useCallback(() => {
     if (!modalContainerRef.current) return;
@@ -449,6 +514,26 @@ const ImportModalMemo = () => {
   }, [isSmallWindow]);
   // -------------------- 小窓状態の時にドラッグで移動させる --------------------
 
+  const getProgressLineStyle = (num: number) => {
+    return step === num
+      ? `border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f)] text-[#fff]`
+      : `border-[var(--color-border-light)] bg-[var(--color-edit-bg-solid)] text-[var(--color-text-sub)]`;
+  };
+
+  const getNextBtnStyle = (step: number) => {
+    const activeStyle = `brand_btn_active`;
+    const inactiveStyle = `bg-[var(--color-bg-brand-f-disabled)] cursor-not-allowed text-[var(--color-text-disabled-on-brand)]`;
+    if (step === 2) {
+      // 必須カラム選択数が4に到達したらアクティブにする
+      if (4 <= selectedRequiredColumnCount) {
+        return activeStyle;
+      } else {
+        return inactiveStyle;
+      }
+    }
+    return activeStyle;
+  };
+
   return (
     <>
       {/* モーダルオーバーレイ */}
@@ -472,6 +557,18 @@ const ImportModalMemo = () => {
           className={`flex-center absolute z-[100]  h-[32px] w-[32px] cursor-pointer rounded-full hover:text-[#999] ${
             isSmallWindow ? `right-[15px] top-[10px] text-[18px]` : `right-[24px] top-[22px] text-[24px]`
           }`}
+          onMouseEnter={(e) => {
+            if (!isSmallWindow) return;
+            if (isDraggingRef.current) return;
+            handleOpenTooltip({
+              e: e,
+              display: "top",
+              content: `サイズを戻す`,
+              marginTop: 0,
+              itemsPosition: "left",
+            });
+          }}
+          onMouseLeave={handleCloseTooltip}
           onClick={() => {
             if (!isSmallWindow) handleCancel();
             if (isSmallWindow) {
@@ -483,6 +580,7 @@ const ImportModalMemo = () => {
           {isSmallWindow && <BiFullscreen className="pointer-events-none" />}
         </button>
         {/* ---------------------- Draggable Overlay 最小化時に使用 ---------------------- */}
+        {/* ドラッグ用 */}
         <div
           ref={draggingRef}
           className={`absolute left-0 top-[1px] z-[10] hidden h-[calc(100%-2px)] w-[80%] cursor-grab rounded-l-[9px]  active:cursor-grabbing`}
@@ -491,9 +589,11 @@ const ImportModalMemo = () => {
             ...(isHide && { cursor: "default", pointerEvents: "none" }),
           }}
           onMouseDown={() => {
+            if (!isSmallWindow) return;
             if (isHide) {
             } else {
               handleMouseDownDiv();
+              handleCloseTooltip();
             }
           }}
           onMouseUp={() => {
@@ -506,14 +606,40 @@ const ImportModalMemo = () => {
               }
             }
           }}
-        ></div>
+        >
+          <div className="flex flex-col">
+            <div className="flex h-[33px] w-[130px] items-end pl-[15px]">
+              <div
+                className="flex w-max"
+                onMouseEnter={(e) => {
+                  if (isHide) return;
+                  if (isDraggingRef.current) return;
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `ドラッグで位置を移動`,
+                    marginTop: 18,
+                    itemsPosition: "left",
+                  });
+                }}
+                onMouseLeave={handleCloseTooltip}
+              >
+                <div className="mr-[6px] h-full w-[87px]"></div>
+                <div className="z-[80] h-[18px] w-[18px]"></div>
+              </div>
+            </div>
+            <div className="h-[65px] w-full"></div>
+          </div>
+        </div>
+        {/* ドラッグ用 */}
+        {/* 背景色用 */}
         <div
           className={`pointer-events-none absolute left-[1px] top-[1px] z-[3] hidden h-[calc(100%-2px)] w-[80%] rounded-[9px] border-r border-solid border-[var(--color-border-light)] bg-[var(--color-modal-solid-bg)]`}
           style={{
             ...(isSmallWindow && { display: `block` }),
           }}
         ></div>
-
+        {/* 背景色用 */}
         {/* ---------------------- Draggable Overlay 最小化時に使用 ここまで ---------------------- */}
 
         {!isSmallWindow && (
@@ -528,22 +654,30 @@ const ImportModalMemo = () => {
                 </div>
                 <div className="relative flex h-[25px] w-full items-center">
                   {/* プログレスライン */}
-                  <div className="absolute left-0 top-[50%] z-[-1] h-[1px] w-[65px] bg-[var(--color-progress-bg)]"></div>
+                  <div className="absolute left-0 top-[50%] z-[-1] h-[1px] w-[105px] bg-[var(--color-progress-bg)]"></div>
                   {/* ○ */}
                   <div
-                    className={`flex-center mr-[15px] h-[25px] w-[25px] cursor-pointer rounded-full border border-solid ${
-                      step === 1
-                        ? `border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f)] text-[#fff]`
-                        : `border-[var(--color-border-light)] bg-[var(--color-edit-bg-solid)] text-[var(--color-text-sub)]`
-                    }`}
+                    className={`flex-center mr-[15px] h-[25px] w-[25px] cursor-pointer rounded-full border border-solid ${getProgressLineStyle(
+                      1
+                    )}`}
                   >
                     <span className={`text-[12px] font-bold`}>1</span>
                   </div>
                   {/* ○ */}
                   <div
-                    className={`flex-center text-[var(--color-text-sub)]} mr-[15px] h-[25px] w-[25px] cursor-not-allowed rounded-full border border-solid border-[var(--color-border-light)] bg-[var(--color-edit-bg-solid)]`}
+                    className={`flex-center text-[var(--color-text-sub)]} mr-[15px] h-[25px] w-[25px] cursor-not-allowed rounded-full border border-solid ${getProgressLineStyle(
+                      2
+                    )}`}
                   >
                     <span className={`text-[12px] font-bold`}>2</span>
+                  </div>
+                  {/* ○ */}
+                  <div
+                    className={`flex-center text-[var(--color-text-sub)]} mr-[15px] h-[25px] w-[25px] cursor-not-allowed rounded-full border border-solid ${getProgressLineStyle(
+                      3
+                    )}`}
+                  >
+                    <span className={`text-[12px] font-bold`}>3</span>
                   </div>
                 </div>
               </div>
@@ -555,10 +689,38 @@ const ImportModalMemo = () => {
                   <div className={`flex min-w-max items-center space-x-[6px] text-[16px] font-bold`}>
                     <span>ステップ{step}</span>
                     <span>：</span>
-                    <span>自社専用の企業リストを読み込む</span>
+                    {step === 1 && (
+                      <>
+                        {!isConverting && !isCompletedConvert && <span>自社専用の企業リストを読み込む</span>}
+                        {isConverting && !isCompletedConvert && <span>CSVを読み込み中...</span>}
+                        {!isConverting && isCompletedConvert && <span>CSV読み込み完了</span>}
+                      </>
+                    )}
+                    {step === 2 && (
+                      <>
+                        <span>列の項目名の紐付け設定</span>
+                      </>
+                    )}
                   </div>
                   <div className={`mt-[6px] flex whitespace-pre-wrap text-[13px] text-[var(--color-text-sub)]`}>
-                    <p>{`下記のエリアにCSVファイルをドラッグ&ドロップするか、\n「ファイルを選択してください」のテキストをクリックしてCSVファイルを選択してください。`}</p>
+                    {step === 1 && (
+                      <>
+                        {!isConverting && !isCompletedConvert && (
+                          <p>{`下記のエリアにCSVファイルをドラッグ&ドロップするか、\n「ファイルを選択してください」のテキストをクリックしてCSVファイルを選択してください。`}</p>
+                        )}
+                        {isConverting && !isCompletedConvert && (
+                          <p>{`CSVファイルを読み込み中です。ファイルサイズが大きい場合は少し時間がかかりますので、\n完了するまでミニサイズボタンで小さくできます。完了次第チェックでお知らせいたします。`}</p>
+                        )}
+                        {!isConverting && isCompletedConvert && (
+                          <p>{`読み込みが完了しました！「次へ」ボタンから次のステップに進んでください。`}</p>
+                        )}
+                      </>
+                    )}
+                    {step === 2 && (
+                      <>
+                        <p>{`TRUSTiFYデータベースの項目名と紐付けるCSVファイルの項目名を選択してください。\n保存しない不要な列の項目名には「スキップ」を指定してください。`}</p>
+                      </>
+                    )}
                   </div>
                 </div>
 
@@ -566,32 +728,73 @@ const ImportModalMemo = () => {
                   <div
                     className={`transition-bg02 flex-center basic_btn space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[12px]`}
                     // text-[#b9b9b9]
-                    onClick={() => handleSwitchSize(!isSmallWindow)}
+                    onClick={() => {
+                      handleCloseTooltip();
+                      handleSwitchSize(!isSmallWindow);
+                    }}
+                    onMouseEnter={(e) => {
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: `インポート画面を小さくする`,
+                        marginTop: 9,
+                        itemsPosition: "left",
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
                   >
                     {isSmallWindow ? (
                       <BiFullscreen className="pointer-events-none" />
                     ) : (
                       <FaCompress className="pointer-events-none" />
                     )}
-                    {!isSmallWindow && <span>最小化</span>}
+                    <span>ミニサイズ</span>
                   </div>
-                  {step === 1 && (
-                    <div
-                      className={`transition-bg02 brand_btn_active flex-center space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[12px]`}
-                      style={{
-                        transition: `background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease width 0.2s ease`,
-                      }}
-                      onClick={() => {
-                        if (step === 1) handleClickBrowseButton();
-                      }}
-                    >
-                      {step === 1 && (
-                        <SlCloudDownload className={`${styles.upload_icon_btn} text-[13px] text-[#fff]`} />
-                      )}
-                      <span>ファイル選択</span>
-                      {/* <span>続ける</span> */}
-                    </div>
-                  )}
+                  <div
+                    ref={stepBtnRef}
+                    className={`transition-bg02 flex-center space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[12px] ${getNextBtnStyle(
+                      step
+                    )}`}
+                    style={{
+                      transition: `background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease width 0.2s ease`,
+                    }}
+                    onClick={() => {
+                      if (step === 1) {
+                        if (isConverting) return;
+                        if (!isCompletedConvert) {
+                          handleClickBrowseButton();
+                        } else {
+                          // ステップ2に進める
+                          setStep(2);
+                          // 読み込んだCSVファイルのヘッダーカラムとDBのカラムの統合ステップに移る
+                          // 🔸まずはCSVのヘッダーと5行以上存在する場合は最初の5行を表示して、DBにINSERTする際のカラムを選択形式で表示する。デフォルトはスキップでINSERTせず、必要最低限のセットすべきRequiredカラムがあといくつかも表示する
+                        }
+                      }
+                      if (step === 2) {
+                        if (selectedRequiredColumnCount < 4)
+                          return alert(
+                            "紐付け必須の項目名が選択されていません。紐付け必須項目は「会社名・住所」の2つです。\nCSVファイルの項目とデータベース用の項目を選択肢から選んで紐付けしてください。\nデータベース用の項目に存在しない項目は「スキップ」でデータベースに保存しないか、代わりとなる項目を選択してください。"
+                          );
+                      }
+                    }}
+                  >
+                    {step === 1 && (
+                      <>
+                        {!isCompletedConvert && (
+                          <>
+                            <SlCloudDownload className={`${styles.upload_icon_btn} text-[13px] text-[#fff]`} />
+                            <span>ファイル選択</span>
+                          </>
+                        )}
+                        {isCompletedConvert && <span>次へ</span>}
+                      </>
+                    )}
+                    {step === 2 && (
+                      <>
+                        <span>次へ ({`${selectedRequiredColumnCount} / 4`})</span>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -600,73 +803,118 @@ const ImportModalMemo = () => {
             <div
               className={`${styles.contents_container} fade08_forward flex h-full w-full flex-col rounded-b-[9px] px-[24px]`}
             >
-              <div
-                className={`${styles.file_upload_box_container} mb-[24px] h-full w-full bg-[var(--color-modal-solid-bg-main)] p-[12px]`}
-              >
+              {/* -------------------------- step1 CSV読み込み -------------------------- */}
+              {step === 1 && (
                 <div
-                  ref={fileUploadBoxRef}
-                  onDragEnter={handleDragEnterUploadBox}
-                  onDragOver={handleDragOverUploadBox}
-                  onDragLeave={handleDragLeaveUploadBox}
-                  onDrop={handleDropUploadBox}
-                  className={`${styles.file_upload_box} flex-center h-full w-full flex-col`}
+                  className={`${styles.file_upload_box_container} mb-[24px] h-full w-full bg-[var(--color-modal-solid-bg-main)] p-[12px]`}
                 >
-                  {isConverting && (
-                    <>
-                      {/* <SpinnerX /> */}
-                      {/* {CheckingAnimeView ?? <SpinnerX />} */}
-                      {<CheckingAnime /> ?? <SpinnerX />}
-                      <div className={`mr-[-2px] flex min-w-[45px] items-center`}>
-                        <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
-                          変換中
-                        </p>
-                        {/* <p ref={convertingTextRef} className={`mt-[10px] text-[13px] text-[var(--color-text-sub)]`}>
+                  {isCompletedConvert && (
+                    <div className={`${styles.file_upload_box} flex-center h-full w-full flex-col`}>
+                      <div className={`mb-[6px] mt-[-60px]`}>
+                        <BsCheck2 className="pointer-events-none stroke-1 text-[120px] text-[var(--bright-green)]" />
+                      </div>
+                      <h2 className={`flex flex-col items-center text-[16px] text-[var(--color-text-sub)]`}>
+                        <span>{language === "ja" ? "CSVデータの読み込みが完了しました！" : ``}</span>
+                        <span>{language === "ja" ? "次のステップに進んでください！" : ``}</span>
+                        <div
+                          className={`transition-bg02 brand_btn_active flex-center mb-[-13px] mt-[13px] space-x-[5px] rounded-[6px] px-[12px] py-[5px] text-[15px]`}
+                          onClick={() => {
+                            if (stepBtnRef.current) stepBtnRef.current.click();
+                          }}
+                        >
+                          <span>次へ</span>
+                        </div>
+                      </h2>
+                    </div>
+                  )}
+                  {!isCompletedConvert && (
+                    <div
+                      ref={fileUploadBoxRef}
+                      onDragEnter={handleDragEnterUploadBox}
+                      onDragOver={handleDragOverUploadBox}
+                      onDragLeave={handleDragLeaveUploadBox}
+                      onDrop={handleDropUploadBox}
+                      className={`${styles.file_upload_box} flex-center h-full w-full flex-col`}
+                    >
+                      {isConverting && (
+                        <>
+                          {/* <SpinnerX /> */}
+                          {/* {CheckingAnimeView ?? <SpinnerX />} */}
+                          {<CheckingAnime /> ?? <SpinnerX />}
+                          <div className={`mr-[-2px] flex min-w-[45px] items-center`}>
+                            <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
+                              読み込み中
+                            </p>
+                            {/* <p ref={convertingTextRef} className={`mt-[10px] text-[13px] text-[var(--color-text-sub)]`}>
                       変換中
                     </p> */}
-                      </div>
-                    </>
-                  )}
-                  {!isConverting && (
-                    <>
-                      <div ref={uploadIconRef} className={`${styles.upload_icon}`}>
-                        <SlCloudUpload />
-                        {/* <SlCloudDownload /> */}
-                      </div>
-                      <div ref={dropIconRef} className={`${styles.drop_icon}`}>
-                        {/* <BsCloudArrowDown /> */}
-                        <SlCloudDownload />
-                      </div>
+                          </div>
+                        </>
+                      )}
+                      {!isConverting && (
+                        <>
+                          <div ref={uploadIconRef} className={`${styles.upload_icon}`}>
+                            <SlCloudUpload />
+                            {/* <SlCloudDownload /> */}
+                          </div>
+                          <div ref={dropIconRef} className={`${styles.drop_icon}`}>
+                            {/* <BsCloudArrowDown /> */}
+                            <SlCloudDownload />
+                          </div>
 
-                      <h2 ref={uploadTextRef} className={styles.box_title}>
-                        <span className={styles.file_instruction}>
-                          {language === "ja" ? "ここにファイルをドラッグするか" : `Drag files here or`}
-                        </span>
-                        <label htmlFor="file_upload_csv">
-                          <span ref={fileBrowseTextRef} className={styles.file_browse_button}>
-                            {" "}
-                            ファイルを選択してください
-                          </span>
-                        </label>
-                      </h2>
-                      <input
-                        ref={inputFileUploadRef}
-                        id="file_upload_csv"
-                        type="file"
-                        accept=".csv"
-                        // accept=".csv, .xlsx, "
-                        // multiple // 一旦ファイル選択数は1つのみ
-                        hidden
-                        className={styles.file_browse_input}
-                        onChange={(e) => handleSelectedFiles(e.target.files)}
-                        // onChange={(e) => console.log(e)}
-                      />
-                    </>
+                          <h2 ref={uploadTextRef} className={styles.box_title}>
+                            <span className={styles.file_instruction}>
+                              {language === "ja" ? "ここにファイルをドラッグするか" : `Drag files here or`}
+                            </span>
+                            <label htmlFor="file_upload_csv">
+                              <span ref={fileBrowseTextRef} className={styles.file_browse_button}>
+                                {" "}
+                                ファイルを選択してください
+                              </span>
+                            </label>
+                          </h2>
+                          <div
+                            ref={uploadSubTextRef}
+                            className={`mb-[-3px] mt-[3px] flex text-[13px] text-[var(--color-text-sub)]`}
+                          >
+                            <p>（最大ファイルサイズ：200MB / 読み込み上限：100万行）</p>
+                          </div>
+                          <input
+                            ref={inputFileUploadRef}
+                            id="file_upload_csv"
+                            type="file"
+                            accept=".csv"
+                            // accept=".csv, .xlsx, "
+                            // multiple // 一旦ファイル選択数は1つのみ
+                            hidden
+                            className={styles.file_browse_input}
+                            onChange={(e) => handleSelectedFiles(e.target.files)}
+                            // onChange={(e) => console.log(e)}
+                          />
+                        </>
+                      )}
+                    </div>
                   )}
                 </div>
-              </div>
+              )}
+              {/* -------------------------- step1 CSV読み込み ここまで -------------------------- */}
+              {/* -------------------------- step2 マッピング -------------------------- */}
+              {step === 2 && (
+                <div className={`${styles.mapping_container} h-full w-full`}>
+                  {/* 左サイド 説明タイトルテーブル */}
+
+                  {/* 左サイド 説明タイトルテーブル ここまで */}
+
+                  {/* 右サイド マッピングテーブル */}
+                  {/* 右サイド マッピングテーブル ここまで */}
+                </div>
+              )}
+              {/* -------------------------- step2 マッピング ここまで -------------------------- */}
             </div>
           </>
         )}
+
+        {/* ------------------------------------ ミニサイズVer ------------------------------------ */}
         {isSmallWindow && (
           <>
             {/* ----------------------- 保存・タイトル・キャンセルエリア ----------------------- */}
@@ -690,6 +938,17 @@ const ImportModalMemo = () => {
                   <div
                     className={`z-[30] flex max-h-[18px] w-full cursor-pointer hover:text-[#999]`}
                     onClick={handleShow}
+                    onMouseEnter={(e) => {
+                      if (isDraggingRef.current) return;
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: `元の位置に戻す`,
+                        marginTop: 18,
+                        itemsPosition: "left",
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
                   >
                     <BsChevronLeft className="z-1 mr-[6px] stroke-[0.5] text-[15px]" />
                   </div>
@@ -705,17 +964,72 @@ const ImportModalMemo = () => {
             >
               <div className={`flex h-full w-full justify-between`}>
                 <div className={`flex h-full items-center`}>
-                  <SpinnerX h="h-[24px]" w="w-[24px]" />
-                  <div className={`ml-[15px] flex min-w-max items-center`}>
-                    <p ref={convertingTextRef} className={`text-[13px] text-[var(--color-text-sub)]`}>
-                      変換中
-                    </p>
-                  </div>
+                  {step === 1 && isConverting && (
+                    <>
+                      <SpinnerX h="h-[24px]" w="w-[24px]" />
+                      <div className={`ml-[15px] flex min-w-max items-center`}>
+                        <p ref={convertingTextRef} className={`text-[13px] text-[var(--color-text-sub)]`}>
+                          読み込み中
+                        </p>
+                      </div>
+                    </>
+                  )}
+                  {step === 1 && !isConverting && isCompletedConvert && (
+                    <>
+                      <BsCheck2 className="pointer-events-none min-h-[18px] min-w-[24px] stroke-1 text-[24px] text-[var(--bright-green)]" />
+                      <div className={`ml-[15px] flex min-w-max items-center`}>
+                        <p ref={convertingTextRef} className={`text-[13px] text-[var(--color-text-sub)]`}>
+                          読み込み完了
+                        </p>
+                      </div>
+                    </>
+                  )}
+                  {((step === 1 && !isConverting && !isCompletedConvert) || step === 2) && (
+                    <div className="relative flex h-[25px] w-full items-center">
+                      {/* プログレスライン */}
+                      <div className="absolute left-0 top-[50%] z-[-1] h-[1px] w-[105px] bg-[var(--color-progress-bg)]"></div>
+                      <div
+                        className={`flex-center mr-[15px] h-[25px] w-[25px] rounded-full border border-solid ${getProgressLineStyle(
+                          1
+                        )}`}
+                      >
+                        <span className={`text-[12px] font-bold`}>1</span>
+                      </div>
+                      <div
+                        className={`flex-center mr-[15px] h-[25px] w-[25px] rounded-full border border-solid ${getProgressLineStyle(
+                          2
+                        )}`}
+                      >
+                        <span className={`text-[12px] font-bold`}>2</span>
+                      </div>
+                      <div
+                        className={`flex-center mr-[15px] h-[25px] w-[25px] rounded-full border border-solid ${getProgressLineStyle(
+                          3
+                        )}`}
+                      >
+                        <span className={`text-[12px] font-bold`}>3</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className={`flex h-full items-center`}>
-                  <div className="z-[30] cursor-pointer hover:text-[#999]" onClick={handleHide}>
-                    <BsChevronRight className="mr-[6px] stroke-[0.5] text-[15px]" />
+                  <div
+                    className="z-[30] mr-[6px]  cursor-pointer hover:text-[#999]"
+                    onClick={handleHide}
+                    onMouseEnter={(e) => {
+                      if (isDraggingRef.current) return;
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: `画面外に移動する`,
+                        marginTop: 18,
+                        itemsPosition: "left",
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <BsChevronRight className="stroke-[0.5] text-[15px]" />
                   </div>
 
                   {/* <BsChevronLeft className="z-1 absolute  left-[-15px] top-[50%] translate-y-[-50%] text-[24px]" /> */}
@@ -725,8 +1039,35 @@ const ImportModalMemo = () => {
             {/* ----------------------- メインコンテナ ここまで ----------------------- */}
           </>
         )}
+        {/* ------------------------------------ ミニサイズVer ------------------------------------ */}
         {/* ----------------------- メインコンテナ ここまで ----------------------- */}
       </div>
+      {/* ----------------------- キャンセル確認モーダル ----------------------- */}
+      {isOpenCancelConfirmationModal && (
+        <ConfirmationModal
+          titleText={`インポート画面を閉じてもよろしいですか？`}
+          sectionP1={`CSVデータのインポートは完了していません。取り込んだデータは保存されず破棄されます。`}
+          cancelText="戻る"
+          submitText="閉じる"
+          buttonColor="red"
+          zIndex="3000px"
+          zIndexOverlay="2800px"
+          withAnnotation={false}
+          // annotationText="注：この操作は少し時間がかかります。画面を閉じずにお待ちください。"
+          // clickEventSubmit={handleResetA}
+          withSelect={false}
+          isOverlayBgBlack={true}
+          clickEventClose={() => {
+            setIsCancelConfirmationModal(false);
+          }}
+          clickEventSubmit={async () => {
+            handleCloseModal();
+            setIsCancelConfirmationModal(true);
+          }}
+          marginTopP1={`15px`}
+        />
+      )}
+      {/* ----------------------- キャンセル確認モーダル ここまで ----------------------- */}
     </>
   );
 };

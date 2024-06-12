@@ -27,6 +27,9 @@ import { DropDownMenuSearchMode } from "@/components/GridTable/GridTableAll/Drop
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { toast } from "react-toastify";
 import { MdDeleteOutline } from "react-icons/md";
+import { RiSortDesc } from "react-icons/ri";
+import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
+import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 
 type TableDataType = {
   id: number;
@@ -69,6 +72,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   // refetchローディング
   const [refetchLoading, setRefetchLoading] = useState(false);
   const [isLoadingDelete, setIsLoadingDelete] = useState(false);
+  // 行レコード削除確認モーダル開閉state
+  const [isOpenDeleteModal, setIsOpenDeleteModal] = useState(false);
 
   // UPDATEクエリ後にinvalidateQueryでキャッシュ更新された選択中の行データをselectedRowDataContactに反映するために発火通知するか否かのstate(発火通知してDOMクリックで更新する)
   const isUpdateRequiredForLatestSelectedRowDataContact = useDashboardStore(
@@ -2481,6 +2486,14 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
 
   return (
     <>
+      {/* ローディング */}
+      {isLoadingDelete && (
+        <div
+          className={`flex-center fixed left-0 top-0 z-[5000] h-full w-full bg-[var(--overlay-loading-modal-inside)]`}
+        >
+          <SpinnerBrand withBorder withShadow />
+        </div>
+      )}
       {/* ================== メインコンテナ ================== */}
       <div
         className={`${styles.main_container} ${
@@ -2534,9 +2547,14 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                 }}
               />
               <button
-                className={`flex-center transition-base03 relative  h-[26px] min-w-[118px] space-x-1  rounded-[4px] px-[15px] text-[12px] ${
+                // className={`flex-center transition-base03 relative  h-[26px] min-w-[118px] space-x-1  rounded-[4px] px-[15px] text-[12px] ${
+                //   data?.pages[0]?.rows
+                //     ? `cursor-pointer text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
+                //     : "cursor-not-allowed text-[#999]"
+                // }`}
+                className={`flex-center transition-bg03 relative h-[26px] max-h-[25px] min-h-[25px] min-w-[118px] space-x-1  rounded-[4px] px-[15px] text-[12px] ${
                   data?.pages[0]?.rows
-                    ? `cursor-pointer text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
+                    ? `func_btn_green relative h-[25px] cursor-pointer  text-[var(--color-bg-brand-f)]`
                     : "cursor-not-allowed text-[#999]"
                 }`}
                 onClick={async () => {
@@ -2574,17 +2592,41 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                 <span className="whitespace-nowrap">リフレッシュ</span>
               </button>
             </div>
-            <div className={`flex max-h-[26px] w-full  items-center justify-end space-x-[6px]`}>
+            <div className={`flex max-h-[26px] w-full min-w-max items-center justify-end space-x-[6px]`}>
+              {activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1 && (
+                <>
+                  <button
+                    className={`flex-center transition-bg03 func_btn_green h-[26px] max-h-[25px] min-h-[25px] space-x-2 rounded-[4px] px-[12px] text-[12px]`}
+                    onClick={async () => {
+                      handleCloseTooltip();
+                    }}
+                    onMouseEnter={(e) => {
+                      handleOpenTooltip({
+                        e: e,
+                        display: "top",
+                        content: `選択中のカラムで行を並び替え`,
+                        marginTop: 9,
+                        itemsPosition: "center",
+                      });
+                    }}
+                    onMouseLeave={handleCloseTooltip}
+                  >
+                    <RiSortDesc className="pointer-events-none text-[16px]" />
+                    <span className="pointer-events-none">並び替え</span>
+                  </button>
+                </>
+              )}
+
               {isLoadingDelete && (
                 <div className={`flex-center min-h-[25px] min-w-[72px]`}>
                   <SpinnerX w="w-[20px]" h="h-[20px]" />
                 </div>
               )}
-              {selectedRowDataContact && (
+              {activeCell?.role !== "columnheader" && selectedRowDataContact && (
                 <>
                   {!isLoadingDelete && (
                     <button
-                      className={`flex-center transition-bg03 h-[26px] space-x-2 rounded-[4px]  px-[12px] text-[12px] ${styles.fh_text_btn} ${styles.delete_btn}`}
+                      className={`flex-center transition-bg03 func_btn_green h-[26px]  max-h-[25px] min-h-[25px] space-x-2 rounded-[4px] px-[12px] text-[12px]`}
                       onClick={async () => {
                         handleCloseTooltip();
 
@@ -2603,41 +2645,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                             );
                           }
                         }
-                        // ローディング開始
-                        setIsLoadingDelete(true);
 
-                        try {
-                          const contactId = selectedRowDataContact.contact_id;
-
-                          console.log(
-                            "🔥削除実行 contactId",
-                            contactId,
-                            "selectedRowDataContact",
-                            selectedRowDataContact
-                          );
-
-                          // activitiesテーブルにはmeeting_idでカスケードデリートが設定済みでactivitiesの行も同時に削除されるため、別途DELETEクエリの必要なし
-                          const { error } = await supabase.from("contacts").delete().eq("id", contactId);
-
-                          if (error) throw error;
-
-                          // 削除後にキャッシュをリフレッシュ
-                          await queryClient.invalidateQueries({ queryKey: ["contacts"] });
-
-                          // 選択行を空にリセット
-                          setSelectedRowDataContact(null);
-
-                          toast.success("レコードデータの削除が完了しました！🌠");
-
-                          // ローディング終了
-                          setIsLoadingDelete(false);
-                        } catch (error: any) {
-                          console.error("削除エラー： CGTA022", error);
-                          toast.error("レコードデータの削除に失敗しました...🙇‍♀️");
-
-                          // ローディング終了
-                          setIsLoadingDelete(false);
-                        }
+                        // 削除モーダルを開く
+                        setIsOpenDeleteModal(true);
                       }}
                       onMouseEnter={(e) => {
                         if (isLoadingDelete) return;
@@ -2659,9 +2669,9 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
               )}
 
               <button
-                className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
+                className={`flex-center transition-bg03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
-                    ? `cursor-pointer  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
+                    ? `func_btn_green relative h-[25px] max-h-[25px] min-h-[25px] cursor-pointer text-[var(--color-bg-brand-f)]`
                     : "cursor-not-allowed text-[#999]"
                 }`}
                 onClick={() => {
@@ -2717,12 +2727,8 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                 <span className="pointer-events-none">固定</span>
               </button>
               <button
-                className={`flex-center transition-base03 space-x-[6px] rounded-[4px] px-[12px] text-[12px]  text-[var(--color-bg-brand-f)]  ${
-                  styles.fh_text_btn
-                } relative ${
-                  isOpenDropdownMenuSearchMode
-                    ? `cursor-default active:!bg-[var(--color-btn-brand-f)]`
-                    : `cursor-pointer active:bg-[var(--color-function-header-text-btn-active)]`
+                className={`flex-center transition-bg03 func_btn_green relative h-[25px] max-h-[25px]  min-h-[25px] space-x-[6px] rounded-[4px] px-[12px] text-[12px] text-[var(--color-bg-brand-f)]  ${
+                  isOpenDropdownMenuSearchMode ? `!cursor-default` : `cursor-pointer`
                 }`}
                 onClick={() => {
                   if (searchMode) setSearchMode(false); // サーチモード中止
@@ -3391,6 +3397,69 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       {isOpenEditColumns && <EditColumnsModalDisplayOnly columnHeaderItemList={contactColumnHeaderItemList} />}
       {/* ================== 🌟カラム編集モーダル🌟 ここまで ================== */}
       {/* ================== メインコンテナ ここまで ================== */}
+
+      {/* ================== 行レコード削除時の確認モーダル ================== */}
+      {isOpenDeleteModal &&
+        selectedRowDataContact &&
+        userProfileState &&
+        selectedRowDataContact.created_by_company_id === userProfileState?.company_id && (
+          <ConfirmationModal
+            titleText={`削除してもよろしいですか？`}
+            sectionP1={`確定することでこのデータは完全に削除され、この担当者データに紐づく全ての営業データも確認できなくなります。\nこの操作は確定後、取り消すことができません。`}
+            cancelText="戻る"
+            submitText="削除を確定"
+            buttonColor="red"
+            zIndex="3000px"
+            zIndexOverlay="2800px"
+            withAnnotation={false}
+            // annotationText="注：この操作は少し時間がかかります。画面を閉じずにお待ちください。"
+            // clickEventSubmit={handleResetA}
+            withSelect={false}
+            isOverlayBgBlack={true}
+            clickEventClose={() => {
+              setIsOpenDeleteModal(false);
+            }}
+            clickEventSubmit={async () => {
+              // ローディング開始
+              setIsLoadingDelete(true);
+
+              try {
+                const contactId = selectedRowDataContact.contact_id;
+
+                console.log("🔥削除実行 contactId", contactId, "selectedRowDataContact", selectedRowDataContact);
+
+                // activitiesテーブルにはmeeting_idでカスケードデリートが設定済みでactivitiesの行も同時に削除されるため、別途DELETEクエリの必要なし
+                const { error } = await supabase.from("contacts").delete().eq("id", contactId);
+
+                if (error) throw error;
+
+                // 削除後にキャッシュをリフレッシュ
+                await queryClient.invalidateQueries({ queryKey: ["contacts"] });
+
+                // 選択行を空にリセット
+                setSelectedRowDataContact(null);
+
+                toast.success("レコードデータの削除が完了しました！🌠");
+
+                // ローディング終了
+                setIsLoadingDelete(false);
+
+                // 削除モーダルを閉じる
+                setIsOpenDeleteModal(false);
+              } catch (error: any) {
+                console.error("削除エラー： CGTA022", error);
+                toast.error("レコードデータの削除に失敗しました...🙇‍♀️");
+
+                // ローディング終了
+                setIsLoadingDelete(false);
+
+                // 削除モーダルを閉じる
+                setIsOpenDeleteModal(false);
+              }
+            }}
+          />
+        )}
+      {/* ================== 行レコード削除時の確認モーダル ここまで ================== */}
     </>
   );
 };
