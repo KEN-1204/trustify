@@ -1,5 +1,6 @@
 import { isWithinInterval, subMonths } from "date-fns";
 import { calculateCurrentFiscalYear } from "./Helpers/calculateCurrentFiscalYear";
+import { Client_company } from "@/types";
 
 // ローカルタイムゾーン
 export const optionsTimeZoneEn = [
@@ -475,6 +476,123 @@ export const getOccupationName = (Num: number, language: string = "ja") => {
 <option value="情報システム/IT管理者">情報システム/IT管理者</option>
 <option value="クリエイティブ">クリエイティブ</option>
  */
+
+// 🔸CSVデータインポート時に使用するclient_companiesテーブルのカラムリスト
+export const optionsClientCompaniesColumnFieldForInsertArray = [
+  // "id",
+  // "created_at",
+  // "updated_at",
+  // "created_by_company_id",
+  // "created_by_user_id",
+  // "created_by_department_of_user",
+  // "created_by_section_of_user",
+  // "created_by_unit_of_user",
+  // "created_by_office_of_user",
+  "name",
+  "department_name",
+  "main_fax",
+  "zipcode",
+  "address",
+  "department_contacts",
+  "industry_large",
+  "industry_small",
+  "industry_type_id",
+  "country_id",
+  "region_id",
+  "city_id",
+  "street_address",
+  "building_name",
+  "product_category_large",
+  "product_category_medium",
+  "product_category_small",
+  "number_of_employees_class",
+  "fiscal_end_month",
+  "capital",
+  "budget_request_month1",
+  "budget_request_month2",
+  "website_url",
+  "clients",
+  "supplier",
+  "business_content",
+  "established_in",
+  "representative_name",
+  "chairperson",
+  "senior_vice_president",
+  "senior_managing_director",
+  "managing_director",
+  "director",
+  "auditor",
+  "manager",
+  "member",
+  "facility",
+  "business_sites",
+  "overseas_bases",
+  "group_company",
+  "email",
+  "main_phone_number",
+  "corporate_number",
+  "board_member",
+  "number_of_employees",
+] as (keyof Omit<
+  Client_company,
+  | "id"
+  | "created_at"
+  | "updated_at"
+  | "created_by_company_id"
+  | "created_by_user_id"
+  | "created_by_department_of_user"
+  | "created_by_section_of_user"
+  | "created_by_unit_of_user"
+  | "created_by_office_of_user"
+>)[];
+
+export const mappingClientCompaniesFiledToNameForInsert: { [key: string]: { [key: string]: string } } = {
+  name: { ja: `会社名`, en: `` },
+  department_name: { ja: `部署名`, en: `` },
+  main_fax: { ja: `代表FAX`, en: `` },
+  zipcode: { ja: `郵便番号`, en: `` },
+  address: { ja: `住所`, en: `` },
+  department_contacts: { ja: `連絡先(部署別)`, en: `` },
+  industry_large: { ja: `業界(大分類)`, en: `` }, // セールスフォース用
+  industry_small: { ja: `業界(小分類)`, en: `` }, // セールスフォース用
+  industry_type_id: { ja: `業種`, en: `` },
+  country_id: { ja: `国コード`, en: `` },
+  region_id: { ja: `都道府県コード`, en: `` },
+  city_id: { ja: `市区町村`, en: `` },
+  street_address: { ja: `町名・番地`, en: `` },
+  building_name: { ja: `建物名`, en: `` },
+  product_category_large: { ja: `製品分類(大分類)`, en: `` },
+  product_category_medium: { ja: `製品分類(中分類)`, en: `` },
+  product_category_small: { ja: `製品分類(小分類)`, en: `` },
+  number_of_employees_class: { ja: `規模(従業員数)`, en: `` },
+  fiscal_end_month: { ja: `決算月`, en: `` },
+  capital: { ja: `資本金`, en: `` },
+  budget_request_month1: { ja: `予算申請月1`, en: `` },
+  budget_request_month2: { ja: `予算申請月2`, en: `` },
+  website_url: { ja: `ホームページURL`, en: `` },
+  clients: { ja: `取引先(納入先)`, en: `` },
+  supplier: { ja: `仕入先`, en: `` },
+  business_content: { ja: `事業内容`, en: `` },
+  established_in: { ja: `設立`, en: `` },
+  representative_name: { ja: `代表者名`, en: `` },
+  chairperson: { ja: `会長`, en: `` },
+  senior_vice_president: { ja: `副社長`, en: `` },
+  senior_managing_director: { ja: `専務取締役`, en: `` },
+  managing_director: { ja: `常務取締役`, en: `` },
+  director: { ja: `取締役`, en: `` },
+  auditor: { ja: `監査役`, en: `` },
+  manager: { ja: `部長`, en: `` },
+  member: { ja: `担当者`, en: `` },
+  facility: { ja: `設備`, en: `` },
+  business_sites: { ja: `事業拠点`, en: `` },
+  overseas_bases: { ja: `海外拠点`, en: `` },
+  group_company: { ja: `グループ会社`, en: `` },
+  email: { ja: `E-mail`, en: `` },
+  main_phone_number: { ja: `代表TEL`, en: `` },
+  corporate_number: { ja: `法人番号`, en: `` },
+  board_member: { ja: `役員`, en: `` },
+  number_of_employees: { ja: `従業員数`, en: `` },
+};
 
 // 国別
 export type CountryOption = { id: number; name_ja: string; name_en: string };

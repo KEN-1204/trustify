@@ -3009,7 +3009,7 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
                 //     ? `cursor-pointer  text-[var(--color-bg-brand-f)] ${styles.fh_text_btn}`
                 //     : "cursor-not-allowed text-[#999]"
                 // }`}
-                className={`flex-center transition-bg03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
+                className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
                     ? `func_btn_green relative h-[25px] max-h-[25px] min-h-[25px] cursor-pointer text-[var(--color-bg-brand-f)]`
                     : "cursor-not-allowed text-[#999]"

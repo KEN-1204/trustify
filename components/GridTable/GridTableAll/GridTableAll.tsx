@@ -2936,7 +2936,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 )}
 
               <button
-                className={`flex-center transition-bg03 func_btn_green fade08_forward relative h-[25px] max-h-[25px]  min-h-[25px] cursor-pointer space-x-[6px]  rounded-[4px] px-[12px] text-[12px] text-[var(--color-bg-brand-f)]`}
+                className={`flex-center transition-base03 func_btn_green fade08_forward relative h-[25px] max-h-[25px]  min-h-[25px] cursor-pointer space-x-[6px]  rounded-[4px] px-[12px] text-[12px] text-[var(--color-bg-brand-f)]`}
                 onClick={() => {
                   if (searchMode) setSearchMode(false); // サーチモード中止
                   if (editSearchMode) setEditSearchMode(false); // 編集モード中止
@@ -2970,7 +2970,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
               </button>
 
               <button
-                className={`flex-center transition-bg03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
+                className={`flex-center transition-base03 h-[26px]  space-x-2 rounded-[4px]  px-[12px] text-[12px]  ${
                   activeCell?.role === "columnheader" && Number(activeCell?.ariaColIndex) !== 1
                     ? `func_btn_green relative h-[25px] max-h-[25px] min-h-[25px] cursor-pointer text-[var(--color-bg-brand-f)]`
                     : "cursor-not-allowed text-[#999]"

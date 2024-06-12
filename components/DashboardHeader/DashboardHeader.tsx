@@ -128,7 +128,7 @@ export const DashboardHeaderMemo: FC = () => {
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPos(null);
+    if (hoveredItemPos) setHoveredItemPos(null);
   };
 
   // 頭文字のみ抽出
@@ -598,7 +598,7 @@ export const DashboardHeaderMemo: FC = () => {
   // ============================================================================================
   // ================================ ツールチップを非表示 ================================
   const handleCloseTooltipModal = () => {
-    setHoveredItemPosModal(null);
+    if (hoveredItemPosModal) setHoveredItemPosModal(null);
   };
   // ============================================================================================
 
@@ -662,6 +662,7 @@ export const DashboardHeaderMemo: FC = () => {
     if (loadingGlobalState) setLoadingGlobalState(false);
     resetSelectedRowData(tabName, activeMenuTab);
     setActiveMenuTab(tabName);
+    handleCloseTooltip();
   };
 
   // メディアクエリState Macbook 13インチ 1440px未満はtrue
@@ -681,19 +682,19 @@ export const DashboardHeaderMemo: FC = () => {
   // useEffect(() => {}, [])
 
   console.log(
-    "DashboardHeaderレンダリング",
+    "DashboardHeaderレンダリング"
     // "notificationData?.length",
     // notificationsCacheData?.length,
-    "notificationキャッシュのdata",
-    notificationsCacheData,
-    "incompleteNotifications",
-    incompleteNotifications,
-    "completedNotifications",
-    completedNotifications,
-    "activeMenuTab",
-    activeMenuTab,
-    "activeThemeColor",
-    activeThemeColor
+    // "notificationキャッシュのdata",
+    // notificationsCacheData,
+    // "incompleteNotifications",
+    // incompleteNotifications,
+    // "completedNotifications",
+    // completedNotifications,
+    // "activeMenuTab",
+    // activeMenuTab,
+    // "activeThemeColor",
+    // activeThemeColor
   );
 
   return (

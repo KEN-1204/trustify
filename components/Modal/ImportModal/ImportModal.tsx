@@ -1,5 +1,5 @@
 import useDashboardStore from "@/store/useDashboardStore";
-import { DragEvent, memo, useCallback, useEffect, useRef, useState } from "react";
+import { DragEvent, memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MdClose } from "react-icons/md";
 import styles from "./ImportModal.module.css";
 import { SlCloudDownload, SlCloudUpload } from "react-icons/sl";
@@ -14,6 +14,11 @@ import { BsCheck2, BsChevronLeft, BsChevronRight } from "react-icons/bs";
 import { RiDragMove2Fill } from "react-icons/ri";
 import { toast } from "react-toastify";
 import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
+import {
+  mappingClientCompaniesFiledToNameForInsert,
+  optionsClientCompaniesColumnFieldForInsertArray,
+} from "@/utils/selectOptions";
+import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
 
 const ImportModalMemo = () => {
   const language = useStore((state) => state.language);
@@ -33,48 +38,6 @@ const ImportModalMemo = () => {
   // INSERTで必須カラムの選択済み個数
   // not nullableのカラム: 「会社名、部署名、住所」の3個 => 部署名は選択していなかった場合は「.(ピリオド)」をプレイスホルダーでセットしてINSERTする（代表番号も経済産業省のリストが載せていないデータも多いため入れない。業種は一旦入れない）
   const [selectedRequiredColumnCount, setSelectedRequiredColumnCount] = useState(0);
-
-  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
-  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
-  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
-  type TooltipParams = {
-    e: React.MouseEvent<HTMLDivElement | HTMLSpanElement, globalThis.MouseEvent>;
-    // e: MouseEvent;
-    display: string;
-    content: string;
-    content2?: string | undefined | null;
-    marginTop?: number;
-    itemsPosition?: string;
-  };
-  const handleOpenTooltip = ({
-    e,
-    display,
-    content,
-    content2,
-    marginTop = 0,
-    itemsPosition = "center",
-  }: TooltipParams) => {
-    // ホバーしたアイテムにツールチップを表示
-    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
-    // console.log("ツールチップx, y width , height", x, y, width, height);
-
-    setHoveredItemPos({
-      x: x,
-      y: y,
-      itemWidth: width,
-      itemHeight: height,
-      content: content,
-      content2: content2,
-      display: display,
-      marginTop: marginTop,
-      itemsPosition: itemsPosition,
-    });
-  };
-  // ツールチップを非表示
-  const handleCloseTooltip = () => {
-    if (hoveredItemPos) setHoveredItemPos(null);
-  };
-  // ==================================================================================
 
   // ------------------ CSV to JSON変換中ローディングテキストアニメーション ------------------
   // CSV to JSON変換中ローディング 5MB以上
@@ -152,15 +115,35 @@ const ImportModalMemo = () => {
   };
   // ----------------------------------------------
 
-  // const [excelFile, setExcelFile] = useState(null);
-  // ユーザーがアップロードしたカラム
-  const [uploadedColumns, setUploadedColumns] = useState<string[]>([]);
-
-  // アップロードした結果 result.data
+  // 🔸パース後のCSVデータ配列 result.data
   // => 1000以上は10000個ずつの配列を配列に格納した出力される:
   // [[]] => [0...9999] => [[0...99], [100...199], [200...299], ..., [9900...9999]]
   // => 1000未満は
   const [uploadedData, setUploadedData] = useState<any[]>([]);
+  // 🔸パース後のCSVヘッダーカラム配列
+  const [uploadedColumnFields, setUploadedColumnFields] = useState<string[]>([]);
+  // 🔸アップロードファイル名
+  const [uploadedCSVFile, setUploadedCSVFile] = useState<File | null>(null);
+  // --------- ステップ2用state ---------
+  // 🔸gridテーブルの各カラムで選択中のDB用フィールド
+  const [selectedColumnFieldsArray, setSelectedColumnFieldsArray] = useState<string[]>([]);
+  // 🔸テーブルに展開するための最初の5行
+  const [uploadedRowList, setUploadedRowList] = useState<any[]>([]);
+  // --------- ステップ2用state ここまで ---------
+
+  // 🔸既に選択済みのカラムのSetオブジェクト
+  const alreadySelectColumnsSetObj = useMemo(() => {
+    const setObj = new Set([...selectedColumnFieldsArray]);
+    if (setObj.has("")) setObj.delete("");
+    return setObj;
+  }, [selectedColumnFieldsArray]);
+  // 🔸選択肢から選択するごとに既に選択された選択肢は取り除いていく
+  // const remainingOptionsColumnFieldsArray = useMemo(() => {
+  //   const remainingOptions = optionsClientCompaniesColumnFieldForInsertArray.filter(
+  //     (column) => !alreadySelectColumnsSetObj.has(column)
+  //   );
+  //   return remainingOptions;
+  // }, [alreadySelectColumnsSetObj]);
 
   // ---------------- 🌠ファイルを選択 or ファイルをドロップ CSV読み込み🌠 ----------------
   const handleSelectedFiles = (files: FileList | null) => {
@@ -181,11 +164,14 @@ const ImportModalMemo = () => {
       //     setExcelFile(e.target?.result);
       // }
 
+      // チェック通過後にファイルを格納
+      setUploadedCSVFile(selectedFile);
+
       // ファイルサイズに基づいてworkerオプションを設定
       // 5MB以上の場合はworkerを使用
       const isRequiredWorker = selectedFile.size > 5 * 1024 * 1024;
 
-      // 5MB以上の場合にはローディングを入れる
+      // 5MB以上の場合にはローディングを入れる デフォルトでローディングを入れる
       // if (isRequiredWorker) {
       //   setIsConverting(true);
       // }
@@ -201,7 +187,6 @@ const ImportModalMemo = () => {
         skipEmptyLines: true,
         worker: isRequiredWorker,
         complete: (result: Papa.ParseResult<unknown>) => {
-          const _columns = result.meta.fields || [];
           console.log("------------------------------------------");
           performance.mark("CSV_Parse_End"); // 開始点
           performance.measure("CSV_Parse_Time", "CSV_Parse_Start", "CSV_Parse_End"); // 計測
@@ -210,9 +195,30 @@ const ImportModalMemo = () => {
           performance.clearMeasures("CSV_Parse_Time");
           const endTime = performance.now(); // 終了時間
           console.log("Time: ", endTime - startTime, "ms");
-          console.log("Result: ", result, _columns);
-          // setUploadedColumns(_columns);
-          // setUploadedData(result.data || []);
+          console.log("Result: ", result);
+          console.log("result.data: ", result.data, result.data.length);
+          setUploadedData(result.data || []);
+          setUploadedColumnFields(result.meta.fields || []);
+
+          // フィールド数分の選択中DB用カラムstateを作成 初期値は空文字でスキップをセット
+          const newSelectedColumnFieldsArray = result.meta.fields
+            ? (new Array(result.meta.fields.length).fill("") as string[])
+            : [];
+
+          setSelectedColumnFieldsArray(newSelectedColumnFieldsArray);
+
+          // 最初の5行か5行未満の場合には、すべての行をテーブル表示用の行リストstateにセット
+          let newRowListForDisplay = [] as any[];
+          if (!result.data || result.data.length === 0) {
+            newRowListForDisplay = [];
+          } else if (result.data.length < 5) {
+            newRowListForDisplay = result.data;
+          } else if (5 < result.data.length) {
+            for (let i = 0; i < 5; i++) {
+              newRowListForDisplay.push(result.data[i]);
+            }
+          }
+          setUploadedRowList(newRowListForDisplay);
 
           // 5MB以上の場合にはローディングを終了
           console.log("✅ローディング終了");
@@ -514,6 +520,48 @@ const ImportModalMemo = () => {
   }, [isSmallWindow]);
   // -------------------- 小窓状態の時にドラッグで移動させる --------------------
 
+  // ===================== 🌟ツールチップ 3点リーダーの時にツールチップ表示🌟 =====================
+  const hoveredItemPos = useStore((state) => state.hoveredItemPos);
+  const setHoveredItemPos = useStore((state) => state.setHoveredItemPos);
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLDivElement | HTMLSpanElement, globalThis.MouseEvent>;
+    // e: MouseEvent;
+    display: string;
+    content: string;
+    content2?: string | undefined | null;
+    marginTop?: number;
+    itemsPosition?: string;
+  };
+  const handleOpenTooltip = ({
+    e,
+    display,
+    content,
+    content2,
+    marginTop = 0,
+    itemsPosition = "center",
+  }: TooltipParams) => {
+    // ホバーしたアイテムにツールチップを表示
+    const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
+    // console.log("ツールチップx, y width , height", x, y, width, height);
+
+    setHoveredItemPos({
+      x: x,
+      y: y,
+      itemWidth: width,
+      itemHeight: height,
+      content: content,
+      content2: content2,
+      display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+    });
+  };
+  // ツールチップを非表示
+  const handleCloseTooltip = () => {
+    if (hoveredItemPos) setHoveredItemPos(null);
+  };
+  // ==================================================================================
+
   const getProgressLineStyle = (num: number) => {
     return step === num
       ? `border-[var(--color-bg-brand-f)] bg-[var(--color-bg-brand-f)] text-[#fff]`
@@ -533,6 +581,23 @@ const ImportModalMemo = () => {
     }
     return activeStyle;
   };
+
+  const modalHeight = modalContainerRef.current?.offsetHeight ?? null;
+
+  console.log(
+    "ImportModalレンダリング",
+    modalHeight,
+    "uploadedRowList",
+    uploadedRowList,
+    "uploadedColumnFields",
+    uploadedColumnFields,
+    "selectedColumnFieldsArray",
+    selectedColumnFieldsArray,
+    "alreadySelectColumnsSetObj",
+    alreadySelectColumnsSetObj
+    // "remainingOptionsColumnFieldsArray",
+    // remainingOptionsColumnFieldsArray
+  );
 
   return (
     <>
@@ -899,14 +964,159 @@ const ImportModalMemo = () => {
               )}
               {/* -------------------------- step1 CSV読み込み ここまで -------------------------- */}
               {/* -------------------------- step2 マッピング -------------------------- */}
-              {step === 2 && (
-                <div className={`${styles.mapping_container} h-full w-full`}>
-                  {/* 左サイド 説明タイトルテーブル */}
+              {step === 2 && uploadedCSVFile && (
+                <div
+                  className={`${styles.mapping_container} flex h-full max-h-[calc(90vh-1px-156px)] w-full max-w-[1100px] flex-col`}
+                  style={{ ...(modalHeight && { maxHeight: `${modalHeight - 1 - 156}px` }) }}
+                >
+                  {/* 上画面 */}
+                  <div
+                    className={`${styles.title_wrapper} flex h-[50px] min-h-[50px] w-full max-w-[1100px] items-center space-x-[30px] overflow-x-auto whitespace-nowrap px-[24px] pt-[10px] text-[12px] text-[var(--color-text-sub)]`}
+                  >
+                    <div className="flex items-center">
+                      <div className="flex flex-col items-center justify-center font-bold">
+                        <span>CSVデータ数</span>
+                        <span className={`text-[8px] `}>(ヘッダーを除く)</span>
+                        {/* <span
+                          className={`absolute left-[50%] top-[calc(100%)] min-w-max translate-x-[-50%] text-[9px]`}
+                        >
+                          (ヘッダーを除く)
+                        </span> */}
+                      </div>
+                      <div className="mr-[6px] flex">
+                        <span>：</span>
+                      </div>
+                      <div className="flex">
+                        <span>{uploadedData.length}件</span>
+                      </div>
+                    </div>
 
-                  {/* 左サイド 説明タイトルテーブル ここまで */}
+                    <div className="flex items-center">
+                      <div className="flex font-bold">
+                        <span>ヘッダー項目数</span>
+                      </div>
+                      <div className="mr-[6px] flex">
+                        <span>：</span>
+                      </div>
+                      <div className="flex">
+                        <span>{uploadedColumnFields.length}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <div className="flex font-bold">
+                        <span>ファイル名</span>
+                      </div>
+                      <div className="mr-[6px] flex">
+                        <span>：</span>
+                      </div>
+                      <div className="flex">
+                        <span>{uploadedCSVFile.name}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* 上画面 */}
+                  {/* 下画面 */}
+                  <div className={`${styles.main_wrapper} flex h-full w-full px-[12px]`}>
+                    {/* 左サイド 説明タイトルテーブル */}
+                    {/* <div className={`${styles.left_container} h-full w-[10%] bg-red-100`}></div> */}
+                    {/* 左サイド 説明タイトルテーブル ここまで */}
 
-                  {/* 右サイド マッピングテーブル */}
-                  {/* 右サイド マッピングテーブル ここまで */}
+                    {/* 右サイド マッピングテーブル */}
+                    {/* <div className={`${styles.right_container} h-full w-[90%]`}></div> */}
+                    {/* 右サイド マッピングテーブル ここまで */}
+                    {/* テーブル */}
+                    <div
+                      role="grid"
+                      className={`${styles.mapping_table} h-full max-h-[calc(90vh-1px-156px-50px)] w-full max-w-[calc(1100px-24px)] overflow-auto rounded-[9px] border-l border-r border-t border-solid border-[var(--color-border-light)]`}
+                      style={{
+                        ...(modalHeight && { maxHeight: `${modalHeight - 1 - 156 - 50}px` }),
+                        gridTemplateRows: `90px repeat(${uploadedRowList.length}, minmax(max-content, 60px))`,
+                      }}
+                    >
+                      {/* --------------- ヘッダー --------------- */}
+                      <div
+                        role="row"
+                        className={`${styles.row}`}
+                        style={{
+                          gridRowStart: 1,
+                          gridTemplateColumns: `repeat(${uploadedColumnFields.length}, minmax(max-content, 200px))`,
+                        }}
+                      >
+                        {uploadedColumnFields.map((fieldName, colIndex) => {
+                          return (
+                            <div
+                              key={`mapping_table_columnheader_${colIndex}`}
+                              role="columnheader"
+                              className={`${styles.column_header} flex flex-col items-start justify-center  px-[12px] py-[15px] text-[12px] font-bold`}
+                              style={{ gridColumnStart: colIndex + 1 }}
+                            >
+                              {/* <span>CSVの項目</span> */}
+                              <span>{fieldName}</span>
+                              <div className="w-full pl-[12px]">
+                                <span>↓</span>
+                              </div>
+                              {/* <span>データベース項目</span> */}
+                              {/* <span>{mappingClientCompaniesFiledToNameForInsert[fieldName][language]}</span> */}
+                              <select
+                                className={`h-full max-h-[30px] w-full min-w-max max-w-max cursor-pointer ${styles.select_box}`}
+                                value={selectedColumnFieldsArray[colIndex]}
+                                onChange={(e) => {
+                                  setSelectedColumnFieldsArray((prev) => {
+                                    const updatedArray = [...prev];
+                                    updatedArray[colIndex] = e.target.value;
+                                    return updatedArray;
+                                  });
+                                }}
+                              >
+                                <option value="">スキップ</option>
+                                {remainingOptionsColumnFieldsArray.map((field) => (
+                                  <option key={field} value={field}>
+                                    {mappingClientCompaniesFiledToNameForInsert[field][language]}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      {/* --------------- ヘッダー --------------- */}
+
+                      {/* --------------- rowgroup --------------- */}
+                      {uploadedRowList.map((row, rowIndex) => {
+                        return (
+                          <div
+                            key={`mapping_table_datalist_${rowIndex}`}
+                            role="row"
+                            className={`${styles.row}`}
+                            style={{
+                              gridRowStart: rowIndex + 2,
+                              gridTemplateColumns: `repeat(${uploadedColumnFields.length}, minmax(max-content, 200px))`,
+                            }}
+                          >
+                            {uploadedColumnFields.map((fieldName, colIndex) => {
+                              const value = Object.keys(row).includes(fieldName) ? row[fieldName] : `-`;
+                              return (
+                                <div
+                                  key={`mapping_table_${rowIndex}_gridcell_${colIndex}`}
+                                  role="gridcell"
+                                  className={`${styles.grid_cell} px-[12px] text-[12px]`}
+                                  style={{ gridColumnStart: colIndex + 1 }}
+                                >
+                                  <span>
+                                    {/* データ{rowIndex}_{colIndex} */}
+                                    {value}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                      {/* --------------- rowgroup ここまで --------------- */}
+                    </div>
+                    {/* テーブル */}
+                  </div>
+                  {/* 下画面 */}
                 </div>
               )}
               {/* -------------------------- step2 マッピング ここまで -------------------------- */}
