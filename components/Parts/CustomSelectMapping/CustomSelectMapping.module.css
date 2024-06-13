@@ -4,44 +4,55 @@
   align-items: center;
   height: 100%;
   width: 100%;
-  color: var(--color-text-under-input);
-  /* padding: 0px 6px; */
-  /* padding: 6px 8px; */
-  padding: 1px;
+  /* padding: 1px; */
+  /* padding-right: 3px; */
+  padding: 0 3px 0 0;
   border-radius: 6px;
-  padding-right: 3px;
-  /* min-height: 28px; */
-  /* min-height: 29px; */
   min-height: 27px;
+  cursor: pointer;
 }
 
 .select_wrapper.with_border {
   box-shadow: var(--color-bg-under-input-box-shadow);
   background: var(--color-bg-under-input);
+  max-height: 30px;
+  color: var(--color-text-title);
 }
 .select_wrapper.with_border:hover {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
+}
+.select_wrapper:not(.with_border) {
+  color: var(--color-text-title);
 }
 
 .select_wrapper .value {
   height: 100%;
   width: 100%;
-  padding: 6px 0px 6px 8px;
-  font-size: 13px;
+  padding: 6px 0px 6px 9px;
+  /* font-size: 13px; */
+  user-select: none;
+}
+.select_wrapper.with_border .value {
+  margin-right: 9px;
 }
 .select_wrapper:not(.with_border) .value {
   width: max-content;
-  margin-right: 9px;
   padding-left: unset;
+  margin-right: 9px;
 }
-.select_wrapper:not(.with_border) .value:hover {
+
+.select_wrapper:not(.with_border):hover .value {
   color: var(--active-color-text, var(--color-bg-brand-f));
   text-decoration: underline;
   cursor: pointer;
 }
-.select_wrapper.with_border .value:hover {
+.select_wrapper.with_border:hover .value {
   color: inherit;
   text-decoration: unset;
+}
+
+.select_wrapper:hover .down_arrow_icon {
+  background: var(--color-bg-sub-icon);
 }
 
 /* .select_wrapper:focus {
@@ -56,10 +67,9 @@
 .select_wrapper .options {
   position: absolute;
   top: 100%;
-  /* top: 90%; */
-  /* left: 0; */
-  /* left: -50%; */
-  /* right: 0; */
+  /* left: 50%;
+  transform: translateX(-50%); */
+  /* leftとtransformはインラインスタイルで設定 */
   z-index: 1000;
   /* background: var(--color-bg-base); */
   background: var(--color-select-box-bg);
@@ -78,13 +88,14 @@
 .select_wrapper .options li {
   min-height: 29px;
   max-height: 29px;
-  font-size: 13px;
+  /* font-size: 13px; */
   padding: 6px 13px;
   border-radius: 6px;
   display: flex;
   align-items: center;
   cursor: pointer;
   color: #fff;
+  user-select: none;
 }
 .select_wrapper .options li:hover {
   /* background-color: #f0f0f0; */
@@ -94,8 +105,8 @@
 }
 .select_wrapper .options li.disabled {
   cursor: not-allowed;
-  color: #aaa;
-  /* color: #ccc; */
+  /* color: #aaa; */
+  color: var(--color-select-disabled);
 }
 .select_wrapper .options li.disabled:hover {
   background-color: inherit;

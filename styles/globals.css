@@ -651,6 +651,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-header: #f0f0f0; */
   --color-bg-sub-blue: #40576d12;
   --color-table-header: #f4f4f4;
+  --color-table-header-f3: #f3f3f3;
+  --color-table-header-f6: #f6f6f6;
   /* --color-table-header: var(--color-bg-sub-blue); */
   /* --color-table-column-header: #f4f4f4; */
   /* --color-table-header: #f3f3f3; */
@@ -1197,6 +1199,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     0px 0px 0px 1px var(--color-bg-brand-f);
   --shadow-dropdown-menu: 0 4px 6px 2px #00000033;
   --shadow-dropdown-menu-md: 0 4px 15px 5px #00000078;
+  --border-real-table-color: #cccccc90;
+  /* --border-real-table: 0px 0px 0px 1px #cccccc90, 0px 0px 0px 2px #eeeeee90; */
+  --border-real-table: 0px 0px 0px 1px #fefefe, 0px 0px 0px 2px #dedede;
   --border-real-with-shadow: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390, var(--shadow-dropdown-menu);
   --border-real-with-shadow-md: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390,
     var(--shadow-dropdown-menu-md);
@@ -1216,9 +1221,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-side-table-border: #aaa;
   --color-side-table-bg: #000000c0;
   --color-side-table-list-hover: #484848;
-  /* セレクトボックス カスタム */
-  --color-select-box-bg: #666;
-  --color-select-box-hover: #2894ff;
+
   /* spinnerX */
   --color-spinner-x-bg: rgb(229 231 235);
 
@@ -1458,6 +1461,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-bg-dashboard-table-header-shadow: 0px 3px 4px 0px rgba(0, 0, 0, 0.15); */
   --color-bg-dashboard-table-header-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.15);
   --color-bg-dashboard-table-header-shadow-under-right: 0px 2px 4px 0px rgba(0, 0, 0, 0.09);
+  --color-bg-dashboard-table-header-shadow-mini: 0px 1px 3px 0px rgba(0, 0, 0, 0.24);
   --color-dashboard-table-right-shadow: linear-gradient(-90deg, var(--color-edit-bg-solid) 27%, transparent);
   --color-dashboard-table-under-shadow: linear-gradient(to top, var(--color-edit-bg-solid) 27%, transparent);
   --color-bg-dashboard: #f2f3f4;
@@ -1517,9 +1521,22 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --refresh-icon-bg: var(--color-bg-brand-f);
   --refresh-icon-bg-hover: var(--color-bg-brand-f);
 
+  /* カスタムセレクトボックス */
+  /* セレクトタグの背景色 */
+  --color-select-bg: var(--color-bg-under-input);
+  --color-select-bg-deep: #fafafa;
+  /* セレクトリストの背景色 */
+  --color-select-box-bg: #666;
+  --color-select-box-hover: #2894ff;
+  /* セレクトリストアイテムの無効なカラー */
+  --color-select-disabled: #aaa;
+
   /* アイコンボタン */
   /* 削除 */
   --color-btn-bg-delete: #ff3b5baa;
+
+  /* ライトがf, ダークがgreen */
+  --color-active-fg: var(--main-color-f);
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -1763,6 +1780,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-border-table-deep: #555;
   /* --color-table-header: #252525; */
   --color-table-header: #2c2c2c;
+  --color-table-header-f3: #393939;
+  --color-table-header-f6: #363636;
   /* --color-table-cell-bg: #1c1c1c; */
   --color-table-cell-bg: #202020;
   /* --color-table-footer: #252525; */
@@ -2259,6 +2278,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-dropdown-menu: 0 4px 10px 2px #ffffff33;
   --shadow-dropdown-menu-md: 0 4px 15px 4px #ffffff33;
   --shadow-dropdown-menu-dark: 0 4px 6px 2px #00000033;
+  --border-real-table-color: #565656;
+  --border-real-table: 0px 0px 1px 1px #666, 0px 0px 0px 2px #000;
   --border-real-with-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000, var(--shadow-dropdown-menu);
   --border-real-with-shadow-md: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000, var(--shadow-dropdown-menu-md);
   --border-real-with-shadow-f: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390,
@@ -2281,10 +2302,6 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-side-table-border: #999;
   --color-side-table-bg: #00000099;
   --color-side-table-list-hover: #333;
-  /* セレクトボックス カスタム */
-  --color-select-box-bg: #333;
-  /* --color-select-box-hover: #2894ff; */
-  --color-select-box-hover: #1188ff;
 
   /* spinnerX */
   --color-spinner-x-bg: rgb(75 85 99);
@@ -2573,6 +2590,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-bg-dashboard-table-header-shadow: 0px 3px 9px 0px rgba(0, 0, 0, 0.9); */
   --color-bg-dashboard-table-header-shadow: 0px 2px 6px 0px rgba(0, 0, 0, 0.9);
   --color-bg-dashboard-table-header-shadow-under-right: 0px 3px 6px 0px rgba(0, 0, 0, 0.9);
+  --color-bg-dashboard-table-header-shadow-mini: 0px 1px 6px 0px rgba(0, 0, 0, 0.55);
   --color-dashboard-table-right-shadow: linear-gradient(-90deg, transparent, transparent);
   --color-dashboard-table-under-shadow: linear-gradient(to top, var(--color-edit-bg-solid) 27%, transparent);
   --color-bg-dashboard: #121212;
@@ -2634,9 +2652,24 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --refresh-icon-bg: var(--color-bg-brand-f90);
   --refresh-icon-bg-hover: var(--color-bg-brand-f);
 
+  /* カスタムセレクトボックス */
+  /* セレクトタグの背景色 */
+  --color-select-bg: var(--color-bg-under-input);
+  --color-select-bg-deep: #242424;
+  /* セレクトリストの背景色 */
+  --color-select-box-bg: #333;
+  /* --color-select-box-hover: #2894ff; */
+  --color-select-box-hover: #1188ff;
+  /* セレクトリストアイテムの無効なカラー */
+  --color-select-disabled: #787878;
+
   /* アイコンボタン */
   /* 削除 */
   --color-btn-bg-delete: #ff3b5b56;
+
+  /* ライトがf, ダークがgreen */
+  --color-active-fg: var(--bright-green);
+  /* --color-active-fg: var(--vivid-green); */
 }
 
 /* html {

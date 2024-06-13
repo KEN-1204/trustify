@@ -599,6 +599,23 @@ const ImportModalMemo = () => {
 
   const modalHeight = modalContainerRef.current?.offsetHeight ?? null;
 
+  // テーブルWidth
+  const tableWidth = 1100;
+  // テーブル上タイトルHeight
+  const tableTitleAreaHeight = 50;
+  // カラムヘッダーrow-height
+  const tableColumnHeaderRowHeight = 96;
+  // row-height
+  const tableRowHeight = 60;
+  // テーブル各列の最大width 180px - 12px * 2(padding-x)
+  const tableColumnWidth = 180;
+
+  const modalPosition = useMemo(() => {
+    if (!modalContainerRef.current) return null;
+    const { x, y } = modalContainerRef.current.getBoundingClientRect();
+    return { x, y };
+  }, [modalContainerRef.current]);
+
   console.log(
     "ImportModalレンダリング",
     modalHeight,
@@ -881,7 +898,7 @@ const ImportModalMemo = () => {
             {/* ----------------------- 保存・タイトル・キャンセルエリア ここまで ----------------------- */}
             {/* ----------------------- メインコンテナ ----------------------- */}
             <div
-              className={`${styles.contents_container} fade08_forward flex h-full w-full flex-col rounded-b-[9px] px-[24px]`}
+              className={`${styles.contents_container} fade08_forward flex h-full w-full flex-col rounded-b-[9px] px-[24px] pb-[2px]`}
             >
               {/* -------------------------- step1 CSV読み込み -------------------------- */}
               {step === 1 && (
@@ -982,11 +999,19 @@ const ImportModalMemo = () => {
               {step === 2 && uploadedCSVFile && (
                 <div
                   className={`${styles.mapping_container} flex h-full max-h-[calc(90vh-1px-156px)] w-full max-w-[1100px] flex-col`}
-                  style={{ ...(modalHeight && { maxHeight: `${modalHeight - 1 - 156}px` }) }}
+                  style={{
+                    ...(modalHeight && { maxHeight: `${modalHeight - 1 - 156 - 4}px` }),
+                    maxWidth: `${tableWidth}px`,
+                  }}
                 >
                   {/* 上画面 */}
                   <div
-                    className={`${styles.title_wrapper} flex h-[50px] min-h-[50px] w-full max-w-[1100px] items-center space-x-[30px] overflow-x-auto whitespace-nowrap px-[24px] pt-[10px] text-[12px] text-[var(--color-text-sub)]`}
+                    className={`${styles.title_wrapper} flex w-full max-w-[1100px] items-center space-x-[30px] overflow-x-auto whitespace-nowrap px-[24px] pt-[5px] text-[12px] text-[var(--color-text-sub)]`}
+                    style={{
+                      minHeight: `${tableTitleAreaHeight}px`,
+                      height: `${tableTitleAreaHeight}px`,
+                      maxWidth: `${tableWidth}px`,
+                    }}
                   >
                     <div className="flex items-center">
                       <div className="flex flex-col items-center justify-center font-bold">
@@ -1042,19 +1067,27 @@ const ImportModalMemo = () => {
                     {/* テーブル */}
                     <div
                       role="grid"
-                      className={`${styles.mapping_table} h-full max-h-[calc(90vh-1px-156px-50px)] w-full max-w-[calc(1100px-24px)] overflow-auto rounded-[9px] border-l border-r border-t border-solid border-[var(--color-border-light)]`}
+                      className={`${styles.mapping_table} h-full max-h-[calc(90vh-1px-156px-50px)] w-full max-w-[calc(1100px-24px)] overflow-auto`}
+                      // modalHeight - 1 - 156 - 50
                       style={{
                         ...(modalHeight && { maxHeight: `${modalHeight - 1 - 156 - 50}px` }),
-                        gridTemplateRows: `90px repeat(${uploadedRowList.length}, minmax(max-content, 60px))`,
+                        gridTemplateRows: `${tableColumnHeaderRowHeight}px repeat(${uploadedRowList.length}, minmax(max-content, ${tableRowHeight}px))`,
                       }}
                     >
+                      {/* カラム数量が7以上の場合はスクロールが必要となるため、右側にシャドウを表示する */}
+                      {/* shadow-right */}
+                      {/* <div
+                        className="absolute right-0 top-0 z-10 h-full w-[30px]"
+                        style={{ background: `var(--color-dashboard-table-right-shadow)` }}
+                      /> */}
+                      {/* shadow-right ここまで */}
                       {/* --------------- ヘッダー --------------- */}
                       <div
                         role="row"
-                        className={`${styles.row}`}
+                        className={`${styles.row} ${styles.column_header_row}`}
                         style={{
                           gridRowStart: 1,
-                          gridTemplateColumns: `repeat(${uploadedColumnFields.length}, minmax(max-content, 200px))`,
+                          gridTemplateColumns: `repeat(${uploadedColumnFields.length}, minmax(max-content, ${tableColumnWidth}px))`,
                         }}
                       >
                         {uploadedColumnFields.map((fieldName, colIndex) => {
@@ -1062,13 +1095,25 @@ const ImportModalMemo = () => {
                             <div
                               key={`mapping_table_columnheader_${colIndex}`}
                               role="columnheader"
-                              className={`${styles.column_header} flex flex-col items-start justify-center  px-[12px] py-[15px] text-[12px] font-bold`}
-                              style={{ gridColumnStart: colIndex + 1 }}
+                              className={`${styles.column_header} flex flex-col items-start justify-center`}
+                              style={{
+                                gridColumnStart: colIndex + 1,
+                                // borderRight: `1px solid var(--color-border-light)`,
+                              }}
                             >
-                              {/* <span>CSVの項目</span> */}
-                              <span>{fieldName}</span>
-                              <div className="w-full pl-[12px]">
-                                <span>↓</span>
+                              <div className={`${styles.csv_field_name_box} flex w-max flex-col pl-[7px]`}>
+                                <div
+                                  className={`min-w-max`}
+                                  // cellのpadding-x: 12px, fieldName-boxのpl: 7px
+                                  style={{ maxWidth: `${tableColumnWidth - 12 - 12 - 7}px` }}
+                                >
+                                  {/* <span>CSVの項目</span> */}
+
+                                  <span>{fieldName}</span>
+                                </div>
+                                <div className="flex-center min-h-[24px] w-full">
+                                  <span>↓</span>
+                                </div>
                               </div>
                               {/* <span>データベース項目</span> */}
                               {/* <span>{mappingClientCompaniesFiledToNameForInsert[fieldName][language]}</span> */}
@@ -1097,6 +1142,14 @@ const ImportModalMemo = () => {
                                 options={optionsColumnsForInsertWithEmpty}
                                 getOptionName={getInsertColumnNames}
                                 selectedSetObj={alreadySelectColumnsSetObj}
+                                withBorder={true}
+                                modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                                customClass="font-normal"
+                                // maxWidth={156}
+                                maxWidth={tableColumnWidth - 12 - 12}
+                                bgDark
+                                isSelectedActiveColor
+                                activeColor="var(--color-active-fg)"
                               />
                             </div>
                           );
@@ -1110,10 +1163,10 @@ const ImportModalMemo = () => {
                           <div
                             key={`mapping_table_datalist_${rowIndex}`}
                             role="row"
-                            className={`${styles.row}`}
+                            className={`${styles.row} ${styles.content_row}`}
                             style={{
                               gridRowStart: rowIndex + 2,
-                              gridTemplateColumns: `repeat(${uploadedColumnFields.length}, minmax(max-content, 200px))`,
+                              gridTemplateColumns: `repeat(${uploadedColumnFields.length}, minmax(max-content, ${tableColumnWidth}px))`,
                             }}
                           >
                             {uploadedColumnFields.map((fieldName, colIndex) => {
@@ -1122,7 +1175,7 @@ const ImportModalMemo = () => {
                                 <div
                                   key={`mapping_table_${rowIndex}_gridcell_${colIndex}`}
                                   role="gridcell"
-                                  className={`${styles.grid_cell} px-[12px] text-[12px]`}
+                                  className={`${styles.grid_cell}`}
                                   style={{ gridColumnStart: colIndex + 1 }}
                                 >
                                   <span>
