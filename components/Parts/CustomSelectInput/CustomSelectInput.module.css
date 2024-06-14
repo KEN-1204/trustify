@@ -46,8 +46,9 @@
   /* left: -50%; */
   /* right: 0; */
   z-index: 1000;
-  /* background: var(--color-bg-base); */
-  background: var(--color-select-box-bg);
+  /* background: var(--color-select-box-bg); */
+  background: var(--color-select-box-bg-third);
+  backdrop-filter: var(--color-select-box-blur-third);
   list-style: none;
   padding: 6px 6px;
   margin: 0;

@@ -712,6 +712,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-table-even-color-changed-bg: #f7f7f7; */
   /* --color-table-even-color-changed-bg: #f3f6f8; */
   --color-table-even-color-changed-bg: #f5f6f7;
+  --color-table-even-color-changed-bg-second: #f3f5f6;
   --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f-hover-solid);
   /* --color-table-even-color-changed-bg-hover: #f1f9ff; */
   /* --color-table-even-color-changed-bg-selected: var(--color-bg-brand-f); */
@@ -910,6 +911,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* 🌟EditColumnsモーダル カラム変更モーダル light */
   --color-edit-bg: #ffffffe0;
   --color-modal-solid-bg: #f7f9fb;
+  --color-modal-solid-bg-second: #f7f9fb;
   --color-modal-solid-bg-main: #fff;
   --color-modal-content-bg: #fff;
   --color-bg-light: #ffffff;
@@ -1165,6 +1167,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-header-shadow-hover: rgb(0 0 0 / 69%) 0px 16px 58px -10px, rgb(0 0 0 / 45%) 0px 16px 10px -10px;
   /* --shadow-all-md-vivid: 0px 4px 15px 0px rgba(0, 0, 0, 0.4); */
   --shadow-top-md: 0px -10px 10px -5px rgba(0, 0, 0, 0.08);
+  --shadow-top-md-dark: 0px -10px 10px -5px rgba(0, 0, 0, 0.08);
   --shadow-top-md2: 0px -4px 15px -3px rgba(0, 0, 0, 0.15);
   --shadow-top-white-md: 0px -4px 15px 3px rgba(255, 255, 255, 0.39);
   /* --shadow-header: 0 2px 4px -1px rgba(57, 76, 96, 0.15); */
@@ -1481,6 +1484,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-btn-cancel-bg-hover: #ddd;
   --color-btn-cancel-text: #666;
   --color-sales-card-bg: #fff;
+  --color-sales-card-bg-light: #fff;
   --color-sales-card-bg-single: #fff;
   --color-sales-card-border: transparent;
   --color-sales-card-border: 0 1px 2px 1px #cccccc60;
@@ -1528,6 +1532,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* セレクトリストの背景色 */
   --color-select-box-bg: #666;
   --color-select-box-hover: #2894ff;
+  /* セレクトリストの背景色 blurあり */
+  --color-select-box-bg-third: #292929aa;
+  --color-select-box-blur-third: blur(6px);
   /* セレクトリストアイテムの無効なカラー */
   --color-select-disabled: #aaa;
 
@@ -1537,6 +1544,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* ライトがf, ダークがgreen */
   --color-active-fg: var(--main-color-f);
+
+  /* モーダル外側ボタン */
+  --color-modal-outside-btn-bg: #00000090;
+  --color-modal-outside-btn-bg-hover: #000000c0;
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -1825,6 +1836,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-table-odd-color-changed-bg: #141414;
   /* --color-table-even-color-changed-bg: #2d2d2d; */
   --color-table-even-color-changed-bg: #1c1c1c;
+  /* --color-table-even-color-changed-bg-second: #292929; */
+  --color-table-even-color-changed-bg-second: #272727;
   /* --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f30); */
   /* --color-table-even-color-changed-bg-hover: var(--color-bg-brand-f-hover-solid); */
   /* --color-table-even-color-changed-bg-hover: #393939; */
@@ -1973,6 +1986,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-edit-bg: #252525e0;
   /* --color-modal-solid-bg: #131313; */
   --color-modal-solid-bg: #181818;
+  --color-modal-solid-bg-second: #212121;
   --color-modal-solid-bg-main: #333;
   --color-modal-content-bg: #292929;
   /* --color-modal-solid-bg: #242424; */
@@ -2230,6 +2244,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-all-white-md: 0px 3px 15px 3px rgba(255, 255, 255, 0.39);
   /* --shadow-all-md-vivid: 0px 4px 10px 3px rgba(255, 255, 255, 0.3); */
   --shadow-top-md: 0px -10px 10px -5px rgba(255, 255, 255, 0.1);
+  --shadow-top-md-dark: 0px -13px 10px -5px rgba(0, 0, 0, 0.66);
   --shadow-top-md2: 0px -12px 15px -8px rgba(255, 255, 255, 0.15);
   --shadow-top-white-md: 0px -4px 15px 3px rgba(255, 255, 255, 0.39);
   --shadow-bottom-white-md: 0px 4px 15px 3px rgba(255, 255, 255, 0.39);
@@ -2611,6 +2626,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-btn-cancel-bg-hover: #666;
   --color-btn-cancel-text: #fff;
   --color-sales-card-bg: linear-gradient(to bottom left, #2d2d2d 0%, #292929 33%, #222 66%, #1c1c1c 100%);
+  /* --color-sales-card-bg-light: linear-gradient(to bottom left, #565656 0%, #393939 33%, #292929 66%, #242424 100%); */
+  --color-sales-card-bg-light: linear-gradient(to bottom left, #787878 0%, #565656 33%, #3d3d3d 66%, #333 100%);
   --color-sales-card-bg-single: #292929;
   /* --color-sales-card-bg: linear-gradient(to bottom left, #2d2d2d 0%, #292929 33%, #1c1c1c 66%, #191919 100%); */
   /* --color-sales-card-bg: linear-gradient(to bottom left, #2c2c2c 0%, #2d2d2d 33%, #222 66%, #1c1c1c 100%); */
@@ -2660,6 +2677,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-select-box-bg: #333;
   /* --color-select-box-hover: #2894ff; */
   --color-select-box-hover: #1188ff;
+  /* セレクトリストの背景色 blurあり */
+  --color-select-box-bg-third: #27272766;
+  --color-select-box-blur-third: blur(12px);
   /* セレクトリストアイテムの無効なカラー */
   --color-select-disabled: #787878;
 
@@ -2670,6 +2690,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* ライトがf, ダークがgreen */
   --color-active-fg: var(--bright-green);
   /* --color-active-fg: var(--vivid-green); */
+
+  /* モーダル外側ボタン */
+  --color-modal-outside-btn-bg: #393939;
+  --color-modal-outside-btn-bg-hover: #666;
 }
 
 /* html {
@@ -2836,6 +2860,9 @@ textarea {
 }
 .shadow-top-md {
   box-shadow: var(--shadow-top-md);
+}
+.shadow-top-md-dark {
+  box-shadow: var(--shadow-top-md-dark);
 }
 .shadow-top-md2 {
   box-shadow: var(--shadow-top-md2);
@@ -3233,6 +3260,14 @@ textarea {
   height: 100%;
   overflow-y: scroll;
   padding: 0 40px 30px;
+}
+
+.modal_outside_btn {
+  background: var(--color-modal-outside-btn-bg);
+  cursor: pointer;
+}
+.modal_outside_btn:hover {
+  background: var(--color-modal-outside-btn-bg-hover);
 }
 
 /* モーダル共通 ここまで */

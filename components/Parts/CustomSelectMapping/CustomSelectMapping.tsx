@@ -8,6 +8,7 @@ type Props = {
   dispatch: Dispatch<SetStateAction<any[]>>;
   targetIndex: number;
   selectedSetObj: Set<any>;
+  requiredOptionsSet?: Set<any>;
   //   changeEventHandler?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   additionalEventHandlerAfterChange?: () => void;
   options: any[];
@@ -25,6 +26,7 @@ type Props = {
   modalPosition?: { x: number; y: number } | null;
   bgDark?: boolean;
   isSelectedActiveColor?: boolean;
+  isBoldActiveText?: boolean;
 };
 
 // stateが配列で、それぞれのカラムに対応したstateと選択肢をマッピング 選択済みは新たに選択できないようにする
@@ -33,6 +35,7 @@ export const CustomSelectMapping = ({
   dispatch,
   targetIndex,
   selectedSetObj,
+  requiredOptionsSet,
   options,
   getOptionName,
   defaultValue = "",
@@ -50,6 +53,7 @@ export const CustomSelectMapping = ({
   modalPosition = null,
   bgDark,
   isSelectedActiveColor = true,
+  isBoldActiveText = true,
 }: Props) => {
   // const [value, setValue] = useState(defaultValue ? defaultValue : "");
   const [showOptions, setShowOptions] = useState(false);
@@ -165,6 +169,12 @@ export const CustomSelectMapping = ({
               stateArray[targetIndex] !== "" && {
                 color: activeColor ? activeColor : `var(--main-color-f)`,
               }),
+            ...(isBoldActiveText &&
+              stateArray[targetIndex] !== "" && {
+                fontWeight: 600,
+              }),
+            ...(requiredOptionsSet &&
+              requiredOptionsSet.has(stateArray[targetIndex]) && { color: `var(--main-color-tk)`, fontWeight: 600 }),
           }),
         }}
         // style={{ ...(maxWidth && { maxWidth: `calc(${maxWidth - 1 - 3 - 20 - 9})` }) }}
@@ -229,7 +239,13 @@ export const CustomSelectMapping = ({
                 className={`flex min-w-max items-center truncate ${
                   selectedSetObj.has(option) && stateArray[targetIndex] !== option ? styles.disabled : ``
                 } ${stateArray[targetIndex] === option ? `${styles.active}` : ``}`}
-                style={{ padding: listItemPadding, minWidth: listItemWidth }}
+                style={{
+                  padding: listItemPadding,
+                  minWidth: listItemWidth,
+                  ...(requiredOptionsSet &&
+                    requiredOptionsSet.has(option) &&
+                    !selectedSetObj.has(option) && { color: `var(--main-color-tk)`, fontWeight: 600 }),
+                }}
               >
                 {stateArray[targetIndex] === option ? (
                   <div className="flex-center mr-[5px] min-h-[18px] min-w-[18px]">

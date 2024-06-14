@@ -1,0 +1,104 @@
+/* 画面全体でのローディング */
+.loading_overlay {
+  position: fixed;
+  z-index: 10000;
+  inset: 0;
+  background: #00000090;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
+}
+
+.modal {
+  /* position: absolute; */
+  /* z-index: 100; */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 68vw;
+  height: 75vh;
+  max-width: 980px;
+  max-height: 610px;
+  border-radius: 8px;
+  color: var(--color-text-title);
+  background-color: var(--color-edit-bg-solid);
+  /* box-shadow: var(--color-edit-border); */
+  box-shadow: var(--color-edit-border-with-shadow-light);
+  /* box-shadow: var(--color-modal-border-shadow-custom); */
+  padding: 1px;
+}
+
+.left_container {
+}
+.right_container {
+  background: var(--color-bg-sub);
+  /* background: var(--color-modal-solid-bg); */
+  border-top-right-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.description_area {
+}
+
+.confirmation_list {
+}
+
+.confirmation_list .list_item {
+  margin-top: 15px;
+}
+.confirmation_list .list_item:first-of-type {
+  margin-top: unset;
+}
+
+.icon_green path {
+  /* color: #00d436; */
+  stroke: #00d436;
+  /* fill: #00d436; */
+}
+
+.right_container .title_area {
+}
+.right_container .scroll_container {
+  /* background: var(--color-modal-solid-bg); */
+  background: var(--color-modal-solid-bg-second);
+  /* background: var(--color-bg-sub); */
+  box-shadow: var(--border-real-table);
+}
+.right_container .scroll_container .scroll_wrapper {
+  border-radius: 9px;
+}
+.right_container .scroll_container .mapping_list_header {
+  /* background: var(--color-modal-solid-bg); */
+  background: var(--color-modal-solid-bg-second);
+  /* background: var(--color-bg-sub); */
+  padding: 9px 24px;
+  /* border-bottom: 1px solid var(--color-border-base); */
+}
+.right_container .scroll_container .mapping_list_item {
+  min-height: 42px;
+  /* padding: 9px 24px; */
+  padding: 0 24px;
+  margin: 9px 0;
+}
+.right_container .scroll_container .mapping_list_item.first {
+  margin: 0px 0 9px;
+  /* margin: 18px 0 9px; */
+}
+.right_container .scroll_container .mapping_list_item.last {
+  margin: 9px 0 0px;
+}
+/* .right_container .scroll_container .mapping_list_item:first-of-type {
+  padding: 0px 24px 9px;
+}
+.right_container .scroll_container .mapping_list_item:last-of-type {
+  padding: 9px 24px 0px;
+} */
+.right_container .scroll_container .mapping_list_item .item_card {
+  /* background: var(--color-sales-card-bg); */
+  background: var(--color-sales-card-bg-light);
+  box-shadow: var(--color-sales-card-border);
+  /* border-radius: 12px; */
+  transition: box-shadow 0.5s ease, background-color 0.3s ease, background-image 0.3s ease, color 0.3s ease;
+  padding: 0 12px;
+}
