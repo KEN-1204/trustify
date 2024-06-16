@@ -1,6 +1,6 @@
 import { isWithinInterval, subMonths } from "date-fns";
 import { calculateCurrentFiscalYear } from "./Helpers/calculateCurrentFiscalYear";
-import { Client_company } from "@/types";
+import { Client_company, ProductCategoriesLarge } from "@/types";
 
 // ローカルタイムゾーン
 export const optionsTimeZoneEn = [
@@ -886,23 +886,116 @@ export const mappingIndustryType: { [key: number]: { [key: string]: string } } =
 //   // "不明",
 // ];
 
-export const optionsProductL = [
-  "電子部品・モジュール",
-  "機械部品",
-  "製造・加工機械",
-  "科学・理化学機器",
-  "素材・材料",
-  "測定・分析",
-  "画像処理",
-  "制御・電機機器",
-  "工具・消耗品・備品",
-  "設計・生産支援",
-  "IT・ネットワーク",
-  "オフィス",
-  "業務支援サービス",
-  "セミナー・スキルアップ",
-  "その他",
+// 製品分類(大分類)
+/**
+ * 電子部品・モジュール → electronic_components_modules
+  機械部品 → mechanical_parts
+  製造・加工機械 → manufacturing_processing_machines
+  科学・理化学機器 → scientific_chemical_equipment
+  素材・材料 → materials
+  測定・分析 → measurement_analysis
+  画像処理 → image_processing
+  制御・電機機器 → control_electrical_equipment
+  工具・消耗品・備品 → tools_consumables_supplies / tools_supplies_equipment
+  設計・生産支援 → design_production_support
+  IT・ネットワーク → it_network
+  オフィス → office
+  業務支援サービス → business_support_services
+  セミナー・スキルアップ → seminars_skill_up
+  その他 → others
+ */
+export const optionsProductLNameOnly: ProductCategoriesLarge[] = [
+  "electronic_components_modules",
+  "mechanical_parts",
+  "manufacturing_processing_machines",
+  "scientific_chemical_equipment",
+  "materials",
+  "measurement_analysis",
+  "image_processing",
+  "control_electrical_equipment",
+  "tools_consumables_supplies",
+  "design_production_support",
+  "it_network",
+  "office",
+  "business_support_services",
+  "seminars_skill_up",
+  "others",
 ];
+export const optionsProductL: { id: number; name: ProductCategoriesLarge }[] = [
+  { id: 1, name: "electronic_components_modules" },
+  { id: 2, name: "mechanical_parts" },
+  { id: 3, name: "manufacturing_processing_machines" },
+  { id: 4, name: "scientific_chemical_equipment" },
+  { id: 5, name: "materials" },
+  { id: 6, name: "measurement_analysis" },
+  { id: 7, name: "image_processing" },
+  { id: 8, name: "control_electrical_equipment" },
+  { id: 9, name: "tools_consumables_supplies" },
+  { id: 10, name: "design_production_support" },
+  { id: 11, name: "it_network" },
+  { id: 12, name: "office" },
+  { id: 13, name: "business_support_services" },
+  { id: 14, name: "seminars_skill_up" },
+  { id: 15, name: "others" },
+];
+export const mappingProductL:
+  | {
+      [K in ProductCategoriesLarge]: { [key: string]: string };
+    }
+  | { [key: string]: { [key: string]: string } } = {
+  electronic_components_modules: { ja: "電子部品・モジュール", en: `` },
+  mechanical_parts: { ja: "機械部品", en: `` },
+  manufacturing_processing_machines: { ja: "製造・加工機械", en: `` },
+  scientific_chemical_equipment: { ja: "科学・理化学機器", en: `` },
+  materials: { ja: "素材・材料", en: `` },
+  measurement_analysis: { ja: "測定・分析", en: `` },
+  image_processing: { ja: "画像処理", en: `` },
+  control_electrical_equipment: { ja: "制御・電機機器", en: `` },
+  tools_consumables_supplies: { ja: "工具・消耗品・備品", en: `` },
+  design_production_support: { ja: "設計・生産支援", en: `` },
+  it_network: { ja: "IT・ネットワーク", en: `` },
+  office: { ja: "オフィス", en: `` },
+  business_support_services: { ja: "業務支援サービス", en: `` },
+  seminars_skill_up: { ja: "セミナー・スキルアップ", en: `` },
+  others: { ja: "その他", en: `` },
+};
+// export const optionsProductL = Array(15)
+//   .fill(null)
+//   .map((_, index) => index + 1);
+// export const mappingProductL: { [key: number]: { [key: string]: string } } = {
+//   1: { ja: "電子部品・モジュール", en: `` },
+//   2: { ja: "機械部品", en: `` },
+//   3: { ja: "製造・加工機械", en: `` },
+//   4: { ja: "科学・理化学機器", en: `` },
+//   5: { ja: "素材・材料", en: `` },
+//   6: { ja: "測定・分析", en: `` },
+//   7: { ja: "画像処理", en: `` },
+//   8: { ja: "制御・電機機器", en: `` },
+//   9: { ja: "工具・消耗品・備品", en: `` },
+//   10: { ja: "設計・生産支援", en: `` },
+//   11: { ja: "IT・ネットワーク", en: `` },
+//   12: { ja: "オフィス", en: `` },
+//   13: { ja: "業務支援サービス", en: `` },
+//   14: { ja: "セミナー・スキルアップ", en: `` },
+//   15: { ja: "その他", en: `` },
+// };
+// export const optionsProductL = [
+//   "電子部品・モジュール",
+//   "機械部品",
+//   "製造・加工機械",
+//   "科学・理化学機器",
+//   "素材・材料",
+//   "測定・分析",
+//   "画像処理",
+//   "制御・電機機器",
+//   "工具・消耗品・備品",
+//   "設計・生産支援",
+//   "IT・ネットワーク",
+//   "オフィス",
+//   "業務支援サービス",
+//   "セミナー・スキルアップ",
+//   "その他",
+// ];
 
 // 決算月
 export const optionsMonth = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];

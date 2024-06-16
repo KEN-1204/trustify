@@ -3511,3 +3511,189 @@ export type SalesProcessesOnlyHalfYearForSDB = {
 
 // SDBモーダル開閉タイプ
 // type OpenModalSDBType = ''
+
+// ----------- 業種・製品分類 関連 -----------
+// 製品分類【大分類】
+export type ProductCategoriesLarge =
+  | "electronic_components_modules"
+  | "mechanical_parts"
+  | "manufacturing_processing_machines"
+  | "scientific_chemical_equipment"
+  | "materials"
+  | "measurement_analysis"
+  | "image_processing"
+  | "control_electrical_equipment"
+  | "tools_consumables_supplies"
+  | "design_production_support"
+  | "it_network"
+  | "office"
+  | "business_support_services"
+  | "seminars_skill_up"
+  | "others";
+
+// 製品分類【中分類】
+// 電子部品
+export type ProductCategoriesMediumModule =
+  | "electronic_components"
+  | "connectors"
+  | "terminal_blocks"
+  | "led"
+  | "fpd_touch_panel"
+  | "small_motors"
+  | "power_supplies"
+  | "batteries"
+  | "semiconductors_ic"
+  | "rfid_ic_tag"
+  | "optical_components"
+  | "cables"
+  | "contracted_services";
+
+// 機械部品
+export type ProductCategoriesMediumMachine =
+  | "mechanical_elements"
+  | "bearings"
+  | "screws"
+  | "motors"
+  | "pumps"
+  | "piping_components"
+  | "water_oil_hydraulic_pneumatic_equipment"
+  | "vacuum_equipment"
+  | "molds"
+  | "jigs"
+  | "automotive_parts";
+
+// 製造・加工機械
+export type ProductCategoriesMediumProcessingMachinery =
+  | "machine_tools"
+  | "processing_machines"
+  | "semiconductor_manufacturing_equipment"
+  | "mounting_machines"
+  | "industrial_robots"
+  | "assembly_machines"
+  | "painting_machines"
+  | "food_machines"
+  | "packaging_machines"
+  | "conveying_machines"
+  | "marking"
+  | "contracted_services";
+
+// 科学・理化学
+export type ProductCategoriesMediumScience =
+  | "chemical_equipment"
+  | "cleaning_machines"
+  | "powder_equipment"
+  | "heating_equipment_furnaces"
+  | "surface_treatment_equipment"
+  | "laboratory_equipment_supplies";
+
+// 素材・材料
+export type ProductCategoriesMediumMaterial =
+  | "metal_materials"
+  | "polymer_materials"
+  | "glass"
+  | "ceramics"
+  | "wood"
+  | "paper_valves"
+  | "organic_natural_materials"
+  | "chemicals";
+
+// 測定・分析
+export type ProductCategoriesMediumAnalysis =
+  | "distance_measuring_machine"
+  | "weight_measuring_machine"
+  | "electronic_measuring_machine"
+  | "temperature_humidity_machine"
+  | "electrical_machine"
+  | "coordinate_measuring_machine"
+  | "other_measuring_machine"
+  | "testing_machine"
+  | "inspection_machine"
+  | "microscopes"
+  | "recorders_loggers"
+  | "analytical_machine"
+  | "environmental_analysis_machine"
+  | "contracted_services";
+
+// 画像処理
+export type ProductCategoriesMediumImageProcessing =
+  | "cameras"
+  | "lenses"
+  | "light_sources_lighting"
+  | "image_processing"
+  | "security_surveillance_systems"
+  | "barcode_readers";
+
+// 制御・電機機器
+export type ProductCategoriesMediumControlEquipment =
+  | "process_control_equipment"
+  | "fa_equipment"
+  | "safety_equipment"
+  | "environmental_equipment"
+  | "filters"
+  | "clean_rooms"
+  | "lighting"
+  | "air_conditioning_equipment"
+  | "water_treatment_equipment"
+  | "static_electricity_measures"
+  | "energy_equipment";
+
+// 工具・消耗品・備品
+export type ProductCategoriesMediumTool =
+  | "cutting_tools"
+  | "abrasives"
+  | "hand_tools"
+  | "power_pneumatic_tools"
+  | "consumables"
+  | "cleaning_tools"
+  | "safety_hygiene_supplies"
+  | "packaging_materials"
+  | "supplies"
+  | "storage_facilities";
+
+// 設計・生産支援
+export type ProductCategoriesMediumDesign = "cad" | "cam" | "cae" | "prototype" | "contracted_services";
+
+// IT・ネットワーク
+export type ProductCategoriesMediumIT =
+  | "industrial_computers"
+  | "embedded_systems"
+  | "core_systems"
+  | "production_management"
+  | "information_systems"
+  | "network"
+  | "operating_systems"
+  | "servers"
+  | "security";
+
+// オフィス
+export type ProductCategoriesMediumOffice = "office_automation_equipment" | "consumables" | "supplies";
+
+// 業務支援サービス
+export type ProductCategoriesMediumBusinessSupport =
+  | "consultants"
+  | "rental_lease"
+  | "human_resources_services"
+  | "services";
+
+// セミナー・スキルアップ
+export type ProductCategoriesMediumSkillUp = "for_engineer" | "for_management";
+
+// 製品分類【中分類】全て
+export type ProductCategoriesMedium =
+  | ProductCategoriesMediumModule
+  | ProductCategoriesMediumMachine
+  | ProductCategoriesMediumProcessingMachinery
+  | ProductCategoriesMediumScience
+  | ProductCategoriesMediumMaterial
+  | ProductCategoriesMediumAnalysis
+  | ProductCategoriesMediumImageProcessing
+  | ProductCategoriesMediumControlEquipment
+  | ProductCategoriesMediumTool
+  | ProductCategoriesMediumDesign
+  | ProductCategoriesMediumIT
+  | ProductCategoriesMediumOffice
+  | ProductCategoriesMediumBusinessSupport
+  | ProductCategoriesMediumSkillUp
+  | "others";
+
+// ----------- 業種・製品分類 関連 ここまで -----------

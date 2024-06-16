@@ -7,7 +7,23 @@ import { toast } from "react-toastify";
 import useThemeStore from "@/store/useThemeStore";
 import { isNaN } from "lodash";
 import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
-import productCategoriesM from "@/utils/productCategoryM";
+import productCategoriesM, {
+  mappingAnalysisCategoryM,
+  mappingBusinessSupportCategoryM,
+  mappingControlEquipmentCategoryM,
+  mappingDesignCategoryM,
+  mappingITCategoryM,
+  mappingImageProcessingCategoryM,
+  mappingMachinePartsCategoryM,
+  mappingMaterialCategoryM,
+  mappingModuleCategoryM,
+  mappingOfficeCategoryM,
+  mappingOthersCategoryM,
+  mappingProcessingMachineryCategoryM,
+  mappingScienceCategoryM,
+  mappingSkillUpCategoryM,
+  mappingToolCategoryM,
+} from "@/utils/productCategoryM";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
@@ -1807,34 +1823,111 @@ export const UpdateClientCompanyModal = () => {
                           productCategoryL ? "" : "hidden"
                         } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       >
-                        {productCategoryL === "電子部品・モジュール" &&
-                          productCategoriesM.moduleCategoryM.map((option) => option)}
-                        {productCategoryL === "機械部品" &&
-                          productCategoriesM.machinePartsCategoryM.map((option) => option)}
-                        {productCategoryL === "製造・加工機械" &&
-                          productCategoriesM.processingMachineryCategoryM.map((option) => option)}
-                        {productCategoryL === "科学・理化学機器" &&
-                          productCategoriesM.scienceCategoryM.map((option) => option)}
-                        {productCategoryL === "素材・材料" &&
-                          productCategoriesM.materialCategoryM.map((option) => option)}
-                        {productCategoryL === "測定・分析" &&
-                          productCategoriesM.analysisCategoryM.map((option) => option)}
-                        {productCategoryL === "画像処理" &&
-                          productCategoriesM.imageProcessingCategoryM.map((option) => option)}
-                        {productCategoryL === "制御・電機機器" &&
-                          productCategoriesM.controlEquipmentCategoryM.map((option) => option)}
-                        {productCategoryL === "工具・消耗品・備品" &&
-                          productCategoriesM.toolCategoryM.map((option) => option)}
-                        {productCategoryL === "設計・生産支援" &&
-                          productCategoriesM.designCategoryM.map((option) => option)}
-                        {productCategoryL === "IT・ネットワーク" &&
-                          productCategoriesM.ITCategoryM.map((option) => option)}
-                        {productCategoryL === "オフィス" && productCategoriesM.OfficeCategoryM.map((option) => option)}
-                        {productCategoryL === "業務支援サービス" &&
-                          productCategoriesM.businessSupportCategoryM.map((option) => option)}
-                        {productCategoryL === "セミナー・スキルアップ" &&
-                          productCategoriesM.skillUpCategoryM.map((option) => option)}
-                        {productCategoryL === "その他" && productCategoriesM.othersCategoryM.map((option) => option)}
+                        <option key="" value=""></option>,{/* 1. 電子部品・モジュール */}
+                        {inputProductL === "electronic_components_modules" &&
+                          productCategoriesM.moduleCategoryM.map((option) => (
+                            <option key={`moduleCategoryM${option.name}`} value={option.id}>
+                              {mappingModuleCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 2. 機械部品 */}
+                        {inputProductL === "mechanical_parts" &&
+                          productCategoriesM.machinePartsCategoryM.map((option) => (
+                            <option key={`machinePartsCategoryM${option.name}`} value={option.id}>
+                              {mappingMachinePartsCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 3. 製造・加工機械 */}
+                        {inputProductL === "manufacturing_processing_machines" &&
+                          productCategoriesM.processingMachineryCategoryM.map((option) => (
+                            <option key={`processingMachineryCategoryM${option.name}`} value={option.id}>
+                              {mappingProcessingMachineryCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 4. 科学・理化学機器 */}
+                        {inputProductL === "scientific_chemical_equipment" &&
+                          productCategoriesM.scienceCategoryM.map((option) => (
+                            <option key={`processingMachineryCategoryM${option.name}`} value={option.id}>
+                              {mappingScienceCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 5. 素材・材料 */}
+                        {inputProductL === "materials" &&
+                          productCategoriesM.materialCategoryM.map((option) => (
+                            <option key={`materialCategoryM${option.name}`} value={option.id}>
+                              {mappingMaterialCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 6. 測定・分析 */}
+                        {inputProductL === "measurement_analysis" &&
+                          productCategoriesM.analysisCategoryM.map((option) => (
+                            <option key={`analysisCategoryM${option.name}`} value={option.id}>
+                              {mappingAnalysisCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 7. 画像処理 */}
+                        {inputProductL === "image_processing" &&
+                          productCategoriesM.imageProcessingCategoryM.map((option) => (
+                            <option key={`imageProcessingCategoryM${option.name}`} value={option.id}>
+                              {mappingImageProcessingCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 8. 制御・電機機器 */}
+                        {inputProductL === "control_electrical_equipment" &&
+                          productCategoriesM.controlEquipmentCategoryM.map((option) => (
+                            <option key={`controlEquipmentCategoryM${option.name}`} value={option.id}>
+                              {mappingControlEquipmentCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 9. 工具・消耗品・備品 */}
+                        {inputProductL === "tools_consumables_supplies" &&
+                          productCategoriesM.toolCategoryM.map((option) => (
+                            <option key={`toolCategoryM${option.name}`} value={option.id}>
+                              {mappingToolCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 10. 設計・生産支援 */}
+                        {inputProductL === "design_production_support" &&
+                          productCategoriesM.designCategoryM.map((option) => (
+                            <option key={`designCategoryM${option.name}`} value={option.id}>
+                              {mappingDesignCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 11. IT・ネットワーク */}
+                        {inputProductL === "it_network" &&
+                          productCategoriesM.ITCategoryM.map((option) => (
+                            <option key={`ITCategoryM${option.name}`} value={option.id}>
+                              {mappingITCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 12. オフィス */}
+                        {inputProductL === "office" &&
+                          productCategoriesM.OfficeCategoryM.map((option) => (
+                            <option key={`OfficeCategoryM${option.name}`} value={option.id}>
+                              {mappingOfficeCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 13. 業務支援サービス */}
+                        {inputProductL === "business_support_services" &&
+                          productCategoriesM.businessSupportCategoryM.map((option) => (
+                            <option key={`businessSupportCategoryM${option.name}`} value={option.id}>
+                              {mappingBusinessSupportCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 14. セミナー・スキルアップ */}
+                        {inputProductL === "seminars_skill_up" &&
+                          productCategoriesM.skillUpCategoryM.map((option) => (
+                            <option key={`skillUpCategoryM${option.name}`} value={option.id}>
+                              {mappingSkillUpCategoryM[option.name][language]}
+                            </option>
+                          ))}
+                        {/* 15. その他 */}
+                        {inputProductL === "others" &&
+                          productCategoriesM.othersCategoryM.map((option) => (
+                            <option key={`othersCategoryM${option.name}`} value={option.id}>
+                              {mappingOthersCategoryM[option.name][language]}
+                            </option>
+                          ))}
                       </select>
                     )}
                   </div>

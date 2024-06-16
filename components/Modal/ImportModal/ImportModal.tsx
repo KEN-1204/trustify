@@ -177,6 +177,8 @@ const ImportModalMemo = () => {
   //   return remainingOptions;
   // }, [alreadySelectColumnsSetObj]);
 
+  // ------------------------------ 🌟step1🌟 ------------------------------
+
   // ---------------- 🌠ファイルを選択 or ファイルをドロップ CSV読み込み🌠 ----------------
   const handleSelectedFiles = (files: FileList | null) => {
     if (!files) return;
@@ -311,7 +313,7 @@ const ImportModalMemo = () => {
     }
   }, [isCompletedConvert]);
 
-  // --------------- 🌠ファイルを選択 or ファイルをドロップ CSV読み込み🌠 ---------------
+  // ------------------------------ 🌠ファイルを選択 or ファイルをドロップ CSV読み込み🌠 ------------------------------
 
   // Drag Enter
   const handleDragEnterUploadBox = (e: DragEvent<HTMLDivElement>) => {
@@ -384,8 +386,48 @@ const ImportModalMemo = () => {
     if (dropIconRef.current) dropIconRef.current.classList.remove(styles.animate_bounce);
   };
 
-  // --------------- 🌠ドラッグ&ドロップ🌠 ここまで ---------------
+  // ------------------------------ 🌠ファイルを選択 or ファイルをドロップ CSV読み込み🌠 ここまで ------------------------------
 
+  // ------------------------------ 🌟step1🌟 ここまで ------------------------------
+
+  // ------------------------------ 🌟step2🌟 ------------------------------
+  // ------------------------------ 🌠紐付け確定🌠 ------------------------------
+  // 🔸紐付け確定ボタンクリックと同時にstep3に移行して全ての行データの保存するカラムに対応するデータ型へと変換するINSERT前処理を実行を実行
+  // => 5MBを超える大きなファイルサイズはWorkerに依頼してバックグラウンドスレッドで行う
+  // 【変換が必要なカラム】
+  // 「-」は変換不要
+  /**
+   * id: -
+   * created_at: -
+   * updated_at: -
+   * created_company_id: -
+   * created_user_id: -
+   * created_department_id: -
+   * name: TEXT
+   * department_name: TEXT => 入力されていない場合は「.」でピリオドを付与してINSERT
+   * main_fax: TEXT
+   * zipcode: TEXT => 「-」ハイフンを削除して数字のみ抽出 7桁のみか確認 7桁でない場合には住所から算出
+   * address: TEXT => 都道府県、市区町村が入っているかチェック 数字は全角から半角へ変換 ・地区コードテーブルのid(数字)と紐付け
+   * department_contacts: TEXT => 数字とハイフンと+(プラス)番号のみ許可
+   * industry_large: TEXT => 業界(大分類)セールスフォース用 => セールスフォースの項目のSetオブジェクトでチェック
+   * industry_small: TEXT => 業界(小分類)セールスフォース用 => 大分類が含まれていれば、小分類をチェック
+   * industry_type_id: INTEGER => 業種 テーブル(ipros)の業種一覧にマッチする文字列なら対応する番号を付与 Setオブジェクトで確認
+   * product_category_large: TEXT => 製品分類(大分類) それぞれの製品分類に類する特定の文字列を用意して、マッチしていれば
+   */
+  const handleFormatDataProcessingPreInsert = () => {};
+
+  // 🔸紐付け確認モーダルに渡してモーダル側で実行する
+  const handleCompleteMappingColumns = () => {
+    // ステップ3に移行
+    setStep(3);
+
+    // データ前処理を実行
+    handleFormatDataProcessingPreInsert();
+  };
+  // ------------------------------ 🌠紐付け確定🌠 ここまで ------------------------------
+  // ------------------------------ 🌟step2🌟 ここまで ------------------------------
+
+  // ------------------------------ 🌠ミニサイズ関連🌠 ------------------------------
   const [isSmallWindow, setIsSmallWindow] = useState(false);
   const initialPosition = { top: `50%`, right: `unset`, left: "50%", transform: `translate(-50%, -50%)` };
   const smallInitialPosition = { top: `calc(100% - 100px - 70px)`, right: `30px`, left: "unset", transform: `unset` };
@@ -552,6 +594,8 @@ const ImportModalMemo = () => {
   }, [isSmallWindow]);
   // -------------------- 小窓状態の時にドラッグで移動させる --------------------
 
+  // ------------------------------ 🌠ミニサイズ関連🌠 ここまで ------------------------------
+
   // ================== 🌟ツールチップ ==================
   const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
@@ -613,10 +657,10 @@ const ImportModalMemo = () => {
   };
 
   // アップロードした行数
-  const formattedUploadedRowCount = uploadedData.length.toLocaleString()
+  const formattedUploadedRowCount = uploadedData.length.toLocaleString();
 
   // モーダルサイズ
-    const modalHeight = modalContainerRef.current?.offsetHeight ?? null;
+  const modalHeight = modalContainerRef.current?.offsetHeight ?? null;
 
   // テーブルWidth
   const tableWidth = 1100;
@@ -923,7 +967,7 @@ const ImportModalMemo = () => {
                     }}
                     onMouseLeave={handleCloseTooltip}
                     onClick={() => {
-                      handleCloseTooltip()
+                      handleCloseTooltip();
                       if (step === 1) {
                         if (isConverting) return;
                         if (!isCompletedConvert) {

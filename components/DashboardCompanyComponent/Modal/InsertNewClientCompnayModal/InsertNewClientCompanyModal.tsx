@@ -1,4 +1,4 @@
-import React, { CSSProperties, KeyboardEvent, Suspense, useEffect, useRef, useState } from "react";
+import React, { CSSProperties, KeyboardEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./InsertNewClientCompanyModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -7,7 +7,24 @@ import { toast } from "react-toastify";
 import useThemeStore from "@/store/useThemeStore";
 import { isNaN } from "lodash";
 import { useMutateClientCompany } from "@/hooks/useMutateClientCompany";
-import productCategoriesM from "@/utils/productCategoryM";
+import productCategoriesM, {
+  mappingAnalysisCategoryM,
+  mappingBusinessSupportCategoryM,
+  mappingControlEquipmentCategoryM,
+  mappingDesignCategoryM,
+  mappingITCategoryM,
+  mappingImageProcessingCategoryM,
+  mappingMachinePartsCategoryM,
+  mappingMaterialCategoryM,
+  mappingModuleCategoryM,
+  mappingOfficeCategoryM,
+  mappingOthersCategoryM,
+  mappingProcessingMachineryCategoryM,
+  mappingScienceCategoryM,
+  mappingSkillUpCategoryM,
+  mappingToolCategoryM,
+  productCategoryLargeToOptionsMediumMap,
+} from "@/utils/productCategoryM";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { BsChevronLeft } from "react-icons/bs";
@@ -26,13 +43,15 @@ import {
   optionsMonth,
   optionsNumberOfEmployeesClass,
   optionsProductL,
+  mappingProductL,
+  optionsProductLNameOnly,
 } from "@/utils/selectOptions";
 import useStore from "@/store";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import { useQueryCities } from "@/hooks/useQueryCities";
 import { CustomSelectInput } from "@/components/Parts/CustomSelectInput/CustomSelectInput";
 import { HiChevronDown } from "react-icons/hi2";
-import { Cities } from "@/types";
+import { Cities, ProductCategoriesLarge, ProductCategoriesMedium } from "@/types";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { InputBoxCity } from "./InputBoxCity";
 import { ErrorBoundary } from "react-error-boundary";
@@ -40,6 +59,7 @@ import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { FallbackInputBox } from "./FallbackInputBox";
 import { useQueryClient } from "@tanstack/react-query";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { CustomSelectMultiple } from "@/components/Parts/CustomSelectMultiple/CustomSelectMultiple";
 
 export const InsertNewClientCompanyModal = () => {
   const language = useStore((state) => state.language);
@@ -85,6 +105,97 @@ export const InsertNewClientCompanyModal = () => {
   const [productCategoryL, setProductCategoryL] = useState("");
   const [productCategoryM, setProductCategoryM] = useState("");
   const [productCategoryS, setProductCategoryS] = useState("");
+  // product_categoriesテーブルに挿入する配列 タグ付け textで保持して最終的にMapオブジェクトで
+  const [productCategoryLargeArray, setProductCategoryLargeArray] = useState<string[]>([]);
+  const [productCategoryMediumArray, setProductCategoryMediumArray] = useState<string[]>([]);
+  const [productCategorySmallArray, setProductCategorySmallArray] = useState<string[]>([]);
+  // ----------------------- 🌟製品分類(大分類・中分類)関連🌟 -----------------------
+  // カスタムセレクトボックス用にnameのみで選択中のSetオブジェクトを作成
+  // ---------------- 大分類
+  const selectedProductCategoryLargeSet = useMemo(() => {
+    return new Set([...productCategoryLargeArray]);
+  }, [productCategoryLargeArray]);
+
+  const getProductCategoryLargeName = (option: ProductCategoriesLarge) => {
+    return mappingProductL[option][language];
+  };
+
+  // ---------------- 中分類
+  const selectedProductCategoryMediumSet = useMemo(() => {
+    return new Set([...productCategoryMediumArray]);
+  }, [productCategoryMediumArray]);
+
+  // 中分類のoptions 大分類で複数選択している場合には、選択中の大分類に紐づく全ての中分類をoptionsにセット
+  const optionsProductCategoryMediumAll = useMemo(() => {
+    const filteredOptionsNameOnly = optionsProductLNameOnly.filter((name) => selectedProductCategoryLargeSet.has(name));
+    const newOptionsM = filteredOptionsNameOnly
+      .map((option) => {
+        return productCategoryLargeToOptionsMediumMap[option];
+      })
+      .flatMap((array) => array);
+
+    return newOptionsM;
+  }, [optionsProductLNameOnly, selectedProductCategoryLargeSet, productCategoryLargeToOptionsMediumMap]);
+
+  // 名称変換マップ
+  const mappingProductCategoryMediumAll = useMemo(() => {
+    let mappingObj = {} as {
+      [x: string]: {
+        [key: string]: string;
+      };
+    };
+
+    if (selectedProductCategoryLargeSet.has("electronic_components_modules"))
+      mappingObj = { ...mappingObj, ...mappingModuleCategoryM };
+    if (selectedProductCategoryLargeSet.has("mechanical_parts"))
+      mappingObj = { ...mappingObj, ...mappingMachinePartsCategoryM };
+    if (selectedProductCategoryLargeSet.has("manufacturing_processing_machines"))
+      mappingObj = { ...mappingObj, ...mappingProcessingMachineryCategoryM };
+    if (selectedProductCategoryLargeSet.has("scientific_chemical_equipment"))
+      mappingObj = { ...mappingObj, ...mappingScienceCategoryM };
+    if (selectedProductCategoryLargeSet.has("materials")) mappingObj = { ...mappingObj, ...mappingMaterialCategoryM };
+    if (selectedProductCategoryLargeSet.has("measurement_analysis"))
+      mappingObj = { ...mappingObj, ...mappingAnalysisCategoryM };
+    if (selectedProductCategoryLargeSet.has("image_processing"))
+      mappingObj = { ...mappingObj, ...mappingImageProcessingCategoryM };
+    if (selectedProductCategoryLargeSet.has("control_electrical_equipment"))
+      mappingObj = { ...mappingObj, ...mappingControlEquipmentCategoryM };
+    if (selectedProductCategoryLargeSet.has("tools_consumables_supplies"))
+      mappingObj = { ...mappingObj, ...mappingToolCategoryM };
+    if (selectedProductCategoryLargeSet.has("design_production_support"))
+      mappingObj = { ...mappingObj, ...mappingDesignCategoryM };
+    if (selectedProductCategoryLargeSet.has("it_network")) mappingObj = { ...mappingObj, ...mappingITCategoryM };
+    if (selectedProductCategoryLargeSet.has("office")) mappingObj = { ...mappingObj, ...mappingOfficeCategoryM };
+    if (selectedProductCategoryLargeSet.has("business_support_services"))
+      mappingObj = { ...mappingObj, ...mappingBusinessSupportCategoryM };
+    if (selectedProductCategoryLargeSet.has("seminars_skill_up"))
+      mappingObj = { ...mappingObj, ...mappingSkillUpCategoryM };
+    if (selectedProductCategoryLargeSet.has("others")) mappingObj = { ...mappingObj, ...mappingOthersCategoryM };
+
+    return new Map(Object.entries(mappingObj).map(([key, value]) => [key, value]));
+  }, [selectedProductCategoryLargeSet]);
+
+  const getProductCategoryMediumNameAll = (option: ProductCategoriesMedium) => {
+    const mappingObj = mappingProductCategoryMediumAll.get(option);
+    return mappingObj ? mappingObj[language] : "-";
+    // return mappingProductCategoryMediumAll[option][language];
+  };
+
+  // 🌠中分類が選択されている状態で大分類のチェックが外された場合には、外された大分類に紐づく中分類を削除する
+  useEffect(() => {
+    // 大分類に紐づくoptionのみで作成したoptionsProductCategoryMediumAllに含まれていない選択中の中分類は削除
+    const optionsProductCategoryMediumAllSet = new Set(optionsProductCategoryMediumAll);
+    const newMediumArray = [...productCategoryMediumArray].filter((option) =>
+      optionsProductCategoryMediumAllSet.has(option as any)
+    );
+    console.log("🔥大分類が変更されたため中分類を更新");
+    setProductCategoryMediumArray(newMediumArray);
+  }, [optionsProductCategoryMediumAll]);
+  // ---------------- 小分類
+  const selectedProductCategorySmallSet = useMemo(() => {
+    return new Set([...productCategorySmallArray]);
+  }, [productCategorySmallArray]);
+  // ----------------------- 🌟製品分類(大分類・中分類)関連🌟 ここまで -----------------------
   const [numberOfEmployeesClass, setNumberOfEmployeesClass] = useState("");
   const [fiscalEndMonth, setFiscalEndMonth] = useState("");
   const [capital, setCapital] = useState<string>("");
@@ -392,6 +503,9 @@ export const InsertNewClientCompanyModal = () => {
       product_category_large: productCategoryL ? productCategoryL : null,
       product_category_medium: productCategoryM ? productCategoryM : null,
       product_category_small: productCategoryS ? productCategoryS : null,
+      // product_category_large: isValidNumber(productCategoryL) ? parseInt(productCategoryL, 10) : null,
+      // product_category_medium: isValidNumber(productCategoryM) ? parseInt(productCategoryM, 10) : null,
+      // product_category_small: isValidNumber(productCategoryS) ? parseInt(productCategoryS, 10) : null,
       number_of_employees_class: numberOfEmployeesClass ? numberOfEmployeesClass : null,
       fiscal_end_month: fiscalEndMonth ? fiscalEndMonth : null,
       // capital: capital ? capital : null,
@@ -758,8 +872,29 @@ export const InsertNewClientCompanyModal = () => {
     }
   }, [streetAddress]);
 
-  console.log("countryName", countryName, "countryId", countryId, "国リスト候補", suggestedCountryIdNameArray);
-  console.log("regionName", regionName, "regionId", regionId, "都道府県リスト候補", suggestedRegionIdNameArray);
+  const modalPosition = useMemo(() => {
+    if (!modalContainerRef.current) return null;
+    const { x, y } = modalContainerRef.current.getBoundingClientRect();
+    return { x, y };
+  }, [modalContainerRef.current]);
+
+  console.log(
+    "InsertNewClientCompanyModalレンダリング",
+    "productCategoryLargeArray",
+    productCategoryLargeArray,
+    "selectedProductCategoryLargeSet",
+    selectedProductCategoryLargeSet
+  );
+  console.log(
+    "productCategoryMediumArray",
+    productCategoryMediumArray,
+    "optionsProductCategoryMediumAll",
+    optionsProductCategoryMediumAll,
+    "mappingProductCategoryMediumAll",
+    mappingProductCategoryMediumAll
+  );
+  // console.log("countryName", countryName, "countryId", countryId, "国リスト候補", suggestedCountryIdNameArray);
+  // console.log("regionName", regionName, "regionId", regionId, "都道府県リスト候補", suggestedRegionIdNameArray);
   // console.log("cityName", cityName, "cityId", cityId, "市区町村リスト候補", suggestedCityIdNameArray);
 
   return (
@@ -1906,8 +2041,25 @@ export const InsertNewClientCompanyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>製品分類(大分類)</span>
-                    <select
+                    {/* <span className={`${styles.title}`}>製品分類(大分類)</span> */}
+                    <div className={`flex flex-col ${styles.title} ${styles.double}`}>
+                      <span>製品分類</span>
+                      <span>(大分類)</span>
+                    </div>
+                    <CustomSelectMultiple
+                      stateArray={productCategoryLargeArray}
+                      dispatch={setProductCategoryLargeArray}
+                      selectedSetObj={selectedProductCategoryLargeSet}
+                      options={optionsProductLNameOnly}
+                      getOptionName={getProductCategoryLargeName}
+                      withBorder={true}
+                      modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                      customClass="font-normal"
+                      bgDark={false}
+                      maxWidth={420}
+                      maxHeight={32}
+                    />
+                    {/* <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={productCategoryL}
                       onChange={(e) => setProductCategoryL(e.target.value)}
@@ -1918,22 +2070,7 @@ export const InsertNewClientCompanyModal = () => {
                           {option}
                         </option>
                       ))}
-                      {/* <option value="電子部品・モジュール">電子部品・モジュール</option>
-                      <option value="機械部品">機械部品</option>
-                      <option value="製造・加工機械">製造・加工機械</option>
-                      <option value="科学・理化学機器">科学・理化学機器</option>
-                      <option value="素材・材料">素材・材料</option>
-                      <option value="測定・分析">測定・分析</option>
-                      <option value="画像処理">画像処理</option>
-                      <option value="制御・電機機器">制御・電機機器</option>
-                      <option value="工具・消耗品・備品">工具・消耗品・備品</option>
-                      <option value="設計・生産支援">設計・生産支援</option>
-                      <option value="IT・ネットワーク">IT・ネットワーク</option>
-                      <option value="オフィス">オフィス</option>
-                      <option value="業務支援サービス">業務支援サービス</option>
-                      <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
-                      <option value="その他">その他</option> */}
-                    </select>
+                    </select> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1948,45 +2085,128 @@ export const InsertNewClientCompanyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>製品分類(中分類)</span>
-                    {!!productCategoryL && (
-                      <select
-                        value={productCategoryM}
-                        onChange={(e) => setProductCategoryM(e.target.value)}
-                        className={`${
-                          productCategoryL ? "" : "hidden"
-                        } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      >
-                        {productCategoryL === "電子部品・モジュール" &&
-                          productCategoriesM.moduleCategoryM.map((option) => option)}
-                        {productCategoryL === "機械部品" &&
-                          productCategoriesM.machinePartsCategoryM.map((option) => option)}
-                        {productCategoryL === "製造・加工機械" &&
-                          productCategoriesM.processingMachineryCategoryM.map((option) => option)}
-                        {productCategoryL === "科学・理化学機器" &&
-                          productCategoriesM.scienceCategoryM.map((option) => option)}
-                        {productCategoryL === "素材・材料" &&
-                          productCategoriesM.materialCategoryM.map((option) => option)}
-                        {productCategoryL === "測定・分析" &&
-                          productCategoriesM.analysisCategoryM.map((option) => option)}
-                        {productCategoryL === "画像処理" &&
-                          productCategoriesM.imageProcessingCategoryM.map((option) => option)}
-                        {productCategoryL === "制御・電機機器" &&
-                          productCategoriesM.controlEquipmentCategoryM.map((option) => option)}
-                        {productCategoryL === "工具・消耗品・備品" &&
-                          productCategoriesM.toolCategoryM.map((option) => option)}
-                        {productCategoryL === "設計・生産支援" &&
-                          productCategoriesM.designCategoryM.map((option) => option)}
-                        {productCategoryL === "IT・ネットワーク" &&
-                          productCategoriesM.ITCategoryM.map((option) => option)}
-                        {productCategoryL === "オフィス" && productCategoriesM.OfficeCategoryM.map((option) => option)}
-                        {productCategoryL === "業務支援サービス" &&
-                          productCategoriesM.businessSupportCategoryM.map((option) => option)}
-                        {productCategoryL === "セミナー・スキルアップ" &&
-                          productCategoriesM.skillUpCategoryM.map((option) => option)}
-                        {productCategoryL === "その他" && productCategoriesM.othersCategoryM.map((option) => option)}
-                      </select>
+                    {/* <span className={`${styles.title}`}>製品分類(中分類)</span> */}
+                    <div className={`flex flex-col ${styles.title} ${styles.double}`}>
+                      <span>製品分類</span>
+                      <span>(中分類)</span>
+                    </div>
+                    {0 < productCategoryLargeArray.length && (
+                      <>
+                        <CustomSelectMultiple
+                          stateArray={productCategoryMediumArray}
+                          dispatch={setProductCategoryMediumArray}
+                          selectedSetObj={selectedProductCategoryMediumSet}
+                          options={optionsProductCategoryMediumAll}
+                          getOptionName={getProductCategoryMediumNameAll}
+                          withBorder={true}
+                          modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={420}
+                          maxHeight={32}
+                        />
+                      </>
                     )}
+                    {/*  // <select
+                      //   value={productCategoryM}
+                      //   onChange={(e) => setProductCategoryM(e.target.value)}
+                      //   className={`${
+                      //     !!productCategoryLargeArray.length ? "" : "hidden"
+                      //   } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
+                      // >
+
+                      //   <option key="" value=""></option>
+                      //   {inputProductL === "electronic_components_modules" &&
+                      //     productCategoriesM.moduleCategoryM.map((option) => (
+                      //       <option key={`moduleCategoryM${option.name}`} value={option.id}>
+                      //         {mappingModuleCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "mechanical_parts" &&
+                      //     productCategoriesM.machinePartsCategoryM.map((option) => (
+                      //       <option key={`machinePartsCategoryM${option.name}`} value={option.id}>
+                      //         {mappingMachinePartsCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "manufacturing_processing_machines" &&
+                      //     productCategoriesM.processingMachineryCategoryM.map((option) => (
+                      //       <option key={`processingMachineryCategoryM${option.name}`} value={option.id}>
+                      //         {mappingProcessingMachineryCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "scientific_chemical_equipment" &&
+                      //     productCategoriesM.scienceCategoryM.map((option) => (
+                      //       <option key={`processingMachineryCategoryM${option.name}`} value={option.id}>
+                      //         {mappingScienceCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "materials" &&
+                      //     productCategoriesM.materialCategoryM.map((option) => (
+                      //       <option key={`materialCategoryM${option.name}`} value={option.id}>
+                      //         {mappingMaterialCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "measurement_analysis" &&
+                      //     productCategoriesM.analysisCategoryM.map((option) => (
+                      //       <option key={`analysisCategoryM${option.name}`} value={option.id}>
+                      //         {mappingAnalysisCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "image_processing" &&
+                      //     productCategoriesM.imageProcessingCategoryM.map((option) => (
+                      //       <option key={`imageProcessingCategoryM${option.name}`} value={option.id}>
+                      //         {mappingImageProcessingCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "control_electrical_equipment" &&
+                      //     productCategoriesM.controlEquipmentCategoryM.map((option) => (
+                      //       <option key={`controlEquipmentCategoryM${option.name}`} value={option.id}>
+                      //         {mappingControlEquipmentCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "tools_consumables_supplies" &&
+                      //     productCategoriesM.toolCategoryM.map((option) => (
+                      //       <option key={`toolCategoryM${option.name}`} value={option.id}>
+                      //         {mappingToolCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "design_production_support" &&
+                      //     productCategoriesM.designCategoryM.map((option) => (
+                      //       <option key={`designCategoryM${option.name}`} value={option.id}>
+                      //         {mappingDesignCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "it_network" &&
+                      //     productCategoriesM.ITCategoryM.map((option) => (
+                      //       <option key={`ITCategoryM${option.name}`} value={option.id}>
+                      //         {mappingITCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "office" &&
+                      //     productCategoriesM.OfficeCategoryM.map((option) => (
+                      //       <option key={`OfficeCategoryM${option.name}`} value={option.id}>
+                      //         {mappingOfficeCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "business_support_services" &&
+                      //     productCategoriesM.businessSupportCategoryM.map((option) => (
+                      //       <option key={`businessSupportCategoryM${option.name}`} value={option.id}>
+                      //         {mappingBusinessSupportCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "seminars_skill_up" &&
+                      //     productCategoriesM.skillUpCategoryM.map((option) => (
+                      //       <option key={`skillUpCategoryM${option.name}`} value={option.id}>
+                      //         {mappingSkillUpCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      //   {inputProductL === "others" &&
+                      //     productCategoriesM.othersCategoryM.map((option) => (
+                      //       <option key={`othersCategoryM${option.name}`} value={option.id}>
+                      //         {mappingOthersCategoryM[option.name][language]}
+                      //       </option>
+                      //     ))}
+                      // </select> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

@@ -1015,44 +1015,6 @@ export const ClientCompanyDetailModal = () => {
                     <span className={`${styles.value}`}>
                       {company?.product_category_medium ? company.product_category_medium : ""}
                     </span>
-                    {/* {!!productCategoryL && (
-                      <select
-                        value={productCategoryM}
-                        onChange={(e) => setProductCategoryM(e.target.value)}
-                        className={`${
-                          productCategoryL ? "" : "hidden"
-                        } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      >
-                        {productCategoryL === "電子部品・モジュール" &&
-                          productCategoriesM.moduleCategoryM.map((option) => option)}
-                        {productCategoryL === "機械部品" &&
-                          productCategoriesM.machinePartsCategoryM.map((option) => option)}
-                        {productCategoryL === "製造・加工機械" &&
-                          productCategoriesM.processingMachineryCategoryM.map((option) => option)}
-                        {productCategoryL === "科学・理化学機器" &&
-                          productCategoriesM.scienceCategoryM.map((option) => option)}
-                        {productCategoryL === "素材・材料" &&
-                          productCategoriesM.materialCategoryM.map((option) => option)}
-                        {productCategoryL === "測定・分析" &&
-                          productCategoriesM.analysisCategoryM.map((option) => option)}
-                        {productCategoryL === "画像処理" &&
-                          productCategoriesM.imageProcessingCategoryM.map((option) => option)}
-                        {productCategoryL === "制御・電機機器" &&
-                          productCategoriesM.controlEquipmentCategoryM.map((option) => option)}
-                        {productCategoryL === "工具・消耗品・備品" &&
-                          productCategoriesM.toolCategoryM.map((option) => option)}
-                        {productCategoryL === "設計・生産支援" &&
-                          productCategoriesM.designCategoryM.map((option) => option)}
-                        {productCategoryL === "IT・ネットワーク" &&
-                          productCategoriesM.ITCategoryM.map((option) => option)}
-                        {productCategoryL === "オフィス" && productCategoriesM.OfficeCategoryM.map((option) => option)}
-                        {productCategoryL === "業務支援サービス" &&
-                          productCategoriesM.businessSupportCategoryM.map((option) => option)}
-                        {productCategoryL === "セミナー・スキルアップ" &&
-                          productCategoriesM.skillUpCategoryM.map((option) => option)}
-                        {productCategoryL === "その他" && productCategoriesM.othersCategoryM.map((option) => option)}
-                      </select>
-                    )} */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>

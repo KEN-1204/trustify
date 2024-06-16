@@ -226,7 +226,7 @@
   color: var(--main-color-tk);
 }
 .title.double {
-  font-size: 15px;
+  font-size: 14px;
 }
 .result_box {
   position: absolute;
@@ -271,7 +271,8 @@
   border-radius: 6px;
 }
 .input_box::placeholder {
-  font-size: 15px;
+  /* font-size: 15px; */
+  font-size: 14px;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
