@@ -4198,13 +4198,358 @@ export type AnalysisProductCategoriesS_weight_measuring_machine =
 export type AnalysisProductCategoriesS_electronic_measuring_machine =
   | "oscilloscopes"
   | "logic_analyzers"
+  | "voltmeters"
   | "ammeters"
   | "power_meters"
   | "lcr_meters"
   | "time_frequency_measurement"
   | "signal_generators"
+  | "power_supplies"
   | "electronic_loads"
   | "other_electronic_measuring_instruments"
   | "optical_measuring_instruments";
 
+// 温湿度測定器
+export type AnalysisProductCategoriesS_electronic_temperature_humidity_machine =
+  | "temperature_humidity_measuring_instruments"
+  | "thermography"
+  | "radiation_thermometers"
+  | "thermometers"
+  | "temperature_humidity_meters"
+  | "other_temperature_humidity_measuring_instruments";
+
+// 電気計器・電位計
+export type AnalysisProductCategoriesS_electrical_machine =
+  | "electrical_instruments_voltmeters"
+  | "insulation_resistance_meters"
+  | "emc_electrostatic_measuring_instruments"
+  | "other_electrical_measuring_instruments";
+
+// 3次元測定器
+export type AnalysisProductCategoriesS_coordinate_measuring_machine = "coordinate_measuring_machine";
+
+// その他計測器
+export type AnalysisProductCategoriesS_other_measuring_machine =
+  | "flow_meters"
+  | "pressure_gauges"
+  | "particle_counters"
+  | "diaphragm_pressure_gauges"
+  | "viscometers"
+  | "torque_meters"
+  | "level_meters_switches"
+  | "radiation_detectors"
+  | "counters"
+  | "other_measuring_recording_instruments";
+
+// 試験機器・装置
+export type AnalysisProductCategoriesS_testing_machine =
+  | "testing_equipment"
+  | "constant_temperature_chambers"
+  | "vibration_test"
+  | "deep_scratch_test"
+  | "strength_testing_equipment"
+  | "impact_test"
+  | "leak_testing_equipment"
+  | "weather_resistance_test"
+  | "emc_test"
+  | "environmental_testing_equipment";
+
+// 検査機器・装置
+export type AnalysisProductCategoriesS_inspection_machine =
+  | "other_inspection_equipment"
+  | "x_ray_inspection_equipment"
+  | "visual_inspection_equipment"
+  | "defect_inspection_equipment"
+  | "probes"
+  | "evaluation_boards"
+  | "pcb_inspection_equipment";
+
+// 顕微鏡・マイクロスコープ
+export type AnalysisProductCategoriesS_microscopes =
+  | "optical_microscopes"
+  | "electron_microscopes"
+  | "laser_microscopes"
+  | "industrial_endoscopes"
+  | "other_microscopes";
+
+// 記録計・ロガー
+export type AnalysisProductCategoriesS_recorders_loggers = "data_loggers" | "recorders";
+
+// 分析機器
+export type AnalysisProductCategoriesS_analytical_machine =
+  | "analytical_equipment"
+  | "xrf_analyzers"
+  | "spectral_analyzers";
+
+// 環境分析機器
+export type AnalysisProductCategoriesS_environmental_analysis_machine =
+  | "anemometers"
+  | "water_quality_testing"
+  | "soil_testing"
+  | "noise_testing"
+  | "vibration_testing"
+  | "odor_testing"
+  | "other_environmental_analysis_equipment";
+
+// 受託サービス
+export type AnalysisProductCategoriesS_contracted_services =
+  | "contracted_analysis"
+  | "contracted_measurement"
+  | "contracted_inspection";
+
+// ========================= ✅「画像処理」 大分類 image_processing の小分類関連✅ =========================
+
+// カメラ
+export type ImageProcessingProductCategoriesS_cameras = "color_cameras" | "monochrome_cameras" | "high_speed_cameras";
+
+// レンズ
+export type ImageProcessingProductCategoriesS_lenses = "lenses";
+
+// 光源・照明
+export type ImageProcessingProductCategoriesS_light_sources_lighting =
+  | "image_processing_lights"
+  | "other_lighting_equipment";
+
+// 画像処理
+export type ImageProcessingProductCategoriesS_image_processing =
+  | "image_input_boards"
+  | "image_processing_boards"
+  | "image_processing_software"
+  | "image_processing_equipment"
+  | "image_analysis_software"
+  | "encoders_decoders"
+  | "video_recorders"
+  | "image_transmission_equipment"
+  | "virtual_reality_related"
+  | "other_image_related_equipment";
+
+// セキュリティ・監視システム
+export type ImageProcessingProductCategoriesS_security_surveillance_systems =
+  | "surveillance_cameras"
+  | "surveillance_camera_systems"
+  | "other_security_surveillance_systems";
+
+// バーコードリーダー
+export type ImageProcessingProductCategoriesS_barcode_readers =
+  | "fixed_barcode_readers"
+  | "handheld_barcode_readers"
+  | "two_dimensional_code_readers"
+  | "other_code_readers"
+  | "ic_tag_readers_writers";
+
+// =================== ✅「制御・電機機器」 大分類 control_electrical_equipment の小分類関連✅ ===================
+
+// プロセス制御機器
+export type ControlEquipmentProductCategoriesS_process_control_equipment =
+  | "flow_control"
+  | "pressure_control"
+  | "temperature_humidity_control"
+  | "liquid_level_control_level_switches"
+  | "weighing_control"
+  | "remote_control"
+  | "instrumentation_control_systems"
+  | "torque_control"
+  | "vibration_monitoring"
+  | "other_process_control";
+
+// FA機器
+export type ControlEquipmentProductCategoriesS_fa_equipment =
+  | "plc"
+  | "controllers"
+  | "nc_equipment"
+  | "displays"
+  | "servos"
+  | "inverters"
+  | "relays"
+  | "timers"
+  | "counters"
+  | "switches"
+  | "sensors"
+  | "power_supplies"
+  | "transformers"
+  | "control_panels"
+  | "distribution_boards"
+  | "cabinets_boxes"
+  | "racks"
+  | "other_boxes"
+  | "connectors"
+  | "terminal_blocks"
+  | "panel_components"
+  | "other_fa_equipment";
+
+// 安全機器
+export type ControlEquipmentProductCategoriesS_safety_equipment =
+  | "indicator_lights"
+  | "light_curtains"
+  | "area_sensors"
+  | "safety_controllers"
+  | "safety_switches"
+  | "safety_door_switches"
+  | "safety_sensors"
+  | "safety_relays"
+  | "signal_lights_rotating_lights"
+  | "circuit_breakers_switches"
+  | "other_safety_equipment";
+
+// 環境機器
+export type ControlEquipmentProductCategoriesS_environmental_equipment =
+  | "air_purifiers"
+  | "oil_mist_collectors"
+  | "dust_collectors"
+  | "dehumidifiers"
+  | "humidifiers"
+  | "gas_recovery_treatment_equipment"
+  | "incinerators"
+  | "vibration_resistant_devices"
+  | "hazardous_materials_treatment"
+  | "other_environmental_equipment"
+  | "cooling_equipment"
+  | "boilers"
+  | "heat_exchangers"
+  | "chillers";
+
+// フィルタ
+export type ControlEquipmentProductCategoriesS_filters =
+  | "other_filters"
+  | "bag_filters"
+  | "gas_filters"
+  | "solid_liquid_separation_filters"
+  | "liquid_liquid_separation_filters";
+
+// クリーンルーム
+export type ControlEquipmentProductCategoriesS_clean_rooms =
+  | "draft_chambers"
+  | "fan_filter_units"
+  | "filter_units"
+  | "air_showers"
+  | "shoe_sole_cleaners"
+  | "pass_boxes"
+  | "glove_boxes"
+  | "clean_benches"
+  | "clean_booths"
+  | "other_cleanroom_equipment";
+
+// 照明
+export type ControlEquipmentProductCategoriesS_lighting =
+  | "other_lighting_fixtures"
+  | "work_lights"
+  | "metal_halide_lamps"
+  | "mercury_lamps"
+  | "fluorescent_lamps"
+  | "led_fluorescent_lamps"
+  | "led_lighting"
+  | "floodlights";
+
+// 空調機器
+export type ControlEquipmentProductCategoriesS_air_conditioning_equipment =
+  | "air_conditioning"
+  | "ventilation_exhaust"
+  | "control_panel_coolers"
+  | "cooling_towers"
+  | "other_air_conditioning_equipment";
+
+// 水処理装置
+export type ControlEquipmentProductCategoriesS_water_treatment_equipment =
+  | "water_treatment_equipment"
+  | "water_activators"
+  | "filtration_devices"
+  | "aeration_diffusion_equipment"
+  | "wastewater_treatment_equipment"
+  | "oil_water_separators"
+  | "other_water_treatment_equipment";
+
+// 静電気対策
+export type ControlEquipmentProductCategoriesS_static_electricity_measures =
+  | "electrostatic_discharge_removers"
+  | "ionizers_deionizers"
+  | "conductive_mats"
+  | "electrostatic_protection_items"
+  | "other_electrostatic_protection_equipment";
+
+// エネルギー機器
+export type ControlEquipmentProductCategoriesS_energy_equipment =
+  | "generators_transmission_motors"
+  | "wind_turbines"
+  | "solar_power_generators"
+  | "fuel_cells"
+  | "energy_storage_systems"
+  | "power_monitoring_equipment"
+  | "demand_monitoring"
+  | "other_energy_equipment";
+
+// =================== ✅「工具・消耗品・備品」 大分類 tools_consumables_supplies の小分類関連✅  ===================
+
+// 切削工具
+export type ToolProductCategoriesS_cutting_tools =
+  | "drills"
+  | "lathe_tools"
+  | "milling_cutters"
+  | "end_mills"
+  | "reamers"
+  | "taps"
+  | "hobs"
+  | "pinion_cutters"
+  | "dies"
+  | "broaches"
+  | "cutters"
+  | "chucks"
+  | "other_cutting_tools";
+
+// 研磨材
+export type ToolProductCategoriesS_abrasives =
+  | "grindstones"
+  | "diamond_cutters"
+  | "hand_files"
+  | "brushes"
+  | "other_abrasives";
+
+// 作業工具
+export type ToolProductCategoriesS_hand_tools =
+  | "tool_sets"
+  | "screwdrivers"
+  | "pliers_cutters"
+  | "spanners_wrenches"
+  | "hammers"
+  | "pipe_cable_cutters"
+  | "vises_clamps"
+  | "cutters_scissors"
+  | "torque_wrenches"
+  | "socket_wrenches"
+  | "other_hand_tools";
+
+// 電動・空圧工具
+export type ToolProductCategoriesS_power_pneumatic_tools = "power_tools" | "pneumatic_tools";
+
+// 消耗品
+export type ToolProductCategoriesS_consumables =
+  | "adhesives"
+  | "repair_compounds"
+  | "adhesive_tapes"
+  | "cutting_oils"
+  | "lubricants"
+  | "rust_preventatives"
+  | "cleaning_agents"
+  | "paints"
+  | "coating_agents"
+  | "other_consumables";
+
+// 清掃用具
+export type ToolProductCategoriesS_cleaning_tools =
+  | "detergents"
+  | "disinfectants"
+  | "industrial_vacuum_cleaners"
+  | "wipers"
+  | "rags"
+  | "mops"
+  | "other_cleaning_tools";
+
+// 安全・衛生用品
+export type ToolProductCategoriesS_safety_hygiene_supplies =
+  | "safety_shoes_sneakers"
+  | "work_gloves"
+  | "masks"
+  | "glasses_goggles"
+  | "hand_cleaners"
+  | "protective_creams"
+  | "other_safety_hygiene_products";
 // ----------- 業種・製品分類 関連 ここまで -----------

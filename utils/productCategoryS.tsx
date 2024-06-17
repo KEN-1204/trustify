@@ -1,8 +1,25 @@
 // 電子部品 小分類
 
 import {
+  AnalysisProductCategoriesS_analytical_machine,
+  ImageProcessingProductCategoriesS_barcode_readers,
+  ImageProcessingProductCategoriesS_cameras,
+  AnalysisProductCategoriesS_contracted_services,
+  AnalysisProductCategoriesS_coordinate_measuring_machine,
   AnalysisProductCategoriesS_distance_measuring_machine,
+  AnalysisProductCategoriesS_electrical_machine,
   AnalysisProductCategoriesS_electronic_measuring_machine,
+  AnalysisProductCategoriesS_electronic_temperature_humidity_machine,
+  AnalysisProductCategoriesS_environmental_analysis_machine,
+  ImageProcessingProductCategoriesS_image_processing,
+  AnalysisProductCategoriesS_inspection_machine,
+  ImageProcessingProductCategoriesS_lenses,
+  ImageProcessingProductCategoriesS_light_sources_lighting,
+  AnalysisProductCategoriesS_microscopes,
+  AnalysisProductCategoriesS_other_measuring_machine,
+  AnalysisProductCategoriesS_recorders_loggers,
+  ImageProcessingProductCategoriesS_security_surveillance_systems,
+  AnalysisProductCategoriesS_testing_machine,
   AnalysisProductCategoriesS_weight_measuring_machine,
   MachineProductCategoriesS_automotive_parts,
   MachineProductCategoriesS_bearings,
@@ -54,6 +71,24 @@ import {
   ProcessingMachineryProductCategoriesS_processing_machines,
   ProcessingMachineryProductCategoriesS_semiconductor_manufacturing_equipment,
   ProcessingMachineryProductCategoriesS_surface_treatment_equipment,
+  ControlEquipmentProductCategoriesS_process_control_equipment,
+  ControlEquipmentProductCategoriesS_fa_equipment,
+  ControlEquipmentProductCategoriesS_safety_equipment,
+  ControlEquipmentProductCategoriesS_environmental_equipment,
+  ControlEquipmentProductCategoriesS_filters,
+  ControlEquipmentProductCategoriesS_clean_rooms,
+  ControlEquipmentProductCategoriesS_lighting,
+  ControlEquipmentProductCategoriesS_air_conditioning_equipment,
+  ControlEquipmentProductCategoriesS_water_treatment_equipment,
+  ControlEquipmentProductCategoriesS_static_electricity_measures,
+  ControlEquipmentProductCategoriesS_energy_equipment,
+  ToolProductCategoriesS_cutting_tools,
+  ToolProductCategoriesS_abrasives,
+  ToolProductCategoriesS_hand_tools,
+  ToolProductCategoriesS_power_pneumatic_tools,
+  ToolProductCategoriesS_consumables,
+  ToolProductCategoriesS_cleaning_tools,
+  ToolProductCategoriesS_safety_hygiene_supplies,
 } from "@/types";
 
 /**
@@ -2839,21 +2874,1899 @@ export const mappingCategoryS_electronic_measuring_machine: {
   optical_measuring_instruments: { ja: `光学測定器`, en: `` },
 };
 
+// -------------------------------------------------------------------------------------
+
+// { id: 69, name: "temperature_humidity_machine" },
+// ------------------------- 🌠69. 温湿度測定器 小分類 temperature_humidity_machine -------------------------
+// 505から
+
 /**
- *【電子計測器】Electronic Measuring Instruments
-  オシロスコープ → oscilloscopes
-  ロジックアナライザ → logic_analyzers
-  電圧計 → voltmeters
-  電流計 → ampermeters✅ammeters
-  電力計 → power_meters✅wattmeters
-  LCRメータ → lcr_meters
-  時間・周波数測定 → time_frequency_measurement_instruments✅time_frequency_measurement
-  信号発生器 → signal_generators
-  電源装置 → power_supplies
-  電子負荷装置 → electronic_load_devices✅electronic_loads
-  その他電子計測器 → other_electronic_measuring_instruments
-  光学測定器 → optical_measuring_instruments
+ *【温湿度測定器】Temperature and Humidity Measuring Instruments
+  温湿度関連測定器 → temperature_humidity_related_measuring_instruments✅temperature_humidity_measuring_instruments
+  サーモグラフィ → thermography_instruments✅thermography
+  放射温度計 → radiation_thermometers
+  温度計 → thermometers
+  温湿度計 → hygrometers✅temperature_humidity_meters
+  その他温湿度測定器 → other_temperature_humidity_measuring_instruments
  */
+
+export const categoryS_temperature_humidity_machine_NameOnly: AnalysisProductCategoriesS_electronic_temperature_humidity_machine[] =
+  [
+    "temperature_humidity_measuring_instruments",
+    "thermography",
+    "radiation_thermometers",
+    "thermometers",
+    "temperature_humidity_meters",
+    "other_temperature_humidity_measuring_instruments",
+  ];
+export const categoryS_temperature_humidity_machine: {
+  id: number;
+  name: AnalysisProductCategoriesS_electronic_temperature_humidity_machine;
+}[] = [
+  { id: 505, name: "temperature_humidity_measuring_instruments" },
+  { id: 506, name: "thermography" },
+  { id: 507, name: "radiation_thermometers" },
+  { id: 508, name: "thermometers" },
+  { id: 509, name: "temperature_humidity_meters" },
+  { id: 510, name: "other_temperature_humidity_measuring_instruments" },
+];
+export const mappingCategoryS_temperature_humidity_machine: {
+  [K in AnalysisProductCategoriesS_electronic_temperature_humidity_machine | string]: {
+    [key: string]: string;
+  };
+} = {
+  temperature_humidity_measuring_instruments: { ja: `温湿度関連測定器`, en: `` },
+  thermography: { ja: `サーモグラフィ`, en: `` },
+  radiation_thermometers: { ja: `放射温度計`, en: `` },
+  thermometers: { ja: `温度計`, en: `` },
+  temperature_humidity_meters: { ja: `温湿度計`, en: `` },
+  other_temperature_humidity_measuring_instruments: { ja: `その他温湿度測定器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 70, name: "electrical_machine" },
+// ------------------------- 🌠70. 電気計器・電位計 小分類 electrical_machine -------------------------
+// 511から
+
+/**
+ *【電気計器・電位計】Electrical Instruments & Voltmeters
+  電気計器・電位計 → electrical_instruments_voltmeters✅electrical_meters
+  絶縁抵抗計 → insulation_resistance_meters
+  EMC・静電気測定器 → emc_electrostatic_measuring_instruments✅emc_static_electricity_measuring_instruments
+  その他電気計器 → other_electrical_instruments✅other_electrical_measuring_instruments
+ */
+
+export const categoryS_electrical_machine_NameOnly: AnalysisProductCategoriesS_electrical_machine[] = [
+  "electrical_instruments_voltmeters",
+  "insulation_resistance_meters",
+  "emc_electrostatic_measuring_instruments",
+  "other_electrical_measuring_instruments",
+];
+export const categoryS_electrical_machine: {
+  id: number;
+  name: AnalysisProductCategoriesS_electrical_machine;
+}[] = [
+  { id: 511, name: "electrical_instruments_voltmeters" },
+  { id: 512, name: "insulation_resistance_meters" },
+  { id: 513, name: "emc_electrostatic_measuring_instruments" },
+  { id: 514, name: "other_electrical_measuring_instruments" },
+];
+export const mappingCategoryS_electrical_machine: {
+  [K in AnalysisProductCategoriesS_electrical_machine | string]: {
+    [key: string]: string;
+  };
+} = {
+  electrical_instruments_voltmeters: { ja: `その他温湿度測定器`, en: `` },
+  insulation_resistance_meters: { ja: `その他温湿度測定器`, en: `` },
+  emc_electrostatic_measuring_instruments: { ja: `その他温湿度測定器`, en: `` },
+  other_electrical_measuring_instruments: { ja: `その他温湿度測定器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 71, name: "coordinate_measuring_machine" },
+// ------------------------- 🌠71. 3次元測定器 小分類 coordinate_measuring_machine -------------------------
+// 515から
+
+/**
+ *【3次元測定器】Three-dimensional Measuring Instruments
+  三次元測定機 → three_dimensional_measuring_machines✅coordinate_measuring_machine
+ */
+
+export const categoryS_coordinate_measuring_machine_NameOnly: AnalysisProductCategoriesS_coordinate_measuring_machine[] =
+  ["coordinate_measuring_machine"];
+export const categoryS_coordinate_measuring_machine: {
+  id: number;
+  name: AnalysisProductCategoriesS_coordinate_measuring_machine;
+}[] = [{ id: 515, name: "coordinate_measuring_machine" }];
+export const mappingCategoryS_coordinate_measuring_machine: {
+  [K in AnalysisProductCategoriesS_coordinate_measuring_machine | string]: {
+    [key: string]: string;
+  };
+} = {
+  coordinate_measuring_machine: { ja: `三次元測定機`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 72, name: "other_measuring_machine" },
+// ------------------------- 🌠72. その他計測器 小分類 other_measuring_machine -------------------------
+// 516から
+
+/**
+ *【その他計測器】Other Measuring Instruments
+  流量計 → flow_meters
+  圧力計 → pressure_gauges
+  パーティクルカウンター → particle_counters
+  膜圧計 → diaphragm_pressure_gauges✅thickness_gauges
+  粘度計 → viscometers
+  トルク計 → torque_meters
+  レベル計・レベルスイッチ → level_meters_level_switches✅level_meters_switches
+  放射線測定器 → radiation_detectors✅radiation_measuring_instruments
+  計数機 → counters
+  その他計測・記録・測定器 → other_measurement_recording_devices✅other_measuring_recording_instruments
+ */
+
+export const categoryS_other_measuring_machine_NameOnly: AnalysisProductCategoriesS_other_measuring_machine[] = [
+  "flow_meters",
+  "pressure_gauges",
+  "particle_counters",
+  "diaphragm_pressure_gauges",
+  "viscometers",
+  "torque_meters",
+  "level_meters_switches",
+  "radiation_detectors",
+  "counters",
+  "other_measuring_recording_instruments",
+];
+export const categoryS_other_measuring_machine: {
+  id: number;
+  name: AnalysisProductCategoriesS_other_measuring_machine;
+}[] = [
+  { id: 516, name: "flow_meters" },
+  { id: 517, name: "pressure_gauges" },
+  { id: 518, name: "particle_counters" },
+  { id: 519, name: "diaphragm_pressure_gauges" },
+  { id: 520, name: "viscometers" },
+  { id: 521, name: "torque_meters" },
+  { id: 522, name: "level_meters_switches" },
+  { id: 523, name: "radiation_detectors" },
+  { id: 524, name: "counters" },
+  { id: 525, name: "other_measuring_recording_instruments" },
+];
+export const mappingCategoryS_other_measuring_machine: {
+  [K in AnalysisProductCategoriesS_other_measuring_machine | string]: {
+    [key: string]: string;
+  };
+} = {
+  flow_meters: { ja: `流量計`, en: `` },
+  pressure_gauges: { ja: `圧力計`, en: `` },
+  particle_counters: { ja: `パーティクルカウンター`, en: `` },
+  diaphragm_pressure_gauges: { ja: `膜圧計`, en: `` },
+  viscometers: { ja: `粘度計`, en: `` },
+  torque_meters: { ja: `トルク計`, en: `` },
+  level_meters_switches: { ja: `レベル計・レベルスイッチ`, en: `` },
+  radiation_detectors: { ja: `放射線測定器`, en: `` },
+  counters: { ja: `計数機`, en: `` },
+  other_measuring_recording_instruments: { ja: `その他計測・記録・測定器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 73, name: "testing_machine" },
+// ------------------------- 🌠73. 試験機器・装置 小分類 testing_machine -------------------------
+// 526から
+
+/**
+ *【試験機器・装置】Testing Equipment and Devices
+  試験機器・装置 → testing_equipment_devices✅testing_equipment
+  恒温槽 → constant_temperature_baths✅constant_temperature_chambers
+  振動試験 → vibration_tests✅vibration_testing
+  深傷試験 → deep_scratch_tests✅hardness_testing
+  強度試験装置 → strength_testing_equipment
+  衝撃試験 → impact_tests✅impact_testing
+  リーク試験装置 → leak_testing_equipment
+  耐候試験 → weather_resistance_tests✅耐候試験 - weather_resistance_testing
+  EMC試験 → emc_tests✅emc_testing
+  環境試験装置 → environmental_testing_equipment
+ */
+
+export const categoryS_testing_machine_NameOnly: AnalysisProductCategoriesS_testing_machine[] = [
+  "testing_equipment",
+  "constant_temperature_chambers",
+  "vibration_test",
+  "deep_scratch_test",
+  "strength_testing_equipment",
+  "impact_test",
+  "leak_testing_equipment",
+  "weather_resistance_test",
+  "emc_test",
+  "environmental_testing_equipment",
+];
+export const categoryS_testing_machine: {
+  id: number;
+  name: AnalysisProductCategoriesS_testing_machine;
+}[] = [
+  { id: 526, name: "testing_equipment" },
+  { id: 527, name: "constant_temperature_chambers" },
+  { id: 528, name: "vibration_test" },
+  { id: 529, name: "deep_scratch_test" },
+  { id: 530, name: "strength_testing_equipment" },
+  { id: 531, name: "impact_test" },
+  { id: 532, name: "leak_testing_equipment" },
+  { id: 533, name: "weather_resistance_test" },
+  { id: 534, name: "emc_test" },
+  { id: 535, name: "environmental_testing_equipment" },
+];
+export const mappingCategoryS_testing_machine: {
+  [K in AnalysisProductCategoriesS_testing_machine | string]: {
+    [key: string]: string;
+  };
+} = {
+  testing_equipment: { ja: `試験機器・装置`, en: `` },
+  constant_temperature_chambers: { ja: `恒温槽`, en: `` },
+  vibration_test: { ja: `振動試験`, en: `` },
+  deep_scratch_test: { ja: `深傷試験`, en: `` },
+  strength_testing_equipment: { ja: `強度試験装置`, en: `` },
+  impact_test: { ja: `衝撃試験`, en: `` },
+  leak_testing_equipment: { ja: `リーク試験装置`, en: `` },
+  weather_resistance_test: { ja: `耐候試験`, en: `` },
+  emc_test: { ja: `EMC試験`, en: `` },
+  environmental_testing_equipment: { ja: `環境試験装置`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 74, name: "inspection_machine" },
+// ------------------------- 🌠74. 検査機器・装置 小分類 inspection_machine -------------------------
+// 536から
+
+/**
+ *【検査機器・装置】Inspection Equipment and Devices
+  その他検査機器・装置 → other_inspection_equipment_devices✅other_inspection_equipment
+  X線検査装置 → x_ray_inspection_equipment
+  外観検査装置 → appearance_inspection_equipment✅visual_inspection_equipment
+  欠陥検査装置 → defect_inspection_equipment
+  プローブ → probes
+  評価ボード → evaluation_boards
+  基盤検査装置 → circuit_board_inspection_equipment✅pcb_inspection_equipment
+ */
+
+export const categoryS_inspection_machine_NameOnly: AnalysisProductCategoriesS_inspection_machine[] = [
+  "other_inspection_equipment",
+  "x_ray_inspection_equipment",
+  "visual_inspection_equipment",
+  "defect_inspection_equipment",
+  "probes",
+  "evaluation_boards",
+  "pcb_inspection_equipment",
+];
+export const categoryS_inspection_machine: {
+  id: number;
+  name: AnalysisProductCategoriesS_inspection_machine;
+}[] = [
+  { id: 536, name: "other_inspection_equipment" },
+  { id: 537, name: "x_ray_inspection_equipment" },
+  { id: 538, name: "visual_inspection_equipment" },
+  { id: 539, name: "defect_inspection_equipment" },
+  { id: 540, name: "probes" },
+  { id: 541, name: "evaluation_boards" },
+  { id: 542, name: "pcb_inspection_equipment" },
+];
+export const mappingCategoryS_inspection_machine: {
+  [K in AnalysisProductCategoriesS_inspection_machine | string]: {
+    [key: string]: string;
+  };
+} = {
+  other_inspection_equipment: { ja: `その他検査機器・装置`, en: `` },
+  x_ray_inspection_equipment: { ja: `X線検査装置`, en: `` },
+  visual_inspection_equipment: { ja: `外観検査装置`, en: `` },
+  defect_inspection_equipment: { ja: `欠陥検査装置`, en: `` },
+  probes: { ja: `プローブ`, en: `` },
+  evaluation_boards: { ja: `評価ボード`, en: `` },
+  pcb_inspection_equipment: { ja: `基盤検査装置`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 75, name: "microscopes" },
+// ------------------------- 🌠75. 顕微鏡・マイクロスコープ 小分類 microscopes -------------------------
+// 543から
+
+/**
+ *【顕微鏡・マイクロスコープ】Microscopes
+  光学顕微鏡 → optical_microscopes
+  電子顕微鏡 → electron_microscopes
+  レーザー顕微鏡 → laser_microscopes
+  工業用内視鏡 → industrial_endoscopes
+  その他顕微鏡・マイクロスコープ → other_microscopes
+ */
+
+export const categoryS_microscopes_NameOnly: AnalysisProductCategoriesS_microscopes[] = [
+  "optical_microscopes",
+  "electron_microscopes",
+  "laser_microscopes",
+  "industrial_endoscopes",
+  "other_microscopes",
+];
+export const categoryS_microscopes: {
+  id: number;
+  name: AnalysisProductCategoriesS_microscopes;
+}[] = [
+  { id: 543, name: "optical_microscopes" },
+  { id: 544, name: "electron_microscopes" },
+  { id: 545, name: "laser_microscopes" },
+  { id: 546, name: "industrial_endoscopes" },
+  { id: 547, name: "other_microscopes" },
+];
+export const mappingCategoryS_microscopes: {
+  [K in AnalysisProductCategoriesS_microscopes | string]: {
+    [key: string]: string;
+  };
+} = {
+  optical_microscopes: { ja: `基盤検査装置`, en: `` },
+  electron_microscopes: { ja: `基盤検査装置`, en: `` },
+  laser_microscopes: { ja: `基盤検査装置`, en: `` },
+  industrial_endoscopes: { ja: `基盤検査装置`, en: `` },
+  other_microscopes: { ja: `基盤検査装置`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 76, name: "recorders_loggers" },
+// ------------------------- 🌠76. 記録計・ロガー 小分類 recorders_loggers -------------------------
+// 548から
+
+/**
+ *【記録計・ロガー】Recorders and Loggers
+  データロガー → data_loggers
+  記録計・レコーダ → recorders
+ */
+
+export const categoryS_recorders_loggers_NameOnly: AnalysisProductCategoriesS_recorders_loggers[] = [
+  "data_loggers",
+  "recorders",
+];
+export const categoryS_recorders_loggers: {
+  id: number;
+  name: AnalysisProductCategoriesS_recorders_loggers;
+}[] = [
+  { id: 548, name: "data_loggers" },
+  { id: 549, name: "recorders" },
+];
+export const mappingCategoryS_recorders_loggers: {
+  [K in AnalysisProductCategoriesS_recorders_loggers | string]: {
+    [key: string]: string;
+  };
+} = {
+  data_loggers: { ja: `データロガー`, en: `` },
+  recorders: { ja: `記録計・レコーダ`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 77, name: "analytical_machine" },
+// ------------------------- 🌠77. 分析機器 小分類 analytical_machine -------------------------
+// 550から
+
+/**
+ *【分析機器】Analytical Instruments
+  分析機器・装置 → analytical_instruments_devices✅analytical_equipment
+  蛍光X線分析装置 → fluorescent_x_ray_analysis_equipment✅xrf_analyzers
+  分光分析装置 → spectroscopy_analysis_equipment✅spectral_analyzers
+ */
+
+export const categoryS_analytical_machine_NameOnly: AnalysisProductCategoriesS_analytical_machine[] = [
+  "analytical_equipment",
+  "xrf_analyzers",
+  "spectral_analyzers",
+];
+export const categoryS_analytical_machine: {
+  id: number;
+  name: AnalysisProductCategoriesS_analytical_machine;
+}[] = [
+  { id: 550, name: "analytical_equipment" },
+  { id: 551, name: "xrf_analyzers" },
+  { id: 552, name: "spectral_analyzers" },
+];
+export const mappingCategoryS_analytical_machine: {
+  [K in AnalysisProductCategoriesS_analytical_machine | string]: {
+    [key: string]: string;
+  };
+} = {
+  analytical_equipment: { ja: `分析機器・装置`, en: `` },
+  xrf_analyzers: { ja: `蛍光X線分析装置`, en: `` },
+  spectral_analyzers: { ja: `分光分析装置`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 78, name: "environmental_analysis_machine" },
+// ------------------------- 🌠78. 環境分析機器 小分類 environmental_analysis_machine -------------------------
+// 553から
+
+/**
+ *【環境分析機器】Environmental Analysis Equipment
+  風速・風量計 → wind_speed_volume_meters✅anemometers
+  水質検査 → water_quality_testing
+  土壌検査 → soil_testing
+  騒音検査 → noise_testing
+  振動検査 → vibration_testing
+  悪臭検査 → odor_testing
+  その他環境分析機器 → other_environmental_analysis_instruments✅other_environmental_analysis_equipment
+ */
+
+export const categoryS_environmental_analysis_machine_NameOnly: AnalysisProductCategoriesS_environmental_analysis_machine[] =
+  [
+    "anemometers",
+    "water_quality_testing",
+    "soil_testing",
+    "noise_testing",
+    "vibration_testing",
+    "odor_testing",
+    "other_environmental_analysis_equipment",
+  ];
+export const categoryS_environmental_analysis_machine: {
+  id: number;
+  name: AnalysisProductCategoriesS_environmental_analysis_machine;
+}[] = [
+  { id: 553, name: "anemometers" },
+  { id: 554, name: "water_quality_testing" },
+  { id: 555, name: "soil_testing" },
+  { id: 556, name: "noise_testing" },
+  { id: 557, name: "vibration_testing" },
+  { id: 558, name: "odor_testing" },
+  { id: 559, name: "other_environmental_analysis_equipment" },
+];
+export const mappingCategoryS_environmental_analysis_machine: {
+  [K in AnalysisProductCategoriesS_environmental_analysis_machine | string]: {
+    [key: string]: string;
+  };
+} = {
+  anemometers: { ja: `風速・風量計`, en: `` },
+  water_quality_testing: { ja: `水質検査`, en: `` },
+  soil_testing: { ja: `土壌検査`, en: `` },
+  noise_testing: { ja: `騒音検査`, en: `` },
+  vibration_testing: { ja: `振動検査`, en: `` },
+  odor_testing: { ja: `悪臭検査`, en: `` },
+  other_environmental_analysis_equipment: { ja: `その他環境分析機器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 79, name: "contracted_services" },
+// ------------------------- 🌠79. 受託サービス 小分類 contracted_services -------------------------
+// 560から
+
+/**
+ *【受託サービス】Contracted Services
+  受託解析 → contracted_analysis
+  受託測定 → contracted_measurement
+  受託検査 → contracted_inspection
+ */
+
+export const categoryS_contracted_services_analysis_NameOnly: AnalysisProductCategoriesS_contracted_services[] = [
+  "contracted_analysis",
+  "contracted_measurement",
+  "contracted_inspection",
+];
+export const categoryS_contracted_services_analysis: {
+  id: number;
+  name: AnalysisProductCategoriesS_contracted_services;
+}[] = [
+  { id: 560, name: "contracted_analysis" },
+  { id: 561, name: "contracted_measurement" },
+  { id: 562, name: "contracted_inspection" },
+];
+export const mappingCategoryS_contracted_services_analysis: {
+  [K in AnalysisProductCategoriesS_contracted_services | string]: {
+    [key: string]: string;
+  };
+} = {
+  contracted_analysis: { ja: `受託解析`, en: `` },
+  contracted_measurement: { ja: `受託測定`, en: `` },
+  contracted_inspection: { ja: `受託検査`, en: `` },
+};
 
 // -------------------------------------------------------------------------------------
 // =================== ✅「測定・分析」 大分類 measurement_analysis の小分類関連✅ ここまで ===================
+
+// =================== ✅「画像処理」 大分類 image_processing の小分類関連✅ ===================
+/**
+ * export const imageProcessingCategoryM: { id: number; name: ProductCategoriesMediumImageProcessing }[] = [
+  { id: 80, name: "cameras" },
+  { id: 81, name: "lenses" },
+  { id: 82, name: "light_sources_lighting" },
+  { id: 83, name: "image_processing" },
+  { id: 84, name: "security_surveillance_systems" },
+  { id: 85, name: "barcode_readers" },
+];
+export const mappingImageProcessingCategoryM: {
+  [K in ProductCategoriesMediumImageProcessing | string]: { [key: string]: string };
+} = {
+  cameras: { ja: "カメラ", en: `` }, // 1
+  lenses: { ja: "レンズ", en: `` }, // 2
+  light_sources_lighting: { ja: "光源・照明", en: `` }, // 3
+  image_processing: { ja: "画像処理", en: `` }, // 4
+  security_surveillance_systems: { ja: "セキュリティ・監視システム", en: `` }, // 5
+  barcode_readers: { ja: "バーコードリーダー", en: `` }, // 6
+};
+ */
+
+// { id: 80, name: "cameras" },
+// ------------------------- 🌠80. カメラ 小分類 cameras -------------------------
+// 563から
+
+/**
+ *【カメラ】Cameras
+  カラーカメラ → color_cameras
+  モノクロカメラ → monochrome_cameras
+  ハイスピードカメラ → high_speed_cameras
+ */
+
+export const categoryS_cameras_NameOnly: ImageProcessingProductCategoriesS_cameras[] = [
+  "color_cameras",
+  "monochrome_cameras",
+  "high_speed_cameras",
+];
+export const categoryS_cameras: {
+  id: number;
+  name: ImageProcessingProductCategoriesS_cameras;
+}[] = [
+  { id: 563, name: "color_cameras" },
+  { id: 564, name: "monochrome_cameras" },
+  { id: 565, name: "high_speed_cameras" },
+];
+export const mappingCategoryS_cameras: {
+  [K in ImageProcessingProductCategoriesS_cameras | string]: {
+    [key: string]: string;
+  };
+} = {
+  color_cameras: { ja: `カラーカメラ`, en: `` },
+  monochrome_cameras: { ja: `モノクロカメラ`, en: `` },
+  high_speed_cameras: { ja: `ハイスピードカメラ`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 81, name: "lenses" },
+// ------------------------- 🌠81. レンズ 小分類 lenses -------------------------
+// 566から
+
+/**
+ *【レンズ】Lenses
+  レンズ → lenses
+ */
+
+export const categoryS_lenses_NameOnly: ImageProcessingProductCategoriesS_lenses[] = ["lenses"];
+export const categoryS_lenses: {
+  id: number;
+  name: ImageProcessingProductCategoriesS_lenses;
+}[] = [{ id: 566, name: "lenses" }];
+export const mappingCategoryS_lenses: {
+  [K in ImageProcessingProductCategoriesS_lenses | string]: {
+    [key: string]: string;
+  };
+} = {
+  lenses: { ja: `レンズ`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 82, name: "light_sources_lighting" },
+// ------------------------- 🌠82. 光源・照明 小分類 light_sources_lighting -------------------------
+// 567から
+
+/**
+ *【光源・照明】Light Sources & Lighting
+  画像処理用照明 → image_processing_lights✅illumination_for_image_processing
+  その他照明機器 → other_lighting_equipment
+ */
+
+export const categoryS_light_sources_lighting_NameOnly: ImageProcessingProductCategoriesS_light_sources_lighting[] = [
+  "image_processing_lights",
+  "other_lighting_equipment",
+];
+export const categoryS_light_sources_lighting: {
+  id: number;
+  name: ImageProcessingProductCategoriesS_light_sources_lighting;
+}[] = [
+  { id: 567, name: "image_processing_lights" },
+  { id: 568, name: "other_lighting_equipment" },
+];
+export const mappingCategoryS_light_sources_lighting: {
+  [K in ImageProcessingProductCategoriesS_light_sources_lighting | string]: {
+    [key: string]: string;
+  };
+} = {
+  image_processing_lights: { ja: `画像処理用照明`, en: `` },
+  other_lighting_equipment: { ja: `その他照明機器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 83, name: "image_processing" },
+// ------------------------- 🌠83. 画像処理 小分類 image_processing -------------------------
+// 569から
+
+/**
+ *【画像処理】image_processing
+  画像入力ボード → image_input_boards
+  画像処理ボード → image_processing_boards
+  画像処理ソフト → image_processing_software
+  画像処理機器 → image_processing_equipment
+  画像解析ソフト → image_analysis_software
+  エンコーダ・デコーダ → encoders_decoders
+  ビデオレコーダ → video_recorders
+  画像伝送機器 → image_transmission_equipment
+  バーチャルリアリティ関連 → virtual_reality_related
+  その他画像関連機器 → other_image_related_equipment
+ */
+
+export const categoryS_image_processing_NameOnly: ImageProcessingProductCategoriesS_image_processing[] = [
+  "image_input_boards",
+  "image_processing_boards",
+  "image_processing_software",
+  "image_processing_equipment",
+  "image_analysis_software",
+  "encoders_decoders",
+  "video_recorders",
+  "image_transmission_equipment",
+  "virtual_reality_related",
+  "other_image_related_equipment",
+];
+export const categoryS_image_processing: {
+  id: number;
+  name: ImageProcessingProductCategoriesS_image_processing;
+}[] = [
+  { id: 569, name: "image_input_boards" },
+  { id: 570, name: "image_processing_boards" },
+  { id: 571, name: "image_processing_software" },
+  { id: 572, name: "image_processing_equipment" },
+  { id: 573, name: "image_analysis_software" },
+  { id: 574, name: "encoders_decoders" },
+  { id: 575, name: "video_recorders" },
+  { id: 576, name: "image_transmission_equipment" },
+  { id: 577, name: "virtual_reality_related" },
+  { id: 578, name: "other_image_related_equipment" },
+];
+export const mappingCategoryS_image_processing: {
+  [K in ImageProcessingProductCategoriesS_image_processing | string]: {
+    [key: string]: string;
+  };
+} = {
+  image_input_boards: { ja: `画像入力ボード`, en: `` },
+  image_processing_boards: { ja: `画像処理ボード`, en: `` },
+  image_processing_software: { ja: `画像処理ソフト`, en: `` },
+  image_processing_equipment: { ja: `画像処理機器`, en: `` },
+  image_analysis_software: { ja: `画像解析ソフト`, en: `` },
+  encoders_decoders: { ja: `エンコーダ・デコーダ`, en: `` },
+  video_recorders: { ja: `ビデオレコーダ`, en: `` },
+  image_transmission_equipment: { ja: `画像伝送機器`, en: `` },
+  virtual_reality_related: { ja: `バーチャルリアリティ関連`, en: `` },
+  other_image_related_equipment: { ja: `その他画像関連機器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 84, name: "security_surveillance_systems" },
+// ------------------------- 🌠84. セキュリティ・監視システム 小分類 security_surveillance_systems -------------------------
+// 579から
+
+/**
+ *【セキュリティ・監視システム】Security & Surveillance Systems
+  監視カメラ → surveillance_cameras
+  監視カメラシステム → surveillance_camera_systems
+  その他セキュリティ・監視システム → other_security_surveillance_systems
+ */
+
+export const categoryS_security_surveillance_systems_NameOnly: ImageProcessingProductCategoriesS_security_surveillance_systems[] =
+  ["surveillance_cameras", "surveillance_camera_systems", "other_security_surveillance_systems"];
+export const categoryS_security_surveillance_systems: {
+  id: number;
+  name: ImageProcessingProductCategoriesS_security_surveillance_systems;
+}[] = [
+  { id: 579, name: "surveillance_cameras" },
+  { id: 580, name: "surveillance_camera_systems" },
+  { id: 581, name: "other_security_surveillance_systems" },
+];
+export const mappingCategoryS_security_surveillance_systems: {
+  [K in ImageProcessingProductCategoriesS_security_surveillance_systems | string]: {
+    [key: string]: string;
+  };
+} = {
+  surveillance_cameras: { ja: `監視カメラ`, en: `` },
+  surveillance_camera_systems: { ja: `監視カメラシステム`, en: `` },
+  other_security_surveillance_systems: { ja: `その他セキュリティ・監視システム`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 85, name: "barcode_readers" },
+// ------------------------- 🌠85. バーコードリーダー 小分類 barcode_readers -------------------------
+// 582から
+
+/**
+ *【バーコードリーダー】Barcode Readers
+  固定式バーコードリーダ → fixed_barcode_readers
+  ハンディ式バーコードリーダ → handheld_barcode_readers
+  2次元コードリーダ → two_dimensional_code_readers✅2d_code_readers
+  その他コードリーダ → other_code_readers
+  ICタグリーダ・ライタ → ic_tag_readers_writers
+ */
+
+export const categoryS_barcode_readers_NameOnly: ImageProcessingProductCategoriesS_barcode_readers[] = [
+  "fixed_barcode_readers",
+  "handheld_barcode_readers",
+  "two_dimensional_code_readers",
+  "other_code_readers",
+  "ic_tag_readers_writers",
+];
+export const categoryS_barcode_readers: {
+  id: number;
+  name: ImageProcessingProductCategoriesS_barcode_readers;
+}[] = [
+  { id: 582, name: "fixed_barcode_readers" },
+  { id: 583, name: "handheld_barcode_readers" },
+  { id: 584, name: "two_dimensional_code_readers" },
+  { id: 585, name: "other_code_readers" },
+  { id: 586, name: "ic_tag_readers_writers" },
+];
+export const mappingCategoryS_barcode_readers: {
+  [K in ImageProcessingProductCategoriesS_barcode_readers | string]: {
+    [key: string]: string;
+  };
+} = {
+  fixed_barcode_readers: { ja: `固定式バーコードリーダ`, en: `` },
+  handheld_barcode_readers: { ja: `ハンディ式バーコードリーダ`, en: `` },
+  two_dimensional_code_readers: { ja: `2次元コードリーダ`, en: `` },
+  other_code_readers: { ja: `その他コードリーダ`, en: `` },
+  ic_tag_readers_writers: { ja: `ICタグリーダ・ライタ`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// =================== ✅「画像処理」 大分類 image_processing の小分類関連✅ ここまで ===================
+
+// =================== ✅「制御・電機機器」 大分類 control_electrical_equipment の小分類関連✅ ===================
+/**
+ * export const controlEquipmentCategoryM: { id: number; name: ProductCategoriesMediumControlEquipment }[] = [
+  { id: 86, name: "process_control_equipment" },
+  { id: 87, name: "fa_equipment" },
+  { id: 88, name: "safety_equipment" },
+  { id: 89, name: "environmental_equipment" },
+  { id: 90, name: "filters" },
+  { id: 91, name: "clean_rooms" },
+  { id: 92, name: "lighting" },
+  { id: 93, name: "air_conditioning_equipment" },
+  { id: 94, name: "water_treatment_equipment" },
+  { id: 95, name: "static_electricity_measures" },
+  { id: 96, name: "energy_equipment" },
+];
+export const mappingControlEquipmentCategoryM: {
+  [K in ProductCategoriesMediumControlEquipment | string]: { [key: string]: string };
+} = {
+  process_control_equipment: { ja: "プロセス制御機器", en: `` }, // 1
+  fa_equipment: { ja: "FA機器", en: `` }, // 2
+  safety_equipment: { ja: "安全機器", en: `` }, // 3
+  environmental_equipment: { ja: "環境機器", en: `` }, // 4
+  filters: { ja: "フィルタ", en: `` }, // 5
+  clean_rooms: { ja: "クリーンルーム", en: `` }, // 6
+  lighting: { ja: "照明", en: `` }, // 7
+  air_conditioning_equipment: { ja: "空調機器", en: `` }, // 8
+  water_treatment_equipment: { ja: "水処理装置", en: `` }, // 9
+  static_electricity_measures: { ja: "静電気対策", en: `` }, // 10
+  energy_equipment: { ja: "エネルギー機器", en: `` }, // 11
+};
+ */
+
+// { id: 86, name: "process_control_equipment" },
+// ------------------------- 🌠86. プロセス制御機器 小分類 process_control_equipment -------------------------
+// 587から
+
+/**
+ *【プロセス制御機器】Process Control Equipment
+  流量制御 → flow_control
+  圧力制御 → pressure_control
+  温湿度制御 → temperature_humidity_control
+  液面制御・レベルスイッチ → liquid_level_control_level_switches
+  計量制御 → measurement_control✅weighing_control
+  遠隔制御 → remote_control
+  計装制御システム → instrumentation_control_systems
+  トルク制御 → torque_control
+  振動監視 → vibration_monitoring
+  その他プロセス制御 → other_process_control
+ */
+
+export const categoryS_process_control_equipment_NameOnly: ControlEquipmentProductCategoriesS_process_control_equipment[] =
+  [
+    "flow_control",
+    "pressure_control",
+    "temperature_humidity_control",
+    "liquid_level_control_level_switches",
+    "weighing_control",
+    "remote_control",
+    "instrumentation_control_systems",
+    "torque_control",
+    "vibration_monitoring",
+    "other_process_control",
+  ];
+export const categoryS_process_control_equipment: {
+  id: number;
+  name: ControlEquipmentProductCategoriesS_process_control_equipment;
+}[] = [
+  { id: 587, name: "flow_control" },
+  { id: 588, name: "pressure_control" },
+  { id: 589, name: "temperature_humidity_control" },
+  { id: 590, name: "liquid_level_control_level_switches" },
+  { id: 591, name: "weighing_control" },
+  { id: 592, name: "remote_control" },
+  { id: 593, name: "instrumentation_control_systems" },
+  { id: 594, name: "torque_control" },
+  { id: 595, name: "vibration_monitoring" },
+  { id: 596, name: "other_process_control" },
+];
+export const mappingCategoryS_process_control_equipment: {
+  [K in ControlEquipmentProductCategoriesS_process_control_equipment | string]: {
+    [key: string]: string;
+  };
+} = {
+  flow_control: { ja: `流量制御`, en: `` },
+  pressure_control: { ja: `圧力制御`, en: `` },
+  temperature_humidity_control: { ja: `温湿度制御`, en: `` },
+  liquid_level_control_level_switches: { ja: `液面制御・レベルスイッチ`, en: `` },
+  weighing_control: { ja: `計量制御`, en: `` },
+  remote_control: { ja: `遠隔制御`, en: `` },
+  instrumentation_control_systems: { ja: `計装制御システム`, en: `` },
+  torque_control: { ja: `トルク制御`, en: `` },
+  vibration_monitoring: { ja: `振動監視`, en: `` },
+  other_process_control: { ja: `その他プロセス制御`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 87, name: "fa_equipment" },
+// ------------------------- 🌠87. FA機器 小分類 fa_equipment -------------------------
+// 597から
+
+/**
+ *【FA機器】Factory Automation Equipment
+  PLC → plc
+  コントローラ → controllers
+  NC装置 → nc_devices✅nc_equipment
+  表示器 → displays
+  サーボ → servos
+  インバータ → inverters
+  リレー → relays
+  タイマー → timers
+  カウンタ → counters
+  スイッチ → switches
+  センサ → sensors
+  電源 → power_supplies
+  トランス・変圧器 → transformers
+  制御盤 → control_panels
+  分電器 → distribution_boards
+  キャビネット・ボックス → cabinets_boxes
+  ラック → racks
+  その他ボックス → other_boxes
+  コネクタ → connectors
+  端子台 → terminal_blocks
+  盤用部材 → panel_components
+  その他FA機器 → other_fa_equipment
+ */
+
+export const categoryS_fa_equipment_NameOnly: ControlEquipmentProductCategoriesS_fa_equipment[] = [
+  "plc",
+  "controllers",
+  "nc_equipment",
+  "displays",
+  "servos",
+  "inverters",
+  "relays",
+  "timers",
+  "counters",
+  "switches",
+  "sensors",
+  "power_supplies",
+  "transformers",
+  "control_panels",
+  "distribution_boards",
+  "cabinets_boxes",
+  "racks",
+  "other_boxes",
+  "connectors",
+  "terminal_blocks",
+  "panel_components",
+  "other_fa_equipment",
+];
+export const categoryS_fa_equipment: {
+  id: number;
+  name: ControlEquipmentProductCategoriesS_fa_equipment;
+}[] = [
+  { id: 597, name: "plc" },
+  { id: 598, name: "controllers" },
+  { id: 599, name: "nc_equipment" },
+  { id: 600, name: "displays" },
+  { id: 601, name: "servos" },
+  { id: 602, name: "inverters" },
+  { id: 603, name: "relays" },
+  { id: 604, name: "timers" },
+  { id: 605, name: "counters" },
+  { id: 606, name: "switches" },
+  { id: 607, name: "sensors" },
+  { id: 608, name: "power_supplies" },
+  { id: 609, name: "transformers" },
+  { id: 610, name: "control_panels" },
+  { id: 611, name: "distribution_boards" },
+  { id: 612, name: "cabinets_boxes" },
+  { id: 613, name: "racks" },
+  { id: 614, name: "other_boxes" },
+  { id: 615, name: "connectors" },
+  { id: 616, name: "terminal_blocks" },
+  { id: 617, name: "panel_components" },
+  { id: 618, name: "other_fa_equipment" },
+];
+export const mappingCategoryS_fa_equipment: {
+  [K in ControlEquipmentProductCategoriesS_fa_equipment | string]: {
+    [key: string]: string;
+  };
+} = {
+  plc: { ja: `PLC`, en: `` },
+  controllers: { ja: `コントローラ`, en: `` },
+  nc_equipment: { ja: `NC装置`, en: `` },
+  displays: { ja: `表示器`, en: `` },
+  servos: { ja: `サーボ`, en: `` },
+  inverters: { ja: `インバータ`, en: `` },
+  relays: { ja: `リレー`, en: `` },
+  timers: { ja: `タイマー`, en: `` },
+  counters: { ja: `カウンタ`, en: `` },
+  switches: { ja: `スイッチ`, en: `` },
+  sensors: { ja: `センサ`, en: `` },
+  power_supplies: { ja: `電源`, en: `` },
+  transformers: { ja: `トランス・変圧器`, en: `` },
+  control_panels: { ja: `制御盤`, en: `` },
+  distribution_boards: { ja: `分電器`, en: `` },
+  cabinets_boxes: { ja: `キャビネット・ボックス`, en: `` },
+  racks: { ja: `ラック`, en: `` },
+  other_boxes: { ja: `その他ボックス`, en: `` },
+  connectors: { ja: `コネクタ`, en: `` },
+  terminal_blocks: { ja: `端子台`, en: `` },
+  panel_components: { ja: `盤用部材`, en: `` },
+  other_fa_equipment: { ja: `その他FA機器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 88, name: "safety_equipment" },
+// ------------------------- 🌠88. 安全機器 小分類 safety_equipment -------------------------
+// 619から
+
+/**
+ *【安全機器】Safety Equipment
+  表示灯 → indicator_lights
+  ライトカーテン → light_curtains
+  エリアセンサ → area_sensors
+  安全コントローラ → safety_controllers
+  安全スイッチ → safety_switches
+  安全ドアスイッチ → safety_door_switches
+  安全センサ → safety_sensors
+  安全リレー → safety_relays
+  信号灯・回転灯 → signal_lights_rotating_lights
+  遮断器・開閉器 → circuit_breakers_switches
+  その他安全機器 → other_safety_equipment
+ */
+
+export const categoryS_safety_equipment_NameOnly: ControlEquipmentProductCategoriesS_safety_equipment[] = [
+  "indicator_lights",
+  "light_curtains",
+  "area_sensors",
+  "safety_controllers",
+  "safety_switches",
+  "safety_door_switches",
+  "safety_sensors",
+  "safety_relays",
+  "signal_lights_rotating_lights",
+  "circuit_breakers_switches",
+  "other_safety_equipment",
+];
+export const categoryS_safety_equipment: {
+  id: number;
+  name: ControlEquipmentProductCategoriesS_safety_equipment;
+}[] = [
+  { id: 619, name: "indicator_lights" },
+  { id: 620, name: "light_curtains" },
+  { id: 621, name: "area_sensors" },
+  { id: 622, name: "safety_controllers" },
+  { id: 623, name: "safety_switches" },
+  { id: 624, name: "safety_door_switches" },
+  { id: 625, name: "safety_sensors" },
+  { id: 626, name: "safety_relays" },
+  { id: 627, name: "signal_lights_rotating_lights" },
+  { id: 628, name: "circuit_breakers_switches" },
+  { id: 629, name: "other_safety_equipment" },
+];
+export const mappingCategoryS_safety_equipment: {
+  [K in ControlEquipmentProductCategoriesS_safety_equipment | string]: {
+    [key: string]: string;
+  };
+} = {
+  indicator_lights: { ja: `表示灯`, en: `` },
+  light_curtains: { ja: `ライトカーテン`, en: `` },
+  area_sensors: { ja: `エリアセンサ`, en: `` },
+  safety_controllers: { ja: `安全コントローラ`, en: `` },
+  safety_switches: { ja: `安全スイッチ`, en: `` },
+  safety_door_switches: { ja: `安全ドアスイッチ`, en: `` },
+  safety_sensors: { ja: `安全センサ`, en: `` },
+  safety_relays: { ja: `安全リレー`, en: `` },
+  signal_lights_rotating_lights: { ja: `信号灯・回転灯`, en: `` },
+  circuit_breakers_switches: { ja: `遮断器・開閉器`, en: `` },
+  other_safety_equipment: { ja: `その他安全機器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 89, name: "environmental_equipment" },
+// ------------------------- 🌠89. 環境機器 小分類 environmental_equipment -------------------------
+// 630から
+
+/**
+ *【環境機器】Environmental Equipment
+  空気清浄機 → air_purifiers
+  オイルミストコレクタ → oil_mist_collectors
+  集塵機 → dust_collectors
+  除湿装置 → dehumidifiers
+  加湿装置 → humidifiers
+  ガス回収・処理装置 → gas_recovery_processing_units✅gas_recovery_treatment_equipment
+  焼却炉・焼却装置 → incinerators
+  防振・耐震・免震装置 → anti_vibration_earthquake_protection_devices✅vibration_resistant_devices
+  有害物質処理 → hazardous_material_processing✅hazardous_materials_treatment
+  その他環境機器 → other_environmental_equipment
+  冷却装置 → cooling_devices✅cooling_equipment
+  ボイラ → boilers
+  熱交換器 → heat_exchangers
+  チラー → chillers
+ */
+
+export const categoryS_environmental_equipment_NameOnly: ControlEquipmentProductCategoriesS_environmental_equipment[] =
+  [
+    "air_purifiers",
+    "oil_mist_collectors",
+    "dust_collectors",
+    "dehumidifiers",
+    "humidifiers",
+    "gas_recovery_treatment_equipment",
+    "incinerators",
+    "vibration_resistant_devices",
+    "hazardous_materials_treatment",
+    "other_environmental_equipment",
+    "cooling_equipment",
+    "boilers",
+    "heat_exchangers",
+    "chillers",
+  ];
+export const categoryS_environmental_equipment: {
+  id: number;
+  name: ControlEquipmentProductCategoriesS_environmental_equipment;
+}[] = [
+  { id: 630, name: "air_purifiers" },
+  { id: 631, name: "oil_mist_collectors" },
+  { id: 632, name: "dust_collectors" },
+  { id: 633, name: "dehumidifiers" },
+  { id: 634, name: "humidifiers" },
+  { id: 635, name: "gas_recovery_treatment_equipment" },
+  { id: 636, name: "incinerators" },
+  { id: 637, name: "vibration_resistant_devices" },
+  { id: 638, name: "hazardous_materials_treatment" },
+  { id: 639, name: "other_environmental_equipment" },
+  { id: 640, name: "cooling_equipment" },
+  { id: 641, name: "boilers" },
+  { id: 642, name: "heat_exchangers" },
+  { id: 643, name: "chillers" },
+];
+export const mappingCategoryS_environmental_equipment: {
+  [K in ControlEquipmentProductCategoriesS_environmental_equipment | string]: {
+    [key: string]: string;
+  };
+} = {
+  air_purifiers: { ja: `空気清浄機`, en: `` },
+  oil_mist_collectors: { ja: `オイルミストコレクタ`, en: `` },
+  dust_collectors: { ja: `集塵機`, en: `` },
+  dehumidifiers: { ja: `除湿装置`, en: `` },
+  humidifiers: { ja: `加湿装置`, en: `` },
+  gas_recovery_treatment_equipment: { ja: `ガス回収・処理装置`, en: `` },
+  incinerators: { ja: `焼却炉・焼却装置`, en: `` },
+  vibration_resistant_devices: { ja: `防振・耐震・免震装置`, en: `` },
+  hazardous_materials_treatment: { ja: `有害物質処理`, en: `` },
+  other_environmental_equipment: { ja: `その他環境機器`, en: `` },
+  cooling_equipment: { ja: `冷却装置`, en: `` },
+  boilers: { ja: `ボイラ`, en: `` },
+  heat_exchangers: { ja: `熱交換器`, en: `` },
+  chillers: { ja: `チラー`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 90, name: "filters" },
+// ------------------------- 🌠90. フィルタ 小分類 filters -------------------------
+// 644から
+
+/**
+ *【フィルタ】Filters
+  その他フィルタ → other_filters
+  バッグフィルタ → bag_filters
+  ガスフィルタ → gas_filters
+  固液分離フィルタ → solid_liquid_separation_filters
+  液液分離フィルタ → liquid_liquid_separation_filters
+ */
+
+export const categoryS_filters_NameOnly: ControlEquipmentProductCategoriesS_filters[] = [
+  "other_filters",
+  "bag_filters",
+  "gas_filters",
+  "solid_liquid_separation_filters",
+  "liquid_liquid_separation_filters",
+];
+export const categoryS_filters: {
+  id: number;
+  name: ControlEquipmentProductCategoriesS_filters;
+}[] = [
+  { id: 644, name: "other_filters" },
+  { id: 645, name: "bag_filters" },
+  { id: 646, name: "gas_filters" },
+  { id: 647, name: "solid_liquid_separation_filters" },
+  { id: 648, name: "liquid_liquid_separation_filters" },
+];
+export const mappingCategoryS_filters: {
+  [K in ControlEquipmentProductCategoriesS_filters | string]: {
+    [key: string]: string;
+  };
+} = {
+  other_filters: { ja: `その他フィルタ`, en: `` },
+  bag_filters: { ja: `バッグフィルタ`, en: `` },
+  gas_filters: { ja: `ガスフィルタ`, en: `` },
+  solid_liquid_separation_filters: { ja: `固液分離フィルタ`, en: `` },
+  liquid_liquid_separation_filters: { ja: `液液分離フィルタ`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 91, name: "clean_rooms" },
+// ------------------------- 🌠91. クリーンルーム 小分類 clean_rooms -------------------------
+// 649から
+
+/**
+ *【クリーンルーム】Cleanrooms
+  ドラフトチャンバー → draft_chambers
+  ファンフィルタユニット → fan_filter_units
+  フィルタユニット → filter_units
+  エアシャワー → air_showers
+  靴底洗浄機 → shoe_sole_cleaners
+  パスボックス → pass_boxes
+  グローブボックス → glove_boxes
+  クリーンベンチ → clean_benches
+  クリーンブース → clean_booths
+  その他クリーンルーム用機器・設備 → other_cleanroom_equipment_facilities✅other_cleanroom_equipment
+ */
+
+export const categoryS_clean_rooms_NameOnly: ControlEquipmentProductCategoriesS_clean_rooms[] = [
+  "draft_chambers",
+  "fan_filter_units",
+  "filter_units",
+  "air_showers",
+  "shoe_sole_cleaners",
+  "pass_boxes",
+  "glove_boxes",
+  "clean_benches",
+  "clean_booths",
+  "other_cleanroom_equipment",
+];
+export const categoryS_clean_rooms: {
+  id: number;
+  name: ControlEquipmentProductCategoriesS_clean_rooms;
+}[] = [
+  { id: 648, name: "draft_chambers" },
+  { id: 649, name: "fan_filter_units" },
+  { id: 650, name: "filter_units" },
+  { id: 651, name: "air_showers" },
+  { id: 652, name: "shoe_sole_cleaners" },
+  { id: 653, name: "pass_boxes" },
+  { id: 654, name: "glove_boxes" },
+  { id: 655, name: "clean_benches" },
+  { id: 656, name: "clean_booths" },
+  { id: 657, name: "other_cleanroom_equipment" },
+];
+export const mappingCategoryS_clean_rooms: {
+  [K in ControlEquipmentProductCategoriesS_clean_rooms | string]: {
+    [key: string]: string;
+  };
+} = {
+  draft_chambers: { ja: `ドラフトチャンバー`, en: `` },
+  fan_filter_units: { ja: `ファンフィルタユニット`, en: `` },
+  filter_units: { ja: `フィルタユニット`, en: `` },
+  air_showers: { ja: `エアシャワー`, en: `` },
+  shoe_sole_cleaners: { ja: `靴底洗浄機`, en: `` },
+  pass_boxes: { ja: `パスボックス`, en: `` },
+  glove_boxes: { ja: `グローブボックス`, en: `` },
+  clean_benches: { ja: `クリーンベンチ`, en: `` },
+  clean_booths: { ja: `クリーンブース`, en: `` },
+  other_cleanroom_equipment: { ja: `その他クリーンルーム用機器・設備`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 92, name: "lighting" },
+// ------------------------- 🌠92. 照明 小分類 lighting -------------------------
+// 658から
+
+/**
+ *【照明】Lighting
+  その他照明器具 → other_lighting_fixtures
+  作業灯 → work_lights
+  メタルハライドランプ → metal_halide_lamps
+  水銀灯 → mercury_lamps
+  蛍光灯 → fluorescent_lamps
+  LED蛍光灯 → led_fluorescent_lamps
+  LED照明 → led_lighting
+  投光器 → floodlights
+ */
+
+export const categoryS_lighting_NameOnly: ControlEquipmentProductCategoriesS_lighting[] = [
+  "other_lighting_fixtures",
+  "work_lights",
+  "metal_halide_lamps",
+  "mercury_lamps",
+  "fluorescent_lamps",
+  "led_fluorescent_lamps",
+  "led_lighting",
+  "floodlights",
+];
+export const categoryS_lighting: {
+  id: number;
+  name: ControlEquipmentProductCategoriesS_lighting;
+}[] = [
+  { id: 658, name: "other_lighting_fixtures" },
+  { id: 659, name: "work_lights" },
+  { id: 660, name: "metal_halide_lamps" },
+  { id: 661, name: "mercury_lamps" },
+  { id: 662, name: "fluorescent_lamps" },
+  { id: 663, name: "led_fluorescent_lamps" },
+  { id: 664, name: "led_lighting" },
+  { id: 665, name: "floodlights" },
+];
+export const mappingCategoryS_lighting: {
+  [K in ControlEquipmentProductCategoriesS_lighting | string]: {
+    [key: string]: string;
+  };
+} = {
+  other_lighting_fixtures: { ja: `その他照明器具`, en: `` },
+  work_lights: { ja: `作業灯`, en: `` },
+  metal_halide_lamps: { ja: `メタルハライドランプ`, en: `` },
+  mercury_lamps: { ja: `水銀灯`, en: `` },
+  fluorescent_lamps: { ja: `蛍光灯`, en: `` },
+  led_fluorescent_lamps: { ja: `LED蛍光灯`, en: `` },
+  led_lighting: { ja: `LED照明`, en: `` },
+  floodlights: { ja: `投光器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 93, name: "air_conditioning_equipment" },
+// ------------------------- 🌠93. 空調機器 小分類 air_conditioning_equipment -------------------------
+// 666から
+
+/**
+ *【空調機器】Air Conditioning Equipment
+  空調 → air_conditioning
+  換気・排気 → ventilation_exhaust
+  制御盤クーラー → control_panel_coolers
+  クーリングタワー → cooling_towers
+  その他空調機器 → other_air_conditioning_equipment
+ */
+
+export const categoryS_air_conditioning_equipment_NameOnly: ControlEquipmentProductCategoriesS_air_conditioning_equipment[] =
+  [
+    "air_conditioning",
+    "ventilation_exhaust",
+    "control_panel_coolers",
+    "cooling_towers",
+    "other_air_conditioning_equipment",
+  ];
+export const categoryS_air_conditioning_equipment: {
+  id: number;
+  name: ControlEquipmentProductCategoriesS_air_conditioning_equipment;
+}[] = [
+  { id: 666, name: "air_conditioning" },
+  { id: 667, name: "ventilation_exhaust" },
+  { id: 668, name: "control_panel_coolers" },
+  { id: 669, name: "cooling_towers" },
+  { id: 670, name: "other_air_conditioning_equipment" },
+];
+export const mappingCategoryS_air_conditioning_equipment: {
+  [K in ControlEquipmentProductCategoriesS_air_conditioning_equipment | string]: {
+    [key: string]: string;
+  };
+} = {
+  air_conditioning: { ja: `空調`, en: `` },
+  ventilation_exhaust: { ja: `換気・排気`, en: `` },
+  control_panel_coolers: { ja: `制御盤クーラー`, en: `` },
+  cooling_towers: { ja: `クーリングタワー`, en: `` },
+  other_air_conditioning_equipment: { ja: `その他空調機器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 94, name: "water_treatment_equipment" },
+// ------------------------- 🌠94. 水処理装置 小分類 water_treatment_equipment -------------------------
+// 671から
+
+/**
+ *【水処理装置】Water Treatment Devices
+  水処理装置 → water_treatment_devices✅water_treatment_equipment
+  活水装置 → water_activators
+  ろ過装置 → filtration_devices✅water_activators
+  曝気・散気装置 → aeration_diffusion_devices✅aeration_diffusion_equipment
+  廃液・排水処理装置 → waste_water_treatment_devices✅wastewater_treatment_equipment
+  油水分離装置 → oil_water_separators✅oil_water_separation_equipment
+  その他水処理装置 → other_water_treatment_devices✅other_water_treatment_equipment
+ */
+
+export const categoryS_water_treatment_equipment_NameOnly: ControlEquipmentProductCategoriesS_water_treatment_equipment[] =
+  [
+    "water_treatment_equipment",
+    "water_activators",
+    "filtration_devices",
+    "aeration_diffusion_equipment",
+    "wastewater_treatment_equipment",
+    "oil_water_separators",
+    "other_water_treatment_equipment",
+  ];
+export const categoryS_water_treatment_equipment: {
+  id: number;
+  name: ControlEquipmentProductCategoriesS_water_treatment_equipment;
+}[] = [
+  { id: 671, name: "water_treatment_equipment" },
+  { id: 672, name: "water_activators" },
+  { id: 673, name: "filtration_devices" },
+  { id: 674, name: "aeration_diffusion_equipment" },
+  { id: 675, name: "wastewater_treatment_equipment" },
+  { id: 676, name: "oil_water_separators" },
+  { id: 677, name: "other_water_treatment_equipment" },
+];
+export const mappingCategoryS_water_treatment_equipment: {
+  [K in ControlEquipmentProductCategoriesS_water_treatment_equipment | string]: {
+    [key: string]: string;
+  };
+} = {
+  water_treatment_equipment: { ja: `水処理装置`, en: `` },
+  water_activators: { ja: `活水装置`, en: `` },
+  filtration_devices: { ja: `ろ過装置`, en: `` },
+  aeration_diffusion_equipment: { ja: `曝気・散気装置`, en: `` },
+  wastewater_treatment_equipment: { ja: `廃液・排水処理装置`, en: `` },
+  oil_water_separators: { ja: `油水分離装置`, en: `` },
+  other_water_treatment_equipment: { ja: `その他水処理装置`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 95, name: "static_electricity_measures" },
+// ------------------------- 🌠95. 静電気対策 小分類 static_electricity_measures -------------------------
+// 678から
+
+/**
+ *【静電気対策】Electrostatic Discharge Protection
+  静電気除去装置 → electrostatic_discharge_removers✅static_electricity_removal_equipment
+  イオナイザ・除電器 → ionizers_deionizers✅ionizers
+  導電マット → conductive_mats
+  静電気対策グッズ → electrostatic_protection_items✅static_electricity_prevention_goods
+  その他静電気対策機器 → other_electrostatic_protection_equipment✅other_static_electricity_prevention_equipment
+ */
+
+export const categoryS_static_electricity_measures_NameOnly: ControlEquipmentProductCategoriesS_static_electricity_measures[] =
+  [
+    "electrostatic_discharge_removers",
+    "ionizers_deionizers",
+    "conductive_mats",
+    "electrostatic_protection_items",
+    "other_electrostatic_protection_equipment",
+  ];
+export const categoryS_static_electricity_measures: {
+  id: number;
+  name: ControlEquipmentProductCategoriesS_static_electricity_measures;
+}[] = [
+  { id: 678, name: "electrostatic_discharge_removers" },
+  { id: 679, name: "ionizers_deionizers" },
+  { id: 680, name: "conductive_mats" },
+  { id: 681, name: "electrostatic_protection_items" },
+  { id: 682, name: "other_electrostatic_protection_equipment" },
+];
+export const mappingCategoryS_static_electricity_measures: {
+  [K in ControlEquipmentProductCategoriesS_static_electricity_measures | string]: {
+    [key: string]: string;
+  };
+} = {
+  electrostatic_discharge_removers: { ja: `静電気除去装置`, en: `` },
+  ionizers_deionizers: { ja: `イオナイザ・除電器`, en: `` },
+  conductive_mats: { ja: `導電マット`, en: `` },
+  electrostatic_protection_items: { ja: `静電気対策グッズ`, en: `` },
+  other_electrostatic_protection_equipment: { ja: `その他静電気対策機器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 96, name: "energy_equipment" },
+// ------------------------- 🌠96. エネルギー機器 小分類 energy_equipment -------------------------
+// 683から
+
+/**
+ *【エネルギー機器】Energy Equipment
+  発電機・伝動モータ → generators_transmission_motors
+  風力発電器 → wind_turbines
+  太陽光発電機 → solar_power_generators
+  燃料電池 → fuel_cells
+  蓄電装置 → energy_storage_systems✅energy_storage_devices
+  電力監視機器 → power_monitoring_equipment
+  デマンド監視 → demand_monitoring
+  その他エネルギー機器 → other_energy_equipment
+ */
+
+export const categoryS_energy_equipment_NameOnly: ControlEquipmentProductCategoriesS_energy_equipment[] = [
+  "generators_transmission_motors",
+  "wind_turbines",
+  "solar_power_generators",
+  "fuel_cells",
+  "energy_storage_systems",
+  "power_monitoring_equipment",
+  "demand_monitoring",
+  "other_energy_equipment",
+];
+export const categoryS_energy_equipment: {
+  id: number;
+  name: ControlEquipmentProductCategoriesS_energy_equipment;
+}[] = [
+  { id: 683, name: "generators_transmission_motors" },
+  { id: 684, name: "wind_turbines" },
+  { id: 685, name: "solar_power_generators" },
+  { id: 686, name: "fuel_cells" },
+  { id: 687, name: "energy_storage_systems" },
+  { id: 688, name: "power_monitoring_equipment" },
+  { id: 689, name: "demand_monitoring" },
+  { id: 690, name: "other_energy_equipment" },
+];
+export const mappingCategoryS_energy_equipment: {
+  [K in ControlEquipmentProductCategoriesS_energy_equipment | string]: {
+    [key: string]: string;
+  };
+} = {
+  generators_transmission_motors: { ja: `発電機・伝動モータ`, en: `` },
+  wind_turbines: { ja: `風力発電器`, en: `` },
+  solar_power_generators: { ja: `太陽光発電機`, en: `` },
+  fuel_cells: { ja: `燃料電池`, en: `` },
+  energy_storage_systems: { ja: `蓄電装置`, en: `` },
+  power_monitoring_equipment: { ja: `電力監視機器`, en: `` },
+  demand_monitoring: { ja: `デマンド監視`, en: `` },
+  other_energy_equipment: { ja: `その他エネルギー機器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// =================== ✅「制御・電機機器」 大分類 control_electrical_equipment の小分類関連✅ ここまで ===================
+
+// =================== ✅「工具・消耗品・備品」 大分類 tools_consumables_supplies の小分類関連✅  ===================
+/**
+ * export const toolCategoryM: { id: number; name: ProductCategoriesMediumTool }[] = [
+  { id: 97, name: "cutting_tools" },
+  { id: 98, name: "abrasives" },
+  { id: 99, name: "hand_tools" },
+  { id: 100, name: "power_pneumatic_tools" },
+  { id: 101, name: "consumables" },
+  { id: 102, name: "cleaning_tools" },
+  { id: 103, name: "safety_hygiene_supplies" },
+  { id: 104, name: "packaging_materials" },
+  { id: 105, name: "supplies" },
+  { id: 106, name: "storage_facilities" },
+];
+export const mappingToolCategoryM: { [K in ProductCategoriesMediumTool | string]: { [key: string]: string } } = {
+  cutting_tools: { ja: "切削工具", en: `` }, // 1
+  abrasives: { ja: "研磨材", en: `` }, // 2
+  hand_tools: { ja: "作業工具", en: `` }, // 3
+  power_pneumatic_tools: { ja: "電動・空圧工具", en: `` }, // 4
+  consumables: { ja: "消耗品", en: `` }, // 5
+  cleaning_tools: { ja: "清掃用具", en: `` }, // 6
+  safety_hygiene_supplies: { ja: "安全・衛生用品", en: `` }, // 7
+  packaging_materials: { ja: "梱包材", en: `` }, // 8
+  supplies: { ja: "備品", en: `` }, // 9
+  storage_facilities: { ja: "保管設備", en: `` }, // 10
+};
+ */
+
+// { id: 97, name: "cutting_tools" },
+// ------------------------- 🌠97. 切削工具 小分類 cutting_tools -------------------------
+// 691から
+
+/**
+ *【切削工具】Cutting Tools
+  ドリル → drills
+  バイト → turning_tools✅lathe_tools
+  フライス → milling_cutters
+  エンドミル → end_mills
+  リーマ → reamers
+  タップ → taps
+  ホブ → hobs
+  ピニオンカッター → pinion_cutters
+  ダイス → dies
+  ブローチ → broaches
+  カッター → cutters
+  チャック → chucks
+  その他切削工具 → other_cutting_tools
+
+ */
+
+export const categoryS_cutting_tools_NameOnly: ToolProductCategoriesS_cutting_tools[] = [
+  "drills",
+  "lathe_tools",
+  "milling_cutters",
+  "end_mills",
+  "reamers",
+  "taps",
+  "hobs",
+  "pinion_cutters",
+  "dies",
+  "broaches",
+  "cutters",
+  "chucks",
+  "other_cutting_tools",
+];
+export const categoryS_cutting_tools: {
+  id: number;
+  name: ToolProductCategoriesS_cutting_tools;
+}[] = [
+  { id: 691, name: "drills" },
+  { id: 692, name: "lathe_tools" },
+  { id: 693, name: "milling_cutters" },
+  { id: 694, name: "end_mills" },
+  { id: 695, name: "reamers" },
+  { id: 696, name: "taps" },
+  { id: 697, name: "hobs" },
+  { id: 698, name: "pinion_cutters" },
+  { id: 699, name: "dies" },
+  { id: 700, name: "broaches" },
+  { id: 701, name: "cutters" },
+  { id: 702, name: "chucks" },
+  { id: 703, name: "other_cutting_tools" },
+];
+export const mappingCategoryS_cutting_tools: {
+  [K in ToolProductCategoriesS_cutting_tools | string]: {
+    [key: string]: string;
+  };
+} = {
+  drills: { ja: `ドリル`, en: `` },
+  lathe_tools: { ja: `バイト`, en: `` },
+  milling_cutters: { ja: `フライス`, en: `` },
+  end_mills: { ja: `エンドミル`, en: `` },
+  reamers: { ja: `リーマ`, en: `` },
+  taps: { ja: `タップ`, en: `` },
+  hobs: { ja: `ホブ`, en: `` },
+  pinion_cutters: { ja: `ピニオンカッター`, en: `` },
+  dies: { ja: `ダイス`, en: `` },
+  broaches: { ja: `ブローチ`, en: `` },
+  cutters: { ja: `カッター`, en: `` },
+  chucks: { ja: `チャック`, en: `` },
+  other_cutting_tools: { ja: `その他切削工具`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 98, name: "abrasives" },
+// ------------------------- 🌠98. 研磨材 小分類 abrasives -------------------------
+// 704から
+
+/**
+ *【研磨材】Abrasive Materials
+  砥石 → grinding_wheels✅grindstones
+  ダイヤモンドカッター → diamond_cutters
+  手研磨・ヤスリ → hand_abrasives_files✅hand_files
+  ブラシ → brushes
+  その他研磨材 → other_abrasive_materials✅other_abrasives
+ */
+
+export const categoryS_abrasives_NameOnly: ToolProductCategoriesS_abrasives[] = [
+  "grindstones",
+  "diamond_cutters",
+  "hand_files",
+  "brushes",
+  "other_abrasives",
+];
+export const categoryS_abrasives: {
+  id: number;
+  name: ToolProductCategoriesS_abrasives;
+}[] = [
+  { id: 704, name: "grindstones" },
+  { id: 705, name: "diamond_cutters" },
+  { id: 706, name: "hand_files" },
+  { id: 707, name: "brushes" },
+  { id: 708, name: "other_abrasives" },
+];
+export const mappingCategoryS_abrasives: {
+  [K in ToolProductCategoriesS_abrasives | string]: {
+    [key: string]: string;
+  };
+} = {
+  grindstones: { ja: `砥石`, en: `` },
+  diamond_cutters: { ja: `ダイヤモンドカッター`, en: `` },
+  hand_files: { ja: `手研磨・ヤスリ`, en: `` },
+  brushes: { ja: `ブラシ`, en: `` },
+  other_abrasives: { ja: `その他研磨材`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 99, name: "hand_tools" },
+// ------------------------- 🌠99. 作業工具 小分類 hand_tools -------------------------
+// 709から
+
+/**
+ *【作業工具】Hand Tools
+  工具セット → tool_sets
+  ドライバー → screwdrivers
+  ベンチ・プライヤ・ニッパ → pliers_cutters
+  スパナ・レンチ → spanners_wrenches
+  ハンマー → hammers
+  パイプ・ケーブルカッター → pipe_cable_cutters
+  バイス・クランプ → vises_clamps
+  カッター・ハサミ → cutters_scissors
+  トルクレンチ → torque_wrenches
+  ソケットレンチ → socket_wrenches
+  その他作業工具 → other_hand_tools
+ */
+
+export const categoryS_hand_tools_NameOnly: ToolProductCategoriesS_hand_tools[] = [
+  "tool_sets",
+  "screwdrivers",
+  "pliers_cutters",
+  "spanners_wrenches",
+  "hammers",
+  "pipe_cable_cutters",
+  "vises_clamps",
+  "cutters_scissors",
+  "torque_wrenches",
+  "socket_wrenches",
+  "other_hand_tools",
+];
+export const categoryS_hand_tools: {
+  id: number;
+  name: ToolProductCategoriesS_hand_tools;
+}[] = [
+  { id: 709, name: "tool_sets" },
+  { id: 710, name: "screwdrivers" },
+  { id: 711, name: "pliers_cutters" },
+  { id: 712, name: "spanners_wrenches" },
+  { id: 713, name: "hammers" },
+  { id: 714, name: "pipe_cable_cutters" },
+  { id: 715, name: "vises_clamps" },
+  { id: 716, name: "cutters_scissors" },
+  { id: 717, name: "torque_wrenches" },
+  { id: 718, name: "socket_wrenches" },
+  { id: 719, name: "other_hand_tools" },
+];
+export const mappingCategoryS_hand_tools: {
+  [K in ToolProductCategoriesS_hand_tools | string]: {
+    [key: string]: string;
+  };
+} = {
+  tool_sets: { ja: `工具セット`, en: `` },
+  screwdrivers: { ja: `ドライバー`, en: `` },
+  pliers_cutters: { ja: `ベンチ・プライヤ・ニッパ`, en: `` },
+  spanners_wrenches: { ja: `スパナ・レンチ`, en: `` },
+  hammers: { ja: `ハンマー`, en: `` },
+  pipe_cable_cutters: { ja: `パイプ・ケーブルカッター`, en: `` },
+  vises_clamps: { ja: `バイス・クランプ`, en: `` },
+  cutters_scissors: { ja: `カッター・ハサミ`, en: `` },
+  torque_wrenches: { ja: `トルクレンチ`, en: `` },
+  socket_wrenches: { ja: `ソケットレンチ`, en: `` },
+  other_hand_tools: { ja: `その他作業工具`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 100, name: "power_pneumatic_tools" },
+// ------------------------- 🌠100. 電動・空圧工具 小分類 power_pneumatic_tools -------------------------
+// 720から
+
+/**
+ *【電動・空圧工具】Power and Pneumatic Tools
+  電動工具 → electric_tools✅power_tools
+  空圧工具 → pneumatic_tools
+ */
+
+export const categoryS_power_pneumatic_tools_NameOnly: ToolProductCategoriesS_power_pneumatic_tools[] = [
+  "power_tools",
+  "pneumatic_tools",
+];
+export const categoryS_power_pneumatic_tools: {
+  id: number;
+  name: ToolProductCategoriesS_power_pneumatic_tools;
+}[] = [
+  { id: 720, name: "power_tools" },
+  { id: 721, name: "pneumatic_tools" },
+];
+export const mappingCategoryS_power_pneumatic_tools: {
+  [K in ToolProductCategoriesS_power_pneumatic_tools | string]: {
+    [key: string]: string;
+  };
+} = {
+  power_tools: { ja: `電動工具`, en: `` },
+  pneumatic_tools: { ja: `空圧工具`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 101, name: "consumables" },
+// ------------------------- 🌠101. 消耗品 小分類 consumables -------------------------
+// 722から
+
+/**
+ *【消耗品】Consumables
+  接着剤 → adhesives
+  補修剤 → repair_compounds
+  粘着テープ → adhesive_tapes
+  切削油 → cutting_oils
+  潤滑油 → lubricants
+  防錆剤 → rust_preventatives
+  洗浄剤 → cleaning_agents
+  塗料 → paints
+  コーティング剤 → coatings✅coating_agents
+  その他消耗品 → other_consumables
+ */
+
+export const categoryS_consumables_NameOnly: ToolProductCategoriesS_consumables[] = [
+  "adhesives",
+  "repair_compounds",
+  "adhesive_tapes",
+  "cutting_oils",
+  "lubricants",
+  "rust_preventatives",
+  "cleaning_agents",
+  "paints",
+  "coating_agents",
+  "other_consumables",
+];
+export const categoryS_consumables: {
+  id: number;
+  name: ToolProductCategoriesS_consumables;
+}[] = [
+  { id: 722, name: "adhesives" },
+  { id: 723, name: "repair_compounds" },
+  { id: 724, name: "adhesive_tapes" },
+  { id: 725, name: "cutting_oils" },
+  { id: 726, name: "lubricants" },
+  { id: 727, name: "rust_preventatives" },
+  { id: 728, name: "cleaning_agents" },
+  { id: 729, name: "paints" },
+  { id: 730, name: "coating_agents" },
+  { id: 731, name: "other_consumables" },
+];
+export const mappingCategoryS_consumables: {
+  [K in ToolProductCategoriesS_consumables | string]: {
+    [key: string]: string;
+  };
+} = {
+  adhesives: { ja: `接着剤`, en: `` },
+  repair_compounds: { ja: `補修剤`, en: `` },
+  adhesive_tapes: { ja: `粘着テープ`, en: `` },
+  cutting_oils: { ja: `切削油`, en: `` },
+  lubricants: { ja: `潤滑油`, en: `` },
+  rust_preventatives: { ja: `防錆剤`, en: `` },
+  cleaning_agents: { ja: `洗浄剤`, en: `` },
+  paints: { ja: `塗料`, en: `` },
+  coating_agents: { ja: `コーティング剤`, en: `` },
+  other_consumables: { ja: `その他消耗品`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 102, name: "cleaning_tools" },
+// ------------------------- 🌠102. 清掃用具 小分類 cleaning_tools -------------------------
+// 732から
+
+/**
+ *【清掃用具】Cleaning Tools
+  洗剤 → detergents
+  消毒液 → disinfectants
+  工業用掃除機 → industrial_vacuum_cleaners
+  ワイパー → wipers
+  ウエス → rags✅wiping_cloths
+  モップ → mops
+  その他清掃用具 → other_cleaning_tools
+ */
+
+export const categoryS_cleaning_tools_NameOnly: ToolProductCategoriesS_cleaning_tools[] = [
+  "detergents",
+  "disinfectants",
+  "industrial_vacuum_cleaners",
+  "wipers",
+  "rags",
+  "mops",
+  "other_cleaning_tools",
+];
+export const categoryS_cleaning_tools: {
+  id: number;
+  name: ToolProductCategoriesS_cleaning_tools;
+}[] = [
+  { id: 732, name: "detergents" },
+  { id: 733, name: "disinfectants" },
+  { id: 734, name: "industrial_vacuum_cleaners" },
+  { id: 735, name: "wipers" },
+  { id: 736, name: "rags" },
+  { id: 737, name: "mops" },
+  { id: 738, name: "other_cleaning_tools" },
+];
+export const mappingCategoryS_cleaning_tools: {
+  [K in ToolProductCategoriesS_cleaning_tools | string]: {
+    [key: string]: string;
+  };
+} = {
+  detergents: { ja: `洗剤`, en: `` },
+  disinfectants: { ja: `消毒液`, en: `` },
+  industrial_vacuum_cleaners: { ja: `工業用掃除機`, en: `` },
+  wipers: { ja: `ワイパー`, en: `` },
+  rags: { ja: `ウエス`, en: `` },
+  mops: { ja: `モップ`, en: `` },
+  other_cleaning_tools: { ja: `その他清掃用具`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 103, name: "safety_hygiene_supplies" },
+// ------------------------- 🌠103. 安全・衛生用品 小分類 safety_hygiene_supplies -------------------------
+// 739から
+
+/**
+ *【安全・衛生用品】Safety and Hygiene Products
+  安全靴・安全スニーカー → safety_shoes_sneakers
+  作業用手袋 → work_gloves
+  マスク → masks
+  メガネ・ゴーグル → glasses_goggles
+  ハンドクリーナー → hand_cleaners
+  保護クリーム → protective_creams
+  その他安全・衛生用品 → other_safety_hygiene_products
+ */
+
+export const categoryS_safety_hygiene_supplies_NameOnly: ToolProductCategoriesS_safety_hygiene_supplies[] = [
+  "safety_shoes_sneakers",
+  "work_gloves",
+  "masks",
+  "glasses_goggles",
+  "hand_cleaners",
+  "protective_creams",
+  "other_safety_hygiene_products",
+];
+export const categoryS_safety_hygiene_supplies: {
+  id: number;
+  name: ToolProductCategoriesS_safety_hygiene_supplies;
+}[] = [
+  { id: 739, name: "safety_shoes_sneakers" },
+  { id: 740, name: "work_gloves" },
+  { id: 741, name: "masks" },
+  { id: 742, name: "glasses_goggles" },
+  { id: 743, name: "hand_cleaners" },
+  { id: 744, name: "protective_creams" },
+  { id: 745, name: "other_safety_hygiene_products" },
+];
+export const mappingCategoryS_safety_hygiene_supplies: {
+  [K in ToolProductCategoriesS_safety_hygiene_supplies | string]: {
+    [key: string]: string;
+  };
+} = {
+  safety_shoes_sneakers: { ja: `安全靴・安全スニーカー`, en: `` },
+  work_gloves: { ja: `作業用手袋`, en: `` },
+  masks: { ja: `マスク`, en: `` },
+  glasses_goggles: { ja: `メガネ・ゴーグル`, en: `` },
+  hand_cleaners: { ja: `ハンドクリーナー`, en: `` },
+  protective_creams: { ja: `保護クリーム`, en: `` },
+  other_safety_hygiene_products: { ja: `その他安全・衛生用品`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// =================== ✅「工具・消耗品・備品」 大分類 tools_consumables_supplies の小分類関連✅ ここまで ===================
