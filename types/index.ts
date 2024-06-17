@@ -4552,4 +4552,164 @@ export type ToolProductCategoriesS_safety_hygiene_supplies =
   | "hand_cleaners"
   | "protective_creams"
   | "other_safety_hygiene_products";
+
+// 梱包材
+export type ToolProductCategoriesS_packaging_materials =
+  | "containers"
+  | "pallets"
+  | "cushioning_materials"
+  | "packaging_bags"
+  | "trays"
+  | "other_packaging_materials";
+
+// 備品
+export type ToolProductCategoriesS_supplies = "curtains" | "mats" | "lockers" | "cabinets" | "fixtures";
+
+// 保管設備
+export type ToolProductCategoriesS_storage_facilities = "tanks" | "silos";
+
+// =================== ✅「設計・生産支援」 大分類 design_production_support の小分類関連✅ ===================
+
+// CAD
+export type DesignProductCategoriesS_cad =
+  | "two_dimensional_cad_construction"
+  | "two_dimensional_cad_mechanical"
+  | "two_dimensional_cad_electrical"
+  | "three_dimensional_cad"
+  | "other_cad"
+  | "data_conversion_software"
+  | "rendering_software"
+  | "modelers"
+  | "other_cad_software";
+
+// CAM
+export type DesignProductCategoriesS_cam = "two_dimensional_cam" | "three_dimensional_cam" | "other_cam_software";
+
+// CAE
+export type DesignProductCategoriesS_cae =
+  | "simulators"
+  | "structural_analysis"
+  | "stress_analysis"
+  | "thermo_fluid_analysis"
+  | "magnetic_electromagnetic_analysis"
+  | "acoustic_analysis"
+  | "mechanical_analysis"
+  | "other_analysis"
+  | "contract_analysis"
+  | "analysis_services";
+
+// 試作
+export type DesignProductCategoriesS_prototype = "prototyping_services" | "three_d_printers";
+
+// 受託サービス
+export type DesignProductCategoriesS_contracted_services = "contract_prototype_services" | "three_d_printer_services";
+
+// =================== ✅「IT・ネットワーク」 大分類 it_network の小分類関連✅ ===================
+
+// 産業用パソコン
+export type ITProductCategoriesS_industrial_computers =
+  | "industrial_pcs"
+  | "expansion_boards"
+  | "memory"
+  | "storage"
+  | "racks_cases"
+  | "keyboards"
+  | "ssds";
+
+// 組込みシステム
+export type ITProductCategoriesS_embedded_systems =
+  | "embedded_boards_computers"
+  | "embedded_os"
+  | "development_support_tools"
+  | "embedded_apps_for_mobile_pda"
+  | "communication_related"
+  | "embedded_system_design_services"
+  | "software_middle_driver_security"
+  | "other_embedded_systems";
+
+// 基幹システム
+export type ITProductCategoriesS_core_systems =
+  | "erp_packages"
+  | "accounting_finance"
+  | "hr_labor"
+  | "sales_management"
+  | "internal_control_operations_management"
+  | "electronic_document_management"
+  | "databases"
+  | "eai_etl_web_application_servers"
+  | "other_core_systems";
+
+// SCM・生産管理
+export type ITProductCategoriesS_production_management =
+  | "production_management_systems"
+  | "production_schedulers"
+  | "process_management_systems"
+  | "procurement_management_systems"
+  | "cost_management_systems"
+  | "product_data_management"
+  | "other_production_management_systems";
+
+// 情報システム
+export type ITProductCategoriesS_information_systems =
+  | "enterprise_portals_groupware"
+  | "email_fax_sending"
+  | "voice_recognition_software"
+  | "sfa_sales_support_systems"
+  | "cti_support_centers"
+  | "business_intelligence_data_analysis"
+  | "document_data_management"
+  | "project_management"
+  | "workflow_systems"
+  | "data_search_software"
+  | "other_information_systems";
+
+// ネットワーク・通信
+export type ITProductCategoriesS_network =
+  | "wireless_lan_communication"
+  | "routers_switches_hubs"
+  | "vpn_wide_area_ethernet"
+  | "pbx_ip_phones"
+  | "lan_construction_piping"
+  | "other_network_tools";
+
+// 運用システム
+export type ITProductCategoriesS_operating_systems =
+  | "integrated_operations_management"
+  | "server_monitoring_network_management_tools"
+  | "other_operations_management_software";
+
+// サーバ
+export type ITProductCategoriesS_servers =
+  | "servers"
+  | "server_racks"
+  | "server_coolers"
+  | "other_server_related"
+  | "storage_backup"
+  | "ups_uninterruptible_power_supplies";
+
+// セキュリティ
+export type ITProductCategoriesS_security =
+  | "filtering"
+  | "antivirus_software"
+  | "firewalls_intrusion_prevention"
+  | "encryption_authentication"
+  | "other_security"
+  | "entry_exit_systems"
+  | "personal_authentication"
+  | "data_erasure";
+
+// =================== ✅「オフィス」 大分類 office の小分類関連✅  ===================
+
+// PC・OA機器
+export type ITProductCategoriesS_office_automation_equipment =
+  | "desktop_pcs"
+  | "laptop_pcs"
+  | "mobile_phones_phs_data_cards"
+  | "pda_handheld_terminals"
+  | "projectors"
+  | "printers"
+  | "scanners"
+  | "multi_function_devices"
+  | "web_teleconferencing"
+  | "other_pc_oa_equipment";
 // ----------- 業種・製品分類 関連 ここまで -----------

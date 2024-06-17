@@ -89,7 +89,25 @@ import {
   ToolProductCategoriesS_consumables,
   ToolProductCategoriesS_cleaning_tools,
   ToolProductCategoriesS_safety_hygiene_supplies,
+  ToolProductCategoriesS_packaging_materials,
+  ToolProductCategoriesS_supplies,
+  ToolProductCategoriesS_storage_facilities,
+  DesignProductCategoriesS_cad,
+  DesignProductCategoriesS_cam,
+  DesignProductCategoriesS_cae,
+  DesignProductCategoriesS_prototype,
+  DesignProductCategoriesS_contracted_services,
+  ITProductCategoriesS_industrial_computers,
+  ITProductCategoriesS_embedded_systems,
+  ITProductCategoriesS_production_management,
+  ITProductCategoriesS_information_systems,
+  ITProductCategoriesS_network,
+  ITProductCategoriesS_operating_systems,
+  ITProductCategoriesS_servers,
+  ITProductCategoriesS_security,
+  ITProductCategoriesS_office_automation_equipment,
 } from "@/types";
+import { ITProductCategoriesS_core_systems } from "../types";
 
 /**
  * export const moduleCategoryM: { id: number; name: ProductCategoriesMediumModule }[] = [
@@ -4769,4 +4787,967 @@ export const mappingCategoryS_safety_hygiene_supplies: {
 
 // -------------------------------------------------------------------------------------
 
+// { id: 104, name: "packaging_materials" },
+// ------------------------- 🌠104. 梱包材 小分類 packaging_materials -------------------------
+// 746から
+
+/**
+ *【梱包材】Packaging Materials
+  コンテナ → containers
+  パレット → pallets
+  緩衝材 → cushioning_materials
+  包装用袋 → packaging_bags
+  トレー → trays
+  その他梱包材 → other_packaging_materials
+ */
+
+export const categoryS_packaging_materials_NameOnly: ToolProductCategoriesS_packaging_materials[] = [
+  "containers",
+  "pallets",
+  "cushioning_materials",
+  "packaging_bags",
+  "trays",
+  "other_packaging_materials",
+];
+export const categoryS_packaging_materials: {
+  id: number;
+  name: ToolProductCategoriesS_packaging_materials;
+}[] = [
+  { id: 746, name: "containers" },
+  { id: 747, name: "pallets" },
+  { id: 748, name: "cushioning_materials" },
+  { id: 749, name: "packaging_bags" },
+  { id: 750, name: "trays" },
+  { id: 751, name: "other_packaging_materials" },
+];
+export const mappingCategoryS_packaging_materials: {
+  [K in ToolProductCategoriesS_packaging_materials | string]: {
+    [key: string]: string;
+  };
+} = {
+  containers: { ja: `コンテナ`, en: `` },
+  pallets: { ja: `パレット`, en: `` },
+  cushioning_materials: { ja: `緩衝材`, en: `` },
+  packaging_bags: { ja: `包装用袋`, en: `` },
+  trays: { ja: `トレー`, en: `` },
+  other_packaging_materials: { ja: `その他梱包材`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 105, name: "supplies" },
+// ------------------------- 🌠105. 備品 小分類 supplies -------------------------
+// 752から
+
+/**
+ *【備品】Supplies
+  カーテン → curtains
+  マット → mats
+  ロッカー → lockers
+  キャビネット → cabinets
+  什器 → fixtures
+ */
+
+export const categoryS_supplies_NameOnly: ToolProductCategoriesS_supplies[] = [
+  "curtains",
+  "mats",
+  "lockers",
+  "cabinets",
+  "fixtures",
+];
+export const categoryS_supplies: {
+  id: number;
+  name: ToolProductCategoriesS_supplies;
+}[] = [
+  { id: 752, name: "curtains" },
+  { id: 753, name: "mats" },
+  { id: 754, name: "lockers" },
+  { id: 755, name: "cabinets" },
+  { id: 756, name: "fixtures" },
+];
+export const mappingCategoryS_supplies: {
+  [K in ToolProductCategoriesS_supplies | string]: {
+    [key: string]: string;
+  };
+} = {
+  curtains: { ja: `カーテン`, en: `` },
+  mats: { ja: `マット`, en: `` },
+  lockers: { ja: `ロッカー`, en: `` },
+  cabinets: { ja: `キャビネット`, en: `` },
+  fixtures: { ja: `什器`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 106, name: "storage_facilities" },
+// ------------------------- 🌠106. 保管設備 小分類 storage_facilities -------------------------
+// 757から
+
+/**
+ *【保管設備】Storage Facilities
+  タンク → tanks
+  サイロ → silos
+ */
+
+export const categoryS_storage_facilities_NameOnly: ToolProductCategoriesS_storage_facilities[] = ["tanks", "silos"];
+export const categoryS_storage_facilities: {
+  id: number;
+  name: ToolProductCategoriesS_storage_facilities;
+}[] = [
+  { id: 757, name: "tanks" },
+  { id: 758, name: "silos" },
+];
+export const mappingCategoryS_storage_facilities: {
+  [K in ToolProductCategoriesS_storage_facilities | string]: {
+    [key: string]: string;
+  };
+} = {
+  tanks: { ja: `タンク`, en: `` },
+  silos: { ja: `サイロ`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
 // =================== ✅「工具・消耗品・備品」 大分類 tools_consumables_supplies の小分類関連✅ ここまで ===================
+
+// =================== ✅「設計・生産支援」 大分類 design_production_support の小分類関連✅ ===================
+/**
+ * export const designCategoryM: { id: number; name: ProductCategoriesMediumDesign }[] = [
+  { id: 107, name: "cad" },
+  { id: 108, name: "cam" },
+  { id: 109, name: "cae" },
+  { id: 110, name: "prototype" },
+  { id: 111, name: "contracted_services" },
+];
+export const mappingDesignCategoryM: { [K in ProductCategoriesMediumDesign | string]: { [key: string]: string } } = {
+  cad: { ja: "CAD", en: `` }, // 1
+  cam: { ja: "CAM", en: `` }, // 2
+  cae: { ja: "CAE", en: `` }, // 3
+  prototype: { ja: "試作", en: `` }, // 4
+  contracted_services: { ja: "受託サービス", en: `` }, // 5
+};
+ */
+
+// { id: 107, name: "cad" },
+// ------------------------- 🌠107. CAD 小分類 cad -------------------------
+// 759から
+
+/**
+ *【CAD】Computer-Aided Design
+  2次元CAD建設 → two_dimensional_cad_construction
+  2次元CAD機械 → two_dimensional_cad_mechanical
+  2次元CAD電気 → two_dimensional_cad_electrical
+  3次元CAD → three_dimensional_cad
+  その他CAD → other_cad
+  データ変換ソフト → data_conversion_software
+  レンダリングソフト → rendering_software
+  モデラー → modelers
+  その他CAD関連ソフト → other_cad_related_software✅other_cad_software
+ */
+
+export const categoryS_cad_NameOnly: DesignProductCategoriesS_cad[] = [
+  "two_dimensional_cad_construction",
+  "two_dimensional_cad_mechanical",
+  "two_dimensional_cad_electrical",
+  "three_dimensional_cad",
+  "other_cad",
+  "data_conversion_software",
+  "rendering_software",
+  "modelers",
+  "other_cad_software",
+];
+export const categoryS_cad: {
+  id: number;
+  name: DesignProductCategoriesS_cad;
+}[] = [
+  { id: 759, name: "two_dimensional_cad_construction" },
+  { id: 760, name: "two_dimensional_cad_mechanical" },
+  { id: 761, name: "two_dimensional_cad_electrical" },
+  { id: 762, name: "three_dimensional_cad" },
+  { id: 763, name: "other_cad" },
+  { id: 764, name: "data_conversion_software" },
+  { id: 765, name: "rendering_software" },
+  { id: 766, name: "modelers" },
+  { id: 767, name: "other_cad_software" },
+];
+export const mappingCategoryS_cad: {
+  [K in DesignProductCategoriesS_cad | string]: {
+    [key: string]: string;
+  };
+} = {
+  two_dimensional_cad_construction: { ja: `2次元CAD建設`, en: `` },
+  two_dimensional_cad_mechanical: { ja: `2次元CAD機械`, en: `` },
+  two_dimensional_cad_electrical: { ja: `2次元CAD電気`, en: `` },
+  three_dimensional_cad: { ja: `3次元CAD`, en: `` },
+  other_cad: { ja: `その他CAD`, en: `` },
+  data_conversion_software: { ja: `データ変換ソフト`, en: `` },
+  rendering_software: { ja: `レンダリングソフト`, en: `` },
+  modelers: { ja: `モデラー`, en: `` },
+  other_cad_software: { ja: `その他CAD関連ソフト`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 108, name: "cam" },
+// ------------------------- 🌠108. CAM 小分類 cam -------------------------
+// 768から
+
+/**
+ *【CAM】Computer-Aided Manufacturing
+  2次元CAM → two_dimensional_cam
+  3次元CAM → three_dimensional_cam
+  その他CAM関連ソフト → other_cam_related_software✅other_cam_software
+ */
+
+export const categoryS_cam_NameOnly: DesignProductCategoriesS_cam[] = [
+  "two_dimensional_cam",
+  "three_dimensional_cam",
+  "other_cam_software",
+];
+export const categoryS_cam: {
+  id: number;
+  name: DesignProductCategoriesS_cam;
+}[] = [
+  { id: 768, name: "two_dimensional_cam" },
+  { id: 769, name: "three_dimensional_cam" },
+  { id: 770, name: "other_cam_software" },
+];
+export const mappingCategoryS_cam: {
+  [K in DesignProductCategoriesS_cam | string]: {
+    [key: string]: string;
+  };
+} = {
+  two_dimensional_cam: { ja: `2次元CAM`, en: `` },
+  three_dimensional_cam: { ja: `3次元CAM`, en: `` },
+  other_cam_software: { ja: `その他CAM関連ソフト`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 109, name: "cae" },
+// ------------------------- 🌠109. CAE 小分類 cae -------------------------
+// 771から
+
+/**
+ *【CAE】Computer-Aided Engineering
+  シミュレーター → simulators
+  構造解析 → structural_analysis
+  応力解析 → stress_analysis
+  熱流体解析 → thermo_fluid_analysis
+  磁場解析・電磁波解析 → magnetic_field_electromagnetic_analysis✅magnetic_electromagnetic_analysis
+  音響解析 → acoustic_analysis
+  機構解析 → mechanical_analysis
+  その他解析 → other_analysis
+  受託解析 → contracted_analysis_services✅contract_analysis
+  解析サービス → analysis_services
+ */
+
+export const categoryS_cae_NameOnly: DesignProductCategoriesS_cae[] = [
+  "simulators",
+  "structural_analysis",
+  "stress_analysis",
+  "thermo_fluid_analysis",
+  "magnetic_electromagnetic_analysis",
+  "acoustic_analysis",
+  "mechanical_analysis",
+  "other_analysis",
+  "contract_analysis",
+  "analysis_services",
+];
+export const categoryS_cae: {
+  id: number;
+  name: DesignProductCategoriesS_cae;
+}[] = [
+  { id: 771, name: "simulators" },
+  { id: 772, name: "structural_analysis" },
+  { id: 773, name: "stress_analysis" },
+  { id: 774, name: "thermo_fluid_analysis" },
+  { id: 775, name: "magnetic_electromagnetic_analysis" },
+  { id: 776, name: "acoustic_analysis" },
+  { id: 777, name: "mechanical_analysis" },
+  { id: 778, name: "other_analysis" },
+  { id: 779, name: "contract_analysis" },
+  { id: 780, name: "analysis_services" },
+];
+export const mappingCategoryS_cae: {
+  [K in DesignProductCategoriesS_cae | string]: {
+    [key: string]: string;
+  };
+} = {
+  simulators: { ja: `シミュレーター`, en: `` },
+  structural_analysis: { ja: `構造解析`, en: `` },
+  stress_analysis: { ja: `応力解析`, en: `` },
+  thermo_fluid_analysis: { ja: `熱流体解析`, en: `` },
+  magnetic_electromagnetic_analysis: { ja: `磁場解析・電磁波解析`, en: `` },
+  acoustic_analysis: { ja: `音響解析`, en: `` },
+  mechanical_analysis: { ja: `機構解析`, en: `` },
+  other_analysis: { ja: `その他解析`, en: `` },
+  contract_analysis: { ja: `受託解析`, en: `` },
+  analysis_services: { ja: `解析サービス`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 110, name: "prototype" },
+// ------------------------- 🌠110. 試作 小分類 prototype -------------------------
+// 781から
+
+/**
+ *【試作】Prototyping
+  試作サービス → prototyping_services
+  3Dプリンタ → three_d_printers
+ */
+
+export const categoryS_prototype_NameOnly: DesignProductCategoriesS_prototype[] = [
+  "prototyping_services",
+  "three_d_printers",
+];
+export const categoryS_prototype: {
+  id: number;
+  name: DesignProductCategoriesS_prototype;
+}[] = [
+  { id: 781, name: "prototyping_services" },
+  { id: 782, name: "three_d_printers" },
+];
+export const mappingCategoryS_prototype: {
+  [K in DesignProductCategoriesS_prototype | string]: {
+    [key: string]: string;
+  };
+} = {
+  prototyping_services: { ja: `試作サービス`, en: `` },
+  three_d_printers: { ja: `3Dプリンタ`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 111, name: "contracted_services" },
+// ------------------------- 🌠111. 受託サービス 小分類 contracted_services -------------------------
+// 783から
+
+/**
+ *【受託サービス】Contracted Services
+  試作サービス → prototyping_services✅contract_prototype_services
+  3Dプリンタ → three_d_printer_services
+ */
+
+export const categoryS_contracted_services_design_NameOnly: DesignProductCategoriesS_contracted_services[] = [
+  "contract_prototype_services",
+  "three_d_printer_services",
+];
+export const categoryS_contracted_services_design: {
+  id: number;
+  name: DesignProductCategoriesS_contracted_services;
+}[] = [
+  { id: 783, name: "contract_prototype_services" },
+  { id: 784, name: "three_d_printer_services" },
+];
+export const mappingCategoryS_contracted_services_design: {
+  [K in DesignProductCategoriesS_contracted_services | string]: {
+    [key: string]: string;
+  };
+} = {
+  contract_prototype_services: { ja: `試作サービス`, en: `` },
+  three_d_printer_services: { ja: `3Dプリンタ`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// =================== ✅「設計・生産支援」 大分類 design_production_support の小分類関連✅ ここまで ===================
+
+// =================== ✅「IT・ネットワーク」 大分類 it_network の小分類関連✅ ===================
+/**
+ * export const ITCategoryM: { id: number; name: ProductCategoriesMediumIT }[] = [
+  { id: 112, name: "industrial_computers" },
+  { id: 113, name: "embedded_systems" },
+  { id: 114, name: "core_systems" },
+  { id: 115, name: "production_management" },
+  { id: 116, name: "information_systems" },
+  { id: 117, name: "network" },
+  { id: 118, name: "operating_systems" },
+  { id: 119, name: "servers" },
+  { id: 120, name: "security" },
+];
+export const mappingITCategoryM: { [K in ProductCategoriesMediumIT | string]: { [key: string]: string } } = {
+  industrial_computers: { ja: "産業用パソコン", en: `` }, // 1
+  embedded_systems: { ja: "組込みシステム", en: `` }, // 2
+  core_systems: { ja: "基幹システム", en: `` }, // 3
+  production_management: { ja: "SCM・生産管理", en: `` }, // 4
+  information_systems: { ja: "情報システム", en: `` }, // 5
+  network: { ja: "ネットワーク", en: `` }, // 6
+  operating_systems: { ja: "運用システム", en: `` }, // 7
+  servers: { ja: "サーバ", en: `` }, // 8
+  security: { ja: "セキュリティ", en: `` }, // 9
+};
+ */
+
+// { id: 112, name: "industrial_computers" },
+// ------------------------- 🌠112. 産業用パソコン 小分類 industrial_computers -------------------------
+// 785から
+
+/**
+ *【産業用パソコン】Industrial PCs
+  産業用PC → industrial_pcs
+  拡張ボード → expansion_boards
+  メモリ → memory
+  ストレージ → storage
+  ラック・ケース → racks_cases
+  キーボード → keyboards
+  SSD → ssds
+ */
+
+export const categoryS_industrial_computers_NameOnly: ITProductCategoriesS_industrial_computers[] = [
+  "industrial_pcs",
+  "expansion_boards",
+  "memory",
+  "storage",
+  "racks_cases",
+  "keyboards",
+  "ssds",
+];
+export const categoryS_industrial_computers: {
+  id: number;
+  name: ITProductCategoriesS_industrial_computers;
+}[] = [
+  { id: 785, name: "industrial_pcs" },
+  { id: 786, name: "expansion_boards" },
+  { id: 787, name: "memory" },
+  { id: 788, name: "storage" },
+  { id: 789, name: "racks_cases" },
+  { id: 790, name: "keyboards" },
+  { id: 791, name: "ssds" },
+];
+export const mappingCategoryS_industrial_computers: {
+  [K in ITProductCategoriesS_industrial_computers | string]: {
+    [key: string]: string;
+  };
+} = {
+  industrial_pcs: { ja: `産業用PC`, en: `` },
+  expansion_boards: { ja: `拡張ボード`, en: `` },
+  memory: { ja: `メモリ`, en: `` },
+  storage: { ja: `ストレージ`, en: `` },
+  racks_cases: { ja: `ラック・ケース`, en: `` },
+  keyboards: { ja: `キーボード`, en: `` },
+  ssds: { ja: `SSD`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 113, name: "embedded_systems" },
+// ------------------------- 🌠113. 組込みシステム 小分類 embedded_systems -------------------------
+// 792から
+
+/**
+ *【組込みシステム】Embedded Systems
+組込みボード・コンピュータ → embedded_boards_computers
+組込みOS → embedded_operating_systems✅embedded_os
+開発支援ツール → development_support_tools
+携帯電話・PDA用組込みアプリ → mobile_pda_embedded_apps✅embedded_apps_for_mobile_pda
+通信関連 → communication_related
+組込みシステム設計受託サービス → embedded_system_design_services
+ソフトウェア → software_middleware_drivers_security✅software_middle_driver_security
+その他組込み系 → other_embedded_systems✅other_embedded_software_hardware
+ */
+
+export const categoryS_embedded_systems_NameOnly: ITProductCategoriesS_embedded_systems[] = [
+  "embedded_boards_computers",
+  "embedded_os",
+  "development_support_tools",
+  "embedded_apps_for_mobile_pda",
+  "communication_related",
+  "embedded_system_design_services",
+  "software_middle_driver_security",
+  "other_embedded_systems",
+];
+export const categoryS_embedded_systems: {
+  id: number;
+  name: ITProductCategoriesS_embedded_systems;
+}[] = [
+  { id: 792, name: "embedded_boards_computers" },
+  { id: 793, name: "embedded_os" },
+  { id: 794, name: "development_support_tools" },
+  { id: 795, name: "embedded_apps_for_mobile_pda" },
+  { id: 796, name: "communication_related" },
+  { id: 797, name: "embedded_system_design_services" },
+  { id: 798, name: "software_middle_driver_security" },
+  { id: 799, name: "other_embedded_systems" },
+];
+export const mappingCategoryS_embedded_systems: {
+  [K in ITProductCategoriesS_embedded_systems | string]: {
+    [key: string]: string;
+  };
+} = {
+  embedded_boards_computers: { ja: `組込みボード・コンピュータ`, en: `` },
+  embedded_os: { ja: `組込みOS`, en: `` },
+  development_support_tools: { ja: `開発支援ツール`, en: `` },
+  embedded_apps_for_mobile_pda: { ja: `携帯電話・PDA用組込みアプリ`, en: `` },
+  communication_related: { ja: `通信関連`, en: `` },
+  embedded_system_design_services: { ja: `組込みシステム設計受託サービス`, en: `` },
+  software_middle_driver_security: { ja: `ソフトウェア(ミドル・ドライバ・セキュリティ)`, en: `` },
+  other_embedded_systems: { ja: `その他組込み系(ソフト・ハード)`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 114, name: "core_systems" },
+// ------------------------- 🌠114. 基幹システム 小分類 core_systems -------------------------
+// 800から
+
+/**
+ *【基幹システム】Core Systems
+  ERPパッケージ → erp_packages
+  会計・財務 → accounting_finance
+  人事・労務 → hr_labor
+  販売管理 → sales_management
+  内部統制・運用管理 → internal_control_operations_management
+  電子帳票 → electronic_forms✅electronic_document_management
+  データベース → databases
+  EAI・ETL・WEBアプリケーションサーバ → eai_etl_web_application_servers
+  その他基幹システム → other_core_systems
+ */
+
+export const categoryS_core_systems_NameOnly: ITProductCategoriesS_core_systems[] = [
+  "erp_packages",
+  "accounting_finance",
+  "hr_labor",
+  "sales_management",
+  "internal_control_operations_management",
+  "electronic_document_management",
+  "databases",
+  "eai_etl_web_application_servers",
+  "other_core_systems",
+];
+export const categoryS_core_systems: {
+  id: number;
+  name: ITProductCategoriesS_core_systems;
+}[] = [
+  { id: 800, name: "erp_packages" },
+  { id: 801, name: "accounting_finance" },
+  { id: 802, name: "hr_labor" },
+  { id: 803, name: "sales_management" },
+  { id: 804, name: "internal_control_operations_management" },
+  { id: 805, name: "electronic_document_management" },
+  { id: 806, name: "databases" },
+  { id: 807, name: "eai_etl_web_application_servers" },
+  { id: 808, name: "other_core_systems" },
+];
+export const mappingCategoryS_core_systems: {
+  [K in ITProductCategoriesS_core_systems | string]: {
+    [key: string]: string;
+  };
+} = {
+  erp_packages: { ja: `ERPパッケージ`, en: `` },
+  accounting_finance: { ja: `会計・財務`, en: `` },
+  hr_labor: { ja: `人事・労務`, en: `` },
+  sales_management: { ja: `販売管理`, en: `` },
+  internal_control_operations_management: { ja: `内部統制・運用管理`, en: `` },
+  electronic_document_management: { ja: `電子帳票`, en: `` },
+  databases: { ja: `データベース`, en: `` },
+  eai_etl_web_application_servers: { ja: `EAI・ETL・WEBアプリケーションサーバ`, en: `` },
+  other_core_systems: { ja: `その他基幹システム`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 115, name: "production_management" },
+// ------------------------- 🌠115. SCM・生産管理 小分類 production_management -------------------------
+// 809から
+
+/**
+ *【SCM・生産管理】Supply Chain & Production Management
+  生産管理システム → production_management_systems
+  生産スケジューラー → production_schedulers
+  工程管理システム → process_management_systems
+  購買管理システム → procurement_management_systems
+  原価管理システム → cost_management_systems
+  PDM → product_data_management✅pdm
+  その他生産管理システム → other_production_management_systems
+ */
+
+export const categoryS_production_management_NameOnly: ITProductCategoriesS_production_management[] = [
+  "production_management_systems",
+  "production_schedulers",
+  "process_management_systems",
+  "procurement_management_systems",
+  "cost_management_systems",
+  "product_data_management",
+  "other_production_management_systems",
+];
+export const categoryS_production_management: {
+  id: number;
+  name: ITProductCategoriesS_production_management;
+}[] = [
+  { id: 809, name: "production_management_systems" },
+  { id: 810, name: "production_schedulers" },
+  { id: 811, name: "process_management_systems" },
+  { id: 812, name: "procurement_management_systems" },
+  { id: 813, name: "cost_management_systems" },
+  { id: 814, name: "product_data_management" },
+  { id: 815, name: "other_production_management_systems" },
+];
+export const mappingCategoryS_production_management: {
+  [K in ITProductCategoriesS_production_management | string]: {
+    [key: string]: string;
+  };
+} = {
+  production_management_systems: { ja: `生産管理システム`, en: `` },
+  production_schedulers: { ja: `生産スケジューラー`, en: `` },
+  process_management_systems: { ja: `工程管理システム`, en: `` },
+  procurement_management_systems: { ja: `購買管理システム`, en: `` },
+  cost_management_systems: { ja: `原価管理システム`, en: `` },
+  product_data_management: { ja: `PDM`, en: `` },
+  other_production_management_systems: { ja: `その他生産管理システム`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 116, name: "information_systems" },
+// ------------------------- 🌠116. 情報システム 小分類 information_systems -------------------------
+// 816から
+
+/**
+ *【情報システム】Information Systems
+  企業情報ポータル・グループウェア → enterprise_portals_groupware
+  メール・FAX送信 → email_fax_transmission✅email_fax_sending
+  音声認識ソフト → voice_recognition_software
+  SFA・営業支援システム → sfa_sales_support_systems
+  CTI・サポートセンター → cti_support_centers
+  ビジネスインテリジェンス・データ分析 → business_intelligence_data_analysis
+  文書・データ管理 → document_data_management
+  プロジェクト管理 → project_management
+  ワークフローシステム → workflow_systems
+  データ検索ソフト → data_search_software
+  その他情報システム → other_information_systems
+ */
+
+export const categoryS_information_systems_NameOnly: ITProductCategoriesS_information_systems[] = [
+  "enterprise_portals_groupware",
+  "email_fax_sending",
+  "voice_recognition_software",
+  "sfa_sales_support_systems",
+  "cti_support_centers",
+  "business_intelligence_data_analysis",
+  "document_data_management",
+  "project_management",
+  "workflow_systems",
+  "data_search_software",
+  "other_information_systems",
+];
+export const categoryS_information_systems: {
+  id: number;
+  name: ITProductCategoriesS_information_systems;
+}[] = [
+  { id: 816, name: "enterprise_portals_groupware" },
+  { id: 817, name: "email_fax_sending" },
+  { id: 818, name: "voice_recognition_software" },
+  { id: 819, name: "sfa_sales_support_systems" },
+  { id: 820, name: "cti_support_centers" },
+  { id: 821, name: "business_intelligence_data_analysis" },
+  { id: 822, name: "document_data_management" },
+  { id: 823, name: "project_management" },
+  { id: 824, name: "workflow_systems" },
+  { id: 825, name: "data_search_software" },
+  { id: 826, name: "other_information_systems" },
+];
+export const mappingCategoryS_information_systems: {
+  [K in ITProductCategoriesS_information_systems | string]: {
+    [key: string]: string;
+  };
+} = {
+  enterprise_portals_groupware: { ja: `企業情報ポータル・グループウェア`, en: `` },
+  email_fax_sending: { ja: `メール・FAX送信`, en: `` },
+  voice_recognition_software: { ja: `音声認識ソフト`, en: `` },
+  sfa_sales_support_systems: { ja: `SFA・営業支援システム`, en: `` },
+  cti_support_centers: { ja: `CTI・サポートセンター`, en: `` },
+  business_intelligence_data_analysis: { ja: `ビジネスインテリジェンス・データ分析`, en: `` },
+  document_data_management: { ja: `文書・データ管理`, en: `` },
+  project_management: { ja: `プロジェクト管理`, en: `` },
+  workflow_systems: { ja: `ワークフローシステム`, en: `` },
+  data_search_software: { ja: `データ検索ソフト`, en: `` },
+  other_information_systems: { ja: `その他情報システム`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 117, name: "network" },
+// ------------------------- 🌠117. ネットワーク・通信 小分類 network -------------------------
+// 827から
+
+/**
+ *【ネットワーク・通信】Network & Communication
+  無線LAN・通信 → wireless_lan_communication
+  ルータ・スイッチ・ハブ → routers_switches_hubs
+  VPN・広域イーサネット → vpn_wide_area_ethernet
+  PBX・IP電話 → pbx_ip_phones
+  LAN構築・配管工事 → lan_construction_piping
+  その他ネットワークツール → other_network_tools
+ */
+
+export const categoryS_network_NameOnly: ITProductCategoriesS_network[] = [
+  "wireless_lan_communication",
+  "routers_switches_hubs",
+  "vpn_wide_area_ethernet",
+  "pbx_ip_phones",
+  "lan_construction_piping",
+  "other_network_tools",
+];
+export const categoryS_network: {
+  id: number;
+  name: ITProductCategoriesS_network;
+}[] = [
+  { id: 827, name: "wireless_lan_communication" },
+  { id: 828, name: "routers_switches_hubs" },
+  { id: 829, name: "vpn_wide_area_ethernet" },
+  { id: 830, name: "pbx_ip_phones" },
+  { id: 831, name: "lan_construction_piping" },
+  { id: 832, name: "other_network_tools" },
+];
+export const mappingCategoryS_network: {
+  [K in ITProductCategoriesS_network | string]: {
+    [key: string]: string;
+  };
+} = {
+  wireless_lan_communication: { ja: `無線LAN・通信`, en: `` },
+  routers_switches_hubs: { ja: `ルータ・スイッチ・ハブ`, en: `` },
+  vpn_wide_area_ethernet: { ja: `VPN・広域イーサネット`, en: `` },
+  pbx_ip_phones: { ja: `PBX・IP電話`, en: `` },
+  lan_construction_piping: { ja: `LAN構築・配管工事`, en: `` },
+  other_network_tools: { ja: `その他ネットワークツール`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 118, name: "operating_systems" },
+// ------------------------- 🌠118. 運用システム 小分類 operating_systems -------------------------
+// 833から
+
+/**
+ *【運用システム】Operations Systems
+  統合運用管理 → integrated_operations_management
+  サーバ監視・ネットワーク管理ツール → server_network_management_tools✅server_monitoring_network_management_tools
+  その他運用管理ソフト → other_operations_management_software
+ */
+
+export const categoryS_operating_systems_NameOnly: ITProductCategoriesS_operating_systems[] = [
+  "integrated_operations_management",
+  "server_monitoring_network_management_tools",
+  "other_operations_management_software",
+];
+export const categoryS_operating_systems: {
+  id: number;
+  name: ITProductCategoriesS_operating_systems;
+}[] = [
+  { id: 833, name: "integrated_operations_management" },
+  { id: 834, name: "server_monitoring_network_management_tools" },
+  { id: 835, name: "other_operations_management_software" },
+];
+export const mappingCategoryS_operating_systems: {
+  [K in ITProductCategoriesS_operating_systems | string]: {
+    [key: string]: string;
+  };
+} = {
+  integrated_operations_management: { ja: `統合運用管理`, en: `` },
+  server_monitoring_network_management_tools: { ja: `サーバ監視・ネットワーク管理ツール`, en: `` },
+  other_operations_management_software: { ja: `その他運用管理ソフト`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 119, name: "servers" },
+// ------------------------- 🌠119. サーバ 小分類 servers -------------------------
+// 836から
+
+/**
+ *【サーバ】Servers
+  サーバー → servers
+  サーバラック → server_racks
+  サーバクーラー → server_coolers
+  その他サーバ関連 → other_server_related
+  ストレージ・バックアップ → storage_backup
+  UPS・無停電電源装置 → ups_uninterruptible_power_supplies
+ */
+
+export const categoryS_servers_NameOnly: ITProductCategoriesS_servers[] = [
+  "servers",
+  "server_racks",
+  "server_coolers",
+  "other_server_related",
+  "storage_backup",
+  "ups_uninterruptible_power_supplies",
+];
+export const categoryS_servers: {
+  id: number;
+  name: ITProductCategoriesS_servers;
+}[] = [
+  { id: 836, name: "servers" },
+  { id: 837, name: "server_racks" },
+  { id: 838, name: "server_coolers" },
+  { id: 839, name: "other_server_related" },
+  { id: 840, name: "storage_backup" },
+  { id: 841, name: "ups_uninterruptible_power_supplies" },
+];
+export const mappingCategoryS_servers: {
+  [K in ITProductCategoriesS_servers | string]: {
+    [key: string]: string;
+  };
+} = {
+  servers: { ja: `サーバー`, en: `` },
+  server_racks: { ja: `サーバラック`, en: `` },
+  server_coolers: { ja: `サーバクーラー`, en: `` },
+  other_server_related: { ja: `その他サーバ関連`, en: `` },
+  storage_backup: { ja: `ストレージ・バックアップ`, en: `` },
+  ups_uninterruptible_power_supplies: { ja: `UPS・無停電電源装置`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 120, name: "security" },
+// ------------------------- 🌠120. セキュリティ 小分類 security -------------------------
+// 842から
+
+/**
+ *【セキュリティ】Security
+  フィルタリング → filtering
+  ウイルスソフト → antivirus_software
+  ファイアウォール・不正侵入防止 → firewalls_intrusion_prevention
+  暗号化・認証 → encryption_authentication
+  その他セキュリティ → other_security
+  入退場システム → entry_exit_systems✅access_control_systems
+  個人認証 → personal_authentication
+  データ消去 → data_erasure
+ */
+
+export const categoryS_security_NameOnly: ITProductCategoriesS_security[] = [
+  "filtering",
+  "antivirus_software",
+  "firewalls_intrusion_prevention",
+  "encryption_authentication",
+  "other_security",
+  "entry_exit_systems",
+  "personal_authentication",
+  "data_erasure",
+];
+export const categoryS_security: {
+  id: number;
+  name: ITProductCategoriesS_security;
+}[] = [
+  { id: 842, name: "filtering" },
+  { id: 843, name: "antivirus_software" },
+  { id: 844, name: "firewalls_intrusion_prevention" },
+  { id: 845, name: "encryption_authentication" },
+  { id: 846, name: "other_security" },
+  { id: 847, name: "entry_exit_systems" },
+  { id: 848, name: "personal_authentication" },
+  { id: 849, name: "data_erasure" },
+];
+export const mappingCategoryS_security: {
+  [K in ITProductCategoriesS_security | string]: {
+    [key: string]: string;
+  };
+} = {
+  filtering: { ja: `フィルタリング`, en: `` },
+  antivirus_software: { ja: `ウイルスソフト`, en: `` },
+  firewalls_intrusion_prevention: { ja: `ファイアウォール・不正侵入防止`, en: `` },
+  encryption_authentication: { ja: `暗号化・認証`, en: `` },
+  other_security: { ja: `その他セキュリティ`, en: `` },
+  entry_exit_systems: { ja: `入退場システム`, en: `` },
+  personal_authentication: { ja: `個人認証`, en: `` },
+  data_erasure: { ja: `データ消去`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// =================== ✅「IT・ネットワーク」 大分類 it_network の小分類関連✅ ここまで ===================
+
+// =================== ✅「オフィス」 大分類 office の小分類関連✅  ===================
+/**
+ * export const OfficeCategoryM: { id: number; name: ProductCategoriesMediumOffice }[] = [
+  { id: 121, name: "office_automation_equipment" },
+  { id: 122, name: "consumables" },
+  { id: 123, name: "supplies" },
+];
+export const mappingOfficeCategoryM: { [K in ProductCategoriesMediumOffice | string]: { [key: string]: string } } = {
+  office_automation_equipment: { ja: "PC・OA機器", en: `` }, // 1
+  consumables: { ja: "消耗品", en: `` }, // 2
+  supplies: { ja: "備品", en: `` }, // 3
+};
+ */
+
+// { id: 121, name: "office_automation_equipment" },
+// ------------------------- 🌠121. PC・OA機器 小分類 office_automation_equipment -------------------------
+// 850から
+
+/**
+ *【PC・OA機器】PC & Office Automation Equipment
+  デスクトップPC → desktop_pcs
+  ノートPC → laptop_pcs✅notebook_pcs
+  携帯電話・PHS・データ通信カード → mobile_phones_phs_data_cards✅mobile_phones_phs_data_communication_cards
+  PDA・ハンディターミナル → pda_handheld_terminals
+  プロジェクタ → projectors
+  プリンタ → printers
+  スキャナ → scanners
+  複合機 → multifunction_devices✅multi_function_devices
+  WEB・テレビ会議 → web_tv_conferencing✅web_teleconferencing
+  その他PC・OA機器 → other_pc_oa_equipment
+ */
+
+export const categoryS_office_automation_equipment_NameOnly: ITProductCategoriesS_office_automation_equipment[] = [
+  "desktop_pcs",
+  "laptop_pcs",
+  "mobile_phones_phs_data_cards",
+  "pda_handheld_terminals",
+  "projectors",
+  "printers",
+  "scanners",
+  "multi_function_devices",
+  "web_teleconferencing",
+  "other_pc_oa_equipment",
+];
+export const categoryS_office_automation_equipment: {
+  id: number;
+  name: ITProductCategoriesS_office_automation_equipment;
+}[] = [
+  { id: 850, name: "desktop_pcs" },
+  { id: 851, name: "laptop_pcs" },
+  { id: 852, name: "mobile_phones_phs_data_cards" },
+  { id: 853, name: "pda_handheld_terminals" },
+  { id: 854, name: "projectors" },
+  { id: 855, name: "printers" },
+  { id: 856, name: "scanners" },
+  { id: 857, name: "multi_function_devices" },
+  { id: 858, name: "web_teleconferencing" },
+  { id: 859, name: "other_pc_oa_equipment" },
+];
+export const mappingCategoryS_office_automation_equipment: {
+  [K in ITProductCategoriesS_office_automation_equipment | string]: {
+    [key: string]: string;
+  };
+} = {
+  desktop_pcs: { ja: `デスクトップPC`, en: `` },
+  laptop_pcs: { ja: `ノートPC`, en: `` },
+  mobile_phones_phs_data_cards: { ja: `携帯電話・PHS・データ通信カード`, en: `` },
+  pda_handheld_terminals: { ja: `PDA・ハンディターミナル`, en: `` },
+  projectors: { ja: `プロジェクタ`, en: `` },
+  printers: { ja: `プリンタ`, en: `` },
+  scanners: { ja: `スキャナ`, en: `` },
+  multi_function_devices: { ja: `複合機`, en: `` },
+  web_teleconferencing: { ja: `WEB・テレビ会議`, en: `` },
+  other_pc_oa_equipment: { ja: `その他PC・OA機器`, en: `` },
+};
+
+/**
+ *【PC・OA機器】PC & Office Automation Equipment
+  デスクトップPC → desktop_pcs
+  ノートPC → laptop_pcs✅notebook_pcs
+  携帯電話・PHS・データ通信カード → mobile_phones_phs_data_cards✅mobile_phones_phs_data_communication_cards
+  PDA・ハンディターミナル → pda_handheld_terminals
+  プロジェクタ → projectors
+  プリンタ → printers
+  スキャナ → scanners
+  複合機 → multifunction_devices✅multi_function_devices
+  WEB・テレビ会議 → web_tv_conferencing✅web_teleconferencing
+  その他PC・OA機器 → other_pc_oa_equipment
+ */
+
+// -------------------------------------------------------------------------------------
+
+// =================== ✅「オフィス」 大分類 office の小分類関連✅ ここまで ===================
