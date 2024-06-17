@@ -283,7 +283,8 @@ export const CustomSelectMultiple = ({
             fontSize: `12px`,
             ...(maxWidth && { maxWidth: `calc(${maxWidth - 20 - 9})` }),
             // ...(isSelectedActiveColor && { color: activeColor ? activeColor : `rgb(72, 163, 248)` }),
-            ...(isSelectedActiveColor && { color: activeColor ? activeColor : `rgb(46 132 212)` }),
+            // ...(isSelectedActiveColor && { color: activeColor ? activeColor : `rgb(46 132 212)` }),
+            ...(isSelectedActiveColor && { color: activeColor ? activeColor : `var(--color-hashtag)` }),
             ...(isBoldActiveText && { fontWeight: 600 }),
           }}
           // style={{ ...(maxWidth && { maxWidth: `calc(${maxWidth - 1 - 3 - 20 - 9})` }) }}

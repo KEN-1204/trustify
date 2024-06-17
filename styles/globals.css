@@ -1550,6 +1550,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* モーダル外側ボタン */
   --color-modal-outside-btn-bg: #00000090;
   --color-modal-outside-btn-bg-hover: #000000c0;
+
+  /* #ハッシュタグ */
+  /* --color-hashtag: rgb(53 141 222); */
+  --color-hashtag: rgb(118 172 255);
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -2698,6 +2702,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* モーダル外側ボタン */
   --color-modal-outside-btn-bg: #393939;
   --color-modal-outside-btn-bg-hover: #666;
+
+  /* #ハッシュタグ */
+  --color-hashtag: rgb(49 150 253);
 }
 
 /* html {

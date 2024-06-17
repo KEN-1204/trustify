@@ -3513,7 +3513,7 @@ export type SalesProcessesOnlyHalfYearForSDB = {
 // type OpenModalSDBType = ''
 
 // ----------- 業種・製品分類 関連 -----------
-// 製品分類【大分類】
+// ------------ 🌠製品分類【大分類】
 export type ProductCategoriesLarge =
   | "electronic_components_modules"
   | "mechanical_parts"
@@ -3531,7 +3531,7 @@ export type ProductCategoriesLarge =
   | "seminars_skill_up"
   | "others";
 
-// 製品分類【中分類】
+// ------------ 🌠製品分類【中分類】
 // 電子部品
 export type ProductCategoriesMediumModule =
   | "electronic_components"
@@ -3593,7 +3593,7 @@ export type ProductCategoriesMediumMaterial =
   | "glass"
   | "ceramics"
   | "wood"
-  | "paper_valves"
+  | "paper_pulps"
   | "organic_natural_materials"
   | "chemicals";
 
@@ -3695,5 +3695,516 @@ export type ProductCategoriesMedium =
   | ProductCategoriesMediumBusinessSupport
   | ProductCategoriesMediumSkillUp
   | "others";
+
+// 🌠「電子部品・モジュール」 中分類の【小分類】
+// 電子部品
+export type ModuleProductCategoriesSElectronicComponents =
+  | "electron_tubes"
+  | "resistors"
+  | "capacitors"
+  | "transformers"
+  | "inductors_coils"
+  | "filters"
+  | "oscillators"
+  | "amplifiers"
+  | "power_sources"
+  | "ac_adapters"
+  | "rf_microwave_components"
+  | "antennas"
+  | "piezoelectric_devices"
+  | "lamps_emitters"
+  | "transducers"
+  | "isolators"
+  | "converters"
+  | "inverters"
+  | "relays"
+  | "sound_components"
+  | "fans"
+  | "solenoids_actuators"
+  | "fuses"
+  | "peltier_device"
+  | "couplers"
+  | "encoders"
+  | "emc_solutions"
+  | "printed_circuit_boards"
+  | "ultrasonic_generators"
+  | "switches"
+  | "sensors"
+  | "other_electronic_components";
+
+// コネクタ
+export type ModuleProductCategoriesSConnectors =
+  | "coaxial_connectors"
+  | "circular_connectors"
+  | "rectangular_connectors"
+  | "board_to_board_connectors"
+  | "board_to_cable_connectors"
+  | "board_to_fpc_connectors"
+  | "optical_connectors"
+  | "automotive_connectors"
+  | "other_connectors";
+
+// 端子台
+export type ModuleProductCategoriesSTerminalBlocks =
+  | "crimp_terminals"
+  | "sockets"
+  | "waterproof_connectors"
+  | "pcb_terminal_blocks"
+  | "connector_terminal_blocks"
+  | "other_terminal_blocks";
+
+// LED
+export type ModuleProductCategoriesSLed = "bullet_type_led" | "chip_type_led" | "led_modules";
+
+// FPD・タッチパネル
+export type ModuleProductCategoriesSFpdTouchPanel =
+  | "organic_led"
+  | "lcd_displays"
+  | "touch_panels"
+  | "other_fpd_related";
+
+// FPD・タッチパネル
+export type ModuleProductCategoriesSSmallMotors =
+  | "dc_motors"
+  | "vibration_motors"
+  | "brushless_dc_motors"
+  | "stepping_motors"
+  | "fan_motors"
+  | "ac_motors";
+
+// 電源
+export type ModuleProductCategoriesSPowerSources = "other_power_sources" | "switching_power_sources";
+
+// 電池・バッテリー
+export type ModuleProductCategoriesSBatteries =
+  | "secondary_batteries"
+  | "hydrogen_batteries"
+  | "lithium_ion_batteries"
+  | "chargers";
+
+// 半導体・IC
+export type ModuleProductCategoriesSSemiconductorsIc =
+  | "wafers"
+  | "diodes"
+  | "transistors"
+  | "memory"
+  | "microcomputers"
+  | "asic"
+  | "custom_ics"
+  | "other_semiconductors";
+
+// 「RFIC・ICタグ」
+export type ModuleProductCategoriesS_rfid_ic_tag = "ic_tags";
+
+// 「光学部品」
+export type ModuleProductCategoriesS_optical_components =
+  | "lenses"
+  | "prisms"
+  | "mirrors"
+  | "optical_lab_components"
+  | "laser_components"
+  | "other_optical_components";
+
+// ケーブル
+export type ModuleProductCategoriesS_cables =
+  | "cables"
+  | "harnesses"
+  | "lan_optical_cables"
+  | "ferrite_cores"
+  | "wiring_materials"
+  | "other_cable_related_products";
+
+// 受託サービス
+export type ModuleProductCategoriesS_contracted_services =
+  | "pcb_design_manufacturing"
+  | "electronic_manufacturing_services";
+
+// ========================= ✅「機械部品」 大分類 mechanical_parts の小分類関連✅ =========================
+// 機械要素
+export type MachineProductCategoriesS_mechanical_elements =
+  | "gears"
+  | "fasteners"
+  | "springs"
+  | "shafts"
+  | "chains_sprockets"
+  | "belts_pulleys"
+  | "power_transmission_equipment"
+  | "couplings"
+  | "wheels"
+  | "clutches"
+  | "brakes"
+  | "reducers"
+  | "slip_rings"
+  | "rollers"
+  | "actuators"
+  | "belts"
+  | "joints"
+  | "cylinders"
+  | "transmissions"
+  | "casters"
+  | "nozzles"
+  | "other_mechanical_elements";
+
+// 軸受・ベアリング
+export type MachineProductCategoriesS_bearings = "metal_bearings" | "plastic_bearings";
+
+// ねじ
+export type MachineProductCategoriesS_screws = "nuts" | "bolts";
+
+// モータ
+export type MachineProductCategoriesS_motors =
+  | "servo_motors"
+  | "stepping_motors"
+  | "linear_motors"
+  | "induction_motors"
+  | "pm_motors"
+  | "ac_motors"
+  | "dc_motors"
+  | "electromagnets"
+  | "other_motors";
+
+// ポンプ
+export type MachineProductCategoriesS_pumps =
+  | "syringe_pumps"
+  | "positive_displacement_pumps"
+  | "turbo_pumps"
+  | "special_pumps"
+  | "other_pumps";
+
+// 配管部品
+export type MachineProductCategoriesS_piping_components =
+  | "valves"
+  | "filters"
+  | "pipe_fittings"
+  | "tubes"
+  | "hoses"
+  | "piping_materials";
+
+// 油空水圧機器
+export type MachineProductCategoriesS_water_oil_hydraulic_pneumatic_equipment =
+  | "water_pressure_equipment"
+  | "oil_pressure_equipment"
+  | "pneumatic_equipment";
+
+// 真空機器
+export type MachineProductCategoriesS_vacuum_equipment = "vacuum_equipment" | "seals_gaskets" | "vacuum_pumps";
+
+// 金型
+export type MachineProductCategoriesS_molds =
+  | "rubber_molds"
+  | "plastic_molds"
+  | "resin_molds"
+  | "press_molds"
+  | "mold_design"
+  | "other_molds";
+
+// 治具
+export type MachineProductCategoriesS_jigs = "inspection_jigs" | "machining_jigs" | "assembly_jigs" | "brackets";
+
+// 自動車部品
+export type MachineProductCategoriesS_automotive_parts =
+  | "engine_parts"
+  | "automotive_catalyst_test_equipment"
+  | "o2_sensor_test_equipment"
+  | "fuel_system_parts"
+  | "canister_test_device"
+  | "transmission_parts"
+  | "brake_components"
+  | "drivetrain_parts"
+  | "axle_parts"
+  | "body_parts"
+  | "steering_system_parts"
+  | "electrical_parts"
+  | "interior_parts"
+  | "other_automotive_parts";
+
+// ========================= ✅「製造・加工機械」 大分類 manufacturing_processing_machines の小分類関連✅ =========================
+
+// 工作機械
+export type ProcessingMachineryProductCategoriesS_machine_tools =
+  | "lathes"
+  | "drilling_machines"
+  | "boring_machines"
+  | "milling_machines"
+  | "planers_shapers_slotters"
+  | "grinding_machines"
+  | "gear_cutting_finishing_machines"
+  | "special_processing_machines"
+  | "edm_machines"
+  | "other_machine_tools";
+
+// 加工機械
+export type ProcessingMachineryProductCategoriesS_processing_machines =
+  | "plastic_working_machines"
+  | "welding_machines"
+  | "heading_machines"
+  | "winding_machines"
+  | "printing_machines"
+  | "injection_molding_machines"
+  | "blow_molding_machines"
+  | "extrusion_molding_machines"
+  | "vacuum_molding_machines"
+  | "plastic_processing_machines"
+  | "rubber_processing_machines"
+  | "powder_molding_machines"
+  | "forging_machines"
+  | "textile_processing_machines"
+  | "paper_processing_machines"
+  | "wood_processing_machines"
+  | "stone_processing_machines"
+  | "other_processing_machines";
+
+// 半導体製造装置
+export type ProcessingMachineryProductCategoriesS_semiconductor_manufacturing_equipment =
+  | "cvd_equipment"
+  | "sputtering_equipment"
+  | "annealing_furnaces"
+  | "coaters"
+  | "resist_processing_equipment"
+  | "oxidation_diffusion_equipment"
+  | "steppers"
+  | "etching_equipment"
+  | "ion_implantation_equipment"
+  | "ashing_equipment"
+  | "deposition_equipment"
+  | "electron_beam_printing_equipment"
+  | "semiconductor_testers"
+  | "semiconductor_inspection_testing_equipment"
+  | "wafer_processing_polishing_equipment"
+  | "molding_equipment"
+  | "bonding_equipment"
+  | "cmp_equipment"
+  | "photomasks"
+  | "other_semiconductor_manufacturing_equipment";
+
+// 実装機械
+export type ProcessingMachineryProductCategoriesS_mounting_machines =
+  | "mounters"
+  | "inserters"
+  | "reflow_equipment"
+  | "pcb_processing_machines"
+  | "taping_machines"
+  | "soldering_equipment"
+  | "pcb_transport_equipment_loaders_unloaders"
+  | "other_mounting_machines";
+
+// 産業用ロボット
+export type ProcessingMachineryProductCategoriesS_industrial_robots =
+  | "machining_centers"
+  | "scara_robots"
+  | "multi_joint_robots"
+  | "cartesian_robots"
+  | "assembly_robots"
+  | "conveying_handling_robots"
+  | "welding_robots"
+  | "inspection_robots"
+  | "other_industrial_robots";
+
+// 組立機械
+export type ProcessingMachineryProductCategoriesS_assembly_machines =
+  | "dispensers"
+  | "assembly_machines"
+  | "automatic_sorters"
+  | "parts_feeders"
+  | "other_assembly_machines";
+
+// 塗装機械
+export type ProcessingMachineryProductCategoriesS_painting_machines =
+  | "painting_machines"
+  | "sprayers"
+  | "other_painting_machines";
+
+// 食品機械
+export type ProcessingMachineryProductCategoriesS_food_machines =
+  | "food_processing_equipment"
+  | "food_cutting_equipment"
+  | "food_washing_equipment"
+  | "beverage_manufacturing_equipment"
+  | "frozen_treats_manufacturing_equipment"
+  | "food_packaging_machines"
+  | "food_hygiene_contamination_prevention_equipment"
+  | "food_testing_analysis_measuring_equipment"
+  | "food_storage_facilities"
+  | "food_conveying_equipment"
+  | "other_food_machinery";
+
+// 包装機械
+export type ProcessingMachineryProductCategoriesS_packaging_machines =
+  | "bag_making_slitting_machines"
+  | "case_former"
+  | "filling_bottling_machines"
+  | "case_packer"
+  | "vacuum_packaging_machines"
+  | "overwrapping_machines"
+  | "sealing_machines"
+  | "shrink_wrapping_machines"
+  | "strapping_packaging_machines"
+  | "other_packaging_machinery";
+
+// 搬送機械
+export type ProcessingMachineryProductCategoriesS_conveying_machines =
+  | "cranes"
+  | "conveyors"
+  | "sorting_machines"
+  | "palletizers"
+  | "balancers"
+  | "lifts"
+  | "carts"
+  | "other_conveying_machines";
+
+// マーキング
+export type ProcessingMachineryProductCategoriesS_marking =
+  | "commercial_printers"
+  | "labelers"
+  | "labels"
+  | "special_labels"
+  | "nameplates"
+  | "engraving_machines"
+  | "laser_markers"
+  | "other_marking";
+
+// 受託サービス
+export type ProcessingMachineryProductCategoriesS_contracted_services =
+  | "machine_design"
+  | "manufacturing_services"
+  | "processing_services";
+
+// ========================= ✅「科学・理化学」 大分類 scientific_chemical_equipment の小分類関連✅ =========================
+
+// 理化学機器
+export type ProcessingMachineryProductCategoriesS_chemical_equipment =
+  | "incubators"
+  | "refrigerators_freezers"
+  | "drying_equipment"
+  | "autoclaves"
+  | "sterilizers"
+  | "constant_temperature_water_baths"
+  | "pure_water_production_equipment"
+  | "centrifuges"
+  | "dispensers"
+  | "pipettes"
+  | "stirrers"
+  | "concentrators"
+  | "stainless_containers"
+  | "separation_equipment"
+  | "distillation_equipment"
+  | "degassing_equipment"
+  | "uv_exposure_equipment"
+  | "plasma_generators"
+  | "ozone_generators"
+  | "gas_generators"
+  | "nitrogen_gas_generators"
+  | "emulsifiers_dispersers"
+  | "mixers_agitators"
+  | "other_chemical_equipment";
+
+// 洗浄機
+export type ProcessingMachineryProductCategoriesS_cleaning_machines =
+  | "high_pressure_cleaners"
+  | "ultrasonic_cleaners"
+  | "other_cleaning_machines";
+
+// 粉体機器
+export type ProcessingMachineryProductCategoriesS_powder_equipment =
+  | "crushers"
+  | "fine_crushers"
+  | "sieves_shakers"
+  | "granulators"
+  | "powder_feeders"
+  | "homogenizers"
+  | "shakers"
+  | "powder_conveyors"
+  | "other_powder_equipment";
+
+// 加熱装置・炉
+export type ProcessingMachineryProductCategoriesS_heating_equipment_furnaces =
+  | "heating_equipment"
+  | "aluminum_heaters"
+  | "ceramic_heaters"
+  | "silicon_heaters"
+  | "other_heaters"
+  | "electric_furnaces"
+  | "industrial_furnaces";
+
+// 表面処理装置
+export type ProcessingMachineryProductCategoriesS_surface_treatment_equipment =
+  | "plating_equipment"
+  | "plasma_surface_treatment_equipment"
+  | "surface_treatment_services"
+  | "other_surface_treatment_equipment";
+
+// 実験器具・消耗品
+export type ProcessingMachineryProductCategoriesS_laboratory_equipment_supplies =
+  | "glass_instruments_containers"
+  | "plastic_instruments_containers"
+  | "stainless_instruments_containers"
+  | "other_laboratory_instruments_containers";
+
+// ========================= ✅「素材・材料」 大分類 materials の小分類関連✅ =========================
+
+// 金属材料
+export type MaterialProductCategoriesS_metal_materials =
+  | "steel"
+  | "alloys"
+  | "special_steel"
+  | "non_ferrous_metals"
+  | "stainless_steel"
+  | "aluminum"
+  | "rare_metals"
+  | "magnets"
+  | "solders"
+  | "other_metal_materials";
+
+// 高分子材料
+export type MaterialProductCategoriesS_polymer_materials =
+  | "plastics"
+  | "engineering_plastics"
+  | "rubber"
+  | "fibers"
+  | "composite_materials"
+  | "other_polymer_materials";
+
+// ガラス
+export type MaterialProductCategoriesS_glass = "glass";
+
+// セラミックス
+export type MaterialProductCategoriesS_ceramics = "ceramics" | "fine_ceramics";
+
+// 木材
+export type MaterialProductCategoriesS_wood = "wood" | "processed_wood_products";
+
+// 紙・パルプ
+export type MaterialProductCategoriesS_paper_pulps = "paper_pulp" | "processed_paper_pulp_products";
+
+// 有機天然材料
+export type MaterialProductCategoriesS_organic_natural_materials = "fats_oils" | "organic_natural_materials";
+
+// 薬品
+export type MaterialProductCategoriesS_chemicals = "chemicals";
+
+// ========================= ✅「測定・分析」 大分類 measurement_analysis の小分類関連✅ =========================
+
+// 距離測定器
+export type AnalysisProductCategoriesS_distance_measuring_machine = "distance_measuring_instruments";
+
+// 重量測定器
+export type AnalysisProductCategoriesS_weight_measuring_machine =
+  | "weight_measuring_instruments"
+  | "scales"
+  | "weighing_machines"
+  | "other_weight_measuring_instruments";
+
+// 電子計測器
+export type AnalysisProductCategoriesS_electronic_measuring_machine =
+  | "oscilloscopes"
+  | "logic_analyzers"
+  | "ammeters"
+  | "power_meters"
+  | "lcr_meters"
+  | "time_frequency_measurement"
+  | "signal_generators"
+  | "electronic_loads"
+  | "other_electronic_measuring_instruments"
+  | "optical_measuring_instruments";
 
 // ----------- 業種・製品分類 関連 ここまで -----------

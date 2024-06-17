@@ -395,7 +395,7 @@ export const materialCategoryMNameOnly: ProductCategoriesMediumMaterial[] = [
   "glass",
   "ceramics",
   "wood",
-  "paper_valves",
+  "paper_pulps",
   "organic_natural_materials",
   "chemicals",
 ];
@@ -405,7 +405,7 @@ export const materialCategoryM: { id: number; name: ProductCategoriesMediumMater
   { id: 60, name: "glass" },
   { id: 61, name: "ceramics" },
   { id: 62, name: "wood" },
-  { id: 63, name: "paper_valves" },
+  { id: 63, name: "paper_pulps" },
   { id: 64, name: "organic_natural_materials" },
   { id: 65, name: "chemicals" },
 ];
@@ -416,7 +416,7 @@ export const mappingMaterialCategoryM: { [K in ProductCategoriesMediumMaterial |
     glass: { ja: "ガラス", en: `` }, // 3
     ceramics: { ja: "セラミックス", en: `` }, // 4
     wood: { ja: "木材", en: `` }, // 5
-    paper_valves: { ja: "紙・バルブ", en: `` }, // 6
+    paper_pulps: { ja: "紙・パルプ", en: `` }, // 6
     organic_natural_materials: { ja: "有機天然材料", en: `` }, // 7
     chemicals: { ja: "薬品", en: `` }, // 8
   };
