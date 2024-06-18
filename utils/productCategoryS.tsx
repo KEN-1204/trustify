@@ -1,114 +1,1232 @@
-// 電子部品 小分類
+// import {
+//   AnalysisProductCategoriesS_analytical_machine,
+//   ImageProcessingProductCategoriesS_barcode_readers,
+//   ImageProcessingProductCategoriesS_cameras,
+//   AnalysisProductCategoriesS_contracted_services,
+//   AnalysisProductCategoriesS_coordinate_measuring_machine,
+//   AnalysisProductCategoriesS_distance_measuring_machine,
+//   AnalysisProductCategoriesS_electrical_machine,
+//   AnalysisProductCategoriesS_electronic_measuring_machine,
+//   AnalysisProductCategoriesS_electronic_temperature_humidity_machine,
+//   AnalysisProductCategoriesS_environmental_analysis_machine,
+//   ImageProcessingProductCategoriesS_image_processing,
+//   AnalysisProductCategoriesS_inspection_machine,
+//   ImageProcessingProductCategoriesS_lenses,
+//   ImageProcessingProductCategoriesS_light_sources_lighting,
+//   AnalysisProductCategoriesS_microscopes,
+//   AnalysisProductCategoriesS_other_measuring_machine,
+//   AnalysisProductCategoriesS_recorders_loggers,
+//   ImageProcessingProductCategoriesS_security_surveillance_systems,
+//   AnalysisProductCategoriesS_testing_machine,
+//   AnalysisProductCategoriesS_weight_measuring_machine,
+//   MachineProductCategoriesS_automotive_parts,
+//   MachineProductCategoriesS_bearings,
+//   MachineProductCategoriesS_jigs,
+//   MachineProductCategoriesS_mechanical_elements,
+//   MachineProductCategoriesS_molds,
+//   MachineProductCategoriesS_motors,
+//   MachineProductCategoriesS_piping_components,
+//   MachineProductCategoriesS_pumps,
+//   MachineProductCategoriesS_screws,
+//   MachineProductCategoriesS_vacuum_equipment,
+//   MachineProductCategoriesS_water_oil_hydraulic_pneumatic_equipment,
+//   MaterialProductCategoriesS_ceramics,
+//   MaterialProductCategoriesS_chemicals,
+//   MaterialProductCategoriesS_glass,
+//   MaterialProductCategoriesS_metal_materials,
+//   MaterialProductCategoriesS_organic_natural_materials,
+//   MaterialProductCategoriesS_paper_pulps,
+//   MaterialProductCategoriesS_polymer_materials,
+//   MaterialProductCategoriesS_wood,
+//   ModuleProductCategoriesSBatteries,
+//   ModuleProductCategoriesSConnectors,
+//   ModuleProductCategoriesSElectronicComponents,
+//   ModuleProductCategoriesSFpdTouchPanel,
+//   ModuleProductCategoriesSLed,
+//   ModuleProductCategoriesSPowerSources,
+//   ModuleProductCategoriesSSemiconductorsIc,
+//   ModuleProductCategoriesSSmallMotors,
+//   ModuleProductCategoriesSTerminalBlocks,
+//   ModuleProductCategoriesS_cables,
+//   ModuleProductCategoriesS_contracted_services,
+//   ModuleProductCategoriesS_optical_components,
+//   ModuleProductCategoriesS_rfid_ic_tag,
+//   ProcessingMachineryProductCategoriesS_assembly_machines,
+//   ProcessingMachineryProductCategoriesS_chemical_equipment,
+//   ProcessingMachineryProductCategoriesS_cleaning_machines,
+//   ProcessingMachineryProductCategoriesS_contracted_services,
+//   ProcessingMachineryProductCategoriesS_conveying_machines,
+//   ProcessingMachineryProductCategoriesS_food_machines,
+//   ProcessingMachineryProductCategoriesS_heating_equipment_furnaces,
+//   ProcessingMachineryProductCategoriesS_industrial_robots,
+//   ProcessingMachineryProductCategoriesS_laboratory_equipment_supplies,
+//   ProcessingMachineryProductCategoriesS_machine_tools,
+//   ProcessingMachineryProductCategoriesS_marking,
+//   ProcessingMachineryProductCategoriesS_mounting_machines,
+//   ProcessingMachineryProductCategoriesS_packaging_machines,
+//   ProcessingMachineryProductCategoriesS_painting_machines,
+//   ProcessingMachineryProductCategoriesS_powder_equipment,
+//   ProcessingMachineryProductCategoriesS_processing_machines,
+//   ProcessingMachineryProductCategoriesS_semiconductor_manufacturing_equipment,
+//   ProcessingMachineryProductCategoriesS_surface_treatment_equipment,
+//   ControlEquipmentProductCategoriesS_process_control_equipment,
+//   ControlEquipmentProductCategoriesS_fa_equipment,
+//   ControlEquipmentProductCategoriesS_safety_equipment,
+//   ControlEquipmentProductCategoriesS_environmental_equipment,
+//   ControlEquipmentProductCategoriesS_filters,
+//   ControlEquipmentProductCategoriesS_clean_rooms,
+//   ControlEquipmentProductCategoriesS_lighting,
+//   ControlEquipmentProductCategoriesS_air_conditioning_equipment,
+//   ControlEquipmentProductCategoriesS_water_treatment_equipment,
+//   ControlEquipmentProductCategoriesS_static_electricity_measures,
+//   ControlEquipmentProductCategoriesS_energy_equipment,
+//   ToolProductCategoriesS_cutting_tools,
+//   ToolProductCategoriesS_abrasives,
+//   ToolProductCategoriesS_hand_tools,
+//   ToolProductCategoriesS_power_pneumatic_tools,
+//   ToolProductCategoriesS_consumables,
+//   ToolProductCategoriesS_cleaning_tools,
+//   ToolProductCategoriesS_safety_hygiene_supplies,
+//   ToolProductCategoriesS_packaging_materials,
+//   ToolProductCategoriesS_supplies,
+//   ToolProductCategoriesS_storage_facilities,
+//   DesignProductCategoriesS_cad,
+//   DesignProductCategoriesS_cam,
+//   DesignProductCategoriesS_cae,
+//   DesignProductCategoriesS_prototype,
+//   DesignProductCategoriesS_contracted_services,
+//   ITProductCategoriesS_industrial_computers,
+//   ITProductCategoriesS_embedded_systems,
+//   ITProductCategoriesS_production_management,
+//   ITProductCategoriesS_information_systems,
+//   ITProductCategoriesS_network,
+//   ITProductCategoriesS_operating_systems,
+//   ITProductCategoriesS_servers,
+//   ITProductCategoriesS_security,
+//   OfficeProductCategoriesS_office_automation_equipment,
+//   OfficeProductCategoriesS_consumables,
+//   OfficeProductCategoriesS_office_supplies,
+//   BusinessSupportProductCategoriesS_consultants,
+//   BusinessSupportProductCategoriesS_rental_lease,
+//   BusinessSupportProductCategoriesS_human_resources_services,
+//   BusinessSupportProductCategoriesS_services,
+//   SkillUpProductCategoriesS_for_engineer,
+//   SkillUpProductCategoriesS_for_management,
+//   OthersProductCategoriesS_others,
+// } from "@/types";
+// import { ITProductCategoriesS_core_systems } from "../types";
 
 import {
-  AnalysisProductCategoriesS_analytical_machine,
-  ImageProcessingProductCategoriesS_barcode_readers,
-  ImageProcessingProductCategoriesS_cameras,
-  AnalysisProductCategoriesS_contracted_services,
-  AnalysisProductCategoriesS_coordinate_measuring_machine,
-  AnalysisProductCategoriesS_distance_measuring_machine,
-  AnalysisProductCategoriesS_electrical_machine,
-  AnalysisProductCategoriesS_electronic_measuring_machine,
-  AnalysisProductCategoriesS_electronic_temperature_humidity_machine,
-  AnalysisProductCategoriesS_environmental_analysis_machine,
-  ImageProcessingProductCategoriesS_image_processing,
-  AnalysisProductCategoriesS_inspection_machine,
-  ImageProcessingProductCategoriesS_lenses,
-  ImageProcessingProductCategoriesS_light_sources_lighting,
-  AnalysisProductCategoriesS_microscopes,
-  AnalysisProductCategoriesS_other_measuring_machine,
-  AnalysisProductCategoriesS_recorders_loggers,
-  ImageProcessingProductCategoriesS_security_surveillance_systems,
-  AnalysisProductCategoriesS_testing_machine,
-  AnalysisProductCategoriesS_weight_measuring_machine,
-  MachineProductCategoriesS_automotive_parts,
-  MachineProductCategoriesS_bearings,
-  MachineProductCategoriesS_jigs,
-  MachineProductCategoriesS_mechanical_elements,
-  MachineProductCategoriesS_molds,
-  MachineProductCategoriesS_motors,
-  MachineProductCategoriesS_piping_components,
-  MachineProductCategoriesS_pumps,
-  MachineProductCategoriesS_screws,
-  MachineProductCategoriesS_vacuum_equipment,
-  MachineProductCategoriesS_water_oil_hydraulic_pneumatic_equipment,
-  MaterialProductCategoriesS_ceramics,
-  MaterialProductCategoriesS_chemicals,
-  MaterialProductCategoriesS_glass,
-  MaterialProductCategoriesS_metal_materials,
-  MaterialProductCategoriesS_organic_natural_materials,
-  MaterialProductCategoriesS_paper_pulps,
-  MaterialProductCategoriesS_polymer_materials,
-  MaterialProductCategoriesS_wood,
-  ModuleProductCategoriesSBatteries,
-  ModuleProductCategoriesSConnectors,
-  ModuleProductCategoriesSElectronicComponents,
-  ModuleProductCategoriesSFpdTouchPanel,
-  ModuleProductCategoriesSLed,
-  ModuleProductCategoriesSPowerSources,
-  ModuleProductCategoriesSSemiconductorsIc,
-  ModuleProductCategoriesSSmallMotors,
-  ModuleProductCategoriesSTerminalBlocks,
-  ModuleProductCategoriesS_cables,
-  ModuleProductCategoriesS_contracted_services,
-  ModuleProductCategoriesS_optical_components,
-  ModuleProductCategoriesS_rfid_ic_tag,
-  ProcessingMachineryProductCategoriesS_assembly_machines,
-  ProcessingMachineryProductCategoriesS_chemical_equipment,
-  ProcessingMachineryProductCategoriesS_cleaning_machines,
-  ProcessingMachineryProductCategoriesS_contracted_services,
-  ProcessingMachineryProductCategoriesS_conveying_machines,
-  ProcessingMachineryProductCategoriesS_food_machines,
-  ProcessingMachineryProductCategoriesS_heating_equipment_furnaces,
-  ProcessingMachineryProductCategoriesS_industrial_robots,
-  ProcessingMachineryProductCategoriesS_laboratory_equipment_supplies,
-  ProcessingMachineryProductCategoriesS_machine_tools,
-  ProcessingMachineryProductCategoriesS_marking,
-  ProcessingMachineryProductCategoriesS_mounting_machines,
-  ProcessingMachineryProductCategoriesS_packaging_machines,
-  ProcessingMachineryProductCategoriesS_painting_machines,
-  ProcessingMachineryProductCategoriesS_powder_equipment,
-  ProcessingMachineryProductCategoriesS_processing_machines,
-  ProcessingMachineryProductCategoriesS_semiconductor_manufacturing_equipment,
-  ProcessingMachineryProductCategoriesS_surface_treatment_equipment,
-  ControlEquipmentProductCategoriesS_process_control_equipment,
-  ControlEquipmentProductCategoriesS_fa_equipment,
-  ControlEquipmentProductCategoriesS_safety_equipment,
-  ControlEquipmentProductCategoriesS_environmental_equipment,
-  ControlEquipmentProductCategoriesS_filters,
-  ControlEquipmentProductCategoriesS_clean_rooms,
-  ControlEquipmentProductCategoriesS_lighting,
-  ControlEquipmentProductCategoriesS_air_conditioning_equipment,
-  ControlEquipmentProductCategoriesS_water_treatment_equipment,
-  ControlEquipmentProductCategoriesS_static_electricity_measures,
-  ControlEquipmentProductCategoriesS_energy_equipment,
-  ToolProductCategoriesS_cutting_tools,
-  ToolProductCategoriesS_abrasives,
-  ToolProductCategoriesS_hand_tools,
-  ToolProductCategoriesS_power_pneumatic_tools,
-  ToolProductCategoriesS_consumables,
-  ToolProductCategoriesS_cleaning_tools,
-  ToolProductCategoriesS_safety_hygiene_supplies,
-  ToolProductCategoriesS_packaging_materials,
-  ToolProductCategoriesS_supplies,
-  ToolProductCategoriesS_storage_facilities,
-  DesignProductCategoriesS_cad,
-  DesignProductCategoriesS_cam,
-  DesignProductCategoriesS_cae,
-  DesignProductCategoriesS_prototype,
-  DesignProductCategoriesS_contracted_services,
-  ITProductCategoriesS_industrial_computers,
-  ITProductCategoriesS_embedded_systems,
-  ITProductCategoriesS_production_management,
-  ITProductCategoriesS_information_systems,
-  ITProductCategoriesS_network,
-  ITProductCategoriesS_operating_systems,
-  ITProductCategoriesS_servers,
-  ITProductCategoriesS_security,
-  ITProductCategoriesS_office_automation_equipment,
+  ProductCategoriesMediumAnalysis,
+  ProductCategoriesMediumBusinessSupport,
+  ProductCategoriesMediumControlEquipment,
+  ProductCategoriesMediumDesign,
+  ProductCategoriesMediumIT,
+  ProductCategoriesMediumImageProcessing,
+  ProductCategoriesMediumMachine,
+  ProductCategoriesMediumMaterial,
+  ProductCategoriesMediumModule,
+  ProductCategoriesMediumOffice,
+  ProductCategoriesMediumProcessingMachinery,
+  ProductCategoriesMediumScience,
+  ProductCategoriesMediumSkillUp,
+  ProductCategoriesMediumTool,
 } from "@/types";
-import { ITProductCategoriesS_core_systems } from "../types";
 
+// 🌠「電子部品・モジュール」 中分類の【小分類】
+// 電子部品
+export type ModuleProductCategoriesSElectronicComponents =
+  | "electron_tubes"
+  | "resistors"
+  | "capacitors"
+  | "transformers"
+  | "inductors_coils"
+  | "filters"
+  | "oscillators"
+  | "amplifiers"
+  | "power_sources"
+  | "ac_adapters"
+  | "rf_microwave_components"
+  | "antennas"
+  | "piezoelectric_devices"
+  | "lamps_emitters"
+  | "transducers"
+  | "isolators"
+  | "converters"
+  | "inverters"
+  | "relays"
+  | "sound_components"
+  | "fans"
+  | "solenoids_actuators"
+  | "fuses"
+  | "peltier_device"
+  | "couplers"
+  | "encoders"
+  | "emc_solutions"
+  | "printed_circuit_boards"
+  | "ultrasonic_generators"
+  | "switches"
+  | "sensors"
+  | "other_electronic_components";
+
+// コネクタ
+export type ModuleProductCategoriesSConnectors =
+  | "coaxial_connectors"
+  | "circular_connectors"
+  | "rectangular_connectors"
+  | "board_to_board_connectors"
+  | "board_to_cable_connectors"
+  | "board_to_fpc_connectors"
+  | "optical_connectors"
+  | "automotive_connectors"
+  | "other_connectors";
+
+// 端子台
+export type ModuleProductCategoriesSTerminalBlocks =
+  | "crimp_terminals"
+  | "sockets"
+  | "waterproof_connectors"
+  | "pcb_terminal_blocks"
+  | "connector_terminal_blocks"
+  | "other_terminal_blocks";
+
+// LED
+export type ModuleProductCategoriesSLed = "bullet_type_led" | "chip_type_led" | "led_modules";
+
+// FPD・タッチパネル
+export type ModuleProductCategoriesSFpdTouchPanel =
+  | "organic_led"
+  | "lcd_displays"
+  | "touch_panels"
+  | "other_fpd_related";
+
+// FPD・タッチパネル
+export type ModuleProductCategoriesSSmallMotors =
+  | "dc_motors"
+  | "vibration_motors"
+  | "brushless_dc_motors"
+  | "stepping_motors"
+  | "fan_motors"
+  | "ac_motors";
+
+// 電源
+export type ModuleProductCategoriesSPowerSources = "other_power_sources" | "switching_power_sources";
+
+// 電池・バッテリー
+export type ModuleProductCategoriesSBatteries =
+  | "secondary_batteries"
+  | "hydrogen_batteries"
+  | "lithium_ion_batteries"
+  | "chargers";
+
+// 半導体・IC
+export type ModuleProductCategoriesSSemiconductorsIc =
+  | "wafers"
+  | "diodes"
+  | "transistors"
+  | "memory"
+  | "microcomputers"
+  | "asic"
+  | "custom_ics"
+  | "other_semiconductors";
+
+// 「RFID・ICタグ」
+export type ModuleProductCategoriesS_rfid_ic_tag = "ic_tags";
+
+// 「光学部品」
+export type ModuleProductCategoriesS_optical_components =
+  | "lenses"
+  | "prisms"
+  | "mirrors"
+  | "optical_lab_components"
+  | "laser_components"
+  | "other_optical_components";
+
+// ケーブル
+export type ModuleProductCategoriesS_cables =
+  | "cables"
+  | "harnesses"
+  | "lan_optical_cables"
+  | "ferrite_cores"
+  | "wiring_materials"
+  | "other_cable_related_products";
+
+// 受託サービス
+export type ModuleProductCategoriesS_contracted_services =
+  | "pcb_design_manufacturing"
+  | "electronic_manufacturing_services";
+
+// ========================= ✅「機械部品」 大分類 mechanical_parts の小分類関連✅ =========================
+// 機械要素
+export type MachineProductCategoriesS_mechanical_elements =
+  | "gears"
+  | "fasteners"
+  | "springs"
+  | "shafts"
+  | "chains_sprockets"
+  | "belts_pulleys"
+  | "power_transmission_equipment"
+  | "couplings"
+  | "wheels"
+  | "clutches"
+  | "brakes"
+  | "reducers"
+  | "slip_rings"
+  | "rollers"
+  | "actuators"
+  | "belts"
+  | "joints"
+  | "cylinders"
+  | "transmissions"
+  | "casters"
+  | "nozzles"
+  | "other_mechanical_elements";
+
+// 軸受・ベアリング
+export type MachineProductCategoriesS_bearings = "metal_bearings" | "plastic_bearings";
+
+// ねじ
+export type MachineProductCategoriesS_screws = "nuts" | "bolts";
+
+// モータ
+export type MachineProductCategoriesS_motors =
+  | "servo_motors"
+  | "stepping_motors"
+  | "linear_motors"
+  | "induction_motors"
+  | "pm_motors"
+  | "ac_motors"
+  | "dc_motors"
+  | "electromagnets"
+  | "other_motors";
+
+// ポンプ
+export type MachineProductCategoriesS_pumps =
+  | "syringe_pumps"
+  | "positive_displacement_pumps"
+  | "turbo_pumps"
+  | "special_pumps"
+  | "other_pumps";
+
+// 配管部品
+export type MachineProductCategoriesS_piping_components =
+  | "valves"
+  | "filters"
+  | "pipe_fittings"
+  | "tubes"
+  | "hoses"
+  | "piping_materials";
+
+// 油空水圧機器
+export type MachineProductCategoriesS_water_oil_hydraulic_pneumatic_equipment =
+  | "water_pressure_equipment"
+  | "oil_pressure_equipment"
+  | "pneumatic_equipment";
+
+// 真空機器
+export type MachineProductCategoriesS_vacuum_equipment = "vacuum_equipment" | "seals_gaskets" | "vacuum_pumps";
+
+// 金型
+export type MachineProductCategoriesS_molds =
+  | "rubber_molds"
+  | "plastic_molds"
+  | "resin_molds"
+  | "press_molds"
+  | "mold_design"
+  | "other_molds";
+
+// 治具
+export type MachineProductCategoriesS_jigs = "inspection_jigs" | "machining_jigs" | "assembly_jigs" | "brackets";
+
+// 自動車部品
+export type MachineProductCategoriesS_automotive_parts =
+  | "engine_parts"
+  | "automotive_catalyst_test_equipment"
+  | "o2_sensor_test_equipment"
+  | "fuel_system_parts"
+  | "canister_test_device"
+  | "transmission_parts"
+  | "brake_components"
+  | "drivetrain_parts"
+  | "axle_parts"
+  | "body_parts"
+  | "steering_system_parts"
+  | "electrical_parts"
+  | "interior_parts"
+  | "other_automotive_parts";
+
+// ========================= ✅「製造・加工機械」 大分類 manufacturing_processing_machines の小分類関連✅ =========================
+
+// 工作機械
+export type ProcessingMachineryProductCategoriesS_machine_tools =
+  | "lathes"
+  | "drilling_machines"
+  | "boring_machines"
+  | "milling_machines"
+  | "planers_shapers_slotters"
+  | "grinding_machines"
+  | "gear_cutting_finishing_machines"
+  | "special_processing_machines"
+  | "edm_machines"
+  | "other_machine_tools";
+
+// 加工機械
+export type ProcessingMachineryProductCategoriesS_processing_machines =
+  | "plastic_working_machines"
+  | "welding_machines"
+  | "heading_machines"
+  | "winding_machines"
+  | "printing_machines"
+  | "injection_molding_machines"
+  | "blow_molding_machines"
+  | "extrusion_molding_machines"
+  | "vacuum_molding_machines"
+  | "plastic_processing_machines"
+  | "rubber_processing_machines"
+  | "powder_molding_machines"
+  | "forging_machines"
+  | "textile_processing_machines"
+  | "paper_processing_machines"
+  | "wood_processing_machines"
+  | "stone_processing_machines"
+  | "other_processing_machines";
+
+// 半導体製造装置
+export type ProcessingMachineryProductCategoriesS_semiconductor_manufacturing_equipment =
+  | "cvd_equipment"
+  | "sputtering_equipment"
+  | "annealing_furnaces"
+  | "coaters"
+  | "resist_processing_equipment"
+  | "oxidation_diffusion_equipment"
+  | "steppers"
+  | "etching_equipment"
+  | "ion_implantation_equipment"
+  | "ashing_equipment"
+  | "deposition_equipment"
+  | "electron_beam_printing_equipment"
+  | "semiconductor_testers"
+  | "semiconductor_inspection_testing_equipment"
+  | "wafer_processing_polishing_equipment"
+  | "molding_equipment"
+  | "bonding_equipment"
+  | "cmp_equipment"
+  | "photomasks"
+  | "other_semiconductor_manufacturing_equipment";
+
+// 実装機械
+export type ProcessingMachineryProductCategoriesS_mounting_machines =
+  | "mounters"
+  | "inserters"
+  | "reflow_equipment"
+  | "pcb_processing_machines"
+  | "taping_machines"
+  | "soldering_equipment"
+  | "pcb_transport_equipment_loaders_unloaders"
+  | "carriers"
+  | "other_mounting_machines";
+
+// 産業用ロボット
+export type ProcessingMachineryProductCategoriesS_industrial_robots =
+  | "machining_centers"
+  | "scara_robots"
+  | "multi_joint_robots"
+  | "cartesian_robots"
+  | "assembly_robots"
+  | "conveying_handling_robots"
+  | "welding_robots"
+  | "inspection_robots"
+  | "other_industrial_robots";
+
+// 組立機械
+export type ProcessingMachineryProductCategoriesS_assembly_machines =
+  | "dispensers"
+  | "assembly_machines"
+  | "automatic_sorters"
+  | "parts_feeders"
+  | "other_assembly_machines";
+
+// 塗装機械
+export type ProcessingMachineryProductCategoriesS_painting_machines =
+  | "painting_machines"
+  | "sprayers"
+  | "other_painting_machines";
+
+// 食品機械
+export type ProcessingMachineryProductCategoriesS_food_machines =
+  | "food_processing_equipment"
+  | "food_cutting_equipment"
+  | "food_washing_equipment"
+  | "beverage_manufacturing_equipment"
+  | "frozen_treats_manufacturing_equipment"
+  | "food_packaging_machines"
+  | "food_hygiene_contamination_prevention_equipment"
+  | "food_testing_analysis_measuring_equipment"
+  | "food_storage_facilities"
+  | "food_conveying_equipment"
+  | "other_food_machinery";
+
+// 包装機械
+export type ProcessingMachineryProductCategoriesS_packaging_machines =
+  | "bag_making_slitting_machines"
+  | "case_former"
+  | "filling_bottling_machines"
+  | "case_packer"
+  | "vacuum_packaging_machines"
+  | "overwrapping_machines"
+  | "sealing_machines"
+  | "shrink_wrapping_machines"
+  | "strapping_packaging_machines"
+  | "other_packaging_machinery";
+
+// 搬送機械
+export type ProcessingMachineryProductCategoriesS_conveying_machines =
+  | "cranes"
+  | "conveyors"
+  | "sorting_machines"
+  | "palletizers"
+  | "balancers"
+  | "lifts"
+  | "carts"
+  | "pallets"
+  | "other_conveying_machines";
+
+// マーキング
+export type ProcessingMachineryProductCategoriesS_marking =
+  | "commercial_printers"
+  | "labelers"
+  | "labels"
+  | "special_labels"
+  | "nameplates"
+  | "engraving_machines"
+  | "laser_markers"
+  | "other_marking";
+
+// 受託サービス
+export type ProcessingMachineryProductCategoriesS_contracted_services =
+  | "machine_design"
+  | "manufacturing_services"
+  | "processing_services";
+
+// ========================= ✅「科学・理化学」 大分類 scientific_chemical_equipment の小分類関連✅ =========================
+
+// 理化学機器
+export type ProcessingMachineryProductCategoriesS_chemical_equipment =
+  | "incubators"
+  | "refrigerators_freezers"
+  | "drying_equipment"
+  | "autoclaves"
+  | "sterilizers"
+  | "constant_temperature_water_baths"
+  | "pure_water_production_equipment"
+  | "centrifuges"
+  | "dispensers"
+  | "pipettes"
+  | "stirrers"
+  | "concentrators"
+  | "stainless_containers"
+  | "separation_equipment"
+  | "distillation_equipment"
+  | "degassing_equipment"
+  | "uv_exposure_equipment"
+  | "plasma_generators"
+  | "ozone_generators"
+  | "gas_generators"
+  | "nitrogen_gas_generators"
+  | "emulsifiers_dispersers"
+  | "mixers_agitators"
+  | "other_chemical_equipment";
+
+// 洗浄機
+export type ProcessingMachineryProductCategoriesS_cleaning_machines =
+  | "high_pressure_cleaners"
+  | "ultrasonic_cleaners"
+  | "other_cleaning_machines";
+
+// 粉体機器
+export type ProcessingMachineryProductCategoriesS_powder_equipment =
+  | "crushers"
+  | "grinders"
+  | "fine_grinders"
+  | "sieves_shakers"
+  | "granulators"
+  | "powder_feeders"
+  | "homogenizers"
+  | "shakers"
+  | "powder_conveyors"
+  | "other_powder_equipment";
+
+// 加熱装置・炉
+export type ProcessingMachineryProductCategoriesS_heating_equipment_furnaces =
+  | "heating_equipment"
+  | "aluminum_heaters"
+  | "ceramic_heaters"
+  | "silicon_heaters"
+  | "other_heaters"
+  | "electric_furnaces"
+  | "industrial_furnaces";
+
+// 表面処理装置
+export type ProcessingMachineryProductCategoriesS_surface_treatment_equipment =
+  | "plating_equipment"
+  | "plasma_surface_treatment_equipment"
+  | "surface_treatment_services"
+  | "other_surface_treatment_equipment";
+
+// 実験器具・消耗品
+export type ProcessingMachineryProductCategoriesS_laboratory_equipment_supplies =
+  | "glass_instruments_containers"
+  | "plastic_instruments_containers"
+  | "stainless_instruments_containers"
+  | "other_laboratory_instruments_containers";
+
+// ========================= ✅「素材・材料」 大分類 materials の小分類関連✅ =========================
+
+// 金属材料
+export type MaterialProductCategoriesS_metal_materials =
+  | "steel"
+  | "alloys"
+  | "special_steel"
+  | "non_ferrous_metals"
+  | "stainless_steel"
+  | "aluminum"
+  | "rare_metals"
+  | "magnets"
+  | "solders"
+  | "other_metal_materials";
+
+// 高分子材料
+export type MaterialProductCategoriesS_polymer_materials =
+  | "plastics"
+  | "engineering_plastics"
+  | "rubber"
+  | "fibers"
+  | "composite_materials"
+  | "other_polymer_materials";
+
+// ガラス
+export type MaterialProductCategoriesS_glass = "glass";
+
+// セラミックス
+export type MaterialProductCategoriesS_ceramics = "ceramics" | "fine_ceramics";
+
+// 木材
+export type MaterialProductCategoriesS_wood = "wood" | "processed_wood_products";
+
+// 紙・パルプ
+export type MaterialProductCategoriesS_paper_pulps = "paper_pulp" | "processed_paper_pulp_products";
+
+// 有機天然材料
+export type MaterialProductCategoriesS_organic_natural_materials = "fats_oils" | "organic_natural_materials";
+
+// 薬品
+export type MaterialProductCategoriesS_chemicals = "chemicals";
+
+// ========================= ✅「測定・分析」 大分類 measurement_analysis の小分類関連✅ =========================
+
+// 距離測定器
+export type AnalysisProductCategoriesS_distance_measuring_machine = "distance_measuring_instruments";
+
+// 重量測定器
+export type AnalysisProductCategoriesS_weight_measuring_machine =
+  | "weight_measuring_instruments"
+  | "scales"
+  | "weighing_machines"
+  | "other_weight_measuring_instruments";
+
+// 電子計測器
+export type AnalysisProductCategoriesS_electronic_measuring_machine =
+  | "oscilloscopes"
+  | "logic_analyzers"
+  | "voltmeters"
+  | "ammeters"
+  | "power_meters"
+  | "lcr_meters"
+  | "time_frequency_measurement"
+  | "signal_generators"
+  | "power_supplies"
+  | "electronic_loads"
+  | "other_electronic_measuring_instruments"
+  | "optical_measuring_instruments";
+
+// 温湿度測定器
+export type AnalysisProductCategoriesS_electronic_temperature_humidity_machine =
+  | "temperature_humidity_measuring_instruments"
+  | "thermography"
+  | "radiation_thermometers"
+  | "thermometers"
+  | "temperature_humidity_meters"
+  | "other_temperature_humidity_measuring_instruments";
+
+// 電気計器・電位計
+export type AnalysisProductCategoriesS_electrical_machine =
+  | "electrical_instruments_voltmeters"
+  | "insulation_resistance_meters"
+  | "emc_electrostatic_measuring_instruments"
+  | "other_electrical_measuring_instruments";
+
+// 3次元測定器
+export type AnalysisProductCategoriesS_coordinate_measuring_machine = "coordinate_measuring_machine";
+
+// その他計測器
+export type AnalysisProductCategoriesS_other_measuring_machine =
+  | "flow_meters"
+  | "pressure_gauges"
+  | "particle_counters"
+  | "diaphragm_pressure_gauges"
+  | "viscometers"
+  | "torque_meters"
+  | "level_meters_switches"
+  | "radiation_detectors"
+  | "counters"
+  | "other_measuring_recording_instruments";
+
+// 試験機器・装置
+export type AnalysisProductCategoriesS_testing_machine =
+  | "testing_equipment"
+  | "constant_temperature_chambers"
+  | "vibration_test"
+  | "deep_scratch_test"
+  | "strength_testing_equipment"
+  | "impact_test"
+  | "leak_testing_equipment"
+  | "weather_resistance_test"
+  | "emc_test"
+  | "environmental_testing_equipment";
+
+// 検査機器・装置
+export type AnalysisProductCategoriesS_inspection_machine =
+  | "other_inspection_equipment"
+  | "x_ray_inspection_equipment"
+  | "visual_inspection_equipment"
+  | "defect_inspection_equipment"
+  | "probes"
+  | "evaluation_boards"
+  | "pcb_inspection_equipment";
+
+// 顕微鏡・マイクロスコープ
+export type AnalysisProductCategoriesS_microscopes =
+  | "optical_microscopes"
+  | "electron_microscopes"
+  | "microscopes"
+  | "laser_microscopes"
+  | "industrial_endoscopes"
+  | "other_microscopes";
+
+// 記録計・ロガー
+export type AnalysisProductCategoriesS_recorders_loggers = "data_loggers" | "recorders";
+
+// 分析機器
+export type AnalysisProductCategoriesS_analytical_machine =
+  | "analytical_equipment"
+  | "xrf_analyzers"
+  | "spectral_analyzers";
+
+// 環境分析機器
+export type AnalysisProductCategoriesS_environmental_analysis_machine =
+  | "anemometers"
+  | "water_quality_testing"
+  | "soil_testing"
+  | "noise_testing"
+  | "vibration_testing"
+  | "odor_testing"
+  | "other_environmental_analysis_equipment";
+
+// 受託サービス
+export type AnalysisProductCategoriesS_contracted_services =
+  | "contracted_analysis"
+  | "contracted_measurement"
+  | "contracted_inspection";
+
+// ========================= ✅「画像処理」 大分類 image_processing の小分類関連✅ =========================
+
+// カメラ
+export type ImageProcessingProductCategoriesS_cameras = "color_cameras" | "monochrome_cameras" | "high_speed_cameras";
+
+// レンズ
+export type ImageProcessingProductCategoriesS_lenses = "lenses";
+
+// 光源・照明
+export type ImageProcessingProductCategoriesS_light_sources_lighting =
+  | "image_processing_lights"
+  | "other_lighting_equipment";
+
+// 画像処理
+export type ImageProcessingProductCategoriesS_image_processing =
+  | "image_input_boards"
+  | "image_processing_boards"
+  | "image_processing_software"
+  | "image_processing_equipment"
+  | "image_analysis_software"
+  | "encoders_decoders"
+  | "video_recorders"
+  | "image_transmission_equipment"
+  | "virtual_reality_related"
+  | "other_image_related_equipment";
+
+// セキュリティ・監視システム
+export type ImageProcessingProductCategoriesS_security_surveillance_systems =
+  | "surveillance_cameras"
+  | "surveillance_camera_systems"
+  | "other_security_surveillance_systems";
+
+// バーコードリーダー
+export type ImageProcessingProductCategoriesS_barcode_readers =
+  | "fixed_barcode_readers"
+  | "handheld_barcode_readers"
+  | "two_dimensional_code_readers"
+  | "other_code_readers"
+  | "ic_tag_readers_writers";
+
+// =================== ✅「制御・電機機器」 大分類 control_electrical_equipment の小分類関連✅ ===================
+
+// プロセス制御機器
+export type ControlEquipmentProductCategoriesS_process_control_equipment =
+  | "flow_control"
+  | "pressure_control"
+  | "temperature_humidity_control"
+  | "liquid_level_control_level_switches"
+  | "weighing_control"
+  | "remote_control"
+  | "instrumentation_control_systems"
+  | "torque_control"
+  | "vibration_monitoring"
+  | "other_process_control";
+
+// FA機器
+export type ControlEquipmentProductCategoriesS_fa_equipment =
+  | "plc"
+  | "controllers"
+  | "nc_equipment"
+  | "displays"
+  | "servos"
+  | "inverters"
+  | "relays"
+  | "timers"
+  | "counters"
+  | "switches"
+  | "sensors"
+  | "power_supplies"
+  | "transformers"
+  | "control_panels"
+  | "distribution_boards"
+  | "cabinets_boxes"
+  | "racks"
+  | "other_boxes"
+  | "connectors"
+  | "terminal_blocks"
+  | "panel_components"
+  | "other_fa_equipment";
+
+// 安全機器
+export type ControlEquipmentProductCategoriesS_safety_equipment =
+  | "indicator_lights"
+  | "light_curtains"
+  | "area_sensors"
+  | "safety_controllers"
+  | "safety_switches"
+  | "safety_door_switches"
+  | "safety_sensors"
+  | "safety_relays"
+  | "signal_lights_rotating_lights"
+  | "circuit_breakers_switches"
+  | "other_safety_equipment";
+
+// 環境機器
+export type ControlEquipmentProductCategoriesS_environmental_equipment =
+  | "air_purifiers"
+  | "oil_mist_collectors"
+  | "dust_collectors"
+  | "dehumidifiers"
+  | "humidifiers"
+  | "gas_recovery_treatment_equipment"
+  | "incinerators"
+  | "vibration_resistant_devices"
+  | "hazardous_materials_treatment"
+  | "other_environmental_equipment"
+  | "cooling_equipment"
+  | "boilers"
+  | "heat_exchangers"
+  | "chillers";
+
+// フィルタ
+export type ControlEquipmentProductCategoriesS_filters =
+  | "other_filters"
+  | "bag_filters"
+  | "gas_filters"
+  | "solid_liquid_separation_filters"
+  | "liquid_liquid_separation_filters";
+
+// クリーンルーム
+export type ControlEquipmentProductCategoriesS_clean_rooms =
+  | "draft_chambers"
+  | "fan_filter_units"
+  | "filter_units"
+  | "air_showers"
+  | "shoe_sole_cleaners"
+  | "pass_boxes"
+  | "glove_boxes"
+  | "clean_benches"
+  | "clean_booths"
+  | "other_cleanroom_equipment";
+
+// 照明
+export type ControlEquipmentProductCategoriesS_lighting =
+  | "other_lighting_fixtures"
+  | "work_lights"
+  | "metal_halide_lamps"
+  | "mercury_lamps"
+  | "fluorescent_lamps"
+  | "led_fluorescent_lamps"
+  | "led_lighting"
+  | "floodlights";
+
+// 空調機器
+export type ControlEquipmentProductCategoriesS_air_conditioning_equipment =
+  | "air_conditioning"
+  | "ventilation_exhaust"
+  | "control_panel_coolers"
+  | "cooling_towers"
+  | "other_air_conditioning_equipment";
+
+// 水処理装置
+export type ControlEquipmentProductCategoriesS_water_treatment_equipment =
+  | "water_treatment_equipment"
+  | "water_activators"
+  | "filtration_devices"
+  | "aeration_diffusion_equipment"
+  | "wastewater_treatment_equipment"
+  | "oil_water_separators"
+  | "other_water_treatment_equipment";
+
+// 静電気対策
+export type ControlEquipmentProductCategoriesS_static_electricity_measures =
+  | "electrostatic_discharge_removers"
+  | "ionizers_deionizers"
+  | "conductive_mats"
+  | "electrostatic_protection_items"
+  | "other_electrostatic_protection_equipment";
+
+// エネルギー機器
+export type ControlEquipmentProductCategoriesS_energy_equipment =
+  | "generators_transmission_motors"
+  | "wind_turbines"
+  | "solar_power_generators"
+  | "fuel_cells"
+  | "energy_storage_systems"
+  | "power_monitoring_equipment"
+  | "demand_monitoring"
+  | "other_energy_equipment";
+
+// =================== ✅「工具・消耗品・備品」 大分類 tools_consumables_supplies の小分類関連✅  ===================
+
+// 切削工具
+export type ToolProductCategoriesS_cutting_tools =
+  | "drills"
+  | "lathe_tools"
+  | "milling_cutters"
+  | "end_mills"
+  | "reamers"
+  | "taps"
+  | "hobs"
+  | "pinion_cutters"
+  | "dies"
+  | "broaches"
+  | "cutters"
+  | "chucks"
+  | "other_cutting_tools";
+
+// 研磨材
+export type ToolProductCategoriesS_abrasives =
+  | "grindstones"
+  | "diamond_cutters"
+  | "hand_files"
+  | "brushes"
+  | "other_abrasives";
+
+// 作業工具
+export type ToolProductCategoriesS_hand_tools =
+  | "tool_sets"
+  | "screwdrivers"
+  | "pliers_cutters"
+  | "spanners_wrenches"
+  | "hammers"
+  | "pipe_cable_cutters"
+  | "vises_clamps"
+  | "cutters_scissors"
+  | "torque_wrenches"
+  | "socket_wrenches"
+  | "other_hand_tools";
+
+// 電動・空圧工具
+export type ToolProductCategoriesS_power_pneumatic_tools = "power_tools" | "pneumatic_tools";
+
+// 消耗品
+export type ToolProductCategoriesS_consumables =
+  | "adhesives"
+  | "repair_compounds"
+  | "adhesive_tapes"
+  | "cutting_oils"
+  | "lubricants"
+  | "rust_preventatives"
+  | "cleaning_agents"
+  | "paints"
+  | "coating_agents"
+  | "other_consumables";
+
+// 清掃用具
+export type ToolProductCategoriesS_cleaning_tools =
+  | "detergents"
+  | "disinfectants"
+  | "industrial_vacuum_cleaners"
+  | "wipers"
+  | "rags"
+  | "mops"
+  | "other_cleaning_tools";
+
+// 安全・衛生用品
+export type ToolProductCategoriesS_safety_hygiene_supplies =
+  | "safety_shoes_sneakers"
+  | "work_gloves"
+  | "masks"
+  | "glasses_goggles"
+  | "hand_cleaners"
+  | "protective_creams"
+  | "other_safety_hygiene_products";
+
+// 梱包材
+export type ToolProductCategoriesS_packaging_materials =
+  | "containers"
+  | "pallets"
+  | "cushioning_materials"
+  | "packaging_bags"
+  | "trays"
+  | "other_packaging_materials";
+
+// 備品
+export type ToolProductCategoriesS_supplies = "curtains" | "mats" | "lockers" | "cabinets" | "fixtures";
+
+// 保管設備
+export type ToolProductCategoriesS_storage_facilities = "tanks" | "silos";
+
+// =================== ✅「設計・生産支援」 大分類 design_production_support の小分類関連✅ ===================
+
+// CAD
+export type DesignProductCategoriesS_cad =
+  | "two_dimensional_cad_construction"
+  | "two_dimensional_cad_mechanical"
+  | "two_dimensional_cad_electrical"
+  | "three_dimensional_cad"
+  | "other_cad"
+  | "data_conversion_software"
+  | "rendering_software"
+  | "modelers"
+  | "other_cad_software";
+
+// CAM
+export type DesignProductCategoriesS_cam = "two_dimensional_cam" | "three_dimensional_cam" | "other_cam_software";
+
+// CAE
+export type DesignProductCategoriesS_cae =
+  | "simulators"
+  | "structural_analysis"
+  | "stress_analysis"
+  | "thermo_fluid_analysis"
+  | "magnetic_electromagnetic_analysis"
+  | "acoustic_analysis"
+  | "mechanical_analysis"
+  | "other_analysis"
+  | "contract_analysis"
+  | "analysis_services";
+
+// 試作
+export type DesignProductCategoriesS_prototype = "prototyping_services" | "three_d_printers";
+
+// 受託サービス
+export type DesignProductCategoriesS_contracted_services =
+  | "equipment_installation_dismantling_relocation"
+  | "calibration_repair_services";
+
+// =================== ✅「IT・ネットワーク」 大分類 it_network の小分類関連✅ ===================
+
+// 産業用パソコン
+export type ITProductCategoriesS_industrial_computers =
+  | "industrial_pcs"
+  | "expansion_boards"
+  | "memory"
+  | "storage"
+  | "racks_cases"
+  | "keyboards"
+  | "ssds";
+
+// 組込みシステム
+export type ITProductCategoriesS_embedded_systems =
+  | "embedded_boards_computers"
+  | "embedded_os"
+  | "development_support_tools"
+  | "embedded_apps_for_mobile_pda"
+  | "communication_related"
+  | "embedded_system_design_services"
+  | "software_middle_driver_security"
+  | "other_embedded_systems";
+
+// 基幹システム
+export type ITProductCategoriesS_core_systems =
+  | "erp_packages"
+  | "accounting_finance"
+  | "hr_labor"
+  | "sales_management"
+  | "internal_control_operations_management"
+  | "electronic_document_management"
+  | "databases"
+  | "eai_etl_web_application_servers"
+  | "other_core_systems";
+
+// SCM・生産管理
+export type ITProductCategoriesS_production_management =
+  | "production_management_systems"
+  | "production_schedulers"
+  | "process_management_systems"
+  | "procurement_management_systems"
+  | "cost_management_systems"
+  | "product_data_management"
+  | "other_production_management_systems";
+
+// 情報システム
+export type ITProductCategoriesS_information_systems =
+  | "enterprise_portals_groupware"
+  | "email_fax_sending"
+  | "voice_recognition_software"
+  | "sfa_sales_support_systems"
+  | "cti_support_centers"
+  | "business_intelligence_data_analysis"
+  | "document_data_management"
+  | "project_management"
+  | "workflow_systems"
+  | "data_search_software"
+  | "other_information_systems";
+
+// ネットワーク・通信
+export type ITProductCategoriesS_network =
+  | "wireless_lan"
+  | "routers_switches_hubs"
+  | "vpn_wide_area_ethernet"
+  | "pbx_ip_phones"
+  | "lan_construction_piping"
+  | "other_network_tools";
+
+// 運用システム
+export type ITProductCategoriesS_operating_systems =
+  | "integrated_operations_management"
+  | "server_monitoring_network_management_tools"
+  | "other_operations_management_software";
+
+// サーバ
+export type ITProductCategoriesS_servers =
+  | "servers"
+  | "server_racks"
+  | "server_coolers"
+  | "other_server_related"
+  | "storage_backup"
+  | "ups_uninterruptible_power_supplies";
+
+// セキュリティ
+export type ITProductCategoriesS_security =
+  | "filtering"
+  | "antivirus_software"
+  | "firewalls_intrusion_prevention"
+  | "encryption_authentication"
+  | "other_security"
+  | "entry_exit_systems"
+  | "personal_authentication"
+  | "data_erasure";
+
+// =================== ✅「オフィス」 大分類 office の小分類関連✅  ===================
+
+// PC・OA機器
+export type OfficeProductCategoriesS_office_automation_equipment =
+  | "desktop_pcs"
+  | "laptop_pcs"
+  | "mobile_phones_phs_data_cards"
+  | "pda_handheld_terminals"
+  | "projectors"
+  | "printers"
+  | "scanners"
+  | "multi_function_devices"
+  | "web_teleconferencing"
+  | "other_pc_oa_equipment";
+
+// 消耗品
+export type OfficeProductCategoriesS_consumables = "ink_toner" | "office_automation_paper";
+
+// 備品
+export type OfficeProductCategoriesS_office_supplies =
+  | "office_supplies_stationery"
+  | "office_automation_supplies"
+  | "work_tools"
+  | "packing_materials"
+  | "office_furniture"
+  | "storage_solutions"
+  | "other_office_supplies"
+  | "vending_machines";
+
+// =================== ✅「業務支援サービス」 大分類 business_support_services の小分類関連✅ ===================
+
+// コンサルタント
+export type BusinessSupportProductCategoriesS_consultants =
+  | "iso_certification_bodies"
+  | "iso_consultants"
+  | "management_consultants_sme_diagnosticians"
+  | "patent_services"
+  | "legal_services"
+  | "company_registration_services"
+  | "auditing_accounting_services";
+
+// レンタル・リース
+export type BusinessSupportProductCategoriesS_rental_lease = "rental_leasing";
+
+// 人材サービス
+export type BusinessSupportProductCategoriesS_human_resources_services = "temporary_staffing" | "recruitment_services";
+
+// サービス
+export type BusinessSupportProductCategoriesS_services =
+  | "translation_interpretation"
+  | "printing_publishing"
+  | "catalog_manual_production"
+  | "exhibition_planning_construction"
+  | "patent_copyright_services"
+  | "secondhand_purchase"
+  | "other_contracted_services"
+  | "public_testing_laboratories"
+  | "other_various_services";
+
+// =================== ✅「セミナー・スキルアップ」 大分類 seminars_skill_up の小分類関連✅ ===================
+// 技術者向け
+export type SkillUpProductCategoriesS_for_engineer =
+  | "technical_reference_books"
+  | "online_classes_e_learning"
+  | "vocational_training_technical_schools"
+  | "technical_seminars";
+
+// 管理・経営向け
+export type SkillUpProductCategoriesS_for_management =
+  | "management_reference_books"
+  | "management_e_learning"
+  | "management_training_schools"
+  | "management_seminars"
+  | "management_training_seminars"
+  | "sales_skill_seminars"
+  | "administrative_skill_seminars"
+  | "certification_seminars"
+  | "business_skill_seminars";
+
+// =================== ✅「その他」 大分類 others の小分類関連✅ ===================
+
+// その他
+export type OthersProductCategoriesS_others = "municipal_services_corporate_location" | "other_miscellaneous";
+// ----------- 業種・製品分類 関連 ここまで -----------
+
+// ========================= ✅「電子部品・モジュール」 大分類の小分類関連✅ =========================
 /**
  * export const moduleCategoryM: { id: number; name: ProductCategoriesMediumModule }[] = [
   { id: 16, name: "electronic_components" },
@@ -142,7 +1260,6 @@ export const mappingModuleCategoryM: { [K in ProductCategoriesMediumModule | str
 };
  */
 
-// ========================= ✅「電子部品・モジュール」 大分類の小分類関連✅ =========================
 // ------------------------- 🌠16. 「電子部品」 小分類 electronic_components -------------------------
 // 最後が 130. others(中分類)
 
@@ -180,6 +1297,7 @@ export const categoryS_electronicComponents_NameOnly: ModuleProductCategoriesSEl
   "sensors",
   "other_electronic_components",
 ];
+// { id: 16, name: "electronic_components" },
 export const categoryS_electronicComponents: { id: number; name: ModuleProductCategoriesSElectronicComponents }[] = [
   { id: 131, name: "electron_tubes" },
   { id: 132, name: "resistors" },
@@ -254,7 +1372,6 @@ export const mappingCategoryS_ElectronicComponents: {
 
 // { id: 17, name: "connectors" },
 // ------------------------- 🌠17. 「コネクタ」 小分類 connectors -------------------------
-// 163から
 
 /**
  * 【コネクタ】Connectors
@@ -280,6 +1397,10 @@ export const categoryS_connectors_NameOnly: ModuleProductCategoriesSConnectors[]
   "automotive_connectors",
   "other_connectors",
 ];
+// 131から162
+// 163から171
+
+// { id: 17, name: "connectors" },
 export const categoryS_connectors: { id: number; name: ModuleProductCategoriesSConnectors }[] = [
   { id: 163, name: "coaxial_connectors" },
   { id: 164, name: "circular_connectors" },
@@ -309,7 +1430,6 @@ export const mappingCategoryS_Connectors: {
 
 // { id: 18, name: "terminal_blocks" },
 // ------------------------- 🌠18. 「端子台」 小分類 terminal_blocks -------------------------
-// 172から
 
 /**
  * 【端子台】Terminal Blocks
@@ -330,6 +1450,8 @@ export const categoryS_terminalBlocks_NameOnly: ModuleProductCategoriesSTerminal
   "connector_terminal_blocks",
   "other_terminal_blocks",
 ];
+// 163から171
+// 172から177
 export const categoryS_terminalBlocks: { id: number; name: ModuleProductCategoriesSTerminalBlocks }[] = [
   { id: 172, name: "crimp_terminals" },
   { id: 173, name: "sockets" },
@@ -353,7 +1475,6 @@ export const mappingCategoryS_TerminalBlocks: {
 
 // { id: 19, name: "led" },
 // ------------------------- 🌠18. 「LED」 小分類 led -------------------------
-// 178から
 
 /**
  * 【LED】LEDs
@@ -367,6 +1488,8 @@ export const categoryS_led_NameOnly: ModuleProductCategoriesSLed[] = [
   "chip_type_led",
   "led_modules",
 ];
+// 172から177
+// 178から180
 export const categoryS_led: { id: number; name: ModuleProductCategoriesSLed }[] = [
   { id: 178, name: "bullet_type_led" },
   { id: 179, name: "chip_type_led" },
@@ -384,7 +1507,6 @@ export const mappingCategoryS_Led: {
 
 // { id: 20, name: "fpd_touch_panel" },
 // ------------------------- 🌠19. 「FPD・タッチパネル」 小分類 fpd_touch_panel -------------------------
-// 181から
 
 /**
  * 【FPD・タッチパネル】FPD & Touch Panels
@@ -400,6 +1522,8 @@ export const categoryS_fpdTouchPanel_NameOnly: ModuleProductCategoriesSFpdTouchP
   "touch_panels",
   "other_fpd_related",
 ];
+// 178から180
+// 181から184
 export const categoryS_fpdTouchPanel: { id: number; name: ModuleProductCategoriesSFpdTouchPanel }[] = [
   { id: 181, name: "organic_led" },
   { id: 182, name: "lcd_displays" },
@@ -419,7 +1543,6 @@ export const mappingCategoryS_FpdTouchPanel: {
 
 // { id: 21, name: "small_motors" },
 // ------------------------- 🌠21. 「小型モータ」 小分類 small_motors -------------------------
-// 185から
 
 /**
  * 【小型モータ】Small Motors
@@ -439,6 +1562,8 @@ export const categoryS_smallMotors_NameOnly: ModuleProductCategoriesSSmallMotors
   "fan_motors",
   "ac_motors",
 ];
+// 181から184
+// 185から190
 export const categoryS_smallMotors: { id: number; name: ModuleProductCategoriesSSmallMotors }[] = [
   { id: 185, name: "dc_motors" },
   { id: 186, name: "vibration_motors" },
@@ -462,7 +1587,6 @@ export const mappingCategoryS_SmallMotors: {
 
 // { id: 22, name: "power_supplies" },
 // ------------------------- 🌠22. 「電源」 小分類 power_supplies -------------------------
-// 191から
 
 /**
  * 【電源】Power Sources
@@ -474,6 +1598,8 @@ export const categoryS_powerSources_NameOnly: ModuleProductCategoriesSPowerSourc
   "other_power_sources",
   "switching_power_sources",
 ];
+// 185から190
+// 191から192
 export const categoryS_powerSources: { id: number; name: ModuleProductCategoriesSPowerSources }[] = [
   { id: 191, name: "other_power_sources" },
   { id: 192, name: "switching_power_sources" },
@@ -489,7 +1615,6 @@ export const mappingCategoryS_PowerSources: {
 
 // { id: 23, name: "batteries" },
 // ------------------------- 🌠23. 「電池・バッテリー」 小分類 batteries -------------------------
-// 193から
 
 /**
  * 【電池・バッテリー】Batteries
@@ -505,6 +1630,8 @@ export const categoryS_batteries_NameOnly: ModuleProductCategoriesSBatteries[] =
   "lithium_ion_batteries",
   "chargers",
 ];
+// 191から192
+// 193から196
 export const categoryS_batteries: { id: number; name: ModuleProductCategoriesSBatteries }[] = [
   { id: 193, name: "secondary_batteries" },
   { id: 194, name: "hydrogen_batteries" },
@@ -514,7 +1641,7 @@ export const categoryS_batteries: { id: number; name: ModuleProductCategoriesSBa
 export const mappingCategoryS_Batteries: {
   [K in ModuleProductCategoriesSBatteries | string]: { [key: string]: string };
 } = {
-  secondary_batteries: { ja: "2次電池", en: `` },
+  secondary_batteries: { ja: "2次電池・バッテリー", en: `` },
   hydrogen_batteries: { ja: "水素電池", en: `` },
   lithium_ion_batteries: { ja: "リチウムイオン電池", en: `` },
   chargers: { ja: "充電器", en: `` },
@@ -524,7 +1651,6 @@ export const mappingCategoryS_Batteries: {
 
 // { id: 24, name: "semiconductors_ic" },
 // ------------------------- 🌠24. 「半導体・IC」 小分類 semiconductors_ic -------------------------
-// 197から
 
 /**
  * 【半導体・IC】Semiconductors & ICs
@@ -548,6 +1674,8 @@ export const CategoryS_semiconductorsIc_NameOnly: ModuleProductCategoriesSSemico
   "custom_ics",
   "other_semiconductors",
 ];
+// 193から196
+// 197から204
 export const categoryS_semiconductorsIc: { id: number; name: ModuleProductCategoriesSSemiconductorsIc }[] = [
   { id: 197, name: "wafers" },
   { id: 198, name: "diodes" },
@@ -568,14 +1696,13 @@ export const mappingCategoryS_SemiconductorsIc: {
   microcomputers: { ja: "マイクロコンピュータ", en: `` },
   asic: { ja: "ASIC", en: `` },
   custom_ics: { ja: "専用IC", en: `` },
-  other_semiconductors: { ja: "ASその他半導体IC", en: `` },
+  other_semiconductors: { ja: "その他半導体", en: `` },
 };
 
 // -------------------------------------------------------------------------------------
 
 // { id: 25, name: "rfid_ic_tag" },
-// ------------------------- 🌠25. 「RFIC・ICタグ」 小分類 rfid_ic_tag -------------------------
-// 205から
+// ------------------------- 🌠25. 「RFID・ICタグ」 小分類 rfid_ic_tag -------------------------
 
 /**
  * 【RFID・ICタグ】RFID & IC Tags
@@ -583,6 +1710,8 @@ export const mappingCategoryS_SemiconductorsIc: {
  */
 
 export const categoryS_rfid_ic_tag_NameOnly: ModuleProductCategoriesS_rfid_ic_tag[] = ["ic_tags"];
+// 197から204
+// 205から205
 export const categoryS_rfid_ic_tag: { id: number; name: ModuleProductCategoriesS_rfid_ic_tag }[] = [
   { id: 205, name: "ic_tags" },
 ];
@@ -596,7 +1725,6 @@ export const mappingCategoryS_rfid_ic_tag: {
 
 // { id: 26, name: "optical_components" },
 // ------------------------- 🌠26. 「光学部品」 小分類 optical_components -------------------------
-// 206から
 
 /**
  * 【光学部品】Optical Components
@@ -616,6 +1744,8 @@ export const categoryS_optical_components_NameOnly: ModuleProductCategoriesS_opt
   "laser_components",
   "other_optical_components",
 ];
+// 205から205
+// 206から211
 export const categoryS_optical_components: { id: number; name: ModuleProductCategoriesS_optical_components }[] = [
   { id: 206, name: "lenses" },
   { id: 207, name: "prisms" },
@@ -639,7 +1769,6 @@ export const mappingCategoryS_optical_components: {
 
 // { id: 27, name: "cables" },
 // ------------------------- 🌠27. 「ケーブル」 小分類 cables -------------------------
-// 212から
 
 /**
  * 【ケーブル】Cables
@@ -659,6 +1788,8 @@ export const categoryS_cables_NameOnly: ModuleProductCategoriesS_cables[] = [
   "wiring_materials",
   "other_cable_related_products",
 ];
+// 206から211
+// 212から217
 export const categoryS_cables: { id: number; name: ModuleProductCategoriesS_cables }[] = [
   { id: 212, name: "cables" },
   { id: 213, name: "harnesses" },
@@ -682,7 +1813,6 @@ export const mappingCategoryS_cables: {
 
 // { id: 28, name: "contracted_services" },
 // ------------------------- 🌠28. 受託サービス 小分類 contracted_services -------------------------
-// 218から
 
 /**
  * 【受託サービス】Contracted Services
@@ -694,6 +1824,8 @@ export const categoryS_contracted_services_NameOnly: ModuleProductCategoriesS_co
   "pcb_design_manufacturing",
   "electronic_manufacturing_services",
 ];
+// 212から217
+// 218から219
 export const categoryS_contracted_services: { id: number; name: ModuleProductCategoriesS_contracted_services }[] = [
   { id: 218, name: "pcb_design_manufacturing" },
   { id: 219, name: "electronic_manufacturing_services" },
@@ -741,9 +1873,8 @@ export const mappingMachinePartsCategoryM:
 };
  */
 
-// { id: 29, name: "contracted_services" },
+// { id: 29, name: "mechanical_elements" },
 // ------------------------- 🌠29. 機械要素 小分類 mechanical_elements -------------------------
-// 220から
 
 /**
  * 【機械要素】Mechanical Elements
@@ -795,6 +1926,8 @@ export const categoryS_mechanical_elements_NameOnly: MachineProductCategoriesS_m
   "nozzles",
   "other_mechanical_elements",
 ];
+// 218から219
+// 220から241
 export const categoryS_mechanical_elements: { id: number; name: MachineProductCategoriesS_mechanical_elements }[] = [
   { id: 220, name: "gears" },
   { id: 221, name: "fasteners" },
@@ -850,7 +1983,6 @@ export const mappingCategoryS_mechanical_elements: {
 
 // { id: 30, name: "bearings" },
 // ------------------------- 🌠30. 軸受・ベアリング 小分類 bearings -------------------------
-// 242から
 
 /**
  * 【軸受・ベアリング】Bearings
@@ -859,6 +1991,8 @@ export const mappingCategoryS_mechanical_elements: {
  */
 
 export const categoryS_bearings_NameOnly: MachineProductCategoriesS_bearings[] = ["metal_bearings", "plastic_bearings"];
+// 220から241
+// 242から243
 export const categoryS_bearings: { id: number; name: MachineProductCategoriesS_bearings }[] = [
   { id: 242, name: "metal_bearings" },
   { id: 243, name: "plastic_bearings" },
@@ -874,7 +2008,6 @@ export const mappingCategoryS_bearings: {
 
 // { id: 31, name: "screws" },
 // ------------------------- 🌠31. ねじ 小分類 screws -------------------------
-// 244から
 
 /**
  * 【ねじ】Screws
@@ -883,6 +2016,8 @@ export const mappingCategoryS_bearings: {
  */
 
 export const categoryS_screws_NameOnly: MachineProductCategoriesS_screws[] = ["nuts", "bolts"];
+// 242から243
+// 244から245
 export const categoryS_screws: { id: number; name: MachineProductCategoriesS_screws }[] = [
   { id: 244, name: "nuts" },
   { id: 245, name: "bolts" },
@@ -898,7 +2033,6 @@ export const mappingCategoryS_screws: {
 
 // { id: 32, name: "motors" },
 // ------------------------- 🌠32. モータ 小分類 motors -------------------------
-// 246から
 
 /**
  * 【モータ】Motors
@@ -924,6 +2058,8 @@ export const categoryS_motors_NameOnly: MachineProductCategoriesS_motors[] = [
   "electromagnets",
   "other_motors",
 ];
+// 244から245
+// 246から254
 export const categoryS_motors: { id: number; name: MachineProductCategoriesS_motors }[] = [
   { id: 246, name: "servo_motors" },
   { id: 247, name: "stepping_motors" },
@@ -953,46 +2089,46 @@ export const mappingCategoryS_motors: {
 
 // { id: 33, name: "pumps" },
 // ------------------------- 🌠33. ポンプ 小分類 pumps -------------------------
-// 255から
 
 /**
  * 【ポンプ】Pumps
+    その他ポンプ → other_pumps
     シリンジポンプ → syringe_pumps
     容積型ポンプ → positive_displacement_pumps
     ターボ型ポンプ → turbo_pumps
     特殊ポンプ → special_pumps
-    その他ポンプ → other_pumps
  */
 
 export const categoryS_pumps_NameOnly: MachineProductCategoriesS_pumps[] = [
+  "other_pumps",
   "syringe_pumps",
   "positive_displacement_pumps",
   "turbo_pumps",
   "special_pumps",
-  "other_pumps",
 ];
+// 246から254
+// 255から259
 export const categoryS_pumps: { id: number; name: MachineProductCategoriesS_pumps }[] = [
-  { id: 255, name: "syringe_pumps" },
-  { id: 256, name: "positive_displacement_pumps" },
-  { id: 257, name: "turbo_pumps" },
-  { id: 258, name: "special_pumps" },
-  { id: 259, name: "other_pumps" },
+  { id: 255, name: "other_pumps" },
+  { id: 256, name: "syringe_pumps" },
+  { id: 257, name: "positive_displacement_pumps" },
+  { id: 258, name: "turbo_pumps" },
+  { id: 259, name: "special_pumps" },
 ];
 export const mappingCategoryS_pumps: {
   [K in MachineProductCategoriesS_pumps | string]: { [key: string]: string };
 } = {
+  other_pumps: { ja: `その他ポンプ`, en: `` },
   syringe_pumps: { ja: `シリンジポンプ`, en: `` },
   positive_displacement_pumps: { ja: `容積型ポンプ`, en: `` },
   turbo_pumps: { ja: `ターボ型ポンプ`, en: `` },
   special_pumps: { ja: `特殊ポンプ`, en: `` },
-  other_pumps: { ja: `その他ポンプ`, en: `` },
 };
 
 // -------------------------------------------------------------------------------------
 
 // { id: 34, name: "piping_components" },
 // ------------------------- 🌠33. 配管部品 小分類 piping_components -------------------------
-// 260から
 
 /**
  * 【配管部品】Piping Components
@@ -1012,6 +2148,8 @@ export const categoryS_piping_components_NameOnly: MachineProductCategoriesS_pip
   "hoses",
   "piping_materials",
 ];
+// 255から259
+// 260から265
 export const categoryS_piping_components: { id: number; name: MachineProductCategoriesS_piping_components }[] = [
   { id: 260, name: "valves" },
   { id: 261, name: "filters" },
@@ -1035,7 +2173,6 @@ export const mappingCategoryS_piping_components: {
 
 // { id: 35, name: "water_oil_hydraulic_pneumatic_equipment" },
 // ------------------------- 🌠35. 油空水圧機器 小分類 water_oil_hydraulic_pneumatic_equipment -------------------------
-// 266から
 
 /**
  * 【油空水圧機器】Hydraulic and Pneumatic Equipment
@@ -1046,6 +2183,8 @@ export const mappingCategoryS_piping_components: {
 
 export const categoryS_water_oil_hydraulic_pneumatic_equipment_NameOnly: MachineProductCategoriesS_water_oil_hydraulic_pneumatic_equipment[] =
   ["water_pressure_equipment", "oil_pressure_equipment", "pneumatic_equipment"];
+// 260から265
+// 266から268
 export const categoryS_water_oil_hydraulic_pneumatic_equipment: {
   id: number;
   name: MachineProductCategoriesS_water_oil_hydraulic_pneumatic_equipment;
@@ -1066,7 +2205,6 @@ export const mappingCategoryS_water_oil_hydraulic_pneumatic_equipment: {
 
 // { id: 36, name: "vacuum_equipment" },
 // ------------------------- 🌠36. 真空機器 小分類 vacuum_equipment -------------------------
-// 269から
 
 /**
  * 【真空機器】Vacuum Equipment
@@ -1080,6 +2218,8 @@ export const categoryS_vacuum_equipment_NameOnly: MachineProductCategoriesS_vacu
   "seals_gaskets",
   "vacuum_pumps",
 ];
+// 266から268
+// 269から271
 export const categoryS_vacuum_equipment: {
   id: number;
   name: MachineProductCategoriesS_vacuum_equipment;
@@ -1100,7 +2240,6 @@ export const mappingCategoryS_vacuum_equipment: {
 
 // { id: 37, name: "molds" },
 // ------------------------- 🌠37. 金型 小分類 molds -------------------------
-// 272から
 
 /**
  * 【金型】Molds
@@ -1120,6 +2259,8 @@ export const categoryS_molds_NameOnly: MachineProductCategoriesS_molds[] = [
   "mold_design",
   "other_molds",
 ];
+// 269から271
+// 272から277
 export const categoryS_molds: {
   id: number;
   name: MachineProductCategoriesS_molds;
@@ -1146,7 +2287,6 @@ export const mappingCategoryS_molds: {
 
 // { id: 38, name: "jigs" },
 // ------------------------- 🌠38. 治具 小分類 jigs -------------------------
-// 278から
 
 /**
  * 【治具】Jigs
@@ -1162,6 +2302,8 @@ export const categoryS_jigs_NameOnly: MachineProductCategoriesS_jigs[] = [
   "assembly_jigs",
   "brackets",
 ];
+// 272から277
+// 278から281
 export const categoryS_jigs: {
   id: number;
   name: MachineProductCategoriesS_jigs;
@@ -1184,7 +2326,6 @@ export const mappingCategoryS_jigs: {
 
 // { id: 39, name: "automotive_parts" },
 // ------------------------- 🌠39. 自動車部品 小分類 automotive_parts -------------------------
-// 282から
 
 /**
  * 【自動車部品】Automotive Parts
@@ -1220,6 +2361,8 @@ export const categoryS_automotive_parts_NameOnly: MachineProductCategoriesS_auto
   "interior_parts",
   "other_automotive_parts",
 ];
+// 278から281
+// 282から295
 export const categoryS_automotive_parts: {
   id: number;
   name: MachineProductCategoriesS_automotive_parts;
@@ -1299,7 +2442,6 @@ export const mappingProcessingMachineryCategoryM: {
 
 // { id: 40, name: "machine_tools" },
 // ------------------------- 🌠40. 工作機械 小分類 machine_tools -------------------------
-// 296から
 
 /**
  * 【工作機械】Machine Tools
@@ -1327,6 +2469,8 @@ export const categoryS_machine_tools_NameOnly: ProcessingMachineryProductCategor
   "edm_machines",
   "other_machine_tools",
 ];
+// 282から295
+// 296から305
 export const categoryS_machine_tools: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_machine_tools;
@@ -1361,7 +2505,6 @@ export const mappingCategoryS_machine_tools: {
 
 // { id: 41, name: "processing_machines" },
 // ------------------------- 🌠41. 加工機械 小分類 processing_machines -------------------------
-// 306から
 
 /**
  * 【加工機械】Processing Machinery
@@ -1405,6 +2548,8 @@ export const categoryS_processing_machines_NameOnly: ProcessingMachineryProductC
   "stone_processing_machines",
   "other_processing_machines",
 ];
+// 296から305
+// 306から323
 export const categoryS_processing_machines: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_processing_machines;
@@ -1455,7 +2600,6 @@ export const mappingCategoryS_processing_machines: {
 
 // { id: 42, name: "semiconductor_manufacturing_equipment" },
 // ------------------------- 🌠42. 半導体製造装置 小分類 semiconductor_manufacturing_equipment -------------------------
-// 324から
 
 /**
  * 【半導体製造装置】Semiconductor Manufacturing Equipment
@@ -1504,6 +2648,8 @@ export const categoryS_semiconductor_manufacturing_equipment_NameOnly: Processin
     "photomasks",
     "other_semiconductor_manufacturing_equipment",
   ];
+// 306から323
+// 324から343
 export const categoryS_semiconductor_manufacturing_equipment: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_semiconductor_manufacturing_equipment;
@@ -1560,7 +2706,6 @@ export const mappingCategoryS_semiconductor_manufacturing_equipment: {
 
 // { id: 43, name: "mounting_machines" },
 // ------------------------- 🌠43. 実装機械 小分類 mounting_machines -------------------------
-// 344から
 
 /**
  * 【実装機械】Assembly Machinery
@@ -1583,8 +2728,11 @@ export const categoryS_mounting_machines_NameOnly: ProcessingMachineryProductCat
   "taping_machines",
   "soldering_equipment",
   "pcb_transport_equipment_loaders_unloaders",
+  "carriers",
   "other_mounting_machines",
 ];
+// 324から343
+// 344から352
 export const categoryS_mounting_machines: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_mounting_machines;
@@ -1596,7 +2744,8 @@ export const categoryS_mounting_machines: {
   { id: 348, name: "taping_machines" },
   { id: 349, name: "soldering_equipment" },
   { id: 350, name: "pcb_transport_equipment_loaders_unloaders" },
-  { id: 351, name: "other_mounting_machines" },
+  { id: 351, name: "carriers" },
+  { id: 352, name: "other_mounting_machines" },
 ];
 export const mappingCategoryS_mounting_machines: {
   [K in ProcessingMachineryProductCategoriesS_mounting_machines | string]: {
@@ -1610,14 +2759,14 @@ export const mappingCategoryS_mounting_machines: {
   taping_machines: { ja: `テーピングマシン`, en: `` },
   soldering_equipment: { ja: `はんだ付け装置`, en: `` },
   pcb_transport_equipment_loaders_unloaders: { ja: `基盤搬送装置(ローダ・アンローダ)`, en: `` },
+  carriers: { ja: `キャリア`, en: `` },
   other_mounting_machines: { ja: `その他実装機械`, en: `` },
 };
-
+// 344から352
 // -------------------------------------------------------------------------------------
 
 // { id: 44, name: "industrial_robots" },
 // ------------------------- 🌠44. 産業用ロボット 小分類 industrial_robots -------------------------
-// 352から
 
 /**
  * 【産業用ロボット】Industrial Robots
@@ -1643,19 +2792,21 @@ export const categoryS_industrial_robots_NameOnly: ProcessingMachineryProductCat
   "inspection_robots",
   "other_industrial_robots",
 ];
+// 344から352
+// 353から361
 export const categoryS_industrial_robots: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_industrial_robots;
 }[] = [
-  { id: 352, name: "machining_centers" },
-  { id: 353, name: "scara_robots" },
-  { id: 354, name: "multi_joint_robots" },
-  { id: 355, name: "cartesian_robots" },
-  { id: 356, name: "assembly_robots" },
-  { id: 357, name: "conveying_handling_robots" },
-  { id: 358, name: "welding_robots" },
-  { id: 359, name: "inspection_robots" },
-  { id: 360, name: "other_industrial_robots" },
+  { id: 353, name: "machining_centers" },
+  { id: 354, name: "scara_robots" },
+  { id: 355, name: "multi_joint_robots" },
+  { id: 356, name: "cartesian_robots" },
+  { id: 357, name: "assembly_robots" },
+  { id: 358, name: "conveying_handling_robots" },
+  { id: 359, name: "welding_robots" },
+  { id: 360, name: "inspection_robots" },
+  { id: 361, name: "other_industrial_robots" },
 ];
 export const mappingCategoryS_industrial_robots: {
   [K in ProcessingMachineryProductCategoriesS_industrial_robots | string]: {
@@ -1672,12 +2823,11 @@ export const mappingCategoryS_industrial_robots: {
   inspection_robots: { ja: `検査ロボット`, en: `` },
   other_industrial_robots: { ja: `その他産業用ロボット`, en: `` },
 };
-
+// 353から361
 // -------------------------------------------------------------------------------------
 
 // { id: 45, name: "assembly_machines" },
 // ------------------------- 🌠45. 組立機械 小分類 assembly_machines -------------------------
-// 361から
 
 /**
  * 【組立機械】Assembly Machines
@@ -1695,15 +2845,17 @@ export const categoryS_assembly_machines_NameOnly: ProcessingMachineryProductCat
   "parts_feeders",
   "other_assembly_machines",
 ];
+// 353から361
+// 362から366
 export const categoryS_assembly_machines: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_assembly_machines;
 }[] = [
-  { id: 361, name: "dispensers" },
-  { id: 362, name: "assembly_machines" },
-  { id: 363, name: "automatic_sorters" },
-  { id: 364, name: "parts_feeders" },
-  { id: 365, name: "other_assembly_machines" },
+  { id: 362, name: "dispensers" },
+  { id: 363, name: "assembly_machines" },
+  { id: 364, name: "automatic_sorters" },
+  { id: 365, name: "parts_feeders" },
+  { id: 366, name: "other_assembly_machines" },
 ];
 export const mappingCategoryS_assembly_machines: {
   [K in ProcessingMachineryProductCategoriesS_assembly_machines | string]: {
@@ -1716,12 +2868,11 @@ export const mappingCategoryS_assembly_machines: {
   parts_feeders: { ja: `パーツフィーダー`, en: `` },
   other_assembly_machines: { ja: `その他組立機械`, en: `` },
 };
-
+// 362から366
 // -------------------------------------------------------------------------------------
 
 // { id: 46, name: "painting_machines" },
 // ------------------------- 🌠46. 塗装機械 小分類 painting_machines -------------------------
-// 366から
 
 /**
  * 【塗装機械】Painting Machinery
@@ -1735,13 +2886,15 @@ export const categoryS_painting_machines_NameOnly: ProcessingMachineryProductCat
   "sprayers",
   "other_painting_machines",
 ];
+// 362から366
+// 367から369
 export const categoryS_painting_machines: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_painting_machines;
 }[] = [
-  { id: 366, name: "painting_machines" },
-  { id: 367, name: "sprayers" },
-  { id: 368, name: "other_painting_machines" },
+  { id: 367, name: "painting_machines" },
+  { id: 368, name: "sprayers" },
+  { id: 369, name: "other_painting_machines" },
 ];
 export const mappingCategoryS_painting_machines: {
   [K in ProcessingMachineryProductCategoriesS_painting_machines | string]: {
@@ -1752,12 +2905,11 @@ export const mappingCategoryS_painting_machines: {
   sprayers: { ja: `スプレー`, en: `` },
   other_painting_machines: { ja: `その他塗装機械`, en: `` },
 };
-
+// 367から369
 // -------------------------------------------------------------------------------------
 
 // { id: 47, name: "food_machines" },
 // ------------------------- 🌠47. 食品機械 小分類 food_machines -------------------------
-// 369から
 
 /**
  * 【食品機械】Food Machinery
@@ -1787,6 +2939,8 @@ export const categoryS_food_machines_NameOnly: ProcessingMachineryProductCategor
   "food_conveying_equipment",
   "other_food_machinery",
 ];
+// 367から369
+// 370から380
 export const categoryS_food_machines: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_food_machines;
@@ -1820,12 +2974,11 @@ export const mappingCategoryS_food_machines: {
   food_conveying_equipment: { ja: `食品搬送装置`, en: `` },
   other_food_machinery: { ja: `その他食品機械`, en: `` },
 };
-
+// 370から380
 // -------------------------------------------------------------------------------------
 
 // { id: 48, name: "packaging_machines" },
 // ------------------------- 🌠48. 包装機械 小分類 packaging_machines -------------------------
-// 381から
 
 /**
  * 【包装機械】Packaging Machinery
@@ -1853,6 +3006,8 @@ export const categoryS_packaging_machines_NameOnly: ProcessingMachineryProductCa
   "strapping_packaging_machines",
   "other_packaging_machinery",
 ];
+// 370から380
+// 381から390
 export const categoryS_packaging_machines: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_packaging_machines;
@@ -1884,12 +3039,11 @@ export const mappingCategoryS_packaging_machines: {
   strapping_packaging_machines: { ja: `結束・梱包機`, en: `` },
   other_packaging_machinery: { ja: `その他包装機械`, en: `` },
 };
-
+// 381から390
 // -------------------------------------------------------------------------------------
 
 // { id: 49, name: "conveying_machines" },
 // ------------------------- 🌠49. 搬送機械 小分類 conveying_machines -------------------------
-// 391から
 
 /**
  * 【搬送機械】Conveying Machinery
@@ -1912,8 +3066,11 @@ export const categoryS_conveying_machines_NameOnly: ProcessingMachineryProductCa
   "balancers",
   "lifts",
   "carts",
+  "pallets",
   "other_conveying_machines",
 ];
+// 381から390
+// 391から399
 export const categoryS_conveying_machines: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_conveying_machines;
@@ -1925,7 +3082,8 @@ export const categoryS_conveying_machines: {
   { id: 395, name: "balancers" },
   { id: 396, name: "lifts" },
   { id: 397, name: "carts" },
-  { id: 398, name: "other_conveying_machines" },
+  { id: 398, name: "pallets" },
+  { id: 399, name: "other_conveying_machines" },
 ];
 export const mappingCategoryS_conveying_machines: {
   [K in ProcessingMachineryProductCategoriesS_conveying_machines | string]: {
@@ -1939,14 +3097,14 @@ export const mappingCategoryS_conveying_machines: {
   balancers: { ja: `バランサー`, en: `` },
   lifts: { ja: `リフト`, en: `` },
   carts: { ja: `台車`, en: `` },
+  pallets: { ja: `パレット`, en: `` },
   other_conveying_machines: { ja: `その他搬送機械`, en: `` },
 };
-
+// 391から399
 // -------------------------------------------------------------------------------------
 
 // { id: 50, name: "marking" },
 // ------------------------- 🌠50. マーキング 小分類 marking -------------------------
-// 399から
 
 /**
  * 【マーキング】Marking
@@ -1970,18 +3128,20 @@ export const categoryS_marking_NameOnly: ProcessingMachineryProductCategoriesS_m
   "laser_markers",
   "other_marking",
 ];
+// 391から399
+// 400から407
 export const categoryS_marking: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_marking;
 }[] = [
-  { id: 399, name: "commercial_printers" },
-  { id: 400, name: "labelers" },
-  { id: 401, name: "labels" },
-  { id: 402, name: "special_labels" },
-  { id: 403, name: "nameplates" },
-  { id: 404, name: "engraving_machines" },
-  { id: 405, name: "laser_markers" },
-  { id: 406, name: "other_marking" },
+  { id: 400, name: "commercial_printers" },
+  { id: 401, name: "labelers" },
+  { id: 402, name: "labels" },
+  { id: 403, name: "special_labels" },
+  { id: 404, name: "nameplates" },
+  { id: 405, name: "engraving_machines" },
+  { id: 406, name: "laser_markers" },
+  { id: 407, name: "other_marking" },
 ];
 export const mappingCategoryS_marking: {
   [K in ProcessingMachineryProductCategoriesS_marking | string]: {
@@ -1991,18 +3151,17 @@ export const mappingCategoryS_marking: {
   commercial_printers: { ja: `業務用プリンタ`, en: `` },
   labelers: { ja: `ラベラー`, en: `` },
   labels: { ja: `ラベル`, en: `` },
-  special_labels: { ja: `特殊ラベル`, en: `` },
+  special_labels: { ja: `特殊ラベルなど`, en: `` },
   nameplates: { ja: `銘板`, en: `` },
   engraving_machines: { ja: `刻印機`, en: `` },
   laser_markers: { ja: `レーザーマーカー`, en: `` },
   other_marking: { ja: `その他マーキング`, en: `` },
 };
-
+// 400から407
 // -------------------------------------------------------------------------------------
 
 // { id: 51, name: "contracted_services" },
 // ------------------------- 🌠51. 受託サービス 小分類 contracted_services -------------------------
-// 407から
 
 /**
  * 【受託サービス】Contracted Services
@@ -2013,13 +3172,15 @@ export const mappingCategoryS_marking: {
 
 export const categoryS_contracted_services_processing_machinery_NameOnly: ProcessingMachineryProductCategoriesS_contracted_services[] =
   ["machine_design", "manufacturing_services", "processing_services"];
+// 400から407
+// 408から410
 export const categoryS_contracted_services_processing_machinery: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_contracted_services;
 }[] = [
-  { id: 407, name: "machine_design" },
-  { id: 408, name: "manufacturing_services" },
-  { id: 409, name: "processing_services" },
+  { id: 408, name: "machine_design" },
+  { id: 409, name: "manufacturing_services" },
+  { id: 410, name: "processing_services" },
 ];
 export const mappingCategoryS_contracted_services_processing_machinery: {
   [K in ProcessingMachineryProductCategoriesS_contracted_services | string]: {
@@ -2030,7 +3191,7 @@ export const mappingCategoryS_contracted_services_processing_machinery: {
   manufacturing_services: { ja: `製造受託`, en: `` },
   processing_services: { ja: `加工受託`, en: `` },
 };
-
+// 408から410
 // -------------------------------------------------------------------------------------
 
 // =================== ✅「製造・加工機械」 大分類 manufacturing_processing_machines の小分類関連✅ ここまで ===================
@@ -2059,7 +3220,6 @@ export const mappingScienceCategoryM: {
 
 // { id: 52, name: "chemical_equipment" },
 // ------------------------- 🌠52. 理化学機器 小分類 chemical_equipment -------------------------
-// 410から
 
 /**
  * 【理化学機器】Chemical Laboratory Equipment
@@ -2115,34 +3275,36 @@ export const categoryS_chemical_equipment_NameOnly: ProcessingMachineryProductCa
   "mixers_agitators",
   "other_chemical_equipment",
 ];
+// 408から410
+// 411から434
 export const categoryS_chemical_equipment: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_chemical_equipment;
 }[] = [
-  { id: 410, name: "incubators" },
-  { id: 411, name: "refrigerators_freezers" },
-  { id: 412, name: "drying_equipment" },
-  { id: 413, name: "autoclaves" },
-  { id: 414, name: "sterilizers" },
-  { id: 415, name: "constant_temperature_water_baths" },
-  { id: 416, name: "pure_water_production_equipment" },
-  { id: 417, name: "centrifuges" },
-  { id: 418, name: "dispensers" },
-  { id: 419, name: "pipettes" },
-  { id: 420, name: "stirrers" },
-  { id: 421, name: "concentrators" },
-  { id: 422, name: "stainless_containers" },
-  { id: 423, name: "separation_equipment" },
-  { id: 424, name: "distillation_equipment" },
-  { id: 425, name: "degassing_equipment" },
-  { id: 426, name: "uv_exposure_equipment" },
-  { id: 427, name: "plasma_generators" },
-  { id: 428, name: "ozone_generators" },
-  { id: 429, name: "gas_generators" },
-  { id: 430, name: "nitrogen_gas_generators" },
-  { id: 431, name: "emulsifiers_dispersers" },
-  { id: 432, name: "mixers_agitators" },
-  { id: 433, name: "other_chemical_equipment" },
+  { id: 411, name: "incubators" },
+  { id: 412, name: "refrigerators_freezers" },
+  { id: 413, name: "drying_equipment" },
+  { id: 414, name: "autoclaves" },
+  { id: 415, name: "sterilizers" },
+  { id: 416, name: "constant_temperature_water_baths" },
+  { id: 417, name: "pure_water_production_equipment" },
+  { id: 418, name: "centrifuges" },
+  { id: 419, name: "dispensers" },
+  { id: 420, name: "pipettes" },
+  { id: 421, name: "stirrers" },
+  { id: 422, name: "concentrators" },
+  { id: 423, name: "stainless_containers" },
+  { id: 424, name: "separation_equipment" },
+  { id: 425, name: "distillation_equipment" },
+  { id: 426, name: "degassing_equipment" },
+  { id: 427, name: "uv_exposure_equipment" },
+  { id: 428, name: "plasma_generators" },
+  { id: 429, name: "ozone_generators" },
+  { id: 430, name: "gas_generators" },
+  { id: 431, name: "nitrogen_gas_generators" },
+  { id: 432, name: "emulsifiers_dispersers" },
+  { id: 433, name: "mixers_agitators" },
+  { id: 434, name: "other_chemical_equipment" },
 ];
 export const mappingCategoryS_chemical_equipment: {
   [K in ProcessingMachineryProductCategoriesS_chemical_equipment | string]: {
@@ -2174,48 +3336,50 @@ export const mappingCategoryS_chemical_equipment: {
   mixers_agitators: { ja: `ミキサー・攪拌器`, en: `` },
   other_chemical_equipment: { ja: `その他理化学機器`, en: `` },
 };
-
+// 411から434
 // -------------------------------------------------------------------------------------
 
 // { id: 53, name: "cleaning_machines" },
 // ------------------------- 🌠53. 洗浄機 小分類 cleaning_machines -------------------------
-// 434から
 
 /**
  * 【洗浄機】Washing Machines
+    その他洗浄機 → other_washing_machines ✅other_cleaning_machines
     高圧洗浄機 → high_pressure_washing_machines ✅high_pressure_cleaners
     超音波洗浄機 → ultrasonic_cleaning_machines ✅ultrasonic_cleaners
-    その他洗浄機 → other_washing_machines ✅other_cleaning_machines
  */
 
 export const categoryS_cleaning_machines_NameOnly: ProcessingMachineryProductCategoriesS_cleaning_machines[] = [
+  "other_cleaning_machines",
   "high_pressure_cleaners",
   "ultrasonic_cleaners",
-  "other_cleaning_machines",
 ];
+// 411から434
+// 435から437
 export const categoryS_cleaning_machines: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_cleaning_machines;
 }[] = [
-  { id: 434, name: "high_pressure_cleaners" },
-  { id: 435, name: "ultrasonic_cleaners" },
-  { id: 436, name: "other_cleaning_machines" },
+  { id: 435, name: "other_cleaning_machines" },
+  { id: 436, name: "high_pressure_cleaners" },
+  { id: 437, name: "ultrasonic_cleaners" },
 ];
 export const mappingCategoryS_cleaning_machines: {
   [K in ProcessingMachineryProductCategoriesS_cleaning_machines | string]: {
     [key: string]: string;
   };
 } = {
+  other_cleaning_machines: { ja: `その他洗浄機`, en: `` },
   high_pressure_cleaners: { ja: `高圧洗浄機`, en: `` },
   ultrasonic_cleaners: { ja: `超音波洗浄機`, en: `` },
-  other_cleaning_machines: { ja: `その他洗浄機`, en: `` },
 };
 
 // -------------------------------------------------------------------------------------
 
 // { id: 54, name: "powder_equipment" },
 // ------------------------- 🌠54. 粉体機器 小分類 powder_equipment -------------------------
-// 437から
+// 破砕機（通常は大きな物体を小さく破壊する機械）→ crushers
+// 粉砕機（物質を細かい粉末にする機械）→ grinders
 
 /**
  * 【粉体機器】Powder Equipment
@@ -2232,50 +3396,54 @@ export const mappingCategoryS_cleaning_machines: {
 
 export const categoryS_powder_equipment_NameOnly: ProcessingMachineryProductCategoriesS_powder_equipment[] = [
   "crushers",
-  "fine_crushers",
+  "grinders",
+  "fine_grinders",
   "sieves_shakers",
   "granulators",
   "powder_feeders",
+  "other_powder_equipment",
   "homogenizers",
   "shakers",
   "powder_conveyors",
-  "other_powder_equipment",
 ];
+// 435から437
+// 438から447
 export const categoryS_powder_equipment: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_powder_equipment;
 }[] = [
-  { id: 437, name: "crushers" },
-  { id: 438, name: "fine_crushers" },
-  { id: 439, name: "sieves_shakers" },
-  { id: 440, name: "granulators" },
-  { id: 441, name: "powder_feeders" },
-  { id: 442, name: "homogenizers" },
-  { id: 443, name: "shakers" },
-  { id: 444, name: "powder_conveyors" },
-  { id: 445, name: "other_powder_equipment" },
+  { id: 438, name: "crushers" },
+  { id: 439, name: "grinders" },
+  { id: 440, name: "fine_grinders" },
+  { id: 441, name: "sieves_shakers" },
+  { id: 442, name: "granulators" },
+  { id: 443, name: "powder_feeders" },
+  { id: 444, name: "other_powder_equipment" },
+  { id: 445, name: "homogenizers" },
+  { id: 446, name: "shakers" },
+  { id: 447, name: "powder_conveyors" },
 ];
 export const mappingCategoryS_powder_equipment: {
   [K in ProcessingMachineryProductCategoriesS_powder_equipment | string]: {
     [key: string]: string;
   };
 } = {
-  crushers: { ja: `粉砕機`, en: `` },
-  fine_crushers: { ja: `微粉砕機`, en: `` },
+  crushers: { ja: `破砕機`, en: `` },
+  grinders: { ja: `粉砕機`, en: `` },
+  fine_grinders: { ja: `微粉砕機`, en: `` },
   sieves_shakers: { ja: `ふるい・振とう器`, en: `` },
   granulators: { ja: `造粒装置`, en: `` },
   powder_feeders: { ja: `粉体供給装置`, en: `` },
+  other_powder_equipment: { ja: `その他粉体機器`, en: `` },
   homogenizers: { ja: `ホモジナイザー`, en: `` },
   shakers: { ja: `シェーカー`, en: `` },
   powder_conveyors: { ja: `粉体搬送装置`, en: `` },
-  other_powder_equipment: { ja: `その他粉体機器`, en: `` },
 };
 
 // -------------------------------------------------------------------------------------
 
 // { id: 55, name: "heating_equipment_furnaces" },
 // ------------------------- 🌠55. 加熱装置・炉 小分類 heating_equipment_furnaces -------------------------
-// 446から
 
 /**
  * 【加熱装置・炉】Heating Equipment & Furnaces
@@ -2298,17 +3466,19 @@ export const categoryS_heating_equipment_furnaces_NameOnly: ProcessingMachineryP
     "electric_furnaces",
     "industrial_furnaces",
   ];
+// 438から447
+// 448から454
 export const categoryS_heating_equipment_furnaces: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_heating_equipment_furnaces;
 }[] = [
-  { id: 446, name: "heating_equipment" },
-  { id: 447, name: "aluminum_heaters" },
-  { id: 448, name: "ceramic_heaters" },
-  { id: 449, name: "silicon_heaters" },
-  { id: 450, name: "other_heaters" },
-  { id: 451, name: "electric_furnaces" },
-  { id: 452, name: "industrial_furnaces" },
+  { id: 448, name: "heating_equipment" },
+  { id: 449, name: "aluminum_heaters" },
+  { id: 450, name: "ceramic_heaters" },
+  { id: 451, name: "silicon_heaters" },
+  { id: 452, name: "other_heaters" },
+  { id: 453, name: "electric_furnaces" },
+  { id: 454, name: "industrial_furnaces" },
 ];
 export const mappingCategoryS_heating_equipment_furnaces: {
   [K in ProcessingMachineryProductCategoriesS_heating_equipment_furnaces | string]: {
@@ -2328,7 +3498,6 @@ export const mappingCategoryS_heating_equipment_furnaces: {
 
 // { id: 56, name: "surface_treatment_equipment" },
 // ------------------------- 🌠56. 表面処理装置 小分類 surface_treatment_equipment -------------------------
-// 453から
 
 /**
  * 【表面処理装置】Surface Treatment Equipment
@@ -2342,17 +3511,19 @@ export const categoryS_surface_treatment_equipment_NameOnly: ProcessingMachinery
   [
     "plating_equipment",
     "plasma_surface_treatment_equipment",
-    "surface_treatment_services",
     "other_surface_treatment_equipment",
+    "surface_treatment_services",
   ];
+// 448から454
+// 455から458
 export const categoryS_surface_treatment_equipment: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_surface_treatment_equipment;
 }[] = [
-  { id: 453, name: "plating_equipment" },
-  { id: 454, name: "plasma_surface_treatment_equipment" },
-  { id: 455, name: "surface_treatment_services" },
-  { id: 456, name: "other_surface_treatment_equipment" },
+  { id: 455, name: "plating_equipment" },
+  { id: 456, name: "plasma_surface_treatment_equipment" },
+  { id: 457, name: "other_surface_treatment_equipment" },
+  { id: 458, name: "surface_treatment_services" },
 ];
 export const mappingCategoryS_surface_treatment_equipment: {
   [K in ProcessingMachineryProductCategoriesS_surface_treatment_equipment | string]: {
@@ -2361,15 +3532,14 @@ export const mappingCategoryS_surface_treatment_equipment: {
 } = {
   plating_equipment: { ja: `めっき装置`, en: `` },
   plasma_surface_treatment_equipment: { ja: `プラズマ表面処理装置`, en: `` },
-  surface_treatment_services: { ja: `表面処理受託サービス`, en: `` },
   other_surface_treatment_equipment: { ja: `その他表面処理装置`, en: `` },
+  surface_treatment_services: { ja: `表面処理受託サービス`, en: `` },
 };
 
 // -------------------------------------------------------------------------------------
 
 // { id: 57, name: "laboratory_equipment_supplies" },
 // ------------------------- 🌠57. 実験器具・消耗品 小分類 laboratory_equipment_supplies -------------------------
-// 457から
 
 /**
  * 【実験器具・消耗品】Laboratory Instruments & Supplies
@@ -2386,14 +3556,16 @@ export const categoryS_laboratory_equipment_supplies_NameOnly: ProcessingMachine
     "stainless_instruments_containers",
     "other_laboratory_instruments_containers",
   ];
+// 455から458
+// 459から462
 export const categoryS_laboratory_equipment_supplies: {
   id: number;
   name: ProcessingMachineryProductCategoriesS_laboratory_equipment_supplies;
 }[] = [
-  { id: 457, name: "glass_instruments_containers" },
-  { id: 458, name: "plastic_instruments_containers" },
-  { id: 459, name: "stainless_instruments_containers" },
-  { id: 460, name: "other_laboratory_instruments_containers" },
+  { id: 459, name: "glass_instruments_containers" },
+  { id: 460, name: "plastic_instruments_containers" },
+  { id: 461, name: "stainless_instruments_containers" },
+  { id: 462, name: "other_laboratory_instruments_containers" },
 ];
 export const mappingCategoryS_laboratory_equipment_supplies: {
   [K in ProcessingMachineryProductCategoriesS_laboratory_equipment_supplies | string]: {
@@ -2436,7 +3608,6 @@ export const mappingMaterialCategoryM: { [K in ProductCategoriesMediumMaterial |
 
 // { id: 58, name: "metal_materials" },
 // ------------------------- 🌠58. 金属材料 小分類 metal_materials -------------------------
-// 461から
 
 /**
  * 【金属材料】Metal Materials
@@ -2464,20 +3635,22 @@ export const categoryS_metal_materials_NameOnly: MaterialProductCategoriesS_meta
   "solders",
   "other_metal_materials",
 ];
+// 459から462
+// 463から472
 export const categoryS_metal_materials: {
   id: number;
   name: MaterialProductCategoriesS_metal_materials;
 }[] = [
-  { id: 461, name: "steel" },
-  { id: 462, name: "alloys" },
-  { id: 463, name: "special_steel" },
-  { id: 464, name: "non_ferrous_metals" },
-  { id: 465, name: "stainless_steel" },
-  { id: 466, name: "aluminum" },
-  { id: 467, name: "rare_metals" },
-  { id: 468, name: "magnets" },
-  { id: 469, name: "solders" },
-  { id: 470, name: "other_metal_materials" },
+  { id: 463, name: "steel" },
+  { id: 464, name: "alloys" },
+  { id: 465, name: "special_steel" },
+  { id: 466, name: "non_ferrous_metals" },
+  { id: 467, name: "stainless_steel" },
+  { id: 468, name: "aluminum" },
+  { id: 469, name: "rare_metals" },
+  { id: 470, name: "magnets" },
+  { id: 471, name: "solders" },
+  { id: 472, name: "other_metal_materials" },
 ];
 export const mappingCategoryS_metal_materials: {
   [K in MaterialProductCategoriesS_metal_materials | string]: {
@@ -2500,7 +3673,6 @@ export const mappingCategoryS_metal_materials: {
 
 // { id: 59, name: "polymer_materials" },
 // ------------------------- 🌠59. 高分子材料 小分類 polymer_materials -------------------------
-// 471から
 
 /**
  * 【高分子材料】Polymer Materials
@@ -2520,16 +3692,18 @@ export const categoryS_polymer_materials_NameOnly: MaterialProductCategoriesS_po
   "composite_materials",
   "other_polymer_materials",
 ];
+// 463から472
+// 473から478
 export const categoryS_polymer_materials: {
   id: number;
   name: MaterialProductCategoriesS_polymer_materials;
 }[] = [
-  { id: 471, name: "plastics" },
-  { id: 472, name: "engineering_plastics" },
-  { id: 473, name: "rubber" },
-  { id: 474, name: "fibers" },
-  { id: 475, name: "composite_materials" },
-  { id: 476, name: "other_polymer_materials" },
+  { id: 473, name: "plastics" },
+  { id: 474, name: "engineering_plastics" },
+  { id: 475, name: "rubber" },
+  { id: 476, name: "fibers" },
+  { id: 477, name: "composite_materials" },
+  { id: 478, name: "other_polymer_materials" },
 ];
 export const mappingCategoryS_polymer_materials: {
   [K in MaterialProductCategoriesS_polymer_materials | string]: {
@@ -2548,7 +3722,6 @@ export const mappingCategoryS_polymer_materials: {
 
 // { id: 60, name: "glass" },
 // ------------------------- 🌠60. ガラス 小分類 glass -------------------------
-// 477から
 
 /**
  * 【ガラス】Glass
@@ -2556,10 +3729,12 @@ export const mappingCategoryS_polymer_materials: {
  */
 
 export const categoryS_glass_NameOnly: MaterialProductCategoriesS_glass[] = ["glass"];
+// 473から478
+// 479から479
 export const categoryS_glass: {
   id: number;
   name: MaterialProductCategoriesS_glass;
-}[] = [{ id: 477, name: "glass" }];
+}[] = [{ id: 479, name: "glass" }];
 export const mappingCategoryS_glass: {
   [K in MaterialProductCategoriesS_glass | string]: {
     [key: string]: string;
@@ -2572,7 +3747,6 @@ export const mappingCategoryS_glass: {
 
 // { id: 61, name: "ceramics" },
 // ------------------------- 🌠61. セラミックス 小分類 ceramics -------------------------
-// 478から
 
 /**
  * 【セラミックス】Ceramics
@@ -2581,12 +3755,14 @@ export const mappingCategoryS_glass: {
  */
 
 export const categoryS_ceramics_NameOnly: MaterialProductCategoriesS_ceramics[] = ["ceramics", "fine_ceramics"];
+// 479から479
+// 480から481
 export const categoryS_ceramics: {
   id: number;
   name: MaterialProductCategoriesS_ceramics;
 }[] = [
-  { id: 478, name: "ceramics" },
-  { id: 479, name: "fine_ceramics" },
+  { id: 480, name: "ceramics" },
+  { id: 481, name: "fine_ceramics" },
 ];
 export const mappingCategoryS_ceramics: {
   [K in MaterialProductCategoriesS_ceramics | string]: {
@@ -2601,7 +3777,6 @@ export const mappingCategoryS_ceramics: {
 
 // { id: 62, name: "wood" },
 // ------------------------- 🌠62. 木材 小分類 wood -------------------------
-// 480から
 
 /**
  * 【木材】Wood
@@ -2610,12 +3785,14 @@ export const mappingCategoryS_ceramics: {
  */
 
 export const categoryS_wood_NameOnly: MaterialProductCategoriesS_wood[] = ["wood", "processed_wood_products"];
+// 480から481
+// 482から483
 export const categoryS_wood: {
   id: number;
   name: MaterialProductCategoriesS_wood;
 }[] = [
-  { id: 480, name: "wood" },
-  { id: 481, name: "processed_wood_products" },
+  { id: 482, name: "wood" },
+  { id: 483, name: "processed_wood_products" },
 ];
 export const mappingCategoryS_wood: {
   [K in MaterialProductCategoriesS_wood | string]: {
@@ -2630,7 +3807,6 @@ export const mappingCategoryS_wood: {
 
 // { id: 63, name: "paper_pulps" },
 // ------------------------- 🌠63. 紙・パルプ 小分類 paper_pulps -------------------------
-// 482から
 
 /**
  * 【紙・パルプ】Paper & Pulp
@@ -2642,12 +3818,14 @@ export const categoryS_paper_pulps_NameOnly: MaterialProductCategoriesS_paper_pu
   "paper_pulp",
   "processed_paper_pulp_products",
 ];
+// 482から483
+// 484から485
 export const categoryS_paper_pulps: {
   id: number;
   name: MaterialProductCategoriesS_paper_pulps;
 }[] = [
-  { id: 482, name: "paper_pulp" },
-  { id: 483, name: "processed_paper_pulp_products" },
+  { id: 484, name: "paper_pulp" },
+  { id: 485, name: "processed_paper_pulp_products" },
 ];
 export const mappingCategoryS_paper_pulps: {
   [K in MaterialProductCategoriesS_paper_pulps | string]: {
@@ -2662,7 +3840,6 @@ export const mappingCategoryS_paper_pulps: {
 
 // { id: 64, name: "organic_natural_materials" },
 // ------------------------- 🌠64. 有機天然材料 小分類 organic_natural_materials -------------------------
-// 484から
 
 /**
  * 【有機天然材料】Organic Natural Materials
@@ -2674,12 +3851,14 @@ export const categoryS_organic_natural_materials_NameOnly: MaterialProductCatego
   "fats_oils",
   "organic_natural_materials",
 ];
+// 484から485
+// 486から487
 export const categoryS_organic_natural_materials: {
   id: number;
   name: MaterialProductCategoriesS_organic_natural_materials;
 }[] = [
-  { id: 484, name: "fats_oils" },
-  { id: 485, name: "organic_natural_materials" },
+  { id: 486, name: "fats_oils" },
+  { id: 487, name: "organic_natural_materials" },
 ];
 export const mappingCategoryS_organic_natural_materials: {
   [K in MaterialProductCategoriesS_organic_natural_materials | string]: {
@@ -2694,7 +3873,8 @@ export const mappingCategoryS_organic_natural_materials: {
 
 // { id: 65, name: "chemicals" },
 // ------------------------- 🌠65. 薬品 小分類 chemicals -------------------------
-// 486から
+// 486から487
+// 488から488
 
 /**
  * 【薬品】Chemicals
@@ -2705,7 +3885,7 @@ export const categoryS_chemicals_NameOnly: MaterialProductCategoriesS_chemicals[
 export const categoryS_chemicals: {
   id: number;
   name: MaterialProductCategoriesS_chemicals;
-}[] = [{ id: 486, name: "chemicals" }];
+}[] = [{ id: 488, name: "chemicals" }];
 export const mappingCategoryS_chemicals: {
   [K in MaterialProductCategoriesS_chemicals | string]: {
     [key: string]: string;
@@ -2757,7 +3937,8 @@ export const mappingAnalysisCategoryM: { [K in ProductCategoriesMediumAnalysis |
 
 // { id: 66, name: "distance_measuring_machine" },
 // ------------------------- 🌠66. 距離測定器 小分類 distance_measuring_machine -------------------------
-// 487から
+// 488から488
+// 489から489
 
 /**
  *【距離測定器】Distance Measuring Instruments
@@ -2770,7 +3951,7 @@ export const categoryS_distance_measuring_machine_NameOnly: AnalysisProductCateg
 export const categoryS_distance_measuring_machine: {
   id: number;
   name: AnalysisProductCategoriesS_distance_measuring_machine;
-}[] = [{ id: 487, name: "distance_measuring_instruments" }];
+}[] = [{ id: 489, name: "distance_measuring_instruments" }];
 export const mappingCategoryS_distance_measuring_machine: {
   [K in AnalysisProductCategoriesS_distance_measuring_machine | string]: {
     [key: string]: string;
@@ -2783,7 +3964,6 @@ export const mappingCategoryS_distance_measuring_machine: {
 
 // { id: 67, name: "weight_measuring_machine" },
 // ------------------------- 🌠67. 重量測定器 小分類 weight_measuring_machine -------------------------
-// 488から
 
 /**
  *【重量測定器】Weight Measuring Instruments
@@ -2799,14 +3979,16 @@ export const categoryS_weight_measuring_machine_NameOnly: AnalysisProductCategor
   "weighing_machines",
   "other_weight_measuring_instruments",
 ];
+// 489から489
+// 490から493
 export const categoryS_weight_measuring_machine: {
   id: number;
   name: AnalysisProductCategoriesS_weight_measuring_machine;
 }[] = [
-  { id: 489, name: "weight_measuring_instruments" },
-  { id: 490, name: "scales" },
-  { id: 491, name: "weighing_machines" },
-  { id: 492, name: "other_weight_measuring_instruments" },
+  { id: 490, name: "weight_measuring_instruments" },
+  { id: 491, name: "scales" },
+  { id: 492, name: "weighing_machines" },
+  { id: 493, name: "other_weight_measuring_instruments" },
 ];
 export const mappingCategoryS_weight_measuring_machine: {
   [K in AnalysisProductCategoriesS_weight_measuring_machine | string]: {
@@ -2823,7 +4005,6 @@ export const mappingCategoryS_weight_measuring_machine: {
 
 // { id: 68, name: "electronic_measuring_machine" },
 // ------------------------- 🌠68. 電子計測器 小分類 electronic_measuring_machine -------------------------
-// 493から
 
 /**
  *【電子計測器】Electronic Measuring Instruments
@@ -2856,22 +4037,24 @@ export const categoryS_electronic_measuring_machine_NameOnly: AnalysisProductCat
     "other_electronic_measuring_instruments",
     "optical_measuring_instruments",
   ];
+// 490から493
+// 494から505
 export const categoryS_electronic_measuring_machine: {
   id: number;
   name: AnalysisProductCategoriesS_electronic_measuring_machine;
 }[] = [
-  { id: 493, name: "oscilloscopes" },
-  { id: 494, name: "logic_analyzers" },
-  { id: 495, name: "voltmeters" },
-  { id: 496, name: "ammeters" },
-  { id: 497, name: "power_meters" },
-  { id: 498, name: "lcr_meters" },
-  { id: 499, name: "time_frequency_measurement" },
-  { id: 500, name: "signal_generators" },
-  { id: 501, name: "power_supplies" },
-  { id: 502, name: "electronic_loads" },
-  { id: 503, name: "other_electronic_measuring_instruments" },
-  { id: 504, name: "optical_measuring_instruments" },
+  { id: 494, name: "oscilloscopes" },
+  { id: 495, name: "logic_analyzers" },
+  { id: 496, name: "voltmeters" },
+  { id: 497, name: "ammeters" },
+  { id: 498, name: "power_meters" },
+  { id: 499, name: "lcr_meters" },
+  { id: 500, name: "time_frequency_measurement" },
+  { id: 501, name: "signal_generators" },
+  { id: 502, name: "power_supplies" },
+  { id: 503, name: "electronic_loads" },
+  { id: 504, name: "other_electronic_measuring_instruments" },
+  { id: 505, name: "optical_measuring_instruments" },
 ];
 export const mappingCategoryS_electronic_measuring_machine: {
   [K in AnalysisProductCategoriesS_electronic_measuring_machine | string]: {
@@ -2896,7 +4079,6 @@ export const mappingCategoryS_electronic_measuring_machine: {
 
 // { id: 69, name: "temperature_humidity_machine" },
 // ------------------------- 🌠69. 温湿度測定器 小分類 temperature_humidity_machine -------------------------
-// 505から
 
 /**
  *【温湿度測定器】Temperature and Humidity Measuring Instruments
@@ -2917,16 +4099,18 @@ export const categoryS_temperature_humidity_machine_NameOnly: AnalysisProductCat
     "temperature_humidity_meters",
     "other_temperature_humidity_measuring_instruments",
   ];
+// 494から505
+// 506から511
 export const categoryS_temperature_humidity_machine: {
   id: number;
   name: AnalysisProductCategoriesS_electronic_temperature_humidity_machine;
 }[] = [
-  { id: 505, name: "temperature_humidity_measuring_instruments" },
-  { id: 506, name: "thermography" },
-  { id: 507, name: "radiation_thermometers" },
-  { id: 508, name: "thermometers" },
-  { id: 509, name: "temperature_humidity_meters" },
-  { id: 510, name: "other_temperature_humidity_measuring_instruments" },
+  { id: 506, name: "temperature_humidity_measuring_instruments" },
+  { id: 507, name: "thermography" },
+  { id: 508, name: "radiation_thermometers" },
+  { id: 509, name: "thermometers" },
+  { id: 510, name: "temperature_humidity_meters" },
+  { id: 511, name: "other_temperature_humidity_measuring_instruments" },
 ];
 export const mappingCategoryS_temperature_humidity_machine: {
   [K in AnalysisProductCategoriesS_electronic_temperature_humidity_machine | string]: {
@@ -2945,7 +4129,6 @@ export const mappingCategoryS_temperature_humidity_machine: {
 
 // { id: 70, name: "electrical_machine" },
 // ------------------------- 🌠70. 電気計器・電位計 小分類 electrical_machine -------------------------
-// 511から
 
 /**
  *【電気計器・電位計】Electrical Instruments & Voltmeters
@@ -2961,31 +4144,34 @@ export const categoryS_electrical_machine_NameOnly: AnalysisProductCategoriesS_e
   "emc_electrostatic_measuring_instruments",
   "other_electrical_measuring_instruments",
 ];
+// 506から511
+// 512から515
 export const categoryS_electrical_machine: {
   id: number;
   name: AnalysisProductCategoriesS_electrical_machine;
 }[] = [
-  { id: 511, name: "electrical_instruments_voltmeters" },
-  { id: 512, name: "insulation_resistance_meters" },
-  { id: 513, name: "emc_electrostatic_measuring_instruments" },
-  { id: 514, name: "other_electrical_measuring_instruments" },
+  { id: 512, name: "electrical_instruments_voltmeters" },
+  { id: 513, name: "insulation_resistance_meters" },
+  { id: 514, name: "emc_electrostatic_measuring_instruments" },
+  { id: 515, name: "other_electrical_measuring_instruments" },
 ];
 export const mappingCategoryS_electrical_machine: {
   [K in AnalysisProductCategoriesS_electrical_machine | string]: {
     [key: string]: string;
   };
 } = {
-  electrical_instruments_voltmeters: { ja: `その他温湿度測定器`, en: `` },
-  insulation_resistance_meters: { ja: `その他温湿度測定器`, en: `` },
-  emc_electrostatic_measuring_instruments: { ja: `その他温湿度測定器`, en: `` },
-  other_electrical_measuring_instruments: { ja: `その他温湿度測定器`, en: `` },
+  electrical_instruments_voltmeters: { ja: `電気計器・電位計(メータ)`, en: `` },
+  insulation_resistance_meters: { ja: `絶縁抵抗計`, en: `` },
+  emc_electrostatic_measuring_instruments: { ja: `EMC・静電気測定器`, en: `` },
+  other_electrical_measuring_instruments: { ja: `その他電気計器`, en: `` },
 };
 
 // -------------------------------------------------------------------------------------
 
 // { id: 71, name: "coordinate_measuring_machine" },
 // ------------------------- 🌠71. 3次元測定器 小分類 coordinate_measuring_machine -------------------------
-// 515から
+// 512から515
+// 516から516
 
 /**
  *【3次元測定器】Three-dimensional Measuring Instruments
@@ -2997,7 +4183,7 @@ export const categoryS_coordinate_measuring_machine_NameOnly: AnalysisProductCat
 export const categoryS_coordinate_measuring_machine: {
   id: number;
   name: AnalysisProductCategoriesS_coordinate_measuring_machine;
-}[] = [{ id: 515, name: "coordinate_measuring_machine" }];
+}[] = [{ id: 516, name: "coordinate_measuring_machine" }];
 export const mappingCategoryS_coordinate_measuring_machine: {
   [K in AnalysisProductCategoriesS_coordinate_measuring_machine | string]: {
     [key: string]: string;
@@ -3010,7 +4196,6 @@ export const mappingCategoryS_coordinate_measuring_machine: {
 
 // { id: 72, name: "other_measuring_machine" },
 // ------------------------- 🌠72. その他計測器 小分類 other_measuring_machine -------------------------
-// 516から
 
 /**
  *【その他計測器】Other Measuring Instruments
@@ -3038,20 +4223,22 @@ export const categoryS_other_measuring_machine_NameOnly: AnalysisProductCategori
   "counters",
   "other_measuring_recording_instruments",
 ];
+// 516から516
+// 517から526
 export const categoryS_other_measuring_machine: {
   id: number;
   name: AnalysisProductCategoriesS_other_measuring_machine;
 }[] = [
-  { id: 516, name: "flow_meters" },
-  { id: 517, name: "pressure_gauges" },
-  { id: 518, name: "particle_counters" },
-  { id: 519, name: "diaphragm_pressure_gauges" },
-  { id: 520, name: "viscometers" },
-  { id: 521, name: "torque_meters" },
-  { id: 522, name: "level_meters_switches" },
-  { id: 523, name: "radiation_detectors" },
-  { id: 524, name: "counters" },
-  { id: 525, name: "other_measuring_recording_instruments" },
+  { id: 517, name: "flow_meters" },
+  { id: 518, name: "pressure_gauges" },
+  { id: 519, name: "particle_counters" },
+  { id: 520, name: "diaphragm_pressure_gauges" },
+  { id: 521, name: "viscometers" },
+  { id: 522, name: "torque_meters" },
+  { id: 523, name: "level_meters_switches" },
+  { id: 524, name: "radiation_detectors" },
+  { id: 525, name: "counters" },
+  { id: 526, name: "other_measuring_recording_instruments" },
 ];
 export const mappingCategoryS_other_measuring_machine: {
   [K in AnalysisProductCategoriesS_other_measuring_machine | string]: {
@@ -3074,7 +4261,6 @@ export const mappingCategoryS_other_measuring_machine: {
 
 // { id: 73, name: "testing_machine" },
 // ------------------------- 🌠73. 試験機器・装置 小分類 testing_machine -------------------------
-// 526から
 
 /**
  *【試験機器・装置】Testing Equipment and Devices
@@ -3102,20 +4288,22 @@ export const categoryS_testing_machine_NameOnly: AnalysisProductCategoriesS_test
   "emc_test",
   "environmental_testing_equipment",
 ];
+// 517から526
+// 527から536
 export const categoryS_testing_machine: {
   id: number;
   name: AnalysisProductCategoriesS_testing_machine;
 }[] = [
-  { id: 526, name: "testing_equipment" },
-  { id: 527, name: "constant_temperature_chambers" },
-  { id: 528, name: "vibration_test" },
-  { id: 529, name: "deep_scratch_test" },
-  { id: 530, name: "strength_testing_equipment" },
-  { id: 531, name: "impact_test" },
-  { id: 532, name: "leak_testing_equipment" },
-  { id: 533, name: "weather_resistance_test" },
-  { id: 534, name: "emc_test" },
-  { id: 535, name: "environmental_testing_equipment" },
+  { id: 527, name: "testing_equipment" },
+  { id: 528, name: "constant_temperature_chambers" },
+  { id: 529, name: "vibration_test" },
+  { id: 530, name: "deep_scratch_test" },
+  { id: 531, name: "strength_testing_equipment" },
+  { id: 532, name: "impact_test" },
+  { id: 533, name: "leak_testing_equipment" },
+  { id: 534, name: "weather_resistance_test" },
+  { id: 535, name: "emc_test" },
+  { id: 536, name: "environmental_testing_equipment" },
 ];
 export const mappingCategoryS_testing_machine: {
   [K in AnalysisProductCategoriesS_testing_machine | string]: {
@@ -3138,7 +4326,6 @@ export const mappingCategoryS_testing_machine: {
 
 // { id: 74, name: "inspection_machine" },
 // ------------------------- 🌠74. 検査機器・装置 小分類 inspection_machine -------------------------
-// 536から
 
 /**
  *【検査機器・装置】Inspection Equipment and Devices
@@ -3160,17 +4347,19 @@ export const categoryS_inspection_machine_NameOnly: AnalysisProductCategoriesS_i
   "evaluation_boards",
   "pcb_inspection_equipment",
 ];
+// 527から536
+// 537から543
 export const categoryS_inspection_machine: {
   id: number;
   name: AnalysisProductCategoriesS_inspection_machine;
 }[] = [
-  { id: 536, name: "other_inspection_equipment" },
-  { id: 537, name: "x_ray_inspection_equipment" },
-  { id: 538, name: "visual_inspection_equipment" },
-  { id: 539, name: "defect_inspection_equipment" },
-  { id: 540, name: "probes" },
-  { id: 541, name: "evaluation_boards" },
-  { id: 542, name: "pcb_inspection_equipment" },
+  { id: 537, name: "other_inspection_equipment" },
+  { id: 538, name: "x_ray_inspection_equipment" },
+  { id: 539, name: "visual_inspection_equipment" },
+  { id: 540, name: "defect_inspection_equipment" },
+  { id: 541, name: "probes" },
+  { id: 542, name: "evaluation_boards" },
+  { id: 543, name: "pcb_inspection_equipment" },
 ];
 export const mappingCategoryS_inspection_machine: {
   [K in AnalysisProductCategoriesS_inspection_machine | string]: {
@@ -3190,12 +4379,12 @@ export const mappingCategoryS_inspection_machine: {
 
 // { id: 75, name: "microscopes" },
 // ------------------------- 🌠75. 顕微鏡・マイクロスコープ 小分類 microscopes -------------------------
-// 543から
 
 /**
  *【顕微鏡・マイクロスコープ】Microscopes
   光学顕微鏡 → optical_microscopes
   電子顕微鏡 → electron_microscopes
+  マイクロスコープ → microscopes
   レーザー顕微鏡 → laser_microscopes
   工業用内視鏡 → industrial_endoscopes
   その他顕微鏡・マイクロスコープ → other_microscopes
@@ -3204,37 +4393,41 @@ export const mappingCategoryS_inspection_machine: {
 export const categoryS_microscopes_NameOnly: AnalysisProductCategoriesS_microscopes[] = [
   "optical_microscopes",
   "electron_microscopes",
+  "microscopes",
   "laser_microscopes",
   "industrial_endoscopes",
   "other_microscopes",
 ];
+// 537から543
+// 544から549
 export const categoryS_microscopes: {
   id: number;
   name: AnalysisProductCategoriesS_microscopes;
 }[] = [
-  { id: 543, name: "optical_microscopes" },
-  { id: 544, name: "electron_microscopes" },
-  { id: 545, name: "laser_microscopes" },
-  { id: 546, name: "industrial_endoscopes" },
-  { id: 547, name: "other_microscopes" },
+  { id: 544, name: "optical_microscopes" },
+  { id: 545, name: "electron_microscopes" },
+  { id: 546, name: "microscopes" },
+  { id: 547, name: "laser_microscopes" },
+  { id: 548, name: "industrial_endoscopes" },
+  { id: 549, name: "other_microscopes" },
 ];
 export const mappingCategoryS_microscopes: {
   [K in AnalysisProductCategoriesS_microscopes | string]: {
     [key: string]: string;
   };
 } = {
-  optical_microscopes: { ja: `基盤検査装置`, en: `` },
-  electron_microscopes: { ja: `基盤検査装置`, en: `` },
-  laser_microscopes: { ja: `基盤検査装置`, en: `` },
-  industrial_endoscopes: { ja: `基盤検査装置`, en: `` },
-  other_microscopes: { ja: `基盤検査装置`, en: `` },
+  optical_microscopes: { ja: `光学顕微鏡`, en: `` },
+  electron_microscopes: { ja: `電子顕微鏡`, en: `` },
+  microscopes: { ja: `マイクロスコープ`, en: `` },
+  laser_microscopes: { ja: `レーザー顕微鏡`, en: `` },
+  industrial_endoscopes: { ja: `工業用内視鏡`, en: `` },
+  other_microscopes: { ja: `その他顕微鏡・マイクロスコープ`, en: `` },
 };
 
 // -------------------------------------------------------------------------------------
 
 // { id: 76, name: "recorders_loggers" },
 // ------------------------- 🌠76. 記録計・ロガー 小分類 recorders_loggers -------------------------
-// 548から
 
 /**
  *【記録計・ロガー】Recorders and Loggers
@@ -3246,12 +4439,14 @@ export const categoryS_recorders_loggers_NameOnly: AnalysisProductCategoriesS_re
   "data_loggers",
   "recorders",
 ];
+// 544から549
+// 550から551
 export const categoryS_recorders_loggers: {
   id: number;
   name: AnalysisProductCategoriesS_recorders_loggers;
 }[] = [
-  { id: 548, name: "data_loggers" },
-  { id: 549, name: "recorders" },
+  { id: 550, name: "data_loggers" },
+  { id: 551, name: "recorders" },
 ];
 export const mappingCategoryS_recorders_loggers: {
   [K in AnalysisProductCategoriesS_recorders_loggers | string]: {
@@ -3266,7 +4461,6 @@ export const mappingCategoryS_recorders_loggers: {
 
 // { id: 77, name: "analytical_machine" },
 // ------------------------- 🌠77. 分析機器 小分類 analytical_machine -------------------------
-// 550から
 
 /**
  *【分析機器】Analytical Instruments
@@ -3280,13 +4474,15 @@ export const categoryS_analytical_machine_NameOnly: AnalysisProductCategoriesS_a
   "xrf_analyzers",
   "spectral_analyzers",
 ];
+// 550から551
+// 552から554
 export const categoryS_analytical_machine: {
   id: number;
   name: AnalysisProductCategoriesS_analytical_machine;
 }[] = [
-  { id: 550, name: "analytical_equipment" },
-  { id: 551, name: "xrf_analyzers" },
-  { id: 552, name: "spectral_analyzers" },
+  { id: 552, name: "analytical_equipment" },
+  { id: 553, name: "xrf_analyzers" },
+  { id: 554, name: "spectral_analyzers" },
 ];
 export const mappingCategoryS_analytical_machine: {
   [K in AnalysisProductCategoriesS_analytical_machine | string]: {
@@ -3302,7 +4498,6 @@ export const mappingCategoryS_analytical_machine: {
 
 // { id: 78, name: "environmental_analysis_machine" },
 // ------------------------- 🌠78. 環境分析機器 小分類 environmental_analysis_machine -------------------------
-// 553から
 
 /**
  *【環境分析機器】Environmental Analysis Equipment
@@ -3325,17 +4520,19 @@ export const categoryS_environmental_analysis_machine_NameOnly: AnalysisProductC
     "odor_testing",
     "other_environmental_analysis_equipment",
   ];
+// 552から554
+// 555から561
 export const categoryS_environmental_analysis_machine: {
   id: number;
   name: AnalysisProductCategoriesS_environmental_analysis_machine;
 }[] = [
-  { id: 553, name: "anemometers" },
-  { id: 554, name: "water_quality_testing" },
-  { id: 555, name: "soil_testing" },
-  { id: 556, name: "noise_testing" },
-  { id: 557, name: "vibration_testing" },
-  { id: 558, name: "odor_testing" },
-  { id: 559, name: "other_environmental_analysis_equipment" },
+  { id: 555, name: "anemometers" },
+  { id: 556, name: "water_quality_testing" },
+  { id: 557, name: "soil_testing" },
+  { id: 558, name: "noise_testing" },
+  { id: 559, name: "vibration_testing" },
+  { id: 560, name: "odor_testing" },
+  { id: 561, name: "other_environmental_analysis_equipment" },
 ];
 export const mappingCategoryS_environmental_analysis_machine: {
   [K in AnalysisProductCategoriesS_environmental_analysis_machine | string]: {
@@ -3355,7 +4552,6 @@ export const mappingCategoryS_environmental_analysis_machine: {
 
 // { id: 79, name: "contracted_services" },
 // ------------------------- 🌠79. 受託サービス 小分類 contracted_services -------------------------
-// 560から
 
 /**
  *【受託サービス】Contracted Services
@@ -3369,13 +4565,15 @@ export const categoryS_contracted_services_analysis_NameOnly: AnalysisProductCat
   "contracted_measurement",
   "contracted_inspection",
 ];
+// 555から561
+// 562から564
 export const categoryS_contracted_services_analysis: {
   id: number;
   name: AnalysisProductCategoriesS_contracted_services;
 }[] = [
-  { id: 560, name: "contracted_analysis" },
-  { id: 561, name: "contracted_measurement" },
-  { id: 562, name: "contracted_inspection" },
+  { id: 562, name: "contracted_analysis" },
+  { id: 563, name: "contracted_measurement" },
+  { id: 564, name: "contracted_inspection" },
 ];
 export const mappingCategoryS_contracted_services_analysis: {
   [K in AnalysisProductCategoriesS_contracted_services | string]: {
@@ -3414,7 +4612,6 @@ export const mappingImageProcessingCategoryM: {
 
 // { id: 80, name: "cameras" },
 // ------------------------- 🌠80. カメラ 小分類 cameras -------------------------
-// 563から
 
 /**
  *【カメラ】Cameras
@@ -3428,13 +4625,15 @@ export const categoryS_cameras_NameOnly: ImageProcessingProductCategoriesS_camer
   "monochrome_cameras",
   "high_speed_cameras",
 ];
+// 562から564
+// 565から567
 export const categoryS_cameras: {
   id: number;
   name: ImageProcessingProductCategoriesS_cameras;
 }[] = [
-  { id: 563, name: "color_cameras" },
-  { id: 564, name: "monochrome_cameras" },
-  { id: 565, name: "high_speed_cameras" },
+  { id: 565, name: "color_cameras" },
+  { id: 566, name: "monochrome_cameras" },
+  { id: 567, name: "high_speed_cameras" },
 ];
 export const mappingCategoryS_cameras: {
   [K in ImageProcessingProductCategoriesS_cameras | string]: {
@@ -3450,7 +4649,6 @@ export const mappingCategoryS_cameras: {
 
 // { id: 81, name: "lenses" },
 // ------------------------- 🌠81. レンズ 小分類 lenses -------------------------
-// 566から
 
 /**
  *【レンズ】Lenses
@@ -3458,10 +4656,12 @@ export const mappingCategoryS_cameras: {
  */
 
 export const categoryS_lenses_NameOnly: ImageProcessingProductCategoriesS_lenses[] = ["lenses"];
+// 565から567
+// 568から568
 export const categoryS_lenses: {
   id: number;
   name: ImageProcessingProductCategoriesS_lenses;
-}[] = [{ id: 566, name: "lenses" }];
+}[] = [{ id: 568, name: "lenses" }];
 export const mappingCategoryS_lenses: {
   [K in ImageProcessingProductCategoriesS_lenses | string]: {
     [key: string]: string;
@@ -3474,7 +4674,6 @@ export const mappingCategoryS_lenses: {
 
 // { id: 82, name: "light_sources_lighting" },
 // ------------------------- 🌠82. 光源・照明 小分類 light_sources_lighting -------------------------
-// 567から
 
 /**
  *【光源・照明】Light Sources & Lighting
@@ -3486,12 +4685,14 @@ export const categoryS_light_sources_lighting_NameOnly: ImageProcessingProductCa
   "image_processing_lights",
   "other_lighting_equipment",
 ];
+// 568から568
+// 569から570
 export const categoryS_light_sources_lighting: {
   id: number;
   name: ImageProcessingProductCategoriesS_light_sources_lighting;
 }[] = [
-  { id: 567, name: "image_processing_lights" },
-  { id: 568, name: "other_lighting_equipment" },
+  { id: 569, name: "image_processing_lights" },
+  { id: 570, name: "other_lighting_equipment" },
 ];
 export const mappingCategoryS_light_sources_lighting: {
   [K in ImageProcessingProductCategoriesS_light_sources_lighting | string]: {
@@ -3506,7 +4707,6 @@ export const mappingCategoryS_light_sources_lighting: {
 
 // { id: 83, name: "image_processing" },
 // ------------------------- 🌠83. 画像処理 小分類 image_processing -------------------------
-// 569から
 
 /**
  *【画像処理】image_processing
@@ -3534,20 +4734,22 @@ export const categoryS_image_processing_NameOnly: ImageProcessingProductCategori
   "virtual_reality_related",
   "other_image_related_equipment",
 ];
+// 569から570
+// 571から580
 export const categoryS_image_processing: {
   id: number;
   name: ImageProcessingProductCategoriesS_image_processing;
 }[] = [
-  { id: 569, name: "image_input_boards" },
-  { id: 570, name: "image_processing_boards" },
-  { id: 571, name: "image_processing_software" },
-  { id: 572, name: "image_processing_equipment" },
-  { id: 573, name: "image_analysis_software" },
-  { id: 574, name: "encoders_decoders" },
-  { id: 575, name: "video_recorders" },
-  { id: 576, name: "image_transmission_equipment" },
-  { id: 577, name: "virtual_reality_related" },
-  { id: 578, name: "other_image_related_equipment" },
+  { id: 571, name: "image_input_boards" },
+  { id: 572, name: "image_processing_boards" },
+  { id: 573, name: "image_processing_software" },
+  { id: 574, name: "image_processing_equipment" },
+  { id: 575, name: "image_analysis_software" },
+  { id: 576, name: "encoders_decoders" },
+  { id: 577, name: "video_recorders" },
+  { id: 578, name: "image_transmission_equipment" },
+  { id: 579, name: "virtual_reality_related" },
+  { id: 580, name: "other_image_related_equipment" },
 ];
 export const mappingCategoryS_image_processing: {
   [K in ImageProcessingProductCategoriesS_image_processing | string]: {
@@ -3570,7 +4772,6 @@ export const mappingCategoryS_image_processing: {
 
 // { id: 84, name: "security_surveillance_systems" },
 // ------------------------- 🌠84. セキュリティ・監視システム 小分類 security_surveillance_systems -------------------------
-// 579から
 
 /**
  *【セキュリティ・監視システム】Security & Surveillance Systems
@@ -3581,13 +4782,15 @@ export const mappingCategoryS_image_processing: {
 
 export const categoryS_security_surveillance_systems_NameOnly: ImageProcessingProductCategoriesS_security_surveillance_systems[] =
   ["surveillance_cameras", "surveillance_camera_systems", "other_security_surveillance_systems"];
+// 571から580
+// 581から583
 export const categoryS_security_surveillance_systems: {
   id: number;
   name: ImageProcessingProductCategoriesS_security_surveillance_systems;
 }[] = [
-  { id: 579, name: "surveillance_cameras" },
-  { id: 580, name: "surveillance_camera_systems" },
-  { id: 581, name: "other_security_surveillance_systems" },
+  { id: 581, name: "surveillance_cameras" },
+  { id: 582, name: "surveillance_camera_systems" },
+  { id: 583, name: "other_security_surveillance_systems" },
 ];
 export const mappingCategoryS_security_surveillance_systems: {
   [K in ImageProcessingProductCategoriesS_security_surveillance_systems | string]: {
@@ -3603,7 +4806,6 @@ export const mappingCategoryS_security_surveillance_systems: {
 
 // { id: 85, name: "barcode_readers" },
 // ------------------------- 🌠85. バーコードリーダー 小分類 barcode_readers -------------------------
-// 582から
 
 /**
  *【バーコードリーダー】Barcode Readers
@@ -3621,15 +4823,17 @@ export const categoryS_barcode_readers_NameOnly: ImageProcessingProductCategorie
   "other_code_readers",
   "ic_tag_readers_writers",
 ];
+// 581から583
+// 584から588
 export const categoryS_barcode_readers: {
   id: number;
   name: ImageProcessingProductCategoriesS_barcode_readers;
 }[] = [
-  { id: 582, name: "fixed_barcode_readers" },
-  { id: 583, name: "handheld_barcode_readers" },
-  { id: 584, name: "two_dimensional_code_readers" },
-  { id: 585, name: "other_code_readers" },
-  { id: 586, name: "ic_tag_readers_writers" },
+  { id: 584, name: "fixed_barcode_readers" },
+  { id: 585, name: "handheld_barcode_readers" },
+  { id: 586, name: "two_dimensional_code_readers" },
+  { id: 587, name: "other_code_readers" },
+  { id: 588, name: "ic_tag_readers_writers" },
 ];
 export const mappingCategoryS_barcode_readers: {
   [K in ImageProcessingProductCategoriesS_barcode_readers | string]: {
@@ -3681,7 +4885,6 @@ export const mappingControlEquipmentCategoryM: {
 
 // { id: 86, name: "process_control_equipment" },
 // ------------------------- 🌠86. プロセス制御機器 小分類 process_control_equipment -------------------------
-// 587から
 
 /**
  *【プロセス制御機器】Process Control Equipment
@@ -3710,20 +4913,22 @@ export const categoryS_process_control_equipment_NameOnly: ControlEquipmentProdu
     "vibration_monitoring",
     "other_process_control",
   ];
+// 584から588
+// 589から598
 export const categoryS_process_control_equipment: {
   id: number;
   name: ControlEquipmentProductCategoriesS_process_control_equipment;
 }[] = [
-  { id: 587, name: "flow_control" },
-  { id: 588, name: "pressure_control" },
-  { id: 589, name: "temperature_humidity_control" },
-  { id: 590, name: "liquid_level_control_level_switches" },
-  { id: 591, name: "weighing_control" },
-  { id: 592, name: "remote_control" },
-  { id: 593, name: "instrumentation_control_systems" },
-  { id: 594, name: "torque_control" },
-  { id: 595, name: "vibration_monitoring" },
-  { id: 596, name: "other_process_control" },
+  { id: 589, name: "flow_control" },
+  { id: 590, name: "pressure_control" },
+  { id: 591, name: "temperature_humidity_control" },
+  { id: 592, name: "liquid_level_control_level_switches" },
+  { id: 593, name: "weighing_control" },
+  { id: 594, name: "remote_control" },
+  { id: 595, name: "instrumentation_control_systems" },
+  { id: 596, name: "torque_control" },
+  { id: 597, name: "vibration_monitoring" },
+  { id: 598, name: "other_process_control" },
 ];
 export const mappingCategoryS_process_control_equipment: {
   [K in ControlEquipmentProductCategoriesS_process_control_equipment | string]: {
@@ -3746,7 +4951,6 @@ export const mappingCategoryS_process_control_equipment: {
 
 // { id: 87, name: "fa_equipment" },
 // ------------------------- 🌠87. FA機器 小分類 fa_equipment -------------------------
-// 597から
 
 /**
  *【FA機器】Factory Automation Equipment
@@ -3798,32 +5002,34 @@ export const categoryS_fa_equipment_NameOnly: ControlEquipmentProductCategoriesS
   "panel_components",
   "other_fa_equipment",
 ];
+// 589から598
+// 599から620
 export const categoryS_fa_equipment: {
   id: number;
   name: ControlEquipmentProductCategoriesS_fa_equipment;
 }[] = [
-  { id: 597, name: "plc" },
-  { id: 598, name: "controllers" },
-  { id: 599, name: "nc_equipment" },
-  { id: 600, name: "displays" },
-  { id: 601, name: "servos" },
-  { id: 602, name: "inverters" },
-  { id: 603, name: "relays" },
-  { id: 604, name: "timers" },
-  { id: 605, name: "counters" },
-  { id: 606, name: "switches" },
-  { id: 607, name: "sensors" },
-  { id: 608, name: "power_supplies" },
-  { id: 609, name: "transformers" },
-  { id: 610, name: "control_panels" },
-  { id: 611, name: "distribution_boards" },
-  { id: 612, name: "cabinets_boxes" },
-  { id: 613, name: "racks" },
-  { id: 614, name: "other_boxes" },
-  { id: 615, name: "connectors" },
-  { id: 616, name: "terminal_blocks" },
-  { id: 617, name: "panel_components" },
-  { id: 618, name: "other_fa_equipment" },
+  { id: 599, name: "plc" },
+  { id: 600, name: "controllers" },
+  { id: 601, name: "nc_equipment" },
+  { id: 602, name: "displays" },
+  { id: 603, name: "servos" },
+  { id: 604, name: "inverters" },
+  { id: 605, name: "relays" },
+  { id: 606, name: "timers" },
+  { id: 607, name: "counters" },
+  { id: 608, name: "switches" },
+  { id: 609, name: "sensors" },
+  { id: 610, name: "power_supplies" },
+  { id: 611, name: "transformers" },
+  { id: 612, name: "control_panels" },
+  { id: 613, name: "distribution_boards" },
+  { id: 614, name: "cabinets_boxes" },
+  { id: 615, name: "racks" },
+  { id: 616, name: "other_boxes" },
+  { id: 617, name: "connectors" },
+  { id: 618, name: "terminal_blocks" },
+  { id: 619, name: "panel_components" },
+  { id: 620, name: "other_fa_equipment" },
 ];
 export const mappingCategoryS_fa_equipment: {
   [K in ControlEquipmentProductCategoriesS_fa_equipment | string]: {
@@ -3858,7 +5064,6 @@ export const mappingCategoryS_fa_equipment: {
 
 // { id: 88, name: "safety_equipment" },
 // ------------------------- 🌠88. 安全機器 小分類 safety_equipment -------------------------
-// 619から
 
 /**
  *【安全機器】Safety Equipment
@@ -3888,21 +5093,23 @@ export const categoryS_safety_equipment_NameOnly: ControlEquipmentProductCategor
   "circuit_breakers_switches",
   "other_safety_equipment",
 ];
+// 599から620
+// 621から631
 export const categoryS_safety_equipment: {
   id: number;
   name: ControlEquipmentProductCategoriesS_safety_equipment;
 }[] = [
-  { id: 619, name: "indicator_lights" },
-  { id: 620, name: "light_curtains" },
-  { id: 621, name: "area_sensors" },
-  { id: 622, name: "safety_controllers" },
-  { id: 623, name: "safety_switches" },
-  { id: 624, name: "safety_door_switches" },
-  { id: 625, name: "safety_sensors" },
-  { id: 626, name: "safety_relays" },
-  { id: 627, name: "signal_lights_rotating_lights" },
-  { id: 628, name: "circuit_breakers_switches" },
-  { id: 629, name: "other_safety_equipment" },
+  { id: 621, name: "indicator_lights" },
+  { id: 622, name: "light_curtains" },
+  { id: 623, name: "area_sensors" },
+  { id: 624, name: "safety_controllers" },
+  { id: 625, name: "safety_switches" },
+  { id: 626, name: "safety_door_switches" },
+  { id: 627, name: "safety_sensors" },
+  { id: 628, name: "safety_relays" },
+  { id: 629, name: "signal_lights_rotating_lights" },
+  { id: 630, name: "circuit_breakers_switches" },
+  { id: 631, name: "other_safety_equipment" },
 ];
 export const mappingCategoryS_safety_equipment: {
   [K in ControlEquipmentProductCategoriesS_safety_equipment | string]: {
@@ -3926,7 +5133,6 @@ export const mappingCategoryS_safety_equipment: {
 
 // { id: 89, name: "environmental_equipment" },
 // ------------------------- 🌠89. 環境機器 小分類 environmental_equipment -------------------------
-// 630から
 
 /**
  *【環境機器】Environmental Equipment
@@ -3963,24 +5169,26 @@ export const categoryS_environmental_equipment_NameOnly: ControlEquipmentProduct
     "heat_exchangers",
     "chillers",
   ];
+// 621から631
+// 632から645
 export const categoryS_environmental_equipment: {
   id: number;
   name: ControlEquipmentProductCategoriesS_environmental_equipment;
 }[] = [
-  { id: 630, name: "air_purifiers" },
-  { id: 631, name: "oil_mist_collectors" },
-  { id: 632, name: "dust_collectors" },
-  { id: 633, name: "dehumidifiers" },
-  { id: 634, name: "humidifiers" },
-  { id: 635, name: "gas_recovery_treatment_equipment" },
-  { id: 636, name: "incinerators" },
-  { id: 637, name: "vibration_resistant_devices" },
-  { id: 638, name: "hazardous_materials_treatment" },
-  { id: 639, name: "other_environmental_equipment" },
-  { id: 640, name: "cooling_equipment" },
-  { id: 641, name: "boilers" },
-  { id: 642, name: "heat_exchangers" },
-  { id: 643, name: "chillers" },
+  { id: 632, name: "air_purifiers" },
+  { id: 633, name: "oil_mist_collectors" },
+  { id: 634, name: "dust_collectors" },
+  { id: 635, name: "dehumidifiers" },
+  { id: 636, name: "humidifiers" },
+  { id: 637, name: "gas_recovery_treatment_equipment" },
+  { id: 638, name: "incinerators" },
+  { id: 639, name: "vibration_resistant_devices" },
+  { id: 640, name: "hazardous_materials_treatment" },
+  { id: 641, name: "other_environmental_equipment" },
+  { id: 642, name: "cooling_equipment" },
+  { id: 643, name: "boilers" },
+  { id: 644, name: "heat_exchangers" },
+  { id: 645, name: "chillers" },
 ];
 export const mappingCategoryS_environmental_equipment: {
   [K in ControlEquipmentProductCategoriesS_environmental_equipment | string]: {
@@ -4007,7 +5215,6 @@ export const mappingCategoryS_environmental_equipment: {
 
 // { id: 90, name: "filters" },
 // ------------------------- 🌠90. フィルタ 小分類 filters -------------------------
-// 644から
 
 /**
  *【フィルタ】Filters
@@ -4025,15 +5232,17 @@ export const categoryS_filters_NameOnly: ControlEquipmentProductCategoriesS_filt
   "solid_liquid_separation_filters",
   "liquid_liquid_separation_filters",
 ];
+// 632から645
+// 646から650
 export const categoryS_filters: {
   id: number;
   name: ControlEquipmentProductCategoriesS_filters;
 }[] = [
-  { id: 644, name: "other_filters" },
-  { id: 645, name: "bag_filters" },
-  { id: 646, name: "gas_filters" },
-  { id: 647, name: "solid_liquid_separation_filters" },
-  { id: 648, name: "liquid_liquid_separation_filters" },
+  { id: 646, name: "other_filters" },
+  { id: 647, name: "bag_filters" },
+  { id: 648, name: "gas_filters" },
+  { id: 649, name: "solid_liquid_separation_filters" },
+  { id: 650, name: "liquid_liquid_separation_filters" },
 ];
 export const mappingCategoryS_filters: {
   [K in ControlEquipmentProductCategoriesS_filters | string]: {
@@ -4051,7 +5260,6 @@ export const mappingCategoryS_filters: {
 
 // { id: 91, name: "clean_rooms" },
 // ------------------------- 🌠91. クリーンルーム 小分類 clean_rooms -------------------------
-// 649から
 
 /**
  *【クリーンルーム】Cleanrooms
@@ -4079,20 +5287,22 @@ export const categoryS_clean_rooms_NameOnly: ControlEquipmentProductCategoriesS_
   "clean_booths",
   "other_cleanroom_equipment",
 ];
+// 646から650
+// 651から660
 export const categoryS_clean_rooms: {
   id: number;
   name: ControlEquipmentProductCategoriesS_clean_rooms;
 }[] = [
-  { id: 648, name: "draft_chambers" },
-  { id: 649, name: "fan_filter_units" },
-  { id: 650, name: "filter_units" },
-  { id: 651, name: "air_showers" },
-  { id: 652, name: "shoe_sole_cleaners" },
-  { id: 653, name: "pass_boxes" },
-  { id: 654, name: "glove_boxes" },
-  { id: 655, name: "clean_benches" },
-  { id: 656, name: "clean_booths" },
-  { id: 657, name: "other_cleanroom_equipment" },
+  { id: 651, name: "draft_chambers" },
+  { id: 652, name: "fan_filter_units" },
+  { id: 653, name: "filter_units" },
+  { id: 654, name: "air_showers" },
+  { id: 655, name: "shoe_sole_cleaners" },
+  { id: 656, name: "pass_boxes" },
+  { id: 657, name: "glove_boxes" },
+  { id: 658, name: "clean_benches" },
+  { id: 659, name: "clean_booths" },
+  { id: 660, name: "other_cleanroom_equipment" },
 ];
 export const mappingCategoryS_clean_rooms: {
   [K in ControlEquipmentProductCategoriesS_clean_rooms | string]: {
@@ -4115,7 +5325,6 @@ export const mappingCategoryS_clean_rooms: {
 
 // { id: 92, name: "lighting" },
 // ------------------------- 🌠92. 照明 小分類 lighting -------------------------
-// 658から
 
 /**
  *【照明】Lighting
@@ -4139,18 +5348,20 @@ export const categoryS_lighting_NameOnly: ControlEquipmentProductCategoriesS_lig
   "led_lighting",
   "floodlights",
 ];
+// 651から660
+// 661から668
 export const categoryS_lighting: {
   id: number;
   name: ControlEquipmentProductCategoriesS_lighting;
 }[] = [
-  { id: 658, name: "other_lighting_fixtures" },
-  { id: 659, name: "work_lights" },
-  { id: 660, name: "metal_halide_lamps" },
-  { id: 661, name: "mercury_lamps" },
-  { id: 662, name: "fluorescent_lamps" },
-  { id: 663, name: "led_fluorescent_lamps" },
-  { id: 664, name: "led_lighting" },
-  { id: 665, name: "floodlights" },
+  { id: 661, name: "other_lighting_fixtures" },
+  { id: 662, name: "work_lights" },
+  { id: 663, name: "metal_halide_lamps" },
+  { id: 664, name: "mercury_lamps" },
+  { id: 665, name: "fluorescent_lamps" },
+  { id: 666, name: "led_fluorescent_lamps" },
+  { id: 667, name: "led_lighting" },
+  { id: 668, name: "floodlights" },
 ];
 export const mappingCategoryS_lighting: {
   [K in ControlEquipmentProductCategoriesS_lighting | string]: {
@@ -4171,7 +5382,6 @@ export const mappingCategoryS_lighting: {
 
 // { id: 93, name: "air_conditioning_equipment" },
 // ------------------------- 🌠93. 空調機器 小分類 air_conditioning_equipment -------------------------
-// 666から
 
 /**
  *【空調機器】Air Conditioning Equipment
@@ -4190,15 +5400,17 @@ export const categoryS_air_conditioning_equipment_NameOnly: ControlEquipmentProd
     "cooling_towers",
     "other_air_conditioning_equipment",
   ];
+// 661から668
+// 669から673
 export const categoryS_air_conditioning_equipment: {
   id: number;
   name: ControlEquipmentProductCategoriesS_air_conditioning_equipment;
 }[] = [
-  { id: 666, name: "air_conditioning" },
-  { id: 667, name: "ventilation_exhaust" },
-  { id: 668, name: "control_panel_coolers" },
-  { id: 669, name: "cooling_towers" },
-  { id: 670, name: "other_air_conditioning_equipment" },
+  { id: 669, name: "air_conditioning" },
+  { id: 670, name: "ventilation_exhaust" },
+  { id: 671, name: "control_panel_coolers" },
+  { id: 672, name: "cooling_towers" },
+  { id: 673, name: "other_air_conditioning_equipment" },
 ];
 export const mappingCategoryS_air_conditioning_equipment: {
   [K in ControlEquipmentProductCategoriesS_air_conditioning_equipment | string]: {
@@ -4216,7 +5428,6 @@ export const mappingCategoryS_air_conditioning_equipment: {
 
 // { id: 94, name: "water_treatment_equipment" },
 // ------------------------- 🌠94. 水処理装置 小分類 water_treatment_equipment -------------------------
-// 671から
 
 /**
  *【水処理装置】Water Treatment Devices
@@ -4239,17 +5450,19 @@ export const categoryS_water_treatment_equipment_NameOnly: ControlEquipmentProdu
     "oil_water_separators",
     "other_water_treatment_equipment",
   ];
+// 669から673
+// 674から680
 export const categoryS_water_treatment_equipment: {
   id: number;
   name: ControlEquipmentProductCategoriesS_water_treatment_equipment;
 }[] = [
-  { id: 671, name: "water_treatment_equipment" },
-  { id: 672, name: "water_activators" },
-  { id: 673, name: "filtration_devices" },
-  { id: 674, name: "aeration_diffusion_equipment" },
-  { id: 675, name: "wastewater_treatment_equipment" },
-  { id: 676, name: "oil_water_separators" },
-  { id: 677, name: "other_water_treatment_equipment" },
+  { id: 674, name: "water_treatment_equipment" },
+  { id: 675, name: "water_activators" },
+  { id: 676, name: "filtration_devices" },
+  { id: 677, name: "aeration_diffusion_equipment" },
+  { id: 678, name: "wastewater_treatment_equipment" },
+  { id: 679, name: "oil_water_separators" },
+  { id: 680, name: "other_water_treatment_equipment" },
 ];
 export const mappingCategoryS_water_treatment_equipment: {
   [K in ControlEquipmentProductCategoriesS_water_treatment_equipment | string]: {
@@ -4269,7 +5482,6 @@ export const mappingCategoryS_water_treatment_equipment: {
 
 // { id: 95, name: "static_electricity_measures" },
 // ------------------------- 🌠95. 静電気対策 小分類 static_electricity_measures -------------------------
-// 678から
 
 /**
  *【静電気対策】Electrostatic Discharge Protection
@@ -4288,15 +5500,17 @@ export const categoryS_static_electricity_measures_NameOnly: ControlEquipmentPro
     "electrostatic_protection_items",
     "other_electrostatic_protection_equipment",
   ];
+// 674から680
+// 681から685
 export const categoryS_static_electricity_measures: {
   id: number;
   name: ControlEquipmentProductCategoriesS_static_electricity_measures;
 }[] = [
-  { id: 678, name: "electrostatic_discharge_removers" },
-  { id: 679, name: "ionizers_deionizers" },
-  { id: 680, name: "conductive_mats" },
-  { id: 681, name: "electrostatic_protection_items" },
-  { id: 682, name: "other_electrostatic_protection_equipment" },
+  { id: 681, name: "electrostatic_discharge_removers" },
+  { id: 682, name: "ionizers_deionizers" },
+  { id: 683, name: "conductive_mats" },
+  { id: 684, name: "electrostatic_protection_items" },
+  { id: 685, name: "other_electrostatic_protection_equipment" },
 ];
 export const mappingCategoryS_static_electricity_measures: {
   [K in ControlEquipmentProductCategoriesS_static_electricity_measures | string]: {
@@ -4314,7 +5528,6 @@ export const mappingCategoryS_static_electricity_measures: {
 
 // { id: 96, name: "energy_equipment" },
 // ------------------------- 🌠96. エネルギー機器 小分類 energy_equipment -------------------------
-// 683から
 
 /**
  *【エネルギー機器】Energy Equipment
@@ -4338,18 +5551,20 @@ export const categoryS_energy_equipment_NameOnly: ControlEquipmentProductCategor
   "demand_monitoring",
   "other_energy_equipment",
 ];
+// 681から685
+// 686から693
 export const categoryS_energy_equipment: {
   id: number;
   name: ControlEquipmentProductCategoriesS_energy_equipment;
 }[] = [
-  { id: 683, name: "generators_transmission_motors" },
-  { id: 684, name: "wind_turbines" },
-  { id: 685, name: "solar_power_generators" },
-  { id: 686, name: "fuel_cells" },
-  { id: 687, name: "energy_storage_systems" },
-  { id: 688, name: "power_monitoring_equipment" },
-  { id: 689, name: "demand_monitoring" },
-  { id: 690, name: "other_energy_equipment" },
+  { id: 686, name: "generators_transmission_motors" },
+  { id: 687, name: "wind_turbines" },
+  { id: 688, name: "solar_power_generators" },
+  { id: 689, name: "fuel_cells" },
+  { id: 690, name: "energy_storage_systems" },
+  { id: 691, name: "power_monitoring_equipment" },
+  { id: 692, name: "demand_monitoring" },
+  { id: 693, name: "other_energy_equipment" },
 ];
 export const mappingCategoryS_energy_equipment: {
   [K in ControlEquipmentProductCategoriesS_energy_equipment | string]: {
@@ -4400,7 +5615,6 @@ export const mappingToolCategoryM: { [K in ProductCategoriesMediumTool | string]
 
 // { id: 97, name: "cutting_tools" },
 // ------------------------- 🌠97. 切削工具 小分類 cutting_tools -------------------------
-// 691から
 
 /**
  *【切削工具】Cutting Tools
@@ -4435,23 +5649,25 @@ export const categoryS_cutting_tools_NameOnly: ToolProductCategoriesS_cutting_to
   "chucks",
   "other_cutting_tools",
 ];
+// 686から693
+// 694から706
 export const categoryS_cutting_tools: {
   id: number;
   name: ToolProductCategoriesS_cutting_tools;
 }[] = [
-  { id: 691, name: "drills" },
-  { id: 692, name: "lathe_tools" },
-  { id: 693, name: "milling_cutters" },
-  { id: 694, name: "end_mills" },
-  { id: 695, name: "reamers" },
-  { id: 696, name: "taps" },
-  { id: 697, name: "hobs" },
-  { id: 698, name: "pinion_cutters" },
-  { id: 699, name: "dies" },
-  { id: 700, name: "broaches" },
-  { id: 701, name: "cutters" },
-  { id: 702, name: "chucks" },
-  { id: 703, name: "other_cutting_tools" },
+  { id: 694, name: "drills" },
+  { id: 695, name: "lathe_tools" },
+  { id: 696, name: "milling_cutters" },
+  { id: 697, name: "end_mills" },
+  { id: 698, name: "reamers" },
+  { id: 699, name: "taps" },
+  { id: 700, name: "hobs" },
+  { id: 701, name: "pinion_cutters" },
+  { id: 702, name: "dies" },
+  { id: 703, name: "broaches" },
+  { id: 704, name: "cutters" },
+  { id: 705, name: "chucks" },
+  { id: 706, name: "other_cutting_tools" },
 ];
 export const mappingCategoryS_cutting_tools: {
   [K in ToolProductCategoriesS_cutting_tools | string]: {
@@ -4477,7 +5693,6 @@ export const mappingCategoryS_cutting_tools: {
 
 // { id: 98, name: "abrasives" },
 // ------------------------- 🌠98. 研磨材 小分類 abrasives -------------------------
-// 704から
 
 /**
  *【研磨材】Abrasive Materials
@@ -4495,15 +5710,17 @@ export const categoryS_abrasives_NameOnly: ToolProductCategoriesS_abrasives[] = 
   "brushes",
   "other_abrasives",
 ];
+// 694から706
+// 707から711
 export const categoryS_abrasives: {
   id: number;
   name: ToolProductCategoriesS_abrasives;
 }[] = [
-  { id: 704, name: "grindstones" },
-  { id: 705, name: "diamond_cutters" },
-  { id: 706, name: "hand_files" },
-  { id: 707, name: "brushes" },
-  { id: 708, name: "other_abrasives" },
+  { id: 707, name: "grindstones" },
+  { id: 708, name: "diamond_cutters" },
+  { id: 709, name: "hand_files" },
+  { id: 710, name: "brushes" },
+  { id: 711, name: "other_abrasives" },
 ];
 export const mappingCategoryS_abrasives: {
   [K in ToolProductCategoriesS_abrasives | string]: {
@@ -4521,7 +5738,6 @@ export const mappingCategoryS_abrasives: {
 
 // { id: 99, name: "hand_tools" },
 // ------------------------- 🌠99. 作業工具 小分類 hand_tools -------------------------
-// 709から
 
 /**
  *【作業工具】Hand Tools
@@ -4551,21 +5767,23 @@ export const categoryS_hand_tools_NameOnly: ToolProductCategoriesS_hand_tools[] 
   "socket_wrenches",
   "other_hand_tools",
 ];
+// 707から711
+// 712から722
 export const categoryS_hand_tools: {
   id: number;
   name: ToolProductCategoriesS_hand_tools;
 }[] = [
-  { id: 709, name: "tool_sets" },
-  { id: 710, name: "screwdrivers" },
-  { id: 711, name: "pliers_cutters" },
-  { id: 712, name: "spanners_wrenches" },
-  { id: 713, name: "hammers" },
-  { id: 714, name: "pipe_cable_cutters" },
-  { id: 715, name: "vises_clamps" },
-  { id: 716, name: "cutters_scissors" },
-  { id: 717, name: "torque_wrenches" },
-  { id: 718, name: "socket_wrenches" },
-  { id: 719, name: "other_hand_tools" },
+  { id: 712, name: "tool_sets" },
+  { id: 713, name: "screwdrivers" },
+  { id: 714, name: "pliers_cutters" },
+  { id: 715, name: "spanners_wrenches" },
+  { id: 716, name: "hammers" },
+  { id: 717, name: "pipe_cable_cutters" },
+  { id: 718, name: "vises_clamps" },
+  { id: 719, name: "cutters_scissors" },
+  { id: 720, name: "torque_wrenches" },
+  { id: 721, name: "socket_wrenches" },
+  { id: 722, name: "other_hand_tools" },
 ];
 export const mappingCategoryS_hand_tools: {
   [K in ToolProductCategoriesS_hand_tools | string]: {
@@ -4589,7 +5807,6 @@ export const mappingCategoryS_hand_tools: {
 
 // { id: 100, name: "power_pneumatic_tools" },
 // ------------------------- 🌠100. 電動・空圧工具 小分類 power_pneumatic_tools -------------------------
-// 720から
 
 /**
  *【電動・空圧工具】Power and Pneumatic Tools
@@ -4601,12 +5818,14 @@ export const categoryS_power_pneumatic_tools_NameOnly: ToolProductCategoriesS_po
   "power_tools",
   "pneumatic_tools",
 ];
+// 712から722
+// 723から724
 export const categoryS_power_pneumatic_tools: {
   id: number;
   name: ToolProductCategoriesS_power_pneumatic_tools;
 }[] = [
-  { id: 720, name: "power_tools" },
-  { id: 721, name: "pneumatic_tools" },
+  { id: 723, name: "power_tools" },
+  { id: 724, name: "pneumatic_tools" },
 ];
 export const mappingCategoryS_power_pneumatic_tools: {
   [K in ToolProductCategoriesS_power_pneumatic_tools | string]: {
@@ -4621,7 +5840,6 @@ export const mappingCategoryS_power_pneumatic_tools: {
 
 // { id: 101, name: "consumables" },
 // ------------------------- 🌠101. 消耗品 小分類 consumables -------------------------
-// 722から
 
 /**
  *【消耗品】Consumables
@@ -4649,20 +5867,22 @@ export const categoryS_consumables_NameOnly: ToolProductCategoriesS_consumables[
   "coating_agents",
   "other_consumables",
 ];
+// 723から724
+// 725から734
 export const categoryS_consumables: {
   id: number;
   name: ToolProductCategoriesS_consumables;
 }[] = [
-  { id: 722, name: "adhesives" },
-  { id: 723, name: "repair_compounds" },
-  { id: 724, name: "adhesive_tapes" },
-  { id: 725, name: "cutting_oils" },
-  { id: 726, name: "lubricants" },
-  { id: 727, name: "rust_preventatives" },
-  { id: 728, name: "cleaning_agents" },
-  { id: 729, name: "paints" },
-  { id: 730, name: "coating_agents" },
-  { id: 731, name: "other_consumables" },
+  { id: 725, name: "adhesives" },
+  { id: 726, name: "repair_compounds" },
+  { id: 727, name: "adhesive_tapes" },
+  { id: 728, name: "cutting_oils" },
+  { id: 729, name: "lubricants" },
+  { id: 730, name: "rust_preventatives" },
+  { id: 731, name: "cleaning_agents" },
+  { id: 732, name: "paints" },
+  { id: 733, name: "coating_agents" },
+  { id: 734, name: "other_consumables" },
 ];
 export const mappingCategoryS_consumables: {
   [K in ToolProductCategoriesS_consumables | string]: {
@@ -4685,7 +5905,6 @@ export const mappingCategoryS_consumables: {
 
 // { id: 102, name: "cleaning_tools" },
 // ------------------------- 🌠102. 清掃用具 小分類 cleaning_tools -------------------------
-// 732から
 
 /**
  *【清掃用具】Cleaning Tools
@@ -4707,17 +5926,19 @@ export const categoryS_cleaning_tools_NameOnly: ToolProductCategoriesS_cleaning_
   "mops",
   "other_cleaning_tools",
 ];
+// 725から734
+// 735から741
 export const categoryS_cleaning_tools: {
   id: number;
   name: ToolProductCategoriesS_cleaning_tools;
 }[] = [
-  { id: 732, name: "detergents" },
-  { id: 733, name: "disinfectants" },
-  { id: 734, name: "industrial_vacuum_cleaners" },
-  { id: 735, name: "wipers" },
-  { id: 736, name: "rags" },
-  { id: 737, name: "mops" },
-  { id: 738, name: "other_cleaning_tools" },
+  { id: 735, name: "detergents" },
+  { id: 736, name: "disinfectants" },
+  { id: 737, name: "industrial_vacuum_cleaners" },
+  { id: 738, name: "wipers" },
+  { id: 739, name: "rags" },
+  { id: 740, name: "mops" },
+  { id: 741, name: "other_cleaning_tools" },
 ];
 export const mappingCategoryS_cleaning_tools: {
   [K in ToolProductCategoriesS_cleaning_tools | string]: {
@@ -4737,7 +5958,6 @@ export const mappingCategoryS_cleaning_tools: {
 
 // { id: 103, name: "safety_hygiene_supplies" },
 // ------------------------- 🌠103. 安全・衛生用品 小分類 safety_hygiene_supplies -------------------------
-// 739から
 
 /**
  *【安全・衛生用品】Safety and Hygiene Products
@@ -4759,17 +5979,19 @@ export const categoryS_safety_hygiene_supplies_NameOnly: ToolProductCategoriesS_
   "protective_creams",
   "other_safety_hygiene_products",
 ];
+// 735から741
+// 742から748
 export const categoryS_safety_hygiene_supplies: {
   id: number;
   name: ToolProductCategoriesS_safety_hygiene_supplies;
 }[] = [
-  { id: 739, name: "safety_shoes_sneakers" },
-  { id: 740, name: "work_gloves" },
-  { id: 741, name: "masks" },
-  { id: 742, name: "glasses_goggles" },
-  { id: 743, name: "hand_cleaners" },
-  { id: 744, name: "protective_creams" },
-  { id: 745, name: "other_safety_hygiene_products" },
+  { id: 742, name: "safety_shoes_sneakers" },
+  { id: 743, name: "work_gloves" },
+  { id: 744, name: "masks" },
+  { id: 745, name: "glasses_goggles" },
+  { id: 746, name: "hand_cleaners" },
+  { id: 747, name: "protective_creams" },
+  { id: 748, name: "other_safety_hygiene_products" },
 ];
 export const mappingCategoryS_safety_hygiene_supplies: {
   [K in ToolProductCategoriesS_safety_hygiene_supplies | string]: {
@@ -4789,7 +6011,6 @@ export const mappingCategoryS_safety_hygiene_supplies: {
 
 // { id: 104, name: "packaging_materials" },
 // ------------------------- 🌠104. 梱包材 小分類 packaging_materials -------------------------
-// 746から
 
 /**
  *【梱包材】Packaging Materials
@@ -4809,16 +6030,18 @@ export const categoryS_packaging_materials_NameOnly: ToolProductCategoriesS_pack
   "trays",
   "other_packaging_materials",
 ];
+// 742から748
+// 749から754
 export const categoryS_packaging_materials: {
   id: number;
   name: ToolProductCategoriesS_packaging_materials;
 }[] = [
-  { id: 746, name: "containers" },
-  { id: 747, name: "pallets" },
-  { id: 748, name: "cushioning_materials" },
-  { id: 749, name: "packaging_bags" },
-  { id: 750, name: "trays" },
-  { id: 751, name: "other_packaging_materials" },
+  { id: 749, name: "containers" },
+  { id: 750, name: "pallets" },
+  { id: 751, name: "cushioning_materials" },
+  { id: 752, name: "packaging_bags" },
+  { id: 753, name: "trays" },
+  { id: 754, name: "other_packaging_materials" },
 ];
 export const mappingCategoryS_packaging_materials: {
   [K in ToolProductCategoriesS_packaging_materials | string]: {
@@ -4837,7 +6060,6 @@ export const mappingCategoryS_packaging_materials: {
 
 // { id: 105, name: "supplies" },
 // ------------------------- 🌠105. 備品 小分類 supplies -------------------------
-// 752から
 
 /**
  *【備品】Supplies
@@ -4855,15 +6077,17 @@ export const categoryS_supplies_NameOnly: ToolProductCategoriesS_supplies[] = [
   "cabinets",
   "fixtures",
 ];
+// 749から754
+// 755から759
 export const categoryS_supplies: {
   id: number;
   name: ToolProductCategoriesS_supplies;
 }[] = [
-  { id: 752, name: "curtains" },
-  { id: 753, name: "mats" },
-  { id: 754, name: "lockers" },
-  { id: 755, name: "cabinets" },
-  { id: 756, name: "fixtures" },
+  { id: 755, name: "curtains" },
+  { id: 756, name: "mats" },
+  { id: 757, name: "lockers" },
+  { id: 758, name: "cabinets" },
+  { id: 759, name: "fixtures" },
 ];
 export const mappingCategoryS_supplies: {
   [K in ToolProductCategoriesS_supplies | string]: {
@@ -4881,7 +6105,6 @@ export const mappingCategoryS_supplies: {
 
 // { id: 106, name: "storage_facilities" },
 // ------------------------- 🌠106. 保管設備 小分類 storage_facilities -------------------------
-// 757から
 
 /**
  *【保管設備】Storage Facilities
@@ -4890,12 +6113,14 @@ export const mappingCategoryS_supplies: {
  */
 
 export const categoryS_storage_facilities_NameOnly: ToolProductCategoriesS_storage_facilities[] = ["tanks", "silos"];
+// 755から759
+// 760から761
 export const categoryS_storage_facilities: {
   id: number;
   name: ToolProductCategoriesS_storage_facilities;
 }[] = [
-  { id: 757, name: "tanks" },
-  { id: 758, name: "silos" },
+  { id: 760, name: "tanks" },
+  { id: 761, name: "silos" },
 ];
 export const mappingCategoryS_storage_facilities: {
   [K in ToolProductCategoriesS_storage_facilities | string]: {
@@ -4930,7 +6155,6 @@ export const mappingDesignCategoryM: { [K in ProductCategoriesMediumDesign | str
 
 // { id: 107, name: "cad" },
 // ------------------------- 🌠107. CAD 小分類 cad -------------------------
-// 759から
 
 /**
  *【CAD】Computer-Aided Design
@@ -4956,19 +6180,21 @@ export const categoryS_cad_NameOnly: DesignProductCategoriesS_cad[] = [
   "modelers",
   "other_cad_software",
 ];
+// 760から761
+// 762から770
 export const categoryS_cad: {
   id: number;
   name: DesignProductCategoriesS_cad;
 }[] = [
-  { id: 759, name: "two_dimensional_cad_construction" },
-  { id: 760, name: "two_dimensional_cad_mechanical" },
-  { id: 761, name: "two_dimensional_cad_electrical" },
-  { id: 762, name: "three_dimensional_cad" },
-  { id: 763, name: "other_cad" },
-  { id: 764, name: "data_conversion_software" },
-  { id: 765, name: "rendering_software" },
-  { id: 766, name: "modelers" },
-  { id: 767, name: "other_cad_software" },
+  { id: 762, name: "two_dimensional_cad_construction" },
+  { id: 763, name: "two_dimensional_cad_mechanical" },
+  { id: 764, name: "two_dimensional_cad_electrical" },
+  { id: 765, name: "three_dimensional_cad" },
+  { id: 766, name: "other_cad" },
+  { id: 767, name: "data_conversion_software" },
+  { id: 768, name: "rendering_software" },
+  { id: 769, name: "modelers" },
+  { id: 770, name: "other_cad_software" },
 ];
 export const mappingCategoryS_cad: {
   [K in DesignProductCategoriesS_cad | string]: {
@@ -4990,7 +6216,6 @@ export const mappingCategoryS_cad: {
 
 // { id: 108, name: "cam" },
 // ------------------------- 🌠108. CAM 小分類 cam -------------------------
-// 768から
 
 /**
  *【CAM】Computer-Aided Manufacturing
@@ -5004,13 +6229,15 @@ export const categoryS_cam_NameOnly: DesignProductCategoriesS_cam[] = [
   "three_dimensional_cam",
   "other_cam_software",
 ];
+// 762から770
+// 771から773
 export const categoryS_cam: {
   id: number;
   name: DesignProductCategoriesS_cam;
 }[] = [
-  { id: 768, name: "two_dimensional_cam" },
-  { id: 769, name: "three_dimensional_cam" },
-  { id: 770, name: "other_cam_software" },
+  { id: 771, name: "two_dimensional_cam" },
+  { id: 772, name: "three_dimensional_cam" },
+  { id: 773, name: "other_cam_software" },
 ];
 export const mappingCategoryS_cam: {
   [K in DesignProductCategoriesS_cam | string]: {
@@ -5026,7 +6253,6 @@ export const mappingCategoryS_cam: {
 
 // { id: 109, name: "cae" },
 // ------------------------- 🌠109. CAE 小分類 cae -------------------------
-// 771から
 
 /**
  *【CAE】Computer-Aided Engineering
@@ -5054,20 +6280,22 @@ export const categoryS_cae_NameOnly: DesignProductCategoriesS_cae[] = [
   "contract_analysis",
   "analysis_services",
 ];
+// 771から773
+// 774から783
 export const categoryS_cae: {
   id: number;
   name: DesignProductCategoriesS_cae;
 }[] = [
-  { id: 771, name: "simulators" },
-  { id: 772, name: "structural_analysis" },
-  { id: 773, name: "stress_analysis" },
-  { id: 774, name: "thermo_fluid_analysis" },
-  { id: 775, name: "magnetic_electromagnetic_analysis" },
-  { id: 776, name: "acoustic_analysis" },
-  { id: 777, name: "mechanical_analysis" },
-  { id: 778, name: "other_analysis" },
-  { id: 779, name: "contract_analysis" },
-  { id: 780, name: "analysis_services" },
+  { id: 774, name: "simulators" },
+  { id: 775, name: "structural_analysis" },
+  { id: 776, name: "stress_analysis" },
+  { id: 777, name: "thermo_fluid_analysis" },
+  { id: 778, name: "magnetic_electromagnetic_analysis" },
+  { id: 779, name: "acoustic_analysis" },
+  { id: 780, name: "mechanical_analysis" },
+  { id: 781, name: "other_analysis" },
+  { id: 782, name: "contract_analysis" },
+  { id: 783, name: "analysis_services" },
 ];
 export const mappingCategoryS_cae: {
   [K in DesignProductCategoriesS_cae | string]: {
@@ -5090,7 +6318,6 @@ export const mappingCategoryS_cae: {
 
 // { id: 110, name: "prototype" },
 // ------------------------- 🌠110. 試作 小分類 prototype -------------------------
-// 781から
 
 /**
  *【試作】Prototyping
@@ -5102,12 +6329,14 @@ export const categoryS_prototype_NameOnly: DesignProductCategoriesS_prototype[] 
   "prototyping_services",
   "three_d_printers",
 ];
+// 774から783
+// 784から785
 export const categoryS_prototype: {
   id: number;
   name: DesignProductCategoriesS_prototype;
 }[] = [
-  { id: 781, name: "prototyping_services" },
-  { id: 782, name: "three_d_printers" },
+  { id: 784, name: "prototyping_services" },
+  { id: 785, name: "three_d_printers" },
 ];
 export const mappingCategoryS_prototype: {
   [K in DesignProductCategoriesS_prototype | string]: {
@@ -5122,32 +6351,33 @@ export const mappingCategoryS_prototype: {
 
 // { id: 111, name: "contracted_services" },
 // ------------------------- 🌠111. 受託サービス 小分類 contracted_services -------------------------
-// 783から
 
 /**
  *【受託サービス】Contracted Services
-  試作サービス → prototyping_services✅contract_prototype_services
-  3Dプリンタ → three_d_printer_services
+  機械・設備据付・解体・移設 → equipment_installation_dismantling_relocation
+  校正・修理 → calibration_repair_services
  */
 
 export const categoryS_contracted_services_design_NameOnly: DesignProductCategoriesS_contracted_services[] = [
-  "contract_prototype_services",
-  "three_d_printer_services",
+  "equipment_installation_dismantling_relocation",
+  "calibration_repair_services",
 ];
+// 784から785
+// 786から787
 export const categoryS_contracted_services_design: {
   id: number;
   name: DesignProductCategoriesS_contracted_services;
 }[] = [
-  { id: 783, name: "contract_prototype_services" },
-  { id: 784, name: "three_d_printer_services" },
+  { id: 786, name: "equipment_installation_dismantling_relocation" },
+  { id: 787, name: "calibration_repair_services" },
 ];
 export const mappingCategoryS_contracted_services_design: {
   [K in DesignProductCategoriesS_contracted_services | string]: {
     [key: string]: string;
   };
 } = {
-  contract_prototype_services: { ja: `試作サービス`, en: `` },
-  three_d_printer_services: { ja: `3Dプリンタ`, en: `` },
+  equipment_installation_dismantling_relocation: { ja: `機械・設備据付・解体・移設`, en: `` },
+  calibration_repair_services: { ja: `校正・修理`, en: `` },
 };
 
 // -------------------------------------------------------------------------------------
@@ -5182,7 +6412,6 @@ export const mappingITCategoryM: { [K in ProductCategoriesMediumIT | string]: { 
 
 // { id: 112, name: "industrial_computers" },
 // ------------------------- 🌠112. 産業用パソコン 小分類 industrial_computers -------------------------
-// 785から
 
 /**
  *【産業用パソコン】Industrial PCs
@@ -5204,17 +6433,19 @@ export const categoryS_industrial_computers_NameOnly: ITProductCategoriesS_indus
   "keyboards",
   "ssds",
 ];
+// 786から787
+// 788から794
 export const categoryS_industrial_computers: {
   id: number;
   name: ITProductCategoriesS_industrial_computers;
 }[] = [
-  { id: 785, name: "industrial_pcs" },
-  { id: 786, name: "expansion_boards" },
-  { id: 787, name: "memory" },
-  { id: 788, name: "storage" },
-  { id: 789, name: "racks_cases" },
-  { id: 790, name: "keyboards" },
-  { id: 791, name: "ssds" },
+  { id: 788, name: "industrial_pcs" },
+  { id: 789, name: "expansion_boards" },
+  { id: 790, name: "memory" },
+  { id: 791, name: "storage" },
+  { id: 792, name: "racks_cases" },
+  { id: 793, name: "keyboards" },
+  { id: 794, name: "ssds" },
 ];
 export const mappingCategoryS_industrial_computers: {
   [K in ITProductCategoriesS_industrial_computers | string]: {
@@ -5234,7 +6465,6 @@ export const mappingCategoryS_industrial_computers: {
 
 // { id: 113, name: "embedded_systems" },
 // ------------------------- 🌠113. 組込みシステム 小分類 embedded_systems -------------------------
-// 792から
 
 /**
  *【組込みシステム】Embedded Systems
@@ -5258,18 +6488,20 @@ export const categoryS_embedded_systems_NameOnly: ITProductCategoriesS_embedded_
   "software_middle_driver_security",
   "other_embedded_systems",
 ];
+// 788から794
+// 795から802
 export const categoryS_embedded_systems: {
   id: number;
   name: ITProductCategoriesS_embedded_systems;
 }[] = [
-  { id: 792, name: "embedded_boards_computers" },
-  { id: 793, name: "embedded_os" },
-  { id: 794, name: "development_support_tools" },
-  { id: 795, name: "embedded_apps_for_mobile_pda" },
-  { id: 796, name: "communication_related" },
-  { id: 797, name: "embedded_system_design_services" },
-  { id: 798, name: "software_middle_driver_security" },
-  { id: 799, name: "other_embedded_systems" },
+  { id: 795, name: "embedded_boards_computers" },
+  { id: 796, name: "embedded_os" },
+  { id: 797, name: "development_support_tools" },
+  { id: 798, name: "embedded_apps_for_mobile_pda" },
+  { id: 799, name: "communication_related" },
+  { id: 800, name: "embedded_system_design_services" },
+  { id: 801, name: "software_middle_driver_security" },
+  { id: 802, name: "other_embedded_systems" },
 ];
 export const mappingCategoryS_embedded_systems: {
   [K in ITProductCategoriesS_embedded_systems | string]: {
@@ -5278,7 +6510,7 @@ export const mappingCategoryS_embedded_systems: {
 } = {
   embedded_boards_computers: { ja: `組込みボード・コンピュータ`, en: `` },
   embedded_os: { ja: `組込みOS`, en: `` },
-  development_support_tools: { ja: `開発支援ツール`, en: `` },
+  development_support_tools: { ja: `開発支援ツール(ICE・エミュレータ・デバッガ等)`, en: `` },
   embedded_apps_for_mobile_pda: { ja: `携帯電話・PDA用組込みアプリ`, en: `` },
   communication_related: { ja: `通信関連`, en: `` },
   embedded_system_design_services: { ja: `組込みシステム設計受託サービス`, en: `` },
@@ -5290,7 +6522,6 @@ export const mappingCategoryS_embedded_systems: {
 
 // { id: 114, name: "core_systems" },
 // ------------------------- 🌠114. 基幹システム 小分類 core_systems -------------------------
-// 800から
 
 /**
  *【基幹システム】Core Systems
@@ -5316,19 +6547,21 @@ export const categoryS_core_systems_NameOnly: ITProductCategoriesS_core_systems[
   "eai_etl_web_application_servers",
   "other_core_systems",
 ];
+// 795から802
+// 803から811
 export const categoryS_core_systems: {
   id: number;
   name: ITProductCategoriesS_core_systems;
 }[] = [
-  { id: 800, name: "erp_packages" },
-  { id: 801, name: "accounting_finance" },
-  { id: 802, name: "hr_labor" },
-  { id: 803, name: "sales_management" },
-  { id: 804, name: "internal_control_operations_management" },
-  { id: 805, name: "electronic_document_management" },
-  { id: 806, name: "databases" },
-  { id: 807, name: "eai_etl_web_application_servers" },
-  { id: 808, name: "other_core_systems" },
+  { id: 803, name: "erp_packages" },
+  { id: 804, name: "accounting_finance" },
+  { id: 805, name: "hr_labor" },
+  { id: 806, name: "sales_management" },
+  { id: 807, name: "internal_control_operations_management" },
+  { id: 808, name: "electronic_document_management" },
+  { id: 809, name: "databases" },
+  { id: 810, name: "eai_etl_web_application_servers" },
+  { id: 811, name: "other_core_systems" },
 ];
 export const mappingCategoryS_core_systems: {
   [K in ITProductCategoriesS_core_systems | string]: {
@@ -5350,7 +6583,6 @@ export const mappingCategoryS_core_systems: {
 
 // { id: 115, name: "production_management" },
 // ------------------------- 🌠115. SCM・生産管理 小分類 production_management -------------------------
-// 809から
 
 /**
  *【SCM・生産管理】Supply Chain & Production Management
@@ -5372,17 +6604,19 @@ export const categoryS_production_management_NameOnly: ITProductCategoriesS_prod
   "product_data_management",
   "other_production_management_systems",
 ];
+// 803から811
+// 812から818
 export const categoryS_production_management: {
   id: number;
   name: ITProductCategoriesS_production_management;
 }[] = [
-  { id: 809, name: "production_management_systems" },
-  { id: 810, name: "production_schedulers" },
-  { id: 811, name: "process_management_systems" },
-  { id: 812, name: "procurement_management_systems" },
-  { id: 813, name: "cost_management_systems" },
-  { id: 814, name: "product_data_management" },
-  { id: 815, name: "other_production_management_systems" },
+  { id: 812, name: "production_management_systems" },
+  { id: 813, name: "production_schedulers" },
+  { id: 814, name: "process_management_systems" },
+  { id: 815, name: "procurement_management_systems" },
+  { id: 816, name: "cost_management_systems" },
+  { id: 817, name: "product_data_management" },
+  { id: 818, name: "other_production_management_systems" },
 ];
 export const mappingCategoryS_production_management: {
   [K in ITProductCategoriesS_production_management | string]: {
@@ -5402,7 +6636,6 @@ export const mappingCategoryS_production_management: {
 
 // { id: 116, name: "information_systems" },
 // ------------------------- 🌠116. 情報システム 小分類 information_systems -------------------------
-// 816から
 
 /**
  *【情報システム】Information Systems
@@ -5432,21 +6665,23 @@ export const categoryS_information_systems_NameOnly: ITProductCategoriesS_inform
   "data_search_software",
   "other_information_systems",
 ];
+// 812から818
+// 819から829
 export const categoryS_information_systems: {
   id: number;
   name: ITProductCategoriesS_information_systems;
 }[] = [
-  { id: 816, name: "enterprise_portals_groupware" },
-  { id: 817, name: "email_fax_sending" },
-  { id: 818, name: "voice_recognition_software" },
-  { id: 819, name: "sfa_sales_support_systems" },
-  { id: 820, name: "cti_support_centers" },
-  { id: 821, name: "business_intelligence_data_analysis" },
-  { id: 822, name: "document_data_management" },
-  { id: 823, name: "project_management" },
-  { id: 824, name: "workflow_systems" },
-  { id: 825, name: "data_search_software" },
-  { id: 826, name: "other_information_systems" },
+  { id: 819, name: "enterprise_portals_groupware" },
+  { id: 820, name: "email_fax_sending" },
+  { id: 821, name: "voice_recognition_software" },
+  { id: 822, name: "sfa_sales_support_systems" },
+  { id: 823, name: "cti_support_centers" },
+  { id: 824, name: "business_intelligence_data_analysis" },
+  { id: 825, name: "document_data_management" },
+  { id: 826, name: "project_management" },
+  { id: 827, name: "workflow_systems" },
+  { id: 828, name: "data_search_software" },
+  { id: 829, name: "other_information_systems" },
 ];
 export const mappingCategoryS_information_systems: {
   [K in ITProductCategoriesS_information_systems | string]: {
@@ -5470,7 +6705,6 @@ export const mappingCategoryS_information_systems: {
 
 // { id: 117, name: "network" },
 // ------------------------- 🌠117. ネットワーク・通信 小分類 network -------------------------
-// 827から
 
 /**
  *【ネットワーク・通信】Network & Communication
@@ -5483,30 +6717,32 @@ export const mappingCategoryS_information_systems: {
  */
 
 export const categoryS_network_NameOnly: ITProductCategoriesS_network[] = [
-  "wireless_lan_communication",
+  "wireless_lan",
   "routers_switches_hubs",
   "vpn_wide_area_ethernet",
   "pbx_ip_phones",
   "lan_construction_piping",
   "other_network_tools",
 ];
+// 819から829
+// 830から835
 export const categoryS_network: {
   id: number;
   name: ITProductCategoriesS_network;
 }[] = [
-  { id: 827, name: "wireless_lan_communication" },
-  { id: 828, name: "routers_switches_hubs" },
-  { id: 829, name: "vpn_wide_area_ethernet" },
-  { id: 830, name: "pbx_ip_phones" },
-  { id: 831, name: "lan_construction_piping" },
-  { id: 832, name: "other_network_tools" },
+  { id: 830, name: "wireless_lan" },
+  { id: 831, name: "routers_switches_hubs" },
+  { id: 832, name: "vpn_wide_area_ethernet" },
+  { id: 833, name: "pbx_ip_phones" },
+  { id: 834, name: "lan_construction_piping" },
+  { id: 835, name: "other_network_tools" },
 ];
 export const mappingCategoryS_network: {
   [K in ITProductCategoriesS_network | string]: {
     [key: string]: string;
   };
 } = {
-  wireless_lan_communication: { ja: `無線LAN・通信`, en: `` },
+  wireless_lan: { ja: `無線LAN`, en: `` },
   routers_switches_hubs: { ja: `ルータ・スイッチ・ハブ`, en: `` },
   vpn_wide_area_ethernet: { ja: `VPN・広域イーサネット`, en: `` },
   pbx_ip_phones: { ja: `PBX・IP電話`, en: `` },
@@ -5518,7 +6754,6 @@ export const mappingCategoryS_network: {
 
 // { id: 118, name: "operating_systems" },
 // ------------------------- 🌠118. 運用システム 小分類 operating_systems -------------------------
-// 833から
 
 /**
  *【運用システム】Operations Systems
@@ -5532,13 +6767,15 @@ export const categoryS_operating_systems_NameOnly: ITProductCategoriesS_operatin
   "server_monitoring_network_management_tools",
   "other_operations_management_software",
 ];
+// 830から835
+// 836から838
 export const categoryS_operating_systems: {
   id: number;
   name: ITProductCategoriesS_operating_systems;
 }[] = [
-  { id: 833, name: "integrated_operations_management" },
-  { id: 834, name: "server_monitoring_network_management_tools" },
-  { id: 835, name: "other_operations_management_software" },
+  { id: 836, name: "integrated_operations_management" },
+  { id: 837, name: "server_monitoring_network_management_tools" },
+  { id: 838, name: "other_operations_management_software" },
 ];
 export const mappingCategoryS_operating_systems: {
   [K in ITProductCategoriesS_operating_systems | string]: {
@@ -5554,7 +6791,6 @@ export const mappingCategoryS_operating_systems: {
 
 // { id: 119, name: "servers" },
 // ------------------------- 🌠119. サーバ 小分類 servers -------------------------
-// 836から
 
 /**
  *【サーバ】Servers
@@ -5574,16 +6810,18 @@ export const categoryS_servers_NameOnly: ITProductCategoriesS_servers[] = [
   "storage_backup",
   "ups_uninterruptible_power_supplies",
 ];
+// 836から838
+// 839から844
 export const categoryS_servers: {
   id: number;
   name: ITProductCategoriesS_servers;
 }[] = [
-  { id: 836, name: "servers" },
-  { id: 837, name: "server_racks" },
-  { id: 838, name: "server_coolers" },
-  { id: 839, name: "other_server_related" },
-  { id: 840, name: "storage_backup" },
-  { id: 841, name: "ups_uninterruptible_power_supplies" },
+  { id: 839, name: "servers" },
+  { id: 840, name: "server_racks" },
+  { id: 841, name: "server_coolers" },
+  { id: 842, name: "other_server_related" },
+  { id: 843, name: "storage_backup" },
+  { id: 844, name: "ups_uninterruptible_power_supplies" },
 ];
 export const mappingCategoryS_servers: {
   [K in ITProductCategoriesS_servers | string]: {
@@ -5602,7 +6840,6 @@ export const mappingCategoryS_servers: {
 
 // { id: 120, name: "security" },
 // ------------------------- 🌠120. セキュリティ 小分類 security -------------------------
-// 842から
 
 /**
  *【セキュリティ】Security
@@ -5626,18 +6863,20 @@ export const categoryS_security_NameOnly: ITProductCategoriesS_security[] = [
   "personal_authentication",
   "data_erasure",
 ];
+// 839から844
+// 845から852
 export const categoryS_security: {
   id: number;
   name: ITProductCategoriesS_security;
 }[] = [
-  { id: 842, name: "filtering" },
-  { id: 843, name: "antivirus_software" },
-  { id: 844, name: "firewalls_intrusion_prevention" },
-  { id: 845, name: "encryption_authentication" },
-  { id: 846, name: "other_security" },
-  { id: 847, name: "entry_exit_systems" },
-  { id: 848, name: "personal_authentication" },
-  { id: 849, name: "data_erasure" },
+  { id: 845, name: "filtering" },
+  { id: 846, name: "antivirus_software" },
+  { id: 847, name: "firewalls_intrusion_prevention" },
+  { id: 848, name: "encryption_authentication" },
+  { id: 849, name: "other_security" },
+  { id: 850, name: "entry_exit_systems" },
+  { id: 851, name: "personal_authentication" },
+  { id: 852, name: "data_erasure" },
 ];
 export const mappingCategoryS_security: {
   [K in ITProductCategoriesS_security | string]: {
@@ -5649,7 +6888,7 @@ export const mappingCategoryS_security: {
   firewalls_intrusion_prevention: { ja: `ファイアウォール・不正侵入防止`, en: `` },
   encryption_authentication: { ja: `暗号化・認証`, en: `` },
   other_security: { ja: `その他セキュリティ`, en: `` },
-  entry_exit_systems: { ja: `入退場システム`, en: `` },
+  entry_exit_systems: { ja: `入退室管理システム`, en: `` },
   personal_authentication: { ja: `個人認証`, en: `` },
   data_erasure: { ja: `データ消去`, en: `` },
 };
@@ -5674,7 +6913,6 @@ export const mappingOfficeCategoryM: { [K in ProductCategoriesMediumOffice | str
 
 // { id: 121, name: "office_automation_equipment" },
 // ------------------------- 🌠121. PC・OA機器 小分類 office_automation_equipment -------------------------
-// 850から
 
 /**
  *【PC・OA機器】PC & Office Automation Equipment
@@ -5690,7 +6928,7 @@ export const mappingOfficeCategoryM: { [K in ProductCategoriesMediumOffice | str
   その他PC・OA機器 → other_pc_oa_equipment
  */
 
-export const categoryS_office_automation_equipment_NameOnly: ITProductCategoriesS_office_automation_equipment[] = [
+export const categoryS_office_automation_equipment_NameOnly: OfficeProductCategoriesS_office_automation_equipment[] = [
   "desktop_pcs",
   "laptop_pcs",
   "mobile_phones_phs_data_cards",
@@ -5702,23 +6940,25 @@ export const categoryS_office_automation_equipment_NameOnly: ITProductCategories
   "web_teleconferencing",
   "other_pc_oa_equipment",
 ];
+// 845から852
+// 853から862
 export const categoryS_office_automation_equipment: {
   id: number;
-  name: ITProductCategoriesS_office_automation_equipment;
+  name: OfficeProductCategoriesS_office_automation_equipment;
 }[] = [
-  { id: 850, name: "desktop_pcs" },
-  { id: 851, name: "laptop_pcs" },
-  { id: 852, name: "mobile_phones_phs_data_cards" },
-  { id: 853, name: "pda_handheld_terminals" },
-  { id: 854, name: "projectors" },
-  { id: 855, name: "printers" },
-  { id: 856, name: "scanners" },
-  { id: 857, name: "multi_function_devices" },
-  { id: 858, name: "web_teleconferencing" },
-  { id: 859, name: "other_pc_oa_equipment" },
+  { id: 853, name: "desktop_pcs" },
+  { id: 854, name: "laptop_pcs" },
+  { id: 855, name: "mobile_phones_phs_data_cards" },
+  { id: 856, name: "pda_handheld_terminals" },
+  { id: 857, name: "projectors" },
+  { id: 858, name: "printers" },
+  { id: 859, name: "scanners" },
+  { id: 860, name: "multi_function_devices" },
+  { id: 861, name: "web_teleconferencing" },
+  { id: 862, name: "other_pc_oa_equipment" },
 ];
 export const mappingCategoryS_office_automation_equipment: {
-  [K in ITProductCategoriesS_office_automation_equipment | string]: {
+  [K in OfficeProductCategoriesS_office_automation_equipment | string]: {
     [key: string]: string;
   };
 } = {
@@ -5734,20 +6974,766 @@ export const mappingCategoryS_office_automation_equipment: {
   other_pc_oa_equipment: { ja: `その他PC・OA機器`, en: `` },
 };
 
+// -------------------------------------------------------------------------------------
+
+// { id: 122, name: "consumables" },
+// ------------------------- 🌠122. 消耗品 小分類 consumables -------------------------
+
 /**
- *【PC・OA機器】PC & Office Automation Equipment
-  デスクトップPC → desktop_pcs
-  ノートPC → laptop_pcs✅notebook_pcs
-  携帯電話・PHS・データ通信カード → mobile_phones_phs_data_cards✅mobile_phones_phs_data_communication_cards
-  PDA・ハンディターミナル → pda_handheld_terminals
-  プロジェクタ → projectors
-  プリンタ → printers
-  スキャナ → scanners
-  複合機 → multifunction_devices✅multi_function_devices
-  WEB・テレビ会議 → web_tv_conferencing✅web_teleconferencing
-  その他PC・OA機器 → other_pc_oa_equipment
+ *【消耗品】Consumables
+  インク・トナー → ink_toner
+  OA用紙 → office_automation_paper✅oa_paper
  */
+
+export const categoryS_consumables_IT_NameOnly: OfficeProductCategoriesS_consumables[] = [
+  "ink_toner",
+  "office_automation_paper",
+];
+// 853から862
+// 863から864
+export const categoryS_consumables_IT: {
+  id: number;
+  name: OfficeProductCategoriesS_consumables;
+}[] = [
+  { id: 863, name: "ink_toner" },
+  { id: 864, name: "office_automation_paper" },
+];
+export const mappingCategoryS_consumables_IT: {
+  [K in OfficeProductCategoriesS_consumables | string]: {
+    [key: string]: string;
+  };
+} = {
+  ink_toner: { ja: `インク・トナー`, en: `` },
+  office_automation_paper: { ja: `OA用紙`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 123, name: "supplies" },
+// ------------------------- 🌠123. 備品 小分類 supplies -------------------------
+
+/**
+ *【備品】Office Supplies
+  事務用品・文房具 → office_supplies_stationery
+  OAサプライ → office_automation_supplies✅oa_supplies
+  作業工具 → work_tools
+  梱包資材 → packing_materials
+  オフィス家具 → office_furniture
+  収納 → storage_solutions
+  その他オフィス備品 → other_office_supplies
+  自動販売機 → vending_machines
+ */
+
+export const categoryS_supplies_IT_NameOnly: OfficeProductCategoriesS_office_supplies[] = [
+  "office_supplies_stationery",
+  "office_automation_supplies",
+  "work_tools",
+  "packing_materials",
+  "office_furniture",
+  "storage_solutions",
+  "other_office_supplies",
+  "vending_machines",
+];
+// 863から864
+// 865から872
+export const categoryS_supplies_IT: {
+  id: number;
+  name: OfficeProductCategoriesS_office_supplies;
+}[] = [
+  { id: 865, name: "office_supplies_stationery" },
+  { id: 866, name: "office_automation_supplies" },
+  { id: 867, name: "work_tools" },
+  { id: 868, name: "packing_materials" },
+  { id: 869, name: "office_furniture" },
+  { id: 870, name: "storage_solutions" },
+  { id: 871, name: "other_office_supplies" },
+  { id: 872, name: "vending_machines" },
+];
+export const mappingCategoryS_supplies_IT: {
+  [K in OfficeProductCategoriesS_office_supplies | string]: {
+    [key: string]: string;
+  };
+} = {
+  office_supplies_stationery: { ja: `事務用品・文房具`, en: `` },
+  office_automation_supplies: { ja: `OAサプライ`, en: `` },
+  work_tools: { ja: `作業工具`, en: `` },
+  packing_materials: { ja: `梱包資材`, en: `` },
+  office_furniture: { ja: `オフィス家具`, en: `` },
+  storage_solutions: { ja: `収納`, en: `` },
+  other_office_supplies: { ja: `その他オフィス備品`, en: `` },
+  vending_machines: { ja: `自動販売機`, en: `` },
+};
 
 // -------------------------------------------------------------------------------------
 
 // =================== ✅「オフィス」 大分類 office の小分類関連✅ ここまで ===================
+
+// =================== ✅「業務支援サービス」 大分類 business_support_services の小分類関連✅ ===================
+/**
+ * export const businessSupportCategoryM: { id: number; name: ProductCategoriesMediumBusinessSupport }[] = [
+  { id: 124, name: "consultants" },
+  { id: 125, name: "rental_lease" },
+  { id: 126, name: "human_resources_services" },
+  { id: 127, name: "services" },
+];
+export const mappingBusinessSupportCategoryM: {
+  [K in ProductCategoriesMediumBusinessSupport | string]: { [key: string]: string };
+} = {
+  consultants: { ja: "コンサルタント", en: `` }, // 1
+  rental_lease: { ja: "レンタル・リース", en: `` }, // 2
+  human_resources_services: { ja: "人材サービス", en: `` }, // 3
+  services: { ja: "サービス", en: `` }, // 4
+};
+ */
+
+// { id: 124, name: "consultants" },
+// ------------------------- 🌠124. コンサルタント 小分類 consultants -------------------------
+
+/**
+ *【コンサルタント】Consultants
+  ISO審査登録機関 → iso_certification_bodies
+  ISO関連コンサルタント → iso_related_consultants✅iso_consultants
+  経営コンサルタント・中小企業診断士 → management_consultants_sme_diagnosticians
+  特許 → patent_services✅patents
+  法務 → legal_services
+  会社登記 → company_registration_services✅company_registration
+  監査・経理 → auditing_accounting_services✅audit_accounting
+ */
+
+export const categoryS_consultants_NameOnly: BusinessSupportProductCategoriesS_consultants[] = [
+  "iso_certification_bodies",
+  "iso_consultants",
+  "management_consultants_sme_diagnosticians",
+  "patent_services",
+  "legal_services",
+  "company_registration_services",
+  "auditing_accounting_services",
+];
+// 865から872
+// 873から879
+export const categoryS_consultants: {
+  id: number;
+  name: BusinessSupportProductCategoriesS_consultants;
+}[] = [
+  { id: 873, name: "iso_certification_bodies" },
+  { id: 874, name: "iso_consultants" },
+  { id: 875, name: "management_consultants_sme_diagnosticians" },
+  { id: 876, name: "patent_services" },
+  { id: 877, name: "legal_services" },
+  { id: 878, name: "company_registration_services" },
+  { id: 879, name: "auditing_accounting_services" },
+];
+export const mappingCategoryS_consultants: {
+  [K in BusinessSupportProductCategoriesS_consultants | string]: {
+    [key: string]: string;
+  };
+} = {
+  iso_certification_bodies: { ja: `ISO審査登録機関`, en: `` },
+  iso_consultants: { ja: `ISO関連コンサルタント`, en: `` },
+  management_consultants_sme_diagnosticians: { ja: `経営コンサルタント・中小企業診断士`, en: `` },
+  patent_services: { ja: `特許`, en: `` },
+  legal_services: { ja: `法務`, en: `` },
+  company_registration_services: { ja: `会社登記`, en: `` },
+  auditing_accounting_services: { ja: `監査・経理`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 125, name: "rental_lease" },
+// ------------------------- 🌠125. レンタル・リース 小分類 rental_lease -------------------------
+
+/**
+ *【レンタル・リース】Rental & Leasing
+  レンタル・リース → rental_leasing✅rental_lease
+ */
+
+export const categoryS_rental_lease_NameOnly: BusinessSupportProductCategoriesS_rental_lease[] = ["rental_leasing"];
+// 873から879
+// 880から880
+export const categoryS_rental_lease: {
+  id: number;
+  name: BusinessSupportProductCategoriesS_rental_lease;
+}[] = [{ id: 880, name: "rental_leasing" }];
+export const mappingCategoryS_rental_lease: {
+  [K in BusinessSupportProductCategoriesS_rental_lease | string]: {
+    [key: string]: string;
+  };
+} = {
+  rental_leasing: { ja: `レンタル・リース`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 126, name: "human_resources_services" },
+// ------------------------- 🌠126. 人材サービス 小分類 human_resources_services -------------------------
+
+/**
+ *【人材サービス】Human Resource Services
+  人材派遣業 → temporary_staffing✅staffing_services
+  人材紹介業 → recruitment_services
+ */
+
+export const categoryS_human_resources_services_NameOnly: BusinessSupportProductCategoriesS_human_resources_services[] =
+  ["temporary_staffing", "recruitment_services"];
+// 880から880
+// 881から882
+export const categoryS_human_resources_services: {
+  id: number;
+  name: BusinessSupportProductCategoriesS_human_resources_services;
+}[] = [
+  { id: 881, name: "temporary_staffing" },
+  { id: 882, name: "recruitment_services" },
+];
+export const mappingCategoryS_human_resources_services: {
+  [K in BusinessSupportProductCategoriesS_human_resources_services | string]: {
+    [key: string]: string;
+  };
+} = {
+  temporary_staffing: { ja: `人材派遣業`, en: `` },
+  recruitment_services: { ja: `人材紹介業`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 127, name: "services" },
+// ------------------------- 🌠127. サービス 小分類 services -------------------------
+
+/**
+ *【サービス】Services
+  翻訳・通訳 → translation_interpretation
+  印刷・出版 → printing_publishing
+  カタログ・マニュアル作成 → catalog_manual_production
+  展示会企画・施工 → exhibition_planning_construction
+  特許・著作権関連サービス → patent_copyright_services
+  中古買取 → used_goods_acquisition✅secondhand_purchase
+  その他受託サービス → other_contracted_services
+  公共試験・研究所 → public_examinations_research_institutes✅public_testing_laboratories
+  その他各種サービス → other_various_services
+ */
+
+export const categoryS_services_NameOnly: BusinessSupportProductCategoriesS_services[] = [
+  "translation_interpretation",
+  "printing_publishing",
+  "catalog_manual_production",
+  "exhibition_planning_construction",
+  "patent_copyright_services",
+  "secondhand_purchase",
+  "other_contracted_services",
+  "public_testing_laboratories",
+  "other_various_services",
+];
+// 881から882
+// 883から891
+export const categoryS_services: {
+  id: number;
+  name: BusinessSupportProductCategoriesS_services;
+}[] = [
+  { id: 883, name: "translation_interpretation" },
+  { id: 884, name: "printing_publishing" },
+  { id: 885, name: "catalog_manual_production" },
+  { id: 886, name: "exhibition_planning_construction" },
+  { id: 887, name: "patent_copyright_services" },
+  { id: 888, name: "secondhand_purchase" },
+  { id: 889, name: "other_contracted_services" },
+  { id: 890, name: "public_testing_laboratories" },
+  { id: 891, name: "other_various_services" },
+];
+export const mappingCategoryS_services: {
+  [K in BusinessSupportProductCategoriesS_services | string]: {
+    [key: string]: string;
+  };
+} = {
+  translation_interpretation: { ja: `翻訳・通訳`, en: `` },
+  printing_publishing: { ja: `印刷・出版`, en: `` },
+  catalog_manual_production: { ja: `カタログ・マニュアル作成`, en: `` },
+  exhibition_planning_construction: { ja: `展示会企画・施工`, en: `` },
+  patent_copyright_services: { ja: `特許・著作権関連サービス`, en: `` },
+  secondhand_purchase: { ja: `中古買取`, en: `` },
+  other_contracted_services: { ja: `その他受託サービス`, en: `` },
+  public_testing_laboratories: { ja: `公共試験・研究所`, en: `` },
+  other_various_services: { ja: `その他各種サービス`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// =================== ✅「業務支援サービス」 大分類 business_support_services の小分類関連✅ ここまで ===================
+
+// =================== ✅「セミナー・スキルアップ」 大分類 seminars_skill_up の小分類関連✅ ===================
+/**
+ * export const skillUpCategoryM: { id: number; name: ProductCategoriesMediumSkillUp }[] = [
+  { id: 128, name: "for_engineer" },
+  { id: 129, name: "for_management" },
+];
+export const mappingSkillUpCategoryM: { [K in ProductCategoriesMediumSkillUp | string]: { [key: string]: string } } = {
+  for_engineer: { ja: "技術者向け", en: `` }, // 1
+  for_management: { ja: "管理・経営向け", en: `` }, // 2
+};
+ */
+
+// { id: 128, name: "for_engineer" },
+// ------------------------- 🌠128. 技術者向け 小分類 for_engineer -------------------------
+
+/**
+ *【技術者向け】For Engineers
+  技術書・参考書 → technical_reference_books
+  通信教育・Eラーニング → online_classes_e_learning
+  職業訓練・専門学校 → vocational_training_technical_schools
+  技術セミナー → technical_seminars
+ */
+
+export const categoryS_for_engineer_NameOnly: SkillUpProductCategoriesS_for_engineer[] = [
+  "technical_reference_books",
+  "online_classes_e_learning",
+  "vocational_training_technical_schools",
+  "technical_seminars",
+];
+// 883から891
+// 892から895
+export const categoryS_for_engineer: {
+  id: number;
+  name: SkillUpProductCategoriesS_for_engineer;
+}[] = [
+  { id: 892, name: "technical_reference_books" },
+  { id: 893, name: "online_classes_e_learning" },
+  { id: 894, name: "vocational_training_technical_schools" },
+  { id: 895, name: "technical_seminars" },
+];
+export const mappingCategoryS_for_engineer: {
+  [K in SkillUpProductCategoriesS_for_engineer | string]: {
+    [key: string]: string;
+  };
+} = {
+  technical_reference_books: { ja: `技術書・参考書`, en: `` },
+  online_classes_e_learning: { ja: `通信教育・Eラーニング`, en: `` },
+  vocational_training_technical_schools: { ja: `職業訓練・専門学校`, en: `` },
+  technical_seminars: { ja: `技術セミナー`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// { id: 129, name: "for_management" },
+// ------------------------- 🌠129. 管理・経営向け 小分類 for_management -------------------------
+
+/**
+ *【管理・経営向け】For Management
+  技術書・参考書 → management_reference_books✅technical_books_reference_books_management
+  通信教育・Eラーニング → management_e_learning✅distance_education_e_learning_management
+  職業訓練・専門学校 → management_training_schools✅vocational_training_specialized_schools_management
+  経営セミナー → management_seminars
+  マネジメントセミナー → management_training_seminars✅management_skills_seminars
+  営業スキルセミナー → sales_skill_seminars
+  管理スキルセミナー → administrative_skill_seminars
+  資格取得セミナー → certification_seminars
+  ビジネススキルセミナー → business_skill_seminars
+ */
+
+export const categoryS_for_management_NameOnly: SkillUpProductCategoriesS_for_management[] = [
+  "management_reference_books",
+  "management_e_learning",
+  "management_training_schools",
+  "management_seminars",
+  "management_training_seminars",
+  "sales_skill_seminars",
+  "administrative_skill_seminars",
+  "certification_seminars",
+  "business_skill_seminars",
+];
+// 892から895
+// 896から904
+export const categoryS_for_management: {
+  id: number;
+  name: SkillUpProductCategoriesS_for_management;
+}[] = [
+  { id: 896, name: "management_reference_books" },
+  { id: 897, name: "management_e_learning" },
+  { id: 898, name: "management_training_schools" },
+  { id: 899, name: "management_seminars" },
+  { id: 900, name: "management_training_seminars" },
+  { id: 901, name: "sales_skill_seminars" },
+  { id: 902, name: "administrative_skill_seminars" },
+  { id: 903, name: "certification_seminars" },
+  { id: 904, name: "business_skill_seminars" },
+];
+export const mappingCategoryS_for_management: {
+  [K in SkillUpProductCategoriesS_for_management | string]: {
+    [key: string]: string;
+  };
+} = {
+  management_reference_books: { ja: `技術書・参考書`, en: `` },
+  management_e_learning: { ja: `通信教育・Eラーニング`, en: `` },
+  management_training_schools: { ja: `職業訓練・専門学校`, en: `` },
+  management_seminars: { ja: `経営セミナー`, en: `` },
+  management_training_seminars: { ja: `マネジメントセミナー`, en: `` },
+  sales_skill_seminars: { ja: `営業スキルセミナー`, en: `` },
+  administrative_skill_seminars: { ja: `管理スキルセミナー`, en: `` },
+  certification_seminars: { ja: `資格取得セミナー`, en: `` },
+  business_skill_seminars: { ja: `ビジネススキルセミナー`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// =================== ✅「セミナー・スキルアップ」 大分類 seminars_skill_up の小分類関連✅ ここまで ===================
+
+// =================== ✅「その他」 大分類 others の小分類関連✅ ===================
+/**
+ * export const othersCategoryM: { id: number; name: "others" }[] = [{ id: 130, name: "others" }];
+ * 
+export const mappingOthersCategoryM: { [key: "others" | string]: { [key: string]: string } } = {
+  others: { ja: "その他", en: `` }, // 1
+};
+ */
+
+// { id: 130, name: "others" }
+// ------------------------- 🌠130. その他 小分類 others -------------------------
+
+/**
+ *【その他】Others
+  自治体サービス・企業立地 → municipal_services_corporate_location
+  その他 → other_miscellaneous
+ */
+
+export const categoryS_others_NameOnly: OthersProductCategoriesS_others[] = [
+  "municipal_services_corporate_location",
+  "other_miscellaneous",
+];
+// 896から904
+// 905から906
+export const categoryS_others: {
+  id: number;
+  name: OthersProductCategoriesS_others;
+}[] = [
+  { id: 905, name: "municipal_services_corporate_location" },
+  { id: 906, name: "other_miscellaneous" },
+];
+export const mappingCategoryS_others: {
+  [K in OthersProductCategoriesS_others | string]: {
+    [key: string]: string;
+  };
+} = {
+  municipal_services_corporate_location: { ja: `自治体サービス`, en: `` },
+  other_miscellaneous: { ja: `その他`, en: `` },
+};
+
+// -------------------------------------------------------------------------------------
+
+// =================== ✅「その他」 大分類 others の小分類関連✅ ここまで ===================
+
+// 🌠中分類に紐づくそれぞれの小分類オプションMap 大分類ごとに作成
+
+// 【大】電子部品・モジュール(electronic_components_modules) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_electronic_components_modules: {
+  [K in ProductCategoriesMediumModule]:
+    | ModuleProductCategoriesSElectronicComponents[]
+    | ModuleProductCategoriesSConnectors[]
+    | ModuleProductCategoriesSTerminalBlocks[]
+    | ModuleProductCategoriesSLed[]
+    | ModuleProductCategoriesSFpdTouchPanel[]
+    | ModuleProductCategoriesSSmallMotors[]
+    | ModuleProductCategoriesSPowerSources[]
+    | ModuleProductCategoriesSBatteries[]
+    | ModuleProductCategoriesSSemiconductorsIc[]
+    | ModuleProductCategoriesS_rfid_ic_tag[]
+    | ModuleProductCategoriesS_optical_components[]
+    | ModuleProductCategoriesS_cables[]
+    | ModuleProductCategoriesS_contracted_services[];
+} = {
+  electronic_components: categoryS_electronicComponents_NameOnly,
+  connectors: categoryS_connectors_NameOnly,
+  terminal_blocks: categoryS_terminalBlocks_NameOnly,
+  led: categoryS_led_NameOnly,
+  fpd_touch_panel: categoryS_fpdTouchPanel_NameOnly,
+  small_motors: categoryS_smallMotors_NameOnly,
+  power_supplies: categoryS_powerSources_NameOnly,
+  batteries: categoryS_batteries_NameOnly,
+  semiconductors_ic: CategoryS_semiconductorsIc_NameOnly,
+  rfid_ic_tag: categoryS_rfid_ic_tag_NameOnly,
+  optical_components: categoryS_optical_components_NameOnly,
+  cables: categoryS_cables_NameOnly,
+  contracted_services: categoryS_contracted_services_NameOnly,
+};
+// 【大】 機械部品 (mechanical_parts) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_mechanical_parts: {
+  [K in ProductCategoriesMediumMachine]:
+    | MachineProductCategoriesS_mechanical_elements[]
+    | MachineProductCategoriesS_bearings[]
+    | MachineProductCategoriesS_screws[]
+    | MachineProductCategoriesS_motors[]
+    | MachineProductCategoriesS_pumps[]
+    | MachineProductCategoriesS_piping_components[]
+    | MachineProductCategoriesS_water_oil_hydraulic_pneumatic_equipment[]
+    | MachineProductCategoriesS_vacuum_equipment[]
+    | MachineProductCategoriesS_molds[]
+    | MachineProductCategoriesS_jigs[]
+    | MachineProductCategoriesS_automotive_parts[];
+} = {
+  mechanical_elements: categoryS_mechanical_elements_NameOnly,
+  bearings: categoryS_bearings_NameOnly,
+  screws: categoryS_screws_NameOnly,
+  motors: categoryS_motors_NameOnly,
+  pumps: categoryS_pumps_NameOnly,
+  piping_components: categoryS_piping_components_NameOnly,
+  water_oil_hydraulic_pneumatic_equipment: categoryS_water_oil_hydraulic_pneumatic_equipment_NameOnly,
+  vacuum_equipment: categoryS_vacuum_equipment_NameOnly,
+  molds: categoryS_molds_NameOnly,
+  jigs: categoryS_jigs_NameOnly,
+  automotive_parts: categoryS_automotive_parts_NameOnly,
+};
+
+// // 【大】 製造・加工機械 (manufacturing_processing_machines) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_manufacturing_processing_machines: {
+  [K in ProductCategoriesMediumProcessingMachinery]:
+    | ProcessingMachineryProductCategoriesS_machine_tools[]
+    | ProcessingMachineryProductCategoriesS_processing_machines[]
+    | ProcessingMachineryProductCategoriesS_semiconductor_manufacturing_equipment[]
+    | ProcessingMachineryProductCategoriesS_mounting_machines[]
+    | ProcessingMachineryProductCategoriesS_industrial_robots[]
+    | ProcessingMachineryProductCategoriesS_assembly_machines[]
+    | ProcessingMachineryProductCategoriesS_painting_machines[]
+    | ProcessingMachineryProductCategoriesS_food_machines[]
+    | ProcessingMachineryProductCategoriesS_packaging_machines[]
+    | ProcessingMachineryProductCategoriesS_conveying_machines[]
+    | ProcessingMachineryProductCategoriesS_marking[]
+    | ProcessingMachineryProductCategoriesS_contracted_services[];
+} = {
+  machine_tools: categoryS_machine_tools_NameOnly,
+  processing_machines: categoryS_processing_machines_NameOnly,
+  semiconductor_manufacturing_equipment: categoryS_semiconductor_manufacturing_equipment_NameOnly,
+  mounting_machines: categoryS_mounting_machines_NameOnly,
+  industrial_robots: categoryS_industrial_robots_NameOnly,
+  assembly_machines: categoryS_assembly_machines_NameOnly,
+  painting_machines: categoryS_painting_machines_NameOnly,
+  food_machines: categoryS_food_machines_NameOnly,
+  packaging_machines: categoryS_packaging_machines_NameOnly,
+  conveying_machines: categoryS_conveying_machines_NameOnly,
+  marking: categoryS_marking_NameOnly,
+  contracted_services: categoryS_contracted_services_processing_machinery_NameOnly,
+};
+
+// // 【大】 科学・理化学機器 (scientific_chemical_equipment) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_scientific_chemical_equipment: {
+  [K in ProductCategoriesMediumScience]:
+    | ProcessingMachineryProductCategoriesS_chemical_equipment[]
+    | ProcessingMachineryProductCategoriesS_cleaning_machines[]
+    | ProcessingMachineryProductCategoriesS_powder_equipment[]
+    | ProcessingMachineryProductCategoriesS_heating_equipment_furnaces[]
+    | ProcessingMachineryProductCategoriesS_surface_treatment_equipment[]
+    | ProcessingMachineryProductCategoriesS_laboratory_equipment_supplies[];
+} = {
+  chemical_equipment: categoryS_chemical_equipment_NameOnly,
+  cleaning_machines: categoryS_cleaning_machines_NameOnly,
+  powder_equipment: categoryS_powder_equipment_NameOnly,
+  heating_equipment_furnaces: categoryS_heating_equipment_furnaces_NameOnly,
+  surface_treatment_equipment: categoryS_surface_treatment_equipment_NameOnly,
+  laboratory_equipment_supplies: categoryS_laboratory_equipment_supplies_NameOnly,
+};
+
+// // 【大】 素材・材料 (materials) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_materials: {
+  [K in ProductCategoriesMediumMaterial]:
+    | MaterialProductCategoriesS_metal_materials[]
+    | MaterialProductCategoriesS_polymer_materials[]
+    | MaterialProductCategoriesS_glass[]
+    | MaterialProductCategoriesS_ceramics[]
+    | MaterialProductCategoriesS_wood[]
+    | MaterialProductCategoriesS_paper_pulps[]
+    | MaterialProductCategoriesS_organic_natural_materials[]
+    | MaterialProductCategoriesS_chemicals[];
+} = {
+  metal_materials: categoryS_metal_materials_NameOnly,
+  polymer_materials: categoryS_polymer_materials_NameOnly,
+  glass: categoryS_glass_NameOnly,
+  ceramics: categoryS_ceramics_NameOnly,
+  wood: categoryS_wood_NameOnly,
+  paper_pulps: categoryS_paper_pulps_NameOnly,
+  organic_natural_materials: categoryS_organic_natural_materials_NameOnly,
+  chemicals: categoryS_chemicals_NameOnly,
+};
+
+// // 【大】 測定・分析 (measurement_analysis) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_measurement_analysis: {
+  [K in ProductCategoriesMediumAnalysis]:
+    | AnalysisProductCategoriesS_distance_measuring_machine[]
+    | AnalysisProductCategoriesS_weight_measuring_machine[]
+    | AnalysisProductCategoriesS_electronic_measuring_machine[]
+    | AnalysisProductCategoriesS_electronic_temperature_humidity_machine[]
+    | AnalysisProductCategoriesS_electrical_machine[]
+    | AnalysisProductCategoriesS_coordinate_measuring_machine[]
+    | AnalysisProductCategoriesS_other_measuring_machine[]
+    | AnalysisProductCategoriesS_testing_machine[]
+    | AnalysisProductCategoriesS_inspection_machine[]
+    | AnalysisProductCategoriesS_microscopes[]
+    | AnalysisProductCategoriesS_recorders_loggers[]
+    | AnalysisProductCategoriesS_analytical_machine[]
+    | AnalysisProductCategoriesS_environmental_analysis_machine[]
+    | AnalysisProductCategoriesS_contracted_services[];
+} = {
+  distance_measuring_machine: categoryS_distance_measuring_machine_NameOnly,
+  weight_measuring_machine: categoryS_weight_measuring_machine_NameOnly,
+  electronic_measuring_machine: categoryS_electronic_measuring_machine_NameOnly,
+  temperature_humidity_machine: categoryS_temperature_humidity_machine_NameOnly,
+  electrical_machine: categoryS_electrical_machine_NameOnly,
+  coordinate_measuring_machine: categoryS_coordinate_measuring_machine_NameOnly,
+  other_measuring_machine: categoryS_other_measuring_machine_NameOnly,
+  testing_machine: categoryS_testing_machine_NameOnly,
+  inspection_machine: categoryS_inspection_machine_NameOnly,
+  microscopes: categoryS_microscopes_NameOnly,
+  recorders_loggers: categoryS_recorders_loggers_NameOnly,
+  analytical_machine: categoryS_analytical_machine_NameOnly,
+  environmental_analysis_machine: categoryS_environmental_analysis_machine_NameOnly,
+  contracted_services: categoryS_contracted_services_analysis_NameOnly,
+};
+
+// // 【大】 画像処理 (image_processing) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_image_processing: {
+  [K in ProductCategoriesMediumImageProcessing]:
+    | ImageProcessingProductCategoriesS_cameras[]
+    | ImageProcessingProductCategoriesS_lenses[]
+    | ImageProcessingProductCategoriesS_light_sources_lighting[]
+    | ImageProcessingProductCategoriesS_image_processing[]
+    | ImageProcessingProductCategoriesS_security_surveillance_systems[]
+    | ImageProcessingProductCategoriesS_barcode_readers[];
+} = {
+  cameras: categoryS_cameras_NameOnly,
+  lenses: categoryS_lenses_NameOnly,
+  light_sources_lighting: categoryS_light_sources_lighting_NameOnly,
+  image_processing: categoryS_image_processing_NameOnly,
+  security_surveillance_systems: categoryS_security_surveillance_systems_NameOnly,
+  barcode_readers: categoryS_barcode_readers_NameOnly,
+};
+
+// // 【大】 制御・電機機器 (control_electrical_equipment) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_control_electrical_equipment: {
+  [K in ProductCategoriesMediumControlEquipment]:
+    | ControlEquipmentProductCategoriesS_process_control_equipment[]
+    | ControlEquipmentProductCategoriesS_fa_equipment[]
+    | ControlEquipmentProductCategoriesS_safety_equipment[]
+    | ControlEquipmentProductCategoriesS_environmental_equipment[]
+    | ControlEquipmentProductCategoriesS_filters[]
+    | ControlEquipmentProductCategoriesS_clean_rooms[]
+    | ControlEquipmentProductCategoriesS_lighting[]
+    | ControlEquipmentProductCategoriesS_air_conditioning_equipment[]
+    | ControlEquipmentProductCategoriesS_water_treatment_equipment[]
+    | ControlEquipmentProductCategoriesS_static_electricity_measures[]
+    | ControlEquipmentProductCategoriesS_energy_equipment[];
+} = {
+  process_control_equipment: categoryS_process_control_equipment_NameOnly,
+  fa_equipment: categoryS_fa_equipment_NameOnly,
+  safety_equipment: categoryS_safety_equipment_NameOnly,
+  environmental_equipment: categoryS_environmental_equipment_NameOnly,
+  filters: categoryS_filters_NameOnly,
+  clean_rooms: categoryS_clean_rooms_NameOnly,
+  lighting: categoryS_lighting_NameOnly,
+  air_conditioning_equipment: categoryS_air_conditioning_equipment_NameOnly,
+  water_treatment_equipment: categoryS_water_treatment_equipment_NameOnly,
+  static_electricity_measures: categoryS_static_electricity_measures_NameOnly,
+  energy_equipment: categoryS_energy_equipment_NameOnly,
+};
+
+// // 【大】 工具・消耗品・備品 (tools_consumables_supplies) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_tools_consumables_supplies: {
+  [K in ProductCategoriesMediumTool]:
+    | ToolProductCategoriesS_cutting_tools[]
+    | ToolProductCategoriesS_abrasives[]
+    | ToolProductCategoriesS_hand_tools[]
+    | ToolProductCategoriesS_power_pneumatic_tools[]
+    | ToolProductCategoriesS_consumables[]
+    | ToolProductCategoriesS_cleaning_tools[]
+    | ToolProductCategoriesS_safety_hygiene_supplies[]
+    | ToolProductCategoriesS_packaging_materials[]
+    | ToolProductCategoriesS_supplies[]
+    | ToolProductCategoriesS_storage_facilities[];
+} = {
+  cutting_tools: categoryS_cutting_tools_NameOnly,
+  abrasives: categoryS_abrasives_NameOnly,
+  hand_tools: categoryS_hand_tools_NameOnly,
+  power_pneumatic_tools: categoryS_power_pneumatic_tools_NameOnly,
+  consumables: categoryS_consumables_NameOnly,
+  cleaning_tools: categoryS_cleaning_tools_NameOnly,
+  safety_hygiene_supplies: categoryS_safety_hygiene_supplies_NameOnly,
+  packaging_materials: categoryS_packaging_materials_NameOnly,
+  supplies: categoryS_supplies_NameOnly,
+  storage_facilities: categoryS_storage_facilities_NameOnly,
+};
+
+// // 【大】 設計・生産支援 (design_production_support) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_design_production_support: {
+  [K in ProductCategoriesMediumDesign]:
+    | DesignProductCategoriesS_cad[]
+    | DesignProductCategoriesS_cam[]
+    | DesignProductCategoriesS_cae[]
+    | DesignProductCategoriesS_prototype[]
+    | DesignProductCategoriesS_contracted_services[];
+} = {
+  cad: categoryS_cad_NameOnly,
+  cam: categoryS_cam_NameOnly,
+  cae: categoryS_cae_NameOnly,
+  prototype: categoryS_prototype_NameOnly,
+  contracted_services: categoryS_contracted_services_design_NameOnly,
+};
+
+// // 【大】 IT・ネットワーク (it_network) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_it_network: {
+  [K in ProductCategoriesMediumIT]:
+    | ITProductCategoriesS_industrial_computers[]
+    | ITProductCategoriesS_embedded_systems[]
+    | ITProductCategoriesS_core_systems[]
+    | ITProductCategoriesS_production_management[]
+    | ITProductCategoriesS_information_systems[]
+    | ITProductCategoriesS_network[]
+    | ITProductCategoriesS_operating_systems[]
+    | ITProductCategoriesS_servers[]
+    | ITProductCategoriesS_security[];
+} = {
+  industrial_computers: categoryS_industrial_computers_NameOnly,
+  embedded_systems: categoryS_embedded_systems_NameOnly,
+  core_systems: categoryS_core_systems_NameOnly,
+  production_management: categoryS_production_management_NameOnly,
+  information_systems: categoryS_information_systems_NameOnly,
+  network: categoryS_network_NameOnly,
+  operating_systems: categoryS_operating_systems_NameOnly,
+  servers: categoryS_servers_NameOnly,
+  security: categoryS_security_NameOnly,
+};
+
+// // 【大】 オフィス (office) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_office: {
+  [K in ProductCategoriesMediumOffice]:
+    | OfficeProductCategoriesS_office_automation_equipment[]
+    | OfficeProductCategoriesS_consumables[]
+    | OfficeProductCategoriesS_office_supplies[];
+} = {
+  office_automation_equipment: categoryS_office_automation_equipment_NameOnly,
+  consumables: categoryS_consumables_IT_NameOnly,
+  supplies: categoryS_supplies_IT_NameOnly,
+};
+
+// // 【大】 業務支援サービス (business_support_services) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_business_support_services: {
+  [K in ProductCategoriesMediumBusinessSupport]:
+    | BusinessSupportProductCategoriesS_consultants[]
+    | BusinessSupportProductCategoriesS_rental_lease[]
+    | BusinessSupportProductCategoriesS_human_resources_services[]
+    | BusinessSupportProductCategoriesS_services[];
+} = {
+  consultants: categoryS_consultants_NameOnly,
+  rental_lease: categoryS_rental_lease_NameOnly,
+  human_resources_services: categoryS_human_resources_services_NameOnly,
+  services: categoryS_services_NameOnly,
+};
+
+// // 【大】 セミナー・スキルアップ (seminars_skill_up) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_seminars_skill_up: {
+  [K in ProductCategoriesMediumSkillUp]:
+    | SkillUpProductCategoriesS_for_engineer[]
+    | SkillUpProductCategoriesS_for_management[];
+} = {
+  for_engineer: categoryS_for_engineer_NameOnly,
+  for_management: categoryS_for_management_NameOnly,
+};
+
+// // 【大】 その他 (others) - 【中】...
+export const productCategoryMediumToOptionsSmallMap_others: {
+  [K in "others"]: OthersProductCategoriesS_others[];
+} = {
+  others: categoryS_others_NameOnly,
+};

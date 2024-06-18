@@ -145,17 +145,17 @@ export const machinePartsCategoryMNameOnly: ProductCategoriesMediumMachine[] = [
   "automotive_parts",
 ];
 export const machinePartsCategoryM: { id: number; name: ProductCategoriesMediumMachine }[] = [
-  { id: 29, name: "mechanical_elements" },
-  { id: 30, name: "bearings" },
-  { id: 31, name: "screws" },
-  { id: 32, name: "motors" },
-  { id: 33, name: "pumps" },
-  { id: 34, name: "piping_components" },
-  { id: 35, name: "water_oil_hydraulic_pneumatic_equipment" },
-  { id: 36, name: "vacuum_equipment" },
-  { id: 37, name: "molds" },
-  { id: 38, name: "jigs" },
-  { id: 39, name: "automotive_parts" },
+  { id: 29, name: "mechanical_elements" }, // 220から241
+  { id: 30, name: "bearings" }, // 242から243
+  { id: 31, name: "screws" }, // 244から245
+  { id: 32, name: "motors" }, // 246から254
+  { id: 33, name: "pumps" }, // 255から259
+  { id: 34, name: "piping_components" }, // 260から265
+  { id: 35, name: "water_oil_hydraulic_pneumatic_equipment" }, // 266から268
+  { id: 36, name: "vacuum_equipment" }, // 269から271
+  { id: 37, name: "molds" }, // 272から277
+  { id: 38, name: "jigs" }, // 278から281
+  { id: 39, name: "automotive_parts" }, // 282から295
 ];
 export const mappingMachinePartsCategoryM:
   | {
@@ -242,18 +242,18 @@ export const processingMachineryCategoryMNameOnly: ProductCategoriesMediumProces
   "contracted_services",
 ];
 export const processingMachineryCategoryM: { id: number; name: ProductCategoriesMediumProcessingMachinery }[] = [
-  { id: 40, name: "machine_tools" },
-  { id: 41, name: "processing_machines" },
-  { id: 42, name: "semiconductor_manufacturing_equipment" },
-  { id: 43, name: "mounting_machines" },
-  { id: 44, name: "industrial_robots" },
-  { id: 45, name: "assembly_machines" },
-  { id: 46, name: "painting_machines" },
-  { id: 47, name: "food_machines" },
-  { id: 48, name: "packaging_machines" },
-  { id: 49, name: "conveying_machines" },
-  { id: 50, name: "marking" },
-  { id: 51, name: "contracted_services" },
+  { id: 40, name: "machine_tools" }, // 296から305
+  { id: 41, name: "processing_machines" }, // 306から323
+  { id: 42, name: "semiconductor_manufacturing_equipment" }, // 324から343
+  { id: 43, name: "mounting_machines" }, // 344から352
+  { id: 44, name: "industrial_robots" }, // 353から361
+  { id: 45, name: "assembly_machines" }, // 362から366
+  { id: 46, name: "painting_machines" }, // 367から369
+  { id: 47, name: "food_machines" }, // 370から380
+  { id: 48, name: "packaging_machines" }, // 381から390
+  { id: 49, name: "conveying_machines" }, // 391から399
+  { id: 50, name: "marking" }, // 400から407
+  { id: 51, name: "contracted_services" }, // 408から410
 ];
 export const mappingProcessingMachineryCategoryM: {
   [K in ProductCategoriesMediumProcessingMachinery | string | string]: { [key: string]: string };
@@ -338,12 +338,12 @@ export const scienceCategoryMNameOnly: ProductCategoriesMediumScience[] = [
   "laboratory_equipment_supplies",
 ];
 export const scienceCategoryM: { id: number; name: ProductCategoriesMediumScience }[] = [
-  { id: 52, name: "chemical_equipment" },
-  { id: 53, name: "cleaning_machines" },
-  { id: 54, name: "powder_equipment" },
-  { id: 55, name: "heating_equipment_furnaces" },
-  { id: 56, name: "surface_treatment_equipment" },
-  { id: 57, name: "laboratory_equipment_supplies" },
+  { id: 52, name: "chemical_equipment" }, // 411から434
+  { id: 53, name: "cleaning_machines" }, // 435から437
+  { id: 54, name: "powder_equipment" }, // 438から447
+  { id: 55, name: "heating_equipment_furnaces" }, // 448から454
+  { id: 56, name: "surface_treatment_equipment" }, // 455から458
+  { id: 57, name: "laboratory_equipment_supplies" }, // 459から462
 ];
 export const mappingScienceCategoryM: {
   [K in ProductCategoriesMediumScience | string]: { [key: string]: string };
@@ -400,14 +400,14 @@ export const materialCategoryMNameOnly: ProductCategoriesMediumMaterial[] = [
   "chemicals",
 ];
 export const materialCategoryM: { id: number; name: ProductCategoriesMediumMaterial }[] = [
-  { id: 58, name: "metal_materials" },
-  { id: 59, name: "polymer_materials" },
-  { id: 60, name: "glass" },
-  { id: 61, name: "ceramics" },
-  { id: 62, name: "wood" },
-  { id: 63, name: "paper_pulps" },
-  { id: 64, name: "organic_natural_materials" },
-  { id: 65, name: "chemicals" },
+  { id: 58, name: "metal_materials" }, // 463から472
+  { id: 59, name: "polymer_materials" }, // 473から478
+  { id: 60, name: "glass" }, // 479から479
+  { id: 61, name: "ceramics" }, // 480から481
+  { id: 62, name: "wood" }, // 482から483
+  { id: 63, name: "paper_pulps" }, // 484から485
+  { id: 64, name: "organic_natural_materials" }, // 486から487
+  { id: 65, name: "chemicals" }, // 488から488
 ];
 export const mappingMaterialCategoryM: { [K in ProductCategoriesMediumMaterial | string]: { [key: string]: string } } =
   {
@@ -479,20 +479,20 @@ export const analysisCategoryMNameOnly: ProductCategoriesMediumAnalysis[] = [
   "contracted_services",
 ];
 export const analysisCategoryM: { id: number; name: ProductCategoriesMediumAnalysis }[] = [
-  { id: 66, name: "distance_measuring_machine" },
-  { id: 67, name: "weight_measuring_machine" },
-  { id: 68, name: "electronic_measuring_machine" },
-  { id: 69, name: "temperature_humidity_machine" },
-  { id: 70, name: "electrical_machine" },
-  { id: 71, name: "coordinate_measuring_machine" },
-  { id: 72, name: "other_measuring_machine" },
-  { id: 73, name: "testing_machine" },
-  { id: 74, name: "inspection_machine" },
-  { id: 75, name: "microscopes" },
-  { id: 76, name: "recorders_loggers" },
-  { id: 77, name: "analytical_machine" },
-  { id: 78, name: "environmental_analysis_machine" },
-  { id: 79, name: "contracted_services" },
+  { id: 66, name: "distance_measuring_machine" }, // 489から489
+  { id: 67, name: "weight_measuring_machine" }, // 490から493
+  { id: 68, name: "electronic_measuring_machine" }, // 494から505
+  { id: 69, name: "temperature_humidity_machine" }, // 506から511
+  { id: 70, name: "electrical_machine" }, // 512から515
+  { id: 71, name: "coordinate_measuring_machine" }, // 516から516
+  { id: 72, name: "other_measuring_machine" }, // 517から526
+  { id: 73, name: "testing_machine" }, // 527から536
+  { id: 74, name: "inspection_machine" }, // 537から543
+  { id: 75, name: "microscopes" }, // 544から549
+  { id: 76, name: "recorders_loggers" }, // 550から551
+  { id: 77, name: "analytical_machine" }, // 552から554
+  { id: 78, name: "environmental_analysis_machine" }, // 555から561
+  { id: 79, name: "contracted_services" }, // 562から564
 ];
 export const mappingAnalysisCategoryM: { [K in ProductCategoriesMediumAnalysis | string]: { [key: string]: string } } =
   {
@@ -586,12 +586,12 @@ export const imageProcessingCategoryMNameOnly: ProductCategoriesMediumImageProce
   "barcode_readers",
 ];
 export const imageProcessingCategoryM: { id: number; name: ProductCategoriesMediumImageProcessing }[] = [
-  { id: 80, name: "cameras" },
-  { id: 81, name: "lenses" },
-  { id: 82, name: "light_sources_lighting" },
-  { id: 83, name: "image_processing" },
-  { id: 84, name: "security_surveillance_systems" },
-  { id: 85, name: "barcode_readers" },
+  { id: 80, name: "cameras" }, // 565から567
+  { id: 81, name: "lenses" }, // 568から568
+  { id: 82, name: "light_sources_lighting" }, // 569から570
+  { id: 83, name: "image_processing" }, // 571から580
+  { id: 84, name: "security_surveillance_systems" }, // 581から583
+  { id: 85, name: "barcode_readers" }, // 584から588
 ];
 export const mappingImageProcessingCategoryM: {
   [K in ProductCategoriesMediumImageProcessing | string]: { [key: string]: string };
@@ -651,17 +651,17 @@ export const controlEquipmentCategoryMNameOnly: ProductCategoriesMediumControlEq
   "energy_equipment",
 ];
 export const controlEquipmentCategoryM: { id: number; name: ProductCategoriesMediumControlEquipment }[] = [
-  { id: 86, name: "process_control_equipment" },
-  { id: 87, name: "fa_equipment" },
-  { id: 88, name: "safety_equipment" },
-  { id: 89, name: "environmental_equipment" },
-  { id: 90, name: "filters" },
-  { id: 91, name: "clean_rooms" },
-  { id: 92, name: "lighting" },
-  { id: 93, name: "air_conditioning_equipment" },
-  { id: 94, name: "water_treatment_equipment" },
-  { id: 95, name: "static_electricity_measures" },
-  { id: 96, name: "energy_equipment" },
+  { id: 86, name: "process_control_equipment" }, // 589から598
+  { id: 87, name: "fa_equipment" }, // 599から620
+  { id: 88, name: "safety_equipment" }, // 621から631
+  { id: 89, name: "environmental_equipment" }, // 632から645
+  { id: 90, name: "filters" }, // 646から650
+  { id: 91, name: "clean_rooms" }, // 651から660
+  { id: 92, name: "lighting" }, // 661から668
+  { id: 93, name: "air_conditioning_equipment" }, // 669から673
+  { id: 94, name: "water_treatment_equipment" }, // 674から680
+  { id: 95, name: "static_electricity_measures" }, // 681から685
+  { id: 96, name: "energy_equipment" }, // 686から693
 ];
 export const mappingControlEquipmentCategoryM: {
   [K in ProductCategoriesMediumControlEquipment | string]: { [key: string]: string };
@@ -745,16 +745,16 @@ export const toolCategoryMNameOnly: ProductCategoriesMediumTool[] = [
   "storage_facilities",
 ];
 export const toolCategoryM: { id: number; name: ProductCategoriesMediumTool }[] = [
-  { id: 97, name: "cutting_tools" },
-  { id: 98, name: "abrasives" },
-  { id: 99, name: "hand_tools" },
-  { id: 100, name: "power_pneumatic_tools" },
-  { id: 101, name: "consumables" },
-  { id: 102, name: "cleaning_tools" },
-  { id: 103, name: "safety_hygiene_supplies" },
-  { id: 104, name: "packaging_materials" },
-  { id: 105, name: "supplies" },
-  { id: 106, name: "storage_facilities" },
+  { id: 97, name: "cutting_tools" }, // 694から706
+  { id: 98, name: "abrasives" }, // 707から711
+  { id: 99, name: "hand_tools" }, // 712から722
+  { id: 100, name: "power_pneumatic_tools" }, // 723から724
+  { id: 101, name: "consumables" }, // 725から734
+  { id: 102, name: "cleaning_tools" }, // 735から741
+  { id: 103, name: "safety_hygiene_supplies" }, // 742から748
+  { id: 104, name: "packaging_materials" }, // 749から754
+  { id: 105, name: "supplies" }, // 755から759
+  { id: 106, name: "storage_facilities" }, // 760から761
 ];
 export const mappingToolCategoryM: { [K in ProductCategoriesMediumTool | string]: { [key: string]: string } } = {
   cutting_tools: { ja: "切削工具", en: `` }, // 1
@@ -826,11 +826,11 @@ export const designCategoryMNameOnly: ProductCategoriesMediumDesign[] = [
   "contracted_services",
 ];
 export const designCategoryM: { id: number; name: ProductCategoriesMediumDesign }[] = [
-  { id: 107, name: "cad" },
-  { id: 108, name: "cam" },
-  { id: 109, name: "cae" },
-  { id: 110, name: "prototype" },
-  { id: 111, name: "contracted_services" },
+  { id: 107, name: "cad" }, // 762から770
+  { id: 108, name: "cam" }, // 771から773
+  { id: 109, name: "cae" }, // 774から783
+  { id: 110, name: "prototype" }, // 784から785
+  { id: 111, name: "contracted_services" }, // 786から787
 ];
 export const mappingDesignCategoryM: { [K in ProductCategoriesMediumDesign | string]: { [key: string]: string } } = {
   cad: { ja: "CAD", en: `` }, // 1
@@ -881,15 +881,15 @@ export const ITCategoryMNameOnly: ProductCategoriesMediumIT[] = [
   "security",
 ];
 export const ITCategoryM: { id: number; name: ProductCategoriesMediumIT }[] = [
-  { id: 112, name: "industrial_computers" },
-  { id: 113, name: "embedded_systems" },
-  { id: 114, name: "core_systems" },
-  { id: 115, name: "production_management" },
-  { id: 116, name: "information_systems" },
-  { id: 117, name: "network" },
-  { id: 118, name: "operating_systems" },
-  { id: 119, name: "servers" },
-  { id: 120, name: "security" },
+  { id: 112, name: "industrial_computers" }, // 788から794
+  { id: 113, name: "embedded_systems" }, // 795から802
+  { id: 114, name: "core_systems" }, // 803から811
+  { id: 115, name: "production_management" }, // 812から818
+  { id: 116, name: "information_systems" }, // 819から829
+  { id: 117, name: "network" }, // 830から835
+  { id: 118, name: "operating_systems" }, // 836から838
+  { id: 119, name: "servers" }, // 839から844
+  { id: 120, name: "security" }, // 845から852
 ];
 export const mappingITCategoryM: { [K in ProductCategoriesMediumIT | string]: { [key: string]: string } } = {
   industrial_computers: { ja: "産業用パソコン", en: `` }, // 1
@@ -954,9 +954,9 @@ export const OfficeCategoryMNameOnly: ProductCategoriesMediumOffice[] = [
   "supplies",
 ];
 export const OfficeCategoryM: { id: number; name: ProductCategoriesMediumOffice }[] = [
-  { id: 121, name: "office_automation_equipment" },
-  { id: 122, name: "consumables" },
-  { id: 123, name: "supplies" },
+  { id: 121, name: "office_automation_equipment" }, // 853から862
+  { id: 122, name: "consumables" }, // 863から864
+  { id: 123, name: "supplies" }, // 865から872
 ];
 export const mappingOfficeCategoryM: { [K in ProductCategoriesMediumOffice | string]: { [key: string]: string } } = {
   office_automation_equipment: { ja: "PC・OA機器", en: `` }, // 1
@@ -992,10 +992,10 @@ export const businessSupportCategoryMNameOnly: ProductCategoriesMediumBusinessSu
   "services",
 ];
 export const businessSupportCategoryM: { id: number; name: ProductCategoriesMediumBusinessSupport }[] = [
-  { id: 124, name: "consultants" },
-  { id: 125, name: "rental_lease" },
-  { id: 126, name: "human_resources_services" },
-  { id: 127, name: "services" },
+  { id: 124, name: "consultants" }, // 873から879
+  { id: 125, name: "rental_lease" }, // 880から880
+  { id: 126, name: "human_resources_services" }, // 881から882
+  { id: 127, name: "services" }, // 883から891
 ];
 export const mappingBusinessSupportCategoryM: {
   [K in ProductCategoriesMediumBusinessSupport | string]: { [key: string]: string };
@@ -1033,8 +1033,8 @@ export const mappingBusinessSupportCategoryM: {
 // 14. 「セミナー・スキルアップ」 14. 中分類 seminars_skill_up
 export const skillUpCategoryMNameOnly: ProductCategoriesMediumSkillUp[] = ["for_engineer", "for_management"];
 export const skillUpCategoryM: { id: number; name: ProductCategoriesMediumSkillUp }[] = [
-  { id: 127, name: "for_engineer" },
-  { id: 128, name: "for_management" },
+  { id: 128, name: "for_engineer" }, // 892から895
+  { id: 129, name: "for_management" }, // 896から904
 ];
 export const mappingSkillUpCategoryM: { [K in ProductCategoriesMediumSkillUp | string]: { [key: string]: string } } = {
   for_engineer: { ja: "技術者向け", en: `` }, // 1
@@ -1061,7 +1061,7 @@ export const mappingSkillUpCategoryM: { [K in ProductCategoriesMediumSkillUp | s
 export const othersCategoryMNameOnly: "others"[] = ["others"];
 export const othersCategoryM: { id: number; name: "others" }[] = [{ id: 130, name: "others" }];
 export const mappingOthersCategoryM: { [key: "others" | string]: { [key: string]: string } } = {
-  others: { ja: "その他", en: `` }, // 1
+  others: { ja: "その他", en: `` }, // 1 // 905から906
 };
 // export const othersCategoryM = Array(1)
 //   .fill(null)
@@ -1108,7 +1108,7 @@ export const productCategoryLargeToOptionsMediumMap: {
     | ProductCategoriesMediumDesign[]
     | ProductCategoriesMediumIT[]
     | ProductCategoriesMediumOffice[]
-    | ProductCategoriesMediumTool[]
+    // | ProductCategoriesMediumTool[]
     | ProductCategoriesMediumBusinessSupport[]
     | ProductCategoriesMediumSkillUp[]
     | "others"[];
