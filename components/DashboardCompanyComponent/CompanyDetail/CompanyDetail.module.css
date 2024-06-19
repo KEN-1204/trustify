@@ -324,6 +324,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.value.hashtag {
+  color: var(--color-hashtag);
+}
+.double_text {
+  font-size: 12px;
+}
 .value_highlight {
   color: var(--color-text-brand);
 }

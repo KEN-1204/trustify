@@ -23,7 +23,9 @@ import productCategoriesM, {
   mappingScienceCategoryM,
   mappingSkillUpCategoryM,
   mappingToolCategoryM,
+  productCategoryLargeToMappingMediumMap,
   productCategoryLargeToOptionsMediumMap,
+  productCategoryLargeToOptionsMediumObjMap,
 } from "@/utils/productCategoryM";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
@@ -60,6 +62,27 @@ import { FallbackInputBox } from "./FallbackInputBox";
 import { useQueryClient } from "@tanstack/react-query";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { CustomSelectMultiple } from "@/components/Parts/CustomSelectMultiple/CustomSelectMultiple";
+import {
+  ProductCategoriesSmall,
+  productCategoryMediumToMappingSmallMap,
+  productCategoryMediumToOptionsSmallMap_All,
+  productCategoryMediumToOptionsSmallMap_All_obj,
+  productCategoryMediumToOptionsSmallMap_business_support_services,
+  productCategoryMediumToOptionsSmallMap_control_electrical_equipment,
+  productCategoryMediumToOptionsSmallMap_design_production_support,
+  productCategoryMediumToOptionsSmallMap_electronic_components_modules,
+  productCategoryMediumToOptionsSmallMap_image_processing,
+  productCategoryMediumToOptionsSmallMap_it_network,
+  productCategoryMediumToOptionsSmallMap_manufacturing_processing_machines,
+  productCategoryMediumToOptionsSmallMap_materials,
+  productCategoryMediumToOptionsSmallMap_measurement_analysis,
+  productCategoryMediumToOptionsSmallMap_mechanical_parts,
+  productCategoryMediumToOptionsSmallMap_office,
+  productCategoryMediumToOptionsSmallMap_others,
+  productCategoryMediumToOptionsSmallMap_scientific_chemical_equipment,
+  productCategoryMediumToOptionsSmallMap_seminars_skill_up,
+  productCategoryMediumToOptionsSmallMap_tools_consumables_supplies,
+} from "@/utils/productCategoryS";
 
 export const InsertNewClientCompanyModal = () => {
   const language = useStore((state) => state.language);
@@ -106,12 +129,16 @@ export const InsertNewClientCompanyModal = () => {
   const [productCategoryM, setProductCategoryM] = useState("");
   const [productCategoryS, setProductCategoryS] = useState("");
   // product_categoriesテーブルに挿入する配列 タグ付け textで保持して最終的にMapオブジェクトで
-  const [productCategoryLargeArray, setProductCategoryLargeArray] = useState<string[]>([]);
-  const [productCategoryMediumArray, setProductCategoryMediumArray] = useState<string[]>([]);
-  const [productCategorySmallArray, setProductCategorySmallArray] = useState<string[]>([]);
+  // const [productCategoryLargeArray, setProductCategoryLargeArray] = useState<string[]>([]);
+  const [productCategoryLargeArray, setProductCategoryLargeArray] = useState<ProductCategoriesLarge[]>([]);
+  // const [productCategoryMediumArray, setProductCategoryMediumArray] = useState<string[]>([]);
+  const [productCategoryMediumArray, setProductCategoryMediumArray] = useState<ProductCategoriesMedium[]>([]);
+  // const [productCategorySmallArray, setProductCategorySmallArray] = useState<string[]>([]);
+  const [productCategorySmallArray, setProductCategorySmallArray] = useState<ProductCategoriesSmall[]>([]);
+
   // ----------------------- 🌟製品分類(大分類・中分類)関連🌟 -----------------------
   // カスタムセレクトボックス用にnameのみで選択中のSetオブジェクトを作成
-  // ---------------- 大分類
+  // ---------------- 🔸大分類🔸 ----------------
   const selectedProductCategoryLargeSet = useMemo(() => {
     return new Set([...productCategoryLargeArray]);
   }, [productCategoryLargeArray]);
@@ -120,7 +147,7 @@ export const InsertNewClientCompanyModal = () => {
     return mappingProductL[option][language];
   };
 
-  // ---------------- 中分類
+  // ---------------- 🔸中分類🔸 ----------------
   const selectedProductCategoryMediumSet = useMemo(() => {
     return new Set([...productCategoryMediumArray]);
   }, [productCategoryMediumArray]);
@@ -145,32 +172,36 @@ export const InsertNewClientCompanyModal = () => {
       };
     };
 
-    if (selectedProductCategoryLargeSet.has("electronic_components_modules"))
-      mappingObj = { ...mappingObj, ...mappingModuleCategoryM };
-    if (selectedProductCategoryLargeSet.has("mechanical_parts"))
-      mappingObj = { ...mappingObj, ...mappingMachinePartsCategoryM };
-    if (selectedProductCategoryLargeSet.has("manufacturing_processing_machines"))
-      mappingObj = { ...mappingObj, ...mappingProcessingMachineryCategoryM };
-    if (selectedProductCategoryLargeSet.has("scientific_chemical_equipment"))
-      mappingObj = { ...mappingObj, ...mappingScienceCategoryM };
-    if (selectedProductCategoryLargeSet.has("materials")) mappingObj = { ...mappingObj, ...mappingMaterialCategoryM };
-    if (selectedProductCategoryLargeSet.has("measurement_analysis"))
-      mappingObj = { ...mappingObj, ...mappingAnalysisCategoryM };
-    if (selectedProductCategoryLargeSet.has("image_processing"))
-      mappingObj = { ...mappingObj, ...mappingImageProcessingCategoryM };
-    if (selectedProductCategoryLargeSet.has("control_electrical_equipment"))
-      mappingObj = { ...mappingObj, ...mappingControlEquipmentCategoryM };
-    if (selectedProductCategoryLargeSet.has("tools_consumables_supplies"))
-      mappingObj = { ...mappingObj, ...mappingToolCategoryM };
-    if (selectedProductCategoryLargeSet.has("design_production_support"))
-      mappingObj = { ...mappingObj, ...mappingDesignCategoryM };
-    if (selectedProductCategoryLargeSet.has("it_network")) mappingObj = { ...mappingObj, ...mappingITCategoryM };
-    if (selectedProductCategoryLargeSet.has("office")) mappingObj = { ...mappingObj, ...mappingOfficeCategoryM };
-    if (selectedProductCategoryLargeSet.has("business_support_services"))
-      mappingObj = { ...mappingObj, ...mappingBusinessSupportCategoryM };
-    if (selectedProductCategoryLargeSet.has("seminars_skill_up"))
-      mappingObj = { ...mappingObj, ...mappingSkillUpCategoryM };
-    if (selectedProductCategoryLargeSet.has("others")) mappingObj = { ...mappingObj, ...mappingOthersCategoryM };
+    Array.from(selectedProductCategoryLargeSet).forEach((option) => {
+      mappingObj = { ...mappingObj, ...productCategoryLargeToMappingMediumMap[option] };
+    });
+
+    // if (selectedProductCategoryLargeSet.has("electronic_components_modules"))
+    //   mappingObj = { ...mappingObj, ...mappingModuleCategoryM };
+    // if (selectedProductCategoryLargeSet.has("mechanical_parts"))
+    //   mappingObj = { ...mappingObj, ...mappingMachinePartsCategoryM };
+    // if (selectedProductCategoryLargeSet.has("manufacturing_processing_machines"))
+    //   mappingObj = { ...mappingObj, ...mappingProcessingMachineryCategoryM };
+    // if (selectedProductCategoryLargeSet.has("scientific_chemical_equipment"))
+    //   mappingObj = { ...mappingObj, ...mappingScienceCategoryM };
+    // if (selectedProductCategoryLargeSet.has("materials")) mappingObj = { ...mappingObj, ...mappingMaterialCategoryM };
+    // if (selectedProductCategoryLargeSet.has("measurement_analysis"))
+    //   mappingObj = { ...mappingObj, ...mappingAnalysisCategoryM };
+    // if (selectedProductCategoryLargeSet.has("image_processing"))
+    //   mappingObj = { ...mappingObj, ...mappingImageProcessingCategoryM };
+    // if (selectedProductCategoryLargeSet.has("control_electrical_equipment"))
+    //   mappingObj = { ...mappingObj, ...mappingControlEquipmentCategoryM };
+    // if (selectedProductCategoryLargeSet.has("tools_consumables_supplies"))
+    //   mappingObj = { ...mappingObj, ...mappingToolCategoryM };
+    // if (selectedProductCategoryLargeSet.has("design_production_support"))
+    //   mappingObj = { ...mappingObj, ...mappingDesignCategoryM };
+    // if (selectedProductCategoryLargeSet.has("it_network")) mappingObj = { ...mappingObj, ...mappingITCategoryM };
+    // if (selectedProductCategoryLargeSet.has("office")) mappingObj = { ...mappingObj, ...mappingOfficeCategoryM };
+    // if (selectedProductCategoryLargeSet.has("business_support_services"))
+    //   mappingObj = { ...mappingObj, ...mappingBusinessSupportCategoryM };
+    // if (selectedProductCategoryLargeSet.has("seminars_skill_up"))
+    //   mappingObj = { ...mappingObj, ...mappingSkillUpCategoryM };
+    // if (selectedProductCategoryLargeSet.has("others")) mappingObj = { ...mappingObj, ...mappingOthersCategoryM };
 
     return new Map(Object.entries(mappingObj).map(([key, value]) => [key, value]));
   }, [selectedProductCategoryLargeSet]);
@@ -191,11 +222,64 @@ export const InsertNewClientCompanyModal = () => {
     console.log("🔥大分類が変更されたため中分類を更新");
     setProductCategoryMediumArray(newMediumArray);
   }, [optionsProductCategoryMediumAll]);
-  // ---------------- 小分類
+
+  // ---------------- 🔸中分類🔸 ここまで ----------------
+
+  // ---------------- 🔸小分類🔸 ----------------
   const selectedProductCategorySmallSet = useMemo(() => {
     return new Set([...productCategorySmallArray]);
   }, [productCategorySmallArray]);
+
+  // 小分類のoptions 中分類で複数選択している場合には、選択中の中分類に紐づく全ての小分類をoptionsにセット
+  const optionsProductCategorySmallAll = useMemo(() => {
+    // 取得した現在選択可能な全ての中分類のoptionsから既に選択中の中分類を取得
+    const filteredOptionsMediumNameOnly = Array.from(selectedProductCategoryMediumSet);
+
+    // 選択中の中分類の選択肢に紐づく小分類のoptionsを全て取得
+    const newOptionsSmall = filteredOptionsMediumNameOnly
+      .map((optionName) => {
+        // 選択中の大分類に応じて中分類のMapを使用
+        return productCategoryMediumToOptionsSmallMap_All[optionName];
+      })
+      .flatMap((array) => array);
+
+    return newOptionsSmall;
+  }, [selectedProductCategoryMediumSet]);
+
+  // 🌠小分類が選択されている状態で中分類のチェックが外された場合には、外された中分類に紐づく小分類を削除する
+  useEffect(() => {
+    // 中分類に紐づくoptionのみで作成したoptionsProductCategorySmallAllに含まれていない選択中の小分類は削除
+    const optionsProductCategorySmallAllSet = new Set(optionsProductCategorySmallAll);
+    const newSmallArray = [...productCategorySmallArray].filter((option) =>
+      optionsProductCategorySmallAllSet.has(option as any)
+    );
+    console.log("🔥中分類が変更されたため小分類を更新");
+    setProductCategorySmallArray(newSmallArray);
+  }, [optionsProductCategorySmallAll]);
+
+  // 名称変換マップ
+  const mappingProductCategorySmallAll = useMemo(() => {
+    let mappingObj = {} as {
+      [x: string]: {
+        [key: string]: string;
+      };
+    };
+
+    productCategoryMediumArray.forEach((option) => {
+      mappingObj = { ...mappingObj, ...productCategoryMediumToMappingSmallMap[option] };
+    });
+
+    return new Map(Object.entries(mappingObj).map(([key, value]) => [key, value]));
+  }, [selectedProductCategoryMediumSet]);
+
+  const getProductCategorySmallNameAll = (option: ProductCategoriesSmall) => {
+    const mappingObj = mappingProductCategorySmallAll.get(option);
+    return mappingObj ? mappingObj[language] : "-";
+    // return mappingProductCategorySmallAll[option][language];
+  };
+  // ---------------- 🔸小分類🔸 ここまで ----------------
   // ----------------------- 🌟製品分類(大分類・中分類)関連🌟 ここまで -----------------------
+
   const [numberOfEmployeesClass, setNumberOfEmployeesClass] = useState("");
   const [fiscalEndMonth, setFiscalEndMonth] = useState("");
   const [capital, setCapital] = useState<string>("");
@@ -227,7 +311,7 @@ export const InsertNewClientCompanyModal = () => {
   const [numberOfEmployees, setNumberOfEmployees] = useState("");
 
   const supabase = useSupabaseClient();
-  const { createClientCompanyMutation } = useMutateClientCompany();
+  const { createClientCompanyMutation, createClientCompanyWithProductCategoriesMutation } = useMutateClientCompany();
 
   // // // ======================= 🌟市区町村のuseQuery🌟 =======================
   // const { data: citiesArray, isLoading: isLoadingCities } = useQueryCities(regionId ? Number(regionId) : null);
@@ -469,6 +553,81 @@ export const InsertNewClientCompanyModal = () => {
     // 住所
     const _address = (regionName + cityName + (streetAddress ?? "") + " " + (buildingName ?? "")).trim();
 
+    // 製品分類をnameからidに変換して配列にまとめる
+    // 大分類
+    let productCategoryLargeIdsArray: number[] = [];
+    if (0 < productCategoryLargeArray.length) {
+      console.log("============================ 大分類実行🔥");
+      const largeNameToIdMap = new Map(optionsProductL.map((obj) => [obj.name, obj.id]));
+      productCategoryLargeIdsArray = productCategoryLargeArray
+        .map((name) => {
+          return largeNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+    }
+    // 中分類
+    let productCategoryMediumIdsArray: number[] = [];
+    if (0 < productCategoryMediumArray.length) {
+      console.log("============================ 中分類実行🔥");
+      // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
+      const optionsMediumObj = productCategoryLargeArray
+        .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
+        .flatMap((array) => array);
+      const mediumNameToIdMap = new Map(optionsMediumObj.map((obj) => [obj.name, obj.id]));
+      productCategoryMediumIdsArray = productCategoryMediumArray
+        .map((name) => {
+          return mediumNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+    }
+    // 小分類
+    let productCategorySmallIdsArray: number[] = [];
+    if (0 < productCategorySmallArray.length) {
+      console.log("============================ 小分類実行🔥");
+      // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
+      const optionsSmallObj = productCategoryMediumArray
+        .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
+        .flatMap((array) => array);
+      const mediumNameToIdMap = new Map(optionsSmallObj.map((obj) => [obj.name, obj.id]));
+      productCategorySmallIdsArray = productCategorySmallArray
+        .map((name) => {
+          return mediumNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+    }
+
+    // 大分類・中分類・小分類を全て１つの配列にまとめてINSERT
+    const productCategoryAllIdsArray = [
+      ...productCategoryLargeIdsArray,
+      ...productCategoryMediumIdsArray,
+      ...productCategorySmallIdsArray,
+    ];
+
+    console.log(
+      "製品分類 INSERT対象の全ての製品分類",
+      productCategoryAllIdsArray,
+      "製品分類 大分類",
+      productCategoryLargeIdsArray,
+      productCategoryLargeArray,
+      "製品分類 中分類",
+      productCategoryMediumIdsArray,
+      productCategoryMediumArray,
+      "製品分類 小分類",
+      productCategorySmallIdsArray,
+      productCategorySmallArray
+    );
+
+    // if (true) {
+    //   console.log("================================================================================");
+    //   // console.log("製品分類 大分類", productCategoryLargeIdsArray, productCategoryLargeArray);
+    //   // console.log("製品分類 中分類", productCategoryMediumIdsArray, productCategoryMediumArray);
+    //   // console.log("製品分類 小分類", productCategorySmallIdsArray, productCategorySmallArray);
+
+    //   console.log("================================================================================");
+    //   setLoadingGlobalState(false);
+    //   return;
+    // }
+
     // 新規作成するデータをオブジェクトにまとめる
     const newClientCompany = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
@@ -535,10 +694,17 @@ export const InsertNewClientCompanyModal = () => {
       corporate_number: corporateNumber ? corporateNumber : null,
       board_member: boardMember ? boardMember : null,
       number_of_employees: numberOfEmployees ? numberOfEmployees : null,
+      // 追加 製品分類(大分類・中分類・小分類)の配列
+      product_categories_all_ids: productCategoryAllIdsArray,
+      // product_categories_large_ids: productCategoryLargeIdsArray,
+      // product_categories_medium_ids: productCategoryMediumIdsArray,
+      // product_categories_small_ids: productCategorySmallIdsArray,
     };
 
     // supabaseにINSERT,ローディング終了, モーダルを閉じる
-    createClientCompanyMutation.mutate(newClientCompany);
+    // createClientCompanyMutation.mutate(newClientCompany);
+    // 製品分類を同時にINSERT(複製の場合も新たに顧客専用の会社として新規に作成するためcreate関数でOK)
+    createClientCompanyWithProductCategoriesMutation.mutate(newClientCompany);
 
     // setLoadingGlobalState(false);
 
@@ -885,6 +1051,7 @@ export const InsertNewClientCompanyModal = () => {
     "selectedProductCategoryLargeSet",
     selectedProductCategoryLargeSet
   );
+  console.log("========================================================================");
   console.log(
     "productCategoryMediumArray",
     productCategoryMediumArray,
@@ -892,6 +1059,17 @@ export const InsertNewClientCompanyModal = () => {
     optionsProductCategoryMediumAll,
     "mappingProductCategoryMediumAll",
     mappingProductCategoryMediumAll
+  );
+  console.log("========================================================================");
+  console.log(
+    "productCategorySmallArray",
+    productCategorySmallArray,
+    "selectedProductCategorySmallSet",
+    selectedProductCategorySmallSet,
+    "optionsProductCategorySmallAll",
+    optionsProductCategorySmallAll,
+    "mappingProductCategorySmallAll",
+    mappingProductCategorySmallAll
   );
   // console.log("countryName", countryName, "countryId", countryId, "国リスト候補", suggestedCountryIdNameArray);
   // console.log("regionName", regionName, "regionId", regionId, "都道府県リスト候補", suggestedRegionIdNameArray);
@@ -2210,6 +2388,81 @@ export const InsertNewClientCompanyModal = () => {
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
+              </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 製品分類(大分類) */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    {/* <span className={`${styles.title}`}>製品分類(大分類)</span> */}
+                    <div className={`flex flex-col ${styles.title} ${styles.double}`}>
+                      <span>製品分類</span>
+                      <span>(小分類)</span>
+                    </div>
+                    {0 < productCategoryMediumArray.length && (
+                      <>
+                        <CustomSelectMultiple
+                          stateArray={productCategorySmallArray}
+                          dispatch={setProductCategorySmallArray}
+                          selectedSetObj={selectedProductCategorySmallSet}
+                          options={optionsProductCategorySmallAll}
+                          getOptionName={getProductCategorySmallNameAll}
+                          withBorder={true}
+                          modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={420}
+                          maxHeight={32}
+                        />
+                      </>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 製品分類(中分類) */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                {/* <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <div className={`flex flex-col ${styles.title} ${styles.double}`}>
+                      <span>製品分類</span>
+                      <span>(中分類)</span>
+                    </div>
+                    {0 < productCategoryLargeArray.length && (
+                      <>
+                        <CustomSelectMultiple
+                          stateArray={productCategoryMediumArray}
+                          dispatch={setProductCategoryMediumArray}
+                          selectedSetObj={selectedProductCategoryMediumSet}
+                          options={optionsProductCategoryMediumAll}
+                          getOptionName={getProductCategoryMediumNameAll}
+                          withBorder={true}
+                          modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={420}
+                          maxHeight={32}
+                        />
+                      </>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div> */}
               </div>
 
               {/* 右ラッパーここまで */}

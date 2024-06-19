@@ -31,6 +31,7 @@ import {
   ProductCategoriesMediumMaterial,
   ProductCategoriesMediumModule,
   ProductCategoriesMediumOffice,
+  ProductCategoriesMediumOthers,
   ProductCategoriesMediumProcessingMachinery,
   ProductCategoriesMediumScience,
   ProductCategoriesMediumSkillUp,
@@ -47,7 +48,7 @@ import {
   半導体 - semiconductors
   光学部品 - optical_components
   ケーブル - cables
-  受託サービス - contracted_services / contract_services
+  受託サービス - contracted_services_design / contract_services
  */
 // 1. 「電子部品・モジュール」 中分類 1. electronic_components_modules
 export const moduleCategoryMNameOnly: ProductCategoriesMediumModule[] = [
@@ -63,7 +64,7 @@ export const moduleCategoryMNameOnly: ProductCategoriesMediumModule[] = [
   "rfid_ic_tag",
   "optical_components",
   "cables",
-  "contracted_services",
+  "contracted_services_modules",
 ];
 export const moduleCategoryM: { id: number; name: ProductCategoriesMediumModule }[] = [
   { id: 16, name: "electronic_components" },
@@ -78,7 +79,7 @@ export const moduleCategoryM: { id: number; name: ProductCategoriesMediumModule 
   { id: 25, name: "rfid_ic_tag" },
   { id: 26, name: "optical_components" },
   { id: 27, name: "cables" },
-  { id: 28, name: "contracted_services" },
+  { id: 28, name: "contracted_services_modules" },
 ];
 export const mappingModuleCategoryM: { [K in ProductCategoriesMediumModule | string]: { [key: string]: string } } = {
   electronic_components: { ja: "電子部品", en: `` }, // 1 - 16 - 1
@@ -93,7 +94,7 @@ export const mappingModuleCategoryM: { [K in ProductCategoriesMediumModule | str
   rfid_ic_tag: { ja: "RFID・ICタグ", en: `` }, // 1 - 25 - 10
   optical_components: { ja: "光学部品", en: `` }, // 1 - 26 - 11
   cables: { ja: "ケーブル", en: `` }, // 1 - 27 - 12
-  contracted_services: { ja: "受託サービス", en: `` }, // 1 - 28 - 13
+  contracted_services_modules: { ja: "受託サービス", en: `` }, // 1 - 28 - 13
 };
 // export const moduleCategoryM = Array(13)
 //   .fill(null)
@@ -239,7 +240,7 @@ export const processingMachineryCategoryMNameOnly: ProductCategoriesMediumProces
   "packaging_machines",
   "conveying_machines",
   "marking",
-  "contracted_services",
+  "contracted_services_processing_machines",
 ];
 export const processingMachineryCategoryM: { id: number; name: ProductCategoriesMediumProcessingMachinery }[] = [
   { id: 40, name: "machine_tools" }, // 296から305
@@ -253,7 +254,7 @@ export const processingMachineryCategoryM: { id: number; name: ProductCategories
   { id: 48, name: "packaging_machines" }, // 381から390
   { id: 49, name: "conveying_machines" }, // 391から399
   { id: 50, name: "marking" }, // 400から407
-  { id: 51, name: "contracted_services" }, // 408から410
+  { id: 51, name: "contracted_services_processing_machines" }, // 408から410
 ];
 export const mappingProcessingMachineryCategoryM: {
   [K in ProductCategoriesMediumProcessingMachinery | string | string]: { [key: string]: string };
@@ -269,7 +270,7 @@ export const mappingProcessingMachineryCategoryM: {
   packaging_machines: { ja: "包装機械", en: `` }, // 9
   conveying_machines: { ja: "搬送機械", en: `` }, // 10
   marking: { ja: "マーキング", en: `` }, // 11
-  contracted_services: { ja: "受託サービス", en: `` }, // 12
+  contracted_services_processing_machines: { ja: "受託サービス", en: `` }, // 12
 };
 // export const processingMachineryCategoryM = Array(12)
 //   .fill(null)
@@ -476,7 +477,7 @@ export const analysisCategoryMNameOnly: ProductCategoriesMediumAnalysis[] = [
   "recorders_loggers",
   "analytical_machine",
   "environmental_analysis_machine",
-  "contracted_services",
+  "contracted_services_analysis",
 ];
 export const analysisCategoryM: { id: number; name: ProductCategoriesMediumAnalysis }[] = [
   { id: 66, name: "distance_measuring_machine" }, // 489から489
@@ -492,7 +493,7 @@ export const analysisCategoryM: { id: number; name: ProductCategoriesMediumAnaly
   { id: 76, name: "recorders_loggers" }, // 550から551
   { id: 77, name: "analytical_machine" }, // 552から554
   { id: 78, name: "environmental_analysis_machine" }, // 555から561
-  { id: 79, name: "contracted_services" }, // 562から564
+  { id: 79, name: "contracted_services_analysis" }, // 562から564
 ];
 export const mappingAnalysisCategoryM: { [K in ProductCategoriesMediumAnalysis | string]: { [key: string]: string } } =
   {
@@ -509,7 +510,7 @@ export const mappingAnalysisCategoryM: { [K in ProductCategoriesMediumAnalysis |
     recorders_loggers: { ja: "記録計・ロガー", en: `` }, // 11
     analytical_machine: { ja: "分析機器", en: `` }, // 12
     environmental_analysis_machine: { ja: "環境分析機器", en: `` }, // 13
-    contracted_services: { ja: "受託サービス", en: `` }, // 14
+    contracted_services_analysis: { ja: "受託サービス", en: `` }, // 14
   };
 // export const analysisCategoryM = Array(14)
 //   .fill(null)
@@ -737,11 +738,11 @@ export const toolCategoryMNameOnly: ProductCategoriesMediumTool[] = [
   "abrasives",
   "hand_tools",
   "power_pneumatic_tools",
-  "consumables",
+  "consumables_tools",
   "cleaning_tools",
   "safety_hygiene_supplies",
   "packaging_materials",
-  "supplies",
+  "supplies_tools",
   "storage_facilities",
 ];
 export const toolCategoryM: { id: number; name: ProductCategoriesMediumTool }[] = [
@@ -749,11 +750,11 @@ export const toolCategoryM: { id: number; name: ProductCategoriesMediumTool }[] 
   { id: 98, name: "abrasives" }, // 707から711
   { id: 99, name: "hand_tools" }, // 712から722
   { id: 100, name: "power_pneumatic_tools" }, // 723から724
-  { id: 101, name: "consumables" }, // 725から734
+  { id: 101, name: "consumables_tools" }, // 725から734
   { id: 102, name: "cleaning_tools" }, // 735から741
   { id: 103, name: "safety_hygiene_supplies" }, // 742から748
   { id: 104, name: "packaging_materials" }, // 749から754
-  { id: 105, name: "supplies" }, // 755から759
+  { id: 105, name: "supplies_tools" }, // 755から759
   { id: 106, name: "storage_facilities" }, // 760から761
 ];
 export const mappingToolCategoryM: { [K in ProductCategoriesMediumTool | string]: { [key: string]: string } } = {
@@ -761,11 +762,11 @@ export const mappingToolCategoryM: { [K in ProductCategoriesMediumTool | string]
   abrasives: { ja: "研磨材", en: `` }, // 2
   hand_tools: { ja: "作業工具", en: `` }, // 3
   power_pneumatic_tools: { ja: "電動・空圧工具", en: `` }, // 4
-  consumables: { ja: "消耗品", en: `` }, // 5
+  consumables_tools: { ja: "消耗品", en: `` }, // 5
   cleaning_tools: { ja: "清掃用具", en: `` }, // 6
   safety_hygiene_supplies: { ja: "安全・衛生用品", en: `` }, // 7
   packaging_materials: { ja: "梱包材", en: `` }, // 8
-  supplies: { ja: "備品", en: `` }, // 9
+  supplies_tools: { ja: "備品", en: `` }, // 9
   storage_facilities: { ja: "保管設備", en: `` }, // 10
 };
 // export const toolCategoryM = Array(10)
@@ -823,21 +824,21 @@ export const designCategoryMNameOnly: ProductCategoriesMediumDesign[] = [
   "cam",
   "cae",
   "prototype",
-  "contracted_services",
+  "contracted_services_design",
 ];
 export const designCategoryM: { id: number; name: ProductCategoriesMediumDesign }[] = [
   { id: 107, name: "cad" }, // 762から770
   { id: 108, name: "cam" }, // 771から773
   { id: 109, name: "cae" }, // 774から783
   { id: 110, name: "prototype" }, // 784から785
-  { id: 111, name: "contracted_services" }, // 786から787
+  { id: 111, name: "contracted_services_design" }, // 786から787
 ];
 export const mappingDesignCategoryM: { [K in ProductCategoriesMediumDesign | string]: { [key: string]: string } } = {
   cad: { ja: "CAD", en: `` }, // 1
   cam: { ja: "CAM", en: `` }, // 2
   cae: { ja: "CAE", en: `` }, // 3
   prototype: { ja: "試作", en: `` }, // 4
-  contracted_services: { ja: "受託サービス", en: `` }, // 5
+  contracted_services_design: { ja: "受託サービス", en: `` }, // 5
 };
 // export const designCategoryM = Array(5)
 //   .fill(null)
@@ -950,18 +951,18 @@ export const mappingITCategoryM: { [K in ProductCategoriesMediumIT | string]: { 
 // 12. 「オフィス」 中分類 12. office
 export const OfficeCategoryMNameOnly: ProductCategoriesMediumOffice[] = [
   "office_automation_equipment",
-  "consumables",
-  "supplies",
+  "consumables_office",
+  "supplies_office",
 ];
 export const OfficeCategoryM: { id: number; name: ProductCategoriesMediumOffice }[] = [
   { id: 121, name: "office_automation_equipment" }, // 853から862
-  { id: 122, name: "consumables" }, // 863から864
-  { id: 123, name: "supplies" }, // 865から872
+  { id: 122, name: "consumables_office" }, // 863から864
+  { id: 123, name: "supplies_office" }, // 865から872
 ];
 export const mappingOfficeCategoryM: { [K in ProductCategoriesMediumOffice | string]: { [key: string]: string } } = {
   office_automation_equipment: { ja: "PC・OA機器", en: `` }, // 1
-  consumables: { ja: "消耗品", en: `` }, // 2
-  supplies: { ja: "備品", en: `` }, // 3
+  consumables_office: { ja: "消耗品", en: `` }, // 2
+  supplies_office: { ja: "備品", en: `` }, // 3
 };
 // export const OfficeCategoryM = Array(3)
 //   .fill(null)
@@ -1058,10 +1059,12 @@ export const mappingSkillUpCategoryM: { [K in ProductCategoriesMediumSkillUp | s
 // ];
 
 // 15. 「その他」 15. 中分類 others
-export const othersCategoryMNameOnly: "others"[] = ["others"];
-export const othersCategoryM: { id: number; name: "others" }[] = [{ id: 130, name: "others" }];
-export const mappingOthersCategoryM: { [key: "others" | string]: { [key: string]: string } } = {
-  others: { ja: "その他", en: `` }, // 1 // 905から906
+export const othersCategoryMNameOnly: ProductCategoriesMediumOthers[] = ["others_medium"];
+export const othersCategoryM: { id: number; name: ProductCategoriesMediumOthers }[] = [
+  { id: 130, name: "others_medium" },
+];
+export const mappingOthersCategoryM: { [key: ProductCategoriesMediumOthers | string]: { [key: string]: string } } = {
+  others_medium: { ja: "その他", en: `` }, // 1 // 905から906
 };
 // export const othersCategoryM = Array(1)
 //   .fill(null)
@@ -1111,7 +1114,7 @@ export const productCategoryLargeToOptionsMediumMap: {
     // | ProductCategoriesMediumTool[]
     | ProductCategoriesMediumBusinessSupport[]
     | ProductCategoriesMediumSkillUp[]
-    | "others"[];
+    | ProductCategoriesMediumOthers[];
 } = {
   electronic_components_modules: moduleCategoryMNameOnly,
   mechanical_parts: machinePartsCategoryMNameOnly,
@@ -1128,6 +1131,53 @@ export const productCategoryLargeToOptionsMediumMap: {
   business_support_services: businessSupportCategoryMNameOnly,
   seminars_skill_up: skillUpCategoryMNameOnly,
   others: othersCategoryMNameOnly,
+};
+
+// 大分類に紐づくそれぞれのオプション(idとnameのオブジェクト)
+export const productCategoryLargeToOptionsMediumObjMap: {
+  [K in ProductCategoriesLarge]: { id: number; name: ProductCategoriesMedium }[];
+} = {
+  electronic_components_modules: moduleCategoryM,
+  mechanical_parts: machinePartsCategoryM,
+  manufacturing_processing_machines: processingMachineryCategoryM,
+  scientific_chemical_equipment: scienceCategoryM,
+  materials: materialCategoryM,
+  measurement_analysis: analysisCategoryM,
+  image_processing: imageProcessingCategoryM,
+  control_electrical_equipment: controlEquipmentCategoryM,
+  tools_consumables_supplies: toolCategoryM,
+  design_production_support: designCategoryM,
+  it_network: ITCategoryM,
+  office: OfficeCategoryM,
+  business_support_services: businessSupportCategoryM,
+  seminars_skill_up: skillUpCategoryM,
+  others: othersCategoryM,
+};
+
+// 大分類に紐づくそれぞれの名前変換マップ
+export const productCategoryLargeToMappingMediumMap: {
+  [K in ProductCategoriesLarge]:
+    | {
+        [K in ProductCategoriesMedium | string]: {
+          [key: string]: string;
+        };
+      }; // 電子部品
+} = {
+  electronic_components_modules: mappingModuleCategoryM,
+  mechanical_parts: mappingMachinePartsCategoryM,
+  manufacturing_processing_machines: mappingProcessingMachineryCategoryM,
+  scientific_chemical_equipment: mappingScienceCategoryM,
+  materials: mappingMaterialCategoryM,
+  measurement_analysis: mappingAnalysisCategoryM,
+  image_processing: mappingImageProcessingCategoryM,
+  control_electrical_equipment: mappingControlEquipmentCategoryM,
+  tools_consumables_supplies: mappingToolCategoryM,
+  design_production_support: mappingDesignCategoryM,
+  it_network: mappingITCategoryM,
+  office: mappingOfficeCategoryM,
+  business_support_services: mappingBusinessSupportCategoryM,
+  seminars_skill_up: mappingSkillUpCategoryM,
+  others: mappingOthersCategoryM,
 };
 
 const productCategoriesM = {
@@ -1149,3 +1199,4 @@ const productCategoriesM = {
 };
 
 export default productCategoriesM;
+// export const  productCategoriesM;

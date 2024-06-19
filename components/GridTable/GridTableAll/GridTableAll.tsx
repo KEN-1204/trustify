@@ -310,7 +310,9 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
 
   // 検索タイプ デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
-  const functionName = searchType === "partial_match" ? "search_companies_by_partial_match" : "search_companies";
+  // const functionName = searchType === "partial_match" ? "search_companies_by_partial_match" : "search_companies";
+  const functionName =
+    searchType === "partial_match" ? "search_companies_categories_by_partial_match" : "search_companies_categories";
 
   // ================== 🌟初回表示時の条件なしサーバーデータフェッチ用の関数🌟 ==================
   // 取得カウント保持用state

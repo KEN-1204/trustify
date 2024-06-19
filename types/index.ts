@@ -298,9 +298,16 @@ export type NewSearchCompanyParams = {
   region_id?: number | null;
   city_id?: number | null;
   // ここまで
-  product_category_large: string | null;
-  product_category_medium: string | null;
-  product_category_small: string | null;
+  // 製品分類 ----------------
+  // 🌠製品分類はid(INTEGER)を大中小を全て１つの配列としてまとめてEXISTSでフィルタする
+  // product_category_large: string | null;
+  // product_category_medium: string | null;
+  // product_category_small: string | null;
+  product_category_large_ids: number[];
+  product_category_medium_ids: number[];
+  product_category_small_ids: number[];
+  // product_category_all_ids: number[];
+  // 製品分類 ---------------- ここまで
   fiscal_end_month: string | null;
   facility: string | null;
   clients: string | null;
@@ -3546,7 +3553,7 @@ export type ProductCategoriesMediumModule =
   | "rfid_ic_tag"
   | "optical_components"
   | "cables"
-  | "contracted_services";
+  | "contracted_services_modules";
 
 // 機械部品
 export type ProductCategoriesMediumMachine =
@@ -3575,7 +3582,7 @@ export type ProductCategoriesMediumProcessingMachinery =
   | "packaging_machines"
   | "conveying_machines"
   | "marking"
-  | "contracted_services";
+  | "contracted_services_processing_machines";
 
 // 科学・理化学
 export type ProductCategoriesMediumScience =
@@ -3612,7 +3619,7 @@ export type ProductCategoriesMediumAnalysis =
   | "recorders_loggers"
   | "analytical_machine"
   | "environmental_analysis_machine"
-  | "contracted_services";
+  | "contracted_services_analysis";
 
 // 画像処理
 export type ProductCategoriesMediumImageProcessing =
@@ -3643,15 +3650,15 @@ export type ProductCategoriesMediumTool =
   | "abrasives"
   | "hand_tools"
   | "power_pneumatic_tools"
-  | "consumables"
+  | "consumables_tools"
   | "cleaning_tools"
   | "safety_hygiene_supplies"
   | "packaging_materials"
-  | "supplies"
+  | "supplies_tools"
   | "storage_facilities";
 
 // 設計・生産支援
-export type ProductCategoriesMediumDesign = "cad" | "cam" | "cae" | "prototype" | "contracted_services";
+export type ProductCategoriesMediumDesign = "cad" | "cam" | "cae" | "prototype" | "contracted_services_design";
 
 // IT・ネットワーク
 export type ProductCategoriesMediumIT =
@@ -3666,7 +3673,7 @@ export type ProductCategoriesMediumIT =
   | "security";
 
 // オフィス
-export type ProductCategoriesMediumOffice = "office_automation_equipment" | "consumables" | "supplies";
+export type ProductCategoriesMediumOffice = "office_automation_equipment" | "consumables_office" | "supplies_office";
 
 // 業務支援サービス
 export type ProductCategoriesMediumBusinessSupport =
@@ -3677,6 +3684,9 @@ export type ProductCategoriesMediumBusinessSupport =
 
 // セミナー・スキルアップ
 export type ProductCategoriesMediumSkillUp = "for_engineer" | "for_management";
+
+// その他
+export type ProductCategoriesMediumOthers = "others_medium";
 
 // 製品分類【中分類】全て
 export type ProductCategoriesMedium =
@@ -3694,4 +3704,4 @@ export type ProductCategoriesMedium =
   | ProductCategoriesMediumOffice
   | ProductCategoriesMediumBusinessSupport
   | ProductCategoriesMediumSkillUp
-  | "others";
+  | ProductCategoriesMediumOthers;

@@ -117,6 +117,7 @@
 // import { ITProductCategoriesS_core_systems } from "../types";
 
 import {
+  ProductCategoriesMedium,
   ProductCategoriesMediumAnalysis,
   ProductCategoriesMediumBusinessSupport,
   ProductCategoriesMediumControlEquipment,
@@ -127,6 +128,7 @@ import {
   ProductCategoriesMediumMaterial,
   ProductCategoriesMediumModule,
   ProductCategoriesMediumOffice,
+  ProductCategoriesMediumOthers,
   ProductCategoriesMediumProcessingMachinery,
   ProductCategoriesMediumScience,
   ProductCategoriesMediumSkillUp,
@@ -1227,6 +1229,140 @@ export type OthersProductCategoriesS_others = "municipal_services_corporate_loca
 // ----------- 業種・製品分類 関連 ここまで -----------
 
 // ========================= ✅「電子部品・モジュール」 大分類の小分類関連✅ =========================
+
+// ========================= ✅小分類の全て✅ =========================
+export type ProductCategoriesSmall =
+  | ModuleProductCategoriesSElectronicComponents // 電子部品
+  | ModuleProductCategoriesSConnectors
+  | ModuleProductCategoriesSTerminalBlocks
+  | ModuleProductCategoriesSLed
+  | ModuleProductCategoriesSFpdTouchPanel
+  | ModuleProductCategoriesSSmallMotors
+  | ModuleProductCategoriesSPowerSources
+  | ModuleProductCategoriesSBatteries
+  | ModuleProductCategoriesSSemiconductorsIc
+  | ModuleProductCategoriesS_rfid_ic_tag
+  | ModuleProductCategoriesS_optical_components
+  | ModuleProductCategoriesS_cables
+  | ModuleProductCategoriesS_contracted_services
+  // 機械部品
+  | MachineProductCategoriesS_mechanical_elements
+  | MachineProductCategoriesS_bearings
+  | MachineProductCategoriesS_screws
+  | MachineProductCategoriesS_motors
+  | MachineProductCategoriesS_pumps
+  | MachineProductCategoriesS_piping_components
+  | MachineProductCategoriesS_water_oil_hydraulic_pneumatic_equipment
+  | MachineProductCategoriesS_vacuum_equipment
+  | MachineProductCategoriesS_molds
+  | MachineProductCategoriesS_jigs
+  | MachineProductCategoriesS_automotive_parts
+  // 製造・加工機械
+  | ProcessingMachineryProductCategoriesS_machine_tools
+  | ProcessingMachineryProductCategoriesS_processing_machines
+  | ProcessingMachineryProductCategoriesS_semiconductor_manufacturing_equipment
+  | ProcessingMachineryProductCategoriesS_mounting_machines
+  | ProcessingMachineryProductCategoriesS_industrial_robots
+  | ProcessingMachineryProductCategoriesS_assembly_machines
+  | ProcessingMachineryProductCategoriesS_painting_machines
+  | ProcessingMachineryProductCategoriesS_food_machines
+  | ProcessingMachineryProductCategoriesS_packaging_machines
+  | ProcessingMachineryProductCategoriesS_conveying_machines
+  | ProcessingMachineryProductCategoriesS_marking
+  | ProcessingMachineryProductCategoriesS_contracted_services
+  // 科学・理化学機器
+  | ProcessingMachineryProductCategoriesS_chemical_equipment
+  | ProcessingMachineryProductCategoriesS_cleaning_machines
+  | ProcessingMachineryProductCategoriesS_powder_equipment
+  | ProcessingMachineryProductCategoriesS_heating_equipment_furnaces
+  | ProcessingMachineryProductCategoriesS_surface_treatment_equipment
+  | ProcessingMachineryProductCategoriesS_laboratory_equipment_supplies
+  // 素材・材料
+  | MaterialProductCategoriesS_metal_materials
+  | MaterialProductCategoriesS_polymer_materials
+  | MaterialProductCategoriesS_glass
+  | MaterialProductCategoriesS_ceramics
+  | MaterialProductCategoriesS_wood
+  | MaterialProductCategoriesS_paper_pulps
+  | MaterialProductCategoriesS_organic_natural_materials
+  | MaterialProductCategoriesS_chemicals
+  // 測定・分析
+  | AnalysisProductCategoriesS_distance_measuring_machine
+  | AnalysisProductCategoriesS_weight_measuring_machine
+  | AnalysisProductCategoriesS_electronic_measuring_machine
+  | AnalysisProductCategoriesS_electronic_temperature_humidity_machine
+  | AnalysisProductCategoriesS_electrical_machine
+  | AnalysisProductCategoriesS_coordinate_measuring_machine
+  | AnalysisProductCategoriesS_other_measuring_machine
+  | AnalysisProductCategoriesS_testing_machine
+  | AnalysisProductCategoriesS_inspection_machine
+  | AnalysisProductCategoriesS_microscopes
+  | AnalysisProductCategoriesS_recorders_loggers
+  | AnalysisProductCategoriesS_analytical_machine
+  | AnalysisProductCategoriesS_environmental_analysis_machine
+  | AnalysisProductCategoriesS_contracted_services
+  // 画像処理
+  | ImageProcessingProductCategoriesS_cameras
+  | ImageProcessingProductCategoriesS_lenses
+  | ImageProcessingProductCategoriesS_light_sources_lighting
+  | ImageProcessingProductCategoriesS_image_processing
+  | ImageProcessingProductCategoriesS_security_surveillance_systems
+  | ImageProcessingProductCategoriesS_barcode_readers
+  // 制御・電機機器
+  | ControlEquipmentProductCategoriesS_process_control_equipment
+  | ControlEquipmentProductCategoriesS_fa_equipment
+  | ControlEquipmentProductCategoriesS_safety_equipment
+  | ControlEquipmentProductCategoriesS_environmental_equipment
+  | ControlEquipmentProductCategoriesS_filters
+  | ControlEquipmentProductCategoriesS_clean_rooms
+  | ControlEquipmentProductCategoriesS_lighting
+  | ControlEquipmentProductCategoriesS_air_conditioning_equipment
+  | ControlEquipmentProductCategoriesS_water_treatment_equipment
+  | ControlEquipmentProductCategoriesS_static_electricity_measures
+  | ControlEquipmentProductCategoriesS_energy_equipment
+  // 工具・消耗品・備品
+  | ToolProductCategoriesS_cutting_tools
+  | ToolProductCategoriesS_abrasives
+  | ToolProductCategoriesS_hand_tools
+  | ToolProductCategoriesS_power_pneumatic_tools
+  | ToolProductCategoriesS_consumables
+  | ToolProductCategoriesS_cleaning_tools
+  | ToolProductCategoriesS_safety_hygiene_supplies
+  | ToolProductCategoriesS_packaging_materials
+  | ToolProductCategoriesS_supplies
+  | ToolProductCategoriesS_storage_facilities
+  // 設計・生産支援
+  | DesignProductCategoriesS_cad
+  | DesignProductCategoriesS_cam
+  | DesignProductCategoriesS_cae
+  | DesignProductCategoriesS_prototype
+  | DesignProductCategoriesS_contracted_services
+  // IT・ネットワーク
+  | ITProductCategoriesS_industrial_computers
+  | ITProductCategoriesS_embedded_systems
+  | ITProductCategoriesS_core_systems
+  | ITProductCategoriesS_production_management
+  | ITProductCategoriesS_information_systems
+  | ITProductCategoriesS_network
+  | ITProductCategoriesS_operating_systems
+  | ITProductCategoriesS_servers
+  | ITProductCategoriesS_security
+  // オフィス
+  | OfficeProductCategoriesS_office_automation_equipment
+  | OfficeProductCategoriesS_consumables
+  | OfficeProductCategoriesS_office_supplies
+  // 業務支援サービス
+  | BusinessSupportProductCategoriesS_consultants
+  | BusinessSupportProductCategoriesS_rental_lease
+  | BusinessSupportProductCategoriesS_human_resources_services
+  | BusinessSupportProductCategoriesS_services
+  // セミナー・スキルアップ
+  | SkillUpProductCategoriesS_for_engineer
+  | SkillUpProductCategoriesS_for_management
+  // その他
+  | OthersProductCategoriesS_others;
+// ========================= ✅小分類の全て✅ ここまで =========================
+
 /**
  * export const moduleCategoryM: { id: number; name: ProductCategoriesMediumModule }[] = [
   { id: 16, name: "electronic_components" },
@@ -7420,7 +7556,7 @@ export const mappingCategoryS_others: {
 
 // 🌠中分類に紐づくそれぞれの小分類オプションMap 大分類ごとに作成
 
-// 【大】電子部品・モジュール(electronic_components_modules) - 【中】...
+// 【大】 電子部品・モジュール (electronic_components_modules) - 【中】...
 export const productCategoryMediumToOptionsSmallMap_electronic_components_modules: {
   [K in ProductCategoriesMediumModule]:
     | ModuleProductCategoriesSElectronicComponents[]
@@ -7449,7 +7585,7 @@ export const productCategoryMediumToOptionsSmallMap_electronic_components_module
   rfid_ic_tag: categoryS_rfid_ic_tag_NameOnly,
   optical_components: categoryS_optical_components_NameOnly,
   cables: categoryS_cables_NameOnly,
-  contracted_services: categoryS_contracted_services_NameOnly,
+  contracted_services_modules: categoryS_contracted_services_NameOnly,
 };
 // 【大】 機械部品 (mechanical_parts) - 【中】...
 export const productCategoryMediumToOptionsSmallMap_mechanical_parts: {
@@ -7506,7 +7642,7 @@ export const productCategoryMediumToOptionsSmallMap_manufacturing_processing_mac
   packaging_machines: categoryS_packaging_machines_NameOnly,
   conveying_machines: categoryS_conveying_machines_NameOnly,
   marking: categoryS_marking_NameOnly,
-  contracted_services: categoryS_contracted_services_processing_machinery_NameOnly,
+  contracted_services_processing_machines: categoryS_contracted_services_processing_machinery_NameOnly,
 };
 
 // // 【大】 科学・理化学機器 (scientific_chemical_equipment) - 【中】...
@@ -7580,7 +7716,7 @@ export const productCategoryMediumToOptionsSmallMap_measurement_analysis: {
   recorders_loggers: categoryS_recorders_loggers_NameOnly,
   analytical_machine: categoryS_analytical_machine_NameOnly,
   environmental_analysis_machine: categoryS_environmental_analysis_machine_NameOnly,
-  contracted_services: categoryS_contracted_services_analysis_NameOnly,
+  contracted_services_analysis: categoryS_contracted_services_analysis_NameOnly,
 };
 
 // // 【大】 画像処理 (image_processing) - 【中】...
@@ -7647,11 +7783,11 @@ export const productCategoryMediumToOptionsSmallMap_tools_consumables_supplies: 
   abrasives: categoryS_abrasives_NameOnly,
   hand_tools: categoryS_hand_tools_NameOnly,
   power_pneumatic_tools: categoryS_power_pneumatic_tools_NameOnly,
-  consumables: categoryS_consumables_NameOnly,
+  consumables_tools: categoryS_consumables_NameOnly,
   cleaning_tools: categoryS_cleaning_tools_NameOnly,
   safety_hygiene_supplies: categoryS_safety_hygiene_supplies_NameOnly,
   packaging_materials: categoryS_packaging_materials_NameOnly,
-  supplies: categoryS_supplies_NameOnly,
+  supplies_tools: categoryS_supplies_NameOnly,
   storage_facilities: categoryS_storage_facilities_NameOnly,
 };
 
@@ -7668,7 +7804,7 @@ export const productCategoryMediumToOptionsSmallMap_design_production_support: {
   cam: categoryS_cam_NameOnly,
   cae: categoryS_cae_NameOnly,
   prototype: categoryS_prototype_NameOnly,
-  contracted_services: categoryS_contracted_services_design_NameOnly,
+  contracted_services_design: categoryS_contracted_services_design_NameOnly,
 };
 
 // // 【大】 IT・ネットワーク (it_network) - 【中】...
@@ -7703,8 +7839,8 @@ export const productCategoryMediumToOptionsSmallMap_office: {
     | OfficeProductCategoriesS_office_supplies[];
 } = {
   office_automation_equipment: categoryS_office_automation_equipment_NameOnly,
-  consumables: categoryS_consumables_IT_NameOnly,
-  supplies: categoryS_supplies_IT_NameOnly,
+  consumables_office: categoryS_consumables_IT_NameOnly,
+  supplies_office: categoryS_supplies_IT_NameOnly,
 };
 
 // // 【大】 業務支援サービス (business_support_services) - 【中】...
@@ -7733,7 +7869,829 @@ export const productCategoryMediumToOptionsSmallMap_seminars_skill_up: {
 
 // // 【大】 その他 (others) - 【中】...
 export const productCategoryMediumToOptionsSmallMap_others: {
-  [K in "others"]: OthersProductCategoriesS_others[];
+  [K in ProductCategoriesMediumOthers]: OthersProductCategoriesS_others[];
 } = {
-  others: categoryS_others_NameOnly,
+  others_medium: categoryS_others_NameOnly,
 };
+
+// 🌠全ての中分類のオプション名から小分類の選択肢を取得するMap
+export const productCategoryMediumToOptionsSmallMap_All: {
+  [K in ProductCategoriesMedium]:
+    | ModuleProductCategoriesSElectronicComponents[] // 電子部品
+    | ModuleProductCategoriesSConnectors[]
+    | ModuleProductCategoriesSTerminalBlocks[]
+    | ModuleProductCategoriesSLed[]
+    | ModuleProductCategoriesSFpdTouchPanel[]
+    | ModuleProductCategoriesSSmallMotors[]
+    | ModuleProductCategoriesSPowerSources[]
+    | ModuleProductCategoriesSBatteries[]
+    | ModuleProductCategoriesSSemiconductorsIc[]
+    | ModuleProductCategoriesS_rfid_ic_tag[]
+    | ModuleProductCategoriesS_optical_components[]
+    | ModuleProductCategoriesS_cables[]
+    | ModuleProductCategoriesS_contracted_services[]
+    // 機械部品
+    | MachineProductCategoriesS_mechanical_elements[]
+    | MachineProductCategoriesS_bearings[]
+    | MachineProductCategoriesS_screws[]
+    | MachineProductCategoriesS_motors[]
+    | MachineProductCategoriesS_pumps[]
+    | MachineProductCategoriesS_piping_components[]
+    | MachineProductCategoriesS_water_oil_hydraulic_pneumatic_equipment[]
+    | MachineProductCategoriesS_vacuum_equipment[]
+    | MachineProductCategoriesS_molds[]
+    | MachineProductCategoriesS_jigs[]
+    | MachineProductCategoriesS_automotive_parts[]
+    // 製造・加工機械
+    | ProcessingMachineryProductCategoriesS_machine_tools[]
+    | ProcessingMachineryProductCategoriesS_processing_machines[]
+    | ProcessingMachineryProductCategoriesS_semiconductor_manufacturing_equipment[]
+    | ProcessingMachineryProductCategoriesS_mounting_machines[]
+    | ProcessingMachineryProductCategoriesS_industrial_robots[]
+    | ProcessingMachineryProductCategoriesS_assembly_machines[]
+    | ProcessingMachineryProductCategoriesS_painting_machines[]
+    | ProcessingMachineryProductCategoriesS_food_machines[]
+    | ProcessingMachineryProductCategoriesS_packaging_machines[]
+    | ProcessingMachineryProductCategoriesS_conveying_machines[]
+    | ProcessingMachineryProductCategoriesS_marking[]
+    | ProcessingMachineryProductCategoriesS_contracted_services[]
+    // 科学・理化学機器
+    | ProcessingMachineryProductCategoriesS_chemical_equipment[]
+    | ProcessingMachineryProductCategoriesS_cleaning_machines[]
+    | ProcessingMachineryProductCategoriesS_powder_equipment[]
+    | ProcessingMachineryProductCategoriesS_heating_equipment_furnaces[]
+    | ProcessingMachineryProductCategoriesS_surface_treatment_equipment[]
+    | ProcessingMachineryProductCategoriesS_laboratory_equipment_supplies[]
+    // 素材・材料
+    | MaterialProductCategoriesS_metal_materials[]
+    | MaterialProductCategoriesS_polymer_materials[]
+    | MaterialProductCategoriesS_glass[]
+    | MaterialProductCategoriesS_ceramics[]
+    | MaterialProductCategoriesS_wood[]
+    | MaterialProductCategoriesS_paper_pulps[]
+    | MaterialProductCategoriesS_organic_natural_materials[]
+    | MaterialProductCategoriesS_chemicals[]
+    // 測定・分析
+    | AnalysisProductCategoriesS_distance_measuring_machine[]
+    | AnalysisProductCategoriesS_weight_measuring_machine[]
+    | AnalysisProductCategoriesS_electronic_measuring_machine[]
+    | AnalysisProductCategoriesS_electronic_temperature_humidity_machine[]
+    | AnalysisProductCategoriesS_electrical_machine[]
+    | AnalysisProductCategoriesS_coordinate_measuring_machine[]
+    | AnalysisProductCategoriesS_other_measuring_machine[]
+    | AnalysisProductCategoriesS_testing_machine[]
+    | AnalysisProductCategoriesS_inspection_machine[]
+    | AnalysisProductCategoriesS_microscopes[]
+    | AnalysisProductCategoriesS_recorders_loggers[]
+    | AnalysisProductCategoriesS_analytical_machine[]
+    | AnalysisProductCategoriesS_environmental_analysis_machine[]
+    | AnalysisProductCategoriesS_contracted_services[]
+    // 画像処理
+    | ImageProcessingProductCategoriesS_cameras[]
+    | ImageProcessingProductCategoriesS_lenses[]
+    | ImageProcessingProductCategoriesS_light_sources_lighting[]
+    | ImageProcessingProductCategoriesS_image_processing[]
+    | ImageProcessingProductCategoriesS_security_surveillance_systems[]
+    | ImageProcessingProductCategoriesS_barcode_readers[]
+    // 制御・電機機器
+    | ControlEquipmentProductCategoriesS_process_control_equipment[]
+    | ControlEquipmentProductCategoriesS_fa_equipment[]
+    | ControlEquipmentProductCategoriesS_safety_equipment[]
+    | ControlEquipmentProductCategoriesS_environmental_equipment[]
+    | ControlEquipmentProductCategoriesS_filters[]
+    | ControlEquipmentProductCategoriesS_clean_rooms[]
+    | ControlEquipmentProductCategoriesS_lighting[]
+    | ControlEquipmentProductCategoriesS_air_conditioning_equipment[]
+    | ControlEquipmentProductCategoriesS_water_treatment_equipment[]
+    | ControlEquipmentProductCategoriesS_static_electricity_measures[]
+    | ControlEquipmentProductCategoriesS_energy_equipment[]
+    // 工具・消耗品・備品
+    | ToolProductCategoriesS_cutting_tools[]
+    | ToolProductCategoriesS_abrasives[]
+    | ToolProductCategoriesS_hand_tools[]
+    | ToolProductCategoriesS_power_pneumatic_tools[]
+    | ToolProductCategoriesS_consumables[]
+    | ToolProductCategoriesS_cleaning_tools[]
+    | ToolProductCategoriesS_safety_hygiene_supplies[]
+    | ToolProductCategoriesS_packaging_materials[]
+    | ToolProductCategoriesS_supplies[]
+    | ToolProductCategoriesS_storage_facilities[]
+    // 設計・生産支援
+    | DesignProductCategoriesS_cad[]
+    | DesignProductCategoriesS_cam[]
+    | DesignProductCategoriesS_cae[]
+    | DesignProductCategoriesS_prototype[]
+    | DesignProductCategoriesS_contracted_services[]
+    // IT・ネットワーク
+    | ITProductCategoriesS_industrial_computers[]
+    | ITProductCategoriesS_embedded_systems[]
+    | ITProductCategoriesS_core_systems[]
+    | ITProductCategoriesS_production_management[]
+    | ITProductCategoriesS_information_systems[]
+    | ITProductCategoriesS_network[]
+    | ITProductCategoriesS_operating_systems[]
+    | ITProductCategoriesS_servers[]
+    | ITProductCategoriesS_security[]
+    // オフィス
+    | OfficeProductCategoriesS_office_automation_equipment[]
+    | OfficeProductCategoriesS_consumables[]
+    | OfficeProductCategoriesS_office_supplies[]
+    // 業務支援サービス
+    | BusinessSupportProductCategoriesS_consultants[]
+    | BusinessSupportProductCategoriesS_rental_lease[]
+    | BusinessSupportProductCategoriesS_human_resources_services[]
+    | BusinessSupportProductCategoriesS_services[]
+    // セミナー・スキルアップ
+    | SkillUpProductCategoriesS_for_engineer[]
+    | SkillUpProductCategoriesS_for_management[]
+    // その他
+    | OthersProductCategoriesS_others[];
+} = {
+  // 電子部品・モジュール
+  electronic_components: categoryS_electronicComponents_NameOnly,
+  connectors: categoryS_connectors_NameOnly,
+  terminal_blocks: categoryS_terminalBlocks_NameOnly,
+  led: categoryS_led_NameOnly,
+  fpd_touch_panel: categoryS_fpdTouchPanel_NameOnly,
+  small_motors: categoryS_smallMotors_NameOnly,
+  power_supplies: categoryS_powerSources_NameOnly,
+  batteries: categoryS_batteries_NameOnly,
+  semiconductors_ic: CategoryS_semiconductorsIc_NameOnly,
+  rfid_ic_tag: categoryS_rfid_ic_tag_NameOnly,
+  optical_components: categoryS_optical_components_NameOnly,
+  cables: categoryS_cables_NameOnly,
+  contracted_services_modules: categoryS_contracted_services_NameOnly,
+  // 機械部品
+  mechanical_elements: categoryS_mechanical_elements_NameOnly,
+  bearings: categoryS_bearings_NameOnly,
+  screws: categoryS_screws_NameOnly,
+  motors: categoryS_motors_NameOnly,
+  pumps: categoryS_pumps_NameOnly,
+  piping_components: categoryS_piping_components_NameOnly,
+  water_oil_hydraulic_pneumatic_equipment: categoryS_water_oil_hydraulic_pneumatic_equipment_NameOnly,
+  vacuum_equipment: categoryS_vacuum_equipment_NameOnly,
+  molds: categoryS_molds_NameOnly,
+  jigs: categoryS_jigs_NameOnly,
+  automotive_parts: categoryS_automotive_parts_NameOnly,
+  // 製造・加工機械
+  machine_tools: categoryS_machine_tools_NameOnly,
+  processing_machines: categoryS_processing_machines_NameOnly,
+  semiconductor_manufacturing_equipment: categoryS_semiconductor_manufacturing_equipment_NameOnly,
+  mounting_machines: categoryS_mounting_machines_NameOnly,
+  industrial_robots: categoryS_industrial_robots_NameOnly,
+  assembly_machines: categoryS_assembly_machines_NameOnly,
+  painting_machines: categoryS_painting_machines_NameOnly,
+  food_machines: categoryS_food_machines_NameOnly,
+  packaging_machines: categoryS_packaging_machines_NameOnly,
+  conveying_machines: categoryS_conveying_machines_NameOnly,
+  marking: categoryS_marking_NameOnly,
+  contracted_services_processing_machines: categoryS_contracted_services_processing_machinery_NameOnly,
+  // 科学・理化学機器
+  chemical_equipment: categoryS_chemical_equipment_NameOnly,
+  cleaning_machines: categoryS_cleaning_machines_NameOnly,
+  powder_equipment: categoryS_powder_equipment_NameOnly,
+  heating_equipment_furnaces: categoryS_heating_equipment_furnaces_NameOnly,
+  surface_treatment_equipment: categoryS_surface_treatment_equipment_NameOnly,
+  laboratory_equipment_supplies: categoryS_laboratory_equipment_supplies_NameOnly,
+  // 素材・材料
+  metal_materials: categoryS_metal_materials_NameOnly,
+  polymer_materials: categoryS_polymer_materials_NameOnly,
+  glass: categoryS_glass_NameOnly,
+  ceramics: categoryS_ceramics_NameOnly,
+  wood: categoryS_wood_NameOnly,
+  paper_pulps: categoryS_paper_pulps_NameOnly,
+  organic_natural_materials: categoryS_organic_natural_materials_NameOnly,
+  chemicals: categoryS_chemicals_NameOnly,
+  // 画像処理
+  distance_measuring_machine: categoryS_distance_measuring_machine_NameOnly,
+  weight_measuring_machine: categoryS_weight_measuring_machine_NameOnly,
+  electronic_measuring_machine: categoryS_electronic_measuring_machine_NameOnly,
+  temperature_humidity_machine: categoryS_temperature_humidity_machine_NameOnly,
+  electrical_machine: categoryS_electrical_machine_NameOnly,
+  coordinate_measuring_machine: categoryS_coordinate_measuring_machine_NameOnly,
+  other_measuring_machine: categoryS_other_measuring_machine_NameOnly,
+  testing_machine: categoryS_testing_machine_NameOnly,
+  inspection_machine: categoryS_inspection_machine_NameOnly,
+  microscopes: categoryS_microscopes_NameOnly,
+  recorders_loggers: categoryS_recorders_loggers_NameOnly,
+  analytical_machine: categoryS_analytical_machine_NameOnly,
+  environmental_analysis_machine: categoryS_environmental_analysis_machine_NameOnly,
+  contracted_services_analysis: categoryS_contracted_services_analysis_NameOnly,
+  // 画像処理
+  cameras: categoryS_cameras_NameOnly,
+  lenses: categoryS_lenses_NameOnly,
+  light_sources_lighting: categoryS_light_sources_lighting_NameOnly,
+  image_processing: categoryS_image_processing_NameOnly,
+  security_surveillance_systems: categoryS_security_surveillance_systems_NameOnly,
+  barcode_readers: categoryS_barcode_readers_NameOnly,
+  // 制御・電機機器
+  process_control_equipment: categoryS_process_control_equipment_NameOnly,
+  fa_equipment: categoryS_fa_equipment_NameOnly,
+  safety_equipment: categoryS_safety_equipment_NameOnly,
+  environmental_equipment: categoryS_environmental_equipment_NameOnly,
+  filters: categoryS_filters_NameOnly,
+  clean_rooms: categoryS_clean_rooms_NameOnly,
+  lighting: categoryS_lighting_NameOnly,
+  air_conditioning_equipment: categoryS_air_conditioning_equipment_NameOnly,
+  water_treatment_equipment: categoryS_water_treatment_equipment_NameOnly,
+  static_electricity_measures: categoryS_static_electricity_measures_NameOnly,
+  energy_equipment: categoryS_energy_equipment_NameOnly,
+  // 工具・消耗品・備品
+  cutting_tools: categoryS_cutting_tools_NameOnly,
+  abrasives: categoryS_abrasives_NameOnly,
+  hand_tools: categoryS_hand_tools_NameOnly,
+  power_pneumatic_tools: categoryS_power_pneumatic_tools_NameOnly,
+  consumables_tools: categoryS_consumables_NameOnly,
+  cleaning_tools: categoryS_cleaning_tools_NameOnly,
+  safety_hygiene_supplies: categoryS_safety_hygiene_supplies_NameOnly,
+  packaging_materials: categoryS_packaging_materials_NameOnly,
+  supplies_tools: categoryS_supplies_NameOnly,
+  storage_facilities: categoryS_storage_facilities_NameOnly,
+  // 設計・生産支援
+  cad: categoryS_cad_NameOnly,
+  cam: categoryS_cam_NameOnly,
+  cae: categoryS_cae_NameOnly,
+  prototype: categoryS_prototype_NameOnly,
+  contracted_services_design: categoryS_contracted_services_design_NameOnly,
+  // IT・ネットワーク
+  industrial_computers: categoryS_industrial_computers_NameOnly,
+  embedded_systems: categoryS_embedded_systems_NameOnly,
+  core_systems: categoryS_core_systems_NameOnly,
+  production_management: categoryS_production_management_NameOnly,
+  information_systems: categoryS_information_systems_NameOnly,
+  network: categoryS_network_NameOnly,
+  operating_systems: categoryS_operating_systems_NameOnly,
+  servers: categoryS_servers_NameOnly,
+  security: categoryS_security_NameOnly,
+  // オフィス
+  office_automation_equipment: categoryS_office_automation_equipment_NameOnly,
+  consumables_office: categoryS_consumables_IT_NameOnly,
+  supplies_office: categoryS_supplies_IT_NameOnly,
+  // 業務支援サービス
+  consultants: categoryS_consultants_NameOnly,
+  rental_lease: categoryS_rental_lease_NameOnly,
+  human_resources_services: categoryS_human_resources_services_NameOnly,
+  services: categoryS_services_NameOnly,
+  // セミナー・スキルアップ
+  for_engineer: categoryS_for_engineer_NameOnly,
+  for_management: categoryS_for_management_NameOnly,
+  // その他
+  others_medium: categoryS_others_NameOnly,
+};
+
+// 🌠全ての中分類のオプション名から小分類の選択肢を取得するMap(idとnameのオブジェクト)
+export const productCategoryMediumToOptionsSmallMap_All_obj: {
+  [K in ProductCategoriesMedium]: { id: number; name: ProductCategoriesSmall }[];
+} = {
+  // 電子部品・モジュール
+  electronic_components: categoryS_electronicComponents,
+  connectors: categoryS_connectors,
+  terminal_blocks: categoryS_terminalBlocks,
+  led: categoryS_led,
+  fpd_touch_panel: categoryS_fpdTouchPanel,
+  small_motors: categoryS_smallMotors,
+  power_supplies: categoryS_powerSources,
+  batteries: categoryS_batteries,
+  semiconductors_ic: categoryS_semiconductorsIc,
+  rfid_ic_tag: categoryS_rfid_ic_tag,
+  optical_components: categoryS_optical_components,
+  cables: categoryS_cables,
+  contracted_services_modules: categoryS_contracted_services,
+  // 機械部品
+  mechanical_elements: categoryS_mechanical_elements,
+  bearings: categoryS_bearings,
+  screws: categoryS_screws,
+  motors: categoryS_motors,
+  pumps: categoryS_pumps,
+  piping_components: categoryS_piping_components,
+  water_oil_hydraulic_pneumatic_equipment: categoryS_water_oil_hydraulic_pneumatic_equipment,
+  vacuum_equipment: categoryS_vacuum_equipment,
+  molds: categoryS_molds,
+  jigs: categoryS_jigs,
+  automotive_parts: categoryS_automotive_parts,
+  // 製造・加工機械
+  machine_tools: categoryS_machine_tools,
+  processing_machines: categoryS_processing_machines,
+  semiconductor_manufacturing_equipment: categoryS_semiconductor_manufacturing_equipment,
+  mounting_machines: categoryS_mounting_machines,
+  industrial_robots: categoryS_industrial_robots,
+  assembly_machines: categoryS_assembly_machines,
+  painting_machines: categoryS_painting_machines,
+  food_machines: categoryS_food_machines,
+  packaging_machines: categoryS_packaging_machines,
+  conveying_machines: categoryS_conveying_machines,
+  marking: categoryS_marking,
+  contracted_services_processing_machines: categoryS_contracted_services_processing_machinery,
+  // 科学・理化学機器
+  chemical_equipment: categoryS_chemical_equipment,
+  cleaning_machines: categoryS_cleaning_machines,
+  powder_equipment: categoryS_powder_equipment,
+  heating_equipment_furnaces: categoryS_heating_equipment_furnaces,
+  surface_treatment_equipment: categoryS_surface_treatment_equipment,
+  laboratory_equipment_supplies: categoryS_laboratory_equipment_supplies,
+  // 素材・材料
+  metal_materials: categoryS_metal_materials,
+  polymer_materials: categoryS_polymer_materials,
+  glass: categoryS_glass,
+  ceramics: categoryS_ceramics,
+  wood: categoryS_wood,
+  paper_pulps: categoryS_paper_pulps,
+  organic_natural_materials: categoryS_organic_natural_materials,
+  chemicals: categoryS_chemicals,
+  // 画像処理
+  distance_measuring_machine: categoryS_distance_measuring_machine,
+  weight_measuring_machine: categoryS_weight_measuring_machine,
+  electronic_measuring_machine: categoryS_electronic_measuring_machine,
+  temperature_humidity_machine: categoryS_temperature_humidity_machine,
+  electrical_machine: categoryS_electrical_machine,
+  coordinate_measuring_machine: categoryS_coordinate_measuring_machine,
+  other_measuring_machine: categoryS_other_measuring_machine,
+  testing_machine: categoryS_testing_machine,
+  inspection_machine: categoryS_inspection_machine,
+  microscopes: categoryS_microscopes,
+  recorders_loggers: categoryS_recorders_loggers,
+  analytical_machine: categoryS_analytical_machine,
+  environmental_analysis_machine: categoryS_environmental_analysis_machine,
+  contracted_services_analysis: categoryS_contracted_services_analysis,
+  // 画像処理
+  cameras: categoryS_cameras,
+  lenses: categoryS_lenses,
+  light_sources_lighting: categoryS_light_sources_lighting,
+  image_processing: categoryS_image_processing,
+  security_surveillance_systems: categoryS_security_surveillance_systems,
+  barcode_readers: categoryS_barcode_readers,
+  // 制御・電機機器
+  process_control_equipment: categoryS_process_control_equipment,
+  fa_equipment: categoryS_fa_equipment,
+  safety_equipment: categoryS_safety_equipment,
+  environmental_equipment: categoryS_environmental_equipment,
+  filters: categoryS_filters,
+  clean_rooms: categoryS_clean_rooms,
+  lighting: categoryS_lighting,
+  air_conditioning_equipment: categoryS_air_conditioning_equipment,
+  water_treatment_equipment: categoryS_water_treatment_equipment,
+  static_electricity_measures: categoryS_static_electricity_measures,
+  energy_equipment: categoryS_energy_equipment,
+  // 工具・消耗品・備品
+  cutting_tools: categoryS_cutting_tools,
+  abrasives: categoryS_abrasives,
+  hand_tools: categoryS_hand_tools,
+  power_pneumatic_tools: categoryS_power_pneumatic_tools,
+  consumables_tools: categoryS_consumables,
+  cleaning_tools: categoryS_cleaning_tools,
+  safety_hygiene_supplies: categoryS_safety_hygiene_supplies,
+  packaging_materials: categoryS_packaging_materials,
+  supplies_tools: categoryS_supplies,
+  storage_facilities: categoryS_storage_facilities,
+  // 設計・生産支援
+  cad: categoryS_cad,
+  cam: categoryS_cam,
+  cae: categoryS_cae,
+  prototype: categoryS_prototype,
+  contracted_services_design: categoryS_contracted_services_design,
+  // IT・ネットワーク
+  industrial_computers: categoryS_industrial_computers,
+  embedded_systems: categoryS_embedded_systems,
+  core_systems: categoryS_core_systems,
+  production_management: categoryS_production_management,
+  information_systems: categoryS_information_systems,
+  network: categoryS_network,
+  operating_systems: categoryS_operating_systems,
+  servers: categoryS_servers,
+  security: categoryS_security,
+  // オフィス
+  office_automation_equipment: categoryS_office_automation_equipment,
+  consumables_office: categoryS_consumables_IT,
+  supplies_office: categoryS_supplies_IT,
+  // 業務支援サービス
+  consultants: categoryS_consultants,
+  rental_lease: categoryS_rental_lease,
+  human_resources_services: categoryS_human_resources_services,
+  services: categoryS_services,
+  // セミナー・スキルアップ
+  for_engineer: categoryS_for_engineer,
+  for_management: categoryS_for_management,
+  // その他
+  others_medium: categoryS_others,
+};
+
+// 🌠選択中の中分類のオプション名から小分類のマッピングオブジェクトを取得するMap
+export const productCategoryMediumToMappingSmallMap: {
+  [K in ProductCategoriesMedium]:
+    | {
+        [K in ProductCategoriesSmall | string]: {
+          [key: string]: string;
+        };
+      }; // 電子部品
+} = {
+  // 電子部品・モジュール
+  electronic_components: mappingCategoryS_ElectronicComponents,
+  connectors: mappingCategoryS_Connectors,
+  terminal_blocks: mappingCategoryS_TerminalBlocks,
+  led: mappingCategoryS_Led,
+  fpd_touch_panel: mappingCategoryS_FpdTouchPanel,
+  small_motors: mappingCategoryS_SmallMotors,
+  power_supplies: mappingCategoryS_PowerSources,
+  batteries: mappingCategoryS_Batteries,
+  semiconductors_ic: mappingCategoryS_SemiconductorsIc,
+  rfid_ic_tag: mappingCategoryS_rfid_ic_tag,
+  optical_components: mappingCategoryS_optical_components,
+  cables: mappingCategoryS_cables,
+  contracted_services_modules: mappingCategoryS_contracted_services,
+  // 機械部品
+  mechanical_elements: mappingCategoryS_mechanical_elements,
+  bearings: mappingCategoryS_bearings,
+  screws: mappingCategoryS_screws,
+  motors: mappingCategoryS_motors,
+  pumps: mappingCategoryS_pumps,
+  piping_components: mappingCategoryS_piping_components,
+  water_oil_hydraulic_pneumatic_equipment: mappingCategoryS_water_oil_hydraulic_pneumatic_equipment,
+  vacuum_equipment: mappingCategoryS_vacuum_equipment,
+  molds: mappingCategoryS_molds,
+  jigs: mappingCategoryS_jigs,
+  automotive_parts: mappingCategoryS_automotive_parts,
+  // 製造・加工機械
+  machine_tools: mappingCategoryS_machine_tools,
+  processing_machines: mappingCategoryS_processing_machines,
+  semiconductor_manufacturing_equipment: mappingCategoryS_semiconductor_manufacturing_equipment,
+  mounting_machines: mappingCategoryS_mounting_machines,
+  industrial_robots: mappingCategoryS_industrial_robots,
+  assembly_machines: mappingCategoryS_assembly_machines,
+  painting_machines: mappingCategoryS_painting_machines,
+  food_machines: mappingCategoryS_food_machines,
+  packaging_machines: mappingCategoryS_packaging_machines,
+  conveying_machines: mappingCategoryS_conveying_machines,
+  marking: mappingCategoryS_marking,
+  contracted_services_processing_machines: mappingCategoryS_contracted_services_processing_machinery,
+  // 科学・理化学機器
+  chemical_equipment: mappingCategoryS_chemical_equipment,
+  cleaning_machines: mappingCategoryS_cleaning_machines,
+  powder_equipment: mappingCategoryS_powder_equipment,
+  heating_equipment_furnaces: mappingCategoryS_heating_equipment_furnaces,
+  surface_treatment_equipment: mappingCategoryS_surface_treatment_equipment,
+  laboratory_equipment_supplies: mappingCategoryS_laboratory_equipment_supplies,
+  // 素材・材料
+  metal_materials: mappingCategoryS_metal_materials,
+  polymer_materials: mappingCategoryS_polymer_materials,
+  glass: mappingCategoryS_glass,
+  ceramics: mappingCategoryS_ceramics,
+  wood: mappingCategoryS_wood,
+  paper_pulps: mappingCategoryS_paper_pulps,
+  organic_natural_materials: mappingCategoryS_organic_natural_materials,
+  chemicals: mappingCategoryS_chemicals,
+  // 画像処理
+  distance_measuring_machine: mappingCategoryS_distance_measuring_machine,
+  weight_measuring_machine: mappingCategoryS_weight_measuring_machine,
+  electronic_measuring_machine: mappingCategoryS_electronic_measuring_machine,
+  temperature_humidity_machine: mappingCategoryS_temperature_humidity_machine,
+  electrical_machine: mappingCategoryS_electrical_machine,
+  coordinate_measuring_machine: mappingCategoryS_coordinate_measuring_machine,
+  other_measuring_machine: mappingCategoryS_other_measuring_machine,
+  testing_machine: mappingCategoryS_testing_machine,
+  inspection_machine: mappingCategoryS_inspection_machine,
+  microscopes: mappingCategoryS_microscopes,
+  recorders_loggers: mappingCategoryS_recorders_loggers,
+  analytical_machine: mappingCategoryS_analytical_machine,
+  environmental_analysis_machine: mappingCategoryS_environmental_analysis_machine,
+  contracted_services_analysis: mappingCategoryS_contracted_services_analysis,
+  // 画像処理
+  cameras: mappingCategoryS_cameras,
+  lenses: mappingCategoryS_lenses,
+  light_sources_lighting: mappingCategoryS_light_sources_lighting,
+  image_processing: mappingCategoryS_image_processing,
+  security_surveillance_systems: mappingCategoryS_security_surveillance_systems,
+  barcode_readers: mappingCategoryS_barcode_readers,
+  // 制御・電機機器
+  process_control_equipment: mappingCategoryS_process_control_equipment,
+  fa_equipment: mappingCategoryS_fa_equipment,
+  safety_equipment: mappingCategoryS_safety_equipment,
+  environmental_equipment: mappingCategoryS_environmental_equipment,
+  filters: mappingCategoryS_filters,
+  clean_rooms: mappingCategoryS_clean_rooms,
+  lighting: mappingCategoryS_lighting,
+  air_conditioning_equipment: mappingCategoryS_air_conditioning_equipment,
+  water_treatment_equipment: mappingCategoryS_water_treatment_equipment,
+  static_electricity_measures: mappingCategoryS_static_electricity_measures,
+  energy_equipment: mappingCategoryS_energy_equipment,
+  // 工具・消耗品・備品
+  cutting_tools: mappingCategoryS_cutting_tools,
+  abrasives: mappingCategoryS_abrasives,
+  hand_tools: mappingCategoryS_hand_tools,
+  power_pneumatic_tools: mappingCategoryS_power_pneumatic_tools,
+  consumables_tools: mappingCategoryS_consumables,
+  cleaning_tools: mappingCategoryS_cleaning_tools,
+  safety_hygiene_supplies: mappingCategoryS_safety_hygiene_supplies,
+  packaging_materials: mappingCategoryS_packaging_materials,
+  supplies_tools: mappingCategoryS_supplies,
+  storage_facilities: mappingCategoryS_storage_facilities,
+  // 設計・生産支援
+  cad: mappingCategoryS_cad,
+  cam: mappingCategoryS_cam,
+  cae: mappingCategoryS_cae,
+  prototype: mappingCategoryS_prototype,
+  contracted_services_design: mappingCategoryS_contracted_services_design,
+  // IT・ネットワーク
+  industrial_computers: mappingCategoryS_industrial_computers,
+  embedded_systems: mappingCategoryS_embedded_systems,
+  core_systems: mappingCategoryS_core_systems,
+  production_management: mappingCategoryS_production_management,
+  information_systems: mappingCategoryS_information_systems,
+  network: mappingCategoryS_network,
+  operating_systems: mappingCategoryS_operating_systems,
+  servers: mappingCategoryS_servers,
+  security: mappingCategoryS_security,
+  // オフィス
+  office_automation_equipment: mappingCategoryS_office_automation_equipment,
+  consumables_office: mappingCategoryS_consumables_IT,
+  supplies_office: mappingCategoryS_supplies_IT,
+  // 業務支援サービス
+  consultants: mappingCategoryS_consultants,
+  rental_lease: mappingCategoryS_rental_lease,
+  human_resources_services: mappingCategoryS_human_resources_services,
+  services: mappingCategoryS_services,
+  // セミナー・スキルアップ
+  for_engineer: mappingCategoryS_for_engineer,
+  for_management: mappingCategoryS_for_management,
+  // その他
+  others_medium: mappingCategoryS_others,
+};
+
+// // 🌠全ての中分類のオプション名から小分類の選択肢を取得するMap
+// export const productCategoryMediumToOptionsSmallMap_All: {
+//   [K in
+//     | ProductCategoriesMediumModule
+//     | ProductCategoriesMediumMachine
+//     | ProductCategoriesMediumProcessingMachinery
+//     | ProductCategoriesMediumScience
+//     | ProductCategoriesMediumMaterial
+//     | ProductCategoriesMediumAnalysis
+//     | ProductCategoriesMediumImageProcessing
+//     | ProductCategoriesMediumControlEquipment
+//     | ProductCategoriesMediumTool
+//     | ProductCategoriesMediumDesign
+//     | ProductCategoriesMediumIT
+//     | ProductCategoriesMediumOffice
+//     | ProductCategoriesMediumBusinessSupport
+//     | ProductCategoriesMediumSkillUp
+//     | ProductCategoriesMediumOthers]:
+//     | ModuleProductCategoriesSElectronicComponents[] // 電子部品
+//     | ModuleProductCategoriesSConnectors[]
+//     | ModuleProductCategoriesSTerminalBlocks[]
+//     | ModuleProductCategoriesSLed[]
+//     | ModuleProductCategoriesSFpdTouchPanel[]
+//     | ModuleProductCategoriesSSmallMotors[]
+//     | ModuleProductCategoriesSPowerSources[]
+//     | ModuleProductCategoriesSBatteries[]
+//     | ModuleProductCategoriesSSemiconductorsIc[]
+//     | ModuleProductCategoriesS_rfid_ic_tag[]
+//     | ModuleProductCategoriesS_optical_components[]
+//     | ModuleProductCategoriesS_cables[]
+//     | ModuleProductCategoriesS_contracted_services[]
+//     // 機械部品
+//     | MachineProductCategoriesS_mechanical_elements[]
+//     | MachineProductCategoriesS_bearings[]
+//     | MachineProductCategoriesS_screws[]
+//     | MachineProductCategoriesS_motors[]
+//     | MachineProductCategoriesS_pumps[]
+//     | MachineProductCategoriesS_piping_components[]
+//     | MachineProductCategoriesS_water_oil_hydraulic_pneumatic_equipment[]
+//     | MachineProductCategoriesS_vacuum_equipment[]
+//     | MachineProductCategoriesS_molds[]
+//     | MachineProductCategoriesS_jigs[]
+//     | MachineProductCategoriesS_automotive_parts[]
+//     // 製造・加工機械
+//     | ProcessingMachineryProductCategoriesS_machine_tools[]
+//     | ProcessingMachineryProductCategoriesS_processing_machines[]
+//     | ProcessingMachineryProductCategoriesS_semiconductor_manufacturing_equipment[]
+//     | ProcessingMachineryProductCategoriesS_mounting_machines[]
+//     | ProcessingMachineryProductCategoriesS_industrial_robots[]
+//     | ProcessingMachineryProductCategoriesS_assembly_machines[]
+//     | ProcessingMachineryProductCategoriesS_painting_machines[]
+//     | ProcessingMachineryProductCategoriesS_food_machines[]
+//     | ProcessingMachineryProductCategoriesS_packaging_machines[]
+//     | ProcessingMachineryProductCategoriesS_conveying_machines[]
+//     | ProcessingMachineryProductCategoriesS_marking[]
+//     | ProcessingMachineryProductCategoriesS_contracted_services[]
+//     // 科学・理化学機器
+//     | ProcessingMachineryProductCategoriesS_chemical_equipment[]
+//     | ProcessingMachineryProductCategoriesS_cleaning_machines[]
+//     | ProcessingMachineryProductCategoriesS_powder_equipment[]
+//     | ProcessingMachineryProductCategoriesS_heating_equipment_furnaces[]
+//     | ProcessingMachineryProductCategoriesS_surface_treatment_equipment[]
+//     | ProcessingMachineryProductCategoriesS_laboratory_equipment_supplies[]
+//     // 素材・材料
+//     | MaterialProductCategoriesS_metal_materials[]
+//     | MaterialProductCategoriesS_polymer_materials[]
+//     | MaterialProductCategoriesS_glass[]
+//     | MaterialProductCategoriesS_ceramics[]
+//     | MaterialProductCategoriesS_wood[]
+//     | MaterialProductCategoriesS_paper_pulps[]
+//     | MaterialProductCategoriesS_organic_natural_materials[]
+//     | MaterialProductCategoriesS_chemicals[]
+//     // 測定・分析
+//     | AnalysisProductCategoriesS_distance_measuring_machine[]
+//     | AnalysisProductCategoriesS_weight_measuring_machine[]
+//     | AnalysisProductCategoriesS_electronic_measuring_machine[]
+//     | AnalysisProductCategoriesS_electronic_temperature_humidity_machine[]
+//     | AnalysisProductCategoriesS_electrical_machine[]
+//     | AnalysisProductCategoriesS_coordinate_measuring_machine[]
+//     | AnalysisProductCategoriesS_other_measuring_machine[]
+//     | AnalysisProductCategoriesS_testing_machine[]
+//     | AnalysisProductCategoriesS_inspection_machine[]
+//     | AnalysisProductCategoriesS_microscopes[]
+//     | AnalysisProductCategoriesS_recorders_loggers[]
+//     | AnalysisProductCategoriesS_analytical_machine[]
+//     | AnalysisProductCategoriesS_environmental_analysis_machine[]
+//     | AnalysisProductCategoriesS_contracted_services[]
+//     // 画像処理
+//     | ImageProcessingProductCategoriesS_cameras[]
+//     | ImageProcessingProductCategoriesS_lenses[]
+//     | ImageProcessingProductCategoriesS_light_sources_lighting[]
+//     | ImageProcessingProductCategoriesS_image_processing[]
+//     | ImageProcessingProductCategoriesS_security_surveillance_systems[]
+//     | ImageProcessingProductCategoriesS_barcode_readers[]
+//     // 制御・電機機器
+//     | ControlEquipmentProductCategoriesS_process_control_equipment[]
+//     | ControlEquipmentProductCategoriesS_fa_equipment[]
+//     | ControlEquipmentProductCategoriesS_safety_equipment[]
+//     | ControlEquipmentProductCategoriesS_environmental_equipment[]
+//     | ControlEquipmentProductCategoriesS_filters[]
+//     | ControlEquipmentProductCategoriesS_clean_rooms[]
+//     | ControlEquipmentProductCategoriesS_lighting[]
+//     | ControlEquipmentProductCategoriesS_air_conditioning_equipment[]
+//     | ControlEquipmentProductCategoriesS_water_treatment_equipment[]
+//     | ControlEquipmentProductCategoriesS_static_electricity_measures[]
+//     | ControlEquipmentProductCategoriesS_energy_equipment[]
+//     // 工具・消耗品・備品
+//     | ToolProductCategoriesS_cutting_tools[]
+//     | ToolProductCategoriesS_abrasives[]
+//     | ToolProductCategoriesS_hand_tools[]
+//     | ToolProductCategoriesS_power_pneumatic_tools[]
+//     | ToolProductCategoriesS_consumables[]
+//     | ToolProductCategoriesS_cleaning_tools[]
+//     | ToolProductCategoriesS_safety_hygiene_supplies[]
+//     | ToolProductCategoriesS_packaging_materials[]
+//     | ToolProductCategoriesS_supplies[]
+//     | ToolProductCategoriesS_storage_facilities[]
+//     // 設計・生産支援
+//     | DesignProductCategoriesS_cad[]
+//     | DesignProductCategoriesS_cam[]
+//     | DesignProductCategoriesS_cae[]
+//     | DesignProductCategoriesS_prototype[]
+//     | DesignProductCategoriesS_contracted_services[]
+//     // IT・ネットワーク
+//     | ITProductCategoriesS_industrial_computers[]
+//     | ITProductCategoriesS_embedded_systems[]
+//     | ITProductCategoriesS_core_systems[]
+//     | ITProductCategoriesS_production_management[]
+//     | ITProductCategoriesS_information_systems[]
+//     | ITProductCategoriesS_network[]
+//     | ITProductCategoriesS_operating_systems[]
+//     | ITProductCategoriesS_servers[]
+//     | ITProductCategoriesS_security[]
+//     // オフィス
+//     | OfficeProductCategoriesS_office_automation_equipment[]
+//     | OfficeProductCategoriesS_consumables[]
+//     | OfficeProductCategoriesS_office_supplies[]
+//     // 業務支援サービス
+//     | BusinessSupportProductCategoriesS_consultants[]
+//     | BusinessSupportProductCategoriesS_rental_lease[]
+//     | BusinessSupportProductCategoriesS_human_resources_services[]
+//     | BusinessSupportProductCategoriesS_services[]
+//     // セミナー・スキルアップ
+//     | SkillUpProductCategoriesS_for_engineer[]
+//     | SkillUpProductCategoriesS_for_management[]
+//     // その他
+//     | OthersProductCategoriesS_others[];
+// } = {
+//   // 電子部品・モジュール
+//   electronic_components: categoryS_electronicComponents_NameOnly,
+//   connectors: categoryS_connectors_NameOnly,
+//   terminal_blocks: categoryS_terminalBlocks_NameOnly,
+//   led: categoryS_led_NameOnly,
+//   fpd_touch_panel: categoryS_fpdTouchPanel_NameOnly,
+//   small_motors: categoryS_smallMotors_NameOnly,
+//   power_supplies: categoryS_powerSources_NameOnly,
+//   batteries: categoryS_batteries_NameOnly,
+//   semiconductors_ic: CategoryS_semiconductorsIc_NameOnly,
+//   rfid_ic_tag: categoryS_rfid_ic_tag_NameOnly,
+//   optical_components: categoryS_optical_components_NameOnly,
+//   cables: categoryS_cables_NameOnly,
+//   contracted_services_modules: categoryS_contracted_services_NameOnly,
+//   // 機械部品
+//   mechanical_elements: categoryS_mechanical_elements_NameOnly,
+//   bearings: categoryS_bearings_NameOnly,
+//   screws: categoryS_screws_NameOnly,
+//   motors: categoryS_motors_NameOnly,
+//   pumps: categoryS_pumps_NameOnly,
+//   piping_components: categoryS_piping_components_NameOnly,
+//   water_oil_hydraulic_pneumatic_equipment: categoryS_water_oil_hydraulic_pneumatic_equipment_NameOnly,
+//   vacuum_equipment: categoryS_vacuum_equipment_NameOnly,
+//   molds: categoryS_molds_NameOnly,
+//   jigs: categoryS_jigs_NameOnly,
+//   automotive_parts: categoryS_automotive_parts_NameOnly,
+//   // 製造・加工機械
+//   machine_tools: categoryS_machine_tools_NameOnly,
+//   processing_machines: categoryS_processing_machines_NameOnly,
+//   semiconductor_manufacturing_equipment: categoryS_semiconductor_manufacturing_equipment_NameOnly,
+//   mounting_machines: categoryS_mounting_machines_NameOnly,
+//   industrial_robots: categoryS_industrial_robots_NameOnly,
+//   assembly_machines: categoryS_assembly_machines_NameOnly,
+//   painting_machines: categoryS_painting_machines_NameOnly,
+//   food_machines: categoryS_food_machines_NameOnly,
+//   packaging_machines: categoryS_packaging_machines_NameOnly,
+//   conveying_machines: categoryS_conveying_machines_NameOnly,
+//   marking: categoryS_marking_NameOnly,
+//   contracted_services_processing_machines: categoryS_contracted_services_processing_machinery_NameOnly,
+//   // 科学・理化学機器
+//   chemical_equipment: categoryS_chemical_equipment_NameOnly,
+//   cleaning_machines: categoryS_cleaning_machines_NameOnly,
+//   powder_equipment: categoryS_powder_equipment_NameOnly,
+//   heating_equipment_furnaces: categoryS_heating_equipment_furnaces_NameOnly,
+//   surface_treatment_equipment: categoryS_surface_treatment_equipment_NameOnly,
+//   laboratory_equipment_supplies: categoryS_laboratory_equipment_supplies_NameOnly,
+//   // 素材・材料
+//   metal_materials: categoryS_metal_materials_NameOnly,
+//   polymer_materials: categoryS_polymer_materials_NameOnly,
+//   glass: categoryS_glass_NameOnly,
+//   ceramics: categoryS_ceramics_NameOnly,
+//   wood: categoryS_wood_NameOnly,
+//   paper_pulps: categoryS_paper_pulps_NameOnly,
+//   organic_natural_materials: categoryS_organic_natural_materials_NameOnly,
+//   chemicals: categoryS_chemicals_NameOnly,
+//   // 画像処理
+//   distance_measuring_machine: categoryS_distance_measuring_machine_NameOnly,
+//   weight_measuring_machine: categoryS_weight_measuring_machine_NameOnly,
+//   electronic_measuring_machine: categoryS_electronic_measuring_machine_NameOnly,
+//   temperature_humidity_machine: categoryS_temperature_humidity_machine_NameOnly,
+//   electrical_machine: categoryS_electrical_machine_NameOnly,
+//   coordinate_measuring_machine: categoryS_coordinate_measuring_machine_NameOnly,
+//   other_measuring_machine: categoryS_other_measuring_machine_NameOnly,
+//   testing_machine: categoryS_testing_machine_NameOnly,
+//   inspection_machine: categoryS_inspection_machine_NameOnly,
+//   microscopes: categoryS_microscopes_NameOnly,
+//   recorders_loggers: categoryS_recorders_loggers_NameOnly,
+//   analytical_machine: categoryS_analytical_machine_NameOnly,
+//   environmental_analysis_machine: categoryS_environmental_analysis_machine_NameOnly,
+//   contracted_services_analysis: categoryS_contracted_services_analysis_NameOnly,
+//   // 画像処理
+//   cameras: categoryS_cameras_NameOnly,
+//   lenses: categoryS_lenses_NameOnly,
+//   light_sources_lighting: categoryS_light_sources_lighting_NameOnly,
+//   image_processing: categoryS_image_processing_NameOnly,
+//   security_surveillance_systems: categoryS_security_surveillance_systems_NameOnly,
+//   barcode_readers: categoryS_barcode_readers_NameOnly,
+//   // 制御・電機機器
+//   process_control_equipment: categoryS_process_control_equipment_NameOnly,
+//   fa_equipment: categoryS_fa_equipment_NameOnly,
+//   safety_equipment: categoryS_safety_equipment_NameOnly,
+//   environmental_equipment: categoryS_environmental_equipment_NameOnly,
+//   filters: categoryS_filters_NameOnly,
+//   clean_rooms: categoryS_clean_rooms_NameOnly,
+//   lighting: categoryS_lighting_NameOnly,
+//   air_conditioning_equipment: categoryS_air_conditioning_equipment_NameOnly,
+//   water_treatment_equipment: categoryS_water_treatment_equipment_NameOnly,
+//   static_electricity_measures: categoryS_static_electricity_measures_NameOnly,
+//   energy_equipment: categoryS_energy_equipment_NameOnly,
+//   // 工具・消耗品・備品
+//   cutting_tools: categoryS_cutting_tools_NameOnly,
+//   abrasives: categoryS_abrasives_NameOnly,
+//   hand_tools: categoryS_hand_tools_NameOnly,
+//   power_pneumatic_tools: categoryS_power_pneumatic_tools_NameOnly,
+//   consumables_tools: categoryS_consumables_NameOnly,
+//   cleaning_tools: categoryS_cleaning_tools_NameOnly,
+//   safety_hygiene_supplies: categoryS_safety_hygiene_supplies_NameOnly,
+//   packaging_materials: categoryS_packaging_materials_NameOnly,
+//   supplies_tools: categoryS_supplies_NameOnly,
+//   storage_facilities: categoryS_storage_facilities_NameOnly,
+//   // 設計・生産支援
+//   cad: categoryS_cad_NameOnly,
+//   cam: categoryS_cam_NameOnly,
+//   cae: categoryS_cae_NameOnly,
+//   prototype: categoryS_prototype_NameOnly,
+//   contracted_services_design: categoryS_contracted_services_design_NameOnly,
+//   // IT・ネットワーク
+//   industrial_computers: categoryS_industrial_computers_NameOnly,
+//   embedded_systems: categoryS_embedded_systems_NameOnly,
+//   core_systems: categoryS_core_systems_NameOnly,
+//   production_management: categoryS_production_management_NameOnly,
+//   information_systems: categoryS_information_systems_NameOnly,
+//   network: categoryS_network_NameOnly,
+//   operating_systems: categoryS_operating_systems_NameOnly,
+//   servers: categoryS_servers_NameOnly,
+//   security: categoryS_security_NameOnly,
+//   // オフィス
+//   office_automation_equipment: categoryS_office_automation_equipment_NameOnly,
+//   consumables_office: categoryS_consumables_IT_NameOnly,
+//   supplies_office: categoryS_supplies_IT_NameOnly,
+//   // 業務支援サービス
+//   consultants: categoryS_consultants_NameOnly,
+//   rental_lease: categoryS_rental_lease_NameOnly,
+//   human_resources_services: categoryS_human_resources_services_NameOnly,
+//   services: categoryS_services_NameOnly,
+//   // セミナー・スキルアップ
+//   for_engineer: categoryS_for_engineer_NameOnly,
+//   for_management: categoryS_for_management_NameOnly,
+//   // その他
+//   others_medium: categoryS_others_NameOnly,
+// };

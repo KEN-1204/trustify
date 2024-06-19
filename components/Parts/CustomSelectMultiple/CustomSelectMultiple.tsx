@@ -18,7 +18,7 @@ type Props = {
   listItemPadding?: string;
   listItemWidth?: string;
   widthSelectBox?: string;
-  maxWidth?: number;
+  maxWidth?: number | string;
   maxHeight?: number;
   customClass?: string;
   modalPosition?: { x: number; y: number } | null;
@@ -59,8 +59,8 @@ export const CustomSelectMultiple = ({
     x?: number;
     y: number;
     displayX?: string;
-    maxWidth?: number;
-    minWidth?: number;
+    // maxWidth?: number;
+    // minWidth?: number;
     fadeType?: string;
     sectionMenuWidth?: number;
   } | null>(null);
@@ -249,7 +249,7 @@ export const CustomSelectMultiple = ({
           {
             ...(activeColor && { "--active-color-text": activeColor }),
             ...(widthSelectBox && { width: widthSelectBox }),
-            ...(maxWidth && { maxWidth: maxWidth }),
+            ...(maxWidth && { maxWidth: typeof maxWidth === "number" ? maxWidth : `${maxWidth}` }),
             ...(maxHeight && { maxHeight: maxHeight, minHeight: maxHeight }),
             ...(bgDark && { background: `var(--color-select-bg-deep)` }),
           } as CSSProperties
@@ -281,7 +281,9 @@ export const CustomSelectMultiple = ({
           // selectBoxのmaxWidthからarrow: 20, valueのmr: 9を引いた値がmaxWidth
           style={{
             fontSize: `12px`,
-            ...(maxWidth && { maxWidth: `calc(${maxWidth - 20 - 9})` }),
+            ...(maxWidth && {
+              maxWidth: typeof maxWidth === "number" ? `calc(${maxWidth - 20 - 9})` : `calc(${maxWidth} - 20 - 9)`,
+            }),
             // ...(isSelectedActiveColor && { color: activeColor ? activeColor : `rgb(72, 163, 248)` }),
             // ...(isSelectedActiveColor && { color: activeColor ? activeColor : `rgb(46 132 212)` }),
             ...(isSelectedActiveColor && { color: activeColor ? activeColor : `var(--color-hashtag)` }),
