@@ -125,6 +125,7 @@ const ContactFunctionHeaderMemo: FC = () => {
               if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenUpdateContactModal(true);
             }}
+            hoverColorGreen={true}
           />
           <RippleButton
             title={`活動_作成`}

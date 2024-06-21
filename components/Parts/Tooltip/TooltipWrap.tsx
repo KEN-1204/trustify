@@ -4,6 +4,7 @@ import styles from "./TooltipWrap.module.css";
 
 const TooltipWrapMemo = () => {
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const arrowRef = useRef<HTMLDivElement | null>(null);
   const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
 
@@ -46,6 +47,11 @@ const TooltipWrapMemo = () => {
 
         menuRef.current.style.width = `${tooltipWidth + addWidth}px`;
         menuRef.current.style.overflowWrap = "normal";
+        // ----------------- テスト -----------------
+        // 超えている場合は矢印を消去
+        if (arrowRef.current) arrowRef.current.style.opacity = "0";
+        if (arrowRef.current) arrowRef.current.style.display = "hidden";
+        // ----------------- テスト -----------------
       } else {
         // 画面右端を超えていないなら、画面左3分の2の位置よりも右の位置にある場合はnowrapにする
         if (adjustedLeft > viewportRightOneFifth) {
@@ -73,11 +79,20 @@ const TooltipWrapMemo = () => {
         adjustedLeft = 10; // 10pxの余白を残す
         // スタイルを更新
         menuRef.current.style.left = `${adjustedLeft}px`;
+        // ----------------- テスト -----------------
+        // 超えている場合は矢印を消去
+        if (arrowRef.current) arrowRef.current.style.opacity = "0";
+        if (arrowRef.current) arrowRef.current.style.display = "hidden";
+        // ----------------- テスト -----------------
       } else {
         // スタイルを更新
         adjustedLeft = adjustedLeft - tooltipHalfWidth;
         menuRef.current.style.left = `${adjustedLeft}px`;
       }
+
+      // ----------------- テスト -----------------
+      if (arrowRef.current) arrowRef.current.style.bottom = `${-4}px`;
+      // ----------------- テスト -----------------
 
       // console.log("✅leftPosition", leftPosition);
       // console.log("✅adjustedLeft", adjustedLeft);
@@ -122,7 +137,8 @@ const TooltipWrapMemo = () => {
             // left: `${`${hoveredItemPositionX}px`}`,
             // leftのスタイルはuseEffect内で動的に設定
             //   top: `${`${hoveredItemPositionY - hoveredItemHeight - 40}px`}`,
-            bottom: `${`${hoveredItemPositionYOver + 10}px`}`,
+            bottom: `${`${hoveredItemPositionYOver + 13}px`}`,
+            // bottom: `${`${hoveredItemPositionYOver + 10}px`}`,
           }}
           ref={menuRef}
         >
@@ -203,7 +219,10 @@ const TooltipWrapMemo = () => {
         }}
         ref={menuRef}
       >
-        <div className={`${styles.tooltip_over}`}>
+        <div
+          className={`${styles.tooltip_over}`}
+          style={{ ...(!!hoveredItemPosWrap?.maxWidth && { maxWidth: hoveredItemPosWrap.maxWidth }) }}
+        >
           <div
             className={`flex flex-col ${styles.dropdown_item} ${
               hoveredItemPosWrap.itemsPosition === "center" || !hoveredItemPosWrap.itemsPosition
@@ -225,7 +244,7 @@ const TooltipWrapMemo = () => {
             {!!hoveredItemPosWrap?.content4 ? <span>{hoveredItemPosWrap?.content4}</span> : ``}
           </div>
         </div>
-        {/* <div className={`${styles.tooltip_arrow_over}`}></div> */}
+        <div ref={arrowRef} className={`${styles.tooltip_arrow_over}`}></div>
       </div>
     );
   }

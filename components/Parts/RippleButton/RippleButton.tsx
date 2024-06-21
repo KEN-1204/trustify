@@ -23,6 +23,7 @@ type Props = {
   dataText3?: string;
   onMouseEnterHandler?: (e: React.MouseEvent<HTMLElement, MouseEvent>) => void;
   onMouseLeaveHandler?: () => void;
+  hoverColorGreen?: boolean;
 };
 
 const RippleButtonMemo: FC<Props> = ({
@@ -47,6 +48,7 @@ const RippleButtonMemo: FC<Props> = ({
   dataText3,
   onMouseEnterHandler,
   onMouseLeaveHandler,
+  hoverColorGreen = false,
 }) => {
   //   linear-gradient(90deg, #6616d0, #ac34e7)
 
@@ -82,7 +84,9 @@ const RippleButtonMemo: FC<Props> = ({
       <button
         // href="#"
         type={buttonType}
-        className={`${styles.button} transition-base03 max-h-[26px] truncate px-[10px] py-[2px] ${styles.bg} ${classText}`}
+        className={`${styles.button} ${
+          hoverColorGreen ? `${styles.hover_green}` : ``
+        } transition-base03 max-h-[26px] truncate px-[10px] py-[2px] ${styles.bg} ${classText}`}
         style={
           {
             fontSize: fontSize,

@@ -83,6 +83,7 @@ import {
   productCategoryMediumToOptionsSmallMap_seminars_skill_up,
   productCategoryMediumToOptionsSmallMap_tools_consumables_supplies,
 } from "@/utils/productCategoryS";
+import { formatAddress } from "@/utils/Helpers/formatStringHelpers/formatAddress";
 
 export const InsertNewClientCompanyModal = () => {
   const language = useStore((state) => state.language);
@@ -125,18 +126,43 @@ export const InsertNewClientCompanyModal = () => {
   // 建物名・部屋番号
   const [buildingName, setBuildingName] = useState("");
   //
+  // ----------------------- 🌟製品分類(大分類・中分類)関連🌟 -----------------------
   const [productCategoryL, setProductCategoryL] = useState("");
   const [productCategoryM, setProductCategoryM] = useState("");
   const [productCategoryS, setProductCategoryS] = useState("");
-  // product_categoriesテーブルに挿入する配列 タグ付け textで保持して最終的にMapオブジェクトで
-  // const [productCategoryLargeArray, setProductCategoryLargeArray] = useState<string[]>([]);
-  const [productCategoryLargeArray, setProductCategoryLargeArray] = useState<ProductCategoriesLarge[]>([]);
-  // const [productCategoryMediumArray, setProductCategoryMediumArray] = useState<string[]>([]);
-  const [productCategoryMediumArray, setProductCategoryMediumArray] = useState<ProductCategoriesMedium[]>([]);
-  // const [productCategorySmallArray, setProductCategorySmallArray] = useState<string[]>([]);
-  const [productCategorySmallArray, setProductCategorySmallArray] = useState<ProductCategoriesSmall[]>([]);
+  // 会社複製の場合は、大分類、中分類、小分類それぞれ配列に要素が存在すれば初期値をセット
+  // 大分類
+  const initialCategoryLargeArray = useMemo(() => {
+    if (!isDuplicateCompany || !selectedRowDataCompany) return [];
+    return !!selectedRowDataCompany.product_categories_large_array?.length
+      ? selectedRowDataCompany.product_categories_large_array
+      : [];
+  }, []);
+  // 中分類
+  const initialCategoryMediumArray = useMemo(() => {
+    if (!isDuplicateCompany || !selectedRowDataCompany) return [];
+    return !!selectedRowDataCompany.product_categories_medium_array?.length
+      ? selectedRowDataCompany.product_categories_medium_array
+      : [];
+  }, []);
+  // 小分類
+  const initialCategorySmallArray = useMemo(() => {
+    if (!isDuplicateCompany || !selectedRowDataCompany) return [];
+    return !!selectedRowDataCompany.product_categories_small_array?.length
+      ? selectedRowDataCompany.product_categories_small_array
+      : [];
+  }, []);
 
-  // ----------------------- 🌟製品分類(大分類・中分類)関連🌟 -----------------------
+  // 大分類
+  const [productCategoryLargeArray, setProductCategoryLargeArray] =
+    useState<ProductCategoriesLarge[]>(initialCategoryLargeArray);
+  // 中分類
+  const [productCategoryMediumArray, setProductCategoryMediumArray] =
+    useState<ProductCategoriesMedium[]>(initialCategoryMediumArray);
+  // 小分類
+  const [productCategorySmallArray, setProductCategorySmallArray] =
+    useState<ProductCategoriesSmall[]>(initialCategorySmallArray);
+
   // カスタムセレクトボックス用にnameのみで選択中のSetオブジェクトを作成
   // ---------------- 🔸大分類🔸 ----------------
   const selectedProductCategoryLargeSet = useMemo(() => {
@@ -310,8 +336,8 @@ export const InsertNewClientCompanyModal = () => {
   const [boardMember, setBoardMember] = useState("");
   const [numberOfEmployees, setNumberOfEmployees] = useState("");
 
-  const supabase = useSupabaseClient();
-  const { createClientCompanyMutation, createClientCompanyWithProductCategoriesMutation } = useMutateClientCompany();
+  // const supabase = useSupabaseClient();
+  const { createClientCompanyWithProductCategoriesMutation } = useMutateClientCompany();
 
   // // // ======================= 🌟市区町村のuseQuery🌟 =======================
   // const { data: citiesArray, isLoading: isLoadingCities } = useQueryCities(regionId ? Number(regionId) : null);
@@ -474,6 +500,8 @@ export const InsertNewClientCompanyModal = () => {
 
   const [isMounted, setIsMounted] = useState(false);
   // const queryClient = useQueryClient()
+
+  // ✅「会社_複製」の場合はstreetAddressとbuildingNameをセット
   useEffect(() => {
     if (!isDuplicateCompany) return setIsMounted(true);
     if (isMounted) return;
@@ -550,9 +578,16 @@ export const InsertNewClientCompanyModal = () => {
 
     setLoadingGlobalState(true);
 
-    // 住所
-    const _address = (regionName + cityName + (streetAddress ?? "") + " " + (buildingName ?? "")).trim();
+    // 🔸住所の前処理
+    const _address = (
+      formatAddress(regionName) +
+      formatAddress(cityName) +
+      (formatAddress(streetAddress) ?? "") +
+      " " +
+      (formatAddress(buildingName, true) ?? "")
+    ).trim();
 
+    // --------------------- 🔸製品分類関連の前処理 ---------------------
     // 製品分類をnameからidに変換して配列にまとめる
     // 大分類
     let productCategoryLargeIdsArray: number[] = [];
@@ -596,7 +631,7 @@ export const InsertNewClientCompanyModal = () => {
         .filter((id): id is number => id !== undefined && id !== null);
     }
 
-    // 大分類・中分類・小分類を全て１つの配列にまとめてINSERT
+    // 大分類・中分類・小分類を全て１つの配列にまとめてINSERT => INSERTは中間テーブルに会社idと製品分類idを割り当てるだけなので一括にまとめてOK
     const productCategoryAllIdsArray = [
       ...productCategoryLargeIdsArray,
       ...productCategoryMediumIdsArray,
@@ -616,6 +651,7 @@ export const InsertNewClientCompanyModal = () => {
       productCategorySmallIdsArray,
       productCategorySmallArray
     );
+    // --------------------- 🔸製品分類関連の前処理 ここまで ---------------------
 
     // if (true) {
     //   console.log("================================================================================");
@@ -628,7 +664,7 @@ export const InsertNewClientCompanyModal = () => {
     //   return;
     // }
 
-    // 新規作成するデータをオブジェクトにまとめる
+    // 🔸新規作成するデータをオブジェクトにまとめる
     const newClientCompany = {
       created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
       created_by_user_id: userProfileState?.id ? userProfileState.id : null,
@@ -798,12 +834,16 @@ export const InsertNewClientCompanyModal = () => {
       marginTop: marginTop,
       itemsPosition: itemsPosition,
       whiteSpace: whiteSpace,
+      containerHeight: modalPosition?.height ?? 0,
+      containerWidth: modalPosition?.width ?? 0,
+      containerTop: modalPosition?.y ?? 0,
+      containerLeft: modalPosition?.x ?? 0,
     });
   };
   // ============================================================================================
   // ================================ ツールチップを非表示 ================================
   const handleCloseTooltip = () => {
-    setHoveredItemPosModal(null);
+    if (hoveredItemPosModal) setHoveredItemPosModal(null);
   };
   // ============================================================================================
 
@@ -1040,8 +1080,8 @@ export const InsertNewClientCompanyModal = () => {
 
   const modalPosition = useMemo(() => {
     if (!modalContainerRef.current) return null;
-    const { x, y } = modalContainerRef.current.getBoundingClientRect();
-    return { x, y };
+    const { x, y, width, height } = modalContainerRef.current.getBoundingClientRect();
+    return { x, y, width, height };
   }, [modalContainerRef.current]);
 
   console.log(
@@ -1362,9 +1402,7 @@ export const InsertNewClientCompanyModal = () => {
                             whiteSpace: "nowrap",
                           });
                         }}
-                        onMouseLeave={() => {
-                          if (hoveredItemPosModal) handleCloseTooltip();
-                        }}
+                        onMouseLeave={handleCloseTooltip}
                         onClick={() => {
                           if (inputCountryRef.current) {
                             // フォーカス状態でリスト表示されている場合はフォーカスを切ってリストを削除
@@ -1486,10 +1524,7 @@ export const InsertNewClientCompanyModal = () => {
                               whiteSpace: "nowrap",
                             });
                           }}
-                          onMouseLeave={() => {
-                            // if (!isOpenDropdownMenuFilterProducts || hoveredItemPosModal) handleCloseTooltip();
-                            if (hoveredItemPosModal) handleCloseTooltip();
-                          }}
+                          onMouseLeave={handleCloseTooltip}
                           onClick={() => {
                             if (inputRegionRef.current) {
                               // フォーカス状態でリスト表示されている場合はフォーカスを切ってリストを削除
@@ -1996,6 +2031,18 @@ export const InsertNewClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: managingDirector,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                       value={managingDirector}
                       onChange={(e) => setManagingDirector(e.target.value)}
                       onBlur={() => setManagingDirector(toHalfWidthAndSpace(managingDirector.trim()))}
@@ -2019,6 +2066,18 @@ export const InsertNewClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: director,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                       value={director}
                       onChange={(e) => setDirector(e.target.value)}
                       onBlur={() => setDirector(toHalfWidthAndSpace(director.trim()))}
@@ -2046,6 +2105,18 @@ export const InsertNewClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: boardMember,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                       value={boardMember}
                       onChange={(e) => setBoardMember(e.target.value)}
                       onBlur={() => setBoardMember(toHalfWidthAndSpace(boardMember.trim()))}
@@ -2069,6 +2140,18 @@ export const InsertNewClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: auditor,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                       value={auditor}
                       onChange={(e) => setAuditor(e.target.value)}
                       onBlur={() => setAuditor(toHalfWidthAndSpace(auditor.trim()))}
@@ -2096,6 +2179,18 @@ export const InsertNewClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: manager,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                       value={manager}
                       onChange={(e) => setManager(e.target.value)}
                       onBlur={() => setManager(toHalfWidthAndSpace(manager.trim()))}
@@ -2119,6 +2214,18 @@ export const InsertNewClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: member,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                       value={member}
                       onChange={(e) => setMember(e.target.value)}
                       onBlur={() => setMember(toHalfWidthAndSpace(member.trim()))}
@@ -2399,7 +2506,7 @@ export const InsertNewClientCompanyModal = () => {
           <div className={`${styles.full_contents_wrapper} flex w-full`}>
             {/* --------- 左ラッパー --------- */}
             <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
-              {/* 製品分類(大分類) */}
+              {/* 製品分類(小分類) */}
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>

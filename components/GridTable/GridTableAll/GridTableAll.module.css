@@ -516,6 +516,14 @@
   background-color: var(--color-table-even-color-changed-bg);
 }
 
+.grid_row .grid_cell.hashtag {
+  font-size: 12px;
+  font-weight: 600;
+}
+.grid_row[aria-selected="false"] .grid_cell.hashtag {
+  color: var(--color-hashtag) !important;
+}
+
 .grid_column_header_all {
   color: var(--color-text);
   color: var(--color-text-title);

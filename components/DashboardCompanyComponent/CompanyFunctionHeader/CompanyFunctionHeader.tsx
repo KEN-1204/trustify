@@ -35,6 +35,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
     content3?: string | undefined | null;
     textLength?: string | undefined | null;
     marginTop?: number;
+    maxWidth?: number;
     itemsPosition?: string;
   };
 
@@ -48,6 +49,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
     marginTop = 0,
     // itemsPosition = "start",
     itemsPosition = "center",
+    maxWidth,
   }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
@@ -72,6 +74,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
       textLength: textLength ? textLength.length : 0,
       marginTop: marginTop,
       itemsPosition: "center",
+      maxWidth: maxWidth,
     });
   };
   // ツールチップを非表示
@@ -118,6 +121,7 @@ const CompanyFunctionHeaderMemo: FC = () => {
               marginTop: 48,
               // marginTop: 28,
               // marginTop: 9,
+              maxWidth: 660,
             })
           }
           onMouseLeaveHandler={() => {
@@ -164,23 +168,6 @@ const CompanyFunctionHeaderMemo: FC = () => {
             }}
           />
           <RippleButton
-            title={`会社_編集`}
-            classText={`select-none ${searchMode || !selectedRowDataCompany ? `cursor-not-allowed` : ``}`}
-            clickEventHandler={() => {
-              if (searchMode) return;
-              if (!selectedRowDataCompany) return alert("会社を選択してください");
-              if (
-                (selectedRowDataCompany.created_by_company_id === null &&
-                  selectedRowDataCompany.created_by_user_id !== userProfileState?.id) ||
-                selectedRowDataCompany.created_by_company_id !== userProfileState?.company_id
-              )
-                return alert("自社で作成した会社のみ編集可能です");
-              // console.log("会社編集 クリック");
-              if (loadingGlobalState) setLoadingGlobalState(false);
-              setIsOpenUpdateClientCompanyModal(true);
-            }}
-          />
-          <RippleButton
             title={`会社_複製`}
             classText={`select-none ${searchMode || !selectedRowDataCompany ? `cursor-not-allowed` : ``}`}
             clickEventHandler={() => {
@@ -212,6 +199,24 @@ const CompanyFunctionHeaderMemo: FC = () => {
             onMouseLeaveHandler={() => {
               if (hoveredItemPos) handleCloseTooltip();
             }}
+          />
+          <RippleButton
+            title={`会社_編集`}
+            classText={`select-none ${searchMode || !selectedRowDataCompany ? `cursor-not-allowed` : ``}`}
+            clickEventHandler={() => {
+              if (searchMode) return;
+              if (!selectedRowDataCompany) return alert("会社を選択してください");
+              if (
+                (selectedRowDataCompany.created_by_company_id === null &&
+                  selectedRowDataCompany.created_by_user_id !== userProfileState?.id) ||
+                selectedRowDataCompany.created_by_company_id !== userProfileState?.company_id
+              )
+                return alert("自社で作成した会社のみ編集可能です");
+              // console.log("会社編集 クリック");
+              if (loadingGlobalState) setLoadingGlobalState(false);
+              setIsOpenUpdateClientCompanyModal(true);
+            }}
+            hoverColorGreen={true}
           />
           <RippleButton
             title={`担当者_作成`}

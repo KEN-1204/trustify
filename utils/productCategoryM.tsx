@@ -1096,6 +1096,59 @@ export const mappingOthersCategoryM: { [key: ProductCategoriesMediumOthers | str
   { id: 14, name: "seminars_skill_up" },
   { id: 15, name: "others" },
  */
+
+// 中分類の全てのid 16 ~ 130までの115個 今後増える場合はスプレッドで後続に追加
+export const productCategoriesMediumIdsSet = new Set(
+  Array(115)
+    .fill(null)
+    .map((_, index) => 16 + index)
+);
+
+// 中分類の全てのnameのSetオブジェクト
+export const productCategoriesMediumNameOnlySet: Set<ProductCategoriesMedium> = new Set([
+  ...moduleCategoryMNameOnly,
+  ...machinePartsCategoryMNameOnly,
+  ...processingMachineryCategoryMNameOnly,
+  ...scienceCategoryMNameOnly,
+  ...materialCategoryMNameOnly,
+  ...analysisCategoryMNameOnly,
+  ...imageProcessingCategoryMNameOnly,
+  ...controlEquipmentCategoryMNameOnly,
+  ...toolCategoryMNameOnly,
+  ...designCategoryMNameOnly,
+  ...ITCategoryMNameOnly,
+  ...OfficeCategoryMNameOnly,
+  ...businessSupportCategoryMNameOnly,
+  ...skillUpCategoryMNameOnly,
+  ...othersCategoryMNameOnly,
+]);
+
+// 中分類の全てのマッピングオブジェクト
+export const mappingProductCategoriesMedium: { [K in ProductCategoriesMedium | string]: { [key: string]: string } } = {
+  ...mappingModuleCategoryM,
+  ...mappingMachinePartsCategoryM,
+  ...mappingProcessingMachineryCategoryM,
+  ...mappingScienceCategoryM,
+  ...mappingMaterialCategoryM,
+  ...mappingAnalysisCategoryM,
+  ...mappingImageProcessingCategoryM,
+  ...mappingControlEquipmentCategoryM,
+  ...mappingToolCategoryM,
+  ...mappingDesignCategoryM,
+  ...mappingITCategoryM,
+  ...mappingOfficeCategoryM,
+  ...mappingBusinessSupportCategoryM,
+  ...mappingSkillUpCategoryM,
+  ...mappingOthersCategoryM,
+};
+// 中分類の全てのマッピングオブジェクトをMapオブジェクトで使用する場合
+export const productCategoriesMediumMap: Map<
+  ProductCategoriesMedium | string,
+  {
+    [key: string]: string;
+  }
+> = new Map(Object.entries(mappingProductCategoriesMedium));
+
 // 大分類に紐づくそれぞれのオプションMap
 export const productCategoryLargeToOptionsMediumMap: {
   [K in ProductCategoriesLarge]:

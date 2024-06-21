@@ -15,6 +15,8 @@ import { Cities, hoveredItemPosModal } from "@/types";
 import { useQueryCities } from "@/hooks/useQueryCities";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
+import { mappingRegionsJp } from "@/utils/selectOptions";
+import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 
 type TooltipParams = {
   e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -66,8 +68,21 @@ const InputBoxCityMemo = ({
   const resultCityRefs = useRef<HTMLDivElement | null>(null);
   const [suggestedCityIdNameArray, setSuggestedCityIdNameArray] = useState<Cities[]>([]);
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
-  const [prevRegionName, setPrevRegionName] = useState("");
-  const [prevRegionId, setPrevRegionId] = useState("");
+  if (!selectedRowDataCompany) {
+    alert("会社データが見つかりませんでした。 IBC01");
+    return;
+  }
+  const initialRegionName =
+    selectedRowDataCompany.country_id === 153 && selectedRowDataCompany.region_id
+      ? mappingRegionsJp[selectedRowDataCompany.region_id][language]
+      : "";
+  const initialRegionId = isValidNumber(selectedRowDataCompany.region_id)
+    ? selectedRowDataCompany.region_id!.toString()
+    : "";
+  const [prevRegionName, setPrevRegionName] = useState(initialRegionName);
+  const [prevRegionId, setPrevRegionId] = useState(initialRegionId);
+  // const [prevRegionName, setPrevRegionName] = useState("");
+  // const [prevRegionId, setPrevRegionId] = useState("");
 
   // ======================= 🌟市区町村のuseQuery🌟 =======================
   const { data: citiesArray, isLoading: isLoadingCities } = useQueryCities(regionId ? Number(regionId) : null);
@@ -80,7 +95,21 @@ const InputBoxCityMemo = ({
     const _cityObj = citiesArray?.find((obj) => obj.city_id === selectedRowDataCompany.city_id);
     const _cityName = language === "ja" ? _cityObj?.city_name_ja : _cityObj?.city_name_en;
     setCityName(_cityName ?? "");
-    setCityId(_cityObj?.city_id ? _cityObj?.city_id.toString() : "");
+    const initialCityId = _cityObj?.city_id ? _cityObj?.city_id.toString() : "";
+    setCityId(initialCityId);
+    console.log(
+      "-------------------InputBoxCity初回マウントuseEffect✅✅✅✅ ",
+      "_cityName",
+      _cityName,
+      "initialCityId",
+      initialCityId,
+      "_cityObj",
+      _cityObj,
+      "selectedRowDataCompany.city_id",
+      selectedRowDataCompany.city_id,
+      "citiesArray",
+      citiesArray
+    );
   }, []);
 
   // regionIdが変更された時にsuggestedを空に
@@ -96,6 +125,15 @@ const InputBoxCityMemo = ({
   // regionIdが存在していてregionNameが変更されたらcityNameとcityIdを空に
   useEffect(() => {
     if (prevRegionName !== regionName && regionId !== "") {
+      console.log(
+        "-------------------InputBoxCity useEffect regionName変更検知✅✅✅✅ cityIdとcityNameをリセット",
+        "prevRegionName",
+        prevRegionName,
+        "regionName",
+        regionName,
+        "regionId",
+        regionId
+      );
       if (cityId) setCityId("");
       if (cityName) setCityName("");
     }

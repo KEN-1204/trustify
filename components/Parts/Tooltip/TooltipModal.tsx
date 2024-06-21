@@ -27,6 +27,8 @@ const TooltipModalMemo: FC = () => {
   let hoveredItemPositionX = 0;
   let hoveredItemPositionY = 0;
   let hoveredItemDisplay: string | undefined;
+
+  let hoveredItemPositionYOver = 0;
   if (hoveredItemPosModal) {
     hoveredItemHalfWidth = hoveredItemPosModal.itemWidth / 2;
     hoveredItemWidth = hoveredItemPosModal.itemWidth;
@@ -34,10 +36,60 @@ const TooltipModalMemo: FC = () => {
     hoveredItemPositionX = hoveredItemPosModal.x;
     hoveredItemPositionY = hoveredItemPosModal.y;
     hoveredItemDisplay = hoveredItemPosModal.display;
+
+    // hoveredItemPositionYOver = window.innerHeight  - hoveredItemPosModal.y;
+    const difference = Math.round(window.innerHeight - (hoveredItemPosModal.containerHeight ?? 0));
+    hoveredItemPositionYOver = window.innerHeight - difference - hoveredItemPosModal.y;
   }
 
+  // --------------------------------- テスト ---------------------------------
   // useEffectフックを使ってツールチップの幅を取得して、画面端20pxの位置に表示
   useEffect(() => {
+    if (!hoveredItemPosModal?.containerHeight) return;
+    if (menuRef.current) {
+      const tooltipWidth = menuRef.current.offsetWidth;
+      const tooltipHalfWidth = tooltipWidth / 2;
+      const viewportWidth = window.innerWidth;
+      const viewportRightOneThird = (viewportWidth / 3) * 2; // 画面3分の2の幅
+      const viewportRightOneFifth = (viewportWidth / 5) * 4; // 画面5分の4の幅
+      const viewportRightHalf = viewportWidth / 2; // 画面2分の1の幅
+      const leftPosition = hoveredItemPositionX + hoveredItemHalfWidth;
+      let adjustedLeft = leftPosition;
+
+      // 画面右端を超えている場合、位置を左に調整 右に10px余白を設けた位置にツールチップを表示
+      if (leftPosition + tooltipHalfWidth > viewportWidth - 10) {
+        adjustedLeft = viewportWidth - tooltipHalfWidth - 10 - 10; // 20pxの余白を残す
+        const addWidth = viewportWidth - 10 - adjustedLeft - tooltipHalfWidth;
+
+        menuRef.current.style.width = `${tooltipWidth + addWidth}px`;
+        menuRef.current.style.overflowWrap = "normal";
+      } else {
+        // 画面右端を超えていないなら、画面左3分の2の位置よりも右の位置にある場合はnowrapにする
+        if (adjustedLeft > viewportRightOneFifth) {
+          const tooltipText = menuRef.current.querySelector(`.tooltip_text`);
+          const tooltipTextWidth = tooltipText?.getBoundingClientRect().width;
+          menuRef.current.style.minWidth = `max-content`;
+        }
+      }
+
+      // 画面左端を超えている場合、位置を右に調整
+      if (hoveredItemPositionX + hoveredItemHalfWidth - tooltipHalfWidth < 0) {
+        adjustedLeft = 10; // 10pxの余白を残す
+        // スタイルを更新
+        menuRef.current.style.left = `${adjustedLeft}px`;
+      } else {
+        // スタイルを更新
+        adjustedLeft = adjustedLeft - tooltipHalfWidth;
+        menuRef.current.style.left = `${adjustedLeft}px`;
+      }
+    }
+  }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth]);
+  // --------------------------------- テスト ここまで ---------------------------------
+  // --------------------------------- 元々 ---------------------------------
+  // useEffectフックを使ってツールチップの幅を取得して、画面端20pxの位置に表示
+  useEffect(() => {
+    if (!!hoveredItemPosModal?.containerHeight) return;
+
     // 最初から左か右に矢印を配置する場合は計算不要
     if (
       (!!hoveredItemDisplay && hoveredItemDisplay === "left") ||
@@ -136,6 +188,8 @@ const TooltipModalMemo: FC = () => {
     }
   }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth, hoveredItemDisplay]);
 
+  // --------------------------------- 元々 ここまで ---------------------------------
+
   // 0は許容し、それ以外のfalsyはリターン
   if (
     hoveredItemPosModal?.content === "" ||
@@ -157,8 +211,15 @@ const TooltipModalMemo: FC = () => {
           // backgroundColor: "red",
           zIndex: 20000,
           // left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
-          top: `${`${hoveredItemPositionY - hoveredItemHeight - 8 - (hoveredItemPosModal?.marginTop ?? 0)}px`}`,
           // bottom: `${`${hoveredItemPositionY + hoveredItemHeight}px`}`,
+          // 元々----------------
+          top: !!hoveredItemPosModal.containerHeight
+            ? `unset`
+            : `${`${hoveredItemPositionY - hoveredItemHeight - 8 - (hoveredItemPosModal?.marginTop ?? 0)}px`}`,
+          // 元々----------------
+          // テスト----------------
+          bottom: !!hoveredItemPosModal.containerHeight ? `${`${hoveredItemPositionYOver + 10}px`}` : `unset`,
+          // テスト----------------
           ...(!!hoveredItemPosModal?.maxWidth && { maxWidth: hoveredItemPosModal.maxWidth }),
         }}
         ref={menuRef}
@@ -173,8 +234,15 @@ const TooltipModalMemo: FC = () => {
               setHoveredItemPosModal(null);
             }}
           >
-            <span>{hoveredItemPosModal?.content}</span>
-            <span>{hoveredItemPosModal?.content2}</span>
+            {/* <span>{hoveredItemPosModal?.content}</span> */}
+            {/* <span>{hoveredItemPosModal?.content2}</span> */}
+            <div
+              className={`tooltip_text`}
+              dangerouslySetInnerHTML={{
+                __html: hoveredItemPosModal?.content ? hoveredItemPosModal?.content.replace(/\n/g, "<br>") : "",
+              }}
+            ></div>
+            {hoveredItemPosModal?.content2 && <span>{hoveredItemPosModal?.content2}</span>}
             {hoveredItemPosModal?.content3 && <span>{hoveredItemPosModal?.content3}</span>}
             {hoveredItemPosModal?.content4 && <span>{hoveredItemPosModal?.content4}</span>}
           </div>

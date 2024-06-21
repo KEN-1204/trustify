@@ -181,6 +181,7 @@ const PropertyFunctionHeaderMemo: FC = () => {
               if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenUpdatePropertyModal(true);
             }}
+            hoverColorGreen={true}
           />
           <RippleButton
             title={`見積_作成`}

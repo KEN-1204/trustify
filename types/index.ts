@@ -1,5 +1,7 @@
 // =================== Language ===================
 
+import { ProductCategoriesSmall } from "@/utils/productCategoryS";
+
 // クリック位置
 export type ClickedItemPos = {
   x: number;
@@ -139,6 +141,12 @@ export type Profile = {
 
 //supabaseのprofilesテーブルのフィールド内容にデータ型を定義 初回登録時はsupabaseから取得の際にundefinedで返ってきて登録になるので、データ型はユニオン型で定義
 
+// 会社データ取得時に会社に製品分類データを配列で取得するときの各オブジェクト要素のデータ型
+// export type ProductCategory = {
+//   product_category_id: number;
+//   product_category_name: string;
+// };
+
 // 営業先会社 client_companiesテーブル
 export type Client_company = {
   id: string;
@@ -246,8 +254,8 @@ export type Client_company_row_data = {
   group_company?: string | null;
   industry_large?: string | null;
   industry_small?: string | null;
-  // industry_type?: string | null;
   // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  // industry_type?: string | null;
   industry_type_id?: number | null;
   country_id?: number | null;
   region_id?: number | null;
@@ -276,6 +284,14 @@ export type Client_company_row_data = {
   updated_at?: string | null;
   website_url?: string | null;
   zipcode?: string | null;
+  // 🌠製品分類の配列 追加
+  // product_categories_large_array: ProductCategory[];
+  // product_categories_medium_array: ProductCategory[];
+  // product_categories_small_array: ProductCategory[];
+  product_categories_large_array: ProductCategoriesLarge[];
+  product_categories_medium_array: ProductCategoriesMedium[];
+  product_categories_small_array: ProductCategoriesSmall[];
+  // 🌠製品分類の配列 追加 ここまで
 };
 
 export type NewSearchCompanyParams = {
@@ -291,23 +307,23 @@ export type NewSearchCompanyParams = {
   capital: number | null;
   established_in: string | null;
   business_content: string | null;
-  // industry_type: string | null;
   // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  // industry_type: string | null;
   industry_type_id?: number | null;
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
   // ここまで
-  // 製品分類 ----------------
-  // 🌠製品分類はid(INTEGER)を大中小を全て１つの配列としてまとめてEXISTSでフィルタする
+  // 🌠製品分類 追加 ----------------
+  // 製品分類はid(INTEGER)を大中小を全て１つの配列としてまとめてEXISTSでフィルタする
   // product_category_large: string | null;
   // product_category_medium: string | null;
   // product_category_small: string | null;
+  // product_category_all_ids: number[];
   product_category_large_ids: number[];
   product_category_medium_ids: number[];
   product_category_small_ids: number[];
-  // product_category_all_ids: number[];
-  // 製品分類 ---------------- ここまで
+  // 🌠製品分類 ---------------- ここまで
   fiscal_end_month: string | null;
   facility: string | null;
   clients: string | null;
@@ -317,8 +333,7 @@ export type NewSearchCompanyParams = {
   group_company: string | null;
   corporate_number: string | null;
   website_url: string | null;
-  // 代表者
-  representative_name: string | null;
+  representative_name: string | null; // 代表者
   chairperson: string | null;
   senior_vice_president: string | null;
   senior_managing_director: string | null;

@@ -904,6 +904,23 @@ export const mappingIndustryType: { [key: number]: { [key: string]: string } } =
   セミナー・スキルアップ → seminars_skill_up
   その他 → others
  */
+export const optionsProductLNameOnlySet: Set<ProductCategoriesLarge> = new Set([
+  "electronic_components_modules",
+  "mechanical_parts",
+  "manufacturing_processing_machines",
+  "scientific_chemical_equipment",
+  "materials",
+  "measurement_analysis",
+  "image_processing",
+  "control_electrical_equipment",
+  "tools_consumables_supplies",
+  "design_production_support",
+  "it_network",
+  "office",
+  "business_support_services",
+  "seminars_skill_up",
+  "others",
+]);
 export const optionsProductLNameOnly: ProductCategoriesLarge[] = [
   "electronic_components_modules",
   "mechanical_parts",
@@ -938,6 +955,7 @@ export const optionsProductL: { id: number; name: ProductCategoriesLarge }[] = [
   { id: 14, name: "seminars_skill_up" },
   { id: 15, name: "others" },
 ];
+export const productCategoryLargeNameToIdMap = new Map(optionsProductL.map((obj) => [obj.name, obj.id]));
 export const mappingProductL:
   | {
       [K in ProductCategoriesLarge]: { [key: string]: string };
@@ -959,6 +977,11 @@ export const mappingProductL:
   seminars_skill_up: { ja: "セミナー・スキルアップ", en: `` },
   others: { ja: "その他", en: `` },
 };
+
+// 大分類の全てのid
+export const productCategoriesLargeIdsSet: Set<number> = new Set([
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16,
+]);
 // export const optionsProductL = Array(15)
 //   .fill(null)
 //   .map((_, index) => index + 1);

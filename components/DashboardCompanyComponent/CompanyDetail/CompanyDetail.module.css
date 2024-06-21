@@ -326,6 +326,9 @@
 }
 .value.hashtag {
   color: var(--color-hashtag);
+  /*  */
+  font-size: 12px;
+  font-weight: 600;
 }
 .double_text {
   font-size: 12px;

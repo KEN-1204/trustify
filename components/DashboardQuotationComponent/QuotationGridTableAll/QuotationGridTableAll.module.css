@@ -460,7 +460,13 @@
 .grid_row[aria-selected="true"] .grid_cell.checkbox_cell {
   background-color: var(--color-table-even-color-changed-bg);
 }
-
+.grid_row .grid_cell.hashtag {
+  font-size: 12px;
+  font-weight: 600;
+}
+.grid_row[aria-selected="false"] .grid_cell.hashtag {
+  color: var(--color-hashtag) !important;
+}
 /* アラート行 */
 .grid_row.alert_row .grid_cell:not(.checkbox_cell) {
   /* background: var(--main-color-tk) !important; */

@@ -3,6 +3,7 @@ import styles from "./CustomSelectMultiple.module.css";
 import { HiChevronDown } from "react-icons/hi2";
 import { BsCheck2 } from "react-icons/bs";
 import useStore from "@/store";
+import { MdOutlineClose } from "react-icons/md";
 
 type Props = {
   stateArray: any[];
@@ -25,7 +26,9 @@ type Props = {
   bgDark?: boolean;
   isSelectedActiveColor?: boolean;
   isBoldActiveText?: boolean;
+  zIndexSelectBox?: number;
   zIndexOptionContainer?: number;
+  hideOptionAfterSelect?: boolean;
 };
 
 // stateが配列で、それぞれのカラムに対応したstateと選択肢をマッピング 選択済みは新たに選択できないようにする
@@ -50,7 +53,9 @@ export const CustomSelectMultiple = ({
   bgDark,
   isSelectedActiveColor = true,
   isBoldActiveText = true,
+  zIndexSelectBox,
   zIndexOptionContainer = 8000,
+  hideOptionAfterSelect = false,
 }: Props) => {
   // const [value, setValue] = useState(defaultValue ? defaultValue : "");
   const [showOptions, setShowOptions] = useState(false);
@@ -95,7 +100,7 @@ export const CustomSelectMultiple = ({
       dispatch(newArray);
     }
 
-    // setShowOptions(false);
+    if (hideOptionAfterSelect) setShowOptions(false);
 
     if (additionalEventHandlerAfterChange) additionalEventHandlerAfterChange();
   };
@@ -252,6 +257,7 @@ export const CustomSelectMultiple = ({
             ...(maxWidth && { maxWidth: typeof maxWidth === "number" ? maxWidth : `${maxWidth}` }),
             ...(maxHeight && { maxHeight: maxHeight, minHeight: maxHeight }),
             ...(bgDark && { background: `var(--color-select-bg-deep)` }),
+            ...(zIndexSelectBox && { zIndex: zIndexSelectBox }),
           } as CSSProperties
         }
         //   onMouseDown={(e) => console.log(e)}
@@ -269,11 +275,6 @@ export const CustomSelectMultiple = ({
             setDisplayPosition(null);
           }
           handleCloseTooltip();
-        }}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget;
-          console.log("1-w", el.scrollWidth, el.offsetWidth);
-          console.log("1-h", el.scrollHeight, el.offsetHeight);
         }}
       >
         <div
@@ -293,8 +294,8 @@ export const CustomSelectMultiple = ({
           onMouseEnter={(e) => {
             if (!joinedSelectedText) return;
             const el = e.currentTarget;
-            console.log("2-w", el.scrollWidth, el.offsetWidth);
-            console.log("2-h", el.scrollHeight, el.offsetHeight);
+            // console.log("2-w", el.scrollWidth, el.offsetWidth);
+            // console.log("2-h", el.scrollHeight, el.offsetHeight);
             if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
               handleOpenTooltip({
                 e: e,
@@ -332,16 +333,40 @@ export const CustomSelectMultiple = ({
           </>
         )} */}
         </div>
-        <div className={`${styles.down_arrow_icon} flex-center min-h-[20px] min-w-[20px] cursor-pointer rounded-full`}>
-          <HiChevronDown
-            className="stroke-[1] text-[13px] text-[var(--color-text-brand-f)]"
-            style={{
-              ...(isSelectedActiveColor && {
-                color: activeColor ? activeColor : `var(--main-color-f)`,
-              }),
-            }}
-          />
-        </div>
+        {!showOptions || (showOptions && selectedSetObj.size === 0) ? (
+          <div
+            className={`${styles.down_arrow_icon} flex-center min-h-[20px] min-w-[20px] cursor-pointer rounded-full`}
+          >
+            <HiChevronDown
+              className="stroke-[1] text-[13px] text-[var(--color-text-brand-f)]"
+              style={{
+                ...(isSelectedActiveColor && {
+                  color: activeColor ? activeColor : `var(--main-color-f)`,
+                }),
+              }}
+            />
+          </div>
+        ) : (
+          <>
+            <div
+              className={`${styles.close_icon} flex-center min-h-[20px] min-w-[20px] cursor-pointer rounded-full text-[var(--main-color-f)]`}
+              onMouseEnter={(e) => {
+                handleOpenTooltip({
+                  e: e,
+                  display: "top",
+                  content: `リセット`,
+                  itemsPosition: "left",
+                });
+              }}
+              onMouseLeave={handleCloseTooltip}
+              onClick={() => {
+                dispatch([]);
+              }}
+            >
+              <MdOutlineClose className="text-[15px]" />
+            </div>
+          </>
+        )}
       </div>
       {showOptions && (
         <ul

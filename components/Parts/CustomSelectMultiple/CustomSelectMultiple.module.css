@@ -54,6 +54,10 @@
 .select_wrapper:hover .down_arrow_icon {
   background: var(--color-bg-sub-icon);
 }
+.select_wrapper .close_icon:hover {
+  background: var(--main-color-tk30);
+  color: var(--main-color-tk);
+}
 
 /* .select_wrapper:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);

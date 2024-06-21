@@ -31,6 +31,7 @@
   transform: translateX(-50%);
   /* background: #282828; */
   background: var(--color-tooltip-light);
+  background: var(--color-tooltip-gradient-black);
   transition-delay: 0.5s;
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
@@ -45,6 +46,7 @@
   transform: translateX(-50%) rotate(135deg);
   transform-origin: center center;
   background: var(--color-tooltip-light);
+  background: var(--color-tooltip-gradient-black);
   width: 8px;
   height: 8px;
   pointer-events: none;
@@ -62,6 +64,7 @@
   transform-origin: center center;
   background: var(--color-tooltip-arrow);
   background: var(--color-tooltip-light);
+  background: var(--color-tooltip-gradient-black);
   /* background-color: rgb(39 39 39 / 0.7); */
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -118,6 +121,7 @@
   /* background: #282828; */
   /* background: #282828f0; */
   background: var(--color-tooltip-light);
+  background: var(--color-tooltip-gradient-black);
   /* background-color: rgb(39 39 39 / 0.7); */
   /* backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px); */
@@ -141,6 +145,7 @@
   transform: translateX(-50%) rotate(135deg);
   transform-origin: center center;
   background: var(--color-tooltip-light);
+  background: var(--color-tooltip-gradient-black);
   width: 8px;
   height: 8px;
   /* border-top: 4px solid #000; */
@@ -157,6 +162,7 @@
   padding: 3px 7px;
   /* background: #282828; */
   background: var(--color-tooltip-light);
+  background: var(--color-tooltip-gradient-black);
   transition-delay: 0.5s;
   border-radius: 6px;
   box-shadow: inset 0px 0px 0px 1px #ffffff80, 0px 0px 0px 1px #000;
@@ -171,6 +177,7 @@
   transform-origin: center center;
   /* background: #282828; */
   background: var(--color-tooltip-light);
+  background: var(--color-tooltip-gradient-black);
   /* background: rgb(39 39 39 / 0.7); */
   width: 8px;
   height: 8px;

@@ -110,12 +110,15 @@
   z-index: -1;
   bottom: -4px;
   /* top: -10px; */
-  left: 0;
+  /* left: 0; */
+  left: 50%;
   transform: translateX(-50%) rotate(135deg);
   transform-origin: center center;
   background: var(--color-tooltip-light);
+  background: var(--color-tooltip-gradient-black);
   width: 8px;
   height: 8px;
+  pointer-events: none;
   /* border-top: 4px solid #000; */
 }
 /* .tooltip_over::after {

@@ -238,6 +238,7 @@ const QuotationFunctionHeaderMemo: FC = () => {
               // setIsOpenUpdateQuotationModal(true);
               setIsUpdateModeQuotation(true);
             }}
+            hoverColorGreen={true}
           />
           {/* <RippleButton
             title={`印刷`}

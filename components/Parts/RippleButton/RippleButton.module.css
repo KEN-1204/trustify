@@ -42,6 +42,21 @@
   /* background-color: #40bf86; */
   background-color: var(--bg-color-hover, --color-btn-brand-f-hover);
 }
+.button:active {
+  background-color: var(--color-bg-brand-fc0);
+}
+.button.hover_green:hover {
+  color: var(--bright-green) !important;
+  border: 1px solid var(--bright-green);
+  background: var(--bright-green30) !important;
+  /* color: #fff !important;
+  border: 1px solid var(--bright-green);
+  background: var(--bright-green) !important; */
+}
+.button.hover_green:active {
+  background: var(--bright-green60) !important;
+  /* background: var(--bright-green90) !important; */
+}
 .button_re {
   position: relative;
   z-index: 1;

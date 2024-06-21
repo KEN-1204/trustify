@@ -232,7 +232,7 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
   // ================================ ツールチップ ================================
   const hoveredItemPosModal = useStore((state) => state.hoveredItemPosModal);
   const setHoveredItemPosModal = useStore((state) => state.setHoveredItemPosModal);
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string) => {
+  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string, marginTop: number = 0) => {
     // モーダルコンテナのleftを取得する
     if (!modalContainerRef.current) return;
     const containerLeft = modalContainerRef.current?.getBoundingClientRect().left;
@@ -255,6 +255,7 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
       content2: content2,
       content3: content3,
       display: display,
+      marginTop: marginTop,
     });
   };
   // ============================================================================================
@@ -315,7 +316,7 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
                 className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full  ${styles.icon_button}`}
                 onClick={handleMoveLast}
                 data-text="選択したカラムを一番下に移動する"
-                onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+                onMouseEnter={(e) => handleOpenTooltip(e, "top", 9)}
                 onMouseLeave={handleCloseTooltip}
               >
                 <ImArrowDown2 className="pointer-events-none text-[16px]" />
@@ -325,7 +326,7 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
                 className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full  ${styles.icon_button}`}
                 onClick={handleMoveFirst}
                 data-text="選択したカラムを一番上に移動する"
-                onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+                onMouseEnter={(e) => handleOpenTooltip(e, "top", 9)}
                 onMouseLeave={handleCloseTooltip}
               >
                 <ImArrowUp2 className="pointer-events-none text-[16px]" />
@@ -335,7 +336,7 @@ const EditColumnsModalDisplayOnlyMemo: FC<Props> = ({ columnHeaderItemList }) =>
                 className={`flex-center h-[30px] w-[30px] cursor-not-allowed rounded-full  ${styles.icon_button}`}
                 // onClick={handleMoveFirst}
                 data-text="選択したカラムをリセットする"
-                onMouseEnter={(e) => handleOpenTooltip(e, "top")}
+                onMouseEnter={(e) => handleOpenTooltip(e, "top", 9)}
                 onMouseLeave={handleCloseTooltip}
                 onClick={handleResetRight}
               >

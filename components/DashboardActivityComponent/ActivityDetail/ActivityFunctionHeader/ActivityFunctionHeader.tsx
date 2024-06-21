@@ -174,6 +174,7 @@ const ActivityFunctionHeaderMemo: FC = () => {
               if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenUpdateActivityModal(true);
             }}
+            hoverColorGreen={true}
           />
           <RippleButton
             title={`面談_作成`}

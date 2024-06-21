@@ -28,6 +28,8 @@ const TooltipMemo = () => {
   let hoveredItemPositionY = 0;
   let hoveredItemDisplay: string | undefined;
   let textLengthNum = 0;
+
+  let hoveredItemPositionYOver = 0;
   if (hoveredItemPos) {
     hoveredItemHalfWidth = hoveredItemPos.itemWidth / 2;
     hoveredItemWidth = hoveredItemPos.itemWidth;
@@ -36,8 +38,54 @@ const TooltipMemo = () => {
     hoveredItemPositionY = hoveredItemPos.y;
     hoveredItemDisplay = hoveredItemPos.display;
     textLengthNum = hoveredItemPos.textLength ? hoveredItemPos.textLength : 0;
+
+    hoveredItemPositionYOver = window.innerHeight - hoveredItemPos.y;
   }
 
+  // -------------------------- テスト --------------------------
+  // // useEffectフックを使ってツールチップの幅を取得して、画面端20pxの位置に表示
+  // useEffect(() => {
+  //   if (menuRef.current) {
+  //     const tooltipWidth = menuRef.current.offsetWidth;
+  //     const tooltipHalfWidth = tooltipWidth / 2;
+  //     const viewportWidth = window.innerWidth;
+  //     const viewportRightOneThird = (viewportWidth / 3) * 2; // 画面3分の2の幅
+  //     const viewportRightOneFifth = (viewportWidth / 5) * 4; // 画面5分の4の幅
+  //     const viewportRightHalf = viewportWidth / 2; // 画面2分の1の幅
+  //     const leftPosition = hoveredItemPositionX + hoveredItemHalfWidth;
+  //     let adjustedLeft = leftPosition;
+
+  //     // 画面右端を超えている場合、位置を左に調整 右に10px余白を設けた位置にツールチップを表示
+  //     if (leftPosition + tooltipHalfWidth > viewportWidth - 10) {
+  //       adjustedLeft = viewportWidth - tooltipHalfWidth - 10 - 10; // 20pxの余白を残す
+  //       const addWidth = viewportWidth - 10 - adjustedLeft - tooltipHalfWidth;
+
+  //       menuRef.current.style.width = `${tooltipWidth + addWidth}px`;
+  //       menuRef.current.style.overflowWrap = "normal";
+  //     } else {
+  //       // 画面右端を超えていないなら、画面左3分の2の位置よりも右の位置にある場合はnowrapにする
+  //       if (adjustedLeft > viewportRightOneFifth) {
+  //         const tooltipText = menuRef.current.querySelector(`.tooltip_text`);
+  //         const tooltipTextWidth = tooltipText?.getBoundingClientRect().width;
+  //         menuRef.current.style.minWidth = `max-content`;
+  //       }
+  //     }
+
+  //     // 画面左端を超えている場合、位置を右に調整
+  //     if (hoveredItemPositionX + hoveredItemHalfWidth - tooltipHalfWidth < 0) {
+  //       adjustedLeft = 10; // 10pxの余白を残す
+  //       // スタイルを更新
+  //       menuRef.current.style.left = `${adjustedLeft}px`;
+  //     } else {
+  //       // スタイルを更新
+  //       adjustedLeft = adjustedLeft - tooltipHalfWidth;
+  //       menuRef.current.style.left = `${adjustedLeft}px`;
+  //     }
+  //   }
+  // }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth]);
+  // -------------------------- テスト ここまで --------------------------
+
+  // -------------------------- 元々 --------------------------
   // useEffectフックを使ってツールチップの幅を取得して、画面端20pxの位置に表示
   useEffect(() => {
     // 最初から左か右に矢印を配置する場合は計算不要
@@ -115,6 +163,7 @@ const TooltipMemo = () => {
       // menuRef.current.style.left = `${adjustedLeft}px`;
     }
   }, [hoveredItemPositionX, hoveredItemPositionY, hoveredItemHalfWidth, hoveredItemDisplay]);
+  // -------------------------- 元々 ここまで --------------------------
 
   console.log("Tooltipコンポーネントレンダリング");
 
@@ -136,12 +185,21 @@ const TooltipMemo = () => {
           zIndex: 20000,
           // left: `${`${hoveredItemPositionX + hoveredItemHalfWidth}px`}`,
           // leftのスタイルはuseEffect内で動的に設定
-          top: `${`${hoveredItemPositionY - hoveredItemHeight - 8 - (hoveredItemPos?.marginTop ?? 0)}px`}`,
+          // 元々
+          // top: `${`${hoveredItemPositionY - hoveredItemHeight - 8 - (hoveredItemPos?.marginTop ?? 0)}px`}`,
+          // 元々
+          // テスト
+          bottom: `${`${hoveredItemPositionYOver + 10}px`}`,
+          // テスト
+
           ...(!!hoveredItemPos?.maxWidth && { maxWidth: hoveredItemPos.maxWidth }),
         }}
         ref={menuRef}
       >
-        <div className={`${styles.tooltip_over}`}>
+        <div
+          className={`${styles.tooltip_over}`}
+          style={{ ...(!!hoveredItemPos?.maxWidth && { maxWidth: hoveredItemPos.maxWidth }) }}
+        >
           <div
             className={`flex flex-col ${
               hoveredItemPos?.itemsPosition === "center" ? `items-center` : "items-start"

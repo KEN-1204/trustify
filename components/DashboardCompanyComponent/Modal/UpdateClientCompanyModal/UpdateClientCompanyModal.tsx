@@ -1,4 +1,4 @@
-import React, { CSSProperties, KeyboardEvent, Suspense, useEffect, useRef, useState } from "react";
+import React, { CSSProperties, KeyboardEvent, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import styles from "./UpdateClientCompanyModal.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -23,6 +23,9 @@ import productCategoriesM, {
   mappingScienceCategoryM,
   mappingSkillUpCategoryM,
   mappingToolCategoryM,
+  productCategoryLargeToMappingMediumMap,
+  productCategoryLargeToOptionsMediumMap,
+  productCategoryLargeToOptionsMediumObjMap,
 } from "@/utils/productCategoryM";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
@@ -35,15 +38,19 @@ import {
   getNumberOfEmployeesClass,
   mappingCountries,
   mappingIndustryType,
+  mappingProductL,
   mappingRegionsJp,
   optionsIndustryType,
   optionsMonth,
   optionsNumberOfEmployeesClass,
+  optionsProductL,
+  optionsProductLNameOnly,
+  productCategoryLargeNameToIdMap,
   regionArrayJP,
 } from "@/utils/selectOptions";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import useStore from "@/store";
-import { Cities } from "@/types";
+import { Cities, ProductCategoriesLarge, ProductCategoriesMedium } from "@/types";
 import { ErrorBoundary } from "react-error-boundary";
 import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import { FallbackInputBox } from "../InsertNewClientCompnayModal/FallbackInputBox";
@@ -51,6 +58,15 @@ import { InputBoxCity } from "../InsertNewClientCompnayModal/InputBoxCity";
 import { TooltipModal } from "@/components/Parts/Tooltip/TooltipModal";
 import { HiChevronDown } from "react-icons/hi2";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { CustomSelectMultiple } from "@/components/Parts/CustomSelectMultiple/CustomSelectMultiple";
+import {
+  ProductCategoriesSmall,
+  productCategoryMediumToMappingSmallMap,
+  productCategoryMediumToOptionsSmallMap_All,
+  productCategoryMediumToOptionsSmallMap_All_obj,
+} from "@/utils/productCategoryS";
+import { removeSpaces } from "@/utils/Helpers/formatStringHelpers/removeSpaces";
+import { formatAddress } from "@/utils/Helpers/formatStringHelpers/formatAddress";
 
 export const UpdateClientCompanyModal = () => {
   const language = useStore((state) => state.language);
@@ -62,6 +78,11 @@ export const UpdateClientCompanyModal = () => {
   // 上画面の選択中の列データ会社
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
   const userProfileState = useDashboardStore((state) => state.userProfileState);
+
+  if (!selectedRowDataCompany) {
+    alert("会社データが選択されていません。テーブルから更新したい会社を選択してください。 UCCM01");
+    return;
+  }
 
   const [name, setName] = useState("");
   const [departmentName, setDepartmentName] = useState("");
@@ -93,10 +114,158 @@ export const UpdateClientCompanyModal = () => {
   const [streetAddress, setStreetAddress] = useState("");
   // 建物名・部屋番号
   const [buildingName, setBuildingName] = useState("");
-  //
+  // ----------------------- 🌟製品分類(大分類・中分類)関連🌟 -----------------------
   const [productCategoryL, setProductCategoryL] = useState("");
   const [productCategoryM, setProductCategoryM] = useState("");
   const [productCategoryS, setProductCategoryS] = useState("");
+  // 会社複製の場合は、大分類、中分類、小分類それぞれ配列に要素が存在すれば初期値をセット
+  // 大分類
+  const originalCategoryLargeArray = useMemo(() => {
+    if (!selectedRowDataCompany) return [];
+    return !!selectedRowDataCompany.product_categories_large_array?.length
+      ? selectedRowDataCompany.product_categories_large_array
+      : [];
+  }, [selectedRowDataCompany]);
+  // 中分類
+  const originalCategoryMediumArray = useMemo(() => {
+    if (!selectedRowDataCompany) return [];
+    return !!selectedRowDataCompany.product_categories_medium_array?.length
+      ? selectedRowDataCompany.product_categories_medium_array
+      : [];
+  }, [selectedRowDataCompany]);
+  // 小分類
+  const originalCategorySmallArray = useMemo(() => {
+    if (!selectedRowDataCompany) return [];
+    return !!selectedRowDataCompany.product_categories_small_array?.length
+      ? selectedRowDataCompany.product_categories_small_array
+      : [];
+  }, [selectedRowDataCompany]);
+
+  // 大分類
+  const [productCategoryLargeArray, setProductCategoryLargeArray] =
+    useState<ProductCategoriesLarge[]>(originalCategoryLargeArray);
+  // 中分類
+  const [productCategoryMediumArray, setProductCategoryMediumArray] =
+    useState<ProductCategoriesMedium[]>(originalCategoryMediumArray);
+  // 小分類
+  const [productCategorySmallArray, setProductCategorySmallArray] =
+    useState<ProductCategoriesSmall[]>(originalCategorySmallArray);
+
+  // カスタムセレクトボックス用にnameのみで選択中のSetオブジェクトを作成
+  // ---------------- 🔸大分類🔸 ----------------
+  const selectedProductCategoryLargeSet = useMemo(() => {
+    return new Set([...productCategoryLargeArray]);
+  }, [productCategoryLargeArray]);
+
+  const getProductCategoryLargeName = (option: ProductCategoriesLarge) => {
+    return mappingProductL[option][language];
+  };
+
+  // ---------------- 🔸中分類🔸 ----------------
+  const selectedProductCategoryMediumSet = useMemo(() => {
+    return new Set([...productCategoryMediumArray]);
+  }, [productCategoryMediumArray]);
+
+  // 中分類のoptions 大分類で複数選択している場合には、選択中の大分類に紐づく全ての中分類をoptionsにセット
+  const optionsProductCategoryMediumAll = useMemo(() => {
+    const filteredOptionsNameOnly = optionsProductLNameOnly.filter((name) => selectedProductCategoryLargeSet.has(name));
+    const newOptionsM = filteredOptionsNameOnly
+      .map((option) => {
+        return productCategoryLargeToOptionsMediumMap[option];
+      })
+      .flatMap((array) => array);
+
+    return newOptionsM;
+  }, [optionsProductLNameOnly, selectedProductCategoryLargeSet, productCategoryLargeToOptionsMediumMap]);
+
+  // 名称変換マップ
+  const mappingProductCategoryMediumAll = useMemo(() => {
+    let mappingObj = {} as {
+      [x: string]: {
+        [key: string]: string;
+      };
+    };
+
+    Array.from(selectedProductCategoryLargeSet).forEach((option) => {
+      mappingObj = { ...mappingObj, ...productCategoryLargeToMappingMediumMap[option] };
+    });
+
+    return new Map(Object.entries(mappingObj).map(([key, value]) => [key, value]));
+  }, [selectedProductCategoryLargeSet]);
+
+  const getProductCategoryMediumNameAll = (option: ProductCategoriesMedium) => {
+    const mappingObj = mappingProductCategoryMediumAll.get(option);
+    return mappingObj ? mappingObj[language] : "-";
+    // return mappingProductCategoryMediumAll[option][language];
+  };
+
+  // 🌠中分類が選択されている状態で大分類のチェックが外された場合には、外された大分類に紐づく中分類を削除する
+  useEffect(() => {
+    // 大分類に紐づくoptionのみで作成したoptionsProductCategoryMediumAllに含まれていない選択中の中分類は削除
+    const optionsProductCategoryMediumAllSet = new Set(optionsProductCategoryMediumAll);
+    const newMediumArray = [...productCategoryMediumArray].filter((option) =>
+      optionsProductCategoryMediumAllSet.has(option as any)
+    );
+    console.log("🔥大分類が変更されたため中分類を更新");
+    setProductCategoryMediumArray(newMediumArray);
+  }, [optionsProductCategoryMediumAll]);
+
+  // ---------------- 🔸中分類🔸 ここまで ----------------
+
+  // ---------------- 🔸小分類🔸 ----------------
+  const selectedProductCategorySmallSet = useMemo(() => {
+    return new Set([...productCategorySmallArray]);
+  }, [productCategorySmallArray]);
+
+  // 小分類のoptions 中分類で複数選択している場合には、選択中の中分類に紐づく全ての小分類をoptionsにセット
+  const optionsProductCategorySmallAll = useMemo(() => {
+    // 取得した現在選択可能な全ての中分類のoptionsから既に選択中の中分類を取得
+    const filteredOptionsMediumNameOnly = Array.from(selectedProductCategoryMediumSet);
+
+    // 選択中の中分類の選択肢に紐づく小分類のoptionsを全て取得
+    const newOptionsSmall = filteredOptionsMediumNameOnly
+      .map((optionName) => {
+        // 選択中の大分類に応じて中分類のMapを使用
+        return productCategoryMediumToOptionsSmallMap_All[optionName];
+      })
+      .flatMap((array) => array);
+
+    return newOptionsSmall;
+  }, [selectedProductCategoryMediumSet]);
+
+  // 🌠小分類が選択されている状態で中分類のチェックが外された場合には、外された中分類に紐づく小分類を削除する
+  useEffect(() => {
+    // 中分類に紐づくoptionのみで作成したoptionsProductCategorySmallAllに含まれていない選択中の小分類は削除
+    const optionsProductCategorySmallAllSet = new Set(optionsProductCategorySmallAll);
+    const newSmallArray = [...productCategorySmallArray].filter((option) =>
+      optionsProductCategorySmallAllSet.has(option as any)
+    );
+    console.log("🔥中分類が変更されたため小分類を更新");
+    setProductCategorySmallArray(newSmallArray);
+  }, [optionsProductCategorySmallAll]);
+
+  // 名称変換マップ
+  const mappingProductCategorySmallAll = useMemo(() => {
+    let mappingObj = {} as {
+      [x: string]: {
+        [key: string]: string;
+      };
+    };
+
+    productCategoryMediumArray.forEach((option) => {
+      mappingObj = { ...mappingObj, ...productCategoryMediumToMappingSmallMap[option] };
+    });
+
+    return new Map(Object.entries(mappingObj).map(([key, value]) => [key, value]));
+  }, [selectedProductCategoryMediumSet]);
+
+  const getProductCategorySmallNameAll = (option: ProductCategoriesSmall) => {
+    const mappingObj = mappingProductCategorySmallAll.get(option);
+    return mappingObj ? mappingObj[language] : "-";
+    // return mappingProductCategorySmallAll[option][language];
+  };
+  // ---------------- 🔸小分類🔸 ここまで ----------------
+  // ----------------------- 🌟製品分類(大分類・中分類)関連🌟 ここまで -----------------------
   const [numberOfEmployeesClass, setNumberOfEmployeesClass] = useState("");
   const [fiscalEndMonth, setFiscalEndMonth] = useState("");
   const [capital, setCapital] = useState("");
@@ -126,12 +295,12 @@ export const UpdateClientCompanyModal = () => {
   const [boardMember, setBoardMember] = useState("");
   const [numberOfEmployees, setNumberOfEmployees] = useState("");
 
-  const supabase = useSupabaseClient();
-  const { updateClientCompanyMutation } = useMutateClientCompany();
+  // const supabase = useSupabaseClient();
+  const { updateClientCompanyWithProductCategoriesMutation } = useMutateClientCompany();
 
   // console.log("UpdateClientCompanyModalコンポーネント レンダリング selectedRowDataCompany", selectedRowDataCompany);
 
-  // 初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
+  // ✅初回マウント時に選択中の担当者&会社の列データの情報をStateに格納
   useEffect(() => {
     if (!selectedRowDataCompany) return;
     let _name = selectedRowDataCompany.name ? selectedRowDataCompany.name : "";
@@ -222,16 +391,20 @@ export const UpdateClientCompanyModal = () => {
     // 国別・都道府県別・市区町村別
     setCountryId(_country_id);
     prevCountryIdRef.current = _country_id;
+    const initialCountryName = selectedRowDataCompany.country_id
+      ? mappingCountries[selectedRowDataCompany.country_id][language]
+      : "";
+    setCountryName(initialCountryName);
     setRegionId(_region_id);
-    setCityId(_city_id);
-    setCountryName(
-      selectedRowDataCompany.country_id ? mappingCountries[selectedRowDataCompany.country_id][language] : ""
-    );
-    setRegionName(
+    const initialRegionName =
       selectedRowDataCompany.country_id === 153 && selectedRowDataCompany.region_id
         ? mappingRegionsJp[selectedRowDataCompany.region_id][language]
-        : ""
-    );
+        : "";
+    setRegionName(initialRegionName);
+    // --------- 市区町村はInputBoxCityコンポーネント側で行う
+    // setCityId(_city_id);
+    // setCityName();
+    // --------- 市区町村はInputBoxCityコンポーネント側で行う
     setStreetAddress(streetAddress);
     setBuildingName(_building_name);
     //
@@ -290,10 +463,180 @@ export const UpdateClientCompanyModal = () => {
 
     setLoadingGlobalState(true);
 
-    // 住所
-    const _address = (regionName + cityName + (streetAddress ?? "") + " " + (buildingName ?? "")).trim();
+    // 🔸住所の前処理
+    const _formattedAddress = (
+      formatAddress(regionName) +
+      formatAddress(cityName) +
+      formatAddress(streetAddress) +
+      " " +
+      (formatAddress(buildingName, true) ?? "")
+    ).trim();
 
-    // 新規作成するデータをオブジェクトにまとめる
+    // --------------------- 🔸製品分類関連の前処理 ---------------------
+    // 🔸製品分類をnameからidに変換して配列にまとめる
+    // 大分類
+    let productCategoryLargeIdsArray: number[] = []; // INSERT対象
+    let originalCategoryLargeIdsArray: number[] = []; // オリジナル
+    // const largeNameToIdMap = new Map(optionsProductL.map((obj) => [obj.name, obj.id]));
+    // 🔹大分類 new
+    if (0 < productCategoryLargeArray.length) {
+      // 🔹1. INSERT対象の分類のnameをidに変換
+      productCategoryLargeIdsArray = productCategoryLargeArray
+        .map((name) => {
+          return productCategoryLargeNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+    }
+    // 🔹大分類 original
+    if (0 < originalCategoryLargeArray.length) {
+      // 🔹2. オリジナルの分類のnameをidに変換
+      originalCategoryLargeIdsArray = originalCategoryLargeArray
+        .map((name) => {
+          return productCategoryLargeNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+    }
+    console.log(
+      "============================ 大分類実行🔥",
+      "オリジナル",
+      originalCategoryLargeIdsArray,
+      productCategoryLargeArray,
+      "INSERT",
+      productCategoryLargeIdsArray,
+      originalCategoryLargeArray
+    );
+    // 中分類
+    let productCategoryMediumIdsArray: number[] = []; // INSERT対象
+    let originalCategoryMediumIdsArray: number[] = []; // オリジナル
+    // 🔹中分類 new
+    if (0 < productCategoryMediumArray.length) {
+      // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
+      // 🔹1-1.
+      const optionsMediumObj = productCategoryLargeArray
+        .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
+        .flatMap((array) => array);
+      const mediumNameToIdMap = new Map(optionsMediumObj.map((obj) => [obj.name, obj.id]));
+      // 🔹1-2. INSERT対象の分類のnameをidに変換
+      productCategoryMediumIdsArray = productCategoryMediumArray
+        .map((name) => {
+          return mediumNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+    }
+    // 🔹中分類 original
+    if (0 < originalCategoryMediumArray.length) {
+      // 🔹2-1. オリジナルの選択中の大分類から中分類の配列を取得してMapオブジェクトを作成
+      const originalOptionsMediumObj = originalCategoryLargeArray
+        .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
+        .flatMap((array) => array);
+      const originalMediumNameToIdMap = new Map(originalOptionsMediumObj.map((obj) => [obj.name, obj.id]));
+      // 🔹2. オリジナルの分類のnameをidに変換
+      originalCategoryMediumIdsArray = originalCategoryMediumArray
+        .map((name) => {
+          return originalMediumNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+    }
+    console.log(
+      "============================ 中分類実行🔥",
+      "オリジナル",
+      originalCategoryMediumIdsArray,
+      originalCategoryMediumArray,
+      "INSERT",
+      productCategoryMediumIdsArray,
+      productCategoryMediumArray
+    );
+    // 小分類
+    let productCategorySmallIdsArray: number[] = []; // INSERT対象
+    let originalCategorySmallIdsArray: number[] = []; // オリジナル
+    // 🔹小分類 new
+    if (0 < productCategorySmallArray.length) {
+      // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
+      // 🔹1-1.
+      const optionsSmallObj = productCategoryMediumArray
+        .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
+        .flatMap((array) => array);
+      const smallNameToIdMap = new Map(optionsSmallObj.map((obj) => [obj.name, obj.id]));
+      // 🔹1-2. INSERT対象の分類のnameをidに変換
+      productCategorySmallIdsArray = productCategorySmallArray
+        .map((name) => {
+          return smallNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+    }
+    // 🔹小分類 original
+    if (0 < originalCategorySmallArray.length) {
+      // 🔹2-1. オリジナルの選択中の中分類から小分類の配列を取得してMapオブジェクトを作成
+      const originalOptionsSmallObj = originalCategoryMediumArray
+        .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
+        .flatMap((array) => array);
+      const originalSmallNameToIdMap = new Map(originalOptionsSmallObj.map((obj) => [obj.name, obj.id]));
+      // 🔹2-2. オリジナルの分類のnameをidに変換
+      originalCategorySmallIdsArray = originalCategorySmallArray
+        .map((name) => {
+          return originalSmallNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+    }
+    console.log(
+      "============================ 小分類実行🔥",
+      "オリジナル",
+      originalCategorySmallIdsArray,
+      originalCategorySmallArray,
+      "INSERT",
+      productCategorySmallIdsArray,
+      productCategorySmallArray
+    );
+
+    // 大分類・中分類・小分類を全て１つの配列にまとめる
+    const productCategoryAllIdsArray = [
+      ...productCategoryLargeIdsArray,
+      ...productCategoryMediumIdsArray,
+      ...productCategorySmallIdsArray,
+    ];
+
+    // 1. オリジナルの製品分類に存在せず、現在選択中の製品分類配列に含まれて製品分類は新たにINSERT
+    // 2. オリジナルの製品分類に存在していて、現在選択中の製品分類配列にも含まれている場合はON CONFLICTで衝突してDO NOTHINGでそのまま
+    // 3. オリジナルの製品分類に存在していて、現在選択中の製品分類には存在しない製品分類がある場合はDELETEする必要あり
+
+    // 🔸3のDELETE対象の特定とDELETE用に配列をまとめる
+    // オリジナルの製品分類の大中小を全て１つの配列にまとめる
+    const originalCategoryAllIdsArray = [
+      ...originalCategoryLargeIdsArray,
+      ...originalCategoryMediumIdsArray,
+      ...originalCategorySmallIdsArray,
+    ];
+
+    // 新たに追加されたINSERT対象となる製品分類のみを抽出して配列にまとめる オリジナルに存在しないidのみが新たにINSERT対象のidとなる
+    const originalCategoryAllIdsSet = new Set(originalCategoryAllIdsArray);
+    const insertCategoryIdsArray = productCategoryAllIdsArray.filter((id) => !originalCategoryAllIdsSet.has(id));
+
+    // 現在選択中の配列のSetオブジェクトを作成し、オリジナル全てのidをチェックし選択中のidに含まれていないidを全て抽出しDELETE対象にする
+    const selectedCategoryAllIdsSet = new Set(productCategoryAllIdsArray);
+    const deleteCategoryIdsArray = originalCategoryAllIdsArray.filter((id) => !selectedCategoryAllIdsSet.has(id));
+
+    console.log(
+      "製品分類 選択中の全ての製品分類",
+      productCategoryAllIdsArray,
+      "オリジナルの全ての製品分類",
+      originalCategoryAllIdsArray,
+      "INSERT対象の分類id",
+      insertCategoryIdsArray,
+      "削除対象の分類id",
+      deleteCategoryIdsArray,
+      "選択中の製品分類 大分類",
+      productCategoryLargeIdsArray,
+      productCategoryLargeArray,
+      "選択中の製品分類 中分類",
+      productCategoryMediumIdsArray,
+      productCategoryMediumArray,
+      "選択中の製品分類 小分類",
+      productCategorySmallIdsArray,
+      productCategorySmallArray
+    );
+    // --------------------- 🔸製品分類関連の前処理 ここまで ---------------------
+
+    // 🔸更新するデータをオブジェクトにまとめる
     const newClientCompany = {
       id: selectedRowDataCompany.id,
       // created_by_company_id: userProfileState?.company_id ? userProfileState.company_id : null,
@@ -315,7 +658,7 @@ export const UpdateClientCompanyModal = () => {
       main_fax: mainFax ? mainFax : null,
       zipcode: zipcode ? zipcode : null,
       // address: address ? address : null,
-      address: _address ? _address : null,
+      address: _formattedAddress ? _formattedAddress : null,
       department_contacts: departmentContacts ? departmentContacts : null,
       industry_large: industryL ? industryL : null,
       industry_small: industryS ? industryS : null,
@@ -359,10 +702,21 @@ export const UpdateClientCompanyModal = () => {
       corporate_number: corporateNumber ? corporateNumber : null,
       board_member: boardMember ? boardMember : null,
       number_of_employees: numberOfEmployees ? numberOfEmployees : null,
+      // 追加 製品分類(大分類・中分類・小分類)の配列
+      insert_product_categories_all_ids: insertCategoryIdsArray,
+      delete_product_categories_all_ids: deleteCategoryIdsArray,
     };
 
+    // if (true) {
+    //   setLoadingGlobalState(false);
+    //   console.log("-------------------------------------------------------");
+    //   console.log("newClientCompany", newClientCompany);
+    //   return;
+    // }
+
     // supabaseにUPDATE,ローディング終了, モーダルを閉じる
-    updateClientCompanyMutation.mutate(newClientCompany);
+    updateClientCompanyWithProductCategoriesMutation.mutate(newClientCompany);
+    // updateClientCompanyMutation.mutate(newClientCompany);
 
     // setLoadingGlobalState(false);
 
@@ -503,12 +857,16 @@ export const UpdateClientCompanyModal = () => {
       marginTop: marginTop,
       itemsPosition: itemsPosition,
       whiteSpace: whiteSpace,
+      containerHeight: modalPosition?.height ?? 0,
+      containerWidth: modalPosition?.width ?? 0,
+      containerTop: modalPosition?.y ?? 0,
+      containerLeft: modalPosition?.x ?? 0,
     });
   };
   // ============================================================================================
   // ================================ ツールチップを非表示 ================================
   const handleCloseTooltip = () => {
-    setHoveredItemPosModal(null);
+    if (hoveredItemPosModal) setHoveredItemPosModal(null);
   };
   // ============================================================================================
 
@@ -641,6 +999,7 @@ export const UpdateClientCompanyModal = () => {
 
   // 国以下を全てリセット
   const resetRegion = () => {
+    console.log("--------------------------------✅✅✅✅✅resetRegion 国以下を全てリセット");
     if (countryId) setCountryId("");
     if (countryName) setCountryName("");
     if (regionId) setRegionId("");
@@ -702,6 +1061,7 @@ export const UpdateClientCompanyModal = () => {
   useEffect(() => {
     if (!isMounted) return;
     if (!countryName) {
+      console.log("--------------------------------✅✅✅✅✅countryNameなし regionId, cityId, streetNameリセット");
       // if (address) setAddress("");
       if (suggestedRegionIdNameArray?.length !== 0) setSuggestedRegionIdNameArray([]);
       if (suggestedCityIdNameArray?.length !== 0) setSuggestedCityIdNameArray([]);
@@ -719,6 +1079,7 @@ export const UpdateClientCompanyModal = () => {
   useEffect(() => {
     if (!isMounted) return;
     if (!regionName) {
+      console.log("--------------------------------✅✅✅✅✅regionNameなし regionId, cityId, streetNameリセット");
       if (regionId) setRegionId("");
       if (suggestedCityIdNameArray?.length !== 0) setSuggestedCityIdNameArray([]);
       if (cityId) setCityId("");
@@ -744,8 +1105,51 @@ export const UpdateClientCompanyModal = () => {
     }
   }, [streetAddress]);
 
+  const modalPosition = useMemo(() => {
+    if (!modalContainerRef.current) return null;
+    const { x, y, height, width } = modalContainerRef.current.getBoundingClientRect();
+    return { x, y, height, width };
+  }, [modalContainerRef.current]);
+
+  console.log(
+    "UpdateClientCompanyModalレンダリング",
+    "selectedRowDataCompany",
+    selectedRowDataCompany,
+    "✅大分類",
+    "オリジナル",
+    originalCategoryLargeArray,
+    "productCategoryLargeArray",
+    productCategoryLargeArray,
+    "selectedProductCategoryLargeSet",
+    selectedProductCategoryLargeSet,
+    "✅中分類",
+    "オリジナル",
+    originalCategoryMediumArray,
+    "productCategoryMediumArray",
+    productCategoryMediumArray,
+    "optionsProductCategoryMediumAll",
+    optionsProductCategoryMediumAll,
+    "mappingProductCategoryMediumAll",
+    mappingProductCategoryMediumAll,
+    "✅小分類",
+    "オリジナル",
+    originalCategorySmallArray,
+    "productCategorySmallArray",
+    productCategorySmallArray,
+    "selectedProductCategorySmallSet",
+    selectedProductCategorySmallSet,
+    "optionsProductCategorySmallAll",
+    optionsProductCategorySmallAll,
+    "mappingProductCategorySmallAll",
+    mappingProductCategorySmallAll
+  );
+
+  console.log("---------------------------------------------------");
   console.log("countryName", countryName, "countryId", countryId, "国リスト候補", suggestedCountryIdNameArray);
   console.log("regionName", regionName, "regionId", regionId, "都道府県リスト候補", suggestedRegionIdNameArray);
+  console.log("cityName", cityName, "cityId", cityId, "市区町村リスト候補", suggestedCityIdNameArray);
+  console.log("streetAddress", streetAddress);
+  console.log("---------------------------------------------------");
 
   return (
     <>
@@ -1015,9 +1419,7 @@ export const UpdateClientCompanyModal = () => {
                             whiteSpace: "nowrap",
                           });
                         }}
-                        onMouseLeave={() => {
-                          if (hoveredItemPosModal) handleCloseTooltip();
-                        }}
+                        onMouseLeave={handleCloseTooltip}
                         onClick={() => {
                           if (inputCountryRef.current) {
                             // フォーカス状態でリスト表示されている場合はフォーカスを切ってリストを削除
@@ -1134,9 +1536,7 @@ export const UpdateClientCompanyModal = () => {
                               whiteSpace: "nowrap",
                             });
                           }}
-                          onMouseLeave={() => {
-                            if (hoveredItemPosModal) handleCloseTooltip();
-                          }}
+                          onMouseLeave={handleCloseTooltip}
                           onClick={() => {
                             if (inputRegionRef.current) {
                               // フォーカス状態でリスト表示されている場合はフォーカスを切ってリストを削除
@@ -1554,6 +1954,18 @@ export const UpdateClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: managingDirector,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                       value={managingDirector}
                       onChange={(e) => setManagingDirector(e.target.value)}
                       onBlur={() => setManagingDirector(toHalfWidthAndSpace(managingDirector.trim()))}
@@ -1577,6 +1989,18 @@ export const UpdateClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: director,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                       value={director}
                       onChange={(e) => setDirector(e.target.value)}
                       onBlur={() => setDirector(toHalfWidthAndSpace(director.trim()))}
@@ -1604,6 +2028,18 @@ export const UpdateClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: boardMember,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                       value={boardMember}
                       onChange={(e) => setBoardMember(e.target.value)}
                       onBlur={() => setBoardMember(toHalfWidthAndSpace(boardMember.trim()))}
@@ -1627,6 +2063,18 @@ export const UpdateClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: auditor,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                       value={auditor}
                       onChange={(e) => setAuditor(e.target.value)}
                       onBlur={() => setAuditor(toHalfWidthAndSpace(auditor.trim()))}
@@ -1654,6 +2102,18 @@ export const UpdateClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: manager,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                       value={manager}
                       onChange={(e) => setManager(e.target.value)}
                       onBlur={() => setManager(toHalfWidthAndSpace(manager.trim()))}
@@ -1677,6 +2137,18 @@ export const UpdateClientCompanyModal = () => {
                       type="text"
                       placeholder=""
                       className={`${styles.input_box}`}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({
+                            e: e,
+                            display: "top",
+                            content: member,
+                            marginTop: 12,
+                            itemsPosition: "left",
+                          });
+                      }}
+                      onMouseLeave={handleCloseTooltip}
                       value={member}
                       onChange={(e) => setMember(e.target.value)}
                       onBlur={() => setMember(toHalfWidthAndSpace(member.trim()))}
@@ -1777,8 +2249,25 @@ export const UpdateClientCompanyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>製品分類(大分類)</span>
-                    <select
+                    {/* <span className={`${styles.title}`}>製品分類(大分類)</span> */}
+                    <div className={`flex flex-col ${styles.title} ${styles.double}`}>
+                      <span>製品分類</span>
+                      <span>(大分類)</span>
+                    </div>
+                    <CustomSelectMultiple
+                      stateArray={productCategoryLargeArray}
+                      dispatch={setProductCategoryLargeArray}
+                      selectedSetObj={selectedProductCategoryLargeSet}
+                      options={optionsProductLNameOnly}
+                      getOptionName={getProductCategoryLargeName}
+                      withBorder={true}
+                      modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                      customClass="font-normal"
+                      bgDark={false}
+                      maxWidth={420}
+                      maxHeight={32}
+                    />
+                    {/* <select
                       className={`ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                       value={productCategoryL}
                       onChange={(e) => setProductCategoryL(e.target.value)}
@@ -1799,7 +2288,7 @@ export const UpdateClientCompanyModal = () => {
                       <option value="業務支援サービス">業務支援サービス</option>
                       <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
                       <option value="その他">その他</option>
-                    </select>
+                    </select> */}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
@@ -1814,126 +2303,80 @@ export const UpdateClientCompanyModal = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>製品分類(中分類)</span>
-                    {!!productCategoryL && (
-                      <select
-                        value={productCategoryM}
-                        onChange={(e) => setProductCategoryM(e.target.value)}
-                        className={`${
-                          productCategoryL ? "" : "hidden"
-                        } ml-auto h-full w-[80%] cursor-pointer rounded-[4px] ${styles.select_box}`}
-                      >
-                        <option key="" value=""></option>,{/* 1. 電子部品・モジュール */}
-                        {inputProductL === "electronic_components_modules" &&
-                          productCategoriesM.moduleCategoryM.map((option) => (
-                            <option key={`moduleCategoryM${option.name}`} value={option.id}>
-                              {mappingModuleCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 2. 機械部品 */}
-                        {inputProductL === "mechanical_parts" &&
-                          productCategoriesM.machinePartsCategoryM.map((option) => (
-                            <option key={`machinePartsCategoryM${option.name}`} value={option.id}>
-                              {mappingMachinePartsCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 3. 製造・加工機械 */}
-                        {inputProductL === "manufacturing_processing_machines" &&
-                          productCategoriesM.processingMachineryCategoryM.map((option) => (
-                            <option key={`processingMachineryCategoryM${option.name}`} value={option.id}>
-                              {mappingProcessingMachineryCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 4. 科学・理化学機器 */}
-                        {inputProductL === "scientific_chemical_equipment" &&
-                          productCategoriesM.scienceCategoryM.map((option) => (
-                            <option key={`processingMachineryCategoryM${option.name}`} value={option.id}>
-                              {mappingScienceCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 5. 素材・材料 */}
-                        {inputProductL === "materials" &&
-                          productCategoriesM.materialCategoryM.map((option) => (
-                            <option key={`materialCategoryM${option.name}`} value={option.id}>
-                              {mappingMaterialCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 6. 測定・分析 */}
-                        {inputProductL === "measurement_analysis" &&
-                          productCategoriesM.analysisCategoryM.map((option) => (
-                            <option key={`analysisCategoryM${option.name}`} value={option.id}>
-                              {mappingAnalysisCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 7. 画像処理 */}
-                        {inputProductL === "image_processing" &&
-                          productCategoriesM.imageProcessingCategoryM.map((option) => (
-                            <option key={`imageProcessingCategoryM${option.name}`} value={option.id}>
-                              {mappingImageProcessingCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 8. 制御・電機機器 */}
-                        {inputProductL === "control_electrical_equipment" &&
-                          productCategoriesM.controlEquipmentCategoryM.map((option) => (
-                            <option key={`controlEquipmentCategoryM${option.name}`} value={option.id}>
-                              {mappingControlEquipmentCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 9. 工具・消耗品・備品 */}
-                        {inputProductL === "tools_consumables_supplies" &&
-                          productCategoriesM.toolCategoryM.map((option) => (
-                            <option key={`toolCategoryM${option.name}`} value={option.id}>
-                              {mappingToolCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 10. 設計・生産支援 */}
-                        {inputProductL === "design_production_support" &&
-                          productCategoriesM.designCategoryM.map((option) => (
-                            <option key={`designCategoryM${option.name}`} value={option.id}>
-                              {mappingDesignCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 11. IT・ネットワーク */}
-                        {inputProductL === "it_network" &&
-                          productCategoriesM.ITCategoryM.map((option) => (
-                            <option key={`ITCategoryM${option.name}`} value={option.id}>
-                              {mappingITCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 12. オフィス */}
-                        {inputProductL === "office" &&
-                          productCategoriesM.OfficeCategoryM.map((option) => (
-                            <option key={`OfficeCategoryM${option.name}`} value={option.id}>
-                              {mappingOfficeCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 13. 業務支援サービス */}
-                        {inputProductL === "business_support_services" &&
-                          productCategoriesM.businessSupportCategoryM.map((option) => (
-                            <option key={`businessSupportCategoryM${option.name}`} value={option.id}>
-                              {mappingBusinessSupportCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 14. セミナー・スキルアップ */}
-                        {inputProductL === "seminars_skill_up" &&
-                          productCategoriesM.skillUpCategoryM.map((option) => (
-                            <option key={`skillUpCategoryM${option.name}`} value={option.id}>
-                              {mappingSkillUpCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 15. その他 */}
-                        {inputProductL === "others" &&
-                          productCategoriesM.othersCategoryM.map((option) => (
-                            <option key={`othersCategoryM${option.name}`} value={option.id}>
-                              {mappingOthersCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                      </select>
+                    {/* <span className={`${styles.title}`}>製品分類(中分類)</span> */}
+                    <div className={`flex flex-col ${styles.title} ${styles.double}`}>
+                      <span>製品分類</span>
+                      <span>(中分類)</span>
+                    </div>
+
+                    {0 < productCategoryLargeArray.length && (
+                      <>
+                        <CustomSelectMultiple
+                          stateArray={productCategoryMediumArray}
+                          dispatch={setProductCategoryMediumArray}
+                          selectedSetObj={selectedProductCategoryMediumSet}
+                          options={optionsProductCategoryMediumAll}
+                          getOptionName={getProductCategoryMediumNameAll}
+                          withBorder={true}
+                          modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={420}
+                          maxHeight={32}
+                        />
+                      </>
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
+
+              {/* 右ラッパーここまで */}
+            </div>
+          </div>
+          {/* --------- 横幅全体ラッパーここまで --------- */}
+
+          {/* --------- 横幅全体ラッパー --------- */}
+          <div className={`${styles.full_contents_wrapper} flex w-full`}>
+            {/* --------- 左ラッパー --------- */}
+            <div className={`${styles.left_contents_wrapper} flex h-full flex-col`}>
+              {/* 製品分類(小分類) */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <div className={`flex flex-col ${styles.title} ${styles.double}`}>
+                      <span>製品分類</span>
+                      <span>(小分類)</span>
+                    </div>
+                    {0 < productCategoryMediumArray.length && (
+                      <>
+                        <CustomSelectMultiple
+                          stateArray={productCategorySmallArray}
+                          dispatch={setProductCategorySmallArray}
+                          selectedSetObj={selectedProductCategorySmallSet}
+                          options={optionsProductCategorySmallAll}
+                          getOptionName={getProductCategorySmallNameAll}
+                          withBorder={true}
+                          modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={420}
+                          maxHeight={32}
+                        />
+                      </>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
+                </div>
+              </div>
+
+              {/* 左ラッパーここまで */}
+            </div>
+
+            {/* --------- 右ラッパー --------- */}
+            <div className={`${styles.right_contents_wrapper} flex h-full flex-col`}>
+              {/* 製品分類(中分類) */}
+              <div className={`${styles.row_area} flex h-[35px] w-full items-center`}></div>
 
               {/* 右ラッパーここまで */}
             </div>

@@ -68,11 +68,12 @@ const companyColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "number_of_employees",
+    columnName: "fiscal_end_month",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
   },
+
   {
     columnName: "capital",
     columnWidth: "200px",
@@ -129,31 +130,26 @@ const companyColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
-    columnName: "product_category_large",
+    // columnName: "product_category_large",
+    columnName: "product_categories_large_array",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "product_category_medium",
+    // columnName: "product_category_medium",
+    columnName: "product_categories_medium_array",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
   },
   {
-    columnName: "product_category_small",
+    // columnName: "product_category_small",
+    columnName: "product_categories_small_array",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,
   },
-
-  {
-    columnName: "fiscal_end_month",
-    columnWidth: "200px",
-    isFrozen: false,
-    isOverflow: false,
-  },
-
   {
     columnName: "clients",
     columnWidth: "200px",
@@ -246,6 +242,12 @@ const companyColumnHeaderItemListArray: Obj[] = [
   },
   {
     columnName: "corporate_number",
+    columnWidth: "200px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
+    columnName: "number_of_employees",
     columnWidth: "200px",
     isFrozen: false,
     isOverflow: false,

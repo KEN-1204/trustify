@@ -161,6 +161,7 @@ const MeetingFunctionHeaderMemo: FC = () => {
               if (loadingGlobalState) setLoadingGlobalState(false);
               setIsOpenUpdateMeetingModal(true);
             }}
+            hoverColorGreen={true}
           />
           <RippleButton
             title={`案件_作成`}

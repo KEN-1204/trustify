@@ -11,14 +11,20 @@ import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
 import { FiLock, FiRefreshCw, FiSearch } from "react-icons/fi";
 import { columnNameToJapanese } from "@/utils/columnNameToJapanese";
-import { Client_company, Client_company_row_data } from "@/types";
+import { Client_company, Client_company_row_data, ProductCategoriesLarge, ProductCategoriesMedium } from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditColumnsModalDisplayOnly } from "../EditColumns/EditColumnsModalDisplayOnly";
 import SpinnerIDS from "@/components/Parts/SpinnerIDS/SpinnerIDS";
 import SpinnerIDS2 from "@/components/Parts/SpinnerIDS/SpinnerIDS2";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchMode } from "./DropDownMenuSearchMode/DropDownMenuSearchMode";
-import { getNumberOfEmployeesClass, mappingIndustryType } from "@/utils/selectOptions";
+import {
+  getNumberOfEmployeesClass,
+  mappingIndustryType,
+  mappingProductL,
+  optionsProductLNameOnlySet,
+  productCategoriesLargeIdsSet,
+} from "@/utils/selectOptions";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { toast } from "react-toastify";
 import { MdDeleteOutline } from "react-icons/md";
@@ -26,6 +32,12 @@ import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { SlCloudUpload } from "react-icons/sl";
 import { RiSortDesc } from "react-icons/ri";
+import { mappingProductCategoriesMedium, productCategoriesMediumNameOnlySet } from "@/utils/productCategoryM";
+import {
+  ProductCategoriesSmall,
+  mappingProductCategoriesSmall,
+  productCategoriesSmallNameOnlySet,
+} from "@/utils/productCategoryS";
 
 type TableDataType = {
   id: number;
@@ -309,6 +321,51 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // 新規サーチした時のrpc()に渡す検索項目params
   const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
 
+  // 🔸サーチ時の並び替えの対象カラムとASC or DESC
+  type SortableColumn =
+    | "name"
+    | "department_name"
+    | "email"
+    | "main_phone_number"
+    | "main_fax"
+    | "zipcode"
+    | "address"
+    | "department_contacts"
+    | "industry_large"
+    | "industry_small"
+    | "industry_type_id"
+    | "number_of_employee_class"
+    | "number_of_employee"
+    | "fiscal_end_month"
+    | "capital"
+    | "budget_request_month1"
+    | "budget_request_month2"
+    | "website_url"
+    | "clients"
+    | "supplier"
+    | "business_content"
+    | "established_in"
+    | "representative_name"
+    | "chairperson"
+    | "senior_vice_president"
+    | "senior_managing_director"
+    | "director"
+    | "auditor"
+    | "board_member"
+    | "manager"
+    | "member"
+    | "facility"
+    | "business_sites"
+    | "overseas_bases"
+    | "corporate_number";
+  // | "product_categories_large_array" // 配列を並び替えする意味がないためアンセット
+  // | "product_categories_medium_array"
+  // | "product_categories_small_array"
+  const [orderByColumnData, setOrderByColumnData] = useState<{ columnName: SortableColumn; isAsc: boolean }>({
+    columnName: "name",
+    isAsc: true,
+  });
+
   // 検索タイプ デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
   // const functionName = searchType === "partial_match" ? "search_companies_by_partial_match" : "search_companies";
   const functionName =
@@ -350,16 +407,23 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         to
       );
 
+      // ------------------- 🔸製品分類あり/なしテスト関連(フィルタ条件なし for_freeルート)🔸 -------------------
+      // 🔸製品分類ありver userProfileState?.company_id === nullでfor freeルート (フィルター条件なし初期画面フェッチ) created_by_company_idがNULLのみ抽出
       const { data, error, count } = await supabase
-        .from("client_companies")
-        // .select(`${columnNamesObj}`)
-        // .select(`${columnNamesObj}`, { count: "exact" })
-        // .select(`${columnNamesObj}`, { count: "estimated" })
-        .select(`${columnNamesObj}`, { count: "estimated" })
-        .is("created_by_company_id", null)
-        .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+        .rpc("search_companies_categories_no_filter_for_free", {}, { count: "estimated" })
         .range(from, to)
-        .order("name", { ascending: true });
+        .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc });
+      // 🔸製品分類なしver userProfileState?.company_id === nullでfor freeルート (フィルター条件なし初期画面フェッチ) created_by_company_idがNULLのみ抽出
+      // const { data, error, count } = await supabase
+      //   .from("client_companies")
+      //   .select(`${columnNamesObj}`, { count: "estimated" })
+      //   .is("created_by_company_id", null)
+      //   .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+      //   .range(from, to)
+      //   .order("name", { ascending: true });
+
+      // ------------------- 🔸製品分類あり/なしテスト関連(フィルタ条件なし for_freeルート)🔸 ここまで -------------------
+
       // const { data, error, count } = await supabase
       //   .from("client_companies")
       //   // .select(`${columnNamesObj}`)
@@ -446,47 +510,73 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       let data;
       let error;
       let count;
-      if (isFetchAllCompanies) {
-        // テスト 共有(null)と自社専用両方
-        // const { data, error, count } = await supabase
-        const {
-          data: fetchData,
-          error: fetchError,
-          count: fetchCount,
-        } = await supabase
-          .from("client_companies")
-          // .select(`${columnNamesObj}`, { count: "exact" })
-          .select(`${columnNamesObj}`, { count: "estimated" })
-          // .eq("created_by_company_id", userProfileState.company_id)
-          .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
-          .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
-          .range(from, to)
-          .order("name", { ascending: true });
-        data = fetchData;
-        error = fetchError;
-        count = fetchCount;
-        // テスト 共有(null)と自社専用両方
-      } else {
-        // テスト自社専用のみ
-        // const { data, error, count } = await supabase
-        const {
-          data: fetchData,
-          error: fetchError,
-          count: fetchCount,
-        } = await supabase
-          .from("client_companies")
-          // .select(`${columnNamesObj}`, { count: "exact" })
-          .select(`${columnNamesObj}`, { count: "estimated" })
-          .eq("created_by_company_id", userProfileState.company_id)
-          // .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
-          .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
-          .range(from, to)
-          .order("name", { ascending: true });
-        data = fetchData;
-        error = fetchError;
-        count = fetchCount;
-        // テスト自社専用のみ
-      }
+
+      // ----------------- 🔸製品分類あり/なしテスト関連(フィルタ条件なし 有料会員ルート)🔸 -----------------
+      // 🔸製品分類ありver 有料会員ルート (フィルター条件なし初期画面フェッチ)
+      const {
+        data: fetchData,
+        error: fetchError,
+        count: fetchCount,
+      } = await supabase
+        .rpc(
+          "search_companies_categories_no_filter",
+          {
+            _company_id: userProfileState.company_id,
+            _is_fetch_own_companies: !isFetchAllCompanies, // 共有(null)と自社専用両方 or 自社専用のみ
+          },
+          { count: "estimated" }
+        )
+        .range(from, to)
+        .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc });
+      // .order("name", { ascending: true });
+
+      data = fetchData;
+      error = fetchError;
+      count = fetchCount;
+      // 🔸製品分類ありver 有料会員ルート (フィルター条件なし初期画面フェッチ) ここまで
+      // 🔸製品分類なしver 有料会員ルート (フィルター条件なし初期画面フェッチ)
+      // if (isFetchAllCompanies) {
+      //   // テスト 共有(null)と自社専用両方
+      //   const {
+      //     data: fetchData,
+      //     error: fetchError,
+      //     count: fetchCount,
+      //   } = await supabase
+      //     .from("client_companies")
+      //     // .select(`${columnNamesObj}`, { count: "exact" })
+      //     .select(`${columnNamesObj}`, { count: "estimated" })
+      //     // .eq("created_by_company_id", userProfileState.company_id)
+      //     .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
+      //     .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+      //     .range(from, to)
+      //     .order("name", { ascending: true });
+      //   data = fetchData;
+      //   error = fetchError;
+      //   count = fetchCount;
+      //   // テスト 共有(null)と自社専用両方
+      // } else {
+      //   // テスト自社専用のみ
+      //   // const { data, error, count } = await supabase
+      //   const {
+      //     data: fetchData,
+      //     error: fetchError,
+      //     count: fetchCount,
+      //   } = await supabase
+      //     .from("client_companies")
+      //     // .select(`${columnNamesObj}`, { count: "exact" })
+      //     .select(`${columnNamesObj}`, { count: "estimated" })
+      //     .eq("created_by_company_id", userProfileState.company_id)
+      //     // .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
+      //     .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+      //     .range(from, to)
+      //     .order("name", { ascending: true });
+      //   data = fetchData;
+      //   error = fetchError;
+      //   count = fetchCount;
+      //   // テスト自社専用のみ
+      // }
+      // 🔸製品分類なしver 有料会員ルート (フィルター条件なし初期画面フェッチ) ここまで
+      // ----------------- 🔸製品分類あり/なしテスト関連(フィルタ条件なし 有料会員ルート)🔸 ここまで -----------------
       // =====================テスト 共有(null)と自社専用を切り替え ここまで=====================
       // const { data, error, count } = await supabase
       //   .from("client_companies")
@@ -557,19 +647,30 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         params
       );
 
+      // ------------------ 🔸製品分類あり/なしテスト関連(フィルタ条件あり for_freeルート)🔸 ------------------
+      // 🔸製品分類ありver for_freeルート (フィルター条件ありルート)
       const { data, error, count } = await supabase
-        // .rpc("search_companies", { params }, { count: "exact" })
-        // .rpc(functionName, { params }, { count: "exact" })
         .rpc(functionName, { params }, { count: "estimated" })
-        .is("created_by_company_id", null)
-        .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+        .is("created_by_company_id", null) // 共有データのみ
         .range(from, to)
-        .order("name", { ascending: true });
+        .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc });
+      // .order("name", { ascending: true });
+
+      // 🔸製品分類なしver for_freeルート (フィルター条件ありルート)
       // const { data, error, count } = await supabase
-      //   .rpc("search_companies", { params }, { count: "exact" })
+      //   // .rpc("search_companies", { params }, { count: "exact" })
+      //   // .rpc(functionName, { params }, { count: "exact" })
+      //   .rpc(functionName, { params }, { count: "estimated" })
       //   .is("created_by_company_id", null)
+      //   .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
       //   .range(from, to)
       //   .order("name", { ascending: true });
+      // // const { data, error, count } = await supabase
+      // //   .rpc("search_companies", { params }, { count: "exact" })
+      // //   .is("created_by_company_id", null)
+      // //   .range(from, to)
+      // //   .order("name", { ascending: true });
+      // ------------------ 🔸製品分類あり/なしテスト関連(フィルタ条件あり for_freeルート)🔸 ここまで ------------------
 
       if (error) {
         alert(error.message);
@@ -633,48 +734,102 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       let data;
       let error;
       let count;
+
+      // const {
+      //   data: fetchData,
+      //   error: fetchError,
+      //   count: fetchCount,
+      // } = await supabase
+      //   .rpc("search_companies_categories_no_filter", {
+      //     _company_id: userProfileState.company_id,
+      //     is_fetch_own_companies: false, // 共有(null)と自社専用両方
+      //   })
+      //   .range(from, to)
+      //   .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc });
+
+      // ------------------- 🔸製品分類あり/なしテスト関連(フィルタ条件あり 有料会員ルート)🔸 -------------------
+
+      // 🔸製品分類ありver 有料会員ルート (フィルター条件ありルート)
       if (isFetchAllCompanies) {
         // テスト 共有(null)と自社専用両方
         // const { data, error, count } = await supabase
-
         const {
           data: fetchData,
           error: fetchError,
           count: fetchCount,
         } = await supabase
-          // .rpc("search_companies", { params }, { count: "exact" })
-          // .rpc(functionName, { params }, { count: "exact" })
           .rpc(functionName, { params }, { count: "estimated" })
-          // .eq("created_by_company_id", userProfileState.company_id)
           .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
-          .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+          // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
           .range(from, to)
-          .order("name", { ascending: true });
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc });
+        // .order("name", { ascending: true });
         data = fetchData;
         error = fetchError;
         count = fetchCount;
         // テスト 共有(null)と自社専用両方
       } else {
         // テスト自社専用のみ
-        // const { data, error, count } = await supabase
         const {
           data: fetchData,
           error: fetchError,
           count: fetchCount,
         } = await supabase
-          // .rpc("search_companies", { params }, { count: "exact" })
-          // .rpc(functionName, { params }, { count: "exact" })
           .rpc(functionName, { params }, { count: "estimated" })
           .eq("created_by_company_id", userProfileState.company_id)
-          // .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
-          .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+          // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
           .range(from, to)
-          .order("name", { ascending: true });
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc });
+        // .order("name", { ascending: true });
         data = fetchData;
         error = fetchError;
         count = fetchCount;
         // テスト自社専用のみ
       }
+      // 🔸製品分類なしver 有料会員ルート (フィルター条件ありルート)
+      // if (isFetchAllCompanies) {
+      //   // テスト 共有(null)と自社専用両方
+      //   // const { data, error, count } = await supabase
+
+      //   const {
+      //     data: fetchData,
+      //     error: fetchError,
+      //     count: fetchCount,
+      //   } = await supabase
+      //     // .rpc("search_companies", { params }, { count: "exact" })
+      //     // .rpc(functionName, { params }, { count: "exact" })
+      //     .rpc(functionName, { params }, { count: "estimated" })
+      //     // .eq("created_by_company_id", userProfileState.company_id)
+      //     .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
+      //     .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+      //     .range(from, to)
+      //     .order("name", { ascending: true });
+      //   data = fetchData;
+      //   error = fetchError;
+      //   count = fetchCount;
+      //   // テスト 共有(null)と自社専用両方
+      // } else {
+      //   // テスト自社専用のみ
+      //   // const { data, error, count } = await supabase
+      //   const {
+      //     data: fetchData,
+      //     error: fetchError,
+      //     count: fetchCount,
+      //   } = await supabase
+      //     // .rpc("search_companies", { params }, { count: "exact" })
+      //     // .rpc(functionName, { params }, { count: "exact" })
+      //     .rpc(functionName, { params }, { count: "estimated" })
+      //     .eq("created_by_company_id", userProfileState.company_id)
+      //     // .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
+      //     .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+      //     .range(from, to)
+      //     .order("name", { ascending: true });
+      //   data = fetchData;
+      //   error = fetchError;
+      //   count = fetchCount;
+      //   // テスト自社専用のみ
+      // }
+      // ------------------- 🔸製品分類あり/なしテスト関連(フィルタ条件あり 有料会員ルート)🔸 ここまで -------------------
       // =====================テスト 共有(null)と自社専用を切り替え ここまで=====================
       // const { data, error, count } = await supabase
       //   .rpc("search_companies", { params }, { count: "exact" })
@@ -1017,17 +1172,25 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     );
     // 初回カラム生成時には必ずidフィールドもフェッチするためidカラムが含まれてしまうが、idフィールドはフェッチしてselectedRowDataにはidフィールドを保持しつつ、テーブルにはidカラムは表示しないようにするためにfilterメソッドでカラム生成時にidをとり除く
     // const filteredArrayOmitId = Object.keys(data?.pages[0].rows[0] as object).filter((field) => field !== "id");
-    const excludeKeys = new Set([
-      "id",
-      "created_by_user_id",
-      "created_by_department_of_user",
-      "created_by_unit_of_user",
-      "created_by_office_of_user",
-      "budget_request_month1",
-      "budget_request_month2",
-    ]);
-    const filteredArrayOmitId = Object.keys(data?.pages[0].rows[0] as object).filter((key) => !excludeKeys.has(key));
-    const newColsWidths = new Array(filteredArrayOmitId.length + 1).fill("120px");
+    // -------------------------- ✅初回カラム生成 テスト✅ --------------------------
+    // 🔸変更前
+    // const excludeKeys = new Set([
+    //   "id",
+    //   "created_by_user_id",
+    //   "created_by_department_of_user",
+    //   "created_by_unit_of_user",
+    //   "created_by_office_of_user",
+    //   "budget_request_month1",
+    //   "budget_request_month2",
+    // ]);
+    // const filteredArrayOmitId = Object.keys(data?.pages[0].rows[0] as object).filter((key) => !excludeKeys.has(key));
+    // 🔸変更前 ここまで
+    // 🔸変更後 最初からカラムとして表示するもののみをセット
+    const filteredArrayOmitId = [...columnHeaderItemList].map((item, index) => item.columnName as keyof Client_company);
+    console.log("✅初回ヘッダー生成 初回に表示するカラムを生成 filteredArrayOmitId", filteredArrayOmitId);
+    // 🔸変更後 ここまで
+    // -------------------------- ✅初回カラム生成 テスト✅ ここまで --------------------------
+    const newColsWidths = new Array(filteredArrayOmitId.length + 1).fill("120px"); //チェックボックス用に+1個
     // const newColsWidths = new Array(Object.keys(data?.pages[0].rows[0] as object).length + 1).fill("120px");
     // newColsWidths.fill("65px", 0, 1); // 1列目を65pxに変更 チェックボックス
     // newColsWidths.fill("50px", 1, 2); // 2列目を100pxに変更 id
@@ -2516,6 +2679,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     content2?: string | undefined | null;
     content3?: string | undefined | null;
     marginTop?: number;
+    maxWidth?: number;
     itemsPosition?: string;
   };
   const handleOpenTooltip = ({
@@ -2527,6 +2691,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     marginTop = 0,
     // itemsPosition = "start",
     itemsPosition = "center",
+    maxWidth,
   }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
@@ -2543,6 +2708,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
       display: display,
       marginTop: marginTop,
       itemsPosition: itemsPosition,
+      maxWidth: maxWidth,
     });
   };
   // ツールチップを非表示
@@ -2592,7 +2758,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // console.log("✅ 選択中のアクティブセルactiveCell", activeCell);
   // console.log("✅ 全てのカラムcolsRef", colsRef);
   console.log(
-    "GridTableAllコンポーネントレンダリング"
+    "GridTableAllコンポーネントレンダリング",
+    columnHeaderItemList
     // "✅ 全てのカラムcolsRef",
     // colsRef,
     // "checkedRows個数, checkedRows",
@@ -2656,6 +2823,39 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         if (!value) return null;
         if (typeof value !== "number") return value;
         return mappingIndustryType[value][language];
+
+      // 製品分類(大中小): 配列内のnameをjaに変換してjoinで「' '」で繋げる ※行を50行程度でバーチャライズしているため、このレベルのデータ量ではフォーマットにおけるJavascriptの配列操作mapやjoinは非常に高速のため、大幅なパフォーマンスの問題がない限りはこの実装で行う
+      case "product_categories_large_array":
+      case "product_categories_medium_array":
+      case "product_categories_small_array":
+        if (!value?.length || !Array.isArray(value)) return "";
+        if (columnName === "product_categories_large_array") {
+          return value
+            .map((name) =>
+              optionsProductLNameOnlySet.has(name)
+                ? `#${mappingProductL[name as ProductCategoriesLarge][language]}`
+                : `#-`
+            )
+            .join("　"); // #text1 #text2
+        }
+        if (columnName === "product_categories_medium_array") {
+          return value
+            .map((name) =>
+              productCategoriesMediumNameOnlySet.has(name)
+                ? `#${mappingProductCategoriesMedium[name as ProductCategoriesMedium][language]}`
+                : `#-`
+            )
+            .join("　"); // #text1 #text2
+        }
+        if (columnName === "product_categories_small_array") {
+          return value
+            .map((name) =>
+              productCategoriesSmallNameOnlySet.has(name)
+                ? `#${mappingProductCategoriesSmall[name as ProductCategoriesSmall][language]}`
+                : `#-`
+            )
+            .join("　"); // #text1 #text2
+        }
 
       default:
         return value;
@@ -2773,6 +2973,32 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                 <span className="pointer-events-none">固定</span>
               </button> */}
               {/* ========== ボタンエリア テスト ========== */}
+              {/* <RippleButton
+                title={`カラム編集`}
+                classText="select-none"
+                clickEventHandler={() => {
+                  const newResetColumnHeaderItemList = JSON.parse(JSON.stringify(columnHeaderItemList));
+                  console.log(
+                    "🔥🔥🔥モーダル開いた ZustandのリセットStateにパースして格納newResetColumnHeaderItemList",
+                    newResetColumnHeaderItemList
+                  );
+                  setResetColumnHeaderItemList(newResetColumnHeaderItemList);
+                  setIsOpenEditColumns(true);
+                }}
+                onMouseEnterHandler={(e) =>
+                  handleOpenTooltip({
+                    e: e,
+                    display: "top",
+                    content: `カラムをまとめて並び替えが可能です`,
+                    // content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
+                    // marginTop: 48,
+                    // marginTop: 28,
+                    marginTop: 9,
+                  })
+                }
+                onMouseLeaveHandler={handleCloseTooltip}
+              />
+              <ChangeSizeBtn /> */}
               <RippleButton
                 title={`${searchMode ? `サーチ中止` : `新規サーチ`}`}
                 // bgColor="var(--color-btn-brand-f-re)"
@@ -2801,8 +3027,7 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                     content2: `直近売れ先の仕入れ先や、売れ先と同じ取引先を持つ同業他社で導入実績が響く会社など`,
                     content3: `会社名、住所、規模、業種、決算月、取引先など複数の項目を組み合わせて売れる会社の検索が可能です。`,
                     marginTop: 48,
-                    // marginTop: 28,
-                    // marginTop: 9,
+                    maxWidth: 660,
                   })
                 }
                 onMouseLeaveHandler={() => {
@@ -3503,7 +3728,13 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                                       isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
                                     } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
                                       styles.grid_cell_resizable
-                                    } ${columnName === "name" ? `${styles.company_highlight}` : ``}`}
+                                    } ${columnName === "name" ? `${styles.company_highlight}` : ``} ${
+                                      columnName === "product_categories_large_array" ||
+                                      columnName === "product_categories_medium_array" ||
+                                      columnName === "product_categories_small_array"
+                                        ? `${styles.hashtag}`
+                                        : ``
+                                    }`}
                                     // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""}  ${index === 0 ? styles.grid_cell_frozen_last : ""} ${styles.grid_cell_resizable}`}
                                     // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                                     style={

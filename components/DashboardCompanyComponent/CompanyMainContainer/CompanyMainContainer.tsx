@@ -20,6 +20,9 @@ import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import dynamic from "next/dynamic";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import productCategoriesM, {
+  mappingProductCategoriesMedium,
+  productCategoriesMediumIdsSet,
+  productCategoriesMediumNameOnlySet,
   productCategoryLargeToMappingMediumMap,
   productCategoryLargeToOptionsMediumMap,
   productCategoryLargeToOptionsMediumObjMap,
@@ -64,10 +67,15 @@ import {
   optionsNumberOfEmployeesClass,
   optionsProductL,
   optionsProductLNameOnly,
+  optionsProductLNameOnlySet,
+  productCategoriesLargeIdsSet,
+  productCategoryLargeNameToIdMap,
 } from "@/utils/selectOptions";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import {
   ProductCategoriesSmall,
+  mappingProductCategoriesSmall,
+  productCategoriesSmallNameOnlySet,
   productCategoryMediumToMappingSmallMap,
   productCategoryMediumToOptionsSmallMap_All,
   productCategoryMediumToOptionsSmallMap_All_obj,
@@ -122,7 +130,8 @@ const CompanyMainContainerMemo: FC = () => {
   const queryClient = useQueryClient();
 
   // useMutation
-  const { updateClientCompanyFieldMutation, updateMultipleClientCompanyFields } = useMutateClientCompany();
+  const { updateClientCompanyFieldMutation, updateMultipleClientCompanyFields, updateProductCategoriesFields } =
+    useMutateClientCompany();
 
   // ================================ 🌟useQuery初回マウント時のフェッチ遅延用🌟 ================================
   // const [isReady, setIsReady] = useState(false);
@@ -187,6 +196,10 @@ const CompanyMainContainerMemo: FC = () => {
   // const [inputProductL, setInputProductL] = useState("");
   // const [inputProductM, setInputProductM] = useState("");
   // const [inputProductS, setInputProductS] = useState("");
+  // 製品分類 個別フィールドアップデート時の変更前オリジナルの値を保持するref INSERT対象とDELETE対象の判別に必要
+  const originalProductCategoriesLargeRef = useRef<ProductCategoriesLarge[] | null>(null);
+  const originalProductCategoriesMediumRef = useRef<ProductCategoriesMedium[] | null>(null);
+  const originalProductCategoriesSmallRef = useRef<ProductCategoriesSmall[] | null>(null);
   const [inputProductArrayLarge, setInputProductArrayLarge] = useState<ProductCategoriesLarge[]>([]);
   const [inputProductArrayMedium, setInputProductArrayMedium] = useState<ProductCategoriesMedium[]>([]);
   const [inputProductArraySmall, setInputProductArraySmall] = useState<ProductCategoriesSmall[]>([]);
@@ -304,6 +317,42 @@ const CompanyMainContainerMemo: FC = () => {
     // return mappingProductCategorySmallAll[option][language];
   };
   // ---------------- 🔸小分類🔸 ここまで ----------------
+
+  // 🔸上テーブルから選択された行データの各製品分類の配列の要素数が1つ以上の場合は表示用にフォーマットする
+  // 大分類
+  const formattedProductCategoriesLarge = useMemo(() => {
+    if (!selectedRowDataCompany || !selectedRowDataCompany.product_categories_large_array?.length) return "";
+    return selectedRowDataCompany.product_categories_large_array
+      .map((name) =>
+        optionsProductLNameOnlySet.has(name) ? `#${mappingProductL[name as ProductCategoriesLarge][language]}` : `#-`
+      )
+      .join("　"); // #text1 #text2
+  }, [selectedRowDataCompany?.product_categories_large_array]);
+
+  // 中分類
+  const formattedProductCategoriesMedium = useMemo(() => {
+    if (!selectedRowDataCompany || !selectedRowDataCompany.product_categories_medium_array?.length) return "";
+    return selectedRowDataCompany.product_categories_medium_array
+      .map((name) =>
+        productCategoriesMediumNameOnlySet.has(name)
+          ? `#${mappingProductCategoriesMedium[name as ProductCategoriesMedium][language]}`
+          : `#-`
+      )
+      .join("　"); // #text1 #text2
+  }, [selectedRowDataCompany?.product_categories_medium_array]);
+
+  // 小分類
+  const formattedProductCategoriesSmall = useMemo(() => {
+    if (!selectedRowDataCompany || !selectedRowDataCompany.product_categories_small_array?.length) return "";
+    return selectedRowDataCompany.product_categories_small_array
+      .map((name) =>
+        productCategoriesSmallNameOnlySet.has(name)
+          ? `#${mappingProductCategoriesSmall[name as ProductCategoriesSmall][language]}`
+          : `#-`
+      )
+      .join("　"); // #text1 #text2
+  }, [selectedRowDataCompany?.product_categories_small_array]);
+
   // 製品分類 -----------ここまで
   // ----------------------- 🌟製品分類(大分類・中分類)関連🌟 ここまで -----------------------
 
@@ -382,12 +431,15 @@ const CompanyMainContainerMemo: FC = () => {
       // setInputProductL(beforeAdjustFieldValue(newSearchCompanyParams.product_category_large));
       // setInputProductM(beforeAdjustFieldValue(newSearchCompanyParams.product_category_medium));
       // setInputProductS(beforeAdjustFieldValue(newSearchCompanyParams.product_category_small));
+      // console.log("製品分類をidからnameへ変換🔥", newSearchCompanyParams.product_category_all_ids);
+      // --------------- 製品分類LMSパターン ---------------
       console.log(
         "製品分類をidからnameへ変換🔥",
         newSearchCompanyParams.product_category_large_ids,
         newSearchCompanyParams.product_category_medium_ids,
         newSearchCompanyParams.product_category_small_ids
       );
+
       // 🔸大分類
       let productCategoryLargeNamesArray: ProductCategoriesLarge[] = [];
       if (0 < newSearchCompanyParams.product_category_large_ids.length) {
@@ -437,6 +489,71 @@ const CompanyMainContainerMemo: FC = () => {
           .filter((name): name is ProductCategoriesSmall => name !== undefined && name !== null);
         setInputProductArraySmall(productCategorySmallNamesArray);
       }
+      // --------------- 製品分類Allパターン ---------------
+      // // 🔹全てまとめた製品分類の配列から大中小に配列を分ける
+      // const copiedProductCategoryAllIds = [...newSearchCompanyParams.product_category_all_ids];
+      // const productCategoryLargeIdsArray: number[] = [];
+      // const productCategoryMediumIdsArray: number[] = [];
+      // const productCategorySmallIdsArray: number[] = [];
+      // copiedProductCategoryAllIds.forEach((id) => {
+      //   if (productCategoriesLargeIdsSet.has(id)) {
+      //     productCategoryLargeIdsArray.push(id);
+      //   } else if (productCategoriesMediumIdsSet.has(id)) {
+      //     productCategoryMediumIdsArray.push(id);
+      //   } else {
+      //     productCategorySmallIdsArray.push(id);
+      //   }
+      // });
+
+      // // 🔸大分類
+      // let productCategoryLargeNamesArray: ProductCategoriesLarge[] = [];
+      // if (0 < productCategoryLargeIdsArray.length) {
+      //   console.log("============================ 大分類実行🔥", productCategoryLargeIdsArray);
+      //   // idからnameへ変換
+      //   const largeIdToNameMap = new Map(optionsProductL.map((obj) => [obj.id, obj.name]));
+      //   productCategoryLargeNamesArray = productCategoryLargeIdsArray
+      //     .map((id) => {
+      //       return largeIdToNameMap.get(id);
+      //     })
+      //     .filter((name): name is ProductCategoriesLarge => name !== undefined && name !== null);
+      //   setInputProductArrayLarge(productCategoryLargeNamesArray);
+      // }
+      // // 🔸中分類
+      // let productCategoryMediumNamesArray: ProductCategoriesMedium[] = [];
+      // if (0 < productCategoryMediumIdsArray.length && 0 < productCategoryLargeNamesArray.length) {
+      //   console.log(
+      //     "============================ 中分類実行🔥",
+      //     productCategoryMediumIdsArray,
+      //     productCategoryLargeNamesArray
+      //   );
+      //   // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
+      //   const optionsMediumObj = productCategoryLargeNamesArray
+      //     .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
+      //     .flatMap((array) => array);
+      //   const mediumIdToNameMap = new Map(optionsMediumObj.map((obj) => [obj.id, obj.name]));
+      //   productCategoryMediumNamesArray = productCategoryMediumIdsArray
+      //     .map((id) => {
+      //       return mediumIdToNameMap.get(id);
+      //     })
+      //     .filter((name): name is ProductCategoriesMedium => name !== undefined && name !== null);
+      //   setInputProductArrayMedium(productCategoryMediumNamesArray);
+      // }
+      // // 🔸小分類
+      // let productCategorySmallNamesArray: ProductCategoriesSmall[] = [];
+      // if (0 < productCategorySmallIdsArray.length && 0 < productCategoryMediumNamesArray.length) {
+      //   console.log("============================ 小分類実行🔥");
+      //   // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
+      //   const optionsSmallObj = productCategoryMediumNamesArray
+      //     .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
+      //     .flatMap((array) => array);
+      //   const mediumIdToNameMap = new Map(optionsSmallObj.map((obj) => [obj.id, obj.name]));
+      //   productCategorySmallNamesArray = productCategorySmallIdsArray
+      //     .map((id) => {
+      //       return mediumIdToNameMap.get(id);
+      //     })
+      //     .filter((name): name is ProductCategoriesSmall => name !== undefined && name !== null);
+      //   setInputProductArraySmall(productCategorySmallNamesArray);
+      // }
       // ------------------------ 製品分類の処理 ------------------------ ここまで
       setInputFiscal(beforeAdjustFieldValue(newSearchCompanyParams.fiscal_end_month));
       setInputClient(beforeAdjustFieldValue(newSearchCompanyParams.clients));
@@ -627,12 +744,14 @@ const CompanyMainContainerMemo: FC = () => {
       );
     }
 
+    // --------------- 製品分類Allパターン ---------------
     // 大分類・中分類・小分類を全て１つの配列にまとめてINSERT => １つにまとめない (サーチ編集の時に大中小をidからそれぞれnameに分ける必要あるため)
     // const productCategoryAllIdsArray = [
     //   ...productCategoryLargeIdsArray,
     //   ...productCategoryMediumIdsArray,
     //   ...productCategorySmallIdsArray,
-    // ];
+    // ].sort((a, b) => a - b); // 同じ製品配列の内容でも追加順でキャッシュが異なることが内容にソートをする
+    // --------------- 製品分類Allパターン ---------------
 
     // 製品分類の処理ここまで ----------------------------------------------
 
@@ -832,9 +951,6 @@ const CompanyMainContainerMemo: FC = () => {
   };
   const handleDoubleClickField = useCallback(
     ({ e, field, dispatch, selectedRowDataValue }: DoubleClickProps) => {
-      // 自社で作成した会社でない場合はそのままリターン
-      if (!isOwnCompany) return;
-
       console.log(
         "ダブルクリック",
         "field",
@@ -850,6 +966,10 @@ const CompanyMainContainerMemo: FC = () => {
         // console.log(e.detail);
         setTimeoutRef.current = null;
         // ダブルクリック時に実行したい処理
+
+        // 自社で作成した会社でない場合はそのままリターン
+        if (!isOwnCompany) return;
+
         // クリックした要素のテキストを格納
         // const text = e.currentTarget.innerText;
         let text;
@@ -872,6 +992,37 @@ const CompanyMainContainerMemo: FC = () => {
     [isOwnCompany, setIsEditModeField]
   );
   // ================== ✅シングルクリック、ダブルクリックイベント ==================
+
+  const handleDoubleClickCategories = () => {
+    handleCloseTooltip();
+    console.log("ダブルクリック");
+    if (setTimeoutRef.current) {
+      clearTimeout(setTimeoutRef.current);
+
+      // console.log(e.detail);
+      setTimeoutRef.current = null;
+      // ダブルクリック時に実行したい処理
+
+      // 自社で作成した会社でない場合はそのままリターン
+      if (!isOwnCompany) return;
+      // ---------------------- 製品分類ルート ----------------------
+      // 製品分類の大中小どれかがダブルクリックされた場合には、大中小すべての値をinputStateにセットして3つ同時にフィールドエディットモードに変更する
+
+      setInputProductArrayLarge(selectedRowDataCompany?.product_categories_large_array ?? []);
+      setInputProductArrayMedium(selectedRowDataCompany?.product_categories_medium_array ?? []);
+      setInputProductArraySmall(selectedRowDataCompany?.product_categories_small_array ?? []);
+
+      // 変更前の元々の値を保持 送信クリックで元々の値から変更されていない場合には、そのまま閉じるため
+      originalProductCategoriesLargeRef.current = selectedRowDataCompany?.product_categories_large_array ?? [];
+      originalProductCategoriesMediumRef.current = selectedRowDataCompany?.product_categories_medium_array ?? [];
+      originalProductCategoriesSmallRef.current = selectedRowDataCompany?.product_categories_small_array ?? [];
+
+      setIsEditModeField("product_categories"); // クリックされたフィールドの編集モードを開く
+      return;
+
+      // ---------------------- 製品分類ルート ここまで ----------------------
+    }
+  };
 
   // プロパティ名のユニオン型の作成
   // Client_company_row_data型の全てのプロパティ名をリテラル型のユニオンとして展開
@@ -1108,11 +1259,240 @@ const CompanyMainContainerMemo: FC = () => {
   //   // }
   // };
   // ================== ✅セレクトボックスで個別フィールドをアップデート ==================
+  // ================== 🌟製品分類専用 個別フィールドをアップデート ==================
+  const handleUpdateProductCategories = async () => {
+    if (!selectedRowDataCompany || !selectedRowDataCompany.id) {
+      alert("会社データを確認できませんでした。 エラー：CMC10");
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+    const originalCategoriesLargeArray = originalProductCategoriesLargeRef.current;
+    const originalCategoriesMediumArray = originalProductCategoriesMediumRef.current;
+    const originalCategoriesSmallArray = originalProductCategoriesSmallRef.current;
+    if (
+      !Array.isArray(originalCategoriesLargeArray) ||
+      !Array.isArray(originalCategoriesMediumArray) ||
+      !Array.isArray(originalCategoriesSmallArray)
+    ) {
+      alert("製品分類データが確認できませんでした。 エラー：CMC11");
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    }
+    // 元々の値と変更されていなければそのままフィールドエディットモードを終了する
+    // originalProductCategoriesAllRef.current.has()
+
+    // 大中小全てnameの状態でひとまとめの配列を作成
+    const newProductCategoriesAll = [...inputProductArrayLarge, ...inputProductArrayMedium, ...inputProductArraySmall];
+    const originalProductCategoriesAll = new Set([
+      ...originalCategoriesLargeArray,
+      ...originalCategoriesMediumArray,
+      ...originalCategoriesSmallArray,
+    ]);
+    // 全てのnameが同じならリターン １つでも別のnameが含まれていればその時点で走査を停止しアップデート
+    if (
+      newProductCategoriesAll.length === originalProductCategoriesAll.size &&
+      newProductCategoriesAll.every((name) => originalProductCategoriesAll.has(name))
+    ) {
+      setIsEditModeField(null); // エディットモードを終了
+      return;
+    } else {
+      // 元々の製品分類から変更されていることが確認できたためアップデート
+      // 1. nameをidに変換
+      // 2. INSERT対象の製品分類を作成
+      // 3. DELETE対象の製品分類を作成
+
+      // 🔸1. nameをidに変換
+      // --------------------- 🔸製品分類関連の前処理 ---------------------
+      // 🔸製品分類をnameからidに変換して配列にまとめる
+      // 大分類
+      let productCategoryLargeIdsArray: number[] = []; // INSERT対象
+      let originalCategoryLargeIdsArray: number[] = []; // オリジナル
+      // const largeNameToIdMap = new Map(optionsProductL.map((obj) => [obj.name, obj.id]));
+      // 🔹大分類 new
+      if (0 < inputProductArrayLarge.length) {
+        // 🔹1. INSERT対象の分類のnameをidに変換
+        productCategoryLargeIdsArray = inputProductArrayLarge
+          .map((name) => {
+            return productCategoryLargeNameToIdMap.get(name);
+          })
+          .filter((id): id is number => id !== undefined && id !== null);
+      }
+      // 🔹大分類 original
+      if (0 < originalCategoriesLargeArray.length) {
+        // 🔹2. オリジナルの分類のnameをidに変換
+        originalCategoryLargeIdsArray = originalCategoriesLargeArray
+          .map((name) => {
+            return productCategoryLargeNameToIdMap.get(name);
+          })
+          .filter((id): id is number => id !== undefined && id !== null);
+      }
+      console.log(
+        "============================ 大分類実行🔥",
+        "オリジナル",
+        originalCategoryLargeIdsArray,
+        originalCategoriesLargeArray,
+        "INSERT",
+        productCategoryLargeIdsArray,
+        inputProductArrayLarge
+      );
+      // 中分類
+      let productCategoryMediumIdsArray: number[] = []; // INSERT対象
+      let originalCategoryMediumIdsArray: number[] = []; // オリジナル
+      // 🔹中分類 new
+      if (0 < inputProductArrayMedium.length) {
+        // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
+        // 🔹1-1.
+        const optionsMediumObj = inputProductArrayLarge
+          .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
+          .flatMap((array) => array);
+        const mediumNameToIdMap = new Map(optionsMediumObj.map((obj) => [obj.name, obj.id]));
+        // 🔹1-2. INSERT対象の分類のnameをidに変換
+        productCategoryMediumIdsArray = inputProductArrayMedium
+          .map((name) => {
+            return mediumNameToIdMap.get(name);
+          })
+          .filter((id): id is number => id !== undefined && id !== null);
+      }
+      // 🔹中分類 original
+      if (0 < originalCategoriesMediumArray.length) {
+        // 🔹2-1. オリジナルの選択中の大分類から中分類の配列を取得してMapオブジェクトを作成
+        const originalOptionsMediumObj = originalCategoriesLargeArray
+          .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
+          .flatMap((array) => array);
+        const originalMediumNameToIdMap = new Map(originalOptionsMediumObj.map((obj) => [obj.name, obj.id]));
+        // 🔹2. オリジナルの分類のnameをidに変換
+        originalCategoryMediumIdsArray = originalCategoriesMediumArray
+          .map((name) => {
+            return originalMediumNameToIdMap.get(name);
+          })
+          .filter((id): id is number => id !== undefined && id !== null);
+      }
+      console.log(
+        "============================ 中分類実行🔥",
+        "オリジナル",
+        originalCategoryMediumIdsArray,
+        originalCategoriesMediumArray,
+        "INSERT",
+        productCategoryMediumIdsArray,
+        inputProductArrayMedium
+      );
+      // 小分類
+      let productCategorySmallIdsArray: number[] = []; // INSERT対象
+      let originalCategorySmallIdsArray: number[] = []; // オリジナル
+      // 🔹小分類 new
+      if (0 < inputProductArraySmall.length) {
+        // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
+        // 🔹1-1.
+        const optionsSmallObj = inputProductArrayMedium
+          .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
+          .flatMap((array) => array);
+        const smallNameToIdMap = new Map(optionsSmallObj.map((obj) => [obj.name, obj.id]));
+        // 🔹1-2. INSERT対象の分類のnameをidに変換
+        productCategorySmallIdsArray = inputProductArraySmall
+          .map((name) => {
+            return smallNameToIdMap.get(name);
+          })
+          .filter((id): id is number => id !== undefined && id !== null);
+      }
+      // 🔹小分類 original
+      if (0 < originalCategoriesSmallArray.length) {
+        // 🔹2-1. オリジナルの選択中の中分類から小分類の配列を取得してMapオブジェクトを作成
+        const originalOptionsSmallObj = originalCategoriesMediumArray
+          .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
+          .flatMap((array) => array);
+        const originalSmallNameToIdMap = new Map(originalOptionsSmallObj.map((obj) => [obj.name, obj.id]));
+        // 🔹2-2. オリジナルの分類のnameをidに変換
+        originalCategorySmallIdsArray = originalCategoriesSmallArray
+          .map((name) => {
+            return originalSmallNameToIdMap.get(name);
+          })
+          .filter((id): id is number => id !== undefined && id !== null);
+      }
+      console.log(
+        "============================ 小分類実行🔥",
+        "オリジナル",
+        originalCategorySmallIdsArray,
+        originalCategoriesSmallArray,
+        "INSERT",
+        productCategorySmallIdsArray,
+        inputProductArraySmall
+      );
+
+      // 大分類・中分類・小分類を全て１つの配列にまとめる
+      const productCategoryAllIdsArray = [
+        ...productCategoryLargeIdsArray,
+        ...productCategoryMediumIdsArray,
+        ...productCategorySmallIdsArray,
+      ];
+
+      // 1. オリジナルの製品分類に存在せず、現在選択中の製品分類配列に含まれて製品分類は新たにINSERT
+      // 2. オリジナルの製品分類に存在していて、現在選択中の製品分類配列にも含まれている場合はON CONFLICTで衝突してDO NOTHINGでそのまま
+      // 3. オリジナルの製品分類に存在していて、現在選択中の製品分類には存在しない製品分類がある場合はDELETEする必要あり
+
+      // 🔸3のDELETE対象の特定とDELETE用に配列をまとめる
+      // オリジナルの製品分類の大中小を全て１つの配列にまとめる
+      const originalCategoryAllIdsArray = [
+        ...originalCategoryLargeIdsArray,
+        ...originalCategoryMediumIdsArray,
+        ...originalCategorySmallIdsArray,
+      ];
+
+      // 新たに追加されたINSERT対象となる製品分類のみを抽出して配列にまとめる オリジナルに存在しないidのみが新たにINSERT対象のidとなる
+      const originalCategoryAllIdsSet = new Set(originalCategoryAllIdsArray);
+      const insertCategoryIdsArray = productCategoryAllIdsArray.filter((id) => !originalCategoryAllIdsSet.has(id));
+
+      // 現在選択中の配列のSetオブジェクトを作成し、オリジナル全てのidをチェックし選択中のidに含まれていないidを全て抽出しDELETE対象にする
+      const selectedCategoryAllIdsSet = new Set(productCategoryAllIdsArray);
+      const deleteCategoryIdsArray = originalCategoryAllIdsArray.filter((id) => !selectedCategoryAllIdsSet.has(id));
+
+      console.log(
+        "製品分類 選択中の全ての製品分類",
+        productCategoryAllIdsArray,
+        "オリジナルの全ての製品分類",
+        originalCategoryAllIdsArray,
+        "INSERT対象の分類id",
+        insertCategoryIdsArray,
+        "削除対象の分類id",
+        deleteCategoryIdsArray,
+        "選択中の製品分類 大分類",
+        productCategoryLargeIdsArray,
+        inputProductArrayLarge,
+        "選択中の製品分類 中分類",
+        productCategoryMediumIdsArray,
+        inputProductArrayMedium,
+        "選択中の製品分類 小分類",
+        productCategorySmallIdsArray,
+        inputProductArraySmall
+      );
+
+      const insertAndDeletePayload = {
+        _client_company_id: selectedRowDataCompany.id,
+        _insert_product_categories_all_ids: insertCategoryIdsArray,
+        _delete_product_categories_all_ids: deleteCategoryIdsArray,
+      };
+
+      // if (true) {
+      //   console.log("insertAndDeletePayload", insertAndDeletePayload);
+      //   console.log("--------------------------------------------------");
+      //   setIsEditModeField(null); // エディットモードを終了
+      //   return;
+      // }
+
+      console.log("🔥insertAndDeletePayload", insertAndDeletePayload);
+      console.log("--------------------------------------------------");
+
+      await updateProductCategoriesFields.mutateAsync(insertAndDeletePayload);
+
+      setIsEditModeField(null); // エディットモードを終了
+      // --------------------- 🔸製品分類関連の前処理 ここまで ---------------------
+    }
+  };
+  // ================== 🌟製品分類専用 個別フィールドをアップデート ここまで ==================
 
   // 資本金の変換をメモ化
   const convertedCapital = useMemo(() => {
     return selectedRowDataCompany?.capital ? convertToJapaneseCurrencyFormat(selectedRowDataCompany.capital) : "";
-  }, []);
+  }, [selectedRowDataCompany?.capital]);
 
   console.log(
     "🔥 CompanyMainContainerレンダリング searchMode",
@@ -1128,7 +1508,13 @@ const CompanyMainContainerMemo: FC = () => {
     "inputProductArrayMedium",
     inputProductArrayMedium,
     "inputProductArraySmall",
-    inputProductArraySmall
+    inputProductArraySmall,
+    "formattedProductCategoriesLarge",
+    formattedProductCategoriesLarge,
+    "formattedProductCategoriesMedium",
+    formattedProductCategoriesMedium,
+    "formattedProductCategoriesSmall",
+    formattedProductCategoriesSmall
   );
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
@@ -1205,9 +1591,13 @@ const CompanyMainContainerMemo: FC = () => {
                         onMouseEnter={(e) => {
                           // 会社名は自社専用チェックがあるため一つ親要素が他より多い
                           e.currentTarget.parentElement?.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                            handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.parentElement?.classList.remove(`${styles.active}`);
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataCompany?.name ? selectedRowDataCompany?.name : ""}
@@ -1370,11 +1760,14 @@ const CompanyMainContainerMemo: FC = () => {
                         handleDoubleClickField({ e, field: "department_name", dispatch: setInputDepartment })
                       }
                       onMouseEnter={(e) => {
-                        console.log(e.currentTarget.parentElement, e.currentTarget.parentElement?.parentElement);
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
                       }}
                     >
                       {selectedRowDataCompany?.department_name ? selectedRowDataCompany?.department_name : ""}
@@ -2649,30 +3042,59 @@ const CompanyMainContainerMemo: FC = () => {
                     <span className={``}>(大分類)</span>
                   </div>
                   {/* ディスプレイ 製品分類はダブルクリックで大中小を全て編集モードに変更して一括で更新する */}
-                  {!searchMode && isEditModeField !== "product_category_large" && (
-                    <span
-                      className={`${styles.value} hashtag_color ${
-                        isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
-                      }`}
-                      // onClick={handleSingleClickField}
-                      // onDoubleClick={(e) => {
-                      //   handleDoubleClickField({
-                      //     e,
-                      //     field: "product_category_large",
-                      //     dispatch: setInputProductL,
-                      //   });
-                      // }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                      }}
-                    >
-                      {selectedRowDataCompany?.product_category_large
+                  {!searchMode && isEditModeField !== "product_categories" && (
+                    <>
+                      {formattedProductCategoriesLarge !== "" && (
+                        <span
+                          className={`${styles.value} hashtag_color ${styles.hashtag} ${
+                            isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
+                          }`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleDoubleClickCategories();
+                          }}
+                          data-text={`${formattedProductCategoriesLarge}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
+                        >
+                          {formattedProductCategoriesLarge}
+                          {/* {selectedRowDataCompany?.product_category_large
                         ? selectedRowDataCompany?.product_category_large
-                        : ""}
-                    </span>
+                        : ""} */}
+                        </span>
+                      )}
+                      {!!selectedRowDataCompany && isOwnCompany && formattedProductCategoriesLarge === "" && (
+                        <div
+                          className={`flex-center h-full w-full cursor-pointer bg-[#33333300]`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleDoubleClickCategories();
+                          }}
+                          data-text={`製品分類を追加する`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e, display: "top" });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
+                        >
+                          <div className={`relative h-[22px] w-[22px] ${styles.editable_icon}`}>
+                            <CiEdit
+                              className={`pointer-events-none min-h-[22px] min-w-[22px] text-[22px] text-[var(--color-text-sub)]`}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                   {/* サーチ 業種が選択されている場合には製品分類は非表示にする 同時に検索はかけられないように設定 */}
                   {searchMode && !inputIndustryType && (
@@ -2716,7 +3138,7 @@ const CompanyMainContainerMemo: FC = () => {
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
                   {/* フィールドエディットモード selectタグ  */}
-                  {!searchMode && isEditModeField === "product_category_large" && (
+                  {!searchMode && isEditModeField === "product_categories" && (
                     <>
                       {/* <select
                         className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
@@ -2742,11 +3164,72 @@ const CompanyMainContainerMemo: FC = () => {
                           <SpinnerComet w="22px" h="22px" s="3px" />
                         </div>
                       )} */}
+
+                      <CustomSelectMultiple
+                        stateArray={inputProductArrayLarge}
+                        dispatch={setInputProductArrayLarge}
+                        selectedSetObj={selectedProductCategoryLargeSet}
+                        options={optionsProductLNameOnly}
+                        getOptionName={getProductCategoryLargeName}
+                        withBorder={true}
+                        // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                        customClass="font-normal"
+                        bgDark={false}
+                        maxWidth={`calc(100% - 95px)`}
+                        maxHeight={30}
+                        zIndexSelectBox={2000}
+                        hideOptionAfterSelect={true}
+                      />
+                      {/* 送信、バツボタンエリア */}
+                      {!updateProductCategoriesFields.isLoading && (
+                        <div
+                          className={`${styles.field_edit_mode_btn_area} ${
+                            !updateProductCategoriesFields.isLoading
+                              ? styles.right_position
+                              : styles.right_position_loading
+                          }  space-x-[6px]`}
+                        >
+                          {/* 送信ボタン フィールドエディットモード専用 */}
+                          <div
+                            className={`flex-center transition-bg03 border-[var(--color-bg-brand-f) group min-h-[26px] min-w-[26px] cursor-pointer rounded-full border border-solid border-transparent hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              handleUpdateProductCategories();
+                            }}
+                          >
+                            <IoIosSend
+                              className={`text-[20px] text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`}
+                            />
+                          </div>
+                          {/* バツボタン フィールドエディットモード専用 */}
+                          <div
+                            className={`${styles.close_btn_field_edit_mode} hover:shadow-lg`}
+                            onClick={(e) => {
+                              e.currentTarget.parentElement?.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                              setIsEditModeField(null); // エディットモードを終了
+                            }}
+                          >
+                            <MdClose className="text-[20px] " />
+                          </div>
+                        </div>
+                      )}
                       {/* エディットフィールド送信中ローディングスピナー */}
+                      {updateProductCategoriesFields.isLoading && (
+                        <div
+                          className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
+                        >
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )}
+                      {/* {!updateMultipleClientCompanyFields.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )} */}
                     </>
                   )}
                   {/* フィールドエディットモードオーバーレイ */}
-                  {!searchMode && isEditModeField === "product_category_large" && (
+                  {!searchMode && isEditModeField === "product_categories" && (
                     <div
                       className={`${styles.edit_mode_overlay}`}
                       onClick={(e) => {
@@ -2769,35 +3252,56 @@ const CompanyMainContainerMemo: FC = () => {
                     <span className={``}>製品分類</span>
                     <span className={``}>(中分類)</span>
                   </div>
-                  {!searchMode && !!selectedRowDataCompany && isEditModeField !== "product_category_medium" && (
-                    <span
-                      className={`${styles.value} hashtag_color ${
-                        isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
-                      }`}
-                      // onClick={handleSingleClickField}
-                      // onDoubleClick={(e) => {
-                      //   handleDoubleClickField({
-                      //     e,
-                      //     field: "product_category_medium",
-                      //     dispatch: setInputProductM,
-                      //   });
-                      // }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                      }}
-                    >
-                      {selectedRowDataCompany?.product_category_medium
-                        ? selectedRowDataCompany?.product_category_medium
-                        : selectedRowDataCompany?.product_category_large
-                        ? "-"
-                        : ""}
-                    </span>
-                  )}
-                  {!searchMode && !selectedRowDataCompany && isEditModeField !== "product_category_medium" && (
-                    <span className={`${styles.value}`}></span>
+                  {!searchMode && !!selectedRowDataCompany && isEditModeField !== "product_categories" && (
+                    <>
+                      {formattedProductCategoriesMedium !== "" && (
+                        <span
+                          className={`${styles.value} hashtag_color ${styles.hashtag} ${
+                            isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
+                          }`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleDoubleClickCategories();
+                          }}
+                          data-text={`${formattedProductCategoriesMedium}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
+                        >
+                          {formattedProductCategoriesMedium}
+                        </span>
+                      )}
+                      {!!selectedRowDataCompany && isOwnCompany && formattedProductCategoriesMedium === "" && (
+                        <div
+                          className={`flex-center h-full w-full cursor-pointer bg-[#33333300]`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleDoubleClickCategories();
+                          }}
+                          data-text={`製品分類を追加する`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e, display: "top" });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
+                        >
+                          <div className={`relative h-[22px] w-[22px] ${styles.editable_icon}`}>
+                            <CiEdit
+                              className={`pointer-events-none min-h-[22px] min-w-[22px] text-[22px] text-[var(--color-text-sub)]`}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                   {/* サーチ */}
                   {searchMode && !!inputProductArrayLarge.length && (
@@ -2834,24 +3338,24 @@ const CompanyMainContainerMemo: FC = () => {
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
                   {/* フィールドエディットモード selectタグ  */}
-                  {!searchMode && isEditModeField === "product_category_medium" && (
+                  {!searchMode && isEditModeField === "product_categories" && (
                     <>
-                      {/* <select
-                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
-                        value={inputProductM}
-                        onChange={(e) => {
-                          // setInputEmployeesClass(e.target.value);
-                          handleChangeSelectUpdateField({
-                            e,
-                            fieldName: "product_category_medium",
-                            value: e.target.value,
-                            id: selectedRowDataCompany?.id,
-                          });
-                        }}
-                      >
-                        
-                      </select>
-                      {updateClientCompanyFieldMutation.isLoading && (
+                      <CustomSelectMultiple
+                        stateArray={inputProductArrayMedium}
+                        dispatch={setInputProductArrayMedium}
+                        selectedSetObj={selectedProductCategoryMediumSet}
+                        options={optionsProductCategoryMediumAll}
+                        getOptionName={getProductCategoryMediumNameAll}
+                        withBorder={true}
+                        // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                        customClass="font-normal"
+                        bgDark={false}
+                        maxWidth={`calc(100% - 95px)`}
+                        maxHeight={30}
+                        zIndexSelectBox={2000}
+                        hideOptionAfterSelect={true}
+                      />
+                      {/* {updateMultipleClientCompanyFields.isLoading && (
                         <div className={`${styles.field_edit_mode_loading_area}`}>
                           <SpinnerComet w="22px" h="22px" s="3px" />
                         </div>
@@ -2859,8 +3363,8 @@ const CompanyMainContainerMemo: FC = () => {
                       {/* エディットフィールド送信中ローディングスピナー */}
                     </>
                   )}
-                  {/* フィールドエディットモードオーバーレイ */}
-                  {!searchMode && isEditModeField === "product_category_medium" && (
+                  {/* フィールドエディットモードオーバーレイ 大分類のオーバーレイを表示 */}
+                  {/* {!searchMode && isEditModeField === "product_categories" && (
                     <div
                       className={`${styles.edit_mode_overlay}`}
                       onClick={(e) => {
@@ -2868,7 +3372,7 @@ const CompanyMainContainerMemo: FC = () => {
                         setIsEditModeField(null); // エディットモードを終了
                       }}
                     />
-                  )}
+                  )} */}
                   {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
@@ -2883,35 +3387,57 @@ const CompanyMainContainerMemo: FC = () => {
                     <span className={``}>製品分類</span>
                     <span className={``}>(小分類)</span>
                   </div>
-                  {!searchMode && !!selectedRowDataCompany && isEditModeField !== "product_category_medium" && (
-                    <span
-                      className={`${styles.value} hashtag_color ${
-                        isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
-                      }`}
-                      // onClick={handleSingleClickField}
-                      // onDoubleClick={(e) => {
-                      //   handleDoubleClickField({
-                      //     e,
-                      //     field: "product_category_small",
-                      //     dispatch: setInputProductM,
-                      //   });
-                      // }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                      }}
-                    >
-                      {selectedRowDataCompany?.product_category_medium
-                        ? selectedRowDataCompany?.product_category_medium
-                        : selectedRowDataCompany?.product_category_large
-                        ? "-"
-                        : ""}
-                    </span>
-                  )}
-                  {!searchMode && !selectedRowDataCompany && isEditModeField !== "product_category_small" && (
-                    <span className={`${styles.value}`}></span>
+                  {!searchMode && !!selectedRowDataCompany && isEditModeField !== "product_categories" && (
+                    <>
+                      {formattedProductCategoriesSmall !== "" && (
+                        <span
+                          className={`${styles.value} hashtag_color ${styles.hashtag} ${
+                            isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
+                          }`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleDoubleClickCategories();
+                          }}
+                          data-text={`${formattedProductCategoriesSmall}`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            const el = e.currentTarget;
+                            console.log(el.scrollWidth, el.offsetWidth, el.scrollHeight, el.offsetHeight);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
+                        >
+                          {formattedProductCategoriesSmall}
+                        </span>
+                      )}
+                      {!!selectedRowDataCompany && isOwnCompany && formattedProductCategoriesSmall === "" && (
+                        <div
+                          className={`flex-center h-full w-full cursor-pointer bg-[#33333300]`}
+                          onClick={handleSingleClickField}
+                          onDoubleClick={(e) => {
+                            handleDoubleClickCategories();
+                          }}
+                          data-text={`製品分類を追加する`}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                            handleOpenTooltip({ e, display: "top" });
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                            handleCloseTooltip();
+                          }}
+                        >
+                          <div className={`relative h-[22px] w-[22px] ${styles.editable_icon}`}>
+                            <CiEdit
+                              className={`pointer-events-none min-h-[22px] min-w-[22px] text-[22px] text-[var(--color-text-sub)]`}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                   {/* サーチ */}
                   {searchMode && !!inputProductArrayMedium.length && (
@@ -2931,6 +3457,44 @@ const CompanyMainContainerMemo: FC = () => {
                       />
                     </>
                   )}
+                  {/* ============= フィールドエディットモード関連 ============= */}
+                  {/* フィールドエディットモード selectタグ  */}
+                  {!searchMode && isEditModeField === "product_categories" && (
+                    <>
+                      <CustomSelectMultiple
+                        stateArray={inputProductArraySmall}
+                        dispatch={setInputProductArraySmall}
+                        selectedSetObj={selectedProductCategorySmallSet}
+                        options={optionsProductCategorySmallAll}
+                        getOptionName={getProductCategorySmallNameAll}
+                        withBorder={true}
+                        // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                        customClass="font-normal"
+                        bgDark={false}
+                        maxWidth={`calc(100% - 95px)`}
+                        maxHeight={30}
+                        zIndexSelectBox={2000}
+                        hideOptionAfterSelect={true}
+                      />
+                      {/* {updateMultipleClientCompanyFields.isLoading && (
+                        <div className={`${styles.field_edit_mode_loading_area}`}>
+                          <SpinnerComet w="22px" h="22px" s="3px" />
+                        </div>
+                      )} */}
+                      {/* エディットフィールド送信中ローディングスピナー */}
+                    </>
+                  )}
+                  {/* フィールドエディットモードオーバーレイ 大分類のオーバーレイを表示 */}
+                  {/* {!searchMode && isEditModeField === "product_categories" && (
+                    <div
+                      className={`${styles.edit_mode_overlay}`}
+                      onClick={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
+                        setIsEditModeField(null); // エディットモードを終了
+                      }}
+                    />
+                  )} */}
+                  {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
@@ -3347,7 +3911,8 @@ const CompanyMainContainerMemo: FC = () => {
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                        handleOpenTooltip({ e });
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3454,7 +4019,8 @@ const CompanyMainContainerMemo: FC = () => {
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                        handleOpenTooltip({ e });
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3566,7 +4132,9 @@ const CompanyMainContainerMemo: FC = () => {
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                        handleOpenTooltip({ e });
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3672,7 +4240,9 @@ const CompanyMainContainerMemo: FC = () => {
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                        handleOpenTooltip({ e });
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3777,7 +4347,9 @@ const CompanyMainContainerMemo: FC = () => {
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                        handleOpenTooltip({ e });
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3886,7 +4458,9 @@ const CompanyMainContainerMemo: FC = () => {
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                        handleOpenTooltip({ e });
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4404,7 +4978,8 @@ const CompanyMainContainerMemo: FC = () => {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4503,7 +5078,8 @@ const CompanyMainContainerMemo: FC = () => {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4605,7 +5181,8 @@ const CompanyMainContainerMemo: FC = () => {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4693,8 +5270,6 @@ const CompanyMainContainerMemo: FC = () => {
                               : ""
                           }`}
                           className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
-                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          // onMouseLeave={handleCloseTooltip}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
                             handleCloseTooltip();
@@ -4706,7 +5281,8 @@ const CompanyMainContainerMemo: FC = () => {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4795,8 +5371,6 @@ const CompanyMainContainerMemo: FC = () => {
                             selectedRowDataCompany?.managing_director ? selectedRowDataCompany?.managing_director : ""
                           }`}
                           className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
-                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          // onMouseLeave={handleCloseTooltip}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
                             handleCloseTooltip();
@@ -4808,7 +5382,8 @@ const CompanyMainContainerMemo: FC = () => {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4892,8 +5467,6 @@ const CompanyMainContainerMemo: FC = () => {
                             isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
                           }`}
                           data-text={`${selectedRowDataCompany?.director ? selectedRowDataCompany?.director : ""}`}
-                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          // onMouseLeave={handleCloseTooltip}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
                             handleCloseTooltip();
@@ -4905,7 +5478,8 @@ const CompanyMainContainerMemo: FC = () => {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4992,8 +5566,6 @@ const CompanyMainContainerMemo: FC = () => {
                             selectedRowDataCompany?.board_member ? selectedRowDataCompany?.board_member : ""
                           }`}
                           className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
-                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          // onMouseLeave={handleCloseTooltip}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
                             handleCloseTooltip();
@@ -5005,7 +5577,8 @@ const CompanyMainContainerMemo: FC = () => {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5086,8 +5659,6 @@ const CompanyMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataCompany?.auditor ? selectedRowDataCompany?.auditor : ""}`}
                           className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
-                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          // onMouseLeave={handleCloseTooltip}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
                             handleCloseTooltip();
@@ -5099,7 +5670,8 @@ const CompanyMainContainerMemo: FC = () => {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5184,8 +5756,6 @@ const CompanyMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataCompany?.manager ? selectedRowDataCompany?.manager : ""}`}
                           className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
-                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          // onMouseLeave={handleCloseTooltip}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
                             handleCloseTooltip();
@@ -5197,7 +5767,8 @@ const CompanyMainContainerMemo: FC = () => {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5279,8 +5850,6 @@ const CompanyMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataCompany?.member ? selectedRowDataCompany?.member : ""}`}
                           className={`${styles.value} ${isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`}`}
-                          // onMouseEnter={(e) => handleOpenTooltip({ e })}
-                          // onMouseLeave={handleCloseTooltip}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
                             handleCloseTooltip();
@@ -5292,7 +5861,8 @@ const CompanyMainContainerMemo: FC = () => {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            handleOpenTooltip({ e });
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
