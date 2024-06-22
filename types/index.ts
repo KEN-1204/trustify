@@ -79,6 +79,16 @@ export type hoveredItemPosWrap = {
   whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces";
 } | null;
 
+// モーダルのサイズ(ツールチップ計算用)
+export type SettingModalProperties = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+  width: number;
+  height: number;
+};
+
 // =================== アクティブタブ ===================
 export type ActiveMenuTab = string;
 
@@ -146,204 +156,6 @@ export type Profile = {
 //   product_category_id: number;
 //   product_category_name: string;
 // };
-
-// 営業先会社 client_companiesテーブル
-export type Client_company = {
-  id: string;
-  created_at?: string | null;
-  updated_at?: string | null;
-  created_by_company_id?: string | null;
-  created_by_user_id?: string | null;
-  created_by_department_of_user?: string | null;
-  created_by_section_of_user?: string | null;
-  created_by_unit_of_user?: string | null;
-  created_by_office_of_user?: string | null;
-  name?: string;
-  department_name?: string;
-  main_fax?: string | null;
-  zipcode?: string | null;
-  address?: string | null;
-  department_contacts?: string | null;
-  industry_large?: string | null;
-  industry_small?: string | null;
-  // industry_type?: string | null;
-  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
-  industry_type_id?: number | null;
-  country_id?: number | null;
-  region_id?: number | null;
-  city_id?: number | null;
-  street_address: string | null;
-  building_name: string | null;
-  // ここまで
-  product_category_large?: string | null;
-  product_category_medium?: string | null;
-  product_category_small?: string | null;
-  number_of_employees_class?: string | null;
-  fiscal_end_month?: string | null;
-  // capital?: string | null;
-  capital?: number | null;
-  budget_request_month1?: string | null;
-  budget_request_month2?: string | null;
-  website_url?: string | null;
-  clients?: string | null;
-  supplier?: string | null;
-  business_content?: string | null;
-  established_in?: string | null;
-  representative_name?: string | null;
-  chairperson?: string | null;
-  senior_vice_president?: string | null;
-  senior_managing_director?: string | null;
-  managing_director?: string | null;
-  director?: string | null;
-  auditor?: string | null;
-  manager?: string | null;
-  member?: string | null;
-  facility?: string | null;
-  business_sites?: string | null;
-  overseas_bases?: string | null;
-  group_company?: string | null;
-  email?: string | null;
-  main_phone_number?: string | null;
-  corporate_number?: string | null;
-  board_member?: string | null;
-  number_of_employees?: string | null;
-  // ban_reason?: string | null;
-  // call_careful_flag?: boolean | null;
-  // call_careful_reason?: string | null;
-  // claim?: string | null;
-  // email_ban_flag?: boolean | null;
-  // fax_dm_ban_flag?: boolean | null;
-  // representative_position_name?: string | null;
-  // sending_ban_flag?: boolean | null;
-};
-
-export type Client_company_row_data = {
-  id: string;
-  address?: string | null;
-  auditor?: string | null;
-  ban_reason?: string | null;
-  budget_request_month1?: string | null;
-  budget_request_month2?: string | null;
-  business_content?: string | null;
-  business_sites?: string | null;
-  call_careful_flag?: boolean | null;
-  call_careful_reason?: string | null;
-  // capital?: string | null;
-  capital?: number | null;
-  corporate_number?: string | null;
-  chairperson?: string | null;
-  claim?: string | null;
-  clients?: string | null;
-  created_at?: string | null;
-  created_by_company_id?: string | null;
-  created_by_user_id?: string | null;
-  created_by_department_of_user?: string | null;
-  created_by_section_of_user?: string | null;
-  created_by_unit_of_user?: string | null;
-  created_by_office_of_user?: string | null;
-  department_contacts?: string | null;
-  department_name?: string;
-  director?: string | null;
-  board_member?: string | null;
-  email?: string | null;
-  email_ban_flag?: boolean | null;
-  established_in?: string | null;
-  facility?: string | null;
-  fax_dm_ban_flag?: boolean | null;
-  fiscal_end_month?: string | null;
-  group_company?: string | null;
-  industry_large?: string | null;
-  industry_small?: string | null;
-  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
-  // industry_type?: string | null;
-  industry_type_id?: number | null;
-  country_id?: number | null;
-  region_id?: number | null;
-  city_id?: number | null;
-  street_address: string | null;
-  building_name: string | null;
-  // ここまで
-  main_fax?: string | null;
-  main_phone_number?: string;
-  manager?: string | null;
-  managing_director?: string | null;
-  member?: string | null;
-  name?: string;
-  number_of_employees_class?: string | null;
-  number_of_employees?: string | null;
-  overseas_bases?: string | null;
-  product_category_large?: string | null;
-  product_category_medium?: string | null;
-  product_category_small?: string | null;
-  representative_name?: string | null;
-  // representative_position_name?: string | null;
-  sending_ban_flag?: boolean | null;
-  senior_managing_director?: string | null;
-  senior_vice_president?: string | null;
-  supplier?: string | null;
-  updated_at?: string | null;
-  website_url?: string | null;
-  zipcode?: string | null;
-  // 🌠製品分類の配列 追加
-  // product_categories_large_array: ProductCategory[];
-  // product_categories_medium_array: ProductCategory[];
-  // product_categories_small_array: ProductCategory[];
-  product_categories_large_array: ProductCategoriesLarge[];
-  product_categories_medium_array: ProductCategoriesMedium[];
-  product_categories_small_array: ProductCategoriesSmall[];
-  // 🌠製品分類の配列 追加 ここまで
-};
-
-export type NewSearchCompanyParams = {
-  name: string | null;
-  department_name: string | null;
-  main_phone_number: string | null;
-  main_fax: string | null;
-  email: string | null;
-  zipcode: string | null;
-  number_of_employees_class: string | null;
-  address: string | null;
-  // capital: string | null;
-  capital: number | null;
-  established_in: string | null;
-  business_content: string | null;
-  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
-  // industry_type: string | null;
-  industry_type_id?: number | null;
-  country_id?: number | null;
-  region_id?: number | null;
-  city_id?: number | null;
-  // ここまで
-  // 🌠製品分類 追加 ----------------
-  // 製品分類はid(INTEGER)を大中小を全て１つの配列としてまとめてEXISTSでフィルタする
-  // product_category_large: string | null;
-  // product_category_medium: string | null;
-  // product_category_small: string | null;
-  // product_category_all_ids: number[];
-  product_category_large_ids: number[];
-  product_category_medium_ids: number[];
-  product_category_small_ids: number[];
-  // 🌠製品分類 ---------------- ここまで
-  fiscal_end_month: string | null;
-  facility: string | null;
-  clients: string | null;
-  supplier: string | null;
-  business_sites: string | null;
-  overseas_bases: string | null;
-  group_company: string | null;
-  corporate_number: string | null;
-  website_url: string | null;
-  representative_name: string | null; // 代表者
-  chairperson: string | null;
-  senior_vice_president: string | null;
-  senior_managing_director: string | null;
-  managing_director: string | null;
-  director: string | null;
-  auditor: string | null;
-  manager: string | null;
-  member: string | null;
-  board_member: string | null;
-};
 
 export type UserProfile = {
   id: string;
@@ -695,6 +507,264 @@ export type StripeSchedule = {
 
 // Stripe PaymentMethodオブジェクト
 
+// ------------------------------- 🌟事業部・課・係・事業所・社員番号関連🌟 -------------------------------
+// 事業部リストテーブル
+export type Department = {
+  id: string;
+  created_at: string;
+  created_by_company_id: string | null;
+  department_name: string | null;
+  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
+};
+// 課・セクションリストテーブル
+export type Section = {
+  id: string;
+  created_at: string;
+  created_by_company_id: string | null;
+  created_by_department_id: string | null;
+  section_name: string | null;
+  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
+};
+// 係・ユニットリストテーブル
+export type Unit = {
+  id: string;
+  created_at: string;
+  created_by_company_id: string | null;
+  created_by_department_id: string | null;
+  created_by_section_id: string | null;
+  unit_name: string | null;
+  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
+};
+// 事業所・営業所リストテーブル
+export type Office = {
+  id: string;
+  created_at: string;
+  created_by_company_id: string | null;
+  office_name: string | null;
+  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
+};
+export type Employee_id = {
+  id: string;
+  created_at: string;
+  created_by_company_id: string | null;
+  to_user_id: string | null;
+  employee_id_name: string | null;
+};
+
+// ------------------------------- 🌟事業部・課・係・事業所・社員番号関連🌟 ここまで -------------------------------
+
+// ------------------------------------ 🌟クライアント会社関連🌟 ------------------------------------
+// 市区町村
+export type Cities = {
+  city_id: number;
+  created_at: string;
+  updated_at: string | null;
+  city_name_ja: string | null;
+  city_name_en: string | null;
+  city_code_jp: number | null;
+  region_id: number | null;
+  country_id: number | null;
+};
+
+// 営業先会社 client_companiesテーブル
+export type Client_company = {
+  id: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  created_by_company_id?: string | null;
+  created_by_user_id?: string | null;
+  created_by_department_of_user?: string | null;
+  created_by_section_of_user?: string | null;
+  created_by_unit_of_user?: string | null;
+  created_by_office_of_user?: string | null;
+  name?: string;
+  department_name?: string;
+  main_fax?: string | null;
+  zipcode?: string | null;
+  address?: string | null;
+  department_contacts?: string | null;
+  industry_large?: string | null;
+  industry_small?: string | null;
+  // industry_type?: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  street_address: string | null;
+  building_name: string | null;
+  // ここまで
+  product_category_large?: string | null;
+  product_category_medium?: string | null;
+  product_category_small?: string | null;
+  number_of_employees_class?: string | null;
+  fiscal_end_month?: string | null;
+  // capital?: string | null;
+  capital?: number | null;
+  budget_request_month1?: string | null;
+  budget_request_month2?: string | null;
+  website_url?: string | null;
+  clients?: string | null;
+  supplier?: string | null;
+  business_content?: string | null;
+  established_in?: string | null;
+  representative_name?: string | null;
+  chairperson?: string | null;
+  senior_vice_president?: string | null;
+  senior_managing_director?: string | null;
+  managing_director?: string | null;
+  director?: string | null;
+  auditor?: string | null;
+  manager?: string | null;
+  member?: string | null;
+  facility?: string | null;
+  business_sites?: string | null;
+  overseas_bases?: string | null;
+  group_company?: string | null;
+  email?: string | null;
+  main_phone_number?: string | null;
+  corporate_number?: string | null;
+  board_member?: string | null;
+  number_of_employees?: string | null;
+  // ban_reason?: string | null;
+  // call_careful_flag?: boolean | null;
+  // call_careful_reason?: string | null;
+  // claim?: string | null;
+  // email_ban_flag?: boolean | null;
+  // fax_dm_ban_flag?: boolean | null;
+  // representative_position_name?: string | null;
+  // sending_ban_flag?: boolean | null;
+};
+
+export type Client_company_row_data = {
+  id: string;
+  address?: string | null;
+  auditor?: string | null;
+  ban_reason?: string | null;
+  budget_request_month1?: string | null;
+  budget_request_month2?: string | null;
+  business_content?: string | null;
+  business_sites?: string | null;
+  call_careful_flag?: boolean | null;
+  call_careful_reason?: string | null;
+  // capital?: string | null;
+  capital?: number | null;
+  corporate_number?: string | null;
+  chairperson?: string | null;
+  claim?: string | null;
+  clients?: string | null;
+  created_at?: string | null;
+  created_by_company_id?: string | null;
+  created_by_user_id?: string | null;
+  created_by_department_of_user?: string | null;
+  created_by_section_of_user?: string | null;
+  created_by_unit_of_user?: string | null;
+  created_by_office_of_user?: string | null;
+  department_contacts?: string | null;
+  department_name?: string;
+  director?: string | null;
+  board_member?: string | null;
+  email?: string | null;
+  email_ban_flag?: boolean | null;
+  established_in?: string | null;
+  facility?: string | null;
+  fax_dm_ban_flag?: boolean | null;
+  fiscal_end_month?: string | null;
+  group_company?: string | null;
+  industry_large?: string | null;
+  industry_small?: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  // industry_type?: string | null;
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  street_address: string | null;
+  building_name: string | null;
+  // ここまで
+  main_fax?: string | null;
+  main_phone_number?: string;
+  manager?: string | null;
+  managing_director?: string | null;
+  member?: string | null;
+  name?: string;
+  number_of_employees_class?: string | null;
+  number_of_employees?: string | null;
+  overseas_bases?: string | null;
+  product_category_large?: string | null;
+  product_category_medium?: string | null;
+  product_category_small?: string | null;
+  representative_name?: string | null;
+  // representative_position_name?: string | null;
+  sending_ban_flag?: boolean | null;
+  senior_managing_director?: string | null;
+  senior_vice_president?: string | null;
+  supplier?: string | null;
+  updated_at?: string | null;
+  website_url?: string | null;
+  zipcode?: string | null;
+  // 🌠製品分類の配列 追加
+  // product_categories_large_array: ProductCategory[];
+  // product_categories_medium_array: ProductCategory[];
+  // product_categories_small_array: ProductCategory[];
+  product_categories_large_array: ProductCategoriesLarge[];
+  product_categories_medium_array: ProductCategoriesMedium[];
+  product_categories_small_array: ProductCategoriesSmall[];
+  // 🌠製品分類の配列 追加 ここまで
+};
+
+export type NewSearchCompanyParams = {
+  name: string | null;
+  department_name: string | null;
+  main_phone_number: string | null;
+  main_fax: string | null;
+  email: string | null;
+  zipcode: string | null;
+  number_of_employees_class: string | null;
+  address: string | null;
+  // capital: string | null;
+  capital: number | null;
+  established_in: string | null;
+  business_content: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  // industry_type: string | null;
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
+  // 🌠製品分類 追加 ----------------
+  // product_category_large: string | null;
+  // product_category_medium: string | null;
+  // product_category_small: string | null;
+  // product_category_all_ids: number[];
+  product_category_large_ids: number[];
+  product_category_medium_ids: number[];
+  product_category_small_ids: number[];
+  // 🌠製品分類 ---------------- ここまで
+  fiscal_end_month: string | null;
+  facility: string | null;
+  clients: string | null;
+  supplier: string | null;
+  business_sites: string | null;
+  overseas_bases: string | null;
+  group_company: string | null;
+  corporate_number: string | null;
+  website_url: string | null;
+  representative_name: string | null; // 代表者
+  chairperson: string | null;
+  senior_vice_president: string | null;
+  senior_managing_director: string | null;
+  managing_director: string | null;
+  director: string | null;
+  auditor: string | null;
+  manager: string | null;
+  member: string | null;
+  board_member: string | null;
+};
+// ------------------------------------ 🌟クライアント会社関連🌟 ここまで ------------------------------------
+
+// ------------------------------------ 🌟担当者関連🌟 ------------------------------------
 export type Contact = {
   id: string;
   created_at: string;
@@ -765,6 +835,7 @@ export type EditedContact = {
   created_by_unit_of_user: string | null;
   created_by_office_of_user: string | null;
 };
+
 // 上画面の列選択した時に下画面に担当者情報を映す用のState
 // 選択中の行データオブジェクト GridTableで取得した結合データ
 export type Contact_row_data = {
@@ -843,7 +914,118 @@ export type Contact_row_data = {
   assigned_section_name: string | null;
   assigned_unit_name: string | null;
   assigned_office_name: string | null;
+  // 🌠製品分類の配列 追加
+  product_categories_large_array: ProductCategoriesLarge[];
+  product_categories_medium_array: ProductCategoriesMedium[];
+  product_categories_small_array: ProductCategoriesSmall[];
+  // 🌠製品分類の配列 追加 ここまで
 };
+
+// 検索条件 SELECTクエリに渡すパラメータ
+export type NewSearchContact_CompanyParams = {
+  "client_companies.name": string | null;
+  "client_companies.department_name": string | null;
+  main_phone_number: string | null;
+  main_fax: string | null;
+  zipcode: string | null;
+  address: string | null;
+  number_of_employees_class: string | null;
+  // capital: string | null;
+  capital: number | null;
+  established_in: string | null;
+  business_content: string | null;
+  website_url: string | null;
+  // company_email: string | null;
+  "client_companies.email": string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
+  // 🌠製品分類 追加 ----------------
+  // product_category_large: string | null;
+  // product_category_medium: string | null;
+  // product_category_small: string | null;
+  product_category_large_ids: number[];
+  product_category_medium_ids: number[];
+  product_category_small_ids: number[];
+  // 🌠製品分類 ---------------- ここまで
+  fiscal_end_month: string | null;
+  budget_request_month1: string | null;
+  budget_request_month2: string | null;
+  clients: string | null;
+  supplier: string | null;
+  facility: string | null;
+  business_sites: string | null;
+  overseas_bases: string | null;
+  group_company: string | null;
+  corporate_number: string | null;
+
+  "contacts.name": string | null;
+  direct_line: string | null;
+  direct_fax: string | null;
+  extension: string | null;
+  company_cell_phone: string | null;
+  personal_cell_phone: string | null;
+  // contact_email: string | null;
+  "contacts.email": string | null;
+  position_name: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
+  // approval_amount: string | null;
+  approval_amount: number | null;
+  // created_by_company_id: string | null;
+  "contacts.created_by_company_id": string | null;
+  created_by_user_id: string | null;
+};
+// ------------------------------------ 🌟担当者関連🌟 ここまで ------------------------------------
+
+// ------------------------------------ 🌟活動関連🌟 ------------------------------------
+// 活動 activitiesテーブル
+export type Activity = {
+  id: string;
+  created_at: string | null;
+  updated_at: string | null;
+  created_by_company_id: string | null;
+  created_by_user_id: string | null;
+  created_by_department_of_user: string | null;
+  created_by_section_of_user: string | null;
+  created_by_unit_of_user: string | null;
+  created_by_office_of_user: string | null; //🌠追加
+  client_contact_id: string | null;
+  client_company_id: string | null;
+  summary: string | null;
+  scheduled_follow_up_date: string | null;
+  follow_up_flag: boolean | null;
+  document_url: string | null;
+  activity_type: string | null;
+  claim_flag: boolean | null;
+  product_introduction1: string | null;
+  product_introduction2: string | null;
+  product_introduction3: string | null;
+  product_introduction4: string | null;
+  product_introduction5: string | null;
+  business_office: string | null;
+  member_name: string | null;
+  priority: string | null;
+  activity_date: string | null;
+  department: string | null;
+  meeting_id: string | null;
+  // 年月度
+  activity_year_month: number | null;
+  // 年度〜四半期
+  activity_quarter: number | null;
+  activity_half_year: number | null;
+  activity_fiscal_year: number | null;
+  //
+  property_id: string | null;
+  quotation_id: string | null;
+};
+
 // 上画面の列選択した時に下画面に担当者情報を映す用のState
 // 選択中の行データオブジェクト GridTableで取得した結合データ
 export type Activity_row_data = {
@@ -952,7 +1134,157 @@ export type Activity_row_data = {
   assigned_section_name: string | null;
   assigned_unit_name: string | null;
   assigned_office_name: string | null;
+  // 🌠製品分類の配列 追加
+  product_categories_large_array: ProductCategoriesLarge[];
+  product_categories_medium_array: ProductCategoriesMedium[];
+  product_categories_small_array: ProductCategoriesSmall[];
+  // 🌠製品分類の配列 追加 ここまで
 };
+
+// 検索時に下で条件入力した内容を上のrpc()のparamsに渡す用のstate
+export type NewSearchActivity_Contact_CompanyParams = {
+  "client_companies.name": string | null;
+  "client_companies.department_name": string | null;
+  main_phone_number: string | null;
+  main_fax: string | null;
+  zipcode: string | null;
+  address: string | null;
+  number_of_employees_class: string | null;
+  // capital: string | null;
+  capital: number | null;
+  established_in: string | null;
+  business_content: string | null;
+  website_url: string | null;
+  // company_email: string | null;
+  "client_companies.email": string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
+  // 🌠製品分類 追加 ----------------
+  // product_category_large: string | null;
+  // product_category_medium: string | null;
+  // product_category_small: string | null;
+  product_category_large_ids: number[];
+  product_category_medium_ids: number[];
+  product_category_small_ids: number[];
+  // 🌠製品分類 ---------------- ここまで
+  fiscal_end_month: string | null;
+  budget_request_month1: string | null;
+  budget_request_month2: string | null;
+  clients: string | null;
+  supplier: string | null;
+  facility: string | null;
+  business_sites: string | null;
+  overseas_bases: string | null;
+  group_company: string | null;
+  corporate_number: string | null;
+
+  "contacts.name": string | null;
+  direct_line: string | null;
+  direct_fax: string | null;
+  extension: string | null;
+  company_cell_phone: string | null;
+  personal_cell_phone: string | null;
+  // contact_email: string | null;
+  "contacts.email": string | null;
+  position_name: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
+  // approval_amount: string | null;
+  approval_amount: number | null;
+  "contacts.created_by_company_id": string | null;
+  "contacts.created_by_user_id": string | null;
+
+  // created_at: string;
+  // updated_at: string | null;
+  "activities.created_by_company_id": string | null;
+  "activities.created_by_user_id": string | null;
+  "activities.created_by_department_of_user": string | null;
+  "activities.created_by_section_of_user": string | null;
+  "activities.created_by_unit_of_user": string | null;
+  "activities.created_by_office_of_user": string | null; //🌠追加
+  summary: string | null;
+  scheduled_follow_up_date: string | null;
+  follow_up_flag: boolean | null;
+  document_url: string | null;
+  activity_type: string | null;
+  claim_flag: boolean | null;
+  product_introduction1: string | null;
+  product_introduction2: string | null;
+  product_introduction3: string | null;
+  product_introduction4: string | null;
+  product_introduction5: string | null;
+  business_office: string | null;
+  member_name: string | null;
+  priority: string | null;
+  activity_date: string | null;
+  department: string | null;
+  // 年月度
+  activity_year_month: number | null;
+  activity_quarter: number | null;
+  activity_half_year: number | null;
+  activity_fiscal_year: number | null;
+  // 条件検索用のパラメータには年度〜四半期は入れず
+};
+
+// ------------------------------------ 🌟活動関連🌟 ここまで ------------------------------------
+
+// ------------------------------------ 🌟面談関連🌟 ------------------------------------
+// 面談 meetingテーブル
+export type Meeting = {
+  id: string;
+  created_at: string | null;
+  updated_at: string | null;
+  created_by_company_id: string | null;
+  created_by_user_id: string | null;
+  created_by_department_of_user: string | null;
+  created_by_section_of_user: string | null;
+  created_by_unit_of_user: string | null;
+  created_by_office_of_user: string | null; //🌠追加
+  client_contact_id: string | null;
+  client_company_id: string | null;
+  meeting_type: string | null;
+  web_tool: string | null;
+  planned_date: string | null;
+  planned_start_time: string | null;
+  planned_purpose: string | null;
+  planned_duration: number | null;
+  planned_appoint_check_flag: boolean | null;
+  planned_product1: string | null;
+  planned_product2: string | null;
+  planned_comment: string | null;
+  result_date: string | null;
+  result_start_time: string | null;
+  result_end_time: string | null;
+  result_duration: number | null;
+  result_number_of_meeting_participants: number | null;
+  result_presentation_product1: string | null;
+  result_presentation_product2: string | null;
+  result_presentation_product3: string | null;
+  result_presentation_product4: string | null;
+  result_presentation_product5: string | null;
+  result_category: string | null;
+  result_summary: string | null;
+  result_negotiate_decision_maker: string | null;
+  result_top_position_class: number | null;
+  pre_meeting_participation_request: string | null;
+  meeting_participation_request: string | null;
+  meeting_business_office: string | null;
+  meeting_department: string | null;
+  meeting_member_name: string | null;
+  // 年度〜年月度
+  meeting_year_month: number | null;
+  meeting_quarter: number | null;
+  meeting_half_year: number | null;
+  meeting_fiscal_year: number | null;
+};
+
 // 上画面の列選択した時に下画面に担当者情報を映す用のState
 // 選択中の行データオブジェクト GridTableで取得した結合データ
 // 面談時の紹介した商品群の配列
@@ -1106,7 +1438,172 @@ export type Meeting_row_data = {
   planned_product_name2: string | null;
   planned_outside_short_name2: string | null;
   planned_inside_short_name2: string | null;
+  // 🌠製品分類の配列 追加
+  product_categories_large_array: ProductCategoriesLarge[];
+  product_categories_medium_array: ProductCategoriesMedium[];
+  product_categories_small_array: ProductCategoriesSmall[];
+  // 🌠製品分類の配列 追加 ここまで
 };
+
+// 面談サーチパラメータ用
+export type NewSearchMeeting_Contact_CompanyParams = {
+  "client_companies.name": string | null;
+  "client_companies.department_name": string | null;
+  main_phone_number: string | null;
+  main_fax: string | null;
+  zipcode: string | null;
+  address: string | null;
+  number_of_employees_class: string | null;
+  // capital: string | null;
+  capital: number | null;
+  established_in: string | null;
+  business_content: string | null;
+  website_url: string | null;
+  // company_email: string | null;
+  "client_companies.email": string | null;
+  // industry_type: string | null;
+  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  industry_type_id?: number | null;
+  country_id?: number | null;
+  region_id?: number | null;
+  city_id?: number | null;
+  // ここまで
+  // 🌠製品分類 追加 ----------------
+  // product_category_large: string | null;
+  // product_category_medium: string | null;
+  // product_category_small: string | null;
+  product_category_large_ids: number[];
+  product_category_medium_ids: number[];
+  product_category_small_ids: number[];
+  // 🌠製品分類 ---------------- ここまで
+  fiscal_end_month: string | null;
+  budget_request_month1: string | null;
+  budget_request_month2: string | null;
+  clients: string | null;
+  supplier: string | null;
+  facility: string | null;
+  business_sites: string | null;
+  overseas_bases: string | null;
+  group_company: string | null;
+  corporate_number: string | null;
+
+  "contacts.name": string | null;
+  direct_line: string | null;
+  direct_fax: string | null;
+  extension: string | null;
+  company_cell_phone: string | null;
+  personal_cell_phone: string | null;
+  // contact_email: string | null;
+  "contacts.email": string | null;
+  position_name: string | null;
+  // position_class: string | null;
+  // occupation: string | null;
+  position_class: number | null; //🌠変更オブジェクトマッピング
+  occupation: number | null; //🌠変更オブジェクトマッピング
+  // approval_amount: string | null;
+  approval_amount: number | null;
+  "contacts.created_by_company_id": string | null;
+  "contacts.created_by_user_id": string | null;
+
+  // created_at: string;
+  // updated_at: string | null;
+  "meetings.created_by_company_id": string | null;
+  "meetings.created_by_user_id": string | null;
+  "meetings.created_by_department_of_user": string | null;
+  "meetings.created_by_section_of_user": string | null;
+  "meetings.created_by_unit_of_user": string | null;
+  "meetings.created_by_office_of_user": string | null; //🌠追加
+  meeting_type: string | null;
+  web_tool: string | null;
+  planned_date: string | null;
+  planned_start_time: string | null;
+  planned_purpose: string | null;
+  planned_duration: number | null;
+  planned_appoint_check_flag: boolean | null;
+  planned_product1: string | null;
+  planned_product2: string | null;
+  planned_comment: string | null;
+  result_date: string | null;
+  result_start_time: string | null;
+  result_end_time: string | null;
+  result_duration: number | null;
+  result_number_of_meeting_participants: number | null;
+  result_presentation_product1: string | null;
+  result_presentation_product2: string | null;
+  result_presentation_product3: string | null;
+  result_presentation_product4: string | null;
+  result_presentation_product5: string | null;
+  result_category: string | null;
+  result_summary: string | null;
+  result_negotiate_decision_maker: string | null;
+  result_top_position_class: number | null;
+  pre_meeting_participation_request: string | null;
+  meeting_participation_request: string | null;
+  meeting_business_office: string | null;
+  meeting_department: string | null;
+  meeting_member_name: string | null;
+  // 年月度〜年度
+  meeting_year_month: number | null;
+  meeting_quarter: number | null;
+  meeting_half_year: number | null;
+  meeting_fiscal_year: number | null;
+};
+
+// 面談結果保存payload用 meeting, products, attendeesテーブル
+export type ResultMeetingWithProductsAttendees = {
+  id: string;
+  created_at: string | null;
+  updated_at: string | null;
+  created_by_company_id: string | null;
+  created_by_user_id: string | null;
+  created_by_department_of_user: string | null;
+  created_by_section_of_user: string | null;
+  created_by_unit_of_user: string | null;
+  created_by_office_of_user: string | null; //🌠追加
+  client_contact_id: string | null;
+  client_company_id: string | null;
+  meeting_type: string | null;
+  web_tool: string | null;
+  planned_date: string | null;
+  planned_start_time: string | null;
+  planned_purpose: string | null;
+  planned_duration: number | null;
+  planned_appoint_check_flag: boolean | null;
+  planned_product1: string | null;
+  planned_product2: string | null;
+  planned_comment: string | null;
+  result_date: string | null;
+  result_start_time: string | null;
+  result_end_time: string | null;
+  result_duration: number | null;
+  result_number_of_meeting_participants: number | null;
+  result_presentation_product1: string | null;
+  result_presentation_product2: string | null;
+  result_presentation_product3: string | null;
+  result_presentation_product4: string | null;
+  result_presentation_product5: string | null;
+  result_category: string | null;
+  result_summary: string | null;
+  result_negotiate_decision_maker: string | null;
+  result_top_position_class: number | null;
+  pre_meeting_participation_request: string | null;
+  meeting_participation_request: string | null;
+  meeting_business_office: string | null;
+  meeting_department: string | null;
+  meeting_member_name: string | null;
+  // 年度〜年月度
+  meeting_year_month: number | null;
+  meeting_quarter: number | null;
+  meeting_half_year: number | null;
+  meeting_fiscal_year: number | null;
+  // 実施商品テーブル用と、同席者テーブル用
+  product_ids: (string | null)[];
+  attendee_ids: (string | null)[];
+  // 紹介済み商品配列と同席者配列で削除が必要な個数
+  delete_product_count: number | null;
+  delete_attendee_count: number | null;
+};
+
 // 上画面の列選択した時に下画面に担当者情報を映す用のState
 // 選択中の行データオブジェクト GridTableで取得した結合データ
 // カレンダー用
@@ -1233,7 +1730,107 @@ export type ValidMeeting = {
   planned_product_name2: string | null;
   planned_outside_short_name2: string | null;
   planned_inside_short_name2: string | null;
+  // 🌠製品分類の配列 追加
+  product_categories_large_array: ProductCategoriesLarge[];
+  product_categories_medium_array: ProductCategoriesMedium[];
+  product_categories_small_array: ProductCategoriesSmall[];
+  // 🌠製品分類の配列 追加 ここまで
 };
+
+// ------------------------------------ 🌟面談関連🌟 ここまで ------------------------------------
+
+// ------------------------------------ 🌟案件関連🌟 ------------------------------------
+
+// 案件・物件 propertiesテーブル
+export type Property = {
+  id: string;
+  created_at: string;
+  updated_at: string | null;
+  created_by_company_id: string | null;
+  created_by_user_id: string | null;
+  created_by_department_of_user: string | null;
+  created_by_section_of_user: string | null;
+  created_by_unit_of_user: string | null;
+  created_by_office_of_user: string | null; //🌠追加
+  client_contact_id: string | null;
+  client_company_id: string | null;
+  current_status: string | null;
+  property_name: string | null;
+  property_summary: string | null;
+  pending_flag: boolean | null;
+  rejected_flag: boolean | null;
+  // product_name: string | null;
+  expected_product_id: string | null;
+  expected_product: string | null;
+  product_sales: number | null; //🌟変更
+  // expected_sales_price: number | null;
+  expected_sales_price: string | null;
+  term_division: string | null;
+  // sold_product_name: string | null;
+  sold_product_id: string | null;
+  sold_product: string | null;
+  unit_sales: number | null;
+  sales_contribution_category: string | null;
+  // sales_price: number | null;
+  // discounted_price: number | null;
+  // discount_rate: number | null;
+  sales_price: string | null;
+  discounted_price: string | null;
+  discount_rate: string | null;
+  sales_class: string | null;
+  // 🔹年度・半期・四半期・月度関連
+  // 日付(カレンダー)
+  property_date: string | null;
+  expansion_date: string | null;
+  sales_date: string | null;
+  expected_order_date: string | null; // 🌠追加
+  // 年月度(会計基準の)
+  property_year_month: number | null;
+  expansion_year_month: number | null;
+  sales_year_month: number | null;
+  expected_order_year_month: number | null;
+  // 四半期(会計基準の)
+  property_quarter: number | null; // 🌠追加
+  expansion_quarter: number | null;
+  sales_quarter: number | null;
+  expected_order_quarter: number | null;
+  // 半期(会計基準の)
+  property_half_year: number | null; // 🌠追加
+  expansion_half_year: number | null; // 🌠追加
+  sales_half_year: number | null; // 🌠追加
+  expected_order_half_year: number | null; // 🌠追加
+  // 年度(会計基準の)
+  property_fiscal_year: number | null; // 🌠追加
+  expansion_fiscal_year: number | null; // 🌠追加
+  sales_fiscal_year: number | null; // 🌠追加
+  expected_order_fiscal_year: number | null; // 🌠追加
+  // 🔹年度・半期・四半期・月度関連ここまで
+  subscription_start_date: string | null;
+  subscription_canceled_at: string | null;
+  leasing_company: string | null;
+  lease_division: string | null;
+  lease_expiration_date: string | null;
+  step_in_flag: boolean | null;
+  repeat_flag: boolean | null;
+  // order_certainty_start_of_month: string | null;
+  // review_order_certainty: string | null;
+  order_certainty_start_of_month: number | null;
+  review_order_certainty: number | null;
+  competitor_appearance_date: string | null;
+  competitor: string | null;
+  competitor_product: string | null;
+  reason_class: string | null;
+  reason_detail: string | null;
+  // customer_budget: number | null;
+  customer_budget: string | null;
+  decision_maker_negotiation: string | null;
+  subscription_interval: string | null;
+  competition_state: string | null;
+  property_department: string | null;
+  property_business_office: string | null;
+  property_member_name: string | null;
+};
+
 // 上画面の列選択した時に下画面に担当者情報を映す用のState
 // 選択中の行データオブジェクト GridTableで取得した結合データ
 export type Property_row_data = {
@@ -1393,246 +1990,11 @@ export type Property_row_data = {
   assigned_section_name: string | null;
   assigned_unit_name: string | null;
   assigned_office_name: string | null;
-};
-
-export type NewSearchContact_CompanyParams = {
-  "client_companies.name": string | null;
-  "client_companies.department_name": string | null;
-  main_phone_number: string | null;
-  main_fax: string | null;
-  zipcode: string | null;
-  address: string | null;
-  number_of_employees_class: string | null;
-  // capital: string | null;
-  capital: number | null;
-  established_in: string | null;
-  business_content: string | null;
-  website_url: string | null;
-  // company_email: string | null;
-  "client_companies.email": string | null;
-  // industry_type: string | null;
-  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
-  industry_type_id?: number | null;
-  country_id?: number | null;
-  region_id?: number | null;
-  city_id?: number | null;
-  // ここまで
-  product_category_large: string | null;
-  product_category_medium: string | null;
-  product_category_small: string | null;
-  fiscal_end_month: string | null;
-  budget_request_month1: string | null;
-  budget_request_month2: string | null;
-  clients: string | null;
-  supplier: string | null;
-  facility: string | null;
-  business_sites: string | null;
-  overseas_bases: string | null;
-  group_company: string | null;
-  corporate_number: string | null;
-
-  "contacts.name": string | null;
-  direct_line: string | null;
-  direct_fax: string | null;
-  extension: string | null;
-  company_cell_phone: string | null;
-  personal_cell_phone: string | null;
-  // contact_email: string | null;
-  "contacts.email": string | null;
-  position_name: string | null;
-  // position_class: string | null;
-  // occupation: string | null;
-  position_class: number | null; //🌠変更オブジェクトマッピング
-  occupation: number | null; //🌠変更オブジェクトマッピング
-  // approval_amount: string | null;
-  approval_amount: number | null;
-  // created_by_company_id: string | null;
-  "contacts.created_by_company_id": string | null;
-  created_by_user_id: string | null;
-};
-// 検索時に下で条件入力した内容を上のrpc()のparamsに渡す用のstate
-export type NewSearchActivity_Contact_CompanyParams = {
-  "client_companies.name": string | null;
-  "client_companies.department_name": string | null;
-  main_phone_number: string | null;
-  main_fax: string | null;
-  zipcode: string | null;
-  address: string | null;
-  number_of_employees_class: string | null;
-  // capital: string | null;
-  capital: number | null;
-  established_in: string | null;
-  business_content: string | null;
-  website_url: string | null;
-  // company_email: string | null;
-  "client_companies.email": string | null;
-  // industry_type: string | null;
-  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
-  industry_type_id?: number | null;
-  country_id?: number | null;
-  region_id?: number | null;
-  city_id?: number | null;
-  // ここまで
-  product_category_large: string | null;
-  product_category_medium: string | null;
-  product_category_small: string | null;
-  fiscal_end_month: string | null;
-  budget_request_month1: string | null;
-  budget_request_month2: string | null;
-  clients: string | null;
-  supplier: string | null;
-  facility: string | null;
-  business_sites: string | null;
-  overseas_bases: string | null;
-  group_company: string | null;
-  corporate_number: string | null;
-
-  "contacts.name": string | null;
-  direct_line: string | null;
-  direct_fax: string | null;
-  extension: string | null;
-  company_cell_phone: string | null;
-  personal_cell_phone: string | null;
-  // contact_email: string | null;
-  "contacts.email": string | null;
-  position_name: string | null;
-  // position_class: string | null;
-  // occupation: string | null;
-  position_class: number | null; //🌠変更オブジェクトマッピング
-  occupation: number | null; //🌠変更オブジェクトマッピング
-  // approval_amount: string | null;
-  approval_amount: number | null;
-  "contacts.created_by_company_id": string | null;
-  "contacts.created_by_user_id": string | null;
-
-  // created_at: string;
-  // updated_at: string | null;
-  "activities.created_by_company_id": string | null;
-  "activities.created_by_user_id": string | null;
-  "activities.created_by_department_of_user": string | null;
-  "activities.created_by_section_of_user": string | null;
-  "activities.created_by_unit_of_user": string | null;
-  "activities.created_by_office_of_user": string | null; //🌠追加
-  summary: string | null;
-  scheduled_follow_up_date: string | null;
-  follow_up_flag: boolean | null;
-  document_url: string | null;
-  activity_type: string | null;
-  claim_flag: boolean | null;
-  product_introduction1: string | null;
-  product_introduction2: string | null;
-  product_introduction3: string | null;
-  product_introduction4: string | null;
-  product_introduction5: string | null;
-  business_office: string | null;
-  member_name: string | null;
-  priority: string | null;
-  activity_date: string | null;
-  department: string | null;
-  // 年月度
-  activity_year_month: number | null;
-  activity_quarter: number | null;
-  activity_half_year: number | null;
-  activity_fiscal_year: number | null;
-  // 条件検索用のパラメータには年度〜四半期は入れず
-};
-// 面談サーチパラメータ用
-export type NewSearchMeeting_Contact_CompanyParams = {
-  "client_companies.name": string | null;
-  "client_companies.department_name": string | null;
-  main_phone_number: string | null;
-  main_fax: string | null;
-  zipcode: string | null;
-  address: string | null;
-  number_of_employees_class: string | null;
-  // capital: string | null;
-  capital: number | null;
-  established_in: string | null;
-  business_content: string | null;
-  website_url: string | null;
-  // company_email: string | null;
-  "client_companies.email": string | null;
-  // industry_type: string | null;
-  // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
-  industry_type_id?: number | null;
-  country_id?: number | null;
-  region_id?: number | null;
-  city_id?: number | null;
-  // ここまで
-  product_category_large: string | null;
-  product_category_medium: string | null;
-  product_category_small: string | null;
-  fiscal_end_month: string | null;
-  budget_request_month1: string | null;
-  budget_request_month2: string | null;
-  clients: string | null;
-  supplier: string | null;
-  facility: string | null;
-  business_sites: string | null;
-  overseas_bases: string | null;
-  group_company: string | null;
-  corporate_number: string | null;
-
-  "contacts.name": string | null;
-  direct_line: string | null;
-  direct_fax: string | null;
-  extension: string | null;
-  company_cell_phone: string | null;
-  personal_cell_phone: string | null;
-  // contact_email: string | null;
-  "contacts.email": string | null;
-  position_name: string | null;
-  // position_class: string | null;
-  // occupation: string | null;
-  position_class: number | null; //🌠変更オブジェクトマッピング
-  occupation: number | null; //🌠変更オブジェクトマッピング
-  // approval_amount: string | null;
-  approval_amount: number | null;
-  "contacts.created_by_company_id": string | null;
-  "contacts.created_by_user_id": string | null;
-
-  // created_at: string;
-  // updated_at: string | null;
-  "meetings.created_by_company_id": string | null;
-  "meetings.created_by_user_id": string | null;
-  "meetings.created_by_department_of_user": string | null;
-  "meetings.created_by_section_of_user": string | null;
-  "meetings.created_by_unit_of_user": string | null;
-  "meetings.created_by_office_of_user": string | null; //🌠追加
-  meeting_type: string | null;
-  web_tool: string | null;
-  planned_date: string | null;
-  planned_start_time: string | null;
-  planned_purpose: string | null;
-  planned_duration: number | null;
-  planned_appoint_check_flag: boolean | null;
-  planned_product1: string | null;
-  planned_product2: string | null;
-  planned_comment: string | null;
-  result_date: string | null;
-  result_start_time: string | null;
-  result_end_time: string | null;
-  result_duration: number | null;
-  result_number_of_meeting_participants: number | null;
-  result_presentation_product1: string | null;
-  result_presentation_product2: string | null;
-  result_presentation_product3: string | null;
-  result_presentation_product4: string | null;
-  result_presentation_product5: string | null;
-  result_category: string | null;
-  result_summary: string | null;
-  result_negotiate_decision_maker: string | null;
-  result_top_position_class: number | null;
-  pre_meeting_participation_request: string | null;
-  meeting_participation_request: string | null;
-  meeting_business_office: string | null;
-  meeting_department: string | null;
-  meeting_member_name: string | null;
-  // 年月度〜年度
-  meeting_year_month: number | null;
-  meeting_quarter: number | null;
-  meeting_half_year: number | null;
-  meeting_fiscal_year: number | null;
+  // 🌠製品分類の配列 追加
+  product_categories_large_array: ProductCategoriesLarge[];
+  product_categories_medium_array: ProductCategoriesMedium[];
+  product_categories_small_array: ProductCategoriesSmall[];
+  // 🌠製品分類の配列 追加 ここまで
 };
 
 export type NewSearchProperty_Contact_CompanyParams = {
@@ -1657,9 +2019,14 @@ export type NewSearchProperty_Contact_CompanyParams = {
   region_id?: number | null;
   city_id?: number | null;
   // ここまで
-  product_category_large: string | null;
-  product_category_medium: string | null;
-  product_category_small: string | null;
+  // 🌠製品分類 追加 ----------------
+  // product_category_large: string | null;
+  // product_category_medium: string | null;
+  // product_category_small: string | null;
+  product_category_large_ids: number[];
+  product_category_medium_ids: number[];
+  product_category_small_ids: number[];
+  // 🌠製品分類 ---------------- ここまで
   fiscal_end_month: string | null;
   budget_request_month1: string | null;
   budget_request_month2: string | null;
@@ -1774,96 +2141,9 @@ export type NewSearchProperty_Contact_CompanyParams = {
   property_member_name: string | null;
 };
 
-// 活動 activitiesテーブル
-export type Activity = {
-  id: string;
-  created_at: string | null;
-  updated_at: string | null;
-  created_by_company_id: string | null;
-  created_by_user_id: string | null;
-  created_by_department_of_user: string | null;
-  created_by_section_of_user: string | null;
-  created_by_unit_of_user: string | null;
-  created_by_office_of_user: string | null; //🌠追加
-  client_contact_id: string | null;
-  client_company_id: string | null;
-  summary: string | null;
-  scheduled_follow_up_date: string | null;
-  follow_up_flag: boolean | null;
-  document_url: string | null;
-  activity_type: string | null;
-  claim_flag: boolean | null;
-  product_introduction1: string | null;
-  product_introduction2: string | null;
-  product_introduction3: string | null;
-  product_introduction4: string | null;
-  product_introduction5: string | null;
-  business_office: string | null;
-  member_name: string | null;
-  priority: string | null;
-  activity_date: string | null;
-  department: string | null;
-  meeting_id: string | null;
-  // 年月度
-  activity_year_month: number | null;
-  // 年度〜四半期
-  activity_quarter: number | null;
-  activity_half_year: number | null;
-  activity_fiscal_year: number | null;
-  //
-  property_id: string | null;
-  quotation_id: string | null;
-};
+// ------------------------------------ 🌟案件関連🌟 ここまで ------------------------------------
 
-// 面談 meetingテーブル
-export type Meeting = {
-  id: string;
-  created_at: string | null;
-  updated_at: string | null;
-  created_by_company_id: string | null;
-  created_by_user_id: string | null;
-  created_by_department_of_user: string | null;
-  created_by_section_of_user: string | null;
-  created_by_unit_of_user: string | null;
-  created_by_office_of_user: string | null; //🌠追加
-  client_contact_id: string | null;
-  client_company_id: string | null;
-  meeting_type: string | null;
-  web_tool: string | null;
-  planned_date: string | null;
-  planned_start_time: string | null;
-  planned_purpose: string | null;
-  planned_duration: number | null;
-  planned_appoint_check_flag: boolean | null;
-  planned_product1: string | null;
-  planned_product2: string | null;
-  planned_comment: string | null;
-  result_date: string | null;
-  result_start_time: string | null;
-  result_end_time: string | null;
-  result_duration: number | null;
-  result_number_of_meeting_participants: number | null;
-  result_presentation_product1: string | null;
-  result_presentation_product2: string | null;
-  result_presentation_product3: string | null;
-  result_presentation_product4: string | null;
-  result_presentation_product5: string | null;
-  result_category: string | null;
-  result_summary: string | null;
-  result_negotiate_decision_maker: string | null;
-  result_top_position_class: number | null;
-  pre_meeting_participation_request: string | null;
-  meeting_participation_request: string | null;
-  meeting_business_office: string | null;
-  meeting_department: string | null;
-  meeting_member_name: string | null;
-  // 年度〜年月度
-  meeting_year_month: number | null;
-  meeting_quarter: number | null;
-  meeting_half_year: number | null;
-  meeting_fiscal_year: number | null;
-};
-
+// ------------------------------------ 🌟製品関連🌟 ------------------------------------
 // 製品 productsテーブル
 export type Product = {
   id: string;
@@ -1898,203 +2178,9 @@ export type EditedProduct = {
   unit_price: string; //編集時はテキストで編集して保存時にnumber型に変換する
   // unit_price: string;
 };
-// 事業部リストテーブル
-export type Department = {
-  id: string;
-  created_at: string;
-  created_by_company_id: string | null;
-  department_name: string | null;
-  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
-};
-// 課・セクションリストテーブル
-export type Section = {
-  id: string;
-  created_at: string;
-  created_by_company_id: string | null;
-  created_by_department_id: string | null;
-  section_name: string | null;
-  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
-};
-// 係・ユニットリストテーブル
-export type Unit = {
-  id: string;
-  created_at: string;
-  created_by_company_id: string | null;
-  created_by_department_id: string | null;
-  created_by_section_id: string | null;
-  unit_name: string | null;
-  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
-};
-// 事業所・営業所リストテーブル
-export type Office = {
-  id: string;
-  created_at: string;
-  created_by_company_id: string | null;
-  office_name: string | null;
-  target_type: string | null; // 🌠追加 売上目標に追加するか否か デフォルト値はsales_target
-};
-export type Employee_id = {
-  id: string;
-  created_at: string;
-  created_by_company_id: string | null;
-  to_user_id: string | null;
-  employee_id_name: string | null;
-};
+// ------------------------------------ 🌟製品関連🌟 ここまで ------------------------------------
 
-// 案件・物件 propertiesテーブル
-export type Property = {
-  id: string;
-  created_at: string;
-  updated_at: string | null;
-  created_by_company_id: string | null;
-  created_by_user_id: string | null;
-  created_by_department_of_user: string | null;
-  created_by_section_of_user: string | null;
-  created_by_unit_of_user: string | null;
-  created_by_office_of_user: string | null; //🌠追加
-  client_contact_id: string | null;
-  client_company_id: string | null;
-  current_status: string | null;
-  property_name: string | null;
-  property_summary: string | null;
-  pending_flag: boolean | null;
-  rejected_flag: boolean | null;
-  // product_name: string | null;
-  expected_product_id: string | null;
-  expected_product: string | null;
-  product_sales: number | null; //🌟変更
-  // expected_sales_price: number | null;
-  expected_sales_price: string | null;
-  term_division: string | null;
-  // sold_product_name: string | null;
-  sold_product_id: string | null;
-  sold_product: string | null;
-  unit_sales: number | null;
-  sales_contribution_category: string | null;
-  // sales_price: number | null;
-  // discounted_price: number | null;
-  // discount_rate: number | null;
-  sales_price: string | null;
-  discounted_price: string | null;
-  discount_rate: string | null;
-  sales_class: string | null;
-  // 🔹年度・半期・四半期・月度関連
-  // 日付(カレンダー)
-  property_date: string | null;
-  expansion_date: string | null;
-  sales_date: string | null;
-  expected_order_date: string | null; // 🌠追加
-  // 年月度(会計基準の)
-  property_year_month: number | null;
-  expansion_year_month: number | null;
-  sales_year_month: number | null;
-  expected_order_year_month: number | null;
-  // 四半期(会計基準の)
-  property_quarter: number | null; // 🌠追加
-  expansion_quarter: number | null;
-  sales_quarter: number | null;
-  expected_order_quarter: number | null;
-  // 半期(会計基準の)
-  property_half_year: number | null; // 🌠追加
-  expansion_half_year: number | null; // 🌠追加
-  sales_half_year: number | null; // 🌠追加
-  expected_order_half_year: number | null; // 🌠追加
-  // 年度(会計基準の)
-  property_fiscal_year: number | null; // 🌠追加
-  expansion_fiscal_year: number | null; // 🌠追加
-  sales_fiscal_year: number | null; // 🌠追加
-  expected_order_fiscal_year: number | null; // 🌠追加
-  // 🔹年度・半期・四半期・月度関連ここまで
-  subscription_start_date: string | null;
-  subscription_canceled_at: string | null;
-  leasing_company: string | null;
-  lease_division: string | null;
-  lease_expiration_date: string | null;
-  step_in_flag: boolean | null;
-  repeat_flag: boolean | null;
-  // order_certainty_start_of_month: string | null;
-  // review_order_certainty: string | null;
-  order_certainty_start_of_month: number | null;
-  review_order_certainty: number | null;
-  competitor_appearance_date: string | null;
-  competitor: string | null;
-  competitor_product: string | null;
-  reason_class: string | null;
-  reason_detail: string | null;
-  // customer_budget: number | null;
-  customer_budget: string | null;
-  decision_maker_negotiation: string | null;
-  subscription_interval: string | null;
-  competition_state: string | null;
-  property_department: string | null;
-  property_business_office: string | null;
-  property_member_name: string | null;
-};
-
-// モーダルのサイズ(ツールチップ計算用)
-export type SettingModalProperties = {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
-  width: number;
-  height: number;
-};
-
-// 面談結果保存payload用 meeting, products, attendeesテーブル
-export type ResultMeetingWithProductsAttendees = {
-  id: string;
-  created_at: string | null;
-  updated_at: string | null;
-  created_by_company_id: string | null;
-  created_by_user_id: string | null;
-  created_by_department_of_user: string | null;
-  created_by_section_of_user: string | null;
-  created_by_unit_of_user: string | null;
-  created_by_office_of_user: string | null; //🌠追加
-  client_contact_id: string | null;
-  client_company_id: string | null;
-  meeting_type: string | null;
-  web_tool: string | null;
-  planned_date: string | null;
-  planned_start_time: string | null;
-  planned_purpose: string | null;
-  planned_duration: number | null;
-  planned_appoint_check_flag: boolean | null;
-  planned_product1: string | null;
-  planned_product2: string | null;
-  planned_comment: string | null;
-  result_date: string | null;
-  result_start_time: string | null;
-  result_end_time: string | null;
-  result_duration: number | null;
-  result_number_of_meeting_participants: number | null;
-  result_presentation_product1: string | null;
-  result_presentation_product2: string | null;
-  result_presentation_product3: string | null;
-  result_presentation_product4: string | null;
-  result_presentation_product5: string | null;
-  result_category: string | null;
-  result_summary: string | null;
-  result_negotiate_decision_maker: string | null;
-  result_top_position_class: number | null;
-  pre_meeting_participation_request: string | null;
-  meeting_participation_request: string | null;
-  meeting_business_office: string | null;
-  meeting_department: string | null;
-  meeting_member_name: string | null;
-  // 年度〜年月度
-  meeting_year_month: number | null;
-  meeting_quarter: number | null;
-  meeting_half_year: number | null;
-  meeting_fiscal_year: number | null;
-  // 実施商品テーブル用と、同席者テーブル用
-  product_ids: (string | null)[];
-  attendee_ids: (string | null)[];
-  // 紹介済み商品配列と同席者配列で削除が必要な個数
-  delete_product_count: number | null;
-  delete_attendee_count: number | null;
-};
+// ------------------------------- 🌟見積関連🌟 -------------------------------
 
 // 見積テーブル
 export type Quotation = {
@@ -2401,6 +2487,11 @@ export type Quotation_row_data = {
   quotation_products_details: QuotationProductsDetails;
   // 🔹見積ルール customers_clients結合テーブル
   quotation_rule: string | null;
+  // 🌠製品分類の配列 追加
+  // product_categories_large_array: ProductCategoriesLarge[];
+  // product_categories_medium_array: ProductCategoriesMedium[];
+  // product_categories_small_array: ProductCategoriesSmall[];
+  // 🌠製品分類の配列 追加 ここまで
 };
 
 // 見積 サーチパラメータ
@@ -2514,17 +2605,9 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   // employee_id_name: string | null;
 };
 
-// 市区町村
-export type Cities = {
-  city_id: number;
-  created_at: string;
-  updated_at: string | null;
-  city_name_ja: string | null;
-  city_name_en: string | null;
-  city_code_jp: number | null;
-  region_id: number | null;
-  country_id: number | null;
-};
+// ------------------------------- 🌟見積関連🌟 ここまで -------------------------------
+
+// ------------------------------- 🌟営業カレンダー関連🌟 -------------------------------
 
 // 営業カレンダーの各日付
 export type CustomerBusinessCalendars = {
@@ -2541,6 +2624,9 @@ export type CustomerBusinessCalendars = {
 // 各会計年度別の定休日の適用状況・ステータス
 export type StatusClosingDays = { fiscal_year: number; applied_closing_days: number[]; updated_at: number | null };
 
+// ------------------------------- 🌟営業カレンダー関連🌟 ここまで -------------------------------
+
+// ------------------------------- 🌟SDB関連🌟 -------------------------------
 // ---------------- ネタ表(トレロボード) ----------------
 
 // export type ColumnProps = {
@@ -2591,6 +2677,8 @@ export type SectionMenuParams = {
   minWidth?: number;
   fadeType?: string;
 };
+
+// ------------------------------- 🌟SDB関連🌟 ここまで -------------------------------
 
 export type PopupDescMenuParams = {
   // e: React.MouseEvent<HTMLElement, MouseEvent>;
@@ -3534,7 +3622,7 @@ export type SalesProcessesOnlyHalfYearForSDB = {
 // SDBモーダル開閉タイプ
 // type OpenModalSDBType = ''
 
-// ----------- 業種・製品分類 関連 -----------
+// ---------------------- 🌟業種・製品分類 関連 大分類・中分類🌟 ----------------------
 // ------------ 🌠製品分類【大分類】
 export type ProductCategoriesLarge =
   | "electronic_components_modules"
@@ -3720,3 +3808,5 @@ export type ProductCategoriesMedium =
   | ProductCategoriesMediumBusinessSupport
   | ProductCategoriesMediumSkillUp
   | ProductCategoriesMediumOthers;
+
+// ----------------------🌟 業種・製品分類 関連 大分類・中分類🌟 ここまで ----------------------

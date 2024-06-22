@@ -104,7 +104,8 @@ const BusinessCalendarModalDisplayOnly = dynamic(
 );
 // import { ImportModal } from "./Modal/ImportModal/ImportModal";
 const ImportModal = dynamic(() => import("./Modal/ImportModal/ImportModal").then((mod) => mod.ImportModal), {
-  loading: (loadingProps) => <FallbackModal />,
+  // loading: (loadingProps) => <FallbackModal />,
+  loading: (loadingProps) => <FallbackWholeModal />,
   ssr: false, // サーバーサイドレンダリングを無効にする
 });
 
@@ -273,6 +274,7 @@ import { SettingAccountModal } from "./DashboardCompanyComponent/Modal/SettingAc
 
 // 🔸見積モーダル
 import { QuotationPreviewModal } from "./DashboardQuotationComponent/QuotationDetail/QuotationPreviewModal/QuotationPreviewModal";
+import { FallbackWholeModal } from "./Modal/FallbackModal/FallbackWholeModal";
 
 // 🔸会社詳細モーダル
 // import { ClientCompanyDetailModal } from "./Modal/ClientCompanyDetailModal/ClientCompanyDetailModal";
@@ -912,7 +914,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
       {/* CSVインポートモーダル */}
       {isOpenImportModal && (
         <ErrorBoundary FallbackComponent={ErrorFallback}>
-          <Suspense fallback={<div />}>
+          <Suspense fallback={<FallbackWholeModal />}>
             <ImportModal />
           </Suspense>
         </ErrorBoundary>

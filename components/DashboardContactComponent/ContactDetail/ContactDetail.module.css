@@ -315,11 +315,17 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.value.hashtag {
+  color: var(--color-hashtag);
+  font-size: 12px;
+  font-weight: 600;
+}
 .value_highlight {
   color: var(--color-text-brand);
 }
 .double_text {
   font-size: 14px;
+  /* font-size: 12px; */
   line-height: 17px;
 }
 .uneditable_field {

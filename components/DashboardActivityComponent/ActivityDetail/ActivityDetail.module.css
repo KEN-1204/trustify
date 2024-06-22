@@ -354,6 +354,11 @@
   white-space: nowrap;
   font-size: 14px;
 }
+.value.hashtag {
+  color: var(--color-hashtag);
+  font-size: 12px;
+  font-weight: 600;
+}
 .double_text {
   font-size: 13px;
   /* font-size: 14px; */

@@ -5976,7 +5976,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       </div>
                       {!searchMode && (
                         <span
-                          className={`${styles.value}`}
+                          className={`${styles.value} ${styles.hashtag} ${styles.uneditable_field}`}
                           data-text={`${
                             selectedRowDataMeeting?.product_category_large
                               ? selectedRowDataMeeting?.product_category_large
@@ -6045,7 +6045,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       </div>
                       {!searchMode && (
                         <span
-                          className={`${styles.value}`}
+                          className={`${styles.value} ${styles.hashtag} ${styles.uneditable_field}`}
                           data-text={`${
                             selectedRowDataMeeting?.product_category_medium
                               ? selectedRowDataMeeting?.product_category_medium

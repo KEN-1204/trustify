@@ -112,12 +112,15 @@ export const columnNameToJapaneseMeeting = (columnName: string) => {
       return "業種";
       break;
     case "product_category_large":
+    case "product_categories_large_array":
       return "製品分類(大分類)";
       break;
     case "product_category_medium":
+    case "product_categories_medium_array":
       return "製品分類(中分類)";
       break;
     case "product_category_small":
+    case "product_categories_small_array":
       return "製品分類(小分類)";
       break;
     case "number_of_employees_class":

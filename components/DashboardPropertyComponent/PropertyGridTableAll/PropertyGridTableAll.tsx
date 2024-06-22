@@ -11,7 +11,13 @@ import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
 import { FiLock, FiRefreshCw, FiSearch } from "react-icons/fi";
 import { columnNameToJapaneseProperty } from "@/utils/columnNameToJapaneseProperty";
-import { Client_company, Client_company_row_data, Property_row_data } from "@/types";
+import {
+  Client_company,
+  Client_company_row_data,
+  ProductCategoriesLarge,
+  ProductCategoriesMedium,
+  Property_row_data,
+} from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditColumnsModalDisplayOnly } from "../../GridTable/EditColumns/EditColumnsModalDisplayOnly";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
@@ -34,6 +40,8 @@ import {
   getSubscriptionInterval,
   getTermDivision,
   mappingIndustryType,
+  mappingProductL,
+  optionsProductLNameOnlySet,
 } from "@/utils/selectOptions";
 import { BsCheck2 } from "react-icons/bs";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
@@ -45,6 +53,12 @@ import { MdDeleteOutline } from "react-icons/md";
 import { RiSortDesc } from "react-icons/ri";
 import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { mappingProductCategoriesMedium, productCategoriesMediumNameOnlySet } from "@/utils/productCategoryM";
+import {
+  ProductCategoriesSmall,
+  mappingProductCategoriesSmall,
+  productCategoriesSmallNameOnlySet,
+} from "@/utils/productCategoryS";
 
 type TableDataType = {
   id: number;
@@ -294,11 +308,6 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   }
   // ================== 🌟supabase本番サーバーデータフェッチ用の関数🌟 ==================
   const supabase = useSupabaseClient();
-
-  // 表示するカラム
-  const columnNamesObj = [...propertyColumnHeaderItemList]
-    .map((item, index) => item.columnName as keyof Client_company)
-    .join(", "); // columnNameのみの配列を取得
 
   // 検索タイプ オート検索/マニュアル検索 デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
   const functionName =
@@ -1204,6 +1213,15 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   const handleMouseDown = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
 
+    // 🔸カーソルをリサイズに変更(カラムヘッダー全てにis_resizingクラスを付与)
+    if (colsRef.current) {
+      colsRef.current.forEach((header) => {
+        if (header instanceof HTMLDivElement) {
+          header.classList.add(`${styles.is_resizing}`);
+        }
+      });
+    }
+
     if (!parentGridScrollContainer.current) return;
     const gridContainer = parentGridScrollContainer.current;
     // ドラッグ中の列と同じ列全てのborder-right-colorをハイライトする
@@ -1221,6 +1239,16 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("handleMouseDown", startX, startWidth);
 
     const handleMouseUp = () => {
+      console.log("マウスアップ✅✅✅✅✅✅✅ ");
+      // 🔸カーソルを元に戻す(カラムヘッダー全てにis_resizingクラスを削除)
+      if (colsRef.current) {
+        colsRef.current.forEach((header) => {
+          if (header instanceof HTMLDivElement) {
+            header.classList.remove(`${styles.is_resizing}`);
+          }
+        });
+      }
+
       const gridScrollContainer = parentGridScrollContainer.current;
       if (!gridScrollContainer) return;
       // ドラッグ中の列と同じ列全てのborder-right-colorをハイライトを元のボーダーカラーに戻す
@@ -1232,7 +1260,6 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         }
       });
 
-      console.log("マウスアップ✅ currentColsWidths.current", currentColsWidths.current);
       setColsWidth(currentColsWidths.current);
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
@@ -2924,6 +2951,39 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         if (typeof value !== "number") return value;
         return mappingIndustryType[value][language];
 
+      // 製品分類(大中小): 配列内のnameをjaに変換してjoinで「' '」で繋げる ※行を50行程度でバーチャライズしているため、このレベルのデータ量ではフォーマットにおけるJavascriptの配列操作mapやjoinは非常に高速のため、大幅なパフォーマンスの問題がない限りはこの実装で行う
+      case "product_categories_large_array":
+      case "product_categories_medium_array":
+      case "product_categories_small_array":
+        if (!value?.length || !Array.isArray(value)) return "";
+        if (columnName === "product_categories_large_array") {
+          return value
+            .map((name) =>
+              optionsProductLNameOnlySet.has(name)
+                ? `#${mappingProductL[name as ProductCategoriesLarge][language]}`
+                : `#-`
+            )
+            .join("　"); // #text1 #text2
+        }
+        if (columnName === "product_categories_medium_array") {
+          return value
+            .map((name) =>
+              productCategoriesMediumNameOnlySet.has(name)
+                ? `#${mappingProductCategoriesMedium[name as ProductCategoriesMedium][language]}`
+                : `#-`
+            )
+            .join("　"); // #text1 #text2
+        }
+        if (columnName === "product_categories_small_array") {
+          return value
+            .map((name) =>
+              productCategoriesSmallNameOnlySet.has(name)
+                ? `#${mappingProductCategoriesSmall[name as ProductCategoriesSmall][language]}`
+                : `#-`
+            )
+            .join("　"); // #text1 #text2
+        }
+
       default:
         return value;
         break;
@@ -3398,27 +3458,18 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                         //   // handleDoubleClick(e, index);
                         // }}
                         onMouseEnter={(e) => {
-                          // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
-                          if (key.isOverflow) {
-                            // handleOpenTooltip(e, "top", key.columnName);
+                          const el = columnHeaderInnerTextRef.current[index];
+                          if (key.isOverflow || (el && el.scrollWidth > el.offsetWidth)) {
                             const columnNameData = key.columnName ? key.columnName : "";
                             handleOpenTooltip({
                               e,
                               display: "top",
                               content: columnNameToJapaneseProperty(columnNameData),
                             });
-                            console.log("マウスエンター key.columnId.toString()");
-                            console.log("マウスエンター ツールチップオープン カラムID", key.columnId.toString());
                           }
-                          // handleOpenTooltip(e, "left");
                         }}
                         onMouseLeave={() => {
-                          // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
-                          if (key.isOverflow) {
-                            console.log("マウスリーブ ツールチップクローズ");
-                            handleCloseTooltip();
-                          }
-                          // handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         onDragStart={(e) => handleDragStart(e, index)} // テスト
                         onDragEnd={(e) => handleDragEnd(e)} // テスト
@@ -3670,7 +3721,13 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
                                       isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
                                     } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
                                       styles.grid_cell_resizable
-                                    } ${columnName === "company_name" ? `${styles.company_highlight}` : ``}`}
+                                    } ${columnName === "company_name" ? `${styles.company_highlight}` : ``} ${
+                                      columnName === "product_categories_large_array" ||
+                                      columnName === "product_categories_medium_array" ||
+                                      columnName === "product_categories_small_array"
+                                        ? `${styles.hashtag}`
+                                        : ``
+                                    }`}
                                     style={
                                       propertyColumnHeaderItemList[index].isFrozen
                                         ? {

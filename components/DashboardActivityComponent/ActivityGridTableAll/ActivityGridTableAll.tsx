@@ -11,7 +11,13 @@ import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
 import { FiLock, FiRefreshCw, FiSearch } from "react-icons/fi";
 import { columnNameToJapaneseActivity } from "@/utils/columnNameToJapaneseActivity";
-import { Activity_row_data, Client_company, Client_company_row_data } from "@/types";
+import {
+  Activity_row_data,
+  Client_company,
+  Client_company_row_data,
+  ProductCategoriesLarge,
+  ProductCategoriesMedium,
+} from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditColumnsModalDisplayOnly } from "../../GridTable/EditColumns/EditColumnsModalDisplayOnly";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
@@ -27,6 +33,8 @@ import {
   getNumberOfEmployeesClass,
   getPriorityName,
   mappingIndustryType,
+  mappingProductL,
+  optionsProductLNameOnlySet,
 } from "@/utils/selectOptions";
 import { DropDownMenuSearchModeDetail } from "@/components/Parts/DropDownMenu/DropDownMenuSearchModeDetail/DropDownMenuSearchModeDetail";
 import { BsCheck2 } from "react-icons/bs";
@@ -38,6 +46,12 @@ import { MdDeleteOutline } from "react-icons/md";
 import { RiSortDesc } from "react-icons/ri";
 import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { mappingProductCategoriesMedium, productCategoriesMediumNameOnlySet } from "@/utils/productCategoryM";
+import {
+  ProductCategoriesSmall,
+  mappingProductCategoriesSmall,
+  productCategoriesSmallNameOnlySet,
+} from "@/utils/productCategoryS";
 
 type TableDataType = {
   id: number;
@@ -288,17 +302,6 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   // ================== 🌟supabase本番サーバーデータフェッチ用の関数🌟 ==================
   const supabase = useSupabaseClient();
 
-  // 表示するカラム
-  const columnNamesObj = [...activityColumnHeaderItemList]
-    .map((item, index) => item.columnName as keyof Client_company)
-    .join(", "); // columnNameのみの配列を取得
-
-  // 検索タイプ オート検索/マニュアル検索 デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
-  const functionName =
-    searchType === "partial_match"
-      ? "search_activities_and_companies_and_contacts_partial"
-      : "search_activities_and_companies_and_contacts_v2";
-
   // ユーザーState
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
@@ -308,9 +311,84 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     (state) => state.newSearchActivity_Contact_CompanyParams
   );
 
+  // 検索タイプ オート検索/マニュアル検索 デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
+  // 🔺製品分類なし
+  // const functionName =
+  //   searchType === "partial_match"
+  //     ? "search_activities_and_companies_and_contacts_partial"
+  //     : "search_activities_and_companies_and_contacts_v2";
+  // 🔺製品分類有り
+  const functionName =
+    searchType === "partial_match"
+      ? "search_activities_companies_contacts_categories_partial"
+      : "search_activities_companies_contacts_categories";
+
   // フィルターをアクティブ・非アクティブのスタイル変更のためにビジネスロジックで定義
   const isFetchAll =
     isFetchAllDepartments && isFetchAllSections && isFetchAllUnits && isFetchAllOffices && isFetchAllMembers;
+
+  // 🔸サーチ時の並び替えの対象カラムとASC or DESC ✅活動画面では並び替えは活動日で固定にする
+  // type SortableColumnActivity =
+  //   | "company_name"
+  //   | "address"
+  //   | "company_department_name"
+  //   | "contact_name"
+  //   | "activity_date"
+  //   | "activity_type"
+  //   | "summary"
+  //   | "assigned_department_name"
+  //   | "assigned_section_name"
+  //   | "assigned_unit_name"
+  //   | "assigned_office_name"
+  //   | "member_name"
+  //   | "scheduled_follow_up_date"
+  //   | "follow_up_flag"
+  //   | "priority"
+  //   | "activity_year_month"
+  //   | "activity_quarter"
+  //   | "activity_half_year"
+  //   | "activity_fiscal_year"
+  //   | "claim_flag"
+  //   | "position_class"
+  //   | "position_name"
+  //   | "direct_line"
+  //   | "main_phone_number"
+  //   | "direct_fax"
+  //   | "main_fax"
+  //   | "email"
+  //   | "extension"
+  //   | "company_cell_phone"
+  //   | "personal_cell_phone"
+  //   | "occupation"
+  //   | "approval_amount"
+  //   | "budget_request_month1"
+  //   | "budget_request_month2"
+  //   | "fiscal_end_month"
+  //   | "capital"
+  //   | "established_in"
+  //   | "supplier"
+  //   | "clients"
+  //   | "number_of_employees_class"
+  //   | "business_content"
+  //   | "industry_type_id"
+  //   // | "product_categories_large_array"
+  //   // | "product_categories_medium_array"
+  //   // | "product_categories_small_array"
+  //   | "website_url"
+  //   | "company_email"
+  //   | "business_sites"
+  //   | "overseas_bases"
+  //   | "group_company"
+  //   | "corporate_number"
+  //   | "activity_created_at"
+  //   | "activity_updated_at";
+  // const [orderByColumnData, setOrderByColumnData] = useState<{
+  //   columnName: SortableColumnActivity;
+  //   isAsc: boolean;
+  // }>({
+  //   columnName: "company_name",
+  //   isAsc: true,
+  // });
 
   // ================== 🌟条件なしサーバーデータフェッチ用の関数🌟 ==================
   // 取得カウント保持用state
@@ -411,57 +489,31 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
 
       //   let params = newSearchCompanyParams;
       let params = newSearchActivity_Contact_CompanyParams;
+
       console.log("🔥🔥テスト🔥🔥supabase rpcフェッチ実行！！！！！！！！ from, to, params", from, to, params);
+
       // created_by_company_idがnullのもの
-      const { data, error, count } = await supabase
-        // .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
-        // .rpc("search_activities_and_companies_and_contacts_v2", { params }, { count: "exact" })
-        .rpc(functionName, { params }, { count: "exact" })
-        // .is("activity_created_by_company_id", null)
-        .eq("activity_created_by_company_id", userProfileState.company_id)
-        // .or(`activity_created_by_user_id.eq.${userProfileState.id},activity_created_by_user_id.is.null`)
-        .range(from, to)
-        // .order("company_name", { ascending: true });
-        .order("activity_date", { ascending: false }) // 活動日
-        .order("activity_created_at", { ascending: false }); // 活動作成日
-      // .order("company_name", { ascending: true });
-      // .order("activity_updated_at", { ascending: false }); //活動更新日時
-      // 成功バージョン
       // const { data, error, count } = await supabase
-      //   .rpc("search_activities_and_companies_and_contacts", { params }, { count: "exact" })
-      //   .is("created_by_company_id", null)
+      //   .rpc(functionName, { params }, { count: "exact" })
+      //   .eq("activity_created_by_company_id", userProfileState.company_id)
       //   .range(from, to)
-      //   .order("company_name", { ascending: true });
+      //   .order("activity_date", { ascending: false }) // 活動日
+      //   .order("activity_created_at", { ascending: false }); // 活動作成日
 
-      // ユーザーIDが自身のIDと一致するデータのみ 成功
-      // const { data, error } = await supabase
-      //   .rpc("", { params })
-      //   .eq("created_by_user_id", `${userProfileState?.id}`)
-      //   .range(0, 20);
+      // if (error) {
+      //   alert(error.message);
+      //   throw error;
+      // }
+      // const rows = ensureClientCompanies(data);
 
-      if (error) {
-        alert(error.message);
-        throw error;
-      }
-      const rows = ensureClientCompanies(data);
+      // // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+      // const isLastPage = rows === null || rows.length < limit;
 
-      // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-      const isLastPage = rows === null || rows.length < limit;
-
-      console.log(
-        "🔥🔥テスト🔥🔥フェッチ後 count",
-        count,
-        "data",
-        data,
-        "from",
-        from,
-        "to",
-        to,
-        "rows",
-        rows,
-        "isLastPage",
-        isLastPage
-      );
+      // 🔸無料ユーザーは一旦無し
+      let rows: null = null;
+      const isLastPage = rows === null;
+      let count = 0;
+      // 🔸無料ユーザーは一旦無し
 
       // 1秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       // await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -1183,9 +1235,29 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   }, [gotData]); // gotDataのstateがtrueになったら再度実行
   // ========================== 🌟useEffect ヘッダーカラム生成🌟 ここまで ==========================
 
+  const [isDragging, setIsDragging] = useState(false);
   // ================================== 🌟マウスイベント 列サイズ変更🌟 ==================================
   const handleMouseDown = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
+
+    // 🔸カーソルをリサイズに変更(カラムヘッダー全てにis_resizingクラスを付与)
+    // setIsDragging(true);
+    // if (parentGridScrollContainer.current) {
+    //   const headers = parentGridScrollContainer.current.querySelectorAll(`[role=columnheader].no_frozen`);
+    //   headers.forEach((header) => {
+    //     if (header instanceof HTMLDivElement) header.style.cursor = "col-resize";
+    //   });
+    //   // document.body.style.cursor = `col-resize`;
+    // }
+    if (colsRef.current) {
+      colsRef.current.forEach((header) => {
+        if (header instanceof HTMLDivElement) {
+          // header.style.cursor = "col-resize";
+          header.classList.add(`${styles.is_resizing}`);
+        }
+      });
+      // document.body.style.cursor = `col-resize`;
+    }
 
     if (!parentGridScrollContainer.current) return;
     const gridContainer = parentGridScrollContainer.current;
@@ -1201,9 +1273,35 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     const startX = e.pageX;
     const startWidth = colsRef.current[index + 1]?.getBoundingClientRect().width || 0;
 
-    console.log("handleMouseDown", startX, startWidth);
+    console.log("マウスダウン🔥🔥🔥🔥🔥🔥 handleMouseDown", startX, startWidth);
 
     const handleMouseUp = () => {
+      console.log("マウスアップ✅✅✅✅✅✅✅ ");
+
+      // 🔸カーソルを元に戻す(カラムヘッダー全てにis_resizingクラスを削除)
+      // if (parentGridScrollContainer.current) {
+      //   // setIsDragging(false);
+      //   const headers = parentGridScrollContainer.current.querySelectorAll(`[role=columnheader].no_frozen`);
+      //   headers.forEach((header) => {
+      //     if (header instanceof HTMLDivElement) header.style.cursor = "grab";
+      //   });
+      //   // document.body.style.cursor = `unset`;
+      // }
+      if (colsRef.current) {
+        // setIsDragging(false);
+        colsRef.current.forEach((header) => {
+          if (header instanceof HTMLDivElement) {
+            header.classList.remove(`${styles.is_resizing}`);
+            // if (header.classList.contains("no_frozen")) {
+            //   header.style.cursor = "grab";
+            // } else {
+            //   header.style.cursor = "default";
+            // }
+          }
+        });
+        // document.body.style.cursor = `unset`;
+      }
+
       const gridScrollContainer = parentGridScrollContainer.current;
       if (!gridScrollContainer) return;
       // ドラッグ中の列と同じ列全てのborder-right-colorをハイライトを元のボーダーカラーに戻す
@@ -1215,7 +1313,6 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
         }
       });
 
-      console.log("マウスアップ✅ currentColsWidths.current", currentColsWidths.current);
       setColsWidth(currentColsWidths.current);
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
@@ -1228,7 +1325,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
         newColumnHeaderItemList.push(item);
         // return item;
       });
-      console.log("🌟🔥 newColumnHeaderItemList", newColumnHeaderItemList);
+      // console.log("🌟🔥 newColumnHeaderItemList", newColumnHeaderItemList);
       setActivityColumnHeaderItemList(newColumnHeaderItemList);
       // ================ activityColumnHeaderItemListも合わせてサイズを更新 テスト ================
 
@@ -1253,7 +1350,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       // [65, 165, 415, 665, 915, 1165, 1415, 1665]
       // refオブジェクトにレフトポジションを格納
       columnLeftPositions.current = accumulatedArray;
-      console.log("列サイズ変更 レフトポジション accumulatedArray", accumulatedArray);
+      // console.log("列サイズ変更 レフトポジション accumulatedArray", accumulatedArray);
       // ===================================================== 🔥テスト フローズンカスタムプロパティ
       const filteredIsFrozenList = newColumnHeaderItemList.filter((item) => item.isFrozen === true);
       filteredIsFrozenList.forEach((item, index) => {
@@ -1264,13 +1361,13 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
 
       // 🌟3点リーダーがtrueになったらカラムホバー時にツールチップを表示
       const targetText = columnHeaderInnerTextRef.current[index] as HTMLDivElement;
-      console.log(
-        "列サイズ変更 3点リーダーがtrueになったらカラムホバー時にツールチップを表示 カラムヘッダーインナーテキスト",
-        columnHeaderInnerTextRef.current[index]?.scrollWidth,
-        columnHeaderInnerTextRef.current[index]?.clientWidth,
-        targetText.scrollWidth > targetText.clientWidth,
-        targetText
-      );
+      // console.log(
+      //   "列サイズ変更 3点リーダーがtrueになったらカラムホバー時にツールチップを表示 カラムヘッダーインナーテキスト",
+      //   columnHeaderInnerTextRef.current[index]?.scrollWidth,
+      //   columnHeaderInnerTextRef.current[index]?.clientWidth,
+      //   targetText.scrollWidth > targetText.clientWidth,
+      //   targetText
+      // );
       if (targetText.scrollWidth > targetText.clientWidth) {
         // if (isOverflowColumnHeader.includes(colsRef.current[index]!.ariaColIndex))
         if ((newColumnHeaderItemList as ColumnHeaderItemList[])[index].isOverflow)
@@ -1310,8 +1407,8 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     const handleMouseMove = (e: MouseEvent) => {
       e.preventDefault();
       const newWidth = e.pageX - colsRef.current[index]!.getBoundingClientRect().left;
-      console.log("newWidth", newWidth);
-      console.log("currentColsWidths.current", currentColsWidths.current);
+      // console.log("newWidth", newWidth);
+      // console.log("currentColsWidths.current", currentColsWidths.current);
       if (colsWidth === null) return;
       const newColsWidths = [...colsWidth];
       // const newColsWidths = [...currentColsWidths.current];
@@ -1321,11 +1418,11 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       // setColsWidth(newColsWidths);
       currentColsWidths.current = newColsWidths;
 
-      console.log("newColsWidths", newColsWidths);
-      console.log(
-        "更新後--template-columns",
-        parentGridScrollContainer.current!.style.getPropertyValue("--template-columns")
-      );
+      // console.log("newColsWidths", newColsWidths);
+      // console.log(
+      //   "更新後--template-columns",
+      //   parentGridScrollContainer.current!.style.getPropertyValue("--template-columns")
+      // );
 
       // 列の合計値をセット
       // newColsWidthの各値のpxの文字を削除
@@ -1340,7 +1437,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
         return +a + +b;
       }, 0);
       parentGridScrollContainer.current!.style.setProperty("--row-width", `${sumRowWidth}px`);
-      console.log("更新後--row-width", parentGridScrollContainer.current!.style.getPropertyValue("--row-width"));
+      // console.log("更新後--row-width", parentGridScrollContainer.current!.style.getPropertyValue("--row-width"));
 
       // // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
       // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
@@ -1363,7 +1460,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
       // [65, 165, 415, 665, 915, 1165, 1415, 1665]
       // refオブジェクトにレフトポジションを格納
       columnLeftPositions.current = accumulatedArrayMove;
-      console.log("columnLeftPositions.current", columnLeftPositions.current);
+      // console.log("columnLeftPositions.current", columnLeftPositions.current);
       // ===================================================== 🔥テスト フローズンカスタムプロパティ
       const filteredIsFrozenList = activityColumnHeaderItemList.filter((item) => item.isFrozen === true);
       filteredIsFrozenList.forEach((item, index) => {
@@ -1975,6 +2072,16 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("dragstart🔥 index", index);
     setDragColumnIndex(index);
 
+    // 🔸カーソルをgrabbingに変更(カラムヘッダー全てにis_grabbingクラスを付与)
+    // if (colsRef.current) {
+    //   colsRef.current.forEach((header) => {
+    //     if (header instanceof HTMLDivElement) {
+    //       header.classList.add(`${styles.is_grabbing}`);
+    //       // document.body.style.cursor = `grabbing`;
+    //     }
+    //   });
+    // }
+
     // 順番入れ替え中はリサイズオーバーレイのpointer-eventsはnoneにする
     draggableOverlaysRef.current.forEach((div) => {
       div?.classList.add(`pointer-events-none`);
@@ -2281,6 +2388,15 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   // ============== ✅onDragEndイベント ドラッグ可能なターゲット上で発生するイベント✅ ==============
   const handleDragEnd = (e: React.DragEvent<HTMLDivElement>) => {
     console.log("Drop✅");
+
+    // 🔸カーソルを元に戻す(カラムヘッダー全てからis_grabbingクラスを削除)
+    // colsRef.current.forEach((header) => {
+    //   if (header instanceof HTMLDivElement) {
+    //     header.classList.remove(`${styles.is_grabbing}`);
+    //     // document.body.style.cursor = `unset`;
+    //   }
+    // });
+
     // ================ ✅ローカルストレージにも更新後のカラムリストを保存 ================
     const activityColumnHeaderItemListJSON = JSON.stringify(activityColumnHeaderItemList);
     localStorage.setItem("grid_columns_activities", activityColumnHeaderItemListJSON);
@@ -2789,6 +2905,39 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
         if (typeof value !== "number") return value;
         return mappingIndustryType[value][language];
 
+      // 製品分類(大中小): 配列内のnameをjaに変換してjoinで「' '」で繋げる ※行を50行程度でバーチャライズしているため、このレベルのデータ量ではフォーマットにおけるJavascriptの配列操作mapやjoinは非常に高速のため、大幅なパフォーマンスの問題がない限りはこの実装で行う
+      case "product_categories_large_array":
+      case "product_categories_medium_array":
+      case "product_categories_small_array":
+        if (!value?.length || !Array.isArray(value)) return "";
+        if (columnName === "product_categories_large_array") {
+          return value
+            .map((name) =>
+              optionsProductLNameOnlySet.has(name)
+                ? `#${mappingProductL[name as ProductCategoriesLarge][language]}`
+                : `#-`
+            )
+            .join("　"); // #text1 #text2
+        }
+        if (columnName === "product_categories_medium_array") {
+          return value
+            .map((name) =>
+              productCategoriesMediumNameOnlySet.has(name)
+                ? `#${mappingProductCategoriesMedium[name as ProductCategoriesMedium][language]}`
+                : `#-`
+            )
+            .join("　"); // #text1 #text2
+        }
+        if (columnName === "product_categories_small_array") {
+          return value
+            .map((name) =>
+              productCategoriesSmallNameOnlySet.has(name)
+                ? `#${mappingProductCategoriesSmall[name as ProductCategoriesSmall][language]}`
+                : `#-`
+            )
+            .join("　"); // #text1 #text2
+        }
+
       default:
         return value;
         break;
@@ -3242,7 +3391,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                         aria-selected={false}
                         tabIndex={-1}
                         className={`${styles.grid_column_header_all} ${
-                          key.isFrozen ? `${styles.grid_column_frozen} cursor-default` : "cursor-grab"
+                          key.isFrozen ? `${styles.grid_column_frozen} cursor-default` : "no_frozen cursor-grab"
                         } ${isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""} ${
                           isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""
                         } ${styles.grid_cell_resizable} dropzone ${key.isOverflow ? `${styles.is_overflow}` : ""}`}
@@ -3251,11 +3400,11 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                         // } ${styles.grid_cell_resizable} dropzone cursor-grab ${
                         //   key.isOverflow ? `${styles.is_overflow}` : ""
                         // }`}
-                        style={
-                          key.isFrozen
+                        style={{
+                          ...(key.isFrozen
                             ? { gridColumnStart: index + 2, left: `var(--frozen-left-${index})` }
-                            : { gridColumnStart: index + 2 }
-                        }
+                            : { gridColumnStart: index + 2 }),
+                        }}
                         // style={
                         //   key.isFrozen
                         //     ? { gridColumnStart: index + 2, left: columnLeftPositions.current[index] }
@@ -3274,29 +3423,17 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                         //   // handleDoubleClick(e, index);
                         // }}
                         onMouseEnter={(e) => {
-                          // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
-                          if (key.isOverflow) {
-                            // handleOpenTooltip(e, "top", key.columnName);
+                          const el = columnHeaderInnerTextRef.current[index];
+                          if (key.isOverflow || (el && el.scrollWidth > el.offsetWidth)) {
                             const columnNameData = key.columnName ? key.columnName : "";
                             handleOpenTooltip({
                               e,
                               display: "top",
-                              // content: columnNameToJapaneseContacts(columnNameData),
                               content: columnNameToJapaneseActivity(columnNameData),
                             });
-                            console.log("マウスエンター key.columnId.toString()");
-                            console.log("マウスエンター ツールチップオープン カラムID", key.columnId.toString());
                           }
-                          // handleOpenTooltip(e, "left");
                         }}
-                        onMouseLeave={() => {
-                          // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
-                          if (key.isOverflow) {
-                            console.log("マウスリーブ ツールチップクローズ");
-                            handleCloseTooltip();
-                          }
-                          // handleCloseTooltip();
-                        }}
+                        onMouseLeave={handleCloseTooltip}
                         onDragStart={(e) => handleDragStart(e, index)} // テスト
                         onDragEnd={(e) => handleDragEnd(e)} // テスト
                         onDragOver={(e) => {
@@ -3341,6 +3478,9 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                           ref={(ref) => (draggableOverlaysRef.current[index] = ref)}
                           role="draggable_overlay"
                           className={styles.draggable_overlay}
+                          // style={{
+                          //   ...(rowHeaderRef.current?.classList.contains("is_dragging") && { cursor: `unset` }),
+                          // }}
                           onMouseDown={(e) => handleMouseDown(e, index)}
                           onMouseEnter={() => {
                             const gridScrollContainer = parentGridScrollContainer.current;
@@ -3547,7 +3687,13 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                                       isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
                                     } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
                                       styles.grid_cell_resizable
-                                    } ${columnName === "company_name" ? `${styles.company_highlight}` : ``}`}
+                                    } ${columnName === "company_name" ? `${styles.company_highlight}` : ``} ${
+                                      columnName === "product_categories_large_array" ||
+                                      columnName === "product_categories_medium_array" ||
+                                      columnName === "product_categories_small_array"
+                                        ? `${styles.hashtag}`
+                                        : ``
+                                    }`}
                                     style={
                                       activityColumnHeaderItemList[index].isFrozen
                                         ? {

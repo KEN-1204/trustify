@@ -7974,7 +7974,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     </div>
                     {!searchMode && (
                       <span
-                        className={`${styles.value}`}
+                        className={`${styles.value} ${styles.hashtag} ${styles.uneditable_field}`}
                         data-text={`${
                           selectedRowDataProperty?.product_category_large
                             ? selectedRowDataProperty?.product_category_large
@@ -8029,7 +8029,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     </div>
                     {!searchMode && (
                       <span
-                        className={`${styles.value}`}
+                        className={`${styles.value} ${styles.hashtag} ${styles.uneditable_field}`}
                         data-text={`${
                           selectedRowDataProperty?.product_category_medium
                             ? selectedRowDataProperty?.product_category_medium

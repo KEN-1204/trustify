@@ -191,7 +191,7 @@ const CompanyMainContainerMemo: FC = () => {
   const [inputIndustryType, setInputIndustryType] = useState("");
   // const [inputIndustryType, setInputIndustryType] = useState<number | null>(null);
 
-  // ----------------------- 🌟製品分類(大分類・中分類)関連🌟 -----------------------
+  // ----------------------- 🌟製品分類関連🌟 -----------------------
   // 製品分類 -----------
   // const [inputProductL, setInputProductL] = useState("");
   // const [inputProductM, setInputProductM] = useState("");
@@ -354,7 +354,7 @@ const CompanyMainContainerMemo: FC = () => {
   }, [selectedRowDataCompany?.product_categories_small_array]);
 
   // 製品分類 -----------ここまで
-  // ----------------------- 🌟製品分類(大分類・中分類)関連🌟 ここまで -----------------------
+  // ----------------------- 🌟製品分類関連🌟 ここまで -----------------------
 
   const [inputFiscal, setInputFiscal] = useState("");
   const [inputBudgetRequestMonth1, setInputBudgetRequestMonth1] = useState("");
@@ -3046,7 +3046,7 @@ const CompanyMainContainerMemo: FC = () => {
                     <>
                       {formattedProductCategoriesLarge !== "" && (
                         <span
-                          className={`${styles.value} hashtag_color ${styles.hashtag} ${
+                          className={`${styles.value} ${styles.hashtag} ${
                             isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
                           }`}
                           onClick={handleSingleClickField}
@@ -3096,8 +3096,9 @@ const CompanyMainContainerMemo: FC = () => {
                       )}
                     </>
                   )}
-                  {/* サーチ 業種が選択されている場合には製品分類は非表示にする 同時に検索はかけられないように設定 */}
-                  {searchMode && !inputIndustryType && (
+                  {/* サーチ */}
+                  {/* {searchMode && !inputIndustryType && ( */}
+                  {searchMode && (
                     <>
                       <CustomSelectMultiple
                         stateArray={inputProductArrayLarge}
@@ -3111,6 +3112,8 @@ const CompanyMainContainerMemo: FC = () => {
                         bgDark={false}
                         maxWidth={`calc(100% - 95px)`}
                         maxHeight={30}
+                        // zIndexSelectBox={2000}
+                        hideOptionAfterSelect={true}
                       />
                       {/* <select
                       className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box}`}
@@ -3256,7 +3259,7 @@ const CompanyMainContainerMemo: FC = () => {
                     <>
                       {formattedProductCategoriesMedium !== "" && (
                         <span
-                          className={`${styles.value} hashtag_color ${styles.hashtag} ${
+                          className={`${styles.value} ${styles.hashtag} ${
                             isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
                           }`}
                           onClick={handleSingleClickField}
@@ -3318,6 +3321,8 @@ const CompanyMainContainerMemo: FC = () => {
                         bgDark={false}
                         maxWidth={`calc(100% - 95px)`}
                         maxHeight={30}
+                        // zIndexSelectBox={2000}
+                        hideOptionAfterSelect={true}
                       />
                       {/* <select
                       value={inputProductM}
@@ -3391,7 +3396,7 @@ const CompanyMainContainerMemo: FC = () => {
                     <>
                       {formattedProductCategoriesSmall !== "" && (
                         <span
-                          className={`${styles.value} hashtag_color ${styles.hashtag} ${
+                          className={`${styles.value} ${styles.hashtag} ${
                             isOwnCompany ? `cursor-pointer` : `cursor-not-allowed`
                           }`}
                           onClick={handleSingleClickField}
@@ -3454,6 +3459,8 @@ const CompanyMainContainerMemo: FC = () => {
                         bgDark={false}
                         maxWidth={`calc(100% - 95px)`}
                         maxHeight={30}
+                        // zIndexSelectBox={2000}
+                        hideOptionAfterSelect={true}
                       />
                     </>
                   )}

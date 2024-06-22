@@ -1555,6 +1555,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-hashtag: rgb(53 141 222); */
   /* --color-hashtag: rgb(118 172 255); */
   --color-hashtag: rgb(98 160 255);
+
+  /* モーダル フォールバックスケルトン */
+  --skeleton-bg-modal: #cdcdcda0;
 }
 
 /* ============================================= 🌠 ============================================= */
@@ -2706,6 +2709,9 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
 
   /* #ハッシュタグ */
   --color-hashtag: rgb(49 150 253);
+
+  /* モーダル フォールバックスケルトン */
+  --skeleton-bg-modal: #242424e0;
 }
 
 /* html {
@@ -3232,7 +3238,8 @@ textarea {
   /* background: var(--color-sdb-bg); */
   /* background: #f7f9fb; */
   background: var(--color-modal-solid-bg);
-  border-radius: 8px;
+  /* border-radius: 8px; */
+  border-radius: 9px;
   box-shadow: var(--color-edit-border-with-shadow-light);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -3242,7 +3249,20 @@ textarea {
   /* padding: 15px 40px; */
   padding: 15px 0px 0px;
   color: var(--color-edit-text);
+  /* color: var(--color-text-title); */
   font-family: sans-serif;
+}
+.modal_container.p1 {
+  padding: 1px;
+}
+.modal_container.resizable {
+  transition: width 0.3s ease, height 0.3s ease, max-width 0.3s ease, max-height 0.3s ease;
+}
+.modal_container.fallback_bg {
+  background: var(--skeleton-bg-modal);
+  /* background: #cdcdcda0; */
+  /* background: #242424e0; */
+  /* background: #252525e0; */
 }
 .modal_title_area {
   width: 100%;
@@ -4367,4 +4387,8 @@ textarea {
 /* ハッシュタグカラー */
 .hashtag_color {
   color: var(--color-hashtag) !important;
+}
+.hashtag_text {
+  font-size: 12px;
+  font-weight: 600;
 }

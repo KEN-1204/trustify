@@ -1,4 +1,15 @@
-import React, { ChangeEvent, FC, FormEvent, Suspense, memo, useCallback, useEffect, useRef, useState } from "react";
+import React, {
+  ChangeEvent,
+  FC,
+  FormEvent,
+  Suspense,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "../ContactDetail.module.css";
 import useDashboardStore from "@/store/useDashboardStore";
 import useStore from "@/store";
@@ -21,9 +32,14 @@ import productCategoriesM, {
   mappingOfficeCategoryM,
   mappingOthersCategoryM,
   mappingProcessingMachineryCategoryM,
+  mappingProductCategoriesMedium,
   mappingScienceCategoryM,
   mappingSkillUpCategoryM,
   mappingToolCategoryM,
+  productCategoriesMediumNameOnlySet,
+  productCategoryLargeToMappingMediumMap,
+  productCategoryLargeToOptionsMediumMap,
+  productCategoryLargeToOptionsMediumObjMap,
 } from "@/utils/productCategoryM";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
@@ -31,7 +47,7 @@ import { FallbackUnderRightActivityLog } from "@/components/DashboardCompanyComp
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { useMutateContact } from "@/hooks/useMutateContact";
-import { Contact, Contact_row_data } from "@/types";
+import { Contact, Contact_row_data, ProductCategoriesLarge, ProductCategoriesMedium } from "@/types";
 import { CiEdit } from "react-icons/ci";
 import { MdEdit, MdOutlineEdit, MdOutlineModeEditOutline } from "react-icons/md";
 import { RiEdit2Fill } from "react-icons/ri";
@@ -51,6 +67,8 @@ import {
   optionsOccupation,
   optionsPositionsClass,
   optionsProductL,
+  optionsProductLNameOnly,
+  optionsProductLNameOnlySet,
 } from "../../../../utils/selectOptions";
 // import {
 //   optionsIndustryType,
@@ -64,6 +82,15 @@ import {
 import { ContactUnderRightActivityLog } from "./ContactUnderRightActivityLog/ContactUnderRightActivityLog";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
+import {
+  ProductCategoriesSmall,
+  mappingProductCategoriesSmall,
+  productCategoriesSmallNameOnlySet,
+  productCategoryMediumToMappingSmallMap,
+  productCategoryMediumToOptionsSmallMap_All,
+  productCategoryMediumToOptionsSmallMap_All_obj,
+} from "@/utils/productCategoryS";
+import { CustomSelectMultiple } from "@/components/Parts/CustomSelectMultiple/CustomSelectMultiple";
 // 名前付きエクスポートの場合のダイナミックインポート
 // const ContactUnderRightActivityLog = dynamic(
 //   () =>
@@ -92,6 +119,7 @@ const ContactMainContainerMemo: FC = () => {
   const editSearchMode = useDashboardStore((state) => state.editSearchMode);
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   // console.log("🔥 ContactMainContainerレンダリング searchMode", searchMode);
+  const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   const tableContainerSize = useDashboardStore((state) => state.tableContainerSize);
@@ -127,9 +155,166 @@ const ContactMainContainerMemo: FC = () => {
   const [inputHP, setInputHP] = useState("");
   const [inputCompanyEmail, setInputCompanyEmail] = useState("");
   const [inputIndustryType, setInputIndustryType] = useState("");
-  const [inputProductL, setInputProductL] = useState("");
-  const [inputProductM, setInputProductM] = useState("");
-  const [inputProductS, setInputProductS] = useState("");
+  // ----------------------- 🌟製品分類関連🌟 -----------------------
+  // const [inputProductL, setInputProductL] = useState("");
+  // const [inputProductM, setInputProductM] = useState("");
+  // const [inputProductS, setInputProductS] = useState("");
+  const [inputProductArrayLarge, setInputProductArrayLarge] = useState<ProductCategoriesLarge[]>([]);
+  const [inputProductArrayMedium, setInputProductArrayMedium] = useState<ProductCategoriesMedium[]>([]);
+  const [inputProductArraySmall, setInputProductArraySmall] = useState<ProductCategoriesSmall[]>([]);
+
+  // カスタムセレクトボックス用にnameのみで選択中のSetオブジェクトを作成
+  // ---------------- 🔸大分類🔸 ----------------
+  const selectedProductCategoryLargeSet = useMemo(() => {
+    return new Set([...inputProductArrayLarge]);
+  }, [inputProductArrayLarge]);
+
+  const getProductCategoryLargeName = (option: ProductCategoriesLarge) => {
+    return mappingProductL[option][language];
+  };
+
+  // ---------------- 🔸中分類🔸 ----------------
+  const selectedProductCategoryMediumSet = useMemo(() => {
+    return new Set([...inputProductArrayMedium]);
+  }, [inputProductArrayMedium]);
+
+  // 中分類のoptions 大分類で複数選択している場合には、選択中の大分類に紐づく全ての中分類をoptionsにセット
+  const optionsProductCategoryMediumAll = useMemo(() => {
+    const filteredOptionsNameOnly = optionsProductLNameOnly.filter((name) => selectedProductCategoryLargeSet.has(name));
+    const newOptionsM = filteredOptionsNameOnly
+      .map((option) => {
+        return productCategoryLargeToOptionsMediumMap[option];
+      })
+      .flatMap((array) => array);
+
+    return newOptionsM;
+  }, [optionsProductLNameOnly, selectedProductCategoryLargeSet, productCategoryLargeToOptionsMediumMap]);
+
+  // 名称変換マップ
+  const mappingProductCategoryMediumAll = useMemo(() => {
+    let mappingObj = {} as {
+      [x: string]: {
+        [key: string]: string;
+      };
+    };
+
+    Array.from(selectedProductCategoryLargeSet).forEach((name) => {
+      mappingObj = { ...mappingObj, ...productCategoryLargeToMappingMediumMap[name] };
+    });
+
+    return new Map(Object.entries(mappingObj).map(([key, value]) => [key, value]));
+  }, [selectedProductCategoryLargeSet]);
+
+  const getProductCategoryMediumNameAll = (option: ProductCategoriesMedium) => {
+    const mappingObj = mappingProductCategoryMediumAll.get(option);
+    return mappingObj ? mappingObj[language] : "-";
+    // return mappingProductCategoryMediumAll[option][language];
+  };
+
+  // 🌠中分類が選択されている状態で大分類のチェックが外された場合には、外された大分類に紐づく中分類を削除する
+  useEffect(() => {
+    // 大分類に紐づくoptionのみで作成したoptionsProductCategoryMediumAllに含まれていない選択中の中分類は削除
+    const optionsProductCategoryMediumAllSet = new Set(optionsProductCategoryMediumAll);
+    const newMediumArray = [...inputProductArrayMedium].filter((option) =>
+      optionsProductCategoryMediumAllSet.has(option as any)
+    );
+    console.log("🔥大分類が変更されたため中分類を更新");
+    setInputProductArrayMedium(newMediumArray);
+  }, [optionsProductCategoryMediumAll]);
+
+  // ---------------- 🔸中分類🔸 ここまで ----------------
+
+  // ---------------- 🔸小分類🔸 ----------------
+  const selectedProductCategorySmallSet = useMemo(() => {
+    return new Set([...inputProductArraySmall]);
+  }, [inputProductArraySmall]);
+
+  // 小分類のoptions 中分類で複数選択している場合には、選択中の中分類に紐づく全ての小分類をoptionsにセット
+  const optionsProductCategorySmallAll = useMemo(() => {
+    // 取得した現在選択可能な全ての中分類のoptionsから既に選択中の中分類を取得
+    const filteredOptionsMediumNameOnly = Array.from(selectedProductCategoryMediumSet);
+
+    // 選択中の中分類の選択肢に紐づく小分類のoptionsを全て取得
+    const newOptionsSmall = filteredOptionsMediumNameOnly
+      .map((optionName) => {
+        // 選択中の大分類に応じて中分類のMapを使用
+        return productCategoryMediumToOptionsSmallMap_All[optionName];
+      })
+      .flatMap((array) => array);
+
+    return newOptionsSmall;
+  }, [selectedProductCategoryMediumSet]);
+
+  // 🌠小分類が選択されている状態で中分類のチェックが外された場合には、外された中分類に紐づく小分類を削除する
+  useEffect(() => {
+    // 中分類に紐づくoptionのみで作成したoptionsProductCategorySmallAllに含まれていない選択中の小分類は削除
+    const optionsProductCategorySmallAllSet = new Set(optionsProductCategorySmallAll);
+    const newSmallArray = [...inputProductArraySmall].filter((option) =>
+      optionsProductCategorySmallAllSet.has(option as any)
+    );
+    console.log("🔥中分類が変更されたため小分類を更新");
+    setInputProductArraySmall(newSmallArray);
+  }, [optionsProductCategorySmallAll]);
+
+  // 名称変換マップ
+  const mappingProductCategorySmallAll = useMemo(() => {
+    let mappingObj = {} as {
+      [x: string]: {
+        [key: string]: string;
+      };
+    };
+
+    Array.from(selectedProductCategoryMediumSet).forEach((option) => {
+      mappingObj = { ...mappingObj, ...productCategoryMediumToMappingSmallMap[option] };
+    });
+
+    return new Map(Object.entries(mappingObj).map(([key, value]) => [key, value]));
+  }, [selectedProductCategoryMediumSet]);
+
+  const getProductCategorySmallNameAll = (option: ProductCategoriesSmall) => {
+    const mappingObj = mappingProductCategorySmallAll.get(option);
+    return mappingObj ? mappingObj[language] : "-";
+    // return mappingProductCategorySmallAll[option][language];
+  };
+  // ---------------- 🔸小分類🔸 ここまで ----------------
+
+  // 🔸上テーブルから選択された行データの各製品分類の配列の要素数が1つ以上の場合は表示用にフォーマットする
+  // 大分類
+  const formattedProductCategoriesLarge = useMemo(() => {
+    if (!selectedRowDataContact || !selectedRowDataContact.product_categories_large_array?.length) return "";
+    return selectedRowDataContact.product_categories_large_array
+      .map((name) =>
+        optionsProductLNameOnlySet.has(name) ? `#${mappingProductL[name as ProductCategoriesLarge][language]}` : `#-`
+      )
+      .join("　"); // #text1 #text2
+  }, [selectedRowDataContact?.product_categories_large_array]);
+
+  // 中分類
+  const formattedProductCategoriesMedium = useMemo(() => {
+    if (!selectedRowDataContact || !selectedRowDataContact.product_categories_medium_array?.length) return "";
+    return selectedRowDataContact.product_categories_medium_array
+      .map((name) =>
+        productCategoriesMediumNameOnlySet.has(name)
+          ? `#${mappingProductCategoriesMedium[name as ProductCategoriesMedium][language]}`
+          : `#-`
+      )
+      .join("　"); // #text1 #text2
+  }, [selectedRowDataContact?.product_categories_medium_array]);
+
+  // 小分類
+  const formattedProductCategoriesSmall = useMemo(() => {
+    if (!selectedRowDataContact || !selectedRowDataContact.product_categories_small_array?.length) return "";
+    return selectedRowDataContact.product_categories_small_array
+      .map((name) =>
+        productCategoriesSmallNameOnlySet.has(name)
+          ? `#${mappingProductCategoriesSmall[name as ProductCategoriesSmall][language]}`
+          : `#-`
+      )
+      .join("　"); // #text1 #text2
+  }, [selectedRowDataContact?.product_categories_small_array]);
+
+  // ----------------------- 🌟製品分類関連🌟 ここまで -----------------------
+
   const [inputFiscal, setInputFiscal] = useState("");
   const [inputBudgetRequestMonth1, setInputBudgetRequestMonth1] = useState("");
   const [inputBudgetRequestMonth2, setInputBudgetRequestMonth2] = useState("");
@@ -239,9 +424,73 @@ const ContactMainContainerMemo: FC = () => {
             : ""
         )
       );
-      setInputProductL(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_large));
-      setInputProductM(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_medium));
-      setInputProductS(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_small));
+
+      // ------------------------ 製品分類関連 ------------------------
+      // setInputProductL(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_large));
+      // setInputProductM(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_medium));
+      // setInputProductS(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_small));
+
+      // 🔸大分類
+      let productCategoryLargeNamesArray: ProductCategoriesLarge[] = [];
+      if (0 < newSearchContact_CompanyParams.product_category_large_ids.length) {
+        console.log(
+          "============================ 大分類実行🔥",
+          newSearchContact_CompanyParams.product_category_large_ids
+        );
+        // idからnameへ変換
+        const largeIdToNameMap = new Map(optionsProductL.map((obj) => [obj.id, obj.name]));
+        productCategoryLargeNamesArray = newSearchContact_CompanyParams.product_category_large_ids
+          .map((id) => {
+            return largeIdToNameMap.get(id);
+          })
+          .filter((name): name is ProductCategoriesLarge => name !== undefined && name !== null);
+        setInputProductArrayLarge(productCategoryLargeNamesArray);
+      }
+      // 🔸中分類
+      let productCategoryMediumNamesArray: ProductCategoriesMedium[] = [];
+      if (
+        0 < newSearchContact_CompanyParams.product_category_medium_ids.length &&
+        0 < productCategoryLargeNamesArray.length
+      ) {
+        console.log(
+          "============================ 中分類実行🔥",
+          newSearchContact_CompanyParams.product_category_medium_ids,
+          productCategoryLargeNamesArray
+        );
+        // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
+        const optionsMediumObj = productCategoryLargeNamesArray
+          .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
+          .flatMap((array) => array);
+        const mediumIdToNameMap = new Map(optionsMediumObj.map((obj) => [obj.id, obj.name]));
+        productCategoryMediumNamesArray = newSearchContact_CompanyParams.product_category_medium_ids
+          .map((id) => {
+            return mediumIdToNameMap.get(id);
+          })
+          .filter((name): name is ProductCategoriesMedium => name !== undefined && name !== null);
+        setInputProductArrayMedium(productCategoryMediumNamesArray);
+      }
+      // 🔸小分類
+      let productCategorySmallNamesArray: ProductCategoriesSmall[] = [];
+      if (
+        0 < newSearchContact_CompanyParams.product_category_small_ids.length &&
+        0 < productCategoryMediumNamesArray.length
+      ) {
+        console.log("============================ 小分類実行🔥");
+        // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
+        const optionsSmallObj = productCategoryMediumNamesArray
+          .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
+          .flatMap((array) => array);
+        const mediumIdToNameMap = new Map(optionsSmallObj.map((obj) => [obj.id, obj.name]));
+        productCategorySmallNamesArray = newSearchContact_CompanyParams.product_category_small_ids
+          .map((id) => {
+            return mediumIdToNameMap.get(id);
+          })
+          .filter((name): name is ProductCategoriesSmall => name !== undefined && name !== null);
+        setInputProductArraySmall(productCategorySmallNamesArray);
+      }
+
+      // ------------------------ 製品分類関連 ここまで ------------------------
+
       setInputFiscal(beforeAdjustFieldValue(newSearchContact_CompanyParams.fiscal_end_month));
       setInputBudgetRequestMonth1(beforeAdjustFieldValue(newSearchContact_CompanyParams.budget_request_month1));
       setInputBudgetRequestMonth2(beforeAdjustFieldValue(newSearchContact_CompanyParams.budget_request_month2));
@@ -303,9 +552,14 @@ const ContactMainContainerMemo: FC = () => {
       if (!!inputHP) setInputHP("");
       if (!!inputCompanyEmail) setInputCompanyEmail("");
       if (!!inputIndustryType) setInputIndustryType("");
-      if (!!inputProductL) setInputProductL("");
-      if (!!inputProductM) setInputProductM("");
-      if (!!inputProductS) setInputProductS("");
+      // 製品分類の処理 ------------------------
+      // if (!!inputProductL) setInputProductL("");
+      // if (!!inputProductM) setInputProductM("");
+      // if (!!inputProductS) setInputProductS("");
+      if (!!inputProductArrayLarge.length) setInputProductArrayLarge([]);
+      if (!!inputProductArrayMedium.length) setInputProductArrayMedium([]);
+      if (!!inputProductArraySmall.length) setInputProductArraySmall([]);
+      // 製品分類の処理 ------------------------ ここまで
       if (!!inputFiscal) setInputFiscal("");
       if (!!inputBudgetRequestMonth1) setInputBudgetRequestMonth1("");
       if (!!inputBudgetRequestMonth2) setInputBudgetRequestMonth2("");
@@ -374,9 +628,10 @@ const ContactMainContainerMemo: FC = () => {
     let _website_url = adjustFieldValue(inputHP);
     let _company_email = adjustFieldValue(inputCompanyEmail);
     let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
-    let _product_category_large = adjustFieldValue(inputProductL);
-    let _product_category_medium = adjustFieldValue(inputProductM);
-    let _product_category_small = adjustFieldValue(inputProductS);
+    // // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
+    // let _product_category_large = adjustFieldValue(inputProductL);
+    // let _product_category_medium = adjustFieldValue(inputProductM);
+    // let _product_category_small = adjustFieldValue(inputProductS);
     let _fiscal_end_month = adjustFieldValue(inputFiscal);
     let _budget_request_month1 = adjustFieldValue(inputBudgetRequestMonth1);
     let _budget_request_month2 = adjustFieldValue(inputBudgetRequestMonth2);
@@ -407,6 +662,62 @@ const ContactMainContainerMemo: FC = () => {
     // if (_field1 === "is null") _field1 = null;
     // if (_field1 === "is not null") _field1 = "%%";
 
+    // 製品分類の処理 ----------------------------------------------
+    // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
+    // 大分類
+    let productCategoryLargeIdsArray: number[] = [];
+    if (0 < inputProductArrayLarge.length) {
+      const largeNameToIdMap = new Map(optionsProductL.map((obj) => [obj.name, obj.id]));
+      productCategoryLargeIdsArray = inputProductArrayLarge
+        .map((name) => {
+          return largeNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+      console.log("============================ 大分類実行🔥", largeNameToIdMap, productCategoryLargeIdsArray);
+    }
+    // 中分類
+    let productCategoryMediumIdsArray: number[] = [];
+    if (0 < inputProductArrayMedium.length) {
+      // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
+      const optionsMediumObj = inputProductArrayLarge
+        .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
+        .flatMap((array) => array);
+      const mediumNameToIdMap = new Map(optionsMediumObj.map((obj) => [obj.name, obj.id]));
+      productCategoryMediumIdsArray = inputProductArrayMedium
+        .map((name) => {
+          return mediumNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+      console.log(
+        "============================ 中分類実行🔥",
+        optionsMediumObj,
+        mediumNameToIdMap,
+        productCategoryMediumIdsArray
+      );
+    }
+    // 小分類
+    let productCategorySmallIdsArray: number[] = [];
+    if (0 < inputProductArraySmall.length) {
+      // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
+      const optionsSmallObj = inputProductArrayMedium
+        .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
+        .flatMap((array) => array);
+      const mediumNameToIdMap = new Map(optionsSmallObj.map((obj) => [obj.name, obj.id]));
+      productCategorySmallIdsArray = inputProductArraySmall
+        .map((name) => {
+          return mediumNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+      console.log(
+        "============================ 小分類実行🔥",
+        optionsSmallObj,
+        mediumNameToIdMap,
+        productCategorySmallIdsArray
+      );
+    }
+
+    // 製品分類の処理ここまで ----------------------------------------------
+
     const params = {
       "client_companies.name": _company_name,
       //   company_name: _company_name,
@@ -423,9 +734,14 @@ const ContactMainContainerMemo: FC = () => {
       //   company_email: _company_email,
       "client_companies.email": _company_email,
       industry_type_id: _industry_type_id,
-      product_category_large: _product_category_large,
-      product_category_medium: _product_category_medium,
-      product_category_small: _product_category_small,
+      // 製品分類 ----------------
+      // product_category_large: _product_category_large,
+      // product_category_medium: _product_category_medium,
+      // product_category_small: _product_category_small,
+      product_category_large_ids: productCategoryLargeIdsArray,
+      product_category_medium_ids: productCategoryMediumIdsArray,
+      product_category_small_ids: productCategorySmallIdsArray,
+      // 製品分類 ---------------- ここまで
       fiscal_end_month: _fiscal_end_month,
       budget_request_month1: _budget_request_month1,
       budget_request_month2: _budget_request_month2,
@@ -471,9 +787,14 @@ const ContactMainContainerMemo: FC = () => {
     setInputHP("");
     setInputCompanyEmail("");
     setInputIndustryType("");
-    setInputProductL("");
-    setInputProductM("");
-    setInputProductS("");
+    // 製品分類 ----------------
+    // setInputProductL("");
+    // setInputProductM("");
+    // setInputProductS("");
+    setInputProductArrayLarge([]);
+    setInputProductArrayMedium([]);
+    setInputProductArraySmall([]);
+    // 製品分類 ----------------ここまで
     setInputFiscal("");
     setInputBudgetRequestMonth1("");
     setInputBudgetRequestMonth2("");
@@ -560,7 +881,7 @@ const ContactMainContainerMemo: FC = () => {
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPosWrap(null);
+    if (hoveredItemPosWrap) setHoveredItemPosWrap(null);
   };
   // ================== ✅ツールチップ✅ ==================
 
@@ -998,11 +1319,15 @@ const ContactMainContainerMemo: FC = () => {
                   {!searchMode && (
                     <span
                       className={`${styles.value} ${styles.value_highlight} ${styles.uneditable_field}`}
+                      data-text={selectedRowDataContact?.company_name ? selectedRowDataContact?.company_name : ""}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
                       }}
                     >
                       {selectedRowDataContact?.company_name ? selectedRowDataContact?.company_name : ""}
@@ -1034,11 +1359,19 @@ const ContactMainContainerMemo: FC = () => {
                   {!searchMode && (
                     <span
                       className={`${styles.value} ${styles.uneditable_field}`}
+                      data-text={
+                        selectedRowDataContact?.company_department_name
+                          ? selectedRowDataContact?.company_department_name
+                          : ""
+                      }
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
                       }}
                     >
                       {selectedRowDataContact?.company_department_name
@@ -1999,11 +2332,15 @@ const ContactMainContainerMemo: FC = () => {
                           dispatch: setInputPositionName,
                         });
                       }}
+                      data-text={selectedRowDataContact?.position_name ? selectedRowDataContact?.position_name : ""}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
                       }}
                     >
                       {selectedRowDataContact?.position_name ? selectedRowDataContact?.position_name : ""}
@@ -2421,7 +2758,7 @@ const ContactMainContainerMemo: FC = () => {
                       }}
                     >
                       {selectedRowDataContact?.number_of_employees_class
-                        ? selectedRowDataContact?.number_of_employees_class
+                        ? getNumberOfEmployeesClass(selectedRowDataContact?.number_of_employees_class)
                         : ""}
                     </span>
                   )}
@@ -2666,19 +3003,19 @@ const ContactMainContainerMemo: FC = () => {
                   {!searchMode && (
                     <>
                       <span
+                        className={`${styles.textarea_value} h-[45px] ${styles.uneditable_field}`}
                         data-text={`${
                           selectedRowDataContact?.business_content ? selectedRowDataContact?.business_content : ""
                         }`}
-                        className={`${styles.textarea_value} h-[45px] ${styles.uneditable_field}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e);
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                            handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
-                          handleCloseTooltip();
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          handleCloseTooltip();
                         }}
                         dangerouslySetInnerHTML={{
                           __html: selectedRowDataContact?.business_content
@@ -2711,17 +3048,16 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>主要取引先</span>
                   {!searchMode && (
                     <span
-                      data-text={`${selectedRowDataContact?.clients ? selectedRowDataContact?.clients : ""}`}
                       className={`${styles.value} ${styles.uneditable_field}`}
-                      // onMouseEnter={(e) => handleOpenTooltip(e)}
-                      // onMouseLeave={handleCloseTooltip}
+                      data-text={`${selectedRowDataContact?.clients ? selectedRowDataContact?.clients : ""}`}
                       onMouseEnter={(e) => {
-                        handleOpenTooltip(e);
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                       }}
                       onMouseLeave={(e) => {
-                        handleCloseTooltip();
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
                       }}
                     >
                       {selectedRowDataContact?.clients ? selectedRowDataContact?.clients : ""}
@@ -2747,17 +3083,16 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>主要仕入先</span>
                   {!searchMode && (
                     <span
-                      data-text={`${selectedRowDataContact?.supplier ? selectedRowDataContact?.supplier : ""}`}
                       className={`${styles.value} ${styles.uneditable_field}`}
-                      // onMouseEnter={(e) => handleOpenTooltip(e)}
-                      // onMouseLeave={handleCloseTooltip}
+                      data-text={`${selectedRowDataContact?.supplier ? selectedRowDataContact?.supplier : ""}`}
                       onMouseEnter={(e) => {
-                        handleOpenTooltip(e);
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                       }}
                       onMouseLeave={(e) => {
-                        handleCloseTooltip();
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
                       }}
                     >
                       {selectedRowDataContact?.supplier ? selectedRowDataContact?.supplier : ""}
@@ -2784,17 +3119,17 @@ const ContactMainContainerMemo: FC = () => {
                   {!searchMode && (
                     <>
                       <span
-                        data-text={`${selectedRowDataContact?.facility ? selectedRowDataContact?.facility : ""}`}
                         className={`${styles.textarea_value} h-[45px] ${styles.uneditable_field}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
-                        // onMouseLeave={handleCloseTooltip}
+                        data-text={`${selectedRowDataContact?.facility ? selectedRowDataContact?.facility : ""}`}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e);
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                            handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
-                          handleCloseTooltip();
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          handleCloseTooltip();
                         }}
                         dangerouslySetInnerHTML={{
                           __html: selectedRowDataContact?.facility
@@ -2827,19 +3162,18 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>事業拠点</span>
                   {!searchMode && (
                     <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
                       data-text={`${
                         selectedRowDataContact?.business_sites ? selectedRowDataContact?.business_sites : ""
                       }`}
-                      className={`${styles.value} ${styles.uneditable_field}`}
-                      // onMouseEnter={(e) => handleOpenTooltip(e)}
-                      // onMouseLeave={handleCloseTooltip}
                       onMouseEnter={(e) => {
-                        handleOpenTooltip(e);
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight) handleOpenTooltip(e);
                       }}
                       onMouseLeave={(e) => {
-                        handleCloseTooltip();
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
                       }}
                     >
                       {selectedRowDataContact?.business_sites ? selectedRowDataContact?.business_sites : ""}
@@ -2861,19 +3195,18 @@ const ContactMainContainerMemo: FC = () => {
                   <span className={`${styles.title}`}>海外拠点</span>
                   {!searchMode && (
                     <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
                       data-text={`${
                         selectedRowDataContact?.overseas_bases ? selectedRowDataContact?.overseas_bases : ""
                       }`}
-                      className={`${styles.value} ${styles.uneditable_field}`}
-                      // onMouseEnter={(e) => handleOpenTooltip(e)}
-                      // onMouseLeave={handleCloseTooltip}
                       onMouseEnter={(e) => {
-                        handleOpenTooltip(e);
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight) handleOpenTooltip(e);
                       }}
                       onMouseLeave={(e) => {
-                        handleCloseTooltip();
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
                       }}
                     >
                       {selectedRowDataContact?.overseas_bases ? selectedRowDataContact?.overseas_bases : ""}
@@ -2903,15 +3236,14 @@ const ContactMainContainerMemo: FC = () => {
                       data-text={`${
                         selectedRowDataContact?.group_company ? selectedRowDataContact?.group_company : ""
                       }`}
-                      // onMouseEnter={(e) => handleOpenTooltip(e)}
-                      // onMouseLeave={handleCloseTooltip}
                       onMouseEnter={(e) => {
-                        handleOpenTooltip(e);
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight) handleOpenTooltip(e);
                       }}
                       onMouseLeave={(e) => {
-                        handleCloseTooltip();
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
                       }}
                     >
                       {selectedRowDataContact?.group_company ? selectedRowDataContact?.group_company : ""}
@@ -3042,7 +3374,7 @@ const ContactMainContainerMemo: FC = () => {
                         : ""}
                     </span>
                   )}
-                  {searchMode && !inputProductL && (
+                  {searchMode && (
                     <select
                       className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputIndustryType}
@@ -3060,7 +3392,7 @@ const ContactMainContainerMemo: FC = () => {
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
-            {/* 製品分類（大分類） */}
+            {/* 製品分類(大分類) */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
@@ -3071,29 +3403,42 @@ const ContactMainContainerMemo: FC = () => {
                   </div>
                   {!searchMode && (
                     <span
-                      className={`${styles.value} ${styles.uneditable_field}`}
-                      data-text={`${
-                        selectedRowDataContact?.product_category_large
-                          ? selectedRowDataContact?.product_category_large
-                          : ""
-                      }`}
-                      // onMouseEnter={(e) => handleOpenTooltip(e)}
-                      // onMouseLeave={handleCloseTooltip}
+                      className={`${styles.value} ${styles.hashtag} ${styles.uneditable_field}`}
+                      data-text={`${formattedProductCategoriesLarge}`}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
                       }}
                     >
-                      {selectedRowDataContact?.product_category_large
+                      {formattedProductCategoriesLarge}
+                      {/* {selectedRowDataContact?.product_category_large
                         ? selectedRowDataContact?.product_category_large
-                        : ""}
+                        : ""} */}
                     </span>
                   )}
-                  {searchMode && !inputIndustryType && (
-                    <select
-                      // className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box}`}
+                  {searchMode && (
+                    <>
+                      <CustomSelectMultiple
+                        stateArray={inputProductArrayLarge}
+                        dispatch={setInputProductArrayLarge}
+                        selectedSetObj={selectedProductCategoryLargeSet}
+                        options={optionsProductLNameOnly}
+                        getOptionName={getProductCategoryLargeName}
+                        withBorder={true}
+                        // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                        customClass="font-normal"
+                        bgDark={false}
+                        maxWidth={`calc(100% - 95px)`}
+                        maxHeight={30}
+                        // zIndexSelectBox={2000}
+                        hideOptionAfterSelect={true}
+                      />
+                      {/* <select
                       className={`ml-auto h-full w-[100%] cursor-pointer ${styles.select_box}`}
                       value={inputProductL}
                       onChange={(e) => setInputProductL(e.target.value)}
@@ -3104,13 +3449,14 @@ const ContactMainContainerMemo: FC = () => {
                           {mappingProductL[option.name][language]}
                         </option>
                       ))}
-                    </select>
+                    </select> */}
+                    </>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
-            {/* 製品分類（中分類） */}
+            {/* 製品分類(中分類) */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
@@ -3121,28 +3467,39 @@ const ContactMainContainerMemo: FC = () => {
                   </div>
                   {!searchMode && (
                     <span
-                      className={`${styles.value} ${styles.uneditable_field}`}
-                      data-text={`${
-                        selectedRowDataContact?.product_category_medium
-                          ? selectedRowDataContact?.product_category_medium
-                          : ""
-                      }`}
-                      // onMouseEnter={(e) => handleOpenTooltip(e)}
-                      // onMouseLeave={handleCloseTooltip}
+                      className={`${styles.value} ${styles.hashtag} ${styles.uneditable_field}`}
+                      data-text={`${formattedProductCategoriesMedium}`}
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
                       }}
                     >
-                      {selectedRowDataContact?.product_category_medium
-                        ? selectedRowDataContact?.product_category_medium
-                        : ""}
+                      {formattedProductCategoriesMedium}
                     </span>
                   )}
-                  {searchMode && !!inputProductL && (
-                    <select
+                  {searchMode && !!inputProductArrayLarge.length && (
+                    <>
+                      <CustomSelectMultiple
+                        stateArray={inputProductArrayMedium}
+                        dispatch={setInputProductArrayMedium}
+                        selectedSetObj={selectedProductCategoryMediumSet}
+                        options={optionsProductCategoryMediumAll}
+                        getOptionName={getProductCategoryMediumNameAll}
+                        withBorder={true}
+                        // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                        customClass="font-normal"
+                        bgDark={false}
+                        maxWidth={`calc(100% - 95px)`}
+                        maxHeight={30}
+                        // zIndexSelectBox={2000}
+                        hideOptionAfterSelect={true}
+                      />
+                      {/* <select
                       value={inputProductM}
                       onChange={(e) => setInputProductM(e.target.value)}
                       // className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[80%] cursor-pointer ${
@@ -3151,135 +3508,72 @@ const ContactMainContainerMemo: FC = () => {
                       }`}
                     >
                       <option key="" value=""></option>,
-                      {inputProductL === "electronic_components_modules" &&
-                        productCategoriesM.moduleCategoryM.map((option) => (
-                          <option key={`moduleCategoryM${option.name}`} value={option.id}>
-                            {mappingModuleCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "mechanical_parts" &&
-                        productCategoriesM.machinePartsCategoryM.map((option) => (
-                          <option key={`machinePartsCategoryM${option.name}`} value={option.id}>
-                            {mappingMachinePartsCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "manufacturing_processing_machines" &&
-                        productCategoriesM.processingMachineryCategoryM.map((option) => (
-                          <option key={`processingMachineryCategoryM${option.name}`} value={option.id}>
-                            {mappingProcessingMachineryCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "scientific_chemical_equipment" &&
-                        productCategoriesM.scienceCategoryM.map((option) => (
-                          <option key={`processingMachineryCategoryM${option.name}`} value={option.id}>
-                            {mappingScienceCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "materials" &&
-                        productCategoriesM.materialCategoryM.map((option) => (
-                          <option key={`materialCategoryM${option.name}`} value={option.id}>
-                            {mappingMaterialCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "measurement_analysis" &&
-                        productCategoriesM.analysisCategoryM.map((option) => (
-                          <option key={`analysisCategoryM${option.name}`} value={option.id}>
-                            {mappingAnalysisCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "image_processing" &&
-                        productCategoriesM.imageProcessingCategoryM.map((option) => (
-                          <option key={`imageProcessingCategoryM${option.name}`} value={option.id}>
-                            {mappingImageProcessingCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "control_electrical_equipment" &&
-                        productCategoriesM.controlEquipmentCategoryM.map((option) => (
-                          <option key={`controlEquipmentCategoryM${option.name}`} value={option.id}>
-                            {mappingControlEquipmentCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "tools_consumables_supplies" &&
-                        productCategoriesM.toolCategoryM.map((option) => (
-                          <option key={`toolCategoryM${option.name}`} value={option.id}>
-                            {mappingToolCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "design_production_support" &&
-                        productCategoriesM.designCategoryM.map((option) => (
-                          <option key={`designCategoryM${option.name}`} value={option.id}>
-                            {mappingDesignCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "it_network" &&
-                        productCategoriesM.ITCategoryM.map((option) => (
-                          <option key={`ITCategoryM${option.name}`} value={option.id}>
-                            {mappingITCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "office" &&
-                        productCategoriesM.OfficeCategoryM.map((option) => (
-                          <option key={`OfficeCategoryM${option.name}`} value={option.id}>
-                            {mappingOfficeCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "business_support_services" &&
-                        productCategoriesM.businessSupportCategoryM.map((option) => (
-                          <option key={`businessSupportCategoryM${option.name}`} value={option.id}>
-                            {mappingBusinessSupportCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "seminars_skill_up" &&
-                        productCategoriesM.skillUpCategoryM.map((option) => (
-                          <option key={`skillUpCategoryM${option.name}`} value={option.id}>
-                            {mappingSkillUpCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                      {inputProductL === "others" &&
-                        productCategoriesM.othersCategoryM.map((option) => (
-                          <option key={`othersCategoryM${option.name}`} value={option.id}>
-                            {mappingOthersCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                    </select>
+                    </select> */}
+                    </>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
             </div>
-            {/* 製品分類（小分類） */}
-            {/* <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+            {/* 製品分類(小分類) */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>製品分類（小分類）</span>
+                  {/* <span className={`${styles.title} !mr-[15px]`}>製品分類（中分類）</span> */}
+                  <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                    <span>製品分類</span>
+                    <span>(小分類)</span>
+                  </div>
                   {!searchMode && (
                     <span
-                      className={`${styles.value}`}
-                      data-text={`${
-                        selectedRowDataContact?.product_category_small
-                          ? selectedRowDataContact?.product_category_small
-                          : ""
-                      }`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
+                      className={`${styles.value} ${styles.hashtag} ${styles.uneditable_field}`}
+                      data-text={`${formattedProductCategoriesSmall}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                        const el = e.currentTarget;
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                        handleCloseTooltip();
+                      }}
                     >
-                      {selectedRowDataContact?.product_category_small
-                        ? selectedRowDataContact?.product_category_small
-                        : ""}
+                      {formattedProductCategoriesSmall}
                     </span>
                   )}
-                  {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box} ml-[20px]`}
-                      value={inputProductS}
-                      onChange={(e) => setInputProductS(e.target.value)}
-                    />
+                  {searchMode && !!inputProductArrayMedium.length && (
+                    <>
+                      <CustomSelectMultiple
+                        stateArray={inputProductArraySmall}
+                        dispatch={setInputProductArraySmall}
+                        selectedSetObj={selectedProductCategorySmallSet}
+                        options={optionsProductCategorySmallAll}
+                        getOptionName={getProductCategorySmallNameAll}
+                        withBorder={true}
+                        // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                        customClass="font-normal"
+                        bgDark={false}
+                        maxWidth={`calc(100% - 95px)`}
+                        maxHeight={30}
+                        // zIndexSelectBox={2000}
+                        hideOptionAfterSelect={true}
+                      />
+                      {/* <select
+                      value={inputProductM}
+                      onChange={(e) => setInputProductM(e.target.value)}
+                      // className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[80%] cursor-pointer ${
+                      className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[100%] cursor-pointer ${
+                        styles.select_box
+                      }`}
+                    >
+                      <option key="" value=""></option>,
+                    </select> */}
+                    </>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
               </div>
-            </div> */}
+            </div>
 
             {/* 法人番号・ID */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
@@ -3612,13 +3906,12 @@ const ContactMainContainerMemo: FC = () => {
                           }}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // if (!selectedRowDataContact?.call_careful_reason) return;
-                            // handleOpenTooltip(e, "right");
-                            handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                              handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            // if (!selectedRowDataContact?.call_careful_reason) return;
                             handleCloseTooltip();
                           }}
                           // onDoubleClick={() => setIsOpenUpdateContactModal(true)}
@@ -4030,12 +4323,14 @@ const ContactMainContainerMemo: FC = () => {
                           onMouseEnter={(e) => {
                             if (!selectedRowDataContact?.ban_reason) return;
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // handleOpenTooltip(e);
+                            const el = e.currentTarget;
+                            if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                              handleOpenTooltip(e);
                           }}
                           onMouseLeave={(e) => {
                             if (!selectedRowDataContact?.ban_reason) return;
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            // handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           // onDoubleClick={() => setIsOpenUpdateContactModal(true)}
                           dangerouslySetInnerHTML={{

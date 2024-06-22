@@ -505,6 +505,11 @@
   /* text-align: center; */
   font-size: 14px;
 }
+.value.hashtag {
+  color: var(--color-hashtag);
+  font-size: 12px;
+  font-weight: 600;
+}
 .double_text {
   font-size: 12px;
   font-size: 13px;

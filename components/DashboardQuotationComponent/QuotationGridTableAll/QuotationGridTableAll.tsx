@@ -293,11 +293,6 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
   // ================== 🌟supabase本番サーバーデータフェッチ用の関数🌟 ==================
   const supabase = useSupabaseClient();
 
-  // 表示するカラム
-  // const columnNamesObj = [...quotationColumnHeaderItemList]
-  //   .map((item, index) => item.columnName as keyof Client_company)
-  //   .join(", "); // columnNameのみの配列を取得
-
   // 検索タイプ オート検索/マニュアル検索 デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
   const functionName =
     searchType === "partial_match"
@@ -1182,6 +1177,15 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
   const handleMouseDown = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
 
+    // 🔸カーソルをリサイズに変更(カラムヘッダー全てにis_resizingクラスを付与)
+    if (colsRef.current) {
+      colsRef.current.forEach((header) => {
+        if (header instanceof HTMLDivElement) {
+          header.classList.add(`${styles.is_resizing}`);
+        }
+      });
+    }
+
     if (!parentGridScrollContainer.current) return;
     const gridContainer = parentGridScrollContainer.current;
     // ドラッグ中の列と同じ列全てのborder-right-colorをハイライトする
@@ -1199,6 +1203,16 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("handleMouseDown", startX, startWidth);
 
     const handleMouseUp = () => {
+      console.log("マウスアップ✅✅✅✅✅✅✅ ");
+      // 🔸カーソルを元に戻す(カラムヘッダー全てにis_resizingクラスを削除)
+      if (colsRef.current) {
+        colsRef.current.forEach((header) => {
+          if (header instanceof HTMLDivElement) {
+            header.classList.remove(`${styles.is_resizing}`);
+          }
+        });
+      }
+
       const gridScrollContainer = parentGridScrollContainer.current;
       if (!gridScrollContainer) return;
       // ドラッグ中の列と同じ列全てのborder-right-colorをハイライトを元のボーダーカラーに戻す
@@ -1210,7 +1224,6 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
         }
       });
 
-      console.log("マウスアップ✅ currentColsWidths.current", currentColsWidths.current);
       setColsWidth(currentColsWidths.current);
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
@@ -3276,27 +3289,18 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
                         //   // handleDoubleClick(e, index);
                         // }}
                         onMouseEnter={(e) => {
-                          // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
-                          if (key.isOverflow) {
-                            // handleOpenTooltip(e, "top", key.columnName);
+                          const el = columnHeaderInnerTextRef.current[index];
+                          if (key.isOverflow || (el && el.scrollWidth > el.offsetWidth)) {
                             const columnNameData = key.columnName ? key.columnName : "";
                             handleOpenTooltip({
                               e,
                               display: "top",
                               content: columnNameToJapaneseQuotation(columnNameData),
                             });
-                            console.log("マウスエンター key.columnId.toString()");
-                            console.log("マウスエンター ツールチップオープン カラムID", key.columnId.toString());
                           }
-                          // handleOpenTooltip(e, "left");
                         }}
                         onMouseLeave={() => {
-                          // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
-                          if (key.isOverflow) {
-                            console.log("マウスリーブ ツールチップクローズ");
-                            handleCloseTooltip();
-                          }
-                          // handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         onDragStart={(e) => handleDragStart(e, index)} // テスト
                         onDragEnd={(e) => handleDragEnd(e)} // テスト

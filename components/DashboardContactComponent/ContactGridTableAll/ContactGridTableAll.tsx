@@ -11,7 +11,13 @@ import { RippleButton } from "@/components/Parts/RippleButton/RippleButton";
 import { ChangeSizeBtn } from "@/components/Parts/ChangeSizeBtn/ChangeSizeBtn";
 import { FiLock, FiRefreshCw, FiSearch } from "react-icons/fi";
 import { columnNameToJapaneseContacts } from "@/utils/columnNameToJapaneseContacts";
-import { Client_company, Client_company_row_data, Contact_row_data } from "@/types";
+import {
+  Client_company,
+  Client_company_row_data,
+  Contact_row_data,
+  ProductCategoriesLarge,
+  ProductCategoriesMedium,
+} from "@/types";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { EditColumnsModalDisplayOnly } from "../../GridTable/EditColumns/EditColumnsModalDisplayOnly";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
@@ -22,7 +28,12 @@ import { GridCellCheckboxTrue } from "@/components/DashboardActivityComponent/Ac
 import { GridCellCheckboxFalse } from "@/components/DashboardActivityComponent/ActivityGridTableAll/GridCellCheckbox/GridCellCheckboxFalse";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
 import { format } from "date-fns";
-import { getNumberOfEmployeesClass, mappingIndustryType } from "@/utils/selectOptions";
+import {
+  getNumberOfEmployeesClass,
+  mappingIndustryType,
+  mappingProductL,
+  optionsProductLNameOnlySet,
+} from "@/utils/selectOptions";
 import { DropDownMenuSearchMode } from "@/components/GridTable/GridTableAll/DropDownMenuSearchMode/DropDownMenuSearchMode";
 import { SpinnerX } from "@/components/Parts/SpinnerX/SpinnerX";
 import { toast } from "react-toastify";
@@ -30,6 +41,12 @@ import { MdDeleteOutline } from "react-icons/md";
 import { RiSortDesc } from "react-icons/ri";
 import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
+import { mappingProductCategoriesMedium, productCategoriesMediumNameOnlySet } from "@/utils/productCategoryM";
+import {
+  ProductCategoriesSmall,
+  mappingProductCategoriesSmall,
+  productCategoriesSmallNameOnlySet,
+} from "@/utils/productCategoryS";
 
 type TableDataType = {
   id: number;
@@ -271,11 +288,6 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   // ================== 🌟supabase本番サーバーデータフェッチ用の関数🌟 ==================
   const supabase = useSupabaseClient();
 
-  // 表示するカラム
-  const columnNamesObj = [...contactColumnHeaderItemList]
-    .map((item, index) => item.columnName as keyof Client_company)
-    .join(", "); // columnNameのみの配列を取得
-
   // ユーザーState
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
@@ -284,8 +296,70 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   const newSearchContact_CompanyParams = useDashboardStore((state) => state.newSearchContact_CompanyParams);
 
   // 検索タイプ オート検索/マニュアル検索
+  // 🔺製品分類なし
+  // const functionName =
+  //   searchType === "partial_match" ? "search_companies_and_contacts_partial" : "search_companies_and_contacts";
+  // 🔺製品分類有り
   const functionName =
-    searchType === "partial_match" ? "search_companies_and_contacts_partial" : "search_companies_and_contacts";
+    searchType === "partial_match"
+      ? "search_companies_and_contacts_categories_partial"
+      : "search_companies_and_contacts_categories";
+
+  // 🔸サーチ時の並び替えの対象カラムとASC or DESC
+  type SortableColumnContactCompany =
+    | "company_name"
+    | "address"
+    | "company_department_name"
+    | "contact_name"
+    | "position_class"
+    | "position_name"
+    | "direct_line"
+    | "main_phone_number"
+    | "direct_fax"
+    | "main_fax"
+    | "email"
+    | "extension"
+    | "company_cell_phone"
+    | "personal_cell_phone"
+    | "occupation"
+    | "approval_amount"
+    | "budget_request_month1"
+    | "budget_request_month2"
+    | "fiscal_end_month"
+    | "capital"
+    | "established_in"
+    | "supplier"
+    | "clients"
+    | "number_of_employees_class"
+    | "business_content"
+    | "business_sites"
+    | "overseas_bases"
+    | "group_company"
+    | "industry_type_id"
+    // | "product_categories_large_array"
+    // | "product_categories_medium_array"
+    // | "product_categories_small_array"
+    | "corporate_number"
+    | "call_careful_flag"
+    | "call_careful_reason"
+    | "email_ban_flag"
+    | "sending_materials_ban_flag"
+    | "fax_dm_ban_flag"
+    | "ban_reason"
+    | "claim"
+    | "contact_created_at"
+    | "contact_updated_at";
+
+  // | "product_categories_large_array" // 配列を並び替えする意味がないためアンセット
+  // | "product_categories_medium_array"
+  // | "product_categories_small_array"
+  const [orderByColumnData, setOrderByColumnData] = useState<{
+    columnName: SortableColumnContactCompany;
+    isAsc: boolean;
+  }>({
+    columnName: "company_name",
+    isAsc: true,
+  });
 
   // ================== 🌟条件なしサーバーデータフェッチ用の関数🌟 ==================
   // 取得カウント保持用state
@@ -386,50 +460,30 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       console.log("🔥🔥テスト🔥🔥supabase rpcフェッチ実行！！！！！！！！ from, to, params", from, to, params);
 
       // created_by_company_idがnullのもの
-      const { data, error, count } = await supabase
-        // .rpc("search_companies_and_contacts", { params }, { count: "exact" })
-        .rpc(searchType, { params }, { count: "exact" })
-        .is("created_by_company_id", null)
-        .eq("created_by_company_id", userProfileState.company_id)
-        // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
-        .range(from, to)
-        .order("company_name", { ascending: true })
-        .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
       // const { data, error, count } = await supabase
-      //   .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+      //   // .rpc("search_companies_and_contacts", { params }, { count: "exact" })
+      //   .rpc(functionName, { params }, { count: "exact" })
       //   .is("created_by_company_id", null)
+      //   .eq("created_by_company_id", userProfileState.company_id)
+      //   // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
       //   .range(from, to)
-      //   .order("company_name", { ascending: true });
+      //   .order("company_name", { ascending: true })
+      //   .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
 
-      // ユーザーIDが自身のIDと一致するデータのみ 成功
-      // const { data, error } = await supabase
-      //   .rpc("search_companies_and_contacts", { params })
-      //   .eq("created_by_user_id", `${userProfileState?.id}`)
-      //   .range(0, 20);
-
-      if (error) {
-        alert(error.message);
-        throw error;
-      }
-      const rows = ensureClientCompanies(data);
+      // if (error) {
+      //   alert(error.message);
+      //   throw error;
+      // }
+      // const rows = ensureClientCompanies(data);
 
       // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-      const isLastPage = rows === null || rows.length < limit;
+      // const isLastPage = rows === null || rows.length < limit;
 
-      console.log(
-        "🔥🔥テスト🔥🔥フェッチ後 count",
-        count,
-        "data",
-        data,
-        "from",
-        from,
-        "to",
-        to,
-        "rows",
-        rows,
-        "isLastPage",
-        isLastPage
-      );
+      // 🔸無料ユーザーは一旦無し
+      let rows: null = null;
+      const isLastPage = rows === null;
+      let count = 0;
+      // 🔸無料ユーザーは一旦無し
 
       // 1秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -449,24 +503,44 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       offset: number = 0
     ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
       // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
-      console.log("🔥🔥テスト🔥🔥 offset, limit", offset, limit);
+
       const from = offset * limit;
       const to = from + limit - 1;
-      console.log("🔥🔥テスト🔥🔥 from, to", from, to);
 
       //   let params = newSearchCompanyParams;
       let params = newSearchContact_CompanyParams;
-      // created_by_company_idが一致するデータのみ
+
+      console.log(
+        `🔥🔥rpc${functionName}関数実行🔥🔥 `,
+        "params",
+        params,
+        `from, to`,
+        from,
+        to,
+        "offset, limit",
+        offset,
+        limit
+      );
+      // ------------------- 🔸製品分類あり/なしテスト関連(フィルタ条件あり 有料会員ルート)🔸 -------------------
+
+      // 🔺製品分類有りバージョン
       const { data, error, count } = await supabase
-        // .rpc("search_companies_and_contacts", { params }, { count: "exact" })
         .rpc(functionName, { params }, { count: "exact" })
-        // .or(`created_by_company_id.eq.${userProfileState.company_id},created_by_company_id.is.null`)
-        // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
-        .eq("created_by_company_id", userProfileState.company_id)
-        // .or(`created_by_user_id.eq.${userProfileState.id},created_by_user_id.is.null`)
+        .eq("created_by_company_id", userProfileState.company_id) // created_by_company_idが一致するデータのみ
         .range(from, to)
-        .order("company_name", { ascending: true })
+        .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc }) // 並び替え第一条件のみ動的に変更
         .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
+
+      // 🔺製品分類無しバージョン
+      // const { data, error, count } = await supabase
+      //   .rpc(functionName, { params }, { count: "exact" })
+      //   .eq("created_by_company_id", userProfileState.company_id) // created_by_company_idが一致するデータのみ
+      //   .range(from, to)
+      //   .order("company_name", { ascending: true })
+      //   .order("contact_created_at", { ascending: false }); // 担当者作成日 更新にすると更新の度に行が入れ替わるため
+
+      // ------------------- 🔸製品分類あり/なしテスト関連(フィルタ条件あり 有料会員ルート)🔸 ここまで -------------------
+
       // const { data, error, count } = await supabase
       //   .rpc("search_companies_and_contacts", { params }, { count: "exact" })
       //   .eq("created_by_company_id", `${userProfileState?.company_id}`)
@@ -478,13 +552,12 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
       //   .eq("created_by_user_id", `${userProfileState?.id}`)
       //   .range(0, 20);
 
-      console.log("🔥🔥テスト🔥🔥フェッチ後 count data", count, data);
-
       if (error) throw error;
 
       const rows = ensureClientCompanies(data);
 
-      console.log("🔥🔥テスト🔥🔥 rows", rows);
+      console.log(`✅rpc${functionName}関数実行成功 `, "data", data, "rows", rows, "count", count);
+
       // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
       const isLastPage = rows === null || rows.length < limit;
 
@@ -535,10 +608,10 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         // return fetchServerPage(35, ctx.pageParam); // 50個ずつ取得
         // 新規サーチなしの通常モード
         if (newSearchContact_CompanyParams === null) {
-          console.log("通常フェッチ queryFn✅✅✅", newSearchContact_CompanyParams);
+          console.log("通常フェッチ queryFn✅✅✅", newSearchContact_CompanyParams, newSearchParamsStringRef.current);
           return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
         } else {
-          console.log("サーチフェッチ queryFn✅✅✅", newSearchContact_CompanyParams);
+          console.log("サーチフェッチ queryFn✅✅✅", newSearchContact_CompanyParams, newSearchParamsStringRef.current);
           return fetchNewSearchServerPage(50, ctx.pageParam); // 50個ずつ取得
         }
       },
@@ -918,6 +991,15 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   const handleMouseDown = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
 
+    // 🔸カーソルをリサイズに変更(カラムヘッダー全てにis_resizingクラスを付与)
+    if (colsRef.current) {
+      colsRef.current.forEach((header) => {
+        if (header instanceof HTMLDivElement) {
+          header.classList.add(`${styles.is_resizing}`);
+        }
+      });
+    }
+
     if (!parentGridScrollContainer.current) return;
     const gridContainer = parentGridScrollContainer.current;
     // ドラッグ中の列と同じ列全てのborder-right-colorをハイライトする
@@ -935,6 +1017,16 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("handleMouseDown", startX, startWidth);
 
     const handleMouseUp = () => {
+      console.log("マウスアップ✅✅✅✅✅✅✅ ");
+      // 🔸カーソルを元に戻す(カラムヘッダー全てにis_resizingクラスを削除)
+      if (colsRef.current) {
+        colsRef.current.forEach((header) => {
+          if (header instanceof HTMLDivElement) {
+            header.classList.remove(`${styles.is_resizing}`);
+          }
+        });
+      }
+
       const gridScrollContainer = parentGridScrollContainer.current;
       if (!gridScrollContainer) return;
       // ドラッグ中の列と同じ列全てのborder-right-colorをハイライトを元のボーダーカラーに戻す
@@ -946,7 +1038,6 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         }
       });
 
-      console.log("マウスアップ✅ currentColsWidths.current", currentColsWidths.current);
       setColsWidth(currentColsWidths.current);
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
@@ -2478,6 +2569,39 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         if (typeof value !== "number") return value;
         return mappingIndustryType[value][language];
 
+      // 製品分類(大中小): 配列内のnameをjaに変換してjoinで「' '」で繋げる ※行を50行程度でバーチャライズしているため、このレベルのデータ量ではフォーマットにおけるJavascriptの配列操作mapやjoinは非常に高速のため、大幅なパフォーマンスの問題がない限りはこの実装で行う
+      case "product_categories_large_array":
+      case "product_categories_medium_array":
+      case "product_categories_small_array":
+        if (!value?.length || !Array.isArray(value)) return "";
+        if (columnName === "product_categories_large_array") {
+          return value
+            .map((name) =>
+              optionsProductLNameOnlySet.has(name)
+                ? `#${mappingProductL[name as ProductCategoriesLarge][language]}`
+                : `#-`
+            )
+            .join("　"); // #text1 #text2
+        }
+        if (columnName === "product_categories_medium_array") {
+          return value
+            .map((name) =>
+              productCategoriesMediumNameOnlySet.has(name)
+                ? `#${mappingProductCategoriesMedium[name as ProductCategoriesMedium][language]}`
+                : `#-`
+            )
+            .join("　"); // #text1 #text2
+        }
+        if (columnName === "product_categories_small_array") {
+          return value
+            .map((name) =>
+              productCategoriesSmallNameOnlySet.has(name)
+                ? `#${mappingProductCategoriesSmall[name as ProductCategoriesSmall][language]}`
+                : `#-`
+            )
+            .join("　"); // #text1 #text2
+        }
+
       default:
         return value;
         break;
@@ -2900,27 +3024,18 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                         //   // handleDoubleClick(e, index);
                         // }}
                         onMouseEnter={(e) => {
-                          // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
-                          if (key.isOverflow) {
-                            // handleOpenTooltip(e, "top", key.columnName);
+                          const el = columnHeaderInnerTextRef.current[index];
+                          if (key.isOverflow || (el && el.scrollWidth > el.offsetWidth)) {
                             const columnNameData = key.columnName ? key.columnName : "";
                             handleOpenTooltip({
                               e,
                               display: "top",
                               content: columnNameToJapaneseContacts(columnNameData),
                             });
-                            console.log("マウスエンター key.columnId.toString()");
-                            console.log("マウスエンター ツールチップオープン カラムID", key.columnId.toString());
                           }
-                          // handleOpenTooltip(e, "left");
                         }}
                         onMouseLeave={() => {
-                          // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
-                          if (key.isOverflow) {
-                            console.log("マウスリーブ ツールチップクローズ");
-                            handleCloseTooltip();
-                          }
-                          // handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         onDragStart={(e) => handleDragStart(e, index)} // テスト
                         onDragEnd={(e) => handleDragEnd(e)} // テスト
@@ -3170,7 +3285,13 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
                                       isFrozenCountRef.current === 1 && index === 0 ? styles.grid_cell_frozen_last : ""
                                     } ${isFrozenCountRef.current === index + 1 ? styles.grid_cell_frozen_last : ""}  ${
                                       styles.grid_cell_resizable
-                                    } ${columnName === "company_name" ? `${styles.company_highlight}` : ``}`}
+                                    } ${columnName === "company_name" ? `${styles.company_highlight}` : ``} ${
+                                      columnName === "product_categories_large_array" ||
+                                      columnName === "product_categories_medium_array" ||
+                                      columnName === "product_categories_small_array"
+                                        ? `${styles.hashtag}`
+                                        : ``
+                                    }`}
                                     // className={`${styles.grid_cell} ${index === 0 ? styles.grid_column_frozen : ""}  ${index === 0 ? styles.grid_cell_frozen_last : ""} ${styles.grid_cell_resizable}`}
                                     // style={{ gridColumnStart: index + 2, left: columnHeaderLeft(index + 1) }}
                                     style={

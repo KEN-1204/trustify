@@ -456,7 +456,7 @@
   background-color: var(--color-table-even-color-changed-bg);
 }
 .grid_row .grid_cell.hashtag {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 .grid_row[aria-selected="false"] .grid_cell.hashtag {
@@ -567,8 +567,12 @@
 .grid_cell.is_dragging_hover {
   border-right-color: var(--border-theme);
 }
-.grid_column_header_all:active {
-  cursor: grabbing;
+.grid_column_header_all:active:not(.is_resizing) {
+  cursor: grabbing !important;
+}
+/* カーソル変更 リサイズ中 */
+.grid_column_header_all.is_resizing {
+  cursor: col-resize !important;
 }
 /* カラム順番入れ替え中のスタイル変更 ドラッグ中の色を付ける */
 .grid_column_header_all.dragging_change_order {

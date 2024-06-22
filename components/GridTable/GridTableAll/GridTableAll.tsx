@@ -321,6 +321,11 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // 新規サーチした時のrpc()に渡す検索項目params
   const newSearchCompanyParams = useDashboardStore((state) => state.newSearchCompanyParams);
 
+  // 検索タイプ デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
+  // const functionName = searchType === "partial_match" ? "search_companies_by_partial_match" : "search_companies";
+  const functionName =
+    searchType === "partial_match" ? "search_companies_categories_by_partial_match" : "search_companies_categories";
+
   // 🔸サーチ時の並び替えの対象カラムとASC or DESC
   type SortableColumn =
     | "name"
@@ -365,11 +370,6 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     columnName: "name",
     isAsc: true,
   });
-
-  // 検索タイプ デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
-  // const functionName = searchType === "partial_match" ? "search_companies_by_partial_match" : "search_companies";
-  const functionName =
-    searchType === "partial_match" ? "search_companies_categories_by_partial_match" : "search_companies_categories";
 
   // ================== 🌟初回表示時の条件なしサーバーデータフェッチ用の関数🌟 ==================
   // 取得カウント保持用state
@@ -1313,6 +1313,15 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   const handleMouseDown = (e: React.MouseEvent, index: number) => {
     e.preventDefault();
 
+    // 🔸カーソルをリサイズに変更(カラムヘッダー全てにis_resizingクラスを付与)
+    if (colsRef.current) {
+      colsRef.current.forEach((header) => {
+        if (header instanceof HTMLDivElement) {
+          header.classList.add(`${styles.is_resizing}`);
+        }
+      });
+    }
+
     if (!parentGridScrollContainer.current) return;
     const gridContainer = parentGridScrollContainer.current;
     // ドラッグ中の列と同じ列全てのborder-right-colorをハイライトする
@@ -1330,6 +1339,16 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     console.log("handleMouseDown", startX, startWidth);
 
     const handleMouseUp = () => {
+      console.log("マウスアップ✅✅✅✅✅✅✅ ");
+      // 🔸カーソルを元に戻す(カラムヘッダー全てにis_resizingクラスを削除)
+      if (colsRef.current) {
+        colsRef.current.forEach((header) => {
+          if (header instanceof HTMLDivElement) {
+            header.classList.remove(`${styles.is_resizing}`);
+          }
+        });
+      }
+
       const gridScrollContainer = parentGridScrollContainer.current;
       if (!gridScrollContainer) return;
       // ドラッグ中の列と同じ列全てのborder-right-colorをハイライトを元のボーダーカラーに戻す
@@ -1341,7 +1360,6 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
         }
       });
 
-      console.log("マウスアップ✅ currentColsWidths.current", currentColsWidths.current);
       setColsWidth(currentColsWidths.current);
       window.removeEventListener("mouseup", handleMouseUp);
       window.removeEventListener("mousemove", handleMouseMove);
@@ -3466,31 +3484,18 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
                             return;
                           }
                           // 3点リーダーがtrueになっているカラムのみツールチップ表示
-                          if (key.isOverflow) {
-                            // handleOpenTooltip(e, "top", key.columnName);
+                          const el = columnHeaderInnerTextRef.current[index];
+                          if (key.isOverflow || (el && el.scrollWidth > el.offsetWidth)) {
                             const columnNameData = key.columnName ? key.columnName : "";
-                            // handleOpenTooltip(e, "top", columnNameToJapanese(columnNameData));
                             handleOpenTooltip({
                               e: e,
                               display: "top",
                               content: columnNameToJapanese(columnNameData),
                             });
-                            console.log("マウスエンター key.columnId.toString()");
-                            console.log("マウスエンター ツールチップオープン カラムID", key.columnId.toString());
                           }
-                          // handleOpenTooltip(e, "left");
                         }}
                         onMouseLeave={() => {
-                          // if (isOverflowColumnHeader.includes(key.columnId.toString())) {
-                          if (key.columnName === "created_by_company_id") {
-                            handleCloseTooltip();
-                            return;
-                          }
-                          if (key.isOverflow) {
-                            console.log("マウスリーブ ツールチップクローズ");
-                            handleCloseTooltip();
-                          }
-                          // handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         onDragStart={(e) => handleDragStart(e, index)} // テスト
                         onDragEnd={(e) => handleDragEnd(e)} // テスト
