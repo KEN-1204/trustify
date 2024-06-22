@@ -5748,7 +5748,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                             // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
                             customClass="font-normal"
                             bgDark={false}
-                            maxWidth={`calc(100% - 95px)`}
+                            maxWidth={`calc(100% - 88px)`}
                             maxHeight={30}
                             // zIndexSelectBox={2000}
                             hideOptionAfterSelect={true}
@@ -5783,7 +5783,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                             // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
                             customClass="font-normal"
                             bgDark={false}
-                            maxWidth={`calc(100% - 95px)`}
+                            maxWidth={`calc(100% - 88px)`}
                             maxHeight={30}
                             // zIndexSelectBox={2000}
                             hideOptionAfterSelect={true}
@@ -5818,7 +5818,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                             // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
                             customClass="font-normal"
                             bgDark={false}
-                            maxWidth={`calc(100% - 95px)`}
+                            maxWidth={`calc(100% - 88px)`}
                             maxHeight={30}
                             // zIndexSelectBox={2000}
                             hideOptionAfterSelect={true}
