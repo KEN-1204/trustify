@@ -900,7 +900,7 @@ const ActivityMainContainerOneThirdMemo = () => {
 
     if (!userProfileState || !userProfileState.company_id) return alert("エラー：ユーザー情報が見つかりませんでした。");
 
-    // // Asterisks to percent signs for PostgreSQL's LIKE operator
+    // // 🔸Asterisks to percent signs for PostgreSQL's LIKE operator
     function adjustFieldValue(value: string | null) {
       // if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
       if (value === "") return null; // 全てのデータ
@@ -917,6 +917,26 @@ const ActivityMainContainerOneThirdMemo = () => {
       return value;
     }
 
+    // 🔸TEXT型以外もIS NULL, IS NOT NULLの条件を追加
+    const adjustNumberFieldValue = (value: string | null): number | "ISNULL" | "ISNOTNULL" | null => {
+      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+      if (isValidNumber(inputIndustryType) && !isNaN(parseInt(inputIndustryType, 10))) {
+        return parseInt(inputIndustryType, 10);
+      } else {
+        return null;
+      }
+    };
+    // 🔸Date型
+    const adjustDateFieldValue = (value: Date | string | null): string | null => {
+      if (value instanceof Date) return value.toISOString();
+      // "is null"か"is not null"の文字列は変換
+      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+      return null;
+      // if (typeof inputScheduledFollowUpDate === "string") return adjustFieldValue(inputScheduledFollowUpDate);
+    };
+
     setLoadingGlobalState(true);
 
     let _company_name = adjustFieldValue(inputCompanyName);
@@ -926,13 +946,15 @@ const ActivityMainContainerOneThirdMemo = () => {
     let _zipcode = adjustFieldValue(inputZipcode);
     let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
     let _address = adjustFieldValue(inputAddress);
-    let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
+    // let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
+    let _capital = adjustNumberFieldValue(inputCapital);
     let _established_in = adjustFieldValue(inputFound);
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
     let _company_email = adjustFieldValue(inputCompanyEmail);
     // let _industry_type = adjustFieldValue(inputIndustryType);
-    let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
+    // let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
+    let _industry_type_id = adjustNumberFieldValue(inputIndustryType);
     // // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
     // let _product_category_large = adjustFieldValue(inputProductL);
     // let _product_category_medium = adjustFieldValue(inputProductM);
@@ -956,10 +978,13 @@ const ActivityMainContainerOneThirdMemo = () => {
     let _personal_cell_phone = adjustFieldValue(inputPersonalCellPhone);
     let _contact_email = adjustFieldValue(inputContactEmail);
     let _position_name = adjustFieldValue(inputPositionName);
-    let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
-    let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
+    // let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
+    let _position_class = adjustNumberFieldValue(inputPositionClass);
+    // let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
+    let _occupation = adjustNumberFieldValue(inputOccupation);
     // let _approval_amount = adjustFieldValue(inputApprovalAmount);
-    let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
+    // let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
+    let _approval_amount = adjustNumberFieldValue(inputApprovalAmount);
     let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
     let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
     // activitiesテーブル
@@ -971,12 +996,13 @@ const ActivityMainContainerOneThirdMemo = () => {
     let _activity_created_by_office_of_user = adjustFieldValue(inputActivityCreatedByOfficeOfUser);
     let _summary = adjustFieldValue(inputSummary);
     // let _scheduled_follow_up_date = adjustFieldValue(inputScheduledFollowUpDate);
-    let _scheduled_follow_up_date =
-      inputScheduledFollowUpDate instanceof Date
-        ? inputScheduledFollowUpDate.toISOString()
-        : typeof inputScheduledFollowUpDate === "string" // "is null"か"is not null"の文字列は変換
-        ? adjustFieldValue(inputScheduledFollowUpDate)
-        : null;
+    // let _scheduled_follow_up_date =
+    //   inputScheduledFollowUpDate instanceof Date
+    //     ? inputScheduledFollowUpDate.toISOString()
+    //     : typeof inputScheduledFollowUpDate === "string" // "is null"か"is not null"の文字列は変換
+    //     ? adjustFieldValue(inputScheduledFollowUpDate)
+    //     : null;
+    let _scheduled_follow_up_date = adjustDateFieldValue(inputScheduledFollowUpDate);
     let _follow_up_flag = inputFollowUpFlag;
     let _document_url = adjustFieldValue(inputDocumentUrl);
     let _activity_type = adjustFieldValue(inputActivityType);
@@ -991,12 +1017,13 @@ const ActivityMainContainerOneThirdMemo = () => {
     let _priority = adjustFieldValue(inputPriority);
     // let _activity_date = adjustFieldValue(inputActivityDate);
     // let _activity_date = inputActivityDate ? inputActivityDate.toISOString() : null;
-    let _activity_date =
-      inputActivityDate instanceof Date
-        ? inputActivityDate.toISOString()
-        : typeof inputActivityDate === "string"
-        ? adjustFieldValue(inputActivityDate)
-        : null;
+    // let _activity_date =
+    //   inputActivityDate instanceof Date
+    //     ? inputActivityDate.toISOString()
+    //     : typeof inputActivityDate === "string"
+    //     ? adjustFieldValue(inputActivityDate)
+    //     : null;
+    let _activity_date = adjustDateFieldValue(inputActivityDate);
     let _department = adjustFieldValue(inputDepartment);
     // 年月度〜年度
     // let _activity_year_month = adjustFieldValueNumber(inputActivityYearMonth);
@@ -1280,7 +1307,8 @@ const ActivityMainContainerOneThirdMemo = () => {
     display: "top" | "right" | "bottom" | "left" | "" = "top",
     marginTop: number = 0,
     itemsPosition: string = "center",
-    whiteSpace: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined = undefined
+    whiteSpace: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined = undefined,
+    content: string = ""
   ) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
@@ -1296,7 +1324,8 @@ const ActivityMainContainerOneThirdMemo = () => {
       y: y,
       itemWidth: width,
       itemHeight: height,
-      content: (e.target as HTMLDivElement).dataset.text as string,
+      // content: (e.target as HTMLDivElement).dataset.text as string,
+      content: content !== "" ? content : ((e.target as HTMLDivElement).dataset.text as string),
       content2: content2,
       content3: content3,
       display: display,

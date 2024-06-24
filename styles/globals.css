@@ -4397,7 +4397,6 @@ textarea {
 
 /* サーチモードのinputホバー時の下に表示されるエリア */
 .additional_search_area_under_input {
-  display: none;
   position: absolute;
   left: 0;
   top: 100%;
@@ -4405,7 +4404,7 @@ textarea {
   height: max-content;
   min-height: 100%;
   width: 100%;
-  display: flex;
+  /* display: flex; */
   flex-direction: column;
   align-items: flex-end;
   justify-content: flex-start;
@@ -4422,7 +4421,7 @@ textarea {
   justify-content: flex-end;
 }
 .additional_search_area_under_input .icon_btn_red {
-  display: flex;
+  /* display: flex; */
   justify-content: center;
   align-items: center;
   position: relative;
@@ -4437,6 +4436,7 @@ textarea {
   font-size: 11px;
   font-weight: 700;
   color: #fff;
+  transition: background-color 0.1s ease, color 0.1s ease, border-color 0.1s ease;
 }
 .additional_search_area_under_input .icon_btn_red:hover {
   border-color: #ff3b5b;
@@ -4458,12 +4458,14 @@ textarea {
   padding: 0 10px;
   font-size: 11px;
   color: #fff;
+  transition: background-color 0.1s ease, color 0.1s ease, border-color 0.1s ease;
 }
 .additional_search_area_under_input .btn_f:hover {
-  color: var(--color-bg-brand-f);
+  background: var(--color-bg-brand-f);
+  color: #fff;
 }
 .additional_search_area_under_input .btn_f:active {
-  color: var(--color-bg-brand-f-deep);
+  background: var(--color-bg-brand-f-deep);
 }
 
 .additional_search_area_under_input .line_second {
@@ -4481,10 +4483,14 @@ textarea {
   margin-left: 6px;
   max-height: 25px;
   min-height: 25px;
+  padding: 0 10px;
+  font-size: 11px;
   cursor: pointer;
   border-radius: 6px;
   border: 1px solid transparent;
-  color: var(--color-text-title);
+  /* color: var(--color-text-title); */
+  color: var(--color-bg-brand-f);
+  transition: background-color 0.1s ease, color 0.1s ease, border-color 0.1s ease;
 }
 .additional_search_area_under_input .line_second .text_btn:hover {
   border: 1px solid var(--color-bg-brand-f);

@@ -723,12 +723,14 @@ export type NewSearchCompanyParams = {
   number_of_employees_class: string | null;
   address: string | null;
   // capital: string | null;
-  capital: number | null;
+  // capital: number | null;
+  capital: number | "ISNULL" | "ISNOTNULL" | null;
   established_in: string | null;
   business_content: string | null;
   // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
   // industry_type: string | null;
-  industry_type_id?: number | null;
+  // industry_type_id?: number | null;
+  industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
@@ -931,7 +933,8 @@ export type NewSearchContact_CompanyParams = {
   address: string | null;
   number_of_employees_class: string | null;
   // capital: string | null;
-  capital: number | null;
+  // capital: number | null;
+  capital: number | "ISNULL" | "ISNOTNULL" | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -939,7 +942,8 @@ export type NewSearchContact_CompanyParams = {
   "client_companies.email": string | null;
   // industry_type: string | null;
   // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
-  industry_type_id?: number | null;
+  // industry_type_id?: number | null;
+  industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
@@ -974,10 +978,13 @@ export type NewSearchContact_CompanyParams = {
   position_name: string | null;
   // position_class: string | null;
   // occupation: string | null;
-  position_class: number | null; //🌠変更オブジェクトマッピング
-  occupation: number | null; //🌠変更オブジェクトマッピング
+  // position_class: number | null;
+  position_class: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  // occupation: number | null;
+  occupation: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
-  approval_amount: number | null;
+  // approval_amount: number | null;
+  approval_amount: number | "ISNULL" | "ISNOTNULL" | null;
   // created_by_company_id: string | null;
   "contacts.created_by_company_id": string | null;
   created_by_user_id: string | null;
@@ -1151,7 +1158,8 @@ export type NewSearchActivity_Contact_CompanyParams = {
   address: string | null;
   number_of_employees_class: string | null;
   // capital: string | null;
-  capital: number | null;
+  // capital: number | null;
+  capital: number | "ISNULL" | "ISNOTNULL" | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -1159,7 +1167,8 @@ export type NewSearchActivity_Contact_CompanyParams = {
   "client_companies.email": string | null;
   // industry_type: string | null;
   // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
-  industry_type_id?: number | null;
+  // industry_type_id?: number | null;
+  industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
@@ -1194,10 +1203,13 @@ export type NewSearchActivity_Contact_CompanyParams = {
   position_name: string | null;
   // position_class: string | null;
   // occupation: string | null;
-  position_class: number | null; //🌠変更オブジェクトマッピング
-  occupation: number | null; //🌠変更オブジェクトマッピング
+  // position_class: number | null;
+  position_class: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  // occupation: number | null;
+  occupation: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
-  approval_amount: number | null;
+  // approval_amount: number | null;
+  approval_amount: number | "ISNULL" | "ISNOTNULL" | null;
   "contacts.created_by_company_id": string | null;
   "contacts.created_by_user_id": string | null;
 
@@ -1455,7 +1467,8 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   address: string | null;
   number_of_employees_class: string | null;
   // capital: string | null;
-  capital: number | null;
+  // capital: number | null;
+  capital: number | "ISNULL" | "ISNOTNULL" | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -1463,7 +1476,8 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   "client_companies.email": string | null;
   // industry_type: string | null;
   // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
-  industry_type_id?: number | null;
+  // industry_type_id?: number | null;
+  industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
@@ -1498,10 +1512,13 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   position_name: string | null;
   // position_class: string | null;
   // occupation: string | null;
-  position_class: number | null; //🌠変更オブジェクトマッピング
-  occupation: number | null; //🌠変更オブジェクトマッピング
+  // position_class: number | null;
+  position_class: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  // occupation: number | null;
+  occupation: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
-  approval_amount: number | null;
+  // approval_amount: number | null;
+  approval_amount: number | "ISNULL" | "ISNOTNULL" | null;
   "contacts.created_by_company_id": string | null;
   "contacts.created_by_user_id": string | null;
 
@@ -1518,7 +1535,8 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   planned_date: string | null;
   planned_start_time: string | null;
   planned_purpose: string | null;
-  planned_duration: number | null;
+  // planned_duration: number | null;
+  planned_duration: number | "ISNULL" | "ISNOTNULL" | null;
   planned_appoint_check_flag: boolean | null;
   planned_product1: string | null;
   planned_product2: string | null;
@@ -1526,8 +1544,10 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   result_date: string | null;
   result_start_time: string | null;
   result_end_time: string | null;
-  result_duration: number | null;
-  result_number_of_meeting_participants: number | null;
+  // result_duration: number | null;
+  result_duration: number | "ISNULL" | "ISNOTNULL" | null;
+  // result_number_of_meeting_participants: number | null;
+  result_number_of_meeting_participants: number | "ISNULL" | "ISNOTNULL" | null;
   result_presentation_product1: string | null;
   result_presentation_product2: string | null;
   result_presentation_product3: string | null;
@@ -1536,7 +1556,8 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   result_category: string | null;
   result_summary: string | null;
   result_negotiate_decision_maker: string | null;
-  result_top_position_class: number | null;
+  // result_top_position_class: number | null;
+  result_top_position_class: number | "ISNULL" | "ISNOTNULL" | null;
   pre_meeting_participation_request: string | null;
   meeting_participation_request: string | null;
   meeting_business_office: string | null;
@@ -2006,7 +2027,8 @@ export type NewSearchProperty_Contact_CompanyParams = {
   address: string | null;
   number_of_employees_class: string | null;
   // capital: string | null;
-  capital: number | null;
+  // capital: number | null;
+  capital: number | "ISNULL" | "ISNOTNULL" | null;
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -2014,7 +2036,8 @@ export type NewSearchProperty_Contact_CompanyParams = {
   "client_companies.email": string | null;
   // industry_type: string | null;
   // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
-  industry_type_id?: number | null;
+  // industry_type_id?: number | null;
+  industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
@@ -2049,10 +2072,13 @@ export type NewSearchProperty_Contact_CompanyParams = {
   position_name: string | null;
   // position_class: string | null;
   // occupation: string | null;
-  position_class: number | null; //🌠変更オブジェクトマッピング
-  occupation: number | null; //🌠変更オブジェクトマッピング
+  // position_class: number | null;
+  position_class: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  // occupation: number | null;
+  occupation: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
   // approval_amount: string | null;
-  approval_amount: number | null;
+  // approval_amount: number | null;
+  approval_amount: number | "ISNULL" | "ISNOTNULL" | null;
   "contacts.created_by_company_id": string | null;
   "contacts.created_by_user_id": string | null;
 
@@ -2073,14 +2099,16 @@ export type NewSearchProperty_Contact_CompanyParams = {
   // product_name: string | null;
   // expected_product_id: string | null;
   expected_product: string | null;
-  product_sales: number | null;
+  // product_sales: number | null;
+  product_sales: number | "ISNULL" | "ISNOTNULL" | null;
   // expected_sales_price: number | null;
   expected_sales_price: string | null;
   term_division: string | null;
   // sold_product_name: string | null;
   // sold_product_id: string | null;
   sold_product: string | null;
-  unit_sales: number | null;
+  // unit_sales: number | null;
+  unit_sales: number | "ISNULL" | "ISNOTNULL" | null;
   sales_contribution_category: string | null;
   // sales_price: number | null;
   // discounted_price: number | null;
@@ -2124,8 +2152,10 @@ export type NewSearchProperty_Contact_CompanyParams = {
   repeat_flag: boolean | null;
   // order_certainty_start_of_month: string | null;
   // review_order_certainty: string | null;
-  order_certainty_start_of_month: number | null;
-  review_order_certainty: number | null;
+  // order_certainty_start_of_month: number | null;
+  order_certainty_start_of_month: number | "ISNULL" | "ISNOTNULL" | null;
+  // review_order_certainty: number | null;
+  review_order_certainty: number | "ISNULL" | "ISNOTNULL" | null;
   competitor_appearance_date: string | null;
   competitor: string | null;
   competitor_product: string | null;

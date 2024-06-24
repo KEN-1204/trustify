@@ -1,7 +1,9 @@
 import React, {
   ChangeEvent,
+  Dispatch,
   FC,
   FormEvent,
+  SetStateAction,
   Suspense,
   memo,
   useCallback,
@@ -118,6 +120,7 @@ import {
   productCategoryMediumToOptionsSmallMap_All_obj,
 } from "@/utils/productCategoryS";
 import { CustomSelectMultiple } from "@/components/Parts/CustomSelectMultiple/CustomSelectMultiple";
+import { DatePickerCustomInputForSearch } from "@/utils/DatePicker/DatePickerCustomInputForSearch";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -393,27 +396,30 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputMeetingCreatedByOfficeOfUser, setInputMeetingCreatedByOfficeOfUser] = useState("");
   const [inputMeetingType, setInputMeetingType] = useState("");
   const [inputWebTool, setInputWebTool] = useState("");
-  const [inputPlannedDate, setInputPlannedDate] = useState<Date | null>(null);
+  const [inputPlannedDate, setInputPlannedDate] = useState<Date | null | "is not null" | "is null">(null);
   const [inputPlannedStartTime, setInputPlannedStartTime] = useState<string>("");
   const [inputPlannedStartTimeHour, setInputPlannedStartTimeHour] = useState<string>("");
   const [inputPlannedStartTimeMinute, setInputPlannedStartTimeMinute] = useState<string>("");
   const [inputPlannedPurpose, setInputPlannedPurpose] = useState("");
-  const [inputPlannedDuration, setInputPlannedDuration] = useState<number | null>(null);
+  const [inputPlannedDuration, setInputPlannedDuration] = useState<number | null | "is not null" | "is null">(null);
   const [inputPlannedAppointCheckFlag, setInputPlannedAppointCheckFlag] = useState<boolean | null>(null);
   const [inputPlannedProduct1, setInputPlannedProduct1] = useState("");
   const [inputPlannedProduct2, setInputPlannedProduct2] = useState("");
   const [inputPlannedComment, setInputPlannedComment] = useState("");
-  const [inputResultDate, setInputResultDate] = useState<Date | null>(null);
+  const [inputResultDate, setInputResultDate] = useState<Date | null | "is not null" | "is null">(null);
   const [inputResultStartTime, setInputResultStartTime] = useState<string>("");
   const [inputResultStartTimeHour, setInputResultStartTimeHour] = useState<string>("");
   const [inputResultStartTimeMinute, setInputResultStartTimeMinute] = useState<string>("");
   const [inputResultEndTime, setInputResultEndTime] = useState<string>("");
   const [inputResultEndTimeHour, setInputResultEndTimeHour] = useState<string>("");
   const [inputResultEndTimeMinute, setInputResultEndTimeMinute] = useState<string>("");
-  const [inputResultDuration, setInputResultDuration] = useState<number | null>(null);
-  const [inputResultNumberOfMeetingParticipants, setInputResultNumberOfMeetingParticipants] = useState<number | null>(
-    null
-  );
+  const [inputResultDuration, setInputResultDuration] = useState<number | null | "is not null" | "is null">(null);
+  // const [inputResultNumberOfMeetingParticipants, setInputResultNumberOfMeetingParticipants] = useState<number | null>(
+  //   null
+  // );
+  const [inputResultNumberOfMeetingParticipants, setInputResultNumberOfMeetingParticipants] = useState<
+    number | null | "is not null" | "is null"
+  >(null);
   const [inputResultPresentationProduct1, setInputResultPresentationProduct1] = useState("");
   const [inputResultPresentationProduct2, setInputResultPresentationProduct2] = useState("");
   const [inputResultPresentationProduct3, setInputResultPresentationProduct3] = useState("");
@@ -1054,7 +1060,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
     if (!userProfileState || !userProfileState.company_id) return alert("エラー：ユーザー情報が見つかりませんでした。");
 
-    // // Asterisks to percent signs for PostgreSQL's LIKE operator
+    // // 🔸Asterisks to percent signs for PostgreSQL's LIKE operator
     function adjustFieldValue(value: string | null) {
       // if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
       if (value === "") return null; // 全てのデータ
@@ -1070,6 +1076,35 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
       return value;
     }
+
+    // 🔸TEXT型以外もIS NULL, IS NOT NULLの条件を追加
+    const adjustNumberFieldValue = (value: string | number | null): number | "ISNULL" | "ISNOTNULL" | null => {
+      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+      if (typeof value === "string") {
+        if (isValidNumber(inputIndustryType) && !isNaN(parseInt(inputIndustryType, 10))) {
+          return parseInt(inputIndustryType, 10);
+        } else {
+          return null;
+        }
+      }
+      // number型
+      else {
+        if (value === null) return null; // 全てのデータ
+        return value;
+      }
+    };
+
+    // 🔸Date型
+    const adjustDateFieldValue = (value: Date | string | null): string | null => {
+      if (value instanceof Date) return value.toISOString();
+      // "is null"か"is not null"の文字列は変換
+      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+      return null;
+      // if (typeof inputScheduledFollowUpDate === "string") return adjustFieldValue(inputScheduledFollowUpDate);
+    };
+
     setLoadingGlobalState(true);
 
     let _company_name = adjustFieldValue(inputCompanyName);
@@ -1079,12 +1114,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _zipcode = adjustFieldValue(inputZipcode);
     let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
     let _address = adjustFieldValue(inputAddress);
-    let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
+    // let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
+    let _capital = adjustNumberFieldValue(inputCapital);
     let _established_in = adjustFieldValue(inputFound);
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
     let _company_email = adjustFieldValue(inputCompanyEmail);
-    let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
+    // let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
+    let _industry_type_id = adjustNumberFieldValue(inputIndustryType);
     // // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
     // let _product_category_large = adjustFieldValue(inputProductL);
     // let _product_category_medium = adjustFieldValue(inputProductM);
@@ -1108,10 +1145,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _personal_cell_phone = adjustFieldValue(inputPersonalCellPhone);
     let _contact_email = adjustFieldValue(inputContactEmail);
     let _position_name = adjustFieldValue(inputPositionName);
-    let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
-    let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
+    // let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
+    let _position_class = adjustNumberFieldValue(inputPositionClass);
+    // let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
+    let _occupation = adjustNumberFieldValue(inputOccupation);
     // let _approval_amount = adjustFieldValue(inputApprovalAmount);
-    let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
+    // let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
+    let _approval_amount = adjustNumberFieldValue(inputApprovalAmount);
     let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
     let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
     // meetingsテーブル
@@ -1123,19 +1163,24 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _meeting_created_by_office_of_user = adjustFieldValue(inputMeetingCreatedByOfficeOfUser);
     let _meeting_type = adjustFieldValue(inputMeetingType);
     let _web_tool = adjustFieldValue(inputWebTool);
-    let _planned_date = inputPlannedDate ? inputPlannedDate.toISOString() : null;
+    // let _planned_date = inputPlannedDate ? inputPlannedDate.toISOString() : null;
+    let _planned_date = adjustDateFieldValue(inputPlannedDate);
     let _planned_start_time = adjustFieldValue(inputPlannedStartTime);
     let _planned_purpose = adjustFieldValue(inputPlannedPurpose);
-    let _planned_duration = adjustFieldValueNumber(inputPlannedDuration);
+    // let _planned_duration = adjustFieldValueNumber(inputPlannedDuration);
+    let _planned_duration = adjustNumberFieldValue(inputPlannedDuration);
     let _planned_appoint_check_flag = inputPlannedAppointCheckFlag;
     let _planned_product1 = adjustFieldValue(inputPlannedProduct1);
     let _planned_product2 = adjustFieldValue(inputPlannedProduct2);
     let _planned_comment = adjustFieldValue(inputPlannedComment);
-    let _result_date = inputResultDate ? inputResultDate.toISOString() : null;
+    // let _result_date = inputResultDate ? inputResultDate.toISOString() : null;
+    let _result_date = adjustDateFieldValue(inputResultDate);
     let _result_start_time = adjustFieldValue(inputResultStartTime);
     let _result_end_time = adjustFieldValue(inputResultEndTime);
-    let _result_duration = adjustFieldValueNumber(inputResultDuration);
-    let _result_number_of_meeting_participants = adjustFieldValueNumber(inputResultNumberOfMeetingParticipants);
+    // let _result_duration = adjustFieldValueNumber(inputResultDuration);
+    let _result_duration = adjustNumberFieldValue(inputResultDuration);
+    // let _result_number_of_meeting_participants = adjustFieldValueNumber(inputResultNumberOfMeetingParticipants);
+    let _result_number_of_meeting_participants = adjustNumberFieldValue(inputResultNumberOfMeetingParticipants);
     let _result_presentation_product1 = adjustFieldValue(inputResultPresentationProduct1);
     let _result_presentation_product2 = adjustFieldValue(inputResultPresentationProduct2);
     let _result_presentation_product3 = adjustFieldValue(inputResultPresentationProduct3);
@@ -1144,9 +1189,10 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _result_category = adjustFieldValue(inputResultCategory);
     let _result_summary = adjustFieldValue(inputResultSummary);
     let _result_negotiate_decision_maker = adjustFieldValue(inputResultNegotiateDecisionMaker);
-    let _result_top_position_class = adjustFieldValue(inputResultTopPositionClass)
-      ? parseInt(inputResultTopPositionClass, 10)
-      : null;
+    // let _result_top_position_class = adjustFieldValue(inputResultTopPositionClass)
+    //   ? parseInt(inputResultTopPositionClass, 10)
+    //   : null;
+    let _result_top_position_class = adjustNumberFieldValue(inputResultTopPositionClass);
     let _pre_meeting_participation_request = adjustFieldValue(inputPreMeetingParticipationRequest);
     let _meeting_participation_request = adjustFieldValue(inputMeetingParticipationRequest);
     let _meeting_business_office = adjustFieldValue(inputMeetingBusinessOffice);
@@ -1461,7 +1507,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
   const handleOpenTooltip = (
     e: React.MouseEvent<HTMLElement, MouseEvent>,
-    display: string = "top",
+    display: "top" | "right" | "bottom" | "left" | "" = "top",
     marginTop: number = 0,
     itemsPosition: string = "center",
     whiteSpace: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined = undefined,
@@ -2816,8 +2862,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           {/* 送信ボタンとクローズボタン */}
                           {!updateMeetingFieldMutation.isLoading && (
                             <InputSendAndCloseBtn<number | null>
-                              inputState={inputPlannedDuration}
-                              setInputState={setInputPlannedDuration}
+                              inputState={inputPlannedDuration as number | null}
+                              setInputState={setInputPlannedDuration as Dispatch<SetStateAction<number | null>>}
                               onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
                                 handleClickSendUpdateField({
                                   e,
@@ -3945,8 +3991,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             {/* 送信ボタンとクローズボタン */}
                             {!updateMeetingFieldMutation.isLoading && (
                               <InputSendAndCloseBtn<number | null>
-                                inputState={inputResultDuration}
-                                setInputState={setInputResultDuration}
+                                inputState={inputResultDuration as number | null}
+                                setInputState={setInputResultDuration as Dispatch<SetStateAction<number | null>>}
                                 onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
                                   handleClickSendUpdateField({
                                     e,
@@ -4071,8 +4117,10 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             {/* 送信ボタンとクローズボタン */}
                             {!updateMeetingFieldMutation.isLoading && (
                               <InputSendAndCloseBtn<number | null>
-                                inputState={inputResultNumberOfMeetingParticipants}
-                                setInputState={setInputResultNumberOfMeetingParticipants}
+                                inputState={inputResultNumberOfMeetingParticipants as number | null}
+                                setInputState={
+                                  setInputResultNumberOfMeetingParticipants as Dispatch<SetStateAction<number | null>>
+                                }
                                 onClickSendEvent={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) =>
                                   handleClickSendUpdateField({
                                     e,
@@ -6072,10 +6120,21 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title_search_mode}`}>●面談日</span>
-                      <DatePickerCustomInput
+                      {/* <DatePickerCustomInput
                         startDate={inputPlannedDate}
                         setStartDate={setInputPlannedDate}
                         required={false}
+                      /> */}
+                      <DatePickerCustomInputForSearch
+                        startDate={inputPlannedDate}
+                        setStartDate={setInputPlannedDate}
+                        required={false}
+                        isNotNullForSearch={true}
+                        handleOpenTooltip={handleOpenTooltip}
+                        handleCloseTooltip={handleCloseTooltip}
+                        tooltipDataText="面談日"
+                        isNotNullText="面談日有りのデータのみ"
+                        isNullText="面談日無しのデータのみ"
                       />
                     </div>
                     <div className={`${styles.underline}`}></div>
@@ -6206,7 +6265,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         </button>
                         <div
                           // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
-                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)]`}
+                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={() => {
                             setIsOpenTimePicker(true);
                             timePickerTypeRef.current = "planned";
@@ -6713,10 +6772,21 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title_search_mode}`}>面談日</span>
-                      <DatePickerCustomInput
+                      {/* <DatePickerCustomInput
                         startDate={inputResultDate}
                         setStartDate={setInputResultDate}
                         required={false}
+                      /> */}
+                      <DatePickerCustomInputForSearch
+                        startDate={inputResultDate}
+                        setStartDate={setInputResultDate}
+                        required={false}
+                        isNotNullForSearch={true}
+                        handleOpenTooltip={handleOpenTooltip}
+                        handleCloseTooltip={handleCloseTooltip}
+                        tooltipDataText="面談日"
+                        isNotNullText="面談日有りのデータのみ"
+                        isNullText="面談日無しのデータのみ"
                       />
                     </div>
                     <div className={`${styles.underline}`}></div>

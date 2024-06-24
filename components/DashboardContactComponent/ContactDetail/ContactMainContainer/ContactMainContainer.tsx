@@ -613,6 +613,18 @@ const ContactMainContainerMemo: FC = () => {
       if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
       return value;
     }
+
+    // 🔸TEXT型以外もIS NULL, IS NOT NULLの条件を追加
+    const adjustNumberFieldValue = (value: string | null): number | "ISNULL" | "ISNOTNULL" | null => {
+      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+      if (isValidNumber(inputIndustryType) && !isNaN(parseInt(inputIndustryType, 10))) {
+        return parseInt(inputIndustryType, 10);
+      } else {
+        return null;
+      }
+    };
+
     setLoadingGlobalState(true);
 
     let _company_name = adjustFieldValue(inputCompanyName);
@@ -622,12 +634,14 @@ const ContactMainContainerMemo: FC = () => {
     let _zipcode = adjustFieldValue(inputZipcode);
     let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
     let _address = adjustFieldValue(inputAddress);
-    let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
+    // let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
+    let _capital = adjustNumberFieldValue(inputCapital);
     let _established_in = adjustFieldValue(inputFound);
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
     let _company_email = adjustFieldValue(inputCompanyEmail);
-    let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
+    // let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
+    let _industry_type_id = adjustNumberFieldValue(inputIndustryType);
     // // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
     // let _product_category_large = adjustFieldValue(inputProductL);
     // let _product_category_medium = adjustFieldValue(inputProductM);
@@ -651,9 +665,12 @@ const ContactMainContainerMemo: FC = () => {
     let _personal_cell_phone = adjustFieldValue(inputPersonalCellPhone);
     let _contact_email = adjustFieldValue(inputContactEmail);
     let _position_name = adjustFieldValue(inputPositionName);
-    let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
-    let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
-    let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
+    // let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
+    let _position_class = adjustNumberFieldValue(inputPositionClass);
+    // let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
+    let _occupation = adjustNumberFieldValue(inputOccupation);
+    // let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
+    let _approval_amount = adjustNumberFieldValue(inputApprovalAmount);
     let _created_by_company_id = adjustFieldValue(inputCreatedByCompanyId);
     let _created_by_user_id = adjustFieldValue(inputCreatedByUserId);
 
