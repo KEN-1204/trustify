@@ -1,5 +1,7 @@
 // 数値に変換可能かをチェックする関数
 
+import { zenkakuToHankaku } from "./zenkakuToHankaku";
+
 export const isValidNumber = (value: any) => {
   // 🔸
   // isNaN('10')やisNaN('0')は10や0で数値に変換してから判定するためfalseになるため、それの否定でtrueになる
@@ -12,7 +14,11 @@ export const isValidNumber = (value: any) => {
   }
   // 文字列型の場合、数字のみ（オプショナルで小数点を含む）で構成されているかをチェック
   if (typeof value === "string") {
-    return value !== "" && value !== null && value !== undefined && /^[+-]?(\d+\.?\d*|\.\d+)$/.test(value);
+    // return value !== "" && value !== null && value !== undefined && /^[+-]?(\d+\.?\d*|\.\d+)$/.test(value);
+    const halfValue = zenkakuToHankaku(value);
+    return (
+      halfValue !== "" && halfValue !== null && halfValue !== undefined && /^[+-]?(\d+\.?\d*|\.\d+)$/.test(halfValue)
+    );
   }
   // それ以外の型の場合はfalseを返す
   return false;

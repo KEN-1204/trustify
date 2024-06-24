@@ -4414,12 +4414,17 @@ textarea {
   padding-left: 10px;
   padding-right: 30px;
 }
+.additional_search_area_under_input.one_line {
+  min-height: unset;
+  max-height: 35px;
+}
 .additional_search_area_under_input .line_first {
   display: flex;
   min-height: 35px;
   align-items: center;
   justify-content: flex-end;
 }
+
 .additional_search_area_under_input .icon_btn_red {
   /* display: flex; */
   justify-content: center;

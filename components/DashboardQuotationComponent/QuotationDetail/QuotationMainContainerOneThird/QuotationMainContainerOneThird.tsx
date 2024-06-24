@@ -1,7 +1,9 @@
 import React, {
   ChangeEvent,
+  Dispatch,
   FC,
   FormEvent,
+  SetStateAction,
   Suspense,
   memo,
   useCallback,
@@ -20,7 +22,7 @@ import dynamic from "next/dynamic";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { format } from "date-fns";
-import { MdClose } from "react-icons/md";
+import { MdClose, MdDoNotDisturbAlt, MdOutlineDone } from "react-icons/md";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
@@ -102,6 +104,7 @@ import { calculateFiscalYearStart } from "@/utils/Helpers/calculateFiscalYearSta
 import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurrentFiscalYearEndDate";
 import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
 import { getFiscalYear } from "@/utils/Helpers/getFiscalYear";
+import { BsCheck2 } from "react-icons/bs";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -1209,6 +1212,17 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
       return value;
     }
+
+    // 🔸Date型
+    const adjustFieldValueDate = (value: Date | string | null): string | null => {
+      if (value instanceof Date) return value.toISOString();
+      // "is null"か"is not null"の文字列は変換
+      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+      return null;
+      // if (typeof inputScheduledFollowUpDate === "string") return adjustFieldValue(inputScheduledFollowUpDate);
+    };
+
     setLoadingGlobalState(true);
 
     // 依頼元 会社テーブル
@@ -1251,7 +1265,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _quotation_no_custom = adjustFieldValue(inputQuotationNoCustom);
     let _quotation_no_system = adjustFieldValue(inputQuotationNoSystem);
     let _quotation_date = inputQuotationDate ? inputQuotationDate.toISOString() : null;
-    let _expiration_date = inputExpirationDate ? inputExpirationDate.toISOString() : null;
+    // let _expiration_date = inputExpirationDate ? inputExpirationDate.toISOString() : null;
+    let _expiration_date = adjustFieldValueDate(inputExpirationDate);
     let _quotation_title = adjustFieldValue(inputQuotationTitle);
     let _quotation_division = adjustFieldValue(inputQuotationDivision);
     let _quotation_notes = adjustFieldValue(inputQuotationNotes);
@@ -2885,6 +2900,58 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
   // フィールドエディットタイトル
   const fieldEditTitle = (title: string) => (isEditModeField === title ? `${styles.field_edit}` : ``);
+
+  // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------
+  // ツールチップ
+  const additionalInputTooltipText = (index: number) =>
+    index === 0 ? `空欄以外のデータのみ抽出` : `空欄のデータのみ抽出`;
+  // 🔸「入力値をリセット」をクリック
+  const handleClickResetInput = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+    handleCloseTooltip();
+    if (inputType === "string") {
+      dispatch("");
+    }
+  };
+  // 🔸「入力有り」をクリック
+  const handleClickIsNotNull = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+    return dispatch("is not null");
+    // if (inputType === "string") {
+    //   dispatch("is not null");
+    // }
+  };
+  // 🔸「入力無し」をクリック
+  const handleClickIsNull = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+    return dispatch("is null");
+    // if (inputType === "string") {
+    //   dispatch("is null");
+    // }
+  };
+  const handleClickAdditionalAreaBtn = (index: number, dispatch: Dispatch<SetStateAction<any>>) => {
+    if (index === 0) handleClickIsNotNull(dispatch);
+    if (index === 1) handleClickIsNull(dispatch);
+    handleCloseTooltip();
+  };
+
+  const nullNotNullIconMap: { [key: string]: React.JSX.Element } = {
+    "is null": <MdDoNotDisturbAlt className="pointer-events-none mr-[6px] text-[15px]" />,
+    "is not null": <BsCheck2 className="pointer-events-none mr-[6px] stroke-[1] text-[15px]" />,
+  };
+  const nullNotNullTextMap: { [key: string]: string } = {
+    "is null": `空欄のデータ`,
+    "is not null": `空欄でないデータ`,
+  };
+
+  const firstLineComponents = [
+    <>
+      <MdOutlineDone className="pointer-events-none text-[15px] text-[#fff]" />
+      <span>データ有り</span>
+    </>,
+    <>
+      <MdDoNotDisturbAlt className="pointer-events-none text-[14px] text-[#fff]" />
+      <span>データ無し</span>
+    </>,
+  ];
+  // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------ここまで
 
   console.log(
     "QuotationMainContainerレンダリング"
@@ -10129,7 +10196,44 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="mt-[5px] flex  min-h-[30px] items-center">
                       ○検索したい条件を入力してください。（必要な項目のみ入力でOK）
                     </div>
-                    <div className="flex  min-h-[30px] items-center">
+                    {searchType === "manual" && (
+                      <>
+                        <div className="flex  min-h-[30px] items-center">
+                          <span className="h-full w-[15px]"></span>
+                          例えば、「&quot;東京都大田区&quot;」の会社で「ホームページ」が存在する会社を検索する場合は、「●住所」に「東京都大田区※」と入力し、「HP」の入力欄にマウスをホバーしてから「データ無し」ボタンを押してHPに「空欄のデータ」がセットされた状態で右側の「検索」ボタンを押してください。
+                        </div>
+                        <div className="mt-[5px] flex  min-h-[30px] items-center whitespace-pre-wrap">
+                          {`○現在の検索タイプは「マニュアル検索」です。`}
+                        </div>
+                        <div className="flex items-center">
+                          <span className="h-full w-[15px]"></span>
+                          {`「＊」を付けずに検索した場合は完全一致する値を、「＊工業」で「〜工業」で終わる値を、「合同会社＊」で「合同会社〜」から始まる値を、「＊電気＊」で「〜電気〜」を含む値を抽出可能です。\n検索タイプをオート検索に切り替えるには「戻る」を押して「モード設定」ボタンから切り替えが可能です。`}
+                        </div>
+                        <div className="flex items-center">
+                          <span className="h-full w-[15px]"></span>
+                          例えば、会社名に「&quot;工業&quot;」と付く会社を検索したい場合に、「※工業※」、「&quot;精機&quot;」と付く会社は「※精機※」と検索することで、指定した文字が付くデータを検索可能です
+                        </div>
+                        <div className="mt-[5px] flex  min-h-[30px] items-center">
+                          ○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します
+                        </div>
+                      </>
+                    )}
+                    {searchType === "partial_match" && (
+                      <>
+                        <div className="flex  min-h-[30px] items-center">
+                          <span className="h-full w-[15px]"></span>
+                          例えば、「&quot;東京都大田区&quot;」の会社で「ホームページ」が存在する会社を検索する場合は、「●住所」に「東京都大田区」と入力し、「HP」の入力欄にマウスをホバーしてから「データ無し」ボタンを押してHPに「空欄のデータ」がセットされた状態で右側の「検索」ボタンを押してください。
+                        </div>
+                        <div className="mt-[5px] flex  min-h-[30px] items-center whitespace-pre-wrap">
+                          {`○現在の検索タイプは「オート検索」です。入力された値を含むデータを全て抽出します。`}
+                        </div>
+                        <div className="flex items-center">
+                          <span className="h-full w-[15px]"></span>
+                          {`検索タイプをマニュアル検索に切り替えるには「戻る」を押して「モード設定」ボタンから切り替えが可能です。`}
+                        </div>
+                      </>
+                    )}
+                    {/* <div className="flex  min-h-[30px] items-center">
                       <span className="h-full w-[15px]"></span>
                       例えば、「&quot;東京都大田区&quot;」の会社で「事業拠点」が存在する会社を検索する場合は、「●住所」に「東京都大田区※」と入力し、「事業拠点」に「is
                       not null」と入力し、検索ボタンを押してください。
@@ -10140,13 +10244,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex items-center">
                       <span className="h-full w-[15px]"></span>
                       例えば、会社名に「&quot;工業&quot;」と付く会社を検索したい場合に、「※工業※」、「&quot;製作所&quot;」と付く会社は「※製作所※」と検索することで、指定した文字が付くデータを検索可能です
-                    </div>
-                    <div className="mt-[5px] flex  min-h-[30px] items-center">
+                    </div> */}
+                    {/* <div className="mt-[5px] flex  min-h-[30px] items-center">
                       ○「is not null」は「&quot;空欄でない&quot;データ」を抽出します
                     </div>
                     <div className="mt-[5px] flex  min-h-[30px] items-center">
                       ○「is null」は「&quot;空欄の&quot;データ」を抽出します
-                    </div>
+                    </div> */}
                     <div className="mt-[5px] flex  min-h-[30px] items-center">
                       ○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します
                     </div>

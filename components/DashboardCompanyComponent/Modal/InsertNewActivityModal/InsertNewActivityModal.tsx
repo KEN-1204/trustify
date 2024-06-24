@@ -352,7 +352,8 @@ export const InsertNewActivityModal = () => {
       // 営業担当データここまで
       client_contact_id: selectedRowDataContact.contact_id,
       client_company_id: selectedRowDataContact.company_id,
-      summary: summary,
+      // summary: summary,
+      summary: summary.trim() === "" ? null : summary,
       scheduled_follow_up_date: scheduledFollowUpDate ? scheduledFollowUpDate.toISOString() : null,
       // follow_up_flag: followUpFlag ? followUpFlag : null,
       follow_up_flag: followUpFlag,

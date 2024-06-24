@@ -3033,6 +3033,7 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
                   console.log("リフレッシュ クリック");
                   setRefetchLoading(true);
                   await queryClient.invalidateQueries({ queryKey: ["activities"] });
+                  // await queryClient.invalidateQueries({ queryKey: ["activities", userProfileState?.company_id] });
                   // await refetch();
                   // 再度テーブルの選択セルのDOMをクリックしてselectedRowDataActivityを最新状態にする
                   setIsUpdateRequiredForLatestSelectedRowDataActivity(true);

@@ -1,7 +1,9 @@
 import React, {
   ChangeEvent,
+  Dispatch,
   FC,
   FormEvent,
+  SetStateAction,
   Suspense,
   memo,
   useCallback,
@@ -43,7 +45,7 @@ import productCategoriesM, {
 } from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { format } from "date-fns";
-import { MdClose } from "react-icons/md";
+import { MdClose, MdDoNotDisturbAlt, MdOutlineDone } from "react-icons/md";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
@@ -107,6 +109,7 @@ import {
   productCategoryMediumToOptionsSmallMap_All_obj,
 } from "@/utils/productCategoryS";
 import { CustomSelectMultiple } from "@/components/Parts/CustomSelectMultiple/CustomSelectMultiple";
+import { BsCheck2 } from "react-icons/bs";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -918,17 +921,17 @@ const ActivityMainContainerOneThirdMemo = () => {
     }
 
     // 🔸TEXT型以外もIS NULL, IS NOT NULLの条件を追加
-    const adjustNumberFieldValue = (value: string | null): number | "ISNULL" | "ISNOTNULL" | null => {
+    const adjustFieldValueInteger = (value: string | null): number | "ISNULL" | "ISNOTNULL" | null => {
       if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
       if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
-      if (isValidNumber(inputIndustryType) && !isNaN(parseInt(inputIndustryType, 10))) {
-        return parseInt(inputIndustryType, 10);
+      if (isValidNumber(value) && !isNaN(parseInt(value!, 10))) {
+        return parseInt(value!, 10);
       } else {
         return null;
       }
     };
     // 🔸Date型
-    const adjustDateFieldValue = (value: Date | string | null): string | null => {
+    const adjustFieldValueDate = (value: Date | string | null): string | null => {
       if (value instanceof Date) return value.toISOString();
       // "is null"か"is not null"の文字列は変換
       if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
@@ -947,14 +950,14 @@ const ActivityMainContainerOneThirdMemo = () => {
     let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
     let _address = adjustFieldValue(inputAddress);
     // let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
-    let _capital = adjustNumberFieldValue(inputCapital);
+    let _capital = adjustFieldValueInteger(inputCapital);
     let _established_in = adjustFieldValue(inputFound);
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
     let _company_email = adjustFieldValue(inputCompanyEmail);
     // let _industry_type = adjustFieldValue(inputIndustryType);
     // let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
-    let _industry_type_id = adjustNumberFieldValue(inputIndustryType);
+    let _industry_type_id = adjustFieldValueInteger(inputIndustryType);
     // // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
     // let _product_category_large = adjustFieldValue(inputProductL);
     // let _product_category_medium = adjustFieldValue(inputProductM);
@@ -979,16 +982,16 @@ const ActivityMainContainerOneThirdMemo = () => {
     let _contact_email = adjustFieldValue(inputContactEmail);
     let _position_name = adjustFieldValue(inputPositionName);
     // let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
-    let _position_class = adjustNumberFieldValue(inputPositionClass);
+    let _position_class = adjustFieldValueInteger(inputPositionClass);
     // let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
-    let _occupation = adjustNumberFieldValue(inputOccupation);
+    let _occupation = adjustFieldValueInteger(inputOccupation);
     // let _approval_amount = adjustFieldValue(inputApprovalAmount);
     // let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
-    let _approval_amount = adjustNumberFieldValue(inputApprovalAmount);
+    let _approval_amount = adjustFieldValueInteger(inputApprovalAmount);
     let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
     let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
     // activitiesテーブル
-    let _activity_created_by_company_id = adjustFieldValue(inputActivityCreatedByCompanyId);
+    let _activity_created_by_company_id = userProfileState.company_id;
     let _activity_created_by_user_id = adjustFieldValue(inputActivityCreatedByUserId);
     let _activity_created_by_department_of_user = adjustFieldValue(inputActivityCreatedByDepartmentOfUser);
     let _activity_created_by_section_of_user = adjustFieldValue(inputActivityCreatedBySectionOfUser);
@@ -1002,7 +1005,7 @@ const ActivityMainContainerOneThirdMemo = () => {
     //     : typeof inputScheduledFollowUpDate === "string" // "is null"か"is not null"の文字列は変換
     //     ? adjustFieldValue(inputScheduledFollowUpDate)
     //     : null;
-    let _scheduled_follow_up_date = adjustDateFieldValue(inputScheduledFollowUpDate);
+    let _scheduled_follow_up_date = adjustFieldValueDate(inputScheduledFollowUpDate);
     let _follow_up_flag = inputFollowUpFlag;
     let _document_url = adjustFieldValue(inputDocumentUrl);
     let _activity_type = adjustFieldValue(inputActivityType);
@@ -1023,7 +1026,7 @@ const ActivityMainContainerOneThirdMemo = () => {
     //     : typeof inputActivityDate === "string"
     //     ? adjustFieldValue(inputActivityDate)
     //     : null;
-    let _activity_date = adjustDateFieldValue(inputActivityDate);
+    let _activity_date = adjustFieldValueDate(inputActivityDate);
     let _department = adjustFieldValue(inputDepartment);
     // 年月度〜年度
     // let _activity_year_month = adjustFieldValueNumber(inputActivityYearMonth);
@@ -1156,7 +1159,7 @@ const ActivityMainContainerOneThirdMemo = () => {
       "contacts.created_by_user_id": _contact_created_by_user_id,
       // activitiesテーブル
       // "activities.created_by_company_id": _activity_created_by_company_id,
-      "activities.created_by_company_id": userProfileState.company_id,
+      "activities.created_by_company_id": _activity_created_by_company_id,
       "activities.created_by_user_id": _activity_created_by_user_id,
       "activities.created_by_department_of_user": _activity_created_by_department_of_user,
       "activities.created_by_section_of_user": _activity_created_by_section_of_user,
@@ -1302,21 +1305,43 @@ const ActivityMainContainerOneThirdMemo = () => {
 
   // ==================================== 🌟ツールチップ🌟 ====================================
   // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
-  const handleOpenTooltip = (
-    e: React.MouseEvent<HTMLElement, MouseEvent>,
-    display: "top" | "right" | "bottom" | "left" | "" = "top",
-    marginTop: number = 0,
-    itemsPosition: string = "center",
-    whiteSpace: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined = undefined,
-    content: string = ""
-  ) => {
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display?: "top" | "right" | "bottom" | "left" | "";
+    marginTop?: number;
+    itemsPosition?: string;
+    whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+    content?: string;
+    content2?: string;
+    content3?: string;
+    content4?: string;
+  };
+  // const handleOpenTooltip = (
+  //   e: React.MouseEvent<HTMLElement, MouseEvent>,
+  //   display: "top" | "right" | "bottom" | "left" | "" = "top",
+  //   marginTop: number = 0,
+  //   itemsPosition: string = "center",
+  //   whiteSpace: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined = undefined,
+  //   content: string = ""
+  // ) => {
+  const handleOpenTooltip = ({
+    e,
+    display = "top",
+    marginTop = 0,
+    itemsPosition = "center",
+    whiteSpace = undefined,
+    content = "",
+    content2,
+    content3,
+    content4,
+  }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    const content2Text = ((e.target as HTMLDivElement).dataset.text2 as string)
       ? ((e.target as HTMLDivElement).dataset.text2 as string)
       : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    const content3Text = ((e.target as HTMLDivElement).dataset.text3 as string)
       ? ((e.target as HTMLDivElement).dataset.text3 as string)
       : "";
     setHoveredItemPosWrap({
@@ -1325,9 +1350,9 @@ const ActivityMainContainerOneThirdMemo = () => {
       itemWidth: width,
       itemHeight: height,
       // content: (e.target as HTMLDivElement).dataset.text as string,
-      content: content !== "" ? content : ((e.target as HTMLDivElement).dataset.text as string),
-      content2: content2,
-      content3: content3,
+      content: !!content ? content : ((e.target as HTMLDivElement).dataset.text as string),
+      content2: !!content2 ? content2 : content2Text,
+      content3: !!content3 ? content3 : content3Text,
       display: display,
     });
   };
@@ -1938,6 +1963,58 @@ const ActivityMainContainerOneThirdMemo = () => {
     }
   };
 
+  // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------
+  // ツールチップ
+  const additionalInputTooltipText = (index: number) =>
+    index === 0 ? `空欄以外のデータのみ抽出` : `空欄のデータのみ抽出`;
+  // 🔸「入力値をリセット」をクリック
+  const handleClickResetInput = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+    handleCloseTooltip();
+    if (inputType === "string") {
+      dispatch("");
+    }
+  };
+  // 🔸「入力有り」をクリック
+  const handleClickIsNotNull = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+    return dispatch("is not null");
+    // if (inputType === "string") {
+    //   dispatch("is not null");
+    // }
+  };
+  // 🔸「入力無し」をクリック
+  const handleClickIsNull = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+    return dispatch("is null");
+    // if (inputType === "string") {
+    //   dispatch("is null");
+    // }
+  };
+  const handleClickAdditionalAreaBtn = (index: number, dispatch: Dispatch<SetStateAction<any>>) => {
+    if (index === 0) handleClickIsNotNull(dispatch);
+    if (index === 1) handleClickIsNull(dispatch);
+    handleCloseTooltip();
+  };
+
+  const nullNotNullIconMap: { [key: string]: React.JSX.Element } = {
+    "is null": <MdDoNotDisturbAlt className="pointer-events-none mr-[6px] text-[15px]" />,
+    "is not null": <BsCheck2 className="pointer-events-none mr-[6px] stroke-[1] text-[15px]" />,
+  };
+  const nullNotNullTextMap: { [key: string]: string } = {
+    "is null": `空欄のデータ`,
+    "is not null": `空欄でないデータ`,
+  };
+
+  const firstLineComponents = [
+    <>
+      <MdOutlineDone className="pointer-events-none text-[15px] text-[#fff]" />
+      <span>データ有り</span>
+    </>,
+    <>
+      <MdDoNotDisturbAlt className="pointer-events-none text-[14px] text-[#fff]" />
+      <span>データ無し</span>
+    </>,
+  ];
+  // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------ここまで
+
   console.log(
     "🔥 ActivityMainContainerレンダリング searchMode"
     // searchMode,
@@ -2021,7 +2098,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth || isOpenSidebar) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth || isOpenSidebar) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -2199,7 +2276,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -2559,7 +2636,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           // ) {
                           //   return;
                           // }
-                          // handleOpenTooltip(e);
+                          // handleOpenTooltip({e});
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -2648,7 +2725,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -2677,7 +2754,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -2913,7 +2990,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                               : ""
                           }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({e})}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataActivity?.senior_managing_director
@@ -2980,7 +3057,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -3340,7 +3417,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3379,7 +3456,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3413,7 +3490,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3454,7 +3531,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3486,7 +3563,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3535,7 +3612,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3572,7 +3649,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3763,7 +3840,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3800,7 +3877,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3866,7 +3943,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                             "el.offsetWidth",
                             el.offsetWidth
                           );
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3914,7 +3991,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3949,7 +4026,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4111,7 +4188,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4183,12 +4260,12 @@ const ActivityMainContainerOneThirdMemo = () => {
                             selectedRowDataActivity?.business_content ? selectedRowDataActivity?.business_content : ""
                           }`}
                           className={`${styles.textarea_value} h-[45px]`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseEnter={(e) => handleOpenTooltip({e})}
                           // onMouseLeave={handleCloseTooltip}
                           onMouseEnter={(e) => {
                             const el = e.currentTarget;
                             if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
-                              handleOpenTooltip(e);
+                              handleOpenTooltip({ e });
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           }}
                           onMouseLeave={(e) => {
@@ -4232,11 +4309,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span
                         data-text={`${selectedRowDataActivity?.clients ? selectedRowDataActivity?.clients : ""}`}
                         className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseEnter={(e) => handleOpenTooltip({e})}
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -4273,11 +4350,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <span
                         data-text={`${selectedRowDataActivity?.supplier ? selectedRowDataActivity?.supplier : ""}`}
                         className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseEnter={(e) => handleOpenTooltip({e})}
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -4314,13 +4391,13 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <>
                         <span
                           className={`${styles.textarea_value} h-[45px]`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseEnter={(e) => handleOpenTooltip({e})}
                           // onMouseLeave={handleCloseTooltip}
                           data-text={`${selectedRowDataActivity?.facility ? selectedRowDataActivity?.facility : ""}`}
                           onMouseEnter={(e) => {
                             const el = e.currentTarget;
                             if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
-                              handleOpenTooltip(e);
+                              handleOpenTooltip({ e });
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           }}
                           onMouseLeave={(e) => {
@@ -4366,11 +4443,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                           selectedRowDataActivity?.business_sites ? selectedRowDataActivity?.business_sites : ""
                         }`}
                         className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseEnter={(e) => handleOpenTooltip({e})}
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -4401,11 +4478,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                           selectedRowDataActivity?.overseas_bases ? selectedRowDataActivity?.overseas_bases : ""
                         }`}
                         className={`${styles.value}`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseEnter={(e) => handleOpenTooltip({e})}
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -4444,11 +4521,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                         data-text={`${
                           selectedRowDataActivity?.group_company ? selectedRowDataActivity?.group_company : ""
                         }`}
-                        // onMouseEnter={(e) => handleOpenTooltip(e)}
+                        // onMouseEnter={(e) => handleOpenTooltip({e})}
                         // onMouseLeave={handleCloseTooltip}
                         onMouseEnter={(e) => {
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -4623,7 +4700,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4656,7 +4733,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4689,7 +4766,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4722,7 +4799,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4871,7 +4948,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>直通TEL</span>
                       {!searchMode && (
@@ -4880,15 +4957,56 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="tel"
-                          className={`${styles.input_box}`}
-                          value={inputDirectLine}
-                          onChange={(e) => setInputDirectLine(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputDirectLine) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputDirectLine]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputDirectLine]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="tel"
+                              className={`${styles.input_box}`}
+                              value={inputDirectLine}
+                              onChange={(e) => setInputDirectLine(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputDirectLine ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputDirectLine)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputDirectLine)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -4898,7 +5016,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>内線TEL</span>
                       {!searchMode && (
@@ -4907,18 +5025,59 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="tel"
-                          placeholder=""
-                          className={`${styles.input_box}`}
-                          value={inputExtension}
-                          onChange={(e) => setInputExtension(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputExtension) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputExtension]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputExtension]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="tel"
+                              placeholder=""
+                              className={`${styles.input_box}`}
+                              value={inputExtension}
+                              onChange={(e) => setInputExtension(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputExtension ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputExtension)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputExtension)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>代表TEL</span>
                       {!searchMode && (
@@ -4927,15 +5086,56 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="tel"
-                          className={`${styles.input_box}`}
-                          value={inputTel}
-                          onChange={(e) => setInputTel(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputTel) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputTel]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputTel]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="tel"
+                              className={`${styles.input_box}`}
+                              value={inputTel}
+                              onChange={(e) => setInputTel(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputTel ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputTel)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputTel)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -4945,7 +5145,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>直通FAX</span>
                       {!searchMode && (
@@ -4954,17 +5154,58 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputDirectFax}
-                          onChange={(e) => setInputDirectFax(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputDirectFax) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputDirectFax]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputDirectFax]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputDirectFax}
+                              onChange={(e) => setInputDirectFax(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputDirectFax ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputDirectFax)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputDirectFax)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
-                  <div className={`flex h-full w-1/2 flex-col pr-[20px]`}>
+                  <div className={`group relative flex h-full w-1/2 flex-col pr-[20px]`}>
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>代表FAX</span>
                       {/* <span className={`${styles.title}`}>会員専用</span> */}
@@ -4974,12 +5215,21 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputFax}
-                          onChange={(e) => setInputFax(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputFax) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputFax]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputFax]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputFax}
+                              onChange={(e) => setInputFax(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                       {/* {!searchMode && <span className={`${styles.value}`}>有料会員様専用のフィールドです</span>} */}
                       {/* {searchMode && <input type="text" className={`${styles.input_box}`} />} */}
@@ -4989,6 +5239,38 @@ const ActivityMainContainerOneThirdMemo = () => {
                   </div> */}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputFax ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputFax)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputFax)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -4998,7 +5280,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>社用携帯</span>
                       {!searchMode && (
@@ -5009,17 +5291,58 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputCompanyCellPhone}
-                          onChange={(e) => setInputCompanyCellPhone(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputCompanyCellPhone) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputCompanyCellPhone]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputCompanyCellPhone]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputCompanyCellPhone}
+                              onChange={(e) => setInputCompanyCellPhone(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputCompanyCellPhone ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputCompanyCellPhone)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputCompanyCellPhone)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>私用携帯</span>
                       {!searchMode && (
@@ -5030,15 +5353,56 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputPersonalCellPhone}
-                          onChange={(e) => setInputPersonalCellPhone(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputPersonalCellPhone) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputPersonalCellPhone]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputPersonalCellPhone]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputPersonalCellPhone}
+                              onChange={(e) => setInputPersonalCellPhone(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputPersonalCellPhone ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputPersonalCellPhone)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputPersonalCellPhone)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -5048,7 +5412,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>E-mail</span>
                       {!searchMode && (
@@ -5057,15 +5421,56 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputContactEmail}
-                          onChange={(e) => setInputContactEmail(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputContactEmail) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputContactEmail]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputContactEmail]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputContactEmail}
+                              onChange={(e) => setInputContactEmail(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputContactEmail ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputContactEmail)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputContactEmail)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -5075,7 +5480,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>郵便番号</span>
                       {!searchMode && (
@@ -5084,15 +5489,56 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputZipcode}
-                          onChange={(e) => setInputZipcode(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputZipcode) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputZipcode]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputZipcode]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputZipcode}
+                              onChange={(e) => setInputZipcode(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputZipcode ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputZipcode)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputZipcode)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
@@ -5150,7 +5596,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>役職名</span>
                       {/* {!searchMode && (
@@ -5159,15 +5605,56 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )} */}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputPositionName}
-                          onChange={(e) => setInputPositionName(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputPositionName) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputPositionName]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputPositionName]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputPositionName}
+                              onChange={(e) => setInputPositionName(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputPositionName ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputPositionName)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputPositionName)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
@@ -5221,8 +5708,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                       {searchMode && (
                         <select
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
-                          value={inputEmployeesClass}
-                          onChange={(e) => setInputEmployeesClass(e.target.value)}
+                          value={inputOccupation}
+                          onChange={(e) => setInputOccupation(e.target.value)}
                         >
                           <option value=""></option>
                           {optionsOccupation.map((num) => (
@@ -5237,7 +5724,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       {/* <span className={`${styles.title} !mr-[15px]`}>決裁金額(万円)</span> */}
                       <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
@@ -5250,24 +5737,66 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          // value={inputApprovalAmount}
-                          // onChange={(e) => setInputApprovalAmount(e.target.value)}
-                          value={!!inputApprovalAmount ? inputApprovalAmount : ""}
-                          onChange={(e) => setInputApprovalAmount(e.target.value)}
-                          onBlur={() =>
-                            setInputApprovalAmount(
-                              !!inputApprovalAmount && inputApprovalAmount !== ""
-                                ? (convertToMillions(inputApprovalAmount.trim()) as number).toString()
-                                : ""
-                            )
-                          }
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputApprovalAmount) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputApprovalAmount]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputApprovalAmount]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              // value={inputApprovalAmount}
+                              // onChange={(e) => setInputApprovalAmount(e.target.value)}
+                              value={!!inputApprovalAmount ? inputApprovalAmount : ""}
+                              onChange={(e) => setInputApprovalAmount(e.target.value)}
+                              onBlur={() => {
+                                const convertedPrice = convertToMillions(inputApprovalAmount.trim());
+                                if (convertedPrice !== null && !isNaN(parseFloat(String(convertedPrice)))) {
+                                  setInputApprovalAmount(String(convertedPrice));
+                                } else {
+                                  setInputApprovalAmount("");
+                                }
+                              }}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputApprovalAmount ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputApprovalAmount)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputApprovalAmount)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -5419,7 +5948,7 @@ const ActivityMainContainerOneThirdMemo = () => {
 
                 {/* 資本金・設立 サーチ テスト */}
                 <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>資本金(万円)</span>
                       {!searchMode && (
@@ -5431,24 +5960,66 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={!!inputCapital ? inputCapital : ""}
-                          onChange={(e) => setInputCapital(e.target.value)}
-                          onBlur={() =>
-                            setInputCapital(
-                              !!inputCapital && inputCapital !== ""
-                                ? (convertToMillions(inputCapital.trim()) as number).toString()
-                                : ""
-                            )
-                          }
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputCapital) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputCapital]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputCapital]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={!!inputCapital ? inputCapital : ""}
+                              onChange={(e) => setInputCapital(e.target.value)}
+                              onBlur={() => {
+                                const convertedPrice = convertToMillions(inputCapital.trim());
+                                if (convertedPrice !== null && !isNaN(parseFloat(String(convertedPrice)))) {
+                                  setInputCapital(String(convertedPrice));
+                                } else {
+                                  setInputCapital("");
+                                }
+                              }}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${inputCapital === "" ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputCapital)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputCapital)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>設立</span>
                       {!searchMode && (
@@ -5457,34 +6028,118 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputFound}
-                          onChange={(e) => setInputFound(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputFound) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputFound]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputFound]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputFound}
+                              onChange={(e) => setInputFound(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputFound ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputFound)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputFound)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
                 {/* 事業内容 サーチ */}
                 <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
-                  <div className="flex h-full w-full flex-col pr-[20px] ">
+                  <div className="group relative flex h-full w-full flex-col pr-[20px] ">
                     <div className={`${styles.title_box}  flex h-full`}>
                       <span className={`${styles.title}`}>事業内容</span>
                       {searchMode && (
-                        <textarea
-                          cols={30}
-                          // rows={10}
-                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
-                          value={inputContent}
-                          onChange={(e) => setInputContent(e.target.value)}
-                        ></textarea>
+                        <>
+                          {["is null", "is not null"].includes(inputContent) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputContent]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputContent]}</span>
+                            </div>
+                          ) : (
+                            <textarea
+                              cols={30}
+                              // rows={10}
+                              className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
+                              value={inputContent}
+                              onChange={(e) => setInputContent(e.target.value)}
+                            ></textarea>
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div
+                          className={`additional_search_area_under_input one_line fade05_forward hidden group-hover:flex`}
+                        >
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${inputContent === "" ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputContent)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputContent)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -5494,19 +6149,60 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>主要取引先</span>
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputClient}
-                          onChange={(e) => setInputClient(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputClient) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputClient]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputClient]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputClient}
+                              onChange={(e) => setInputClient(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputClient ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputClient)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputClient)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -5516,19 +6212,60 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>主要仕入先</span>
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputSupplier}
-                          onChange={(e) => setInputSupplier(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputSupplier) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputSupplier]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputSupplier]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputSupplier}
+                              onChange={(e) => setInputSupplier(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputSupplier ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputSupplier)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputSupplier)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -5538,20 +6275,63 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_lg_box}` : `${styles.row_area}`
                   } flex w-full items-center`}
                 >
-                  <div className="flex h-full w-full flex-col pr-[20px] ">
+                  <div className="group relative flex h-full w-full flex-col pr-[20px] ">
                     <div className={`${styles.title_box}  flex h-full`}>
                       <span className={`${styles.title}`}>設備</span>
                       {searchMode && (
-                        <textarea
-                          cols={30}
-                          // rows={10}
-                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
-                          value={inputFacility}
-                          onChange={(e) => setInputFacility(e.target.value)}
-                        ></textarea>
+                        <>
+                          {["is null", "is not null"].includes(inputFacility) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputFacility]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputFacility]}</span>
+                            </div>
+                          ) : (
+                            <textarea
+                              cols={30}
+                              // rows={10}
+                              className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
+                              value={inputFacility}
+                              onChange={(e) => setInputFacility(e.target.value)}
+                            ></textarea>
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div
+                          className={`additional_search_area_under_input one_line fade05_forward hidden group-hover:flex`}
+                        >
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputFacility ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputFacility)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputFacility)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -5561,33 +6341,115 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>事業拠点</span>
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputBusinessSite}
-                          onChange={(e) => setInputBusinessSite(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputBusinessSite) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputBusinessSite]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputBusinessSite]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputBusinessSite}
+                              onChange={(e) => setInputBusinessSite(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputBusinessSite ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputBusinessSite)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputBusinessSite)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>海外拠点</span>
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputOverseas}
-                          onChange={(e) => setInputOverseas(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputOverseas) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputOverseas]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputOverseas]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputOverseas}
+                              onChange={(e) => setInputOverseas(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputOverseas ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputOverseas)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputOverseas)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -5597,19 +6459,60 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>ｸﾞﾙｰﾌﾟ会社</span>
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputGroup}
-                          onChange={(e) => setInputGroup(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputGroup) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputGroup]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputGroup]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputGroup}
+                              onChange={(e) => setInputGroup(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputGroup ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputGroup)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputGroup)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -5619,7 +6522,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>HP</span>
                       {!searchMode && !!selectedRowDataActivity?.website_url ? (
@@ -5635,16 +6538,57 @@ const ActivityMainContainerOneThirdMemo = () => {
                         <span></span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          placeholder="「is not null」でHP有りのデータのみ抽出"
-                          value={inputHP}
-                          onChange={(e) => setInputHP(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputHP) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputHP]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputHP]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              // placeholder="「is not null」でHP有りのデータのみ抽出"
+                              value={inputHP}
+                              onChange={(e) => setInputHP(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputHP ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputHP)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputHP)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -5654,7 +6598,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>会社Email</span>
                       {!searchMode && (
@@ -5665,25 +6609,11 @@ const ActivityMainContainerOneThirdMemo = () => {
                             try {
                               await navigator.clipboard.writeText(selectedRowDataActivity.company_email);
                               toast.success(`コピーしました!`, {
-                                // position: "bottom-center",
                                 autoClose: 1000,
-                                // hideProgressBar: false,
-                                // closeOnClick: true,
-                                // pauseOnHover: true,
-                                // draggable: true,
-                                // progress: undefined,
-                                // transition: Zoom,
                               });
                             } catch (e: any) {
                               toast.error(`コピーできませんでした!`, {
-                                // position: "bottom-center",
                                 autoClose: 1000,
-                                // hideProgressBar: false,
-                                // closeOnClick: true,
-                                // pauseOnHover: true,
-                                // draggable: true,
-                                // progress: undefined,
-                                // transition: Zoom,
                               });
                             }
                           }}
@@ -5692,16 +6622,57 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          placeholder="「is not null」でHP有りのデータのみ抽出"
-                          value={inputCompanyEmail}
-                          onChange={(e) => setInputCompanyEmail(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputCompanyEmail) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputCompanyEmail]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputCompanyEmail]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              // placeholder="「is not null」でHP有りのデータのみ抽出"
+                              value={inputCompanyEmail}
+                              onChange={(e) => setInputCompanyEmail(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputCompanyEmail ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputCompanyEmail)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputCompanyEmail)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -5739,6 +6710,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                               {mappingIndustryType[option][language]}
                             </option>
                           ))}
+                          <option value="is not null">入力有りのデータのみ</option>
+                          <option value="is null">入力無しのデータのみ</option>
                         </select>
                       )}
                     </div>
@@ -5860,7 +6833,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } mb-[10px] flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>○法人番号</span>
                       {!searchMode && (
@@ -5869,15 +6842,56 @@ const ActivityMainContainerOneThirdMemo = () => {
                         </span>
                       )}
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputCorporateNum}
-                          onChange={(e) => setInputCorporateNum(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputCorporateNum) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputCorporateNum]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputCorporateNum]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputCorporateNum}
+                              onChange={(e) => setInputCorporateNum(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputCorporateNum ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputCorporateNum)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputCorporateNum)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     {/* <div className={`${styles.title_box} flex h-full items-center`}>
@@ -5923,7 +6937,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                             // placeholder="例) 2024 など"
                             data-text={`「2024」や「2023」などフィルターしたい年度を入力してください`}
                             onMouseEnter={(e) => {
-                              handleOpenTooltip(e);
+                              handleOpenTooltip({ e });
                             }}
                             onMouseLeave={handleCloseTooltip}
                             className={`${styles.input_box}`}
@@ -5955,7 +6969,10 @@ const ActivityMainContainerOneThirdMemo = () => {
                             type="text"
                             // placeholder="例) 2024 など"
                             data-text={`「20241」や「20242」など「年度」+「1か2」を入力してください。\n上期(H1)は1、下期(H2)は2\n例) 2024年上期は「20241」 2024年下期は「20242」`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                            // onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                            onMouseEnter={(e) =>
+                              handleOpenTooltip({ e, marginTop: 24, itemsPosition: "left", whiteSpace: "pre-wrap" })
+                            }
                             onMouseLeave={handleCloseTooltip}
                             className={`${styles.input_box}`}
                             value={inputActivityHalfYear}
@@ -5992,7 +7009,10 @@ const ActivityMainContainerOneThirdMemo = () => {
                             type="text"
                             // placeholder="例) 2024 など"
                             data-text={`「20241」や「20242」など「年度」+「1~4」を入力してください。\n第一四半期(Q1)は1、第二四半期(Q2)は2、第三四半期(Q3)は3、第四四半期(Q4)は4\n例) 2024年Q1は「20241」 2024年Q4は「20244」`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                            // onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                            onMouseEnter={(e) =>
+                              handleOpenTooltip({ e, marginTop: 24, itemsPosition: "left", whiteSpace: "pre-wrap" })
+                            }
                             onMouseLeave={handleCloseTooltip}
                             className={`${styles.input_box}`}
                             value={inputActivityQuarter}
@@ -6020,7 +7040,10 @@ const ActivityMainContainerOneThirdMemo = () => {
                             type="text"
                             // placeholder="例) 2024 など"
                             data-text={`「202312」や「202304」など「年度」+「01~12」を入力してください。\n1月は「01」、2月は「02」...12月は「12」\n例) 2024年1月度は「202401」 2024年12月度は「202412」`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                            // onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                            onMouseEnter={(e) =>
+                              handleOpenTooltip({ e, marginTop: 24, itemsPosition: "left", whiteSpace: "pre-wrap" })
+                            }
                             onMouseLeave={handleCloseTooltip}
                             className={`${styles.input_box}`}
                             value={inputActivityYearMonth}
@@ -6130,17 +7153,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                               {getActivityType(option)}
                             </option>
                           ))}
-                          {/* <option value="TEL発信(不在)">TEL発信(不在)</option>
-                          <option value="TEL発信(能動)">TEL発信(能動)</option>
-                          <option value="TEL発信(受動)">TEL発信(受動)</option>
-                          <option value="TEL発信(売前ﾌｫﾛｰ)">TEL発信(売前ﾌｫﾛｰ)</option>
-                          <option value="TEL発信(売後ﾌｫﾛｰ)">TEL発信(売後ﾌｫﾛｰ)</option>
-                          <option value="TEL発信(ｱﾎﾟ組み)">TEL発信(ｱﾎﾟ組み)</option>
-                          <option value="TEL発信(その他)">TEL発信(その他)</option>
-                          <option value="Email受信">Email受信</option>
-                          <option value="Email送信">Email送信</option>
-                          <option value="その他">その他</option>
-                          <option value="引継ぎ">引継ぎ</option> */}
+                          <option value="is not null">入力有りのデータのみ</option>
+                          <option value="is null">入力無しのデータのみ</option>
                         </select>
                       )}
                     </div>
@@ -6156,9 +7170,14 @@ const ActivityMainContainerOneThirdMemo = () => {
                           onChange={(e) => setInputPriority(e.target.value)}
                         >
                           <option value=""></option>
-                          <option value="高">高</option>
+                          {optionsPriority.map((option) => (
+                            <option key={option} value={option}>
+                              {getPriorityName(option)}
+                            </option>
+                          ))}
+                          {/* <option value="高">高</option>
                           <option value="中">中</option>
-                          <option value="低">低</option>
+                          <option value="低">低</option> */}
                           <option value="is not null">入力有りのデータのみ</option>
                           <option value="is null">入力無しのデータのみ</option>
                         </select>
@@ -6189,6 +7208,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                         handleOpenTooltip={handleOpenTooltip}
                         handleCloseTooltip={handleCloseTooltip}
                         tooltipDataText="次回フォロー予定日"
+                        isNotNullText="予定日有りのデータのみ"
+                        isNullText="予定日無しのデータのみ"
                       />
                     </div>
                     <div className={`${styles.underline}`}></div>
@@ -6232,21 +7253,64 @@ const ActivityMainContainerOneThirdMemo = () => {
 
                 {/* 概要 サーチ */}
                 {/* <div className={`${styles.row_area} flex h-[90px] w-full items-center`}> */}
-                <div className={`${styles.row_area_lg_box} flex h-[90px] w-full items-center`}>
-                  <div className="flex h-full w-full flex-col pr-[20px]">
+                <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
+                  <div className="group relative flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full `}>
                       <span className={`${styles.title}`}>概要</span>
                       {searchMode && (
-                        <textarea
-                          cols={30}
-                          // rows={10}
-                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
-                          value={inputSummary}
-                          onChange={(e) => setInputSummary(e.target.value)}
-                        ></textarea>
+                        <>
+                          {["is null", "is not null"].includes(inputSummary) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputSummary]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputSummary]}</span>
+                            </div>
+                          ) : (
+                            <textarea
+                              cols={30}
+                              // rows={10}
+                              className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
+                              value={inputSummary}
+                              onChange={(e) => setInputSummary(e.target.value)}
+                            ></textarea>
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div
+                          className={`additional_search_area_under_input one_line fade05_forward hidden group-hover:flex`}
+                        >
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputSummary ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputSummary)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputSummary)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -6440,35 +7504,117 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施1</span>
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          placeholder=""
-                          value={inputProductIntroduction1}
-                          onChange={(e) => setInputProductIntroduction1(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputProductIntroduction1) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputProductIntroduction1]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputProductIntroduction1]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              placeholder=""
+                              value={inputProductIntroduction1}
+                              onChange={(e) => setInputProductIntroduction1(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputProductIntroduction1 ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputProductIntroduction1)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputProductIntroduction1)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>実施2</span>
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          placeholder=""
-                          value={inputProductIntroduction2}
-                          onChange={(e) => setInputProductIntroduction2(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputProductIntroduction2) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputProductIntroduction2]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputProductIntroduction2]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              placeholder=""
+                              value={inputProductIntroduction2}
+                              onChange={(e) => setInputProductIntroduction2(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputProductIntroduction2 ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputProductIntroduction2)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputProductIntroduction2)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -6478,35 +7624,117 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施3</span>
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          placeholder=""
-                          value={inputProductIntroduction3}
-                          onChange={(e) => setInputProductIntroduction3(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputProductIntroduction3) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputProductIntroduction3]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputProductIntroduction3]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              placeholder=""
+                              value={inputProductIntroduction3}
+                              onChange={(e) => setInputProductIntroduction3(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputProductIntroduction3 ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputProductIntroduction3)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputProductIntroduction3)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>実施4</span>
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          placeholder=""
-                          value={inputProductIntroduction4}
-                          onChange={(e) => setInputProductIntroduction4(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputProductIntroduction4) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputProductIntroduction4]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputProductIntroduction4]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              placeholder=""
+                              value={inputProductIntroduction4}
+                              onChange={(e) => setInputProductIntroduction4(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputProductIntroduction4 ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputProductIntroduction4)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputProductIntroduction4)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -6516,20 +7744,61 @@ const ActivityMainContainerOneThirdMemo = () => {
                     searchMode ? `${styles.row_area_search_mode}` : ``
                   } flex h-[30px] w-full items-center`}
                 >
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>実施5</span>
                       {searchMode && (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          placeholder=""
-                          value={inputProductIntroduction5}
-                          onChange={(e) => setInputProductIntroduction5(e.target.value)}
-                        />
+                        <>
+                          {["is null", "is not null"].includes(inputProductIntroduction5) ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputProductIntroduction5]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputProductIntroduction5]}</span>
+                            </div>
+                          ) : (
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              placeholder=""
+                              value={inputProductIntroduction5}
+                              onChange={(e) => setInputProductIntroduction5(e.target.value)}
+                            />
+                          )}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${!inputProductIntroduction5 ? `hidden` : `flex`}`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputProductIntroduction5)}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputProductIntroduction5)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     {/* <div className={`${styles.title_box} flex h-full items-center`}>
@@ -6574,6 +7843,7 @@ const ActivityMainContainerOneThirdMemo = () => {
               {/* コンテンツ row_area 活動日~実施5まで サーチモード ここまで */}
               {/* ============= 活動情報エリアここまで ============= */}
 
+              <div className={`${styles.row_area} flex min-h-[70px] w-full items-center`}></div>
               {/* コンテンツ row_areaグループ 全体 サーチモード */}
             </div>
             {/* --------- ラッパーここまで --------- */}
@@ -6591,9 +7861,46 @@ const ActivityMainContainerOneThirdMemo = () => {
             >
               <div className={` text-[13px]`}>
                 <div className="mt-[5px] flex  min-h-[30px] items-center">
-                  ○検索したい条件を入力してください。（必要な項目のみ入力でOK）
+                  ○検索したい条件を入力してください。（必要な項目のみ入力してください。）
                 </div>
-                <div className="flex  min-h-[30px] items-center">
+                {searchType === "manual" && (
+                  <>
+                    <div className="flex  min-h-[30px] items-center">
+                      <span className="h-full w-[15px]"></span>
+                      例えば、「&quot;東京都大田区&quot;」の会社で「ホームページ」が存在する会社を検索する場合は、「●住所」に「東京都大田区※」と入力し、「HP」の入力欄にマウスをホバーしてから「データ無し」ボタンを押してHPに「空欄のデータ」がセットされた状態で右側の「検索」ボタンを押してください。
+                    </div>
+                    <div className="mt-[5px] flex  min-h-[30px] items-center whitespace-pre-wrap">
+                      {`○現在の検索タイプは「マニュアル検索」です。`}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="h-full w-[15px]"></span>
+                      {`「＊」を付けずに検索した場合は完全一致する値を、「＊工業」で「〜工業」で終わる値を、「合同会社＊」で「合同会社〜」から始まる値を、「＊電気＊」で「〜電気〜」を含む値を抽出可能です。\n検索タイプをオート検索に切り替えるには「戻る」を押して「モード設定」ボタンから切り替えが可能です。`}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="h-full w-[15px]"></span>
+                      例えば、会社名に「&quot;工業&quot;」と付く会社を検索したい場合に、「※工業※」、「&quot;精機&quot;」と付く会社は「※精機※」と検索することで、指定した文字が付くデータを検索可能です
+                    </div>
+                    <div className="mt-[5px] flex  min-h-[30px] items-center">
+                      ○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します
+                    </div>
+                  </>
+                )}
+                {searchType === "partial_match" && (
+                  <>
+                    <div className="flex  min-h-[30px] items-center">
+                      <span className="h-full w-[15px]"></span>
+                      例えば、「&quot;東京都大田区&quot;」の会社で「ホームページ」が存在する会社を検索する場合は、「●住所」に「東京都大田区」と入力し、「HP」の入力欄にマウスをホバーしてから「データ無し」ボタンを押してHPに「空欄のデータ」がセットされた状態で右側の「検索」ボタンを押してください。
+                    </div>
+                    <div className="mt-[5px] flex  min-h-[30px] items-center whitespace-pre-wrap">
+                      {`○現在の検索タイプは「オート検索」です。入力された値を含むデータを全て抽出します。`}
+                    </div>
+                    <div className="flex items-center">
+                      <span className="h-full w-[15px]"></span>
+                      {`検索タイプをマニュアル検索に切り替えるには「戻る」を押して「モード設定」ボタンから切り替えが可能です。`}
+                    </div>
+                  </>
+                )}
+                {/* <div className="flex  min-h-[30px] items-center">
                   <span className="h-full w-[15px]"></span>
                   例えば、「&quot;東京都大田区&quot;」の会社で「事業拠点」が存在する会社を検索する場合は、「●住所」に「東京都大田区※」と入力し、「事業拠点」に「is
                   not null」と入力し、検索ボタンを押してください。
@@ -6604,13 +7911,13 @@ const ActivityMainContainerOneThirdMemo = () => {
                 <div className="flex items-center">
                   <span className="h-full w-[15px]"></span>
                   例えば、会社名に「&quot;工業&quot;」と付く会社を検索したい場合に、「※工業※」、「&quot;製作所&quot;」と付く会社は「※製作所※」と検索することで、指定した文字が付くデータを検索可能です
-                </div>
-                <div className="mt-[5px] flex  min-h-[30px] items-center">
+                </div> */}
+                {/* <div className="mt-[5px] flex  min-h-[30px] items-center">
                   ○「is not null」は「&quot;空欄でない&quot;データ」を抽出します
                 </div>
                 <div className="mt-[5px] flex  min-h-[30px] items-center">
                   ○「is null」は「&quot;空欄の&quot;データ」を抽出します
-                </div>
+                </div> */}
                 <div className="mt-[5px] flex  min-h-[30px] items-center">
                   ○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します
                 </div>

@@ -13,6 +13,19 @@ import { AiTwotoneCalendar } from "react-icons/ai";
 import { IoIosSend } from "react-icons/io";
 import { SpinnerComet } from "@/components/Parts/SpinnerComet/SpinnerComet";
 
+type TooltipParams = {
+  // e: React.MouseEvent<HTMLElement, MouseEvent>;
+  e: MouseEvent<HTMLElement | HTMLDivElement, MouseEvent> | React.MouseEvent<HTMLElement | HTMLDivElement, MouseEvent>;
+  display?: "top" | "right" | "bottom" | "left" | "";
+  marginTop?: number;
+  itemsPosition?: string;
+  whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+  content?: string;
+  content2?: string;
+  content3?: string;
+  content4?: string;
+};
+
 type Props = {
   startDate: Date | null | "is not null" | "is null";
   //   setStartDate: (date: Date) => void;
@@ -23,10 +36,9 @@ type Props = {
   onClickSendEvent?: MouseEventHandler<HTMLDivElement>;
   isLoadingSendEvent?: boolean;
   isNotNullForSearch?: boolean;
-  handleOpenTooltip?: (
-    e: React.MouseEvent<HTMLElement, MouseEvent>,
-    display?: "top" | "right" | "bottom" | "left" | ""
-  ) => void;
+  handleOpenTooltip?:
+    | ((e: React.MouseEvent<HTMLElement, MouseEvent>, display?: "top" | "right" | "bottom" | "left" | "") => void)
+    | ((params: TooltipParams) => void);
   handleCloseTooltip?: () => void;
   tooltipDataText?: string;
   fontSize?: string;
@@ -138,8 +150,9 @@ export const DatePickerCustomInputForSearch: FC<Props> = ({
           // onClick={(e) => console.log(e)}
           onClick={handleOpenDatePicker}
           data-text={`特定の日付を選択して検索します。`}
-          onMouseEnter={(e) => !!handleOpenTooltip && handleOpenTooltip(e)}
-          onMouseLeave={(e) => !!handleCloseTooltip && handleCloseTooltip()}
+          // onMouseEnter={(e) => !!handleOpenTooltip && handleOpenTooltip(e)}
+          onMouseEnter={!!handleOpenTooltip ? (e) => handleOpenTooltip({ e }) : undefined}
+          onMouseLeave={!!handleCloseTooltip ? (e) => handleCloseTooltip() : undefined}
         >
           <AiTwotoneCalendar className="pointer-event-none text-[20px]" />
         </div>
@@ -155,8 +168,9 @@ export const DatePickerCustomInputForSearch: FC<Props> = ({
               ? `${tooltipDataText}があるデータのみ検索します。`
               : `この項目が存在するデータのみ検索します。`
           }`}
-          onMouseEnter={(e) => !!handleOpenTooltip && handleOpenTooltip(e)}
-          onMouseLeave={(e) => !!handleCloseTooltip && handleCloseTooltip()}
+          // onMouseEnter={(e) => !!handleOpenTooltip && handleOpenTooltip(e)}
+          onMouseEnter={!!handleOpenTooltip ? (e) => handleOpenTooltip({ e }) : undefined}
+          onMouseLeave={!!handleCloseTooltip ? (e) => handleCloseTooltip() : undefined}
         >
           <MdOutlineTurnedInNot className="pointer-event-none text-[20px]" />
         </div>
@@ -171,8 +185,9 @@ export const DatePickerCustomInputForSearch: FC<Props> = ({
               ? `${tooltipDataText}が無いデータのみ検索します。`
               : `この項目が存在しないデータのみ検索します。`
           }`}
-          onMouseEnter={(e) => !!handleOpenTooltip && handleOpenTooltip(e)}
-          onMouseLeave={(e) => !!handleCloseTooltip && handleCloseTooltip()}
+          // onMouseEnter={(e) => !!handleOpenTooltip && handleOpenTooltip(e)}
+          onMouseEnter={!!handleOpenTooltip ? (e) => handleOpenTooltip({ e }) : undefined}
+          onMouseLeave={!!handleCloseTooltip ? (e) => handleCloseTooltip() : undefined}
         >
           <MdDoNotDisturb className="pointer-event-none text-[20px]" />
         </div>

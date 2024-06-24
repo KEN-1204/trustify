@@ -45,7 +45,7 @@ import productCategoriesM, {
 } from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { format } from "date-fns";
-import { MdClose, MdMoreTime, MdOutlineDeleteOutline } from "react-icons/md";
+import { MdClose, MdDoNotDisturbAlt, MdMoreTime, MdOutlineDeleteOutline, MdOutlineDone } from "react-icons/md";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
@@ -121,6 +121,7 @@ import {
 } from "@/utils/productCategoryS";
 import { CustomSelectMultiple } from "@/components/Parts/CustomSelectMultiple/CustomSelectMultiple";
 import { DatePickerCustomInputForSearch } from "@/utils/DatePicker/DatePickerCustomInputForSearch";
+import { BsCheck2 } from "react-icons/bs";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -1078,12 +1079,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     }
 
     // 🔸TEXT型以外もIS NULL, IS NOT NULLの条件を追加
-    const adjustNumberFieldValue = (value: string | number | null): number | "ISNULL" | "ISNOTNULL" | null => {
+    const adjustFieldValueInteger = (value: string | number | null): number | "ISNULL" | "ISNOTNULL" | null => {
       if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
       if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
       if (typeof value === "string") {
-        if (isValidNumber(inputIndustryType) && !isNaN(parseInt(inputIndustryType, 10))) {
-          return parseInt(inputIndustryType, 10);
+        if (isValidNumber(value) && !isNaN(parseInt(value!, 10))) {
+          return parseInt(value!, 10);
         } else {
           return null;
         }
@@ -1096,7 +1097,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     };
 
     // 🔸Date型
-    const adjustDateFieldValue = (value: Date | string | null): string | null => {
+    const adjustFieldValueDate = (value: Date | string | null): string | null => {
       if (value instanceof Date) return value.toISOString();
       // "is null"か"is not null"の文字列は変換
       if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
@@ -1115,13 +1116,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
     let _address = adjustFieldValue(inputAddress);
     // let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
-    let _capital = adjustNumberFieldValue(inputCapital);
+    let _capital = adjustFieldValueInteger(inputCapital);
     let _established_in = adjustFieldValue(inputFound);
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
     let _company_email = adjustFieldValue(inputCompanyEmail);
     // let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
-    let _industry_type_id = adjustNumberFieldValue(inputIndustryType);
+    let _industry_type_id = adjustFieldValueInteger(inputIndustryType);
     // // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
     // let _product_category_large = adjustFieldValue(inputProductL);
     // let _product_category_medium = adjustFieldValue(inputProductM);
@@ -1146,16 +1147,16 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _contact_email = adjustFieldValue(inputContactEmail);
     let _position_name = adjustFieldValue(inputPositionName);
     // let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
-    let _position_class = adjustNumberFieldValue(inputPositionClass);
+    let _position_class = adjustFieldValueInteger(inputPositionClass);
     // let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
-    let _occupation = adjustNumberFieldValue(inputOccupation);
+    let _occupation = adjustFieldValueInteger(inputOccupation);
     // let _approval_amount = adjustFieldValue(inputApprovalAmount);
     // let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
-    let _approval_amount = adjustNumberFieldValue(inputApprovalAmount);
+    let _approval_amount = adjustFieldValueInteger(inputApprovalAmount);
     let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
     let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
     // meetingsテーブル
-    let _meeting_created_by_company_id = adjustFieldValue(inputMeetingCreatedByCompanyId);
+    let _meeting_created_by_company_id = userProfileState.company_id;
     let _meeting_created_by_user_id = adjustFieldValue(inputMeetingCreatedByUserId);
     let _meeting_created_by_department_of_user = adjustFieldValue(inputMeetingCreatedByDepartmentOfUser);
     let _meeting_created_by_section_of_user = adjustFieldValue(inputMeetingCreatedBySectionOfUser);
@@ -1164,23 +1165,23 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     let _meeting_type = adjustFieldValue(inputMeetingType);
     let _web_tool = adjustFieldValue(inputWebTool);
     // let _planned_date = inputPlannedDate ? inputPlannedDate.toISOString() : null;
-    let _planned_date = adjustDateFieldValue(inputPlannedDate);
+    let _planned_date = adjustFieldValueDate(inputPlannedDate);
     let _planned_start_time = adjustFieldValue(inputPlannedStartTime);
     let _planned_purpose = adjustFieldValue(inputPlannedPurpose);
     // let _planned_duration = adjustFieldValueNumber(inputPlannedDuration);
-    let _planned_duration = adjustNumberFieldValue(inputPlannedDuration);
+    let _planned_duration = adjustFieldValueInteger(inputPlannedDuration);
     let _planned_appoint_check_flag = inputPlannedAppointCheckFlag;
     let _planned_product1 = adjustFieldValue(inputPlannedProduct1);
     let _planned_product2 = adjustFieldValue(inputPlannedProduct2);
     let _planned_comment = adjustFieldValue(inputPlannedComment);
     // let _result_date = inputResultDate ? inputResultDate.toISOString() : null;
-    let _result_date = adjustDateFieldValue(inputResultDate);
+    let _result_date = adjustFieldValueDate(inputResultDate);
     let _result_start_time = adjustFieldValue(inputResultStartTime);
     let _result_end_time = adjustFieldValue(inputResultEndTime);
     // let _result_duration = adjustFieldValueNumber(inputResultDuration);
-    let _result_duration = adjustNumberFieldValue(inputResultDuration);
+    let _result_duration = adjustFieldValueInteger(inputResultDuration);
     // let _result_number_of_meeting_participants = adjustFieldValueNumber(inputResultNumberOfMeetingParticipants);
-    let _result_number_of_meeting_participants = adjustNumberFieldValue(inputResultNumberOfMeetingParticipants);
+    let _result_number_of_meeting_participants = adjustFieldValueInteger(inputResultNumberOfMeetingParticipants);
     let _result_presentation_product1 = adjustFieldValue(inputResultPresentationProduct1);
     let _result_presentation_product2 = adjustFieldValue(inputResultPresentationProduct2);
     let _result_presentation_product3 = adjustFieldValue(inputResultPresentationProduct3);
@@ -1192,7 +1193,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     // let _result_top_position_class = adjustFieldValue(inputResultTopPositionClass)
     //   ? parseInt(inputResultTopPositionClass, 10)
     //   : null;
-    let _result_top_position_class = adjustNumberFieldValue(inputResultTopPositionClass);
+    let _result_top_position_class = adjustFieldValueInteger(inputResultTopPositionClass);
     let _pre_meeting_participation_request = adjustFieldValue(inputPreMeetingParticipationRequest);
     let _meeting_participation_request = adjustFieldValue(inputMeetingParticipationRequest);
     let _meeting_business_office = adjustFieldValue(inputMeetingBusinessOffice);
@@ -1330,7 +1331,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       "contacts.created_by_user_id": _contact_created_by_user_id,
       // activitiesテーブル
       // "meetings.created_by_company_id": _meeting_created_by_company_id,
-      "meetings.created_by_company_id": userProfileState.company_id,
+      "meetings.created_by_company_id": _meeting_created_by_company_id,
       "meetings.created_by_user_id": _meeting_created_by_user_id,
       "meetings.created_by_department_of_user": _meeting_created_by_department_of_user,
       "meetings.created_by_section_of_user": _meeting_created_by_section_of_user,
@@ -1505,21 +1506,43 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
-  const handleOpenTooltip = (
-    e: React.MouseEvent<HTMLElement, MouseEvent>,
-    display: "top" | "right" | "bottom" | "left" | "" = "top",
-    marginTop: number = 0,
-    itemsPosition: string = "center",
-    whiteSpace: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined = undefined,
-    content: string = ""
-  ) => {
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display?: "top" | "right" | "bottom" | "left" | "";
+    marginTop?: number;
+    itemsPosition?: string;
+    whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+    content?: string;
+    content2?: string;
+    content3?: string;
+    content4?: string;
+  };
+  // const handleOpenTooltip = (
+  //   e: React.MouseEvent<HTMLElement, MouseEvent>,
+  //   display: "top" | "right" | "bottom" | "left" | "" = "top",
+  //   marginTop: number = 0,
+  //   itemsPosition: string = "center",
+  //   whiteSpace: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined = undefined,
+  //   content: string = ""
+  // ) => {
+  const handleOpenTooltip = ({
+    e,
+    display = "top",
+    marginTop = 0,
+    itemsPosition = "center",
+    whiteSpace = undefined,
+    content = "",
+    content2,
+    content3,
+    content4,
+  }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    const content2Text = ((e.target as HTMLDivElement).dataset.text2 as string)
       ? ((e.target as HTMLDivElement).dataset.text2 as string)
       : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    const content3Text = ((e.target as HTMLDivElement).dataset.text3 as string)
       ? ((e.target as HTMLDivElement).dataset.text3 as string)
       : "";
     setHoveredItemPosWrap({
@@ -1527,9 +1550,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       y: y,
       itemWidth: width,
       itemHeight: height,
-      content: content !== "" ? content : ((e.target as HTMLDivElement).dataset.text as string),
-      content2: content2,
-      content3: content3,
+      content: !!content ? content : ((e.target as HTMLDivElement).dataset.text as string),
+      content2: !!content2 ? content2 : content2Text,
+      content3: !!content3 ? content3 : content3Text,
       display: display,
       marginTop: marginTop,
       itemsPosition: itemsPosition,
@@ -2185,21 +2208,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     return _formatAttendees;
   };
 
-  console.log(
-    "MeetingMainContainerレンダリング"
-    // "selectedRowDataMeeting",
-    // selectedRowDataMeeting,
-    // "newSearchMeeting_Contact_CompanyParams",
-    // newSearchMeeting_Contact_CompanyParams,
-    // "inputPlannedStartTime",
-    // inputPlannedStartTime,
-    // "inputPlannedStartTimeHour",
-    // inputPlannedStartTimeHour,
-    // "inputPlannedStartTimeMinute",
-    // inputPlannedStartTimeMinute
-    // "✅✅✅✅✅✅✅✅✅✅✅同席者リスト",
-    // formatAttendees(selectedRowDataMeeting?.attendees_info)
-  );
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -2258,6 +2266,74 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
         break;
     }
   };
+
+  // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------
+  // ツールチップ
+  const additionalInputTooltipText = (index: number) =>
+    index === 0 ? `空欄以外のデータのみ抽出` : `空欄のデータのみ抽出`;
+  // 🔸「入力値をリセット」をクリック
+  const handleClickResetInput = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+    handleCloseTooltip();
+    if (inputType === "string") {
+      dispatch("");
+    }
+  };
+  // 🔸「入力有り」をクリック
+  const handleClickIsNotNull = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+    return dispatch("is not null");
+    // if (inputType === "string") {
+    //   dispatch("is not null");
+    // }
+  };
+  // 🔸「入力無し」をクリック
+  const handleClickIsNull = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+    return dispatch("is null");
+    // if (inputType === "string") {
+    //   dispatch("is null");
+    // }
+  };
+  const handleClickAdditionalAreaBtn = (index: number, dispatch: Dispatch<SetStateAction<any>>) => {
+    if (index === 0) handleClickIsNotNull(dispatch);
+    if (index === 1) handleClickIsNull(dispatch);
+    handleCloseTooltip();
+  };
+
+  const nullNotNullIconMap: { [key: string]: React.JSX.Element } = {
+    "is null": <MdDoNotDisturbAlt className="pointer-events-none mr-[6px] text-[15px]" />,
+    "is not null": <BsCheck2 className="pointer-events-none mr-[6px] stroke-[1] text-[15px]" />,
+  };
+  const nullNotNullTextMap: { [key: string]: string } = {
+    "is null": `空欄のデータ`,
+    "is not null": `空欄でないデータ`,
+  };
+
+  const firstLineComponents = [
+    <>
+      <MdOutlineDone className="pointer-events-none text-[15px] text-[#fff]" />
+      <span>データ有り</span>
+    </>,
+    <>
+      <MdDoNotDisturbAlt className="pointer-events-none text-[14px] text-[#fff]" />
+      <span>データ無し</span>
+    </>,
+  ];
+  // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------ここまで
+
+  console.log(
+    "MeetingMainContainerレンダリング"
+    // "selectedRowDataMeeting",
+    // selectedRowDataMeeting,
+    // "newSearchMeeting_Contact_CompanyParams",
+    // newSearchMeeting_Contact_CompanyParams,
+    // "inputPlannedStartTime",
+    // inputPlannedStartTime,
+    // "inputPlannedStartTimeHour",
+    // inputPlannedStartTimeHour,
+    // "inputPlannedStartTimeMinute",
+    // inputPlannedStartTimeMinute
+    // "✅✅✅✅✅✅✅✅✅✅✅同席者リスト",
+    // formatAttendees(selectedRowDataMeeting?.attendees_info)
+  );
 
   return (
     <>
@@ -2331,7 +2407,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth || isOpenSidebar) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth || isOpenSidebar) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -2436,7 +2512,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -2529,7 +2605,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -2716,7 +2792,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -2810,7 +2886,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -2939,7 +3015,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3239,7 +3315,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3267,7 +3343,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3298,7 +3374,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3327,7 +3403,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3360,7 +3436,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3468,7 +3544,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               const el = e.currentTarget;
-                              if (el.scrollWidth > el.offsetWidth || isOpenSidebar) handleOpenTooltip(e);
+                              if (el.scrollWidth > el.offsetWidth || isOpenSidebar) handleOpenTooltip({ e });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3557,7 +3633,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           //     : ""
                           // }`}
                           className={`${styles.value}`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseEnter={(e) => handleOpenTooltip({e})}
                           // onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataMeeting?.meeting_year_month
@@ -3597,7 +3673,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               const el = e.currentTarget;
-                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3765,7 +3841,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               const el = e.currentTarget;
-                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3939,7 +4015,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               const el = e.currentTarget;
-                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4059,7 +4135,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               const el = e.currentTarget;
-                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4317,7 +4393,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               const el = e.currentTarget;
-                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4353,7 +4429,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               const el = e.currentTarget;
-                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4493,7 +4569,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               const el = e.currentTarget;
-                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4597,7 +4673,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               // const el = e.currentTarget;
-                              // if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                              // if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({e});
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4701,7 +4777,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               const el = e.currentTarget;
-                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4797,7 +4873,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             onMouseEnter={(e) => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               const el = e.currentTarget;
-                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                              if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4980,7 +5056,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5009,7 +5085,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5038,7 +5114,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5074,7 +5150,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5105,9 +5181,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             // if (!isDesktopGTE1600 && isOpenSidebar) {
-                            //   handleOpenTooltip(e);
+                            //   handleOpenTooltip({e});
                             // }
-                            // handleOpenTooltip(e);
+                            // handleOpenTooltip({e});
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5137,7 +5213,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5188,7 +5264,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5213,7 +5289,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5240,7 +5316,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5264,7 +5340,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5299,7 +5375,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5326,7 +5402,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5357,7 +5433,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             // const el = e.currentTarget;
-                            // if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            // if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({e});
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5417,7 +5493,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5446,7 +5522,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             // const el = e.currentTarget;
-                            // if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            // if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({e});
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5493,9 +5569,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             // if (!isDesktopGTE1600 && isOpenSidebar) {
-                            //   handleOpenTooltip(e);
+                            //   handleOpenTooltip({e});
                             // }
-                            // handleOpenTooltip(e);
+                            // handleOpenTooltip({e});
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5527,9 +5603,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             // if (!isDesktopGTE1600 && isOpenSidebar) {
-                            //   handleOpenTooltip(e);
+                            //   handleOpenTooltip({e});
                             // }
-                            // handleOpenTooltip(e);
+                            // handleOpenTooltip({e});
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5569,9 +5645,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             // if (!isDesktopGTE1600 && isOpenSidebar) {
-                            //   handleOpenTooltip(e);
+                            //   handleOpenTooltip({e});
                             // }
-                            // handleOpenTooltip(e);
+                            // handleOpenTooltip({e});
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5604,9 +5680,9 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             // if (!isDesktopGTE1600 && isOpenSidebar) {
-                            //   handleOpenTooltip(e);
+                            //   handleOpenTooltip({e});
                             // }
-                            // handleOpenTooltip(e);
+                            // handleOpenTooltip({e});
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5639,13 +5715,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               const el = e.currentTarget;
                               if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
-                                handleOpenTooltip(e);
+                                handleOpenTooltip({ e });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                               handleCloseTooltip();
                             }}
-                            // onMouseEnter={(e) => handleOpenTooltip(e)}
+                            // onMouseEnter={(e) => handleOpenTooltip({e})}
                             // onMouseLeave={handleCloseTooltip}
                             className={`${styles.textarea_value} `}
                             dangerouslySetInnerHTML={{
@@ -5657,7 +5733,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           {/* <div
                           className={`max-h-max min-h-[70px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
                           // className={`${styles.value} h-[85px] ${styles.textarea_box} ${styles.textarea_box_bg}`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseEnter={(e) => handleOpenTooltip({e})}
                           // onMouseLeave={handleCloseTooltip}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataMeeting?.business_content
@@ -5685,7 +5761,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
                             if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
-                              handleOpenTooltip(e);
+                              handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5712,7 +5788,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5741,7 +5817,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                               e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                               const el = e.currentTarget;
                               if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
-                                handleOpenTooltip(e);
+                                handleOpenTooltip({ e });
                             }}
                             onMouseLeave={(e) => {
                               e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5777,7 +5853,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
                             if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
-                              handleOpenTooltip(e);
+                              handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5803,7 +5879,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
                             if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
-                              handleOpenTooltip(e);
+                              handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5833,7 +5909,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
                             if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
-                              handleOpenTooltip(e);
+                              handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5866,7 +5942,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           className={`${styles.value} ${styles.anchor}`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // handleOpenTooltip(e);
+                            // handleOpenTooltip({e});
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5893,7 +5969,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           className={`${styles.value} ${styles.email_value}`}
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // handleOpenTooltip(e);
+                            // handleOpenTooltip({e});
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5942,7 +6018,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5973,7 +6049,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -6002,7 +6078,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -6031,7 +6107,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -6060,7 +6136,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -6173,7 +6249,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
                         onMouseEnter={(e) => {
                           // e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                          handleOpenTooltip(e, "top");
+                          handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           // e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -6187,7 +6263,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`〜時台のデータを検索する場合は時間のみ、`}
                         data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e, "top");
+                          handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           handleCloseTooltip();
@@ -6214,7 +6290,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`〜時台のデータを検索する場合は時間のみ、`}
                         data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e, "top");
+                          handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           handleCloseTooltip();
@@ -6251,7 +6327,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
                           data-text={`設定した時間を削除`}
                           onMouseEnter={(e) => {
-                            handleOpenTooltip(e, "top");
+                            handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => {
@@ -6272,9 +6348,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             timePickerIncrementTypeRef.current = "5";
                             handleCloseTooltip();
                           }}
-                          onMouseEnter={(e) =>
-                            handleOpenTooltip(e, "top", 0, "center", undefined, "時間設定画面を開く")
-                          }
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: "時間設定画面を開く" })}
                           onMouseLeave={handleCloseTooltip}
                         >
                           <MdMoreTime className={`text-[15px] text-[#fff]`} />
@@ -6665,7 +6739,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           type="text"
                           // placeholder="例) 2024 など"
                           data-text={`「2024」や「2023」などフィルターしたい年度を入力してください`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e })}
                           onMouseLeave={handleCloseTooltip}
                           className={`${styles.input_box}`}
                           value={inputMeetingFiscalYear}
@@ -6692,7 +6766,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           className={`${styles.input_box}`}
                           // placeholder="例) 20241 など"
                           data-text={`「20241」や「20242」など「年度」+「1か2」を入力してください。\n上期(H1)は1、下期(H2)は2\n例) 2024年上期は「20241」 2024年下期は「20242」`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                          // onMouseEnter={(e) => handleOpenTooltip({{e,itemPosition:  "left", whiteSpace: "pre-wrap"}})}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, itemPosition: "left", whiteSpace: "pre-wrap" })}
                           onMouseLeave={handleCloseTooltip}
                           value={inputMeetingHalfYear}
                           onChange={(e) => {
@@ -6722,7 +6797,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           className={`${styles.input_box}`}
                           // placeholder="年度と1~4(Q1~Q4)を入力 例) 20244 など"
                           data-text={`「20241」や「20242」など「年度」+「1~4」を入力してください。\n第一四半期(Q1)は1、第二四半期(Q2)は2、第三四半期(Q3)は3、第四四半期(Q4)は4\n例) 2024年Q1は「20241」 2024年Q4は「20244」`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                          // onMouseEnter={(e) => handleOpenTooltip({e,itemPosition:  "left", whiteSpace: "pre-wrap"})}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, itemPosition: "left", whiteSpace: "pre-wrap" })}
                           onMouseLeave={handleCloseTooltip}
                           value={inputMeetingQuarter}
                           onChange={(e) => {
@@ -6748,7 +6824,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           className={`${styles.input_box}`}
                           // placeholder="年月を入力 例) 202412 など"
                           data-text={`「202312」や「202304」など「年度」+「01~12」を入力してください。\n1月は「01」、2月は「02」...12月は「12」\n例) 2024年1月度は「202401」 2024年12月度は「202412」`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", 24, "left", "pre-wrap")}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, itemPosition: "left", whiteSpace: "pre-wrap" })}
                           onMouseLeave={handleCloseTooltip}
                           value={inputMeetingYearMonth}
                           onChange={(e) => {
@@ -6854,7 +6930,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`〜時台のデータを検索する場合は時間のみ、`}
                         data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e, "top");
+                          handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           handleCloseTooltip();
@@ -6867,7 +6943,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`〜時台のデータを検索する場合は時間のみ、`}
                         data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e, "top");
+                          handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           handleCloseTooltip();
@@ -6894,7 +6970,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`〜時台のデータを検索する場合は時間のみ、`}
                         data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e, "top");
+                          handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           handleCloseTooltip();
@@ -6924,7 +7000,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[#ff3b5b56] active:bg-[#0d99ff]`}
                         data-text={`設定した時間を削除`}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e, "top");
+                          handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={handleCloseTooltip}
                         onClick={() => {
@@ -6960,7 +7036,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`〜時台のデータを検索する場合は時間のみ、`}
                         data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e, "top");
+                          handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           handleCloseTooltip();
@@ -6973,7 +7049,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`〜時台のデータを検索する場合は時間のみ、`}
                         data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e, "top");
+                          handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           handleCloseTooltip();
@@ -7000,7 +7076,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         data-text={`〜時台のデータを検索する場合は時間のみ、`}
                         data-text2={`〜分のデータを検索する場合は分のみを指定してください。`}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e, "top");
+                          handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           handleCloseTooltip();
@@ -7030,7 +7106,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[#ff3b5b56] active:bg-[#0d99ff]`}
                         data-text={`設定した時間を削除`}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip(e, "top");
+                          handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={handleCloseTooltip}
                         onClick={() => {
@@ -7051,7 +7127,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           timePickerIncrementTypeRef.current = "all";
                           handleCloseTooltip();
                         }}
-                        onMouseEnter={(e) => handleOpenTooltip(e, "top", 0, "center", undefined, "時間設定画面を開く")}
+                        onMouseEnter={(e) => handleOpenTooltip({ e, content: "時間設定画面を開く" })}
                         onMouseLeave={handleCloseTooltip}
                       >
                         <MdMoreTime className={`text-[15px] text-[#fff]`} />
@@ -8261,9 +8337,46 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
               </div> */}
                 <div className={` text-[13px]`}>
                   <div className="mt-[5px] flex  min-h-[30px] items-center">
-                    ○検索したい条件を入力してください。（必要な項目のみ入力でOK）
+                    ○検索したい条件を入力してください。（必要な項目のみ入力してください）
                   </div>
-                  <div className="flex  min-h-[30px] items-center">
+                  {searchType === "manual" && (
+                    <>
+                      <div className="flex  min-h-[30px] items-center">
+                        <span className="h-full w-[15px]"></span>
+                        例えば、「&quot;東京都大田区&quot;」の会社で「ホームページ」が存在する会社を検索する場合は、「●住所」に「東京都大田区※」と入力し、「HP」の入力欄にマウスをホバーしてから「データ無し」ボタンを押してHPに「空欄のデータ」がセットされた状態で右側の「検索」ボタンを押してください。
+                      </div>
+                      <div className="mt-[5px] flex  min-h-[30px] items-center whitespace-pre-wrap">
+                        {`○現在の検索タイプは「マニュアル検索」です。`}
+                      </div>
+                      <div className="flex items-center">
+                        <span className="h-full w-[15px]"></span>
+                        {`「＊」を付けずに検索した場合は完全一致する値を、「＊工業」で「〜工業」で終わる値を、「合同会社＊」で「合同会社〜」から始まる値を、「＊電気＊」で「〜電気〜」を含む値を抽出可能です。\n検索タイプをオート検索に切り替えるには「戻る」を押して「モード設定」ボタンから切り替えが可能です。`}
+                      </div>
+                      <div className="flex items-center">
+                        <span className="h-full w-[15px]"></span>
+                        例えば、会社名に「&quot;工業&quot;」と付く会社を検索したい場合に、「※工業※」、「&quot;精機&quot;」と付く会社は「※精機※」と検索することで、指定した文字が付くデータを検索可能です
+                      </div>
+                      <div className="mt-[5px] flex  min-h-[30px] items-center">
+                        ○「※ アスタリスク」は、「前方一致・後方一致・部分一致」を表します
+                      </div>
+                    </>
+                  )}
+                  {searchType === "partial_match" && (
+                    <>
+                      <div className="flex  min-h-[30px] items-center">
+                        <span className="h-full w-[15px]"></span>
+                        例えば、「&quot;東京都大田区&quot;」の会社で「ホームページ」が存在する会社を検索する場合は、「●住所」に「東京都大田区」と入力し、「HP」の入力欄にマウスをホバーしてから「データ無し」ボタンを押してHPに「空欄のデータ」がセットされた状態で右側の「検索」ボタンを押してください。
+                      </div>
+                      <div className="mt-[5px] flex  min-h-[30px] items-center whitespace-pre-wrap">
+                        {`○現在の検索タイプは「オート検索」です。入力された値を含むデータを全て抽出します。`}
+                      </div>
+                      <div className="flex items-center">
+                        <span className="h-full w-[15px]"></span>
+                        {`検索タイプをマニュアル検索に切り替えるには「戻る」を押して「モード設定」ボタンから切り替えが可能です。`}
+                      </div>
+                    </>
+                  )}
+                  {/* <div className="flex  min-h-[30px] items-center">
                     <span className="h-full w-[15px]"></span>
                     例えば、「&quot;東京都大田区&quot;」の会社で「事業拠点」が存在する会社を検索する場合は、「●住所」に「東京都大田区※」と入力し、「事業拠点」に「is
                     not null」と入力し、検索ボタンを押してください。
@@ -8274,13 +8387,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className="flex items-center">
                     <span className="h-full w-[15px]"></span>
                     例えば、会社名に「&quot;工業&quot;」と付く会社を検索したい場合に、「※工業※」、「&quot;製作所&quot;」と付く会社は「※製作所※」と検索することで、指定した文字が付くデータを検索可能です
-                  </div>
-                  <div className="mt-[5px] flex  min-h-[30px] items-center">
+                  </div> */}
+                  {/* <div className="mt-[5px] flex  min-h-[30px] items-center">
                     ○「is not null」は「&quot;空欄でない&quot;データ」を抽出します
                   </div>
                   <div className="mt-[5px] flex  min-h-[30px] items-center">
                     ○「is null」は「&quot;空欄の&quot;データ」を抽出します
-                  </div>
+                  </div> */}
                   <div className="mt-[5px] flex  min-h-[30px] items-center">
                     ○項目を空欄のまま検索した場合は、その項目の「全てのデータ」を抽出します
                   </div>
