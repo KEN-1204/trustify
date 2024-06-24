@@ -33,6 +33,8 @@
   --checkbox-focus-color: #c7e6ff;
   --checkbox-disabled-border-color: #000;
   --checkbox-disabled-background-color: #333;
+
+  --title-width: 95px;
 }
 .theme_tiktok:global {
   --main-color: #ff3b5b;
@@ -306,16 +308,8 @@
   white-space: nowrap;
   /* 右側に20px余白 */
   /* padding-right: 20px; */
-  /* min-width: 70px; */
-  min-width: 95px;
-  /* min-width: 78px; */
-  /* min-width: 78px; */
-  /* min-width: 80px; */
-  /* min-width: 82px; */
-  /* min-width: 80px; */
-  /* min-width: 90px; */
   /* min-width: 95px; */
-  /* min-width: 75px; */
+  min-width: var(--title-width);
   /* margin-right: 20px; */
   font-weight: 600;
   font-size: 13px;
@@ -326,6 +320,7 @@
   /* font-family: "Hiragino Sans", Roboto, system-ui; */
   /* font-family: system-ui; */
   /* font-family: "Noto Serif Japanese"; */
+  /* color: #ca2f49aa; */
 }
 .title.min {
   min-width: 90px;
@@ -1022,12 +1017,16 @@
 }
 
 @media (max-width: 1600px) {
+  .detail_container:global {
+    --title-width: 88px;
+  }
   .textarea_box {
     font-size: 13px;
     /* letter-spacing: 0.6px; */
   }
   .title {
-    min-width: 88px;
+    /* min-width: 88px; */
+    min-width: var(--title-width);
   }
   .title.title_sm {
     min-width: 75px;

@@ -32,9 +32,14 @@ import productCategoriesM, {
   mappingOfficeCategoryM,
   mappingOthersCategoryM,
   mappingProcessingMachineryCategoryM,
+  mappingProductCategoriesMedium,
   mappingScienceCategoryM,
   mappingSkillUpCategoryM,
   mappingToolCategoryM,
+  productCategoriesMediumNameOnlySet,
+  productCategoryLargeToMappingMediumMap,
+  productCategoryLargeToOptionsMediumMap,
+  productCategoryLargeToOptionsMediumObjMap,
 } from "@/utils/productCategoryM";
 import { DatePickerCustomInput } from "@/utils/DatePicker/DatePickerCustomInput";
 import { format } from "date-fns";
@@ -58,6 +63,7 @@ import {
   getSubscriptionInterval,
   getTermDivision,
   mappingIndustryType,
+  mappingProductL,
   optionsCompetitionState,
   optionsCurrentStatus,
   optionsDecisionMakerNegotiation,
@@ -72,6 +78,8 @@ import {
   optionsOrderCertaintyStartOfMonth,
   optionsPositionsClass,
   optionsProductL,
+  optionsProductLNameOnly,
+  optionsProductLNameOnlySet,
   optionsReasonClass,
   optionsSalesClass,
   optionsSalesContributionCategory,
@@ -79,7 +87,16 @@ import {
   optionsTermDivision,
 } from "@/utils/selectOptions";
 import { generateYearQuarters } from "@/utils/Helpers/generateYearQuarters";
-import { Department, Office, Property, Property_row_data, Section, Unit } from "@/types";
+import {
+  Department,
+  Office,
+  ProductCategoriesLarge,
+  ProductCategoriesMedium,
+  Property,
+  Property_row_data,
+  Section,
+  Unit,
+} from "@/types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMedia } from "react-use";
 import { mappingOccupation, mappingPositionClass } from "@/utils/mappings";
@@ -102,6 +119,15 @@ import { UnderRightActivityLogCustom } from "./UnderRightActivityLogCustom/Under
 import { FallbackUnderRightActivityLogCustom } from "./UnderRightActivityLogCustom/FallbackUnderRightActivityLogCustom";
 import { useQuerySections } from "@/hooks/useQuerySections";
 import { splitYearAndPeriod } from "@/utils/Helpers/CalendarHelpers/splitYearAndPeriod";
+import {
+  ProductCategoriesSmall,
+  mappingProductCategoriesSmall,
+  productCategoriesSmallNameOnlySet,
+  productCategoryMediumToMappingSmallMap,
+  productCategoryMediumToOptionsSmallMap_All,
+  productCategoryMediumToOptionsSmallMap_All_obj,
+} from "@/utils/productCategoryS";
+import { CustomSelectMultiple } from "@/components/Parts/CustomSelectMultiple/CustomSelectMultiple";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -191,9 +217,167 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
   const [inputHP, setInputHP] = useState("");
   const [inputCompanyEmail, setInputCompanyEmail] = useState("");
   const [inputIndustryType, setInputIndustryType] = useState("");
-  const [inputProductL, setInputProductL] = useState("");
-  const [inputProductM, setInputProductM] = useState("");
-  const [inputProductS, setInputProductS] = useState("");
+  // ----------------------- 🌟製品分類関連🌟 -----------------------
+  // const [inputProductL, setInputProductL] = useState("");
+  // const [inputProductM, setInputProductM] = useState("");
+  // const [inputProductS, setInputProductS] = useState("");
+
+  const [inputProductArrayLarge, setInputProductArrayLarge] = useState<ProductCategoriesLarge[]>([]);
+  const [inputProductArrayMedium, setInputProductArrayMedium] = useState<ProductCategoriesMedium[]>([]);
+  const [inputProductArraySmall, setInputProductArraySmall] = useState<ProductCategoriesSmall[]>([]);
+
+  // カスタムセレクトボックス用にnameのみで選択中のSetオブジェクトを作成
+  // ---------------- 🔸大分類🔸 ----------------
+  const selectedProductCategoryLargeSet = useMemo(() => {
+    return new Set([...inputProductArrayLarge]);
+  }, [inputProductArrayLarge]);
+
+  const getProductCategoryLargeName = (option: ProductCategoriesLarge) => {
+    return mappingProductL[option][language];
+  };
+
+  // ---------------- 🔸中分類🔸 ----------------
+  const selectedProductCategoryMediumSet = useMemo(() => {
+    return new Set([...inputProductArrayMedium]);
+  }, [inputProductArrayMedium]);
+
+  // 中分類のoptions 大分類で複数選択している場合には、選択中の大分類に紐づく全ての中分類をoptionsにセット
+  const optionsProductCategoryMediumAll = useMemo(() => {
+    const filteredOptionsNameOnly = optionsProductLNameOnly.filter((name) => selectedProductCategoryLargeSet.has(name));
+    const newOptionsM = filteredOptionsNameOnly
+      .map((option) => {
+        return productCategoryLargeToOptionsMediumMap[option];
+      })
+      .flatMap((array) => array);
+
+    return newOptionsM;
+  }, [optionsProductLNameOnly, selectedProductCategoryLargeSet, productCategoryLargeToOptionsMediumMap]);
+
+  // 名称変換マップ
+  const mappingProductCategoryMediumAll = useMemo(() => {
+    let mappingObj = {} as {
+      [x: string]: {
+        [key: string]: string;
+      };
+    };
+
+    Array.from(selectedProductCategoryLargeSet).forEach((name) => {
+      mappingObj = { ...mappingObj, ...productCategoryLargeToMappingMediumMap[name] };
+    });
+
+    return new Map(Object.entries(mappingObj).map(([key, value]) => [key, value]));
+  }, [selectedProductCategoryLargeSet]);
+
+  const getProductCategoryMediumNameAll = (option: ProductCategoriesMedium) => {
+    const mappingObj = mappingProductCategoryMediumAll.get(option);
+    return mappingObj ? mappingObj[language] : "-";
+    // return mappingProductCategoryMediumAll[option][language];
+  };
+
+  // 🌠中分類が選択されている状態で大分類のチェックが外された場合には、外された大分類に紐づく中分類を削除する
+  useEffect(() => {
+    // 大分類に紐づくoptionのみで作成したoptionsProductCategoryMediumAllに含まれていない選択中の中分類は削除
+    const optionsProductCategoryMediumAllSet = new Set(optionsProductCategoryMediumAll);
+    const newMediumArray = [...inputProductArrayMedium].filter((option) =>
+      optionsProductCategoryMediumAllSet.has(option as any)
+    );
+    console.log("🔥大分類が変更されたため中分類を更新");
+    setInputProductArrayMedium(newMediumArray);
+  }, [optionsProductCategoryMediumAll]);
+
+  // ---------------- 🔸中分類🔸 ここまで ----------------
+
+  // ---------------- 🔸小分類🔸 ----------------
+  const selectedProductCategorySmallSet = useMemo(() => {
+    return new Set([...inputProductArraySmall]);
+  }, [inputProductArraySmall]);
+
+  // 小分類のoptions 中分類で複数選択している場合には、選択中の中分類に紐づく全ての小分類をoptionsにセット
+  const optionsProductCategorySmallAll = useMemo(() => {
+    // 取得した現在選択可能な全ての中分類のoptionsから既に選択中の中分類を取得
+    const filteredOptionsMediumNameOnly = Array.from(selectedProductCategoryMediumSet);
+
+    // 選択中の中分類の選択肢に紐づく小分類のoptionsを全て取得
+    const newOptionsSmall = filteredOptionsMediumNameOnly
+      .map((optionName) => {
+        // 選択中の大分類に応じて中分類のMapを使用
+        return productCategoryMediumToOptionsSmallMap_All[optionName];
+      })
+      .flatMap((array) => array);
+
+    return newOptionsSmall;
+  }, [selectedProductCategoryMediumSet]);
+
+  // 🌠小分類が選択されている状態で中分類のチェックが外された場合には、外された中分類に紐づく小分類を削除する
+  useEffect(() => {
+    // 中分類に紐づくoptionのみで作成したoptionsProductCategorySmallAllに含まれていない選択中の小分類は削除
+    const optionsProductCategorySmallAllSet = new Set(optionsProductCategorySmallAll);
+    const newSmallArray = [...inputProductArraySmall].filter((option) =>
+      optionsProductCategorySmallAllSet.has(option as any)
+    );
+    console.log("🔥中分類が変更されたため小分類を更新");
+    setInputProductArraySmall(newSmallArray);
+  }, [optionsProductCategorySmallAll]);
+
+  // 名称変換マップ
+  const mappingProductCategorySmallAll = useMemo(() => {
+    let mappingObj = {} as {
+      [x: string]: {
+        [key: string]: string;
+      };
+    };
+
+    Array.from(selectedProductCategoryMediumSet).forEach((option) => {
+      mappingObj = { ...mappingObj, ...productCategoryMediumToMappingSmallMap[option] };
+    });
+
+    return new Map(Object.entries(mappingObj).map(([key, value]) => [key, value]));
+  }, [selectedProductCategoryMediumSet]);
+
+  const getProductCategorySmallNameAll = (option: ProductCategoriesSmall) => {
+    const mappingObj = mappingProductCategorySmallAll.get(option);
+    return mappingObj ? mappingObj[language] : "-";
+    // return mappingProductCategorySmallAll[option][language];
+  };
+  // ---------------- 🔸小分類🔸 ここまで ----------------
+
+  // 🔸上テーブルから選択された行データの各製品分類の配列の要素数が1つ以上の場合は表示用にフォーマットする
+  // 大分類
+  const formattedProductCategoriesLarge = useMemo(() => {
+    if (!selectedRowDataProperty || !selectedRowDataProperty.product_categories_large_array?.length) return "";
+    return selectedRowDataProperty.product_categories_large_array
+      .map((name) =>
+        optionsProductLNameOnlySet.has(name) ? `#${mappingProductL[name as ProductCategoriesLarge][language]}` : `#-`
+      )
+      .join("　"); // #text1 #text2
+  }, [selectedRowDataProperty?.product_categories_large_array]);
+
+  // 中分類
+  const formattedProductCategoriesMedium = useMemo(() => {
+    if (!selectedRowDataProperty || !selectedRowDataProperty.product_categories_medium_array?.length) return "";
+    return selectedRowDataProperty.product_categories_medium_array
+      .map((name) =>
+        productCategoriesMediumNameOnlySet.has(name)
+          ? `#${mappingProductCategoriesMedium[name as ProductCategoriesMedium][language]}`
+          : `#-`
+      )
+      .join("　"); // #text1 #text2
+  }, [selectedRowDataProperty?.product_categories_medium_array]);
+
+  // 小分類
+  const formattedProductCategoriesSmall = useMemo(() => {
+    if (!selectedRowDataProperty || !selectedRowDataProperty.product_categories_small_array?.length) return "";
+    return selectedRowDataProperty.product_categories_small_array
+      .map((name) =>
+        productCategoriesSmallNameOnlySet.has(name)
+          ? `#${mappingProductCategoriesSmall[name as ProductCategoriesSmall][language]}`
+          : `#-`
+      )
+      .join("　"); // #text1 #text2
+  }, [selectedRowDataProperty?.product_categories_small_array]);
+
+  // ----------------------- 🌟製品分類関連🌟 ここまで -----------------------
+
   const [inputFiscal, setInputFiscal] = useState("");
   const [inputBudgetRequestMonth1, setInputBudgetRequestMonth1] = useState("");
   const [inputBudgetRequestMonth2, setInputBudgetRequestMonth2] = useState("");
@@ -563,9 +747,72 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
             : ""
         )
       );
-      setInputProductL(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.product_category_large));
-      setInputProductM(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.product_category_medium));
-      setInputProductS(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.product_category_small));
+      // ------------------------ 製品分類関連 ------------------------
+      // 編集モードはidからnameへ変換
+      // setInputProductL(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.product_category_large));
+      // setInputProductM(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.product_category_medium));
+      // setInputProductS(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.product_category_small));
+      // 🔸大分類
+      let productCategoryLargeNamesArray: ProductCategoriesLarge[] = [];
+      if (0 < newSearchProperty_Contact_CompanyParams.product_category_large_ids.length) {
+        console.log(
+          "============================ 大分類実行🔥",
+          newSearchProperty_Contact_CompanyParams.product_category_large_ids
+        );
+        // idからnameへ変換
+        const largeIdToNameMap = new Map(optionsProductL.map((obj) => [obj.id, obj.name]));
+        productCategoryLargeNamesArray = newSearchProperty_Contact_CompanyParams.product_category_large_ids
+          .map((id) => {
+            return largeIdToNameMap.get(id);
+          })
+          .filter((name): name is ProductCategoriesLarge => name !== undefined && name !== null);
+        setInputProductArrayLarge(productCategoryLargeNamesArray);
+      }
+      // 🔸中分類
+      let productCategoryMediumNamesArray: ProductCategoriesMedium[] = [];
+      if (
+        0 < newSearchProperty_Contact_CompanyParams.product_category_medium_ids.length &&
+        0 < productCategoryLargeNamesArray.length
+      ) {
+        console.log(
+          "============================ 中分類実行🔥",
+          newSearchProperty_Contact_CompanyParams.product_category_medium_ids,
+          productCategoryLargeNamesArray
+        );
+        // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
+        const optionsMediumObj = productCategoryLargeNamesArray
+          .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
+          .flatMap((array) => array);
+        const mediumIdToNameMap = new Map(optionsMediumObj.map((obj) => [obj.id, obj.name]));
+        productCategoryMediumNamesArray = newSearchProperty_Contact_CompanyParams.product_category_medium_ids
+          .map((id) => {
+            return mediumIdToNameMap.get(id);
+          })
+          .filter((name): name is ProductCategoriesMedium => name !== undefined && name !== null);
+        setInputProductArrayMedium(productCategoryMediumNamesArray);
+      }
+      // 🔸小分類
+      let productCategorySmallNamesArray: ProductCategoriesSmall[] = [];
+      if (
+        0 < newSearchProperty_Contact_CompanyParams.product_category_small_ids.length &&
+        0 < productCategoryMediumNamesArray.length
+      ) {
+        console.log("============================ 小分類実行🔥");
+        // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
+        const optionsSmallObj = productCategoryMediumNamesArray
+          .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
+          .flatMap((array) => array);
+        const mediumIdToNameMap = new Map(optionsSmallObj.map((obj) => [obj.id, obj.name]));
+        productCategorySmallNamesArray = newSearchProperty_Contact_CompanyParams.product_category_small_ids
+          .map((id) => {
+            return mediumIdToNameMap.get(id);
+          })
+          .filter((name): name is ProductCategoriesSmall => name !== undefined && name !== null);
+        setInputProductArraySmall(productCategorySmallNamesArray);
+      }
+
+      // ------------------------ 製品分類関連 ------------------------ ここまで
+
       setInputFiscal(beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.fiscal_end_month));
       setInputBudgetRequestMonth1(
         beforeAdjustFieldValue(newSearchProperty_Contact_CompanyParams.budget_request_month1)
@@ -870,9 +1117,14 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       if (!!inputHP) setInputHP("");
       if (!!inputCompanyEmail) setInputCompanyEmail("");
       if (!!inputIndustryType) setInputIndustryType("");
-      if (!!inputProductL) setInputProductL("");
-      if (!!inputProductM) setInputProductM("");
-      if (!!inputProductS) setInputProductS("");
+      // 製品分類の処理 ------------------------
+      // if (!!inputProductL) setInputProductL("");
+      // if (!!inputProductM) setInputProductM("");
+      // if (!!inputProductS) setInputProductS("");
+      if (!!inputProductArrayLarge.length) setInputProductArrayLarge([]);
+      if (!!inputProductArrayMedium.length) setInputProductArrayMedium([]);
+      if (!!inputProductArraySmall.length) setInputProductArraySmall([]);
+      // 製品分類の処理 ------------------------ ここまで
       if (!!inputFiscal) setInputFiscal("");
       if (!!inputBudgetRequestMonth1) setInputBudgetRequestMonth1("");
       if (!!inputBudgetRequestMonth2) setInputBudgetRequestMonth2("");
@@ -1078,9 +1330,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     let _website_url = adjustFieldValue(inputHP);
     let _company_email = adjustFieldValue(inputCompanyEmail);
     let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
-    let _product_category_large = adjustFieldValue(inputProductL);
-    let _product_category_medium = adjustFieldValue(inputProductM);
-    let _product_category_small = adjustFieldValue(inputProductS);
+    // // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
+    // let _product_category_large = adjustFieldValue(inputProductL);
+    // let _product_category_medium = adjustFieldValue(inputProductM);
+    // let _product_category_small = adjustFieldValue(inputProductS);
     let _fiscal_end_month = adjustFieldValue(inputFiscal);
     let _budget_request_month1 = adjustFieldValue(inputBudgetRequestMonth1);
     let _budget_request_month2 = adjustFieldValue(inputBudgetRequestMonth2);
@@ -1290,6 +1543,62 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     _expected_order_year_month = adjustFieldValueNumber(_expected_order_year_month);
     // -------------------------- 獲得予定関連 ここまで --------------------------
 
+    // 製品分類の処理 ----------------------------------------------
+    // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
+    // 大分類
+    let productCategoryLargeIdsArray: number[] = [];
+    if (0 < inputProductArrayLarge.length) {
+      const largeNameToIdMap = new Map(optionsProductL.map((obj) => [obj.name, obj.id]));
+      productCategoryLargeIdsArray = inputProductArrayLarge
+        .map((name) => {
+          return largeNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+      console.log("============================ 大分類実行🔥", largeNameToIdMap, productCategoryLargeIdsArray);
+    }
+    // 中分類
+    let productCategoryMediumIdsArray: number[] = [];
+    if (0 < inputProductArrayMedium.length) {
+      // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
+      const optionsMediumObj = inputProductArrayLarge
+        .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
+        .flatMap((array) => array);
+      const mediumNameToIdMap = new Map(optionsMediumObj.map((obj) => [obj.name, obj.id]));
+      productCategoryMediumIdsArray = inputProductArrayMedium
+        .map((name) => {
+          return mediumNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+      console.log(
+        "============================ 中分類実行🔥",
+        optionsMediumObj,
+        mediumNameToIdMap,
+        productCategoryMediumIdsArray
+      );
+    }
+    // 小分類
+    let productCategorySmallIdsArray: number[] = [];
+    if (0 < inputProductArraySmall.length) {
+      // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
+      const optionsSmallObj = inputProductArrayMedium
+        .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
+        .flatMap((array) => array);
+      const mediumNameToIdMap = new Map(optionsSmallObj.map((obj) => [obj.name, obj.id]));
+      productCategorySmallIdsArray = inputProductArraySmall
+        .map((name) => {
+          return mediumNameToIdMap.get(name);
+        })
+        .filter((id): id is number => id !== undefined && id !== null);
+      console.log(
+        "============================ 小分類実行🔥",
+        optionsSmallObj,
+        mediumNameToIdMap,
+        productCategorySmallIdsArray
+      );
+    }
+
+    // 製品分類の処理ここまで ----------------------------------------------
+
     const params = {
       "client_companies.name": _company_name,
       //   company_name: _company_name,
@@ -1306,9 +1615,14 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       //   company_email: _company_email,
       "client_companies.email": _company_email,
       industry_type_id: _industry_type_id,
-      product_category_large: _product_category_large,
-      product_category_medium: _product_category_medium,
-      product_category_small: _product_category_small,
+      // 製品分類 ----------------
+      // product_category_large: _product_category_large,
+      // product_category_medium: _product_category_medium,
+      // product_category_small: _product_category_small,
+      product_category_large_ids: productCategoryLargeIdsArray,
+      product_category_medium_ids: productCategoryMediumIdsArray,
+      product_category_small_ids: productCategorySmallIdsArray,
+      // 製品分類 ---------------- ここまで
       fiscal_end_month: _fiscal_end_month,
       budget_request_month1: _budget_request_month1,
       budget_request_month2: _budget_request_month2,
@@ -1423,9 +1737,14 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
     setInputHP("");
     setInputCompanyEmail("");
     setInputIndustryType("");
-    setInputProductL("");
-    setInputProductM("");
-    setInputProductS("");
+    // 製品分類 ----------------
+    // setInputProductL("");
+    // setInputProductM("");
+    // setInputProductS("");
+    setInputProductArrayLarge([]);
+    setInputProductArrayMedium([]);
+    setInputProductArraySmall([]);
+    // 製品分類 ----------------ここまで
     setInputFiscal("");
     setInputBudgetRequestMonth1("");
     setInputBudgetRequestMonth2("");
@@ -2583,7 +2902,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             field: "property_name",
                             dispatch: setInputPropertyName,
                           });
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         data-text={`${
                           selectedRowDataProperty?.property_name ? selectedRowDataProperty?.property_name : ""
@@ -2595,7 +2914,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.property_name ? selectedRowDataProperty?.property_name : ""}
@@ -2781,7 +3100,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataProperty?.product_name ? selectedRowDataProperty?.product_name : ""} */}
@@ -2807,7 +3126,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             field: "product_sales",
                             dispatch: setInputProductSales,
                           });
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         data-text={`${
                           selectedRowDataProperty?.product_sales ? selectedRowDataProperty?.product_sales : ""
@@ -3051,7 +3370,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             field: "expected_sales_price",
                             dispatch: setInputExpectedSalesPrice,
                           });
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         data-text={`${
                           selectedRowDataProperty?.expected_sales_price
@@ -3065,7 +3384,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.expected_sales_price
@@ -3231,7 +3550,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             dispatch: setInputTermDivision,
                             selectedRowDataValue: selectedRowDataProperty?.term_division ?? "",
                           });
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         data-text={`${
                           selectedRowDataProperty?.term_division
@@ -3245,7 +3564,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.term_division
@@ -3342,7 +3661,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataProperty?.sold_product_name ? selectedRowDataProperty?.sold_product_name : ""} */}
@@ -3368,7 +3687,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             field: "unit_sales",
                             dispatch: setInputUnitSales,
                           });
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         data-text={`${selectedRowDataProperty?.unit_sales ? selectedRowDataProperty?.unit_sales : ""}`}
                         onMouseEnter={(e) => {
@@ -3481,8 +3800,6 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && isEditModeField !== "sales_contribution_category" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
-                        // onMouseEnter={(e) => handleOpenTooltip({ e, display: "top" })}
-                        // onMouseLeave={handleCloseTooltip}
                         onClick={handleSingleClickField}
                         onDoubleClick={(e) => {
                           if (!selectedRowDataProperty?.sales_contribution_category) return;
@@ -3494,7 +3811,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             dispatch: setInputSalesContributionCategory,
                             selectedRowDataValue: selectedRowDataProperty?.sales_contribution_category ?? "",
                           });
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         data-text={
                           selectedRowDataProperty?.sales_contribution_category
@@ -3508,7 +3825,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.sales_contribution_category
@@ -3580,7 +3897,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             field: "sales_price",
                             dispatch: setInputSalesPrice,
                           });
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         data-text={`${
                           selectedRowDataProperty?.sales_price ? selectedRowDataProperty?.sales_price : ""
@@ -3592,7 +3909,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {checkNotFalsyExcludeZero(selectedRowDataProperty?.sales_price)
@@ -3708,7 +4025,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             field: "discounted_price",
                             dispatch: setInputDiscountedPrice,
                           });
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         data-text={`${
                           selectedRowDataProperty?.discounted_price ? selectedRowDataProperty?.discounted_price : ""
@@ -3720,7 +4037,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {checkNotFalsyExcludeZero(selectedRowDataProperty?.discounted_price)
@@ -3853,7 +4170,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             dispatch: setInputSalesClass,
                             selectedRowDataValue: selectedRowDataProperty?.sales_class ?? "",
                           });
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         data-text={`${
                           selectedRowDataProperty?.sales_class
@@ -3867,7 +4184,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.sales_class
@@ -3963,7 +4280,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             dispatch: setInputSubscriptionInterval,
                             selectedRowDataValue: selectedRowDataProperty?.subscription_interval ?? "",
                           });
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         data-text={`${
                           selectedRowDataProperty?.subscription_interval
@@ -3977,7 +4294,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.subscription_interval
@@ -4212,7 +4529,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.subscription_canceled_at
@@ -4307,7 +4624,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             dispatch: setInputLeaseDivision,
                             selectedRowDataValue: selectedRowDataProperty?.lease_division ?? "",
                           });
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         data-text={
                           selectedRowDataProperty?.lease_division
@@ -4321,7 +4638,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.lease_division
@@ -4409,7 +4726,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             field: "leasing_company",
                             dispatch: setInputLeasingCompany,
                           });
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         data-text={`${
                           selectedRowDataProperty?.leasing_company ? selectedRowDataProperty?.leasing_company : ""
@@ -4421,7 +4738,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.leasing_company ? selectedRowDataProperty.leasing_company : ""}
@@ -4541,7 +4858,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.lease_expiration_date
@@ -4661,7 +4978,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.expansion_date
@@ -4774,7 +5091,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.sales_date
@@ -5031,7 +5348,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.property_date
@@ -5171,7 +5488,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
@@ -5269,7 +5586,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
@@ -5649,7 +5966,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.competitor_appearance_date
@@ -5741,7 +6058,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                               dispatch: setInputCompetitionState,
                               selectedRowDataValue: selectedRowDataProperty?.competition_state ?? "",
                             });
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           data-text={`${
                             selectedRowDataProperty?.competition_state
@@ -5764,7 +6081,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.competition_state
@@ -5846,7 +6163,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                               field: "competitor",
                               dispatch: setInputCompetitor,
                             });
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           data-text={`${
                             selectedRowDataProperty?.competitor ? selectedRowDataProperty?.competitor : ""
@@ -5858,7 +6175,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataProperty?.competitor
@@ -5956,7 +6273,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                               field: "competitor_product",
                               dispatch: setInputCompetitorProduct,
                             });
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           data-text={`${
                             selectedRowDataProperty?.competitor_product
@@ -5970,7 +6287,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataProperty?.competitor_product
@@ -6072,7 +6389,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                               dispatch: setInputReasonClass,
                               selectedRowDataValue: selectedRowDataProperty?.reason_class ?? "",
                             });
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           data-text={`${
                             selectedRowDataProperty?.reason_class
@@ -6086,7 +6403,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.reason_class
@@ -6165,7 +6482,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                               field: "reason_detail",
                               dispatch: setInputReasonDetail,
                             });
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           data-text={`${
                             selectedRowDataProperty?.reason_detail ? selectedRowDataProperty?.reason_detail : ""
@@ -6177,7 +6494,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.reason_detail ? selectedRowDataProperty?.reason_detail : ""}
@@ -6274,7 +6591,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                               field: "customer_budget",
                               dispatch: setInputCustomerBudget,
                             });
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           data-text={`${
                             selectedRowDataProperty?.customer_budget ? selectedRowDataProperty?.customer_budget : ""
@@ -6286,7 +6603,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {checkNotFalsyExcludeZero(selectedRowDataProperty?.customer_budget)
@@ -6393,7 +6710,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                               dispatch: setInputDecisionMakerNegotiation,
                               selectedRowDataValue: selectedRowDataProperty?.decision_maker_negotiation ?? "",
                             });
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           data-text={
                             selectedRowDataProperty?.decision_maker_negotiation
@@ -6407,7 +6724,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.decision_maker_negotiation
@@ -6492,7 +6809,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.assigned_department_name
@@ -6522,7 +6839,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.assigned_unit_name
@@ -6555,7 +6872,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.assigned_section_name
@@ -6584,7 +6901,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.property_member_name
@@ -6617,7 +6934,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                         >
                           {selectedRowDataProperty?.assigned_office_name
@@ -6724,7 +7041,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         onClick={() => setIsOpenClientCompanyDetailModal(true)}
                       >
@@ -6766,7 +7083,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataProperty?.department_name ? selectedRowDataProperty?.department_name : ""} */}
@@ -6807,7 +7124,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         onClick={() => setIsOpenContactDetailModal(true)}
                       >
@@ -6840,7 +7157,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.direct_line ? selectedRowDataProperty?.direct_line : ""}
@@ -6875,7 +7192,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.extension ? selectedRowDataProperty?.extension : ""}
@@ -6909,7 +7226,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.main_phone_number ? selectedRowDataProperty?.main_phone_number : ""}
@@ -6944,7 +7261,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.direct_fax ? selectedRowDataProperty?.direct_fax : ""}
@@ -6976,7 +7293,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.main_fax ? selectedRowDataProperty?.main_fax : ""}
@@ -7019,7 +7336,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.company_cell_phone ? selectedRowDataProperty?.company_cell_phone : ""}
@@ -7054,7 +7371,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.personal_cell_phone
@@ -7093,7 +7410,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.contact_email ? selectedRowDataProperty?.contact_email : ""}
@@ -7211,7 +7528,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.position_name ? selectedRowDataProperty?.position_name : ""}
@@ -7247,7 +7564,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataProperty?.position_class ? selectedRowDataProperty?.position_class : ""} */}
@@ -7300,7 +7617,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataProperty?.occupation ? selectedRowDataProperty?.occupation : ""} */}
@@ -7347,7 +7664,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.approval_amount ? selectedRowDataProperty?.approval_amount : ""}
@@ -7378,7 +7695,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.number_of_employees_class
@@ -7401,7 +7718,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          // handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.fiscal_end_month ? selectedRowDataProperty?.fiscal_end_month : ""}
@@ -7426,7 +7743,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          // handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.budget_request_month1
@@ -7457,7 +7774,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          // handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.budget_request_month2
@@ -7502,7 +7819,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
@@ -7541,7 +7858,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          // if (hoveredItemPosWrap) handleCloseTooltip();
+                          // handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.established_in ? selectedRowDataProperty?.established_in : ""}
@@ -7574,11 +7891,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                          if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                            handleOpenTooltip({ e, display: "top" });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                         dangerouslySetInnerHTML={{
                           __html: selectedRowDataProperty?.business_content
@@ -7617,7 +7935,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.clients ? selectedRowDataProperty?.clients : ""}
@@ -7652,7 +7970,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.supplier ? selectedRowDataProperty?.supplier : ""}
@@ -7684,11 +8002,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
-                            if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                            if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                              handleOpenTooltip({ e, display: "top" });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                            if (hoveredItemPosWrap) handleCloseTooltip();
+                            handleCloseTooltip();
                           }}
                           dangerouslySetInnerHTML={{
                             __html: selectedRowDataProperty?.facility
@@ -7732,7 +8051,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.business_sites ? selectedRowDataProperty?.business_sites : ""}
@@ -7765,7 +8084,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.overseas_bases ? selectedRowDataProperty?.overseas_bases : ""}
@@ -7802,7 +8121,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.group_company ? selectedRowDataProperty?.group_company : ""}
@@ -7938,7 +8257,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.industry_type_id
@@ -7946,7 +8265,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                           : ""}
                       </span>
                     )}
-                    {searchMode && !inputProductL && (
+                    {searchMode && (
                       <select
                         className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                         value={inputIndustryType}
@@ -7964,7 +8283,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-              {/* 製品分類（大分類） 通常 */}
+              {/* 製品分類(大分類) 通常 */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -7975,11 +8294,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value} ${styles.hashtag} ${styles.uneditable_field}`}
-                        data-text={`${
-                          selectedRowDataProperty?.product_category_large
-                            ? selectedRowDataProperty?.product_category_large
-                            : ""
-                        }`}
+                        data-text={`${formattedProductCategoriesLarge}`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
@@ -7987,39 +8302,17 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
-                        {selectedRowDataProperty?.product_category_large
-                          ? selectedRowDataProperty?.product_category_large
-                          : ""}
+                        {formattedProductCategoriesLarge}
                       </span>
-                    )}
-                    {searchMode && !inputIndustryType && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductL}
-                      //   onChange={(e) => setInputProductL(e.target.value)}
-                      // />
-                      <select
-                        className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
-                        value={inputProductL}
-                        onChange={(e) => setInputProductL(e.target.value)}
-                      >
-                        <option value=""></option>
-                        {optionsProductL.map((option) => (
-                          <option key={option} value={option}>
-                            {option}
-                          </option>
-                        ))}
-                      </select>
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-              {/* 製品分類（中分類） 通常 */}
+              {/* 製品分類(中分類) 通常 */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -8030,11 +8323,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {!searchMode && (
                       <span
                         className={`${styles.value} ${styles.hashtag} ${styles.uneditable_field}`}
-                        data-text={`${
-                          selectedRowDataProperty?.product_category_medium
-                            ? selectedRowDataProperty?.product_category_medium
-                            : ""
-                        }`}
+                        data-text={`${formattedProductCategoriesMedium}`}
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
@@ -8042,167 +8331,45 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
-                        {selectedRowDataProperty?.product_category_medium
-                          ? selectedRowDataProperty?.product_category_medium
-                          : ""}
+                        {formattedProductCategoriesMedium}
                       </span>
-                    )}
-                    {searchMode && !!inputProductL && (
-                      <select
-                        value={inputProductM}
-                        onChange={(e) => setInputProductM(e.target.value)}
-                        className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[80%] cursor-pointer  ${
-                          styles.select_box
-                        }`}
-                      >
-                        <option key="" value=""></option>,{/* 1. 電子部品・モジュール */}
-                        {/* 1. 電子部品・モジュール */}
-                        {inputProductL === "electronic_components_modules" &&
-                          productCategoriesM.moduleCategoryM.map((option) => (
-                            <option key={`moduleCategoryM${option.name}`} value={option.id}>
-                              {mappingModuleCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 2. 機械部品 */}
-                        {inputProductL === "mechanical_parts" &&
-                          productCategoriesM.machinePartsCategoryM.map((option) => (
-                            <option key={`machinePartsCategoryM${option.name}`} value={option.id}>
-                              {mappingMachinePartsCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 3. 製造・加工機械 */}
-                        {inputProductL === "manufacturing_processing_machines" &&
-                          productCategoriesM.processingMachineryCategoryM.map((option) => (
-                            <option key={`processingMachineryCategoryM${option.name}`} value={option.id}>
-                              {mappingProcessingMachineryCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 4. 科学・理化学機器 */}
-                        {inputProductL === "scientific_chemical_equipment" &&
-                          productCategoriesM.scienceCategoryM.map((option) => (
-                            <option key={`processingMachineryCategoryM${option.name}`} value={option.id}>
-                              {mappingScienceCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 5. 素材・材料 */}
-                        {inputProductL === "materials" &&
-                          productCategoriesM.materialCategoryM.map((option) => (
-                            <option key={`materialCategoryM${option.name}`} value={option.id}>
-                              {mappingMaterialCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 6. 測定・分析 */}
-                        {inputProductL === "measurement_analysis" &&
-                          productCategoriesM.analysisCategoryM.map((option) => (
-                            <option key={`analysisCategoryM${option.name}`} value={option.id}>
-                              {mappingAnalysisCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 7. 画像処理 */}
-                        {inputProductL === "image_processing" &&
-                          productCategoriesM.imageProcessingCategoryM.map((option) => (
-                            <option key={`imageProcessingCategoryM${option.name}`} value={option.id}>
-                              {mappingImageProcessingCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 8. 制御・電機機器 */}
-                        {inputProductL === "control_electrical_equipment" &&
-                          productCategoriesM.controlEquipmentCategoryM.map((option) => (
-                            <option key={`controlEquipmentCategoryM${option.name}`} value={option.id}>
-                              {mappingControlEquipmentCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 9. 工具・消耗品・備品 */}
-                        {inputProductL === "tools_consumables_supplies" &&
-                          productCategoriesM.toolCategoryM.map((option) => (
-                            <option key={`toolCategoryM${option.name}`} value={option.id}>
-                              {mappingToolCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 10. 設計・生産支援 */}
-                        {inputProductL === "design_production_support" &&
-                          productCategoriesM.designCategoryM.map((option) => (
-                            <option key={`designCategoryM${option.name}`} value={option.id}>
-                              {mappingDesignCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 11. IT・ネットワーク */}
-                        {inputProductL === "it_network" &&
-                          productCategoriesM.ITCategoryM.map((option) => (
-                            <option key={`ITCategoryM${option.name}`} value={option.id}>
-                              {mappingITCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 12. オフィス */}
-                        {inputProductL === "office" &&
-                          productCategoriesM.OfficeCategoryM.map((option) => (
-                            <option key={`OfficeCategoryM${option.name}`} value={option.id}>
-                              {mappingOfficeCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 13. 業務支援サービス */}
-                        {inputProductL === "business_support_services" &&
-                          productCategoriesM.businessSupportCategoryM.map((option) => (
-                            <option key={`businessSupportCategoryM${option.name}`} value={option.id}>
-                              {mappingBusinessSupportCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 14. セミナー・スキルアップ */}
-                        {inputProductL === "seminars_skill_up" &&
-                          productCategoriesM.skillUpCategoryM.map((option) => (
-                            <option key={`skillUpCategoryM${option.name}`} value={option.id}>
-                              {mappingSkillUpCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 15. その他 */}
-                        {inputProductL === "others" &&
-                          productCategoriesM.othersCategoryM.map((option) => (
-                            <option key={`othersCategoryM${option.name}`} value={option.id}>
-                              {mappingOthersCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                      </select>
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-              {/* 製品分類（小分類） */}
-              {/* <div className={`${styles.row_area} flex w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>製品分類（小分類）</span>
-                  {!searchMode && (
-                    <span
-                      className={`${styles.value}`}
-                      data-text={`${
-                        selectedRowDataProperty?.product_category_small
-                          ? selectedRowDataProperty?.product_category_small
-                          : ""
-                      }`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      {selectedRowDataProperty?.product_category_small
-                        ? selectedRowDataProperty?.product_category_small
-                        : ""}
-                    </span>
-                  )}
-                  {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box} ml-[20px]`}
-                      value={inputProductS}
-                      onChange={(e) => setInputProductS(e.target.value)}
-                    />
-                  )}
+              {/* 製品分類(小分類) 通常 */}
+              <div className={`${styles.row_area} flex w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                      <span className={``}>製品分類</span>
+                      <span className={``}>(小分類)</span>
+                    </div>
+                    {!searchMode && (
+                      <span
+                        className={`${styles.value} ${styles.hashtag} ${styles.uneditable_field}`}
+                        data-text={`${formattedProductCategoriesSmall}`}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e, display: "top" });
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                          handleCloseTooltip();
+                        }}
+                      >
+                        {formattedProductCategoriesSmall}
+                      </span>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
                 </div>
-                <div className={`${styles.underline}`}></div>
               </div>
-            </div> */}
 
               {/* 法人番号・ID 通常 */}
               <div className={`${styles.row_area} flex w-full items-center`}>
@@ -8222,7 +8389,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
-                          if (hoveredItemPosWrap) handleCloseTooltip();
+                          handleCloseTooltip();
                         }}
                       >
                         {selectedRowDataProperty?.corporate_number ? selectedRowDataProperty?.corporate_number : ""}
@@ -10962,7 +11129,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     <span className={`${styles.title_search_mode}`}>○業種</span>
-                    {searchMode && !inputProductL && (
+                    {searchMode && (
                       // <input
                       //   type="text"
                       //   className={`${styles.input_box}`}
@@ -10980,65 +11147,13 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                             {mappingIndustryType[option][language]}
                           </option>
                         ))}
-                        {/* <option value="機械要素・部品">機械要素・部品</option>
-                        <option value="自動車・輸送機器">自動車・輸送機器</option>
-                        <option value="電子部品・半導体">電子部品・半導体</option>
-                        <option value="製造・加工受託">製造・加工受託</option>
-                        <option value="産業用機械">産業用機械</option>
-                        <option value="産業用電気機器">産業用電気機器</option>
-                        <option value="IT・情報通信">IT・情報通信</option>
-                        <option value="ソフトウェア">ソフトウェア</option>
-                        <option value="医薬品・バイオ">医薬品・バイオ</option>
-                        <option value="樹脂・プラスチック">樹脂・プラスチック</option>
-                        <option value="ゴム製品">ゴム製品</option>
-                        <option value="鉄/非鉄金属">鉄/非鉄金属</option>
-                        <option value="民生用電気機器">民生用電気機器</option>
-                        <option value="航空・宇宙">航空・宇宙</option>
-                        <option value="CAD/CAM">CAD/CAM</option>
-                        <option value="建材・資材・什器">建材・資材・什器</option>
-                        <option value="小売">小売</option>
-                        <option value="飲食料品">飲食料品</option>
-                        <option value="飲食店・宿泊業">飲食店・宿泊業</option>
-                        <option value="公益・特殊・独立行政法人">公益・特殊・独立行政法人</option>
-                        <option value="水産・農林業">水産・農林業</option>
-                        <option value="繊維">繊維</option>
-                        <option value="ガラス・土石製品">ガラス・土石製品</option>
-                        <option value="造船・重機">造船・重機</option>
-                        <option value="環境">環境</option>
-                        <option value="印刷業">印刷業</option>
-                        <option value="運輸業">運輸業</option>
-                        <option value="金融・証券・保険業">金融・証券・保険業</option>
-                        <option value="警察・消防・自衛隊">警察・消防・自衛隊</option>
-                        <option value="鉱業">鉱業</option>
-                        <option value="紙・バルブ">紙・バルブ</option>
-                        <option value="木材">木材</option>
-                        <option value="ロボット">ロボット</option>
-                        <option value="試験・分析・測定">試験・分析・測定</option>
-                        <option value="エネルギー">エネルギー</option>
-                        <option value="電気・ガス・水道業">電気・ガス・水道業</option>
-                        <option value="医療・福祉">医療・福祉</option>
-                        <option value="サービス業">サービス業</option>
-                        <option value="その他">その他</option>
-                        <option value="化学">化学</option>
-                        <option value="セラミックス">セラミックス</option>
-                        <option value="食品機械">食品機械</option>
-                        <option value="光学機器">光学機器</option>
-                        <option value="医療機器">医療機器</option>
-                        <option value="その他製造">その他製造</option>
-                        <option value="倉庫・運輸関連業">倉庫・運輸関連業</option>
-                        <option value="教育・研究機関">教育・研究機関</option>
-                        <option value="石油・石炭製品">石油・石炭製品</option>
-                        <option value="商社・卸売">商社・卸売</option>
-                        <option value="官公庁">官公庁</option>
-                        <option value="個人">個人</option>
-                        <option value="不明">不明</option> */}
                       </select>
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-              {/* 製品分類（大分類） サーチ */}
+              {/* 製品分類(大分類) サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -11046,41 +11161,31 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       <span className={``}>製品分類</span>
                       <span className={``}>(大分類)</span>
                     </div>
-                    {searchMode && !inputIndustryType && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductL}
-                      //   onChange={(e) => setInputProductL(e.target.value)}
-                      // />
-                      <select
-                        className={`ml-auto h-full w-[100%] cursor-pointer  ${styles.select_box}`}
-                        value={inputProductL}
-                        onChange={(e) => setInputProductL(e.target.value)}
-                      >
-                        <option value=""></option>
-                        <option value="電子部品・モジュール">電子部品・モジュール</option>
-                        <option value="機械部品">機械部品</option>
-                        <option value="製造・加工機械">製造・加工機械</option>
-                        <option value="科学・理化学機器">科学・理化学機器</option>
-                        <option value="素材・材料">素材・材料</option>
-                        <option value="測定・分析">測定・分析</option>
-                        <option value="画像処理">画像処理</option>
-                        <option value="制御・電機機器">制御・電機機器</option>
-                        <option value="工具・消耗品・備品">工具・消耗品・備品</option>
-                        <option value="設計・生産支援">設計・生産支援</option>
-                        <option value="IT・ネットワーク">IT・ネットワーク</option>
-                        <option value="オフィス">オフィス</option>
-                        <option value="業務支援サービス">業務支援サービス</option>
-                        <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
-                        <option value="その他">その他</option>
-                      </select>
+                    {searchMode && (
+                      <>
+                        <CustomSelectMultiple
+                          stateArray={inputProductArrayLarge}
+                          dispatch={setInputProductArrayLarge}
+                          selectedSetObj={selectedProductCategoryLargeSet}
+                          options={optionsProductLNameOnly}
+                          getOptionName={getProductCategoryLargeName}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          // maxWidth={`calc(100% - 88px)`}
+                          maxWidth={`calc(100% - var(--title-width))`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      </>
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-              {/* 製品分類（中分類） サーチ */}
+              {/* 製品分類(中分類) サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
@@ -11088,165 +11193,62 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                       <span className={``}>製品分類</span>
                       <span className={``}>(中分類)</span>
                     </div>
-                    {searchMode && !!inputProductL && (
-                      // <input
-                      //   type="text"
-                      //   className={`${styles.input_box} ml-[20px]`}
-                      //   value={inputProductM}
-                      //   onChange={(e) => setInputProductM(e.target.value)}
-                      // />
-                      <select
-                        value={inputProductM}
-                        onChange={(e) => setInputProductM(e.target.value)}
-                        className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[100%] cursor-pointer  ${
-                          styles.select_box
-                        }`}
-                      >
-                        <option key="" value=""></option>,{/* 1. 電子部品・モジュール */}
-                        {/* 1. 電子部品・モジュール */}
-                        {inputProductL === "electronic_components_modules" &&
-                          productCategoriesM.moduleCategoryM.map((option) => (
-                            <option key={`moduleCategoryM${option.name}`} value={option.id}>
-                              {mappingModuleCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 2. 機械部品 */}
-                        {inputProductL === "mechanical_parts" &&
-                          productCategoriesM.machinePartsCategoryM.map((option) => (
-                            <option key={`machinePartsCategoryM${option.name}`} value={option.id}>
-                              {mappingMachinePartsCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 3. 製造・加工機械 */}
-                        {inputProductL === "manufacturing_processing_machines" &&
-                          productCategoriesM.processingMachineryCategoryM.map((option) => (
-                            <option key={`processingMachineryCategoryM${option.name}`} value={option.id}>
-                              {mappingProcessingMachineryCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 4. 科学・理化学機器 */}
-                        {inputProductL === "scientific_chemical_equipment" &&
-                          productCategoriesM.scienceCategoryM.map((option) => (
-                            <option key={`processingMachineryCategoryM${option.name}`} value={option.id}>
-                              {mappingScienceCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 5. 素材・材料 */}
-                        {inputProductL === "materials" &&
-                          productCategoriesM.materialCategoryM.map((option) => (
-                            <option key={`materialCategoryM${option.name}`} value={option.id}>
-                              {mappingMaterialCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 6. 測定・分析 */}
-                        {inputProductL === "measurement_analysis" &&
-                          productCategoriesM.analysisCategoryM.map((option) => (
-                            <option key={`analysisCategoryM${option.name}`} value={option.id}>
-                              {mappingAnalysisCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 7. 画像処理 */}
-                        {inputProductL === "image_processing" &&
-                          productCategoriesM.imageProcessingCategoryM.map((option) => (
-                            <option key={`imageProcessingCategoryM${option.name}`} value={option.id}>
-                              {mappingImageProcessingCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 8. 制御・電機機器 */}
-                        {inputProductL === "control_electrical_equipment" &&
-                          productCategoriesM.controlEquipmentCategoryM.map((option) => (
-                            <option key={`controlEquipmentCategoryM${option.name}`} value={option.id}>
-                              {mappingControlEquipmentCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 9. 工具・消耗品・備品 */}
-                        {inputProductL === "tools_consumables_supplies" &&
-                          productCategoriesM.toolCategoryM.map((option) => (
-                            <option key={`toolCategoryM${option.name}`} value={option.id}>
-                              {mappingToolCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 10. 設計・生産支援 */}
-                        {inputProductL === "design_production_support" &&
-                          productCategoriesM.designCategoryM.map((option) => (
-                            <option key={`designCategoryM${option.name}`} value={option.id}>
-                              {mappingDesignCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 11. IT・ネットワーク */}
-                        {inputProductL === "it_network" &&
-                          productCategoriesM.ITCategoryM.map((option) => (
-                            <option key={`ITCategoryM${option.name}`} value={option.id}>
-                              {mappingITCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 12. オフィス */}
-                        {inputProductL === "office" &&
-                          productCategoriesM.OfficeCategoryM.map((option) => (
-                            <option key={`OfficeCategoryM${option.name}`} value={option.id}>
-                              {mappingOfficeCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 13. 業務支援サービス */}
-                        {inputProductL === "business_support_services" &&
-                          productCategoriesM.businessSupportCategoryM.map((option) => (
-                            <option key={`businessSupportCategoryM${option.name}`} value={option.id}>
-                              {mappingBusinessSupportCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 14. セミナー・スキルアップ */}
-                        {inputProductL === "seminars_skill_up" &&
-                          productCategoriesM.skillUpCategoryM.map((option) => (
-                            <option key={`skillUpCategoryM${option.name}`} value={option.id}>
-                              {mappingSkillUpCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                        {/* 15. その他 */}
-                        {inputProductL === "others" &&
-                          productCategoriesM.othersCategoryM.map((option) => (
-                            <option key={`othersCategoryM${option.name}`} value={option.id}>
-                              {mappingOthersCategoryM[option.name][language]}
-                            </option>
-                          ))}
-                      </select>
+                    {searchMode && !!inputProductArrayLarge.length && (
+                      <>
+                        <CustomSelectMultiple
+                          stateArray={inputProductArrayMedium}
+                          dispatch={setInputProductArrayMedium}
+                          selectedSetObj={selectedProductCategoryMediumSet}
+                          options={optionsProductCategoryMediumAll}
+                          getOptionName={getProductCategoryMediumNameAll}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          // maxWidth={`calc(100% - 88px)`}
+                          maxWidth={`calc(100% - var(--title-width))`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      </>
                     )}
                   </div>
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-              {/* 製品分類（小分類） サーチ */}
-              {/* <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
-                <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title_search_mode}`}>製品分類（小分類）</span>
-                  {!searchMode && (
-                    <span
-                      className={`${styles.value}`}
-                      data-text={`${
-                        selectedRowDataProperty?.product_category_small
-                          ? selectedRowDataProperty?.product_category_small
-                          : ""
-                      }`}
-                      onMouseEnter={(e) => handleOpenTooltip(e)}
-                      onMouseLeave={handleCloseTooltip}
-                    >
-                      {selectedRowDataProperty?.product_category_small
-                        ? selectedRowDataProperty?.product_category_small
-                        : ""}
-                    </span>
-                  )}
-                  {searchMode && (
-                    <input
-                      type="text"
-                      className={`${styles.input_box} ml-[20px]`}
-                      value={inputProductS}
-                      onChange={(e) => setInputProductS(e.target.value)}
-                    />
-                  )}
+              {/* 製品分類(小分類) サーチ */}
+              <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className={`${styles.title_box} flex h-full items-center `}>
+                    <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                      <span className={``}>製品分類</span>
+                      <span className={``}>(小分類)</span>
+                    </div>
+                    {searchMode && !!inputProductArrayMedium.length && (
+                      <>
+                        <CustomSelectMultiple
+                          stateArray={inputProductArraySmall}
+                          dispatch={setInputProductArraySmall}
+                          selectedSetObj={selectedProductCategorySmallSet}
+                          options={optionsProductCategorySmallAll}
+                          getOptionName={getProductCategorySmallNameAll}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          // maxWidth={`calc(100% - 88px)`}
+                          maxWidth={`calc(100% - var(--title-width))`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      </>
+                    )}
+                  </div>
+                  <div className={`${styles.underline}`}></div>
                 </div>
-                <div className={`${styles.underline}`}></div>
               </div>
-            </div> */}
 
               {/* 法人番号・ID サーチ */}
               <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>

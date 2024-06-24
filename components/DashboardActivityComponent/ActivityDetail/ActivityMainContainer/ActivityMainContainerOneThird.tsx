@@ -2170,14 +2170,6 @@ const ActivityMainContainerOneThirdMemo = () => {
                         onMouseEnter={(e) => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
-                          console.log(
-                            "🔥🔥🔥🔥🔥🔥🔥🔥🔥 el.scrollWidth > el.offsetWidth",
-                            el.scrollWidth > el.offsetWidth,
-                            "el.scrollWidth",
-                            el.scrollWidth,
-                            "el.offsetWidth",
-                            el.offsetWidth
-                          );
                           if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
                         }}
                         onMouseLeave={(e) => {
@@ -4616,7 +4608,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                   <div className={`${styles.underline}`}></div>
                 </div>
               </div>
-              {/* 製品分類（中分類） 通常モード */}
+              {/* 製品分類(中分類) 通常モード */}
               <div
                 className={`${styles.row_area} ${
                   searchMode ? `${styles.row_area_search_mode}` : ``
@@ -5748,7 +5740,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                             // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
                             customClass="font-normal"
                             bgDark={false}
-                            maxWidth={`calc(100% - 88px)`}
+                            // maxWidth={`calc(100% - 88px)`}
+                            maxWidth={`calc(100% - var(--title-width))`}
                             maxHeight={30}
                             // zIndexSelectBox={2000}
                             hideOptionAfterSelect={true}
@@ -5783,7 +5776,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                             // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
                             customClass="font-normal"
                             bgDark={false}
-                            maxWidth={`calc(100% - 88px)`}
+                            // maxWidth={`calc(100% - 88px)`}
+                            maxWidth={`calc(100% - var(--title-width))`}
                             maxHeight={30}
                             // zIndexSelectBox={2000}
                             hideOptionAfterSelect={true}
@@ -5818,7 +5812,8 @@ const ActivityMainContainerOneThirdMemo = () => {
                             // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
                             customClass="font-normal"
                             bgDark={false}
-                            maxWidth={`calc(100% - 88px)`}
+                            // maxWidth={`calc(100% - 88px)`}
+                            maxWidth={`calc(100% - var(--title-width))`}
                             maxHeight={30}
                             // zIndexSelectBox={2000}
                             hideOptionAfterSelect={true}

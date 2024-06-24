@@ -309,12 +309,6 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   // ================== 🌟supabase本番サーバーデータフェッチ用の関数🌟 ==================
   const supabase = useSupabaseClient();
 
-  // 検索タイプ オート検索/マニュアル検索 デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
-  const functionName =
-    searchType === "partial_match"
-      ? "search_properties_and_companies_and_contacts_partial"
-      : "search_properties_and_companies_and_contacts";
-
   // ユーザーState
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
@@ -323,6 +317,123 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   const newSearchProperty_Contact_CompanyParams = useDashboardStore(
     (state) => state.newSearchProperty_Contact_CompanyParams
   );
+
+  // 検索タイプ オート検索/マニュアル検索 デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
+  // 🔺製品分類なし
+  // const functionName =
+  //   searchType === "partial_match"
+  //     ? "search_properties_and_companies_and_contacts_partial"
+  //     : "search_properties_and_companies_and_contacts";
+  // 🔺製品分類有り
+  const functionName =
+    searchType === "partial_match"
+      ? "search_properties_companies_contacts_categories_partial"
+      : "search_properties_companies_contacts_categories";
+
+  // 🔸サーチ時の並び替えの対象カラムとASC or DESC
+  type SortableColumnContactCompany =
+    | "company_name"
+    | "company_department_name"
+    | "contact_name"
+    | "current_status"
+    | "property_name"
+    | "property_summary"
+    | "expected_product"
+    | "property_member_name"
+    | "assigned_department_name"
+    | "assigned_section_name"
+    | "assigned_unit_name"
+    | "assigned_office_name"
+    | "order_certainty_start_of_month"
+    | "review_order_certainty"
+    | "address"
+    | "position_class"
+    | "position_name"
+    | "pending_flag"
+    | "rejected_flag"
+    | "product_sales"
+    | "expected_sales_price"
+    | "term_division"
+    | "sold_product"
+    | "unit_sales"
+    | "sales_contribution_category"
+    | "sales_price"
+    | "discounted_price"
+    | "discount_rate"
+    | "sales_class"
+    | "expected_order_date"
+    | "expected_order_year_month"
+    | "expected_order_quarter"
+    | "expected_order_half_year"
+    | "expected_order_fiscal_year"
+    | "property_date"
+    | "property_year_month"
+    | "property_quarter"
+    | "property_half_year"
+    | "property_fiscal_year"
+    | "expansion_date"
+    | "expansion_year_month"
+    | "expansion_quarter"
+    | "expansion_half_year"
+    | "expansion_fiscal_year"
+    | "sales_date"
+    | "sales_year_month"
+    | "sales_quarter"
+    | "sales_half_year"
+    | "sales_fiscal_year"
+    | "subscription_start_date"
+    | "subscription_canceled_at"
+    | "leasing_company"
+    | "lease_division"
+    | "lease_expiration_date"
+    | "step_in_flag"
+    | "repeat_flag"
+    | "competitor_appearance_date"
+    | "competitor"
+    | "competitor_product"
+    | "reason_class"
+    | "reason_detail"
+    | "customer_budget"
+    | "decision_maker_negotiation"
+    | "subscription_interval"
+    | "competition_state"
+    | "direct_line"
+    | "main_phone_number"
+    | "direct_fax"
+    | "main_fax"
+    | "email"
+    | "extension"
+    | "company_cell_phone"
+    | "personal_cell_phone"
+    | "occupation"
+    | "approval_amount"
+    | "budget_request_month1"
+    | "budget_request_month2"
+    | "fiscal_end_month"
+    | "capital"
+    | "established_in"
+    | "supplier"
+    | "clients"
+    | "number_of_employees_class"
+    | "business_content"
+    | "business_sites"
+    | "overseas_bases"
+    | "group_company"
+    | "industry_type_id"
+    | "product_categories_large_array"
+    | "product_categories_medium_array"
+    | "product_categories_small_array"
+    | "corporate_number"
+    | "property_created_at"
+    | "property_updated_at";
+
+  const [orderByColumnData, setOrderByColumnData] = useState<{
+    columnName: SortableColumnContactCompany;
+    isAsc: boolean;
+  }>({
+    columnName: "property_created_at",
+    isAsc: false,
+  });
 
   // フィルターをアクティブ・非アクティブのスタイル変更のためにビジネスロジックで定義
   const isFetchAll =
@@ -427,58 +538,71 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       //   let params = newSearchCompanyParams;
       let params = newSearchProperty_Contact_CompanyParams;
       console.log("🔥🔥テスト🔥🔥supabase rpcフェッチ実行！！！！！！！！ from, to, params", from, to, params);
-      // created_by_company_idがnullのもの
-      const { data, error, count } = await supabase
-        // .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
-        .rpc(functionName, { params }, { count: "exact" })
-        .eq("property_created_by_company_id", userProfileState.company_id)
-        // .is("property_created_by_company_id", null)
-        // .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
-        .range(from, to)
-        .order("property_created_at", { ascending: false }) //面談作成日時
-        .order("expected_order_date", { ascending: false }); //面談・訪問日(予定)
-      // .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
-      // .order("property_created_at", { ascending: false }); //面談作成日時
-      // .order("company_name", { ascending: true });
-      // .order("property_created_at", { ascending: false })
-      // .order("property_date", { ascending: false }) //面談・訪問日(予定)
-      // .order("company_name", { ascending: true });//会社名
-      // 成功バージョン
+
+      // ----------------- 🔸製品分類あり/なしテスト関連(フィルタ条件なし 無料会員ルート)🔸 -----------------
+      // 🔸製品分類ありver 無料会員ルート (フィルター条件なし初期画面フェッチ)
+      let rows: null = null;
+      const isLastPage = rows === null;
+      const count = 0;
+      // 🔸製品分類ありver 無料会員ルート (フィルター条件なし初期画面フェッチ) ここまで
+
+      // 🔸製品分類なしver 無料会員ルート (フィルター条件なし初期画面フェッチ)
+
+      // // created_by_company_idがnullのもの
       // const { data, error, count } = await supabase
-      //   .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
-      //   .is("created_by_company_id", null)
+      //   // .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
+      //   .rpc(functionName, { params }, { count: "exact" })
+      //   .eq("property_created_by_company_id", userProfileState.company_id)
+      //   // .is("property_created_by_company_id", null)
+      //   // .or(`property_created_by_user_id.eq.${userProfileState.id},property_created_by_user_id.is.null`)
       //   .range(from, to)
-      //   .order("company_name", { ascending: true });
+      //   .order("property_created_at", { ascending: false }) //面談作成日時
+      //   .order("expected_order_date", { ascending: false }); //面談・訪問日(予定)
+      // // .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
+      // // .order("property_created_at", { ascending: false }); //面談作成日時
+      // // .order("company_name", { ascending: true });
+      // // .order("property_created_at", { ascending: false })
+      // // .order("property_date", { ascending: false }) //面談・訪問日(予定)
+      // // .order("company_name", { ascending: true });//会社名
+      // // 成功バージョン
+      // // const { data, error, count } = await supabase
+      // //   .rpc("search_properties_and_companies_and_contacts", { params }, { count: "exact" })
+      // //   .is("created_by_company_id", null)
+      // //   .range(from, to)
+      // //   .order("company_name", { ascending: true });
 
-      // ユーザーIDが自身のIDと一致するデータのみ 成功
-      // const { data, error } = await supabase
-      //   .rpc("", { params })
-      //   .eq("created_by_user_id", `${userProfileState?.id}`)
-      //   .range(0, 20);
+      // // ユーザーIDが自身のIDと一致するデータのみ 成功
+      // // const { data, error } = await supabase
+      // //   .rpc("", { params })
+      // //   .eq("created_by_user_id", `${userProfileState?.id}`)
+      // //   .range(0, 20);
 
-      if (error) {
-        alert(error.message);
-        throw error;
-      }
-      const rows = ensureClientCompanies(data);
+      // if (error) {
+      //   alert(error.message);
+      //   throw error;
+      // }
+      // const rows = ensureClientCompanies(data);
 
-      // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-      const isLastPage = rows === null || rows?.length < limit;
+      // // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+      // const isLastPage = rows === null || rows?.length < limit;
 
-      console.log(
-        "🔥🔥テスト🔥🔥フェッチ後 count",
-        count,
-        "data",
-        data,
-        "from",
-        from,
-        "to",
-        to,
-        "rows",
-        rows,
-        "isLastPage",
-        isLastPage
-      );
+      // console.log(
+      //   "🔥🔥テスト🔥🔥フェッチ後 count",
+      //   count,
+      //   "data",
+      //   data,
+      //   "from",
+      //   from,
+      //   "to",
+      //   to,
+      //   "rows",
+      //   rows,
+      //   "isLastPage",
+      //   isLastPage
+      // );
+
+      // 🔸製品分類なしver 無料会員ルート (フィルター条件なし初期画面フェッチ) ここまで
+      // ----------------- 🔸製品分類あり/なしテスト関連(フィルタ条件なし 無料会員ルート)🔸 ここまで -----------------
 
       // 1秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       // await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -543,7 +667,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("property_created_by_company_id", userProfileState.company_id)
           .eq("property_created_by_department_of_user", departmentId)
           .range(from, to)
-          .order("property_created_at", { ascending: false }) //面談作成日時
+          // .order("property_created_at", { ascending: false }) //面談作成日時
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("expected_order_date", { ascending: false }); //面談・訪問日(予定)
         // .order("expected_order_date", { ascending: false }) //獲得予定時期
         // .order("property_created_at", { ascending: false }); //案件作成日時
@@ -565,7 +690,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("property_created_by_department_of_user", departmentId)
           .eq("property_created_by_section_of_user", sectionId)
           .range(from, to)
-          .order("property_created_at", { ascending: false }) //面談作成日時
+          // .order("property_created_at", { ascending: false }) //面談作成日時
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("expected_order_date", { ascending: false }); //面談・訪問日(予定)
         // .order("expected_order_date", { ascending: false }) //獲得予定時期
         // .order("property_created_at", { ascending: false }); //案件作成日時
@@ -588,7 +714,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("property_created_by_section_of_user", sectionId)
           .eq("property_created_by_unit_of_user", unitId)
           .range(from, to)
-          .order("property_created_at", { ascending: false }) //面談作成日時
+          // .order("property_created_at", { ascending: false }) //面談作成日時
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("expected_order_date", { ascending: false }); //面談・訪問日(予定)
         // .order("expected_order_date", { ascending: false }) //獲得予定時期
         // .order("property_created_at", { ascending: false }); //案件作成日時
@@ -610,7 +737,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("property_created_by_department_of_user", departmentId)
           .eq("property_created_by_office_of_user", officeId)
           .range(from, to)
-          .order("property_created_at", { ascending: false }) //面談作成日時
+          // .order("property_created_at", { ascending: false }) //面談作成日時
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("expected_order_date", { ascending: false }); //面談・訪問日(予定)
         // .order("expected_order_date", { ascending: false }) //獲得予定時期
         // .order("property_created_at", { ascending: false }); //案件作成日時
@@ -657,7 +785,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("property_created_by_unit_of_user", unitId)
           .eq("property_created_by_office_of_user", officeId)
           .range(from, to)
-          .order("property_created_at", { ascending: false }) //面談作成日時
+          // .order("property_created_at", { ascending: false }) //面談作成日時
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("expected_order_date", { ascending: false }); //面談・訪問日(予定)
         // .order("expected_order_date", { ascending: false }) //獲得予定時期
         // .order("property_created_at", { ascending: false }); //案件作成日時
@@ -678,7 +807,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("property_created_by_company_id", userProfileState.company_id)
           .eq("property_created_by_office_of_user", officeId)
           .range(from, to)
-          .order("property_created_at", { ascending: false }) //面談作成日時
+          // .order("property_created_at", { ascending: false }) //面談作成日時
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("expected_order_date", { ascending: false }); //面談・訪問日(予定)
         // .order("expected_order_date", { ascending: false }) //獲得予定時期
         // .order("property_created_at", { ascending: false }); //案件作成日時
@@ -699,7 +829,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("property_created_by_company_id", userProfileState.company_id)
           .eq("property_created_by_user_id", userId)
           .range(from, to)
-          .order("property_created_at", { ascending: false }) //面談作成日時
+          // .order("property_created_at", { ascending: false }) //面談作成日時
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("expected_order_date", { ascending: false }); //面談・訪問日(予定)
         // .order("expected_order_date", { ascending: false }) //獲得予定時期
         // .order("property_created_at", { ascending: false }); //案件作成日時
@@ -719,7 +850,8 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
           .rpc(functionName, { params }, { count: "exact" })
           .eq("property_created_by_company_id", userProfileState.company_id)
           .range(from, to)
-          .order("property_created_at", { ascending: false }) //面談作成日時
+          // .order("property_created_at", { ascending: false }) //面談作成日時
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("expected_order_date", { ascending: false }); //面談・訪問日(予定)
         // .order("expected_order_date", { ascending: false }) //面談・訪問日(予定)
         // .order("property_created_at", { ascending: false }); //案件作成日時
@@ -1236,7 +1368,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
     const startX = e.pageX;
     const startWidth = colsRef.current[index + 1]?.getBoundingClientRect().width || 0;
 
-    console.log("handleMouseDown", startX, startWidth);
+    console.log("マウスダウン🔥", startX, startWidth);
 
     const handleMouseUp = () => {
       console.log("マウスアップ✅✅✅✅✅✅✅ ");
@@ -1353,9 +1485,10 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
 
     const handleMouseMove = (e: MouseEvent) => {
       e.preventDefault();
+      console.log("マウスムーブ🌠🌠🌠🌠🌠🌠");
       const newWidth = e.pageX - colsRef.current[index]!.getBoundingClientRect().left;
-      console.log("newWidth", newWidth);
-      console.log("currentColsWidths.current", currentColsWidths.current);
+      // console.log("newWidth", newWidth);
+      // console.log("currentColsWidths.current", currentColsWidths.current);
       if (colsWidth === null) return;
       const newColsWidths = [...colsWidth];
       // const newColsWidths = [...currentColsWidths.current];
@@ -1365,11 +1498,11 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       // setColsWidth(newColsWidths);
       currentColsWidths.current = newColsWidths;
 
-      console.log("newColsWidths", newColsWidths);
-      console.log(
-        "更新後--template-columns",
-        parentGridScrollContainer.current!.style.getPropertyValue("--template-columns")
-      );
+      // console.log("newColsWidths", newColsWidths);
+      // console.log(
+      //   "更新後--template-columns",
+      //   parentGridScrollContainer.current!.style.getPropertyValue("--template-columns")
+      // );
 
       // 列の合計値をセット
       // newColsWidthの各値のpxの文字を削除
@@ -1384,7 +1517,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
         return +a + +b;
       }, 0);
       parentGridScrollContainer.current!.style.setProperty("--row-width", `${sumRowWidth}px`);
-      console.log("更新後--row-width", parentGridScrollContainer.current!.style.getPropertyValue("--row-width"));
+      // console.log("更新後--row-width", parentGridScrollContainer.current!.style.getPropertyValue("--row-width"));
 
       // // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
       // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
@@ -1407,7 +1540,7 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
       // [65, 165, 415, 665, 915, 1165, 1415, 1665]
       // refオブジェクトにレフトポジションを格納
       columnLeftPositions.current = accumulatedArrayMove;
-      console.log("columnLeftPositions.current", columnLeftPositions.current);
+      // console.log("columnLeftPositions.current", columnLeftPositions.current);
       // ===================================================== 🔥テスト フローズンカスタムプロパティ
       const filteredIsFrozenList = propertyColumnHeaderItemList.filter((item) => item.isFrozen === true);
       filteredIsFrozenList.forEach((item, index) => {

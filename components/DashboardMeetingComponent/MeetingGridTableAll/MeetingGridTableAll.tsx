@@ -307,12 +307,6 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
   // ================== 🌟supabase本番サーバーデータフェッチ用の関数🌟 ==================
   const supabase = useSupabaseClient();
 
-  // 検索タイプ オート検索/マニュアル検索 デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
-  const functionName =
-    searchType === "partial_match"
-      ? "search_meetings_and_companies_and_contacts_partial"
-      : "search_meetings_and_companies_and_contacts";
-
   // ユーザーState
   const userProfileState = useDashboardStore((state) => state.userProfileState);
 
@@ -322,12 +316,104 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
     (state) => state.newSearchMeeting_Contact_CompanyParams
   );
 
+  // 検索タイプ オート検索/マニュアル検索 デフォルトでは部分一致検索で、マニュアル検索では＊を使ったマニュアル検索
+  // 🔺製品分類なし
+  // const functionName =
+  //   searchType === "partial_match"
+  //     ? "search_meetings_and_companies_and_contacts_partial"
+  //     : "search_meetings_and_companies_and_contacts";
+  // 🔺製品分類有り
+  const functionName =
+    searchType === "partial_match"
+      ? "search_meetings_companies_contacts_categories_partial"
+      : "search_meetings_companies_contacts_categories";
+
+  // 🔸サーチ時の並び替えの対象カラムとASC or DESC
+  type SortableColumnContactCompany =
+    | "company_name"
+    | "address"
+    | "company_department_name"
+    | "contact_name"
+    | "position_class"
+    | "meeting_member_name"
+    | "planned_appoint_check_flag"
+    | "planned_date"
+    | "planned_start_time"
+    | "planned_purpose"
+    | "planned_product1"
+    | "planned_product2"
+    | "planned_comment"
+    | "planned_duration"
+    | "assigned_department_name"
+    | "assigned_section_name"
+    | "assigned_unit_name"
+    | "assigned_office_name"
+    | "position_name"
+    | "result_category"
+    | "result_summary"
+    | "attendees_info"
+    | "result_top_position_class"
+    | "result_negotiate_decision_maker"
+    | "pre_meeting_participation_request"
+    | "meeting_participation_request"
+    | "meeting_type"
+    | "web_tool"
+    | "meeting_year_month"
+    | "meeting_quarter"
+    | "meeting_half_year"
+    | "meeting_fiscal_year"
+    | "result_date"
+    | "result_start_time"
+    | "result_end_time"
+    | "result_duration"
+    | "result_number_of_meeting_participants"
+    | "result_presentation_product1"
+    | "result_presentation_product2"
+    | "result_presentation_product3"
+    | "result_presentation_product4"
+    | "result_presentation_product5"
+    | "direct_line"
+    | "main_phone_number"
+    | "direct_fax"
+    | "main_fax"
+    | "contact_email"
+    | "extension"
+    | "company_cell_phone"
+    | "personal_cell_phone"
+    | "occupation"
+    | "approval_amount"
+    | "budget_request_month1"
+    | "budget_request_month2"
+    | "fiscal_end_month"
+    | "capital"
+    | "established_in"
+    | "supplier"
+    | "clients"
+    | "number_of_employees_class"
+    | "business_content"
+    | "business_sites"
+    | "overseas_bases"
+    | "group_company"
+    | "industry_type_id"
+    // | "product_categories_large_array"
+    // | "product_categories_medium_array"
+    // | "product_categories_small_array"
+    | "corporate_number"
+    | "meeting_created_at"
+    | "meeting_updated_at";
+
+  const [orderByColumnData, setOrderByColumnData] = useState<{
+    columnName: SortableColumnContactCompany;
+    isAsc: boolean;
+  }>({
+    columnName: "planned_date",
+    isAsc: false,
+  });
+
   const isFetchAll =
     isFetchAllDepartments && isFetchAllSections && isFetchAllUnits && isFetchAllOffices && isFetchAllMembers;
 
   // ================== 🌟条件なしサーバーデータフェッチ用の関数🌟 ==================
-  // 取得カウント保持用state
-  const [getTotalCount, setGetTotalCount] = useState<number | null>(null);
   // let getTotalCount;
   // ユーザーが会社idを持っていない場合にはcreated_by_company_idはnullのみを取得する関数を定義
   let fetchServerPage: any;
@@ -424,55 +510,67 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       //   let params = newSearchCompanyParams;
       let params = newSearchMeeting_Contact_CompanyParams;
       console.log("🔥🔥テスト🔥🔥supabase rpcフェッチ実行！！！！！！！！ from, to, params", from, to, params);
-      // created_by_company_idがnullのもの
-      const { data, error, count } = await supabase
-        // .rpc("search_meetings_and_companies_and_contacts", { params }, { count: "exact" })
-        .rpc(functionName, { params }, { count: "exact" })
-        .eq("meeting_created_by_company_id", userProfileState.company_id)
-        // .is("meeting_created_by_company_id", null)
-        // .or(`meeting_created_by_user_id.eq.${userProfileState.id},meeting_created_by_user_id.is.null`)
-        .range(from, to)
-        // .order("company_name", { ascending: true });
-        // .order("meeting_created_at", { ascending: false }) //面談作成日時
-        .order("planned_date", { ascending: false }) //面談・訪問日(予定)
-        .order("meeting_created_at", { ascending: false }) //面談作成日時
-        .order("company_name", { ascending: true }); //会社名
-      // 成功バージョン
+
+      // ----------------- 🔸製品分類あり/なしテスト関連(フィルタ条件なし 無料会員ルート)🔸 -----------------
+      // 🔸製品分類ありver 無料会員ルート (フィルター条件なし初期画面フェッチ)
+      let rows: null = null;
+      const isLastPage = rows === null;
+      const count = 0;
+      // 🔸製品分類ありver 無料会員ルート (フィルター条件なし初期画面フェッチ) ここまで
+
+      // 🔸製品分類なしver 無料会員ルート (フィルター条件なし初期画面フェッチ)
+      // // created_by_company_idがnullのもの
       // const { data, error, count } = await supabase
-      //   .rpc("search_meetings_and_companies_and_contacts", { params }, { count: "exact" })
-      //   .is("created_by_company_id", null)
+      //   // .rpc("search_meetings_and_companies_and_contacts", { params }, { count: "exact" })
+      //   .rpc(functionName, { params }, { count: "exact" })
+      //   .eq("meeting_created_by_company_id", userProfileState.company_id)
+      //   // .is("meeting_created_by_company_id", null)
+      //   // .or(`meeting_created_by_user_id.eq.${userProfileState.id},meeting_created_by_user_id.is.null`)
       //   .range(from, to)
-      //   .order("company_name", { ascending: true });
+      //   // .order("company_name", { ascending: true });
+      //   // .order("meeting_created_at", { ascending: false }) //面談作成日時
+      //   .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+      //   .order("meeting_created_at", { ascending: false }) //面談作成日時
+      //   .order("company_name", { ascending: true }); //会社名
 
-      // ユーザーIDが自身のIDと一致するデータのみ 成功
-      // const { data, error } = await supabase
-      //   .rpc("", { params })
-      //   .eq("created_by_user_id", `${userProfileState?.id}`)
-      //   .range(0, 20);
+      // // 成功バージョン
+      // // const { data, error, count } = await supabase
+      // //   .rpc("search_meetings_and_companies_and_contacts", { params }, { count: "exact" })
+      // //   .is("created_by_company_id", null)
+      // //   .range(from, to)
+      // //   .order("company_name", { ascending: true });
 
-      if (error) {
-        alert(error.message);
-        throw error;
-      }
-      const rows = ensureClientCompanies(data);
+      // // ユーザーIDが自身のIDと一致するデータのみ 成功
+      // // const { data, error } = await supabase
+      // //   .rpc("", { params })
+      // //   .eq("created_by_user_id", `${userProfileState?.id}`)
+      // //   .range(0, 20);
 
-      // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
-      const isLastPage = rows === null || rows?.length < limit;
+      // if (error) {
+      //   alert(error.message);
+      //   throw error;
+      // }
+      // const rows = ensureClientCompanies(data);
 
-      console.log(
-        "🔥🔥テスト🔥🔥フェッチ後 count",
-        count,
-        "data",
-        data,
-        "from",
-        from,
-        "to",
-        to,
-        "rows",
-        rows,
-        "isLastPage",
-        isLastPage
-      );
+      // // フェッチしたデータの数が期待される数より少なければ、それが最後のページであると判断します
+      // const isLastPage = rows === null || rows?.length < limit;
+
+      // console.log(
+      //   "🔥🔥テスト🔥🔥フェッチ後 count",
+      //   count,
+      //   "data",
+      //   data,
+      //   "from",
+      //   from,
+      //   "to",
+      //   to,
+      //   "rows",
+      //   rows,
+      //   "isLastPage",
+      //   isLastPage
+      // );
+      // 🔸製品分類なしver 無料会員ルート (フィルター条件なし初期画面フェッチ) ここまで
+      // ----------------- 🔸製品分類あり/なしテスト関連(フィルタ条件なし 無料会員ルート)🔸 ここまで -----------------
 
       // 1秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
       // await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -493,10 +591,9 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       offset: number = 0
     ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean; count: number | null }> => {
       // ): Promise<{ rows: Client_company[] | null; nextOffset: number; isLastPage: boolean }> => {
-      console.log("🔥🔥テスト🔥🔥 offset, limit", offset, limit);
       const from = offset * limit;
       const to = from + limit - 1;
-      console.log("🔥🔥テスト🔥🔥 from, to", from, to);
+      console.log("🔥🔥テスト🔥🔥 from, to", from, to, "offset, limit", offset, limit);
       //   let params = newSearchCompanyParams;
 
       // ------------------------------- 🌟成功 切り替え有り🌟 -------------------------------
@@ -537,7 +634,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("meeting_created_by_company_id", userProfileState.company_id)
           .eq("meeting_created_by_department_of_user", departmentId)
           .range(from, to)
-          .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          // .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("meeting_created_at", { ascending: false }) //面談作成日時
           .order("company_name", { ascending: true }); //会社名
 
@@ -558,7 +656,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("meeting_created_by_department_of_user", departmentId)
           .eq("meeting_created_by_section_of_user", sectionId)
           .range(from, to)
-          .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          // .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("meeting_created_at", { ascending: false }) //面談作成日時
           .order("company_name", { ascending: true }); //会社名
 
@@ -580,7 +679,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("meeting_created_by_section_of_user", sectionId)
           .eq("meeting_created_by_unit_of_user", unitId)
           .range(from, to)
-          .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          // .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("meeting_created_at", { ascending: false }) //面談作成日時
           .order("company_name", { ascending: true }); //会社名
 
@@ -601,7 +701,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("meeting_created_by_department_of_user", departmentId)
           .eq("meeting_created_by_office_of_user", officeId)
           .range(from, to)
-          .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          // .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("meeting_created_at", { ascending: false }) //面談作成日時
           .order("company_name", { ascending: true }); //会社名
 
@@ -623,7 +724,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("meeting_created_by_section_of_user", sectionId)
           .eq("meeting_created_by_office_of_user", officeId)
           .range(from, to)
-          .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          // .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("meeting_created_at", { ascending: false }) //面談作成日時
           .order("company_name", { ascending: true }); //会社名
 
@@ -646,7 +748,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("meeting_created_by_unit_of_user", unitId)
           .eq("meeting_created_by_office_of_user", officeId)
           .range(from, to)
-          .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          // .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("meeting_created_at", { ascending: false }) //面談作成日時
           .order("company_name", { ascending: true }); //会社名
 
@@ -666,7 +769,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("meeting_created_by_company_id", userProfileState.company_id)
           .eq("meeting_created_by_office_of_user", officeId)
           .range(from, to)
-          .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          // .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("meeting_created_at", { ascending: false }) //面談作成日時
           .order("company_name", { ascending: true }); //会社名
 
@@ -686,7 +790,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
           .eq("meeting_created_by_company_id", userProfileState.company_id)
           .eq("meeting_created_by_user_id", userId)
           .range(from, to)
-          .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          // .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("meeting_created_at", { ascending: false }) //面談作成日時
           .order("company_name", { ascending: true }); //会社名
 
@@ -705,7 +810,8 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
           .rpc(functionName, { params }, { count: "exact" })
           .eq("meeting_created_by_company_id", userProfileState.company_id)
           .range(from, to)
-          .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          // .order("planned_date", { ascending: false }) //面談・訪問日(予定)
+          .order(orderByColumnData.columnName, { ascending: orderByColumnData.isAsc })
           .order("meeting_created_at", { ascending: false }) //面談作成日時
           .order("company_name", { ascending: true }); //会社名
 
@@ -1343,9 +1449,10 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
 
     const handleMouseMove = (e: MouseEvent) => {
       e.preventDefault();
+      console.log("マウスムーブ🌠🌠🌠🌠");
       const newWidth = e.pageX - colsRef.current[index]!.getBoundingClientRect().left;
-      console.log("newWidth", newWidth);
-      console.log("currentColsWidths.current", currentColsWidths.current);
+      // console.log("newWidth", newWidth);
+      // console.log("currentColsWidths.current", currentColsWidths.current);
       if (colsWidth === null) return;
       const newColsWidths = [...colsWidth];
       // const newColsWidths = [...currentColsWidths.current];
@@ -1355,11 +1462,11 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       // setColsWidth(newColsWidths);
       currentColsWidths.current = newColsWidths;
 
-      console.log("newColsWidths", newColsWidths);
-      console.log(
-        "更新後--template-columns",
-        parentGridScrollContainer.current!.style.getPropertyValue("--template-columns")
-      );
+      // console.log("newColsWidths", newColsWidths);
+      // console.log(
+      //   "更新後--template-columns",
+      //   parentGridScrollContainer.current!.style.getPropertyValue("--template-columns")
+      // );
 
       // 列の合計値をセット
       // newColsWidthの各値のpxの文字を削除
@@ -1374,7 +1481,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
         return +a + +b;
       }, 0);
       parentGridScrollContainer.current!.style.setProperty("--row-width", `${sumRowWidth}px`);
-      console.log("更新後--row-width", parentGridScrollContainer.current!.style.getPropertyValue("--row-width"));
+      // console.log("更新後--row-width", parentGridScrollContainer.current!.style.getPropertyValue("--row-width"));
 
       // // =============== フローズン用 各カラムのLeft位置、レフトポジションを取得 ===============
       // colsWidth ['65px', '100px', '250px', '250px', '250px', '250px', '250px', '250px']から
@@ -1397,7 +1504,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
       // [65, 165, 415, 665, 915, 1165, 1415, 1665]
       // refオブジェクトにレフトポジションを格納
       columnLeftPositions.current = accumulatedArrayMove;
-      console.log("columnLeftPositions.current", columnLeftPositions.current);
+      // console.log("columnLeftPositions.current", columnLeftPositions.current);
       // ===================================================== 🔥テスト フローズンカスタムプロパティ
       const filteredIsFrozenList = meetingColumnHeaderItemList.filter((item) => item.isFrozen === true);
       filteredIsFrozenList.forEach((item, index) => {

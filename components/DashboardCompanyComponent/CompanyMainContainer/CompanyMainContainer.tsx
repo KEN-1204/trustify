@@ -33,7 +33,7 @@ import { BsCheck2 } from "react-icons/bs";
 import { FallbackUnderRightActivityLog } from "./UnderRightActivityLog/FallbackUnderRightActivityLog";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
-import { MdClose, MdEdit, MdOutlineEdit } from "react-icons/md";
+import { MdClose, MdEdit, MdOutlineDeleteOutline, MdOutlineEdit } from "react-icons/md";
 import { HiOutlineSearch } from "react-icons/hi";
 import { IoIosSend } from "react-icons/io";
 import { InputSendAndCloseBtn } from "./InputSendAndCloseBtn/InputSendAndCloseBtn";
@@ -104,6 +104,7 @@ const CompanyMainContainerMemo: FC = () => {
   const searchMode = useDashboardStore((state) => state.searchMode);
   const setSearchMode = useDashboardStore((state) => state.setSearchMode);
   // ツールチップ
+  const hoveredItemPosWrap = useStore((state) => state.hoveredItemPosWrap);
   const setHoveredItemPosWrap = useStore((state) => state.setHoveredItemPosWrap);
   const isOpenSidebar = useDashboardStore((state) => state.isOpenSidebar);
   // 上画面の選択中の列データ会社
@@ -886,8 +887,9 @@ const CompanyMainContainerMemo: FC = () => {
   type TooltipParams = {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
     display?: "top" | "right" | "bottom" | "left" | "";
+    content: string;
   };
-  const handleOpenTooltip = ({ e, display = "top" }: TooltipParams) => {
+  const handleOpenTooltip = ({ e, display = "top", content = "" }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
@@ -902,7 +904,8 @@ const CompanyMainContainerMemo: FC = () => {
       y: y,
       itemWidth: width,
       itemHeight: height,
-      content: (e.target as HTMLDivElement).dataset.text as string,
+      // content: (e.target as HTMLDivElement).dataset.text as string,
+      content: content !== "" ? content : ((e.target as HTMLDivElement).dataset.text as string),
       content2: content2,
       content3: content3,
       display: display,
@@ -910,7 +913,7 @@ const CompanyMainContainerMemo: FC = () => {
   };
   // ツールチップを非表示
   const handleCloseTooltip = () => {
-    setHoveredItemPosWrap(null);
+    if (!!hoveredItemPosWrap) setHoveredItemPosWrap(null);
   };
   // ================== ✅ツールチップ ==================
 
@@ -1494,27 +1497,85 @@ const CompanyMainContainerMemo: FC = () => {
     return selectedRowDataCompany?.capital ? convertToJapaneseCurrencyFormat(selectedRowDataCompany.capital) : "";
   }, [selectedRowDataCompany?.capital]);
 
+  // サーチモード ホバー時に「入力有り」「入力無し」ボタンエリアを表示
+  const AdditionalSearchAreaUnderInput = () => {
+    console.log("AdditionalSearchAreaUnderInputレンダリング");
+    return (
+      <>
+        <div
+          className={`fade05_forward absolute left-0 top-[100%] z-[10] hidden h-max min-h-full w-full flex-col items-end justify-start bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+        >
+          <div className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}>
+            <button
+              type="button"
+              className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[#0d99ff]`}
+              // data-text={`設定した時間を削除`}
+              onMouseEnter={(e) => handleOpenTooltip({ e, content: `設定した時間を削除` })}
+              onMouseLeave={handleCloseTooltip}
+              onClick={() => {
+                handleCloseTooltip();
+              }}
+            >
+              <MdClose className="pointer-events-none text-[18px]" />
+              {/* <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" /> */}
+            </button>
+            <div
+              // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
+              className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)]`}
+              onClick={() => {
+                handleCloseTooltip();
+              }}
+              // data-text={`入力`}
+              // onMouseEnter={(e) => handleOpenTooltip({ e })}
+              // onMouseLeave={handleCloseTooltip}
+            >
+              {/* <MdMoreTime className={`text-[15px] text-[#fff]`} /> */}
+              <MdClose className="pointer-events-none text-[15px] text-[#fff]" />
+              <span>時間設定</span>
+            </div>
+          </div>
+          <div className={`${styles.line_second} flex min-h-[35px] flex-wrap items-start justify-end`}>
+            <div
+              className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border-solid px-[8px] text-[11px] text-[var(--color-text-title)] hover:border hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+              onClick={() => {}}
+            >
+              <span>入力有り</span>
+            </div>
+            <div
+              className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border-solid px-[8px] text-[11px] text-[var(--color-text-title)] hover:border hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+              onClick={() => {}}
+              // onMouseEnter={(e) => handleOpenTooltip({ e })}
+              // onMouseLeave={handleCloseTooltip}
+            >
+              <span>入力無し</span>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  };
+
   console.log(
     "🔥 CompanyMainContainerレンダリング searchMode",
     searchMode,
     "newSearchCompanyParams",
     newSearchCompanyParams,
     "selectedRowDataCompany",
-    selectedRowDataCompany,
+    selectedRowDataCompany
     // "optionsIndustryType",
     // optionsIndustryType,
-    "inputProductArrayLarge",
-    inputProductArrayLarge,
-    "inputProductArrayMedium",
-    inputProductArrayMedium,
-    "inputProductArraySmall",
-    inputProductArraySmall,
-    "formattedProductCategoriesLarge",
-    formattedProductCategoriesLarge,
-    "formattedProductCategoriesMedium",
-    formattedProductCategoriesMedium,
-    "formattedProductCategoriesSmall",
-    formattedProductCategoriesSmall
+    // "inputProductArrayLarge",
+    // inputProductArrayLarge,
+    // "inputProductArrayMedium",
+    // inputProductArrayMedium,
+    // "inputProductArraySmall",
+    // inputProductArraySmall,
+    // "formattedProductCategoriesLarge",
+    // formattedProductCategoriesLarge,
+    // "formattedProductCategoriesMedium",
+    // formattedProductCategoriesMedium,
+    // "formattedProductCategoriesSmall",
+    // formattedProductCategoriesSmall
   );
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
@@ -1974,7 +2035,7 @@ const CompanyMainContainerMemo: FC = () => {
                 <div className={`${styles.underline}`}></div>
               </div>
               {/* 代表FAX */}
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+              <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>代表Fax</span>
                   {/* ディスプレイ */}
@@ -2088,6 +2149,98 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {searchMode && (
+                  <>
+                    {/* <MdClose className="pointer-events-none text-[16px]" /> */}
+                    <div className={`additional_search_area_under_input fade05_forward group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red transition-color03`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `設定した時間を削除` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => {
+                            handleCloseTooltip();
+                          }}
+                        >
+                          <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                        </button>
+                        {Array(2)
+                          .fill(null)
+                          .map((_, index) => (
+                            <div
+                              key={`additional_search_area_under_input_btn_f_${index}`}
+                              className={`btn_f`}
+                              onClick={() => {
+                                handleCloseTooltip();
+                              }}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `設定した時間を削除` })}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              <MdClose className="pointer-events-none text-[15px] text-[#fff]" />
+                              <span>時間設定</span>
+                            </div>
+                          ))}
+                      </div>
+                      <div className={`line_second`}>
+                        <div className={`text_btn transition-color03`} onClick={() => {}}>
+                          <span>入力有り</span>
+                        </div>
+                        <div className={`text_btn transition-color03`} onClick={() => {}}>
+                          <span>入力無し</span>
+                        </div>
+                      </div>
+                    </div>
+                    {/* <div
+                      className={`fade05_forward absolute left-0 top-[100%] z-[10] hidden h-max min-h-full w-full flex-col items-end justify-start rounded-b-[6px] bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                    >
+                      <div className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                          // data-text={`設定した時間を削除`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `設定した時間を削除` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => {
+                            handleCloseTooltip();
+                          }}
+                        >
+                          <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                        </button>
+                        {Array(2)
+                          .fill(null)
+                          .map((_, index) => (
+                            <div
+                              className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)]`}
+                              onClick={() => {
+                                handleCloseTooltip();
+                              }}
+                              // data-text={`入力`}
+                              // onMouseEnter={(e) => handleOpenTooltip({ e })}
+                              // onMouseLeave={handleCloseTooltip}
+                            >
+                              <MdClose className="pointer-events-none text-[15px] text-[#fff]" />
+                              <span>時間設定</span>
+                            </div>
+                          ))}
+                      </div>
+                      <div className={`${styles.line_second} flex min-h-[35px] flex-wrap items-start justify-end`}>
+                        <div
+                          className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border-solid px-[8px] text-[11px] text-[var(--color-text-title)] hover:border hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+                          onClick={() => {}}
+                        >
+                          <span>入力有り</span>
+                        </div>
+                        <div
+                          className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border-solid px-[8px] text-[11px] text-[var(--color-text-title)] hover:border hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+                          onClick={() => {}}
+                        >
+                          <span>入力無し</span>
+                        </div>
+                      </div>
+                    </div> */}
+                  </>
+                )}
               </div>
             </div>
 
@@ -2692,7 +2845,9 @@ const CompanyMainContainerMemo: FC = () => {
                           });
                         }}
                         onMouseEnter={(e) => {
-                          handleOpenTooltip({ e });
+                          const el = e.currentTarget;
+                          if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                            handleOpenTooltip({ e });
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         }}
                         onMouseLeave={(e) => {
@@ -2931,58 +3086,6 @@ const CompanyMainContainerMemo: FC = () => {
                           {mappingIndustryType[option][language]}
                         </option>
                       ))}
-                      {/* <option value="機械要素・部品">機械要素・部品</option>
-                      <option value="自動車・輸送機器">自動車・輸送機器</option>
-                      <option value="電子部品・半導体">電子部品・半導体</option>
-                      <option value="製造・加工受託">製造・加工受託</option>
-                      <option value="産業用機械">産業用機械</option>
-                      <option value="産業用電気機器">産業用電気機器</option>
-                      <option value="IT・情報通信">IT・情報通信</option>
-                      <option value="ソフトウェア">ソフトウェア</option>
-                      <option value="医薬品・バイオ">医薬品・バイオ</option>
-                      <option value="樹脂・プラスチック">樹脂・プラスチック</option>
-                      <option value="ゴム製品">ゴム製品</option>
-                      <option value="鉄/非鉄金属">鉄/非鉄金属</option>
-                      <option value="民生用電気機器">民生用電気機器</option>
-                      <option value="航空・宇宙">航空・宇宙</option>
-                      <option value="CAD/CAM">CAD/CAM</option>
-                      <option value="建材・資材・什器">建材・資材・什器</option>
-                      <option value="小売">小売</option>
-                      <option value="飲食料品">飲食料品</option>
-                      <option value="飲食店・宿泊業">飲食店・宿泊業</option>
-                      <option value="公益・特殊・独立行政法人">公益・特殊・独立行政法人</option>
-                      <option value="水産・農林業">水産・農林業</option>
-                      <option value="繊維">繊維</option>
-                      <option value="ガラス・土石製品">ガラス・土石製品</option>
-                      <option value="造船・重機">造船・重機</option>
-                      <option value="環境">環境</option>
-                      <option value="印刷業">印刷業</option>
-                      <option value="運輸業">運輸業</option>
-                      <option value="金融・証券・保険業">金融・証券・保険業</option>
-                      <option value="警察・消防・自衛隊">警察・消防・自衛隊</option>
-                      <option value="鉱業">鉱業</option>
-                      <option value="紙・バルブ">紙・バルブ</option>
-                      <option value="木材">木材</option>
-                      <option value="ロボット">ロボット</option>
-                      <option value="試験・分析・測定">試験・分析・測定</option>
-                      <option value="エネルギー">エネルギー</option>
-                      <option value="電気・ガス・水道業">電気・ガス・水道業</option>
-                      <option value="医療・福祉">医療・福祉</option>
-                      <option value="サービス業">サービス業</option>
-                      <option value="その他">その他</option>
-                      <option value="化学">化学</option>
-                      <option value="セラミックス">セラミックス</option>
-                      <option value="食品機械">食品機械</option>
-                      <option value="光学機器">光学機器</option>
-                      <option value="医療機器">医療機器</option>
-                      <option value="その他製造">その他製造</option>
-                      <option value="倉庫・運輸関連業">倉庫・運輸関連業</option>
-                      <option value="教育・研究機関">教育・研究機関</option>
-                      <option value="石油・石炭製品">石油・石炭製品</option>
-                      <option value="商社・卸売">商社・卸売</option>
-                      <option value="官公庁">官公庁</option>
-                      <option value="個人">個人</option>
-                      <option value="不明">不明</option> */}
                     </select>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
