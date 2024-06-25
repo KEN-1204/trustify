@@ -3,6 +3,6 @@ export const checkNotFalsyExcludeZero = (value: any) => {
   if (value !== null && value !== undefined && value !== "") {
     return true;
   } else {
-    false;
+    return false;
   }
 };

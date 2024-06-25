@@ -130,7 +130,7 @@ export const UpdateContactModal = () => {
     // 編集、保存するデータをオブジェクトにまとめる
     const newContact = {
       id: selectedRowDataContact!.contact_id,
-      name: name,
+      name: name ? name : null,
       direct_line: directLine ? directLine : null,
       direct_fax: directFax ? directFax : null,
       extension: extension ? extension : null,

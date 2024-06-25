@@ -984,6 +984,22 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
     return value;
   }
+
+  // 復元Number専用
+  function beforeAdjustFieldValueInteger(value: number | "ISNULL" | "ISNOTNULL" | null) {
+    if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+    if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+    if (value === null) return null;
+    return value;
+  }
+  // 復元Date専用
+  function beforeAdjustFieldValueDate(value: string | "ISNULL" | "ISNOTNULL" | null) {
+    if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+    if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+    if (value === null) return null;
+    return new Date(value);
+  }
+
   // 数値型のフィールド用
   function adjustFieldValueNumber(value: number | null) {
     if (value === null) return null; // 全てのデータ
@@ -1069,16 +1085,18 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       setInputQuotationMemberName(
         beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_member_name)
       );
-      setInputQuotationDate(
-        newSearchQuotation_Contact_CompanyParams.quotation_date
-          ? new Date(newSearchQuotation_Contact_CompanyParams.quotation_date)
-          : null
-      );
-      setInputExpirationDate(
-        newSearchQuotation_Contact_CompanyParams.expiration_date
-          ? new Date(newSearchQuotation_Contact_CompanyParams.expiration_date)
-          : null
-      );
+      // setInputQuotationDate(
+      //   newSearchQuotation_Contact_CompanyParams.quotation_date
+      //     ? new Date(newSearchQuotation_Contact_CompanyParams.quotation_date)
+      //     : null
+      // );
+      setInputQuotationDate(beforeAdjustFieldValueDate(newSearchQuotation_Contact_CompanyParams.quotation_date));
+      // setInputExpirationDate(
+      //   newSearchQuotation_Contact_CompanyParams.expiration_date
+      //     ? new Date(newSearchQuotation_Contact_CompanyParams.expiration_date)
+      //     : null
+      // );
+      setInputExpirationDate(beforeAdjustFieldValueDate(newSearchQuotation_Contact_CompanyParams.expiration_date));
       //
       setInputQuotationNoCustom(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_no_custom));
       setInputQuotationNoSystem(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_no_system));
@@ -2667,23 +2685,23 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           supervisor2_stamp_id: memberObjSupervisor2.signature_stamp_id || null,
           supervisor2_user_id: memberObjSupervisor2.memberId || null,
           quotation_no_custom: useQuotationNoCustom ? inputQuotationNoCustom ?? null : null,
-          quotation_no_system: useQuotationNoCustom ? null : inputQuotationNoSystem ?? null,
+          quotation_no_system: useQuotationNoCustom ? null : inputQuotationNoSystem || null,
           quotation_member_name: memberObj.memberName,
-          quotation_business_office: officeName ?? null,
-          quotation_department: departmentName ?? null,
+          quotation_business_office: officeName || null,
+          quotation_department: departmentName || null,
           // 年月度〜年度
           quotation_year_month: quotationFiscalYearMonth || null,
-          quotation_quarter: quotationQuarter,
-          quotation_half_year: quotationHalfYear,
-          quotation_fiscal_year: selectedFiscalYear,
+          quotation_quarter: quotationQuarter || null,
+          quotation_half_year: quotationHalfYear || null,
+          quotation_fiscal_year: selectedFiscalYear || null,
           //
-          quotation_title: inputQuotationTitle ?? null,
+          quotation_title: inputQuotationTitle || null,
           in_charge_stamp_flag: checkboxInChargeFlagEdit,
           supervisor1_stamp_flag: checkboxSupervisor1FlagEdit,
           supervisor2_stamp_flag: checkboxSupervisor2FlagEdit,
-          in_charge_stamp_name: memberObjInCharge.memberName,
-          supervisor1_stamp_name: memberObjSupervisor1.memberName,
-          supervisor2_stamp_name: memberObjSupervisor2.memberName,
+          in_charge_stamp_name: memberObjInCharge.memberName || null,
+          supervisor1_stamp_name: memberObjSupervisor1.memberName || null,
+          supervisor2_stamp_name: memberObjSupervisor2.memberName || null,
           quotation_products_array: insertProductsList ?? [],
         };
 

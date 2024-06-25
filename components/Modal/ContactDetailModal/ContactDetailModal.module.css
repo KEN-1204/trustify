@@ -304,7 +304,8 @@
   /* height: 30px; */
   min-height: 32px;
   /* font-size: 15px; */
-  font-size: 14px;
+  /* font-size: 14px; */
+  font-size: 13px;
   border-radius: 6px;
 }
 .textarea_box {

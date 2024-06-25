@@ -312,8 +312,6 @@
   min-width: var(--title-width);
   /* margin-right: 20px; */
   font-weight: 600;
-  font-size: 13px;
-  font-size: 14px;
   line-height: 17px;
   user-select: none;
   /* font-family: sans-serif, "Hiragino Sans", Roboto, system-ui; */
@@ -352,6 +350,38 @@
   /* min-width: 80px; */
   font-weight: 600;
 }
+.check_title {
+  color: var(--color-text-brand-f);
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  /* padding-right: 20px; */
+  /* min-width: 80px; */
+  /* min-width: 90px; */
+  min-width: 70px;
+  line-height: 17px;
+  /* min-width: 75px; */
+  /* min-width: 100px; */
+  /* margin-right: 10px; */
+  font-weight: 600;
+  user-select: none;
+}
+.check_title_search_mode {
+  color: var(--color-text-brand-f);
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  /* padding-right: 20px; */
+  /* min-width: 80px; */
+  /* min-width: 90px; */
+  min-width: 95px;
+  font-size: 13px;
+  line-height: 17px;
+  /* min-width: 100px; */
+  /* margin-right: 10px; */
+  font-weight: 600;
+  user-select: none;
+}
 .section_title {
   color: var(--color-text-under-title);
   white-space: nowrap;
@@ -362,8 +392,6 @@
   /* min-width: 95px; */
   min-width: 78px;
   font-weight: 600;
-  font-size: 18px;
-  font-size: 17px;
   line-height: 17px;
   user-select: none;
 }
@@ -375,7 +403,6 @@
   white-space: nowrap;
   /* width: 100%; */
   /* text-align: center; */
-  font-size: 14px;
 }
 .value.hashtag {
   color: var(--color-hashtag);
@@ -414,15 +441,7 @@
 .value_highlight {
   color: var(--color-text-brand);
 }
-.textarea_value {
-  color: var(--color-text-under-value);
-  overflow: hidden;
-  display: -webkit-inline-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  min-height: 48px;
-  line-height: 22px;
-}
+
 .anchor {
   color: var(--color-text-brand-f);
   text-decoration: underline;
@@ -494,6 +513,15 @@
 .divider {
   background-color: rgb(94 94 94 / 0.3);
 }
+.textarea_value {
+  color: var(--color-text-under-value);
+  overflow: hidden;
+  display: -webkit-inline-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  min-height: 48px;
+  line-height: 22px;
+}
 .textarea_box {
   /* height: 100%; */
   /* min-height: 56px; */
@@ -513,12 +541,11 @@
   /* padding: 6px 8px; */
   /* padding: 4px 8px; */
   padding: 6px 12px;
-  font-size: 14px;
   /* letter-spacing: 0.9px; */
   /* letter-spacing: 0.6px; */
   letter-spacing: 0.3px;
   /* line-height: 24px; */
-  line-height: 22px;
+  line-height: 21px;
   border-radius: 6px;
   resize: none;
   /* box-sizing: border-box; */
@@ -719,39 +746,6 @@
   border-color: var(--border-theme-dark);
 }
 
-.check_title {
-  color: var(--color-text-brand-f);
-  color: var(--color-text-under-title);
-  white-space: nowrap;
-  /* 右側に20px余白 */
-  /* padding-right: 20px; */
-  /* min-width: 80px; */
-  /* min-width: 90px; */
-  min-width: 70px;
-  font-size: 13px;
-  line-height: 17px;
-  /* min-width: 75px; */
-  /* min-width: 100px; */
-  /* margin-right: 10px; */
-  font-weight: 600;
-  user-select: none;
-}
-.check_title_search_mode {
-  color: var(--color-text-brand-f);
-  color: var(--color-text-under-title);
-  white-space: nowrap;
-  /* 右側に20px余白 */
-  /* padding-right: 20px; */
-  /* min-width: 80px; */
-  /* min-width: 90px; */
-  min-width: 95px;
-  font-size: 13px;
-  line-height: 17px;
-  /* min-width: 100px; */
-  /* margin-right: 10px; */
-  font-weight: 600;
-  user-select: none;
-}
 .right_under_title {
   color: var(--color-text-brand-f);
   color: var(--color-text-under-title);
@@ -1016,13 +1010,47 @@
   border-radius: 6px;
 }
 
+.section_title {
+  font-size: 17px;
+}
+
+.textarea_box,
+.select_box {
+  font-size: 13px;
+}
+.title,
+.check_title,
+.value,
+.full_value,
+.textarea_value {
+  font-size: 14px;
+}
+.title.double_text {
+  font-size: 12px;
+}
+
 @media (max-width: 1600px) {
   .detail_container:global {
     --title-width: 88px;
   }
   .textarea_box {
+    /* font-size: 13px; */
+    font-size: 12px;
+    line-height: 20px;
+  }
+  .section_title {
+    font-size: 16px;
+  }
+  .title,
+  .check_title,
+  .value,
+  .full_value,
+  .select_box,
+  .textarea_value {
     font-size: 13px;
-    /* letter-spacing: 0.6px; */
+  }
+  .title.double_text {
+    font-size: 12px;
   }
   .title {
     /* min-width: 88px; */

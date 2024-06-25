@@ -324,8 +324,8 @@
   color: var(--color-text-brand);
 }
 .double_text {
-  font-size: 14px;
-  /* font-size: 12px; */
+  /* font-size: 14px; */
+  font-size: 13px;
   line-height: 17px;
 }
 .uneditable_field {
@@ -770,4 +770,12 @@
 }
 .btn:hover {
   background-color: var(--color-btn-brand-f-hover);
+}
+
+.select_box {
+  font-size: 13px;
+}
+
+.title.double_text {
+  font-size: 12px;
 }

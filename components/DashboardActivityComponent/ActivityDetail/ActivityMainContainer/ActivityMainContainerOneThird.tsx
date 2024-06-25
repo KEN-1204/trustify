@@ -555,6 +555,21 @@ const ActivityMainContainerOneThirdMemo = () => {
     return value;
   }
 
+  // 復元Number専用
+  function beforeAdjustFieldValueInteger(value: number | "ISNULL" | "ISNOTNULL" | null) {
+    if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+    if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+    if (value === null) return null;
+    return value;
+  }
+  // 復元Date専用
+  function beforeAdjustFieldValueDate(value: string | "ISNULL" | "ISNOTNULL" | null) {
+    if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+    if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+    if (value === null) return null;
+    return new Date(value);
+  }
+
   // 数値型のフィールド用
   function adjustFieldValueNumber(value: number | null) {
     if (value === null) return null; // 全てのデータ
@@ -751,15 +766,18 @@ const ActivityMainContainerOneThirdMemo = () => {
       //   beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date)
       // );
       // setInputScheduledFollowUpDate(newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date);
+      // setInputScheduledFollowUpDate(
+      //   newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date
+      //     ? new Date(newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date)
+      //     : null
+      // );
       setInputScheduledFollowUpDate(
-        newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date
-          ? new Date(newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date)
-          : null
+        beforeAdjustFieldValueDate(newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date)
       );
-      setInputFollowUpFlag(newSearchActivity_Contact_CompanyParams.follow_up_flag);
+      setInputFollowUpFlag(newSearchActivity_Contact_CompanyParams.follow_up_flag ?? null);
       setInputDocumentUrl(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.document_url));
       setInputActivityType(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.activity_type));
-      setInputClaimFlag(newSearchActivity_Contact_CompanyParams.claim_flag);
+      setInputClaimFlag(newSearchActivity_Contact_CompanyParams.claim_flag ?? null);
       setInputProductIntroduction1(
         beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.product_introduction1)
       );
@@ -779,11 +797,12 @@ const ActivityMainContainerOneThirdMemo = () => {
       setInputMemberName(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.member_name));
       setInputPriority(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.priority));
       // setInputActivityDate(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.activity_date));
-      setInputActivityDate(
-        newSearchActivity_Contact_CompanyParams.activity_date
-          ? new Date(newSearchActivity_Contact_CompanyParams.activity_date)
-          : null
-      );
+      // setInputActivityDate(
+      //   newSearchActivity_Contact_CompanyParams.activity_date
+      //     ? new Date(newSearchActivity_Contact_CompanyParams.activity_date)
+      //     : null
+      // );
+      setInputActivityDate(beforeAdjustFieldValueDate(newSearchActivity_Contact_CompanyParams.activity_date));
       setInputDepartment(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.department));
       // 年月度〜年度
       // setInputActivityYearMonth(adjustFieldValueNumber(newSearchActivity_Contact_CompanyParams.activity_year_month));
@@ -5993,7 +6012,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                           <div className={`line_first space-x-[6px]`}>
                             <button
                               type="button"
-                              className={`icon_btn_red ${inputCapital === "" ? `hidden` : `flex`}`}
+                              className={`icon_btn_red ${inputCapital === null ? `hidden` : `flex`}`}
                               onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                               onMouseLeave={handleCloseTooltip}
                               onClick={() => handleClickResetInput(setInputCapital)}

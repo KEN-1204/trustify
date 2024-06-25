@@ -330,8 +330,6 @@
   min-width: 95px;
   /* margin-right: 20px; */
   font-weight: 600;
-  font-size: 13px;
-  font-size: 14px;
   line-height: 17px;
   user-select: none;
   /* font-family: sans-serif, "Hiragino Sans", Roboto, system-ui; */
@@ -383,8 +381,6 @@
   /* min-width: 95px; */
   min-width: 78px;
   font-weight: 600;
-  /* font-size: 18px; */
-  font-size: 16px;
   line-height: 17px;
   user-select: none;
 }
@@ -400,7 +396,6 @@
   white-space: nowrap;
   /* width: 100%; */
   /* text-align: center; */
-  font-size: 14px;
   /* line-height: 21px; */
 }
 
@@ -699,8 +694,6 @@
   /* min-width: 80px; */
   /* min-width: 90px; */
   min-width: 70px;
-  font-size: 13px;
-  /* font-size: 14px; */
   line-height: 17px;
   /* min-width: 75px; */
   /* min-width: 100px; */
@@ -878,12 +871,11 @@
   /* padding: 6px 8px; */
   /* padding: 4px 8px; */
   padding: 6px 12px;
-  font-size: 14px;
   /* letter-spacing: 0.9px; */
   /* letter-spacing: 0.6px; */
   letter-spacing: 0.3px;
   /* line-height: 24px; */
-  line-height: 22px;
+  line-height: 21px;
   border-radius: 6px;
   resize: none;
   /* box-sizing: border-box; */
@@ -1168,10 +1160,41 @@
   animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
+.section_title {
+  font-size: 16px;
+}
+.textarea_box,
+.select_box {
+  font-size: 13px;
+}
+.title,
+.check_title,
+.value,
+.full_value,
+.textarea_value {
+  font-size: 14px;
+}
+.title.double_text {
+  font-size: 12px;
+}
+
 @media (max-width: 1600px) {
   .textarea_box {
+    /* font-size: 13px; */
+    font-size: 12px;
+    line-height: 20px;
+  }
+  .title,
+  .section_title,
+  .check_title,
+  .value,
+  .full_value,
+  .select_box,
+  .textarea_value {
     font-size: 13px;
-    /* letter-spacing: 0.6px; */
+  }
+  .title.double_text {
+    font-size: 12px;
   }
   .title {
     min-width: 88px;

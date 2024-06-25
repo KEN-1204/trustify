@@ -955,7 +955,7 @@ export const InsertNewPropertyModal = () => {
       property_quarter: propertyQuarter ? propertyQuarter : null,
       expansion_quarter: expansionQuarter ? expansionQuarter : null,
       sales_quarter: salesQuarter ? salesQuarter : null,
-      expected_order_quarter: expectedOrderQuarter, // 獲得予定四半期
+      expected_order_quarter: expectedOrderQuarter ? expectedOrderQuarter : null, // 獲得予定四半期
       // 半期
       property_half_year: propertyFiscalHalf ? propertyFiscalHalf : null,
       expansion_half_year: expansionFiscalHalf ? expansionFiscalHalf : null,
@@ -1175,7 +1175,7 @@ export const InsertNewPropertyModal = () => {
       property_quarter: propertyQuarter ? propertyQuarter : null,
       expansion_quarter: expansionQuarter ? expansionQuarter : null,
       sales_quarter: salesQuarter ? salesQuarter : null,
-      expected_order_quarter: expectedOrderQuarter, // 獲得予定四半期
+      expected_order_quarter: expectedOrderQuarter ? expectedOrderQuarter : null, // 獲得予定四半期
       // 半期
       property_half_year: propertyFiscalHalf ? propertyFiscalHalf : null,
       expansion_half_year: expansionFiscalHalf ? expansionFiscalHalf : null,
@@ -1387,7 +1387,7 @@ export const InsertNewPropertyModal = () => {
       property_quarter: propertyQuarter ? propertyQuarter : null,
       expansion_quarter: expansionQuarter ? expansionQuarter : null,
       sales_quarter: salesQuarter ? salesQuarter : null,
-      expected_order_quarter: expectedOrderQuarter, // 獲得予定四半期
+      expected_order_quarter: expectedOrderQuarter ? expectedOrderQuarter : null, // 獲得予定四半期
       // 半期
       property_half_year: propertyFiscalHalf ? propertyFiscalHalf : null,
       expansion_half_year: expansionFiscalHalf ? expansionFiscalHalf : null,
@@ -1600,7 +1600,7 @@ export const InsertNewPropertyModal = () => {
       property_quarter: propertyQuarter ? propertyQuarter : null,
       expansion_quarter: expansionQuarter ? expansionQuarter : null,
       sales_quarter: salesQuarter ? salesQuarter : null,
-      expected_order_quarter: expectedOrderQuarter, // 獲得予定四半期
+      expected_order_quarter: expectedOrderQuarter ? expectedOrderQuarter : null, // 獲得予定四半期
       // 半期
       property_half_year: propertyFiscalHalf ? propertyFiscalHalf : null,
       expansion_half_year: expansionFiscalHalf ? expansionFiscalHalf : null,

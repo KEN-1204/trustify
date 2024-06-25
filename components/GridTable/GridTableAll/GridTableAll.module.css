@@ -1160,3 +1160,9 @@
     transform: translateX(100%);
   }
 }
+
+@media (max-width: 1600px) {
+  .grid_cell {
+    font-size: 12px;
+  }
+}

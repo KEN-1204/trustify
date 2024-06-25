@@ -43,7 +43,7 @@ export const columnNameToJapaneseProperty = (columnName: string) => {
       return "担当職位";
       break;
     case "approval_amount":
-      return "決裁金額";
+      return "決裁金額(万円)";
       break;
     case "call_ban_flag":
       return "電話禁止";
@@ -224,7 +224,8 @@ export const columnNameToJapaneseProperty = (columnName: string) => {
       return "予定台数";
       break;
     case "expected_sales_price":
-      return "予定売上価格";
+      // return "予定売上価格";
+      return "予定売上合計";
       break;
     case "term_division":
       return "今・来期区分";
@@ -242,7 +243,7 @@ export const columnNameToJapaneseProperty = (columnName: string) => {
       return "売上貢献区分";
       break;
     case "sales_price":
-      return "売上価格";
+      return "売上合計";
       break;
     case "discounted_price":
       return "値引価格";

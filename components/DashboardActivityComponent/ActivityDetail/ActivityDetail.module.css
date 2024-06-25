@@ -314,8 +314,6 @@
   /* min-width: 78px; */
   min-width: 95px;
   min-width: var(--title-width);
-  font-size: 13px;
-  font-size: 14px;
   font-weight: 600;
   line-height: 17px;
   user-select: none;
@@ -345,8 +343,20 @@
   /* min-width: 95px; */
   min-width: 78px;
   font-weight: 600;
-  font-size: 18px;
   line-height: 17px;
+  user-select: none;
+}
+.check_title {
+  color: var(--color-text-brand-f);
+  color: var(--color-text-under-title);
+  white-space: nowrap;
+  /* 右側に20px余白 */
+  /* padding-right: 20px; */
+  /* min-width: 80px; */
+  /* min-width: 75px; */
+  /* min-width: 100px; */
+  min-width: 90px;
+  font-weight: 600;
   user-select: none;
 }
 .value {
@@ -355,7 +365,6 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 14px;
 }
 .value.hashtag {
   color: var(--color-hashtag);
@@ -487,12 +496,11 @@
   /* padding: 9px 10px; */
   /* padding: 6px 10px; */
   padding: 6px 12px;
-  font-size: 14px;
-  /* font-size: 13px; */
+  /* font-size: 12px; */
   /* letter-spacing: 0.9px; */
   /* letter-spacing: 0.6px; */
   letter-spacing: 0.3px;
-  line-height: 22px;
+  line-height: 21px;
   /* line-height: 24px; */
   /* line-height: 22px; */
   border-radius: 6px;
@@ -718,19 +726,6 @@
   border-color: var(--border-theme-dark);
 }
 
-.check_title {
-  color: var(--color-text-brand-f);
-  color: var(--color-text-under-title);
-  white-space: nowrap;
-  /* 右側に20px余白 */
-  /* padding-right: 20px; */
-  /* min-width: 80px; */
-  /* min-width: 75px; */
-  /* min-width: 100px; */
-  min-width: 90px;
-  font-weight: 600;
-  user-select: none;
-}
 .right_under_title {
   color: var(--color-text-brand-f);
   color: var(--color-text-under-title);
@@ -906,13 +901,42 @@
   -moz-appearance: textfield;
 }
 
+.textarea_box,
+.select_box {
+  font-size: 13px;
+}
+.title,
+.section_title,
+.check_title,
+.value,
+.full_value,
+.textarea_value {
+  font-size: 14px;
+}
+.title.double_text {
+  font-size: 12px;
+}
+
 @media (max-width: 1600px) {
   .detail_container:global {
     --title-width: 88px;
   }
   .textarea_box {
+    /* font-size: 13px; */
+    font-size: 12px;
+    line-height: 20px;
+  }
+  .title,
+  .section_title,
+  .check_title,
+  .value,
+  .full_value,
+  .select_box,
+  .textarea_value {
     font-size: 13px;
-    /* line-height: 21px; */
+  }
+  .title.double_text {
+    font-size: 12px;
   }
   .title {
     min-width: 88px;

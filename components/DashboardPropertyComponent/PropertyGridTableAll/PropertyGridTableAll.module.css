@@ -936,3 +936,9 @@
   inset: 0;
   /* background-color: #ffffff10; */
 }
+
+@media (max-width: 1600px) {
+  .grid_cell {
+    font-size: 12px;
+  }
+}

@@ -43,7 +43,7 @@ export const columnNameToJapaneseActivity = (columnName: string) => {
       return "担当職位";
       break;
     case "approval_amount":
-      return "決裁金額";
+      return "決裁金額(万円)";
       break;
     case "call_ban_flag":
       return "電話禁止";

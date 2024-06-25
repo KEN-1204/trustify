@@ -447,6 +447,7 @@
   padding-left: 5px;
   border-radius: 6px;
   user-select: none;
+  font-size: 13px;
 }
 
 .edit_mode_overlay {
@@ -877,4 +878,8 @@
   cursor: not-allowed;
   transition: background-color 0.2s ease, color 0.2s ease;
   color: #999;
+}
+
+.title.double_text {
+  font-size: 12px;
 }

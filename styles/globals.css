@@ -4400,7 +4400,9 @@ textarea {
   position: absolute;
   left: 0;
   top: 100%;
-  z-index: 10;
+  /* z-index: 10; */
+  /* dateピッカーのボタンがz-index: 2000だと上に表示されてしまうため2500で設定 */
+  z-index: 2500;
   height: max-content;
   min-height: 100%;
   width: 100%;
@@ -4450,7 +4452,8 @@ textarea {
 .additional_search_area_under_input .icon_btn_red:active {
   background: var(--color-btn-bg-delete-active);
 }
-.additional_search_area_under_input .btn_f {
+.additional_search_area_under_input .btn_f,
+.time_area .btn_f {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -4465,20 +4468,26 @@ textarea {
   color: #fff;
   transition: background-color 0.1s ease, color 0.1s ease, border-color 0.1s ease;
 }
-.additional_search_area_under_input .btn_f:hover {
+.additional_search_area_under_input .btn_f:hover,
+.time_area .btn_f:hover {
   background: var(--color-bg-brand-f);
   color: #fff;
 }
-.additional_search_area_under_input .btn_f:active {
+.additional_search_area_under_input .btn_f:active,
+.time_area .btn_f:active {
   background: var(--color-bg-brand-f-deep);
 }
 
-.additional_search_area_under_input .line_second {
+.additional_search_area_under_input .line_second,
+.additional_search_area_under_input .line_third {
   display: flex;
   min-height: 35px;
   align-items: flex-start;
   justify-content: flex-end;
   flex-wrap: wrap;
+}
+.additional_search_area_under_input .line_second.with_third {
+  padding-top: 3px;
 }
 
 .additional_search_area_under_input .line_second .text_btn {

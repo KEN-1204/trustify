@@ -1532,7 +1532,7 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   "meetings.created_by_office_of_user": string | null; //🌠追加
   meeting_type: string | null;
   web_tool: string | null;
-  planned_date: string | null;
+  planned_date: string | null | "ISNULL" | "ISNOTNULL";
   planned_start_time: string | null;
   planned_purpose: string | null;
   // planned_duration: number | null;
@@ -1541,7 +1541,7 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   planned_product1: string | null;
   planned_product2: string | null;
   planned_comment: string | null;
-  result_date: string | null;
+  result_date: string | null | "ISNULL" | "ISNOTNULL";
   result_start_time: string | null;
   result_end_time: string | null;
   // result_duration: number | null;
