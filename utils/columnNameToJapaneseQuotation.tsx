@@ -280,7 +280,8 @@ export const columnNameToJapaneseQuotation = (columnName: string) => {
     //   break;
     // 🔹quotation_company_details結合テーブル
     case "quotation_no_custom":
-      return "見積No（専用）";
+      // return "見積No（専用）";
+      return "見積No（カスタム）";
       break;
     case "quotation_no_system":
       return "見積No";

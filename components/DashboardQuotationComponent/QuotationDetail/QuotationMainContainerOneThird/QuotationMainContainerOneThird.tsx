@@ -105,6 +105,7 @@ import { calculateCurrentFiscalYearEndDate } from "@/utils/Helpers/calcurateCurr
 import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calculateFiscalMonths";
 import { getFiscalYear } from "@/utils/Helpers/getFiscalYear";
 import { BsCheck2 } from "react-icons/bs";
+import { DatePickerCustomInputForSearch } from "@/utils/DatePicker/DatePickerCustomInputForSearch";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -356,8 +357,14 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [memberObj, setMemberObj] = useState<MemberDetail>(initialMemberObj);
   // =========営業担当データここまで
   const [inputQuotationDate, setInputQuotationDate] = useState<Date | null>(null);
-  console.log("見積日付inputQuotationDate", inputQuotationDate);
+  const [inputQuotationDateSearch, setInputQuotationDateSearch] = useState<Date | null | "is null" | "is not null">(
+    null
+  );
+  // console.log("見積日付inputQuotationDate", inputQuotationDate);
   const [inputExpirationDate, setInputExpirationDate] = useState<Date | null>(null);
+  const [inputExpirationDateSearch, setInputExpirationDateSearch] = useState<Date | null | "is null" | "is not null">(
+    null
+  );
   const [inputQuotationNotes, setInputQuotationNotes] = useState("");
   const [inputQuotationRemarks, setInputQuotationRemarks] = useState("");
   const [inputQuotationDivision, setInputQuotationDivision] = useState("");
@@ -368,10 +375,17 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [inputQuotationNoCustom, setInputQuotationNoCustom] = useState("");
   const [inputQuotationNoSystem, setInputQuotationNoSystem] = useState("");
   const [inputQuotationTitle, setInputQuotationTitle] = useState("");
-  // 社員番号 担当印
-  const [inputEmployeeIdName, setInputEmployeeIdName] = useState("");
-  // 担当者名 担当印
-  const [inputInChargeUserName, setInputInChargeUserName] = useState("");
+  // 🔸印鑑関連
+  // 印鑑 担当者名
+  const [inputInChargeUserName, setInputInChargeUserName] = useState(""); //担当印;
+  const [inputSupervisor1Name, setInputSupervisor1Name] = useState(""); // 上長印1
+  const [inputSupervisor2Name, setInputSupervisor2Name] = useState(""); // 上長印2
+  // 印鑑 社員番号
+  const [inputCreatedEmployeeId, setInputCreatedEmployeeId] = useState(""); // 作成者
+  const [inputInChargeEmployeeId, setInputInChargeEmployeeId] = useState(""); // 担当印
+  const [inputSupervisor1EmployeeId, setInputSupervisor1EmployeeId] = useState(""); // 上長印1
+  const [inputSupervisor2EmployeeId, setInputSupervisor2EmployeeId] = useState(""); // 上長印2
+  // 🔸印鑑関連 ここまで
 
   const [inputQuotationBusinessOffice, setInputQuotationBusinessOffice] = useState("");
   const [inputQuotationDepartment, setInputQuotationDepartment] = useState("");
@@ -787,7 +801,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     // 印鑑関連
     const inChargeMemberObj = {
       memberId: row?.in_charge_user_id || null,
-      memberName: row?.in_charge_user_name || null,
+      // memberName: row?.in_charge_user_name || null,
+      memberName: row?.in_charge_stamp_name || null,
       departmentId: null,
       sectionId: null,
       unitId: null,
@@ -800,7 +815,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setCheckboxInChargeFlagEdit(row?.in_charge_stamp_flag || false);
     const supervisor1MemberObj = {
       memberId: row?.supervisor1_user_id || null,
-      memberName: row?.supervisor1_user_name || null,
+      // memberName: row?.supervisor1_user_name || null,
+      memberName: row?.supervisor1_stamp_name || null,
       departmentId: null,
       sectionId: null,
       unitId: null,
@@ -813,7 +829,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setCheckboxSupervisor1FlagEdit(row?.supervisor1_stamp_flag || false);
     const supervisor2MemberObj = {
       memberId: row?.supervisor2_user_id || null,
-      memberName: row?.supervisor2_user_name || null,
+      // memberName: row?.supervisor2_user_name || null,
+      memberName: row?.supervisor2_stamp_name || null,
       departmentId: null,
       sectionId: null,
       unitId: null,
@@ -1042,7 +1059,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       setInputDepartmentNameDest(
         beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc_destination.department_name"])
       );
-      setInputContactNameDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c.name"]));
+      // setInputContactNameDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["c.name"]));
       setInputZipcodeDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc_destination.zipcode"]));
       setInputAddressDest(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["cc_destination.address"]));
       // 🔹c_destinationテーブル
@@ -1090,13 +1107,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       //     ? new Date(newSearchQuotation_Contact_CompanyParams.quotation_date)
       //     : null
       // );
-      setInputQuotationDate(beforeAdjustFieldValueDate(newSearchQuotation_Contact_CompanyParams.quotation_date));
+      setInputQuotationDateSearch(beforeAdjustFieldValueDate(newSearchQuotation_Contact_CompanyParams.quotation_date));
       // setInputExpirationDate(
       //   newSearchQuotation_Contact_CompanyParams.expiration_date
       //     ? new Date(newSearchQuotation_Contact_CompanyParams.expiration_date)
       //     : null
       // );
-      setInputExpirationDate(beforeAdjustFieldValueDate(newSearchQuotation_Contact_CompanyParams.expiration_date));
+      setInputExpirationDateSearch(
+        beforeAdjustFieldValueDate(newSearchQuotation_Contact_CompanyParams.expiration_date)
+      );
       //
       setInputQuotationNoCustom(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_no_custom));
       setInputQuotationNoSystem(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_no_system));
@@ -1132,11 +1151,27 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           ? String(newSearchQuotation_Contact_CompanyParams.quotation_fiscal_year)
           : ""
       );
-      //
+      // 印鑑 担当者名
       setInputInChargeUserName(
         beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.in_charge_stamp_name"])
       );
-      setInputEmployeeIdName(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["e.employee_id_name"]));
+      setInputSupervisor1Name(
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.supervisor1_stamp_name"])
+      );
+      setInputSupervisor2Name(
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["q.supervisor2_stamp_name"])
+      );
+      // 印鑑 社員番号
+      setInputCreatedEmployeeId(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["e.employee_id_name"]));
+      setInputInChargeEmployeeId(
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["e_in_charge.employee_id_name"])
+      );
+      setInputSupervisor1EmployeeId(
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["e_supervisor1.employee_id_name"])
+      );
+      setInputSupervisor2EmployeeId(
+        beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams["e_supervisor2.employee_id_name"])
+      );
     } else if (!editSearchMode && searchMode) {
       console.log(
         "🔥Quotationメインコンテナー useEffect 新規サーチモード inputを初期化",
@@ -1179,8 +1214,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       if (!!inputQuotationCreatedBySectionOfUser) setInputQuotationCreatedBySectionOfUser("");
       if (!!inputQuotationCreatedByUnitOfUser) setInputQuotationCreatedByUnitOfUser("");
       if (!!inputQuotationCreatedByOfficeOfUser) setInputQuotationCreatedByOfficeOfUser("");
-      if (!!inputQuotationDate) setInputQuotationDate(null);
-      if (!!inputExpirationDate) setInputExpirationDate(null);
+      if (inputQuotationDateSearch !== null) setInputQuotationDateSearch(null);
+      if (inputExpirationDateSearch !== null) setInputExpirationDateSearch(null);
+      if (!!inputQuotationDivision) setInputQuotationDivision("");
       if (!!inputQuotationNotes) setInputQuotationNotes("");
       if (!!inputQuotationRemarks) setInputQuotationRemarks("");
       if (!!inputQuotationNoCustom) setInputQuotationNoCustom("");
@@ -1194,8 +1230,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       if (!!inputQuotationQuarter) setInputQuotationQuarter("");
       if (!!inputQuotationHalfYear) setInputQuotationHalfYear("");
       if (!!inputQuotationFiscalYear) setInputQuotationFiscalYear("");
-      //
-      if (!!inputEmployeeIdName) setInputEmployeeIdName("");
+      // 印鑑 担当者名
+      if (!!inputInChargeUserName) setInputInChargeUserName("");
+      if (!!inputSupervisor1Name) setInputSupervisor1Name("");
+      if (!!inputSupervisor2Name) setInputSupervisor2Name("");
+      // 印鑑 社員番号
+      if (!!inputCreatedEmployeeId) setInputCreatedEmployeeId("");
+      if (!!inputInChargeEmployeeId) setInputInChargeEmployeeId("");
+      if (!!inputSupervisor1EmployeeId) setInputSupervisor1EmployeeId("");
+      if (!!inputSupervisor2EmployeeId) setInputSupervisor2EmployeeId("");
     }
   }, [editSearchMode, searchMode]);
 
@@ -1233,10 +1276,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
     // 🔸Date型
     const adjustFieldValueDate = (value: Date | string | null): string | null => {
-      if (value instanceof Date) return value.toISOString();
       // "is null"か"is not null"の文字列は変換
       if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
       if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+      if (value instanceof Date) return value.toISOString();
       return null;
       // if (typeof inputScheduledFollowUpDate === "string") return adjustFieldValue(inputScheduledFollowUpDate);
     };
@@ -1258,15 +1301,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     let _company_cell_phone = adjustFieldValue(inputCompanyCellPhone);
     let _contact_email = adjustFieldValue(inputContactEmail);
     // 送付先 会社テーブル
-    let _destination_company_name = adjustFieldValue(inputCompanyName);
-    let _destination_company_department_name = adjustFieldValue(inputDepartmentName);
-    let _destination_company_zipcode = adjustFieldValue(inputZipcode);
-    let _destination_company_address = adjustFieldValue(inputAddress);
+    let _destination_company_name = adjustFieldValue(inputCompanyNameDest);
+    let _destination_company_department_name = adjustFieldValue(inputDepartmentNameDest);
+    let _destination_company_zipcode = adjustFieldValue(inputZipcodeDest);
+    let _destination_company_address = adjustFieldValue(inputAddressDest);
     // 送付先 contactsテーブル
-    let _destination_contact_name = adjustFieldValue(inputContactName);
-    let _destination_contact_direct_line = adjustFieldValue(inputDirectLine);
-    let _destination_contact_direct_fax = adjustFieldValue(inputDirectFax);
-    let _destination_contact_email = adjustFieldValue(inputContactEmail);
+    let _destination_contact_name = adjustFieldValue(inputContactNameDest);
+    let _destination_contact_direct_line = adjustFieldValue(inputDirectLineDest);
+    let _destination_contact_direct_fax = adjustFieldValue(inputDirectFaxDest);
+    let _destination_contact_email = adjustFieldValue(inputContactEmailDest);
 
     let _contact_created_by_company_id = userProfileState.company_id;
     // let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
@@ -1282,9 +1325,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     // 見積関連
     let _quotation_no_custom = adjustFieldValue(inputQuotationNoCustom);
     let _quotation_no_system = adjustFieldValue(inputQuotationNoSystem);
-    let _quotation_date = inputQuotationDate ? inputQuotationDate.toISOString() : null;
+    // let _quotation_date = inputQuotationDate ? inputQuotationDate.toISOString() : null;
+    let _quotation_date = adjustFieldValueDate(inputQuotationDateSearch);
     // let _expiration_date = inputExpirationDate ? inputExpirationDate.toISOString() : null;
-    let _expiration_date = adjustFieldValueDate(inputExpirationDate);
+    let _expiration_date = adjustFieldValueDate(inputExpirationDateSearch);
     let _quotation_title = adjustFieldValue(inputQuotationTitle);
     let _quotation_division = adjustFieldValue(inputQuotationDivision);
     let _quotation_notes = adjustFieldValue(inputQuotationNotes);
@@ -1311,9 +1355,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       !isNaN(parsedQuotationFiscalYear) && inputQuotationFiscalYear === parsedQuotationFiscalYear.toString()
         ? parsedQuotationFiscalYear
         : null;
-    //
-    let _in_charge_user_name_name = adjustFieldValue(inputInChargeUserName);
-    let _in_charge_user_employee_id_name = adjustFieldValue(inputEmployeeIdName);
+    // 印鑑 担当者名
+    let _in_charge_user_name = adjustFieldValue(inputInChargeUserName);
+    let _supervisor1_stamp_name = adjustFieldValue(inputSupervisor1Name);
+    let _supervisor2_stamp_name = adjustFieldValue(inputSupervisor2Name);
+    // 印鑑 社員番号
+    let _created_employee_id_name = adjustFieldValue(inputCreatedEmployeeId); // 作成者
+    let _in_charge_user_employee_id_name = adjustFieldValue(inputInChargeEmployeeId); // 担当印
+    let _supervisor1_employee_id_name = adjustFieldValue(inputSupervisor1EmployeeId); // 上長印1
+    let _supervisor2_employee_id_name = adjustFieldValue(inputSupervisor2EmployeeId); // 上長印2
 
     // const params = {
     //   // 会社 依頼元
@@ -1361,8 +1411,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     //   // quotation_business_office: _quotation_business_office,
     //   // quotation_department: _quotation_department,
     //   quotation_year_month: _quotation_year_month,
-    //   "quotations.in_charge_stamp_name": _in_charge_user_name_name,
-    //   "employee_ids.employee_id_name": _in_charge_user_employee_id_name,
+    //   "quotations.in_charge_stamp_name": _in_charge_user_name,
+    //   "employee_ids.employee_id_name": _created_employee_id_name,
     // };
     const params = {
       // 会社 依頼元
@@ -1415,9 +1465,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       quotation_quarter: _quotation_quarter,
       quotation_half_year: _quotation_half_year,
       quotation_fiscal_year: _quotation_fiscal_year,
-      //
-      "q.in_charge_stamp_name": _in_charge_user_name_name,
-      "e.employee_id_name": _in_charge_user_employee_id_name,
+      // 印鑑 担当者名
+      "q.in_charge_stamp_name": _in_charge_user_name,
+      "q.supervisor1_stamp_name": _supervisor1_stamp_name,
+      "q.supervisor2_stamp_name": _supervisor2_stamp_name,
+      // 印鑑 社員番号
+      "e.employee_id_name": _created_employee_id_name, // 作成者
+      "e_in_charge.employee_id_name": _in_charge_user_employee_id_name, // 担当印
+      "e_supervisor1.employee_id_name": _supervisor1_employee_id_name, // 上長印1
+      "e_supervisor2.employee_id_name": _supervisor2_employee_id_name, // 上長印2
     };
 
     // const { data, error } = await supabase.rpc("", { params });
@@ -1460,8 +1516,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setInputQuotationMemberName("");
     setInputQuotationNoCustom("");
     setInputQuotationNoSystem("");
-    setInputQuotationDate(null);
-    setInputExpirationDate(null);
+    // setInputQuotationDate(null);
+    // setInputExpirationDate(null);
+    setInputQuotationDateSearch(null);
+    setInputExpirationDateSearch(null);
     setInputQuotationTitle("");
     setInputQuotationDivision("");
     setInputQuotationNotes("");
@@ -1474,9 +1532,15 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     setInputQuotationQuarter("");
     setInputQuotationHalfYear("");
     setInputQuotationFiscalYear("");
-    //
-    setInputInChargeUserName("");
-    setInputEmployeeIdName("");
+    // 印鑑 担当者名
+    setInputInChargeUserName(""); // 担当印
+    setInputSupervisor1Name(""); // 上長印1
+    setInputSupervisor2Name(""); // 上長印2
+    // 印鑑 社員番号
+    setInputCreatedEmployeeId(""); // 作成者
+    setInputInChargeEmployeeId(""); // 担当印
+    setInputSupervisor1EmployeeId(""); // 上長印1
+    setInputSupervisor2EmployeeId(""); // 上長印2
 
     // サーチモードオフ
     setSearchMode(false);
@@ -2864,8 +2928,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           supervisor1_user_id: memberObjSupervisor1.memberId || null,
           supervisor2_stamp_id: memberObjSupervisor2.signature_stamp_id || null,
           supervisor2_user_id: memberObjSupervisor2.memberId || null,
-          quotation_no_custom: useQuotationNoCustom ? inputQuotationNoCustom ?? null : null,
-          quotation_no_system: useQuotationNoCustom ? null : inputQuotationNoSystem ?? null,
+          quotation_no_custom: useQuotationNoCustom ? inputQuotationNoCustom || null : null,
+          quotation_no_system: useQuotationNoCustom ? null : inputQuotationNoSystem || null,
           quotation_member_name: memberObj.memberName,
           quotation_business_office: officeName ?? null,
           quotation_department: departmentName ?? null,
@@ -2875,7 +2939,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
           quotation_half_year: quotationHalfYear,
           quotation_fiscal_year: selectedFiscalYear,
           //
-          quotation_title: inputQuotationTitle ?? null,
+          quotation_title: inputQuotationTitle || null,
           in_charge_stamp_flag: checkboxInChargeFlagEdit,
           supervisor1_stamp_flag: checkboxSupervisor1FlagEdit,
           supervisor2_stamp_flag: checkboxSupervisor2FlagEdit,
@@ -2924,10 +2988,16 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const additionalInputTooltipText = (index: number) =>
     index === 0 ? `空欄以外のデータのみ抽出` : `空欄のデータのみ抽出`;
   // 🔸「入力値をリセット」をクリック
-  const handleClickResetInput = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+  const handleClickResetInput = (
+    dispatch: Dispatch<SetStateAction<any>>,
+    inputType: "string" | "number" = "string"
+  ) => {
     handleCloseTooltip();
     if (inputType === "string") {
       dispatch("");
+    }
+    if (inputType === "number") {
+      dispatch(null);
     }
   };
   // 🔸「入力有り」をクリック
@@ -2972,9 +3042,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------ここまで
 
   console.log(
-    "QuotationMainContainerレンダリング"
-    // "selectedRowDataQuotation",
-    // selectedRowDataQuotation,
+    "QuotationMainContainerレンダリング",
+    "selectedRowDataQuotation",
+    selectedRowDataQuotation
     // "newSearchQuotation_Contact_CompanyParams",
     // newSearchQuotation_Contact_CompanyParams,
     // "価格合計inputTotalPriceEdit",
@@ -7087,9 +7157,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                                   }}
                                 >
-                                  {selectedRowDataQuotation?.in_charge_user_name
-                                    ? selectedRowDataQuotation?.in_charge_user_name
+                                  {selectedRowDataQuotation?.in_charge_stamp_name
+                                    ? selectedRowDataQuotation?.in_charge_stamp_name
                                     : ""}
+                                  {/* {selectedRowDataQuotation?.in_charge_user_name
+                                    ? selectedRowDataQuotation?.in_charge_user_name
+                                    : ""} */}
                                 </span>
                               )}
 
@@ -7328,8 +7401,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                                   }}
                                 >
-                                  {selectedRowDataQuotation?.supervisor1_user_name
-                                    ? selectedRowDataQuotation?.supervisor1_user_name
+                                  {selectedRowDataQuotation?.supervisor1_stamp_name
+                                    ? selectedRowDataQuotation?.supervisor1_stamp_name
                                     : ""}
                                 </span>
                               )}
@@ -7571,8 +7644,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                                   }}
                                 >
-                                  {selectedRowDataQuotation?.supervisor2_user_name
-                                    ? selectedRowDataQuotation?.supervisor2_user_name
+                                  {selectedRowDataQuotation?.supervisor2_stamp_name
+                                    ? selectedRowDataQuotation?.supervisor2_stamp_name
                                     : ""}
                                 </span>
                               )}
@@ -9327,10 +9400,22 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title_search_mode}`}>見積日</span>
-                        <DatePickerCustomInput
+                        {/* <DatePickerCustomInput
                           startDate={inputQuotationDate}
                           setStartDate={setInputQuotationDate}
                           required={false}
+                        /> */}
+                        <DatePickerCustomInputForSearch
+                          startDate={inputQuotationDateSearch}
+                          setStartDate={setInputQuotationDateSearch}
+                          required={false}
+                          isNotNullForSearch={true}
+                          handleOpenTooltip={handleOpenTooltip}
+                          handleCloseTooltip={handleCloseTooltip}
+                          tooltipDataText="見積日"
+                          isNotNullText="見積日有りのデータのみ"
+                          isNullText="見積日無しのデータのみ"
+                          minHeight="!min-h-[30px]"
                         />
                       </div>
                       <div className={`${styles.underline}`}></div>
@@ -9338,10 +9423,22 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title_search_mode}`}>有効期限</span>
-                        <DatePickerCustomInput
+                        {/* <DatePickerCustomInput
                           startDate={inputExpirationDate}
                           setStartDate={setInputExpirationDate}
                           required={false}
+                        /> */}
+                        <DatePickerCustomInputForSearch
+                          startDate={inputExpirationDateSearch}
+                          setStartDate={setInputExpirationDateSearch}
+                          required={false}
+                          isNotNullForSearch={true}
+                          handleOpenTooltip={handleOpenTooltip}
+                          handleCloseTooltip={handleCloseTooltip}
+                          tooltipDataText="有効期限"
+                          isNotNullText="有効期限有りのデータのみ"
+                          isNullText="有効期限無しのデータのみ"
+                          minHeight="!min-h-[30px]"
                         />
                       </div>
                       <div className={`${styles.underline}`}></div>
@@ -9351,18 +9448,57 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                   {/* 見積タイトル サーチ */}
                   <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                    <div className="flex h-full w-full flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-full flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title_search_mode}`}>見積ﾀｲﾄﾙ</span>
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputQuotationTitle}
-                          onChange={(e) => setInputQuotationTitle(e.target.value)}
-                          // onBlur={(e) => setInputQuotationTitle(inputQuotationTitle.trim())}
-                        />
+                        {["is null", "is not null"].includes(inputQuotationTitle) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputQuotationTitle]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputQuotationTitle]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputQuotationTitle}
+                            onChange={(e) => setInputQuotationTitle(e.target.value)}
+                            // onBlur={(e) => setInputQuotationTitle(inputQuotationTitle.trim())}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputQuotationTitle === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputQuotationTitle)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputQuotationTitle)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
                     {/* <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center`}>
@@ -9402,34 +9538,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                      {/* <div className={`${styles.title_box} flex h-full items-center`}>
-                        <span className={`${styles.title_search_mode}`}>見積年月度</span>
-                        <input
-                          type="number"
-                          min="0"
-                          className={`${styles.input_box}`}
-                          placeholder='"202312" など年月を入力'
-                          value={inputQuotationYearMonth === null ? "" : inputQuotationYearMonth}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (val === "") {
-                              setInputQuotationYearMonth(null);
-                            } else {
-                              const numValue = Number(val);
-
-                              // 入力値がマイナスかチェック
-                              if (numValue < 0) {
-                                setInputQuotationYearMonth(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
-                              } else {
-                                setInputQuotationYearMonth(numValue);
-                              }
-                            }
-                          }}
-                        />
-                      </div>
-                      <div className={`${styles.underline}`}></div> */}
-                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]"></div>
                   </div>
                   {/*  */}
 
@@ -9550,22 +9659,25 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.underline}`}></div>
                     </div>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                      {/* <div className={`${styles.title_box} flex h-full items-center`}>
-                        <span className={`${styles.title_search_mode}`}>自社担当</span>
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                          <span className={``}>作成者</span>
+                          <span className={``}>社員番号</span>
+                        </div>
                         <input
                           type="text"
                           className={`${styles.input_box}`}
                           placeholder=""
-                          value={inputQuotationMemberName}
-                          onChange={(e) => setInputQuotationMemberName(e.target.value)}
+                          value={inputCreatedEmployeeId}
+                          onChange={(e) => setInputCreatedEmployeeId(e.target.value)}
                         />
                       </div>
-                      <div className={`${styles.underline}`}></div> */}
+                      <div className={`${styles.underline}`}></div>
                     </div>
                   </div>
                   {/*  */}
 
-                  {/* 担当印_社員番号・担当印_担当名 サーチ */}
+                  {/* 担当印_社員番号・担当印_担当者名 サーチ */}
                   <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                     <div className="flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
@@ -9578,8 +9690,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           type="text"
                           className={`${styles.input_box}`}
                           placeholder=""
-                          value={inputEmployeeIdName}
-                          onChange={(e) => setInputEmployeeIdName(e.target.value)}
+                          value={inputInChargeEmployeeId}
+                          onChange={(e) => setInputInChargeEmployeeId(e.target.value)}
                         />
                       </div>
                       <div className={`${styles.underline}`}></div>
@@ -9589,7 +9701,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {/* <span className={`${styles.title_search_mode}`}>担当印_担当名</span> */}
                         <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
                           <span className={``}>担当印</span>
-                          <span className={``}>自社担当名</span>
+                          <span className={``}>担当者名</span>
                         </div>
                         <input
                           type="text"
@@ -9604,42 +9716,214 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   </div>
                   {/*  */}
 
-                  {/* 見積備考 サーチ */}
-                  <div className={`${styles.row_area_lg_box}  flex max-h-max w-full items-center`}>
-                    <div className="flex h-full w-full flex-col pr-[20px]">
-                      <div className={`${styles.title_box} flex h-full `}>
-                        <span className={`${styles.title_search_mode}`}>見積備考</span>
-                        <textarea
-                          cols={30}
-                          // rows={10}
-                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
-                          value={inputQuotationNotes}
-                          onChange={(e) => setInputQuotationNotes(e.target.value)}
-                        ></textarea>
+                  {/* 上長印1_社員番号・上長印1_担当者名 サーチ */}
+                  <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                          <span className={``}>上長印1</span>
+                          <span className={``}>社員番号</span>
+                        </div>
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputSupervisor1EmployeeId}
+                          onChange={(e) => setInputSupervisor1EmployeeId(e.target.value)}
+                        />
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                          <span className={``}>上長印1</span>
+                          <span className={``}>担当者名</span>
+                        </div>
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputSupervisor1Name}
+                          onChange={(e) => setInputSupervisor1Name(e.target.value)}
+                        />
                       </div>
                       <div className={`${styles.underline}`}></div>
                     </div>
                   </div>
                   {/*  */}
 
+                  {/* 上長印2_社員番号・上長印2_担当者名 サーチ */}
+                  <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                          <span className={``}>上長印2</span>
+                          <span className={``}>社員番号</span>
+                        </div>
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputSupervisor2EmployeeId}
+                          onChange={(e) => setInputSupervisor2EmployeeId(e.target.value)}
+                        />
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center`}>
+                        <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
+                          <span className={``}>上長印2</span>
+                          <span className={``}>担当者名</span>
+                        </div>
+                        <input
+                          type="text"
+                          className={`${styles.input_box}`}
+                          placeholder=""
+                          value={inputSupervisor2Name}
+                          onChange={(e) => setInputSupervisor2Name(e.target.value)}
+                        />
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                    </div>
+                  </div>
+                  {/*  */}
+
+                  {/* 見積備考 サーチ */}
+                  {/* <div className={`${styles.row_area_lg_box}  flex max-h-max w-full items-center`}> */}
+                  <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                    <div className="group relative flex h-full w-full flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
+                        <span className={`${styles.title_search_mode}`}>見積備考</span>
+                        {["is null", "is not null"].includes(inputQuotationNotes) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputQuotationNotes]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputQuotationNotes]}</span>
+                          </div>
+                        ) : (
+                          <>
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputQuotationNotes}
+                              onChange={(e) => setInputQuotationNotes(e.target.value)}
+                              // onBlur={(e) => setInputQuotationNotes(inputQuotationTitle.trim())}
+                            />
+                            {/* <textarea
+                          cols={30}
+                          // rows={10}
+                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
+                          value={inputQuotationNotes}
+                          onChange={(e) => setInputQuotationNotes(e.target.value)}
+                        ></textarea> */}
+                          </>
+                        )}
+                      </div>
+                      <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputQuotationNotes === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputQuotationNotes)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputQuotationNotes)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
+                    </div>
+                  </div>
+                  {/*  */}
+
                   {/* 特記事項(社内メモ) サーチ */}
-                  <div className={`${styles.row_area_lg_box}  flex max-h-max w-full items-center`}>
-                    <div className="flex h-full w-full flex-col pr-[20px]">
-                      <div className={`${styles.title_box} flex h-full `}>
+                  {/* <div className={`${styles.row_area_lg_box}  flex max-h-max w-full items-center`}> */}
+                  <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                    <div className="group relative flex h-full w-full flex-col pr-[20px]">
+                      <div className={`${styles.title_box} flex h-full items-center `}>
                         {/* <span className={`${styles.title_search_mode}`}>見積備考</span> */}
                         <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
                           <span>特記事項</span>
                           <span>(社内ﾒﾓ)</span>
                         </div>
-                        <textarea
-                          cols={30}
-                          // rows={10}
-                          className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
-                          value={inputQuotationRemarks}
-                          onChange={(e) => setInputQuotationRemarks(e.target.value)}
-                        ></textarea>
+                        {["is null", "is not null"].includes(inputQuotationRemarks) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputQuotationRemarks]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputQuotationRemarks]}</span>
+                          </div>
+                        ) : (
+                          <>
+                            <input
+                              type="text"
+                              className={`${styles.input_box}`}
+                              value={inputQuotationRemarks}
+                              onChange={(e) => setInputQuotationRemarks(e.target.value)}
+                              // onBlur={(e) => setInputQuotationRemarks(inputQuotationTitle.trim())}
+                            />
+                            {/* <textarea
+                              cols={30}
+                              // rows={10}
+                              className={`${styles.textarea_box} ${styles.textarea_box_search_mode}`}
+                              value={inputQuotationRemarks}
+                              onChange={(e) => setInputQuotationRemarks(e.target.value)}
+                            ></textarea> */}
+                          </>
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputQuotationRemarks === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputQuotationRemarks)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputQuotationRemarks)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
                   </div>
                   {/*  */}
@@ -9888,122 +10172,434 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                   {/* 直通TEL・代表TEL サーチ */}
                   <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title_search_mode}`}>直通TEL</span>
-                        <input
-                          type="tel"
-                          className={`${styles.input_box}`}
-                          value={inputDirectLine}
-                          onChange={(e) => setInputDirectLine(e.target.value)}
-                        />
+                        {["is null", "is not null"].includes(inputDirectLine) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputDirectLine]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputDirectLine]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="tel"
+                            className={`${styles.input_box}`}
+                            value={inputDirectLine}
+                            onChange={(e) => setInputDirectLine(e.target.value)}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputDirectLine === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputDirectLine)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputDirectLine)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title_search_mode}`}>代表TEL</span>
-                        <input
-                          type="tel"
-                          className={`${styles.input_box}`}
-                          value={inputTel}
-                          onChange={(e) => setInputTel(e.target.value)}
-                        />
+                        {["is null", "is not null"].includes(inputTel) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputTel]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputTel]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="tel"
+                            className={`${styles.input_box}`}
+                            value={inputTel}
+                            onChange={(e) => setInputTel(e.target.value)}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputTel === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputTel)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputTel)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
                   </div>
                   {/*  */}
 
                   {/* 内線TEL・社用携帯 サーチ */}
                   <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title_search_mode}`}>内線TEL</span>
-                        <input
-                          type="tel"
-                          placeholder=""
-                          className={`${styles.input_box}`}
-                          value={inputExtension}
-                          onChange={(e) => setInputExtension(e.target.value)}
-                        />
+                        {["is null", "is not null"].includes(inputExtension) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputExtension]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputExtension]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="tel"
+                            placeholder=""
+                            className={`${styles.input_box}`}
+                            value={inputExtension}
+                            onChange={(e) => setInputExtension(e.target.value)}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputExtension === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputExtension)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputExtension)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title_search_mode}`}>社用携帯</span>
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputCompanyCellPhone}
-                          onChange={(e) => setInputCompanyCellPhone(e.target.value)}
-                        />
+                        {["is null", "is not null"].includes(inputCompanyCellPhone) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputCompanyCellPhone]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputCompanyCellPhone]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputCompanyCellPhone}
+                            onChange={(e) => setInputCompanyCellPhone(e.target.value)}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputCompanyCellPhone === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputCompanyCellPhone)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputCompanyCellPhone)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
                   </div>
                   {/*  */}
 
                   {/* 直通FAX・代表FAX サーチ */}
                   <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title_search_mode}`}>直通FAX</span>
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputDirectFax}
-                          onChange={(e) => setInputDirectFax(e.target.value)}
-                        />
+                        {["is null", "is not null"].includes(inputDirectFax) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputDirectFax]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputDirectFax]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputDirectFax}
+                            onChange={(e) => setInputDirectFax(e.target.value)}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputDirectFax === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputDirectFax)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputDirectFax)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
-                    <div className={`flex h-full w-1/2 flex-col pr-[20px]`}>
+                    <div className={`group relative flex h-full w-1/2 flex-col pr-[20px]`}>
                       <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title_search_mode}`}>代表Fax</span>
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputFax}
-                          onChange={(e) => setInputFax(e.target.value)}
-                        />
+                        {["is null", "is not null"].includes(inputFax) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputFax]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputFax]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputFax}
+                            onChange={(e) => setInputFax(e.target.value)}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputFax === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputFax)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputFax)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
                   </div>
                   {/*  */}
 
                   {/* Email サーチ */}
                   <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                    <div className="flex h-full w-full flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-full flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title_search_mode}`}>E-mail</span>
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputContactEmail}
-                          onChange={(e) => setInputContactEmail(e.target.value)}
-                        />
+                        {["is null", "is not null"].includes(inputContactEmail) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputContactEmail]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputContactEmail]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputContactEmail}
+                            onChange={(e) => setInputContactEmail(e.target.value)}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputContactEmail === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputContactEmail)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputContactEmail)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
                   </div>
                   {/*  */}
 
                   {/* 郵便番号 サーチ */}
                   <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                    <div className="flex h-full w-full flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-full flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title_search_mode}`}>郵便番号</span>
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputZipcode}
-                          onChange={(e) => setInputZipcode(e.target.value)}
-                        />
+                        {["is null", "is not null"].includes(inputZipcode) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputZipcode]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputZipcode]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputZipcode}
+                            onChange={(e) => setInputZipcode(e.target.value)}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputZipcode === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputZipcode)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputZipcode)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
                   </div>
                   {/*  */}
@@ -10114,46 +10710,163 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                   {/* 送付先 直通TEL・直通Fax サーチ */}
                   <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title_search_mode}`}>直通TEL</span>
-                        <input
-                          type="tel"
-                          className={`${styles.input_box}`}
-                          value={inputDirectLineDest}
-                          onChange={(e) => setInputDirectLineDest(e.target.value)}
-                        />
+                        {["is null", "is not null"].includes(inputDirectLineDest) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputDirectLineDest]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputDirectLineDest]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="tel"
+                            className={`${styles.input_box}`}
+                            value={inputDirectLineDest}
+                            onChange={(e) => setInputDirectLineDest(e.target.value)}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputDirectLineDest === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputDirectLineDest)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputDirectLineDest)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title_search_mode}`}>直通Fax</span>
-                        <input
-                          type="tel"
-                          className={`${styles.input_box}`}
-                          value={inputDirectFaxDest}
-                          onChange={(e) => setInputDirectFaxDest(e.target.value)}
-                        />
+                        {["is null", "is not null"].includes(inputDirectFaxDest) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputDirectFaxDest]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputDirectFaxDest]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="tel"
+                            className={`${styles.input_box}`}
+                            value={inputDirectFaxDest}
+                            onChange={(e) => setInputDirectFaxDest(e.target.value)}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputDirectFaxDest === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputDirectFaxDest)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputDirectFaxDest)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
                   </div>
                   {/*  */}
 
                   {/* 送付先 Email サーチ */}
                   <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                    <div className="flex h-full w-full flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-full flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title_search_mode}`}>E-mail</span>
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputContactEmailDest}
-                          onChange={(e) => setInputContactEmailDest(e.target.value)}
-                        />
+                        {["is null", "is not null"].includes(inputContactEmailDest) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputContactEmailDest]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputContactEmailDest]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputContactEmailDest}
+                            onChange={(e) => setInputContactEmailDest(e.target.value)}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputContactEmailDest === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputContactEmailDest)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputContactEmailDest)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
                   </div>
                   {/*  */}
@@ -10163,14 +10876,54 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     <div className="flex h-full w-full flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title_search_mode}`}>郵便番号</span>
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputZipcodeDest}
-                          onChange={(e) => setInputZipcodeDest(e.target.value)}
-                        />
+
+                        {["is null", "is not null"].includes(inputZipcodeDest) ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputZipcodeDest]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputZipcodeDest]}</span>
+                          </div>
+                        ) : (
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputZipcodeDest}
+                            onChange={(e) => setInputZipcodeDest(e.target.value)}
+                          />
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${inputZipcodeDest === "" ? `hidden` : `flex`}`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputZipcodeDest)}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputZipcodeDest)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
                   </div>
                   {/*  */}
@@ -10194,6 +10947,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   </div>
                   {/*  */}
                   {/* ============= 送付先エリアここまで ============= */}
+
+                  <div className={`${styles.row_area} flex min-h-[70px] w-full items-center`}></div>
                 </div>
               </div>
             )}
@@ -10212,7 +10967,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
               </div> */}
                   <div className={` text-[13px]`}>
                     <div className="mt-[5px] flex  min-h-[30px] items-center">
-                      ○検索したい条件を入力してください。（必要な項目のみ入力でOK）
+                      ○検索したい条件を入力してください。（必要な項目のみ入力してください）
                     </div>
                     {searchType === "manual" && (
                       <>

@@ -2503,10 +2503,14 @@ export type Quotation_row_data = {
   in_charge_stamp_image_url: string | null;
   supervisor1_stamp_image_url: string | null;
   supervisor2_stamp_image_url: string | null;
-  // -- 🔹印鑑ユーザー(profilesテーブル)
-  in_charge_user_name: string | null;
-  supervisor1_user_name: string | null;
-  supervisor2_user_name: string | null;
+  // -- 🔹印鑑に紐づく社員番号
+  employee_id_name_in_charge: string | null;
+  employee_id_name_supervisor1: string | null;
+  employee_id_name_supervisor2: string | null;
+  // // -- 🔹印鑑ユーザー(profilesテーブル)
+  // in_charge_user_name: string | null;
+  // supervisor1_user_name: string | null;
+  // supervisor2_user_name: string | null;
   //🌠追加 事業部、係、事業所
   assigned_department_name: string | null;
   assigned_section_name: string | null;
@@ -2593,8 +2597,8 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   "q.created_by_unit_of_user": string | null;
   "q.created_by_office_of_user": string | null; //🌠追加
   // submission_class: string | null;
-  quotation_date: string | null;
-  expiration_date: string | null;
+  quotation_date: string | null | "ISNULL" | "ISNOTNULL";
+  expiration_date: string | null | "ISNULL" | "ISNOTNULL";
   // deadline: string | null;
   // delivery_place: string | null;
   // payment_terms: string | null;
@@ -2630,9 +2634,13 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   quotation_title: string | null;
   // 担当印 担当者名
   "q.in_charge_stamp_name": string | null;
+  "q.supervisor1_stamp_name": string | null;
+  "q.supervisor2_stamp_name": string | null;
   // 担当印 社員番号
-  "e.employee_id_name": string | null;
-  // employee_id_name: string | null;
+  "e.employee_id_name": string | null; // 見積作成者の社員番号
+  "e_in_charge.employee_id_name": string | null; // 担当印の社員番号
+  "e_supervisor1.employee_id_name": string | null; // 上長印1の社員番号
+  "e_supervisor2.employee_id_name": string | null; // 上長印2の社員番号
 };
 
 // ------------------------------- 🌟見積関連🌟 ここまで -------------------------------

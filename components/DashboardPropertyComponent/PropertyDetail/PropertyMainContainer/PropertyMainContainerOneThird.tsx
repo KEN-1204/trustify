@@ -22,22 +22,7 @@ import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import dynamic from "next/dynamic";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import productCategoriesM, {
-  mappingAnalysisCategoryM,
-  mappingBusinessSupportCategoryM,
-  mappingControlEquipmentCategoryM,
-  mappingDesignCategoryM,
-  mappingITCategoryM,
-  mappingImageProcessingCategoryM,
-  mappingMachinePartsCategoryM,
-  mappingMaterialCategoryM,
-  mappingModuleCategoryM,
-  mappingOfficeCategoryM,
-  mappingOthersCategoryM,
-  mappingProcessingMachineryCategoryM,
   mappingProductCategoriesMedium,
-  mappingScienceCategoryM,
-  mappingSkillUpCategoryM,
-  mappingToolCategoryM,
   productCategoriesMediumNameOnlySet,
   productCategoryLargeToMappingMediumMap,
   productCategoryLargeToOptionsMediumMap,
