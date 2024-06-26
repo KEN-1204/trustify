@@ -989,34 +989,6 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // 検索タイプ
   const searchType = useDashboardStore((state) => state.searchType);
 
-  // サーチ編集モードでリプレイス前の値に復元する関数
-  function beforeAdjustFieldValue(value: string | null) {
-    if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
-    if (value === "") return ""; // 全てのデータ
-    if (value === null) return ""; // 全てのデータ
-    if (searchType === "manual" && value.includes("\\%")) value = value.replace(/\\%/g, "%");
-    if (searchType === "manual" && value.includes("\\_")) value = value.replace(/\\_/g, "_");
-    if (value.includes("%")) value = value.replace(/\%/g, "＊");
-    if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-    if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-    return value;
-  }
-
-  // 復元Number専用
-  function beforeAdjustFieldValueInteger(value: number | "ISNULL" | "ISNOTNULL" | null) {
-    if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-    if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-    if (value === null) return null;
-    return value;
-  }
-  // 復元Date専用
-  function beforeAdjustFieldValueDate(value: string | "ISNULL" | "ISNOTNULL" | null) {
-    if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-    if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-    if (value === null) return null;
-    return new Date(value);
-  }
-
   // 数値型のフィールド用
   function adjustFieldValueNumber(value: number | null) {
     if (value === null) return null; // 全てのデータ
@@ -1032,6 +1004,38 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
     // 編集モード
     if (editSearchMode && searchMode) {
       if (newSearchQuotation_Contact_CompanyParams === null) return;
+
+      // サーチ編集モードでリプレイス前の値に復元する関数
+      const beforeAdjustFieldValue = (value: string | null) => {
+        if (typeof value === "boolean") return value; // Booleanの場合、そのままの値を返す
+        if (value === "") return ""; // 全てのデータ
+        if (value === null) return ""; // 全てのデータ
+        if (searchType === "manual" && value.includes("\\%")) value = value.replace(/\\%/g, "%");
+        if (searchType === "manual" && value.includes("\\_")) value = value.replace(/\\_/g, "_");
+        if (value.includes("%")) value = value.replace(/\%/g, "＊");
+        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+        return value;
+      };
+
+      // 復元Number専用
+      const beforeAdjustFieldValueInteger = (value: number | "ISNULL" | "ISNOTNULL" | null) => {
+        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+        if (value === null) return null;
+        return value;
+      };
+      // 復元Date専用
+      const beforeAdjustFieldValueDate = (value: string | "ISNULL" | "ISNOTNULL" | null) => {
+        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+        if (value === null) return null;
+        return new Date(value);
+      };
+
+      const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
+        value === "ISNULL" ? "is null" : "is not null";
+
       console.log(
         "🔥Meetingメインコンテナー useEffect 編集モード inputにnewSearchQuotation_Contact_CompanyParamsを格納",
         newSearchQuotation_Contact_CompanyParams

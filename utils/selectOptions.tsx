@@ -555,7 +555,7 @@ export const mappingClientCompaniesFiledToNameForInsert: { [key: string]: { [key
   department_contacts: { ja: `連絡先(部署別)`, en: `` },
   industry_large: { ja: `業界(大分類)`, en: `` }, // セールスフォース用
   industry_small: { ja: `業界(小分類)`, en: `` }, // セールスフォース用
-  industry_type_id: { ja: `業種`, en: `` },
+  industry_type_id: { ja: `業界・業種`, en: `` },
   country_id: { ja: `国コード`, en: `` },
   region_id: { ja: `都道府県コード`, en: `` },
   city_id: { ja: `市区町村`, en: `` },

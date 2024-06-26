@@ -816,7 +816,7 @@ const ImportModalMemo = () => {
               className={`${styles.title_area} fade08_forward flex h-auto w-full flex-col rounded-t-[9px] p-[24px] pb-[12px]`}
             >
               <div className={`mb-[15px] flex h-auto w-full min-w-max items-center`}>
-                <div className={`mr-[20px] min-w-max text-[24px] font-bold`}>
+                <div className={`mr-[20px] min-h-[36px] min-w-max text-[23px] font-bold`}>
                   <span>CSVインポート</span>
                 </div>
                 <div className="relative flex h-[25px] w-full items-center">
@@ -888,14 +888,16 @@ const ImportModalMemo = () => {
                         >
                           <div
                             ref={infoIconStep2Ref}
-                            className={`flex-center animate_ping absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)]`}
+                            className={`flex-center animate_ping duration15 absolute left-0 top-0 h-[15px] w-[15px] rounded-full border border-solid border-[var(--color-bg-brand-f)]`}
                           ></div>
                           <ImInfo className={`min-h-[15px] min-w-[15px] text-[var(--color-bg-brand-f)]`} />
                         </div>
                       </>
                     )}
                   </div>
-                  <div className={`mt-[6px] flex whitespace-pre-wrap text-[13px] text-[var(--color-text-sub)]`}>
+                  <div
+                    className={`mt-[6px] flex min-h-[39px] whitespace-pre-wrap text-[12px] text-[var(--color-text-sub)]`}
+                  >
                     {step === 1 && (
                       <>
                         {!isConverting && !isCompletedConvert && (

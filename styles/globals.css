@@ -1205,6 +1205,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --border-real-table-color: #cccccc90;
   /* --border-real-table: 0px 0px 0px 1px #cccccc90, 0px 0px 0px 2px #eeeeee90; */
   --border-real-table: 0px 0px 0px 1px #fefefe, 0px 0px 0px 2px #dedede;
+  --border-real-table-with-shadow: 0px 0px 0px 1px #fefefe, 0px 0px 0px 2px #dedede, 0px 1px 3px 2px #cccccc66;
   --border-real-with-shadow: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390, var(--shadow-dropdown-menu);
   --border-real-with-shadow-md: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #33333390,
     var(--shadow-dropdown-menu-md);
@@ -1487,9 +1488,12 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-btn-cancel-text: #666;
   --color-sales-card-bg: #fff;
   --color-sales-card-bg-light: #fff;
+  --color-sales-card-bg-light-md: #fff;
   --color-sales-card-bg-single: #fff;
   --color-sales-card-border: transparent;
   --color-sales-card-border: 0 1px 2px 1px #cccccc60;
+  --color-card-border-with-shadow-md: inset 0px 0px 0px 1px #ddd, 0 1px 2px 1px #cccccc56;
+  /* box-shadow: inset 0px 0px 0px 1px #ddd, 0 1px 2px 1px #cccccc60; */
   --color-sales-card-border-brand: 0 0 0 1px var(--color-bg-brand-f), 0 1px 2px 2px #cccccc60;
   --color-sales-card-border-sticky: 0 1px 2px 1px #cccccc60, 0 6px 12px 3px #00000056;
 
@@ -2306,6 +2310,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --shadow-dropdown-menu-dark: 0 4px 6px 2px #00000033;
   --border-real-table-color: #565656;
   --border-real-table: 0px 0px 1px 1px #666, 0px 0px 0px 2px #000;
+  --border-real-table-with-shadow: 0px 0px 1px 1px #666, 0px 0px 0px 2px #000, 0px 1px 3px 2px #00000056;
   --border-real-with-shadow: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000, var(--shadow-dropdown-menu);
   --border-real-with-shadow-md: inset 0px 0px 0px 1px #ffffff70, 0px 0px 0px 1px #000, var(--shadow-dropdown-menu-md);
   --border-real-with-shadow-f: inset 0px 0px 0px 1px var(--color-bg-brand-f), 0px 0px 0px 1px #33333390,
@@ -2641,10 +2646,14 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-sales-card-bg: linear-gradient(to bottom left, #2d2d2d 0%, #292929 33%, #222 66%, #1c1c1c 100%);
   /* --color-sales-card-bg-light: linear-gradient(to bottom left, #565656 0%, #393939 33%, #292929 66%, #242424 100%); */
   --color-sales-card-bg-light: linear-gradient(to bottom left, #787878 0%, #565656 33%, #3d3d3d 66%, #333 100%);
+  --color-sales-card-bg-light-md: linear-gradient(to bottom left, #666 0%, #484848 33%, #393939 66%, #2e2e2e 100%);
   --color-sales-card-bg-single: #292929;
   /* --color-sales-card-bg: linear-gradient(to bottom left, #2d2d2d 0%, #292929 33%, #1c1c1c 66%, #191919 100%); */
   /* --color-sales-card-bg: linear-gradient(to bottom left, #2c2c2c 0%, #2d2d2d 33%, #222 66%, #1c1c1c 100%); */
   --color-sales-card-border: 0 0 0 1px #333;
+  --color-card-border-with-shadow-md: inset 0 0 0 1px #333, 0 1px 3px 1px #00000060;
+  /* 
+    box-shadow: inset 0 0 0 1px #333, 0 1px 3px 1px #00000060; */
   --color-sales-card-border-brand: 0 0 0 1px var(--color-bg-brand-f);
 
   --color-sdb-header-white: transparent;
@@ -4178,7 +4187,12 @@ textarea {
 .animate_ping18 {
   animation: ping18 1s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
-
+.animate_ping.duration15 {
+  animation-duration: 1.5s;
+}
+.animate_ping.duration20 {
+  animation-duration: 2s;
+}
 /* -------------- 🌟react-toastify トースト🌟 -------------- */
 .Toastify__toast-theme--dark {
   --toastify-color-dark: #292929;

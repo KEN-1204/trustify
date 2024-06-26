@@ -136,8 +136,8 @@ const CompanyMainContainerMemo: FC = () => {
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
 
-  const supabase = useSupabaseClient();
-  const queryClient = useQueryClient();
+  // const supabase = useSupabaseClient();
+  // const queryClient = useQueryClient();
 
   // useMutation
   const { updateClientCompanyFieldMutation, updateMultipleClientCompanyFields, updateProductCategoriesFields } =
@@ -206,6 +206,12 @@ const CompanyMainContainerMemo: FC = () => {
   // const [inputProductL, setInputProductL] = useState("");
   // const [inputProductM, setInputProductM] = useState("");
   // const [inputProductS, setInputProductS] = useState("");
+  // 製品分類に「データあり(ISNOTNULL)」「データなし(ISNULL)」がセットされた場合に使用
+  const [isNullNotNullCategoryLarge, setIsNullNotNullCategoryLarge] = useState<"is null" | "is not null" | null>(null);
+  const [isNullNotNullCategoryMedium, setIsNullNotNullCategoryMedium] = useState<"is null" | "is not null" | null>(
+    null
+  );
+  const [isNullNotNullCategorySmall, setIsNullNotNullCategorySmall] = useState<"is null" | "is not null" | null>(null);
   // 製品分類 個別フィールドアップデート時の変更前オリジナルの値を保持するref INSERT対象とDELETE対象の判別に必要
   const originalProductCategoriesLargeRef = useRef<ProductCategoriesLarge[] | null>(null);
   const originalProductCategoriesMediumRef = useRef<ProductCategoriesMedium[] | null>(null);
@@ -393,18 +399,6 @@ const CompanyMainContainerMemo: FC = () => {
   // 検索タイプ
   const searchType = useDashboardStore((state) => state.searchType);
 
-  // サーチ編集モードでリプレイス前の値に復元する関数
-  function beforeAdjustFieldValue(value: string | null) {
-    if (value === "") return ""; // 全てのデータ
-    if (value === null) return ""; // 全てのデータ
-    if (searchType === "manual" && value.includes("\\%")) value = value.replace(/\\%/g, "%"); // \%を%に戻す
-    if (searchType === "manual" && value.includes("\\_")) value = value.replace(/\\_/g, "_"); // \_を_に戻す
-    if (value.includes("%")) value = value.replace(/\%/g, "＊");
-    if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-    if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-    return value;
-  }
-
   // 編集モードtrueの場合、サーチ条件をinputタグのvalueに格納
   // 新規サーチの場合には、サーチ条件を空にする
   useEffect(() => {
@@ -413,6 +407,22 @@ const CompanyMainContainerMemo: FC = () => {
 
     if (editSearchMode && searchMode) {
       if (newSearchCompanyParams === null) return;
+
+      // サーチ編集モードでリプレイス前の値に復元する関数
+      const beforeAdjustFieldValue = (value: string | null) => {
+        if (value === "") return ""; // 全てのデータ
+        if (value === null) return ""; // 全てのデータ
+        if (searchType === "manual" && value.includes("\\%")) value = value.replace(/\\%/g, "%"); // \%を%に戻す
+        if (searchType === "manual" && value.includes("\\_")) value = value.replace(/\\_/g, "_"); // \_を_に戻す
+        if (value.includes("%")) value = value.replace(/\%/g, "＊");
+        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+        return value;
+      };
+
+      const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
+        value === "ISNULL" ? "is null" : "is not null";
+
       console.log(
         "🔥Companyメインコンテナー useEffect 編集モード inputにnewSearchCompanyParamsを格納",
         newSearchCompanyParams
@@ -437,7 +447,8 @@ const CompanyMainContainerMemo: FC = () => {
           newSearchCompanyParams.industry_type_id ? newSearchCompanyParams.industry_type_id.toString() : ""
         )
       );
-      // ------------------------ 製品分類の処理 編集モードはidからnameへ変換 ------------------------
+      // ------------------------ 製品分類関連 ------------------------
+      // 編集モードはidからnameへ変換
       // setInputProductL(beforeAdjustFieldValue(newSearchCompanyParams.product_category_large));
       // setInputProductM(beforeAdjustFieldValue(newSearchCompanyParams.product_category_medium));
       // setInputProductS(beforeAdjustFieldValue(newSearchCompanyParams.product_category_small));
@@ -452,47 +463,54 @@ const CompanyMainContainerMemo: FC = () => {
 
       // 🔸大分類
       let productCategoryLargeNamesArray: ProductCategoriesLarge[] = [];
-      if (0 < newSearchCompanyParams.product_category_large_ids.length) {
-        console.log("============================ 大分類実行🔥", newSearchCompanyParams.product_category_large_ids);
+      const largeIds = newSearchCompanyParams.product_category_large_ids;
+      if (largeIds === "ISNULL" || largeIds === "ISNOTNULL") {
+        setIsNullNotNullCategoryLarge(beforeAdjustIsNNN(largeIds));
+      } else if (0 < largeIds.length) {
+        console.log("============================ 大分類実行🔥", largeIds);
         // idからnameへ変換
         const largeIdToNameMap = new Map(optionsProductL.map((obj) => [obj.id, obj.name]));
-        productCategoryLargeNamesArray = newSearchCompanyParams.product_category_large_ids
+        productCategoryLargeNamesArray = largeIds
           .map((id) => {
             return largeIdToNameMap.get(id);
           })
           .filter((name): name is ProductCategoriesLarge => name !== undefined && name !== null);
         setInputProductArrayLarge(productCategoryLargeNamesArray);
       }
+
       // 🔸中分類
       let productCategoryMediumNamesArray: ProductCategoriesMedium[] = [];
-      if (0 < newSearchCompanyParams.product_category_medium_ids.length && 0 < productCategoryLargeNamesArray.length) {
-        console.log(
-          "============================ 中分類実行🔥",
-          newSearchCompanyParams.product_category_medium_ids,
-          productCategoryLargeNamesArray
-        );
+      const mediumIds = newSearchCompanyParams.product_category_medium_ids;
+      if (mediumIds === "ISNULL" || mediumIds === "ISNOTNULL") {
+        setIsNullNotNullCategoryMedium(beforeAdjustIsNNN(mediumIds));
+      } else if (0 < mediumIds.length && 0 < productCategoryLargeNamesArray.length) {
+        console.log("============================ 中分類実行🔥", mediumIds, productCategoryLargeNamesArray);
         // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
         const optionsMediumObj = productCategoryLargeNamesArray
           .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
           .flatMap((array) => array);
         const mediumIdToNameMap = new Map(optionsMediumObj.map((obj) => [obj.id, obj.name]));
-        productCategoryMediumNamesArray = newSearchCompanyParams.product_category_medium_ids
+        productCategoryMediumNamesArray = mediumIds
           .map((id) => {
             return mediumIdToNameMap.get(id);
           })
           .filter((name): name is ProductCategoriesMedium => name !== undefined && name !== null);
         setInputProductArrayMedium(productCategoryMediumNamesArray);
       }
+
       // 🔸小分類
       let productCategorySmallNamesArray: ProductCategoriesSmall[] = [];
-      if (0 < newSearchCompanyParams.product_category_small_ids.length && 0 < productCategoryMediumNamesArray.length) {
+      const smallIds = newSearchCompanyParams.product_category_small_ids;
+      if (smallIds === "ISNULL" || smallIds === "ISNOTNULL") {
+        setIsNullNotNullCategorySmall(beforeAdjustIsNNN(smallIds));
+      } else if (0 < smallIds.length && 0 < productCategoryMediumNamesArray.length) {
         console.log("============================ 小分類実行🔥");
         // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
         const optionsSmallObj = productCategoryMediumNamesArray
           .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
           .flatMap((array) => array);
         const mediumIdToNameMap = new Map(optionsSmallObj.map((obj) => [obj.id, obj.name]));
-        productCategorySmallNamesArray = newSearchCompanyParams.product_category_small_ids
+        productCategorySmallNamesArray = smallIds
           .map((id) => {
             return mediumIdToNameMap.get(id);
           })
@@ -564,7 +582,7 @@ const CompanyMainContainerMemo: FC = () => {
       //     .filter((name): name is ProductCategoriesSmall => name !== undefined && name !== null);
       //   setInputProductArraySmall(productCategorySmallNamesArray);
       // }
-      // ------------------------ 製品分類の処理 ------------------------ ここまで
+      // ------------------------ 製品分類関連 ------------------------ ここまで
       setInputFiscal(beforeAdjustFieldValue(newSearchCompanyParams.fiscal_end_month));
       setInputClient(beforeAdjustFieldValue(newSearchCompanyParams.clients));
       setInputSupplier(beforeAdjustFieldValue(newSearchCompanyParams.supplier));
@@ -606,6 +624,9 @@ const CompanyMainContainerMemo: FC = () => {
       if (!!inputProductArrayLarge.length) setInputProductArrayLarge([]);
       if (!!inputProductArrayMedium.length) setInputProductArrayMedium([]);
       if (!!inputProductArraySmall.length) setInputProductArraySmall([]);
+      if (isNullNotNullCategoryLarge !== null) setIsNullNotNullCategoryLarge(null);
+      if (isNullNotNullCategoryMedium !== null) setIsNullNotNullCategoryMedium(null);
+      if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
       // 製品分類の処理 ------------------------ ここまで
       if (!!inputFiscal) setInputFiscal("");
       if (!!inputClient) setInputClient("");
@@ -665,6 +686,10 @@ const CompanyMainContainerMemo: FC = () => {
         return null;
       }
     };
+
+    // 🔸製品分類用 is null, is not nullをIS NULL, IS NOT NULLに変換
+    const adjustIsNNN = (value: "is null" | "is not null"): "ISNULL" | "ISNOTNULL" =>
+      value === "is null" ? "ISNULL" : "ISNOTNULL";
 
     setLoadingGlobalState(true);
 
@@ -798,9 +823,12 @@ const CompanyMainContainerMemo: FC = () => {
       // product_category_large: _product_category_large,
       // product_category_medium: _product_category_medium,
       // product_category_small: _product_category_small,
-      product_category_large_ids: productCategoryLargeIdsArray,
-      product_category_medium_ids: productCategoryMediumIdsArray,
-      product_category_small_ids: productCategorySmallIdsArray,
+      product_category_large_ids:
+        isNullNotNullCategoryLarge === null ? productCategoryLargeIdsArray : adjustIsNNN(isNullNotNullCategoryLarge),
+      product_category_medium_ids:
+        isNullNotNullCategoryMedium === null ? productCategoryMediumIdsArray : adjustIsNNN(isNullNotNullCategoryMedium),
+      product_category_small_ids:
+        isNullNotNullCategorySmall === null ? productCategorySmallIdsArray : adjustIsNNN(isNullNotNullCategorySmall),
       // product_category_all_ids: productCategoryAllIdsArray,
       // 製品分類 ---------------- ここまで
       fiscal_end_month: _fiscal_end_month,
@@ -859,6 +887,9 @@ const CompanyMainContainerMemo: FC = () => {
     setInputProductArrayLarge([]);
     setInputProductArrayMedium([]);
     setInputProductArraySmall([]);
+    if (isNullNotNullCategoryLarge !== null) setIsNullNotNullCategoryLarge(null);
+    if (isNullNotNullCategoryMedium !== null) setIsNullNotNullCategoryMedium(null);
+    if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
     // 製品分類 ---------------- ここまで
     setInputFiscal("");
     setInputClient("");
@@ -1524,6 +1555,7 @@ const CompanyMainContainerMemo: FC = () => {
   // ツールチップ
   const additionalInputTooltipText = (index: number) =>
     index === 0 ? `空欄以外のデータのみ抽出` : `空欄のデータのみ抽出`;
+
   // 🔸「入力値をリセット」をクリック
   const handleClickResetInput = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
     handleCloseTooltip();
@@ -1531,23 +1563,60 @@ const CompanyMainContainerMemo: FC = () => {
       dispatch("");
     }
   };
+
+  // 🔸製品分類用「入力値をリセット」
+  const handleResetArray = (fieldName: "category_large" | "category_medium" | "category_small") => {
+    if (fieldName === "category_large") {
+      if (isNullNotNullCategoryLarge !== null) setIsNullNotNullCategoryLarge(null);
+      if (0 < inputProductArrayLarge.length) setInputProductArrayLarge([]);
+    }
+    if (fieldName === "category_medium") {
+      if (isNullNotNullCategoryMedium !== null) setIsNullNotNullCategoryMedium(null);
+      if (0 < inputProductArrayMedium.length) setInputProductArrayMedium([]);
+    }
+    if (fieldName === "category_small") {
+      if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
+      if (0 < inputProductArraySmall.length) setInputProductArraySmall([]);
+    }
+  };
+
+  // 🔸製品分類全てリセット
+  const resetProductCategories = (type: "lms" | "ms" | "s") => {
+    if (type === "lms" && 0 < inputProductArrayLarge.length) setInputProductArrayLarge([]);
+    if (["lms", "ms"].includes(type) && 0 < inputProductArrayMedium.length) setInputProductArrayMedium([]);
+    if (["lms", "ms", "s"].includes(type) && 0 < inputProductArraySmall.length) setInputProductArraySmall([]);
+  };
+
   // 🔸「入力有り」をクリック
-  const handleClickIsNotNull = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+  const handleClickIsNotNull = (
+    dispatch: Dispatch<SetStateAction<any>>,
+    inputType: "" | "category_large" | "category_medium" | "category_small" = ""
+  ) => {
+    if (inputType === "category_large") resetProductCategories("lms");
+    if (inputType === "category_medium") resetProductCategories("ms");
+    if (inputType === "category_small") resetProductCategories("s");
     return dispatch("is not null");
-    // if (inputType === "string") {
-    //   dispatch("is not null");
-    // }
   };
+
   // 🔸「入力無し」をクリック
-  const handleClickIsNull = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+  const handleClickIsNull = (
+    dispatch: Dispatch<SetStateAction<any>>,
+    inputType: "" | "category_large" | "category_medium" | "category_small" = ""
+  ) => {
+    if (inputType === "category_large") resetProductCategories("lms");
+    if (inputType === "category_medium") resetProductCategories("ms");
+    if (inputType === "category_small") resetProductCategories("s");
     return dispatch("is null");
-    // if (inputType === "string") {
-    //   dispatch("is null");
-    // }
   };
-  const handleClickAdditionalAreaBtn = (index: number, dispatch: Dispatch<SetStateAction<any>>) => {
-    if (index === 0) handleClickIsNotNull(dispatch);
-    if (index === 1) handleClickIsNull(dispatch);
+
+  // 🔸「入力有り」 or 「入力無し」をクリック
+  const handleClickAdditionalAreaBtn = (
+    index: number,
+    dispatch: Dispatch<SetStateAction<any>>,
+    type: "" | "category_large" | "category_medium" | "category_small" = ""
+  ) => {
+    if (index === 0) handleClickIsNotNull(dispatch, type);
+    if (index === 1) handleClickIsNull(dispatch, type);
     handleCloseTooltip();
   };
 
@@ -1578,15 +1647,18 @@ const CompanyMainContainerMemo: FC = () => {
     "newSearchCompanyParams",
     newSearchCompanyParams,
     "selectedRowDataCompany",
-    selectedRowDataCompany
+    selectedRowDataCompany,
     // "optionsIndustryType",
     // optionsIndustryType,
-    // "inputProductArrayLarge",
-    // inputProductArrayLarge,
-    // "inputProductArrayMedium",
-    // inputProductArrayMedium,
-    // "inputProductArraySmall",
-    // inputProductArraySmall,
+    "inputProductArrayLarge",
+    inputProductArrayLarge,
+    isNullNotNullCategoryLarge,
+    "inputProductArrayMedium",
+    inputProductArrayMedium,
+    isNullNotNullCategoryMedium,
+    "inputProductArraySmall",
+    inputProductArraySmall,
+    isNullNotNullCategorySmall
     // "formattedProductCategoriesLarge",
     // formattedProductCategoriesLarge,
     // "formattedProductCategoriesMedium",
@@ -3310,7 +3382,7 @@ const CompanyMainContainerMemo: FC = () => {
                     </span>
                   )}
                   {/* サーチ */}
-                  {searchMode && !inputProductArrayLarge.length && (
+                  {searchMode && (
                     <select
                       className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                       value={inputIndustryType}
@@ -3405,12 +3477,12 @@ const CompanyMainContainerMemo: FC = () => {
 
             {/* 製品分類(大分類) */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
+              <div className="group relative flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   {/* <span className={`${styles.title} !mr-[15px] !min-w-max`}>○製品分類(大分類)</span> */}
                   <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
-                    <span className={``}>製品分類</span>
-                    <span className={``}>(大分類)</span>
+                    <span>製品分類</span>
+                    <span>(大分類)</span>
                   </div>
                   {/* ディスプレイ 製品分類はダブルクリックで大中小を全て編集モードに変更して一括で更新する */}
                   {!searchMode && isEditModeField !== "product_categories" && (
@@ -3471,43 +3543,28 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* {searchMode && !inputIndustryType && ( */}
                   {searchMode && (
                     <>
-                      <CustomSelectMultiple
-                        stateArray={inputProductArrayLarge}
-                        dispatch={setInputProductArrayLarge}
-                        selectedSetObj={selectedProductCategoryLargeSet}
-                        options={optionsProductLNameOnly}
-                        getOptionName={getProductCategoryLargeName}
-                        withBorder={true}
-                        // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
-                        customClass="font-normal"
-                        bgDark={false}
-                        maxWidth={`calc(100% - 95px)`}
-                        maxHeight={30}
-                        // zIndexSelectBox={2000}
-                        hideOptionAfterSelect={true}
-                      />
-                      {/* <select
-                      className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box}`}
-                      value={inputProductL}
-                      onChange={(e) => setInputProductL(e.target.value)}
-                    >
-                      <option value=""></option>
-                      <option value="電子部品・モジュール">電子部品・モジュール</option>
-                      <option value="機械部品">機械部品</option>
-                      <option value="製造・加工機械">製造・加工機械</option>
-                      <option value="科学・理化学機器">科学・理化学機器</option>
-                      <option value="素材・材料">素材・材料</option>
-                      <option value="測定・分析">測定・分析</option>
-                      <option value="画像処理">画像処理</option>
-                      <option value="制御・電機機器">制御・電機機器</option>
-                      <option value="工具・消耗品・備品">工具・消耗品・備品</option>
-                      <option value="設計・生産支援">設計・生産支援</option>
-                      <option value="IT・ネットワーク">IT・ネットワーク</option>
-                      <option value="オフィス">オフィス</option>
-                      <option value="業務支援サービス">業務支援サービス</option>
-                      <option value="セミナー・スキルアップ">セミナー・スキルアップ</option>
-                      <option value="その他">その他</option>
-                    </select> */}
+                      {isNullNotNullCategoryLarge === "is null" || isNullNotNullCategoryLarge === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullCategoryLarge]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullCategoryLarge]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputProductArrayLarge}
+                          dispatch={setInputProductArrayLarge}
+                          selectedSetObj={selectedProductCategoryLargeSet}
+                          options={optionsProductLNameOnly}
+                          getOptionName={getProductCategoryLargeName}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - 95px)`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
                     </>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
@@ -3615,11 +3672,47 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isNullNotNullCategoryLarge === null && inputProductArrayLarge.length === 0
+                              ? `hidden`
+                              : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleResetArray("category_large")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(index, setIsNullNotNullCategoryLarge, "category_large")
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
             </div>
             {/* 製品分類(中分類) */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
+              <div className="group relative flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   {/* <span className={`${styles.title} !mr-[15px] !min-w-max`}>○製品分類(中分類)</span> */}
                   <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
@@ -3678,38 +3771,32 @@ const CompanyMainContainerMemo: FC = () => {
                     </>
                   )}
                   {/* サーチ */}
-                  {searchMode && !!inputProductArrayLarge.length && (
+                  {searchMode && (
                     <>
-                      <CustomSelectMultiple
-                        stateArray={inputProductArrayMedium}
-                        dispatch={setInputProductArrayMedium}
-                        selectedSetObj={selectedProductCategoryMediumSet}
-                        options={optionsProductCategoryMediumAll}
-                        getOptionName={getProductCategoryMediumNameAll}
-                        withBorder={true}
-                        // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
-                        customClass="font-normal"
-                        bgDark={false}
-                        maxWidth={`calc(100% - 95px)`}
-                        maxHeight={30}
-                        // zIndexSelectBox={2000}
-                        hideOptionAfterSelect={true}
-                      />
-                      {/* <select
-                      value={inputProductM}
-                      onChange={(e) => setInputProductM(e.target.value)}
-                      className={`${inputProductL ? "" : "hidden"} ml-auto h-full w-[80%] cursor-pointer ${
-                        styles.select_box
-                      }`}
-                    >
-                      <option key="" value=""></option>
-                      {inputProductL === "electronic_components_modules" &&
-                        productCategoriesM.moduleCategoryM.map((option) => (
-                          <option key={`moduleCategoryM${option.name}`} value={option.id}>
-                            {mappingModuleCategoryM[option.name][language]}
-                          </option>
-                        ))}
-                    </select> */}
+                      {isNullNotNullCategoryMedium === "is null" || isNullNotNullCategoryMedium === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullCategoryMedium]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullCategoryMedium]}</span>
+                        </div>
+                      ) : (
+                        !!inputProductArrayLarge.length && (
+                          <CustomSelectMultiple
+                            stateArray={inputProductArrayMedium}
+                            dispatch={setInputProductArrayMedium}
+                            selectedSetObj={selectedProductCategoryMediumSet}
+                            options={optionsProductCategoryMediumAll}
+                            getOptionName={getProductCategoryMediumNameAll}
+                            withBorder={true}
+                            // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                            customClass="font-normal"
+                            bgDark={false}
+                            maxWidth={`calc(100% - 95px)`}
+                            maxHeight={30}
+                            // zIndexSelectBox={2000}
+                            hideOptionAfterSelect={true}
+                          />
+                        )
+                      )}
                     </>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
@@ -3752,11 +3839,47 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isNullNotNullCategoryMedium === null && inputProductArrayMedium.length === 0
+                              ? `hidden`
+                              : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleResetArray("category_medium")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(index, setIsNullNotNullCategoryMedium, "category_medium")
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
             </div>
             {/* 製品分類(小分類) */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
+              <div className="group relative flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   {/* <span className={`${styles.title} !mr-[5px] !min-w-max`}>○製品分類(小分類)</span> */}
                   <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
@@ -3816,23 +3939,32 @@ const CompanyMainContainerMemo: FC = () => {
                     </>
                   )}
                   {/* サーチ */}
-                  {searchMode && !!inputProductArrayMedium.length && (
+                  {searchMode && (
                     <>
-                      <CustomSelectMultiple
-                        stateArray={inputProductArraySmall}
-                        dispatch={setInputProductArraySmall}
-                        selectedSetObj={selectedProductCategorySmallSet}
-                        options={optionsProductCategorySmallAll}
-                        getOptionName={getProductCategorySmallNameAll}
-                        withBorder={true}
-                        // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
-                        customClass="font-normal"
-                        bgDark={false}
-                        maxWidth={`calc(100% - 95px)`}
-                        maxHeight={30}
-                        // zIndexSelectBox={2000}
-                        hideOptionAfterSelect={true}
-                      />
+                      {isNullNotNullCategorySmall === "is null" || isNullNotNullCategorySmall === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullCategorySmall]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullCategorySmall]}</span>
+                        </div>
+                      ) : (
+                        !!inputProductArrayMedium.length && (
+                          <CustomSelectMultiple
+                            stateArray={inputProductArraySmall}
+                            dispatch={setInputProductArraySmall}
+                            selectedSetObj={selectedProductCategorySmallSet}
+                            options={optionsProductCategorySmallAll}
+                            getOptionName={getProductCategorySmallNameAll}
+                            withBorder={true}
+                            // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                            customClass="font-normal"
+                            bgDark={false}
+                            maxWidth={`calc(100% - 95px)`}
+                            maxHeight={30}
+                            // zIndexSelectBox={2000}
+                            hideOptionAfterSelect={true}
+                          />
+                        )
+                      )}
                     </>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
@@ -3875,6 +4007,42 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isNullNotNullCategorySmall === null && inputProductArraySmall.length === 0
+                              ? `hidden`
+                              : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleResetArray("category_small")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(index, setIsNullNotNullCategorySmall, "category_small")
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
             </div>
 

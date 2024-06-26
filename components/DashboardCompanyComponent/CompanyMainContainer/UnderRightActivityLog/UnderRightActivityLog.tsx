@@ -738,7 +738,7 @@ const UnderRightActivityLogMemo = ({ isHoverableBorder = false }: Props) => {
             </div>
           )} */}
           {rowVirtualizer.getVirtualItems().length === 0 && !!selectedRowDataCompany && !isLoading && (
-            <div className={`flex-col-center h-[calc(100%-25px)] w-full`}>
+            <div className={`flex-col-center h-[calc(100%-25px)] w-full ${styles.no_record}`}>
               <span className={`text-[var(--color-text-sub)]`}>この客先への活動履歴はまだありません。</span>
             </div>
           )}

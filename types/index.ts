@@ -740,9 +740,9 @@ export type NewSearchCompanyParams = {
   // product_category_medium: string | null;
   // product_category_small: string | null;
   // product_category_all_ids: number[];
-  product_category_large_ids: number[];
-  product_category_medium_ids: number[];
-  product_category_small_ids: number[];
+  product_category_large_ids: number[] | "ISNULL" | "ISNOTNULL";
+  product_category_medium_ids: number[] | "ISNULL" | "ISNOTNULL";
+  product_category_small_ids: number[] | "ISNULL" | "ISNOTNULL";
   // 🌠製品分類 ---------------- ここまで
   fiscal_end_month: string | null;
   facility: string | null;
@@ -952,9 +952,9 @@ export type NewSearchContact_CompanyParams = {
   // product_category_large: string | null;
   // product_category_medium: string | null;
   // product_category_small: string | null;
-  product_category_large_ids: number[];
-  product_category_medium_ids: number[];
-  product_category_small_ids: number[];
+  product_category_large_ids: number[] | "ISNULL" | "ISNOTNULL";
+  product_category_medium_ids: number[] | "ISNULL" | "ISNOTNULL";
+  product_category_small_ids: number[] | "ISNULL" | "ISNOTNULL";
   // 🌠製品分類 ---------------- ここまで
   fiscal_end_month: string | null;
   budget_request_month1: string | null;
@@ -1177,9 +1177,9 @@ export type NewSearchActivity_Contact_CompanyParams = {
   // product_category_large: string | null;
   // product_category_medium: string | null;
   // product_category_small: string | null;
-  product_category_large_ids: number[];
-  product_category_medium_ids: number[];
-  product_category_small_ids: number[];
+  product_category_large_ids: number[] | "ISNULL" | "ISNOTNULL";
+  product_category_medium_ids: number[] | "ISNULL" | "ISNOTNULL";
+  product_category_small_ids: number[] | "ISNULL" | "ISNOTNULL";
   // 🌠製品分類 ---------------- ここまで
   fiscal_end_month: string | null;
   budget_request_month1: string | null;
@@ -1486,9 +1486,9 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   // product_category_large: string | null;
   // product_category_medium: string | null;
   // product_category_small: string | null;
-  product_category_large_ids: number[];
-  product_category_medium_ids: number[];
-  product_category_small_ids: number[];
+  product_category_large_ids: number[] | "ISNULL" | "ISNOTNULL";
+  product_category_medium_ids: number[] | "ISNULL" | "ISNOTNULL";
+  product_category_small_ids: number[] | "ISNULL" | "ISNOTNULL";
   // 🌠製品分類 ---------------- ここまで
   fiscal_end_month: string | null;
   budget_request_month1: string | null;
@@ -2046,9 +2046,9 @@ export type NewSearchProperty_Contact_CompanyParams = {
   // product_category_large: string | null;
   // product_category_medium: string | null;
   // product_category_small: string | null;
-  product_category_large_ids: number[];
-  product_category_medium_ids: number[];
-  product_category_small_ids: number[];
+  product_category_large_ids: number[] | "ISNULL" | "ISNOTNULL";
+  product_category_medium_ids: number[] | "ISNULL" | "ISNOTNULL";
+  product_category_small_ids: number[] | "ISNULL" | "ISNOTNULL";
   // 🌠製品分類 ---------------- ここまで
   fiscal_end_month: string | null;
   budget_request_month1: string | null;

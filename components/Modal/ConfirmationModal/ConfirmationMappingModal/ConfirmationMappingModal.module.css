@@ -96,8 +96,10 @@
 } */
 .right_container .scroll_container .mapping_list_item .item_card {
   /* background: var(--color-sales-card-bg); */
-  background: var(--color-sales-card-bg-light);
-  box-shadow: var(--color-sales-card-border);
+  /* background: var(--color-sales-card-bg-light); */
+  background: var(--color-sales-card-bg-light-md);
+  /* box-shadow: var(--color-sales-card-border); */
+  box-shadow: var(--color-card-border-with-shadow-md);
   /* border-radius: 12px; */
   transition: box-shadow 0.5s ease, background-color 0.3s ease, background-image 0.3s ease, color 0.3s ease;
   padding: 0 12px;

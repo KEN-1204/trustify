@@ -189,7 +189,8 @@
 .mapping_container .mapping_table {
   display: grid;
   border-radius: 6px;
-  box-shadow: var(--border-real-table);
+  /* box-shadow: var(--border-real-table); */
+  box-shadow: var(--border-real-table-with-shadow);
 }
 .mapping_container .mapping_table .row {
   display: grid;
