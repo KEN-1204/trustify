@@ -625,7 +625,8 @@ export type Client_company = {
   main_phone_number?: string | null;
   corporate_number?: string | null;
   board_member?: string | null;
-  number_of_employees?: string | null;
+  // number_of_employees?: string | null;
+  number_of_employees?: number | null;
   // ban_reason?: string | null;
   // call_careful_flag?: boolean | null;
   // call_careful_reason?: string | null;
@@ -689,7 +690,8 @@ export type Client_company_row_data = {
   member?: string | null;
   name?: string;
   number_of_employees_class?: string | null;
-  number_of_employees?: string | null;
+  // number_of_employees?: string | null;
+  number_of_employees?: number | null;
   overseas_bases?: string | null;
   product_category_large?: string | null;
   product_category_medium?: string | null;
@@ -720,17 +722,27 @@ export type NewSearchCompanyParams = {
   main_fax: string | null;
   email: string | null;
   zipcode: string | null;
-  number_of_employees_class: string | null;
+  // number_of_employees_class: string | null;
+  // サーチ配列 規模 ----------------
+  number_of_employees_class: string[] | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 規模 ----------------
+  // 範囲検索 従業員数 ----------------
+  number_of_employees: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 従業員数 ----------------
   address: string | null;
   // capital: string | null;
   // capital: number | null;
-  capital: number | "ISNULL" | "ISNOTNULL" | null;
+  // capital: number | "ISNULL" | "ISNOTNULL" | null;
+  capital: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   established_in: string | null;
   business_content: string | null;
   // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  // サーチ配列 業種 ----------------
   // industry_type: string | null;
   // industry_type_id?: number | null;
-  industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
+  // industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
+  industry_type_id: number[] | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 業種 ----------------
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
@@ -744,7 +756,10 @@ export type NewSearchCompanyParams = {
   product_category_medium_ids: number[] | "ISNULL" | "ISNOTNULL";
   product_category_small_ids: number[] | "ISNULL" | "ISNOTNULL";
   // 🌠製品分類 ---------------- ここまで
-  fiscal_end_month: string | null;
+  // サーチ配列 ----------------
+  // fiscal_end_month: string | null;
+  fiscal_end_month: string[] | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 ----------------
   facility: string | null;
   clients: string | null;
   supplier: string | null;

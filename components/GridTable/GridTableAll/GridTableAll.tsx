@@ -38,6 +38,7 @@ import {
   mappingProductCategoriesSmall,
   productCategoriesSmallNameOnlySet,
 } from "@/utils/productCategoryS";
+import { convertObjToText, searchObjectColumnsSetCompany } from "@/utils/Helpers/MainContainer/commonHelper";
 
 type TableDataType = {
   id: number;
@@ -860,17 +861,46 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // 次回に同じ検索をした場合にもキャッシュを使用できるようにする
   // useInfiniteQueryのキャッシュのクエリキーの第二引数に割り当てる
   // const [newSearchParamsString, setNewSearchParamsString] = useState<string | null>(null);
-  const newSearchParamsStringRef = useRef<string | null>(null);
-  // console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
-  if (newSearchCompanyParams) {
-    newSearchParamsStringRef.current = Object.entries(newSearchCompanyParams)
-      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-      .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
-      // .map((key, index) => `${key}:${key[index]} `)
-      .join(", ");
-    // .join("");
-    // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
-  }
+  // -------------------------- 🔸サーチ条件をstringに変換 変更前 useRefバージョン🔸 --------------------------
+  // const newSearchParamsStringRef = useRef<string | null>(null);
+  // // console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
+  // if (newSearchCompanyParams) {
+  //   const convertObjToText = (obj: Object) => {
+  //     let objText = ``;
+  //     Object.entries(obj).forEach(([key, value]) => {
+  //       objText += `${key}:${value}`;
+  //     });
+  //     return objText;
+  //   };
+  //   newSearchParamsStringRef.current = Object.entries(newSearchCompanyParams)
+  //     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+  //     .map(([key, value]) =>
+  //       key === "capital" ? convertObjToText(value) : `${key}:${value === null ? `null` : `${value}`}`
+  //     )
+  //     // .map((key, index) => `${key}:${key[index]} `)
+  //     .join(", ");
+  //   // .join("");
+  //   // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
+  // }
+  // -------------------------- 🔸サーチ条件をstringに変換 変更前 useRefバージョン🔸 --------------------------ここまで
+
+  // -------------------------- 🔸サーチ条件をstringに変換 テスト useMemo🔸 --------------------------
+  const searchParamsString = useMemo(() => {
+    if (newSearchCompanyParams) {
+      return Object.entries(newSearchCompanyParams)
+        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+        .map(([key, value]) =>
+          searchObjectColumnsSetCompany.has(key)
+            ? convertObjToText(key, value)
+            : `${key}:${value === null ? `null` : `${value}`}`
+        )
+        .join(", ");
+    } else {
+      return null;
+    }
+  }, [newSearchCompanyParams]);
+  // -------------------------- 🔸サーチ条件をstringに変換 テスト useMemo🔸 -------------------------- ここまで
+
   // console.log(
   //   "✅🔥newSearchCompanyParams",
   //   newSearchCompanyParams,
@@ -882,7 +912,8 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
     {
       // queryKey: ["companies"],
       // queryKey: ["companies", newSearchParamsStringRef.current], // 全ての会社 自社専用のみの切り替えなし
-      queryKey: ["companies", newSearchParamsStringRef.current, isFetchAllCompanies, functionName], // 全ての会社、自社専用のみの切り替えあり, オート検索/マニュアル検索
+      // queryKey: ["companies", newSearchParamsStringRef.current, isFetchAllCompanies, functionName], // 全ての会社、自社専用のみの切り替えあり, オート検索/マニュアル検索
+      queryKey: ["companies", searchParamsString, isFetchAllCompanies, functionName], // 全ての会社、自社専用のみの切り替えあり, オート検索/マニュアル検索
       queryFn: async (ctx) => {
         console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
 
@@ -2776,8 +2807,10 @@ const GridTableAllMemo: FC<Props> = ({ title }) => {
   // console.log("✅ 選択中のアクティブセルactiveCell", activeCell);
   // console.log("✅ 全てのカラムcolsRef", colsRef);
   console.log(
-    "GridTableAllコンポーネントレンダリング",
-    columnHeaderItemList
+    "GridTableAllコンポーネントレンダリング"
+    // columnHeaderItemList,
+    // "searchParamsString",
+    // searchParamsString
     // "✅ 全てのカラムcolsRef",
     // colsRef,
     // "checkedRows個数, checkedRows",

@@ -68,8 +68,12 @@ import { CiEdit } from "react-icons/ci";
 // 通常
 import { UnderRightActivityLog } from "./UnderRightActivityLog/UnderRightActivityLog";
 import {
+  MonthType,
+  NumberOfEmployeesClassType,
   getNumberOfEmployeesClass,
   mappingIndustryType,
+  mappingMonth,
+  mappingNumberOfEmployeesClass,
   mappingProductL,
   optionsIndustryType,
   optionsMonth,
@@ -90,6 +94,10 @@ import {
   productCategoryMediumToOptionsSmallMap_All_obj,
 } from "@/utils/productCategoryS";
 import { CustomSelectMultiple } from "@/components/Parts/CustomSelectMultiple/CustomSelectMultiple";
+import { formatDisplayPrice } from "@/utils/Helpers/formatDisplayPrice";
+import { zenkakuToHankaku } from "@/utils/Helpers/zenkakuToHankaku";
+import { toHalfWidthAndRemoveSpace } from "@/utils/Helpers/toHalfWidthAndRemoveSpace";
+import { isEmptyInputRange } from "@/utils/Helpers/MainContainer/commonHelper";
 // 名前付きエクスポートの場合のダイナミックインポート
 // const UnderRightActivityLog = dynamic(
 //   () => import("./UnderRightActivityLog/UnderRightActivityLog").then((mod) => mod.UnderRightActivityLog),
@@ -185,6 +193,21 @@ const CompanyMainContainerMemo: FC = () => {
   // const { createOfficeMutation, updateOfficeFieldMutation, deleteOfficeMutation } = useMutateOffice();
   // ================================ ✅事業所・営業所リスト取得useQuery✅ ================================
 
+  // 配列でサーチするカラム (OR検索)
+  // ・規模(ランク)
+  // ・業種
+  // ・決算月
+
+  // 範囲検索するカラム
+  // ・資本金
+
+  // ・数値型(NUMERIC): 資本金、従業員数、価格など
+  // ・TIMESTAMPTZ型: 日付と共に開始時間と終了時間の詳細な時間単位での範囲指定が可能
+  // WHERE event_timestamp BETWEEN '2024-01-01 08:00:00' AND '2024-01-01 17:00:00';
+  // WHERE event_timestamp >= '2024-01-01 08:00:00' AND event_timestamp <= '2024-01-01 17:00:00';
+  // ・日付型(DATE)
+  // ・TIME型
+
   // 🌟サブミット
   const [inputName, setInputName] = useState("");
   const [inputDepartment, setInputDepartment] = useState("");
@@ -193,13 +216,43 @@ const CompanyMainContainerMemo: FC = () => {
   const [inputZipcode, setInputZipcode] = useState("");
   const [inputAddress, setInputAddress] = useState("");
   const [inputEmployeesClass, setInputEmployeesClass] = useState("");
+  // ----------------------- サーチ配列 規模(ランク) -----------------------
+  const [inputEmployeesClassArray, setInputEmployeesClassArray] = useState<NumberOfEmployeesClassType[]>([]);
+  const [isNullNotNullEmployeesClass, setIsNullNotNullEmployeesClass] = useState<"is null" | "is not null" | null>(
+    null
+  );
+  const selectedEmployeesClassArraySet = useMemo(() => {
+    return new Set([...inputEmployeesClassArray]);
+  }, [inputEmployeesClassArray]);
+  const getEmployeesClassName = (option: NumberOfEmployeesClassType) => {
+    return mappingNumberOfEmployeesClass[option][language];
+  };
+  // ----------------------- サーチ配列 規模(ランク) ----------------------- ここまで
+
   const [inputCapital, setInputCapital] = useState<string>("");
+  const [inputCapitalSearch, setInputCapitalSearch] = useState<
+    { min: string; max: string } | "is null" | "is not null"
+  >({
+    min: "",
+    max: "",
+  });
   const [inputFound, setInputFound] = useState("");
   const [inputContent, setInputContent] = useState("");
   const [inputHP, setInputHP] = useState("");
   const [inputEmail, setInputEmail] = useState("");
-  const [inputIndustryType, setInputIndustryType] = useState("");
   // const [inputIndustryType, setInputIndustryType] = useState<number | null>(null);
+  const [inputIndustryType, setInputIndustryType] = useState("");
+  // ----------------------- サーチ配列 業種(number) -----------------------
+  const [inputIndustryTypeArray, setInputIndustryTypeArray] = useState<number[]>([]);
+  const [isNullNotNullIndustryType, setIsNullNotNullIndustryType] = useState<"is null" | "is not null" | null>(null);
+  const selectedIndustryTypeArraySet = useMemo(() => {
+    return new Set([...inputIndustryTypeArray]);
+  }, [inputIndustryTypeArray]);
+  const getIndustryTypeMonthName = (option: number) => {
+    return mappingIndustryType[option][language];
+  };
+  // optionsIndustryType
+  // ----------------------- サーチ配列 業種(number) -----------------------ここまで
 
   // ----------------------- 🌟製品分類関連🌟 -----------------------
   // 製品分類 -----------
@@ -373,6 +426,17 @@ const CompanyMainContainerMemo: FC = () => {
   // ----------------------- 🌟製品分類関連🌟 ここまで -----------------------
 
   const [inputFiscal, setInputFiscal] = useState("");
+  // ----------------------- サーチ配列 決算月 -----------------------
+  const [inputFiscalArray, setInputFiscalArray] = useState<MonthType[]>([]);
+  const [isNullNotNullFiscal, setIsNullNotNullFiscal] = useState<"is null" | "is not null" | null>(null);
+  const selectedFiscalArraySet = useMemo(() => {
+    return new Set([...inputFiscalArray]);
+  }, [inputFiscalArray]);
+  // optionsMonth
+  const getFiscalMonthName = (option: MonthType) => {
+    return mappingMonth[option][language];
+  };
+  // ----------------------- サーチ配列 決算月 ----------------------- ここまで
   const [inputBudgetRequestMonth1, setInputBudgetRequestMonth1] = useState("");
   const [inputBudgetRequestMonth2, setInputBudgetRequestMonth2] = useState("");
   const [inputClient, setInputClient] = useState("");
@@ -393,8 +457,15 @@ const CompanyMainContainerMemo: FC = () => {
   const [inputAuditor, setInputAuditor] = useState("");
   const [inputManager, setInputManager] = useState("");
   const [inputMember, setInputMember] = useState("");
-  // 従業員数 フィールドエディットモードのみでサーチなし
+  // 従業員数 フィールドエディットモード用
   const [inputNumberOfEmployees, setInputNumberOfEmployees] = useState("");
+  // 従業員数サーチ用
+  const [inputNumberOfEmployeesSearch, setInputNumberOfEmployeesSearch] = useState<
+    { min: string; max: string } | "is null" | "is not null"
+  >({
+    min: "",
+    max: "",
+  });
 
   // 検索タイプ
   const searchType = useDashboardStore((state) => state.searchType);
@@ -420,8 +491,46 @@ const CompanyMainContainerMemo: FC = () => {
         return value;
       };
 
+      // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+      const adjustFieldRangeNumeric = (
+        value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL",
+        type: "" | "price" | "integer" = ""
+      ): { min: string; max: string } | "is null" | "is not null" => {
+        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+        const { min, max } = value;
+
+        if (min !== null && max !== null) {
+          if (type === "price") return { min: formatDisplayPrice(min), max: formatDisplayPrice(max) };
+          if (type === "integer") return { min: parseInt(String(min), 10).toFixed(0), max: max.toFixed(0) };
+          return { min: String(min), max: String(max) };
+        } else if (min !== null && max === null) {
+          if (type === "price") return { min: formatDisplayPrice(min), max: "" };
+          if (type === "integer") return { min: min.toFixed(0), max: "" };
+          return { min: String(min), max: "" };
+        } else if (min === null && max !== null) {
+          if (type === "price") return { min: "", max: formatDisplayPrice(max) };
+          if (type === "integer") return { min: "", max: max.toFixed(0) };
+          return { min: "", max: String(max) };
+        }
+        return { min: "", max: "" };
+      };
+
       const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
         value === "ISNULL" ? "is null" : "is not null";
+
+      // 🔸string配列のパラメータをstateにセットする関数
+      const setArrayParam = (
+        param: string[] | number[] | "ISNULL" | "ISNOTNULL",
+        dispatch: Dispatch<SetStateAction<any>>,
+        dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>
+      ) => {
+        if (param === "ISNULL" || param === "ISNOTNULL") {
+          dispatchNNN(beforeAdjustIsNNN(param));
+        } else {
+          dispatch(!!param.length ? param : []);
+        }
+      };
 
       console.log(
         "🔥Companyメインコンテナー useEffect 編集モード inputにnewSearchCompanyParamsを格納",
@@ -432,21 +541,33 @@ const CompanyMainContainerMemo: FC = () => {
       setInputTel(beforeAdjustFieldValue(newSearchCompanyParams?.main_phone_number));
       setInputFax(beforeAdjustFieldValue(newSearchCompanyParams?.main_fax));
       setInputZipcode(beforeAdjustFieldValue(newSearchCompanyParams?.zipcode));
-      setInputEmployeesClass(beforeAdjustFieldValue(newSearchCompanyParams?.number_of_employees_class));
+      // サーチ配列 ------------------------
+      // setInputEmployeesClass(beforeAdjustFieldValue(newSearchCompanyParams?.number_of_employees_class));
+      setArrayParam(
+        newSearchCompanyParams?.number_of_employees_class,
+        setInputEmployeesClassArray,
+        setIsNullNotNullEmployeesClass
+      );
+      // サーチ配列 ------------------------ ここまで
       setInputAddress(beforeAdjustFieldValue(newSearchCompanyParams?.address));
       // setInputCapital(beforeAdjustFieldValue(newSearchCompanyParams?.capital));
-      setInputCapital(
-        beforeAdjustFieldValue(!!newSearchCompanyParams?.capital ? newSearchCompanyParams.capital.toString() : "")
-      );
+      // setInputCapitalSearch(
+      //   beforeAdjustFieldValue(!!newSearchCompanyParams?.capital ? newSearchCompanyParams.capital.toString() : "")
+      // );
+      setInputCapitalSearch(adjustFieldRangeNumeric(newSearchCompanyParams?.capital));
+      setInputNumberOfEmployeesSearch(adjustFieldRangeNumeric(newSearchCompanyParams?.number_of_employees));
       setInputFound(beforeAdjustFieldValue(newSearchCompanyParams?.established_in));
       setInputContent(beforeAdjustFieldValue(newSearchCompanyParams?.business_content));
       setInputHP(beforeAdjustFieldValue(newSearchCompanyParams.website_url));
       setInputEmail(beforeAdjustFieldValue(newSearchCompanyParams.email));
-      setInputIndustryType(
-        beforeAdjustFieldValue(
-          newSearchCompanyParams.industry_type_id ? newSearchCompanyParams.industry_type_id.toString() : ""
-        )
-      );
+      // サーチ配列 ------------------------
+      // setInputIndustryType(
+      //   beforeAdjustFieldValue(
+      //     newSearchCompanyParams.industry_type_id ? newSearchCompanyParams.industry_type_id.toString() : ""
+      //   )
+      // );
+      setArrayParam(newSearchCompanyParams?.industry_type_id, setInputIndustryTypeArray, setIsNullNotNullIndustryType);
+      // サーチ配列 ------------------------ ここまで
       // ------------------------ 製品分類関連 ------------------------
       // 編集モードはidからnameへ変換
       // setInputProductL(beforeAdjustFieldValue(newSearchCompanyParams.product_category_large));
@@ -583,7 +704,11 @@ const CompanyMainContainerMemo: FC = () => {
       //   setInputProductArraySmall(productCategorySmallNamesArray);
       // }
       // ------------------------ 製品分類関連 ------------------------ ここまで
-      setInputFiscal(beforeAdjustFieldValue(newSearchCompanyParams.fiscal_end_month));
+
+      // サーチ配列 ------------------------
+      // setInputFiscal(beforeAdjustFieldValue(newSearchCompanyParams.fiscal_end_month));
+      setArrayParam(newSearchCompanyParams?.fiscal_end_month, setInputFiscalArray, setIsNullNotNullFiscal);
+      // サーチ配列 ------------------------ ここまで
       setInputClient(beforeAdjustFieldValue(newSearchCompanyParams.clients));
       setInputSupplier(beforeAdjustFieldValue(newSearchCompanyParams.supplier));
       setInputFacility(beforeAdjustFieldValue(newSearchCompanyParams.facility));
@@ -609,14 +734,24 @@ const CompanyMainContainerMemo: FC = () => {
       if (!!inputTel) setInputTel("");
       if (!!inputFax) setInputFax("");
       if (!!inputZipcode) setInputZipcode("");
-      if (!!inputEmployeesClass) setInputEmployeesClass("");
+      // サーチ配列 規模ランク-----------------------
+      // if (!!inputEmployeesClass) setInputEmployeesClass("");
+      if (!!inputEmployeesClassArray.length) setInputEmployeesClassArray([]);
+      if (isNullNotNullEmployeesClass !== null) setIsNullNotNullEmployeesClass(null);
+      // サーチ配列 規模ランク-----------------------ここまで
       if (!!inputAddress) setInputAddress("");
-      if (!!inputCapital) setInputCapital("");
+      // if (!!inputCapital) setInputCapital("");
+      setInputCapitalSearch({ min: "", max: "" });
+      setInputNumberOfEmployeesSearch({ min: "", max: "" });
       if (!!inputFound) setInputFound("");
       if (!!inputContent) setInputContent("");
       if (!!inputHP) setInputHP("");
       if (!!inputEmail) setInputEmail("");
-      if (!!inputIndustryType) setInputIndustryType("");
+      // サーチ配列 業種 -----------------------
+      // if (!!inputIndustryType) setInputIndustryType("");
+      if (!!inputIndustryTypeArray.length) setInputIndustryTypeArray([]);
+      if (isNullNotNullIndustryType !== null) setIsNullNotNullIndustryType(null);
+      // サーチ配列 業種 -----------------------ここまで
       // 製品分類の処理 ------------------------
       // if (!!inputProductL) setInputProductL("");
       // if (!!inputProductM) setInputProductM("");
@@ -628,7 +763,11 @@ const CompanyMainContainerMemo: FC = () => {
       if (isNullNotNullCategoryMedium !== null) setIsNullNotNullCategoryMedium(null);
       if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
       // 製品分類の処理 ------------------------ ここまで
-      if (!!inputFiscal) setInputFiscal("");
+      // サーチ配列 決算月
+      // if (!!inputFiscal) setInputFiscal("");
+      if (!!inputFiscalArray.length) setInputFiscalArray([]);
+      if (isNullNotNullFiscal !== null) setIsNullNotNullFiscal(null);
+      // サーチ配列 決算月ここまで
       if (!!inputClient) setInputClient("");
       if (!!inputSupplier) setInputSupplier("");
       if (!!inputFacility) setInputFacility("");
@@ -654,6 +793,8 @@ const CompanyMainContainerMemo: FC = () => {
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    handleCloseTooltip();
 
     // フィールド編集モードがtrueならサブミットせずにリターン
     if (isEditModeField) return console.log("サブミット フィールドエディットモードのためリターン");
@@ -687,253 +828,408 @@ const CompanyMainContainerMemo: FC = () => {
       }
     };
 
+    // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+    const adjustFieldRangeNumeric = (
+      value: { min: string; max: string } | "is null" | "is not null",
+      formatType: "" | "integer" = ""
+    ): { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL" => {
+      if (value === "is null") return "ISNULL";
+      if (value === "is not null") return "ISNOTNULL";
+      const { min, max } = value;
+
+      const halfMin = toHalfWidthAndRemoveSpace(min).trim();
+      const halfMax = toHalfWidthAndRemoveSpace(max).trim();
+
+      const minValid = isValidNumber(halfMin);
+      const maxValid = isValidNumber(halfMax);
+
+      const minNum = formatType === "integer" ? parseInt(halfMin, 10) : Number(halfMin!);
+      const maxNum = formatType === "integer" ? parseInt(halfMax, 10) : Number(halfMax!);
+
+      console.log("value", value, min, halfMin, minNum, minValid, max, halfMax, maxNum, maxValid);
+
+      if (minValid && maxValid) {
+        if (isNaN(minNum) || isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+        if (minNum! <= maxNum!) {
+          return { min: minNum, max: maxNum };
+        } else {
+          const errorMsg =
+            language === "ja"
+              ? "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+              : "The minimum value cannot be greater than the maximum value.";
+          throw new Error(errorMsg);
+        }
+      } else if (minValid && !maxValid) {
+        if (isNaN(minNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+        return { min: minNum, max: null };
+      } else if (!minValid && maxValid) {
+        if (isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+        return { min: null, max: maxNum };
+      }
+
+      return { min: null, max: null };
+    };
+
+    // 🔸範囲検索用の変換 TIMESTAMPTZ型 活動日、面談日
+    const adjustFieldRangeTIMESTAMPTZ = (
+      value: { min: Date | null; max: Date | null } | "is null" | "is not null"
+    ): { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL" => {
+      if (value === "is null") return "ISNULL";
+      if (value === "is not null") return "ISNOTNULL";
+      const { min, max } = value;
+
+      if (min instanceof Date && max instanceof Date) {
+        if (min.getTime() <= max.getTime()) {
+          return {
+            min: min.toISOString(),
+            max: max.toISOString(),
+          };
+        } else {
+          language === "ja"
+            ? "日付の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+            : "The minimum date cannot be later than the maximum date.";
+          throw new Error("The minimum date cannot be later than the maximum date.");
+        }
+      } else if (min instanceof Date && max === null) {
+        return {
+          min: min.toISOString(),
+          max: null,
+        };
+      } else if (min === null && max instanceof Date) {
+        return {
+          min: null,
+          max: max.toISOString(),
+        };
+      }
+
+      return { min: null, max: null };
+    };
+
+    // 🔸範囲検索用の変換 TIME型 面談開始
+    const adjustFieldRangeTIME = (
+      value: { min: string | null; max: string | null } | "is null" | "is not null"
+    ): { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL" => {
+      if (value === "is null") return "ISNULL";
+      if (value === "is not null") return "ISNOTNULL";
+      const { min, max } = value;
+
+      // // 00:00 ~ 23:59の形式かチェック
+      const isValidTime = (time: string | null) => !!time && /^(2[0-3]|[01][0-9]):[0-5][0-9]$/.test(time);
+      const minValid = isValidTime(min);
+      const maxValid = isValidTime(max);
+
+      // 両方の時間が有効で、上限値が下限値以上であることを確認
+      if (minValid && maxValid) {
+        if (min! <= max!) {
+          return { min: min, max: max };
+        } else {
+          const errorMsg =
+            language === "ja"
+              ? "時間の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+              : "The minimum value cannot be greater than the maximum value.";
+          throw new Error(errorMsg);
+        }
+      } else if (minValid && !maxValid) {
+        return { min: min, max: null };
+      } else if (!minValid && maxValid) {
+        return { min: null, max: max };
+      }
+
+      return { min: null, max: null };
+    };
+
     // 🔸製品分類用 is null, is not nullをIS NULL, IS NOT NULLに変換
     const adjustIsNNN = (value: "is null" | "is not null"): "ISNULL" | "ISNOTNULL" =>
       value === "is null" ? "ISNULL" : "ISNOTNULL";
 
     setLoadingGlobalState(true);
 
-    let _name = adjustFieldValue(inputName);
-    let _department_name = adjustFieldValue(inputDepartment);
-    let _main_phone_number = adjustFieldValue(inputTel);
-    let _main_fax = adjustFieldValue(inputFax);
-    let _zipcode = adjustFieldValue(inputZipcode);
-    let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
-    let _address = adjustFieldValue(inputAddress);
-    // let _capital = adjustFieldValue(inputCapital);
-    // let _capital = isValidNumber(inputCapital) ? parseInt(inputCapital, 10) : null;
-    let _capital = adjustFieldValueInteger(inputCapital);
-    let _established_in = adjustFieldValue(inputFound);
-    let _business_content = adjustFieldValue(inputContent);
-    let _website_url = adjustFieldValue(inputHP);
-    let _email = adjustFieldValue(inputEmail);
-    // let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
-    let _industry_type_id = adjustFieldValueInteger(inputIndustryType);
-    // // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
-    // let _product_category_large = adjustFieldValue(inputProductL);
-    // let _product_category_medium = adjustFieldValue(inputProductM);
-    // let _product_category_small = adjustFieldValue(inputProductS);
-    let _fiscal_end_month = adjustFieldValue(inputFiscal);
-    let _clients = adjustFieldValue(inputClient);
-    let _supplier = adjustFieldValue(inputSupplier);
-    let _facility = adjustFieldValue(inputFacility);
-    let _business_sites = adjustFieldValue(inputBusinessSite);
-    let _overseas_bases = adjustFieldValue(inputOverseas);
-    let _group_company = adjustFieldValue(inputGroup);
-    let _corporate_number = adjustFieldValue(inputCorporateNum);
+    try {
+      let _name = adjustFieldValue(inputName);
+      let _department_name = adjustFieldValue(inputDepartment);
+      let _main_phone_number = adjustFieldValue(inputTel);
+      let _main_fax = adjustFieldValue(inputFax);
+      let _zipcode = adjustFieldValue(inputZipcode);
+      // let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
+      // サーチ配列 TEXT[] ------------
+      let _number_of_employees_class = inputEmployeesClassArray;
+      // サーチ配列 TEXT[] ------------ここまで
+      let _address = adjustFieldValue(inputAddress);
+      // let _capital = adjustFieldValue(inputCapital);
+      // let _capital = isValidNumber(inputCapital) ? parseInt(inputCapital, 10) : null;
+      // let _capital = adjustFieldValueInteger(inputCapital);
+      let _capital = adjustFieldRangeNumeric(inputCapitalSearch);
+      let _number_of_employees = adjustFieldRangeNumeric(inputNumberOfEmployeesSearch);
+      let _established_in = adjustFieldValue(inputFound);
+      let _business_content = adjustFieldValue(inputContent);
+      let _website_url = adjustFieldValue(inputHP);
+      let _email = adjustFieldValue(inputEmail);
+      // サーチ配列 number[] -----------
+      // let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
+      // let _industry_type_id = adjustFieldValueInteger(inputIndustryType);
+      let _industry_type_id = inputIndustryTypeArray;
+      // サーチ配列 number[] ------------ここまで
+      // // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
+      // let _product_category_large = adjustFieldValue(inputProductL);
+      // let _product_category_medium = adjustFieldValue(inputProductM);
+      // let _product_category_small = adjustFieldValue(inputProductS);
+      // サーチ配列 TEXT[] ------------
+      // let _fiscal_end_month = adjustFieldValue(inputFiscal);
+      let _fiscal_end_month = inputFiscalArray;
+      // サーチ配列 TEXT[] ------------ここまで
+      let _clients = adjustFieldValue(inputClient);
+      let _supplier = adjustFieldValue(inputSupplier);
+      let _facility = adjustFieldValue(inputFacility);
+      let _business_sites = adjustFieldValue(inputBusinessSite);
+      let _overseas_bases = adjustFieldValue(inputOverseas);
+      let _group_company = adjustFieldValue(inputGroup);
+      let _corporate_number = adjustFieldValue(inputCorporateNum);
 
-    // 代表者
-    let _representative_name = adjustFieldValue(inputRepresentativeName);
-    let _chairperson = adjustFieldValue(inputChairperson);
-    let _senior_vice_president = adjustFieldValue(inputSeniorVicePresident);
-    let _senior_managing_director = adjustFieldValue(inputSeniorManagingDirector);
-    let _managing_director = adjustFieldValue(inputManagingDirector);
-    let _director = adjustFieldValue(inputDirector);
-    let _board_member = adjustFieldValue(inputDirector);
-    let _auditor = adjustFieldValue(inputAuditor);
-    let _manager = adjustFieldValue(inputManager);
-    let _member = adjustFieldValue(inputMember);
+      // 代表者
+      let _representative_name = adjustFieldValue(inputRepresentativeName);
+      let _chairperson = adjustFieldValue(inputChairperson);
+      let _senior_vice_president = adjustFieldValue(inputSeniorVicePresident);
+      let _senior_managing_director = adjustFieldValue(inputSeniorManagingDirector);
+      let _managing_director = adjustFieldValue(inputManagingDirector);
+      let _director = adjustFieldValue(inputDirector);
+      let _board_member = adjustFieldValue(inputDirector);
+      let _auditor = adjustFieldValue(inputAuditor);
+      let _manager = adjustFieldValue(inputManager);
+      let _member = adjustFieldValue(inputMember);
 
-    // // Asterisks to percent signs for PostgreSQL's LIKE operator
-    // if (_field1.includes("*")) _field1 = _field1.replace(/\*/g, "%");
-    // if (_field1 === "is null") _field1 = null;
-    // if (_field1 === "is not null") _field1 = "%%";
+      // // Asterisks to percent signs for PostgreSQL's LIKE operator
+      // if (_field1.includes("*")) _field1 = _field1.replace(/\*/g, "%");
+      // if (_field1 === "is null") _field1 = null;
+      // if (_field1 === "is not null") _field1 = "%%";
 
-    // 製品分類の処理 ----------------------------------------------
-    // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
-    // 大分類
-    let productCategoryLargeIdsArray: number[] = [];
-    if (0 < inputProductArrayLarge.length) {
-      const largeNameToIdMap = new Map(optionsProductL.map((obj) => [obj.name, obj.id]));
-      productCategoryLargeIdsArray = inputProductArrayLarge
-        .map((name) => {
-          return largeNameToIdMap.get(name);
-        })
-        .filter((id): id is number => id !== undefined && id !== null);
-      console.log("============================ 大分類実行🔥", largeNameToIdMap, productCategoryLargeIdsArray);
-    }
-    // 中分類
-    let productCategoryMediumIdsArray: number[] = [];
-    if (0 < inputProductArrayMedium.length) {
-      // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
-      const optionsMediumObj = inputProductArrayLarge
-        .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
-        .flatMap((array) => array);
-      const mediumNameToIdMap = new Map(optionsMediumObj.map((obj) => [obj.name, obj.id]));
-      productCategoryMediumIdsArray = inputProductArrayMedium
-        .map((name) => {
-          return mediumNameToIdMap.get(name);
-        })
-        .filter((id): id is number => id !== undefined && id !== null);
-      console.log(
-        "============================ 中分類実行🔥",
-        optionsMediumObj,
-        mediumNameToIdMap,
-        productCategoryMediumIdsArray
-      );
-    }
-    // 小分類
-    let productCategorySmallIdsArray: number[] = [];
-    if (0 < inputProductArraySmall.length) {
-      // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
-      const optionsSmallObj = inputProductArrayMedium
-        .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
-        .flatMap((array) => array);
-      const mediumNameToIdMap = new Map(optionsSmallObj.map((obj) => [obj.name, obj.id]));
-      productCategorySmallIdsArray = inputProductArraySmall
-        .map((name) => {
-          return mediumNameToIdMap.get(name);
-        })
-        .filter((id): id is number => id !== undefined && id !== null);
-      console.log(
-        "============================ 小分類実行🔥",
-        optionsSmallObj,
-        mediumNameToIdMap,
-        productCategorySmallIdsArray
-      );
-    }
+      // 製品分類の処理 ----------------------------------------------
+      // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
+      // 大分類
+      let productCategoryLargeIdsArray: number[] = [];
+      if (0 < inputProductArrayLarge.length) {
+        const largeNameToIdMap = new Map(optionsProductL.map((obj) => [obj.name, obj.id]));
+        productCategoryLargeIdsArray = inputProductArrayLarge
+          .map((name) => {
+            return largeNameToIdMap.get(name);
+          })
+          .filter((id): id is number => id !== undefined && id !== null);
+        console.log("============================ 大分類実行🔥", largeNameToIdMap, productCategoryLargeIdsArray);
+      }
+      // 中分類
+      let productCategoryMediumIdsArray: number[] = [];
+      if (0 < inputProductArrayMedium.length) {
+        // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
+        const optionsMediumObj = inputProductArrayLarge
+          .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
+          .flatMap((array) => array);
+        const mediumNameToIdMap = new Map(optionsMediumObj.map((obj) => [obj.name, obj.id]));
+        productCategoryMediumIdsArray = inputProductArrayMedium
+          .map((name) => {
+            return mediumNameToIdMap.get(name);
+          })
+          .filter((id): id is number => id !== undefined && id !== null);
+        console.log(
+          "============================ 中分類実行🔥",
+          optionsMediumObj,
+          mediumNameToIdMap,
+          productCategoryMediumIdsArray
+        );
+      }
+      // 小分類
+      let productCategorySmallIdsArray: number[] = [];
+      if (0 < inputProductArraySmall.length) {
+        // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
+        const optionsSmallObj = inputProductArrayMedium
+          .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
+          .flatMap((array) => array);
+        const mediumNameToIdMap = new Map(optionsSmallObj.map((obj) => [obj.name, obj.id]));
+        productCategorySmallIdsArray = inputProductArraySmall
+          .map((name) => {
+            return mediumNameToIdMap.get(name);
+          })
+          .filter((id): id is number => id !== undefined && id !== null);
+        console.log(
+          "============================ 小分類実行🔥",
+          optionsSmallObj,
+          mediumNameToIdMap,
+          productCategorySmallIdsArray
+        );
+      }
 
-    // --------------- 製品分類Allパターン ---------------
-    // 大分類・中分類・小分類を全て１つの配列にまとめてINSERT => １つにまとめない (サーチ編集の時に大中小をidからそれぞれnameに分ける必要あるため)
-    // const productCategoryAllIdsArray = [
-    //   ...productCategoryLargeIdsArray,
-    //   ...productCategoryMediumIdsArray,
-    //   ...productCategorySmallIdsArray,
-    // ].sort((a, b) => a - b); // 同じ製品配列の内容でも追加順でキャッシュが異なることが内容にソートをする
-    // --------------- 製品分類Allパターン ---------------
+      // --------------- 製品分類Allパターン ---------------
+      // 大分類・中分類・小分類を全て１つの配列にまとめてINSERT => １つにまとめない (サーチ編集の時に大中小をidからそれぞれnameに分ける必要あるため)
+      // const productCategoryAllIdsArray = [
+      //   ...productCategoryLargeIdsArray,
+      //   ...productCategoryMediumIdsArray,
+      //   ...productCategorySmallIdsArray,
+      // ].sort((a, b) => a - b); // 同じ製品配列の内容でも追加順でキャッシュが異なることが内容にソートをする
+      // --------------- 製品分類Allパターン ---------------
 
-    // 製品分類の処理ここまで ----------------------------------------------
+      // 製品分類の処理ここまで ----------------------------------------------
 
-    const params = {
-      name: _name,
-      department_name: _department_name,
-      main_phone_number: _main_phone_number,
-      main_fax: _main_fax,
-      zipcode: _zipcode,
-      number_of_employees_class: _number_of_employees_class,
-      address: _address,
-      capital: _capital,
-      established_in: _established_in,
-      business_content: _business_content,
-      website_url: _website_url,
-      email: _email,
-      industry_type_id: _industry_type_id,
+      const params = {
+        name: _name,
+        department_name: _department_name,
+        main_phone_number: _main_phone_number,
+        main_fax: _main_fax,
+        zipcode: _zipcode,
+        // サーチ配列 TEXT[] ------------
+        // number_of_employees_class: _number_of_employees_class,
+        number_of_employees_class:
+          isNullNotNullEmployeesClass === null ? _number_of_employees_class : adjustIsNNN(isNullNotNullEmployeesClass),
+        // サーチ配列 TEXT[] ------------ここまで
+        address: _address,
+        capital: _capital,
+        number_of_employees: _number_of_employees,
+        established_in: _established_in,
+        business_content: _business_content,
+        website_url: _website_url,
+        email: _email,
+        // サーチ配列 number[] ------------
+        // industry_type_id: _industry_type_id,
+        industry_type_id:
+          isNullNotNullIndustryType === null ? _industry_type_id : adjustIsNNN(isNullNotNullIndustryType),
+        // サーチ配列 number[] ------------ここまで
+        // 製品分類 ----------------
+        // 🌠製品分類はid(INTEGER)を大中小を全て１つの配列としてまとめてEXISTSでフィルタする
+        // product_category_large: _product_category_large,
+        // product_category_medium: _product_category_medium,
+        // product_category_small: _product_category_small,
+        product_category_large_ids:
+          isNullNotNullCategoryLarge === null ? productCategoryLargeIdsArray : adjustIsNNN(isNullNotNullCategoryLarge),
+        product_category_medium_ids:
+          isNullNotNullCategoryMedium === null
+            ? productCategoryMediumIdsArray
+            : adjustIsNNN(isNullNotNullCategoryMedium),
+        product_category_small_ids:
+          isNullNotNullCategorySmall === null ? productCategorySmallIdsArray : adjustIsNNN(isNullNotNullCategorySmall),
+        // product_category_all_ids: productCategoryAllIdsArray,
+        // 製品分類 ---------------- ここまで
+        // サーチ配列 TEXT[] ------------
+        // fiscal_end_month: _fiscal_end_month,
+        fiscal_end_month: isNullNotNullFiscal === null ? _fiscal_end_month : adjustIsNNN(isNullNotNullFiscal),
+        // サーチ配列 TEXT[] ------------ここまで
+        clients: _clients,
+        supplier: _supplier,
+        facility: _facility,
+        business_sites: _business_sites,
+        overseas_bases: _overseas_bases,
+        group_company: _group_company,
+        corporate_number: _corporate_number,
+        // 代表者
+        representative_name: _representative_name,
+        chairperson: _chairperson,
+        senior_vice_president: _senior_vice_president,
+        senior_managing_director: _senior_managing_director,
+        managing_director: _managing_director,
+        director: _director,
+        board_member: _board_member,
+        auditor: _auditor,
+        manager: _manager,
+        member: _member,
+      };
+
+      // if (true) {
+      //   console.log("------------------------------------------------------------------------");
+
+      //   const paramsText = Object.entries(params)
+      //     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+      //     .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
+      //     .join(", ");
+      //   console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥params", params, "paramsText", paramsText);
+      //   console.log("------------------------------------------------------------------------");
+
+      //   setLoadingGlobalState(false);
+      //   return;
+      // }
+
+      setInputName("");
+      setInputDepartment("");
+      setInputTel("");
+      setInputFax("");
+      setInputZipcode("");
+      // サーチ配列
+      // setInputEmployeesClass("");
+      setInputEmployeesClassArray([]);
+      if (isNullNotNullEmployeesClass !== null) setIsNullNotNullEmployeesClass(null);
+      // サーチ配列 ここまで
+      setInputAddress("");
+      // setInputCapital("");
+      setInputCapitalSearch({ min: "", max: "" });
+      setInputNumberOfEmployeesSearch({ min: "", max: "" });
+      setInputFound("");
+      setInputContent("");
+      setInputHP("");
+      setInputEmail("");
+      // サーチ配列
+      // setInputIndustryType("");
+      setInputIndustryTypeArray([]);
+      if (isNullNotNullIndustryType !== null) setIsNullNotNullIndustryType(null);
+      // サーチ配列 ここまで
       // 製品分類 ----------------
       // 🌠製品分類はid(INTEGER)を大中小を全て１つの配列としてまとめてEXISTSでフィルタする
-      // product_category_large: _product_category_large,
-      // product_category_medium: _product_category_medium,
-      // product_category_small: _product_category_small,
-      product_category_large_ids:
-        isNullNotNullCategoryLarge === null ? productCategoryLargeIdsArray : adjustIsNNN(isNullNotNullCategoryLarge),
-      product_category_medium_ids:
-        isNullNotNullCategoryMedium === null ? productCategoryMediumIdsArray : adjustIsNNN(isNullNotNullCategoryMedium),
-      product_category_small_ids:
-        isNullNotNullCategorySmall === null ? productCategorySmallIdsArray : adjustIsNNN(isNullNotNullCategorySmall),
-      // product_category_all_ids: productCategoryAllIdsArray,
+      // setInputProductL("");
+      // setInputProductM("");
+      // setInputProductS("");
+      setInputProductArrayLarge([]);
+      setInputProductArrayMedium([]);
+      setInputProductArraySmall([]);
+      if (isNullNotNullCategoryLarge !== null) setIsNullNotNullCategoryLarge(null);
+      if (isNullNotNullCategoryMedium !== null) setIsNullNotNullCategoryMedium(null);
+      if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
       // 製品分類 ---------------- ここまで
-      fiscal_end_month: _fiscal_end_month,
-      clients: _clients,
-      supplier: _supplier,
-      facility: _facility,
-      business_sites: _business_sites,
-      overseas_bases: _overseas_bases,
-      group_company: _group_company,
-      corporate_number: _corporate_number,
+      // サーチ配列 決算月 -----------------------
+      // setInputFiscal("");
+      setInputFiscalArray([]);
+      if (isNullNotNullFiscal !== null) setIsNullNotNullFiscal(null);
+      // サーチ配列 決算月 -----------------------ここまで
+      setInputClient("");
+      setInputSupplier("");
+      setInputFacility("");
+      setInputBusinessSite("");
+      setInputOverseas("");
+      setInputGroup("");
+      setInputCorporateNum("");
       // 代表者
-      representative_name: _representative_name,
-      chairperson: _chairperson,
-      senior_vice_president: _senior_vice_president,
-      senior_managing_director: _senior_managing_director,
-      managing_director: _managing_director,
-      director: _director,
-      board_member: _board_member,
-      auditor: _auditor,
-      manager: _manager,
-      member: _member,
-    };
+      setInputRepresentativeName("");
+      setInputChairperson("");
+      setInputSeniorVicePresident("");
+      setInputSeniorManagingDirector("");
+      setInputManagingDirector("");
+      setInputDirector("");
+      setInputBoardMember("");
+      setInputAuditor("");
+      setInputManager("");
+      setInputMember("");
 
-    // if (true) {
-    //   console.log("------------------------------------------------------------------------");
+      // サーチモードをfalse
+      setSearchMode(false);
+      // 編集モードをfalse
+      setEditSearchMode(false);
 
-    //   const paramsText = Object.entries(params)
-    //     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-    //     .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
-    //     .join(", ");
-    //   console.log("🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥params", params, "paramsText", paramsText);
-    //   console.log("------------------------------------------------------------------------");
+      // Zustandに検索条件を格納
+      setNewSearchCompanyParams(params);
 
-    //   setLoadingGlobalState(false);
-    //   return;
-    // }
+      console.log("✅ params", params);
+      // const { data, error } = await supabase.rpc("search_companies", { params });
 
-    setInputName("");
-    setInputDepartment("");
-    setInputTel("");
-    setInputFax("");
-    setInputZipcode("");
-    setInputEmployeesClass("");
-    setInputAddress("");
-    setInputCapital("");
-    setInputFound("");
-    setInputContent("");
-    setInputHP("");
-    setInputEmail("");
-    setInputIndustryType("");
-    // 製品分類 ----------------
-    // 🌠製品分類はid(INTEGER)を大中小を全て１つの配列としてまとめてEXISTSでフィルタする
-    // setInputProductL("");
-    // setInputProductM("");
-    // setInputProductS("");
-    setInputProductArrayLarge([]);
-    setInputProductArrayMedium([]);
-    setInputProductArraySmall([]);
-    if (isNullNotNullCategoryLarge !== null) setIsNullNotNullCategoryLarge(null);
-    if (isNullNotNullCategoryMedium !== null) setIsNullNotNullCategoryMedium(null);
-    if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
-    // 製品分類 ---------------- ここまで
-    setInputFiscal("");
-    setInputClient("");
-    setInputSupplier("");
-    setInputFacility("");
-    setInputBusinessSite("");
-    setInputOverseas("");
-    setInputGroup("");
-    setInputCorporateNum("");
-    // 代表者
-    setInputRepresentativeName("");
-    setInputChairperson("");
-    setInputSeniorVicePresident("");
-    setInputSeniorManagingDirector("");
-    setInputManagingDirector("");
-    setInputDirector("");
-    setInputBoardMember("");
-    setInputAuditor("");
-    setInputManager("");
-    setInputMember("");
+      // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
+      // const { data, error } = await supabase
+      //   .rpc("search_companies", { params })
+      //   .is("created_by_company_id", null)
+      //   .range(0, 20);
 
-    // サーチモードをfalse
-    setSearchMode(false);
-    // 編集モードをfalse
-    setEditSearchMode(false);
+      // if (error) return alert(error.message);
+      // console.log("✅ 検索結果データ取得 data", data);
 
-    // Zustandに検索条件を格納
-    setNewSearchCompanyParams(params);
-
-    console.log("✅ params", params);
-    // const { data, error } = await supabase.rpc("search_companies", { params });
-
-    // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
-    // const { data, error } = await supabase
-    //   .rpc("search_companies", { params })
-    //   .is("created_by_company_id", null)
-    //   .range(0, 20);
-
-    // if (error) return alert(error.message);
-    // console.log("✅ 検索結果データ取得 data", data);
-
-    // スクロールコンテナを最上部に戻す
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+      // スクロールコンテナを最上部に戻す
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+      }
+    } catch (error: any) {
+      setLoadingGlobalState(false);
+      alert(error.message);
+      console.error("エラー：", error);
     }
   };
 
@@ -942,8 +1238,9 @@ const CompanyMainContainerMemo: FC = () => {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
     display?: "top" | "right" | "bottom" | "left" | "";
     content?: string;
+    itemsPosition?: string;
   };
-  const handleOpenTooltip = ({ e, display = "top", content = "" }: TooltipParams) => {
+  const handleOpenTooltip = ({ e, display = "top", content = "", itemsPosition = "center" }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
@@ -963,6 +1260,7 @@ const CompanyMainContainerMemo: FC = () => {
       content2: content2,
       content3: content3,
       display: display,
+      itemsPosition,
     });
   };
   // ツールチップを非表示
@@ -1557,15 +1855,30 @@ const CompanyMainContainerMemo: FC = () => {
     index === 0 ? `空欄以外のデータのみ抽出` : `空欄のデータのみ抽出`;
 
   // 🔸「入力値をリセット」をクリック
-  const handleClickResetInput = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+  const handleClickResetInput = (
+    dispatch: Dispatch<SetStateAction<any>>,
+    inputType: "string" | "range_string" | "array" = "string"
+  ) => {
     handleCloseTooltip();
-    if (inputType === "string") {
+    if (inputType === "array") {
+      dispatch([]);
+    } else if (inputType === "range_string") {
+      dispatch({ min: "", max: "" });
+    } else if (inputType === "string") {
       dispatch("");
     }
   };
 
-  // 🔸製品分類用「入力値をリセット」
-  const handleResetArray = (fieldName: "category_large" | "category_medium" | "category_small") => {
+  // 🔸配列用「入力値をリセット」
+  const handleResetArray = (
+    fieldName:
+      | "category_large"
+      | "category_medium"
+      | "category_small"
+      | "number_of_employees_class"
+      | "fiscal_end_month"
+      | "industry_type_id"
+  ) => {
     if (fieldName === "category_large") {
       if (isNullNotNullCategoryLarge !== null) setIsNullNotNullCategoryLarge(null);
       if (0 < inputProductArrayLarge.length) setInputProductArrayLarge([]);
@@ -1578,6 +1891,18 @@ const CompanyMainContainerMemo: FC = () => {
       if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
       if (0 < inputProductArraySmall.length) setInputProductArraySmall([]);
     }
+    if (fieldName === "number_of_employees_class") {
+      if (isNullNotNullEmployeesClass !== null) setIsNullNotNullEmployeesClass(null);
+      if (0 < inputEmployeesClassArray.length) setInputEmployeesClassArray([]);
+    }
+    if (fieldName === "fiscal_end_month") {
+      if (isNullNotNullFiscal !== null) setIsNullNotNullFiscal(null);
+      if (0 < inputFiscalArray.length) setInputFiscalArray([]);
+    }
+    if (fieldName === "industry_type_id") {
+      if (isNullNotNullIndustryType !== null) setIsNullNotNullIndustryType(null);
+      if (0 < inputIndustryTypeArray.length) setInputIndustryTypeArray([]);
+    }
   };
 
   // 🔸製品分類全てリセット
@@ -1589,23 +1914,25 @@ const CompanyMainContainerMemo: FC = () => {
 
   // 🔸「入力有り」をクリック
   const handleClickIsNotNull = (
-    dispatch: Dispatch<SetStateAction<any>>,
-    inputType: "" | "category_large" | "category_medium" | "category_small" = ""
+    dispatch: Dispatch<SetStateAction<any>>
+    // inputType: "" | "category_large" | "category_medium" | "category_small" | "number_of_employees_class" = ""
   ) => {
-    if (inputType === "category_large") resetProductCategories("lms");
-    if (inputType === "category_medium") resetProductCategories("ms");
-    if (inputType === "category_small") resetProductCategories("s");
+    // if (inputType === "category_large") resetProductCategories("lms");
+    // if (inputType === "category_medium") resetProductCategories("ms");
+    // if (inputType === "category_small") resetProductCategories("s");
+    // if (inputType === "number_of_employees_class") setInputEmployeesClassArray([]);
     return dispatch("is not null");
   };
 
   // 🔸「入力無し」をクリック
   const handleClickIsNull = (
-    dispatch: Dispatch<SetStateAction<any>>,
-    inputType: "" | "category_large" | "category_medium" | "category_small" = ""
+    dispatch: Dispatch<SetStateAction<any>>
+    // inputType: "" | "category_large" | "category_medium" | "category_small" | "number_of_employees_class" = ""
   ) => {
-    if (inputType === "category_large") resetProductCategories("lms");
-    if (inputType === "category_medium") resetProductCategories("ms");
-    if (inputType === "category_small") resetProductCategories("s");
+    // if (inputType === "category_large") resetProductCategories("lms");
+    // if (inputType === "category_medium") resetProductCategories("ms");
+    // if (inputType === "category_small") resetProductCategories("s");
+    // if (inputType === "number_of_employees_class") setInputEmployeesClassArray([]);
     return dispatch("is null");
   };
 
@@ -1613,10 +1940,26 @@ const CompanyMainContainerMemo: FC = () => {
   const handleClickAdditionalAreaBtn = (
     index: number,
     dispatch: Dispatch<SetStateAction<any>>,
-    type: "" | "category_large" | "category_medium" | "category_small" = ""
+    type:
+      | ""
+      | "category_large"
+      | "category_medium"
+      | "category_small"
+      | "number_of_employees_class"
+      | "fiscal_end_month"
+      | "industry_type_id" = ""
   ) => {
-    if (index === 0) handleClickIsNotNull(dispatch, type);
-    if (index === 1) handleClickIsNull(dispatch, type);
+    if (type === "category_large") resetProductCategories("lms");
+    if (type === "category_medium") resetProductCategories("ms");
+    if (type === "category_small") resetProductCategories("s");
+    if (type === "number_of_employees_class") setInputEmployeesClassArray([]);
+    if (type === "fiscal_end_month") setInputFiscalArray([]);
+    if (type === "industry_type_id") setInputIndustryTypeArray([]);
+
+    if (index === 0) dispatch("is not null");
+    if (index === 1) dispatch("is null");
+    // if (index === 0) handleClickIsNotNull(dispatch, type);
+    // if (index === 1) handleClickIsNull(dispatch, type);
     handleCloseTooltip();
   };
 
@@ -1648,17 +1991,37 @@ const CompanyMainContainerMemo: FC = () => {
     newSearchCompanyParams,
     "selectedRowDataCompany",
     selectedRowDataCompany,
+    "inputIndustryTypeArray",
+    inputIndustryTypeArray,
+    "selectedIndustryTypeArraySet",
+    selectedIndustryTypeArraySet,
+    "isNullNotNullIndustryType",
+    isNullNotNullIndustryType,
+    "inputFiscalArray",
+    inputFiscalArray,
+    "selectedFiscalArraySet",
+    selectedFiscalArraySet,
+    "isNullNotNullFiscal",
+    isNullNotNullFiscal
+    // "inputEmployeesClassArray",
+    // inputEmployeesClassArray,
+    // "isNullNotNullEmployeesClass",
+    // isNullNotNullEmployeesClass,
+    // "selectedEmployeesClassArraySet",
+    // selectedEmployeesClassArraySet,
+    // "inputCapitalSearch",
+    // inputCapitalSearch,
     // "optionsIndustryType",
     // optionsIndustryType,
-    "inputProductArrayLarge",
-    inputProductArrayLarge,
-    isNullNotNullCategoryLarge,
-    "inputProductArrayMedium",
-    inputProductArrayMedium,
-    isNullNotNullCategoryMedium,
-    "inputProductArraySmall",
-    inputProductArraySmall,
-    isNullNotNullCategorySmall
+    // "inputProductArrayLarge",
+    // inputProductArrayLarge,
+    // isNullNotNullCategoryLarge,
+    // "inputProductArrayMedium",
+    // inputProductArrayMedium,
+    // isNullNotNullCategoryMedium,
+    // "inputProductArraySmall",
+    // inputProductArraySmall,
+    // isNullNotNullCategorySmall
     // "formattedProductCategoriesLarge",
     // formattedProductCategoriesLarge,
     // "formattedProductCategoriesMedium",
@@ -2524,20 +2887,44 @@ const CompanyMainContainerMemo: FC = () => {
                   )}
                   {/* サーチ */}
                   {searchMode && (
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
-                      value={inputEmployeesClass}
-                      onChange={(e) => setInputEmployeesClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      {optionsNumberOfEmployeesClass.map((option) => (
-                        <option key={option} value={option + "*"}>
-                          {getNumberOfEmployeesClass(option)}
-                        </option>
-                      ))}
-                      <option value="is not null">入力有りのデータのみ</option>
-                      <option value="is null">入力無しのデータのみ</option>
-                    </select>
+                    <>
+                      {isNullNotNullEmployeesClass === "is null" || isNullNotNullEmployeesClass === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullEmployeesClass]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullEmployeesClass]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputEmployeesClassArray}
+                          dispatch={setInputEmployeesClassArray}
+                          selectedSetObj={selectedEmployeesClassArraySet}
+                          options={optionsNumberOfEmployeesClass}
+                          getOptionName={getEmployeesClassName}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - 95px)`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                        value={inputEmployeesClass}
+                        onChange={(e) => setInputEmployeesClass(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {optionsNumberOfEmployeesClass.map((option) => (
+                          <option key={option} value={option + "*"}>
+                            {getNumberOfEmployeesClass(option)}
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select> */}
+                    </>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
                   {/* フィールドエディットモード selectタグ  */}
@@ -2562,13 +2949,6 @@ const CompanyMainContainerMemo: FC = () => {
                             {getNumberOfEmployeesClass(option)}
                           </option>
                         ))}
-                        {/* <option value="A 1000名以上">A 1000名以上</option>
-                        <option value="B 500-999名">B 500-999名</option>
-                        <option value="C 300-499名">C 300-499名</option>
-                        <option value="D 200-299名">D 200-299名</option>
-                        <option value="E 100-199名">E 100-199名</option>
-                        <option value="F 50-99名">F 50-99名</option>
-                        <option value="G 1-49名">G 1-49名</option> */}
                       </select>
                       {/* エディットフィールド送信中ローディングスピナー */}
                       {updateClientCompanyFieldMutation.isLoading && (
@@ -2591,6 +2971,46 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isNullNotNullEmployeesClass === null && inputEmployeesClassArray.length === 0
+                              ? `hidden`
+                              : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleResetArray("number_of_employees_class")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(
+                                index,
+                                setIsNullNotNullEmployeesClass,
+                                "number_of_employees_class"
+                              )
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
             </div>
 
@@ -2734,26 +3154,59 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* サーチ */}
                   {searchMode && (
                     <>
-                      {["is null", "is not null"].includes(inputCapital) ? (
+                      {inputCapitalSearch === "is null" || inputCapitalSearch === "is not null" ? (
                         <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
-                          {nullNotNullIconMap[inputCapital]}
-                          <span className={`text-[13px]`}>{nullNotNullTextMap[inputCapital]}</span>
+                          {nullNotNullIconMap[inputCapitalSearch]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[inputCapitalSearch]}</span>
                         </div>
                       ) : (
-                        <input
-                          type="text"
-                          className={`${styles.input_box}`}
-                          value={inputCapital}
-                          onChange={(e) => setInputCapital(e.target.value)}
-                          onBlur={() => {
-                            const convertedPrice = convertToMillions(inputCapital.trim());
-                            if (convertedPrice !== null && !isNaN(parseFloat(String(convertedPrice)))) {
-                              setInputCapital(String(convertedPrice));
-                            } else {
-                              setInputCapital("");
-                            }
+                        <div
+                          className={`flex h-full w-full items-center`}
+                          onMouseEnter={(e) => {
+                            const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。`;
+                            handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
                           }}
-                        />
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputCapitalSearch.min}
+                            onChange={(e) =>
+                              setInputCapitalSearch({ min: e.target.value, max: inputCapitalSearch.max })
+                            }
+                            onBlur={() => {
+                              const formatHalfInput = toHalfWidthAndRemoveSpace(inputCapitalSearch.min);
+                              const convertedPrice = convertToMillions(formatHalfInput.trim());
+                              if (convertedPrice !== null && !isNaN(convertedPrice)) {
+                                setInputCapitalSearch({ min: String(convertedPrice), max: inputCapitalSearch.max });
+                              } else {
+                                setInputCapitalSearch({ min: "", max: inputCapitalSearch.max });
+                              }
+                            }}
+                          />
+
+                          <span className="mx-[10px]">〜</span>
+
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputCapitalSearch.max}
+                            onChange={(e) =>
+                              setInputCapitalSearch({ min: inputCapitalSearch.min, max: e.target.value })
+                            }
+                            onBlur={() => {
+                              const formatHalfInput = toHalfWidthAndRemoveSpace(inputCapitalSearch.max);
+                              const convertedPrice = convertToMillions(formatHalfInput.trim());
+
+                              if (convertedPrice !== null && !isNaN(convertedPrice)) {
+                                setInputCapitalSearch({ min: inputCapitalSearch.min, max: String(convertedPrice) });
+                              } else {
+                                setInputCapitalSearch({ min: inputCapitalSearch.min, max: "" });
+                              }
+                            }}
+                          />
+                        </div>
                       )}
                     </>
                   )}
@@ -2841,10 +3294,10 @@ const CompanyMainContainerMemo: FC = () => {
                       <div className={`line_first space-x-[6px]`}>
                         <button
                           type="button"
-                          className={`icon_btn_red ${!inputCapital ? `hidden` : `flex`}`}
+                          className={`icon_btn_red ${isEmptyInputRange(inputCapitalSearch) ? `hidden` : `flex`}`}
                           onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
-                          onClick={() => handleClickResetInput(setInputCapital)}
+                          onClick={() => handleClickResetInput(setInputCapitalSearch, "range_string")}
                         >
                           <MdClose className="pointer-events-none text-[14px]" />
                         </button>
@@ -2854,7 +3307,7 @@ const CompanyMainContainerMemo: FC = () => {
                             className={`btn_f space-x-[3px]`}
                             onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
-                            onClick={() => handleClickAdditionalAreaBtn(index, setInputCapital)}
+                            onClick={() => handleClickAdditionalAreaBtn(index, setInputCapitalSearch)}
                           >
                             {element}
                           </div>
@@ -3352,7 +3805,7 @@ const CompanyMainContainerMemo: FC = () => {
 
             {/* 業種 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
+              <div className="group relative flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○業種</span>
                   {/* ディスプレイ */}
@@ -3383,20 +3836,44 @@ const CompanyMainContainerMemo: FC = () => {
                   )}
                   {/* サーチ */}
                   {searchMode && (
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
-                      value={inputIndustryType}
-                      onChange={(e) => setInputIndustryType(e.target.value)}
-                    >
-                      <option value=""></option>
-                      {optionsIndustryType.map((option) => (
-                        <option key={option} value={option.toString()}>
-                          {mappingIndustryType[option][language]}
-                        </option>
-                      ))}
-                      <option value="is not null">入力有りのデータのみ</option>
-                      <option value="is null">入力無しのデータのみ</option>
-                    </select>
+                    <>
+                      {isNullNotNullIndustryType === "is null" || isNullNotNullIndustryType === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullIndustryType]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullIndustryType]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputIndustryTypeArray}
+                          dispatch={setInputIndustryTypeArray}
+                          selectedSetObj={selectedIndustryTypeArraySet}
+                          options={optionsIndustryType}
+                          getOptionName={getIndustryTypeMonthName}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - 95px)`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                        value={inputIndustryType}
+                        onChange={(e) => setInputIndustryType(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {optionsIndustryType.map((option) => (
+                          <option key={option} value={option.toString()}>
+                            {mappingIndustryType[option][language]}
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select> */}
+                    </>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
                   {/* フィールドエディットモード selectタグ  */}
@@ -3449,10 +3926,15 @@ const CompanyMainContainerMemo: FC = () => {
                       <div className={`line_first space-x-[6px]`}>
                         <button
                           type="button"
-                          className={`icon_btn_red ${!inputIndustryType ? `hidden` : `flex`}`}
+                          className={`icon_btn_red ${
+                            isNullNotNullIndustryType === null && inputIndustryTypeArray.length === 0
+                              ? `hidden`
+                              : `flex`
+                          }`}
                           onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
-                          onClick={() => handleClickResetInput(setInputIndustryType)}
+                          // onClick={() => handleClickResetInput(setInputIndustryType)}
+                          onClick={() => handleResetArray("industry_type_id")}
                         >
                           <MdClose className="pointer-events-none text-[14px]" />
                         </button>
@@ -3462,7 +3944,9 @@ const CompanyMainContainerMemo: FC = () => {
                             className={`btn_f space-x-[3px]`}
                             onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
-                            onClick={() => handleClickAdditionalAreaBtn(index, setInputIndustryType)}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(index, setIsNullNotNullIndustryType, "industry_type_id")
+                            }
                           >
                             {element}
                           </div>
@@ -4074,6 +4558,82 @@ const CompanyMainContainerMemo: FC = () => {
                       {selectedRowDataCompany?.number_of_employees ? selectedRowDataCompany?.number_of_employees : ""}
                     </span>
                   )}
+                  {/* サーチ */}
+                  {searchMode && (
+                    <>
+                      {inputNumberOfEmployeesSearch === "is null" || inputNumberOfEmployeesSearch === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[inputNumberOfEmployeesSearch]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[inputNumberOfEmployeesSearch]}</span>
+                        </div>
+                      ) : (
+                        <div
+                          className={`flex h-full w-full items-center`}
+                          onMouseEnter={(e) => {
+                            const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。`;
+                            handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputNumberOfEmployeesSearch.min}
+                            onChange={(e) =>
+                              setInputNumberOfEmployeesSearch({
+                                min: e.target.value,
+                                max: inputNumberOfEmployeesSearch.max,
+                              })
+                            }
+                            onBlur={() => {
+                              const formatHalfInput = toHalfWidthAndRemoveSpace(
+                                inputNumberOfEmployeesSearch.min
+                              ).trim();
+                              const newEmployeesCount = parseInt(formatHalfInput, 10);
+
+                              if (newEmployeesCount !== null && !isNaN(newEmployeesCount)) {
+                                setInputNumberOfEmployeesSearch({
+                                  min: String(newEmployeesCount),
+                                  max: inputNumberOfEmployeesSearch.max,
+                                });
+                              } else {
+                                setInputNumberOfEmployeesSearch({ min: "", max: inputNumberOfEmployeesSearch.max });
+                              }
+                            }}
+                          />
+
+                          <span className="mx-[10px]">〜</span>
+
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputNumberOfEmployeesSearch.max}
+                            onChange={(e) =>
+                              setInputNumberOfEmployeesSearch({
+                                min: inputNumberOfEmployeesSearch.min,
+                                max: e.target.value,
+                              })
+                            }
+                            onBlur={() => {
+                              const formatHalfInput = toHalfWidthAndRemoveSpace(
+                                inputNumberOfEmployeesSearch.max
+                              ).trim();
+                              const newEmployeesCount = parseInt(formatHalfInput, 10);
+
+                              if (newEmployeesCount !== null && !isNaN(newEmployeesCount)) {
+                                setInputNumberOfEmployeesSearch({
+                                  min: inputNumberOfEmployeesSearch.min,
+                                  max: String(newEmployeesCount),
+                                });
+                              } else {
+                                setInputNumberOfEmployeesSearch({ min: inputNumberOfEmployeesSearch.min, max: "" });
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
                   {/* ============= フィールドエディットモード関連 ============= */}
                   {/* フィールドエディットモード inputタグ */}
                   {!searchMode && isEditModeField === "number_of_employees" && (
@@ -4144,6 +4704,38 @@ const CompanyMainContainerMemo: FC = () => {
                   </div> */}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isEmptyInputRange(inputNumberOfEmployeesSearch) ? `hidden` : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleClickResetInput(setInputNumberOfEmployeesSearch, "range_string")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() => handleClickAdditionalAreaBtn(index, setInputNumberOfEmployeesSearch)}
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
               {/* 決算月 */}
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
@@ -4181,20 +4773,44 @@ const CompanyMainContainerMemo: FC = () => {
                     />
                   )} */}
                   {searchMode && (
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
-                      value={inputFiscal}
-                      onChange={(e) => setInputFiscal(e.target.value)}
-                    >
-                      <option value=""></option>
-                      {optionsMonth.map((option) => (
-                        <option key={option} value={option}>
-                          {option}月
-                        </option>
-                      ))}
-                      <option value="is not null">入力有りのデータのみ</option>
-                      <option value="is null">入力無しのデータのみ</option>
-                    </select>
+                    <>
+                      {isNullNotNullFiscal === "is null" || isNullNotNullFiscal === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullFiscal]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullFiscal]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputFiscalArray}
+                          dispatch={setInputFiscalArray}
+                          selectedSetObj={selectedFiscalArraySet}
+                          options={optionsMonth}
+                          getOptionName={getFiscalMonthName}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - 95px)`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* // <select
+                    //   className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                    //   value={inputFiscal}
+                    //   onChange={(e) => setInputFiscal(e.target.value)}
+                    // >
+                    //   <option value=""></option>
+                    //   {optionsMonth.map((option) => (
+                    //     <option key={option} value={option}>
+                    //       {option}月
+                    //     </option>
+                    //   ))}
+                    //   <option value="is not null">入力有りのデータのみ</option>
+                    //   <option value="is null">入力無しのデータのみ</option>
+                    // </select> */}
+                    </>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
                   {/* フィールドエディットモード selectタグ  */}
@@ -4240,6 +4856,40 @@ const CompanyMainContainerMemo: FC = () => {
                   {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isNullNotNullFiscal === null && inputFiscalArray.length === 0 ? `hidden` : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleResetArray("fiscal_end_month")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(index, setIsNullNotNullFiscal, "fiscal_end_month")
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
             </div>
 

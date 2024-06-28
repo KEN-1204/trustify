@@ -10,18 +10,22 @@ export const isValidNumber = (value: any) => {
   // 🔸
   // 数値型の場合、直接trueを返す
   if (typeof value === "number") {
-    return !isNaN(value);
+    return !isNaN(value); // NaN を false と評価するためのチェックを追加
   }
   // 文字列型の場合、数字のみ（オプショナルで小数点を含む）で構成されているかをチェック
   if (typeof value === "string") {
-    // return value !== "" && value !== null && value !== undefined && /^[+-]?(\d+\.?\d*|\.\d+)$/.test(value);
-    const halfValue = zenkakuToHankaku(value);
-    return (
-      halfValue !== "" && halfValue !== null && halfValue !== undefined && /^[+-]?(\d+\.?\d*|\.\d+)$/.test(halfValue)
-    );
+    return value !== "" && value !== null && value !== undefined && /^[+-]?(\d+\.?\d*|\.\d+)$/.test(value);
+    // const halfValue = zenkakuToHankaku(value);
+    // return (
+    //   halfValue !== "" && halfValue !== null && halfValue !== undefined && /^[+-]?(\d+\.?\d*|\.\d+)$/.test(halfValue)
+    // );
   }
   // それ以外の型の場合はfalseを返す
   return false;
+
+  // if (typeof value === "string") {
+  //   return /^[+-]?(\d+\.?\d*|\.\d+)$/.test(value); // 空文字やnullチェックは不要、正規表現によるチェックで十分
+  // }
 };
 
 /**

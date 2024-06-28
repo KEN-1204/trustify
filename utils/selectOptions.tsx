@@ -488,51 +488,58 @@ export const optionsClientCompaniesColumnFieldForInsertArray = [
   // "created_by_section_of_user",
   // "created_by_unit_of_user",
   // "created_by_office_of_user",
-  "name",
-  "department_name",
-  "main_fax",
-  "zipcode",
-  "address",
-  "department_contacts",
-  "industry_large",
-  "industry_small",
-  "industry_type_id",
-  "country_id",
-  "region_id",
-  "city_id",
-  "street_address",
-  "building_name",
-  "product_category_large",
-  "product_category_medium",
-  "product_category_small",
-  "number_of_employees_class",
-  "fiscal_end_month",
-  "capital",
-  "budget_request_month1",
-  "budget_request_month2",
-  "website_url",
-  "clients",
-  "supplier",
-  "business_content",
-  "established_in",
-  "representative_name",
-  "chairperson",
-  "senior_vice_president",
-  "senior_managing_director",
-  "managing_director",
-  "director",
-  "auditor",
-  "manager",
-  "member",
-  "facility",
-  "business_sites",
-  "overseas_bases",
-  "group_company",
-  "email",
-  "main_phone_number",
-  "corporate_number",
-  "board_member",
-  "number_of_employees",
+  "name", //
+  "department_name", //
+  "main_phone_number", //
+  "main_fax", //
+  "zipcode", //
+  "address", //
+  "department_contacts", //
+  "industry_large", //
+  "industry_small", //
+  "industry_type_id", //int4
+  "country_id", // int4
+  "region_id", //int4
+  "city_id", //int4
+  "street_address", //text
+  "building_name", //text
+  "product_category_large", //
+  "product_category_medium", //
+  "product_category_small", //
+  "number_of_employees_class", //
+  "fiscal_end_month", //int4
+  "capital", //int8 BIGINT
+  "budget_request_month1", //int4
+  "budget_request_month2", //int4
+  "website_url", //
+  "clients", //
+  "supplier", //
+  "business_content", //
+  "established_in", //text
+  "representative_name", //
+  "chairperson", //
+  "senior_vice_president", //
+  "senior_managing_director", //
+  "managing_director", //
+  "director", //
+  "auditor", //
+  "manager", //
+  "member", //
+  "facility", //
+  "business_sites", //
+  "overseas_bases", //
+  "group_company", //
+  "email", //
+  // "claim", //
+  // "ban_reason", //
+  // "email_ban_flag", //
+  // "sending_ban_flag", //
+  // "fax_dm_ban_flag", //
+  // "call_careful_flag", //
+  // "call_careful_reason", //
+  "corporate_number", //
+  "board_member", //
+  "number_of_employees", //
 ] as (keyof Omit<
   Client_company,
   | "id"
@@ -549,6 +556,7 @@ export const optionsClientCompaniesColumnFieldForInsertArray = [
 export const mappingClientCompaniesFiledToNameForInsert: { [key: string]: { [key: string]: string } } = {
   name: { ja: `会社名`, en: `` },
   department_name: { ja: `部署名`, en: `` },
+  main_phone_number: { ja: `代表TEL(電話番号)`, en: `` },
   main_fax: { ja: `代表FAX`, en: `` },
   zipcode: { ja: `郵便番号`, en: `` },
   address: { ja: `住所`, en: `` },
@@ -572,7 +580,7 @@ export const mappingClientCompaniesFiledToNameForInsert: { [key: string]: { [key
   website_url: { ja: `ホームページURL`, en: `` },
   clients: { ja: `取引先(納入先)`, en: `` },
   supplier: { ja: `仕入先`, en: `` },
-  business_content: { ja: `事業内容`, en: `` },
+  business_content: { ja: `事業概要`, en: `` },
   established_in: { ja: `設立`, en: `` },
   representative_name: { ja: `代表者名`, en: `` },
   chairperson: { ja: `会長`, en: `` },
@@ -588,7 +596,6 @@ export const mappingClientCompaniesFiledToNameForInsert: { [key: string]: { [key
   overseas_bases: { ja: `海外拠点`, en: `` },
   group_company: { ja: `グループ会社`, en: `` },
   email: { ja: `E-mail`, en: `` },
-  main_phone_number: { ja: `代表TEL`, en: `` },
   corporate_number: { ja: `法人番号`, en: `` },
   board_member: { ja: `役員`, en: `` },
   number_of_employees: { ja: `従業員数`, en: `` },
@@ -1021,7 +1028,24 @@ export const productCategoriesLargeIdsSet: Set<number> = new Set([
 // ];
 
 // 決算月
+export type MonthType = "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12";
 export const optionsMonth = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+export const mappingMonth:
+  | { [K in MonthType]: { [key: string]: string } }
+  | { [key: string]: { [key: string]: string } } = {
+  "1": { ja: "1月", en: "" },
+  "2": { ja: "2月", en: "" },
+  "3": { ja: "3月", en: "" },
+  "4": { ja: "4月", en: "" },
+  "5": { ja: "5月", en: "" },
+  "6": { ja: "6月", en: "" },
+  "7": { ja: "7月", en: "" },
+  "8": { ja: "8月", en: "" },
+  "9": { ja: "9月", en: "" },
+  "10": { ja: "10月", en: "" },
+  "11": { ja: "11月", en: "" },
+  "12": { ja: "12月", en: "" },
+};
 
 // 会計年度基準
 export const optionsFiscalYearBasis = ["firstDayBasis", "endDayBasis"];
@@ -1035,7 +1059,19 @@ export const mappingFiscalYearBasisForOption: { [key: string]: { [key: string]: 
 };
 
 // 規模（ランク）
+export type NumberOfEmployeesClassType = "A" | "B" | "C" | "D" | "E" | "F" | "G";
 export const optionsNumberOfEmployeesClass = ["A", "B", "C", "D", "E", "F", "G"];
+export const mappingNumberOfEmployeesClass:
+  | { [K in NumberOfEmployeesClassType]: { [key: string]: string } }
+  | { [key: string]: { [key: string]: string } } = {
+  A: { ja: "A 1000名以上", en: "" },
+  B: { ja: "B 500〜999名", en: "" },
+  C: { ja: "C 300〜499名", en: "" },
+  D: { ja: "D 200〜299名", en: "" },
+  E: { ja: "E 100〜199名", en: "" },
+  F: { ja: "F 50〜99名", en: "" },
+  G: { ja: "G 1〜49名", en: "" },
+};
 
 export const getNumberOfEmployeesClass = (title: string, language: string = "ja") => {
   switch (title) {
