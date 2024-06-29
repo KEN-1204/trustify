@@ -182,8 +182,18 @@ export const getPositionClassNameForCustomer = (value: string, language: string 
 // ];
 
 // 職位(役職クラス)
+export type PositionClassType = 1 | 2 | 3 | 4 | 5 | 6;
 export const optionsPositionsClass = [1, 2, 3, 4, 5, 6];
-
+export const mappingPositionsClassName:
+  | { [K in PositionClassType]: { [key: string]: string } }
+  | { [key: number]: { [key: string]: string } } = {
+  1: { ja: "1 代表者", en: "1 President" },
+  2: { ja: "2 取締役/役員", en: "2 Director/Executive" },
+  3: { ja: "3 部長", en: "3 Division Manager" },
+  4: { ja: "4 課長", en: "4 Section Manager" },
+  5: { ja: "5 課長未満", en: "5 Team Leader/Associate" },
+  6: { ja: "6 所長・支店長・工場長", en: "6 Branch Manager" },
+};
 export const getPositionClassName = (classNum: number, language: string = "ja") => {
   switch (classNum) {
     case 1:
@@ -357,7 +367,52 @@ export const getOccupationNameForCustomer = (Num: string, language: string = "ja
 };
 
 // 担当職種
+export type OccupationType =
+  | 1
+  | 2
+  | 3
+  | 4
+  | 5
+  | 6
+  | 7
+  | 8
+  | 9
+  | 10
+  | 11
+  | 12
+  | 13
+  | 14
+  | 15
+  | 16
+  | 17
+  | 18
+  | 19
+  | 20
+  | 21;
 export const optionsOccupation = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+export const mappingOccupation = {
+  1: { ja: "1 社長/CEO", en: "1 President" },
+  2: { ja: "2 取締役・役員", en: "2 Director/Executive" },
+  3: { ja: "3 プロジェクトマネージャー", en: "3 Project Manager" },
+  4: { ja: "4 営業", en: "4 Sales" },
+  5: { ja: "5 マーケティング", en: "5 Marketing" },
+  6: { ja: "6 クリエイティブ", en: "6 Creative" },
+  7: { ja: "7 ソフトウェア開発", en: "7 Software Development" },
+  8: { ja: "8 開発・設計", en: "8 R&D" },
+  9: { ja: "9 製造", en: "9 Manufacturing" },
+  10: { ja: "10 品質管理・品質保証", en: "10 Quality Control" },
+  11: { ja: "11 生産管理", en: "11 Production Management" },
+  12: { ja: "12 生産技術", en: "12 Production Engineering" },
+  13: { ja: "13 人事", en: "13 Human Resources" },
+  14: { ja: "14 経理", en: "14 Accounting" },
+  15: { ja: "15 総務", en: "15 General Affairs" },
+  16: { ja: "16 法務", en: "16 Legal" },
+  17: { ja: "17 財務", en: "17 Finance" },
+  18: { ja: "18 購買", en: "18 Purchasing" },
+  19: { ja: "19 情報システム", en: "19 IT Department" },
+  20: { ja: "20 CS/カスタマーサービス", en: "20 CS" },
+  21: { ja: "21 その他", en: "21 Other" },
+};
 
 export const getOccupationName = (Num: number, language: string = "ja") => {
   switch (Num) {

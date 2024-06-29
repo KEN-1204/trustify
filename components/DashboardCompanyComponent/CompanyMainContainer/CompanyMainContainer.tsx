@@ -224,18 +224,20 @@ const CompanyMainContainerMemo: FC = () => {
   const selectedEmployeesClassArraySet = useMemo(() => {
     return new Set([...inputEmployeesClassArray]);
   }, [inputEmployeesClassArray]);
-  const getEmployeesClassName = (option: NumberOfEmployeesClassType) => {
+  const getEmployeesClassNameSearch = (option: NumberOfEmployeesClassType) => {
     return mappingNumberOfEmployeesClass[option][language];
   };
   // ----------------------- サーチ配列 規模(ランク) ----------------------- ここまで
 
   const [inputCapital, setInputCapital] = useState<string>("");
+  // ----------------------- 範囲検索 資本金 -----------------------
   const [inputCapitalSearch, setInputCapitalSearch] = useState<
     { min: string; max: string } | "is null" | "is not null"
   >({
     min: "",
     max: "",
   });
+  // ----------------------- 範囲検索 資本金 ----------------------- ここまで
   const [inputFound, setInputFound] = useState("");
   const [inputContent, setInputContent] = useState("");
   const [inputHP, setInputHP] = useState("");
@@ -248,7 +250,7 @@ const CompanyMainContainerMemo: FC = () => {
   const selectedIndustryTypeArraySet = useMemo(() => {
     return new Set([...inputIndustryTypeArray]);
   }, [inputIndustryTypeArray]);
-  const getIndustryTypeMonthName = (option: number) => {
+  const getIndustryTypeMonthNameSearch = (option: number) => {
     return mappingIndustryType[option][language];
   };
   // optionsIndustryType
@@ -433,7 +435,7 @@ const CompanyMainContainerMemo: FC = () => {
     return new Set([...inputFiscalArray]);
   }, [inputFiscalArray]);
   // optionsMonth
-  const getFiscalMonthName = (option: MonthType) => {
+  const getFiscalMonthNameSearch = (option: MonthType) => {
     return mappingMonth[option][language];
   };
   // ----------------------- サーチ配列 決算月 ----------------------- ここまで
@@ -459,6 +461,7 @@ const CompanyMainContainerMemo: FC = () => {
   const [inputMember, setInputMember] = useState("");
   // 従業員数 フィールドエディットモード用
   const [inputNumberOfEmployees, setInputNumberOfEmployees] = useState("");
+  // ----------------------- 範囲検索 従業員数 -----------------------
   // 従業員数サーチ用
   const [inputNumberOfEmployeesSearch, setInputNumberOfEmployeesSearch] = useState<
     { min: string; max: string } | "is null" | "is not null"
@@ -466,6 +469,7 @@ const CompanyMainContainerMemo: FC = () => {
     min: "",
     max: "",
   });
+  // ----------------------- 範囲検索 従業員数 ----------------------- ここまで
 
   // 検索タイプ
   const searchType = useDashboardStore((state) => state.searchType);
@@ -550,12 +554,14 @@ const CompanyMainContainerMemo: FC = () => {
       );
       // サーチ配列 ------------------------ ここまで
       setInputAddress(beforeAdjustFieldValue(newSearchCompanyParams?.address));
+      // 範囲検索 ------------------------
       // setInputCapital(beforeAdjustFieldValue(newSearchCompanyParams?.capital));
       // setInputCapitalSearch(
       //   beforeAdjustFieldValue(!!newSearchCompanyParams?.capital ? newSearchCompanyParams.capital.toString() : "")
       // );
       setInputCapitalSearch(adjustFieldRangeNumeric(newSearchCompanyParams?.capital));
       setInputNumberOfEmployeesSearch(adjustFieldRangeNumeric(newSearchCompanyParams?.number_of_employees));
+      // 範囲検索 ------------------------ ここまで
       setInputFound(beforeAdjustFieldValue(newSearchCompanyParams?.established_in));
       setInputContent(beforeAdjustFieldValue(newSearchCompanyParams?.business_content));
       setInputHP(beforeAdjustFieldValue(newSearchCompanyParams.website_url));
@@ -955,11 +961,13 @@ const CompanyMainContainerMemo: FC = () => {
       let _number_of_employees_class = inputEmployeesClassArray;
       // サーチ配列 TEXT[] ------------ここまで
       let _address = adjustFieldValue(inputAddress);
+      // 範囲検索 -----------
       // let _capital = adjustFieldValue(inputCapital);
       // let _capital = isValidNumber(inputCapital) ? parseInt(inputCapital, 10) : null;
       // let _capital = adjustFieldValueInteger(inputCapital);
       let _capital = adjustFieldRangeNumeric(inputCapitalSearch);
       let _number_of_employees = adjustFieldRangeNumeric(inputNumberOfEmployeesSearch);
+      // 範囲検索 -----------ここまで
       let _established_in = adjustFieldValue(inputFound);
       let _business_content = adjustFieldValue(inputContent);
       let _website_url = adjustFieldValue(inputHP);
@@ -1079,8 +1087,10 @@ const CompanyMainContainerMemo: FC = () => {
           isNullNotNullEmployeesClass === null ? _number_of_employees_class : adjustIsNNN(isNullNotNullEmployeesClass),
         // サーチ配列 TEXT[] ------------ここまで
         address: _address,
+        // 範囲検索 ------------
         capital: _capital,
         number_of_employees: _number_of_employees,
+        // 範囲検索 ------------ここまで
         established_in: _established_in,
         business_content: _business_content,
         website_url: _website_url,
@@ -1238,16 +1248,25 @@ const CompanyMainContainerMemo: FC = () => {
     e: React.MouseEvent<HTMLElement, MouseEvent>;
     display?: "top" | "right" | "bottom" | "left" | "";
     content?: string;
+    content2?: string;
+    content3?: string;
     itemsPosition?: string;
   };
-  const handleOpenTooltip = ({ e, display = "top", content = "", itemsPosition = "center" }: TooltipParams) => {
+  const handleOpenTooltip = ({
+    e,
+    display = "top",
+    content = "",
+    content2,
+    content3,
+    itemsPosition = "center",
+  }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    const content2Text = ((e.target as HTMLDivElement).dataset.text2 as string)
       ? ((e.target as HTMLDivElement).dataset.text2 as string)
       : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    const content3Text = ((e.target as HTMLDivElement).dataset.text3 as string)
       ? ((e.target as HTMLDivElement).dataset.text3 as string)
       : "";
     setHoveredItemPosWrap({
@@ -1257,8 +1276,8 @@ const CompanyMainContainerMemo: FC = () => {
       itemHeight: height,
       // content: (e.target as HTMLDivElement).dataset.text as string,
       content: content !== "" ? content : ((e.target as HTMLDivElement).dataset.text as string),
-      content2: content2,
-      content3: content3,
+      content2: !!content2 ? content2 : content2Text,
+      content3: !!content3 ? content3 : content3Text,
       display: display,
       itemsPosition,
     });
@@ -1860,6 +1879,7 @@ const CompanyMainContainerMemo: FC = () => {
     inputType: "string" | "range_string" | "array" = "string"
   ) => {
     handleCloseTooltip();
+
     if (inputType === "array") {
       dispatch([]);
     } else if (inputType === "range_string") {
@@ -1895,13 +1915,13 @@ const CompanyMainContainerMemo: FC = () => {
       if (isNullNotNullEmployeesClass !== null) setIsNullNotNullEmployeesClass(null);
       if (0 < inputEmployeesClassArray.length) setInputEmployeesClassArray([]);
     }
-    if (fieldName === "fiscal_end_month") {
-      if (isNullNotNullFiscal !== null) setIsNullNotNullFiscal(null);
-      if (0 < inputFiscalArray.length) setInputFiscalArray([]);
-    }
     if (fieldName === "industry_type_id") {
       if (isNullNotNullIndustryType !== null) setIsNullNotNullIndustryType(null);
       if (0 < inputIndustryTypeArray.length) setInputIndustryTypeArray([]);
+    }
+    if (fieldName === "fiscal_end_month") {
+      if (isNullNotNullFiscal !== null) setIsNullNotNullFiscal(null);
+      if (0 < inputFiscalArray.length) setInputFiscalArray([]);
     }
   };
 
@@ -1953,8 +1973,8 @@ const CompanyMainContainerMemo: FC = () => {
     if (type === "category_medium") resetProductCategories("ms");
     if (type === "category_small") resetProductCategories("s");
     if (type === "number_of_employees_class") setInputEmployeesClassArray([]);
-    if (type === "fiscal_end_month") setInputFiscalArray([]);
     if (type === "industry_type_id") setInputIndustryTypeArray([]);
+    if (type === "fiscal_end_month") setInputFiscalArray([]);
 
     if (index === 0) dispatch("is not null");
     if (index === 1) dispatch("is null");
@@ -2899,7 +2919,7 @@ const CompanyMainContainerMemo: FC = () => {
                           dispatch={setInputEmployeesClassArray}
                           selectedSetObj={selectedEmployeesClassArraySet}
                           options={optionsNumberOfEmployeesClass}
-                          getOptionName={getEmployeesClassName}
+                          getOptionName={getEmployeesClassNameSearch}
                           withBorder={true}
                           // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
                           customClass="font-normal"
@@ -3848,7 +3868,7 @@ const CompanyMainContainerMemo: FC = () => {
                           dispatch={setInputIndustryTypeArray}
                           selectedSetObj={selectedIndustryTypeArraySet}
                           options={optionsIndustryType}
-                          getOptionName={getIndustryTypeMonthName}
+                          getOptionName={getIndustryTypeMonthNameSearch}
                           withBorder={true}
                           // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
                           customClass="font-normal"
@@ -4785,7 +4805,7 @@ const CompanyMainContainerMemo: FC = () => {
                           dispatch={setInputFiscalArray}
                           selectedSetObj={selectedFiscalArraySet}
                           options={optionsMonth}
-                          getOptionName={getFiscalMonthName}
+                          getOptionName={getFiscalMonthNameSearch}
                           withBorder={true}
                           // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
                           customClass="font-normal"

@@ -869,6 +869,7 @@ export type Contact_row_data = {
   address: string | null;
   company_email: string | null;
   number_of_employees_class: string | null;
+  number_of_employees: number | null;
   // capital: string | null;
   capital: number | null;
   established_in: string | null;
@@ -946,10 +947,19 @@ export type NewSearchContact_CompanyParams = {
   main_fax: string | null;
   zipcode: string | null;
   address: string | null;
-  number_of_employees_class: string | null;
+  // サーチ配列 規模 ----------------
+  // number_of_employees_class: string | null;
+  number_of_employees_class: string[] | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 規模 ----------------
+  // 範囲検索 従業員数 ----------------
+  number_of_employees: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 従業員数 ----------------
   // capital: string | null;
   // capital: number | null;
-  capital: number | "ISNULL" | "ISNOTNULL" | null;
+  // 範囲検索 資本金 ----------------
+  // capital: number | "ISNULL" | "ISNOTNULL" | null;
+  capital: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 資本金 ----------------
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -957,8 +967,11 @@ export type NewSearchContact_CompanyParams = {
   "client_companies.email": string | null;
   // industry_type: string | null;
   // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  // サーチ配列 業種 ----------------
   // industry_type_id?: number | null;
-  industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
+  // industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
+  industry_type_id: number[] | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 業種 ----------------
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
@@ -971,9 +984,16 @@ export type NewSearchContact_CompanyParams = {
   product_category_medium_ids: number[] | "ISNULL" | "ISNOTNULL";
   product_category_small_ids: number[] | "ISNULL" | "ISNOTNULL";
   // 🌠製品分類 ---------------- ここまで
-  fiscal_end_month: string | null;
-  budget_request_month1: string | null;
-  budget_request_month2: string | null;
+  // サーチ配列 決算月 ----------------
+  // fiscal_end_month: string | null;
+  fiscal_end_month: string[] | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 決算月 ----------------
+  // サーチ配列 予算申請月 ----------------
+  // budget_request_month1: string | null;
+  // budget_request_month2: string | null;
+  budget_request_month1: string[] | "ISNULL" | "ISNOTNULL";
+  budget_request_month2: string[] | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 予算申請月 ----------------
   clients: string | null;
   supplier: string | null;
   facility: string | null;
@@ -981,7 +1001,7 @@ export type NewSearchContact_CompanyParams = {
   overseas_bases: string | null;
   group_company: string | null;
   corporate_number: string | null;
-
+  // 🔹担当者テーブル
   "contacts.name": string | null;
   direct_line: string | null;
   direct_fax: string | null;
@@ -993,13 +1013,22 @@ export type NewSearchContact_CompanyParams = {
   position_name: string | null;
   // position_class: string | null;
   // occupation: string | null;
+  // サーチ配列 職位 ----------------
   // position_class: number | null;
-  position_class: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  // position_class: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  position_class: number[] | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 職位 ----------------
+  // サーチ配列 担当職種 ----------------
   // occupation: number | null;
-  occupation: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  // occupation: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  occupation: number[] | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 担当職種 ----------------
+  // 範囲検索 決裁金額 ----------------
   // approval_amount: string | null;
   // approval_amount: number | null;
-  approval_amount: number | "ISNULL" | "ISNOTNULL" | null;
+  // approval_amount: number | "ISNULL" | "ISNOTNULL" | null;
+  approval_amount: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 決裁金額 ----------------
   // created_by_company_id: string | null;
   "contacts.created_by_company_id": string | null;
   created_by_user_id: string | null;
@@ -1064,6 +1093,7 @@ export type Activity_row_data = {
   address: string | null;
   company_email: string | null;
   number_of_employees_class: string | null;
+  number_of_employees: number | null;
   // capital: string | null;
   capital: number | null;
   established_in: string | null;
@@ -1171,10 +1201,16 @@ export type NewSearchActivity_Contact_CompanyParams = {
   main_fax: string | null;
   zipcode: string | null;
   address: string | null;
-  number_of_employees_class: string | null;
+  // サーチ配列 規模 ----------------
+  // number_of_employees_class: string | null;
+  number_of_employees_class: string[] | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 従業員数 ----------------
+  number_of_employees: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   // capital: string | null;
   // capital: number | null;
-  capital: number | "ISNULL" | "ISNOTNULL" | null;
+  // 範囲検索 資本金 ----------------
+  // capital: number | "ISNULL" | "ISNOTNULL" | null;
+  capital: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -1182,8 +1218,10 @@ export type NewSearchActivity_Contact_CompanyParams = {
   "client_companies.email": string | null;
   // industry_type: string | null;
   // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
+  // サーチ配列 業種 ----------------
   // industry_type_id?: number | null;
-  industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
+  // industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
+  industry_type_id: number[] | "ISNULL" | "ISNOTNULL";
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
@@ -1196,9 +1234,14 @@ export type NewSearchActivity_Contact_CompanyParams = {
   product_category_medium_ids: number[] | "ISNULL" | "ISNOTNULL";
   product_category_small_ids: number[] | "ISNULL" | "ISNOTNULL";
   // 🌠製品分類 ---------------- ここまで
-  fiscal_end_month: string | null;
-  budget_request_month1: string | null;
-  budget_request_month2: string | null;
+  // サーチ配列 決算月 ----------------
+  // fiscal_end_month: string | null;
+  fiscal_end_month: string[] | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 予算申請月 ----------------
+  // budget_request_month1: string | null;
+  // budget_request_month2: string | null;
+  budget_request_month1: string[] | "ISNULL" | "ISNOTNULL";
+  budget_request_month2: string[] | "ISNULL" | "ISNOTNULL";
   clients: string | null;
   supplier: string | null;
   facility: string | null;
@@ -1206,7 +1249,7 @@ export type NewSearchActivity_Contact_CompanyParams = {
   overseas_bases: string | null;
   group_company: string | null;
   corporate_number: string | null;
-
+  // 🔹担当者テーブル
   "contacts.name": string | null;
   direct_line: string | null;
   direct_fax: string | null;
@@ -1219,15 +1262,21 @@ export type NewSearchActivity_Contact_CompanyParams = {
   // position_class: string | null;
   // occupation: string | null;
   // position_class: number | null;
-  position_class: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  // サーチ配列 職位 ----------------
+  // position_class: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  position_class: number[] | "ISNULL" | "ISNOTNULL";
   // occupation: number | null;
-  occupation: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  // サーチ配列 担当職種 ----------------
+  // occupation: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  occupation: number[] | "ISNULL" | "ISNOTNULL";
   // approval_amount: string | null;
   // approval_amount: number | null;
-  approval_amount: number | "ISNULL" | "ISNOTNULL" | null;
+  // 範囲検索 決裁金額 ----------------
+  // approval_amount: number | "ISNULL" | "ISNOTNULL" | null;
+  approval_amount: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   "contacts.created_by_company_id": string | null;
   "contacts.created_by_user_id": string | null;
-
+  // 🔹活動テーブル
   // created_at: string;
   // updated_at: string | null;
   "activities.created_by_company_id": string | null;
@@ -1237,10 +1286,14 @@ export type NewSearchActivity_Contact_CompanyParams = {
   "activities.created_by_unit_of_user": string | null;
   "activities.created_by_office_of_user": string | null; //🌠追加
   summary: string | null;
-  scheduled_follow_up_date: string | null;
+  // 範囲検索 次回フォロー予定日 DATE型 ----------------
+  // scheduled_follow_up_date: string | null;
+  scheduled_follow_up_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
   follow_up_flag: boolean | null;
   document_url: string | null;
-  activity_type: string | null;
+  // サーチ配列 活動タイプ ----------------
+  // activity_type: string | null;
+  activity_type: string[] | "ISNULL" | "ISNOTNULL";
   claim_flag: boolean | null;
   product_introduction1: string | null;
   product_introduction2: string | null;
@@ -1250,7 +1303,9 @@ export type NewSearchActivity_Contact_CompanyParams = {
   business_office: string | null;
   member_name: string | null;
   priority: string | null;
-  activity_date: string | null;
+  // 範囲検索 活動日 DATE型 ----------------
+  // activity_date: string | null;
+  activity_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
   department: string | null;
   // 年月度
   activity_year_month: number | null;
@@ -1355,6 +1410,7 @@ export type Meeting_row_data = {
   address: string | null;
   company_email: string | null;
   number_of_employees_class: string | null;
+  number_of_employees: number | null;
   // capital: string | null;
   capital: number | null;
   established_in: string | null;
@@ -1480,10 +1536,16 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   main_fax: string | null;
   zipcode: string | null;
   address: string | null;
-  number_of_employees_class: string | null;
+  // サーチ配列 規模 ----------------
+  // number_of_employees_class: string | null;
+  number_of_employees_class: string[] | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 従業員数 ----------------
+  number_of_employees: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   // capital: string | null;
   // capital: number | null;
-  capital: number | "ISNULL" | "ISNOTNULL" | null;
+  // 範囲検索 資本金 ----------------
+  // capital: number | "ISNULL" | "ISNOTNULL" | null;
+  capital: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -1492,7 +1554,9 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   // industry_type: string | null;
   // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
   // industry_type_id?: number | null;
-  industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
+  // サーチ配列 業種 ----------------
+  // industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
+  industry_type_id: number[] | "ISNULL" | "ISNOTNULL";
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
@@ -1505,9 +1569,14 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   product_category_medium_ids: number[] | "ISNULL" | "ISNOTNULL";
   product_category_small_ids: number[] | "ISNULL" | "ISNOTNULL";
   // 🌠製品分類 ---------------- ここまで
-  fiscal_end_month: string | null;
-  budget_request_month1: string | null;
-  budget_request_month2: string | null;
+  // サーチ配列 決算月 ----------------
+  // fiscal_end_month: string | null;
+  fiscal_end_month: string[] | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 予算申請月 ----------------
+  // budget_request_month1: string | null;
+  // budget_request_month2: string | null;
+  budget_request_month1: string[] | "ISNULL" | "ISNOTNULL";
+  budget_request_month2: string[] | "ISNULL" | "ISNOTNULL";
   clients: string | null;
   supplier: string | null;
   facility: string | null;
@@ -1515,7 +1584,7 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   overseas_bases: string | null;
   group_company: string | null;
   corporate_number: string | null;
-
+  // 🔹担当者テーブル
   "contacts.name": string | null;
   direct_line: string | null;
   direct_fax: string | null;
@@ -1528,15 +1597,21 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   // position_class: string | null;
   // occupation: string | null;
   // position_class: number | null;
-  position_class: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  // サーチ配列 職位 ----------------
+  // position_class: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  position_class: number[] | "ISNULL" | "ISNOTNULL";
   // occupation: number | null;
-  occupation: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  // サーチ配列 担当職種 ----------------
+  // occupation: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  occupation: number[] | "ISNULL" | "ISNOTNULL";
   // approval_amount: string | null;
   // approval_amount: number | null;
-  approval_amount: number | "ISNULL" | "ISNOTNULL" | null;
+  // 範囲検索 決裁金額 ----------------
+  // approval_amount: number | "ISNULL" | "ISNOTNULL" | null;
+  approval_amount: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   "contacts.created_by_company_id": string | null;
   "contacts.created_by_user_id": string | null;
-
+  // 🔹面談テーブル
   // created_at: string;
   // updated_at: string | null;
   "meetings.created_by_company_id": string | null;
@@ -1546,33 +1621,55 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   "meetings.created_by_unit_of_user": string | null;
   "meetings.created_by_office_of_user": string | null; //🌠追加
   meeting_type: string | null;
-  web_tool: string | null;
-  planned_date: string | null | "ISNULL" | "ISNOTNULL";
-  planned_start_time: string | null;
-  planned_purpose: string | null;
+  // サーチ配列 WEBツール ----------------
+  // web_tool: string | null;
+  web_tool: string[] | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 面談日(予定) DATE型 ----------------
+  // planned_date: string | null | "ISNULL" | "ISNOTNULL";
+  planned_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
+  // 範囲検索 面談開始(予定) TIME型 ----------------
+  // planned_start_time: string | null;
+  planned_start_time: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 面談目的 ----------------
+  // planned_purpose: string | null;
+  planned_purpose: string[] | "ISNULL" | "ISNOTNULL";
   // planned_duration: number | null;
   planned_duration: number | "ISNULL" | "ISNOTNULL" | null;
   planned_appoint_check_flag: boolean | null;
   planned_product1: string | null;
   planned_product2: string | null;
   planned_comment: string | null;
-  result_date: string | null | "ISNULL" | "ISNOTNULL";
-  result_start_time: string | null;
-  result_end_time: string | null;
+  // 範囲検索 面談日(結果) DATE型 ----------------
+  // result_date: string | null | "ISNULL" | "ISNOTNULL";
+  result_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
+  // 範囲検索 面談開始(結果) TIME型 ----------------
+  // result_start_time: string | null;
+  result_start_time: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 面談終了(結果) TIME型 ----------------
+  // result_end_time: string | null;
+  result_end_time: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL";
   // result_duration: number | null;
-  result_duration: number | "ISNULL" | "ISNOTNULL" | null;
+  // 範囲検索 面談時間(結果) 数値型 ----------------
+  // result_duration: number | "ISNULL" | "ISNOTNULL" | null;
+  result_duration: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   // result_number_of_meeting_participants: number | null;
-  result_number_of_meeting_participants: number | "ISNULL" | "ISNOTNULL" | null;
+  // 範囲検索 同席人数(結果) 数値型 ----------------
+  // result_number_of_meeting_participants: number | "ISNULL" | "ISNOTNULL" | null;
+  result_number_of_meeting_participants: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   result_presentation_product1: string | null;
   result_presentation_product2: string | null;
   result_presentation_product3: string | null;
   result_presentation_product4: string | null;
   result_presentation_product5: string | null;
-  result_category: string | null;
+  // サーチ配列 面談結果 ----------------
+  // result_category: string | null;
+  result_category: string[] | "ISNULL" | "ISNOTNULL";
   result_summary: string | null;
   result_negotiate_decision_maker: string | null;
   // result_top_position_class: number | null;
-  result_top_position_class: number | "ISNULL" | "ISNOTNULL" | null;
+  // サーチ配列 面談時最上位職位 ----------------
+  // result_top_position_class: number | "ISNULL" | "ISNOTNULL" | null;
+  result_top_position_class: number[] | "ISNULL" | "ISNOTNULL";
   pre_meeting_participation_request: string | null;
   meeting_participation_request: string | null;
   meeting_business_office: string | null;
@@ -1656,6 +1753,7 @@ export type ValidMeeting = {
   address: string | null;
   company_email: string | null;
   number_of_employees_class: string | null;
+  number_of_employees: number | null;
   // capital: string | null;
   capital: number | null;
   established_in: string | null;
@@ -1883,6 +1981,7 @@ export type Property_row_data = {
   address: string | null;
   company_email: string | null;
   number_of_employees_class: string | null;
+  number_of_employees: number | null;
   // capital: string | null;
   capital: number | null;
   established_in: string | null;

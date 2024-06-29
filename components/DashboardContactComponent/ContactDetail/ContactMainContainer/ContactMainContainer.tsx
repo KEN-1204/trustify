@@ -65,10 +65,17 @@ import { InputSendAndCloseBtn } from "@/components/DashboardCompanyComponent/Com
 import { toHalfWidthAndSpace } from "@/utils/Helpers/toHalfWidthAndSpace";
 import { validateAndFormatPhoneNumber } from "@/utils/Helpers/validateAndFormatPhoneNumber";
 import {
+  MonthType,
+  NumberOfEmployeesClassType,
+  OccupationType,
+  PositionClassType,
   getNumberOfEmployeesClass,
   getOccupationName,
   getPositionClassName,
   mappingIndustryType,
+  mappingMonth,
+  mappingNumberOfEmployeesClass,
+  mappingPositionsClassName,
   mappingProductL,
   optionsIndustryType,
   optionsMonth,
@@ -101,6 +108,9 @@ import {
 } from "@/utils/productCategoryS";
 import { CustomSelectMultiple } from "@/components/Parts/CustomSelectMultiple/CustomSelectMultiple";
 import { BsCheck2 } from "react-icons/bs";
+import { isEmptyInputRange } from "@/utils/Helpers/MainContainer/commonHelper";
+import { toHalfWidthAndRemoveSpace } from "@/utils/Helpers/toHalfWidthAndRemoveSpace";
+import { formatDisplayPrice } from "@/utils/Helpers/formatDisplayPrice";
 // 名前付きエクスポートの場合のダイナミックインポート
 // const ContactUnderRightActivityLog = dynamic(
 //   () =>
@@ -158,13 +168,44 @@ const ContactMainContainerMemo: FC = () => {
   const [inputFax, setInputFax] = useState("");
   const [inputZipcode, setInputZipcode] = useState("");
   const [inputAddress, setInputAddress] = useState("");
-  const [inputEmployeesClass, setInputEmployeesClass] = useState("");
-  const [inputCapital, setInputCapital] = useState("");
+  // const [inputEmployeesClass, setInputEmployeesClass] = useState("");
+  // ----------------------- サーチ配列 規模(ランク) -----------------------
+  const [inputEmployeesClassArray, setInputEmployeesClassArray] = useState<NumberOfEmployeesClassType[]>([]);
+  const [isNullNotNullEmployeesClass, setIsNullNotNullEmployeesClass] = useState<"is null" | "is not null" | null>(
+    null
+  );
+  const selectedEmployeesClassArraySet = useMemo(() => {
+    return new Set([...inputEmployeesClassArray]);
+  }, [inputEmployeesClassArray]);
+  const getEmployeesClassNameSearch = (option: NumberOfEmployeesClassType) => {
+    return mappingNumberOfEmployeesClass[option][language];
+  };
+  // ----------------------- サーチ配列 規模(ランク) ----------------------- ここまで
+  // ----------------------- 範囲検索 資本金 -----------------------
+  // const [inputCapital, setInputCapital] = useState("");
+  const [inputCapitalSearch, setInputCapitalSearch] = useState<
+    { min: string; max: string } | "is null" | "is not null"
+  >({
+    min: "",
+    max: "",
+  });
+  // ----------------------- 範囲検索 資本金 ----------------------- ここまで
   const [inputFound, setInputFound] = useState("");
   const [inputContent, setInputContent] = useState("");
   const [inputHP, setInputHP] = useState("");
   const [inputCompanyEmail, setInputCompanyEmail] = useState("");
   const [inputIndustryType, setInputIndustryType] = useState("");
+  // ----------------------- サーチ配列 業種(number) -----------------------
+  const [inputIndustryTypeArray, setInputIndustryTypeArray] = useState<number[]>([]);
+  const [isNullNotNullIndustryType, setIsNullNotNullIndustryType] = useState<"is null" | "is not null" | null>(null);
+  const selectedIndustryTypeArraySet = useMemo(() => {
+    return new Set([...inputIndustryTypeArray]);
+  }, [inputIndustryTypeArray]);
+  const getIndustryTypeNameSearch = (option: number) => {
+    return mappingIndustryType[option][language];
+  };
+  // optionsIndustryType
+  // ----------------------- サーチ配列 業種(number) -----------------------ここまで
   // ----------------------- 🌟製品分類関連🌟 -----------------------
   // const [inputProductL, setInputProductL] = useState("");
   // const [inputProductM, setInputProductM] = useState("");
@@ -331,9 +372,40 @@ const ContactMainContainerMemo: FC = () => {
 
   // ----------------------- 🌟製品分類関連🌟 ここまで -----------------------
 
-  const [inputFiscal, setInputFiscal] = useState("");
-  const [inputBudgetRequestMonth1, setInputBudgetRequestMonth1] = useState("");
-  const [inputBudgetRequestMonth2, setInputBudgetRequestMonth2] = useState("");
+  // const [inputFiscal, setInputFiscal] = useState("");
+  // ----------------------- サーチ配列 決算月 -----------------------
+  const [inputFiscalArray, setInputFiscalArray] = useState<MonthType[]>([]);
+  const [isNullNotNullFiscal, setIsNullNotNullFiscal] = useState<"is null" | "is not null" | null>(null);
+  const selectedFiscalArraySet = useMemo(() => {
+    return new Set([...inputFiscalArray]);
+  }, [inputFiscalArray]);
+  // optionsMonth
+  const getMonthNameSearch = (option: MonthType) => {
+    return mappingMonth[option][language];
+  };
+  // ----------------------- サーチ配列 決算月 ----------------------- ここまで
+  // const [inputBudgetRequestMonth1, setInputBudgetRequestMonth1] = useState("");
+  // const [inputBudgetRequestMonth2, setInputBudgetRequestMonth2] = useState("");
+  // ----------------------- サーチ配列 予算申請月1 -----------------------
+  const [inputBudgetRequestMonth1Array, setInputBudgetRequestMonth1Array] = useState<MonthType[]>([]);
+  const [isNullNotNullBudgetRequestMonth1, setIsNullNotNullBudgetRequestMonth1] = useState<
+    "is null" | "is not null" | null
+  >(null);
+  const selectedBudgetRequestMonth1ArraySet = useMemo(() => {
+    return new Set([...inputBudgetRequestMonth1Array]);
+  }, [inputBudgetRequestMonth1Array]);
+  // getMonthName
+  // ----------------------- サーチ配列 予算申請月1 ----------------------- ここまで
+  // ----------------------- サーチ配列 予算申請月2 -----------------------
+  const [inputBudgetRequestMonth2Array, setInputBudgetRequestMonth2Array] = useState<MonthType[]>([]);
+  const [isNullNotNullBudgetRequestMonth2, setIsNullNotNullBudgetRequestMonth2] = useState<
+    "is null" | "is not null" | null
+  >(null);
+  const selectedBudgetRequestMonth2ArraySet = useMemo(() => {
+    return new Set([...inputBudgetRequestMonth2Array]);
+  }, [inputBudgetRequestMonth2Array]);
+  // getMonthName
+  // ----------------------- サーチ配列 予算申請月2 ----------------------- ここまで
   const [inputClient, setInputClient] = useState("");
   const [inputSupplier, setInputSupplier] = useState("");
   const [inputFacility, setInputFacility] = useState("");
@@ -341,6 +413,15 @@ const ContactMainContainerMemo: FC = () => {
   const [inputOverseas, setInputOverseas] = useState("");
   const [inputGroup, setInputGroup] = useState("");
   const [inputCorporateNum, setInputCorporateNum] = useState("");
+  // ----------------------- 範囲検索 従業員数 -----------------------
+  // 従業員数サーチ用
+  const [inputNumberOfEmployeesSearch, setInputNumberOfEmployeesSearch] = useState<
+    { min: string; max: string } | "is null" | "is not null"
+  >({
+    min: "",
+    max: "",
+  });
+  // ----------------------- 範囲検索 従業員数 ----------------------- ここまで
   // contactsテーブル
   const [inputContactName, setInputContactName] = useState(""); // 担当者名
   const [inputDirectLine, setInputDirectLine] = useState(""); // 直通TEL
@@ -351,8 +432,36 @@ const ContactMainContainerMemo: FC = () => {
   const [inputContactEmail, setInputContactEmail] = useState(""); // Email(担当者)
   const [inputPositionName, setInputPositionName] = useState(""); // 役職名
   const [inputPositionClass, setInputPositionClass] = useState(""); // 職位
+  // ----------------------- サーチ配列 職位 -----------------------
+  const [inputPositionClassArray, setInputPositionClassArray] = useState<PositionClassType[]>([]); // 職位
+  const [isNullNotNullPositionClass, setIsNullNotNullPositionClass] = useState<"is null" | "is not null" | null>(null);
+  const selectedPositionClassArraySet = useMemo(() => {
+    return new Set([...inputPositionClassArray]);
+  }, [inputPositionClassArray]);
+  const getPositionClassNameSearch = (option: PositionClassType) => {
+    return mappingPositionsClassName[option][language];
+  };
+  // ----------------------- サーチ配列 職位 ----------------------- ここまで
   const [inputOccupation, setInputOccupation] = useState(""); // 担当職種
+  // ----------------------- サーチ配列 担当職種 -----------------------
+  const [inputOccupationArray, setInputOccupationArray] = useState<OccupationType[]>([]); // 担当職種
+  const [isNullNotNullOccupation, setIsNullNotNullOccupation] = useState<"is null" | "is not null" | null>(null);
+  const selectedOccupationArraySet = useMemo(() => {
+    return new Set([...inputOccupationArray]);
+  }, [inputOccupationArray]);
+  const getOccupationNameSearch = (option: OccupationType) => {
+    return mappingOccupation[option][language];
+  };
+  // ----------------------- サーチ配列 担当職種 ----------------------- ここまで
+  // ----------------------- 範囲検索 決裁金額 ----------------------- ここまで
   const [inputApprovalAmount, setInputApprovalAmount] = useState(""); // 決裁金額 stringで入力してnumberに変換 ユーザーの入力が楽になるため(フォーマットもstringならしやすい)
+  const [inputApprovalAmountSearch, setInputApprovalAmountSearch] = useState<
+    { min: string; max: string } | "is null" | "is not null"
+  >({
+    min: "",
+    max: "",
+  });
+  // ----------------------- 範囲検索 決裁金額 ----------------------- ここまで
   const [inputCreatedByCompanyId, setInputCreatedByCompanyId] = useState(""); // どの会社が作成したか
   const [inputCreatedByUserId, setInputCreatedByUserId] = useState(""); // どのユーザーが作成したか
   // フラグ関連 フィールドエディット用 初期はfalseにしておき、useEffectでselectedRowDataのフラグを反映する
@@ -410,8 +519,46 @@ const ContactMainContainerMemo: FC = () => {
         return value;
       };
 
+      // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+      const adjustFieldRangeNumeric = (
+        value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL",
+        type: "" | "price" | "integer" = ""
+      ): { min: string; max: string } | "is null" | "is not null" => {
+        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+        const { min, max } = value;
+
+        if (min !== null && max !== null) {
+          if (type === "price") return { min: formatDisplayPrice(min), max: formatDisplayPrice(max) };
+          if (type === "integer") return { min: parseInt(String(min), 10).toFixed(0), max: max.toFixed(0) };
+          return { min: String(min), max: String(max) };
+        } else if (min !== null && max === null) {
+          if (type === "price") return { min: formatDisplayPrice(min), max: "" };
+          if (type === "integer") return { min: min.toFixed(0), max: "" };
+          return { min: String(min), max: "" };
+        } else if (min === null && max !== null) {
+          if (type === "price") return { min: "", max: formatDisplayPrice(max) };
+          if (type === "integer") return { min: "", max: max.toFixed(0) };
+          return { min: "", max: String(max) };
+        }
+        return { min: "", max: "" };
+      };
+
       const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
         value === "ISNULL" ? "is null" : "is not null";
+
+      // 🔸string配列のパラメータをstateにセットする関数
+      const setArrayParam = (
+        param: string[] | number[] | "ISNULL" | "ISNOTNULL",
+        dispatch: Dispatch<SetStateAction<any>>,
+        dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>
+      ) => {
+        if (param === "ISNULL" || param === "ISNOTNULL") {
+          dispatchNNN(beforeAdjustIsNNN(param));
+        } else {
+          dispatch(!!param.length ? param : []);
+        }
+      };
 
       console.log("🔥メインコンテナーnewSearchContact_CompanyParams編集モード", newSearchContact_CompanyParams);
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_name));
@@ -423,26 +570,43 @@ const ContactMainContainerMemo: FC = () => {
       setInputTel(beforeAdjustFieldValue(newSearchContact_CompanyParams?.main_phone_number));
       setInputFax(beforeAdjustFieldValue(newSearchContact_CompanyParams?.main_fax));
       setInputZipcode(beforeAdjustFieldValue(newSearchContact_CompanyParams?.zipcode));
-      setInputEmployeesClass(beforeAdjustFieldValue(newSearchContact_CompanyParams?.number_of_employees_class));
-      setInputAddress(beforeAdjustFieldValue(newSearchContact_CompanyParams?.address));
-      setInputCapital(
-        beforeAdjustFieldValue(
-          newSearchContact_CompanyParams?.capital ? newSearchContact_CompanyParams.capital.toString() : ""
-        )
+      // サーチ配列 ------------------------
+      // setInputEmployeesClass(beforeAdjustFieldValue(newSearchContact_CompanyParams?.number_of_employees_class));
+      setArrayParam(
+        newSearchContact_CompanyParams?.number_of_employees_class,
+        setInputEmployeesClassArray,
+        setIsNullNotNullEmployeesClass
       );
+      // サーチ配列 ------------------------ ここまで
+      setInputAddress(beforeAdjustFieldValue(newSearchContact_CompanyParams?.address));
+      // 範囲検索 ------------------------
+      // setInputCapital(
+      //   beforeAdjustFieldValue(
+      //     newSearchContact_CompanyParams?.capital ? newSearchContact_CompanyParams.capital.toString() : ""
+      //   )
+      // );
+      setInputCapitalSearch(adjustFieldRangeNumeric(newSearchContact_CompanyParams?.capital));
+      setInputNumberOfEmployeesSearch(adjustFieldRangeNumeric(newSearchContact_CompanyParams?.number_of_employees));
+      // 範囲検索 ------------------------ ここまで
       setInputFound(beforeAdjustFieldValue(newSearchContact_CompanyParams?.established_in));
       setInputContent(beforeAdjustFieldValue(newSearchContact_CompanyParams?.business_content));
       setInputHP(beforeAdjustFieldValue(newSearchContact_CompanyParams.website_url));
       //   setInputCompanyEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_email));
       setInputCompanyEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams["client_companies.email"]));
-      setInputIndustryType(
-        beforeAdjustFieldValue(
-          newSearchContact_CompanyParams.industry_type_id
-            ? newSearchContact_CompanyParams.industry_type_id.toString()
-            : ""
-        )
+      // サーチ配列 ------------------------
+      // setInputIndustryType(
+      //   beforeAdjustFieldValue(
+      //     newSearchContact_CompanyParams.industry_type_id
+      //       ? newSearchContact_CompanyParams.industry_type_id.toString()
+      //       : ""
+      //   )
+      // );
+      setArrayParam(
+        newSearchContact_CompanyParams?.industry_type_id,
+        setInputIndustryTypeArray,
+        setIsNullNotNullIndustryType
       );
-
+      // サーチ配列 ------------------------ ここまで
       // ------------------------ 製品分類関連 ------------------------
       // 編集モードはidからnameへ変換
       // setInputProductL(beforeAdjustFieldValue(newSearchContact_CompanyParams.product_category_large));
@@ -508,9 +672,22 @@ const ContactMainContainerMemo: FC = () => {
 
       // ------------------------ 製品分類関連 ここまで ------------------------
 
-      setInputFiscal(beforeAdjustFieldValue(newSearchContact_CompanyParams.fiscal_end_month));
-      setInputBudgetRequestMonth1(beforeAdjustFieldValue(newSearchContact_CompanyParams.budget_request_month1));
-      setInputBudgetRequestMonth2(beforeAdjustFieldValue(newSearchContact_CompanyParams.budget_request_month2));
+      // サーチ配列 ------------------------
+      // setInputFiscal(beforeAdjustFieldValue(newSearchContact_CompanyParams.fiscal_end_month));
+      setArrayParam(newSearchContact_CompanyParams?.fiscal_end_month, setInputFiscalArray, setIsNullNotNullFiscal);
+      // setInputBudgetRequestMonth1(beforeAdjustFieldValue(newSearchContact_CompanyParams.budget_request_month1));
+      setArrayParam(
+        newSearchContact_CompanyParams?.budget_request_month1,
+        setInputBudgetRequestMonth1Array,
+        setIsNullNotNullBudgetRequestMonth1
+      );
+      // setInputBudgetRequestMonth2(beforeAdjustFieldValue(newSearchContact_CompanyParams.budget_request_month2));
+      setArrayParam(
+        newSearchContact_CompanyParams?.budget_request_month2,
+        setInputBudgetRequestMonth2Array,
+        setIsNullNotNullBudgetRequestMonth2
+      );
+      // サーチ配列 ------------------------ ここまで
       setInputClient(beforeAdjustFieldValue(newSearchContact_CompanyParams.clients));
       setInputSupplier(beforeAdjustFieldValue(newSearchContact_CompanyParams.supplier));
       setInputFacility(beforeAdjustFieldValue(newSearchContact_CompanyParams.facility));
@@ -530,23 +707,36 @@ const ContactMainContainerMemo: FC = () => {
       //   setInputContactEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams.contact_email));
       setInputContactEmail(beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.email"]));
       setInputPositionName(beforeAdjustFieldValue(newSearchContact_CompanyParams.position_name));
-      setInputPositionClass(
-        beforeAdjustFieldValue(
-          newSearchContact_CompanyParams.position_class ? newSearchContact_CompanyParams.position_class.toString() : ""
-        )
+      // サーチ配列 ------------------------
+      // setInputPositionClass(
+      //   beforeAdjustFieldValue(
+      //     newSearchContact_CompanyParams.position_class ? newSearchContact_CompanyParams.position_class.toString() : ""
+      //   )
+      // );
+      setArrayParam(
+        newSearchContact_CompanyParams.position_class,
+        setInputPositionClass,
+        setIsNullNotNullPositionClass
       );
-      setInputOccupation(
-        beforeAdjustFieldValue(
-          newSearchContact_CompanyParams.occupation ? newSearchContact_CompanyParams.occupation.toString() : ""
-        )
-      );
-      setInputApprovalAmount(
-        beforeAdjustFieldValue(
-          newSearchContact_CompanyParams.approval_amount
-            ? newSearchContact_CompanyParams.approval_amount.toString()
-            : ""
-        )
-      );
+      // サーチ配列 ------------------------ ここまで
+      // サーチ配列 ------------------------
+      // setInputOccupation(
+      //   beforeAdjustFieldValue(
+      //     newSearchContact_CompanyParams.occupation ? newSearchContact_CompanyParams.occupation.toString() : ""
+      //   )
+      // );
+      setArrayParam(newSearchContact_CompanyParams.occupation, setInputOccupation, setIsNullNotNullOccupation);
+      // サーチ配列 ------------------------ ここまで
+      // 範囲検索 ------------------------
+      // setInputApprovalAmount(
+      //   beforeAdjustFieldValue(
+      //     newSearchContact_CompanyParams.approval_amount
+      //       ? newSearchContact_CompanyParams.approval_amount.toString()
+      //       : ""
+      //   )
+      // );
+      setInputApprovalAmountSearch(adjustFieldRangeNumeric(newSearchContact_CompanyParams?.approval_amount));
+      // 範囲検索 ------------------------ ここまで
       // setInputCreatedByCompanyId(beforeAdjustFieldValue(newSearchContact_CompanyParams.created_by_company_id));
       setInputCreatedByCompanyId(
         beforeAdjustFieldValue(newSearchContact_CompanyParams["contacts.created_by_company_id"])
@@ -561,14 +751,26 @@ const ContactMainContainerMemo: FC = () => {
       if (!!inputTel) setInputTel("");
       if (!!inputFax) setInputFax("");
       if (!!inputZipcode) setInputZipcode("");
-      if (!!inputEmployeesClass) setInputEmployeesClass("");
+      // サーチ配列 規模ランク-----------------------
+      // if (!!inputEmployeesClass) setInputEmployeesClass("");
+      if (!!inputEmployeesClassArray.length) setInputEmployeesClassArray([]);
+      if (isNullNotNullEmployeesClass !== null) setIsNullNotNullEmployeesClass(null);
+      // サーチ配列 規模ランク-----------------------ここまで
       if (!!inputAddress) setInputAddress("");
-      if (!!inputCapital) setInputCapital("");
+      // if (!!inputCapital) setInputCapital("");
+      // 範囲検索 -----------------------
+      setInputCapitalSearch({ min: "", max: "" });
+      setInputNumberOfEmployeesSearch({ min: "", max: "" });
+      // 範囲検索 ----------------------- ここまで
       if (!!inputFound) setInputFound("");
       if (!!inputContent) setInputContent("");
       if (!!inputHP) setInputHP("");
       if (!!inputCompanyEmail) setInputCompanyEmail("");
-      if (!!inputIndustryType) setInputIndustryType("");
+      // サーチ配列 業種 -----------------------
+      // if (!!inputIndustryType) setInputIndustryType("");
+      if (!!inputIndustryTypeArray.length) setInputIndustryTypeArray([]);
+      if (isNullNotNullIndustryType !== null) setIsNullNotNullIndustryType(null);
+      // サーチ配列 業種 -----------------------ここまで
       // 製品分類の処理 ------------------------
       // if (!!inputProductL) setInputProductL("");
       // if (!!inputProductM) setInputProductM("");
@@ -580,9 +782,19 @@ const ContactMainContainerMemo: FC = () => {
       if (isNullNotNullCategoryMedium !== null) setIsNullNotNullCategoryMedium(null);
       if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
       // 製品分類の処理 ------------------------ ここまで
-      if (!!inputFiscal) setInputFiscal("");
-      if (!!inputBudgetRequestMonth1) setInputBudgetRequestMonth1("");
-      if (!!inputBudgetRequestMonth2) setInputBudgetRequestMonth2("");
+      // サーチ配列 決算月 -----------------------
+      // if (!!inputFiscal) setInputFiscal("");
+      if (!!inputFiscalArray.length) setInputFiscalArray([]);
+      if (isNullNotNullFiscal !== null) setIsNullNotNullFiscal(null);
+      // サーチ配列 決算月 -----------------------ここまで
+      // サーチ配列 予算申請月 -----------------------
+      // if (!!inputBudgetRequestMonth1) setInputBudgetRequestMonth1("");
+      // if (!!inputBudgetRequestMonth2) setInputBudgetRequestMonth2("");
+      if (!!inputBudgetRequestMonth1Array.length) setInputBudgetRequestMonth1Array([]);
+      if (isNullNotNullBudgetRequestMonth1 !== null) setIsNullNotNullBudgetRequestMonth1(null);
+      if (!!inputBudgetRequestMonth2Array.length) setInputBudgetRequestMonth2Array([]);
+      if (isNullNotNullBudgetRequestMonth2 !== null) setIsNullNotNullBudgetRequestMonth2(null);
+      // サーチ配列 予算申請月 -----------------------ここまで
       if (!!inputClient) setInputClient("");
       if (!!inputSupplier) setInputSupplier("");
       if (!!inputFacility) setInputFacility("");
@@ -600,9 +812,20 @@ const ContactMainContainerMemo: FC = () => {
       if (!!inputPersonalCellPhone) setInputPersonalCellPhone("");
       if (!!inputContactEmail) setInputContactEmail("");
       if (!!inputPositionName) setInputPositionName("");
-      if (!!inputPositionClass) setInputPositionClass("");
-      if (!!inputOccupation) setInputOccupation("");
-      if (!!inputApprovalAmount) setInputApprovalAmount("");
+      // サーチ配列 職位 -----------------------
+      // if (!!inputPositionClass) setInputPositionClass("");
+      if (!!inputPositionClassArray.length) setInputPositionClassArray([]);
+      if (isNullNotNullPositionClass !== null) setIsNullNotNullPositionClass(null);
+      // サーチ配列 職位 -----------------------ここまで
+      // サーチ配列 担当職種 -----------------------
+      // if (!!inputOccupation) setInputOccupation("");
+      if (!!inputOccupationArray.length) setInputOccupationArray([]);
+      if (isNullNotNullOccupation !== null) setIsNullNotNullOccupation(null);
+      // サーチ配列 担当職種 -----------------------ここまで
+      // 範囲検索 -----------------------
+      // if (!!inputApprovalAmount) setInputApprovalAmount("");
+      setInputApprovalAmountSearch({ min: "", max: "" });
+      // 範囲検索 ----------------------- ここまで
       if (!!inputCreatedByCompanyId) setInputCreatedByCompanyId("");
       if (!!inputCreatedByUserId) setInputCreatedByUserId("");
     }
@@ -645,6 +868,48 @@ const ContactMainContainerMemo: FC = () => {
       }
     };
 
+    // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+    const adjustFieldRangeNumeric = (
+      value: { min: string; max: string } | "is null" | "is not null",
+      formatType: "" | "integer" = ""
+    ): { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL" => {
+      if (value === "is null") return "ISNULL";
+      if (value === "is not null") return "ISNOTNULL";
+      const { min, max } = value;
+
+      const halfMin = toHalfWidthAndRemoveSpace(min).trim();
+      const halfMax = toHalfWidthAndRemoveSpace(max).trim();
+
+      const minValid = isValidNumber(halfMin);
+      const maxValid = isValidNumber(halfMax);
+
+      const minNum = formatType === "integer" ? parseInt(halfMin, 10) : Number(halfMin!);
+      const maxNum = formatType === "integer" ? parseInt(halfMax, 10) : Number(halfMax!);
+
+      console.log("value", value, min, halfMin, minNum, minValid, max, halfMax, maxNum, maxValid);
+
+      if (minValid && maxValid) {
+        if (isNaN(minNum) || isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+        if (minNum! <= maxNum!) {
+          return { min: minNum, max: maxNum };
+        } else {
+          const errorMsg =
+            language === "ja"
+              ? "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+              : "The minimum value cannot be greater than the maximum value.";
+          throw new Error(errorMsg);
+        }
+      } else if (minValid && !maxValid) {
+        if (isNaN(minNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+        return { min: minNum, max: null };
+      } else if (!minValid && maxValid) {
+        if (isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+        return { min: null, max: maxNum };
+      }
+
+      return { min: null, max: null };
+    };
+
     // 🔸製品分類用 is null, is not nullをIS NULL, IS NOT NULLに変換
     const adjustIsNNN = (value: "is null" | "is not null"): "ISNULL" | "ISNOTNULL" =>
       value === "is null" ? "ISNULL" : "ISNOTNULL";
@@ -656,23 +921,40 @@ const ContactMainContainerMemo: FC = () => {
     let _main_phone_number = adjustFieldValue(inputTel);
     let _main_fax = adjustFieldValue(inputFax);
     let _zipcode = adjustFieldValue(inputZipcode);
-    let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
+    // サーチ配列 TEXT[] ------------
+    // let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
+    let _number_of_employees_class = inputEmployeesClassArray;
+    // サーチ配列 TEXT[] ------------ここまで
     let _address = adjustFieldValue(inputAddress);
+    // 範囲検索 -----------
     // let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
-    let _capital = adjustFieldValueInteger(inputCapital);
+    // let _capital = adjustFieldValueInteger(inputCapital);
+    let _capital = adjustFieldRangeNumeric(inputCapitalSearch);
+    let _number_of_employees = adjustFieldRangeNumeric(inputNumberOfEmployeesSearch);
+    // 範囲検索 -----------ここまで
     let _established_in = adjustFieldValue(inputFound);
     let _business_content = adjustFieldValue(inputContent);
     let _website_url = adjustFieldValue(inputHP);
     let _company_email = adjustFieldValue(inputCompanyEmail);
     // let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
-    let _industry_type_id = adjustFieldValueInteger(inputIndustryType);
+    // サーチ配列 number[] -----------
+    // let _industry_type_id = adjustFieldValueInteger(inputIndustryType);
+    let _industry_type_id = inputIndustryTypeArray;
+    // サーチ配列 number[] -----------ここまで
     // // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
     // let _product_category_large = adjustFieldValue(inputProductL);
     // let _product_category_medium = adjustFieldValue(inputProductM);
     // let _product_category_small = adjustFieldValue(inputProductS);
-    let _fiscal_end_month = adjustFieldValue(inputFiscal);
-    let _budget_request_month1 = adjustFieldValue(inputBudgetRequestMonth1);
-    let _budget_request_month2 = adjustFieldValue(inputBudgetRequestMonth2);
+    // サーチ配列 TEXT[] ------------
+    // let _fiscal_end_month = adjustFieldValue(inputFiscal);
+    let _fiscal_end_month = inputFiscalArray;
+    // サーチ配列 TEXT[] ------------ここまで
+    // サーチ配列 TEXT[] ------------
+    // let _budget_request_month1 = adjustFieldValue(inputBudgetRequestMonth1);
+    // let _budget_request_month2 = adjustFieldValue(inputBudgetRequestMonth2);
+    let _budget_request_month1 = inputBudgetRequestMonth1Array;
+    let _budget_request_month2 = inputBudgetRequestMonth2Array;
+    // サーチ配列 TEXT[] ------------ここまで
     let _clients = adjustFieldValue(inputClient);
     let _supplier = adjustFieldValue(inputSupplier);
     let _facility = adjustFieldValue(inputFacility);
@@ -689,12 +971,19 @@ const ContactMainContainerMemo: FC = () => {
     let _personal_cell_phone = adjustFieldValue(inputPersonalCellPhone);
     let _contact_email = adjustFieldValue(inputContactEmail);
     let _position_name = adjustFieldValue(inputPositionName);
+    // サーチ配列 number[] ------------
     // let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
-    let _position_class = adjustFieldValueInteger(inputPositionClass);
+    // let _position_class = adjustFieldValueInteger(inputPositionClass);
+    let _position_class = inputPositionClassArray;
     // let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
-    let _occupation = adjustFieldValueInteger(inputOccupation);
+    // let _occupation = adjustFieldValueInteger(inputOccupation);
+    let _occupation = inputOccupationArray;
+    // サーチ配列 number[] ------------ここまで
     // let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
-    let _approval_amount = adjustFieldValueInteger(inputApprovalAmount);
+    // let _approval_amount = adjustFieldValueInteger(inputApprovalAmount);
+    // 範囲検索 -----------
+    let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch);
+    // 範囲検索 -----------ここまで
     let _created_by_company_id = userProfileState.company_id;
     let _created_by_user_id = adjustFieldValue(inputCreatedByUserId);
 
@@ -767,14 +1056,24 @@ const ContactMainContainerMemo: FC = () => {
       main_fax: _main_fax,
       zipcode: _zipcode,
       address: _address,
-      number_of_employees_class: _number_of_employees_class,
+      // サーチ配列 TEXT[] ------------
+      // number_of_employees_class: _number_of_employees_class,
+      number_of_employees_class:
+        isNullNotNullEmployeesClass === null ? _number_of_employees_class : adjustIsNNN(isNullNotNullEmployeesClass),
+      // サーチ配列 TEXT[] ------------ここまで
+      // 範囲検索 ------------
       capital: _capital,
+      number_of_employees: _number_of_employees,
+      // 範囲検索 ------------ここまで
       established_in: _established_in,
       business_content: _business_content,
       website_url: _website_url,
       //   company_email: _company_email,
       "client_companies.email": _company_email,
-      industry_type_id: _industry_type_id,
+      // サーチ配列 number[] ------------
+      // industry_type_id: _industry_type_id,
+      industry_type_id: isNullNotNullIndustryType === null ? _industry_type_id : adjustIsNNN(isNullNotNullIndustryType),
+      // サーチ配列 number[] ------------ここまで
       // 製品分類 ----------------
       // product_category_large: _product_category_large,
       // product_category_medium: _product_category_medium,
@@ -789,9 +1088,22 @@ const ContactMainContainerMemo: FC = () => {
       product_category_small_ids:
         isNullNotNullCategorySmall === null ? productCategorySmallIdsArray : adjustIsNNN(isNullNotNullCategorySmall),
       // 製品分類 ---------------- ここまで
-      fiscal_end_month: _fiscal_end_month,
-      budget_request_month1: _budget_request_month1,
-      budget_request_month2: _budget_request_month2,
+      // サーチ配列 TEXT[] ------------
+      // fiscal_end_month: _fiscal_end_month,
+      fiscal_end_month: isNullNotNullFiscal === null ? _fiscal_end_month : adjustIsNNN(isNullNotNullFiscal),
+      // サーチ配列 TEXT[] ------------ここまで
+      // サーチ配列 TEXT[] ------------
+      // budget_request_month1: _budget_request_month1,
+      // budget_request_month2: _budget_request_month2,
+      budget_request_month1:
+        isNullNotNullBudgetRequestMonth1 === null
+          ? _budget_request_month1
+          : adjustIsNNN(isNullNotNullBudgetRequestMonth1),
+      budget_request_month2:
+        isNullNotNullBudgetRequestMonth2 === null
+          ? _budget_request_month2
+          : adjustIsNNN(isNullNotNullBudgetRequestMonth2),
+      // サーチ配列 TEXT[] ------------ここまで
       clients: _clients,
       supplier: _supplier,
       facility: _facility,
@@ -810,9 +1122,15 @@ const ContactMainContainerMemo: FC = () => {
       //   contact_email: _contact_email,
       "contacts.email": _contact_email,
       position_name: _position_name,
-      position_class: _position_class,
-      occupation: _occupation,
+      // サーチ配列 TEXT[] 職位・担当職種 ------------
+      // position_class: _position_class,
+      position_class: isNullNotNullPositionClass === null ? _position_class : adjustIsNNN(isNullNotNullPositionClass),
+      // occupation: _occupation,
+      occupation: isNullNotNullOccupation === null ? _occupation : adjustIsNNN(isNullNotNullOccupation),
+      // サーチ配列 TEXT[] 職位・担当職種 ------------ここまで
+      // 範囲検索 ------------
       approval_amount: _approval_amount,
+      // 範囲検索 ------------ここまで
       // created_by_company_id: _created_by_company_id,
       "contacts.created_by_company_id": _created_by_company_id,
       created_by_user_id: _created_by_user_id,
@@ -826,14 +1144,26 @@ const ContactMainContainerMemo: FC = () => {
     setInputTel("");
     setInputFax("");
     setInputZipcode("");
-    setInputEmployeesClass("");
+    // サーチ配列 ----------------
+    // setInputEmployeesClass("");
+    setInputEmployeesClassArray([]);
+    if (isNullNotNullEmployeesClass !== null) setIsNullNotNullEmployeesClass(null);
+    // サーチ配列 ----------------ここまで
     setInputAddress("");
-    setInputCapital("");
+    // 範囲検索 ----------------
+    // setInputCapital("");
+    setInputCapitalSearch({ min: "", max: "" });
+    setInputNumberOfEmployeesSearch({ min: "", max: "" });
+    // 範囲検索 ----------------ここまで
     setInputFound("");
     setInputContent("");
     setInputHP("");
     setInputCompanyEmail("");
-    setInputIndustryType("");
+    // サーチ配列 ----------------
+    // setInputIndustryType("");
+    setInputIndustryTypeArray([]);
+    if (isNullNotNullIndustryType !== null) setIsNullNotNullIndustryType(null);
+    // サーチ配列 ----------------ここまで
     // 製品分類 ----------------
     // setInputProductL("");
     // setInputProductM("");
@@ -845,9 +1175,17 @@ const ContactMainContainerMemo: FC = () => {
     if (isNullNotNullCategoryMedium !== null) setIsNullNotNullCategoryMedium(null);
     if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
     // 製品分類 ----------------ここまで
-    setInputFiscal("");
-    setInputBudgetRequestMonth1("");
-    setInputBudgetRequestMonth2("");
+    // サーチ配列 決算月・予算申請月 -----------------------
+    // setInputFiscal("");
+    setInputFiscalArray([]);
+    if (isNullNotNullFiscal !== null) setIsNullNotNullFiscal(null);
+    // setInputBudgetRequestMonth1("");
+    setInputBudgetRequestMonth1Array([]);
+    if (isNullNotNullBudgetRequestMonth1 !== null) setIsNullNotNullBudgetRequestMonth1(null);
+    // setInputBudgetRequestMonth2("");
+    setInputBudgetRequestMonth2Array([]);
+    if (isNullNotNullBudgetRequestMonth2 !== null) setIsNullNotNullBudgetRequestMonth2(null);
+    // サーチ配列 決算月・予算申請月 ----------------------- ここまで
     setInputClient("");
     setInputSupplier("");
     setInputFacility("");
@@ -864,9 +1202,18 @@ const ContactMainContainerMemo: FC = () => {
     setInputPersonalCellPhone("");
     setInputContactEmail("");
     setInputPositionName("");
-    setInputPositionClass("");
-    setInputOccupation("");
-    setInputApprovalAmount("");
+    // サーチ配列 職位・担当職種 -----------------------
+    // setInputPositionClass("");
+    setInputPositionClassArray([]);
+    if (isNullNotNullPositionClass !== null) setIsNullNotNullPositionClass(null);
+    // setInputOccupation("");
+    setInputOccupationArray([]);
+    if (isNullNotNullOccupation !== null) setIsNullNotNullOccupation(null);
+    // サーチ配列 職位・担当職種 ----------------------- ここまで
+    // 範囲検索 ----------------
+    // setInputApprovalAmount("");
+    setInputApprovalAmountSearch({ min: "", max: "" });
+    // 範囲検索 ----------------ここまで
     setInputCreatedByCompanyId("");
     setInputCreatedByUserId("");
 
@@ -907,15 +1254,35 @@ const ContactMainContainerMemo: FC = () => {
   };
 
   // ================== 🌟ツールチップ🌟 ==================
+  type TooltipParams = {
+    e: React.MouseEvent<HTMLElement, MouseEvent>;
+    display?: "top" | "right" | "bottom" | "left" | "";
+    marginTop?: number;
+    itemsPosition?: string;
+    whiteSpace?: "normal" | "pre" | "nowrap" | "pre-wrap" | "pre-line" | "break-spaces" | undefined;
+    content?: string;
+    content2?: string;
+    content3?: string;
+  };
   // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "center") => {
-  const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "top", content = "") => {
+  // const handleOpenTooltip = (e: React.MouseEvent<HTMLElement, MouseEvent>, display: string = "top", content = "") => {
+  const handleOpenTooltip = ({
+    e,
+    display = "top",
+    marginTop = 0,
+    itemsPosition = "center",
+    whiteSpace = undefined,
+    content = "",
+    content2,
+    content3,
+  }: TooltipParams) => {
     // ホバーしたアイテムにツールチップを表示
     const { x, y, width, height } = e.currentTarget.getBoundingClientRect();
     // console.log("ツールチップx, y width , height", x, y, width, height);
-    const content2 = ((e.target as HTMLDivElement).dataset.text2 as string)
+    const content2Text = ((e.target as HTMLDivElement).dataset.text2 as string)
       ? ((e.target as HTMLDivElement).dataset.text2 as string)
       : "";
-    const content3 = ((e.target as HTMLDivElement).dataset.text3 as string)
+    const content3Text = ((e.target as HTMLDivElement).dataset.text3 as string)
       ? ((e.target as HTMLDivElement).dataset.text3 as string)
       : "";
     setHoveredItemPosWrap({
@@ -925,9 +1292,12 @@ const ContactMainContainerMemo: FC = () => {
       itemHeight: height,
       // content: (e.target as HTMLDivElement).dataset.text as string,
       content: content !== "" ? content : ((e.target as HTMLDivElement).dataset.text as string),
-      content2: content2,
-      content3: content3,
+      content2: !!content2 ? content2 : content2Text,
+      content3: !!content3 ? content3 : content3Text,
       display: display,
+      marginTop: marginTop,
+      itemsPosition: itemsPosition,
+      whiteSpace: whiteSpace,
     });
   };
   // ツールチップを非表示
@@ -1342,16 +1712,37 @@ const ContactMainContainerMemo: FC = () => {
   // ツールチップ
   const additionalInputTooltipText = (index: number) =>
     index === 0 ? `空欄以外のデータのみ抽出` : `空欄のデータのみ抽出`;
+
   // 🔸「入力値をリセット」をクリック
-  const handleClickResetInput = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+  const handleClickResetInput = (
+    dispatch: Dispatch<SetStateAction<any>>,
+    inputType: "string" | "range_string" | "array" = "string"
+  ) => {
     handleCloseTooltip();
-    if (inputType === "string") {
+
+    if (inputType === "array") {
+      dispatch([]);
+    } else if (inputType === "range_string") {
+      dispatch({ min: "", max: "" });
+    } else if (inputType === "string") {
       dispatch("");
     }
   };
 
   // 🔸製品分類用「入力値をリセット」
-  const handleResetArray = (fieldName: "category_large" | "category_medium" | "category_small") => {
+  const handleResetArray = (
+    fieldName:
+      | "category_large"
+      | "category_medium"
+      | "category_small"
+      | "number_of_employees_class"
+      | "industry_type_id"
+      | "fiscal_end_month"
+      | "budget_request_month1"
+      | "budget_request_month2"
+      | "position_class"
+      | "occupation"
+  ) => {
     if (fieldName === "category_large") {
       if (isNullNotNullCategoryLarge !== null) setIsNullNotNullCategoryLarge(null);
       if (0 < inputProductArrayLarge.length) setInputProductArrayLarge([]);
@@ -1364,6 +1755,34 @@ const ContactMainContainerMemo: FC = () => {
       if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
       if (0 < inputProductArraySmall.length) setInputProductArraySmall([]);
     }
+    if (fieldName === "number_of_employees_class") {
+      if (isNullNotNullEmployeesClass !== null) setIsNullNotNullEmployeesClass(null);
+      if (0 < inputEmployeesClassArray.length) setInputEmployeesClassArray([]);
+    }
+    if (fieldName === "industry_type_id") {
+      if (isNullNotNullIndustryType !== null) setIsNullNotNullIndustryType(null);
+      if (0 < inputIndustryTypeArray.length) setInputIndustryTypeArray([]);
+    }
+    if (fieldName === "fiscal_end_month") {
+      if (isNullNotNullFiscal !== null) setIsNullNotNullFiscal(null);
+      if (0 < inputFiscalArray.length) setInputFiscalArray([]);
+    }
+    if (fieldName === "budget_request_month1") {
+      if (isNullNotNullBudgetRequestMonth1 !== null) setIsNullNotNullBudgetRequestMonth1(null);
+      if (0 < inputBudgetRequestMonth1Array.length) setInputBudgetRequestMonth1Array([]);
+    }
+    if (fieldName === "budget_request_month2") {
+      if (isNullNotNullBudgetRequestMonth2 !== null) setIsNullNotNullBudgetRequestMonth2(null);
+      if (0 < inputBudgetRequestMonth2Array.length) setInputBudgetRequestMonth2Array([]);
+    }
+    if (fieldName === "position_class") {
+      if (isNullNotNullPositionClass !== null) setIsNullNotNullPositionClass(null);
+      if (0 < inputPositionClassArray.length) setInputPositionClassArray([]);
+    }
+    if (fieldName === "occupation") {
+      if (isNullNotNullOccupation !== null) setIsNullNotNullOccupation(null);
+      if (0 < inputOccupationArray.length) setInputOccupationArray([]);
+    }
   };
 
   // 🔸製品分類全てリセット
@@ -1375,23 +1794,23 @@ const ContactMainContainerMemo: FC = () => {
 
   // 🔸「入力有り」をクリック
   const handleClickIsNotNull = (
-    dispatch: Dispatch<SetStateAction<any>>,
-    inputType: "" | "category_large" | "category_medium" | "category_small" = ""
+    dispatch: Dispatch<SetStateAction<any>>
+    // inputType: "" | "category_large" | "category_medium" | "category_small" = ""
   ) => {
-    if (inputType === "category_large") resetProductCategories("lms");
-    if (inputType === "category_medium") resetProductCategories("ms");
-    if (inputType === "category_small") resetProductCategories("s");
+    // if (inputType === "category_large") resetProductCategories("lms");
+    // if (inputType === "category_medium") resetProductCategories("ms");
+    // if (inputType === "category_small") resetProductCategories("s");
     return dispatch("is not null");
   };
 
   // 🔸「入力無し」をクリック
   const handleClickIsNull = (
-    dispatch: Dispatch<SetStateAction<any>>,
-    inputType: "" | "category_large" | "category_medium" | "category_small" = ""
+    dispatch: Dispatch<SetStateAction<any>>
+    // inputType: "" | "category_large" | "category_medium" | "category_small" = ""
   ) => {
-    if (inputType === "category_large") resetProductCategories("lms");
-    if (inputType === "category_medium") resetProductCategories("ms");
-    if (inputType === "category_small") resetProductCategories("s");
+    // if (inputType === "category_large") resetProductCategories("lms");
+    // if (inputType === "category_medium") resetProductCategories("ms");
+    // if (inputType === "category_small") resetProductCategories("s");
     return dispatch("is null");
   };
 
@@ -1399,10 +1818,34 @@ const ContactMainContainerMemo: FC = () => {
   const handleClickAdditionalAreaBtn = (
     index: number,
     dispatch: Dispatch<SetStateAction<any>>,
-    type: "" | "category_large" | "category_medium" | "category_small" = ""
+    type:
+      | ""
+      | "category_large"
+      | "category_medium"
+      | "category_small"
+      | "number_of_employees_class"
+      | "industry_type_id"
+      | "fiscal_end_month"
+      | "budget_request_month1"
+      | "budget_request_month2"
+      | "position_class"
+      | "occupation" = ""
   ) => {
-    if (index === 0) handleClickIsNotNull(dispatch, type);
-    if (index === 1) handleClickIsNull(dispatch, type);
+    if (type === "category_large") resetProductCategories("lms");
+    if (type === "category_medium") resetProductCategories("ms");
+    if (type === "category_small") resetProductCategories("s");
+    if (type === "number_of_employees_class") setInputEmployeesClassArray([]);
+    if (type === "industry_type_id") setInputIndustryTypeArray([]);
+    if (type === "fiscal_end_month") setInputFiscalArray([]);
+    if (type === "budget_request_month1") setInputBudgetRequestMonth1Array([]);
+    if (type === "budget_request_month2") setInputBudgetRequestMonth2Array([]);
+    if (type === "position_class") setInputPositionClassArray([]);
+    if (type === "occupation") setInputOccupationArray([]);
+
+    if (index === 0) dispatch("is not null");
+    if (index === 1) dispatch("is null");
+    // if (index === 0) handleClickIsNotNull(dispatch, type);
+    // if (index === 1) handleClickIsNull(dispatch, type);
     handleCloseTooltip();
   };
 
@@ -1429,7 +1872,45 @@ const ContactMainContainerMemo: FC = () => {
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
-  console.log("🔥ContactMainContainerレンダリング ", "selectedRowDataContact", selectedRowDataContact);
+  console.log(
+    "🔥ContactMainContainerレンダリング ",
+    "selectedRowDataContact",
+    selectedRowDataContact,
+    "inputEmployeesClassArray",
+    inputEmployeesClassArray,
+    "selectedEmployeesClassArraySet",
+    selectedEmployeesClassArraySet,
+    "isNullNotNullEmployeesClass",
+    isNullNotNullEmployeesClass,
+    "inputIndustryTypeArray",
+    inputIndustryTypeArray,
+    "selectedIndustryTypeArraySet",
+    selectedIndustryTypeArraySet,
+    "isNullNotNullIndustryType",
+    isNullNotNullIndustryType,
+    "inputFiscalArray",
+    inputFiscalArray,
+    "selectedFiscalArraySet",
+    selectedFiscalArraySet,
+    "isNullNotNullFiscal",
+    isNullNotNullFiscal,
+    "inputOccupationArray",
+    inputOccupationArray,
+    "selectedOccupationArraySet",
+    selectedOccupationArraySet,
+    "isNullNotNullOccupation",
+    isNullNotNullOccupation,
+    "inputPositionClassArray",
+    inputPositionClassArray,
+    "selectedPositionClassArraySet",
+    selectedPositionClassArraySet,
+    "isNullNotNullPositionClass",
+    isNullNotNullPositionClass,
+    "inputApprovalAmountSearch",
+    inputApprovalAmountSearch,
+    "inputCapitalSearch",
+    inputCapitalSearch
+  );
 
   return (
     <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
@@ -1463,7 +1944,7 @@ const ContactMainContainerMemo: FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         const el = e.currentTarget;
-                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -1507,7 +1988,7 @@ const ContactMainContainerMemo: FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         const el = e.currentTarget;
-                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -1775,7 +2256,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputDirectLine ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputDirectLine)}
                         >
@@ -1785,7 +2266,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputDirectLine)}
                           >
@@ -1942,7 +2423,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputExtension ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputExtension)}
                         >
@@ -1952,7 +2433,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputExtension)}
                           >
@@ -2008,7 +2489,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputTel ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputTel)}
                         >
@@ -2018,7 +2499,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputTel)}
                           >
@@ -2172,7 +2653,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputDirectFax ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputDirectFax)}
                         >
@@ -2182,7 +2663,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputDirectFax)}
                           >
@@ -2245,7 +2726,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputFax ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputFax)}
                         >
@@ -2255,7 +2736,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputFax)}
                           >
@@ -2412,7 +2893,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputCompanyCellPhone ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputCompanyCellPhone)}
                         >
@@ -2422,7 +2903,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputCompanyCellPhone)}
                           >
@@ -2576,7 +3057,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputPersonalCellPhone ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputPersonalCellPhone)}
                         >
@@ -2586,7 +3067,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputPersonalCellPhone)}
                           >
@@ -2663,7 +3144,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputContactEmail ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputContactEmail)}
                         >
@@ -2673,7 +3154,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputContactEmail)}
                           >
@@ -2733,7 +3214,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputZipcode ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputZipcode)}
                         >
@@ -2743,7 +3224,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputZipcode)}
                           >
@@ -2830,7 +3311,7 @@ const ContactMainContainerMemo: FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         const el = e.currentTarget;
-                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -2932,7 +3413,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputPositionName ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputPositionName)}
                         >
@@ -2942,7 +3423,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputPositionName)}
                           >
@@ -2955,7 +3436,7 @@ const ContactMainContainerMemo: FC = () => {
                 )}
                 {/* input下追加ボタンエリア ここまで */}
               </div>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+              <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>職位</span>
                   {!searchMode && isEditModeField !== "position_class" && (
@@ -2986,20 +3467,44 @@ const ContactMainContainerMemo: FC = () => {
                     </span>
                   )}
                   {searchMode && (
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
-                      value={inputPositionClass}
-                      onChange={(e) => setInputPositionClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      {optionsPositionsClass.map((classNum) => (
-                        <option key={classNum} value={`${classNum}`}>
-                          {getPositionClassName(classNum, language)}
-                        </option>
-                      ))}
-                      <option value="is not null">入力有りのデータのみ</option>
-                      <option value="is null">入力無しのデータのみ</option>
-                    </select>
+                    <>
+                      {isNullNotNullPositionClass === "is null" || isNullNotNullPositionClass === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullPositionClass]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullPositionClass]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputPositionClassArray}
+                          dispatch={setInputPositionClassArray}
+                          selectedSetObj={selectedPositionClassArraySet}
+                          options={optionsPositionsClass}
+                          getOptionName={getPositionClassNameSearch}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - 95px)`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                        value={inputPositionClass}
+                        onChange={(e) => setInputPositionClass(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {optionsPositionsClass.map((classNum) => (
+                          <option key={classNum} value={`${classNum}`}>
+                            {getPositionClassName(classNum, language)}
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select> */}
+                    </>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
                   {/* フィールドエディットモード selectタグ  */}
@@ -3048,12 +3553,48 @@ const ContactMainContainerMemo: FC = () => {
                   {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isNullNotNullPositionClass === null && inputPositionClassArray.length === 0
+                              ? `hidden`
+                              : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleResetArray("position_class")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(index, setIsNullNotNullPositionClass, "position_class")
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
             </div>
 
             {/* 担当職種・決裁金額 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+              <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>担当職種</span>
                   {!searchMode && isEditModeField !== "occupation" && (
@@ -3084,20 +3625,44 @@ const ContactMainContainerMemo: FC = () => {
                     </span>
                   )}
                   {searchMode && (
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
-                      value={inputOccupation}
-                      onChange={(e) => setInputOccupation(e.target.value)}
-                    >
-                      <option value=""></option>
-                      {optionsOccupation.map((num) => (
-                        <option key={num} value={`${num}`}>
-                          {getOccupationName(num, language)}
-                        </option>
-                      ))}
-                      <option value="is not null">入力有りのデータのみ</option>
-                      <option value="is null">入力無しのデータのみ</option>
-                    </select>
+                    <>
+                      {isNullNotNullOccupation === "is null" || isNullNotNullOccupation === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullOccupation]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullOccupation]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputOccupationArray}
+                          dispatch={setInputOccupationArray}
+                          selectedSetObj={selectedOccupationArraySet}
+                          options={optionsOccupation}
+                          getOptionName={getOccupationNameSearch}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - 95px)`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                        value={inputOccupation}
+                        onChange={(e) => setInputOccupation(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {optionsOccupation.map((num) => (
+                          <option key={num} value={`${num}`}>
+                            {getOccupationName(num, language)}
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select> */}
+                    </>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
                   {/* フィールドエディットモード selectタグ  */}
@@ -3146,7 +3711,42 @@ const ContactMainContainerMemo: FC = () => {
                   {/* ============= フィールドエディットモード関連ここまで ============= */}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isNullNotNullOccupation === null && inputOccupationArray.length === 0 ? `hidden` : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleResetArray("occupation")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(index, setIsNullNotNullOccupation, "occupation")
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
+
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   {/* <span className={`${styles.title} !mr-[12px]`}>決裁金額(万円)</span> */}
@@ -3180,7 +3780,67 @@ const ContactMainContainerMemo: FC = () => {
                   )}
                   {searchMode && (
                     <>
-                      {["is null", "is not null"].includes(inputApprovalAmount) ? (
+                      {inputApprovalAmountSearch === "is null" || inputApprovalAmountSearch === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[inputApprovalAmountSearch]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[inputApprovalAmountSearch]}</span>
+                        </div>
+                      ) : (
+                        <div
+                          className={`flex h-full w-full items-center`}
+                          onMouseEnter={(e) => {
+                            const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。`;
+                            handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputApprovalAmountSearch.min}
+                            onChange={(e) =>
+                              setInputApprovalAmountSearch({ min: e.target.value, max: inputApprovalAmountSearch.max })
+                            }
+                            onBlur={() => {
+                              const formatHalfInput = toHalfWidthAndRemoveSpace(inputApprovalAmountSearch.min);
+                              const convertedPrice = convertToMillions(formatHalfInput.trim());
+                              if (convertedPrice !== null && !isNaN(convertedPrice)) {
+                                setInputApprovalAmountSearch({
+                                  min: String(convertedPrice),
+                                  max: inputApprovalAmountSearch.max,
+                                });
+                              } else {
+                                setInputApprovalAmountSearch({ min: "", max: inputApprovalAmountSearch.max });
+                              }
+                            }}
+                          />
+
+                          <span className="mx-[10px]">〜</span>
+
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputApprovalAmountSearch.max}
+                            onChange={(e) =>
+                              setInputApprovalAmountSearch({ min: inputApprovalAmountSearch.min, max: e.target.value })
+                            }
+                            onBlur={() => {
+                              const formatHalfInput = toHalfWidthAndRemoveSpace(inputApprovalAmountSearch.max);
+                              const convertedPrice = convertToMillions(formatHalfInput.trim());
+
+                              if (convertedPrice !== null && !isNaN(convertedPrice)) {
+                                setInputApprovalAmountSearch({
+                                  min: inputApprovalAmountSearch.min,
+                                  max: String(convertedPrice),
+                                });
+                              } else {
+                                setInputApprovalAmountSearch({ min: inputApprovalAmountSearch.min, max: "" });
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
+                      {/* {["is null", "is not null"].includes(inputApprovalAmount) ? (
                         <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
                           {nullNotNullIconMap[inputApprovalAmount]}
                           <span className={`text-[13px]`}>{nullNotNullTextMap[inputApprovalAmount]}</span>
@@ -3200,7 +3860,7 @@ const ContactMainContainerMemo: FC = () => {
                             }
                           }}
                         />
-                      )}
+                      )} */}
                     </>
                   )}
                   {/* ============= フィールドエディットモード関連 ============= */}
@@ -3291,10 +3951,10 @@ const ContactMainContainerMemo: FC = () => {
                       <div className={`line_first space-x-[6px]`}>
                         <button
                           type="button"
-                          className={`icon_btn_red ${!inputApprovalAmount ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          className={`icon_btn_red ${isEmptyInputRange(inputApprovalAmountSearch) ? `hidden` : `flex`}`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
-                          onClick={() => handleClickResetInput(setInputApprovalAmount)}
+                          onClick={() => handleClickResetInput(setInputApprovalAmountSearch, "range_string")}
                         >
                           <MdClose className="pointer-events-none text-[14px]" />
                         </button>
@@ -3302,9 +3962,9 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
-                            onClick={() => handleClickAdditionalAreaBtn(index, setInputApprovalAmount)}
+                            onClick={() => handleClickAdditionalAreaBtn(index, setInputApprovalAmountSearch)}
                           >
                             {element}
                           </div>
@@ -3319,7 +3979,7 @@ const ContactMainContainerMemo: FC = () => {
 
             {/* 規模（ランク）・決算月 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+              <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
                   {!searchMode && (
@@ -3338,25 +3998,89 @@ const ContactMainContainerMemo: FC = () => {
                     </span>
                   )}
                   {searchMode && (
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
-                      value={inputEmployeesClass}
-                      onChange={(e) => setInputEmployeesClass(e.target.value)}
-                    >
-                      <option value=""></option>
-                      {optionsNumberOfEmployeesClass.map((option) => (
-                        <option key={option} value={option + "*"}>
-                          {getNumberOfEmployeesClass(option)}
-                        </option>
-                      ))}
-                      <option value="is not null">入力有りのデータのみ</option>
-                      <option value="is null">入力無しのデータのみ</option>
-                    </select>
+                    <>
+                      {isNullNotNullEmployeesClass === "is null" || isNullNotNullEmployeesClass === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullEmployeesClass]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullEmployeesClass]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputEmployeesClassArray}
+                          dispatch={setInputEmployeesClassArray}
+                          selectedSetObj={selectedEmployeesClassArraySet}
+                          options={optionsNumberOfEmployeesClass}
+                          getOptionName={getEmployeesClassNameSearch}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - 95px)`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                        value={inputEmployeesClass}
+                        onChange={(e) => setInputEmployeesClass(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {optionsNumberOfEmployeesClass.map((option) => (
+                          <option key={option} value={option + "*"}>
+                            {getNumberOfEmployeesClass(option)}
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select> */}
+                    </>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isNullNotNullEmployeesClass === null && inputEmployeesClassArray.length === 0
+                              ? `hidden`
+                              : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleResetArray("number_of_employees_class")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(
+                                index,
+                                setIsNullNotNullEmployeesClass,
+                                "number_of_employees_class"
+                              )
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+              <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>決算月</span>
                   {!searchMode && (
@@ -3381,29 +4105,87 @@ const ContactMainContainerMemo: FC = () => {
                     />
                   )} */}
                   {searchMode && (
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
-                      value={inputFiscal}
-                      onChange={(e) => setInputFiscal(e.target.value)}
-                    >
-                      <option value=""></option>
-                      {optionsMonth.map((option) => (
-                        <option key={option} value={option}>
-                          {option}月
-                        </option>
-                      ))}
-                      <option value="is not null">入力有りのデータのみ</option>
-                      <option value="is null">入力無しのデータのみ</option>
-                    </select>
+                    <>
+                      {isNullNotNullFiscal === "is null" || isNullNotNullFiscal === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullFiscal]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullFiscal]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputFiscalArray}
+                          dispatch={setInputFiscalArray}
+                          selectedSetObj={selectedFiscalArraySet}
+                          options={optionsMonth}
+                          getOptionName={getMonthNameSearch}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - 95px)`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                        value={inputFiscal}
+                        onChange={(e) => setInputFiscal(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {optionsMonth.map((option) => (
+                          <option key={option} value={option}>
+                            {option}月
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select> */}
+                    </>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isNullNotNullFiscal === null && inputFiscalArray.length === 0 ? `hidden` : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleResetArray("fiscal_end_month")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(index, setIsNullNotNullFiscal, "fiscal_end_month")
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
             </div>
 
             {/* 予算申請月1・予算申請月2 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+              <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>予算申請月1</span>
                   {!searchMode && (
@@ -3422,25 +4204,91 @@ const ContactMainContainerMemo: FC = () => {
                     </span>
                   )}
                   {searchMode && (
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
-                      value={inputBudgetRequestMonth1}
-                      onChange={(e) => setInputBudgetRequestMonth1(e.target.value)}
-                    >
-                      <option value=""></option>
-                      {optionsMonth.map((option) => (
-                        <option key={option} value={option + `*`}>
-                          {`${option}月`}
-                        </option>
-                      ))}
-                      <option value="is not null">入力有りのデータのみ</option>
-                      <option value="is null">入力無しのデータのみ</option>
-                    </select>
+                    <>
+                      {isNullNotNullBudgetRequestMonth1 === "is null" ||
+                      isNullNotNullBudgetRequestMonth1 === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullBudgetRequestMonth1]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullBudgetRequestMonth1]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputBudgetRequestMonth1Array}
+                          dispatch={setInputBudgetRequestMonth1Array}
+                          selectedSetObj={selectedBudgetRequestMonth1ArraySet}
+                          options={optionsMonth}
+                          getOptionName={getMonthNameSearch}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - 95px)`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                        value={inputBudgetRequestMonth1}
+                        onChange={(e) => setInputBudgetRequestMonth1(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {optionsMonth.map((option) => (
+                          <option key={option} value={option + `*`}>
+                            {`${option}月`}
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select> */}
+                    </>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isNullNotNullBudgetRequestMonth1 === null && inputBudgetRequestMonth1Array.length === 0
+                              ? `hidden`
+                              : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleResetArray("budget_request_month1")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(
+                                index,
+                                setIsNullNotNullBudgetRequestMonth1,
+                                "budget_request_month1"
+                              )
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
-              <div className="flex h-full w-1/2 flex-col pr-[20px]">
+
+              <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   <span className={`${styles.title}`}>予算申請月2</span>
                   {!searchMode && (
@@ -3459,23 +4307,88 @@ const ContactMainContainerMemo: FC = () => {
                     </span>
                   )}
                   {searchMode && (
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
-                      value={inputBudgetRequestMonth2}
-                      onChange={(e) => setInputBudgetRequestMonth2(e.target.value)}
-                    >
-                      <option value=""></option>
-                      {optionsMonth.map((option) => (
-                        <option key={option} value={option + `*`}>
-                          {`${option}月`}
-                        </option>
-                      ))}
-                      <option value="is not null">入力有りのデータのみ</option>
-                      <option value="is null">入力無しのデータのみ</option>
-                    </select>
+                    <>
+                      {isNullNotNullBudgetRequestMonth2 === "is null" ||
+                      isNullNotNullBudgetRequestMonth2 === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullBudgetRequestMonth2]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullBudgetRequestMonth2]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputBudgetRequestMonth2Array}
+                          dispatch={setInputBudgetRequestMonth2Array}
+                          selectedSetObj={selectedBudgetRequestMonth2ArraySet}
+                          options={optionsMonth}
+                          getOptionName={getMonthNameSearch}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - 95px)`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                        value={inputBudgetRequestMonth2}
+                        onChange={(e) => setInputBudgetRequestMonth2(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {optionsMonth.map((option) => (
+                          <option key={option} value={option + `*`}>
+                            {`${option}月`}
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select> */}
+                    </>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isNullNotNullBudgetRequestMonth2 === null && inputBudgetRequestMonth2Array.length === 0
+                              ? `hidden`
+                              : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleResetArray("budget_request_month2")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(
+                                index,
+                                setIsNullNotNullBudgetRequestMonth2,
+                                "budget_request_month2"
+                              )
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
             </div>
 
@@ -3502,7 +4415,61 @@ const ContactMainContainerMemo: FC = () => {
                   )}
                   {searchMode && (
                     <>
-                      {["is null", "is not null"].includes(inputCapital) ? (
+                      {inputCapitalSearch === "is null" || inputCapitalSearch === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[inputCapitalSearch]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[inputCapitalSearch]}</span>
+                        </div>
+                      ) : (
+                        <div
+                          className={`flex h-full w-full items-center`}
+                          onMouseEnter={(e) => {
+                            const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。`;
+                            handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputCapitalSearch.min}
+                            onChange={(e) =>
+                              setInputCapitalSearch({ min: e.target.value, max: inputCapitalSearch.max })
+                            }
+                            onBlur={() => {
+                              const formatHalfInput = toHalfWidthAndRemoveSpace(inputCapitalSearch.min);
+                              const convertedPrice = convertToMillions(formatHalfInput.trim());
+                              if (convertedPrice !== null && !isNaN(convertedPrice)) {
+                                setInputCapitalSearch({ min: String(convertedPrice), max: inputCapitalSearch.max });
+                              } else {
+                                setInputCapitalSearch({ min: "", max: inputCapitalSearch.max });
+                              }
+                            }}
+                          />
+
+                          <span className="mx-[10px]">〜</span>
+
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputCapitalSearch.max}
+                            onChange={(e) =>
+                              setInputCapitalSearch({ min: inputCapitalSearch.min, max: e.target.value })
+                            }
+                            onBlur={() => {
+                              const formatHalfInput = toHalfWidthAndRemoveSpace(inputCapitalSearch.max);
+                              const convertedPrice = convertToMillions(formatHalfInput.trim());
+
+                              if (convertedPrice !== null && !isNaN(convertedPrice)) {
+                                setInputCapitalSearch({ min: inputCapitalSearch.min, max: String(convertedPrice) });
+                              } else {
+                                setInputCapitalSearch({ min: inputCapitalSearch.min, max: "" });
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
+                      {/* {["is null", "is not null"].includes(inputCapital) ? (
                         <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
                           {nullNotNullIconMap[inputCapital]}
                           <span className={`text-[13px]`}>{nullNotNullTextMap[inputCapital]}</span>
@@ -3522,7 +4489,7 @@ const ContactMainContainerMemo: FC = () => {
                             }
                           }}
                         />
-                      )}
+                      )} */}
                     </>
                   )}
                 </div>
@@ -3534,10 +4501,10 @@ const ContactMainContainerMemo: FC = () => {
                       <div className={`line_first space-x-[6px]`}>
                         <button
                           type="button"
-                          className={`icon_btn_red ${inputCapital === "" ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          className={`icon_btn_red ${isEmptyInputRange(inputCapitalSearch) ? `hidden` : `flex`}`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
-                          onClick={() => handleClickResetInput(setInputCapital)}
+                          onClick={() => handleClickResetInput(setInputCapitalSearch, "range_string")}
                         >
                           <MdClose className="pointer-events-none text-[14px]" />
                         </button>
@@ -3545,9 +4512,9 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
-                            onClick={() => handleClickAdditionalAreaBtn(index, setInputCapital)}
+                            onClick={() => handleClickAdditionalAreaBtn(index, setInputCapitalSearch)}
                           >
                             {element}
                           </div>
@@ -3601,7 +4568,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputFound ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputFound)}
                         >
@@ -3611,7 +4578,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputFound)}
                           >
@@ -3623,6 +4590,140 @@ const ContactMainContainerMemo: FC = () => {
                   </>
                 )}
                 {/* input下追加ボタンエリア ここまで */}
+              </div>
+            </div>
+
+            {/* 従業員数 テスト */}
+            <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
+              <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center `}>
+                  <span className={`${styles.title}`}>従業員数</span>
+                  {!searchMode && (
+                    <span
+                      className={`${styles.value} ${styles.uneditable_field}`}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.parentElement?.classList.add(`${styles.active}`);
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
+                      }}
+                    >
+                      {selectedRowDataContact?.number_of_employees ? selectedRowDataContact?.number_of_employees : ""}
+                    </span>
+                  )}
+                  {searchMode && (
+                    <>
+                      {inputNumberOfEmployeesSearch === "is null" || inputNumberOfEmployeesSearch === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[inputNumberOfEmployeesSearch]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[inputNumberOfEmployeesSearch]}</span>
+                        </div>
+                      ) : (
+                        <div
+                          className={`flex h-full w-full items-center`}
+                          onMouseEnter={(e) => {
+                            const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。`;
+                            handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputNumberOfEmployeesSearch.min}
+                            onChange={(e) =>
+                              setInputNumberOfEmployeesSearch({
+                                min: e.target.value,
+                                max: inputNumberOfEmployeesSearch.max,
+                              })
+                            }
+                            onBlur={() => {
+                              const formatHalfInput = toHalfWidthAndRemoveSpace(
+                                inputNumberOfEmployeesSearch.min
+                              ).trim();
+                              const newEmployeesCount = parseInt(formatHalfInput, 10);
+
+                              if (newEmployeesCount !== null && !isNaN(newEmployeesCount)) {
+                                setInputNumberOfEmployeesSearch({
+                                  min: String(newEmployeesCount),
+                                  max: inputNumberOfEmployeesSearch.max,
+                                });
+                              } else {
+                                setInputNumberOfEmployeesSearch({ min: "", max: inputNumberOfEmployeesSearch.max });
+                              }
+                            }}
+                          />
+
+                          <span className="mx-[10px]">〜</span>
+
+                          <input
+                            type="text"
+                            className={`${styles.input_box}`}
+                            value={inputNumberOfEmployeesSearch.max}
+                            onChange={(e) =>
+                              setInputNumberOfEmployeesSearch({
+                                min: inputNumberOfEmployeesSearch.min,
+                                max: e.target.value,
+                              })
+                            }
+                            onBlur={() => {
+                              const formatHalfInput = toHalfWidthAndRemoveSpace(
+                                inputNumberOfEmployeesSearch.max
+                              ).trim();
+                              const newEmployeesCount = parseInt(formatHalfInput, 10);
+
+                              if (newEmployeesCount !== null && !isNaN(newEmployeesCount)) {
+                                setInputNumberOfEmployeesSearch({
+                                  min: inputNumberOfEmployeesSearch.min,
+                                  max: String(newEmployeesCount),
+                                });
+                              } else {
+                                setInputNumberOfEmployeesSearch({ min: inputNumberOfEmployeesSearch.min, max: "" });
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+                <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isEmptyInputRange(inputNumberOfEmployeesSearch) ? `hidden` : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleClickResetInput(setInputNumberOfEmployeesSearch, "range_string")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() => handleClickAdditionalAreaBtn(index, setInputNumberOfEmployeesSearch)}
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
+              </div>
+              <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
+                <div className={`${styles.title_box} flex h-full items-center`}></div>
+                <div className={`${styles.underline}`}></div>
               </div>
             </div>
 
@@ -3642,7 +4743,7 @@ const ContactMainContainerMemo: FC = () => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
                           if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
-                            handleOpenTooltip(e);
+                            handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3688,7 +4789,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputContent ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputContent)}
                         >
@@ -3698,7 +4799,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputContent)}
                           >
@@ -3725,7 +4826,7 @@ const ContactMainContainerMemo: FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         const el = e.currentTarget;
-                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3762,7 +4863,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputClient ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputClient)}
                         >
@@ -3772,7 +4873,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputClient)}
                           >
@@ -3799,7 +4900,7 @@ const ContactMainContainerMemo: FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         const el = e.currentTarget;
-                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3836,7 +4937,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputSupplier ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputSupplier)}
                         >
@@ -3846,7 +4947,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputSupplier)}
                           >
@@ -3875,7 +4976,7 @@ const ContactMainContainerMemo: FC = () => {
                           e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                           const el = e.currentTarget;
                           if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
-                            handleOpenTooltip(e);
+                            handleOpenTooltip({ e });
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3921,7 +5022,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputFacility ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputFacility)}
                         >
@@ -3931,7 +5032,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputFacility)}
                           >
@@ -3960,7 +5061,8 @@ const ContactMainContainerMemo: FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         const el = e.currentTarget;
-                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight) handleOpenTooltip(e);
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -3997,7 +5099,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputBusinessSite ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputBusinessSite)}
                         >
@@ -4007,7 +5109,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputBusinessSite)}
                           >
@@ -4032,7 +5134,8 @@ const ContactMainContainerMemo: FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         const el = e.currentTarget;
-                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight) handleOpenTooltip(e);
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4069,7 +5172,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputOverseas ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputOverseas)}
                         >
@@ -4079,7 +5182,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputOverseas)}
                           >
@@ -4108,7 +5211,8 @@ const ContactMainContainerMemo: FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         const el = e.currentTarget;
-                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight) handleOpenTooltip(e);
+                        if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
+                          handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4145,7 +5249,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputGroup ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputGroup)}
                         >
@@ -4155,7 +5259,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputGroup)}
                           >
@@ -4221,7 +5325,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputHP ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputHP)}
                         >
@@ -4231,7 +5335,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputHP)}
                           >
@@ -4315,7 +5419,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputCompanyEmail ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputCompanyEmail)}
                         >
@@ -4325,7 +5429,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputCompanyEmail)}
                           >
@@ -4342,7 +5446,7 @@ const ContactMainContainerMemo: FC = () => {
 
             {/* 業種 */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
-              <div className="flex h-full w-full flex-col pr-[20px]">
+              <div className="group relative flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   <span className={`${styles.title}`}>○業種</span>
                   {!searchMode && (
@@ -4361,25 +5465,86 @@ const ContactMainContainerMemo: FC = () => {
                     </span>
                   )}
                   {searchMode && (
-                    <select
-                      className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
-                      value={inputIndustryType}
-                      onChange={(e) => setInputIndustryType(e.target.value)}
-                    >
-                      <option value=""></option>
-                      {optionsIndustryType.map((option) => (
-                        <option key={option} value={option}>
-                          {mappingIndustryType[option][language]}
-                        </option>
-                      ))}
-                      <option value="is not null">入力有りのデータのみ</option>
-                      <option value="is null">入力無しのデータのみ</option>
-                    </select>
+                    <>
+                      {isNullNotNullIndustryType === "is null" || isNullNotNullIndustryType === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullIndustryType]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullIndustryType]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputIndustryTypeArray}
+                          dispatch={setInputIndustryTypeArray}
+                          selectedSetObj={selectedIndustryTypeArraySet}
+                          options={optionsIndustryType}
+                          getOptionName={getIndustryTypeNameSearch}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - 95px)`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
+                        className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
+                        value={inputIndustryType}
+                        onChange={(e) => setInputIndustryType(e.target.value)}
+                      >
+                        <option value=""></option>
+                        {optionsIndustryType.map((option) => (
+                          <option key={option} value={option}>
+                            {mappingIndustryType[option][language]}
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select> */}
+                    </>
                   )}
                 </div>
                 <div className={`${styles.underline}`}></div>
+                {/* input下追加ボタンエリア */}
+                {searchMode && (
+                  <>
+                    <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                      <div className={`line_first space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`icon_btn_red ${
+                            isNullNotNullIndustryType === null && inputIndustryTypeArray.length === 0
+                              ? `hidden`
+                              : `flex`
+                          }`}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => handleResetArray("industry_type_id")}
+                        >
+                          <MdClose className="pointer-events-none text-[14px]" />
+                        </button>
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(index, setIsNullNotNullIndustryType, "industry_type_id")
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </>
+                )}
+                {/* input下追加ボタンエリア ここまで */}
               </div>
             </div>
+
             {/* 製品分類(大分類) */}
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="group relative flex h-full w-full flex-col pr-[20px]">
@@ -4396,7 +5561,7 @@ const ContactMainContainerMemo: FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         const el = e.currentTarget;
-                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4449,7 +5614,7 @@ const ContactMainContainerMemo: FC = () => {
                               ? `hidden`
                               : `flex`
                           }`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleResetArray("category_large")}
                         >
@@ -4459,7 +5624,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() =>
                               handleClickAdditionalAreaBtn(index, setIsNullNotNullCategoryLarge, "category_large")
@@ -4491,7 +5656,7 @@ const ContactMainContainerMemo: FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         const el = e.currentTarget;
-                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4543,7 +5708,7 @@ const ContactMainContainerMemo: FC = () => {
                               ? `hidden`
                               : `flex`
                           }`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleResetArray("category_medium")}
                         >
@@ -4553,7 +5718,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() =>
                               handleClickAdditionalAreaBtn(index, setIsNullNotNullCategoryMedium, "category_medium")
@@ -4585,7 +5750,7 @@ const ContactMainContainerMemo: FC = () => {
                       onMouseEnter={(e) => {
                         e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                         const el = e.currentTarget;
-                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip(e);
+                        if (el.scrollWidth > el.offsetWidth) handleOpenTooltip({ e });
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -4637,7 +5802,7 @@ const ContactMainContainerMemo: FC = () => {
                               ? `hidden`
                               : `flex`
                           }`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleResetArray("category_small")}
                         >
@@ -4647,7 +5812,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() =>
                               handleClickAdditionalAreaBtn(index, setIsNullNotNullCategorySmall, "category_small")
@@ -4709,7 +5874,7 @@ const ContactMainContainerMemo: FC = () => {
                         <button
                           type="button"
                           className={`icon_btn_red ${!inputCorporateNum ? `hidden` : `flex`}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e, "top", `入力値をリセット`)}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                           onMouseLeave={handleCloseTooltip}
                           onClick={() => handleClickResetInput(setInputCorporateNum)}
                         >
@@ -4719,7 +5884,7 @@ const ContactMainContainerMemo: FC = () => {
                           <div
                             key={`additional_search_area_under_input_btn_f_${index}`}
                             className={`btn_f space-x-[3px]`}
-                            onMouseEnter={(e) => handleOpenTooltip(e, "top", additionalInputTooltipText(index))}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
                             onMouseLeave={handleCloseTooltip}
                             onClick={() => handleClickAdditionalAreaBtn(index, setInputCorporateNum)}
                           >
@@ -4827,7 +5992,7 @@ const ContactMainContainerMemo: FC = () => {
                               : ""
                           }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({e})}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataContact?.senior_managing_director
@@ -4852,7 +6017,7 @@ const ContactMainContainerMemo: FC = () => {
                             selectedRowDataContact?.managing_director ? selectedRowDataContact?.managing_director : ""
                           }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({e})}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataContact?.managing_director ? selectedRowDataContact?.managing_director : ""}
@@ -4869,7 +6034,7 @@ const ContactMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataContact?.director ? selectedRowDataContact?.director : ""}`}
                           className={`${styles.value} truncate`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({e})}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataContact?.director ? selectedRowDataContact?.director : ""}
@@ -4892,7 +6057,7 @@ const ContactMainContainerMemo: FC = () => {
                             selectedRowDataContact?.board_member ? selectedRowDataContact?.board_member : ""
                           }`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({e})}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataContact?.board_member ? selectedRowDataContact?.board_member : ""}
@@ -4909,7 +6074,7 @@ const ContactMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataContact?.auditor ? selectedRowDataContact?.auditor : ""}`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({e})}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataContact?.auditor ? selectedRowDataContact?.auditor : ""}
@@ -4930,7 +6095,7 @@ const ContactMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataContact?.manager ? selectedRowDataContact?.manager : ""}`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({e})}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataContact?.manager ? selectedRowDataContact?.manager : ""}
@@ -4947,7 +6112,7 @@ const ContactMainContainerMemo: FC = () => {
                         <span
                           data-text={`${selectedRowDataContact?.member ? selectedRowDataContact?.member : ""}`}
                           className={`${styles.value}`}
-                          onMouseEnter={(e) => handleOpenTooltip(e)}
+                          onMouseEnter={(e) => handleOpenTooltip({e})}
                           onMouseLeave={handleCloseTooltip}
                         >
                           {selectedRowDataContact?.member ? selectedRowDataContact?.member : ""}
@@ -5038,7 +6203,7 @@ const ContactMainContainerMemo: FC = () => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
                             if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
-                              handleOpenTooltip(e);
+                              handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
@@ -5328,7 +6493,7 @@ const ContactMainContainerMemo: FC = () => {
                           className={`${styles.textarea_box} ${
                             isOurContact ? styles.editable_field : styles.uneditable_field
                           }`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseEnter={(e) => handleOpenTooltip({e})}
                           // onMouseLeave={handleCloseTooltip}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
@@ -5345,7 +6510,7 @@ const ContactMainContainerMemo: FC = () => {
                           onMouseEnter={(e) => {
                             if (!selectedRowDataContact?.claim) return;
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
-                            // handleOpenTooltip(e);
+                            // handleOpenTooltip({e});
                           }}
                           onMouseLeave={(e) => {
                             if (!selectedRowDataContact?.claim) return;
@@ -5436,7 +6601,7 @@ const ContactMainContainerMemo: FC = () => {
                               ? styles.textarea_box
                               : styles.textarea_value
                           } ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
-                          // onMouseEnter={(e) => handleOpenTooltip(e)}
+                          // onMouseEnter={(e) => handleOpenTooltip({e})}
                           // onMouseLeave={handleCloseTooltip}
                           onClick={handleSingleClickField}
                           onDoubleClick={(e) => {
@@ -5455,7 +6620,7 @@ const ContactMainContainerMemo: FC = () => {
                             e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                             const el = e.currentTarget;
                             if (el.scrollWidth > el.offsetWidth || el.scrollHeight > el.offsetHeight)
-                              handleOpenTooltip(e);
+                              handleOpenTooltip({ e });
                           }}
                           onMouseLeave={(e) => {
                             if (!selectedRowDataContact?.ban_reason) return;

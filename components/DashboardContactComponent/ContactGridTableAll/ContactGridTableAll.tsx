@@ -47,6 +47,7 @@ import {
   mappingProductCategoriesSmall,
   productCategoriesSmallNameOnlySet,
 } from "@/utils/productCategoryS";
+import { convertObjToText, searchObjectColumnsSetContact } from "@/utils/Helpers/MainContainer/commonHelper";
 
 type TableDataType = {
   id: number;
@@ -578,29 +579,43 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
   // 次回に同じ検索をした場合にもキャッシュを使用できるようにする
   // useInfiniteQueryのキャッシュのクエリキーの第二引数に割り当てる
   // const [newSearchParamsString, setNewSearchParamsString] = useState<string | null>(null);
-  const newSearchParamsStringRef = useRef<string | null>(null);
-  //   console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
-  // console.log("キャッシュに割り当てるparamsキー newSearchContact_CompanyParams", newSearchContact_CompanyParams);
-  if (newSearchContact_CompanyParams) {
-    newSearchParamsStringRef.current = Object.entries(newSearchContact_CompanyParams)
-      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-      .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
-      // .map((key, index) => `${key}:${key[index]} `)
-      .join(", ");
-    // .join("");
-    // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
-  }
-  // console.log(
-  //   "✅🔥newSearchCompanyParams",
-  //   newSearchCompanyParams,
-  //   "NewSearchParamsString",
-  //   newSearchParamsStringRef.current
-  // );
+  // -------------------------- 🔸サーチ条件をstringに変換 変更前 useRefバージョン🔸 --------------------------
+  // const newSearchParamsStringRef = useRef<string | null>(null);
+  // //   console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
+  // // console.log("キャッシュに割り当てるparamsキー newSearchContact_CompanyParams", newSearchContact_CompanyParams);
+  // if (newSearchContact_CompanyParams) {
+  //   newSearchParamsStringRef.current = Object.entries(newSearchContact_CompanyParams)
+  //     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+  //     .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
+  //     // .map((key, index) => `${key}:${key[index]} `)
+  //     .join(", ");
+  //   // .join("");
+  //   // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
+  // }
+  // -------------------------- 🔸サーチ条件をstringに変換 変更前 useRefバージョン🔸 --------------------------ここまで
+
+  // -------------------------- 🔸サーチ条件をstringに変換 テスト useMemo🔸 --------------------------
+  const searchParamsString = useMemo(() => {
+    if (newSearchContact_CompanyParams) {
+      return Object.entries(newSearchContact_CompanyParams)
+        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+        .map(([key, value]) =>
+          searchObjectColumnsSetContact.has(key)
+            ? convertObjToText(key, value)
+            : `${key}:${value === null ? `null` : `${value}`}`
+        )
+        .join(", ");
+    } else {
+      return null;
+    }
+  }, [newSearchContact_CompanyParams]);
+  // -------------------------- 🔸サーチ条件をstringに変換 テスト useMemo🔸 -------------------------- ここまで
   // ================== 🌟useInfiniteQueryフック🌟 ==================
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery(
     {
       // queryKey: ["companies"],
-      queryKey: ["contacts", newSearchParamsStringRef.current, functionName], // オート検索/マニュアル検索
+      // queryKey: ["contacts", newSearchParamsStringRef.current, functionName], // オート検索/マニュアル検索
+      queryKey: ["contacts", searchParamsString, functionName], // オート検索/マニュアル検索
       // queryKey: ["contacts"],
       queryFn: async (ctx) => {
         console.log("useInfiniteQuery queryFn関数内 引数ctx", ctx);
@@ -608,10 +623,10 @@ const ContactGridTableAllMemo: FC<Props> = ({ title }) => {
         // return fetchServerPage(35, ctx.pageParam); // 50個ずつ取得
         // 新規サーチなしの通常モード
         if (newSearchContact_CompanyParams === null) {
-          console.log("通常フェッチ queryFn✅✅✅", newSearchContact_CompanyParams, newSearchParamsStringRef.current);
+          console.log("通常フェッチ queryFn✅✅✅");
           return fetchServerPage(50, ctx.pageParam); // 50個ずつ取得
         } else {
-          console.log("サーチフェッチ queryFn✅✅✅", newSearchContact_CompanyParams, newSearchParamsStringRef.current);
+          console.log("サーチフェッチ queryFn✅✅✅");
           return fetchNewSearchServerPage(50, ctx.pageParam); // 50個ずつ取得
         }
       },

@@ -52,6 +52,7 @@ import {
   mappingProductCategoriesSmall,
   productCategoriesSmallNameOnlySet,
 } from "@/utils/productCategoryS";
+import { convertObjToText, searchObjectColumnsSetActivity } from "@/utils/Helpers/MainContainer/commonHelper";
 
 type TableDataType = {
   id: number;
@@ -813,35 +814,59 @@ const ActivityGridTableAllMemo: FC<Props> = ({ title }) => {
   // 次回に同じ検索をした場合にもキャッシュを使用できるようにする
   // useInfiniteQueryのキャッシュのクエリキーの第二引数に割り当てる
   // const [newSearchParamsString, setNewSearchParamsString] = useState<string | null>(null);
-  const newSearchParamsStringRef = useRef<string | null>(null);
-  //   console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
-  // console.log(
-  //   "キャッシュに割り当てるparamsキー newSearchActivity_Contact_CompanyParams",
-  //   newSearchActivity_Contact_CompanyParams
-  // );
-  if (newSearchActivity_Contact_CompanyParams) {
-    newSearchParamsStringRef.current = Object.entries(newSearchActivity_Contact_CompanyParams)
-      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-      .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
-      // .map((key, index) => `${key}:${key[index]} `)
-      .join(", ");
-    // .join("");
-    // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
-  }
-  // console.log(
-  //   "✅🔥newSearchCompanyParams",
-  //   newSearchCompanyParams,
-  //   "NewSearchParamsString",
-  //   newSearchParamsStringRef.current
-  // );
+  // -------------------------- 🔸サーチ条件をstringに変換 変更前 useRefバージョン🔸 --------------------------
+  // const newSearchParamsStringRef = useRef<string | null>(null);
+  // //   console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
+  // // console.log(
+  // //   "キャッシュに割り当てるparamsキー newSearchActivity_Contact_CompanyParams",
+  // //   newSearchActivity_Contact_CompanyParams
+  // // );
+  // if (newSearchActivity_Contact_CompanyParams) {
+  //   newSearchParamsStringRef.current = Object.entries(newSearchActivity_Contact_CompanyParams)
+  //     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+  //     .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
+  //     // .map((key, index) => `${key}:${key[index]} `)
+  //     .join(", ");
+  //   // .join("");
+  //   // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
+  // }
+  // -------------------------- 🔸サーチ条件をstringに変換 変更前 useRefバージョン🔸 --------------------------ここまで
+
+  // -------------------------- 🔸サーチ条件をstringに変換 テスト useMemo🔸 --------------------------
+  const searchParamsString = useMemo(() => {
+    if (newSearchActivity_Contact_CompanyParams) {
+      return Object.entries(newSearchActivity_Contact_CompanyParams)
+        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+        .map(([key, value]) =>
+          searchObjectColumnsSetActivity.has(key)
+            ? convertObjToText(key, value)
+            : `${key}:${value === null ? `null` : `${value}`}`
+        )
+        .join(", ");
+    } else {
+      return null;
+    }
+  }, [newSearchActivity_Contact_CompanyParams]);
+  // -------------------------- 🔸サーチ条件をstringに変換 テスト useMemo🔸 -------------------------- ここまで
+
   // ================== 🌟useInfiniteQueryフック🌟 ==================
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery(
     {
       // queryKey: ["companies"],
       // queryKey: ["activities", newSearchParamsStringRef.current],
+      // queryKey: [
+      //   "activities",
+      //   newSearchParamsStringRef.current,
+      //   isFetchAllDepartments,
+      //   isFetchAllSections,
+      //   isFetchAllUnits,
+      //   isFetchAllOffices,
+      //   isFetchAllMembers,
+      //   functionName,
+      // ],
       queryKey: [
         "activities",
-        newSearchParamsStringRef.current,
+        searchParamsString,
         isFetchAllDepartments,
         isFetchAllSections,
         isFetchAllUnits,
