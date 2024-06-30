@@ -59,6 +59,7 @@ import {
   mappingProductCategoriesSmall,
   productCategoriesSmallNameOnlySet,
 } from "@/utils/productCategoryS";
+import { convertObjToText, searchObjectColumnsSetProperty } from "@/utils/Helpers/MainContainer/commonHelper";
 
 type TableDataType = {
   id: number;
@@ -918,35 +919,59 @@ const PropertyGridTableAllMemo: FC<Props> = ({ title }) => {
   // 次回に同じ検索をした場合にもキャッシュを使用できるようにする
   // useInfiniteQueryのキャッシュのクエリキーの第二引数に割り当てる
   // const [newSearchParamsString, setNewSearchParamsString] = useState<string | null>(null);
-  const newSearchParamsStringRef = useRef<string | null>(null);
-  //   console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
-  console.log(
-    "キャッシュに割り当てるparamsキー newSearchProperty_Contact_CompanyParams",
-    newSearchProperty_Contact_CompanyParams
-  );
-  if (newSearchProperty_Contact_CompanyParams) {
-    newSearchParamsStringRef.current = Object.entries(newSearchProperty_Contact_CompanyParams)
-      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-      .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
-      // .map((key, index) => `${key}:${key[index]} `)
-      .join(", ");
-    // .join("");
-    // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
-  }
+  // -------------------------- 🔸サーチ条件をstringに変換 変更前 useRefバージョン🔸 --------------------------
+  // const newSearchParamsStringRef = useRef<string | null>(null);
+  // //   console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
   // console.log(
-  //   "✅🔥newSearchCompanyParams",
-  //   newSearchCompanyParams,
-  //   "NewSearchParamsString",
-  //   newSearchParamsStringRef.current
+  //   "キャッシュに割り当てるparamsキー newSearchProperty_Contact_CompanyParams",
+  //   newSearchProperty_Contact_CompanyParams
   // );
+  // if (newSearchProperty_Contact_CompanyParams) {
+  //   newSearchParamsStringRef.current = Object.entries(newSearchProperty_Contact_CompanyParams)
+  //     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+  //     .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
+  //     // .map((key, index) => `${key}:${key[index]} `)
+  //     .join(", ");
+  //   // .join("");
+  //   // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
+  // }
+  // -------------------------- 🔸サーチ条件をstringに変換 変更前 useRefバージョン🔸 --------------------------ここまで
+
+  // -------------------------- 🔸サーチ条件をstringに変換 テスト useMemo🔸 --------------------------
+  const searchParamsString = useMemo(() => {
+    if (newSearchProperty_Contact_CompanyParams) {
+      return Object.entries(newSearchProperty_Contact_CompanyParams)
+        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+        .map(([key, value]) =>
+          searchObjectColumnsSetProperty.has(key)
+            ? convertObjToText(key, value)
+            : `${key}:${value === null ? `null` : `${value}`}`
+        )
+        .join(", ");
+    } else {
+      return null;
+    }
+  }, [newSearchProperty_Contact_CompanyParams]);
+  // -------------------------- 🔸サーチ条件をstringに変換 テスト useMemo🔸 -------------------------- ここまで
+
   // ================== 🌟useInfiniteQueryフック🌟 ==================
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery(
     {
       // queryKey: ["companies"],
       // queryKey: ["properties", newSearchParamsStringRef.current],
+      // queryKey: [
+      //   "properties",
+      //   newSearchParamsStringRef.current,
+      //   isFetchAllDepartments,
+      //   isFetchAllSections,
+      //   isFetchAllUnits,
+      //   isFetchAllOffices,
+      //   isFetchAllMembers,
+      //   functionName,
+      // ],
       queryKey: [
         "properties",
-        newSearchParamsStringRef.current,
+        searchParamsString,
         isFetchAllDepartments,
         isFetchAllSections,
         isFetchAllUnits,

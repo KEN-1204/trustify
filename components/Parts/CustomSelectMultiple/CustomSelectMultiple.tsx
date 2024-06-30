@@ -371,7 +371,8 @@ export const CustomSelectMultiple = ({
       {showOptions && (
         <ul
           ref={optionsRef}
-          className={`${styles.options}  border-real-with-shadow-dark ${isRendered ? `opacity-1` : `opacity-0`}`}
+          // className={`${styles.options}  border-real-with-shadow-dark ${isRendered ? `opacity-1` : `opacity-0`}`}
+          className={`${styles.options}  border-selectbox-with-shadow-dark ${isRendered ? `opacity-1` : `opacity-0`}`}
           style={{
             position: `fixed`,
             zIndex: zIndexOptionContainer, // 8000

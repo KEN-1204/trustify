@@ -144,7 +144,7 @@ const CompanyMainContainerMemo: FC = () => {
   const setEditSearchMode = useDashboardStore((state) => state.setEditSearchMode);
   const setLoadingGlobalState = useDashboardStore((state) => state.setLoadingGlobalState);
 
-  // const supabase = useSupabaseClient();
+  const supabase = useSupabaseClient();
   // const queryClient = useQueryClient();
 
   // useMutation
@@ -8094,6 +8094,26 @@ const CompanyMainContainerMemo: FC = () => {
                   >
                     検索
                   </button>
+                  {/* <button
+                    type="button"
+                    className={`${styles.btn} transition-base02 ${
+                      isOpenSidebar ? "min-h-[30px] text-[14px]" : `min-h-[38px] text-[15px]`
+                    }`}
+                    onClick={async () => {
+                      try {
+                        console.log("テスト実行🔥🔥🔥🔥", "inputName", inputName);
+                        const { data, error } = await supabase.rpc("test_function", { _name: inputName });
+                        if (error) throw error;
+                        console.log("data", data, "error", error);
+                        toast.success(`成功🌲`);
+                      } catch (error: any) {
+                        console.error("error", error);
+                        toast.error(`エラー🙇‍♀️`);
+                      }
+                    }}
+                  >
+                    テスト
+                  </button> */}
                 </div>
               </div>
             </div>

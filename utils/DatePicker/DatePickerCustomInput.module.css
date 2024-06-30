@@ -162,3 +162,66 @@
   /* background: var(--color-bg-sub-deep); */
   color: var(--color-text-brand-f);
 }
+
+@keyframes fade {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+.date_range_container .close_btn_area {
+  position: absolute;
+  right: -30px;
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  opacity: 0;
+  animation: fade 0.5s ease forwards;
+}
+.date_range_container .close_btn_range {
+  /* position: absolute;
+  right: -30px;
+  top: 50%;
+  z-index: 1;
+  transform: translateY(-50%); */
+  position: relative;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  /* display: none; */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  /* opacity: 0;
+  animation: fade 0.5s ease forwards; */
+  /* background: var(--close-bg-deep); */
+  background: var(--color-modal-outside-btn-bg);
+  color: #fff;
+  box-shadow: 0 0 0 1px transparent;
+}
+
+.date_range_container:hover .close_btn_area {
+  display: flex;
+}
+.date_range_container .close_btn_area:hover {
+  display: flex;
+}
+/* .date_range_container:hover .close_btn {
+  display: flex;
+} */
+
+.date_range_container .close_btn_range:hover {
+  box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+  background: var(--color-modal-outside-btn-bg-hover);
+  /* background: var(--close-bg-deep);
+  color: #fff; */
+}

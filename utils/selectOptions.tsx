@@ -1225,6 +1225,20 @@ export const optionsSearchEmployeesClass = [
 //   "Other",
 //   "Handover",
 // ];
+export type ActivityType =
+  | "call_no_answer"
+  | "call_proactive"
+  | "call_reactive"
+  | "call_expo"
+  | "call_deal_intervention"
+  | "call_pre_sales_follow_up"
+  | "call_post_sales_follow_up"
+  | "call_appointment_scheduling"
+  | "call_other"
+  | "email_received"
+  | "email_sent"
+  | "other"
+  | "handover";
 export const optionsActivityType = [
   "call_no_answer",
   "call_proactive",
@@ -1240,6 +1254,24 @@ export const optionsActivityType = [
   "other",
   "handover",
 ];
+export const mappingActivityType:
+  | { [K in ActivityType]: { [key: string]: string } }
+  | { [key: string]: { [key: string]: string } } = {
+  call_no_answer: { ja: `TEL発信(不在)`, en: `call (No Answer)` },
+  call_proactive: { ja: `TEL発信(能動)`, en: `call (Proactive)` },
+  call_reactive: { ja: `TEL発信(受動)`, en: `call (Reactive)` },
+  call_expo: { ja: `TEL発信(展示会)`, en: `call (Expo)` },
+  call_deal_intervention: { ja: `TEL発信(案件介入)`, en: `call (Deal Intervention)` },
+  call_pre_sales_follow_up: { ja: `TEL発信(売前ﾌｫﾛｰ)`, en: `call (Pre-Sales Follow-Up)` },
+  call_post_sales_follow_up: { ja: `TEL発信(売後ﾌｫﾛｰ)`, en: `call (Post-Sales Follow-Up)` },
+  call_appointment_scheduling: { ja: `TEL発信(ｱﾎﾟ組み)`, en: `call (Appointment Scheduling)` },
+  call_other: { ja: `TEL発信(その他)`, en: `call (Other)` },
+  email_received: { ja: `Email受信`, en: `Email Received` },
+  email_sent: { ja: `Email送信`, en: `Email Sent` },
+  other: { ja: `その他`, en: `Other` },
+  handover: { ja: `引継ぎ`, en: `Handover` },
+};
+
 export const getActivityType = (value: string, language: string = "ja") => {
   switch (value) {
     case "call_no_answer":

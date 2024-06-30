@@ -22,22 +22,7 @@ import { ErrorFallback } from "@/components/ErrorFallback/ErrorFallback";
 import dynamic from "next/dynamic";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import productCategoriesM, {
-  mappingAnalysisCategoryM,
-  mappingBusinessSupportCategoryM,
-  mappingControlEquipmentCategoryM,
-  mappingDesignCategoryM,
-  mappingITCategoryM,
-  mappingImageProcessingCategoryM,
-  mappingMachinePartsCategoryM,
-  mappingMaterialCategoryM,
-  mappingModuleCategoryM,
-  mappingOfficeCategoryM,
-  mappingOthersCategoryM,
-  mappingProcessingMachineryCategoryM,
   mappingProductCategoriesMedium,
-  mappingScienceCategoryM,
-  mappingSkillUpCategoryM,
-  mappingToolCategoryM,
   productCategoriesMediumNameOnlySet,
   productCategoryLargeToMappingMediumMap,
   productCategoryLargeToOptionsMediumMap,
@@ -453,7 +438,7 @@ const ContactMainContainerMemo: FC = () => {
     return mappingOccupation[option][language];
   };
   // ----------------------- サーチ配列 担当職種 ----------------------- ここまで
-  // ----------------------- 範囲検索 決裁金額 ----------------------- ここまで
+  // ----------------------- 範囲検索 決裁金額 -----------------------
   const [inputApprovalAmount, setInputApprovalAmount] = useState(""); // 決裁金額 stringで入力してnumberに変換 ユーザーの入力が楽になるため(フォーマットもstringならしやすい)
   const [inputApprovalAmountSearch, setInputApprovalAmountSearch] = useState<
     { min: string; max: string } | "is null" | "is not null"
@@ -550,7 +535,7 @@ const ContactMainContainerMemo: FC = () => {
       // 🔸string配列のパラメータをstateにセットする関数
       const setArrayParam = (
         param: string[] | number[] | "ISNULL" | "ISNOTNULL",
-        dispatch: Dispatch<SetStateAction<any>>,
+        dispatch: Dispatch<SetStateAction<any[]>>,
         dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>
       ) => {
         if (param === "ISNULL" || param === "ISNOTNULL") {
@@ -672,7 +657,7 @@ const ContactMainContainerMemo: FC = () => {
 
       // ------------------------ 製品分類関連 ここまで ------------------------
 
-      // サーチ配列 ------------------------
+      // サーチ配列 決算月 予算申請月1, 2 ------------------------
       // setInputFiscal(beforeAdjustFieldValue(newSearchContact_CompanyParams.fiscal_end_month));
       setArrayParam(newSearchContact_CompanyParams?.fiscal_end_month, setInputFiscalArray, setIsNullNotNullFiscal);
       // setInputBudgetRequestMonth1(beforeAdjustFieldValue(newSearchContact_CompanyParams.budget_request_month1));
@@ -687,7 +672,7 @@ const ContactMainContainerMemo: FC = () => {
         setInputBudgetRequestMonth2Array,
         setIsNullNotNullBudgetRequestMonth2
       );
-      // サーチ配列 ------------------------ ここまで
+      // サーチ配列 決算月 予算申請月1, 2 ------------------------ ここまで
       setInputClient(beforeAdjustFieldValue(newSearchContact_CompanyParams.clients));
       setInputSupplier(beforeAdjustFieldValue(newSearchContact_CompanyParams.supplier));
       setInputFacility(beforeAdjustFieldValue(newSearchContact_CompanyParams.facility));
@@ -715,7 +700,7 @@ const ContactMainContainerMemo: FC = () => {
       // );
       setArrayParam(
         newSearchContact_CompanyParams.position_class,
-        setInputPositionClass,
+        setInputPositionClassArray,
         setIsNullNotNullPositionClass
       );
       // サーチ配列 ------------------------ ここまで
@@ -725,7 +710,7 @@ const ContactMainContainerMemo: FC = () => {
       //     newSearchContact_CompanyParams.occupation ? newSearchContact_CompanyParams.occupation.toString() : ""
       //   )
       // );
-      setArrayParam(newSearchContact_CompanyParams.occupation, setInputOccupation, setIsNullNotNullOccupation);
+      setArrayParam(newSearchContact_CompanyParams.occupation, setInputOccupationArray, setIsNullNotNullOccupation);
       // サーチ配列 ------------------------ ここまで
       // 範囲検索 ------------------------
       // setInputApprovalAmount(
@@ -834,6 +819,8 @@ const ContactMainContainerMemo: FC = () => {
   // サーチ関数実行
   const handleSearchSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    handleCloseTooltip();
 
     // フィールド編集モードがtrueならサブミットせずにリターン
     if (isEditModeField) return console.log("サブミット フィールドエディットモードのためリターン");
@@ -945,16 +932,14 @@ const ContactMainContainerMemo: FC = () => {
     // let _product_category_large = adjustFieldValue(inputProductL);
     // let _product_category_medium = adjustFieldValue(inputProductM);
     // let _product_category_small = adjustFieldValue(inputProductS);
-    // サーチ配列 TEXT[] ------------
+    // サーチ配列 決算日・予算申請月1, 2 TEXT[] ------------
     // let _fiscal_end_month = adjustFieldValue(inputFiscal);
-    let _fiscal_end_month = inputFiscalArray;
-    // サーチ配列 TEXT[] ------------ここまで
-    // サーチ配列 TEXT[] ------------
     // let _budget_request_month1 = adjustFieldValue(inputBudgetRequestMonth1);
     // let _budget_request_month2 = adjustFieldValue(inputBudgetRequestMonth2);
+    let _fiscal_end_month = inputFiscalArray;
     let _budget_request_month1 = inputBudgetRequestMonth1Array;
     let _budget_request_month2 = inputBudgetRequestMonth2Array;
-    // サーチ配列 TEXT[] ------------ここまで
+    // サーチ配列 決算日・予算申請月1, 2 TEXT[] ------------ここまで
     let _clients = adjustFieldValue(inputClient);
     let _supplier = adjustFieldValue(inputSupplier);
     let _facility = adjustFieldValue(inputFacility);
@@ -1091,8 +1076,6 @@ const ContactMainContainerMemo: FC = () => {
       // サーチ配列 TEXT[] ------------
       // fiscal_end_month: _fiscal_end_month,
       fiscal_end_month: isNullNotNullFiscal === null ? _fiscal_end_month : adjustIsNNN(isNullNotNullFiscal),
-      // サーチ配列 TEXT[] ------------ここまで
-      // サーチ配列 TEXT[] ------------
       // budget_request_month1: _budget_request_month1,
       // budget_request_month2: _budget_request_month2,
       budget_request_month1:

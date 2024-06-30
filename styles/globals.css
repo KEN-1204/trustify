@@ -1215,6 +1215,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     var(--shadow-dropdown-menu); */
   --border-real-with-shadow-dark: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #00000099,
     var(--shadow-dropdown-menu);
+  --border-selectbox-with-shadow-dark: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #00000099,
+    0 3px 9px 3px #00000056;
 
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80);
   --tile-border-hp: conic-gradient(#555555c0, #55555540, #55555520, #555555c0, #55555540, #55555520, #555555c0);
@@ -1891,7 +1893,6 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-bg-under-input: #3c3c3c;
   --color-bg-under-input-gray: #3c3c3c;
   --color-bg-under-input-box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000;
-
   --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px var(--color-bg-brand-f);
   /* --color-bg-under-input-active-box-shadow: inset 0px 0px 0px 1px #0066ff; */
   --color-text-under-input: #fff;
@@ -2319,6 +2320,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
     var(--shadow-dropdown-menu-dark); */
   --border-real-with-shadow-dark: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #000000aa,
     var(--shadow-dropdown-menu-dark);
+  --border-selectbox-with-shadow-dark: inset 0px 0px 0px 1px #cccccc90, 0px 0px 0px 1px #000000aa,
+    0 3px 9px 3px #00000056;
 
   /* --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff30, #ffffff20, #ffffff10, #ffffff10, #ffffff80); */
   --tile-border: conic-gradient(#ffffff80, #ffffff40, #ffffff20, #ffffff80, #ffffff40, #ffffff20, #ffffff80);
@@ -3829,6 +3832,9 @@ textarea {
 }
 .border-real-with-shadow-dark {
   box-shadow: var(--border-real-with-shadow-dark);
+}
+.border-selectbox-with-shadow-dark {
+  box-shadow: var(--border-selectbox-with-shadow-dark);
 }
 
 /* ボーダー box-shadow inset ブランドカラー */

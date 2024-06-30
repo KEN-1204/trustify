@@ -1634,7 +1634,9 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   // planned_purpose: string | null;
   planned_purpose: string[] | "ISNULL" | "ISNOTNULL";
   // planned_duration: number | null;
-  planned_duration: number | "ISNULL" | "ISNOTNULL" | null;
+  // 範囲検索 面談時間(予定) 数値型 ----------------
+  // planned_duration: number | "ISNULL" | "ISNOTNULL" | null;
+  planned_duration: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   planned_appoint_check_flag: boolean | null;
   planned_product1: string | null;
   planned_product2: string | null;
@@ -2139,10 +2141,16 @@ export type NewSearchProperty_Contact_CompanyParams = {
   main_fax: string | null;
   zipcode: string | null;
   address: string | null;
-  number_of_employees_class: string | null;
+  // サーチ配列 規模 ----------------
+  // number_of_employees_class: string | null;
+  number_of_employees_class: string[] | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 従業員数 ----------------
+  number_of_employees: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   // capital: string | null;
   // capital: number | null;
-  capital: number | "ISNULL" | "ISNOTNULL" | null;
+  // 範囲検索 資本金 ----------------
+  // capital: number | "ISNULL" | "ISNOTNULL" | null;
+  capital: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   established_in: string | null;
   business_content: string | null;
   website_url: string | null;
@@ -2151,7 +2159,9 @@ export type NewSearchProperty_Contact_CompanyParams = {
   // industry_type: string | null;
   // 🔹〜別売上用 業界別、国別、都道府県別、市区町村別
   // industry_type_id?: number | null;
-  industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
+  // サーチ配列 業種 ----------------
+  // industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
+  industry_type_id?: number[] | "ISNULL" | "ISNOTNULL";
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
@@ -2164,9 +2174,14 @@ export type NewSearchProperty_Contact_CompanyParams = {
   product_category_medium_ids: number[] | "ISNULL" | "ISNOTNULL";
   product_category_small_ids: number[] | "ISNULL" | "ISNOTNULL";
   // 🌠製品分類 ---------------- ここまで
-  fiscal_end_month: string | null;
-  budget_request_month1: string | null;
-  budget_request_month2: string | null;
+  // サーチ配列 決算月 ----------------
+  // fiscal_end_month: string | null;
+  fiscal_end_month: string[] | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 予算申請月 ----------------
+  // budget_request_month1: string | null;
+  // budget_request_month2: string | null;
+  budget_request_month1: string[] | "ISNULL" | "ISNOTNULL";
+  budget_request_month2: string[] | "ISNULL" | "ISNOTNULL";
   clients: string | null;
   supplier: string | null;
   facility: string | null;
@@ -2174,7 +2189,7 @@ export type NewSearchProperty_Contact_CompanyParams = {
   overseas_bases: string | null;
   group_company: string | null;
   corporate_number: string | null;
-
+  // 🔹担当者テーブル
   "contacts.name": string | null;
   direct_line: string | null;
   direct_fax: string | null;
@@ -2187,15 +2202,21 @@ export type NewSearchProperty_Contact_CompanyParams = {
   // position_class: string | null;
   // occupation: string | null;
   // position_class: number | null;
-  position_class: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  // サーチ配列 職位 ----------------
+  // position_class: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  position_class: number[] | "ISNULL" | "ISNOTNULL";
   // occupation: number | null;
-  occupation: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  // サーチ配列 担当職種 ----------------
+  // occupation: number | "ISNULL" | "ISNOTNULL" | null; //🌠変更オブジェクトマッピング
+  occupation: number[] | "ISNULL" | "ISNOTNULL";
   // approval_amount: string | null;
   // approval_amount: number | null;
-  approval_amount: number | "ISNULL" | "ISNOTNULL" | null;
+  // 範囲検索 決裁金額 ----------------
+  // approval_amount: number | "ISNULL" | "ISNOTNULL" | null;
+  approval_amount: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   "contacts.created_by_company_id": string | null;
   "contacts.created_by_user_id": string | null;
-
+  // 🔹案件テーブル
   // created_at: string;
   // updated_at: string | null;
   "properties.created_by_company_id": string | null;
@@ -2204,7 +2225,9 @@ export type NewSearchProperty_Contact_CompanyParams = {
   "properties.created_by_section_of_user": string | null;
   "properties.created_by_unit_of_user": string | null;
   "properties.created_by_office_of_user": string | null; //🌠追加
-  current_status: string | null;
+  // サーチ配列 現ステータス ----------------
+  // current_status: string | null;
+  current_status: string[] | "ISNULL" | "ISNOTNULL";
   // property_name: string | null;
   property_name: string | null;
   property_summary: string | null;
@@ -2214,28 +2237,48 @@ export type NewSearchProperty_Contact_CompanyParams = {
   // expected_product_id: string | null;
   expected_product: string | null;
   // product_sales: number | null;
-  product_sales: number | "ISNULL" | "ISNOTNULL" | null;
+  // 範囲検索 予定台数 ----------------
+  // product_sales: number | "ISNULL" | "ISNOTNULL" | null; // 予定台数
+  product_sales: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   // expected_sales_price: number | null;
-  expected_sales_price: string | null;
+  // 範囲検索 予定売上合計 NUMERIC ---------------- // stringで送信
+  // expected_sales_price: string | null;
+  expected_sales_price: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL";
   term_division: string | null;
   // sold_product_name: string | null;
   // sold_product_id: string | null;
   sold_product: string | null;
   // unit_sales: number | null;
-  unit_sales: number | "ISNULL" | "ISNOTNULL" | null;
-  sales_contribution_category: string | null;
+  // 範囲検索 売上台数 ----------------
+  // unit_sales: number | "ISNULL" | "ISNOTNULL" | null; // 売上台数
+  unit_sales: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 売上貢献区分 ----------------
+  // sales_contribution_category: string | null;
+  sales_contribution_category: string[] | "ISNULL" | "ISNOTNULL";
   // sales_price: number | null;
   // discounted_price: number | null;
   // discount_rate: number | null;
-  sales_price: string | null;
-  discounted_price: string | null;
-  discount_rate: string | null;
-  sales_class: string | null;
+  // 範囲検索 売上合計 NUMERIC ---------------- // stringで送信
+  // sales_price: string | null;
+  sales_price: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 値引価格 NUMERIC ---------------- // stringで送信
+  // discounted_price: string | null;
+  discounted_price: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 値引率 NUMERIC ---------------- // stringで送信
+  discount_rate: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL";
+  // サーチ配列 導入分類 ----------------
+  // sales_class: string | null;
+  sales_class: string[] | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 日付(カレンダー) DATE ----------------
   // 日付(カレンダー)
-  property_date: string | null;
-  expansion_date: string | null;
-  sales_date: string | null;
-  expected_order_date: string | null;
+  // property_date: string | null;
+  // expansion_date: string | null;
+  // sales_date: string | null;
+  // expected_order_date: string | null;
+  property_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
+  expansion_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
+  sales_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
+  expected_order_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
   // 年月度(会計基準の)
   property_year_month: number | null;
   expansion_year_month: number | null;
@@ -2257,29 +2300,47 @@ export type NewSearchProperty_Contact_CompanyParams = {
   sales_fiscal_year: number | null; // 🌠追加
   expected_order_fiscal_year: number | null; // 🌠追加
 
-  subscription_start_date: string | null;
-  subscription_canceled_at: string | null;
+  // 範囲検索 サブスク開始日 DATE型 ----------------
+  // subscription_start_date: string | null;
+  subscription_start_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
+  // 範囲検索 サブスク終了日 DATE型 ----------------
+  // subscription_canceled_at: string | null;
+  subscription_canceled_at: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
   leasing_company: string | null;
   lease_division: string | null;
-  lease_expiration_date: string | null;
+  // 範囲検索 リース完了予定日 DATE型 ----------------
+  // lease_expiration_date: string | null;
+  lease_expiration_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
   step_in_flag: boolean | null;
   repeat_flag: boolean | null;
   // order_certainty_start_of_month: string | null;
   // review_order_certainty: string | null;
   // order_certainty_start_of_month: number | null;
-  order_certainty_start_of_month: number | "ISNULL" | "ISNOTNULL" | null;
+  // サーチ配列 月初確度 ----------------
+  // order_certainty_start_of_month: number | "ISNULL" | "ISNOTNULL" | null;
+  order_certainty_start_of_month: number[] | "ISNULL" | "ISNOTNULL";
   // review_order_certainty: number | null;
-  review_order_certainty: number | "ISNULL" | "ISNOTNULL" | null;
-  competitor_appearance_date: string | null;
+  // サーチ配列 中間確度 ----------------
+  // review_order_certainty: number | "ISNULL" | "ISNOTNULL" | null;
+  review_order_certainty: number[] | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 競合発生日 DATE型 ----------------
+  // competitor_appearance_date: string | null;
+  competitor_appearance_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
   competitor: string | null;
   competitor_product: string | null;
-  reason_class: string | null;
+  // サーチ配列 案件発生動機 ----------------
+  // reason_class: string | null;
+  reason_class: string[] | "ISNULL" | "ISNOTNULL";
   reason_detail: string | null;
   // customer_budget: number | null;
   customer_budget: string | null;
-  decision_maker_negotiation: string | null;
+  // サーチ配列 決裁者商談有無 ----------------
+  // decision_maker_negotiation: string | null;
+  decision_maker_negotiation: string[] | "ISNULL" | "ISNOTNULL";
   subscription_interval: string | null;
-  competition_state: string | null;
+  // サーチ配列 競合状況 ----------------
+  // competition_state: string | null;
+  competition_state: string[] | "ISNULL" | "ISNOTNULL";
   property_department: string | null;
   property_business_office: string | null;
   property_member_name: string | null;
