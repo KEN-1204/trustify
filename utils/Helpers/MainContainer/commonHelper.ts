@@ -80,12 +80,16 @@ export const isEmptyInputRange = (
         min: Date | null;
         max: Date | null;
       }
+    | {
+        min: number | null;
+        max: number | null;
+      }
     | "is null"
     | "is not null",
-  type: "" | "date" = ""
+  type: "" | "date" | "number" = ""
 ) => {
   if (type === "") return input !== "is null" && input !== "is not null" && input.min === "" && input.max === "";
-  if (type === "date")
+  if (type === "date" || type === "number")
     return input !== "is null" && input !== "is not null" && input.min === null && input.max === null;
 };
 

@@ -273,6 +273,12 @@ const activityColumnHeaderItemListArray: Obj[] = [
     isOverflow: false,
   },
   {
+    columnName: "number_of_employees",
+    columnWidth: "100px",
+    isFrozen: false,
+    isOverflow: false,
+  },
+  {
     columnName: "business_content",
     columnWidth: "100px",
     isFrozen: false,

@@ -1629,7 +1629,13 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   planned_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
   // 範囲検索 面談開始(予定) TIME型 ----------------
   // planned_start_time: string | null;
-  planned_start_time: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL";
+  planned_start_time:
+    | {
+        search_type: "exact" | "range";
+        time_value: { min: string | null; max: string | null } | string | null;
+      }
+    | "ISNULL"
+    | "ISNOTNULL";
   // サーチ配列 面談目的 ----------------
   // planned_purpose: string | null;
   planned_purpose: string[] | "ISNULL" | "ISNOTNULL";
@@ -1646,10 +1652,22 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   result_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
   // 範囲検索 面談開始(結果) TIME型 ----------------
   // result_start_time: string | null;
-  result_start_time: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL";
+  result_start_time:
+    | {
+        search_type: "exact" | "range";
+        time_value: { min: string | null; max: string | null } | string | null;
+      }
+    | "ISNULL"
+    | "ISNOTNULL";
   // 範囲検索 面談終了(結果) TIME型 ----------------
   // result_end_time: string | null;
-  result_end_time: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL";
+  result_end_time:
+    | {
+        search_type: "exact" | "range";
+        time_value: { min: string | null; max: string | null } | string | null;
+      }
+    | "ISNULL"
+    | "ISNOTNULL";
   // result_duration: number | null;
   // 範囲検索 面談時間(結果) 数値型 ----------------
   // result_duration: number | "ISNULL" | "ISNOTNULL" | null;

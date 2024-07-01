@@ -36,6 +36,13 @@ import { Zoom } from "@/utils/Helpers/toastHelpers";
 import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
 import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 import {
+  MonthType,
+  NumberOfEmployeesClassType,
+  OccupationType,
+  PlannedPurposeType,
+  PositionClassType,
+  ResultCategoryType,
+  WebToolType,
   getMeetingParticipationRequest,
   getMeetingType,
   getNumberOfEmployeesClass,
@@ -45,8 +52,17 @@ import {
   getResultCategory,
   getResultNegotiateDecisionMaker,
   getWebTool,
+  hours,
   mappingIndustryType,
+  mappingMonth,
+  mappingNumberOfEmployeesClass,
+  mappingPlannedPurpose,
+  mappingPositionsClassName,
   mappingProductL,
+  mappingResultCategory,
+  mappingWebTool,
+  minutes,
+  minutes5,
   optionsIndustryType,
   optionsMeetingParticipationRequest,
   optionsMeetingType,
@@ -107,6 +123,13 @@ import {
 import { CustomSelectMultiple } from "@/components/Parts/CustomSelectMultiple/CustomSelectMultiple";
 import { DatePickerCustomInputForSearch } from "@/utils/DatePicker/DatePickerCustomInputForSearch";
 import { BsCheck2 } from "react-icons/bs";
+import { formatDisplayPrice } from "@/utils/Helpers/formatDisplayPrice";
+import { toHalfWidthAndRemoveSpace } from "@/utils/Helpers/toHalfWidthAndRemoveSpace";
+import { combineTime } from "@/utils/Helpers/TimeHelpers/timeHelpers";
+import { isEmptyInputRange } from "@/utils/Helpers/MainContainer/commonHelper";
+import { DatePickerCustomInputRange } from "@/utils/DatePicker/DatePickerCustomInputRange";
+import { LuCalendarSearch } from "react-icons/lu";
+import { FiSearch } from "react-icons/fi";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -182,13 +205,43 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputFax, setInputFax] = useState("");
   const [inputZipcode, setInputZipcode] = useState("");
   const [inputAddress, setInputAddress] = useState("");
-  const [inputEmployeesClass, setInputEmployeesClass] = useState("");
-  const [inputCapital, setInputCapital] = useState("");
+  // const [inputEmployeesClass, setInputEmployeesClass] = useState("");
+  // ----------------------- サーチ配列 規模(ランク) -----------------------
+  const [inputEmployeesClassArray, setInputEmployeesClassArray] = useState<NumberOfEmployeesClassType[]>([]);
+  const [isNullNotNullEmployeesClass, setIsNullNotNullEmployeesClass] = useState<"is null" | "is not null" | null>(
+    null
+  );
+  const selectedEmployeesClassArraySet = useMemo(() => {
+    return new Set([...inputEmployeesClassArray]);
+  }, [inputEmployeesClassArray]);
+  const getEmployeesClassNameSearch = (option: NumberOfEmployeesClassType) => {
+    return mappingNumberOfEmployeesClass[option][language];
+  };
+  // ----------------------- サーチ配列 規模(ランク) ----------------------- ここまで
+  // const [inputCapital, setInputCapital] = useState("");
+  // ----------------------- 範囲検索 資本金 -----------------------
+  const [inputCapitalSearch, setInputCapitalSearch] = useState<
+    { min: string; max: string } | "is null" | "is not null"
+  >({
+    min: "",
+    max: "",
+  });
+  // ----------------------- 範囲検索 資本金 ----------------------- ここまで
   const [inputFound, setInputFound] = useState("");
   const [inputContent, setInputContent] = useState("");
   const [inputHP, setInputHP] = useState("");
   const [inputCompanyEmail, setInputCompanyEmail] = useState("");
-  const [inputIndustryType, setInputIndustryType] = useState("");
+  // const [inputIndustryType, setInputIndustryType] = useState("");
+  // ----------------------- サーチ配列 業種(number) -----------------------
+  const [inputIndustryTypeArray, setInputIndustryTypeArray] = useState<number[]>([]);
+  const [isNullNotNullIndustryType, setIsNullNotNullIndustryType] = useState<"is null" | "is not null" | null>(null);
+  const selectedIndustryTypeArraySet = useMemo(() => {
+    return new Set([...inputIndustryTypeArray]);
+  }, [inputIndustryTypeArray]);
+  const getIndustryTypeNameSearch = (option: number) => {
+    return mappingIndustryType[option][language];
+  };
+  // ----------------------- サーチ配列 業種(number) -----------------------ここまで
   // ----------------------- 🌟製品分類関連🌟 -----------------------
   // const [inputProductL, setInputProductL] = useState("");
   // const [inputProductM, setInputProductM] = useState("");
@@ -355,9 +408,39 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
   // ----------------------- 🌟製品分類関連🌟 ここまで -----------------------
 
-  const [inputFiscal, setInputFiscal] = useState("");
-  const [inputBudgetRequestMonth1, setInputBudgetRequestMonth1] = useState("");
-  const [inputBudgetRequestMonth2, setInputBudgetRequestMonth2] = useState("");
+  // const [inputFiscal, setInputFiscal] = useState("");
+  // ----------------------- サーチ配列 決算月 -----------------------
+  const [inputFiscalArray, setInputFiscalArray] = useState<MonthType[]>([]);
+  const [isNullNotNullFiscal, setIsNullNotNullFiscal] = useState<"is null" | "is not null" | null>(null);
+  const selectedFiscalArraySet = useMemo(() => {
+    return new Set([...inputFiscalArray]);
+  }, [inputFiscalArray]);
+  const getMonthNameSearch = (option: MonthType) => {
+    return mappingMonth[option][language];
+  };
+  // ----------------------- サーチ配列 決算月 ----------------------- ここまで
+  // const [inputBudgetRequestMonth1, setInputBudgetRequestMonth1] = useState("");
+  // const [inputBudgetRequestMonth2, setInputBudgetRequestMonth2] = useState("");
+  // ----------------------- サーチ配列 予算申請月1 -----------------------
+  const [inputBudgetRequestMonth1Array, setInputBudgetRequestMonth1Array] = useState<MonthType[]>([]);
+  const [isNullNotNullBudgetRequestMonth1, setIsNullNotNullBudgetRequestMonth1] = useState<
+    "is null" | "is not null" | null
+  >(null);
+  const selectedBudgetRequestMonth1ArraySet = useMemo(() => {
+    return new Set([...inputBudgetRequestMonth1Array]);
+  }, [inputBudgetRequestMonth1Array]);
+  // getMonthName
+  // ----------------------- サーチ配列 予算申請月1 ----------------------- ここまで
+  // ----------------------- サーチ配列 予算申請月2 -----------------------
+  const [inputBudgetRequestMonth2Array, setInputBudgetRequestMonth2Array] = useState<MonthType[]>([]);
+  const [isNullNotNullBudgetRequestMonth2, setIsNullNotNullBudgetRequestMonth2] = useState<
+    "is null" | "is not null" | null
+  >(null);
+  const selectedBudgetRequestMonth2ArraySet = useMemo(() => {
+    return new Set([...inputBudgetRequestMonth2Array]);
+  }, [inputBudgetRequestMonth2Array]);
+  // getMonthName
+  // ----------------------- サーチ配列 予算申請月2 ----------------------- ここまで
   const [inputClient, setInputClient] = useState("");
   const [inputSupplier, setInputSupplier] = useState("");
   const [inputFacility, setInputFacility] = useState("");
@@ -365,7 +448,16 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputOverseas, setInputOverseas] = useState("");
   const [inputGroup, setInputGroup] = useState("");
   const [inputCorporateNum, setInputCorporateNum] = useState("");
-  // contactsテーブル
+  // ----------------------- 範囲検索 従業員数 -----------------------
+  // 従業員数サーチ用
+  const [inputNumberOfEmployeesSearch, setInputNumberOfEmployeesSearch] = useState<
+    { min: string; max: string } | "is null" | "is not null"
+  >({
+    min: "",
+    max: "",
+  });
+  // ----------------------- 範囲検索 従業員数 ----------------------- ここまで
+  // 🔹contactsテーブル
   const [inputContactName, setInputContactName] = useState("");
   const [inputDirectLine, setInputDirectLine] = useState("");
   const [inputDirectFax, setInputDirectFax] = useState("");
@@ -374,12 +466,40 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputPersonalCellPhone, setInputPersonalCellPhone] = useState("");
   const [inputContactEmail, setInputContactEmail] = useState("");
   const [inputPositionName, setInputPositionName] = useState("");
-  const [inputPositionClass, setInputPositionClass] = useState("");
-  const [inputOccupation, setInputOccupation] = useState("");
-  const [inputApprovalAmount, setInputApprovalAmount] = useState("");
+  // const [inputPositionClass, setInputPositionClass] = useState("");
+  // ----------------------- サーチ配列 職位 -----------------------
+  const [inputPositionClassArray, setInputPositionClassArray] = useState<PositionClassType[]>([]); // 職位
+  const [isNullNotNullPositionClass, setIsNullNotNullPositionClass] = useState<"is null" | "is not null" | null>(null);
+  const selectedPositionClassArraySet = useMemo(() => {
+    return new Set([...inputPositionClassArray]);
+  }, [inputPositionClassArray]);
+  const getPositionClassNameSearch = (option: PositionClassType) => {
+    return mappingPositionsClassName[option][language];
+  };
+  // ----------------------- サーチ配列 職位 ----------------------- ここまで
+  // const [inputOccupation, setInputOccupation] = useState("");
+  // ----------------------- サーチ配列 担当職種 -----------------------
+  const [inputOccupationArray, setInputOccupationArray] = useState<OccupationType[]>([]); // 担当職種
+  const [isNullNotNullOccupation, setIsNullNotNullOccupation] = useState<"is null" | "is not null" | null>(null);
+  const selectedOccupationArraySet = useMemo(() => {
+    return new Set([...inputOccupationArray]);
+  }, [inputOccupationArray]);
+  const getOccupationNameSearch = (option: OccupationType) => {
+    return mappingOccupation[option][language];
+  };
+  // ----------------------- サーチ配列 担当職種 ----------------------- ここまで
+  // const [inputApprovalAmount, setInputApprovalAmount] = useState("");
+  // ----------------------- 範囲検索 決裁金額 ----------------------- ここまで
+  const [inputApprovalAmountSearch, setInputApprovalAmountSearch] = useState<
+    { min: string; max: string } | "is null" | "is not null"
+  >({
+    min: "",
+    max: "",
+  });
+  // ----------------------- 範囲検索 決裁金額 ----------------------- ここまで
   const [inputContactCreatedByCompanyId, setInputContactCreatedByCompanyId] = useState("");
   const [inputContactCreatedByUserId, setInputContactCreatedByUserId] = useState("");
-  // Meetingテーブル
+  // 🔹Meetingsテーブル
   const [inputMeetingCreatedByCompanyId, setInputMeetingCreatedByCompanyId] = useState("");
   const [inputMeetingCreatedByUserId, setInputMeetingCreatedByUserId] = useState("");
   const [inputMeetingCreatedByDepartmentOfUser, setInputMeetingCreatedByDepartmentOfUser] = useState("");
@@ -387,40 +507,152 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputMeetingCreatedByUnitOfUser, setInputMeetingCreatedByUnitOfUser] = useState("");
   const [inputMeetingCreatedByOfficeOfUser, setInputMeetingCreatedByOfficeOfUser] = useState("");
   const [inputMeetingType, setInputMeetingType] = useState("");
+  // ----------------------- サーチ配列 Webツール -----------------------
   const [inputWebTool, setInputWebTool] = useState("");
+  const [inputWebToolArray, setInputWebToolArray] = useState<WebToolType[]>([]);
+  const [isNullNotNullWebTool, setIsNullNotNullWebTool] = useState<"is null" | "is not null" | null>(null);
+  const selectedWebToolArraySet = useMemo(() => {
+    return new Set([...inputWebToolArray]);
+  }, [inputWebToolArray]);
+  const getWebToolNameSearch = (option: WebToolType) => {
+    return mappingWebTool[option][language];
+  };
+  // ----------------------- サーチ配列 Webツール -----------------------ここまで
+  // ----------------------- 範囲検索 面談日(予定) -----------------------
   const [inputPlannedDate, setInputPlannedDate] = useState<Date | null | "is not null" | "is null">(null);
+  const [inputPlannedDateSearch, setInputPlannedDateSearch] = useState<
+    { min: Date | null; max: Date | null } | "is not null" | "is null"
+  >({ min: null, max: null });
+  // ----------------------- 範囲検索 面談日(予定) -----------------------ここまで
   const [inputPlannedStartTime, setInputPlannedStartTime] = useState<string>("");
   const [inputPlannedStartTimeHour, setInputPlannedStartTimeHour] = useState<string>("");
   const [inputPlannedStartTimeMinute, setInputPlannedStartTimeMinute] = useState<string>("");
+  // ----------------------- 範囲検索 面談開始(予定) -----------------------
+  const [inputPlannedStartTimeSearchType, setInputPlannedStartTimeSearchType] = useState<"exact" | "range">("exact");
+  const [inputPlannedStartTimeSearchHourMin, setInputPlannedStartTimeSearchHourMin] = useState<string>("");
+  const [inputPlannedStartTimeSearchMinuteMin, setInputPlannedStartTimeSearchMinuteMin] = useState<string>("");
+  const [inputPlannedStartTimeSearchHourMax, setInputPlannedStartTimeSearchHourMax] = useState<string>("");
+  const [inputPlannedStartTimeSearchMinuteMax, setInputPlannedStartTimeSearchMinuteMax] = useState<string>("");
+  const [isNullNotNullPlannedStartTimeSearch, setIsNullNotNullPlannedStartTimeSearch] = useState<
+    "is null" | "is not null" | null
+  >(null);
+  // ----------------------- 範囲検索 面談開始(予定) -----------------------ここまで
+  // ----------------------- サーチ配列 面談目的 -----------------------
   const [inputPlannedPurpose, setInputPlannedPurpose] = useState("");
+  const [inputPlannedPurposeArray, setInputPlannedPurposeArray] = useState<PlannedPurposeType[]>([]);
+  const [isNullNotNullPlannedPurpose, setIsNullNotNullPlannedPurpose] = useState<"is null" | "is not null" | null>(
+    null
+  );
+  const selectedPlannedPurposeArraySet = useMemo(() => {
+    return new Set([...inputPlannedPurposeArray]);
+  }, [inputPlannedPurposeArray]);
+  const getPlannedPurposeNameSearch = (option: PlannedPurposeType) => {
+    return mappingPlannedPurpose[option][language];
+  };
+  // ----------------------- サーチ配列 面談目的 -----------------------ここまで
+  // ----------------------- 範囲検索 面談時間(予定) -----------------------
   const [inputPlannedDuration, setInputPlannedDuration] = useState<number | null | "is not null" | "is null">(null);
+  const [inputPlannedDurationSearch, setInputPlannedDurationSearch] = useState<
+    { min: number | null; max: number | null } | "is null" | "is not null"
+  >({
+    min: null,
+    max: null,
+  });
+  // ----------------------- 範囲検索 面談時間(予定) -----------------------ここまで
   const [inputPlannedAppointCheckFlag, setInputPlannedAppointCheckFlag] = useState<boolean | null>(null);
   const [inputPlannedProduct1, setInputPlannedProduct1] = useState("");
   const [inputPlannedProduct2, setInputPlannedProduct2] = useState("");
   const [inputPlannedComment, setInputPlannedComment] = useState("");
+  // ----------------------- 範囲検索 面談日(予定) -----------------------
   const [inputResultDate, setInputResultDate] = useState<Date | null | "is not null" | "is null">(null);
+  const [inputResultDateSearch, setInputResultDateSearch] = useState<
+    { min: Date | null; max: Date | null } | "is not null" | "is null"
+  >({ min: null, max: null });
+  // ----------------------- 範囲検索 面談日(予定) -----------------------ここまで
   const [inputResultStartTime, setInputResultStartTime] = useState<string>("");
   const [inputResultStartTimeHour, setInputResultStartTimeHour] = useState<string>("");
   const [inputResultStartTimeMinute, setInputResultStartTimeMinute] = useState<string>("");
+  // ----------------------- 範囲検索 面談開始(結果) -----------------------
+  const [inputResultStartTimeSearchType, setInputResultStartTimeSearchType] = useState<"exact" | "range">("exact");
+  const [inputResultStartTimeSearchHourMin, setInputResultStartTimeSearchHourMin] = useState<string>("");
+  const [inputResultStartTimeSearchMinuteMin, setInputResultStartTimeSearchMinuteMin] = useState<string>("");
+  const [inputResultStartTimeSearchHourMax, setInputResultStartTimeSearchHourMax] = useState<string>("");
+  const [inputResultStartTimeSearchMinuteMax, setInputResultStartTimeSearchMinuteMax] = useState<string>("");
+  const [isNullNotNullResultStartTimeSearch, setIsNullNotNullResultStartTimeSearch] = useState<
+    "is null" | "is not null" | null
+  >(null);
+  // ----------------------- 範囲検索 面談開始(結果) -----------------------ここまで
   const [inputResultEndTime, setInputResultEndTime] = useState<string>("");
   const [inputResultEndTimeHour, setInputResultEndTimeHour] = useState<string>("");
   const [inputResultEndTimeMinute, setInputResultEndTimeMinute] = useState<string>("");
+  // ----------------------- 範囲検索 面談開始(結果) -----------------------
+  const [inputResultEndTimeSearchType, setInputResultEndTimeSearchType] = useState<"exact" | "range">("exact");
+  const [inputResultEndTimeSearchHourMin, setInputResultEndTimeSearchHourMin] = useState<string>("");
+  const [inputResultEndTimeSearchMinuteMin, setInputResultEndTimeSearchMinuteMin] = useState<string>("");
+  const [inputResultEndTimeSearchHourMax, setInputResultEndTimeSearchHourMax] = useState<string>("");
+  const [inputResultEndTimeSearchMinuteMax, setInputResultEndTimeSearchMinuteMax] = useState<string>("");
+  const [isNullNotNullResultEndTimeSearch, setIsNullNotNullResultEndTimeSearch] = useState<
+    "is null" | "is not null" | null
+  >(null);
+  // ----------------------- 範囲検索 面談開始(結果) -----------------------ここまで
+  // ----------------------- 範囲検索 面談時間(結果) -----------------------
   const [inputResultDuration, setInputResultDuration] = useState<number | null | "is not null" | "is null">(null);
+  const [inputResultDurationSearch, setInputResultDurationSearch] = useState<
+    { min: number | null; max: number | null } | "is null" | "is not null"
+  >({
+    min: null,
+    max: null,
+  });
+  // ----------------------- 範囲検索 面談時間(結果) -----------------------ここまで
   // const [inputResultNumberOfMeetingParticipants, setInputResultNumberOfMeetingParticipants] = useState<number | null>(
   //   null
   // );
+  // ----------------------- 範囲検索 面談人数(結果) -----------------------
   const [inputResultNumberOfMeetingParticipants, setInputResultNumberOfMeetingParticipants] = useState<
     number | null | "is not null" | "is null"
   >(null);
+  const [inputResultNumberOfMeetingParticipantsSearch, setInputResultNumberOfMeetingParticipantsSearch] = useState<
+    { min: number | null; max: number | null } | "is null" | "is not null"
+  >({
+    min: null,
+    max: null,
+  });
+  // ----------------------- 範囲検索 面談人数(結果) -----------------------ここまで
   const [inputResultPresentationProduct1, setInputResultPresentationProduct1] = useState("");
   const [inputResultPresentationProduct2, setInputResultPresentationProduct2] = useState("");
   const [inputResultPresentationProduct3, setInputResultPresentationProduct3] = useState("");
   const [inputResultPresentationProduct4, setInputResultPresentationProduct4] = useState("");
   const [inputResultPresentationProduct5, setInputResultPresentationProduct5] = useState("");
+  // ----------------------- サーチ配列 面談結果 -----------------------
   const [inputResultCategory, setInputResultCategory] = useState("");
+  const [inputResultCategoryArray, setInputResultCategoryArray] = useState<ResultCategoryType[]>([]);
+  const [isNullNotNullResultCategory, setIsNullNotNullResultCategory] = useState<"is null" | "is not null" | null>(
+    null
+  );
+  const selectedResultCategoryArraySet = useMemo(() => {
+    return new Set([...inputResultCategoryArray]);
+  }, [inputResultCategoryArray]);
+  // optionsMonth
+  const getResultCategoryNameSearch = (option: ResultCategoryType) => {
+    return mappingResultCategory[option][language];
+  };
+  // ----------------------- サーチ配列 面談結果 -----------------------ここまで
   const [inputResultSummary, setInputResultSummary] = useState("");
   const [inputResultNegotiateDecisionMaker, setInputResultNegotiateDecisionMaker] = useState("");
+  // ----------------------- サーチ配列 面談時最上位職位 -----------------------
   const [inputResultTopPositionClass, setInputResultTopPositionClass] = useState("");
+  const [inputResultTopPositionClassArray, setInputResultTopPositionClassArray] = useState<PositionClassType[]>([]);
+  const [isNullNotNullResultTopPositionClass, setIsNullNotNullResultTopPositionClass] = useState<
+    "is null" | "is not null" | null
+  >(null);
+  const selectedResultTopPositionClassArraySet = useMemo(() => {
+    return new Set([...inputResultTopPositionClassArray]);
+  }, [inputResultTopPositionClassArray]);
+  // optionsMonth
+  const getResultTopPositionClassNameSearch = (option: PositionClassType) => {
+    return mappingPositionsClassName[option][language];
+  };
+  // ----------------------- サーチ配列 面談時最上位職位 -----------------------ここまで
   const [inputPreMeetingParticipationRequest, setInputPreMeetingParticipationRequest] = useState("");
   const [inputMeetingParticipationRequest, setInputMeetingParticipationRequest] = useState("");
   const [inputMeetingBusinessOffice, setInputMeetingBusinessOffice] = useState("");
@@ -594,6 +826,145 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
         return new Date(value);
       };
 
+      // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+      const beforeAdjustFieldRangeNumeric = (
+        value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL",
+        type: "" | "price" | "integer" = ""
+      ): { min: string; max: string } | "is null" | "is not null" => {
+        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+        const { min, max } = value;
+
+        if (min !== null && max !== null) {
+          if (type === "price") return { min: formatDisplayPrice(min), max: formatDisplayPrice(max) };
+          if (type === "integer") return { min: parseInt(String(min), 10).toFixed(0), max: max.toFixed(0) };
+          return { min: String(min), max: String(max) };
+        } else if (min !== null && max === null) {
+          if (type === "price") return { min: formatDisplayPrice(min), max: "" };
+          if (type === "integer") return { min: min.toFixed(0), max: "" };
+          return { min: String(min), max: "" };
+        } else if (min === null && max !== null) {
+          if (type === "price") return { min: "", max: formatDisplayPrice(max) };
+          if (type === "integer") return { min: "", max: max.toFixed(0) };
+          return { min: "", max: String(max) };
+        }
+        return { min: "", max: "" };
+      };
+
+      // 🔸範囲検索用の変換 INTEGER型 数量・面談時間など
+      const beforeAdjustFieldRangeInteger = (
+        value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL"
+      ): { min: number | null; max: number | null } | "is null" | "is not null" => {
+        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+        const { min, max } = value;
+
+        return { min: min, max: max };
+      };
+
+      // 🔸範囲検索用の変換 Date型
+      const beforeAdjustFieldRangeDate = (
+        value: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL",
+        type: "" = ""
+      ): { min: Date | null; max: Date | null } | "is null" | "is not null" => {
+        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+        const { min, max } = value;
+
+        if (min !== null && max !== null) {
+          return { min: new Date(min), max: new Date(max) };
+        } else if (min !== null && max === null) {
+          return { min: new Date(min), max: null };
+        } else if (min === null && max !== null) {
+          return { min: null, max: new Date(max) };
+        }
+        return { min: null, max: null };
+      };
+
+      // 🔸範囲&一致検索用の変換 TIME型
+      type BeforeAdjustTimeParams = {
+        value:
+          | { search_type: "exact" | "range"; time_value: { min: string | null; max: string | null } | string | null }
+          | "ISNULL"
+          | "ISNOTNULL";
+        dispatchSearchType: Dispatch<SetStateAction<"exact" | "range">>;
+        dispatchHourMin: Dispatch<SetStateAction<string>>;
+        dispatchMinuteMin: Dispatch<SetStateAction<string>>;
+        dispatchHourMax: Dispatch<SetStateAction<string>>;
+        dispatchMinuteMax: Dispatch<SetStateAction<string>>;
+        dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>;
+      };
+      const beforeAdjustFieldTIME = ({
+        value,
+        dispatchSearchType,
+        dispatchHourMin,
+        dispatchMinuteMin,
+        dispatchHourMax,
+        dispatchMinuteMax,
+        dispatchNNN,
+      }: BeforeAdjustTimeParams): void => {
+        if (value === "ISNULL") return dispatchNNN("is null"); // ISNULLパラメータを送信
+        if (value === "ISNOTNULL") return dispatchNNN("is not null"); // ISNOTNULLパラメータを送信
+        const { search_type, time_value } = value;
+
+        dispatchNNN(null);
+
+        const getSplitTime = (
+          time: string,
+          dispatchHour: Dispatch<SetStateAction<string>>,
+          dispatchMinute: Dispatch<SetStateAction<string>>
+        ) => {
+          const [hour, minute] = time.split(":");
+          dispatchHour(!!hour ? hour : "");
+          dispatchMinute(!!minute ? minute : "");
+        };
+
+        // 一致検索
+        if (search_type === "exact") {
+          dispatchSearchType("exact");
+          dispatchHourMax("");
+          dispatchMinuteMax("");
+
+          if (time_value === null) {
+            dispatchHourMin("");
+            dispatchMinuteMin("");
+          } else if (typeof time_value === "string") {
+            getSplitTime(time_value, dispatchHourMin, dispatchMinuteMin);
+          }
+        }
+        // 範囲検索
+        else {
+          dispatchSearchType("range");
+          const { min, max } = time_value as { min: string | null; max: string | null };
+
+          if (min !== null) {
+            getSplitTime(min, dispatchHourMin, dispatchMinuteMin);
+          } else {
+            dispatchHourMin("");
+            dispatchMinuteMin("");
+          }
+          if (max !== null) {
+            getSplitTime(max, dispatchHourMax, dispatchMinuteMax);
+          } else {
+            dispatchHourMax("");
+            dispatchMinuteMax("");
+          }
+        }
+      };
+
+      // 🔸string配列のパラメータをstateにセットする関数
+      const setArrayParam = (
+        param: string[] | number[] | "ISNULL" | "ISNOTNULL",
+        dispatch: Dispatch<SetStateAction<any[]>>,
+        dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>
+      ) => {
+        if (param === "ISNULL" || param === "ISNOTNULL") {
+          dispatchNNN(beforeAdjustIsNNN(param));
+        } else {
+          dispatch(!!param.length ? param : []);
+        }
+      };
+
       const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
         value === "ISNULL" ? "is null" : "is not null";
 
@@ -612,27 +983,47 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       setInputTel(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.main_phone_number));
       setInputFax(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.main_fax));
       setInputZipcode(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.zipcode));
-      setInputEmployeesClass(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.number_of_employees_class));
-      setInputAddress(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.address));
-      setInputCapital(
-        beforeAdjustFieldValue(
-          newSearchMeeting_Contact_CompanyParams?.capital
-            ? newSearchMeeting_Contact_CompanyParams?.capital.toString()
-            : ""
-        )
+      // サーチ配列 規模 ------------------------
+      // setInputEmployeesClass(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.number_of_employees_class));
+      setArrayParam(
+        newSearchMeeting_Contact_CompanyParams?.number_of_employees_class,
+        setInputEmployeesClassArray,
+        setIsNullNotNullEmployeesClass
       );
+      // サーチ配列 規模 ------------------------ここまで
+      setInputAddress(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.address));
+      // 範囲検索 資本金・従業員数 ------------------------
+      // setInputCapital(
+      //   beforeAdjustFieldValue(
+      //     newSearchMeeting_Contact_CompanyParams?.capital
+      //       ? newSearchMeeting_Contact_CompanyParams?.capital.toString()
+      //       : ""
+      //   )
+      // );
+      setInputCapitalSearch(beforeAdjustFieldRangeNumeric(newSearchMeeting_Contact_CompanyParams?.capital));
+      setInputNumberOfEmployeesSearch(
+        beforeAdjustFieldRangeNumeric(newSearchMeeting_Contact_CompanyParams?.number_of_employees)
+      );
+      // 範囲検索 資本金・従業員数 ------------------------ここまで
       setInputFound(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.established_in));
       setInputContent(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams?.business_content));
       setInputHP(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.website_url));
       //   setInputCompanyEmail(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.company_email));
       setInputCompanyEmail(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["client_companies.email"]));
-      setInputIndustryType(
-        beforeAdjustFieldValue(
-          newSearchMeeting_Contact_CompanyParams.industry_type_id
-            ? newSearchMeeting_Contact_CompanyParams.industry_type_id.toString()
-            : ""
-        )
+      // サーチ配列 業種 ------------------------
+      // setInputIndustryType(
+      //   beforeAdjustFieldValue(
+      //     newSearchMeeting_Contact_CompanyParams.industry_type_id
+      //       ? newSearchMeeting_Contact_CompanyParams.industry_type_id.toString()
+      //       : ""
+      //   )
+      // );
+      setArrayParam(
+        newSearchMeeting_Contact_CompanyParams?.industry_type_id,
+        setInputIndustryTypeArray,
+        setIsNullNotNullIndustryType
       );
+      // サーチ配列 業種 ------------------------ここまで
       // ------------------------ 製品分類関連 ------------------------
       // 編集モードはidからnameへ変換
       // setInputProductL(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.product_category_large));
@@ -697,9 +1088,26 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       }
 
       // ------------------------ 製品分類関連 ------------------------ ここまで
-      setInputFiscal(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.fiscal_end_month));
-      setInputBudgetRequestMonth1(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.budget_request_month1));
-      setInputBudgetRequestMonth2(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.budget_request_month2));
+      // サーチ配列 決算月 予算申請月1, 2 ------------------------
+      // setInputFiscal(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.fiscal_end_month));
+      // setInputBudgetRequestMonth1(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.budget_request_month1));
+      // setInputBudgetRequestMonth2(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.budget_request_month2));
+      setArrayParam(
+        newSearchMeeting_Contact_CompanyParams?.fiscal_end_month,
+        setInputFiscalArray,
+        setIsNullNotNullFiscal
+      );
+      setArrayParam(
+        newSearchMeeting_Contact_CompanyParams?.budget_request_month1,
+        setInputBudgetRequestMonth1Array,
+        setIsNullNotNullBudgetRequestMonth1
+      );
+      setArrayParam(
+        newSearchMeeting_Contact_CompanyParams?.budget_request_month2,
+        setInputBudgetRequestMonth2Array,
+        setIsNullNotNullBudgetRequestMonth2
+      );
+      // サーチ配列 決算月 予算申請月1, 2 ------------------------ここまで
       setInputClient(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.clients));
       setInputSupplier(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.supplier));
       setInputFacility(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.facility));
@@ -721,23 +1129,42 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       setInputPositionName(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.position_name));
       // setInputPositionClass(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.position_class));
       // setInputOccupation(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.occupation));
-      setInputPositionClass(
-        newSearchMeeting_Contact_CompanyParams.position_class
-          ? newSearchMeeting_Contact_CompanyParams.position_class.toString()
-          : ""
+      // サーチ配列 職位 ------------------------
+      // setInputPositionClass(
+      //   newSearchMeeting_Contact_CompanyParams.position_class
+      //     ? newSearchMeeting_Contact_CompanyParams.position_class.toString()
+      //     : ""
+      // );
+      setArrayParam(
+        newSearchMeeting_Contact_CompanyParams.position_class,
+        setInputPositionClassArray,
+        setIsNullNotNullPositionClass
       );
-      setInputOccupation(
-        newSearchMeeting_Contact_CompanyParams.occupation
-          ? newSearchMeeting_Contact_CompanyParams.occupation.toString()
-          : ""
+      // サーチ配列 職位 ------------------------ここまで
+      // サーチ配列 担当職種 ------------------------
+      // setInputOccupation(
+      //   newSearchMeeting_Contact_CompanyParams.occupation
+      //     ? newSearchMeeting_Contact_CompanyParams.occupation.toString()
+      //     : ""
+      // );
+      setArrayParam(
+        newSearchMeeting_Contact_CompanyParams.occupation,
+        setInputOccupationArray,
+        setIsNullNotNullOccupation
       );
-      setInputApprovalAmount(
-        beforeAdjustFieldValue(
-          newSearchMeeting_Contact_CompanyParams.approval_amount
-            ? newSearchMeeting_Contact_CompanyParams.approval_amount.toString()
-            : ""
-        )
+      // サーチ配列 担当職種 ------------------------ここまで
+      // 範囲検索 決裁金額 ------------------------
+      // setInputApprovalAmount(
+      //   beforeAdjustFieldValue(
+      //     newSearchMeeting_Contact_CompanyParams.approval_amount
+      //       ? newSearchMeeting_Contact_CompanyParams.approval_amount.toString()
+      //       : ""
+      //   )
+      // );
+      setInputApprovalAmountSearch(
+        beforeAdjustFieldRangeNumeric(newSearchMeeting_Contact_CompanyParams?.approval_amount)
       );
+      // 範囲検索 決裁金額 ------------------------ここまで
       setInputContactCreatedByCompanyId(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["contacts.created_by_company_id"])
       );
@@ -769,21 +1196,51 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       //   beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.scheduled_follow_up_date)
       // );
       // setInputScheduledFollowUpDate(newSearchMeeting_Contact_CompanyParams.scheduled_follow_up_date);
-      setInputWebTool(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.web_tool));
+      // サーチ配列 Webツール ------------------------
+      // setInputWebTool(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.web_tool));
+      setArrayParam(newSearchMeeting_Contact_CompanyParams.web_tool, setInputWebToolArray, setIsNullNotNullWebTool);
+      // サーチ配列 Webツール ------------------------ここまで
       // setInputPlannedDate(
       //   newSearchMeeting_Contact_CompanyParams.planned_date
       //     ? new Date(newSearchMeeting_Contact_CompanyParams.planned_date)
       //     : null
       // );
-      setInputPlannedDate(beforeAdjustFieldValueDate(newSearchMeeting_Contact_CompanyParams.planned_date));
+      // 範囲検索 面談日(予定) -----------------------
+      // setInputPlannedDate(beforeAdjustFieldValueDate(newSearchMeeting_Contact_CompanyParams.planned_date));
+      setInputPlannedDateSearch(beforeAdjustFieldRangeDate(newSearchMeeting_Contact_CompanyParams.planned_date));
+      // 範囲検索 面談日(予定) -----------------------ここまで
+      // 範囲検索 TIME 面談開始(予定) -----------------------
       // 時間、秒を分割して格納
-      setInputPlannedStartTime(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.planned_start_time));
-      const [plannedStartHour, plannedStartMinute] = newSearchMeeting_Contact_CompanyParams.planned_start_time
-        ? newSearchMeeting_Contact_CompanyParams.planned_start_time.split(":")
-        : ["", ""];
-      setInputPlannedStartTimeHour(plannedStartHour);
-      setInputPlannedStartTimeMinute(plannedStartMinute);
-      setInputPlannedPurpose(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.planned_purpose));
+      // setInputPlannedStartTime(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.planned_start_time));
+      // const [plannedStartHour, plannedStartMinute] = newSearchMeeting_Contact_CompanyParams.planned_start_time
+      //   ? newSearchMeeting_Contact_CompanyParams.planned_start_time.split(":")
+      //   : ["", ""];
+      // setInputPlannedStartTimeHour(plannedStartHour);
+      // setInputPlannedStartTimeMinute(plannedStartMinute);
+      beforeAdjustFieldTIME({
+        value: newSearchMeeting_Contact_CompanyParams.planned_start_time,
+        dispatchSearchType: setInputPlannedStartTimeSearchType,
+        dispatchHourMin: setInputPlannedStartTimeSearchHourMin,
+        dispatchHourMax: setInputPlannedStartTimeSearchHourMax,
+        dispatchMinuteMin: setInputPlannedStartTimeSearchMinuteMin,
+        dispatchMinuteMax: setInputPlannedStartTimeSearchMinuteMax,
+        dispatchNNN: setIsNullNotNullPlannedStartTimeSearch,
+      });
+      // 範囲検索 TIME 面談開始(予定) -----------------------ここまで
+      // サーチ配列 面談目的 ------------------------
+      // setInputPlannedPurpose(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.planned_purpose));
+      setArrayParam(
+        newSearchMeeting_Contact_CompanyParams.planned_purpose,
+        setInputPlannedPurposeArray,
+        setIsNullNotNullPlannedPurpose
+      );
+      // サーチ配列 面談目的 ------------------------ここまで
+      // 範囲検索 面談時間(予定) ------------------------
+      // setInputPlannedDuration(beforeAdjustFieldValueInteger(newSearchMeeting_Contact_CompanyParams.result_duration));
+      setInputPlannedDurationSearch(
+        beforeAdjustFieldRangeInteger(newSearchMeeting_Contact_CompanyParams.planned_duration)
+      );
+      // 範囲検索 面談時間(予定) ------------------------ここまで
       setInputPlannedAppointCheckFlag(newSearchMeeting_Contact_CompanyParams.planned_appoint_check_flag);
       setInputPlannedProduct1(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.planned_product1));
       setInputPlannedProduct2(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.planned_product2));
@@ -793,25 +1250,58 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       //     ? new Date(newSearchMeeting_Contact_CompanyParams.result_date)
       //     : null
       // );
-      setInputResultDate(beforeAdjustFieldValueDate(newSearchMeeting_Contact_CompanyParams.result_date));
+      // 範囲検索 面談日(結果) -----------------------
+      // setInputResultDate(beforeAdjustFieldValueDate(newSearchMeeting_Contact_CompanyParams.result_date));
+      setInputResultDateSearch(beforeAdjustFieldRangeDate(newSearchMeeting_Contact_CompanyParams.result_date));
+      // 範囲検索 面談日(結果) -----------------------ここまで
+      // 範囲検索 TIME 面談開始(結果) -----------------------
       // 時間、分を分割してそれぞれのstateに格納
-      setInputResultStartTime(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_start_time));
-      const [resultStartHour, resultStartMinute] = newSearchMeeting_Contact_CompanyParams.result_start_time
-        ? newSearchMeeting_Contact_CompanyParams.result_start_time.split(":")
-        : ["", ""];
-      setInputResultStartTimeHour(resultStartHour);
-      setInputResultStartTimeMinute(resultStartMinute);
+      // setInputResultStartTime(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_start_time));
+      // const [resultStartHour, resultStartMinute] = newSearchMeeting_Contact_CompanyParams.result_start_time
+      //   ? newSearchMeeting_Contact_CompanyParams.result_start_time.split(":")
+      //   : ["", ""];
+      // setInputResultStartTimeHour(resultStartHour);
+      // setInputResultStartTimeMinute(resultStartMinute);
+      beforeAdjustFieldTIME({
+        value: newSearchMeeting_Contact_CompanyParams.result_start_time,
+        dispatchSearchType: setInputResultStartTimeSearchType,
+        dispatchHourMin: setInputResultStartTimeSearchHourMin,
+        dispatchHourMax: setInputResultStartTimeSearchHourMax,
+        dispatchMinuteMin: setInputResultStartTimeSearchMinuteMin,
+        dispatchMinuteMax: setInputResultStartTimeSearchMinuteMax,
+        dispatchNNN: setIsNullNotNullResultStartTimeSearch,
+      });
+      // 範囲検索 TIME 面談開始(結果) -----------------------ここまで
+      // 範囲検索 TIME 面談終了(結果) -----------------------
       // 時間、分を分割してそれぞれのstateに格納
-      setInputResultEndTime(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_end_time));
-      const [resultEndHour, resultEndMinute] = newSearchMeeting_Contact_CompanyParams.result_end_time
-        ? newSearchMeeting_Contact_CompanyParams.result_end_time.split(":")
-        : ["", ""];
-      setInputResultEndTimeHour(resultEndHour);
-      setInputResultEndTimeMinute(resultEndMinute);
-      setInputResultDuration(beforeAdjustFieldValueInteger(newSearchMeeting_Contact_CompanyParams.result_duration));
-      setInputResultNumberOfMeetingParticipants(
-        beforeAdjustFieldValueInteger(newSearchMeeting_Contact_CompanyParams.result_number_of_meeting_participants)
+      // setInputResultEndTime(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_end_time));
+      // const [resultEndHour, resultEndMinute] = newSearchMeeting_Contact_CompanyParams.result_end_time
+      //   ? newSearchMeeting_Contact_CompanyParams.result_end_time.split(":")
+      //   : ["", ""];
+      // setInputResultEndTimeHour(resultEndHour);
+      // setInputResultEndTimeMinute(resultEndMinute);
+      beforeAdjustFieldTIME({
+        value: newSearchMeeting_Contact_CompanyParams.result_end_time,
+        dispatchSearchType: setInputResultEndTimeSearchType,
+        dispatchHourMin: setInputResultEndTimeSearchHourMin,
+        dispatchHourMax: setInputResultEndTimeSearchHourMax,
+        dispatchMinuteMin: setInputResultEndTimeSearchMinuteMin,
+        dispatchMinuteMax: setInputResultEndTimeSearchMinuteMax,
+        dispatchNNN: setIsNullNotNullResultEndTimeSearch,
+      });
+      // 範囲検索 TIME 面談終了(結果) -----------------------ここまで
+      // 範囲検索 面談時間(結果)・同席人数 ------------------------
+      // setInputResultDuration(beforeAdjustFieldValueInteger(newSearchMeeting_Contact_CompanyParams.result_duration));
+      setInputResultDurationSearch(
+        beforeAdjustFieldRangeInteger(newSearchMeeting_Contact_CompanyParams.result_duration)
       );
+      // setInputResultNumberOfMeetingParticipants(
+      //   beforeAdjustFieldValueInteger(newSearchMeeting_Contact_CompanyParams.result_number_of_meeting_participants)
+      // );
+      setInputResultNumberOfMeetingParticipantsSearch(
+        beforeAdjustFieldRangeInteger(newSearchMeeting_Contact_CompanyParams.result_number_of_meeting_participants)
+      );
+      // 範囲検索 面談時間(結果)・同席人数 ------------------------ここまで
       setInputResultPresentationProduct1(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_presentation_product1)
       );
@@ -827,16 +1317,30 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       setInputResultPresentationProduct5(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_presentation_product5)
       );
-      setInputResultCategory(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_category));
+      // サーチ配列 面談結果 ------------------------
+      // setInputResultCategory(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_category));
+      setArrayParam(
+        newSearchMeeting_Contact_CompanyParams.result_category,
+        setInputResultCategoryArray,
+        setIsNullNotNullResultCategory
+      );
+      // サーチ配列 面談結果 ------------------------ここまで
       setInputResultSummary(beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_summary));
       setInputResultNegotiateDecisionMaker(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.result_negotiate_decision_maker)
       );
-      setInputResultTopPositionClass(
-        newSearchMeeting_Contact_CompanyParams.result_top_position_class
-          ? newSearchMeeting_Contact_CompanyParams.result_top_position_class.toString()
-          : ""
+      // サーチ配列 面談時最上位職位 ------------------------
+      // setInputResultTopPositionClass(
+      //   newSearchMeeting_Contact_CompanyParams.result_top_position_class
+      //     ? newSearchMeeting_Contact_CompanyParams.result_top_position_class.toString()
+      //     : ""
+      // );
+      setArrayParam(
+        newSearchMeeting_Contact_CompanyParams.result_top_position_class,
+        setInputResultTopPositionClassArray,
+        setIsNullNotNullResultTopPositionClass
       );
+      // サーチ配列 面談時最上位職位 ------------------------ここまで
       setInputPreMeetingParticipationRequest(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams.pre_meeting_participation_request)
       );
@@ -881,14 +1385,26 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       if (!!inputTel) setInputTel("");
       if (!!inputFax) setInputFax("");
       if (!!inputZipcode) setInputZipcode("");
-      if (!!inputEmployeesClass) setInputEmployeesClass("");
+      // サーチ配列 規模ランク-----------------------
+      // if (!!inputEmployeesClass) setInputEmployeesClass("");
+      if (!!inputEmployeesClassArray.length) setInputEmployeesClassArray([]);
+      if (isNullNotNullEmployeesClass !== null) setIsNullNotNullEmployeesClass(null);
+      // サーチ配列 規模ランク-----------------------ここまで
       if (!!inputAddress) setInputAddress("");
-      if (!!inputCapital) setInputCapital("");
+      // 範囲検索 資本金・従業員数 -----------------------
+      // if (!!inputCapital) setInputCapital("");
+      setInputCapitalSearch({ min: "", max: "" });
+      setInputNumberOfEmployeesSearch({ min: "", max: "" });
+      // 範囲検索 資本金・従業員数 ----------------------- ここまで
       if (!!inputFound) setInputFound("");
       if (!!inputContent) setInputContent("");
       if (!!inputHP) setInputHP("");
       if (!!inputCompanyEmail) setInputCompanyEmail("");
-      if (!!inputIndustryType) setInputIndustryType("");
+      // サーチ配列 業種 -----------------------
+      // if (!!inputIndustryType) setInputIndustryType("");
+      if (!!inputIndustryTypeArray.length) setInputIndustryTypeArray([]);
+      if (isNullNotNullIndustryType !== null) setIsNullNotNullIndustryType(null);
+      // サーチ配列 業種 -----------------------ここまで
       // 製品分類の処理 ------------------------
       // if (!!inputProductL) setInputProductL("");
       // if (!!inputProductM) setInputProductM("");
@@ -900,9 +1416,19 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       if (isNullNotNullCategoryMedium !== null) setIsNullNotNullCategoryMedium(null);
       if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
       // 製品分類の処理 ------------------------ ここまで
-      if (!!inputFiscal) setInputFiscal("");
-      if (!!inputBudgetRequestMonth1) setInputBudgetRequestMonth1("");
-      if (!!inputBudgetRequestMonth2) setInputBudgetRequestMonth2("");
+      // サーチ配列 決算月 -----------------------
+      // if (!!inputFiscal) setInputFiscal("");
+      if (!!inputFiscalArray.length) setInputFiscalArray([]);
+      if (isNullNotNullFiscal !== null) setIsNullNotNullFiscal(null);
+      // サーチ配列 決算月 -----------------------ここまで
+      // サーチ配列 予算申請月 -----------------------
+      // if (!!inputBudgetRequestMonth1) setInputBudgetRequestMonth1("");
+      // if (!!inputBudgetRequestMonth2) setInputBudgetRequestMonth2("");
+      if (!!inputBudgetRequestMonth1Array.length) setInputBudgetRequestMonth1Array([]);
+      if (isNullNotNullBudgetRequestMonth1 !== null) setIsNullNotNullBudgetRequestMonth1(null);
+      if (!!inputBudgetRequestMonth2Array.length) setInputBudgetRequestMonth2Array([]);
+      if (isNullNotNullBudgetRequestMonth2 !== null) setIsNullNotNullBudgetRequestMonth2(null);
+      // サーチ配列 予算申請月 -----------------------ここまで
       if (!!inputClient) setInputClient("");
       if (!!inputSupplier) setInputSupplier("");
       if (!!inputFacility) setInputFacility("");
@@ -920,9 +1446,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       if (!!inputPersonalCellPhone) setInputPersonalCellPhone("");
       if (!!inputContactEmail) setInputContactEmail("");
       if (!!inputPositionName) setInputPositionName("");
-      if (!!inputPositionClass) setInputPositionClass("");
-      if (!!inputOccupation) setInputOccupation("");
-      if (!!inputApprovalAmount) setInputApprovalAmount("");
+      // サーチ配列 職位 -----------------------
+      // if (!!inputPositionClass) setInputPositionClass("");
+      if (!!inputPositionClassArray.length) setInputPositionClassArray([]);
+      if (isNullNotNullPositionClass !== null) setIsNullNotNullPositionClass(null);
+      // サーチ配列 職位 -----------------------ここまで
+      // サーチ配列 担当職種 -----------------------
+      // if (!!inputOccupation) setInputOccupation("");
+      if (!!inputOccupationArray.length) setInputOccupationArray([]);
+      if (isNullNotNullOccupation !== null) setIsNullNotNullOccupation(null);
+      // サーチ配列 担当職種 -----------------------ここまで
+      // 範囲検索 決裁金額 -----------------------
+      // if (!!inputApprovalAmount) setInputApprovalAmount("");
+      setInputApprovalAmountSearch({ min: "", max: "" });
+      // 範囲検索 決裁金額 ----------------------- ここまで
       if (!!inputContactCreatedByCompanyId) setInputContactCreatedByCompanyId("");
       if (!!inputContactCreatedByUserId) setInputContactCreatedByUserId("");
 
@@ -934,35 +1471,90 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       if (!!inputMeetingCreatedByUnitOfUser) setInputMeetingCreatedByUnitOfUser("");
       if (!!inputMeetingCreatedByOfficeOfUser) setInputMeetingCreatedByOfficeOfUser("");
       if (!!inputMeetingType) setInputMeetingType("");
-      if (!!inputWebTool) setInputWebTool("");
-      if (!!inputPlannedDate) setInputPlannedDate(null);
-      if (!!inputPlannedStartTime) setInputPlannedStartTime("");
-      if (!!inputPlannedStartTimeHour) setInputPlannedStartTimeHour("");
-      if (!!inputPlannedStartTimeMinute) setInputPlannedStartTimeMinute("");
-      if (!!inputPlannedPurpose) setInputPlannedPurpose("");
-      if (!!inputPlannedDuration) setInputPlannedDuration(null);
+      // サーチ配列 Webツール -----------------------
+      // if (!!inputWebTool) setInputWebTool("");
+      if (!!inputWebToolArray.length) setInputWebToolArray([]);
+      if (isNullNotNullWebTool !== null) setIsNullNotNullWebTool(null);
+      //
+      // 範囲検索 面談日(予定) -----------------------
+      // if (!!inputPlannedDate) setInputPlannedDate(null);
+      setInputPlannedDateSearch({ min: null, max: null });
+      //
+      // 範囲検索 TIME 面談開始(予定) -----------------------
+      // if (!!inputPlannedStartTime) setInputPlannedStartTime("");
+      // if (!!inputPlannedStartTimeHour) setInputPlannedStartTimeHour("");
+      // if (!!inputPlannedStartTimeMinute) setInputPlannedStartTimeMinute("");
+      if (inputPlannedStartTimeSearchType === "range") setInputPlannedStartTimeSearchType("exact");
+      if (!!inputPlannedStartTimeSearchHourMin) setInputPlannedStartTimeSearchHourMin("");
+      if (!!inputPlannedStartTimeSearchHourMax) setInputPlannedStartTimeSearchHourMax("");
+      if (!!inputPlannedStartTimeSearchMinuteMin) setInputPlannedStartTimeSearchMinuteMin("");
+      if (!!inputPlannedStartTimeSearchMinuteMax) setInputPlannedStartTimeSearchMinuteMax("");
+      if (isNullNotNullPlannedStartTimeSearch !== null) setIsNullNotNullPlannedStartTimeSearch(null);
+      //
+      // サーチ配列 面談目的 -----------------------
+      // if (!!inputPlannedPurpose) setInputPlannedPurpose("");
+      if (!!inputPlannedPurposeArray.length) setInputPlannedPurposeArray([]);
+      if (isNullNotNullPlannedPurpose !== null) setIsNullNotNullPlannedPurpose(null);
+      //
+      // 範囲検索 面談時間(予定) -----------------------
+      // if (!!inputPlannedDuration) setInputPlannedDuration(null);
+      setInputPlannedDurationSearch({ min: null, max: null });
+      //
       if (inputPlannedAppointCheckFlag !== null) setInputPlannedAppointCheckFlag(null);
       if (!!inputPlannedProduct1) setInputPlannedProduct1("");
       if (!!inputPlannedProduct2) setInputPlannedProduct2("");
       if (!!inputPlannedComment) setInputPlannedComment("");
-      if (!!inputResultDate) setInputResultDate(null);
-      if (!!inputResultStartTime) setInputResultStartTime("");
-      if (!!inputResultStartTimeHour) setInputResultStartTimeHour("");
-      if (!!inputResultStartTimeMinute) setInputResultStartTimeMinute("");
-      if (!!inputResultEndTime) setInputResultEndTime("");
-      if (!!inputResultEndTimeHour) setInputResultEndTimeHour("");
-      if (!!inputResultEndTimeMinute) setInputResultEndTimeMinute("");
-      if (!!inputResultDuration) setInputResultDuration(null);
-      if (!!inputResultNumberOfMeetingParticipants) setInputResultNumberOfMeetingParticipants(null);
+      // 範囲検索 面談日(結果) -----------------------
+      // if (!!inputResultDate) setInputResultDate(null);
+      setInputResultDateSearch({ min: null, max: null });
+      //
+      // 範囲検索 TIME 面談開始(結果) -----------------------
+      // if (!!inputResultStartTime) setInputResultStartTime("");
+      // if (!!inputResultStartTimeHour) setInputResultStartTimeHour("");
+      // if (!!inputResultStartTimeMinute) setInputResultStartTimeMinute("");
+      if (inputResultStartTimeSearchType === "range") setInputResultStartTimeSearchType("exact");
+      if (!!inputResultStartTimeSearchHourMin) setInputResultStartTimeSearchHourMin("");
+      if (!!inputResultStartTimeSearchHourMax) setInputResultStartTimeSearchHourMax("");
+      if (!!inputResultStartTimeSearchMinuteMin) setInputResultStartTimeSearchMinuteMin("");
+      if (!!inputResultStartTimeSearchMinuteMax) setInputResultStartTimeSearchMinuteMax("");
+      if (isNullNotNullResultStartTimeSearch !== null) setIsNullNotNullResultStartTimeSearch(null);
+      //
+      // 範囲検索 TIME 面談終了(結果) -----------------------
+      // if (!!inputResultEndTime) setInputResultEndTime("");
+      // if (!!inputResultEndTimeHour) setInputResultEndTimeHour("");
+      // if (!!inputResultEndTimeMinute) setInputResultEndTimeMinute("");
+      if (inputResultEndTimeSearchType === "range") setInputResultEndTimeSearchType("exact");
+      if (!!inputResultEndTimeSearchHourMin) setInputResultEndTimeSearchHourMin("");
+      if (!!inputResultEndTimeSearchHourMax) setInputResultEndTimeSearchHourMax("");
+      if (!!inputResultEndTimeSearchMinuteMin) setInputResultEndTimeSearchMinuteMin("");
+      if (!!inputResultEndTimeSearchMinuteMax) setInputResultEndTimeSearchMinuteMax("");
+      if (isNullNotNullResultEndTimeSearch !== null) setIsNullNotNullResultEndTimeSearch(null);
+      //
+      // 範囲検索 面談時間(結果) -----------------------
+      // if (!!inputResultDuration) setInputResultDuration(null);
+      setInputResultDurationSearch({ min: null, max: null });
+      //
+      // 範囲検索 同席人数(結果) -----------------------
+      // if (!!inputResultNumberOfMeetingParticipants) setInputResultNumberOfMeetingParticipants(null);
+      setInputResultNumberOfMeetingParticipantsSearch({ min: null, max: null });
+      //
       if (!!inputResultPresentationProduct1) setInputResultPresentationProduct1("");
       if (!!inputResultPresentationProduct2) setInputResultPresentationProduct2("");
       if (!!inputResultPresentationProduct3) setInputResultPresentationProduct3("");
       if (!!inputResultPresentationProduct4) setInputResultPresentationProduct4("");
       if (!!inputResultPresentationProduct5) setInputResultPresentationProduct5("");
-      if (!!inputResultCategory) setInputResultCategory("");
+      // サーチ配列 面談結果 -----------------------
+      // if (!!inputResultCategory) setInputResultCategory("");
+      if (!!inputResultCategoryArray.length) setInputResultCategoryArray([]);
+      if (isNullNotNullResultCategory !== null) setIsNullNotNullResultCategory(null);
+      //
       if (!!inputResultSummary) setInputResultSummary("");
       if (!!inputResultNegotiateDecisionMaker) setInputResultNegotiateDecisionMaker("");
-      if (!!inputResultTopPositionClass) setInputResultTopPositionClass("");
+      // サーチ配列 面談時最上位職位 -----------------------
+      // if (!!inputResultTopPositionClass) setInputResultTopPositionClass("");
+      if (!!inputResultTopPositionClassArray.length) setInputResultTopPositionClassArray([]);
+      if (isNullNotNullResultTopPositionClass !== null) setIsNullNotNullResultTopPositionClass(null);
+      //
       if (!!inputPreMeetingParticipationRequest) setInputPreMeetingParticipationRequest("");
       if (!!inputMeetingParticipationRequest) setInputMeetingParticipationRequest("");
       if (!!inputMeetingBusinessOffice) setInputMeetingBusinessOffice("");
@@ -1017,7 +1609,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       else {
         setInputPlannedStartTime(""); // or setResultStartTime("");
       }
-      // setInputPlannedStartTime(""); // or setResultStartTime("");
     }
   }, [inputPlannedStartTimeHour, inputPlannedStartTimeMinute]);
   // 結果面談開始時間、時間、分、結合用useEffect
@@ -1043,7 +1634,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       else {
         setInputResultStartTime(""); // or setResultStartTime("");
       }
-      // setInputResultStartTime(""); // or setResultStartTime("");
     }
   }, [inputResultStartTimeHour, inputResultStartTimeMinute]);
   // 結果面談終了時間、時間、分、結合用useEffect
@@ -1069,7 +1659,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       else {
         setInputResultEndTime(""); // or setResultStartTime("");
       }
-      // setInputResultEndTime(""); // or setResultStartTime("");
     }
   }, [inputResultEndTimeHour, inputResultEndTimeMinute]);
 
@@ -1135,421 +1724,821 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       // if (typeof inputScheduledFollowUpDate === "string") return adjustFieldValue(inputScheduledFollowUpDate);
     };
 
+    // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+    const adjustFieldRangeNumeric = (
+      value: { min: string; max: string } | "is null" | "is not null",
+      formatType: "" | "integer" = ""
+    ): { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL" => {
+      if (value === "is null") return "ISNULL";
+      if (value === "is not null") return "ISNOTNULL";
+      const { min, max } = value;
+
+      const halfMin = toHalfWidthAndRemoveSpace(min).trim();
+      const halfMax = toHalfWidthAndRemoveSpace(max).trim();
+
+      const minValid = isValidNumber(halfMin);
+      const maxValid = isValidNumber(halfMax);
+
+      const minNum = formatType === "integer" ? parseInt(halfMin, 10) : Number(halfMin!);
+      const maxNum = formatType === "integer" ? parseInt(halfMax, 10) : Number(halfMax!);
+
+      console.log("value", value, min, halfMin, minNum, minValid, max, halfMax, maxNum, maxValid);
+
+      if (minValid && maxValid) {
+        if (isNaN(minNum) || isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+        if (minNum! <= maxNum!) {
+          return { min: minNum, max: maxNum };
+        } else {
+          const errorMsg =
+            language === "ja"
+              ? "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+              : "The minimum value cannot be greater than the maximum value.";
+          throw new Error(errorMsg);
+        }
+      } else if (minValid && !maxValid) {
+        if (isNaN(minNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+        return { min: minNum, max: null };
+      } else if (!minValid && maxValid) {
+        if (isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+        return { min: null, max: maxNum };
+      }
+
+      return { min: null, max: null };
+    };
+
+    // 🔸範囲検索用の変換 数値型(INTEGER Type) 時間、数量
+    const adjustFieldRangeInteger = (
+      value: { min: number | null; max: number | null } | "is null" | "is not null"
+    ): { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL" => {
+      if (value === "is null") return "ISNULL";
+      if (value === "is not null") return "ISNOTNULL";
+      const { min, max } = value;
+
+      const minValid = min !== null && Number.isInteger(min);
+      const maxValid = max !== null && Number.isInteger(max);
+
+      if (minValid && maxValid) {
+        if (min! <= max!) {
+          return { min: min, max: max };
+        } else {
+          const errorMsg =
+            language === "ja"
+              ? "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+              : "The minimum value cannot be greater than the maximum value.";
+          throw new Error(errorMsg);
+        }
+      } else if (minValid && !maxValid) {
+        return { min: min, max: null };
+      } else if (!minValid && maxValid) {
+        return { min: null, max: max };
+      }
+
+      return { min: null, max: null };
+    };
+
+    // 🔸範囲検索用の変換 TIMESTAMPTZ型(Dateオブジェクト ISO文字列) 活動日、面談日
+    const adjustFieldRangeTIMESTAMPTZ = (
+      value: { min: Date | null; max: Date | null } | "is null" | "is not null"
+    ): { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL" => {
+      if (value === "is null") return "ISNULL";
+      if (value === "is not null") return "ISNOTNULL";
+      const { min, max } = value;
+
+      if (min instanceof Date && max instanceof Date) {
+        if (min.getTime() <= max.getTime()) {
+          return {
+            min: min.toISOString(),
+            max: max.toISOString(),
+          };
+        } else {
+          language === "ja"
+            ? "日付の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+            : "The minimum date cannot be later than the maximum date.";
+          throw new Error("The minimum date cannot be later than the maximum date.");
+        }
+      } else if (min instanceof Date && max === null) {
+        return {
+          min: min.toISOString(),
+          max: null,
+        };
+      } else if (min === null && max instanceof Date) {
+        return {
+          min: null,
+          max: max.toISOString(),
+        };
+      }
+
+      return { min: null, max: null };
+    };
+
+    // 🔸範囲&一致検索用の変換 TIME型
+    type AdjustTimeParams = {
+      searchType: "exact" | "range";
+      hourMin: string;
+      minuteMin: string;
+      hourMax: string;
+      minuteMax: string;
+      NNN: "is null" | "is not null" | null;
+    };
+    const adjustFieldTIME = ({
+      searchType,
+      hourMin,
+      minuteMin,
+      hourMax,
+      minuteMax,
+      NNN,
+    }: AdjustTimeParams):
+      | {
+          search_type: "exact" | "range";
+          time_value: { min: string | null; max: string | null } | string | null;
+        }
+      | "ISNULL"
+      | "ISNOTNULL" => {
+      if (NNN === "is null") return "ISNULL";
+      if (NNN === "is not null") return "ISNOTNULL";
+
+      // exact
+      if (searchType === "exact") {
+        const timeValue = combineTime(hourMin, minuteMin, "exact");
+
+        return { search_type: "exact", time_value: timeValue };
+      }
+      // range
+      else {
+        const timeMin = combineTime(hourMin, minuteMin, "range");
+        const timeMax = combineTime(hourMax, minuteMax, "range");
+
+        if (timeMin && timeMax) {
+          if (timeMin <= timeMax) {
+            return {
+              search_type: "range",
+              time_value: { min: timeMin, max: timeMax },
+            };
+          } else {
+            const errorMsg =
+              language === "ja"
+                ? "時間の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+                : "The minimum value cannot be greater than the maximum value.";
+            throw new Error(errorMsg);
+          }
+        } else {
+          return {
+            search_type: "range",
+            time_value: { min: timeMin, max: timeMax },
+          };
+        }
+      }
+    };
+
     // 🔸製品分類用 is null, is not nullをIS NULL, IS NOT NULLに変換
     const adjustIsNNN = (value: "is null" | "is not null"): "ISNULL" | "ISNOTNULL" =>
       value === "is null" ? "ISNULL" : "ISNOTNULL";
 
     setLoadingGlobalState(true);
 
-    let _company_name = adjustFieldValue(inputCompanyName);
-    let _department_name = adjustFieldValue(inputDepartmentName);
-    let _main_phone_number = adjustFieldValue(inputTel);
-    let _main_fax = adjustFieldValue(inputFax);
-    let _zipcode = adjustFieldValue(inputZipcode);
-    let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
-    let _address = adjustFieldValue(inputAddress);
-    // let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
-    let _capital = adjustFieldValueInteger(inputCapital);
-    let _established_in = adjustFieldValue(inputFound);
-    let _business_content = adjustFieldValue(inputContent);
-    let _website_url = adjustFieldValue(inputHP);
-    let _company_email = adjustFieldValue(inputCompanyEmail);
-    // let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
-    let _industry_type_id = adjustFieldValueInteger(inputIndustryType);
-    // // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
-    // let _product_category_large = adjustFieldValue(inputProductL);
-    // let _product_category_medium = adjustFieldValue(inputProductM);
-    // let _product_category_small = adjustFieldValue(inputProductS);
-    let _fiscal_end_month = adjustFieldValue(inputFiscal);
-    let _budget_request_month1 = adjustFieldValue(inputBudgetRequestMonth1);
-    let _budget_request_month2 = adjustFieldValue(inputBudgetRequestMonth2);
-    let _clients = adjustFieldValue(inputClient);
-    let _supplier = adjustFieldValue(inputSupplier);
-    let _facility = adjustFieldValue(inputFacility);
-    let _business_sites = adjustFieldValue(inputBusinessSite);
-    let _overseas_bases = adjustFieldValue(inputOverseas);
-    let _group_company = adjustFieldValue(inputGroup);
-    let _corporate_number = adjustFieldValue(inputCorporateNum);
-    // contactsテーブル
-    let _contact_name = adjustFieldValue(inputContactName);
-    let _direct_line = adjustFieldValue(inputDirectLine);
-    let _direct_fax = adjustFieldValue(inputDirectFax);
-    let _extension = adjustFieldValue(inputExtension);
-    let _company_cell_phone = adjustFieldValue(inputCompanyCellPhone);
-    let _personal_cell_phone = adjustFieldValue(inputPersonalCellPhone);
-    let _contact_email = adjustFieldValue(inputContactEmail);
-    let _position_name = adjustFieldValue(inputPositionName);
-    // let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
-    let _position_class = adjustFieldValueInteger(inputPositionClass);
-    // let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
-    let _occupation = adjustFieldValueInteger(inputOccupation);
-    // let _approval_amount = adjustFieldValue(inputApprovalAmount);
-    // let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
-    let _approval_amount = adjustFieldValueInteger(inputApprovalAmount);
-    let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
-    let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
-    // meetingsテーブル
-    let _meeting_created_by_company_id = userProfileState.company_id;
-    let _meeting_created_by_user_id = adjustFieldValue(inputMeetingCreatedByUserId);
-    let _meeting_created_by_department_of_user = adjustFieldValue(inputMeetingCreatedByDepartmentOfUser);
-    let _meeting_created_by_section_of_user = adjustFieldValue(inputMeetingCreatedBySectionOfUser);
-    let _meeting_created_by_unit_of_user = adjustFieldValue(inputMeetingCreatedByUnitOfUser);
-    let _meeting_created_by_office_of_user = adjustFieldValue(inputMeetingCreatedByOfficeOfUser);
-    let _meeting_type = adjustFieldValue(inputMeetingType);
-    let _web_tool = adjustFieldValue(inputWebTool);
-    // let _planned_date = inputPlannedDate ? inputPlannedDate.toISOString() : null;
-    let _planned_date = adjustFieldValueDate(inputPlannedDate);
-    let _planned_start_time = adjustFieldValue(inputPlannedStartTime);
-    let _planned_purpose = adjustFieldValue(inputPlannedPurpose);
-    // let _planned_duration = adjustFieldValueNumber(inputPlannedDuration);
-    let _planned_duration = adjustFieldValueInteger(inputPlannedDuration);
-    let _planned_appoint_check_flag = inputPlannedAppointCheckFlag;
-    let _planned_product1 = adjustFieldValue(inputPlannedProduct1);
-    let _planned_product2 = adjustFieldValue(inputPlannedProduct2);
-    let _planned_comment = adjustFieldValue(inputPlannedComment);
-    // let _result_date = inputResultDate ? inputResultDate.toISOString() : null;
-    let _result_date = adjustFieldValueDate(inputResultDate);
-    let _result_start_time = adjustFieldValue(inputResultStartTime);
-    let _result_end_time = adjustFieldValue(inputResultEndTime);
-    // let _result_duration = adjustFieldValueNumber(inputResultDuration);
-    let _result_duration = adjustFieldValueInteger(inputResultDuration);
-    // let _result_number_of_meeting_participants = adjustFieldValueNumber(inputResultNumberOfMeetingParticipants);
-    let _result_number_of_meeting_participants = adjustFieldValueInteger(inputResultNumberOfMeetingParticipants);
-    let _result_presentation_product1 = adjustFieldValue(inputResultPresentationProduct1);
-    let _result_presentation_product2 = adjustFieldValue(inputResultPresentationProduct2);
-    let _result_presentation_product3 = adjustFieldValue(inputResultPresentationProduct3);
-    let _result_presentation_product4 = adjustFieldValue(inputResultPresentationProduct4);
-    let _result_presentation_product5 = adjustFieldValue(inputResultPresentationProduct5);
-    let _result_category = adjustFieldValue(inputResultCategory);
-    let _result_summary = adjustFieldValue(inputResultSummary);
-    let _result_negotiate_decision_maker = adjustFieldValue(inputResultNegotiateDecisionMaker);
-    // let _result_top_position_class = adjustFieldValue(inputResultTopPositionClass)
-    //   ? parseInt(inputResultTopPositionClass, 10)
-    //   : null;
-    let _result_top_position_class = adjustFieldValueInteger(inputResultTopPositionClass);
-    let _pre_meeting_participation_request = adjustFieldValue(inputPreMeetingParticipationRequest);
-    let _meeting_participation_request = adjustFieldValue(inputMeetingParticipationRequest);
-    let _meeting_business_office = adjustFieldValue(inputMeetingBusinessOffice);
-    let _meeting_department = adjustFieldValue(inputMeetingDepartment);
-    let _meeting_member_name = adjustFieldValue(inputMeetingMemberName);
-    // 年月度 ~ 年度
-    // let _meeting_year_month = adjustFieldValueNumber(inputMeetingYearMonth);
-    const parsedMeetingYearMonth = parseInt(inputMeetingYearMonth, 10);
-    let _meeting_year_month =
-      !isNaN(parsedMeetingYearMonth) && inputMeetingYearMonth === parsedMeetingYearMonth.toString()
-        ? parsedMeetingYearMonth
-        : null;
-    const parsedMeetingQuarter = parseInt(inputMeetingQuarter, 10);
-    let _meeting_quarter =
-      !isNaN(parsedMeetingQuarter) && inputMeetingQuarter === parsedMeetingQuarter.toString()
-        ? parsedMeetingQuarter
-        : null;
-    const parsedMeetingHalfYear = parseInt(inputMeetingHalfYear, 10);
-    let _meeting_half_year =
-      !isNaN(parsedMeetingHalfYear) && inputMeetingHalfYear === parsedMeetingHalfYear.toString()
-        ? parsedMeetingHalfYear
-        : null;
-    const parsedMeetingFiscalYear = parseInt(inputMeetingFiscalYear, 10);
-    let _meeting_fiscal_year =
-      !isNaN(parsedMeetingFiscalYear) && inputMeetingFiscalYear === parsedMeetingFiscalYear.toString()
-        ? parsedMeetingFiscalYear
-        : null;
-
-    // 製品分類の処理 ----------------------------------------------
-    // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
-    // 大分類
-    let productCategoryLargeIdsArray: number[] = [];
-    if (0 < inputProductArrayLarge.length) {
-      const largeNameToIdMap = new Map(optionsProductL.map((obj) => [obj.name, obj.id]));
-      productCategoryLargeIdsArray = inputProductArrayLarge
-        .map((name) => {
-          return largeNameToIdMap.get(name);
-        })
-        .filter((id): id is number => id !== undefined && id !== null);
-      console.log("============================ 大分類実行🔥", largeNameToIdMap, productCategoryLargeIdsArray);
-    }
-    // 中分類
-    let productCategoryMediumIdsArray: number[] = [];
-    if (0 < inputProductArrayMedium.length) {
-      // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
-      const optionsMediumObj = inputProductArrayLarge
-        .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
-        .flatMap((array) => array);
-      const mediumNameToIdMap = new Map(optionsMediumObj.map((obj) => [obj.name, obj.id]));
-      productCategoryMediumIdsArray = inputProductArrayMedium
-        .map((name) => {
-          return mediumNameToIdMap.get(name);
-        })
-        .filter((id): id is number => id !== undefined && id !== null);
-      console.log(
-        "============================ 中分類実行🔥",
-        optionsMediumObj,
-        mediumNameToIdMap,
-        productCategoryMediumIdsArray
-      );
-    }
-    // 小分類
-    let productCategorySmallIdsArray: number[] = [];
-    if (0 < inputProductArraySmall.length) {
-      // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
-      const optionsSmallObj = inputProductArrayMedium
-        .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
-        .flatMap((array) => array);
-      const mediumNameToIdMap = new Map(optionsSmallObj.map((obj) => [obj.name, obj.id]));
-      productCategorySmallIdsArray = inputProductArraySmall
-        .map((name) => {
-          return mediumNameToIdMap.get(name);
-        })
-        .filter((id): id is number => id !== undefined && id !== null);
-      console.log(
-        "============================ 小分類実行🔥",
-        optionsSmallObj,
-        mediumNameToIdMap,
-        productCategorySmallIdsArray
-      );
-    }
-
-    // 製品分類の処理ここまで ----------------------------------------------
-
-    const params = {
-      "client_companies.name": _company_name,
-      //   company_name: _company_name,
-      // department_name: _department_name,
-      "client_companies.department_name": _department_name,
-      main_phone_number: _main_phone_number,
-      main_fax: _main_fax,
-      zipcode: _zipcode,
-      address: _address,
-      number_of_employees_class: _number_of_employees_class,
-      capital: _capital,
-      established_in: _established_in,
-      business_content: _business_content,
-      website_url: _website_url,
-      //   company_email: _company_email,
-      "client_companies.email": _company_email,
-      industry_type_id: _industry_type_id,
-      // 製品分類 ----------------
-      // product_category_large: _product_category_large,
-      // product_category_medium: _product_category_medium,
-      // product_category_small: _product_category_small,
-      // product_category_large_ids: productCategoryLargeIdsArray,
-      // product_category_medium_ids: productCategoryMediumIdsArray,
-      // product_category_small_ids: productCategorySmallIdsArray,
-      product_category_large_ids:
-        isNullNotNullCategoryLarge === null ? productCategoryLargeIdsArray : adjustIsNNN(isNullNotNullCategoryLarge),
-      product_category_medium_ids:
-        isNullNotNullCategoryMedium === null ? productCategoryMediumIdsArray : adjustIsNNN(isNullNotNullCategoryMedium),
-      product_category_small_ids:
-        isNullNotNullCategorySmall === null ? productCategorySmallIdsArray : adjustIsNNN(isNullNotNullCategorySmall),
-      // 製品分類 ---------------- ここまで
-      fiscal_end_month: _fiscal_end_month,
-      budget_request_month1: _budget_request_month1,
-      budget_request_month2: _budget_request_month2,
-      clients: _clients,
-      supplier: _supplier,
-      facility: _facility,
-      business_sites: _business_sites,
-      overseas_bases: _overseas_bases,
-      group_company: _group_company,
-      corporate_number: _corporate_number,
+    try {
+      let _company_name = adjustFieldValue(inputCompanyName);
+      let _department_name = adjustFieldValue(inputDepartmentName);
+      let _main_phone_number = adjustFieldValue(inputTel);
+      let _main_fax = adjustFieldValue(inputFax);
+      let _zipcode = adjustFieldValue(inputZipcode);
+      // サーチ配列 規模 TEXT[] ------------
+      // let _number_of_employees_class = adjustFieldValue(inputEmployeesClass);
+      let _number_of_employees_class = inputEmployeesClassArray;
+      // サーチ配列 規模 TEXT[] ------------ここまで
+      let _address = adjustFieldValue(inputAddress);
+      // let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
+      // 範囲検索 資本金・従業員数 -----------
+      // let _capital = adjustFieldValueInteger(inputCapital);
+      let _capital = adjustFieldRangeNumeric(inputCapitalSearch);
+      let _number_of_employees = adjustFieldRangeNumeric(inputNumberOfEmployeesSearch);
+      // 範囲検索 資本金・従業員数 -----------ここまで
+      let _established_in = adjustFieldValue(inputFound);
+      let _business_content = adjustFieldValue(inputContent);
+      let _website_url = adjustFieldValue(inputHP);
+      let _company_email = adjustFieldValue(inputCompanyEmail);
+      // let _industry_type_id = isValidNumber(inputIndustryType) ? parseInt(inputIndustryType, 10) : null;
+      // サーチ配列 業種 number[] -----------
+      // let _industry_type_id = adjustFieldValueInteger(inputIndustryType);
+      let _industry_type_id = inputIndustryTypeArray;
+      // サーチ配列 業種 number[] -----------ここまで
+      // // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
+      // let _product_category_large = adjustFieldValue(inputProductL);
+      // let _product_category_medium = adjustFieldValue(inputProductM);
+      // let _product_category_small = adjustFieldValue(inputProductS);
+      // サーチ配列 決算日・予算申請月1, 2 TEXT[] ------------
+      // let _fiscal_end_month = adjustFieldValue(inputFiscal);
+      // let _budget_request_month1 = adjustFieldValue(inputBudgetRequestMonth1);
+      // let _budget_request_month2 = adjustFieldValue(inputBudgetRequestMonth2);
+      let _fiscal_end_month = inputFiscalArray;
+      let _budget_request_month1 = inputBudgetRequestMonth1Array;
+      let _budget_request_month2 = inputBudgetRequestMonth2Array;
+      // サーチ配列 決算日・予算申請月1, 2 TEXT[] ------------ここまで
+      let _clients = adjustFieldValue(inputClient);
+      let _supplier = adjustFieldValue(inputSupplier);
+      let _facility = adjustFieldValue(inputFacility);
+      let _business_sites = adjustFieldValue(inputBusinessSite);
+      let _overseas_bases = adjustFieldValue(inputOverseas);
+      let _group_company = adjustFieldValue(inputGroup);
+      let _corporate_number = adjustFieldValue(inputCorporateNum);
       // contactsテーブル
-      //   contact_name: _contact_name,
-      "contacts.name": _contact_name,
-      direct_line: _direct_line,
-      direct_fax: _direct_fax,
-      extension: _extension,
-      company_cell_phone: _company_cell_phone,
-      personal_cell_phone: _personal_cell_phone,
-      //   contact_email: _contact_email,
-      "contacts.email": _contact_email,
-      position_name: _position_name,
-      position_class: _position_class,
-      occupation: _occupation,
-      approval_amount: _approval_amount,
-      "contacts.created_by_company_id": _contact_created_by_company_id,
-      "contacts.created_by_user_id": _contact_created_by_user_id,
-      // activitiesテーブル
-      // "meetings.created_by_company_id": _meeting_created_by_company_id,
-      "meetings.created_by_company_id": _meeting_created_by_company_id,
-      "meetings.created_by_user_id": _meeting_created_by_user_id,
-      "meetings.created_by_department_of_user": _meeting_created_by_department_of_user,
-      "meetings.created_by_section_of_user": _meeting_created_by_section_of_user,
-      "meetings.created_by_unit_of_user": _meeting_created_by_unit_of_user,
-      "meetings.created_by_office_of_user": _meeting_created_by_office_of_user,
-      meeting_type: _meeting_type,
-      web_tool: _web_tool,
-      planned_date: _planned_date,
-      planned_start_time: _planned_start_time,
-      planned_purpose: _planned_purpose,
-      planned_duration: _planned_duration,
-      planned_appoint_check_flag: _planned_appoint_check_flag,
-      planned_product1: _planned_product1,
-      planned_product2: _planned_product2,
-      planned_comment: _planned_comment,
-      result_date: _result_date,
-      result_start_time: _result_start_time,
-      result_end_time: _result_end_time,
-      result_duration: _result_duration,
-      result_number_of_meeting_participants: _result_number_of_meeting_participants,
-      result_presentation_product1: _result_presentation_product1,
-      result_presentation_product2: _result_presentation_product2,
-      result_presentation_product3: _result_presentation_product3,
-      result_presentation_product4: _result_presentation_product4,
-      result_presentation_product5: _result_presentation_product5,
-      result_category: _result_category,
-      result_summary: _result_summary,
-      result_negotiate_decision_maker: _result_negotiate_decision_maker,
-      result_top_position_class: _result_top_position_class,
-      pre_meeting_participation_request: _pre_meeting_participation_request,
-      meeting_participation_request: _meeting_participation_request,
-      meeting_business_office: _meeting_business_office,
-      meeting_department: _meeting_department,
-      meeting_member_name: _meeting_member_name,
+      let _contact_name = adjustFieldValue(inputContactName);
+      let _direct_line = adjustFieldValue(inputDirectLine);
+      let _direct_fax = adjustFieldValue(inputDirectFax);
+      let _extension = adjustFieldValue(inputExtension);
+      let _company_cell_phone = adjustFieldValue(inputCompanyCellPhone);
+      let _personal_cell_phone = adjustFieldValue(inputPersonalCellPhone);
+      let _contact_email = adjustFieldValue(inputContactEmail);
+      let _position_name = adjustFieldValue(inputPositionName);
+      // let _position_class = adjustFieldValue(inputPositionClass) ? parseInt(inputPositionClass, 10) : null;
+      // let _occupation = adjustFieldValue(inputOccupation) ? parseInt(inputOccupation, 10) : null;
+      // let _position_class = adjustFieldValueInteger(inputPositionClass);
+      // let _occupation = adjustFieldValueInteger(inputOccupation);
+      // サーチ配列 職位・担当職種 number[] ------------
+      let _position_class = inputPositionClassArray;
+      let _occupation = inputOccupationArray;
+      // サーチ配列 職位・担当職種 number[] ------------ここまで
+      // let _approval_amount = adjustFieldValue(inputApprovalAmount);
+      // let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
+      // 範囲検索 決裁金額 -----------
+      // let _approval_amount = adjustFieldValueInteger(inputApprovalAmount);
+      let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch);
+      // 範囲検索 決裁金額 -----------ここまで
+      let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
+      let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
+      // meetingsテーブル
+      let _meeting_created_by_company_id = userProfileState.company_id;
+      let _meeting_created_by_user_id = adjustFieldValue(inputMeetingCreatedByUserId);
+      let _meeting_created_by_department_of_user = adjustFieldValue(inputMeetingCreatedByDepartmentOfUser);
+      let _meeting_created_by_section_of_user = adjustFieldValue(inputMeetingCreatedBySectionOfUser);
+      let _meeting_created_by_unit_of_user = adjustFieldValue(inputMeetingCreatedByUnitOfUser);
+      let _meeting_created_by_office_of_user = adjustFieldValue(inputMeetingCreatedByOfficeOfUser);
+      let _meeting_type = adjustFieldValue(inputMeetingType);
+      // サーチ配列 Webツール TEXT[] ------------
+      // let _web_tool = adjustFieldValue(inputWebTool);
+      let _web_tool = inputWebToolArray;
+      // サーチ配列 Webツール TEXT[] ------------ここまで
+      // let _planned_date = inputPlannedDate ? inputPlannedDate.toISOString() : null;
+      // 範囲検索 面談日(予定) -----------
+      // let _planned_date = adjustFieldValueDate(inputPlannedDate);
+      let _planned_date = adjustFieldRangeTIMESTAMPTZ(inputPlannedDateSearch);
+      // 範囲検索 面談日(予定) -----------ここまで
+      // 範囲検索 TIME 面談開始(予定) -----------
+      // let _planned_start_time = adjustFieldValue(inputPlannedStartTime);
+      let _planned_start_time = adjustFieldTIME({
+        searchType: inputPlannedStartTimeSearchType,
+        hourMin: inputPlannedStartTimeSearchHourMin,
+        hourMax: inputPlannedStartTimeSearchHourMax,
+        minuteMin: inputPlannedStartTimeSearchMinuteMin,
+        minuteMax: inputPlannedStartTimeSearchMinuteMax,
+        NNN: isNullNotNullPlannedStartTimeSearch,
+      });
+      // 範囲検索 TIME 面談開始(予定) -----------ここまで
+      // サーチ配列 面談目的 TEXT[] ------------
+      // let _planned_purpose = adjustFieldValue(inputPlannedPurpose);
+      let _planned_purpose = inputPlannedPurposeArray;
+      // サーチ配列 面談目的 TEXT[] ------------ここまで
+      // let _planned_duration = adjustFieldValueNumber(inputPlannedDuration);
+      // 範囲検索 INTEGER 面談時間(予定) -----------
+      // let _planned_duration = adjustFieldValueInteger(inputPlannedDuration);
+      let _planned_duration = adjustFieldRangeInteger(inputPlannedDurationSearch);
+      // 範囲検索 INTEGER 面談時間(予定) -----------ここまで
+      let _planned_appoint_check_flag = inputPlannedAppointCheckFlag;
+      let _planned_product1 = adjustFieldValue(inputPlannedProduct1);
+      let _planned_product2 = adjustFieldValue(inputPlannedProduct2);
+      let _planned_comment = adjustFieldValue(inputPlannedComment);
+      // let _result_date = inputResultDate ? inputResultDate.toISOString() : null;
+      // 範囲検索 面談日(結果) -----------
+      // let _result_date = adjustFieldValueDate(inputResultDate);
+      let _result_date = adjustFieldRangeTIMESTAMPTZ(inputResultDateSearch);
+      // 範囲検索 面談日(結果) -----------ここまで
+      // 範囲検索 TIME 面談開始(結果) -----------
+      // let _result_start_time = adjustFieldValue(inputResultStartTime);
+      let _result_start_time = adjustFieldTIME({
+        searchType: inputResultStartTimeSearchType,
+        hourMin: inputResultStartTimeSearchHourMin,
+        hourMax: inputResultStartTimeSearchHourMax,
+        minuteMin: inputResultStartTimeSearchMinuteMin,
+        minuteMax: inputResultStartTimeSearchMinuteMax,
+        NNN: isNullNotNullResultStartTimeSearch,
+      });
+      // 範囲検索 TIME 面談開始(結果) -----------ここまで
+      // 範囲検索 TIME 面談終了(結果) -----------
+      // let _result_end_time = adjustFieldValue(inputResultEndTime);
+      let _result_end_time = adjustFieldTIME({
+        searchType: inputResultEndTimeSearchType,
+        hourMin: inputResultEndTimeSearchHourMin,
+        hourMax: inputResultEndTimeSearchHourMax,
+        minuteMin: inputResultEndTimeSearchMinuteMin,
+        minuteMax: inputResultEndTimeSearchMinuteMax,
+        NNN: isNullNotNullResultEndTimeSearch,
+      });
+      // 範囲検索 TIME 面談終了(結果) -----------
+      // let _result_duration = adjustFieldValueNumber(inputResultDuration);
+      // 範囲検索 INTEGER 面談時間(結果) -----------
+      // let _result_duration = adjustFieldValueInteger(inputResultDuration);
+      let _result_duration = adjustFieldRangeInteger(inputResultDurationSearch);
+      // 範囲検索 INTEGER 面談時間(結果) -----------ここまで
+      // let _result_number_of_meeting_participants = adjustFieldValueNumber(inputResultNumberOfMeetingParticipants);
+      // 範囲検索 INTEGER 同席人数(結果) -----------
+      // let _result_number_of_meeting_participants = adjustFieldValueInteger(inputResultNumberOfMeetingParticipants);
+      let _result_number_of_meeting_participants = adjustFieldRangeInteger(
+        inputResultNumberOfMeetingParticipantsSearch
+      );
+      // 範囲検索 INTEGER 同席人数(結果) -----------ここまで
+      let _result_presentation_product1 = adjustFieldValue(inputResultPresentationProduct1);
+      let _result_presentation_product2 = adjustFieldValue(inputResultPresentationProduct2);
+      let _result_presentation_product3 = adjustFieldValue(inputResultPresentationProduct3);
+      let _result_presentation_product4 = adjustFieldValue(inputResultPresentationProduct4);
+      let _result_presentation_product5 = adjustFieldValue(inputResultPresentationProduct5);
+      // サーチ配列 面談結果 TEXT[] ------------
+      // let _result_category = adjustFieldValue(inputResultCategory);
+      let _result_category = inputResultCategoryArray;
+      // サーチ配列 面談結果 TEXT[] ------------ここまで
+      let _result_summary = adjustFieldValue(inputResultSummary);
+      let _result_negotiate_decision_maker = adjustFieldValue(inputResultNegotiateDecisionMaker);
+      // let _result_top_position_class = adjustFieldValue(inputResultTopPositionClass)
+      //   ? parseInt(inputResultTopPositionClass, 10)
+      //   : null;
+      // サーチ配列 面談時最上位職位 number[] ------------
+      // let _result_top_position_class = adjustFieldValueInteger(inputResultTopPositionClass);
+      let _result_top_position_class = inputResultTopPositionClassArray;
+      // サーチ配列 面談時最上位職位 number[] ------------ここまで
+      let _pre_meeting_participation_request = adjustFieldValue(inputPreMeetingParticipationRequest);
+      let _meeting_participation_request = adjustFieldValue(inputMeetingParticipationRequest);
+      let _meeting_business_office = adjustFieldValue(inputMeetingBusinessOffice);
+      let _meeting_department = adjustFieldValue(inputMeetingDepartment);
+      let _meeting_member_name = adjustFieldValue(inputMeetingMemberName);
+      // 年月度 ~ 年度
+      // let _meeting_year_month = adjustFieldValueNumber(inputMeetingYearMonth);
+      const parsedMeetingYearMonth = parseInt(inputMeetingYearMonth, 10);
+      let _meeting_year_month =
+        !isNaN(parsedMeetingYearMonth) && inputMeetingYearMonth === parsedMeetingYearMonth.toString()
+          ? parsedMeetingYearMonth
+          : null;
+      const parsedMeetingQuarter = parseInt(inputMeetingQuarter, 10);
+      let _meeting_quarter =
+        !isNaN(parsedMeetingQuarter) && inputMeetingQuarter === parsedMeetingQuarter.toString()
+          ? parsedMeetingQuarter
+          : null;
+      const parsedMeetingHalfYear = parseInt(inputMeetingHalfYear, 10);
+      let _meeting_half_year =
+        !isNaN(parsedMeetingHalfYear) && inputMeetingHalfYear === parsedMeetingHalfYear.toString()
+          ? parsedMeetingHalfYear
+          : null;
+      const parsedMeetingFiscalYear = parseInt(inputMeetingFiscalYear, 10);
+      let _meeting_fiscal_year =
+        !isNaN(parsedMeetingFiscalYear) && inputMeetingFiscalYear === parsedMeetingFiscalYear.toString()
+          ? parsedMeetingFiscalYear
+          : null;
+
+      // 製品分類の処理 ----------------------------------------------
+      // 🔸製品分類の配列内のnameをidに変換してから大中小を全て１つの配列にまとめてセットする
+      // 大分類
+      let productCategoryLargeIdsArray: number[] = [];
+      if (0 < inputProductArrayLarge.length) {
+        const largeNameToIdMap = new Map(optionsProductL.map((obj) => [obj.name, obj.id]));
+        productCategoryLargeIdsArray = inputProductArrayLarge
+          .map((name) => {
+            return largeNameToIdMap.get(name);
+          })
+          .filter((id): id is number => id !== undefined && id !== null);
+        console.log("============================ 大分類実行🔥", largeNameToIdMap, productCategoryLargeIdsArray);
+      }
+      // 中分類
+      let productCategoryMediumIdsArray: number[] = [];
+      if (0 < inputProductArrayMedium.length) {
+        // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryLargeToOptionsMediumObjMap
+        const optionsMediumObj = inputProductArrayLarge
+          .map((name) => productCategoryLargeToOptionsMediumObjMap[name])
+          .flatMap((array) => array);
+        const mediumNameToIdMap = new Map(optionsMediumObj.map((obj) => [obj.name, obj.id]));
+        productCategoryMediumIdsArray = inputProductArrayMedium
+          .map((name) => {
+            return mediumNameToIdMap.get(name);
+          })
+          .filter((id): id is number => id !== undefined && id !== null);
+        console.log(
+          "============================ 中分類実行🔥",
+          optionsMediumObj,
+          mediumNameToIdMap,
+          productCategoryMediumIdsArray
+        );
+      }
+      // 小分類
+      let productCategorySmallIdsArray: number[] = [];
+      if (0 < inputProductArraySmall.length) {
+        // 選択中の大分類に紐づく全ての中分類のオブジェクトを取得 productCategoryMediumToOptionsSmallMap_All_obj
+        const optionsSmallObj = inputProductArrayMedium
+          .map((name) => productCategoryMediumToOptionsSmallMap_All_obj[name])
+          .flatMap((array) => array);
+        const mediumNameToIdMap = new Map(optionsSmallObj.map((obj) => [obj.name, obj.id]));
+        productCategorySmallIdsArray = inputProductArraySmall
+          .map((name) => {
+            return mediumNameToIdMap.get(name);
+          })
+          .filter((id): id is number => id !== undefined && id !== null);
+        console.log(
+          "============================ 小分類実行🔥",
+          optionsSmallObj,
+          mediumNameToIdMap,
+          productCategorySmallIdsArray
+        );
+      }
+
+      // 製品分類の処理ここまで ----------------------------------------------
+
+      const params = {
+        "client_companies.name": _company_name,
+        //   company_name: _company_name,
+        // department_name: _department_name,
+        "client_companies.department_name": _department_name,
+        main_phone_number: _main_phone_number,
+        main_fax: _main_fax,
+        zipcode: _zipcode,
+        address: _address,
+        // サーチ配列 規模 TEXT[] ------------
+        // number_of_employees_class: _number_of_employees_class,
+        number_of_employees_class:
+          isNullNotNullEmployeesClass === null ? _number_of_employees_class : adjustIsNNN(isNullNotNullEmployeesClass),
+        // サーチ配列 規模 TEXT[] ------------ここまで
+        // 範囲検索 資本金・従業員数 ------------
+        capital: _capital,
+        number_of_employees: _number_of_employees,
+        // 範囲検索 資本金・従業員数 ------------ここまで
+        established_in: _established_in,
+        business_content: _business_content,
+        website_url: _website_url,
+        //   company_email: _company_email,
+        "client_companies.email": _company_email,
+        // サーチ配列 業種 number[] ------------
+        // industry_type_id: _industry_type_id,
+        industry_type_id:
+          isNullNotNullIndustryType === null ? _industry_type_id : adjustIsNNN(isNullNotNullIndustryType),
+        // サーチ配列 業種 number[] ------------ここまで
+        // 製品分類 ----------------
+        // product_category_large: _product_category_large,
+        // product_category_medium: _product_category_medium,
+        // product_category_small: _product_category_small,
+        // product_category_large_ids: productCategoryLargeIdsArray,
+        // product_category_medium_ids: productCategoryMediumIdsArray,
+        // product_category_small_ids: productCategorySmallIdsArray,
+        product_category_large_ids:
+          isNullNotNullCategoryLarge === null ? productCategoryLargeIdsArray : adjustIsNNN(isNullNotNullCategoryLarge),
+        product_category_medium_ids:
+          isNullNotNullCategoryMedium === null
+            ? productCategoryMediumIdsArray
+            : adjustIsNNN(isNullNotNullCategoryMedium),
+        product_category_small_ids:
+          isNullNotNullCategorySmall === null ? productCategorySmallIdsArray : adjustIsNNN(isNullNotNullCategorySmall),
+        // 製品分類 ---------------- ここまで
+        // サーチ配列 決算月・予算申請月1, 2 TEXT[] ------------
+        // fiscal_end_month: _fiscal_end_month,
+        // budget_request_month1: _budget_request_month1,
+        // budget_request_month2: _budget_request_month2,
+        fiscal_end_month: isNullNotNullFiscal === null ? _fiscal_end_month : adjustIsNNN(isNullNotNullFiscal),
+        budget_request_month1:
+          isNullNotNullBudgetRequestMonth1 === null
+            ? _budget_request_month1
+            : adjustIsNNN(isNullNotNullBudgetRequestMonth1),
+        budget_request_month2:
+          isNullNotNullBudgetRequestMonth2 === null
+            ? _budget_request_month2
+            : adjustIsNNN(isNullNotNullBudgetRequestMonth2),
+        // サーチ配列 決算月・予算申請月1, 2 TEXT[] ------------ここまで
+        clients: _clients,
+        supplier: _supplier,
+        facility: _facility,
+        business_sites: _business_sites,
+        overseas_bases: _overseas_bases,
+        group_company: _group_company,
+        corporate_number: _corporate_number,
+        // contactsテーブル
+        //   contact_name: _contact_name,
+        "contacts.name": _contact_name,
+        direct_line: _direct_line,
+        direct_fax: _direct_fax,
+        extension: _extension,
+        company_cell_phone: _company_cell_phone,
+        personal_cell_phone: _personal_cell_phone,
+        //   contact_email: _contact_email,
+        "contacts.email": _contact_email,
+        position_name: _position_name,
+        // サーチ配列 TEXT[] 職位・担当職種 ------------
+        // position_class: _position_class,
+        // occupation: _occupation,
+        position_class: isNullNotNullPositionClass === null ? _position_class : adjustIsNNN(isNullNotNullPositionClass),
+        occupation: isNullNotNullOccupation === null ? _occupation : adjustIsNNN(isNullNotNullOccupation),
+        // サーチ配列 TEXT[] 職位・担当職種 ------------ここまで
+        // 範囲検索 決裁金額 ------------
+        approval_amount: _approval_amount,
+        // 範囲検索 決裁金額 ------------ここまで
+        "contacts.created_by_company_id": _contact_created_by_company_id,
+        "contacts.created_by_user_id": _contact_created_by_user_id,
+        // activitiesテーブル
+        // "meetings.created_by_company_id": _meeting_created_by_company_id,
+        "meetings.created_by_company_id": _meeting_created_by_company_id,
+        "meetings.created_by_user_id": _meeting_created_by_user_id,
+        "meetings.created_by_department_of_user": _meeting_created_by_department_of_user,
+        "meetings.created_by_section_of_user": _meeting_created_by_section_of_user,
+        "meetings.created_by_unit_of_user": _meeting_created_by_unit_of_user,
+        "meetings.created_by_office_of_user": _meeting_created_by_office_of_user,
+        meeting_type: _meeting_type,
+        // サーチ配列 TEXT[] Webtツール ------------
+        // web_tool: _web_tool,
+        web_tool: isNullNotNullWebTool === null ? _web_tool : adjustIsNNN(isNullNotNullWebTool),
+        //
+        // 範囲検索 面談日(予定) ------------
+        planned_date: _planned_date,
+        //
+        // 範囲検索 面談開始(予定) ------------
+        planned_start_time: _planned_start_time,
+        //
+        // サーチ配列 TEXT[] 面談目的 ------------
+        // planned_purpose: _planned_purpose,
+        planned_purpose:
+          isNullNotNullPlannedPurpose === null ? _planned_purpose : adjustIsNNN(isNullNotNullPlannedPurpose),
+        //
+        // 範囲検索 面談時間(予定) ------------
+        planned_duration: _planned_duration,
+        //
+        planned_appoint_check_flag: _planned_appoint_check_flag,
+        planned_product1: _planned_product1,
+        planned_product2: _planned_product2,
+        planned_comment: _planned_comment,
+        // 範囲検索 面談日(結果) ------------
+        result_date: _result_date,
+        //
+        // 範囲検索 面談開始(結果) ------------
+        result_start_time: _result_start_time,
+        //
+        // 範囲検索 面談終了(結果) ------------
+        result_end_time: _result_end_time,
+        //
+        // 範囲検索 面談時間(結果) ------------
+        result_duration: _result_duration,
+        //
+        // 範囲検索 同席人数(結果) ------------
+        result_number_of_meeting_participants: _result_number_of_meeting_participants,
+        //
+        result_presentation_product1: _result_presentation_product1,
+        result_presentation_product2: _result_presentation_product2,
+        result_presentation_product3: _result_presentation_product3,
+        result_presentation_product4: _result_presentation_product4,
+        result_presentation_product5: _result_presentation_product5,
+        // サーチ配列 TEXT[] 面談結果 ------------
+        // result_category: _result_category,
+        result_category:
+          isNullNotNullResultCategory === null ? _result_category : adjustIsNNN(isNullNotNullResultCategory),
+        //
+        result_summary: _result_summary,
+        result_negotiate_decision_maker: _result_negotiate_decision_maker,
+        // サーチ配列 TEXT[] 面談時最上位職位 ------------ここまで
+        // result_top_position_class: _result_top_position_class,
+        result_top_position_class:
+          isNullNotNullResultTopPositionClass === null
+            ? _result_top_position_class
+            : adjustIsNNN(isNullNotNullResultTopPositionClass),
+        //
+        pre_meeting_participation_request: _pre_meeting_participation_request,
+        meeting_participation_request: _meeting_participation_request,
+        meeting_business_office: _meeting_business_office,
+        meeting_department: _meeting_department,
+        meeting_member_name: _meeting_member_name,
+        // 年月度〜年度
+        meeting_year_month: _meeting_year_month,
+        meeting_quarter: _meeting_quarter,
+        meeting_half_year: _meeting_half_year,
+        meeting_fiscal_year: _meeting_fiscal_year,
+      };
+
+      // console.log("✅ 条件 params", params);
+
+      // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
+      // const { data, error } = await supabase.rpc("search_companies", { params });
+
+      setInputCompanyName("");
+      setInputDepartmentName("");
+      setInputTel("");
+      setInputFax("");
+      setInputZipcode("");
+      // サーチ配列 規模 ----------------
+      // setInputEmployeesClass("");
+      setInputEmployeesClassArray([]);
+      if (isNullNotNullEmployeesClass !== null) setIsNullNotNullEmployeesClass(null);
+      // サーチ配列 規模 ----------------ここまで
+      setInputAddress("");
+      // 範囲検索 資本金・従業員数 ----------------
+      // setInputCapital("");
+      setInputCapitalSearch({ min: "", max: "" });
+      setInputNumberOfEmployeesSearch({ min: "", max: "" });
+      // 範囲検索 資本金・従業員数 ----------------ここまで
+      setInputFound("");
+      setInputContent("");
+      setInputHP("");
+      setInputCompanyEmail("");
+      // サーチ配列 業種 ----------------
+      // setInputIndustryType("");
+      setInputIndustryTypeArray([]);
+      if (isNullNotNullIndustryType !== null) setIsNullNotNullIndustryType(null);
+      // サーチ配列 業種 ----------------ここまで
+      // 製品分類 ----------------
+      // setInputProductL("");
+      // setInputProductM("");
+      // setInputProductS("");
+      setInputProductArrayLarge([]);
+      setInputProductArrayMedium([]);
+      setInputProductArraySmall([]);
+      if (isNullNotNullCategoryLarge !== null) setIsNullNotNullCategoryLarge(null);
+      if (isNullNotNullCategoryMedium !== null) setIsNullNotNullCategoryMedium(null);
+      if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
+      // 製品分類 ----------------ここまで
+      // サーチ配列 決算月・予算申請月 -----------------------
+      // setInputFiscal("");
+      // setInputBudgetRequestMonth1("");
+      // setInputBudgetRequestMonth2("");
+      setInputFiscalArray([]);
+      if (isNullNotNullFiscal !== null) setIsNullNotNullFiscal(null);
+      setInputBudgetRequestMonth1Array([]);
+      if (isNullNotNullBudgetRequestMonth1 !== null) setIsNullNotNullBudgetRequestMonth1(null);
+      setInputBudgetRequestMonth2Array([]);
+      if (isNullNotNullBudgetRequestMonth2 !== null) setIsNullNotNullBudgetRequestMonth2(null);
+      // サーチ配列 決算月・予算申請月 -----------------------ここまで
+      setInputClient("");
+      setInputSupplier("");
+      setInputFacility("");
+      setInputBusinessSite("");
+      setInputOverseas("");
+      setInputGroup("");
+      setInputCorporateNum("");
+      // contactsテーブル
+      setInputContactName("");
+      setInputDirectLine("");
+      setInputDirectFax("");
+      setInputExtension("");
+      setInputCompanyCellPhone("");
+      setInputPersonalCellPhone("");
+      setInputContactEmail("");
+      setInputPositionName("");
+      // サーチ配列 職位・担当職種 -----------------------
+      // setInputPositionClass("");
+      // setInputOccupation("");
+      setInputPositionClassArray([]);
+      if (isNullNotNullPositionClass !== null) setIsNullNotNullPositionClass(null);
+      setInputOccupationArray([]);
+      if (isNullNotNullOccupation !== null) setIsNullNotNullOccupation(null);
+      // サーチ配列 職位・担当職種 ----------------------- ここまで
+      // 範囲検索 決裁金額 ----------------
+      // setInputApprovalAmount("");
+      setInputApprovalAmountSearch({ min: "", max: "" });
+      // 範囲検索 決裁金額 ----------------ここまで
+      setInputContactCreatedByCompanyId("");
+      setInputContactCreatedByUserId("");
+      // meetingsテーブル
+      setInputMeetingCreatedByCompanyId("");
+      setInputMeetingCreatedByUserId("");
+      setInputMeetingCreatedByDepartmentOfUser("");
+      setInputMeetingCreatedBySectionOfUser("");
+      setInputMeetingCreatedByUnitOfUser("");
+      setInputMeetingCreatedByOfficeOfUser("");
+      setInputMeetingType("");
+      // サーチ配列 Webツール -----------------------
+      // setInputWebTool("");
+      setInputWebToolArray([]);
+      if (isNullNotNullWebTool !== null) setIsNullNotNullWebTool(null);
+      //
+      // 範囲検索 面談日(予定) ----------------
+      // setInputPlannedDate(null);
+      setInputPlannedDateSearch({ min: null, max: null });
+      //
+      // 範囲検索 TIME 面談開始(予定) ----------------
+      // setInputPlannedStartTime("");
+      // if (!!inputPlannedStartTimeHour) setInputPlannedStartTimeHour("");
+      // if (!!inputPlannedStartTimeMinute) setInputPlannedStartTimeMinute("");
+      if (!!inputPlannedStartTimeSearchHourMin) setInputPlannedStartTimeSearchHourMin("");
+      if (!!inputPlannedStartTimeSearchMinuteMin) setInputPlannedStartTimeSearchMinuteMin("");
+      if (!!inputPlannedStartTimeSearchHourMax) setInputPlannedStartTimeSearchHourMax("");
+      if (!!inputPlannedStartTimeSearchMinuteMax) setInputPlannedStartTimeSearchMinuteMax("");
+      if (inputPlannedStartTimeSearchType === "range") setInputPlannedStartTimeSearchType("exact");
+      if (isNullNotNullPlannedStartTimeSearch !== null) setIsNullNotNullPlannedStartTimeSearch(null);
+      //
+      // サーチ配列 面談目的 -----------------------
+      // setInputPlannedPurpose("");
+      setInputPlannedPurposeArray([]);
+      if (isNullNotNullPlannedPurpose !== null) setIsNullNotNullPlannedPurpose(null);
+      //
+      // 範囲検索 面談時間(予定) ----------------
+      // if (!!inputPlannedDuration) setInputPlannedDuration(null);
+      setInputPlannedDurationSearch({ min: null, max: null });
+      //
+      setInputPlannedAppointCheckFlag(null);
+      setInputPlannedProduct1("");
+      setInputPlannedProduct2("");
+      setInputPlannedComment("");
+      // 範囲検索 面談日(結果) ----------------
+      // setInputResultDate(null);
+      setInputResultDateSearch({ min: null, max: null });
+      //
+      // 範囲検索 TIME 面談開始(結果) ----------------
+      // setInputResultStartTime("");
+      // if (!!inputResultStartTimeHour) setInputResultStartTimeHour("");
+      // if (!!inputResultStartTimeMinute) setInputResultStartTimeMinute("");
+      if (!!inputResultStartTimeSearchHourMin) setInputResultStartTimeSearchHourMin("");
+      if (!!inputResultStartTimeSearchMinuteMin) setInputResultStartTimeSearchMinuteMin("");
+      if (!!inputResultStartTimeSearchHourMax) setInputResultStartTimeSearchHourMax("");
+      if (!!inputResultStartTimeSearchMinuteMax) setInputResultStartTimeSearchMinuteMax("");
+      if (inputResultStartTimeSearchType === "range") setInputResultStartTimeSearchType("exact");
+      if (isNullNotNullResultStartTimeSearch !== null) setIsNullNotNullResultStartTimeSearch(null);
+      //
+      // 範囲検索 TIME 面談開始(結果) ----------------
+      // setInputResultEndTime("");
+      // if (!!inputResultEndTimeHour) setInputResultEndTimeHour("");
+      // if (!!inputResultEndTimeMinute) setInputResultEndTimeMinute("");
+      if (!!inputResultEndTimeSearchHourMin) setInputResultEndTimeSearchHourMin("");
+      if (!!inputResultEndTimeSearchMinuteMin) setInputResultEndTimeSearchMinuteMin("");
+      if (!!inputResultEndTimeSearchHourMax) setInputResultEndTimeSearchHourMax("");
+      if (!!inputResultEndTimeSearchMinuteMax) setInputResultEndTimeSearchMinuteMax("");
+      if (inputResultEndTimeSearchType === "range") setInputResultEndTimeSearchType("exact");
+      if (isNullNotNullResultEndTimeSearch !== null) setIsNullNotNullResultEndTimeSearch(null);
+      //
+      // 範囲検索 面談時間(結果) ----------------
+      // if (!!inputResultDuration) setInputResultDuration(null);
+      setInputResultDurationSearch({ min: null, max: null });
+      //
+      // 範囲検索 同席人数(結果) ----------------
+      // if (!!inputResultNumberOfMeetingParticipants) setInputResultNumberOfMeetingParticipants(null);
+      setInputResultNumberOfMeetingParticipantsSearch({ min: null, max: null });
+      //
+      setInputResultPresentationProduct1("");
+      setInputResultPresentationProduct2("");
+      setInputResultPresentationProduct3("");
+      setInputResultPresentationProduct4("");
+      setInputResultPresentationProduct5("");
+      // サーチ配列 面談結果 -----------------------
+      // setInputResultCategory("");
+      setInputResultCategoryArray([]);
+      if (isNullNotNullResultCategory !== null) setIsNullNotNullResultCategory(null);
+      //
+      setInputResultSummary("");
+      setInputResultNegotiateDecisionMaker("");
+      // サーチ配列 面談時最上位職位 -----------------------
+      // setInputResultTopPositionClass("");
+      setInputResultTopPositionClassArray([]);
+      if (isNullNotNullResultTopPositionClass !== null) setIsNullNotNullResultTopPositionClass(null);
+      //
+      setInputPreMeetingParticipationRequest("");
+      setInputMeetingParticipationRequest("");
+      setInputMeetingBusinessOffice("");
+      setInputMeetingDepartment("");
+      setInputMeetingMemberName("");
       // 年月度〜年度
-      meeting_year_month: _meeting_year_month,
-      meeting_quarter: _meeting_quarter,
-      meeting_half_year: _meeting_half_year,
-      meeting_fiscal_year: _meeting_fiscal_year,
-    };
+      // setInputMeetingYearMonth(null);
+      setInputMeetingYearMonth("");
+      setInputMeetingQuarter("");
+      setInputMeetingHalfYear("");
+      setInputMeetingFiscalYear("");
 
-    // console.log("✅ 条件 params", params);
+      // サーチモードオフ
+      setSearchMode(false);
+      setEditSearchMode(false);
 
-    // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
-    // const { data, error } = await supabase.rpc("search_companies", { params });
+      // Zustandに検索条件を格納
+      setNewSearchMeeting_Contact_CompanyParams(params);
 
-    setInputCompanyName("");
-    setInputDepartmentName("");
-    setInputTel("");
-    setInputFax("");
-    setInputZipcode("");
-    setInputEmployeesClass("");
-    setInputAddress("");
-    setInputCapital("");
-    setInputFound("");
-    setInputContent("");
-    setInputHP("");
-    setInputCompanyEmail("");
-    setInputIndustryType("");
-    // 製品分類 ----------------
-    // setInputProductL("");
-    // setInputProductM("");
-    // setInputProductS("");
-    setInputProductArrayLarge([]);
-    setInputProductArrayMedium([]);
-    setInputProductArraySmall([]);
-    if (isNullNotNullCategoryLarge !== null) setIsNullNotNullCategoryLarge(null);
-    if (isNullNotNullCategoryMedium !== null) setIsNullNotNullCategoryMedium(null);
-    if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
-    // 製品分類 ----------------ここまで
-    setInputFiscal("");
-    setInputBudgetRequestMonth1("");
-    setInputBudgetRequestMonth2("");
-    setInputClient("");
-    setInputSupplier("");
-    setInputFacility("");
-    setInputBusinessSite("");
-    setInputOverseas("");
-    setInputGroup("");
-    setInputCorporateNum("");
-    // contactsテーブル
-    setInputContactName("");
-    setInputDirectLine("");
-    setInputDirectFax("");
-    setInputExtension("");
-    setInputCompanyCellPhone("");
-    setInputPersonalCellPhone("");
-    setInputContactEmail("");
-    setInputPositionName("");
-    setInputPositionClass("");
-    setInputOccupation("");
-    setInputApprovalAmount("");
-    setInputContactCreatedByCompanyId("");
-    setInputContactCreatedByUserId("");
-    // meetingsテーブル
-    setInputMeetingCreatedByCompanyId("");
-    setInputMeetingCreatedByUserId("");
-    setInputMeetingCreatedByDepartmentOfUser("");
-    setInputMeetingCreatedBySectionOfUser("");
-    setInputMeetingCreatedByUnitOfUser("");
-    setInputMeetingCreatedByOfficeOfUser("");
-    setInputMeetingType("");
-    setInputWebTool("");
-    setInputPlannedDate(null);
-    setInputPlannedStartTime("");
-    if (!!inputPlannedStartTimeHour) setInputPlannedStartTimeHour("");
-    if (!!inputPlannedStartTimeMinute) setInputPlannedStartTimeMinute("");
-    setInputPlannedPurpose("");
-    if (!!inputPlannedDuration) setInputPlannedDuration(null);
-    setInputPlannedAppointCheckFlag(null);
-    setInputPlannedProduct1("");
-    setInputPlannedProduct2("");
-    setInputPlannedComment("");
-    setInputResultDate(null);
-    setInputResultStartTime("");
-    if (!!inputResultStartTimeHour) setInputResultStartTimeHour("");
-    if (!!inputResultStartTimeMinute) setInputResultStartTimeMinute("");
-    setInputResultEndTime("");
-    if (!!inputResultEndTimeHour) setInputResultEndTimeHour("");
-    if (!!inputResultEndTimeMinute) setInputResultEndTimeMinute("");
-    if (!!inputResultDuration) setInputResultDuration(null);
-    if (!!inputResultNumberOfMeetingParticipants) setInputResultNumberOfMeetingParticipants(null);
-    setInputResultPresentationProduct1("");
-    setInputResultPresentationProduct2("");
-    setInputResultPresentationProduct3("");
-    setInputResultPresentationProduct4("");
-    setInputResultPresentationProduct5("");
-    setInputResultCategory("");
-    setInputResultSummary("");
-    setInputResultNegotiateDecisionMaker("");
-    setInputResultTopPositionClass("");
-    setInputPreMeetingParticipationRequest("");
-    setInputMeetingParticipationRequest("");
-    setInputMeetingBusinessOffice("");
-    setInputMeetingDepartment("");
-    setInputMeetingMemberName("");
-    // 年月度〜年度
-    // setInputMeetingYearMonth(null);
-    setInputMeetingYearMonth("");
-    setInputMeetingQuarter("");
-    setInputMeetingHalfYear("");
-    setInputMeetingFiscalYear("");
+      // 選択中の列データをリセット
+      setSelectedRowDataMeeting(null);
 
-    // サーチモードオフ
-    setSearchMode(false);
-    setEditSearchMode(false);
+      console.log("✅ 条件 params", params);
+      // const { data, error } = await supabase.rpc("search_companies", { params });
+      // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
+      // const { data, error } = await supabase.rpc("search_activities_and_companies_and_contacts", { params });
+      // const { data, error } = await supabase.rpc("search_meetings_and_companies_and_contacts", { params });
 
-    // Zustandに検索条件を格納
-    setNewSearchMeeting_Contact_CompanyParams(params);
+      // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
+      // const { data, error } = await supabase
+      //   .rpc("search_companies_and_contacts", { params })
+      //   .is("created_by_company_id", null)
+      //   .range(0, 20);
 
-    // 選択中の列データをリセット
-    setSelectedRowDataMeeting(null);
+      // ユーザーIDが自身のIDと一致するデータのみ 成功
+      // const { data, error } = await supabase
+      //   .rpc("search_companies_and_contacts", { params })
+      //   .eq("created_by_user_id", `${userProfileState?.id}`)
+      //   .range(0, 20);
 
-    console.log("✅ 条件 params", params);
-    // const { data, error } = await supabase.rpc("search_companies", { params });
-    // const { data, error } = await supabase.rpc("search_companies_and_contacts", { params });
-    // const { data, error } = await supabase.rpc("search_activities_and_companies_and_contacts", { params });
-    // const { data, error } = await supabase.rpc("search_meetings_and_companies_and_contacts", { params });
+      // if (error) return alert(error.message);
+      // console.log("✅ 検索結果データ取得 data", data);
 
-    // 会社IDがnull、つまりまだ有料アカウントを持っていないユーザー
-    // const { data, error } = await supabase
-    //   .rpc("search_companies_and_contacts", { params })
-    //   .is("created_by_company_id", null)
-    //   .range(0, 20);
+      // setLoadingGlobalState(false);
 
-    // ユーザーIDが自身のIDと一致するデータのみ 成功
-    // const { data, error } = await supabase
-    //   .rpc("search_companies_and_contacts", { params })
-    //   .eq("created_by_user_id", `${userProfileState?.id}`)
-    //   .range(0, 20);
-
-    // if (error) return alert(error.message);
-    // console.log("✅ 検索結果データ取得 data", data);
-
-    // setLoadingGlobalState(false);
-
-    // スクロールコンテナを最上部に戻す
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+      // スクロールコンテナを最上部に戻す
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+      }
+    } catch (error: any) {
+      setLoadingGlobalState(false);
+      alert(error.message);
+      console.error("エラー：", error);
     }
   };
 
@@ -2228,15 +3217,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     }
   };
 
-  const hours = useMemo(() => {
-    return Array.from({ length: 24 }, (_, index) => (index < 10 ? "0" + index : "" + index));
-  }, []);
-  const minutes5 = useMemo(() => {
-    return Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
-  }, []);
-  const minutes = useMemo(() => {
-    return Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
-  }, []);
+  // const hours = useMemo(() => {
+  //   return Array.from({ length: 24 }, (_, index) => (index < 10 ? "0" + index : "" + index));
+  // }, []);
+  // const minutes5 = useMemo(() => {
+  //   return Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
+  // }, []);
+  // const minutes = useMemo(() => {
+  //   return Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
+  // }, []);
 
   // 同席者リストから各同席者を「 / \n」で区切った一つの文字列に変換する関数
   // 形式は「佐藤(株式会社X・営業部・部長) / \n ...」
@@ -2262,7 +3251,17 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   const [isOpenTimePicker, setIsOpenTimePicker] = useState(false);
-  const timePickerTypeRef = useRef<"planned" | "result_start" | "result_end">("planned");
+  const timePickerTypeRef = useRef<
+    | "planned"
+    | "result_start"
+    | "result_end"
+    | "search_planned_start_min"
+    | "search_planned_start_max"
+    | "search_result_start_min"
+    | "search_result_start_max"
+    | "search_result_end_min"
+    | "search_result_end_max"
+  >("planned");
   const timePickerIncrementTypeRef = useRef<"all" | "5">("all");
 
   const presetTimes = [
@@ -2274,8 +3273,75 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   ];
 
   // タイムピッカーに渡すstate
-  const getTimePickerState = (type: "planned" | "result_start" | "result_end") => {
+  const getTimePickerState = (
+    type:
+      | "search_planned_start_min"
+      | "search_planned_start_max"
+      | "search_result_start_min"
+      | "search_result_start_max"
+      | "search_result_end_min"
+      | "search_result_end_max"
+      | "planned"
+      | "result_start"
+      | "result_end"
+  ) => {
     switch (type) {
+      // サーチ
+      case "search_planned_start_min":
+        return {
+          columnName: language === "ja" ? `面談開始（予定）` : ``,
+          hourState: inputPlannedStartTimeSearchHourMin,
+          setHourState: setInputPlannedStartTimeSearchHourMin,
+          minuteState: inputPlannedStartTimeSearchMinuteMin,
+          setMinuteState: setInputPlannedStartTimeSearchMinuteMin,
+        };
+        break;
+      case "search_planned_start_max":
+        return {
+          columnName: language === "ja" ? `面談開始（予定）` : ``,
+          hourState: inputPlannedStartTimeSearchHourMax,
+          setHourState: setInputPlannedStartTimeSearchHourMax,
+          minuteState: inputPlannedStartTimeSearchMinuteMax,
+          setMinuteState: setInputPlannedStartTimeSearchMinuteMax,
+        };
+        break;
+      case "search_result_start_min":
+        return {
+          columnName: language === "ja" ? `面談開始（結果）` : ``,
+          hourState: inputResultStartTimeSearchHourMin,
+          setHourState: setInputResultStartTimeSearchHourMin,
+          minuteState: inputResultStartTimeSearchMinuteMin,
+          setMinuteState: setInputResultStartTimeSearchMinuteMin,
+        };
+        break;
+      case "search_result_start_max":
+        return {
+          columnName: language === "ja" ? `面談開始（結果）` : ``,
+          hourState: inputResultStartTimeSearchHourMax,
+          setHourState: setInputResultStartTimeSearchHourMax,
+          minuteState: inputResultStartTimeSearchMinuteMax,
+          setMinuteState: setInputResultStartTimeSearchMinuteMax,
+        };
+        break;
+      case "search_result_end_min":
+        return {
+          columnName: language === "ja" ? `面談終了（結果）` : ``,
+          hourState: inputResultEndTimeSearchHourMin,
+          setHourState: setInputResultEndTimeSearchHourMin,
+          minuteState: inputResultEndTimeSearchMinuteMin,
+          setMinuteState: setInputResultEndTimeSearchMinuteMin,
+        };
+        break;
+      case "search_result_end_max":
+        return {
+          columnName: language === "ja" ? `面談終了（結果）` : ``,
+          hourState: inputResultEndTimeSearchHourMax,
+          setHourState: setInputResultEndTimeSearchHourMax,
+          minuteState: inputResultEndTimeSearchMinuteMax,
+          setMinuteState: setInputResultEndTimeSearchMinuteMax,
+        };
+        break;
+      // フィールドエディット
       case "planned":
         return {
           columnName: language === "ja" ? `面談開始（予定）` : ``,
@@ -2296,7 +3362,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
         break;
       case "result_end":
         return {
-          columnName: language === "ja" ? `面談開始（結果）` : ``,
+          columnName: language === "ja" ? `面談終了（結果）` : ``,
           hourState: inputResultEndTimeHour,
           setHourState: setInputResultEndTimeHour,
           minuteState: inputResultEndTimeMinute,
@@ -2324,19 +3390,92 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   // 🔸「入力値をリセット」をクリック
   const handleClickResetInput = (
     dispatch: Dispatch<SetStateAction<any>>,
-    inputType: "string" | "number" = "string"
+    inputType: "string" | "range_string" | "range_date" | "range_number" | "array" = "string"
   ) => {
     handleCloseTooltip();
-    if (inputType === "string") {
+
+    if (inputType === "array") {
+      dispatch([]);
+    } else if (inputType === "range_string") {
+      dispatch({ min: "", max: "" });
+    } else if (inputType === "range_date" || inputType === "range_number") {
+      dispatch({ min: null, max: null });
+    } else if (inputType === "string") {
       dispatch("");
     }
-    if (inputType === "number") {
-      dispatch(null);
+  };
+  // 🔸TIME型「入力値をリセット」をクリック
+  const handleClickResetTime = (
+    searchType: "exact" | "range",
+    inputType: "planned_start_time" | "result_start_time" | "result_end_time"
+  ) => {
+    handleCloseTooltip();
+
+    if (inputType === "planned_start_time") {
+      if (inputPlannedStartTimeSearchHourMin !== "") setInputPlannedStartTimeSearchHourMin("");
+      if (inputPlannedStartTimeSearchMinuteMin !== "") setInputPlannedStartTimeSearchMinuteMin("");
+      if (isNullNotNullPlannedStartTimeSearch !== null) setIsNullNotNullPlannedStartTimeSearch(null);
+      if (searchType === "range") {
+        if (inputPlannedStartTimeSearchHourMax !== "") setInputPlannedStartTimeSearchHourMax("");
+        if (inputPlannedStartTimeSearchMinuteMax !== "") setInputPlannedStartTimeSearchMinuteMax("");
+      }
+    }
+    if (inputType === "result_start_time") {
+      if (inputResultStartTimeSearchHourMin !== "") setInputResultStartTimeSearchHourMin("");
+      if (inputResultStartTimeSearchMinuteMin !== "") setInputResultStartTimeSearchMinuteMin("");
+      if (isNullNotNullResultStartTimeSearch !== null) setIsNullNotNullResultStartTimeSearch(null);
+      if (searchType === "range") {
+        if (inputResultStartTimeSearchHourMax !== "") setInputResultStartTimeSearchHourMax("");
+        if (inputResultStartTimeSearchMinuteMax !== "") setInputResultStartTimeSearchMinuteMax("");
+      }
+    }
+    if (inputType === "result_end_time") {
+      if (inputResultEndTimeSearchHourMin !== "") setInputResultEndTimeSearchHourMin("");
+      if (inputResultEndTimeSearchMinuteMin !== "") setInputResultEndTimeSearchMinuteMin("");
+      if (isNullNotNullResultEndTimeSearch !== null) setIsNullNotNullResultEndTimeSearch(null);
+      if (searchType === "range") {
+        if (inputResultEndTimeSearchHourMax !== "") setInputResultEndTimeSearchHourMax("");
+        if (inputResultEndTimeSearchMinuteMax !== "") setInputResultEndTimeSearchMinuteMax("");
+      }
+    }
+  };
+
+  // 🔸TIME型 exact range 切り替え時の入力値リセット
+  const switchTimeSearchType = (
+    searchType: "exact" | "range",
+    dispatchSearchType: Dispatch<SetStateAction<"exact" | "range">>,
+    inputType: "planned_start_time" | "result_start_time" | "result_end_time"
+  ) => {
+    // range へ変更
+    if (searchType === "exact") {
+      dispatchSearchType("range");
+      handleClickResetTime("range", inputType);
+    }
+    // exact へ変更
+    if (searchType === "range") {
+      dispatchSearchType("exact");
+      handleClickResetTime("exact", inputType);
     }
   };
 
   // 🔸製品分類用「入力値をリセット」
-  const handleResetArray = (fieldName: "category_large" | "category_medium" | "category_small") => {
+  const handleResetArray = (
+    fieldName:
+      | "category_large"
+      | "category_medium"
+      | "category_small"
+      | "number_of_employees_class"
+      | "industry_type_id"
+      | "fiscal_end_month"
+      | "budget_request_month1"
+      | "budget_request_month2"
+      | "position_class" // contactsテーブル
+      | "occupation"
+      | "web_tool" // meetingsテーブル
+      | "planned_purpose"
+      | "result_category"
+      | "result_top_position_class"
+  ) => {
     if (fieldName === "category_large") {
       if (isNullNotNullCategoryLarge !== null) setIsNullNotNullCategoryLarge(null);
       if (0 < inputProductArrayLarge.length) setInputProductArrayLarge([]);
@@ -2349,6 +3488,50 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       if (isNullNotNullCategorySmall !== null) setIsNullNotNullCategorySmall(null);
       if (0 < inputProductArraySmall.length) setInputProductArraySmall([]);
     }
+    if (fieldName === "number_of_employees_class") {
+      if (isNullNotNullEmployeesClass !== null) setIsNullNotNullEmployeesClass(null);
+      if (0 < inputEmployeesClassArray.length) setInputEmployeesClassArray([]);
+    }
+    if (fieldName === "industry_type_id") {
+      if (isNullNotNullIndustryType !== null) setIsNullNotNullIndustryType(null);
+      if (0 < inputIndustryTypeArray.length) setInputIndustryTypeArray([]);
+    }
+    if (fieldName === "fiscal_end_month") {
+      if (isNullNotNullFiscal !== null) setIsNullNotNullFiscal(null);
+      if (0 < inputFiscalArray.length) setInputFiscalArray([]);
+    }
+    if (fieldName === "budget_request_month1") {
+      if (isNullNotNullBudgetRequestMonth1 !== null) setIsNullNotNullBudgetRequestMonth1(null);
+      if (0 < inputBudgetRequestMonth1Array.length) setInputBudgetRequestMonth1Array([]);
+    }
+    if (fieldName === "budget_request_month2") {
+      if (isNullNotNullBudgetRequestMonth2 !== null) setIsNullNotNullBudgetRequestMonth2(null);
+      if (0 < inputBudgetRequestMonth2Array.length) setInputBudgetRequestMonth2Array([]);
+    }
+    if (fieldName === "position_class") {
+      if (isNullNotNullPositionClass !== null) setIsNullNotNullPositionClass(null);
+      if (0 < inputPositionClassArray.length) setInputPositionClassArray([]);
+    }
+    if (fieldName === "occupation") {
+      if (isNullNotNullOccupation !== null) setIsNullNotNullOccupation(null);
+      if (0 < inputOccupationArray.length) setInputOccupationArray([]);
+    }
+    if (fieldName === "web_tool") {
+      if (isNullNotNullWebTool !== null) setIsNullNotNullWebTool(null);
+      if (0 < inputWebToolArray.length) setInputWebToolArray([]);
+    }
+    if (fieldName === "planned_purpose") {
+      if (isNullNotNullPlannedPurpose !== null) setIsNullNotNullPlannedPurpose(null);
+      if (0 < inputPlannedPurposeArray.length) setInputPlannedPurposeArray([]);
+    }
+    if (fieldName === "result_category") {
+      if (isNullNotNullResultCategory !== null) setIsNullNotNullResultCategory(null);
+      if (0 < inputResultCategoryArray.length) setInputResultCategoryArray([]);
+    }
+    if (fieldName === "result_top_position_class") {
+      if (isNullNotNullResultTopPositionClass !== null) setIsNullNotNullResultTopPositionClass(null);
+      if (0 < inputResultTopPositionClassArray.length) setInputResultTopPositionClassArray([]);
+    }
   };
 
   // 🔸製品分類全てリセット
@@ -2359,31 +3542,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   };
 
   // 🔸「入力有り」をクリック
-  const handleClickIsNotNull = (
-    dispatch: Dispatch<SetStateAction<any>>,
-    inputType: "" | "category_large" | "category_medium" | "category_small" = ""
-  ) => {
-    if (inputType === "category_large") resetProductCategories("lms");
-    if (inputType === "category_medium") resetProductCategories("ms");
-    if (inputType === "category_small") resetProductCategories("s");
+  const handleClickIsNotNull = (dispatch: Dispatch<SetStateAction<any>>) => {
     return dispatch("is not null");
   };
 
   // 🔸「入力無し」をクリック
-  const handleClickIsNull = (
-    dispatch: Dispatch<SetStateAction<any>>,
-    inputType:
-      | ""
-      | "planned_start_time"
-      | "result_start_time"
-      | "result_end_time"
-      | "category_large"
-      | "category_medium"
-      | "category_small" = ""
-  ) => {
-    if (inputType === "category_large") resetProductCategories("lms");
-    if (inputType === "category_medium") resetProductCategories("ms");
-    if (inputType === "category_small") resetProductCategories("s");
+  const handleClickIsNull = (dispatch: Dispatch<SetStateAction<any>>) => {
     return dispatch("is null");
   };
 
@@ -2391,29 +3555,63 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const handleClickAdditionalAreaBtn = (
     index: number,
     dispatch: Dispatch<SetStateAction<any>>,
-    fieldName:
+    type:
       | ""
-      | "planned_start_time"
-      | "result_start_time"
-      | "result_end_time"
       | "category_large"
       | "category_medium"
-      | "category_small" = ""
+      | "category_small"
+      | "number_of_employees_class"
+      | "industry_type_id"
+      | "fiscal_end_month"
+      | "budget_request_month1"
+      | "budget_request_month2"
+      | "position_class" // contactsテーブル
+      | "occupation"
+      | "web_tool" // meetingsテーブル
+      | "planned_purpose"
+      | "result_category"
+      | "result_top_position_class"
+      | "search_planned_start_time"
+      | "search_result_start_time"
+      | "search_result_end_time" = ""
   ) => {
-    if (fieldName === "planned_start_time") {
-      if (inputPlannedStartTimeHour !== "") setInputPlannedStartTimeHour("");
-      if (inputPlannedStartTimeMinute !== "") setInputPlannedStartTimeMinute("");
+    if (type === "category_large") resetProductCategories("lms");
+    if (type === "category_medium") resetProductCategories("ms");
+    if (type === "category_small") resetProductCategories("s");
+    if (type === "number_of_employees_class") setInputEmployeesClassArray([]);
+    if (type === "industry_type_id") setInputIndustryTypeArray([]);
+    if (type === "fiscal_end_month") setInputFiscalArray([]);
+    if (type === "budget_request_month1") setInputBudgetRequestMonth1Array([]);
+    if (type === "budget_request_month2") setInputBudgetRequestMonth2Array([]);
+    if (type === "position_class") setInputPositionClassArray([]);
+    if (type === "occupation") setInputOccupationArray([]);
+    if (type === "web_tool") setInputWebToolArray([]);
+    if (type === "planned_purpose") setInputPlannedPurposeArray([]);
+    if (type === "result_category") setInputResultCategoryArray([]);
+    if (type === "result_top_position_class") setInputResultTopPositionClassArray([]);
+
+    if (type === "search_planned_start_time") {
+      if (inputPlannedStartTimeSearchHourMin !== "") setInputPlannedStartTimeSearchHourMin("");
+      if (inputPlannedStartTimeSearchMinuteMin !== "") setInputPlannedStartTimeSearchMinuteMin("");
+      if (inputPlannedStartTimeSearchHourMax !== "") setInputPlannedStartTimeSearchHourMax("");
+      if (inputPlannedStartTimeSearchMinuteMax !== "") setInputPlannedStartTimeSearchMinuteMax("");
     }
-    if (fieldName === "result_start_time") {
-      if (inputResultStartTimeHour !== "") setInputResultStartTimeHour("");
-      if (inputResultStartTimeMinute !== "") setInputResultStartTimeMinute("");
+    if (type === "search_result_start_time") {
+      if (inputResultStartTimeSearchHourMin !== "") setInputResultStartTimeSearchHourMin("");
+      if (inputResultStartTimeSearchMinuteMin !== "") setInputResultStartTimeSearchMinuteMin("");
+      if (inputResultStartTimeSearchHourMax !== "") setInputResultStartTimeSearchHourMax("");
+      if (inputResultStartTimeSearchMinuteMax !== "") setInputResultStartTimeSearchMinuteMax("");
     }
-    if (fieldName === "result_end_time") {
-      if (inputResultEndTimeHour !== "") setInputResultEndTimeHour("");
-      if (inputResultEndTimeMinute !== "") setInputResultEndTimeMinute("");
+    if (type === "search_result_end_time") {
+      if (inputResultEndTimeSearchHourMin !== "") setInputResultEndTimeSearchHourMin("");
+      if (inputResultEndTimeSearchMinuteMin !== "") setInputResultEndTimeSearchMinuteMin("");
+      if (inputResultEndTimeSearchHourMax !== "") setInputResultEndTimeSearchHourMax("");
+      if (inputResultEndTimeSearchMinuteMax !== "") setInputResultEndTimeSearchMinuteMax("");
     }
-    if (index === 0) handleClickIsNotNull(dispatch, fieldName);
-    if (index === 1) handleClickIsNull(dispatch, fieldName);
+
+    if (index === 0) dispatch("is not null");
+    if (index === 1) dispatch("is null");
+
     handleCloseTooltip();
   };
 
@@ -2441,12 +3639,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
   console.log(
     "MeetingMainContainerレンダリング",
-    "inputPlannedDuration",
-    inputPlannedDuration,
-    "inputResultDuration",
-    inputResultDuration,
-    "inputResultNumberOfMeetingParticipants",
-    inputResultNumberOfMeetingParticipants
+    // "inputPlannedDuration",
+    // inputPlannedDuration,
+    // "inputResultDuration",
+    // inputResultDuration,
+    // "inputResultNumberOfMeetingParticipants",
+    // inputResultNumberOfMeetingParticipants
     // "inputPlannedStartTime",
     // inputPlannedStartTime,
     // inputPlannedStartTimeHour,
@@ -2460,8 +3658,20 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     // inputResultEndTimeHour,
     // inputResultEndTimeMinute
 
-    // "selectedRowDataMeeting",
-    // selectedRowDataMeeting,
+    "selectedRowDataMeeting",
+    selectedRowDataMeeting,
+    "inputPlannedStartTimeSearchType",
+    inputPlannedStartTimeSearchType,
+    "inputPlannedStartTimeSearchHourMin",
+    inputPlannedStartTimeSearchHourMin,
+    "inputPlannedStartTimeSearchMinuteMin",
+    inputPlannedStartTimeSearchMinuteMin,
+    "inputPlannedStartTimeSearchHourMax",
+    inputPlannedStartTimeSearchHourMax,
+    "inputPlannedStartTimeSearchMinuteMax",
+    inputPlannedStartTimeSearchMinuteMax,
+    "isNullNotNullPlannedStartTimeSearch",
+    isNullNotNullPlannedStartTimeSearch
     // "newSearchMeeting_Contact_CompanyParams",
     // newSearchMeeting_Contact_CompanyParams,
     // "inputPlannedStartTime",
@@ -6332,7 +7542,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                 {/* ●面談日・●面談タイプ サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title_search_mode}`}>●面談日</span>
                       {/* <DatePickerCustomInput
@@ -6340,7 +7550,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         setStartDate={setInputPlannedDate}
                         required={false}
                       /> */}
-                      <DatePickerCustomInputForSearch
+                      {/* <DatePickerCustomInputForSearch
                         startDate={inputPlannedDate}
                         setStartDate={setInputPlannedDate}
                         required={false}
@@ -6351,10 +7561,80 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         isNotNullText="面談日有りのデータのみ"
                         isNullText="面談日無しのデータのみ"
                         minHeight="!min-h-[30px]"
-                      />
+                      /> */}
+                      {inputPlannedDateSearch === "is null" || inputPlannedDateSearch === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[inputPlannedDateSearch]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[inputPlannedDateSearch]}</span>
+                        </div>
+                      ) : (
+                        <div
+                          className={`flex h-full w-full items-center`}
+                          onMouseEnter={(e) => {
+                            const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。`;
+                            handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <DatePickerCustomInputRange
+                            minmax="min"
+                            startDate={inputPlannedDateSearch}
+                            setStartDate={setInputPlannedDateSearch}
+                            required={false}
+                            handleOpenTooltip={handleOpenTooltip}
+                            handleCloseTooltip={handleCloseTooltip}
+                          />
+
+                          <span className="mx-[10px]">〜</span>
+
+                          <DatePickerCustomInputRange
+                            minmax="max"
+                            startDate={inputPlannedDateSearch}
+                            setStartDate={setInputPlannedDateSearch}
+                            required={false}
+                            handleOpenTooltip={handleOpenTooltip}
+                            handleCloseTooltip={handleCloseTooltip}
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isEmptyInputRange(inputPlannedDateSearch, "date") ? `hidden` : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputPlannedDateSearch, "range_date")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputPlannedDateSearch)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
+
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title_search_mode}`}>●面談ﾀｲﾌﾟ</span>
@@ -6379,8 +7659,338 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 面談開始・WEBツール サーチ */}
+                {/* 面談開始(予定)(exact or range検索) サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title_search_mode}`}>面談開始</span>
+
+                      {isNullNotNullPlannedStartTimeSearch === "is null" ||
+                      isNullNotNullPlannedStartTimeSearch === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullPlannedStartTimeSearch]}
+                          <span className={`text-[13px]`}>
+                            {nullNotNullTextMap[isNullNotNullPlannedStartTimeSearch]}
+                          </span>
+                        </div>
+                      ) : (
+                        <div
+                          className={`flex h-full w-full items-center`}
+                          onMouseEnter={(e) => {
+                            const content =
+                              inputPlannedStartTimeSearchType === "exact"
+                                ? `「〜時台」のデータを検索する場合は時間のみ、「〜分」のデータを検索する場合は分のみを指定してください。\n「〜時〜分」の完全一致検索の場合は時間と分の両方を選択してください。`
+                                : `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。\n範囲検索では時間と分をセットで入力してください。`;
+                            handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <select
+                            className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                            value={inputPlannedStartTimeSearchHourMin}
+                            onChange={(e) => {
+                              setInputPlannedStartTimeSearchHourMin(e.target.value);
+                              handleCloseTooltip();
+                            }}
+                          >
+                            <option value=""></option>
+                            {hours.map((hour) => (
+                              <option key={`planned_start_hour_min_${hour}`} value={hour}>
+                                {hour}
+                              </option>
+                            ))}
+                          </select>
+
+                          <span className="mx-[10px]">時</span>
+
+                          <select
+                            className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                            value={inputPlannedStartTimeSearchMinuteMin}
+                            onChange={(e) => {
+                              setInputPlannedStartTimeSearchMinuteMin(e.target.value);
+                              handleCloseTooltip();
+                            }}
+                          >
+                            <option value=""></option>
+                            {minutes5.map((minute) => (
+                              <option key={`planned_start_minute_min_${minute}`} value={minute}>
+                                {minute}
+                              </option>
+                            ))}
+                          </select>
+                          <span className="mx-[10px]">分</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    <div
+                      className={`fade05_forward time_area absolute left-0 top-[100%] z-[10] hidden h-max min-h-full w-full flex-col items-end justify-start bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                    >
+                      <div className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[var(--bright-green)] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                          onMouseEnter={(e) => {
+                            const tooltipText =
+                              inputPlannedStartTimeSearchType === "exact" ? `範囲検索に切り替え` : `一致検索に切り替え`;
+                            handleOpenTooltip({ e, display: "top", content: tooltipText });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => {
+                            switchTimeSearchType(
+                              inputPlannedStartTimeSearchType,
+                              setInputPlannedStartTimeSearchType,
+                              "planned_start_time"
+                            );
+                            handleCloseTooltip();
+                          }}
+                        >
+                          {inputPlannedStartTimeSearchType === "exact" ? (
+                            <LuCalendarSearch className="pointer-events-none text-[16px]" />
+                          ) : (
+                            <FiSearch className="pointer-events-none text-[14px]" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                          data-text={`設定した時間を削除`}
+                          onMouseEnter={(e) => {
+                            handleOpenTooltip({ e, display: "top" });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => {
+                            handleClickResetTime(inputPlannedStartTimeSearchType, "planned_start_time");
+                            handleCloseTooltip();
+                          }}
+                        >
+                          <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                        </button>
+                        <div
+                          // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
+                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                          onClick={() => {
+                            if (isNullNotNullPlannedStartTimeSearch !== null) {
+                              setIsNullNotNullPlannedStartTimeSearch(null);
+                            }
+                            setIsOpenTimePicker(true);
+                            timePickerTypeRef.current = "search_planned_start_min";
+                            timePickerIncrementTypeRef.current = "5";
+                            handleCloseTooltip();
+                          }}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: "時間設定画面を開く" })}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                          <span>時間設定</span>
+                        </div>
+                      </div>
+                      <div
+                        className={`${styles.line_second} flex min-h-[35px] flex-wrap items-start justify-end pt-[3px]`}
+                      >
+                        {presetTimes.map(({ time, hour, minute }, index) => (
+                          <div
+                            key={`${time}_${index}`}
+                            className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border border-solid border-transparent px-[8px] text-[11px] text-[var(--color-text-brand-f)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+                            onClick={() => {
+                              if (hour !== inputPlannedStartTimeSearchHourMin)
+                                setInputPlannedStartTimeSearchHourMin(hour);
+                              if (minute !== inputPlannedStartTimeSearchMinuteMin)
+                                setInputPlannedStartTimeSearchMinuteMin(minute);
+                            }}
+                          >
+                            <span>{time}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div
+                        className={`${styles.line_third} flex min-h-[35px] flex-wrap items-start justify-end space-x-[6px]`}
+                      >
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(
+                                index,
+                                setIsNullNotNullPlannedStartTimeSearch,
+                                "search_planned_start_time"
+                              )
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {/* input下追加ボタンエリア */}
+                  </div>
+
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
+                    {inputPlannedStartTimeSearchType === "range" && isNullNotNullPlannedStartTimeSearch === null && (
+                      <>
+                        <div className={`${styles.title_box} flex h-full items-center`}>
+                          <div className={`${styles.title_search_mode} flex-center`}>
+                            <span>〜</span>
+                          </div>
+
+                          <div
+                            className={`flex h-full w-full items-center`}
+                            onMouseEnter={(e) => {
+                              const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。\n範囲検索では時間と分をセットで入力してください。`;
+                              handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                            }}
+                            onMouseLeave={handleCloseTooltip}
+                          >
+                            <select
+                              className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                              value={inputPlannedStartTimeSearchHourMax}
+                              onChange={(e) => {
+                                setInputPlannedStartTimeSearchHourMax(e.target.value);
+                                handleCloseTooltip();
+                              }}
+                            >
+                              <option value=""></option>
+                              {hours.map((hour) => (
+                                <option key={`planned_start_hour_max_${hour}`} value={hour}>
+                                  {hour}
+                                </option>
+                              ))}
+                            </select>
+
+                            <span className="mx-[10px]">時</span>
+
+                            <select
+                              className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                              value={inputPlannedStartTimeSearchMinuteMax}
+                              onChange={(e) => {
+                                setInputPlannedStartTimeSearchMinuteMax(e.target.value);
+                                handleCloseTooltip();
+                              }}
+                            >
+                              <option value=""></option>
+                              {minutes5.map((minute) => (
+                                <option key={`planned_start_minute_max_${minute}`} value={minute}>
+                                  {minute}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="mx-[10px]">分</span>
+                          </div>
+                        </div>
+                        <div className={`${styles.underline}`}></div>
+                        {/* input下追加ボタンエリア */}
+                        <div
+                          className={`fade05_forward time_area absolute left-0 top-[100%] z-[10] hidden h-max min-h-full w-full flex-col items-end justify-start bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                        >
+                          <div
+                            className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}
+                          >
+                            <button
+                              type="button"
+                              className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[var(--bright-green)] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                              onMouseEnter={(e) => {
+                                handleOpenTooltip({ e, display: "top", content: `一致検索に切り替え` });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => {
+                                switchTimeSearchType(
+                                  inputPlannedStartTimeSearchType,
+                                  setInputPlannedStartTimeSearchType,
+                                  "planned_start_time"
+                                );
+                                handleCloseTooltip();
+                              }}
+                            >
+                              <FiSearch className="pointer-events-none text-[14px]" />
+                            </button>
+                            <button
+                              type="button"
+                              className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                              data-text={`設定した時間を削除`}
+                              onMouseEnter={(e) => {
+                                handleOpenTooltip({ e, display: "top" });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => {
+                                handleClickResetTime(inputPlannedStartTimeSearchType, "planned_start_time");
+                                handleCloseTooltip();
+                              }}
+                            >
+                              <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                            </button>
+                            <div
+                              // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
+                              className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                              onClick={() => {
+                                if (isNullNotNullPlannedStartTimeSearch !== null) {
+                                  setIsNullNotNullPlannedStartTimeSearch(null);
+                                }
+                                setIsOpenTimePicker(true);
+                                timePickerTypeRef.current = "search_planned_start_max";
+                                timePickerIncrementTypeRef.current = "5";
+                                handleCloseTooltip();
+                              }}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: "時間設定画面を開く" })}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                              <span>時間設定</span>
+                            </div>
+                          </div>
+                          <div
+                            className={`${styles.line_second} flex min-h-[35px] flex-wrap items-start justify-end pt-[3px]`}
+                          >
+                            {presetTimes.map(({ time, hour, minute }, index) => (
+                              <div
+                                key={`${time}_${index}`}
+                                className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border border-solid border-transparent px-[8px] text-[11px] text-[var(--color-text-brand-f)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+                                onClick={() => {
+                                  if (hour !== inputPlannedStartTimeSearchHourMax)
+                                    setInputPlannedStartTimeSearchHourMax(hour);
+                                  if (minute !== inputPlannedStartTimeSearchMinuteMax)
+                                    setInputPlannedStartTimeSearchMinuteMax(minute);
+                                }}
+                              >
+                                <span>{time}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div
+                            className={`${styles.line_third} flex min-h-[35px] flex-wrap items-start justify-end space-x-[6px]`}
+                          >
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(
+                                    index,
+                                    setIsNullNotNullPlannedStartTimeSearch,
+                                    "search_planned_start_time"
+                                  )
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        {/* input下追加ボタンエリア */}
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* 面談開始・WEBツール サーチ => 変更前 */}
+                {/* <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                   <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title_search_mode}`}>面談開始</span>
@@ -6452,12 +8062,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       className={`fade05_forward time_area absolute left-0 top-[100%] z-[10] hidden h-max min-h-full w-full flex-col items-end justify-start bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
                     >
                       <div className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}>
-                        {/* <div
-                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)]`}
-                        >
-                          <MdMoreTime className={`text-[15px] text-[#fff]`} />
-                          <span>プリセット</span>
-                        </div> */}
                         <button
                           type="button"
                           className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
@@ -6475,7 +8079,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             handleCloseTooltip();
                           }}
                         >
-                          {/* <MdClose className="pointer-events-none text-[18px]" /> */}
                           <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
                         </button>
                         <div
@@ -6554,24 +8157,70 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
-                </div>
+                </div> */}
 
-                {/* 面談時間(分) サーチ */}
+                {/* 面談時間(分)・Webツール サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                   <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title_search_mode}`}>面談時間(分)</span>
 
-                      {["is null", "is not null"].includes(inputPlannedDuration as IsNullNotNullText) ? (
+                      {inputPlannedDurationSearch === "is null" || inputPlannedDurationSearch === "is not null" ? (
                         <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
-                          {nullNotNullIconMap[inputPlannedDuration as IsNullNotNullText]}
+                          {nullNotNullIconMap[inputPlannedDurationSearch as IsNullNotNullText]}
                           <span className={`text-[13px]`}>
-                            {nullNotNullTextMap[inputPlannedDuration as IsNullNotNullText]}
+                            {nullNotNullTextMap[inputPlannedDurationSearch as IsNullNotNullText]}
                           </span>
                         </div>
                       ) : (
                         <>
                           <input
+                            type="number"
+                            min="0"
+                            className={`${styles.input_box}`}
+                            placeholder=""
+                            value={inputPlannedDurationSearch.min === null ? "" : inputPlannedDurationSearch.min}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const numValue = Number(val);
+                              if (val === "" || isNaN(numValue)) {
+                                setInputPlannedDurationSearch({ min: null, max: inputPlannedDurationSearch.max });
+                              } else {
+                                // 入力値がマイナスかチェック
+                                if (numValue < 0) {
+                                  setInputPlannedDurationSearch({ min: 0, max: inputPlannedDurationSearch.max });
+                                } else {
+                                  setInputPlannedDurationSearch({ min: numValue, max: inputPlannedDurationSearch.max });
+                                }
+                              }
+                            }}
+                          />
+
+                          <span className="mx-[10px]">〜</span>
+
+                          <input
+                            type="number"
+                            min="0"
+                            className={`${styles.input_box}`}
+                            placeholder=""
+                            value={inputPlannedDurationSearch.max === null ? "" : inputPlannedDurationSearch.max}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const numValue = Number(val);
+                              if (val === "" || isNaN(numValue)) {
+                                setInputPlannedDurationSearch({ min: inputPlannedDurationSearch.min, max: null });
+                              } else {
+                                // 入力値がマイナスかチェック
+                                if (numValue < 0) {
+                                  setInputPlannedDurationSearch({ min: inputPlannedDurationSearch.min, max: 0 });
+                                } else {
+                                  setInputPlannedDurationSearch({ min: inputPlannedDurationSearch.min, max: numValue });
+                                }
+                              }
+                            }}
+                          />
+
+                          {/* <input
                             type="number"
                             min="0"
                             className={`${styles.input_box}`}
@@ -6593,12 +8242,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                               }
                             }}
                           />
-                          {/* バツボタン */}
                           {!!inputPlannedDuration && (
                             <div className={`${styles.close_btn_number}`} onClick={() => setInputPlannedDuration(null)}>
                               <MdClose className="text-[20px] " />
                             </div>
-                          )}
+                          )} */}
                         </>
                       )}
                     </div>
@@ -6610,10 +8258,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           <div className={`line_first space-x-[6px]`}>
                             <button
                               type="button"
-                              className={`icon_btn_red ${inputPlannedDuration === null ? `hidden` : `flex`}`}
+                              className={`icon_btn_red ${
+                                isEmptyInputRange(inputPlannedDurationSearch, "number") ? `hidden` : `flex`
+                              }`}
                               onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                               onMouseLeave={handleCloseTooltip}
-                              onClick={() => handleClickResetInput(setInputPlannedDuration, "number")}
+                              onClick={() => handleClickResetInput(setInputPlannedDurationSearch, "range_number")}
                             >
                               <MdClose className="pointer-events-none text-[14px]" />
                             </button>
@@ -6625,7 +8275,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                   handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
                                 }
                                 onMouseLeave={handleCloseTooltip}
-                                onClick={() => handleClickAdditionalAreaBtn(index, setInputPlannedDuration)}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputPlannedDurationSearch)}
                               >
                                 {element}
                               </div>
@@ -6636,19 +8286,118 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     )}
                     {/* input下追加ボタンエリア ここまで */}
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center`}></div>
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}>
+                      <span className={`${styles.title_search_mode}`}>WEBﾂｰﾙ</span>
+
+                      {isNullNotNullWebTool === "is null" || isNullNotNullWebTool === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullWebTool]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullWebTool]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputWebToolArray}
+                          dispatch={setInputWebToolArray}
+                          selectedSetObj={selectedWebToolArraySet}
+                          options={optionsWebTool}
+                          getOptionName={getWebToolNameSearch}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - var(--title-width))`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
+                        className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                        value={inputWebTool}
+                        onChange={(e) => {
+                          setInputWebTool(e.target.value);
+                        }}
+                      >
+                        <option value=""></option>
+                        {optionsWebTool.map((option) => (
+                          <option key={option} value={option}>
+                            {getWebTool(option)}
+                          </option>
+                        ))}
+                        <option value="is not null">入力有りのデータのみ</option>
+                        <option value="is null">入力無しのデータのみ</option>
+                      </select> */}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isNullNotNullWebTool === null && inputWebToolArray.length === 0 ? `hidden` : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleResetArray("web_tool")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setIsNullNotNullWebTool, "web_tool")}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
                 {/* 面談目的・アポ有 サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <div className={`${styles.title_search_mode} flex flex-col`}>
                         <span className={``}>面談目的</span>
                       </div>
-                      <select
+
+                      {isNullNotNullPlannedPurpose === "is null" || isNullNotNullPlannedPurpose === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullPlannedPurpose]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullPlannedPurpose]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputPlannedPurposeArray}
+                          dispatch={setInputPlannedPurposeArray}
+                          selectedSetObj={selectedPlannedPurposeArraySet}
+                          options={optionsPlannedPurpose}
+                          getOptionName={getPlannedPurposeNameSearch}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - var(--title-width))`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
                         className={`ml-auto h-full w-[100%] cursor-pointer  ${styles.select_box}`}
                         value={inputPlannedPurpose}
                         onChange={(e) => {
@@ -6663,9 +8412,47 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         ))}
                         <option value="is not null">入力有りのデータのみ</option>
                         <option value="is null">入力無しのデータのみ</option>
-                      </select>
+                      </select> */}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isNullNotNullPlannedPurpose === null && inputPlannedPurposeArray.length === 0
+                                  ? `hidden`
+                                  : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleResetArray("planned_purpose")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(index, setIsNullNotNullPlannedPurpose, "planned_purpose")
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
 
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
@@ -7159,7 +8946,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                 {/* 面談日 サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title_search_mode}`}>面談日</span>
                       {/* <DatePickerCustomInput
@@ -7167,7 +8954,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         setStartDate={setInputResultDate}
                         required={false}
                       /> */}
-                      <DatePickerCustomInputForSearch
+                      {/* <DatePickerCustomInputForSearch
                         startDate={inputResultDate}
                         setStartDate={setInputResultDate}
                         required={false}
@@ -7178,66 +8965,745 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         isNotNullText="面談日有りのデータのみ"
                         isNullText="面談日無しのデータのみ"
                         minHeight="!min-h-[30px]"
-                      />
+                      /> */}
+                      {inputResultDateSearch === "is null" || inputResultDateSearch === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[inputResultDateSearch]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[inputResultDateSearch]}</span>
+                        </div>
+                      ) : (
+                        <div
+                          className={`flex h-full w-full items-center`}
+                          onMouseEnter={(e) => {
+                            const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。`;
+                            handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <DatePickerCustomInputRange
+                            minmax="min"
+                            startDate={inputResultDateSearch}
+                            setStartDate={setInputResultDateSearch}
+                            required={false}
+                            handleOpenTooltip={handleOpenTooltip}
+                            handleCloseTooltip={handleCloseTooltip}
+                          />
+
+                          <span className="mx-[10px]">〜</span>
+
+                          <DatePickerCustomInputRange
+                            minmax="max"
+                            startDate={inputResultDateSearch}
+                            setStartDate={setInputResultDateSearch}
+                            required={false}
+                            handleOpenTooltip={handleOpenTooltip}
+                            handleCloseTooltip={handleCloseTooltip}
+                          />
+                        </div>
+                      )}
                     </div>
                     <div className={`${styles.underline}`}></div>
-                  </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center`}>
-                      {/* <span className={`${styles.title_search_mode}`}>面談年月度</span>
+                    {/* input下追加ボタンエリア */}
                     {searchMode && (
-                      <input
-                        type="text"
-                        className={`${styles.input_box}`}
-                        placeholder='"202312" など年月を入力'
-                        value={inputMeetingYearMonth}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setInputMeetingYearMonth(val);
-                        }}
-                      />
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isEmptyInputRange(inputResultDateSearch, "date") ? `hidden` : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputResultDateSearch, "range_date")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputResultDateSearch)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
                     )}
-                    {!!inputMeetingYearMonth && (
-                      <div className={`${styles.close_btn_number}`} onClick={() => setInputMeetingYearMonth("")}>
-                        <MdClose className="text-[20px] " />
-                      </div>
-                    )} */}
-                      {/* {searchMode && (
-                      <input
-                        type="number"
-                        min="0"
-                        className={`${styles.input_box}`}
-                        placeholder='"202312" など年月を入力'
-                        value={inputMeetingYearMonth === null ? "" : inputMeetingYearMonth}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          if (val === "") {
-                            setInputMeetingYearMonth(null);
-                          } else {
-                            const numValue = Number(val);
+                    {/* input下追加ボタンエリア ここまで */}
+                  </div>
 
-                            // 入力値がマイナスかチェック
-                            if (numValue < 0) {
-                              setInputMeetingYearMonth(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
-                            } else {
-                              setInputMeetingYearMonth(numValue);
-                            }
-                          }
-                        }}
-                      />
-                    )}
-                    {!!inputMeetingYearMonth && (
-                      <div className={`${styles.close_btn_number}`} onClick={() => setInputMeetingYearMonth(null)}>
-                        <MdClose className="text-[20px] " />
-                      </div>
-                    )} */}
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}></div>
+                  </div>
+                </div>
+                {/*  */}
+
+                {/* 結果 面談開始 (exact or range検索) サーチ */}
+                <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title_search_mode}`}>面談開始</span>
+
+                      {isNullNotNullResultStartTimeSearch === "is null" ||
+                      isNullNotNullResultStartTimeSearch === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullResultStartTimeSearch]}
+                          <span className={`text-[13px]`}>
+                            {nullNotNullTextMap[isNullNotNullResultStartTimeSearch]}
+                          </span>
+                        </div>
+                      ) : (
+                        <div
+                          className={`flex h-full w-full items-center`}
+                          onMouseEnter={(e) => {
+                            const content =
+                              inputResultStartTimeSearchType === "exact"
+                                ? `「〜時台」のデータを検索する場合は時間のみ、「〜分」のデータを検索する場合は分のみを指定してください。\n「〜時〜分」の完全一致検索の場合は時間と分の両方を選択してください。`
+                                : `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。\n範囲検索では時間と分をセットで入力してください。`;
+                            handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <select
+                            className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                            value={inputResultStartTimeSearchHourMin}
+                            onChange={(e) => {
+                              setInputResultStartTimeSearchHourMin(e.target.value);
+                              handleCloseTooltip();
+                            }}
+                          >
+                            <option value=""></option>
+                            {hours.map((hour) => (
+                              <option key={`result_start_hour_min_${hour}`} value={hour}>
+                                {hour}
+                              </option>
+                            ))}
+                          </select>
+
+                          <span className="mx-[10px]">時</span>
+
+                          <select
+                            className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                            value={inputResultStartTimeSearchMinuteMin}
+                            onChange={(e) => {
+                              setInputResultStartTimeSearchMinuteMin(e.target.value);
+                              handleCloseTooltip();
+                            }}
+                          >
+                            <option value=""></option>
+                            {minutes.map((minute) => (
+                              <option key={`result_start_minute_min_${minute}`} value={minute}>
+                                {minute}
+                              </option>
+                            ))}
+                          </select>
+                          <span className="mx-[10px]">分</span>
+                        </div>
+                      )}
                     </div>
+                    <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    <div
+                      className={`fade05_forward time_area absolute left-0 top-[100%] z-[10] hidden h-max min-h-full w-full flex-col items-end justify-start bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                    >
+                      <div className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[var(--bright-green)] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                          onMouseEnter={(e) => {
+                            const tooltipText =
+                              inputResultStartTimeSearchType === "exact" ? `範囲検索に切り替え` : `一致検索に切り替え`;
+                            handleOpenTooltip({ e, display: "top", content: tooltipText });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => {
+                            switchTimeSearchType(
+                              inputResultStartTimeSearchType,
+                              setInputResultStartTimeSearchType,
+                              "result_start_time"
+                            );
+                            handleCloseTooltip();
+                          }}
+                        >
+                          {inputResultStartTimeSearchType === "exact" ? (
+                            <LuCalendarSearch className="pointer-events-none text-[16px]" />
+                          ) : (
+                            <FiSearch className="pointer-events-none text-[14px]" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                          data-text={`設定した時間を削除`}
+                          onMouseEnter={(e) => {
+                            handleOpenTooltip({ e, display: "top" });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => {
+                            handleClickResetTime(inputResultStartTimeSearchType, "result_start_time");
+                            handleCloseTooltip();
+                          }}
+                        >
+                          <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                        </button>
+                        <div
+                          // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
+                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                          onClick={() => {
+                            if (isNullNotNullResultStartTimeSearch !== null) {
+                              setIsNullNotNullResultStartTimeSearch(null);
+                            }
+                            setIsOpenTimePicker(true);
+                            timePickerTypeRef.current = "search_result_start_min";
+                            timePickerIncrementTypeRef.current = "all";
+                            handleCloseTooltip();
+                          }}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: "時間設定画面を開く" })}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                          <span>時間設定</span>
+                        </div>
+                      </div>
+                      <div
+                        className={`${styles.line_second} flex min-h-[35px] flex-wrap items-start justify-end pt-[3px]`}
+                      >
+                        {presetTimes.map(({ time, hour, minute }, index) => (
+                          <div
+                            key={`${time}_${index}`}
+                            className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border border-solid border-transparent px-[8px] text-[11px] text-[var(--color-text-brand-f)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+                            onClick={() => {
+                              if (hour !== inputResultStartTimeSearchHourMin)
+                                setInputResultStartTimeSearchHourMin(hour);
+                              if (minute !== inputResultStartTimeSearchMinuteMin)
+                                setInputResultStartTimeSearchMinuteMin(minute);
+                            }}
+                          >
+                            <span>{time}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div
+                        className={`${styles.line_third} flex min-h-[35px] flex-wrap items-start justify-end space-x-[6px]`}
+                      >
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(
+                                index,
+                                setIsNullNotNullResultStartTimeSearch,
+                                "search_result_start_time"
+                              )
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {/* input下追加ボタンエリア */}
+                  </div>
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
+                    {inputResultStartTimeSearchType === "range" && isNullNotNullResultStartTimeSearch === null && (
+                      <>
+                        <div className={`${styles.title_box} flex h-full items-center`}>
+                          <div className={`${styles.title_search_mode} flex-center`}>
+                            <span>〜</span>
+                          </div>
+
+                          <div
+                            className={`flex h-full w-full items-center`}
+                            onMouseEnter={(e) => {
+                              const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。\n範囲検索では時間と分をセットで入力してください。`;
+                              handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                            }}
+                            onMouseLeave={handleCloseTooltip}
+                          >
+                            <select
+                              className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                              value={inputResultStartTimeSearchHourMax}
+                              onChange={(e) => {
+                                setInputResultStartTimeSearchHourMax(e.target.value);
+                                handleCloseTooltip();
+                              }}
+                            >
+                              <option value=""></option>
+                              {hours.map((hour) => (
+                                <option key={`result_start_hour_max_${hour}`} value={hour}>
+                                  {hour}
+                                </option>
+                              ))}
+                            </select>
+
+                            <span className="mx-[10px]">時</span>
+
+                            <select
+                              className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                              value={inputResultStartTimeSearchMinuteMax}
+                              onChange={(e) => {
+                                setInputResultStartTimeSearchMinuteMax(e.target.value);
+                                handleCloseTooltip();
+                              }}
+                            >
+                              <option value=""></option>
+                              {minutes.map((minute) => (
+                                <option key={`result_start_minute_max_${minute}`} value={minute}>
+                                  {minute}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="mx-[10px]">分</span>
+                          </div>
+                        </div>
+                        <div className={`${styles.underline}`}></div>
+                        {/* input下追加ボタンエリア */}
+                        <div
+                          className={`fade05_forward time_area absolute left-0 top-[100%] z-[10] hidden h-max min-h-full w-full flex-col items-end justify-start bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                        >
+                          <div
+                            className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}
+                          >
+                            <button
+                              type="button"
+                              className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[var(--bright-green)] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                              onMouseEnter={(e) => {
+                                handleOpenTooltip({ e, display: "top", content: `一致検索に切り替え` });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => {
+                                switchTimeSearchType(
+                                  inputResultStartTimeSearchType,
+                                  setInputResultStartTimeSearchType,
+                                  "result_start_time"
+                                );
+                                handleCloseTooltip();
+                              }}
+                            >
+                              <FiSearch className="pointer-events-none text-[14px]" />
+                            </button>
+                            <button
+                              type="button"
+                              className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                              data-text={`設定した時間を削除`}
+                              onMouseEnter={(e) => {
+                                handleOpenTooltip({ e, display: "top" });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => {
+                                handleClickResetTime(inputResultStartTimeSearchType, "result_start_time");
+                                handleCloseTooltip();
+                              }}
+                            >
+                              <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                            </button>
+                            <div
+                              // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
+                              className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                              onClick={() => {
+                                if (isNullNotNullResultStartTimeSearch !== null) {
+                                  setIsNullNotNullResultStartTimeSearch(null);
+                                }
+                                setIsOpenTimePicker(true);
+                                timePickerTypeRef.current = "search_result_start_max";
+                                timePickerIncrementTypeRef.current = "all";
+                                handleCloseTooltip();
+                              }}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: "時間設定画面を開く" })}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                              <span>時間設定</span>
+                            </div>
+                          </div>
+                          <div
+                            className={`${styles.line_second} flex min-h-[35px] flex-wrap items-start justify-end pt-[3px]`}
+                          >
+                            {presetTimes.map(({ time, hour, minute }, index) => (
+                              <div
+                                key={`${time}_${index}`}
+                                className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border border-solid border-transparent px-[8px] text-[11px] text-[var(--color-text-brand-f)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+                                onClick={() => {
+                                  if (hour !== inputResultStartTimeSearchHourMax)
+                                    setInputResultStartTimeSearchHourMax(hour);
+                                  if (minute !== inputResultStartTimeSearchMinuteMax)
+                                    setInputResultStartTimeSearchMinuteMax(minute);
+                                }}
+                              >
+                                <span>{time}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div
+                            className={`${styles.line_third} flex min-h-[35px] flex-wrap items-start justify-end space-x-[6px]`}
+                          >
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(
+                                    index,
+                                    setIsNullNotNullResultStartTimeSearch,
+                                    "search_result_start_time"
+                                  )
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        {/* input下追加ボタンエリア */}
+                      </>
+                    )}
+                  </div>
+                </div>
+                {/*  */}
+
+                {/* 結果 面談終了 (exact or range検索) サーチ */}
+                <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title_search_mode}`}>面談終了</span>
+
+                      {isNullNotNullResultEndTimeSearch === "is null" ||
+                      isNullNotNullResultEndTimeSearch === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullResultEndTimeSearch]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullResultEndTimeSearch]}</span>
+                        </div>
+                      ) : (
+                        <div
+                          className={`flex h-full w-full items-center`}
+                          onMouseEnter={(e) => {
+                            const content =
+                              inputResultEndTimeSearchType === "exact"
+                                ? `「〜時台」のデータを検索する場合は時間のみ、「〜分」のデータを検索する場合は分のみを指定してください。\n「〜時〜分」の完全一致検索の場合は時間と分の両方を選択してください。`
+                                : `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。\n範囲検索では時間と分をセットで入力してください。`;
+                            handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <select
+                            className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                            value={inputResultEndTimeSearchHourMin}
+                            onChange={(e) => {
+                              setInputResultEndTimeSearchHourMin(e.target.value);
+                              handleCloseTooltip();
+                            }}
+                          >
+                            <option value=""></option>
+                            {hours.map((hour) => (
+                              <option key={`result_end_hour_min_${hour}`} value={hour}>
+                                {hour}
+                              </option>
+                            ))}
+                          </select>
+
+                          <span className="mx-[10px]">時</span>
+
+                          <select
+                            className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                            value={inputResultEndTimeSearchMinuteMin}
+                            onChange={(e) => {
+                              setInputResultEndTimeSearchMinuteMin(e.target.value);
+                              handleCloseTooltip();
+                            }}
+                          >
+                            <option value=""></option>
+                            {minutes.map((minute) => (
+                              <option key={`result_end_minute_min_${minute}`} value={minute}>
+                                {minute}
+                              </option>
+                            ))}
+                          </select>
+                          <span className="mx-[10px]">分</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    <div
+                      className={`fade05_forward time_area absolute left-0 top-[100%] z-[10] hidden h-max min-h-full w-full flex-col items-end justify-start bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                    >
+                      <div className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}>
+                        <button
+                          type="button"
+                          className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[var(--bright-green)] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                          onMouseEnter={(e) => {
+                            const tooltipText =
+                              inputResultEndTimeSearchType === "exact" ? `範囲検索に切り替え` : `一致検索に切り替え`;
+                            handleOpenTooltip({ e, display: "top", content: tooltipText });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => {
+                            switchTimeSearchType(
+                              inputResultEndTimeSearchType,
+                              setInputResultEndTimeSearchType,
+                              "result_end_time"
+                            );
+                            handleCloseTooltip();
+                          }}
+                        >
+                          {inputResultEndTimeSearchType === "exact" ? (
+                            <LuCalendarSearch className="pointer-events-none text-[16px]" />
+                          ) : (
+                            <FiSearch className="pointer-events-none text-[14px]" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                          data-text={`設定した時間を削除`}
+                          onMouseEnter={(e) => {
+                            handleOpenTooltip({ e, display: "top" });
+                          }}
+                          onMouseLeave={handleCloseTooltip}
+                          onClick={() => {
+                            handleClickResetTime(inputResultEndTimeSearchType, "result_end_time");
+                            handleCloseTooltip();
+                          }}
+                        >
+                          <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                        </button>
+                        <div
+                          // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
+                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                          onClick={() => {
+                            if (isNullNotNullResultEndTimeSearch !== null) {
+                              setIsNullNotNullResultEndTimeSearch(null);
+                            }
+                            setIsOpenTimePicker(true);
+                            timePickerTypeRef.current = "search_result_end_min";
+                            timePickerIncrementTypeRef.current = "all";
+                            handleCloseTooltip();
+                          }}
+                          onMouseEnter={(e) => handleOpenTooltip({ e, content: "時間設定画面を開く" })}
+                          onMouseLeave={handleCloseTooltip}
+                        >
+                          <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                          <span>時間設定</span>
+                        </div>
+                      </div>
+                      <div
+                        className={`${styles.line_second} flex min-h-[35px] flex-wrap items-start justify-end pt-[3px]`}
+                      >
+                        {presetTimes.map(({ time, hour, minute }, index) => (
+                          <div
+                            key={`${time}_${index}`}
+                            className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border border-solid border-transparent px-[8px] text-[11px] text-[var(--color-text-brand-f)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+                            onClick={() => {
+                              if (hour !== inputResultEndTimeSearchHourMin) setInputResultEndTimeSearchHourMin(hour);
+                              if (minute !== inputResultEndTimeSearchMinuteMin)
+                                setInputResultEndTimeSearchMinuteMin(minute);
+                            }}
+                          >
+                            <span>{time}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div
+                        className={`${styles.line_third} flex min-h-[35px] flex-wrap items-start justify-end space-x-[6px]`}
+                      >
+                        {firstLineComponents.map((element, index) => (
+                          <div
+                            key={`additional_search_area_under_input_btn_f_${index}`}
+                            className={`btn_f space-x-[3px]`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: additionalInputTooltipText(index) })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() =>
+                              handleClickAdditionalAreaBtn(
+                                index,
+                                setIsNullNotNullResultEndTimeSearch,
+                                "search_result_end_time"
+                              )
+                            }
+                          >
+                            {element}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {/* input下追加ボタンエリア */}
+                  </div>
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
+                    {inputResultEndTimeSearchType === "range" && isNullNotNullResultEndTimeSearch === null && (
+                      <>
+                        <div className={`${styles.title_box} flex h-full items-center`}>
+                          <div className={`${styles.title_search_mode} flex-center`}>
+                            <span>〜</span>
+                          </div>
+
+                          <div
+                            className={`flex h-full w-full items-center`}
+                            onMouseEnter={(e) => {
+                              const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。\n範囲検索では時間と分をセットで入力してください。`;
+                              handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                            }}
+                            onMouseLeave={handleCloseTooltip}
+                          >
+                            <select
+                              className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                              value={inputResultEndTimeSearchHourMax}
+                              onChange={(e) => {
+                                setInputResultEndTimeSearchHourMax(e.target.value);
+                                handleCloseTooltip();
+                              }}
+                            >
+                              <option value=""></option>
+                              {hours.map((hour) => (
+                                <option key={`result_end_hour_max_${hour}`} value={hour}>
+                                  {hour}
+                                </option>
+                              ))}
+                            </select>
+
+                            <span className="mx-[10px]">時</span>
+
+                            <select
+                              className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box}`}
+                              value={inputResultEndTimeSearchMinuteMax}
+                              onChange={(e) => {
+                                setInputResultEndTimeSearchMinuteMax(e.target.value);
+                                handleCloseTooltip();
+                              }}
+                            >
+                              <option value=""></option>
+                              {minutes5.map((minute) => (
+                                <option key={`result_end_minute_max_${minute}`} value={minute}>
+                                  {minute}
+                                </option>
+                              ))}
+                            </select>
+                            <span className="mx-[10px]">分</span>
+                          </div>
+                        </div>
+                        <div className={`${styles.underline}`}></div>
+                        {/* input下追加ボタンエリア */}
+                        <div
+                          className={`fade05_forward time_area absolute left-0 top-[100%] z-[10] hidden h-max min-h-full w-full flex-col items-end justify-start bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                        >
+                          <div
+                            className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}
+                          >
+                            <button
+                              type="button"
+                              className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[var(--bright-green)] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                              onMouseEnter={(e) => {
+                                handleOpenTooltip({ e, display: "top", content: `一致検索に切り替え` });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => {
+                                switchTimeSearchType(
+                                  inputResultEndTimeSearchType,
+                                  setInputResultEndTimeSearchType,
+                                  "result_end_time"
+                                );
+                                handleCloseTooltip();
+                              }}
+                            >
+                              <FiSearch className="pointer-events-none text-[14px]" />
+                            </button>
+                            <button
+                              type="button"
+                              className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[#ff3b5b] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                              data-text={`設定した時間を削除`}
+                              onMouseEnter={(e) => {
+                                handleOpenTooltip({ e, display: "top" });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => {
+                                handleClickResetTime(inputResultEndTimeSearchType, "result_end_time");
+                                handleCloseTooltip();
+                              }}
+                            >
+                              <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
+                            </button>
+                            <div
+                              // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
+                              className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                              onClick={() => {
+                                if (isNullNotNullResultEndTimeSearch !== null) {
+                                  setIsNullNotNullResultEndTimeSearch(null);
+                                }
+                                setIsOpenTimePicker(true);
+                                timePickerTypeRef.current = "search_result_end_max";
+                                timePickerIncrementTypeRef.current = "all";
+                                handleCloseTooltip();
+                              }}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: "時間設定画面を開く" })}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                              <span>時間設定</span>
+                            </div>
+                          </div>
+                          <div
+                            className={`${styles.line_second} flex min-h-[35px] flex-wrap items-start justify-end pt-[3px]`}
+                          >
+                            {presetTimes.map(({ time, hour, minute }, index) => (
+                              <div
+                                key={`${time}_${index}`}
+                                className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border border-solid border-transparent px-[8px] text-[11px] text-[var(--color-text-brand-f)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+                                onClick={() => {
+                                  if (hour !== inputResultEndTimeSearchHourMax)
+                                    setInputResultEndTimeSearchHourMax(hour);
+                                  if (minute !== inputResultEndTimeSearchMinuteMax)
+                                    setInputResultEndTimeSearchMinuteMax(minute);
+                                }}
+                              >
+                                <span>{time}</span>
+                              </div>
+                            ))}
+                          </div>
+                          <div
+                            className={`${styles.line_third} flex min-h-[35px] flex-wrap items-start justify-end space-x-[6px]`}
+                          >
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(
+                                    index,
+                                    setIsNullNotNullResultEndTimeSearch,
+                                    "search_result_end_time"
+                                  )
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        {/* input下追加ボタンエリア */}
+                      </>
+                    )}
                   </div>
                 </div>
                 {/*  */}
 
                 {/* 結果 面談開始・面談終了 サーチ */}
-                <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
+                {/* <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                   <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title_search_mode}`}>面談開始</span>
@@ -7326,7 +9792,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             handleCloseTooltip();
                           }}
                         >
-                          {/* <MdClose className="pointer-events-none text-[18px]" /> */}
                           <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
                         </button>
                         <div
@@ -7447,7 +9912,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             handleCloseTooltip();
                           }}
                         >
-                          {/* <MdClose className="pointer-events-none text-[18px]" /> */}
                           <MdOutlineDeleteOutline className="pointer-events-none text-[16px]" />
                         </button>
                         <div
@@ -7489,17 +9953,73 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       </div>
                     </div>
                   </div>
-                </div>
+                </div> */}
 
-                {/* 面談時間(分)・面談人数 サーチ */}
+                {/* 結果 面談時間(分)・面談人数 サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                   <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <div className={`${styles.title_search_mode} flex flex-col`}>
-                        <span className={``}>面談時間</span>
+                        <span>面談時間(分)</span>
                       </div>
 
-                      {["is null", "is not null"].includes(inputResultDuration as IsNullNotNullText) ? (
+                      {inputResultDurationSearch === "is null" || inputResultDurationSearch === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[inputResultDurationSearch as IsNullNotNullText]}
+                          <span className={`text-[13px]`}>
+                            {nullNotNullTextMap[inputResultDurationSearch as IsNullNotNullText]}
+                          </span>
+                        </div>
+                      ) : (
+                        <>
+                          <input
+                            type="number"
+                            min="0"
+                            className={`${styles.input_box}`}
+                            placeholder=""
+                            value={inputResultDurationSearch.min === null ? "" : inputResultDurationSearch.min}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const numValue = Number(val);
+                              if (val === "" || isNaN(numValue)) {
+                                setInputResultDurationSearch({ min: null, max: inputResultDurationSearch.max });
+                              } else {
+                                // 入力値がマイナスかチェック
+                                if (numValue < 0) {
+                                  setInputResultDurationSearch({ min: 0, max: inputResultDurationSearch.max });
+                                } else {
+                                  setInputResultDurationSearch({ min: numValue, max: inputResultDurationSearch.max });
+                                }
+                              }
+                            }}
+                          />
+
+                          <span className="mx-[10px]">〜</span>
+
+                          <input
+                            type="number"
+                            min="0"
+                            className={`${styles.input_box}`}
+                            placeholder=""
+                            value={inputResultDurationSearch.max === null ? "" : inputResultDurationSearch.max}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const numValue = Number(val);
+                              if (val === "" || isNaN(numValue)) {
+                                setInputResultDurationSearch({ min: inputResultDurationSearch.min, max: null });
+                              } else {
+                                // 入力値がマイナスかチェック
+                                if (numValue < 0) {
+                                  setInputResultDurationSearch({ min: inputResultDurationSearch.min, max: 0 });
+                                } else {
+                                  setInputResultDurationSearch({ min: inputResultDurationSearch.min, max: numValue });
+                                }
+                              }
+                            }}
+                          />
+                        </>
+                      )}
+                      {/* {["is null", "is not null"].includes(inputResultDuration as IsNullNotNullText) ? (
                         <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
                           {nullNotNullIconMap[inputResultDuration as IsNullNotNullText]}
                           <span className={`text-[13px]`}>
@@ -7530,18 +10050,51 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                               }
                             }}
                           />
-                          {/* バツボタン */}
                           {!!inputResultDuration && (
                             <div className={`${styles.close_btn_number}`} onClick={() => setInputResultDuration(null)}>
                               <MdClose className="text-[20px] " />
                             </div>
                           )}
                         </>
-                      )}
+                      )} */}
                     </div>
                     <div className={`${styles.underline}`}></div>
                     {/* input下追加ボタンエリア */}
+                    {/* input下追加ボタンエリア */}
                     {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isEmptyInputRange(inputResultDurationSearch, "number") ? `hidden` : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputResultDurationSearch, "range_number")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputResultDurationSearch)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
+                    {/* {searchMode && (
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
@@ -7570,7 +10123,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           </div>
                         </div>
                       </>
-                    )}
+                    )} */}
                     {/* input下追加ボタンエリア ここまで */}
                   </div>
 
@@ -7578,13 +10131,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     <div className={`${styles.title_box} transition-base03 flex h-full items-center `}>
                       <span className={`${styles.check_title_search_mode}`}>面談人数</span>
 
-                      {["is null", "is not null"].includes(
-                        inputResultNumberOfMeetingParticipants as IsNullNotNullText
-                      ) ? (
+                      {inputResultNumberOfMeetingParticipantsSearch === "is null" ||
+                      inputResultNumberOfMeetingParticipantsSearch === "is not null" ? (
                         <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
-                          {nullNotNullIconMap[inputResultNumberOfMeetingParticipants as IsNullNotNullText]}
+                          {nullNotNullIconMap[inputResultNumberOfMeetingParticipantsSearch as IsNullNotNullText]}
                           <span className={`text-[13px]`}>
-                            {nullNotNullTextMap[inputResultNumberOfMeetingParticipants as IsNullNotNullText]}
+                            {nullNotNullTextMap[inputResultNumberOfMeetingParticipantsSearch as IsNullNotNullText]}
                           </span>
                         </div>
                       ) : (
@@ -7595,35 +10147,71 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             className={`${styles.input_box}`}
                             placeholder=""
                             value={
-                              inputResultNumberOfMeetingParticipants === null
+                              inputResultNumberOfMeetingParticipantsSearch.min === null
                                 ? ""
-                                : inputResultNumberOfMeetingParticipants
+                                : inputResultNumberOfMeetingParticipantsSearch.min
                             }
                             onChange={(e) => {
                               const val = e.target.value;
-                              if (val === "") {
-                                setInputResultNumberOfMeetingParticipants(null);
+                              const numValue = Number(val);
+                              if (val === "" || isNaN(numValue)) {
+                                setInputResultNumberOfMeetingParticipantsSearch({
+                                  min: null,
+                                  max: inputResultNumberOfMeetingParticipantsSearch.max,
+                                });
                               } else {
-                                const numValue = Number(val);
-
                                 // 入力値がマイナスかチェック
                                 if (numValue < 0) {
-                                  setInputResultNumberOfMeetingParticipants(0); // ここで0に設定しているが、必要に応じて他の正の値に変更することもできる
+                                  setInputResultNumberOfMeetingParticipantsSearch({
+                                    min: 0,
+                                    max: inputResultNumberOfMeetingParticipantsSearch.max,
+                                  });
                                 } else {
-                                  setInputResultNumberOfMeetingParticipants(numValue);
+                                  setInputResultNumberOfMeetingParticipantsSearch({
+                                    min: numValue,
+                                    max: inputResultNumberOfMeetingParticipantsSearch.max,
+                                  });
                                 }
                               }
                             }}
                           />
-                          {/* バツボタン */}
-                          {!!inputResultNumberOfMeetingParticipants && (
-                            <div
-                              className={`${styles.close_btn_number}`}
-                              onClick={() => setInputResultNumberOfMeetingParticipants(null)}
-                            >
-                              <MdClose className="text-[20px] " />
-                            </div>
-                          )}
+
+                          <span className="mx-[10px]">〜</span>
+
+                          <input
+                            type="number"
+                            min="0"
+                            className={`${styles.input_box}`}
+                            placeholder=""
+                            value={
+                              inputResultNumberOfMeetingParticipantsSearch.max === null
+                                ? ""
+                                : inputResultNumberOfMeetingParticipantsSearch.max
+                            }
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const numValue = Number(val);
+                              if (val === "" || isNaN(numValue)) {
+                                setInputResultNumberOfMeetingParticipantsSearch({
+                                  min: inputResultNumberOfMeetingParticipantsSearch.min,
+                                  max: null,
+                                });
+                              } else {
+                                // 入力値がマイナスかチェック
+                                if (numValue < 0) {
+                                  setInputResultNumberOfMeetingParticipantsSearch({
+                                    min: inputResultNumberOfMeetingParticipantsSearch.min,
+                                    max: 0,
+                                  });
+                                } else {
+                                  setInputResultNumberOfMeetingParticipantsSearch({
+                                    min: inputResultNumberOfMeetingParticipantsSearch.min,
+                                    max: numValue,
+                                  });
+                                }
+                              }
+                            }}
+                          />
                         </>
                       )}
                     </div>
@@ -7636,11 +10224,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             <button
                               type="button"
                               className={`icon_btn_red ${
-                                inputResultNumberOfMeetingParticipants === null ? `hidden` : `flex`
+                                isEmptyInputRange(inputResultNumberOfMeetingParticipantsSearch, "number")
+                                  ? `hidden`
+                                  : `flex`
                               }`}
                               onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                               onMouseLeave={handleCloseTooltip}
-                              onClick={() => handleClickResetInput(setInputResultNumberOfMeetingParticipants, "number")}
+                              onClick={() =>
+                                handleClickResetInput(setInputResultNumberOfMeetingParticipantsSearch, "range_number")
+                              }
                             >
                               <MdClose className="pointer-events-none text-[14px]" />
                             </button>
@@ -7653,7 +10245,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                 }
                                 onMouseLeave={handleCloseTooltip}
                                 onClick={() =>
-                                  handleClickAdditionalAreaBtn(index, setInputResultNumberOfMeetingParticipants)
+                                  handleClickAdditionalAreaBtn(index, setInputResultNumberOfMeetingParticipantsSearch)
                                 }
                               >
                                 {element}
@@ -7900,12 +10492,35 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   </div>
                 </div>
 
-                {/* 訪問結果 サーチ */}
+                {/* 面談結果 サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex h-[70px] w-full items-center`}>
-                  <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full `}>
-                      <span className={`${styles.title_search_mode}`}>訪問結果</span>
-                      <select
+                      <span className={`${styles.title_search_mode}`}>面談結果</span>
+
+                      {isNullNotNullResultCategory === "is null" || isNullNotNullResultCategory === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullResultCategory]}
+                          <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullResultCategory]}</span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputResultCategoryArray}
+                          dispatch={setInputResultCategoryArray}
+                          selectedSetObj={selectedResultCategoryArraySet}
+                          options={optionsResultCategory}
+                          getOptionName={getResultCategoryNameSearch}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - var(--title-width))`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
                         className={`ml-auto h-full w-[100%] cursor-pointer  ${styles.select_box}`}
                         value={inputResultCategory}
                         onChange={(e) => {
@@ -7920,22 +10535,86 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         ))}
                         <option value="is not null">入力有りのデータのみ</option>
                         <option value="is null">入力無しのデータのみ</option>
-                      </select>
+                      </select> */}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isNullNotNullResultCategory === null && inputResultCategoryArray.length === 0
+                                  ? `hidden`
+                                  : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleResetArray("result_category")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(index, setIsNullNotNullResultCategory, "result_category")
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
                 {/* 面談時_最上位職位 サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex h-[70px] w-full items-center`}>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full `}>
                       {/* <span className={`${styles.title_search_mode}`}>面談時</span> */}
                       <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
                         <span className={``}>面談時_</span>
                         <span className={``}>最上位職位</span>
                       </div>
-                      <select
+
+                      {isNullNotNullResultTopPositionClass === "is null" ||
+                      isNullNotNullResultTopPositionClass === "is not null" ? (
+                        <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                          {nullNotNullIconMap[isNullNotNullResultTopPositionClass]}
+                          <span className={`text-[13px]`}>
+                            {nullNotNullTextMap[isNullNotNullResultTopPositionClass]}
+                          </span>
+                        </div>
+                      ) : (
+                        <CustomSelectMultiple
+                          stateArray={inputResultTopPositionClassArray}
+                          dispatch={setInputResultTopPositionClassArray}
+                          selectedSetObj={selectedResultTopPositionClassArraySet}
+                          options={optionsPositionsClass}
+                          getOptionName={getResultTopPositionClassNameSearch}
+                          withBorder={true}
+                          // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                          customClass="font-normal"
+                          bgDark={false}
+                          maxWidth={`calc(100% - var(--title-width))`}
+                          maxHeight={30}
+                          // zIndexSelectBox={2000}
+                          hideOptionAfterSelect={true}
+                        />
+                      )}
+                      {/* <select
                         className={`mr-auto h-full w-[100%] cursor-pointer rounded-[4px] ${styles.select_box}`}
                         value={inputResultTopPositionClass}
                         onChange={(e) => {
@@ -7951,24 +10630,58 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         ))}
                         <option value="is not null">入力有りのデータのみ</option>
                         <option value="is null">入力無しのデータのみ</option>
-                      </select>
+                      </select> */}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isNullNotNullResultTopPositionClass === null &&
+                                inputResultTopPositionClassArray.length === 0
+                                  ? `hidden`
+                                  : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleResetArray("result_top_position_class")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(
+                                    index,
+                                    setIsNullNotNullResultTopPositionClass,
+                                    "result_top_position_class"
+                                  )
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    {/* <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title_search_mode}`}>実施商品2</span>
-                    <input
-                      type="text"
-                      className={`${styles.input_box}`}
-                      placeholder=""
-                      value={inputResultPresentationProduct2}
-                      onChange={(e) => setInputResultPresentationProduct2(e.target.value)}
-                    />
-                  </div>
-                  <div className={`${styles.underline}`}></div> */}
-                  </div>
+
+                  <div className="flex h-full w-1/2 flex-col pr-[20px]"></div>
                 </div>
+                {/*  */}
+
                 {/* 面談時_決裁者商談有無・面談時_同席依頼 サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex h-[70px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
@@ -7999,6 +10712,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     </div>
                     <div className={`${styles.underline}`}></div>
                   </div>
+
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <div className={`${styles.title_search_mode} flex flex-col ${styles.double_text}`}>
@@ -8723,17 +11437,34 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     )}
                     {/* input下追加ボタンエリア ここまで */}
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title_search_mode}`}>職位</span>
                       {searchMode && (
-                        // <input
-                        //   type="text"
-                        //   className={`${styles.input_box} ml-[20px]`}
-                        //   value={inputProductL}
-                        //   onChange={(e) => setInputProductL(e.target.value)}
-                        // />
-                        <select
+                        <>
+                          {isNullNotNullPositionClass === "is null" || isNullNotNullPositionClass === "is not null" ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[isNullNotNullPositionClass]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullPositionClass]}</span>
+                            </div>
+                          ) : (
+                            <CustomSelectMultiple
+                              stateArray={inputPositionClassArray}
+                              dispatch={setInputPositionClassArray}
+                              selectedSetObj={selectedPositionClassArraySet}
+                              options={optionsPositionsClass}
+                              getOptionName={getPositionClassNameSearch}
+                              withBorder={true}
+                              // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                              customClass="font-normal"
+                              bgDark={false}
+                              maxWidth={`calc(100% - var(--title-width))`}
+                              maxHeight={30}
+                              // zIndexSelectBox={2000}
+                              hideOptionAfterSelect={true}
+                            />
+                          )}
+                          {/* <select
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputPositionClass}
                           onChange={(e) => setInputPositionClass(e.target.value)}
@@ -8746,20 +11477,82 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           ))}
                           <option value="is not null">入力有りのデータのみ</option>
                           <option value="is null">入力無しのデータのみ</option>
-                        </select>
+                        </select> */}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isNullNotNullPositionClass === null && inputPositionClassArray.length === 0
+                                  ? `hidden`
+                                  : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleResetArray("position_class")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(index, setIsNullNotNullPositionClass, "position_class")
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
                 {/* 担当職種・決裁金額 サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title_search_mode}`}>担当職種</span>
                       {searchMode && (
-                        <select
+                        <>
+                          {isNullNotNullOccupation === "is null" || isNullNotNullOccupation === "is not null" ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[isNullNotNullOccupation]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullOccupation]}</span>
+                            </div>
+                          ) : (
+                            <CustomSelectMultiple
+                              stateArray={inputOccupationArray}
+                              dispatch={setInputOccupationArray}
+                              selectedSetObj={selectedOccupationArraySet}
+                              options={optionsOccupation}
+                              getOptionName={getOccupationNameSearch}
+                              withBorder={true}
+                              // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                              customClass="font-normal"
+                              bgDark={false}
+                              maxWidth={`calc(100% - var(--title-width))`}
+                              maxHeight={30}
+                              // zIndexSelectBox={2000}
+                              hideOptionAfterSelect={true}
+                            />
+                          )}
+                          {/* <select
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputOccupation}
                           onChange={(e) => setInputOccupation(e.target.value)}
@@ -8772,20 +11565,126 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           ))}
                           <option value="is not null">入力有りのデータのみ</option>
                           <option value="is null">入力無しのデータのみ</option>
-                        </select>
+                        </select> */}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isNullNotNullOccupation === null && inputOccupationArray.length === 0
+                                  ? `hidden`
+                                  : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleResetArray("occupation")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(index, setIsNullNotNullOccupation, "occupation")
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
+
                   <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <div className={`${styles.title_search_mode} flex flex-col text-[12px]`}>
-                        <span className={``}>決裁金額</span>
-                        <span className={``}>(万円)</span>
+                        <span>決裁金額</span>
+                        <span>(万円)</span>
                       </div>
                       {searchMode && (
                         <>
-                          {["is null", "is not null"].includes(inputApprovalAmount) ? (
+                          {inputApprovalAmountSearch === "is null" || inputApprovalAmountSearch === "is not null" ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputApprovalAmountSearch]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputApprovalAmountSearch]}</span>
+                            </div>
+                          ) : (
+                            <div
+                              className={`flex h-full w-full items-center`}
+                              onMouseEnter={(e) => {
+                                const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。`;
+                                handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              <input
+                                type="text"
+                                className={`${styles.input_box}`}
+                                value={inputApprovalAmountSearch.min}
+                                onChange={(e) =>
+                                  setInputApprovalAmountSearch({
+                                    min: e.target.value,
+                                    max: inputApprovalAmountSearch.max,
+                                  })
+                                }
+                                onBlur={() => {
+                                  const formatHalfInput = toHalfWidthAndRemoveSpace(inputApprovalAmountSearch.min);
+                                  const convertedPrice = convertToMillions(formatHalfInput.trim());
+                                  if (convertedPrice !== null && !isNaN(convertedPrice)) {
+                                    setInputApprovalAmountSearch({
+                                      min: String(convertedPrice),
+                                      max: inputApprovalAmountSearch.max,
+                                    });
+                                  } else {
+                                    setInputApprovalAmountSearch({ min: "", max: inputApprovalAmountSearch.max });
+                                  }
+                                }}
+                              />
+
+                              <span className="mx-[10px]">〜</span>
+
+                              <input
+                                type="text"
+                                className={`${styles.input_box}`}
+                                value={inputApprovalAmountSearch.max}
+                                onChange={(e) =>
+                                  setInputApprovalAmountSearch({
+                                    min: inputApprovalAmountSearch.min,
+                                    max: e.target.value,
+                                  })
+                                }
+                                onBlur={() => {
+                                  const formatHalfInput = toHalfWidthAndRemoveSpace(inputApprovalAmountSearch.max);
+                                  const convertedPrice = convertToMillions(formatHalfInput.trim());
+
+                                  if (convertedPrice !== null && !isNaN(convertedPrice)) {
+                                    setInputApprovalAmountSearch({
+                                      min: inputApprovalAmountSearch.min,
+                                      max: String(convertedPrice),
+                                    });
+                                  } else {
+                                    setInputApprovalAmountSearch({ min: inputApprovalAmountSearch.min, max: "" });
+                                  }
+                                }}
+                              />
+                            </div>
+                          )}
+                          {/* {["is null", "is not null"].includes(inputApprovalAmount) ? (
                             <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
                               {nullNotNullIconMap[inputApprovalAmount]}
                               <span className={`text-[13px]`}>{nullNotNullTextMap[inputApprovalAmount]}</span>
@@ -8807,7 +11706,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                 }
                               }}
                             />
-                          )}
+                          )} */}
                         </>
                       )}
                     </div>
@@ -8819,10 +11718,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           <div className={`line_first space-x-[6px]`}>
                             <button
                               type="button"
-                              className={`icon_btn_red ${inputApprovalAmount === "" ? `hidden` : `flex`}`}
+                              className={`icon_btn_red ${
+                                isEmptyInputRange(inputApprovalAmountSearch) ? `hidden` : `flex`
+                              }`}
                               onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                               onMouseLeave={handleCloseTooltip}
-                              onClick={() => handleClickResetInput(setInputApprovalAmount)}
+                              onClick={() => handleClickResetInput(setInputApprovalAmountSearch, "range_string")}
                             >
                               <MdClose className="pointer-events-none text-[14px]" />
                             </button>
@@ -8834,7 +11735,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                   handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
                                 }
                                 onMouseLeave={handleCloseTooltip}
-                                onClick={() => handleClickAdditionalAreaBtn(index, setInputApprovalAmount)}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputApprovalAmountSearch)}
                               >
                                 {element}
                               </div>
@@ -8849,11 +11750,35 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                 {/* 規模（ランク）・決算月 サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title_search_mode}`}>規模(ﾗﾝｸ)</span>
                       {searchMode && (
-                        <select
+                        <>
+                          {isNullNotNullEmployeesClass === "is null" ||
+                          isNullNotNullEmployeesClass === "is not null" ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[isNullNotNullEmployeesClass]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullEmployeesClass]}</span>
+                            </div>
+                          ) : (
+                            <CustomSelectMultiple
+                              stateArray={inputEmployeesClassArray}
+                              dispatch={setInputEmployeesClassArray}
+                              selectedSetObj={selectedEmployeesClassArraySet}
+                              options={optionsNumberOfEmployeesClass}
+                              getOptionName={getEmployeesClassNameSearch}
+                              withBorder={true}
+                              // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                              customClass="font-normal"
+                              bgDark={false}
+                              maxWidth={`calc(100% - var(--title-width))`}
+                              maxHeight={30}
+                              // zIndexSelectBox={2000}
+                              hideOptionAfterSelect={true}
+                            />
+                          )}
+                          {/* <select
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputEmployeesClass}
                           onChange={(e) => setInputEmployeesClass(e.target.value)}
@@ -8866,16 +11791,83 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           ))}
                           <option value="is not null">入力有りのデータのみ</option>
                           <option value="is null">入力無しのデータのみ</option>
-                        </select>
+                        </select> */}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isNullNotNullEmployeesClass === null && inputEmployeesClassArray.length === 0
+                                  ? `hidden`
+                                  : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleResetArray("number_of_employees_class")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(
+                                    index,
+                                    setIsNullNotNullEmployeesClass,
+                                    "number_of_employees_class"
+                                  )
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title_search_mode}`}>決算月</span>
                       {searchMode && (
-                        <select
+                        <>
+                          {isNullNotNullFiscal === "is null" || isNullNotNullFiscal === "is not null" ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[isNullNotNullFiscal]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullFiscal]}</span>
+                            </div>
+                          ) : (
+                            <CustomSelectMultiple
+                              stateArray={inputFiscalArray}
+                              dispatch={setInputFiscalArray}
+                              selectedSetObj={selectedFiscalArraySet}
+                              options={optionsMonth}
+                              getOptionName={getMonthNameSearch}
+                              withBorder={true}
+                              // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                              customClass="font-normal"
+                              bgDark={false}
+                              maxWidth={`calc(100% - var(--title-width))`}
+                              maxHeight={30}
+                              // zIndexSelectBox={2000}
+                              hideOptionAfterSelect={true}
+                            />
+                          )}
+                          {/* <select
                           className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                           value={inputFiscal}
                           onChange={(e) => setInputFiscal(e.target.value)}
@@ -8888,20 +11880,217 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           ))}
                           <option value="is not null">入力有りのデータのみ</option>
                           <option value="is null">入力無しのデータのみ</option>
-                        </select>
+                        </select> */}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isNullNotNullFiscal === null && inputFiscalArray.length === 0 ? `hidden` : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleResetArray("fiscal_end_month")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(index, setIsNullNotNullFiscal, "fiscal_end_month")
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
+                  </div>
+                </div>
+
+                {/* 従業員数 サーチ */}
+                <div
+                  className={`${styles.row_area} ${
+                    searchMode ? `${styles.row_area_search_mode}` : ``
+                  } flex h-[30px] w-full items-center`}
+                >
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center `}>
+                      <span className={`${styles.title}`}>従業員数</span>
+
+                      {searchMode && (
+                        <>
+                          {inputNumberOfEmployeesSearch === "is null" ||
+                          inputNumberOfEmployeesSearch === "is not null" ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputNumberOfEmployeesSearch]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputNumberOfEmployeesSearch]}</span>
+                            </div>
+                          ) : (
+                            <div
+                              className={`flex h-full w-full items-center`}
+                              onMouseEnter={(e) => {
+                                const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。`;
+                                handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              <input
+                                type="text"
+                                className={`${styles.input_box}`}
+                                value={inputNumberOfEmployeesSearch.min}
+                                onChange={(e) =>
+                                  setInputNumberOfEmployeesSearch({
+                                    min: e.target.value,
+                                    max: inputNumberOfEmployeesSearch.max,
+                                  })
+                                }
+                                onBlur={() => {
+                                  const formatHalfInput = toHalfWidthAndRemoveSpace(
+                                    inputNumberOfEmployeesSearch.min
+                                  ).trim();
+                                  const newEmployeesCount = parseInt(formatHalfInput, 10);
+
+                                  if (newEmployeesCount !== null && !isNaN(newEmployeesCount)) {
+                                    setInputNumberOfEmployeesSearch({
+                                      min: String(newEmployeesCount),
+                                      max: inputNumberOfEmployeesSearch.max,
+                                    });
+                                  } else {
+                                    setInputNumberOfEmployeesSearch({ min: "", max: inputNumberOfEmployeesSearch.max });
+                                  }
+                                }}
+                              />
+
+                              <span className="mx-[10px]">〜</span>
+
+                              <input
+                                type="text"
+                                className={`${styles.input_box}`}
+                                value={inputNumberOfEmployeesSearch.max}
+                                onChange={(e) =>
+                                  setInputNumberOfEmployeesSearch({
+                                    min: inputNumberOfEmployeesSearch.min,
+                                    max: e.target.value,
+                                  })
+                                }
+                                onBlur={() => {
+                                  const formatHalfInput = toHalfWidthAndRemoveSpace(
+                                    inputNumberOfEmployeesSearch.max
+                                  ).trim();
+                                  const newEmployeesCount = parseInt(formatHalfInput, 10);
+
+                                  if (newEmployeesCount !== null && !isNaN(newEmployeesCount)) {
+                                    setInputNumberOfEmployeesSearch({
+                                      min: inputNumberOfEmployeesSearch.min,
+                                      max: String(newEmployeesCount),
+                                    });
+                                  } else {
+                                    setInputNumberOfEmployeesSearch({ min: inputNumberOfEmployeesSearch.min, max: "" });
+                                  }
+                                }}
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                    <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isEmptyInputRange(inputNumberOfEmployeesSearch) ? `hidden` : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleClickResetInput(setInputNumberOfEmployeesSearch, "range_string")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputNumberOfEmployeesSearch)}
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
+                  </div>
+
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className={`${styles.title_box} flex h-full items-center`}></div>
+                    {/* <div className={`${styles.underline}`}></div> */}
                   </div>
                 </div>
 
                 {/* 予算申請月1・予算申請月2 サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title_search_mode} text-[12px]`}>予算申請月1</span>
+                      {/* <span className={`${styles.title_search_mode} text-[12px]`}>予算申請月1</span> */}
+                      <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                        <span>予算</span>
+                        <span>申請月1</span>
+                      </div>
                       {searchMode && (
-                        <select
+                        <>
+                          {isNullNotNullBudgetRequestMonth1 === "is null" ||
+                          isNullNotNullBudgetRequestMonth1 === "is not null" ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[isNullNotNullBudgetRequestMonth1]}
+                              <span className={`text-[13px]`}>
+                                {nullNotNullTextMap[isNullNotNullBudgetRequestMonth1]}
+                              </span>
+                            </div>
+                          ) : (
+                            <CustomSelectMultiple
+                              stateArray={inputBudgetRequestMonth1Array}
+                              dispatch={setInputBudgetRequestMonth1Array}
+                              selectedSetObj={selectedBudgetRequestMonth1ArraySet}
+                              options={optionsMonth}
+                              getOptionName={getMonthNameSearch}
+                              withBorder={true}
+                              // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                              customClass="font-normal"
+                              bgDark={false}
+                              maxWidth={`calc(100% - var(--title-width))`}
+                              maxHeight={30}
+                              // zIndexSelectBox={2000}
+                              hideOptionAfterSelect={true}
+                            />
+                          )}
+                          {/* <select
                           className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                           value={inputBudgetRequestMonth1}
                           onChange={(e) => setInputBudgetRequestMonth1(e.target.value)}
@@ -8914,16 +12103,90 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           ))}
                           <option value="is not null">入力有りのデータのみ</option>
                           <option value="is null">入力無しのデータのみ</option>
-                        </select>
+                        </select> */}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isNullNotNullBudgetRequestMonth1 === null && inputBudgetRequestMonth1Array.length === 0
+                                  ? `hidden`
+                                  : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleResetArray("budget_request_month1")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(
+                                    index,
+                                    setIsNullNotNullBudgetRequestMonth1,
+                                    "budget_request_month1"
+                                  )
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title_search_mode} text-[12px]`}>予算申請月2</span>
+                      {/* <span className={`${styles.title_search_mode} text-[12px]`}>予算申請月2</span> */}
+                      <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                        <span>予算</span>
+                        <span>申請月2</span>
+                      </div>
                       {searchMode && (
-                        <select
+                        <>
+                          {isNullNotNullBudgetRequestMonth2 === "is null" ||
+                          isNullNotNullBudgetRequestMonth2 === "is not null" ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[isNullNotNullBudgetRequestMonth2]}
+                              <span className={`text-[13px]`}>
+                                {nullNotNullTextMap[isNullNotNullBudgetRequestMonth2]}
+                              </span>
+                            </div>
+                          ) : (
+                            <CustomSelectMultiple
+                              stateArray={inputBudgetRequestMonth2Array}
+                              dispatch={setInputBudgetRequestMonth2Array}
+                              selectedSetObj={selectedBudgetRequestMonth2ArraySet}
+                              options={optionsMonth}
+                              getOptionName={getMonthNameSearch}
+                              withBorder={true}
+                              // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                              customClass="font-normal"
+                              bgDark={false}
+                              maxWidth={`calc(100% - var(--title-width))`}
+                              maxHeight={30}
+                              // zIndexSelectBox={2000}
+                              hideOptionAfterSelect={true}
+                            />
+                          )}
+                          {/* <select
                           className={`ml-auto h-full w-full cursor-pointer ${styles.select_box}`}
                           value={inputBudgetRequestMonth2}
                           onChange={(e) => setInputBudgetRequestMonth2(e.target.value)}
@@ -8936,10 +12199,53 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           ))}
                           <option value="is not null">入力有りのデータのみ</option>
                           <option value="is null">入力無しのデータのみ</option>
-                        </select>
+                        </select> */}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isNullNotNullBudgetRequestMonth2 === null && inputBudgetRequestMonth2Array.length === 0
+                                  ? `hidden`
+                                  : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleResetArray("budget_request_month2")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(
+                                    index,
+                                    setIsNullNotNullBudgetRequestMonth2,
+                                    "budget_request_month2"
+                                  )
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
 
@@ -8950,7 +12256,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <span className={`${styles.title_search_mode}`}>資本金(万円)</span>
                       {!searchMode && (
                         <span className={`${styles.value}`}>
-                          {/* {selectedRowDataCompany?.capital ? selectedRowDataCompany?.capital : ""} */}
                           {selectedRowDataMeeting?.capital
                             ? convertToJapaneseCurrencyFormat(selectedRowDataMeeting.capital)
                             : ""}
@@ -8958,7 +12263,61 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       )}
                       {searchMode && (
                         <>
-                          {["is null", "is not null"].includes(inputCapital) ? (
+                          {inputCapitalSearch === "is null" || inputCapitalSearch === "is not null" ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[inputCapitalSearch]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[inputCapitalSearch]}</span>
+                            </div>
+                          ) : (
+                            <div
+                              className={`flex h-full w-full items-center`}
+                              onMouseEnter={(e) => {
+                                const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。`;
+                                handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                              }}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              <input
+                                type="text"
+                                className={`${styles.input_box}`}
+                                value={inputCapitalSearch.min}
+                                onChange={(e) =>
+                                  setInputCapitalSearch({ min: e.target.value, max: inputCapitalSearch.max })
+                                }
+                                onBlur={() => {
+                                  const formatHalfInput = toHalfWidthAndRemoveSpace(inputCapitalSearch.min);
+                                  const convertedPrice = convertToMillions(formatHalfInput.trim());
+                                  if (convertedPrice !== null && !isNaN(convertedPrice)) {
+                                    setInputCapitalSearch({ min: String(convertedPrice), max: inputCapitalSearch.max });
+                                  } else {
+                                    setInputCapitalSearch({ min: "", max: inputCapitalSearch.max });
+                                  }
+                                }}
+                              />
+
+                              <span className="mx-[10px]">〜</span>
+
+                              <input
+                                type="text"
+                                className={`${styles.input_box}`}
+                                value={inputCapitalSearch.max}
+                                onChange={(e) =>
+                                  setInputCapitalSearch({ min: inputCapitalSearch.min, max: e.target.value })
+                                }
+                                onBlur={() => {
+                                  const formatHalfInput = toHalfWidthAndRemoveSpace(inputCapitalSearch.max);
+                                  const convertedPrice = convertToMillions(formatHalfInput.trim());
+
+                                  if (convertedPrice !== null && !isNaN(convertedPrice)) {
+                                    setInputCapitalSearch({ min: inputCapitalSearch.min, max: String(convertedPrice) });
+                                  } else {
+                                    setInputCapitalSearch({ min: inputCapitalSearch.min, max: "" });
+                                  }
+                                }}
+                              />
+                            </div>
+                          )}
+                          {/* {["is null", "is not null"].includes(inputCapital) ? (
                             <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
                               {nullNotNullIconMap[inputCapital]}
                               <span className={`text-[13px]`}>{nullNotNullTextMap[inputCapital]}</span>
@@ -8978,7 +12337,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                 }
                               }}
                             />
-                          )}
+                          )} */}
                         </>
                       )}
                     </div>
@@ -8990,10 +12349,10 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           <div className={`line_first space-x-[6px]`}>
                             <button
                               type="button"
-                              className={`icon_btn_red ${inputCapital === null ? `hidden` : `flex`}`}
+                              className={`icon_btn_red ${isEmptyInputRange(inputCapitalSearch) ? `hidden` : `flex`}`}
                               onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
                               onMouseLeave={handleCloseTooltip}
-                              onClick={() => handleClickResetInput(setInputCapital)}
+                              onClick={() => handleClickResetInput(setInputCapitalSearch, "range_string")}
                             >
                               <MdClose className="pointer-events-none text-[14px]" />
                             </button>
@@ -9005,7 +12364,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                   handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
                                 }
                                 onMouseLeave={handleCloseTooltip}
-                                onClick={() => handleClickAdditionalAreaBtn(index, setInputCapital)}
+                                onClick={() => handleClickAdditionalAreaBtn(index, setInputCapitalSearch)}
                               >
                                 {element}
                               </div>
@@ -9016,6 +12375,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                     )}
                     {/* input下追加ボタンエリア ここまで */}
                   </div>
+
                   <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title_search_mode}`}>設立</span>
@@ -9610,11 +12970,34 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                 {/* 業種 サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                  <div className="flex h-full w-full flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title_search_mode}`}>○業種</span>
                       {searchMode && (
-                        <select
+                        <>
+                          {isNullNotNullIndustryType === "is null" || isNullNotNullIndustryType === "is not null" ? (
+                            <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                              {nullNotNullIconMap[isNullNotNullIndustryType]}
+                              <span className={`text-[13px]`}>{nullNotNullTextMap[isNullNotNullIndustryType]}</span>
+                            </div>
+                          ) : (
+                            <CustomSelectMultiple
+                              stateArray={inputIndustryTypeArray}
+                              dispatch={setInputIndustryTypeArray}
+                              selectedSetObj={selectedIndustryTypeArraySet}
+                              options={optionsIndustryType}
+                              getOptionName={getIndustryTypeNameSearch}
+                              withBorder={true}
+                              // modalPosition={{ x: modalPosition?.x ?? 0, y: modalPosition?.y ?? 0 }}
+                              customClass="font-normal"
+                              bgDark={false}
+                              maxWidth={`calc(100% - var(--title-width))`}
+                              maxHeight={30}
+                              // zIndexSelectBox={2000}
+                              hideOptionAfterSelect={true}
+                            />
+                          )}
+                          {/* <select
                           className={`ml-auto h-full w-full cursor-pointer  ${styles.select_box}`}
                           value={inputIndustryType}
                           onChange={(e) => setInputIndustryType(e.target.value)}
@@ -9627,12 +13010,52 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           ))}
                           <option value="is not null">入力有りのデータのみ</option>
                           <option value="is null">入力無しのデータのみ</option>
-                        </select>
+                        </select> */}
+                        </>
                       )}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {/* input下追加ボタンエリア */}
+                    {searchMode && (
+                      <>
+                        <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                          <div className={`line_first space-x-[6px]`}>
+                            <button
+                              type="button"
+                              className={`icon_btn_red ${
+                                isNullNotNullIndustryType === null && inputIndustryTypeArray.length === 0
+                                  ? `hidden`
+                                  : `flex`
+                              }`}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                              onMouseLeave={handleCloseTooltip}
+                              onClick={() => handleResetArray("industry_type_id")}
+                            >
+                              <MdClose className="pointer-events-none text-[14px]" />
+                            </button>
+                            {firstLineComponents.map((element, index) => (
+                              <div
+                                key={`additional_search_area_under_input_btn_f_${index}`}
+                                className={`btn_f space-x-[3px]`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() =>
+                                  handleClickAdditionalAreaBtn(index, setIsNullNotNullIndustryType, "industry_type_id")
+                                }
+                              >
+                                {element}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                    {/* input下追加ボタンエリア ここまで */}
                   </div>
                 </div>
+
                 {/* 製品分類(大分類) サーチ */}
                 <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
                   <div className="group relative flex h-full w-full flex-col pr-[20px]">

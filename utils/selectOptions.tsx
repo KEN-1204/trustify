@@ -1372,7 +1372,22 @@ export const getMeetingType = (value: string, language: string = "ja") => {
 };
 
 // WEBツール
+export type WebToolType = "Zoom" | "Teams" | "Google Meet" | "Webex" | "bellFace" | "Other";
 export const optionsWebTool = ["Zoom", "Teams", "Google Meet", "Webex", "bellFace", "Other"];
+export const mappingWebTool:
+  | {
+      [K in WebToolType]: { [key: string]: string };
+    }
+  | {
+      [key: string]: { [key: string]: string };
+    } = {
+  Zoom: { ja: `Zoom`, en: `Zoom` },
+  Teams: { ja: `Teams`, en: `Teams` },
+  "Google Meet": { ja: `Google Meet`, en: `Google Meet` },
+  Webex: { ja: `Webex`, en: `Webex` },
+  bellFace: { ja: `bellFace`, en: `bellFace` },
+  Other: { ja: `その他`, en: `Other` },
+};
 export const getWebTool = (value: string, language: string = "ja") => {
   switch (value) {
     case "Zoom":
@@ -1438,6 +1453,23 @@ export const getWebTool = (value: string, language: string = "ja") => {
 //   "O Other(Customer Request Support)",
 //   "P Others",
 // ];
+export type PlannedPurposeType =
+  | "A new_company/proactive"
+  | "B overlap_company/proactive"
+  | "C internal_referral/proactive"
+  | "D client_referral/proactive"
+  | "E salesperson_email/proactive"
+  | "F direct_product_engagement_inquiry/reactive"
+  | "G dm/reactive"
+  | "H email/reactive"
+  | "I website/reactive"
+  | "J webinar/reactive"
+  | "K expo/reactive"
+  | "L other_pre_sales_follow_up"
+  | "M other_delivery_explanation"
+  | "N other_proactive_sales_support"
+  | "O other_customer_request_support"
+  | "P others";
 export const optionsPlannedPurpose = [
   "A new_company/proactive",
   "B overlap_company/proactive",
@@ -1456,6 +1488,33 @@ export const optionsPlannedPurpose = [
   "O other_customer_request_support",
   "P others",
 ];
+export const mappingPlannedPurpose: {
+  [K in PlannedPurposeType]: { [key: string]: string };
+} = {
+  "A new_company/proactive": { ja: `新規会社(過去面談無し)/能動`, en: `New Company (No Previous Meetings)/Proactive` },
+  "B overlap_company/proactive": {
+    ja: `被り会社(過去面談有り)/能動`,
+    en: `Overlap Company (Previous Meetings Held)/Proactive`,
+  },
+  "C internal_referral/proactive": { ja: `社内ID(紹介)/能動`, en: `Internal Referral/Proactive` },
+  "D client_referral/proactive": { ja: `社外･客先ID(紹介)/能動`, en: `Internal Referral/Proactive` },
+  "E salesperson_email/proactive": { ja: `営業メール/能動`, en: `Salesperson's Email/Reactive` },
+  "F direct_product_engagement_inquiry/reactive": {
+    ja: `見･聞引合/受動`,
+    en: `Direct Product Engagement Inquiry/Reactive`,
+  },
+  "G dm/reactive": { ja: `DM/受動`, en: `DM/Reactive` },
+  "H email/reactive": { ja: `メール/受動`, en: `Email/Reactive` },
+  "I website/reactive": { ja: `ホームページ/受動`, en: `Website/Reactive` },
+  "J webinar/reactive": { ja: `ウェビナー/受動`, en: `Webinar/Reactive` },
+  "K expo/reactive": { ja: `展示会/受動`, en: `Trade Show/Reactive` },
+  "L other_pre_sales_follow_up": { ja: `他(売前ﾌｫﾛｰ)`, en: `Other(Pre-Sales Follow-Up)` },
+  "M other_delivery_explanation": { ja: `他(納品説明)`, en: `Other(Delivery Explanation)` },
+  "N other_proactive_sales_support": { ja: `他(営業能動サポート)`, en: `Other(Proactive Sales Support)` },
+  "O other_customer_request_support": { ja: `他(客先要望サポート)`, en: `Other(Customer Request Support)` },
+  "P others": { ja: `その他`, en: `Others` },
+};
+
 // ○能動：営業担当によるアクションきっかけ ○受動：営業担当によるアクション以外からのきっかけ
 export const getPlannedPurpose = (value: string, language: string = "ja") => {
   switch (value) {
@@ -1530,6 +1589,13 @@ export const getPlannedPurpose = (value: string, language: string = "ja") => {
   }
 };
 
+// 面談開始 時間 分
+export const hours = Array.from({ length: 24 }, (_, index) => (index < 10 ? "0" + index : "" + index));
+
+export const minutes5 = Array.from({ length: 12 }, (_, index) => (index * 5 < 10 ? "0" + index * 5 : "" + index * 5));
+
+export const minutes = Array.from({ length: 60 }, (_, i) => (i < 10 ? "0" + i : "" + i));
+
 // 面談結果
 // export const optionsResultCategory = [
 //   "A Deal Development F(Potential for Implementation This Fiscal Period)",
@@ -1543,6 +1609,18 @@ export const getPlannedPurpose = (value: string, language: string = "ja") => {
 //   "I Other (Post-Implementation Setup, Support)",
 //   "J Other",
 // ];
+
+export type ResultCategoryType =
+  | "A deal_f"
+  | "B deal_n"
+  | "C deal_continuation"
+  | "D premature"
+  | "E low_usage_frequency"
+  | "F no_results"
+  | "G lack_of_contact_drive"
+  | "H no_need"
+  | "I other_post_setup_support"
+  | "J others";
 export const optionsResultCategory = [
   "A deal_f",
   "B deal_n",
@@ -1555,6 +1633,37 @@ export const optionsResultCategory = [
   "I other_post_setup_support",
   "J others",
 ];
+export const mappingResultCategory:
+  | {
+      [K in ResultCategoryType]: { [key: string]: string };
+    }
+  | { [key: string]: { [key: string]: string } } = {
+  "A deal_f": {
+    ja: `展開F(当期中に導入の可能性あり)`,
+    en: `Deal Development F(Potential for Implementation This Fiscal Period)`,
+  },
+  "B deal_n": {
+    ja: `展開N(来期導入の可能性あり)`,
+    en: `Deal Development N(Potential for Implementation Next Fiscal Period)`,
+  },
+  "C deal_continuation": { ja: `展開継続`, en: `Project Continuation` },
+  "D premature": { ja: `時期尚早`, en: `Premature Timing` },
+  "E low_usage_frequency": {
+    ja: `頻度低い(ニーズあるが頻度低く導入には及ばず)`,
+    en: `Low Usage Frequency (Needs Present but Insufficient for Implementation)`,
+  },
+  "F no_results": {
+    ja: `結果出ず(再度面談や検証が必要)`,
+    en: `Inconclusive Results (Further Meetings or Verification Needed)`,
+  },
+  "G lack_of_contact_drive": {
+    ja: `担当者の推進力無し(ニーズあるが、上長・キーマンにあたる必要有り)`,
+    en: `Lack of Drive from Representative (Needs Identified but Requires Engagement with Superiors or Key Persons)`,
+  },
+  "H no_need": { ja: `用途・ニーズなし`, en: `No Application or Need Identified` },
+  "I other_post_setup_support": { ja: `他(立ち上げ、サポート)`, en: `Other (Post-Implementation Setup, Support)` },
+  "J others": { ja: `その他`, en: `Others` },
+};
 export const getResultCategory = (value: string, language: string = "ja") => {
   switch (value) {
     // case "A Deal Development F(Potential for Implementation This Fiscal Period)":
