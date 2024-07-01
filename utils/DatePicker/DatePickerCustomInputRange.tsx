@@ -4,7 +4,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import ja from "date-fns/locale/ja";
 import enUS from "date-fns/locale/en-US";
 import { CustomCalendarHeader } from "./CustomCalendarHeader";
-import { getYear, subYears } from "date-fns";
+import { format, getYear, subYears } from "date-fns";
 import React, { Dispatch, FC, MouseEventHandler, SetStateAction, useRef, useState } from "react";
 import useStore from "@/store";
 import { range } from "lodash";
@@ -96,7 +96,18 @@ export const DatePickerCustomInputRange: FC<Props> = ({
   };
 
   return (
-    <div className={`flex-center relative h-full w-full ${styles.date_range_container}`}>
+    <div
+      className={`flex-center relative h-full w-full ${styles.date_range_container}`}
+      onMouseEnter={(e) => {
+        if (minmax === "max" && startDate.max === null) return;
+        if (minmax === "min" && startDate.min === null) return;
+        if (!!handleOpenTooltip && e.currentTarget.offsetWidth < e.currentTarget.scrollWidth) {
+          const dateText = format(minmax === "max" ? startDate.max! : startDate.min!, "yyyy/MM/dd");
+          handleOpenTooltip({ e, content: dateText });
+        }
+        console.log("scrollWidth, offsetWidth", e.currentTarget.scrollWidth, e.currentTarget.offsetWidth);
+      }}
+    >
       {/* 🌟バツボタン */}
       {minmax === "min" && startDate.min !== null && isShownCloseBtn && (
         <div className={`${styles.close_btn_area}`}>
@@ -118,6 +129,7 @@ export const DatePickerCustomInputRange: FC<Props> = ({
           </div>
         </div>
       )}
+
       {minmax === "max" && startDate.max !== null && isShownCloseBtn && (
         <div className={`${styles.close_btn_area}`}>
           <div
@@ -139,7 +151,7 @@ export const DatePickerCustomInputRange: FC<Props> = ({
         </div>
       )}
       {/* 🌟カレンダーボタン アイコンクリックで日付ピッカーを表示 */}
-      {!startDate && (
+      {/* {!startDate && (
         <div
           className={`${styles.calendar_btn} `}
           onClick={handleOpenDatePicker}
@@ -149,7 +161,7 @@ export const DatePickerCustomInputRange: FC<Props> = ({
         >
           <AiTwotoneCalendar className="pointer-event-none text-[20px]" />
         </div>
-      )}
+      )} */}
 
       {language === "ja" ? (
         <DatePicker

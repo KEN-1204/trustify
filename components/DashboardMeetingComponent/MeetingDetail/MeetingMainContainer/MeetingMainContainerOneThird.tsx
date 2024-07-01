@@ -1811,10 +1811,11 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
             max: max.toISOString(),
           };
         } else {
-          language === "ja"
-            ? "日付の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
-            : "The minimum date cannot be later than the maximum date.";
-          throw new Error("The minimum date cannot be later than the maximum date.");
+          const errorMsg =
+            language === "ja"
+              ? "日付の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+              : "The minimum date cannot be later than the maximum date.";
+          throw new Error(errorMsg);
         }
       } else if (min instanceof Date && max === null) {
         return {
@@ -7679,7 +7680,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             const content =
                               inputPlannedStartTimeSearchType === "exact"
-                                ? `「〜時台」のデータを検索する場合は時間のみ、「〜分」のデータを検索する場合は分のみを指定してください。\n「〜時〜分」の完全一致検索の場合は時間と分の両方を選択してください。`
+                                ? `「〜時台」のデータを検索する場合は時間のみ、\n「〜分」のデータを検索する場合は分のみを指定してください。\n「〜時〜分」の完全一致検索の場合は時間と分の両方を選択してください。`
                                 : `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。\n範囲検索では時間と分をセットで入力してください。`;
                             handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
                           }}
@@ -7730,7 +7731,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}>
                         <button
                           type="button"
-                          className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[var(--bright-green)] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                          className={`flex-center transition-bg03 btn_gray_green relative  max-h-[25px] min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full text-[11px] font-bold`}
                           onMouseEnter={(e) => {
                             const tooltipText =
                               inputPlannedStartTimeSearchType === "exact" ? `範囲検索に切り替え` : `一致検索に切り替え`;
@@ -7747,7 +7748,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {inputPlannedStartTimeSearchType === "exact" ? (
-                            <LuCalendarSearch className="pointer-events-none text-[16px]" />
+                            <LuCalendarSearch className="pointer-events-none text-[14px]" />
                           ) : (
                             <FiSearch className="pointer-events-none text-[14px]" />
                           )}
@@ -7832,8 +7833,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     {inputPlannedStartTimeSearchType === "range" && isNullNotNullPlannedStartTimeSearch === null && (
                       <>
-                        <div className={`${styles.title_box} flex h-full items-center`}>
-                          <div className={`${styles.title_search_mode} flex-center`}>
+                        <div className={`${styles.title_box} fade03_forward flex h-full items-center`}>
+                          <div className={`${styles.title_search_mode} flex-center pr-[18px]`}>
                             <span>〜</span>
                           </div>
 
@@ -7891,7 +7892,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           >
                             <button
                               type="button"
-                              className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[var(--bright-green)] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                              className={`flex-center transition-bg03 btn_gray_green relative  max-h-[25px] min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full text-[11px] font-bold`}
                               onMouseEnter={(e) => {
                                 handleOpenTooltip({ e, display: "top", content: `一致検索に切り替え` });
                               }}
@@ -9065,7 +9066,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             const content =
                               inputResultStartTimeSearchType === "exact"
-                                ? `「〜時台」のデータを検索する場合は時間のみ、「〜分」のデータを検索する場合は分のみを指定してください。\n「〜時〜分」の完全一致検索の場合は時間と分の両方を選択してください。`
+                                ? `「〜時台」のデータを検索する場合は時間のみ、\n「〜分」のデータを検索する場合は分のみを指定してください。\n「〜時〜分」の完全一致検索の場合は時間と分の両方を選択してください。`
                                 : `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。\n範囲検索では時間と分をセットで入力してください。`;
                             handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
                           }}
@@ -9116,7 +9117,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}>
                         <button
                           type="button"
-                          className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[var(--bright-green)] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                          className={`flex-center transition-bg03 btn_gray_green relative  max-h-[25px] min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full text-[11px] font-bold`}
                           onMouseEnter={(e) => {
                             const tooltipText =
                               inputResultStartTimeSearchType === "exact" ? `範囲検索に切り替え` : `一致検索に切り替え`;
@@ -9133,7 +9134,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {inputResultStartTimeSearchType === "exact" ? (
-                            <LuCalendarSearch className="pointer-events-none text-[16px]" />
+                            <LuCalendarSearch className="pointer-events-none text-[14px]" />
                           ) : (
                             <FiSearch className="pointer-events-none text-[14px]" />
                           )}
@@ -9217,8 +9218,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     {inputResultStartTimeSearchType === "range" && isNullNotNullResultStartTimeSearch === null && (
                       <>
-                        <div className={`${styles.title_box} flex h-full items-center`}>
-                          <div className={`${styles.title_search_mode} flex-center`}>
+                        <div className={`${styles.title_box} fade03_forward flex h-full items-center`}>
+                          <div className={`${styles.title_search_mode} flex-center pr-[18px]`}>
                             <span>〜</span>
                           </div>
 
@@ -9276,7 +9277,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           >
                             <button
                               type="button"
-                              className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[var(--bright-green)] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                              className={`flex-center transition-bg03 btn_gray_green relative  max-h-[25px] min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full text-[11px] font-bold`}
                               onMouseEnter={(e) => {
                                 handleOpenTooltip({ e, display: "top", content: `一致検索に切り替え` });
                               }}
@@ -9393,7 +9394,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           onMouseEnter={(e) => {
                             const content =
                               inputResultEndTimeSearchType === "exact"
-                                ? `「〜時台」のデータを検索する場合は時間のみ、「〜分」のデータを検索する場合は分のみを指定してください。\n「〜時〜分」の完全一致検索の場合は時間と分の両方を選択してください。`
+                                ? `「〜時台」のデータを検索する場合は時間のみ、\n「〜分」のデータを検索する場合は分のみを指定してください。\n「〜時〜分」の完全一致検索の場合は時間と分の両方を選択してください。`
                                 : `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。\n範囲検索では時間と分をセットで入力してください。`;
                             handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
                           }}
@@ -9444,7 +9445,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <div className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}>
                         <button
                           type="button"
-                          className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[var(--bright-green)] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                          className={`flex-center transition-bg03 btn_gray_green relative  max-h-[25px] min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full text-[11px] font-bold`}
                           onMouseEnter={(e) => {
                             const tooltipText =
                               inputResultEndTimeSearchType === "exact" ? `範囲検索に切り替え` : `一致検索に切り替え`;
@@ -9461,7 +9462,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           }}
                         >
                           {inputResultEndTimeSearchType === "exact" ? (
-                            <LuCalendarSearch className="pointer-events-none text-[16px]" />
+                            <LuCalendarSearch className="pointer-events-none text-[14px]" />
                           ) : (
                             <FiSearch className="pointer-events-none text-[14px]" />
                           )}
@@ -9544,8 +9545,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                   <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     {inputResultEndTimeSearchType === "range" && isNullNotNullResultEndTimeSearch === null && (
                       <>
-                        <div className={`${styles.title_box} flex h-full items-center`}>
-                          <div className={`${styles.title_search_mode} flex-center`}>
+                        <div className={`${styles.title_box} fade03_forward flex h-full items-center`}>
+                          <div className={`${styles.title_search_mode} flex-center pr-[18px]`}>
                             <span>〜</span>
                           </div>
 
@@ -9603,7 +9604,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                           >
                             <button
                               type="button"
-                              className={`flex-center transition-color03 relative max-h-[25px]  min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full border border-solid border-[#666] bg-[#00000066] text-[11px] font-bold text-[#fff] hover:border-[var(--bright-green)] hover:bg-[var(--color-btn-bg-delete)] active:bg-[var(--color-btn-bg-delete-active)]`}
+                              className={`flex-center transition-bg03 btn_gray_green relative  max-h-[25px] min-h-[25px] min-w-[25px] max-w-[25px] cursor-pointer rounded-full text-[11px] font-bold`}
                               onMouseEnter={(e) => {
                                 handleOpenTooltip({ e, display: "top", content: `一致検索に切り替え` });
                               }}

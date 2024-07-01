@@ -2,6 +2,8 @@
 // queryKeyにセットする際にオブジェクトを文字列に変換する関数と変換が必要なカラムのSetオブジェクト
 // (範囲検索でparamsに{min: ~, max: ~}のオブジェクトがセットされるため)
 
+import { isPlainObject } from "../isObjectPlain";
+
 // 範囲検索オブジェクトカラム
 // 🔹会社 GridTableAll
 export const searchObjectColumnsSetCompany = new Set(["capital", "number_of_employees"]);
@@ -63,6 +65,29 @@ export const convertObjToText = (column: string, obj: Object | null) => {
   let objText = ``;
   Object.entries(obj).forEach(([key, value], index) => {
     objText += `${key}:${value === null ? `null` : `${value}`}`;
+  });
+  return `${column}:${objText}`;
+};
+
+export const convertObjToTextNest = (column: string, obj: Object | null) => {
+  if (!obj) return `${column}:null`;
+
+  if (obj === "ISNOTNULL" || obj === "ISNULL") {
+    return `${column}:${obj}`;
+  }
+
+  let objText = ``;
+  Object.entries(obj).forEach(([key, value], index) => {
+    if (key === "time_value") {
+      if (isPlainObject(value)) {
+        const { min, max } = value as { min: string | null; max: string | null };
+        objText += `${index === 1 ? `-` : ``}${key}:${min === null ? `null` : `${min}`}-${
+          max === null ? `null` : `${max}`
+        }`;
+        return;
+      }
+    }
+    objText += `${index === 1 ? `-` : ``}${key}:${value === null ? `null` : `${value}`}`;
   });
   return `${column}:${objText}`;
 };

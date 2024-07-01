@@ -56,7 +56,7 @@ import {
   mappingProductCategoriesSmall,
   productCategoriesSmallNameOnlySet,
 } from "@/utils/productCategoryS";
-import { convertObjToText, searchObjectColumnsSetMeeting } from "@/utils/Helpers/MainContainer/commonHelper";
+import { convertObjToTextNest, searchObjectColumnsSetMeeting } from "@/utils/Helpers/MainContainer/commonHelper";
 
 type TableDataType = {
   id: number;
@@ -904,7 +904,7 @@ const MeetingGridTableAllMemo: FC<Props> = ({ title }) => {
         .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
         .map(([key, value]) =>
           searchObjectColumnsSetMeeting.has(key)
-            ? convertObjToText(key, value)
+            ? convertObjToTextNest(key, value)
             : `${key}:${value === null ? `null` : `${value}`}`
         )
         .join(", ");

@@ -9,7 +9,7 @@
   /* min-height: 32px; */
   /* font-size: 14px; */
   border-radius: 6px;
-  /* cursor: pointer; */
+  cursor: pointer;
 }
 .input_box:focus {
   box-shadow: var(--color-bg-under-input-active-box-shadow);
@@ -173,14 +173,18 @@
 }
 .date_range_container .close_btn_area {
   position: absolute;
-  right: -30px;
+  /* right: -30px; */
+  right: -40px;
   top: 50%;
   z-index: 1;
   transform: translateY(-50%);
-  width: 30px;
+  /* width: 30px; */
+  width: 40px;
   height: 30px;
+  padding-left: 5px;
+  padding-right: 5px;
   display: none;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   background: transparent;
   opacity: 0;

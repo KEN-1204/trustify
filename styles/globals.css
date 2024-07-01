@@ -2858,6 +2858,21 @@ textarea {
   background: var(--bright-green60);
 }
 
+/* サーチ時の追加エリア アイコンボタン */
+.btn_gray_green {
+  background: #00000066;
+  border: 1px solid #666;
+  color: #fff;
+}
+.btn_gray_green:hover {
+  background: var(--bright-green30);
+  color: var(--bright-green);
+  border-color: var(--bright-green);
+}
+.btn_gray_green:active {
+  background: var(--bright-green70);
+}
+
 /* シャドウ */
 .border-shadow {
   box-shadow: var(--header-border-bottom);

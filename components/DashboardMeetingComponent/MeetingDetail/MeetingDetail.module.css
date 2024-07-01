@@ -1031,7 +1031,8 @@
 
 @media (max-width: 1600px) {
   .detail_container:global {
-    --title-width: 88px;
+    /* --title-width: 88px; */
+    --title-width: 95px;
   }
   .textarea_box {
     /* font-size: 13px; */
