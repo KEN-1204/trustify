@@ -50,7 +50,7 @@ export const DatePickerCustomInputRange: FC<Props> = ({
   handleOpenTooltip,
   handleCloseTooltip,
   fontSize = "!text-[12px]",
-  minHeight = "",
+  minHeight = "min-h-[30px]",
   sizeMin = false,
   px = "px-[8px]",
   py = "py-[4px]",

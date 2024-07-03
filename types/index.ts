@@ -1673,7 +1673,7 @@ export type NewSearchMeeting_Contact_CompanyParams = {
   // result_duration: number | "ISNULL" | "ISNOTNULL" | null;
   result_duration: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   // result_number_of_meeting_participants: number | null;
-  // 範囲検索 同席人数(結果) 数値型 ----------------
+  // 範囲検索 面談人数(結果) 数値型 ----------------
   // result_number_of_meeting_participants: number | "ISNULL" | "ISNOTNULL" | null;
   result_number_of_meeting_participants: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL";
   result_presentation_product1: string | null;
@@ -2179,7 +2179,7 @@ export type NewSearchProperty_Contact_CompanyParams = {
   // industry_type_id?: number | null;
   // サーチ配列 業種 ----------------
   // industry_type_id?: number | "ISNULL" | "ISNOTNULL" | null;
-  industry_type_id?: number[] | "ISNULL" | "ISNOTNULL";
+  industry_type_id: number[] | "ISNULL" | "ISNOTNULL";
   country_id?: number | null;
   region_id?: number | null;
   city_id?: number | null;
@@ -2351,7 +2351,9 @@ export type NewSearchProperty_Contact_CompanyParams = {
   reason_class: string[] | "ISNULL" | "ISNOTNULL";
   reason_detail: string | null;
   // customer_budget: number | null;
-  customer_budget: string | null;
+  // customer_budget: string | null;
+  // 範囲検索 客先予算 NUMERIC ---------------- // stringで送信
+  customer_budget: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL";
   // サーチ配列 決裁者商談有無 ----------------
   // decision_maker_negotiation: string | null;
   decision_maker_negotiation: string[] | "ISNULL" | "ISNOTNULL";

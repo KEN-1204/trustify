@@ -547,7 +547,6 @@
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 0px 6px; */
-  /* font-size: 14px; */
   padding: 6px 8px;
   border-radius: 6px;
 }
@@ -1068,6 +1067,7 @@
 }
 
 .textarea_box,
+.input_box,
 .select_box {
   font-size: 13px;
 }
@@ -1085,7 +1085,8 @@
 
 @media (max-width: 1600px) {
   .detail_container:global {
-    --title-width: 88px;
+    /* --title-width: 88px; */
+    --title-width: 95px;
   }
   .textarea_box {
     /* font-size: 13px; */
@@ -1098,6 +1099,7 @@
   .check_title,
   .value,
   .full_value,
+  .input_box,
   .select_box,
   .textarea_value {
     font-size: 13px;

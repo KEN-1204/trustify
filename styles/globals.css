@@ -1551,6 +1551,11 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-btn-bg-delete: #ff3b5baa;
   --color-btn-bg-delete-active: #ca2f49;
 
+  /* --color-btn-bg-green: var(--bright-greena0); */
+  /* --color-btn-bg-green: #00d436c0; */
+  --color-btn-bg-green: #00df39c0;
+  --color-btn-bg-green-active: #04cd37;
+
   /* ライトがf, ダークがgreen */
   --color-active-fg: var(--main-color-f);
 
@@ -2712,6 +2717,10 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* 削除 */
   --color-btn-bg-delete: #ff3b5b56;
   --color-btn-bg-delete-active: #ca2f49;
+
+  /* --color-btn-bg-green: var(--bright-green50); */
+  --color-btn-bg-green: #00d43656;
+  --color-btn-bg-green-active: #05a82e;
 
   /* ライトがf, ダークがgreen */
   --color-active-fg: var(--bright-green);
@@ -4462,6 +4471,7 @@ textarea {
   justify-content: flex-end;
 }
 
+.additional_search_area_under_input .icon_btn_green,
 .additional_search_area_under_input .icon_btn_red {
   /* display: flex; */
   justify-content: center;
@@ -4486,6 +4496,14 @@ textarea {
 }
 .additional_search_area_under_input .icon_btn_red:active {
   background: var(--color-btn-bg-delete-active);
+}
+
+.icon_btn_green:hover {
+  background: var(--color-btn-bg-green);
+  border-color: #00d436;
+}
+.icon_btn_green:active {
+  background: var(--color-btn-bg-green-active);
 }
 .additional_search_area_under_input .btn_f,
 .time_area .btn_f {

@@ -107,7 +107,15 @@ import { BsCheck2 } from "react-icons/bs";
 import { formatDisplayPrice } from "@/utils/Helpers/formatDisplayPrice";
 import { toHalfWidthAndRemoveSpace } from "@/utils/Helpers/toHalfWidthAndRemoveSpace";
 import { DatePickerCustomInputRange } from "@/utils/DatePicker/DatePickerCustomInputRange";
-import { isEmptyInputRange } from "@/utils/Helpers/MainContainer/commonHelper";
+import {
+  adjustFieldRangeNumeric,
+  adjustFieldRangeTIMESTAMPTZ,
+  adjustIsNNN,
+  copyInputRange,
+  isCopyableInputRange,
+  isEmptyInputRange,
+} from "@/utils/Helpers/MainContainer/commonHelper";
+import { LuCopyPlus } from "react-icons/lu";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -1234,106 +1242,107 @@ const ActivityMainContainerOneThirdMemo = () => {
       return value;
     }
 
-    // 🔸TEXT型以外もIS NULL, IS NOT NULLの条件を追加
-    const adjustFieldValueInteger = (value: string | null): number | "ISNULL" | "ISNOTNULL" | null => {
-      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
-      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
-      if (isValidNumber(value) && !isNaN(parseInt(value!, 10))) {
-        return parseInt(value!, 10);
-      } else {
-        return null;
-      }
-    };
-    // 🔸Date型
-    const adjustFieldValueDate = (value: Date | string | null): string | null => {
-      if (value instanceof Date) return value.toISOString();
-      // "is null"か"is not null"の文字列は変換
-      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
-      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
-      return null;
-      // if (typeof inputScheduledFollowUpDate === "string") return adjustFieldValue(inputScheduledFollowUpDate);
-    };
+    // // 🔸TEXT型以外もIS NULL, IS NOT NULLの条件を追加
+    // const adjustFieldValueInteger = (value: string | null): number | "ISNULL" | "ISNOTNULL" | null => {
+    //   if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+    //   if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+    //   if (isValidNumber(value) && !isNaN(parseInt(value!, 10))) {
+    //     return parseInt(value!, 10);
+    //   } else {
+    //     return null;
+    //   }
+    // };
 
-    // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
-    const adjustFieldRangeNumeric = (
-      value: { min: string; max: string } | "is null" | "is not null",
-      formatType: "" | "integer" = ""
-    ): { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL" => {
-      if (value === "is null") return "ISNULL";
-      if (value === "is not null") return "ISNOTNULL";
-      const { min, max } = value;
+    // // 🔸Date型
+    // const adjustFieldValueDate = (value: Date | string | null): string | null => {
+    //   if (value instanceof Date) return value.toISOString();
+    //   // "is null"か"is not null"の文字列は変換
+    //   if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+    //   if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+    //   return null;
+    //   // if (typeof inputScheduledFollowUpDate === "string") return adjustFieldValue(inputScheduledFollowUpDate);
+    // };
 
-      const halfMin = toHalfWidthAndRemoveSpace(min).trim();
-      const halfMax = toHalfWidthAndRemoveSpace(max).trim();
+    // // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+    // const adjustFieldRangeNumeric = (
+    //   value: { min: string; max: string } | "is null" | "is not null",
+    //   formatType: "" | "integer" = ""
+    // ): { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL" => {
+    //   if (value === "is null") return "ISNULL";
+    //   if (value === "is not null") return "ISNOTNULL";
+    //   const { min, max } = value;
 
-      const minValid = isValidNumber(halfMin);
-      const maxValid = isValidNumber(halfMax);
+    //   const halfMin = toHalfWidthAndRemoveSpace(min).trim();
+    //   const halfMax = toHalfWidthAndRemoveSpace(max).trim();
 
-      const minNum = formatType === "integer" ? parseInt(halfMin, 10) : Number(halfMin!);
-      const maxNum = formatType === "integer" ? parseInt(halfMax, 10) : Number(halfMax!);
+    //   const minValid = isValidNumber(halfMin);
+    //   const maxValid = isValidNumber(halfMax);
 
-      console.log("value", value, min, halfMin, minNum, minValid, max, halfMax, maxNum, maxValid);
+    //   const minNum = formatType === "integer" ? parseInt(halfMin, 10) : Number(halfMin!);
+    //   const maxNum = formatType === "integer" ? parseInt(halfMax, 10) : Number(halfMax!);
 
-      if (minValid && maxValid) {
-        if (isNaN(minNum) || isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
-        if (minNum! <= maxNum!) {
-          return { min: minNum, max: maxNum };
-        } else {
-          const errorMsg =
-            language === "ja"
-              ? "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
-              : "The minimum value cannot be greater than the maximum value.";
-          throw new Error(errorMsg);
-        }
-      } else if (minValid && !maxValid) {
-        if (isNaN(minNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
-        return { min: minNum, max: null };
-      } else if (!minValid && maxValid) {
-        if (isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
-        return { min: null, max: maxNum };
-      }
+    //   console.log("value", value, min, halfMin, minNum, minValid, max, halfMax, maxNum, maxValid);
 
-      return { min: null, max: null };
-    };
+    //   if (minValid && maxValid) {
+    //     if (isNaN(minNum) || isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+    //     if (minNum! <= maxNum!) {
+    //       return { min: minNum, max: maxNum };
+    //     } else {
+    //       const errorMsg =
+    //         language === "ja"
+    //           ? "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+    //           : "The minimum value cannot be greater than the maximum value.";
+    //       throw new Error(errorMsg);
+    //     }
+    //   } else if (minValid && !maxValid) {
+    //     if (isNaN(minNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+    //     return { min: minNum, max: null };
+    //   } else if (!minValid && maxValid) {
+    //     if (isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+    //     return { min: null, max: maxNum };
+    //   }
 
-    // 🔸範囲検索用の変換 TIMESTAMPTZ型(Dateオブジェクト ISO文字列) 活動日、面談日
-    const adjustFieldRangeTIMESTAMPTZ = (
-      value: { min: Date | null; max: Date | null } | "is null" | "is not null"
-    ): { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL" => {
-      if (value === "is null") return "ISNULL";
-      if (value === "is not null") return "ISNOTNULL";
-      const { min, max } = value;
+    //   return { min: null, max: null };
+    // };
 
-      if (min instanceof Date && max instanceof Date) {
-        if (min.getTime() <= max.getTime()) {
-          return {
-            min: min.toISOString(),
-            max: max.toISOString(),
-          };
-        } else {
-          language === "ja"
-            ? "日付の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
-            : "The minimum date cannot be later than the maximum date.";
-          throw new Error("The minimum date cannot be later than the maximum date.");
-        }
-      } else if (min instanceof Date && max === null) {
-        return {
-          min: min.toISOString(),
-          max: null,
-        };
-      } else if (min === null && max instanceof Date) {
-        return {
-          min: null,
-          max: max.toISOString(),
-        };
-      }
+    // // 🔸範囲検索用の変換 TIMESTAMPTZ型(Dateオブジェクト ISO文字列) 活動日、面談日
+    // const adjustFieldRangeTIMESTAMPTZ = (
+    //   value: { min: Date | null; max: Date | null } | "is null" | "is not null"
+    // ): { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL" => {
+    //   if (value === "is null") return "ISNULL";
+    //   if (value === "is not null") return "ISNOTNULL";
+    //   const { min, max } = value;
 
-      return { min: null, max: null };
-    };
+    //   if (min instanceof Date && max instanceof Date) {
+    //     if (min.getTime() <= max.getTime()) {
+    //       return {
+    //         min: min.toISOString(),
+    //         max: max.toISOString(),
+    //       };
+    //     } else {
+    //       language === "ja"
+    //         ? "日付の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+    //         : "The minimum date cannot be later than the maximum date.";
+    //       throw new Error("The minimum date cannot be later than the maximum date.");
+    //     }
+    //   } else if (min instanceof Date && max === null) {
+    //     return {
+    //       min: min.toISOString(),
+    //       max: null,
+    //     };
+    //   } else if (min === null && max instanceof Date) {
+    //     return {
+    //       min: null,
+    //       max: max.toISOString(),
+    //     };
+    //   }
 
-    // 🔸製品分類用 is null, is not nullをIS NULL, IS NOT NULLに変換
-    const adjustIsNNN = (value: "is null" | "is not null"): "ISNULL" | "ISNOTNULL" =>
-      value === "is null" ? "ISNULL" : "ISNOTNULL";
+    //   return { min: null, max: null };
+    // };
+
+    // // 🔸製品分類用 is null, is not nullをIS NULL, IS NOT NULLに変換
+    // const adjustIsNNN = (value: "is null" | "is not null"): "ISNULL" | "ISNOTNULL" =>
+    //   value === "is null" ? "ISNULL" : "ISNOTNULL";
 
     setLoadingGlobalState(true);
 
@@ -1351,7 +1360,8 @@ const ActivityMainContainerOneThirdMemo = () => {
       // let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
       // 範囲検索 資本金・従業員数 -----------
       // let _capital = adjustFieldValueInteger(inputCapital);
-      let _capital = adjustFieldRangeNumeric(inputCapitalSearch);
+      // let _capital = adjustFieldRangeNumeric(inputCapitalSearch);
+      let _capital = adjustFieldRangeNumeric(inputCapitalSearch, "millions");
       let _number_of_employees = adjustFieldRangeNumeric(inputNumberOfEmployeesSearch);
       // 範囲検索 資本金・従業員数 -----------ここまで
       let _established_in = adjustFieldValue(inputFound);
@@ -1404,7 +1414,8 @@ const ActivityMainContainerOneThirdMemo = () => {
       // let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
       // 範囲検索 決裁金額 -----------
       // let _approval_amount = adjustFieldValueInteger(inputApprovalAmount);
-      let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch);
+      // let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch);
+      let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch, "millions");
       // 範囲検索 決裁金額 -----------ここまで
       let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
       let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
@@ -1816,8 +1827,27 @@ const ActivityMainContainerOneThirdMemo = () => {
       }
     } catch (error: any) {
       setLoadingGlobalState(false);
-      alert(error.message);
-      console.error("エラー：", error);
+      console.log("❌エラー：", error);
+      if (language === "ja") {
+        alert(error.message);
+      } else {
+        let newErrMsg = error.message;
+        switch (newErrMsg) {
+          case "日付の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。":
+            newErrMsg = "The minimum date cannot be later than the maximum date.";
+            break;
+          case "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。":
+            newErrMsg = "The minimum value cannot be greater than the maximum value.";
+            break;
+          case `数値が適切ではありません。適切な数値を入力してください。`:
+            newErrMsg = "";
+            break;
+
+          default:
+            break;
+        }
+        alert(newErrMsg);
+      }
     }
   };
 
@@ -6565,13 +6595,27 @@ const ActivityMainContainerOneThirdMemo = () => {
                                   const convertedPrice = convertToMillions(formatHalfInput.trim());
                                   if (convertedPrice !== null && !isNaN(convertedPrice)) {
                                     setInputApprovalAmountSearch({
-                                      min: String(convertedPrice),
+                                      // min: String(convertedPrice),
+                                      min: convertedPrice.toLocaleString(),
                                       max: inputApprovalAmountSearch.max,
                                     });
                                   } else {
                                     setInputApprovalAmountSearch({ min: "", max: inputApprovalAmountSearch.max });
                                   }
                                 }}
+                                onFocus={() =>
+                                  !!inputApprovalAmountSearch.min &&
+                                  setInputApprovalAmountSearch({
+                                    ...inputApprovalAmountSearch,
+                                    min: inputApprovalAmountSearch.min.replace(/[^\d.]/g, ""),
+                                  })
+                                }
+                                onMouseEnter={(e) => {
+                                  const el = e.currentTarget;
+                                  if (el.offsetWidth < el.scrollWidth)
+                                    handleOpenTooltip({ e, content: inputApprovalAmountSearch.min });
+                                }}
+                                onMouseLeave={handleCloseTooltip}
                               />
 
                               <span className="mx-[10px]">〜</span>
@@ -6593,12 +6637,26 @@ const ActivityMainContainerOneThirdMemo = () => {
                                   if (convertedPrice !== null && !isNaN(convertedPrice)) {
                                     setInputApprovalAmountSearch({
                                       min: inputApprovalAmountSearch.min,
-                                      max: String(convertedPrice),
+                                      // max: String(convertedPrice),
+                                      max: convertedPrice.toLocaleString(),
                                     });
                                   } else {
                                     setInputApprovalAmountSearch({ min: inputApprovalAmountSearch.min, max: "" });
                                   }
                                 }}
+                                onFocus={() =>
+                                  !!inputApprovalAmountSearch.max &&
+                                  setInputApprovalAmountSearch({
+                                    ...inputApprovalAmountSearch,
+                                    max: inputApprovalAmountSearch.max.replace(/[^\d.]/g, ""),
+                                  })
+                                }
+                                onMouseEnter={(e) => {
+                                  const el = e.currentTarget;
+                                  if (el.offsetWidth < el.scrollWidth)
+                                    handleOpenTooltip({ e, content: inputApprovalAmountSearch.max });
+                                }}
+                                onMouseLeave={handleCloseTooltip}
                               />
                             </div>
                           )}
@@ -6634,6 +6692,22 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputApprovalAmountSearch) && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputApprovalAmountSearch);
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${
@@ -6951,6 +7025,22 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputNumberOfEmployeesSearch) && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputNumberOfEmployeesSearch);
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${
@@ -7237,11 +7327,28 @@ const ActivityMainContainerOneThirdMemo = () => {
                                   const formatHalfInput = toHalfWidthAndRemoveSpace(inputCapitalSearch.min);
                                   const convertedPrice = convertToMillions(formatHalfInput.trim());
                                   if (convertedPrice !== null && !isNaN(convertedPrice)) {
-                                    setInputCapitalSearch({ min: String(convertedPrice), max: inputCapitalSearch.max });
+                                    setInputCapitalSearch({
+                                      // min: String(convertedPrice),
+                                      min: convertedPrice.toLocaleString(),
+                                      max: inputCapitalSearch.max,
+                                    });
                                   } else {
                                     setInputCapitalSearch({ min: "", max: inputCapitalSearch.max });
                                   }
                                 }}
+                                onFocus={() =>
+                                  !!inputCapitalSearch.min &&
+                                  setInputCapitalSearch({
+                                    ...inputCapitalSearch,
+                                    min: inputCapitalSearch.min.replace(/[^\d.]/g, ""),
+                                  })
+                                }
+                                onMouseEnter={(e) => {
+                                  const el = e.currentTarget;
+                                  if (el.offsetWidth < el.scrollWidth)
+                                    handleOpenTooltip({ e, content: inputCapitalSearch.min });
+                                }}
+                                onMouseLeave={handleCloseTooltip}
                               />
 
                               <span className="mx-[10px]">〜</span>
@@ -7258,11 +7365,28 @@ const ActivityMainContainerOneThirdMemo = () => {
                                   const convertedPrice = convertToMillions(formatHalfInput.trim());
 
                                   if (convertedPrice !== null && !isNaN(convertedPrice)) {
-                                    setInputCapitalSearch({ min: inputCapitalSearch.min, max: String(convertedPrice) });
+                                    setInputCapitalSearch({
+                                      min: inputCapitalSearch.min,
+                                      // max: String(convertedPrice)
+                                      max: convertedPrice.toLocaleString(),
+                                    });
                                   } else {
                                     setInputCapitalSearch({ min: inputCapitalSearch.min, max: "" });
                                   }
                                 }}
+                                onFocus={() =>
+                                  !!inputCapitalSearch.max &&
+                                  setInputCapitalSearch({
+                                    ...inputCapitalSearch,
+                                    max: inputCapitalSearch.max.replace(/[^\d.]/g, ""),
+                                  })
+                                }
+                                onMouseEnter={(e) => {
+                                  const el = e.currentTarget;
+                                  if (el.offsetWidth < el.scrollWidth)
+                                    handleOpenTooltip({ e, content: inputCapitalSearch.max });
+                                }}
+                                onMouseLeave={handleCloseTooltip}
                               />
                             </div>
                           )}
@@ -7296,6 +7420,22 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputCapitalSearch) && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputCapitalSearch);
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${isEmptyInputRange(inputCapitalSearch) ? `hidden` : `flex`}`}
@@ -8636,6 +8776,22 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputActivityDateSearch, "date") && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputActivityDateSearch, "date");
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${
@@ -8890,6 +9046,22 @@ const ActivityMainContainerOneThirdMemo = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputScheduledFollowUpDateSearch, "date") && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputScheduledFollowUpDateSearch, "date");
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${

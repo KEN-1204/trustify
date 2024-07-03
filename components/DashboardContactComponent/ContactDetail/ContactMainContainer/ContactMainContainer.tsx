@@ -93,9 +93,16 @@ import {
 } from "@/utils/productCategoryS";
 import { CustomSelectMultiple } from "@/components/Parts/CustomSelectMultiple/CustomSelectMultiple";
 import { BsCheck2 } from "react-icons/bs";
-import { isEmptyInputRange } from "@/utils/Helpers/MainContainer/commonHelper";
+import {
+  adjustFieldRangeNumeric,
+  adjustIsNNN,
+  copyInputRange,
+  isCopyableInputRange,
+  isEmptyInputRange,
+} from "@/utils/Helpers/MainContainer/commonHelper";
 import { toHalfWidthAndRemoveSpace } from "@/utils/Helpers/toHalfWidthAndRemoveSpace";
 import { formatDisplayPrice } from "@/utils/Helpers/formatDisplayPrice";
+import { LuCopyPlus } from "react-icons/lu";
 // 名前付きエクスポートの場合のダイナミックインポート
 // const ContactUnderRightActivityLog = dynamic(
 //   () =>
@@ -844,62 +851,62 @@ const ContactMainContainerMemo: FC = () => {
       return value;
     }
 
-    // 🔸TEXT型以外もIS NULL, IS NOT NULLの条件を追加
-    const adjustFieldValueInteger = (value: string | null): number | "ISNULL" | "ISNOTNULL" | null => {
-      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
-      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
-      if (isValidNumber(value) && !isNaN(parseInt(value!, 10))) {
-        return parseInt(value!, 10);
-      } else {
-        return null;
-      }
-    };
+    // // 🔸TEXT型以外もIS NULL, IS NOT NULLの条件を追加
+    // const adjustFieldValueInteger = (value: string | null): number | "ISNULL" | "ISNOTNULL" | null => {
+    //   if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+    //   if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+    //   if (isValidNumber(value) && !isNaN(parseInt(value!, 10))) {
+    //     return parseInt(value!, 10);
+    //   } else {
+    //     return null;
+    //   }
+    // };
 
-    // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
-    const adjustFieldRangeNumeric = (
-      value: { min: string; max: string } | "is null" | "is not null",
-      formatType: "" | "integer" = ""
-    ): { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL" => {
-      if (value === "is null") return "ISNULL";
-      if (value === "is not null") return "ISNOTNULL";
-      const { min, max } = value;
+    // // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+    // const adjustFieldRangeNumeric = (
+    //   value: { min: string; max: string } | "is null" | "is not null",
+    //   formatType: "" | "integer" = ""
+    // ): { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL" => {
+    //   if (value === "is null") return "ISNULL";
+    //   if (value === "is not null") return "ISNOTNULL";
+    //   const { min, max } = value;
 
-      const halfMin = toHalfWidthAndRemoveSpace(min).trim();
-      const halfMax = toHalfWidthAndRemoveSpace(max).trim();
+    //   const halfMin = toHalfWidthAndRemoveSpace(min).trim();
+    //   const halfMax = toHalfWidthAndRemoveSpace(max).trim();
 
-      const minValid = isValidNumber(halfMin);
-      const maxValid = isValidNumber(halfMax);
+    //   const minValid = isValidNumber(halfMin);
+    //   const maxValid = isValidNumber(halfMax);
 
-      const minNum = formatType === "integer" ? parseInt(halfMin, 10) : Number(halfMin!);
-      const maxNum = formatType === "integer" ? parseInt(halfMax, 10) : Number(halfMax!);
+    //   const minNum = formatType === "integer" ? parseInt(halfMin, 10) : Number(halfMin!);
+    //   const maxNum = formatType === "integer" ? parseInt(halfMax, 10) : Number(halfMax!);
 
-      console.log("value", value, min, halfMin, minNum, minValid, max, halfMax, maxNum, maxValid);
+    //   console.log("value", value, min, halfMin, minNum, minValid, max, halfMax, maxNum, maxValid);
 
-      if (minValid && maxValid) {
-        if (isNaN(minNum) || isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
-        if (minNum! <= maxNum!) {
-          return { min: minNum, max: maxNum };
-        } else {
-          const errorMsg =
-            language === "ja"
-              ? "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
-              : "The minimum value cannot be greater than the maximum value.";
-          throw new Error(errorMsg);
-        }
-      } else if (minValid && !maxValid) {
-        if (isNaN(minNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
-        return { min: minNum, max: null };
-      } else if (!minValid && maxValid) {
-        if (isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
-        return { min: null, max: maxNum };
-      }
+    //   if (minValid && maxValid) {
+    //     if (isNaN(minNum) || isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+    //     if (minNum! <= maxNum!) {
+    //       return { min: minNum, max: maxNum };
+    //     } else {
+    //       const errorMsg =
+    //         language === "ja"
+    //           ? "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+    //           : "The minimum value cannot be greater than the maximum value.";
+    //       throw new Error(errorMsg);
+    //     }
+    //   } else if (minValid && !maxValid) {
+    //     if (isNaN(minNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+    //     return { min: minNum, max: null };
+    //   } else if (!minValid && maxValid) {
+    //     if (isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+    //     return { min: null, max: maxNum };
+    //   }
 
-      return { min: null, max: null };
-    };
+    //   return { min: null, max: null };
+    // };
 
-    // 🔸製品分類用 is null, is not nullをIS NULL, IS NOT NULLに変換
-    const adjustIsNNN = (value: "is null" | "is not null"): "ISNULL" | "ISNOTNULL" =>
-      value === "is null" ? "ISNULL" : "ISNOTNULL";
+    // // 🔸製品分類用 is null, is not nullをIS NULL, IS NOT NULLに変換
+    // const adjustIsNNN = (value: "is null" | "is not null"): "ISNULL" | "ISNOTNULL" =>
+    //   value === "is null" ? "ISNULL" : "ISNOTNULL";
 
     setLoadingGlobalState(true);
 
@@ -917,7 +924,8 @@ const ContactMainContainerMemo: FC = () => {
       // 範囲検索 -----------
       // let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
       // let _capital = adjustFieldValueInteger(inputCapital);
-      let _capital = adjustFieldRangeNumeric(inputCapitalSearch);
+      // let _capital = adjustFieldRangeNumeric(inputCapitalSearch);
+      let _capital = adjustFieldRangeNumeric(inputCapitalSearch, "millions");
       let _number_of_employees = adjustFieldRangeNumeric(inputNumberOfEmployeesSearch);
       // 範囲検索 -----------ここまで
       let _established_in = adjustFieldValue(inputFound);
@@ -968,7 +976,8 @@ const ContactMainContainerMemo: FC = () => {
       // let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
       // let _approval_amount = adjustFieldValueInteger(inputApprovalAmount);
       // 範囲検索 -----------
-      let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch);
+      // let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch);
+      let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch, "millions");
       // 範囲検索 -----------ここまで
       let _created_by_company_id = userProfileState.company_id;
       let _created_by_user_id = adjustFieldValue(inputCreatedByUserId);
@@ -1240,8 +1249,27 @@ const ContactMainContainerMemo: FC = () => {
       }
     } catch (error: any) {
       setLoadingGlobalState(false);
-      alert(error.message);
-      console.error("エラー：", error);
+      console.log("❌エラー：", error);
+      if (language === "ja") {
+        alert(error.message);
+      } else {
+        let newErrMsg = error.message;
+        switch (newErrMsg) {
+          case "日付の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。":
+            newErrMsg = "The minimum date cannot be later than the maximum date.";
+            break;
+          case "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。":
+            newErrMsg = "The minimum value cannot be greater than the maximum value.";
+            break;
+          case `数値が適切ではありません。適切な数値を入力してください。`:
+            // newErrMsg = "";
+            break;
+
+          default:
+            break;
+        }
+        alert(newErrMsg);
+      }
     }
   };
 
@@ -3798,13 +3826,27 @@ const ContactMainContainerMemo: FC = () => {
                               const convertedPrice = convertToMillions(formatHalfInput.trim());
                               if (convertedPrice !== null && !isNaN(convertedPrice)) {
                                 setInputApprovalAmountSearch({
-                                  min: String(convertedPrice),
+                                  // min: String(convertedPrice),
+                                  min: convertedPrice.toLocaleString(),
                                   max: inputApprovalAmountSearch.max,
                                 });
                               } else {
                                 setInputApprovalAmountSearch({ min: "", max: inputApprovalAmountSearch.max });
                               }
                             }}
+                            onFocus={() =>
+                              !!inputApprovalAmountSearch.min &&
+                              setInputApprovalAmountSearch({
+                                ...inputApprovalAmountSearch,
+                                min: inputApprovalAmountSearch.min.replace(/[^\d.]/g, ""),
+                              })
+                            }
+                            onMouseEnter={(e) => {
+                              const el = e.currentTarget;
+                              if (el.offsetWidth < el.scrollWidth)
+                                handleOpenTooltip({ e, content: inputApprovalAmountSearch.min });
+                            }}
+                            onMouseLeave={handleCloseTooltip}
                           />
 
                           <span className="mx-[10px]">〜</span>
@@ -3823,12 +3865,26 @@ const ContactMainContainerMemo: FC = () => {
                               if (convertedPrice !== null && !isNaN(convertedPrice)) {
                                 setInputApprovalAmountSearch({
                                   min: inputApprovalAmountSearch.min,
-                                  max: String(convertedPrice),
+                                  // max: String(convertedPrice),
+                                  max: convertedPrice.toLocaleString(),
                                 });
                               } else {
                                 setInputApprovalAmountSearch({ min: inputApprovalAmountSearch.min, max: "" });
                               }
                             }}
+                            onFocus={() =>
+                              !!inputApprovalAmountSearch.max &&
+                              setInputApprovalAmountSearch({
+                                ...inputApprovalAmountSearch,
+                                max: inputApprovalAmountSearch.max.replace(/[^\d.]/g, ""),
+                              })
+                            }
+                            onMouseEnter={(e) => {
+                              const el = e.currentTarget;
+                              if (el.offsetWidth < el.scrollWidth)
+                                handleOpenTooltip({ e, content: inputApprovalAmountSearch.max });
+                            }}
+                            onMouseLeave={handleCloseTooltip}
                           />
                         </div>
                       )}
@@ -3941,6 +3997,20 @@ const ContactMainContainerMemo: FC = () => {
                   <>
                     <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                       <div className={`line_first space-x-[6px]`}>
+                        {isCopyableInputRange(inputApprovalAmountSearch) && (
+                          <button
+                            type="button"
+                            className={`icon_btn_green flex`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() => {
+                              copyInputRange(setInputApprovalAmountSearch);
+                              handleCloseTooltip();
+                            }}
+                          >
+                            <LuCopyPlus className="pointer-events-none text-[14px]" />
+                          </button>
+                        )}
                         <button
                           type="button"
                           className={`icon_btn_red ${isEmptyInputRange(inputApprovalAmountSearch) ? `hidden` : `flex`}`}
@@ -4432,11 +4502,28 @@ const ContactMainContainerMemo: FC = () => {
                               const formatHalfInput = toHalfWidthAndRemoveSpace(inputCapitalSearch.min);
                               const convertedPrice = convertToMillions(formatHalfInput.trim());
                               if (convertedPrice !== null && !isNaN(convertedPrice)) {
-                                setInputCapitalSearch({ min: String(convertedPrice), max: inputCapitalSearch.max });
+                                setInputCapitalSearch({
+                                  // min: String(convertedPrice),
+                                  min: convertedPrice.toLocaleString(),
+                                  max: inputCapitalSearch.max,
+                                });
                               } else {
                                 setInputCapitalSearch({ min: "", max: inputCapitalSearch.max });
                               }
                             }}
+                            onFocus={() =>
+                              !!inputCapitalSearch.min &&
+                              setInputCapitalSearch({
+                                ...inputCapitalSearch,
+                                min: inputCapitalSearch.min.replace(/[^\d.]/g, ""),
+                              })
+                            }
+                            onMouseEnter={(e) => {
+                              const el = e.currentTarget;
+                              if (el.offsetWidth < el.scrollWidth)
+                                handleOpenTooltip({ e, content: inputCapitalSearch.min });
+                            }}
+                            onMouseLeave={handleCloseTooltip}
                           />
 
                           <span className="mx-[10px]">〜</span>
@@ -4453,11 +4540,28 @@ const ContactMainContainerMemo: FC = () => {
                               const convertedPrice = convertToMillions(formatHalfInput.trim());
 
                               if (convertedPrice !== null && !isNaN(convertedPrice)) {
-                                setInputCapitalSearch({ min: inputCapitalSearch.min, max: String(convertedPrice) });
+                                setInputCapitalSearch({
+                                  min: inputCapitalSearch.min,
+                                  //  max: String(convertedPrice)
+                                  max: convertedPrice.toLocaleString(),
+                                });
                               } else {
                                 setInputCapitalSearch({ min: inputCapitalSearch.min, max: "" });
                               }
                             }}
+                            onFocus={() =>
+                              !!inputCapitalSearch.max &&
+                              setInputCapitalSearch({
+                                ...inputCapitalSearch,
+                                max: inputCapitalSearch.max.replace(/[^\d.]/g, ""),
+                              })
+                            }
+                            onMouseEnter={(e) => {
+                              const el = e.currentTarget;
+                              if (el.offsetWidth < el.scrollWidth)
+                                handleOpenTooltip({ e, content: inputCapitalSearch.max });
+                            }}
+                            onMouseLeave={handleCloseTooltip}
                           />
                         </div>
                       )}
@@ -4491,6 +4595,20 @@ const ContactMainContainerMemo: FC = () => {
                   <>
                     <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                       <div className={`line_first space-x-[6px]`}>
+                        {isCopyableInputRange(inputCapitalSearch) && (
+                          <button
+                            type="button"
+                            className={`icon_btn_green flex`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() => {
+                              copyInputRange(setInputCapitalSearch);
+                              handleCloseTooltip();
+                            }}
+                          >
+                            <LuCopyPlus className="pointer-events-none text-[14px]" />
+                          </button>
+                        )}
                         <button
                           type="button"
                           className={`icon_btn_red ${isEmptyInputRange(inputCapitalSearch) ? `hidden` : `flex`}`}
@@ -4685,6 +4803,20 @@ const ContactMainContainerMemo: FC = () => {
                   <>
                     <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                       <div className={`line_first space-x-[6px]`}>
+                        {isCopyableInputRange(inputNumberOfEmployeesSearch) && (
+                          <button
+                            type="button"
+                            className={`icon_btn_green flex`}
+                            onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })}
+                            onMouseLeave={handleCloseTooltip}
+                            onClick={() => {
+                              copyInputRange(setInputNumberOfEmployeesSearch);
+                              handleCloseTooltip();
+                            }}
+                          >
+                            <LuCopyPlus className="pointer-events-none text-[14px]" />
+                          </button>
+                        )}
                         <button
                           type="button"
                           className={`icon_btn_red ${

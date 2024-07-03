@@ -1,6 +1,6 @@
 .overlay {
   position: fixed;
-  z-index: 500;
+  z-index: 5000;
   inset: 0;
   background-color: var(--color-overlay-insert-update-modal);
   backdrop-filter: blur(4px);
@@ -8,7 +8,7 @@
 
 .select_time_modal {
   position: fixed;
-  z-index: 1000;
+  z-index: 7000;
   top: 50%;
   left: 50%;
 

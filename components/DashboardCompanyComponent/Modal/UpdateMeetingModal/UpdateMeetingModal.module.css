@@ -185,16 +185,13 @@
   /* height: 50px; */
   /* width: 100%; */
   /* padding-left: 25px; */
-  font-size: 15px;
   padding-right: 25px;
   /* padding-top: 5px; */
   font-weight: 700;
   min-width: 95px;
   user-select: none;
 }
-.title.double {
-  font-size: 14px;
-}
+
 .required_title {
   color: var(--main-color-tk);
 }
@@ -353,7 +350,6 @@
   /* min-width: 90px; */
   min-width: 95px;
   font-weight: 600;
-  font-size: 22px;
   padding-left: 12px;
 }
 .section_underline {
@@ -383,12 +379,10 @@
 }
 .save_section_title {
   /* font-weight: 700; */
-  font-size: 14px;
   color: #fff;
 }
 .cancel_section_title {
   /* font-weight: 700; */
-  font-size: 14px;
   color: var(--color-text-title);
 }
 .save_section_title span,
@@ -440,7 +434,6 @@
   min-height: 32px;
   max-height: 32px;
   margin-left: 0px;
-  font-size: 14px;
   background: #3c3c3c;
   color: #fff;
   box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000;
@@ -451,7 +444,6 @@
   min-height: 32px;
   max-height: 32px;
   margin-left: 0px;
-  font-size: 14px;
   background: #3c3c3c;
   color: #fff;
   box-shadow: inset 0px 0px 0px 1px #ffffff90, 0px 0px 0px 1px #000;
@@ -579,8 +571,6 @@
   /* height: 30px; */
   min-height: 32px;
   padding-left: 5px;
-  /* font-size: 15px; */
-  font-size: 14px;
   border-radius: 6px;
   max-width: 375px;
 }
@@ -591,8 +581,6 @@
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding: 8px 10px;
-  /* font-size: 15px; */
-  font-size: 14px;
   border-radius: 6px;
   resize: none;
 }
@@ -608,8 +596,6 @@
   box-shadow: var(--color-bg-under-input-box-shadow);
   min-height: 32px;
   padding: 6px 8px;
-  /* font-size: 15px; */
-  font-size: 14px;
   border-radius: 6px;
   max-width: 375px;
   margin-left: auto;
@@ -642,4 +628,26 @@
 }
 .textarea_box:focus {
   box-shadow: inset 0 0 0 1px var(--color-bg-brand-f);
+}
+
+.title,
+.value,
+.save_section_title,
+.cancel_section_title,
+.side_table_search_list .select_box.change_member,
+.title.double,
+.side_table_search_list .input_box,
+.input_box,
+.input_box::placeholder,
+.textarea_box,
+.select_box {
+  font-size: 14px;
+}
+
+.result_box ul li {
+  font-size: 13px;
+}
+
+.section_title {
+  font-size: 18px;
 }

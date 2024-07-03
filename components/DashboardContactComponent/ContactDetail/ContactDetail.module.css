@@ -772,10 +772,12 @@
   background-color: var(--color-btn-brand-f-hover);
 }
 
-.select_box {
-  font-size: 13px;
-}
-
 .title.double_text {
   font-size: 12px;
+}
+
+.textarea_box,
+.input_box,
+.select_box {
+  font-size: 13px;
 }

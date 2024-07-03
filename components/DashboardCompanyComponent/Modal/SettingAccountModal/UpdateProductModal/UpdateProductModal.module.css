@@ -171,7 +171,6 @@
   padding-right: 25px;
   /* padding-top: 5px; */
   font-weight: 700;
-  font-size: 15px;
   user-select: none;
 }
 .title_min {
@@ -348,8 +347,6 @@
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
   padding: 6px 8px;
-  /* font-size: 15px; */
-  font-size: 14px;
   border-radius: 2px;
   resize: none;
 }
@@ -359,8 +356,6 @@
   /* height: 30px; */
   background: var(--color-bg-under-input);
   min-height: 32px;
-  /* font-size: 15px; */
-  font-size: 14px;
   border-radius: 6px;
   max-width: 375px;
 }
@@ -375,8 +370,6 @@
   padding: 6px 8px;
   min-height: 32px;
   border-radius: 6px;
-  /* font-size: 15px; */
-  font-size: 14px;
   max-width: 375px;
   margin-left: auto;
 }
@@ -392,4 +385,18 @@
 }
 .textarea_box:hover {
   box-shadow: inset 0 0 0 1px var(--color-bg-brand-f);
+}
+
+.title,
+.value,
+.title.double,
+.input_box,
+.input_box::placeholder,
+.textarea_box,
+.select_box {
+  font-size: 14px;
+}
+
+.result_box ul li {
+  font-size: 13px;
 }

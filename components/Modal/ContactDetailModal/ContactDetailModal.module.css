@@ -136,11 +136,9 @@
   /* height: 50px; */
   /* width: 100%; */
   /* padding-left: 25px; */
-  font-size: 15px;
   padding-right: 25px;
   /* padding-top: 5px; */
   font-weight: 700;
-  /* font-size: 18px; */
   user-select: none;
 }
 .required_title {
@@ -292,8 +290,6 @@
   /* padding: 0px 10px; */
   min-height: 32px;
   padding: 6px 8px;
-  /* font-size: 15px; */
-  font-size: 14px;
   border-radius: 6px;
 }
 
@@ -303,9 +299,6 @@
   padding-left: 5px;
   /* height: 30px; */
   min-height: 32px;
-  /* font-size: 15px; */
-  /* font-size: 14px; */
-  font-size: 13px;
   border-radius: 6px;
 }
 .textarea_box {
@@ -316,8 +309,6 @@
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 8px 10px; */
   padding: 8px 10px;
-  /* font-size: 15px; */
-  font-size: 14px;
   border-radius: 6px;
   resize: none;
 }
@@ -349,4 +340,18 @@
 }
 .email_value:hover {
   color: var(--color-text-brand-f-deep);
+}
+
+.title,
+.value,
+.title.double,
+.input_box,
+.input_box::placeholder {
+  font-size: 14px;
+}
+
+.textarea_box,
+.select_box,
+.result_box ul li {
+  font-size: 13px;
 }

@@ -1806,19 +1806,33 @@ export const getMeetingParticipationRequest = (value: string, language: string =
 // 🌠物件・案件
 
 // 現ステータス
-export const optionsCurrentStatus = ["A Lead", "B Deal Development", "C Application", "D Order Received"];
+// export const optionsCurrentStatus = ["A Lead", "B Deal Development", "C Application", "D Order Received"];
+export type CurrentStatusType = "A lead" | "B deal_development" | "C application" | "D order_received";
+export const optionsCurrentStatus = ["A lead", "B deal_development", "C application", "D order_received"];
+export const mappingCurrentStatus:
+  | {
+      [K in CurrentStatusType]: { [key: string]: string };
+    }
+  | {
+      [key: string]: { [key: string]: string };
+    } = {
+  "A lead": { ja: `リード`, en: `Lead` },
+  "B deal_development": { ja: `展開 (案件化・商談化)`, en: `Deal Development` },
+  "C application": { ja: `申請 (予算申請案件)`, en: `Application` },
+  "D order_received": { ja: `受注`, en: `Order Received` },
+};
 export const getCurrentStatus = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A Lead":
+    case "A lead":
       return language === "ja" ? `リード` : `Lead`;
       break;
-    case "B Deal Development":
+    case "B deal_development":
       return language === "ja" ? `展開 (案件化・商談化)` : `Deal Development`;
       break;
-    case "C Application":
+    case "C application":
       return language === "ja" ? `申請 (予算申請案件)` : `Application`;
       break;
-    case "D Order Received":
+    case "D order_received":
       return language === "ja" ? `受注` : `Order Received`;
       break;
 
@@ -1843,6 +1857,19 @@ export const getCurrentStatus = (value: string, language: string = "ja") => {
 //   "K Trade Show/Reactive",
 //   "L Others",
 // ];
+export type ReasonClassType =
+  | "A new_company/proactive"
+  | "B overlap_company/proactive"
+  | "C internal_referral/proactive"
+  | "D client_referral/proactive"
+  | "E salesperson_email/proactive"
+  | "F direct_product_engagement_inquiry/reactive"
+  | "G dm/reactive"
+  | "H email/reactive"
+  | "I website/reactive"
+  | "J webinar/reactive"
+  | "K expo/reactive"
+  | "L others";
 export const optionsReasonClass = [
   "A new_company/proactive",
   "B overlap_company/proactive",
@@ -1857,6 +1884,28 @@ export const optionsReasonClass = [
   "K expo/reactive",
   "L others",
 ];
+export const mappingReasonClass:
+  | { [K in ReasonClassType]: { [key: string]: string } }
+  | { [key: string]: { [key: string]: string } } = {
+  "A new_company/proactive": { ja: `新規会社(過去面談無し)/能動`, en: `New Company (No Previous Meetings)/Proactive` },
+  "B overlap_company/proactive": {
+    ja: `被り会社(過去面談有り)/能動`,
+    en: `Overlap Company (Previous Meetings Held)/Proactive`,
+  },
+  "C internal_referral/proactive": { ja: `社内ID/能動`, en: `Internal Referral/Proactive` },
+  "D client_referral/proactive": { ja: `社外･客先ID/能動`, en: `Client Referral/Proactive` },
+  "E salesperson_email/proactive": { ja: `営業メール/能動`, en: `Salesperson's Email/Proactive` },
+  "F direct_product_engagement_inquiry/reactive": {
+    ja: `見･聞引合/受動`,
+    en: `Direct Product Engagement Inquiry/Reactive`,
+  },
+  "G dm/reactive": { ja: `DM/受動`, en: `DM/Reactive` },
+  "H email/reactive": { ja: `メール/受動`, en: `Email/Reactive` },
+  "I website/reactive": { ja: `ホームページ/受動`, en: `Website/Reactive` },
+  "J webinar/reactive": { ja: `ウェビナー/受動`, en: `Webinar/Reactive` },
+  "K expo/reactive": { ja: `展示会/受動`, en: `Trade Show/Reactive` },
+  "L others": { ja: `その他`, en: `Others` },
+};
 export const getReasonClass = (value: string, language: string = "ja") => {
   switch (value) {
     // case "A New Company (No Previous Meetings)/Proactive":
@@ -1915,16 +1964,29 @@ export const getReasonClass = (value: string, language: string = "ja") => {
 };
 
 // 売上貢献区分
-export const optionsSalesContributionCategory = ["A Direct Sales", "B Handover Sales", "C Repeat Sales"];
+// export const optionsSalesContributionCategory = ["A Direct Sales", "B Handover Sales", "C Repeat Sales"];
+export type SalesContributionCategoryType = "A direct_sales" | "B handover_sales" | "C repeat_sales";
+export const optionsSalesContributionCategory = ["A direct_sales", "B handover_sales", "C repeat_sales"];
+export const mappingSalesContributionCategory:
+  | {
+      [K in SalesContributionCategoryType]: { [key: string]: string };
+    }
+  | {
+      [key: string]: { [key: string]: string };
+    } = {
+  "A direct_sales": { ja: `自己売上(自身で発生、自身で売上)`, en: `Direct Sales` },
+  "B handover_sales": { ja: `引継ぎ売上(他担当が発生、引継ぎで売上)`, en: `Handover Sales` },
+  "C repeat_sales": { ja: `リピート売上`, en: `Repeat Sales` },
+};
 export const getSalesContributionCategory = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A Direct Sales":
+    case "A direct_sales":
       return language === "ja" ? `自己売上(自身で発生、自身で売上)` : `Direct Sales`;
       break;
-    case "B Handover Sales":
+    case "B handover_sales":
       return language === "ja" ? `引継ぎ売上(他担当が発生、引継ぎで売上)` : `Handover Sales`;
       break;
-    case "C Repeat Sales":
+    case "C repeat_sales":
       return language === "ja" ? `リピート売上` : `Repeat Sales`;
       break;
 
@@ -1935,16 +1997,27 @@ export const getSalesContributionCategory = (value: string, language: string = "
 };
 
 // 導入分類
-export const optionsSalesClass = ["A New Installation", "B Expansion", "C Upgrade"];
+// export const optionsSalesClass = ["A New Installation", "B Expansion", "C Upgrade"];
+export type SalesClassType = "A new_installation" | "B expansion" | "C upgrade";
+export const optionsSalesClass = ["A new_installation", "B expansion", "C upgrade"];
+export const mappingSalesClass:
+  | {
+      [K in SalesClassType]: { [key: string]: string };
+    }
+  | { [key: string]: { [key: string]: string } } = {
+  "A new_installation": { ja: `新規`, en: `New Installation` },
+  "B expansion": { ja: `増設`, en: `Expansion` },
+  "C upgrade": { ja: `更新`, en: `Upgrade` },
+};
 export const getSalesClass = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A New Installation":
+    case "A new_installation":
       return language === "ja" ? `新規` : `New Installation`;
       break;
-    case "B Expansion":
+    case "B expansion":
       return language === "ja" ? `増設` : `Expansion`;
       break;
-    case "C Upgrade":
+    case "C upgrade":
       return language === "ja" ? `更新` : `Upgrade`;
       break;
 
@@ -1975,13 +2048,14 @@ export const getTermDivision = (value: string, language: string = "ja") => {
 };
 
 // サブスク分類
-export const optionsSubscriptionInterval = ["A Monthly", "B Annual"];
+// export const optionsSubscriptionInterval = ["A Monthly", "B Annual"];
+export const optionsSubscriptionInterval = ["A monthly", "B annual"];
 export const getSubscriptionInterval = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A Monthly":
+    case "A monthly":
       return language === "ja" ? `月額` : `Monthly Fee`;
       break;
-    case "B Annual":
+    case "B annual":
       return language === "ja" ? `年額` : `Annual Fee`;
       break;
 
@@ -1992,13 +2066,14 @@ export const getSubscriptionInterval = (value: string, language: string = "ja") 
 };
 
 // リース分類
-export const optionsLeaseDivision = ["A Finance Lease", "B Operating Lease"];
+// export const optionsLeaseDivision = ["A Finance Lease", "B Operating Lease"];
+export const optionsLeaseDivision = ["A finance_lease", "B operating_lease"];
 export const getLeaseDivision = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A Finance Lease":
+    case "A finance_lease":
       return language === "ja" ? `ファイナンスリース` : `Finance Lease`;
       break;
-    case "B Operating Lease":
+    case "B operating_lease":
       return language === "ja" ? `オペレーティングリース` : `Operating Lease`;
       break;
 
@@ -2008,11 +2083,34 @@ export const getLeaseDivision = (value: string, language: string = "ja") => {
   }
 };
 
-// 月初確度と中間見直確度 order_certainty_start_of_month ネタ読みの精度も確認するため
+// 月初確度 中間見直確度
+//  order_certainty_start_of_month ネタ読みの精度も確認するため
 // 最初のネタ確度から受注、ペンディング、没のアクティビティを担当者毎に記録する
 // 各確度ごとの獲得率を算出して可視化することで、正確な売上予測と過分な製造、在庫管理によるコストを削減、利益最大化を図る
+export type OrderCertaintyStartOfMonthType = 1 | 2 | 3 | 4;
 export const optionsOrderCertaintyStartOfMonth = [1, 2, 3, 4];
 
+export const mappingOrderCertaintyStartOfMonth:
+  | { [K in OrderCertaintyStartOfMonthType]: { [key: string]: string } }
+  | { [key: number]: { [key: string]: string } } = {
+  1: { ja: `A  (受注済み)`, en: "A Already Ordered" },
+  2: { ja: `○  (80%以上の確率で受注)`, en: "○ An 80% probability of winning the order" },
+  3: { ja: `△  (50%以上の確率で受注)`, en: "△ An 50% probability of winning the order" },
+  4: { ja: `▲  (30%以上の確率で受注)`, en: "▲ An 30% probability of winning the order" },
+};
+export const mappingOrderCertaintyStartOfMonthToast: { [key: number]: { [key: string]: string } } = {
+  1: { ja: `受注済み`, en: "" },
+  2: { ja: `○ネタ`, en: "" },
+  3: { ja: `△ネタ`, en: "" },
+  4: { ja: `▲ネタ`, en: "" },
+};
+export const mappingSalesProbablyShort: { [key: number]: { [key: string]: string } } = {
+  1: { ja: `A（受注済み）`, en: "A" },
+  2: { ja: `○ネタ`, en: "○" },
+  // 2: { ja: `⚪️ネタ`, en: "⚪️" },
+  3: { ja: `△ネタ`, en: "△" },
+  4: { ja: `▲ネタ`, en: "▲" },
+};
 export const getOrderCertaintyStartOfMonth = (
   classNum: number,
   language: string = "ja",
@@ -2073,25 +2171,7 @@ export const getOrderCertaintyStartOfMonthZenkaku = (
       break;
   }
 };
-export const mappingOrderCertaintyStartOfMonth: { [key: number]: { [key: string]: string } } = {
-  1: { ja: `A  (受注済み)`, en: "" },
-  2: { ja: `○  (80%以上の確率で受注)`, en: "" },
-  3: { ja: `△  (50%以上の確率で受注)`, en: "" },
-  4: { ja: `▲  (30%以上の確率で受注)`, en: "" },
-};
-export const mappingOrderCertaintyStartOfMonthToast: { [key: number]: { [key: string]: string } } = {
-  1: { ja: `受注済み`, en: "" },
-  2: { ja: `○ネタ`, en: "" },
-  3: { ja: `△ネタ`, en: "" },
-  4: { ja: `▲ネタ`, en: "" },
-};
-export const mappingSalesProbablyShort: { [key: number]: { [key: string]: string } } = {
-  1: { ja: `A（受注済み）`, en: "A" },
-  2: { ja: `○ネタ`, en: "○" },
-  // 2: { ja: `⚪️ネタ`, en: "⚪️" },
-  3: { ja: `△ネタ`, en: "△" },
-  4: { ja: `▲ネタ`, en: "▲" },
-};
+
 // export const getInvertOrderCertaintyStartOfMonth = (classNum: string, language: string = "ja") => {
 //   switch (classNum) {
 //     case "A (受注済み)":
@@ -2113,24 +2193,43 @@ export const mappingSalesProbablyShort: { [key: number]: { [key: string]: string
 // };
 
 // 競合状況
+// export const optionsCompetitionState = [
+//   "A No Competitors",
+//   "B With Competitors ○Superior",
+//   "C With Competitors △Equal",
+//   "D With Competitors ▲Inferior",
+// ];
+export type CompetitionStateType =
+  | "A no_competitors"
+  | "B with_competitors_superior"
+  | "C with_competitors_equal"
+  | "D with_competitors_inferior";
 export const optionsCompetitionState = [
-  "A No Competitors",
-  "B With Competitors ○Superior",
-  "C With Competitors △Equal",
-  "D With Competitors ▲Inferior",
+  "A no_competitors",
+  "B with_competitors_superior",
+  "C with_competitors_equal",
+  "D with_competitors_inferior",
 ];
+export const mappingCompetitionState:
+  | { [K in CompetitionStateType]: { [key: string]: string } }
+  | { [key: string]: { [key: string]: string } } = {
+  "A no_competitors": { ja: `競合無し`, en: `No Competitors` },
+  "B with_competitors_superior": { ja: `競合有り ○優勢`, en: `With Competitors ○Superior` },
+  "C with_competitors_equal": { ja: `競合有り △`, en: `With Competitors △Equal` },
+  "D with_competitors_inferior": { ja: `競合有り ▲劣勢`, en: `With Competitors ▲Inferior` },
+};
 export const getCompetitionState = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A No Competitors":
+    case "A no_competitors":
       return language === "ja" ? `競合無し` : `No Competitors`;
       break;
-    case "B With Competitors ○Superior":
+    case "B with_competitors_superior":
       return language === "ja" ? `競合有り ○優勢` : `With Competitors ○Superior`;
       break;
-    case "C With Competitors △Equal":
+    case "C with_competitors_equal":
       return language === "ja" ? `競合有り △` : `With Competitors △Equal`;
       break;
-    case "D With Competitors ▲Inferior":
+    case "D with_competitors_inferior":
       return language === "ja" ? `競合有り ▲劣勢` : `With Competitors ▲Inferior`;
       break;
 
@@ -2141,22 +2240,41 @@ export const getCompetitionState = (value: string, language: string = "ja") => {
 };
 
 // 決裁者商談有無
+// export const optionsDecisionMakerNegotiation = [
+//   "A Unable to Meet with the Decision-Maker",
+//   "B Met with the Decision-Maker but Unable to Discuss Business",
+//   "C Discussed Business with the Decision-Maker",
+// ];
+export type DecisionMakerNegotiationType =
+  | "A no_meeting"
+  | "B met_but_unable_to_discuss_business"
+  | "C discussed_business";
 export const optionsDecisionMakerNegotiation = [
-  "A Unable to Meet with the Decision-Maker",
-  "B Met with the Decision-Maker but Unable to Discuss Business",
-  "C Discussed Business with the Decision-Maker",
+  "A no_meeting",
+  "B met_but_unable_to_discuss_business",
+  "C discussed_business",
 ];
+export const mappingDecisionMakerNegotiation:
+  | { [K in DecisionMakerNegotiationType]: { [key: string]: string } }
+  | { [key: string]: { [key: string]: string } } = {
+  "A no_meeting": { ja: `決裁者と会えず`, en: `Unable to Meet with the Decision-Maker` },
+  "B met_but_unable_to_discuss_business": {
+    ja: `決裁者と会うも、商談できず`,
+    en: `Met with the Decision-Maker but Unable to Discuss Business`,
+  },
+  "C discussed_business": { ja: `決裁者と商談済み`, en: `Discussed Business with the Decision-Maker` },
+};
 export const getDecisionMakerNegotiation = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A Unable to Meet with the Decision-Maker":
+    case "A no_meeting":
       return language === "ja" ? `決裁者と会えず` : `Unable to Meet with the Decision-Maker`;
       break;
-    case "B Met with the Decision-Maker but Unable to Discuss Business":
+    case "B met_but_unable_to_discuss_business":
       return language === "ja"
         ? `決裁者と会うも、商談できず`
         : `Met with the Decision-Maker but Unable to Discuss Business`;
       break;
-    case "C Discussed Business with the Decision-Maker":
+    case "C discussed_business":
       return language === "ja" ? `決裁者と商談済み` : `Discussed Business with the Decision-Maker`;
       break;
 

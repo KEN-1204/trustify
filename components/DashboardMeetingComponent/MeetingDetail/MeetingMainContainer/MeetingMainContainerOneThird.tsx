@@ -125,10 +125,18 @@ import { DatePickerCustomInputForSearch } from "@/utils/DatePicker/DatePickerCus
 import { BsCheck2 } from "react-icons/bs";
 import { formatDisplayPrice } from "@/utils/Helpers/formatDisplayPrice";
 import { toHalfWidthAndRemoveSpace } from "@/utils/Helpers/toHalfWidthAndRemoveSpace";
-import { combineTime } from "@/utils/Helpers/TimeHelpers/timeHelpers";
-import { isEmptyInputRange } from "@/utils/Helpers/MainContainer/commonHelper";
+import { combineTime, validateTime } from "@/utils/Helpers/TimeHelpers/timeHelpers";
+import {
+  adjustFieldRangeInteger,
+  adjustFieldRangeNumeric,
+  adjustFieldRangeTIMESTAMPTZ,
+  adjustIsNNN,
+  copyInputRange,
+  isCopyableInputRange,
+  isEmptyInputRange,
+} from "@/utils/Helpers/MainContainer/commonHelper";
 import { DatePickerCustomInputRange } from "@/utils/DatePicker/DatePickerCustomInputRange";
-import { LuCalendarSearch } from "react-icons/lu";
+import { LuCalendarSearch, LuCopyPlus } from "react-icons/lu";
 import { FiSearch } from "react-icons/fi";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
@@ -217,7 +225,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const getEmployeesClassNameSearch = (option: NumberOfEmployeesClassType) => {
     return mappingNumberOfEmployeesClass[option][language];
   };
-  // ----------------------- サーチ配列 規模(ランク) ----------------------- ここまで
+  //  ここまで
   // const [inputCapital, setInputCapital] = useState("");
   // ----------------------- 範囲検索 資本金 -----------------------
   const [inputCapitalSearch, setInputCapitalSearch] = useState<
@@ -226,7 +234,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     min: "",
     max: "",
   });
-  // ----------------------- 範囲検索 資本金 ----------------------- ここまで
+  // ここまで
   const [inputFound, setInputFound] = useState("");
   const [inputContent, setInputContent] = useState("");
   const [inputHP, setInputHP] = useState("");
@@ -241,7 +249,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const getIndustryTypeNameSearch = (option: number) => {
     return mappingIndustryType[option][language];
   };
-  // ----------------------- サーチ配列 業種(number) -----------------------ここまで
+  // ここまで
   // ----------------------- 🌟製品分類関連🌟 -----------------------
   // const [inputProductL, setInputProductL] = useState("");
   // const [inputProductM, setInputProductM] = useState("");
@@ -418,7 +426,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const getMonthNameSearch = (option: MonthType) => {
     return mappingMonth[option][language];
   };
-  // ----------------------- サーチ配列 決算月 ----------------------- ここまで
+  // ここまで
   // const [inputBudgetRequestMonth1, setInputBudgetRequestMonth1] = useState("");
   // const [inputBudgetRequestMonth2, setInputBudgetRequestMonth2] = useState("");
   // ----------------------- サーチ配列 予算申請月1 -----------------------
@@ -430,7 +438,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     return new Set([...inputBudgetRequestMonth1Array]);
   }, [inputBudgetRequestMonth1Array]);
   // getMonthName
-  // ----------------------- サーチ配列 予算申請月1 ----------------------- ここまで
+  // ここまで
   // ----------------------- サーチ配列 予算申請月2 -----------------------
   const [inputBudgetRequestMonth2Array, setInputBudgetRequestMonth2Array] = useState<MonthType[]>([]);
   const [isNullNotNullBudgetRequestMonth2, setIsNullNotNullBudgetRequestMonth2] = useState<
@@ -440,7 +448,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     return new Set([...inputBudgetRequestMonth2Array]);
   }, [inputBudgetRequestMonth2Array]);
   // getMonthName
-  // ----------------------- サーチ配列 予算申請月2 ----------------------- ここまで
+  // ここまで
   const [inputClient, setInputClient] = useState("");
   const [inputSupplier, setInputSupplier] = useState("");
   const [inputFacility, setInputFacility] = useState("");
@@ -456,7 +464,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     min: "",
     max: "",
   });
-  // ----------------------- 範囲検索 従業員数 ----------------------- ここまで
+  // ここまで
   // 🔹contactsテーブル
   const [inputContactName, setInputContactName] = useState("");
   const [inputDirectLine, setInputDirectLine] = useState("");
@@ -476,7 +484,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const getPositionClassNameSearch = (option: PositionClassType) => {
     return mappingPositionsClassName[option][language];
   };
-  // ----------------------- サーチ配列 職位 ----------------------- ここまで
+  // ここまで
   // const [inputOccupation, setInputOccupation] = useState("");
   // ----------------------- サーチ配列 担当職種 -----------------------
   const [inputOccupationArray, setInputOccupationArray] = useState<OccupationType[]>([]); // 担当職種
@@ -487,7 +495,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const getOccupationNameSearch = (option: OccupationType) => {
     return mappingOccupation[option][language];
   };
-  // ----------------------- サーチ配列 担当職種 ----------------------- ここまで
+  // ここまで
   // const [inputApprovalAmount, setInputApprovalAmount] = useState("");
   // ----------------------- 範囲検索 決裁金額 ----------------------- ここまで
   const [inputApprovalAmountSearch, setInputApprovalAmountSearch] = useState<
@@ -496,7 +504,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     min: "",
     max: "",
   });
-  // ----------------------- 範囲検索 決裁金額 ----------------------- ここまで
+  // ここまで
   const [inputContactCreatedByCompanyId, setInputContactCreatedByCompanyId] = useState("");
   const [inputContactCreatedByUserId, setInputContactCreatedByUserId] = useState("");
   // 🔹Meetingsテーブル
@@ -517,13 +525,13 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const getWebToolNameSearch = (option: WebToolType) => {
     return mappingWebTool[option][language];
   };
-  // ----------------------- サーチ配列 Webツール -----------------------ここまで
+  // ここまで
   // ----------------------- 範囲検索 面談日(予定) -----------------------
   const [inputPlannedDate, setInputPlannedDate] = useState<Date | null | "is not null" | "is null">(null);
   const [inputPlannedDateSearch, setInputPlannedDateSearch] = useState<
     { min: Date | null; max: Date | null } | "is not null" | "is null"
   >({ min: null, max: null });
-  // ----------------------- 範囲検索 面談日(予定) -----------------------ここまで
+  // ここまで
   const [inputPlannedStartTime, setInputPlannedStartTime] = useState<string>("");
   const [inputPlannedStartTimeHour, setInputPlannedStartTimeHour] = useState<string>("");
   const [inputPlannedStartTimeMinute, setInputPlannedStartTimeMinute] = useState<string>("");
@@ -536,7 +544,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [isNullNotNullPlannedStartTimeSearch, setIsNullNotNullPlannedStartTimeSearch] = useState<
     "is null" | "is not null" | null
   >(null);
-  // ----------------------- 範囲検索 面談開始(予定) -----------------------ここまで
+  // ここまで
   // ----------------------- サーチ配列 面談目的 -----------------------
   const [inputPlannedPurpose, setInputPlannedPurpose] = useState("");
   const [inputPlannedPurposeArray, setInputPlannedPurposeArray] = useState<PlannedPurposeType[]>([]);
@@ -549,7 +557,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const getPlannedPurposeNameSearch = (option: PlannedPurposeType) => {
     return mappingPlannedPurpose[option][language];
   };
-  // ----------------------- サーチ配列 面談目的 -----------------------ここまで
+  // ここまで
   // ----------------------- 範囲検索 面談時間(予定) -----------------------
   const [inputPlannedDuration, setInputPlannedDuration] = useState<number | null | "is not null" | "is null">(null);
   const [inputPlannedDurationSearch, setInputPlannedDurationSearch] = useState<
@@ -558,7 +566,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     min: null,
     max: null,
   });
-  // ----------------------- 範囲検索 面談時間(予定) -----------------------ここまで
+  // ここまで
   const [inputPlannedAppointCheckFlag, setInputPlannedAppointCheckFlag] = useState<boolean | null>(null);
   const [inputPlannedProduct1, setInputPlannedProduct1] = useState("");
   const [inputPlannedProduct2, setInputPlannedProduct2] = useState("");
@@ -568,7 +576,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [inputResultDateSearch, setInputResultDateSearch] = useState<
     { min: Date | null; max: Date | null } | "is not null" | "is null"
   >({ min: null, max: null });
-  // ----------------------- 範囲検索 面談日(予定) -----------------------ここまで
+  // ここまで
   const [inputResultStartTime, setInputResultStartTime] = useState<string>("");
   const [inputResultStartTimeHour, setInputResultStartTimeHour] = useState<string>("");
   const [inputResultStartTimeMinute, setInputResultStartTimeMinute] = useState<string>("");
@@ -581,7 +589,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [isNullNotNullResultStartTimeSearch, setIsNullNotNullResultStartTimeSearch] = useState<
     "is null" | "is not null" | null
   >(null);
-  // ----------------------- 範囲検索 面談開始(結果) -----------------------ここまで
+  // ここまで
   const [inputResultEndTime, setInputResultEndTime] = useState<string>("");
   const [inputResultEndTimeHour, setInputResultEndTimeHour] = useState<string>("");
   const [inputResultEndTimeMinute, setInputResultEndTimeMinute] = useState<string>("");
@@ -594,7 +602,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const [isNullNotNullResultEndTimeSearch, setIsNullNotNullResultEndTimeSearch] = useState<
     "is null" | "is not null" | null
   >(null);
-  // ----------------------- 範囲検索 面談開始(結果) -----------------------ここまで
+  // ここまで
   // ----------------------- 範囲検索 面談時間(結果) -----------------------
   const [inputResultDuration, setInputResultDuration] = useState<number | null | "is not null" | "is null">(null);
   const [inputResultDurationSearch, setInputResultDurationSearch] = useState<
@@ -603,7 +611,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     min: null,
     max: null,
   });
-  // ----------------------- 範囲検索 面談時間(結果) -----------------------ここまで
+  // ここまで
   // const [inputResultNumberOfMeetingParticipants, setInputResultNumberOfMeetingParticipants] = useState<number | null>(
   //   null
   // );
@@ -617,7 +625,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     min: null,
     max: null,
   });
-  // ----------------------- 範囲検索 面談人数(結果) -----------------------ここまで
+  // ここまで
   const [inputResultPresentationProduct1, setInputResultPresentationProduct1] = useState("");
   const [inputResultPresentationProduct2, setInputResultPresentationProduct2] = useState("");
   const [inputResultPresentationProduct3, setInputResultPresentationProduct3] = useState("");
@@ -636,7 +644,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const getResultCategoryNameSearch = (option: ResultCategoryType) => {
     return mappingResultCategory[option][language];
   };
-  // ----------------------- サーチ配列 面談結果 -----------------------ここまで
+  // ここまで
   const [inputResultSummary, setInputResultSummary] = useState("");
   const [inputResultNegotiateDecisionMaker, setInputResultNegotiateDecisionMaker] = useState("");
   // ----------------------- サーチ配列 面談時最上位職位 -----------------------
@@ -652,7 +660,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   const getResultTopPositionClassNameSearch = (option: PositionClassType) => {
     return mappingPositionsClassName[option][language];
   };
-  // ----------------------- サーチ配列 面談時最上位職位 -----------------------ここまで
+  // ここまで
   const [inputPreMeetingParticipationRequest, setInputPreMeetingParticipationRequest] = useState("");
   const [inputMeetingParticipationRequest, setInputMeetingParticipationRequest] = useState("");
   const [inputMeetingBusinessOffice, setInputMeetingBusinessOffice] = useState("");
@@ -1172,7 +1180,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["contacts.created_by_user_id"])
       );
 
-      // meetingsテーブル
+      // 🔹meetingsテーブル
       setInputMeetingCreatedByCompanyId(
         beforeAdjustFieldValue(newSearchMeeting_Contact_CompanyParams["meetings.created_by_company_id"])
       );
@@ -1586,81 +1594,83 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
   //   setInputResultEndTime(formattedTime);
   // }, [inputResultEndTimeHour, inputResultEndTimeMinute]);
 
-  // 予定面談開始時間、時間、分、結合用useEffect
-  useEffect(() => {
-    // is null / is not nullがセットされてる場合はリターン
-    if (["is null", "is not null"].includes(inputPlannedStartTime)) return;
+  // ----------------------------------------------------------------------
+  // // 予定面談開始時間、時間、分、結合用useEffect
+  // useEffect(() => {
+  //   // is null / is not nullがセットされてる場合はリターン
+  //   if (["is null", "is not null"].includes(inputPlannedStartTime)) return;
 
-    if (inputPlannedStartTimeHour && inputPlannedStartTimeMinute) {
-      const formattedTime = `${inputPlannedStartTimeHour}:${inputPlannedStartTimeMinute}`;
-      setInputPlannedStartTime(formattedTime);
-    } else {
-      // 時間のみなら前方一致、
-      if (inputPlannedStartTimeHour && !inputPlannedStartTimeMinute) {
-        const formattedTime = `${inputPlannedStartTimeHour}:*`;
-        setInputPlannedStartTime(formattedTime);
-      }
-      // 分のみなら後方一致、
-      else if (!inputPlannedStartTimeHour && inputPlannedStartTimeMinute) {
-        const formattedTime = `*:${inputPlannedStartTimeMinute}`;
-        setInputPlannedStartTime(formattedTime);
-      }
-      // 時間、分がなければ空文字
-      else {
-        setInputPlannedStartTime(""); // or setResultStartTime("");
-      }
-    }
-  }, [inputPlannedStartTimeHour, inputPlannedStartTimeMinute]);
-  // 結果面談開始時間、時間、分、結合用useEffect
-  useEffect(() => {
-    // is null / is not nullがセットされてる場合はリターン
-    if (["is null", "is not null"].includes(inputResultStartTime)) return;
+  //   if (inputPlannedStartTimeHour && inputPlannedStartTimeMinute) {
+  //     const formattedTime = `${inputPlannedStartTimeHour}:${inputPlannedStartTimeMinute}`;
+  //     setInputPlannedStartTime(formattedTime);
+  //   } else {
+  //     // 時間のみなら前方一致、
+  //     if (inputPlannedStartTimeHour && !inputPlannedStartTimeMinute) {
+  //       const formattedTime = `${inputPlannedStartTimeHour}:*`;
+  //       setInputPlannedStartTime(formattedTime);
+  //     }
+  //     // 分のみなら後方一致、
+  //     else if (!inputPlannedStartTimeHour && inputPlannedStartTimeMinute) {
+  //       const formattedTime = `*:${inputPlannedStartTimeMinute}`;
+  //       setInputPlannedStartTime(formattedTime);
+  //     }
+  //     // 時間、分がなければ空文字
+  //     else {
+  //       setInputPlannedStartTime(""); // or setResultStartTime("");
+  //     }
+  //   }
+  // }, [inputPlannedStartTimeHour, inputPlannedStartTimeMinute]);
+  // // 結果面談開始時間、時間、分、結合用useEffect
+  // useEffect(() => {
+  //   // is null / is not nullがセットされてる場合はリターン
+  //   if (["is null", "is not null"].includes(inputResultStartTime)) return;
 
-    if (inputResultStartTimeHour && inputResultStartTimeMinute) {
-      const formattedTime = `${inputResultStartTimeHour}:${inputResultStartTimeMinute}`;
-      setInputResultStartTime(formattedTime);
-    } else {
-      // 時間のみなら前方一致、
-      if (inputResultStartTimeHour && !inputResultStartTimeMinute) {
-        const formattedTime = `${inputResultStartTimeHour}:*`;
-        setInputResultStartTime(formattedTime);
-      }
-      // 分のみなら後方一致、
-      else if (!inputResultStartTimeHour && inputResultStartTimeMinute) {
-        const formattedTime = `*:${inputResultStartTimeMinute}`;
-        setInputResultStartTime(formattedTime);
-      }
-      // 時間、分がなければ空文字
-      else {
-        setInputResultStartTime(""); // or setResultStartTime("");
-      }
-    }
-  }, [inputResultStartTimeHour, inputResultStartTimeMinute]);
-  // 結果面談終了時間、時間、分、結合用useEffect
-  useEffect(() => {
-    // is null / is not nullがセットされてる場合はリターン
-    if (["is null", "is not null"].includes(inputResultEndTime)) return;
+  //   if (inputResultStartTimeHour && inputResultStartTimeMinute) {
+  //     const formattedTime = `${inputResultStartTimeHour}:${inputResultStartTimeMinute}`;
+  //     setInputResultStartTime(formattedTime);
+  //   } else {
+  //     // 時間のみなら前方一致、
+  //     if (inputResultStartTimeHour && !inputResultStartTimeMinute) {
+  //       const formattedTime = `${inputResultStartTimeHour}:*`;
+  //       setInputResultStartTime(formattedTime);
+  //     }
+  //     // 分のみなら後方一致、
+  //     else if (!inputResultStartTimeHour && inputResultStartTimeMinute) {
+  //       const formattedTime = `*:${inputResultStartTimeMinute}`;
+  //       setInputResultStartTime(formattedTime);
+  //     }
+  //     // 時間、分がなければ空文字
+  //     else {
+  //       setInputResultStartTime(""); // or setResultStartTime("");
+  //     }
+  //   }
+  // }, [inputResultStartTimeHour, inputResultStartTimeMinute]);
+  // // 結果面談終了時間、時間、分、結合用useEffect
+  // useEffect(() => {
+  //   // is null / is not nullがセットされてる場合はリターン
+  //   if (["is null", "is not null"].includes(inputResultEndTime)) return;
 
-    if (inputResultEndTimeHour && inputResultEndTimeMinute) {
-      const formattedTime = `${inputResultEndTimeHour}:${inputResultEndTimeMinute}`;
-      setInputResultEndTime(formattedTime);
-    } else {
-      // 時間のみなら前方一致、
-      if (inputResultEndTimeHour && !inputResultEndTimeMinute) {
-        const formattedTime = `${inputResultEndTimeHour}:*`;
-        setInputResultEndTime(formattedTime);
-      }
-      // 分のみなら後方一致、
-      else if (!inputResultEndTimeHour && inputResultEndTimeMinute) {
-        const formattedTime = `*:${inputResultEndTimeMinute}`;
-        setInputResultEndTime(formattedTime);
-      }
-      // 時間、分がなければ空文字
-      else {
-        setInputResultEndTime(""); // or setResultStartTime("");
-      }
-    }
-  }, [inputResultEndTimeHour, inputResultEndTimeMinute]);
+  //   if (inputResultEndTimeHour && inputResultEndTimeMinute) {
+  //     const formattedTime = `${inputResultEndTimeHour}:${inputResultEndTimeMinute}`;
+  //     setInputResultEndTime(formattedTime);
+  //   } else {
+  //     // 時間のみなら前方一致、
+  //     if (inputResultEndTimeHour && !inputResultEndTimeMinute) {
+  //       const formattedTime = `${inputResultEndTimeHour}:*`;
+  //       setInputResultEndTime(formattedTime);
+  //     }
+  //     // 分のみなら後方一致、
+  //     else if (!inputResultEndTimeHour && inputResultEndTimeMinute) {
+  //       const formattedTime = `*:${inputResultEndTimeMinute}`;
+  //       setInputResultEndTime(formattedTime);
+  //     }
+  //     // 時間、分がなければ空文字
+  //     else {
+  //       setInputResultEndTime(""); // or setResultStartTime("");
+  //     }
+  //   }
+  // }, [inputResultEndTimeHour, inputResultEndTimeMinute]);
+  // ----------------------------------------------------------------------
 
   // 数値型のフィールド用
   function adjustFieldValueNumber(value: number | null) {
@@ -1696,204 +1706,204 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       return value;
     }
 
-    // 🔸TEXT型以外もIS NULL, IS NOT NULLの条件を追加
-    const adjustFieldValueInteger = (value: string | number | null): number | "ISNULL" | "ISNOTNULL" | null => {
-      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
-      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
-      if (typeof value === "string") {
-        if (isValidNumber(value) && !isNaN(parseInt(value!, 10))) {
-          return parseInt(value!, 10);
-        } else {
-          return null;
-        }
-      }
-      // number型
-      else {
-        if (value === null) return null; // 全てのデータ
-        return value;
-      }
-    };
+    // // 🔸TEXT型以外もIS NULL, IS NOT NULLの条件を追加
+    // const adjustFieldValueInteger = (value: string | number | null): number | "ISNULL" | "ISNOTNULL" | null => {
+    //   if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+    //   if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+    //   if (typeof value === "string") {
+    //     if (isValidNumber(value) && !isNaN(parseInt(value!, 10))) {
+    //       return parseInt(value!, 10);
+    //     } else {
+    //       return null;
+    //     }
+    //   }
+    //   // number型
+    //   else {
+    //     if (value === null) return null; // 全てのデータ
+    //     return value;
+    //   }
+    // };
 
-    // 🔸Date型
-    const adjustFieldValueDate = (value: Date | string | null): string | null => {
-      if (value instanceof Date) return value.toISOString();
-      // "is null"か"is not null"の文字列は変換
-      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
-      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
-      return null;
-      // if (typeof inputScheduledFollowUpDate === "string") return adjustFieldValue(inputScheduledFollowUpDate);
-    };
+    // // 🔸Date型
+    // const adjustFieldValueDate = (value: Date | string | null): string | null => {
+    //   if (value instanceof Date) return value.toISOString();
+    //   // "is null"か"is not null"の文字列は変換
+    //   if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+    //   if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+    //   return null;
+    //   // if (typeof inputScheduledFollowUpDate === "string") return adjustFieldValue(inputScheduledFollowUpDate);
+    // };
 
-    // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
-    const adjustFieldRangeNumeric = (
-      value: { min: string; max: string } | "is null" | "is not null",
-      formatType: "" | "integer" = ""
-    ): { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL" => {
-      if (value === "is null") return "ISNULL";
-      if (value === "is not null") return "ISNOTNULL";
-      const { min, max } = value;
+    // // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+    // const adjustFieldRangeNumeric = (
+    //   value: { min: string; max: string } | "is null" | "is not null",
+    //   formatType: "" | "integer" = ""
+    // ): { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL" => {
+    //   if (value === "is null") return "ISNULL";
+    //   if (value === "is not null") return "ISNOTNULL";
+    //   const { min, max } = value;
 
-      const halfMin = toHalfWidthAndRemoveSpace(min).trim();
-      const halfMax = toHalfWidthAndRemoveSpace(max).trim();
+    //   const halfMin = toHalfWidthAndRemoveSpace(min).trim();
+    //   const halfMax = toHalfWidthAndRemoveSpace(max).trim();
 
-      const minValid = isValidNumber(halfMin);
-      const maxValid = isValidNumber(halfMax);
+    //   const minValid = isValidNumber(halfMin);
+    //   const maxValid = isValidNumber(halfMax);
 
-      const minNum = formatType === "integer" ? parseInt(halfMin, 10) : Number(halfMin!);
-      const maxNum = formatType === "integer" ? parseInt(halfMax, 10) : Number(halfMax!);
+    //   const minNum = formatType === "integer" ? parseInt(halfMin, 10) : Number(halfMin!);
+    //   const maxNum = formatType === "integer" ? parseInt(halfMax, 10) : Number(halfMax!);
 
-      console.log("value", value, min, halfMin, minNum, minValid, max, halfMax, maxNum, maxValid);
+    //   console.log("value", value, min, halfMin, minNum, minValid, max, halfMax, maxNum, maxValid);
 
-      if (minValid && maxValid) {
-        if (isNaN(minNum) || isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
-        if (minNum! <= maxNum!) {
-          return { min: minNum, max: maxNum };
-        } else {
-          const errorMsg =
-            language === "ja"
-              ? "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
-              : "The minimum value cannot be greater than the maximum value.";
-          throw new Error(errorMsg);
-        }
-      } else if (minValid && !maxValid) {
-        if (isNaN(minNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
-        return { min: minNum, max: null };
-      } else if (!minValid && maxValid) {
-        if (isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
-        return { min: null, max: maxNum };
-      }
+    //   if (minValid && maxValid) {
+    //     if (isNaN(minNum) || isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+    //     if (minNum! <= maxNum!) {
+    //       return { min: minNum, max: maxNum };
+    //     } else {
+    //       const errorMsg =
+    //         language === "ja"
+    //           ? "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+    //           : "The minimum value cannot be greater than the maximum value.";
+    //       throw new Error(errorMsg);
+    //     }
+    //   } else if (minValid && !maxValid) {
+    //     if (isNaN(minNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+    //     return { min: minNum, max: null };
+    //   } else if (!minValid && maxValid) {
+    //     if (isNaN(maxNum)) throw new Error(`数値が適切ではありません。適切な数値を入力してください。`);
+    //     return { min: null, max: maxNum };
+    //   }
 
-      return { min: null, max: null };
-    };
+    //   return { min: null, max: null };
+    // };
 
-    // 🔸範囲検索用の変換 数値型(INTEGER Type) 時間、数量
-    const adjustFieldRangeInteger = (
-      value: { min: number | null; max: number | null } | "is null" | "is not null"
-    ): { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL" => {
-      if (value === "is null") return "ISNULL";
-      if (value === "is not null") return "ISNOTNULL";
-      const { min, max } = value;
+    // // 🔸範囲検索用の変換 数値型(INTEGER Type) 時間、数量
+    // const adjustFieldRangeInteger = (
+    //   value: { min: number | null; max: number | null } | "is null" | "is not null"
+    // ): { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL" => {
+    //   if (value === "is null") return "ISNULL";
+    //   if (value === "is not null") return "ISNOTNULL";
+    //   const { min, max } = value;
 
-      const minValid = min !== null && Number.isInteger(min);
-      const maxValid = max !== null && Number.isInteger(max);
+    //   const minValid = min !== null && Number.isInteger(min);
+    //   const maxValid = max !== null && Number.isInteger(max);
 
-      if (minValid && maxValid) {
-        if (min! <= max!) {
-          return { min: min, max: max };
-        } else {
-          const errorMsg =
-            language === "ja"
-              ? "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
-              : "The minimum value cannot be greater than the maximum value.";
-          throw new Error(errorMsg);
-        }
-      } else if (minValid && !maxValid) {
-        return { min: min, max: null };
-      } else if (!minValid && maxValid) {
-        return { min: null, max: max };
-      }
+    //   if (minValid && maxValid) {
+    //     if (min! <= max!) {
+    //       return { min: min, max: max };
+    //     } else {
+    //       const errorMsg =
+    //         language === "ja"
+    //           ? "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+    //           : "The minimum value cannot be greater than the maximum value.";
+    //       throw new Error(errorMsg);
+    //     }
+    //   } else if (minValid && !maxValid) {
+    //     return { min: min, max: null };
+    //   } else if (!minValid && maxValid) {
+    //     return { min: null, max: max };
+    //   }
 
-      return { min: null, max: null };
-    };
+    //   return { min: null, max: null };
+    // };
 
-    // 🔸範囲検索用の変換 TIMESTAMPTZ型(Dateオブジェクト ISO文字列) 活動日、面談日
-    const adjustFieldRangeTIMESTAMPTZ = (
-      value: { min: Date | null; max: Date | null } | "is null" | "is not null"
-    ): { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL" => {
-      if (value === "is null") return "ISNULL";
-      if (value === "is not null") return "ISNOTNULL";
-      const { min, max } = value;
+    // // 🔸範囲検索用の変換 TIMESTAMPTZ型(Dateオブジェクト ISO文字列) 活動日、面談日
+    // const adjustFieldRangeTIMESTAMPTZ = (
+    //   value: { min: Date | null; max: Date | null } | "is null" | "is not null"
+    // ): { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL" => {
+    //   if (value === "is null") return "ISNULL";
+    //   if (value === "is not null") return "ISNOTNULL";
+    //   const { min, max } = value;
 
-      if (min instanceof Date && max instanceof Date) {
-        if (min.getTime() <= max.getTime()) {
-          return {
-            min: min.toISOString(),
-            max: max.toISOString(),
-          };
-        } else {
-          const errorMsg =
-            language === "ja"
-              ? "日付の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
-              : "The minimum date cannot be later than the maximum date.";
-          throw new Error(errorMsg);
-        }
-      } else if (min instanceof Date && max === null) {
-        return {
-          min: min.toISOString(),
-          max: null,
-        };
-      } else if (min === null && max instanceof Date) {
-        return {
-          min: null,
-          max: max.toISOString(),
-        };
-      }
+    //   if (min instanceof Date && max instanceof Date) {
+    //     if (min.getTime() <= max.getTime()) {
+    //       return {
+    //         min: min.toISOString(),
+    //         max: max.toISOString(),
+    //       };
+    //     } else {
+    //       const errorMsg =
+    //         language === "ja"
+    //           ? "日付の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+    //           : "The minimum date cannot be later than the maximum date.";
+    //       throw new Error(errorMsg);
+    //     }
+    //   } else if (min instanceof Date && max === null) {
+    //     return {
+    //       min: min.toISOString(),
+    //       max: null,
+    //     };
+    //   } else if (min === null && max instanceof Date) {
+    //     return {
+    //       min: null,
+    //       max: max.toISOString(),
+    //     };
+    //   }
 
-      return { min: null, max: null };
-    };
+    //   return { min: null, max: null };
+    // };
 
-    // 🔸範囲&一致検索用の変換 TIME型
-    type AdjustTimeParams = {
-      searchType: "exact" | "range";
-      hourMin: string;
-      minuteMin: string;
-      hourMax: string;
-      minuteMax: string;
-      NNN: "is null" | "is not null" | null;
-    };
-    const adjustFieldTIME = ({
-      searchType,
-      hourMin,
-      minuteMin,
-      hourMax,
-      minuteMax,
-      NNN,
-    }: AdjustTimeParams):
-      | {
-          search_type: "exact" | "range";
-          time_value: { min: string | null; max: string | null } | string | null;
-        }
-      | "ISNULL"
-      | "ISNOTNULL" => {
-      if (NNN === "is null") return "ISNULL";
-      if (NNN === "is not null") return "ISNOTNULL";
+    // // 🔸範囲&一致検索用の変換 TIME型
+    // type AdjustTimeParams = {
+    //   searchType: "exact" | "range";
+    //   hourMin: string;
+    //   minuteMin: string;
+    //   hourMax: string;
+    //   minuteMax: string;
+    //   NNN: "is null" | "is not null" | null;
+    // };
+    // const adjustFieldTIME = ({
+    //   searchType,
+    //   hourMin,
+    //   minuteMin,
+    //   hourMax,
+    //   minuteMax,
+    //   NNN,
+    // }: AdjustTimeParams):
+    //   | {
+    //       search_type: "exact" | "range";
+    //       time_value: { min: string | null; max: string | null } | string | null;
+    //     }
+    //   | "ISNULL"
+    //   | "ISNOTNULL" => {
+    //   if (NNN === "is null") return "ISNULL";
+    //   if (NNN === "is not null") return "ISNOTNULL";
 
-      // exact
-      if (searchType === "exact") {
-        const timeValue = combineTime(hourMin, minuteMin, "exact");
+    //   // exact
+    //   if (searchType === "exact") {
+    //     const timeValue = combineTime(hourMin, minuteMin, "exact");
 
-        return { search_type: "exact", time_value: timeValue };
-      }
-      // range
-      else {
-        const timeMin = combineTime(hourMin, minuteMin, "range");
-        const timeMax = combineTime(hourMax, minuteMax, "range");
+    //     return { search_type: "exact", time_value: timeValue };
+    //   }
+    //   // range
+    //   else {
+    //     const timeMin = combineTime(hourMin, minuteMin, "range");
+    //     const timeMax = combineTime(hourMax, minuteMax, "range");
 
-        if (timeMin && timeMax) {
-          if (timeMin <= timeMax) {
-            return {
-              search_type: "range",
-              time_value: { min: timeMin, max: timeMax },
-            };
-          } else {
-            const errorMsg =
-              language === "ja"
-                ? "時間の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
-                : "The minimum value cannot be greater than the maximum value.";
-            throw new Error(errorMsg);
-          }
-        } else {
-          return {
-            search_type: "range",
-            time_value: { min: timeMin, max: timeMax },
-          };
-        }
-      }
-    };
+    //     if (timeMin && timeMax) {
+    //       if (timeMin <= timeMax) {
+    //         return {
+    //           search_type: "range",
+    //           time_value: { min: timeMin, max: timeMax },
+    //         };
+    //       } else {
+    //         const errorMsg =
+    //           language === "ja"
+    //             ? "時間の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。"
+    //             : "The minimum value cannot be greater than the maximum value.";
+    //         throw new Error(errorMsg);
+    //       }
+    //     } else {
+    //       return {
+    //         search_type: "range",
+    //         time_value: { min: timeMin, max: timeMax },
+    //       };
+    //     }
+    //   }
+    // };
 
-    // 🔸製品分類用 is null, is not nullをIS NULL, IS NOT NULLに変換
-    const adjustIsNNN = (value: "is null" | "is not null"): "ISNULL" | "ISNOTNULL" =>
-      value === "is null" ? "ISNULL" : "ISNOTNULL";
+    // // 🔸製品分類用 is null, is not nullをIS NULL, IS NOT NULLに変換
+    // const adjustIsNNN = (value: "is null" | "is not null"): "ISNULL" | "ISNOTNULL" =>
+    //   value === "is null" ? "ISNULL" : "ISNOTNULL";
 
     setLoadingGlobalState(true);
 
@@ -1911,7 +1921,8 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       // let _capital = adjustFieldValue(inputCapital) ? parseInt(inputCapital, 10) : null;
       // 範囲検索 資本金・従業員数 -----------
       // let _capital = adjustFieldValueInteger(inputCapital);
-      let _capital = adjustFieldRangeNumeric(inputCapitalSearch);
+      // let _capital = adjustFieldRangeNumeric(inputCapitalSearch);
+      let _capital = adjustFieldRangeNumeric(inputCapitalSearch, "millions");
       let _number_of_employees = adjustFieldRangeNumeric(inputNumberOfEmployeesSearch);
       // 範囲検索 資本金・従業員数 -----------ここまで
       let _established_in = adjustFieldValue(inputFound);
@@ -1942,7 +1953,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       let _overseas_bases = adjustFieldValue(inputOverseas);
       let _group_company = adjustFieldValue(inputGroup);
       let _corporate_number = adjustFieldValue(inputCorporateNum);
-      // contactsテーブル
+      // 🔹contactsテーブル
       let _contact_name = adjustFieldValue(inputContactName);
       let _direct_line = adjustFieldValue(inputDirectLine);
       let _direct_fax = adjustFieldValue(inputDirectFax);
@@ -1963,11 +1974,12 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       // let _approval_amount = adjustFieldValue(inputApprovalAmount) ? parseInt(inputApprovalAmount, 10) : null;
       // 範囲検索 決裁金額 -----------
       // let _approval_amount = adjustFieldValueInteger(inputApprovalAmount);
-      let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch);
+      // let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch);
+      let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch, "milllions");
       // 範囲検索 決裁金額 -----------ここまで
       let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
       let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
-      // meetingsテーブル
+      // 🔹meetingsテーブル
       let _meeting_created_by_company_id = userProfileState.company_id;
       let _meeting_created_by_user_id = adjustFieldValue(inputMeetingCreatedByUserId);
       let _meeting_created_by_department_of_user = adjustFieldValue(inputMeetingCreatedByDepartmentOfUser);
@@ -2245,7 +2257,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
         "meetings.created_by_unit_of_user": _meeting_created_by_unit_of_user,
         "meetings.created_by_office_of_user": _meeting_created_by_office_of_user,
         meeting_type: _meeting_type,
-        // サーチ配列 TEXT[] Webtツール ------------
+        // サーチ配列 TEXT[] Webツール ------------
         // web_tool: _web_tool,
         web_tool: isNullNotNullWebTool === null ? _web_tool : adjustIsNNN(isNullNotNullWebTool),
         //
@@ -2538,8 +2550,27 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       }
     } catch (error: any) {
       setLoadingGlobalState(false);
-      alert(error.message);
-      console.error("エラー：", error);
+      console.log("❌エラー：", error);
+      if (language === "ja") {
+        alert(error.message);
+      } else {
+        let newErrMsg = error.message;
+        switch (newErrMsg) {
+          case "日付の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。":
+            newErrMsg = "The minimum date cannot be later than the maximum date.";
+            break;
+          case "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。":
+            newErrMsg = "The minimum value cannot be greater than the maximum value.";
+            break;
+          case `数値が適切ではありません。適切な数値を入力してください。`:
+            newErrMsg = "";
+            break;
+
+          default:
+            break;
+        }
+        alert(newErrMsg);
+      }
     }
   };
 
@@ -2891,8 +2922,6 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     // }
     if (["planned_start_time", "result_start_time", "result_end_time", "planned_comment"].includes(fieldName)) {
       e.currentTarget.parentElement?.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
-      // console.log("originalValue === newValue", originalValue === newValue);
-      // return;
     } else {
       e.currentTarget.parentElement?.classList.remove(`${styles.active}`); // アンダーラインをremove
     }
@@ -2913,6 +2942,14 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       "新たな値: ",
       newValue
     );
+
+    // TIME型になっているかチェック "planned_start_time", "result_start_time", "result_end_time"
+    if (["planned_start_time", "result_start_time", "result_end_time"].includes(fieldName)) {
+      if (!validateTime(newValue)) {
+        alert("入力された時間が有効ではありません。エラー：MMC01T");
+        return toast.error("データを更新できませんでした...🙇‍♀️");
+      }
+    }
 
     if (["planned_date", "result_date"].includes(fieldName)) {
       console.log("フィールドアップデート 日付チェック オリジナル", originalValue, "変換前 新たな値", newValue);
@@ -3405,6 +3442,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       dispatch("");
     }
   };
+
   // 🔸TIME型「入力値をリセット」をクリック
   const handleClickResetTime = (
     searchType: "exact" | "range",
@@ -3930,7 +3968,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                 {/* 面談開始・WEBツール */}
                 <div className={`${styles.row_area} flex w-full items-center`}>
-                  <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                  <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
                       <span className={`${styles.title}`}>面談開始</span>
                       {!searchMode && isEditModeField !== "planned_start_time" && (
@@ -4040,10 +4078,16 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                     `${inputPlannedStartTimeHour}:${inputPlannedStartTimeMinute}` ===
                                       originalValueFieldEdit.current
                                       ? `cursor-not-allowed text-[#999]`
-                                      : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
+                                      : `cursor-pointer border-[var(--color-bg-brand-f)] text-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] hover:shadow-lg`
                                   }`}
                                   onClick={(e) => {
-                                    if (!inputPlannedStartTimeHour || !inputPlannedStartTimeMinute) return;
+                                    if (
+                                      !inputPlannedStartTimeHour ||
+                                      !inputPlannedStartTimeMinute ||
+                                      `${inputPlannedStartTimeHour}:${inputPlannedStartTimeMinute}` ===
+                                        originalValueFieldEdit.current
+                                    )
+                                      return;
                                     handleClickSendUpdateField({
                                       e,
                                       fieldName: "planned_start_time",
@@ -4055,16 +4099,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                     });
                                   }}
                                 >
-                                  <IoIosSend
-                                    className={`text-[20px] ${
-                                      !inputPlannedStartTimeHour ||
-                                      !inputPlannedStartTimeMinute ||
-                                      `${inputPlannedStartTimeHour}:${inputPlannedStartTimeMinute}` ===
-                                        originalValueFieldEdit.current
-                                        ? `text-[#999] group-hover:text-[#999]`
-                                        : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
-                                    }`}
-                                  />
+                                  <IoIosSend className={`text-[20px]`} />
                                 </div>
                               )}
                               {/* バツボタン フィールドエディットモード専用 */}
@@ -4076,10 +4111,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                       : `${styles.close_btn_field_edit_mode_empty}`
                                   }`}
                                   onClick={() => {
-                                    if (inputPlannedStartTimeHour === "08" && inputPlannedStartTimeMinute === "30")
-                                      return;
-                                    setInputPlannedStartTimeHour("08");
-                                    setInputPlannedStartTimeMinute("30");
+                                    setIsEditModeField(null); // エディットモードを終了
                                   }}
                                 >
                                   <MdClose className="text-[20px] " />
@@ -4117,7 +4149,53 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       {/* ============= フィールドエディットモード関連ここまで ============= */}
                     </div>
                     <div className={`${styles.underline}`}></div>
+                    {!searchMode && isEditModeField === "planned_start_time" && (
+                      <>
+                        {/* input下追加ボタンエリア フィールドエディットはz-index: 2000 */}
+                        <div
+                          className={`fade05_forward time_area absolute left-0 top-[100%] z-[10] hidden h-max min-h-full w-full flex-col items-end justify-start bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                          style={{ zIndex: 2000 }}
+                        >
+                          <div
+                            className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}
+                          >
+                            <div
+                              className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] leading-[15px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                              onClick={() => {
+                                setIsOpenTimePicker(true);
+                                timePickerTypeRef.current = "planned";
+                                timePickerIncrementTypeRef.current = "5";
+                                handleCloseTooltip();
+                              }}
+                              onMouseEnter={(e) => handleOpenTooltip({ e, content: "時間設定画面を開く" })}
+                              onMouseLeave={handleCloseTooltip}
+                            >
+                              <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                              <span>時間設定</span>
+                            </div>
+                          </div>
+                          <div
+                            className={`${styles.line_second} flex min-h-[35px] flex-wrap items-start justify-end pt-[3px]`}
+                          >
+                            {presetTimes.map(({ time, hour, minute }, index) => (
+                              <div
+                                key={`${time}_${index}`}
+                                className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border border-solid border-transparent px-[8px] text-[11px] text-[var(--color-text-brand-f)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+                                onClick={() => {
+                                  if (hour !== inputPlannedStartTimeHour) setInputPlannedStartTimeHour(hour);
+                                  if (minute !== inputPlannedStartTimeMinute) setInputPlannedStartTimeMinute(minute);
+                                }}
+                              >
+                                <span>{time}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        {/* input下追加ボタンエリア */}
+                      </>
+                    )}
                   </div>
+
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
                       <span className={`${styles.title}`}>WEBﾂｰﾙ</span>
@@ -4712,7 +4790,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                 <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title} ${styles.min}`}>課・ｾｸｼｮﾝ</span>
+                      <span className={`${styles.title}`}>課・ｾｸｼｮﾝ</span>
                       {!searchMode && (
                         <span
                           className={`${styles.value}`}
@@ -4998,7 +5076,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
 
                   {/* 面談開始・面談終了 */}
                   <div className={`${styles.row_area} flex w-full items-center`}>
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title} `}>面談開始</span>
                         {!searchMode && isEditModeField !== "result_start_time" && (
@@ -5082,16 +5160,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                 {/* 送信ボタン フィールドエディットモード専用 */}
                                 {!updateMeetingFieldMutation.isLoading && (
                                   <div
-                                    className={`flex-center transition-bg03 group min-h-[26px] min-w-[26px] rounded-full border border-solid border-transparent ${
+                                    className={`flex-center transition-bg03  min-h-[26px] min-w-[26px] rounded-full border border-solid border-transparent ${
                                       !inputResultStartTimeHour ||
                                       !inputResultStartTimeMinute ||
                                       `${inputResultStartTimeHour}:${inputResultStartTimeMinute}` ===
                                         originalValueFieldEdit.current
                                         ? `cursor-not-allowed text-[#999]`
-                                        : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
+                                        : `cursor-pointer border-[var(--color-bg-brand-f)] text-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] hover:shadow-lg`
                                     }`}
                                     onClick={(e) => {
-                                      if (!inputResultStartTimeHour || !inputResultStartTimeMinute) return;
+                                      if (
+                                        !inputResultStartTimeHour ||
+                                        !inputResultStartTimeMinute ||
+                                        `${inputResultStartTimeHour}:${inputResultStartTimeMinute}` ===
+                                          originalValueFieldEdit.current
+                                      )
+                                        return;
                                       handleClickSendUpdateField({
                                         e,
                                         fieldName: "result_start_time",
@@ -5103,16 +5187,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                       });
                                     }}
                                   >
-                                    <IoIosSend
-                                      className={`text-[20px] ${
-                                        !inputResultStartTimeHour ||
-                                        !inputResultStartTimeMinute ||
-                                        `${inputResultStartTimeHour}:${inputResultStartTimeMinute}` ===
-                                          originalValueFieldEdit.current
-                                          ? `text-[#999] group-hover:text-[#999]`
-                                          : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
-                                      }`}
-                                    />
+                                    <IoIosSend className={`text-[20px]`} />
                                   </div>
                                 )}
                                 {/* バツボタン フィールドエディットモード専用 */}
@@ -5124,10 +5199,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                         : `${styles.close_btn_field_edit_mode_empty}`
                                     }`}
                                     onClick={() => {
-                                      if (inputResultStartTimeHour === "08" && inputResultStartTimeMinute === "30")
-                                        return;
-                                      setInputResultStartTimeHour("08");
-                                      setInputResultStartTimeMinute("30");
+                                      setIsEditModeField(null); // エディットモードを終了
                                     }}
                                   >
                                     <MdClose className="text-[20px] " />
@@ -5165,8 +5237,53 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         {/* ============= フィールドエディットモード関連ここまで ============= */}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {!searchMode && isEditModeField === "result_start_time" && (
+                        <>
+                          {/* input下追加ボタンエリア フィールドエディットはz-index: 2000 */}
+                          <div
+                            className={`fade05_forward time_area absolute left-0 top-[100%] z-[10] hidden h-max min-h-full w-full flex-col items-end justify-start bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                            style={{ zIndex: 2000 }}
+                          >
+                            <div
+                              className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}
+                            >
+                              <div
+                                className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] leading-[15px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                                onClick={() => {
+                                  setIsOpenTimePicker(true);
+                                  timePickerTypeRef.current = "result_start";
+                                  timePickerIncrementTypeRef.current = "all";
+                                  handleCloseTooltip();
+                                }}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: "時間設定画面を開く" })}
+                                onMouseLeave={handleCloseTooltip}
+                              >
+                                <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                                <span>時間設定</span>
+                              </div>
+                            </div>
+                            <div
+                              className={`${styles.line_second} flex min-h-[35px] flex-wrap items-start justify-end pt-[3px]`}
+                            >
+                              {presetTimes.map(({ time, hour, minute }, index) => (
+                                <div
+                                  key={`${time}_${index}`}
+                                  className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border border-solid border-transparent px-[8px] text-[11px] text-[var(--color-text-brand-f)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+                                  onClick={() => {
+                                    if (hour !== inputResultStartTimeHour) setInputResultStartTimeHour(hour);
+                                    if (minute !== inputResultStartTimeMinute) setInputResultStartTimeMinute(minute);
+                                  }}
+                                >
+                                  <span>{time}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          {/* input下追加ボタンエリア */}
+                        </>
+                      )}
                     </div>
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title}`}>面談終了</span>
                         {!searchMode && isEditModeField !== "result_end_time" && (
@@ -5211,7 +5328,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                               className={`ml-auto h-full w-[80%] cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
                               placeholder="時"
                               value={inputResultEndTimeHour}
-                              onChange={(e) => setInputResultEndTimeHour(e.target.value === "" ? "" : e.target.value)}
+                              onChange={(e) => setInputResultEndTimeHour(e.target.value)}
                             >
                               <option value=""></option>
                               {hours.map((hour) => (
@@ -5227,7 +5344,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                               className={`ml-auto h-full w-[80%] cursor-pointer  ${styles.select_box} ${styles.field_edit_mode_select_box}`}
                               placeholder="分"
                               value={inputResultEndTimeMinute}
-                              onChange={(e) => setInputResultEndTimeMinute(e.target.value === "" ? "" : e.target.value)}
+                              onChange={(e) => setInputResultEndTimeMinute(e.target.value)}
                             >
                               <option value=""></option>
                               {minutes.map((minute) => (
@@ -5254,10 +5371,16 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                       `${inputResultEndTimeHour}:${inputResultEndTimeMinute}` ===
                                         originalValueFieldEdit.current
                                         ? `cursor-not-allowed text-[#999]`
-                                        : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
+                                        : `cursor-pointer border-[var(--color-bg-brand-f)] text-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] hover:shadow-lg`
                                     }`}
                                     onClick={(e) => {
-                                      if (!inputResultEndTimeHour || !inputResultEndTimeMinute) return;
+                                      if (
+                                        !inputResultEndTimeHour ||
+                                        !inputResultEndTimeMinute ||
+                                        `${inputResultEndTimeHour}:${inputResultEndTimeMinute}` ===
+                                          originalValueFieldEdit.current
+                                      )
+                                        return;
                                       handleClickSendUpdateField({
                                         e,
                                         fieldName: "result_end_time",
@@ -5269,16 +5392,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                       });
                                     }}
                                   >
-                                    <IoIosSend
-                                      className={`text-[20px] ${
-                                        !inputResultEndTimeHour ||
-                                        !inputResultEndTimeMinute ||
-                                        `${inputResultEndTimeHour}:${inputResultEndTimeMinute}` ===
-                                          originalValueFieldEdit.current
-                                          ? `text-[#999] group-hover:text-[#999]`
-                                          : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
-                                      }`}
-                                    />
+                                    <IoIosSend className={`text-[20px]`} />
                                   </div>
                                 )}
                                 {/* バツボタン フィールドエディットモード専用 */}
@@ -5290,9 +5404,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                         : `${styles.close_btn_field_edit_mode_empty}`
                                     }`}
                                     onClick={() => {
-                                      if (inputResultEndTimeHour === "08" && inputResultEndTimeMinute === "30") return;
-                                      setInputResultEndTimeHour("08");
-                                      setInputResultEndTimeMinute("30");
+                                      setIsEditModeField(null); // エディットモードを終了
                                     }}
                                   >
                                     <MdClose className="text-[20px] " />
@@ -5330,6 +5442,51 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         {/* ============= フィールドエディットモード関連ここまで ============= */}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {!searchMode && isEditModeField === "result_end_time" && (
+                        <>
+                          {/* input下追加ボタンエリア フィールドエディットはz-index: 2000 */}
+                          <div
+                            className={`fade05_forward time_area absolute left-0 top-[100%] z-[10] hidden h-max min-h-full w-full flex-col items-end justify-start bg-[var(--color-bg-base)] pl-[10px] pr-[30px] group-hover:flex`}
+                            style={{ zIndex: 2000 }}
+                          >
+                            <div
+                              className={`${styles.line_first} flex min-h-[35px] items-center justify-end space-x-[6px]`}
+                            >
+                              <div
+                                className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] leading-[15px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                                onClick={() => {
+                                  setIsOpenTimePicker(true);
+                                  timePickerTypeRef.current = "result_end";
+                                  timePickerIncrementTypeRef.current = "all";
+                                  handleCloseTooltip();
+                                }}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: "時間設定画面を開く" })}
+                                onMouseLeave={handleCloseTooltip}
+                              >
+                                <MdMoreTime className={`text-[15px] text-[#fff]`} />
+                                <span>時間設定</span>
+                              </div>
+                            </div>
+                            <div
+                              className={`${styles.line_second} flex min-h-[35px] flex-wrap items-start justify-end pt-[3px]`}
+                            >
+                              {presetTimes.map(({ time, hour, minute }, index) => (
+                                <div
+                                  key={`${time}_${index}`}
+                                  className={`flex-center ml-[6px] max-h-[25px] min-h-[25px] min-w-[50px] cursor-pointer rounded-[6px] border border-solid border-transparent px-[8px] text-[11px] text-[var(--color-text-brand-f)] hover:border-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] active:bg-[var(--color-bg-brand-f-deep)]`}
+                                  onClick={() => {
+                                    if (hour !== inputResultEndTimeHour) setInputResultEndTimeHour(hour);
+                                    if (minute !== inputResultEndTimeMinute) setInputResultEndTimeMinute(minute);
+                                  }}
+                                >
+                                  <span>{time}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          {/* input下追加ボタンエリア */}
+                        </>
+                      )}
                     </div>
                   </div>
 
@@ -7605,6 +7762,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputPlannedDateSearch, "date") && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputPlannedDateSearch, "date");
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${
@@ -7770,7 +7943,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         </button>
                         <div
                           // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
-                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] leading-[15px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={() => {
                             if (isNullNotNullPlannedStartTimeSearch !== null) {
                               setIsNullNotNullPlannedStartTimeSearch(null);
@@ -7925,7 +8098,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             </button>
                             <div
                               // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
-                              className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                              className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] leading-[15px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
                               onClick={() => {
                                 if (isNullNotNullPlannedStartTimeSearch !== null) {
                                   setIsNullNotNullPlannedStartTimeSearch(null);
@@ -8084,7 +8257,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         </button>
                         <div
                           // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
-                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)] leading-[15px]`}
                           onClick={() => {
                             if (["is null", "is not null"].includes(inputPlannedStartTime)) {
                               setInputPlannedStartTime("");
@@ -8257,6 +8430,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputPlannedDurationSearch, "number") && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputPlannedDurationSearch, "number");
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${
@@ -9009,6 +9198,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputResultDateSearch, "date") && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputResultDateSearch, "date");
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${
@@ -9156,7 +9361,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         </button>
                         <div
                           // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
-                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] leading-[15px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={() => {
                             if (isNullNotNullResultStartTimeSearch !== null) {
                               setIsNullNotNullResultStartTimeSearch(null);
@@ -9310,7 +9515,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             </button>
                             <div
                               // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
-                              className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                              className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] leading-[15px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
                               onClick={() => {
                                 if (isNullNotNullResultStartTimeSearch !== null) {
                                   setIsNullNotNullResultStartTimeSearch(null);
@@ -9484,7 +9689,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                         </button>
                         <div
                           // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
-                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                          className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] leading-[15px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
                           onClick={() => {
                             if (isNullNotNullResultEndTimeSearch !== null) {
                               setIsNullNotNullResultEndTimeSearch(null);
@@ -9637,7 +9842,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             </button>
                             <div
                               // className={`${styles.btn_brand} flex-center max-h-[25px] space-x-[3px] px-[10px] text-[11px]`}
-                              className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
+                              className={`flex-center max-h-[25px] min-h-[25px] cursor-pointer space-x-[3px] rounded-[6px] border border-solid border-[var(--color-bg-brand-f)] bg-[var(--color-btn-brand-f)] px-[10px] text-[11px] leading-[15px] text-[#fff] hover:bg-[var(--color-bg-brand-f)] active:bg-[var(--color-bg-brand-f-deep)]`}
                               onClick={() => {
                                 if (isNullNotNullResultEndTimeSearch !== null) {
                                   setIsNullNotNullResultEndTimeSearch(null);
@@ -10066,6 +10271,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputResultDurationSearch, "number") && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputResultDurationSearch, "number");
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${
@@ -10222,6 +10443,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputResultNumberOfMeetingParticipantsSearch, "number") && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputResultNumberOfMeetingParticipantsSearch, "number");
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${
@@ -11635,7 +11872,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             >
                               <input
                                 type="text"
-                                className={`${styles.input_box}`}
+                                className={`${styles.input_box} truncate`}
                                 value={inputApprovalAmountSearch.min}
                                 onChange={(e) =>
                                   setInputApprovalAmountSearch({
@@ -11648,20 +11885,34 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                   const convertedPrice = convertToMillions(formatHalfInput.trim());
                                   if (convertedPrice !== null && !isNaN(convertedPrice)) {
                                     setInputApprovalAmountSearch({
-                                      min: String(convertedPrice),
+                                      // min: String(convertedPrice),
+                                      min: convertedPrice.toLocaleString(),
                                       max: inputApprovalAmountSearch.max,
                                     });
                                   } else {
                                     setInputApprovalAmountSearch({ min: "", max: inputApprovalAmountSearch.max });
                                   }
                                 }}
+                                onFocus={() =>
+                                  !!inputApprovalAmountSearch.min &&
+                                  setInputApprovalAmountSearch({
+                                    ...inputApprovalAmountSearch,
+                                    min: inputApprovalAmountSearch.min.replace(/[^\d.]/g, ""),
+                                  })
+                                }
+                                onMouseEnter={(e) => {
+                                  const el = e.currentTarget;
+                                  if (el.offsetWidth < el.scrollWidth)
+                                    handleOpenTooltip({ e, content: inputApprovalAmountSearch.min });
+                                }}
+                                onMouseLeave={handleCloseTooltip}
                               />
 
                               <span className="mx-[10px]">〜</span>
 
                               <input
                                 type="text"
-                                className={`${styles.input_box}`}
+                                className={`${styles.input_box} truncate`}
                                 value={inputApprovalAmountSearch.max}
                                 onChange={(e) =>
                                   setInputApprovalAmountSearch({
@@ -11676,12 +11927,26 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                   if (convertedPrice !== null && !isNaN(convertedPrice)) {
                                     setInputApprovalAmountSearch({
                                       min: inputApprovalAmountSearch.min,
-                                      max: String(convertedPrice),
+                                      // max: String(convertedPrice),
+                                      max: convertedPrice.toLocaleString(),
                                     });
                                   } else {
                                     setInputApprovalAmountSearch({ min: inputApprovalAmountSearch.min, max: "" });
                                   }
                                 }}
+                                onFocus={() =>
+                                  !!inputApprovalAmountSearch.max &&
+                                  setInputApprovalAmountSearch({
+                                    ...inputApprovalAmountSearch,
+                                    max: inputApprovalAmountSearch.max.replace(/[^\d.]/g, ""),
+                                  })
+                                }
+                                onMouseEnter={(e) => {
+                                  const el = e.currentTarget;
+                                  if (el.offsetWidth < el.scrollWidth)
+                                    handleOpenTooltip({ e, content: inputApprovalAmountSearch.max });
+                                }}
+                                onMouseLeave={handleCloseTooltip}
                               />
                             </div>
                           )}
@@ -11717,6 +11982,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputApprovalAmountSearch) && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputApprovalAmountSearch);
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${
@@ -12018,6 +12299,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputNumberOfEmployeesSearch) && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputNumberOfEmployeesSearch);
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${
@@ -12280,7 +12577,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                             >
                               <input
                                 type="text"
-                                className={`${styles.input_box}`}
+                                className={`${styles.input_box} truncate`}
                                 value={inputCapitalSearch.min}
                                 onChange={(e) =>
                                   setInputCapitalSearch({ min: e.target.value, max: inputCapitalSearch.max })
@@ -12289,18 +12586,35 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                   const formatHalfInput = toHalfWidthAndRemoveSpace(inputCapitalSearch.min);
                                   const convertedPrice = convertToMillions(formatHalfInput.trim());
                                   if (convertedPrice !== null && !isNaN(convertedPrice)) {
-                                    setInputCapitalSearch({ min: String(convertedPrice), max: inputCapitalSearch.max });
+                                    setInputCapitalSearch({
+                                      // min: String(convertedPrice),
+                                      min: convertedPrice.toLocaleString(),
+                                      max: inputCapitalSearch.max,
+                                    });
                                   } else {
                                     setInputCapitalSearch({ min: "", max: inputCapitalSearch.max });
                                   }
                                 }}
+                                onFocus={() =>
+                                  !!inputCapitalSearch.min &&
+                                  setInputCapitalSearch({
+                                    ...inputCapitalSearch,
+                                    min: inputCapitalSearch.min.replace(/[^\d.]/g, ""),
+                                  })
+                                }
+                                onMouseEnter={(e) => {
+                                  const el = e.currentTarget;
+                                  if (el.offsetWidth < el.scrollWidth)
+                                    handleOpenTooltip({ e, content: inputCapitalSearch.min });
+                                }}
+                                onMouseLeave={handleCloseTooltip}
                               />
 
                               <span className="mx-[10px]">〜</span>
 
                               <input
                                 type="text"
-                                className={`${styles.input_box}`}
+                                className={`${styles.input_box} truncate`}
                                 value={inputCapitalSearch.max}
                                 onChange={(e) =>
                                   setInputCapitalSearch({ min: inputCapitalSearch.min, max: e.target.value })
@@ -12310,11 +12624,28 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                                   const convertedPrice = convertToMillions(formatHalfInput.trim());
 
                                   if (convertedPrice !== null && !isNaN(convertedPrice)) {
-                                    setInputCapitalSearch({ min: inputCapitalSearch.min, max: String(convertedPrice) });
+                                    setInputCapitalSearch({
+                                      min: inputCapitalSearch.min,
+                                      // max: String(convertedPrice)
+                                      max: convertedPrice.toLocaleString(),
+                                    });
                                   } else {
                                     setInputCapitalSearch({ min: inputCapitalSearch.min, max: "" });
                                   }
                                 }}
+                                onFocus={() =>
+                                  !!inputCapitalSearch.max &&
+                                  setInputCapitalSearch({
+                                    ...inputCapitalSearch,
+                                    max: inputCapitalSearch.max.replace(/[^\d.]/g, ""),
+                                  })
+                                }
+                                onMouseEnter={(e) => {
+                                  const el = e.currentTarget;
+                                  if (el.offsetWidth < el.scrollWidth)
+                                    handleOpenTooltip({ e, content: inputCapitalSearch.max });
+                                }}
+                                onMouseLeave={handleCloseTooltip}
                               />
                             </div>
                           )}
@@ -12348,6 +12679,22 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
                       <>
                         <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
                           <div className={`line_first space-x-[6px]`}>
+                            {isCopyableInputRange(inputCapitalSearch) && (
+                              <button
+                                type="button"
+                                className={`icon_btn_green flex`}
+                                onMouseEnter={(e) =>
+                                  handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                }
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => {
+                                  copyInputRange(setInputCapitalSearch);
+                                  handleCloseTooltip();
+                                }}
+                              >
+                                <LuCopyPlus className="pointer-events-none text-[14px]" />
+                              </button>
+                            )}
                             <button
                               type="button"
                               className={`icon_btn_red ${isEmptyInputRange(inputCapitalSearch) ? `hidden` : `flex`}`}

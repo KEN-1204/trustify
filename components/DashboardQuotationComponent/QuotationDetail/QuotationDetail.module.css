@@ -1164,6 +1164,7 @@
   font-size: 16px;
 }
 .textarea_box,
+.input_box,
 .select_box {
   font-size: 13px;
 }
@@ -1189,6 +1190,7 @@
   .check_title,
   .value,
   .full_value,
+  .input_box,
   .select_box,
   .textarea_value {
     font-size: 13px;
