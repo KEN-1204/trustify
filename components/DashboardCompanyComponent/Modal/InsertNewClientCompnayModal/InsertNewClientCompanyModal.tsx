@@ -47,6 +47,7 @@ import {
   optionsProductL,
   mappingProductL,
   optionsProductLNameOnly,
+  regionNameOnlyJpAllSet,
 } from "@/utils/selectOptions";
 import useStore from "@/store";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
@@ -423,7 +424,7 @@ export const InsertNewClientCompanyModal = () => {
     let _corporate_number = selectedRowDataCompany.corporate_number ? selectedRowDataCompany.corporate_number : "";
     let _board_member = selectedRowDataCompany.board_member ? selectedRowDataCompany.board_member : "";
     let _number_of_employees = selectedRowDataCompany.number_of_employees
-      ? selectedRowDataCompany.number_of_employees
+      ? String(selectedRowDataCompany.number_of_employees)
       : "";
     setName(_name);
     setDepartmentName(_department_name);
@@ -676,7 +677,7 @@ export const InsertNewClientCompanyModal = () => {
       created_by_section_of_user: userProfileState?.assigned_section_id ? userProfileState.assigned_section_id : null,
       created_by_unit_of_user: userProfileState?.assigned_unit_id ? userProfileState.assigned_unit_id : null,
       created_by_office_of_user: userProfileState?.assigned_office_id ? userProfileState.assigned_office_id : null,
-      name: name ? name : null,
+      name: name,
       department_name: departmentName ? departmentName : null,
       main_fax: mainFax ? mainFax : null,
       zipcode: zipcode ? zipcode : null,
@@ -729,7 +730,7 @@ export const InsertNewClientCompanyModal = () => {
       main_phone_number: mainPhoneNumber ? mainPhoneNumber : null,
       corporate_number: corporateNumber ? corporateNumber : null,
       board_member: boardMember ? boardMember : null,
-      number_of_employees: numberOfEmployees ? numberOfEmployees : null,
+      number_of_employees: !isNaN(parseInt(numberOfEmployees, 10)) ? parseInt(numberOfEmployees, 10) : null,
       // 追加 製品分類(大分類・中分類・小分類)の配列
       product_categories_all_ids: productCategoryAllIdsArray,
       // product_categories_large_ids: productCategoryLargeIdsArray,
@@ -1573,7 +1574,8 @@ export const InsertNewClientCompanyModal = () => {
                   <div className={`${styles.title_box} flex h-full min-h-[35px] items-center`}>
                     <span className={`${styles.title}`}>市区町村</span>
                     {/* <FallbackInputBox /> */}
-                    {!!regionName && (
+                    {/* 日本バージョン */}
+                    {!!regionName && regionNameOnlyJpAllSet.has(regionName) && (
                       <ErrorBoundary FallbackComponent={ErrorFallback}>
                         <Suspense fallback={<FallbackInputBox />}>
                           <InputBoxCity

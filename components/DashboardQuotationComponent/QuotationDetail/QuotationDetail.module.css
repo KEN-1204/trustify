@@ -384,10 +384,7 @@
   line-height: 17px;
   user-select: none;
 }
-.section_title.min_text {
-  /* font-size: 13px; */
-  font-size: 14px;
-}
+
 .value {
   color: var(--color-text-under-value);
 
@@ -1164,6 +1161,7 @@
 .section_title {
   font-size: 16px;
 }
+.section_title.min_text,
 .textarea_box,
 .input_box,
 .select_box {

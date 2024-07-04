@@ -1064,7 +1064,7 @@ const ActivityMainContainerOneThirdMemo = () => {
       // );
       // 範囲検索 活動日 -----------------------
       // setInputActivityDate(beforeAdjustFieldValueDate(newSearchActivity_Contact_CompanyParams.activity_date));
-      setInputActivityDateSearch(adjustFieldRangeDate(newSearchActivity_Contact_CompanyParams.activity_date));
+      setInputActivityDateSearch(beforeAdjustFieldRangeDate(newSearchActivity_Contact_CompanyParams.activity_date));
       // 範囲検索 活動日 -----------------------ここまで
       setInputDepartment(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams.department));
       // 年月度〜年度

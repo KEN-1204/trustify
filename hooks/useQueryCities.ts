@@ -10,7 +10,7 @@ export const useQueryCities = (
   const supabase = useSupabaseClient();
 
   const getCities = async () => {
-    console.log("useQuery getCities実行");
+    console.log("useQueryCities getCities実行");
 
     // let fields;
     // if (language === "ja") fields = "city_id, city_name_ja";
@@ -29,6 +29,8 @@ export const useQueryCities = (
       console.log("❌getCitiesエラー発生", error.message);
       throw error;
     }
+
+    console.log("useQueryCities getCities成功 市区町村取得✅", data);
 
     // 0.8秒後に解決するPromiseの非同期処理を入れて疑似的にサーバーにフェッチする動作を入れる
     // await new Promise((resolve) => setTimeout(resolve, 500));

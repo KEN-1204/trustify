@@ -1148,6 +1148,8 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       setInputQuotationDivision(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_division));
       setInputQuotationNotes(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_notes));
       setInputQuotationRemarks(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_remarks));
+      setInputQuotationTitle(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_title));
+
       //
       // setInputQuotationBusinessOffice(
       //   beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_business_office)
@@ -1667,7 +1669,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       y: y,
       itemWidth: width,
       itemHeight: height,
-      content: ((e.target as HTMLDivElement).dataset.text as string) || (content ?? ""),
+      content: content || ((e.target as HTMLDivElement).dataset.text as string),
       content2: dataText2 || content2 || "",
       content3: dataText3 || content3 || "",
       content4: dataText4 || content4 || "",
@@ -3050,6 +3052,33 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // フィールドエディットタイトル
   const fieldEditTitle = (title: string) => (isEditModeField === title ? `${styles.field_edit}` : ``);
 
+  // 価格合計
+  const formattedTotalPrice = useMemo(() => {
+    if (!selectedRowDataQuotation) return "";
+    if (!isValidNumber(selectedRowDataQuotation.total_price)) return "";
+    return formatDisplayPrice(selectedRowDataQuotation?.total_price!);
+  }, [selectedRowDataQuotation?.total_price]);
+
+  // 値引金額
+  const formattedDiscountPrice = useMemo(() => {
+    if (!selectedRowDataQuotation) return "";
+    if (!isValidNumber(selectedRowDataQuotation.discount_amount)) return "";
+    return formatDisplayPrice(selectedRowDataQuotation?.discount_amount!);
+  }, [selectedRowDataQuotation?.discount_amount]);
+
+  // 値引率
+  const formattedDiscountRate = useMemo(() => {
+    if (!selectedRowDataQuotation) return "";
+    if (!checkNotFalsyExcludeZero(selectedRowDataQuotation.discount_rate)) return "";
+    return normalizeDiscountRate(selectedRowDataQuotation!.discount_rate!.toString());
+  }, [selectedRowDataQuotation?.discount_rate]);
+
+  // 合計金額
+  const formattedTotalAmount = useMemo(() => {
+    if (!selectedRowDataQuotation) return "";
+    if (!isValidNumber(selectedRowDataQuotation.total_amount)) return "";
+    return formatDisplayPrice(selectedRowDataQuotation?.total_amount!);
+  }, [selectedRowDataQuotation?.total_amount]);
   // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------
   // ツールチップ
   const additionalInputTooltipText = (index: number) =>
@@ -5913,9 +5942,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                         handleOpenTooltip({
                                           e: e,
                                           display: "top",
-                                          content: isValidNumber(selectedRowDataQuotation?.total_price)
-                                            ? formatDisplayPrice(selectedRowDataQuotation?.total_price!)
-                                            : "",
+                                          // content: isValidNumber(selectedRowDataQuotation?.total_price)
+                                          //   ? formatDisplayPrice(selectedRowDataQuotation?.total_price!)
+                                          //   : "",
+                                          content: formattedTotalPrice,
                                           // marginTop: 28,
                                           itemsPosition: "center",
                                         });
@@ -5926,11 +5956,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       if (hoveredItemPosWrap) handleCloseTooltip();
                                     }}
                                   >
-                                    {isValidNumber(selectedRowDataQuotation?.total_price)
+                                    {formattedTotalPrice}
+                                    {/* {isValidNumber(selectedRowDataQuotation?.total_price)
                                       ? formatDisplayPrice(selectedRowDataQuotation?.total_price!)
-                                      : ""}
-                                    {/* {checkNotFalsyExcludeZero(selectedRowDataQuotation?.total_price)
-                                      ? Number(selectedRowDataQuotation?.total_price).toLocaleString() + "円"
                                       : ""} */}
                                   </span>
                                 )}
@@ -6144,11 +6172,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     //   });
                                     //   if (hoveredItemPosWrap) handleCloseTooltip();
                                     // }}
-                                    data-text={`${
-                                      isValidNumber(selectedRowDataQuotation?.discount_amount)
-                                        ? formatDisplayPrice(selectedRowDataQuotation?.discount_amount!)
-                                        : ""
-                                    }`}
+                                    // data-text={`${
+                                    //   isValidNumber(selectedRowDataQuotation?.discount_amount)
+                                    //     ? formatDisplayPrice(selectedRowDataQuotation?.discount_amount!)
+                                    //     : ""
+                                    // }`}
+                                    data-text={`${formattedDiscountPrice}`}
                                     onMouseEnter={(e) => {
                                       e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                                       const el = e.currentTarget;
@@ -6159,9 +6188,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       if (hoveredItemPosWrap) handleCloseTooltip();
                                     }}
                                   >
-                                    {isValidNumber(selectedRowDataQuotation?.discount_amount)
+                                    {/* {isValidNumber(selectedRowDataQuotation?.discount_amount)
                                       ? formatDisplayPrice(selectedRowDataQuotation?.discount_amount!)
-                                      : ""}
+                                      : ""} */}
+                                    {formattedDiscountPrice}
                                   </span>
                                 )}
 
@@ -6409,9 +6439,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                     e.currentTarget.parentElement?.classList.remove(`${styles.active}`);
                                   }}
                                 >
-                                  {checkNotFalsyExcludeZero(selectedRowDataQuotation?.discount_rate)
+                                  {/* {checkNotFalsyExcludeZero(selectedRowDataQuotation?.discount_rate)
                                     ? normalizeDiscountRate(selectedRowDataQuotation!.discount_rate!.toString())
-                                    : ""}
+                                    : ""} */}
+                                  {formattedDiscountRate}
                                 </span>
                               )}
 
@@ -6440,11 +6471,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                 !(isInsertModeQuotation || isUpdateModeQuotation) && (
                                   <span
                                     className={`${styles.value}`}
-                                    data-text={`${
-                                      isValidNumber(selectedRowDataQuotation?.total_amount)
-                                        ? formatDisplayPrice(selectedRowDataQuotation?.total_amount!)
-                                        : ""
-                                    }`}
+                                    // data-text={`${
+                                    //   isValidNumber(selectedRowDataQuotation?.total_amount)
+                                    //     ? formatDisplayPrice(selectedRowDataQuotation?.total_amount!)
+                                    //     : ""
+                                    // }`}
+                                    data-text={`${formattedTotalAmount}`}
                                     onMouseEnter={(e) => {
                                       e.currentTarget.parentElement?.classList.add(`${styles.active}`);
                                       const el = e.currentTarget;
@@ -6455,9 +6487,10 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                       if (hoveredItemPosWrap) handleCloseTooltip();
                                     }}
                                   >
-                                    {isValidNumber(selectedRowDataQuotation?.total_amount)
+                                    {/* {isValidNumber(selectedRowDataQuotation?.total_amount)
                                       ? formatDisplayPrice(selectedRowDataQuotation?.total_amount!)
-                                      : ""}
+                                      : ""} */}
+                                    {formattedTotalAmount}
                                   </span>
                                 )}
 

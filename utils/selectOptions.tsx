@@ -672,11 +672,110 @@ export type RegionJp = {
   [key: number]: { [key: string]: string };
 };
 
-// 都道府県別(日本)
+// 都道府県別 日本 153
+export type RegionNameJpType =
+  | "北海道"
+  | "青森県"
+  | "岩手県"
+  | "宮城県"
+  | "秋田県"
+  | "山形県"
+  | "福島県"
+  | "茨城県"
+  | "栃木県"
+  | "群馬県"
+  | "埼玉県"
+  | "千葉県"
+  | "東京都"
+  | "神奈川県"
+  | "新潟県"
+  | "富山県"
+  | "石川県"
+  | "福井県"
+  | "山梨県"
+  | "長野県"
+  | "岐阜県"
+  | "静岡県"
+  | "愛知県"
+  | "三重県"
+  | "滋賀県"
+  | "京都府"
+  | "大阪府"
+  | "兵庫県"
+  | "奈良県"
+  | "和歌山県"
+  | "鳥取県"
+  | "島根県"
+  | "岡山県"
+  | "広島県"
+  | "山口県"
+  | "徳島県"
+  | "香川県"
+  | "愛媛県"
+  | "高知県"
+  | "福岡県"
+  | "佐賀県"
+  | "長崎県"
+  | "熊本県"
+  | "大分県"
+  | "宮崎県"
+  | "鹿児島県"
+  | "沖縄県";
+export const optionsRegionNameOnlyJp: (RegionNameJpType | string)[] = [
+  "北海道",
+  "青森県",
+  "岩手県",
+  "宮城県",
+  "秋田県",
+  "山形県",
+  "福島県",
+  "茨城県",
+  "栃木県",
+  "群馬県",
+  "埼玉県",
+  "千葉県",
+  "東京都",
+  "神奈川県",
+  "新潟県",
+  "富山県",
+  "石川県",
+  "福井県",
+  "山梨県",
+  "長野県",
+  "岐阜県",
+  "静岡県",
+  "愛知県",
+  "三重県",
+  "滋賀県",
+  "京都府",
+  "大阪府",
+  "兵庫県",
+  "奈良県",
+  "和歌山県",
+  "鳥取県",
+  "島根県",
+  "岡山県",
+  "広島県",
+  "山口県",
+  "徳島県",
+  "香川県",
+  "愛媛県",
+  "高知県",
+  "福岡県",
+  "佐賀県",
+  "長崎県",
+  "熊本県",
+  "大分県",
+  "宮崎県",
+  "鹿児島県",
+  "沖縄県",
+];
+export const regionNameOnlyJpAllSet = new Set(optionsRegionNameOnlyJp);
+
 export const optionRegionsJP = Array(47)
   .fill(null)
   .map((option, index) => index + 1);
-export const mappingRegionsJp: { [key: number]: { [key: string]: string } } = {
+export const mappingRegionsJp: { [key: number]: { [key: string | "ja" | "en"]: string } } = {
   1: { ja: "北海道", en: "Hokkaido" },
   2: { ja: "青森県", en: "Aomori" },
   3: { ja: "岩手県", en: "Iwate" },
@@ -725,6 +824,10 @@ export const mappingRegionsJp: { [key: number]: { [key: string]: string } } = {
   46: { ja: "鹿児島県", en: "Kagoshima" },
   47: { ja: "沖縄県", en: "Okinawa" },
 };
+
+// 都道府県名 => id のMapオブジェクト
+export const regionsNameToIdMapJp = new Map(optionRegionsJP.map((id) => [mappingRegionsJp[id].ja, id]));
+export const regionsNameToIdMapEn = new Map(optionRegionsJP.map((id) => [mappingRegionsJp[id].en, id]));
 
 export type RegionArray = { id: number; name_ja: string; name_en: string };
 
@@ -778,7 +881,11 @@ export const regionArrayJP = [
   { id: 47, name_ja: "沖縄県", name_en: "Okinawa" },
 ];
 
-// 業種
+// ----------------------------------- 市区町村 -----------------------------------
+
+// => citiesOptions.tsx に統一
+
+// ----------------------------------- 業種 -----------------------------------
 export const optionsIndustryType = Array(53)
   .fill(null)
   .map((option, index) => index + 1);

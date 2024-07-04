@@ -1847,15 +1847,15 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
     //   return { min: null, max: null };
     // };
 
-    // // 🔸範囲&一致検索用の変換 TIME型
-    // type AdjustTimeParams = {
-    //   searchType: "exact" | "range";
-    //   hourMin: string;
-    //   minuteMin: string;
-    //   hourMax: string;
-    //   minuteMax: string;
-    //   NNN: "is null" | "is not null" | null;
-    // };
+    // 🔸範囲&一致検索用の変換 TIME型
+    type AdjustTimeParams = {
+      searchType: "exact" | "range";
+      hourMin: string;
+      minuteMin: string;
+      hourMax: string;
+      minuteMax: string;
+      NNN: "is null" | "is not null" | null;
+    };
     const adjustFieldTIME = ({
       searchType,
       hourMin,
@@ -1980,7 +1980,7 @@ const MeetingMainContainerOneThirdMemo: FC = () => {
       // 範囲検索 決裁金額 -----------
       // let _approval_amount = adjustFieldValueInteger(inputApprovalAmount);
       // let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch);
-      let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch, "milllions");
+      let _approval_amount = adjustFieldRangeNumeric(inputApprovalAmountSearch, "millions");
       // 範囲検索 決裁金額 -----------ここまで
       let _contact_created_by_company_id = adjustFieldValue(inputContactCreatedByCompanyId);
       let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);

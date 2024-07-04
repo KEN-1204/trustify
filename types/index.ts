@@ -577,8 +577,8 @@ export type Client_company = {
   created_by_section_of_user?: string | null;
   created_by_unit_of_user?: string | null;
   created_by_office_of_user?: string | null;
-  name?: string;
-  department_name?: string;
+  name: string;
+  department_name?: string | null;
   main_fax?: string | null;
   zipcode?: string | null;
   address?: string | null;

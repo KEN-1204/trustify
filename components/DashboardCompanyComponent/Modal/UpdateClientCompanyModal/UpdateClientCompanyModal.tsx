@@ -47,6 +47,7 @@ import {
   optionsProductLNameOnly,
   productCategoryLargeNameToIdMap,
   regionArrayJP,
+  regionNameOnlyJpAllSet,
 } from "@/utils/selectOptions";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 import useStore from "@/store";
@@ -1583,7 +1584,7 @@ export const UpdateClientCompanyModal = () => {
                   <div className={`${styles.title_box} flex h-full min-h-[35px] items-center`}>
                     <span className={`${styles.title}`}>市区町村</span>
                     {/* <FallbackInputBox /> */}
-                    {!!regionName && (
+                    {!!regionName && regionNameOnlyJpAllSet.has(regionName) && (
                       <ErrorBoundary FallbackComponent={ErrorFallback}>
                         <Suspense fallback={<FallbackInputBox />}>
                           <InputBoxCity

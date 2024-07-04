@@ -8247,7 +8247,7 @@ const CompanyMainContainerMemo: FC = () => {
                   >
                     検索
                   </button>
-                  {/* <button
+                  <button
                     type="button"
                     className={`${styles.btn} transition-base02 ${
                       isOpenSidebar ? "min-h-[30px] text-[14px]" : `min-h-[38px] text-[15px]`
@@ -8255,9 +8255,24 @@ const CompanyMainContainerMemo: FC = () => {
                     onClick={async () => {
                       try {
                         console.log("テスト実行🔥🔥🔥🔥", "inputName", inputName);
-                        const { data, error } = await supabase.rpc("test_function", { _name: inputName });
+
+                        // const { data, error } = await supabase.rpc("test_function", { _name: inputName });
+                        // const { data, error } = await supabase
+                        //   .from("cities")
+                        //   .select("city_name_ja")
+                        //   .eq("region_id", 47)
+                        //   .order("city_id", false);
+                        const { data, error } = await supabase
+                          .from("regions")
+                          .select("region_name_ja")
+                          .eq("country_id", 153)
+                          .order("region_id", false);
+
                         if (error) throw error;
+                        // const joinedText = data.map((value: any) => value.city_name_ja).join(", ");
+                        const joinedText = data.map((value: any) => value.region_name_ja).join(", ");
                         console.log("data", data, "error", error);
+                        console.log("joinedText", joinedText);
                         toast.success(`成功🌲`);
                       } catch (error: any) {
                         console.error("error", error);
@@ -8266,7 +8281,7 @@ const CompanyMainContainerMemo: FC = () => {
                     }}
                   >
                     テスト
-                  </button> */}
+                  </button>
                 </div>
               </div>
             </div>

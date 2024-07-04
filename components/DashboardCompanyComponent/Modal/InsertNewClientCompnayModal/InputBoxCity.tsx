@@ -6,6 +6,7 @@ import {
   SetStateAction,
   memo,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -15,7 +16,7 @@ import { Cities, hoveredItemPosModal } from "@/types";
 import { useQueryCities } from "@/hooks/useQueryCities";
 import useStore from "@/store";
 import useDashboardStore from "@/store/useDashboardStore";
-import { mappingRegionsJp } from "@/utils/selectOptions";
+import { mappingRegionsJp, regionsNameToIdMapJp } from "@/utils/selectOptions";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";
 
 type TooltipParams = {
@@ -68,17 +69,28 @@ const InputBoxCityMemo = ({
   const resultCityRefs = useRef<HTMLDivElement | null>(null);
   const [suggestedCityIdNameArray, setSuggestedCityIdNameArray] = useState<Cities[]>([]);
   const selectedRowDataCompany = useDashboardStore((state) => state.selectedRowDataCompany);
-  if (!selectedRowDataCompany) {
-    alert("会社データが見つかりませんでした。 IBC01");
+  if (isDuplicateOrUpdateCompany && !selectedRowDataCompany) {
+    // alert("会社データが見つかりませんでした。 IBC01");
+    console.log("InputBoxCity 会社データが見つかりませんでした。 IBC01");
     return;
   }
-  const initialRegionName =
-    selectedRowDataCompany.country_id === 153 && selectedRowDataCompany.region_id
-      ? mappingRegionsJp[selectedRowDataCompany.region_id][language]
-      : "";
-  const initialRegionId = isValidNumber(selectedRowDataCompany.region_id)
-    ? selectedRowDataCompany.region_id!.toString()
-    : "";
+  const initialRegionName = useMemo(() => {
+    if (isDuplicateOrUpdateCompany && selectedRowDataCompany) {
+      return selectedRowDataCompany.country_id === 153 && selectedRowDataCompany.region_id
+        ? mappingRegionsJp[selectedRowDataCompany.region_id][language]
+        : "";
+    } else {
+      return regionsNameToIdMapJp.has(regionName) ? regionName : "";
+    }
+  }, [selectedRowDataCompany]);
+
+  const initialRegionId = useMemo(() => {
+    if (isDuplicateOrUpdateCompany && selectedRowDataCompany) {
+      return isValidNumber(selectedRowDataCompany.region_id) ? selectedRowDataCompany.region_id!.toString() : "";
+    } else {
+      return regionsNameToIdMapJp.has(regionName) ? regionsNameToIdMapJp.get(regionName) : "";
+    }
+  }, []);
   const [prevRegionName, setPrevRegionName] = useState(initialRegionName);
   const [prevRegionId, setPrevRegionId] = useState(initialRegionId);
   // const [prevRegionName, setPrevRegionName] = useState("");
@@ -230,9 +242,9 @@ const InputBoxCityMemo = ({
     "prevRegionId",
     prevRegionId,
     "市区町村リスト候補",
-    suggestedCityIdNameArray,
-    "citiesArray",
-    citiesArray
+    suggestedCityIdNameArray
+    // "citiesArray",
+    // citiesArray
   );
 
   return (
