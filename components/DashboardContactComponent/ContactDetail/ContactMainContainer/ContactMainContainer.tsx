@@ -96,9 +96,12 @@ import { BsCheck2 } from "react-icons/bs";
 import {
   adjustFieldRangeNumeric,
   adjustIsNNN,
+  beforeAdjustFieldRangeNumeric,
+  beforeAdjustIsNNN,
   copyInputRange,
   isCopyableInputRange,
   isEmptyInputRange,
+  setArrayParam,
 } from "@/utils/Helpers/MainContainer/commonHelper";
 import { toHalfWidthAndRemoveSpace } from "@/utils/Helpers/toHalfWidthAndRemoveSpace";
 import { formatDisplayPrice } from "@/utils/Helpers/formatDisplayPrice";
@@ -511,46 +514,46 @@ const ContactMainContainerMemo: FC = () => {
         return value;
       };
 
-      // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
-      const adjustFieldRangeNumeric = (
-        value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL",
-        type: "" | "price" | "integer" = ""
-      ): { min: string; max: string } | "is null" | "is not null" => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        const { min, max } = value;
+      // // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+      // const adjustFieldRangeNumeric = (
+      //   value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL",
+      //   type: "" | "price" | "integer" = ""
+      // ): { min: string; max: string } | "is null" | "is not null" => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   const { min, max } = value;
 
-        if (min !== null && max !== null) {
-          if (type === "price") return { min: formatDisplayPrice(min), max: formatDisplayPrice(max) };
-          if (type === "integer") return { min: parseInt(String(min), 10).toFixed(0), max: max.toFixed(0) };
-          return { min: String(min), max: String(max) };
-        } else if (min !== null && max === null) {
-          if (type === "price") return { min: formatDisplayPrice(min), max: "" };
-          if (type === "integer") return { min: min.toFixed(0), max: "" };
-          return { min: String(min), max: "" };
-        } else if (min === null && max !== null) {
-          if (type === "price") return { min: "", max: formatDisplayPrice(max) };
-          if (type === "integer") return { min: "", max: max.toFixed(0) };
-          return { min: "", max: String(max) };
-        }
-        return { min: "", max: "" };
-      };
+      //   if (min !== null && max !== null) {
+      //     if (type === "price") return { min: formatDisplayPrice(min), max: formatDisplayPrice(max) };
+      //     if (type === "integer") return { min: parseInt(String(min), 10).toFixed(0), max: max.toFixed(0) };
+      //     return { min: String(min), max: String(max) };
+      //   } else if (min !== null && max === null) {
+      //     if (type === "price") return { min: formatDisplayPrice(min), max: "" };
+      //     if (type === "integer") return { min: min.toFixed(0), max: "" };
+      //     return { min: String(min), max: "" };
+      //   } else if (min === null && max !== null) {
+      //     if (type === "price") return { min: "", max: formatDisplayPrice(max) };
+      //     if (type === "integer") return { min: "", max: max.toFixed(0) };
+      //     return { min: "", max: String(max) };
+      //   }
+      //   return { min: "", max: "" };
+      // };
 
-      const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
-        value === "ISNULL" ? "is null" : "is not null";
+      // const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
+      //   value === "ISNULL" ? "is null" : "is not null";
 
-      // 🔸string配列のパラメータをstateにセットする関数
-      const setArrayParam = (
-        param: string[] | number[] | "ISNULL" | "ISNOTNULL",
-        dispatch: Dispatch<SetStateAction<any[]>>,
-        dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>
-      ) => {
-        if (param === "ISNULL" || param === "ISNOTNULL") {
-          dispatchNNN(beforeAdjustIsNNN(param));
-        } else {
-          dispatch(!!param.length ? param : []);
-        }
-      };
+      // // 🔸string配列のパラメータをstateにセットする関数
+      // const setArrayParam = (
+      //   param: string[] | number[] | "ISNULL" | "ISNOTNULL",
+      //   dispatch: Dispatch<SetStateAction<any[]>>,
+      //   dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>
+      // ) => {
+      //   if (param === "ISNULL" || param === "ISNOTNULL") {
+      //     dispatchNNN(beforeAdjustIsNNN(param));
+      //   } else {
+      //     dispatch(!!param.length ? param : []);
+      //   }
+      // };
 
       console.log("🔥メインコンテナーnewSearchContact_CompanyParams編集モード", newSearchContact_CompanyParams);
       //   setInputCompanyName(beforeAdjustFieldValue(newSearchContact_CompanyParams.company_name));
@@ -577,8 +580,10 @@ const ContactMainContainerMemo: FC = () => {
       //     newSearchContact_CompanyParams?.capital ? newSearchContact_CompanyParams.capital.toString() : ""
       //   )
       // );
-      setInputCapitalSearch(adjustFieldRangeNumeric(newSearchContact_CompanyParams?.capital));
-      setInputNumberOfEmployeesSearch(adjustFieldRangeNumeric(newSearchContact_CompanyParams?.number_of_employees));
+      setInputCapitalSearch(beforeAdjustFieldRangeNumeric(newSearchContact_CompanyParams?.capital, "price"));
+      setInputNumberOfEmployeesSearch(
+        beforeAdjustFieldRangeNumeric(newSearchContact_CompanyParams?.number_of_employees)
+      );
       // 範囲検索 ------------------------ ここまで
       setInputFound(beforeAdjustFieldValue(newSearchContact_CompanyParams?.established_in));
       setInputContent(beforeAdjustFieldValue(newSearchContact_CompanyParams?.business_content));
@@ -727,7 +732,9 @@ const ContactMainContainerMemo: FC = () => {
       //       : ""
       //   )
       // );
-      setInputApprovalAmountSearch(adjustFieldRangeNumeric(newSearchContact_CompanyParams?.approval_amount));
+      setInputApprovalAmountSearch(
+        beforeAdjustFieldRangeNumeric(newSearchContact_CompanyParams?.approval_amount, "price")
+      );
       // 範囲検索 ------------------------ ここまで
       // setInputCreatedByCompanyId(beforeAdjustFieldValue(newSearchContact_CompanyParams.created_by_company_id));
       setInputCreatedByCompanyId(
@@ -1728,6 +1735,9 @@ const ContactMainContainerMemo: FC = () => {
   };
   // ================== ✅セレクトボックスで個別フィールドをアップデート ==================
 
+  // フィールドエディットタイトル
+  const fieldEditTitle = (title: string) => (isEditModeField === title ? `${styles.field_edit}` : ``);
+
   // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------
   // ツールチップ
   const additionalInputTooltipText = (index: number) =>
@@ -2038,9 +2048,7 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title} ${isEditModeField === "name" && `${styles.field_edit}`}`}>
-                    ●担当者名
-                  </span>
+                  <span className={`${styles.title} ${fieldEditTitle("name")}`}>●担当者名</span>
                   {!searchMode && isEditModeField !== "name" && (
                     <span
                       className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
@@ -2140,7 +2148,7 @@ const ContactMainContainerMemo: FC = () => {
               </div>
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>直通TEL</span>
+                  <span className={`${styles.title} ${fieldEditTitle("direct_line")}`}>直通TEL</span>
                   {!searchMode && isEditModeField !== "direct_line" && (
                     <span
                       className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
@@ -2305,7 +2313,7 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>内線TEL</span>
+                  <span className={`${styles.title} ${fieldEditTitle("extension")}`}>内線TEL</span>
                   {!searchMode && isEditModeField !== "extension" && (
                     <span
                       className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
@@ -2538,7 +2546,7 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>直通FAX</span>
+                  <span className={`${styles.title} ${fieldEditTitle("direct_fax")}`}>直通FAX</span>
                   {!searchMode && isEditModeField !== "direct_fax" && (
                     <span
                       className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
@@ -2775,7 +2783,7 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>社用携帯</span>
+                  <span className={`${styles.title} ${fieldEditTitle("company_cell_phone")}`}>社用携帯</span>
                   {!searchMode && isEditModeField !== "company_cell_phone" && (
                     <span
                       className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
@@ -2938,7 +2946,7 @@ const ContactMainContainerMemo: FC = () => {
               </div>
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>私用携帯</span>
+                  <span className={`${styles.title} ${fieldEditTitle("personal_cell_phone")}`}>私用携帯</span>
                   {!searchMode && isEditModeField !== "personal_cell_phone" && (
                     <span
                       className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
@@ -3106,7 +3114,7 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="group relative flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>E-mail</span>
+                  <span className={`${styles.title} ${fieldEditTitle("contact_email")}`}>E-mail</span>
                   {!searchMode && (
                     <span
                       className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
@@ -3281,7 +3289,7 @@ const ContactMainContainerMemo: FC = () => {
             {/* 住所 */}
             <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px] ">
-                <div className={`${styles.title_box} flex h-full `}>
+                <div className={`${styles.title_box} flex h-full ${styles.title_box_lg}`}>
                   <span className={`${styles.title}`}>○住所</span>
                   {!searchMode && (
                     <span
@@ -3315,7 +3323,7 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>役職名</span>
+                  <span className={`${styles.title} ${fieldEditTitle("position_name")}`}>役職名</span>
                   {!searchMode && isEditModeField !== "position_name" && (
                     <span
                       className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
@@ -3458,7 +3466,7 @@ const ContactMainContainerMemo: FC = () => {
               </div>
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>職位</span>
+                  <span className={`${styles.title} ${fieldEditTitle("position_class")}`}>職位</span>
                   {!searchMode && isEditModeField !== "position_class" && (
                     <span
                       className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
@@ -3616,7 +3624,7 @@ const ContactMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>担当職種</span>
+                  <span className={`${styles.title} ${fieldEditTitle("occupation")}`}>担当職種</span>
                   {!searchMode && isEditModeField !== "occupation" && (
                     <span
                       className={`${styles.value} ${isOurContact ? styles.editable_field : styles.uneditable_field}`}
@@ -3770,7 +3778,11 @@ const ContactMainContainerMemo: FC = () => {
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
                   {/* <span className={`${styles.title} !mr-[12px]`}>決裁金額(万円)</span> */}
-                  <div className={`${styles.title} ${styles.double_text} flex flex-col`}>
+                  <div
+                    className={`${styles.title} ${styles.double_text} flex flex-col ${fieldEditTitle(
+                      "approval_amount"
+                    )}`}
+                  >
                     <span>決裁金額</span>
                     <span>(万円)</span>
                   </div>
@@ -4854,7 +4866,7 @@ const ContactMainContainerMemo: FC = () => {
             {/* 事業概要 */}
             <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="group relative flex h-full w-full flex-col pr-[20px] ">
-                <div className={`${styles.title_box}  flex h-full`}>
+                <div className={`${styles.title_box}  flex h-full ${styles.title_box_lg}`}>
                   <span className={`${styles.title}`}>事業概要</span>
                   {!searchMode && (
                     <>
@@ -5089,7 +5101,7 @@ const ContactMainContainerMemo: FC = () => {
             {/* 設備 */}
             <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="group relative flex h-full w-full flex-col pr-[20px] ">
-                <div className={`${styles.title_box}  flex h-full`}>
+                <div className={`${styles.title_box}  flex h-full ${styles.title_box_lg}`}>
                   <span className={`${styles.title}`}>設備</span>
                   {!searchMode && (
                     <>
@@ -6600,7 +6612,7 @@ const ContactMainContainerMemo: FC = () => {
                 {/* クレーム */}
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full  `}>
+                    <div className={`${styles.title_box} flex h-full  ${styles.title_box_lg}`}>
                       <span className={`${styles.title}`}>クレーム</span>
                       {!searchMode && isEditModeField !== "claim" && (
                         <div
@@ -6660,7 +6672,7 @@ const ContactMainContainerMemo: FC = () => {
                             // rows={10}
                             placeholder=""
                             style={{ whiteSpace: "pre-wrap" }}
-                            className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
+                            className={`${styles.textarea_box} ${styles.field_edit_mode_textarea} ${styles.xl}`}
                             value={inputClaim}
                             onChange={(e) => setInputClaim(e.target.value)}
                           ></textarea>
@@ -6712,7 +6724,7 @@ const ContactMainContainerMemo: FC = () => {
                 {/* 禁止理由 */}
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full `}>
+                    <div className={`${styles.title_box} flex h-full ${styles.title_box_lg}`}>
                       <span className={`${styles.title}`}>禁止理由</span>
                       {!searchMode && isEditModeField !== "ban_reason" && (
                         <div
@@ -6776,7 +6788,7 @@ const ContactMainContainerMemo: FC = () => {
                               // rows={10}
                               placeholder=""
                               style={{ whiteSpace: "pre-wrap" }}
-                              className={`${styles.textarea_box} ${styles.textarea_box_search_mode} ${styles.field_edit_mode_textarea} ${styles.xl}`}
+                              className={`${styles.textarea_box} ${styles.field_edit_mode_textarea} ${styles.xl}`}
                               value={inputBanReason}
                               onChange={(e) => setInputBanReason(e.target.value)}
                             ></textarea>

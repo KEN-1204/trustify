@@ -92,19 +92,12 @@ export const InputSendAndCloseBtn = <T extends string | (number | null) = string
             } z-[2100] min-h-[26px] min-w-[26px] ${btnPositionY} rounded-full border border-solid border-transparent ${
               required && (inputState === "" || inputState === null)
                 ? `cursor-not-allowed text-[#999]`
-                : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
+                : `border-[var(--color-bg-brand-f) cursor-pointer text-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] hover:shadow-lg`
             }`}
             style={{ ...(btnSize && { minHeight: `${btnSize}px`, minWidth: `${btnSize}px` }) }}
             onClick={onClickSendEvent}
           >
-            <IoIosSend
-              className={`text-[20px] ${
-                required && (inputState === "" || inputState === null)
-                  ? `text-[#999] group-hover:text-[#999]`
-                  : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
-              } `}
-              style={{ ...(iconSize && { fontSize: `${iconSize}px` }) }}
-            />
+            <IoIosSend className={`text-[20px]`} style={{ ...(iconSize && { fontSize: `${iconSize}px` }) }} />
           </div>
         </>
       )}

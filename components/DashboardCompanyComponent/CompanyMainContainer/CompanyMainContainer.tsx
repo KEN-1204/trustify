@@ -100,9 +100,12 @@ import { toHalfWidthAndRemoveSpace } from "@/utils/Helpers/toHalfWidthAndRemoveS
 import {
   adjustFieldRangeNumeric,
   adjustIsNNN,
+  beforeAdjustFieldRangeNumeric,
+  beforeAdjustIsNNN,
   copyInputRange,
   isCopyableInputRange,
   isEmptyInputRange,
+  setArrayParam,
 } from "@/utils/Helpers/MainContainer/commonHelper";
 import { LuCopyPlus } from "react-icons/lu";
 // 名前付きエクスポートの場合のダイナミックインポート
@@ -502,46 +505,46 @@ const CompanyMainContainerMemo: FC = () => {
         return value;
       };
 
-      // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
-      const adjustFieldRangeNumeric = (
-        value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL",
-        type: "" | "price" | "integer" = ""
-      ): { min: string; max: string } | "is null" | "is not null" => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        const { min, max } = value;
+      // // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+      // const adjustFieldRangeNumeric = (
+      //   value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL",
+      //   type: "" | "price" | "integer" = ""
+      // ): { min: string; max: string } | "is null" | "is not null" => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   const { min, max } = value;
 
-        if (min !== null && max !== null) {
-          if (type === "price") return { min: formatDisplayPrice(min), max: formatDisplayPrice(max) };
-          if (type === "integer") return { min: parseInt(String(min), 10).toFixed(0), max: max.toFixed(0) };
-          return { min: String(min), max: String(max) };
-        } else if (min !== null && max === null) {
-          if (type === "price") return { min: formatDisplayPrice(min), max: "" };
-          if (type === "integer") return { min: min.toFixed(0), max: "" };
-          return { min: String(min), max: "" };
-        } else if (min === null && max !== null) {
-          if (type === "price") return { min: "", max: formatDisplayPrice(max) };
-          if (type === "integer") return { min: "", max: max.toFixed(0) };
-          return { min: "", max: String(max) };
-        }
-        return { min: "", max: "" };
-      };
+      //   if (min !== null && max !== null) {
+      //     if (type === "price") return { min: formatDisplayPrice(min), max: formatDisplayPrice(max) };
+      //     if (type === "integer") return { min: parseInt(String(min), 10).toFixed(0), max: max.toFixed(0) };
+      //     return { min: String(min), max: String(max) };
+      //   } else if (min !== null && max === null) {
+      //     if (type === "price") return { min: formatDisplayPrice(min), max: "" };
+      //     if (type === "integer") return { min: min.toFixed(0), max: "" };
+      //     return { min: String(min), max: "" };
+      //   } else if (min === null && max !== null) {
+      //     if (type === "price") return { min: "", max: formatDisplayPrice(max) };
+      //     if (type === "integer") return { min: "", max: max.toFixed(0) };
+      //     return { min: "", max: String(max) };
+      //   }
+      //   return { min: "", max: "" };
+      // };
 
-      const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
-        value === "ISNULL" ? "is null" : "is not null";
+      // const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
+      //   value === "ISNULL" ? "is null" : "is not null";
 
-      // 🔸string配列のパラメータをstateにセットする関数
-      const setArrayParam = (
-        param: string[] | number[] | "ISNULL" | "ISNOTNULL",
-        dispatch: Dispatch<SetStateAction<any>>,
-        dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>
-      ) => {
-        if (param === "ISNULL" || param === "ISNOTNULL") {
-          dispatchNNN(beforeAdjustIsNNN(param));
-        } else {
-          dispatch(!!param.length ? param : []);
-        }
-      };
+      // // 🔸string配列のパラメータをstateにセットする関数
+      // const setArrayParam = (
+      //   param: string[] | number[] | "ISNULL" | "ISNOTNULL",
+      //   dispatch: Dispatch<SetStateAction<any>>,
+      //   dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>
+      // ) => {
+      //   if (param === "ISNULL" || param === "ISNOTNULL") {
+      //     dispatchNNN(beforeAdjustIsNNN(param));
+      //   } else {
+      //     dispatch(!!param.length ? param : []);
+      //   }
+      // };
 
       console.log(
         "🔥Companyメインコンテナー useEffect 編集モード inputにnewSearchCompanyParamsを格納",
@@ -566,8 +569,8 @@ const CompanyMainContainerMemo: FC = () => {
       // setInputCapitalSearch(
       //   beforeAdjustFieldValue(!!newSearchCompanyParams?.capital ? newSearchCompanyParams.capital.toString() : "")
       // );
-      setInputCapitalSearch(adjustFieldRangeNumeric(newSearchCompanyParams?.capital));
-      setInputNumberOfEmployeesSearch(adjustFieldRangeNumeric(newSearchCompanyParams?.number_of_employees));
+      setInputCapitalSearch(beforeAdjustFieldRangeNumeric(newSearchCompanyParams?.capital, "price"));
+      setInputNumberOfEmployeesSearch(beforeAdjustFieldRangeNumeric(newSearchCompanyParams?.number_of_employees));
       // 範囲検索 ------------------------ ここまで
       setInputFound(beforeAdjustFieldValue(newSearchCompanyParams?.established_in));
       setInputContent(beforeAdjustFieldValue(newSearchCompanyParams?.business_content));
@@ -1895,6 +1898,9 @@ const CompanyMainContainerMemo: FC = () => {
     return selectedRowDataCompany?.capital ? convertToJapaneseCurrencyFormat(selectedRowDataCompany.capital) : "";
   }, [selectedRowDataCompany?.capital]);
 
+  // フィールドエディットタイトル
+  const fieldEditTitle = (title: string) => (isEditModeField === title ? `${styles.field_edit}` : ``);
+
   // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------
   // ツールチップ
   const additionalInputTooltipText = (index: number) =>
@@ -2906,7 +2912,7 @@ const CompanyMainContainerMemo: FC = () => {
               {/* 規模(ランク) */}
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>規模(ﾗﾝｸ)</span>
+                  <span className={`${styles.title} ${fieldEditTitle("number_of_employees_class")}`}>規模(ﾗﾝｸ)</span>
                   {/* ディスプレイ */}
                   {!searchMode && isEditModeField !== "number_of_employees_class" && (
                     <span
@@ -3064,7 +3070,7 @@ const CompanyMainContainerMemo: FC = () => {
             {/* 住所 */}
             <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="flex h-full w-full flex-col pr-[20px] ">
-                <div className={`${styles.title_box} flex h-full `}>
+                <div className={`${styles.title_box} flex h-full ${styles.title_box_lg}`}>
                   <span className={`${styles.title}`}>○住所</span>
                   {/* ディスプレイ */}
                   {!searchMode && isEditModeField !== "address" && (
@@ -3552,10 +3558,10 @@ const CompanyMainContainerMemo: FC = () => {
               </div>
             </div>
 
-            {/* 事業内容 */}
+            {/* 事業概要 */}
             <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="group relative flex h-full w-full flex-col pr-[20px] ">
-                <div className={`${styles.title_box}  flex h-full`}>
+                <div className={`${styles.title_box}  flex h-full ${styles.title_box_lg}`}>
                   <span className={`${styles.title}`}>事業概要</span>
                   {/* ディスプレイ */}
                   {!searchMode && isEditModeField !== "business_content" && (
@@ -3902,7 +3908,7 @@ const CompanyMainContainerMemo: FC = () => {
             <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
               <div className="group relative flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
-                  <span className={`${styles.title}`}>○業種</span>
+                  <span className={`${styles.title} ${fieldEditTitle("industry_type_id")}`}>○業種</span>
                   {/* ディスプレイ */}
                   {!searchMode && isEditModeField !== "industry_type_id" && (
                     <span
@@ -4059,7 +4065,11 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="group relative flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   {/* <span className={`${styles.title} !mr-[15px] !min-w-max`}>○製品分類(大分類)</span> */}
-                  <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                  <div
+                    className={`${styles.title} flex flex-col ${styles.double_text} ${fieldEditTitle(
+                      "product_categories"
+                    )}`}
+                  >
                     <span>製品分類</span>
                     <span>(大分類)</span>
                   </div>
@@ -4294,7 +4304,11 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="group relative flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   {/* <span className={`${styles.title} !mr-[15px] !min-w-max`}>○製品分類(中分類)</span> */}
-                  <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                  <div
+                    className={`${styles.title} flex flex-col ${styles.double_text} ${fieldEditTitle(
+                      "product_categories"
+                    )}`}
+                  >
                     <span className={``}>製品分類</span>
                     <span className={``}>(中分類)</span>
                   </div>
@@ -4461,7 +4475,11 @@ const CompanyMainContainerMemo: FC = () => {
               <div className="group relative flex h-full w-full flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center `}>
                   {/* <span className={`${styles.title} !mr-[5px] !min-w-max`}>○製品分類(小分類)</span> */}
-                  <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                  <div
+                    className={`${styles.title} flex flex-col ${styles.double_text} ${fieldEditTitle(
+                      "product_categories"
+                    )}`}
+                  >
                     <span className={``}>製品分類</span>
                     <span className={``}>(小分類)</span>
                   </div>
@@ -4849,7 +4867,7 @@ const CompanyMainContainerMemo: FC = () => {
               {/* 決算月 */}
               <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                 <div className={`${styles.title_box} flex h-full items-center`}>
-                  <span className={`${styles.title}`}>決算月</span>
+                  <span className={`${styles.title} ${fieldEditTitle("fiscal_end_month")}`}>決算月</span>
                   {/* ディスプレイ */}
                   {!searchMode && isEditModeField !== "fiscal_end_month" && (
                     <span
@@ -5007,7 +5025,7 @@ const CompanyMainContainerMemo: FC = () => {
               <div className={`${styles.row_area} flex h-[35px] w-full items-center`}>
                 <div className={`group relative flex h-full w-1/2 flex-col pr-[20px]`}>
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>予算申請月1</span>
+                    <span className={`${styles.title} ${fieldEditTitle("budget_request_month1")}`}>予算申請月1</span>
                     {/* <span className={`${styles.title}`}>会員専用</span> */}
                     {/* ディスプレイ */}
                     {!searchMode && isEditModeField !== "budget_request_month1" && (
@@ -5037,7 +5055,32 @@ const CompanyMainContainerMemo: FC = () => {
                     {/* フィールドエディットモード inputタグ */}
                     {!searchMode && isEditModeField === "budget_request_month1" && (
                       <>
-                        <input
+                        <select
+                          className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                          value={inputBudgetRequestMonth1}
+                          onChange={(e) => {
+                            // setInputEmployeesClass(e.target.value);
+                            handleChangeSelectUpdateField({
+                              e,
+                              fieldName: "budget_request_month1",
+                              value: e.target.value,
+                              id: selectedRowDataCompany?.id,
+                            });
+                          }}
+                        >
+                          {optionsMonth.map((option) => (
+                            <option key={option} value={option}>
+                              {option}月
+                            </option>
+                          ))}
+                        </select>
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updateClientCompanyFieldMutation.isLoading && (
+                          <div className={`${styles.field_edit_mode_loading_area}`}>
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                        {/* <input
                           type="text"
                           placeholder=""
                           autoFocus
@@ -5056,7 +5099,6 @@ const CompanyMainContainerMemo: FC = () => {
                             })
                           }
                         />
-                        {/* 送信ボタンとクローズボタン */}
                         {!updateClientCompanyFieldMutation.isLoading && (
                           <InputSendAndCloseBtn
                             inputState={inputBudgetRequestMonth1}
@@ -5074,14 +5116,13 @@ const CompanyMainContainerMemo: FC = () => {
                             isDisplayClose={false}
                           />
                         )}
-                        {/* エディットフィールド送信中ローディングスピナー */}
                         {updateClientCompanyFieldMutation.isLoading && (
                           <div
                             className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
                           >
                             <SpinnerComet w="22px" h="22px" s="3px" />
                           </div>
-                        )}
+                        )} */}
                       </>
                     )}
                     {/* フィールドエディットモードオーバーレイ */}
@@ -5109,7 +5150,7 @@ const CompanyMainContainerMemo: FC = () => {
                 {/* 予算申請月2 */}
                 <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title}`}>予算申請月2</span>
+                    <span className={`${styles.title} ${fieldEditTitle("budget_request_month2")}`}>予算申請月2</span>
                     {/* ディスプレイ */}
                     {!searchMode && isEditModeField !== "budget_request_month2" && (
                       <span
@@ -5140,6 +5181,31 @@ const CompanyMainContainerMemo: FC = () => {
                       <>
                         <select
                           className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
+                          value={inputBudgetRequestMonth2}
+                          onChange={(e) => {
+                            // setInputEmployeesClass(e.target.value);
+                            handleChangeSelectUpdateField({
+                              e,
+                              fieldName: "budget_request_month2",
+                              value: e.target.value,
+                              id: selectedRowDataCompany?.id,
+                            });
+                          }}
+                        >
+                          {optionsMonth.map((option) => (
+                            <option key={option} value={option}>
+                              {option}月
+                            </option>
+                          ))}
+                        </select>
+                        {/* エディットフィールド送信中ローディングスピナー */}
+                        {updateClientCompanyFieldMutation.isLoading && (
+                          <div className={`${styles.field_edit_mode_loading_area}`}>
+                            <SpinnerComet w="22px" h="22px" s="3px" />
+                          </div>
+                        )}
+                        {/* <select
+                          className={`ml-auto h-full w-full cursor-pointer ${styles.select_box} ${styles.field_edit_mode_select_box}`}
                           value={inputEmployeesClass}
                           onChange={(e) => {
                             // setInputEmployeesClass(e.target.value);
@@ -5151,21 +5217,19 @@ const CompanyMainContainerMemo: FC = () => {
                             });
                           }}
                         >
-                          {/* <option value="">全て選択</option> */}
                           {optionsNumberOfEmployeesClass.map((option) => (
                             <option key={option} value={option}>
                               {getNumberOfEmployeesClass(option)}
                             </option>
                           ))}
-                        </select>
-                        {/* エディットフィールド送信中ローディングスピナー */}
-                        {updateClientCompanyFieldMutation.isLoading && (
+                        </select> */}
+                        {/* {updateClientCompanyFieldMutation.isLoading && (
                           <div
                             className={`${styles.field_edit_mode_loading_area_for_select_box} ${styles.right_position}`}
                           >
                             <SpinnerComet w="22px" h="22px" s="3px" />
                           </div>
-                        )}
+                        )} */}
                       </>
                     )}
                     {/* フィールドエディットモードオーバーレイ */}
@@ -5490,7 +5554,7 @@ const CompanyMainContainerMemo: FC = () => {
             {/* 設備 */}
             <div className={`${styles.row_area} flex w-full items-center`}>
               <div className="group relative flex h-full w-full flex-col pr-[20px] ">
-                <div className={`${styles.title_box}  flex h-full`}>
+                <div className={`${styles.title_box}  flex h-full ${styles.title_box_lg}`}>
                   <span className={`${styles.title}`}>設備</span>
                   {/* ディスプレイ */}
                   {!searchMode && isEditModeField !== "facility" && (

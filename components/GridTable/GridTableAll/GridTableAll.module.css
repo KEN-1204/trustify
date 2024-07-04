@@ -1161,6 +1161,10 @@
   }
 }
 
+.grid_cell {
+  font-size: 12px;
+}
+
 @media (max-width: 1600px) {
   .grid_cell {
     font-size: 12px;

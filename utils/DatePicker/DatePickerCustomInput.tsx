@@ -197,17 +197,11 @@ export const DatePickerCustomInput: FC<Props> = ({
               className={`flex-center transition-bg03 group min-h-[26px] min-w-[26px] rounded-full border border-solid border-transparent ${
                 required && startDate === null
                   ? `cursor-not-allowed text-[#999]`
-                  : `border-[var(--color-bg-brand-f) cursor-pointer hover:bg-[var(--color-bg-brand-f)] hover:shadow-lg`
+                  : `border-[var(--color-bg-brand-f) cursor-pointer text-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f)] hover:text-[#fff] hover:shadow-lg`
               }`}
               onClick={onClickSendEvent}
             >
-              <IoIosSend
-                className={`text-[20px] ${
-                  required && startDate === null
-                    ? `text-[#999] group-hover:text-[#999]`
-                    : `text-[var(--color-bg-brand-f)] group-hover:text-[#fff]`
-                }`}
-              />
+              <IoIosSend className={`text-[20px]`} />
             </div>
           )}
           {/* バツボタン フィールドエディットモード専用 */}

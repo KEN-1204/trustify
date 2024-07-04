@@ -111,9 +111,13 @@ import {
   adjustFieldRangeNumeric,
   adjustFieldRangeTIMESTAMPTZ,
   adjustIsNNN,
+  beforeAdjustFieldRangeDate,
+  beforeAdjustFieldRangeNumeric,
+  beforeAdjustIsNNN,
   copyInputRange,
   isCopyableInputRange,
   isEmptyInputRange,
+  setArrayParam,
 } from "@/utils/Helpers/MainContainer/commonHelper";
 import { LuCopyPlus } from "react-icons/lu";
 
@@ -701,79 +705,79 @@ const ActivityMainContainerOneThirdMemo = () => {
         return value;
       };
 
-      // 復元Number専用
-      const beforeAdjustFieldValueInteger = (value: number | "ISNULL" | "ISNOTNULL" | null) => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        if (value === null) return null;
-        return value;
-      };
-      // 復元Date専用
-      const beforeAdjustFieldValueDate = (value: string | "ISNULL" | "ISNOTNULL" | null) => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        if (value === null) return null;
-        return new Date(value);
-      };
+      // // 復元Number専用
+      // const beforeAdjustFieldValueInteger = (value: number | "ISNULL" | "ISNOTNULL" | null) => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   if (value === null) return null;
+      //   return value;
+      // };
+      // // 復元Date専用
+      // const beforeAdjustFieldValueDate = (value: string | "ISNULL" | "ISNOTNULL" | null) => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   if (value === null) return null;
+      //   return new Date(value);
+      // };
 
-      // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
-      const adjustFieldRangeNumeric = (
-        value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL",
-        type: "" | "price" | "integer" = ""
-      ): { min: string; max: string } | "is null" | "is not null" => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        const { min, max } = value;
+      // // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+      // const adjustFieldRangeNumeric = (
+      //   value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL",
+      //   type: "" | "price" | "integer" = ""
+      // ): { min: string; max: string } | "is null" | "is not null" => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   const { min, max } = value;
 
-        if (min !== null && max !== null) {
-          if (type === "price") return { min: formatDisplayPrice(min), max: formatDisplayPrice(max) };
-          if (type === "integer") return { min: parseInt(String(min), 10).toFixed(0), max: max.toFixed(0) };
-          return { min: String(min), max: String(max) };
-        } else if (min !== null && max === null) {
-          if (type === "price") return { min: formatDisplayPrice(min), max: "" };
-          if (type === "integer") return { min: min.toFixed(0), max: "" };
-          return { min: String(min), max: "" };
-        } else if (min === null && max !== null) {
-          if (type === "price") return { min: "", max: formatDisplayPrice(max) };
-          if (type === "integer") return { min: "", max: max.toFixed(0) };
-          return { min: "", max: String(max) };
-        }
-        return { min: "", max: "" };
-      };
-      // 🔸範囲検索用の変換 Date型
-      const adjustFieldRangeDate = (
-        value: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL",
-        type: "" = ""
-      ): { min: Date | null; max: Date | null } | "is null" | "is not null" => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        const { min, max } = value;
+      //   if (min !== null && max !== null) {
+      //     if (type === "price") return { min: formatDisplayPrice(min), max: formatDisplayPrice(max) };
+      //     if (type === "integer") return { min: parseInt(String(min), 10).toFixed(0), max: max.toFixed(0) };
+      //     return { min: String(min), max: String(max) };
+      //   } else if (min !== null && max === null) {
+      //     if (type === "price") return { min: formatDisplayPrice(min), max: "" };
+      //     if (type === "integer") return { min: min.toFixed(0), max: "" };
+      //     return { min: String(min), max: "" };
+      //   } else if (min === null && max !== null) {
+      //     if (type === "price") return { min: "", max: formatDisplayPrice(max) };
+      //     if (type === "integer") return { min: "", max: max.toFixed(0) };
+      //     return { min: "", max: String(max) };
+      //   }
+      //   return { min: "", max: "" };
+      // };
+      // // 🔸範囲検索用の変換 Date型
+      // const adjustFieldRangeDate = (
+      //   value: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL",
+      //   type: "" = ""
+      // ): { min: Date | null; max: Date | null } | "is null" | "is not null" => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   const { min, max } = value;
 
-        if (min !== null && max !== null) {
-          return { min: new Date(min), max: new Date(max) };
-        } else if (min !== null && max === null) {
-          return { min: new Date(min), max: null };
-        } else if (min === null && max !== null) {
-          return { min: null, max: new Date(max) };
-        }
-        return { min: null, max: null };
-      };
+      //   if (min !== null && max !== null) {
+      //     return { min: new Date(min), max: new Date(max) };
+      //   } else if (min !== null && max === null) {
+      //     return { min: new Date(min), max: null };
+      //   } else if (min === null && max !== null) {
+      //     return { min: null, max: new Date(max) };
+      //   }
+      //   return { min: null, max: null };
+      // };
 
-      // 🔸string配列のパラメータをstateにセットする関数
-      const setArrayParam = (
-        param: string[] | number[] | "ISNULL" | "ISNOTNULL",
-        dispatch: Dispatch<SetStateAction<any[]>>,
-        dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>
-      ) => {
-        if (param === "ISNULL" || param === "ISNOTNULL") {
-          dispatchNNN(beforeAdjustIsNNN(param));
-        } else {
-          dispatch(!!param.length ? param : []);
-        }
-      };
+      // // 🔸string配列のパラメータをstateにセットする関数
+      // const setArrayParam = (
+      //   param: string[] | number[] | "ISNULL" | "ISNOTNULL",
+      //   dispatch: Dispatch<SetStateAction<any[]>>,
+      //   dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>
+      // ) => {
+      //   if (param === "ISNULL" || param === "ISNOTNULL") {
+      //     dispatchNNN(beforeAdjustIsNNN(param));
+      //   } else {
+      //     dispatch(!!param.length ? param : []);
+      //   }
+      // };
 
-      const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
-        value === "ISNULL" ? "is null" : "is not null";
+      // const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
+      //   value === "ISNULL" ? "is null" : "is not null";
 
       console.log(
         "🔥Activityメインコンテナー useEffect 編集モード inputにnewSearchActivity_Contact_CompanyParamsを格納",
@@ -809,9 +813,9 @@ const ActivityMainContainerOneThirdMemo = () => {
       //       : ""
       //   )
       // );
-      setInputCapitalSearch(adjustFieldRangeNumeric(newSearchActivity_Contact_CompanyParams?.capital));
+      setInputCapitalSearch(beforeAdjustFieldRangeNumeric(newSearchActivity_Contact_CompanyParams?.capital, "price"));
       setInputNumberOfEmployeesSearch(
-        adjustFieldRangeNumeric(newSearchActivity_Contact_CompanyParams?.number_of_employees)
+        beforeAdjustFieldRangeNumeric(newSearchActivity_Contact_CompanyParams?.number_of_employees)
       );
       // 範囲検索 資本金・従業員数 ------------------------ここまで
       setInputFound(beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams?.established_in));
@@ -975,7 +979,9 @@ const ActivityMainContainerOneThirdMemo = () => {
       //       : ""
       //   )
       // );
-      setInputApprovalAmountSearch(adjustFieldRangeNumeric(newSearchActivity_Contact_CompanyParams?.approval_amount));
+      setInputApprovalAmountSearch(
+        beforeAdjustFieldRangeNumeric(newSearchActivity_Contact_CompanyParams?.approval_amount, "price")
+      );
       // 範囲検索 決裁金額 ------------------------ここまで
       setInputContactCreatedByCompanyId(
         beforeAdjustFieldValue(newSearchActivity_Contact_CompanyParams["contacts.created_by_company_id"])
@@ -1018,7 +1024,7 @@ const ActivityMainContainerOneThirdMemo = () => {
       //   beforeAdjustFieldValueDate(newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date)
       //   );
       setInputScheduledFollowUpDateSearch(
-        adjustFieldRangeDate(newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date)
+        beforeAdjustFieldRangeDate(newSearchActivity_Contact_CompanyParams.scheduled_follow_up_date)
       );
       // 範囲検索 次回フォロー予定日 -----------------------ここまで
       setInputFollowUpFlag(newSearchActivity_Contact_CompanyParams.follow_up_flag ?? null);
@@ -2511,6 +2517,9 @@ const ActivityMainContainerOneThirdMemo = () => {
     }
   };
 
+  // フィールドエディットタイトル
+  const fieldEditTitle = (title: string) => (isEditModeField === title ? `${styles.field_edit}` : ``);
+
   // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------
   // ツールチップ
   const additionalInputTooltipText = (index: number) =>
@@ -2743,7 +2752,10 @@ const ActivityMainContainerOneThirdMemo = () => {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   return (
-    <form className={`${styles.main_container} w-full `} onSubmit={handleSearchSubmit}>
+    <form
+      className={`${styles.main_container} w-full ${isEditModeField ? styles.field_edit_mode : ``}`}
+      onSubmit={handleSearchSubmit}
+    >
       {/* ------------------------- スクロールコンテナ ------------------------- */}
       <div
         ref={scrollContainerRef}
@@ -2772,7 +2784,7 @@ const ActivityMainContainerOneThirdMemo = () => {
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} ${styles.min}`}>活動日</span>
+                    <span className={`${styles.title} ${styles.min} ${fieldEditTitle("activity_date")}`}>活動日</span>
                     {!searchMode && isEditModeField !== "activity_date" && (
                       <span
                         className={`${styles.value} ${isOurActivity ? styles.editable_field : styles.uneditable_field}`}
@@ -2859,6 +2871,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                                 required: true,
                               });
                             }}
+                            fontSize={`!text-[13px]`}
                           />
                         </div>
                       </>
@@ -2951,7 +2964,7 @@ const ActivityMainContainerOneThirdMemo = () => {
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} ${styles.min}`}>活動ﾀｲﾌﾟ</span>
+                    <span className={`${styles.title} ${styles.min} ${fieldEditTitle("activity_type")}`}>活動ﾀｲﾌﾟ</span>
                     {!searchMode && isEditModeField !== "activity_type" && (
                       <span
                         className={`${styles.value} ${
@@ -2966,6 +2979,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                             e,
                             field: "activity_type",
                             dispatch: setInputActivityType,
+                            selectedRowDataValue: selectedRowDataActivity?.activity_type ?? "",
                           });
                           if (hoveredItemPosWrap) handleCloseTooltip();
                         }}
@@ -3126,7 +3140,11 @@ const ActivityMainContainerOneThirdMemo = () => {
               <div className={`${styles.row_area} flex h-[30px] w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} ${styles.min} flex flex-col`}>
+                    <div
+                      className={`${styles.title} ${styles.min} flex flex-col ${fieldEditTitle(
+                        "scheduled_follow_up_date"
+                      )}`}
+                    >
                       <span>次回ﾌｫﾛｰ</span>
                       <span>予定日</span>
                     </div>
@@ -3212,6 +3230,7 @@ const ActivityMainContainerOneThirdMemo = () => {
                                 required: false,
                               });
                             }}
+                            fontSize={`!text-[13px]`}
                           />
                         </div>
                       </>

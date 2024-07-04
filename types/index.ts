@@ -2792,8 +2792,11 @@ export type NewSearchQuotation_Contact_CompanyParams = {
   "q.created_by_unit_of_user": string | null;
   "q.created_by_office_of_user": string | null; //🌠追加
   // submission_class: string | null;
-  quotation_date: string | null | "ISNULL" | "ISNOTNULL";
-  expiration_date: string | null | "ISNULL" | "ISNOTNULL";
+  // 範囲検索 日付(カレンダー) DATE ----------------
+  // quotation_date: string | null | "ISNULL" | "ISNOTNULL";
+  // expiration_date: string | null | "ISNULL" | "ISNOTNULL";
+  quotation_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
+  expiration_date: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL"; // ISO文字列
   // deadline: string | null;
   // delivery_place: string | null;
   // payment_terms: string | null;

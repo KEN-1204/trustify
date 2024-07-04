@@ -2335,19 +2335,20 @@ export const getQuotationDivision = (value: string, language: string = "ja") => 
 // 送付方法
 // export const optionsSendingMethod = ["送付状なし", "Fax", "郵送"];
 // export const optionsSendingMethod = ["送付状なし"];
-export const optionsSendingMethod = ["Without Cover Letter", "Fax", "Mail", "Email"];
+// export const optionsSendingMethod = ["Without Cover Letter", "Fax", "Mail", "Email"];
+export const optionsSendingMethod = ["without_cover_letter", "fax", "mail", "email"];
 export const getSendingMethod = (value: string, language: string = "ja") => {
   switch (value) {
-    case "Without Cover Letter":
+    case "without_cover_letter":
       return (language = "ja" ? `送付状なし` : `Without Cover Letter`);
       break;
-    case "Fax":
+    case "fax":
       return (language = "ja" ? `Fax` : `Fax`);
       break;
-    case "Mail":
+    case "mail":
       return (language = "ja" ? `郵送` : `Mail`);
       break;
-    case "Email":
+    case "email":
       return (language = "ja" ? `メール` : `Email`);
       break;
 
@@ -2358,13 +2359,14 @@ export const getSendingMethod = (value: string, language: string = "ja") => {
 };
 
 // 消費税区分
-export const optionsSalesTaxClass = ["A With Tax Notation", "B Without Tax Notation"];
+// export const optionsSalesTaxClass = ["A With Tax Notation", "B Without Tax Notation"];
+export const optionsSalesTaxClass = ["A with_tax_notation", "B without_tax_notation"];
 export const getSalesTaxClass = (value: string, language: string = "ja") => {
   switch (value) {
-    case "A With Tax Notation":
+    case "A with_tax_notation":
       return (language = "ja" ? `消費税記載なし` : `With Tax Notation`);
       break;
-    case "B Without Tax Notation":
+    case "B without_tax_notation":
       return (language = "ja" ? `消費税記載あり` : `Without Tax Notation`);
       break;
 

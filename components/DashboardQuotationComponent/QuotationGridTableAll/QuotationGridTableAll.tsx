@@ -41,6 +41,7 @@ import { MdDeleteOutline } from "react-icons/md";
 import { SpinnerBrand } from "@/components/Parts/SpinnerBrand/SpinnerBrand";
 import { RiSortDesc } from "react-icons/ri";
 import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/SettingAccountModal/SettingCompany/ConfirmationModal/ConfirmationModal";
+import { convertObjToText, searchObjectColumnsSetQuotation } from "@/utils/Helpers/MainContainer/commonHelper";
 
 type TableDataType = {
   id: number;
@@ -750,35 +751,60 @@ const QuotationGridTableAllMemo: FC<Props> = ({ title }) => {
   // 次回に同じ検索をした場合にもキャッシュを使用できるようにする
   // useInfiniteQueryのキャッシュのクエリキーの第二引数に割り当てる
   // const [newSearchParamsString, setNewSearchParamsString] = useState<string | null>(null);
-  const newSearchParamsStringRef = useRef<string | null>(null);
-  //   console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
-  // console.log(
-  //   "キャッシュに割り当てるparamsキー newSearchQuotation_Contact_CompanyParams",
-  //   newSearchQuotation_Contact_CompanyParams
-  // );
-  if (newSearchQuotation_Contact_CompanyParams) {
-    newSearchParamsStringRef.current = Object.entries(newSearchQuotation_Contact_CompanyParams)
-      .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-      .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
-      // .map((key, index) => `${key}:${key[index]} `)
-      .join(", ");
-    // .join("");
-    // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
-  }
-  // console.log(
-  //   "✅🔥newSearchCompanyParams",
-  //   newSearchCompanyParams,
-  //   "NewSearchParamsString",
-  //   newSearchParamsStringRef.current
-  // );
+  // -------------------------- 🔸サーチ条件をstringに変換 変更前 useRefバージョン🔸 --------------------------
+  // const newSearchParamsStringRef = useRef<string | null>(null);
+  // //   console.log("キャッシュに割り当てるparamsキー newSearchCompanyParams", newSearchCompanyParams);
+  // // console.log(
+  // //   "キャッシュに割り当てるparamsキー newSearchQuotation_Contact_CompanyParams",
+  // //   newSearchQuotation_Contact_CompanyParams
+  // // );
+  // if (newSearchQuotation_Contact_CompanyParams) {
+  //   newSearchParamsStringRef.current = Object.entries(newSearchQuotation_Contact_CompanyParams)
+  //     .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+  //     .map(([key, value]) => `${key}:${value === null ? `null` : `${value}`}`)
+  //     // .map((key, index) => `${key}:${key[index]} `)
+  //     .join(", ");
+  //   // .join("");
+  //   // console.log("キャッシュに割り当てるparamsキー newSearchParamsStringRef.current", newSearchParamsStringRef.current);
+  // }
+
+  // -------------------------- 🔸サーチ条件をstringに変換 変更前 useRefバージョン🔸 --------------------------ここまで
+
+  // -------------------------- 🔸サーチ条件をstringに変換 テスト useMemo🔸 --------------------------
+  const searchParamsString = useMemo(() => {
+    if (newSearchQuotation_Contact_CompanyParams) {
+      return Object.entries(newSearchQuotation_Contact_CompanyParams)
+        .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+        .map(([key, value]) =>
+          searchObjectColumnsSetQuotation.has(key)
+            ? convertObjToText(key, value)
+            : `${key}:${value === null ? `null` : `${value}`}`
+        )
+        .join(", ");
+    } else {
+      return null;
+    }
+  }, [newSearchQuotation_Contact_CompanyParams]);
+  // -------------------------- 🔸サーチ条件をstringに変換 テスト useMemo🔸 -------------------------- ここまで
+
   // ================== 🌟useInfiniteQueryフック🌟 ==================
   const { status, data, error, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useInfiniteQuery(
     {
       // queryKey: ["companies"],
       // queryKey: ["quotations", newSearchParamsStringRef.current],
+      // queryKey: [
+      //   "quotations",
+      //   newSearchParamsStringRef.current,
+      //   isFetchAllDepartments,
+      //   isFetchAllSections,
+      //   isFetchAllUnits,
+      //   isFetchAllOffices,
+      //   isFetchAllMembers,
+      //   functionName,
+      // ],
       queryKey: [
         "quotations",
-        newSearchParamsStringRef.current,
+        searchParamsString,
         isFetchAllDepartments,
         isFetchAllSections,
         isFetchAllUnits,

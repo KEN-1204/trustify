@@ -1,7 +1,3 @@
-// ------------------------------ 🔸GridTable用🔸 ------------------------------
-// queryKeyにセットする際にオブジェクトを文字列に変換する関数と変換が必要なカラムのSetオブジェクト
-// (範囲検索でparamsに{min: ~, max: ~}のオブジェクトがセットされるため)
-
 import { convertToMillions } from "../convertToMillions";
 import { convertToYen } from "../convertToYen";
 import { isPlainObject } from "../isObjectPlain";
@@ -9,7 +5,10 @@ import { isValidNumber } from "../isValidNumber";
 import { normalizeDiscountRate } from "../normalizeDiscountRate";
 import { toHalfWidthAndRemoveSpace } from "../toHalfWidthAndRemoveSpace";
 
-// 範囲検索オブジェクトカラム
+// ----------------------------------- 🔸GridTable用🔸 -----------------------------------
+// queryKeyにセットする際にオブジェクトを文字列に変換する関数と変換が必要なカラムのSetオブジェクト
+// (範囲検索でparamsに{min: ~, max: ~}のオブジェクトがセットされるため)
+// -----------------------------------範囲検索オブジェクトカラム-----------------------------------
 // 🔹会社 GridTableAll
 export const searchObjectColumnsSetCompany = new Set(["capital", "number_of_employees"]);
 // 🔹担当者 ContactGridTableAll
@@ -59,7 +58,13 @@ export const searchObjectColumnsSetProperty = new Set([
   "lease_expiration_date", // リース完了予定日
   "competitor_appearance_date", // 競合発生日
 ]);
+// 🔹案件 PropertyGridTableAll
+export const searchObjectColumnsSetQuotation = new Set([
+  "quotation_date", // 見積日
+  "expiration_date", // 有効期限
+]);
 
+// valueがオブジェクト => テキストにフォーマット
 export const convertObjToText = (column: string, obj: Object | null) => {
   if (!obj) return `${column}:null`;
 
@@ -74,6 +79,7 @@ export const convertObjToText = (column: string, obj: Object | null) => {
   return `${column}:${objText}`;
 };
 
+// 面談画面 TIME型用2段ネストオブジェクト => テキスト
 export const convertObjToTextNest = (column: string, obj: Object | null) => {
   if (!obj) return `${column}:null`;
 
@@ -96,9 +102,10 @@ export const convertObjToTextNest = (column: string, obj: Object | null) => {
   });
   return `${column}:${objText}`;
 };
-// ------------------------------ 🔸GridTable用🔸 ------------------------------ ここまで
+// -----------------------------------範囲検索オブジェクトカラム-----------------------------------
+// ----------------------------------- 🔸GridTable用🔸 ----------------------------------- ここまで
 
-// ------------------------------ 🔸サーチモード用🔸 ------------------------------
+// ----------------------------------- 🔸サーチモード用🔸 -----------------------------------
 // 範囲検索用 上限、下限全て入力されていないかどうかチェック
 export const isEmptyInputRange = (
   input:
@@ -214,6 +221,96 @@ export const copyInputRange = (
     }
   });
 };
+
+// ----------------------------------- 🔸サーチ編集モード前処理🔸 -----------------------------------
+
+// 復元Number専用
+export const beforeAdjustFieldValueInteger = (value: number | "ISNULL" | "ISNOTNULL" | null) => {
+  if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+  if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+  if (value === null) return null;
+  return value;
+};
+// 復元Date専用
+export const beforeAdjustFieldValueDate = (value: string | "ISNULL" | "ISNOTNULL" | null) => {
+  if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+  if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+  if (value === null) return null;
+  return new Date(value);
+};
+
+// 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+export const beforeAdjustFieldRangeNumeric = (
+  value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL",
+  type: "" | "price" | "integer" = ""
+): { min: string; max: string } | "is null" | "is not null" => {
+  if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+  if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+  const { min, max } = value;
+
+  if (min !== null && max !== null) {
+    // if (type === "price") return { min: formatDisplayPrice(min), max: formatDisplayPrice(max) };
+    if (type === "price") return { min: min.toLocaleString(), max: max.toLocaleString() };
+    if (type === "integer") return { min: parseInt(String(min), 10).toFixed(0), max: max.toFixed(0) };
+    return { min: String(min), max: String(max) };
+  } else if (min !== null && max === null) {
+    if (type === "price") return { min: min.toLocaleString(), max: "" };
+    if (type === "integer") return { min: min.toFixed(0), max: "" };
+    return { min: String(min), max: "" };
+  } else if (min === null && max !== null) {
+    if (type === "price") return { min: "", max: max.toLocaleString() };
+    if (type === "integer") return { min: "", max: max.toFixed(0) };
+    return { min: "", max: String(max) };
+  }
+  return { min: "", max: "" };
+};
+
+// 🔸範囲検索用の変換 INTEGER型 数量・面談時間など
+export const beforeAdjustFieldRangeInteger = (
+  value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL"
+): { min: number | null; max: number | null } | "is null" | "is not null" => {
+  if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+  if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+  const { min, max } = value;
+
+  return { min: min, max: max };
+};
+
+// 🔸範囲検索用の変換 Date型
+export const beforeAdjustFieldRangeDate = (
+  value: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL",
+  type: "" = ""
+): { min: Date | null; max: Date | null } | "is null" | "is not null" => {
+  if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+  if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+  const { min, max } = value;
+
+  if (min !== null && max !== null) {
+    return { min: new Date(min), max: new Date(max) };
+  } else if (min !== null && max === null) {
+    return { min: new Date(min), max: null };
+  } else if (min === null && max !== null) {
+    return { min: null, max: new Date(max) };
+  }
+  return { min: null, max: null };
+};
+
+export const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
+  value === "ISNULL" ? "is null" : "is not null";
+
+// 🔸string配列のパラメータをstateにセットする関数
+export const setArrayParam = (
+  param: string[] | number[] | "ISNULL" | "ISNOTNULL",
+  dispatch: React.Dispatch<React.SetStateAction<any[]>>,
+  dispatchNNN: React.Dispatch<React.SetStateAction<"is null" | "is not null" | null>>
+) => {
+  if (param === "ISNULL" || param === "ISNOTNULL") {
+    dispatchNNN(beforeAdjustIsNNN(param));
+  } else {
+    dispatch(!!param.length ? param : []);
+  }
+};
+// ----------------------------------- 🔸サーチ編集モード前処理🔸 -----------------------------------ここまで
 
 // ----------------------------------- 🔸サブミット前処理🔸 -----------------------------------
 

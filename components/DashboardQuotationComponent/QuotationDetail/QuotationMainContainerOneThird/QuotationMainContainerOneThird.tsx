@@ -25,8 +25,6 @@ import { format } from "date-fns";
 import { MdClose, MdDoNotDisturbAlt, MdOutlineDone } from "react-icons/md";
 import { toast } from "react-toastify";
 import { Zoom } from "@/utils/Helpers/toastHelpers";
-import { convertToJapaneseCurrencyFormat } from "@/utils/Helpers/convertToJapaneseCurrencyFormat";
-import { convertToMillions } from "@/utils/Helpers/convertToMillions";
 
 import { useQueryDepartments } from "@/hooks/useQueryDepartments";
 import { useQueryUnits } from "@/hooks/useQueryUnits";
@@ -106,6 +104,15 @@ import { calculateFiscalYearMonths } from "@/utils/Helpers/CalendarHelpers/calcu
 import { getFiscalYear } from "@/utils/Helpers/getFiscalYear";
 import { BsCheck2 } from "react-icons/bs";
 import { DatePickerCustomInputForSearch } from "@/utils/DatePicker/DatePickerCustomInputForSearch";
+import {
+  adjustFieldRangeTIMESTAMPTZ,
+  beforeAdjustFieldRangeDate,
+  copyInputRange,
+  isCopyableInputRange,
+  isEmptyInputRange,
+} from "@/utils/Helpers/MainContainer/commonHelper";
+import { DatePickerCustomInputRange } from "@/utils/DatePicker/DatePickerCustomInputRange";
+import { LuCopyPlus } from "react-icons/lu";
 
 // https://nextjs-ja-translation-docs.vercel.app/docs/advanced-features/dynamic-import
 // デフォルトエクスポートの場合のダイナミックインポート
@@ -356,15 +363,24 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   const [prevMemberObj, setPrevMemberObj] = useState<MemberDetail>(initialMemberObj);
   const [memberObj, setMemberObj] = useState<MemberDetail>(initialMemberObj);
   // =========営業担当データここまで
+  // ----------------------- 範囲検索 見積日 -----------------------
   const [inputQuotationDate, setInputQuotationDate] = useState<Date | null>(null);
-  const [inputQuotationDateSearch, setInputQuotationDateSearch] = useState<Date | null | "is null" | "is not null">(
-    null
-  );
-  // console.log("見積日付inputQuotationDate", inputQuotationDate);
+  // const [inputQuotationDateSearch, setInputQuotationDateSearch] = useState<Date | null | "is null" | "is not null">(
+  //   null
+  // );
+  const [inputQuotationDateSearch, setInputQuotationDateSearch] = useState<
+    { min: Date | null; max: Date | null } | "is not null" | "is null"
+  >({ min: null, max: null });
+  // ここまで
+  // ----------------------- 範囲検索 有効期限 -----------------------
   const [inputExpirationDate, setInputExpirationDate] = useState<Date | null>(null);
-  const [inputExpirationDateSearch, setInputExpirationDateSearch] = useState<Date | null | "is null" | "is not null">(
-    null
-  );
+  // const [inputExpirationDateSearch, setInputExpirationDateSearch] = useState<Date | null | "is null" | "is not null">(
+  //   null
+  // );
+  const [inputExpirationDateSearch, setInputExpirationDateSearch] = useState<
+    { min: Date | null; max: Date | null } | "is not null" | "is null"
+  >({ min: null, max: null });
+  // ここまで
   const [inputQuotationNotes, setInputQuotationNotes] = useState("");
   const [inputQuotationRemarks, setInputQuotationRemarks] = useState("");
   const [inputQuotationDivision, setInputQuotationDivision] = useState("");
@@ -1018,23 +1034,23 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
         return value;
       };
 
-      // 復元Number専用
-      const beforeAdjustFieldValueInteger = (value: number | "ISNULL" | "ISNOTNULL" | null) => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        if (value === null) return null;
-        return value;
-      };
-      // 復元Date専用
-      const beforeAdjustFieldValueDate = (value: string | "ISNULL" | "ISNOTNULL" | null) => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        if (value === null) return null;
-        return new Date(value);
-      };
+      // // 復元Number専用
+      // const beforeAdjustFieldValueInteger = (value: number | "ISNULL" | "ISNOTNULL" | null) => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   if (value === null) return null;
+      //   return value;
+      // };
+      // // 復元Date専用
+      // const beforeAdjustFieldValueDate = (value: string | "ISNULL" | "ISNOTNULL" | null) => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   if (value === null) return null;
+      //   return new Date(value);
+      // };
 
-      const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
-        value === "ISNULL" ? "is null" : "is not null";
+      // const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
+      //   value === "ISNULL" ? "is null" : "is not null";
 
       console.log(
         "🔥Meetingメインコンテナー useEffect 編集モード inputにnewSearchQuotation_Contact_CompanyParamsを格納",
@@ -1111,14 +1127,20 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       //     ? new Date(newSearchQuotation_Contact_CompanyParams.quotation_date)
       //     : null
       // );
-      setInputQuotationDateSearch(beforeAdjustFieldValueDate(newSearchQuotation_Contact_CompanyParams.quotation_date));
+      // 範囲検索 見積日 -----------------------
+      // setInputQuotationDateSearch(beforeAdjustFieldValueDate(newSearchQuotation_Contact_CompanyParams.quotation_date));
+      setInputQuotationDateSearch(beforeAdjustFieldRangeDate(newSearchQuotation_Contact_CompanyParams.quotation_date));
       // setInputExpirationDate(
       //   newSearchQuotation_Contact_CompanyParams.expiration_date
       //     ? new Date(newSearchQuotation_Contact_CompanyParams.expiration_date)
       //     : null
       // );
+      // 範囲検索 有効期限 -----------------------
+      // setInputExpirationDateSearch(
+      //   beforeAdjustFieldValueDate(newSearchQuotation_Contact_CompanyParams.expiration_date)
+      // );
       setInputExpirationDateSearch(
-        beforeAdjustFieldValueDate(newSearchQuotation_Contact_CompanyParams.expiration_date)
+        beforeAdjustFieldRangeDate(newSearchQuotation_Contact_CompanyParams.expiration_date)
       );
       //
       setInputQuotationNoCustom(beforeAdjustFieldValue(newSearchQuotation_Contact_CompanyParams.quotation_no_custom));
@@ -1218,8 +1240,12 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       if (!!inputQuotationCreatedBySectionOfUser) setInputQuotationCreatedBySectionOfUser("");
       if (!!inputQuotationCreatedByUnitOfUser) setInputQuotationCreatedByUnitOfUser("");
       if (!!inputQuotationCreatedByOfficeOfUser) setInputQuotationCreatedByOfficeOfUser("");
-      if (inputQuotationDateSearch !== null) setInputQuotationDateSearch(null);
-      if (inputExpirationDateSearch !== null) setInputExpirationDateSearch(null);
+      // 範囲検索 見積日・有効期限 -----------------------
+      // if (inputQuotationDateSearch !== null) setInputQuotationDateSearch(null);
+      // if (inputExpirationDateSearch !== null) setInputExpirationDateSearch(null);
+      setInputQuotationDateSearch({ min: null, max: null });
+      setInputExpirationDateSearch({ min: null, max: null });
+
       if (!!inputQuotationDivision) setInputQuotationDivision("");
       if (!!inputQuotationNotes) setInputQuotationNotes("");
       if (!!inputQuotationRemarks) setInputQuotationRemarks("");
@@ -1278,289 +1304,326 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
       return value;
     }
 
-    // 🔸Date型
-    const adjustFieldValueDate = (value: Date | string | null): string | null => {
-      // "is null"か"is not null"の文字列は変換
-      if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
-      if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
-      if (value instanceof Date) return value.toISOString();
-      return null;
-      // if (typeof inputScheduledFollowUpDate === "string") return adjustFieldValue(inputScheduledFollowUpDate);
-    };
+    // // 🔸Date型
+    // const adjustFieldValueDate = (value: Date | string | null): string | null => {
+    //   // "is null"か"is not null"の文字列は変換
+    //   if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
+    //   if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
+    //   if (value instanceof Date) return value.toISOString();
+    //   return null;
+    //   // if (typeof inputScheduledFollowUpDate === "string") return adjustFieldValue(inputScheduledFollowUpDate);
+    // };
 
     setLoadingGlobalState(true);
 
-    // 依頼元 会社テーブル
-    let _company_name = adjustFieldValue(inputCompanyName);
-    let _company_department_name = adjustFieldValue(inputDepartmentName);
-    let _main_phone_number = adjustFieldValue(inputTel);
-    let _main_fax = adjustFieldValue(inputFax);
-    let _zipcode = adjustFieldValue(inputZipcode);
-    let _address = adjustFieldValue(inputAddress);
-    // 依頼元 contactsテーブル
-    let _contact_name = adjustFieldValue(inputContactName);
-    let _direct_line = adjustFieldValue(inputDirectLine);
-    let _direct_fax = adjustFieldValue(inputDirectFax);
-    let _extension = adjustFieldValue(inputExtension);
-    let _company_cell_phone = adjustFieldValue(inputCompanyCellPhone);
-    let _contact_email = adjustFieldValue(inputContactEmail);
-    // 送付先 会社テーブル
-    let _destination_company_name = adjustFieldValue(inputCompanyNameDest);
-    let _destination_company_department_name = adjustFieldValue(inputDepartmentNameDest);
-    let _destination_company_zipcode = adjustFieldValue(inputZipcodeDest);
-    let _destination_company_address = adjustFieldValue(inputAddressDest);
-    // 送付先 contactsテーブル
-    let _destination_contact_name = adjustFieldValue(inputContactNameDest);
-    let _destination_contact_direct_line = adjustFieldValue(inputDirectLineDest);
-    let _destination_contact_direct_fax = adjustFieldValue(inputDirectFaxDest);
-    let _destination_contact_email = adjustFieldValue(inputContactEmailDest);
+    try {
+      // 依頼元 会社テーブル
+      let _company_name = adjustFieldValue(inputCompanyName);
+      let _company_department_name = adjustFieldValue(inputDepartmentName);
+      let _main_phone_number = adjustFieldValue(inputTel);
+      let _main_fax = adjustFieldValue(inputFax);
+      let _zipcode = adjustFieldValue(inputZipcode);
+      let _address = adjustFieldValue(inputAddress);
+      // 依頼元 contactsテーブル
+      let _contact_name = adjustFieldValue(inputContactName);
+      let _direct_line = adjustFieldValue(inputDirectLine);
+      let _direct_fax = adjustFieldValue(inputDirectFax);
+      let _extension = adjustFieldValue(inputExtension);
+      let _company_cell_phone = adjustFieldValue(inputCompanyCellPhone);
+      let _contact_email = adjustFieldValue(inputContactEmail);
+      // 送付先 会社テーブル
+      let _destination_company_name = adjustFieldValue(inputCompanyNameDest);
+      let _destination_company_department_name = adjustFieldValue(inputDepartmentNameDest);
+      let _destination_company_zipcode = adjustFieldValue(inputZipcodeDest);
+      let _destination_company_address = adjustFieldValue(inputAddressDest);
+      // 送付先 contactsテーブル
+      let _destination_contact_name = adjustFieldValue(inputContactNameDest);
+      let _destination_contact_direct_line = adjustFieldValue(inputDirectLineDest);
+      let _destination_contact_direct_fax = adjustFieldValue(inputDirectFaxDest);
+      let _destination_contact_email = adjustFieldValue(inputContactEmailDest);
 
-    let _contact_created_by_company_id = userProfileState.company_id;
-    // let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
-    // quotationsテーブル
-    // 見積を作成した事業部・係・事業所・メンバー
-    let _quotation_created_by_company_id = userProfileState.company_id;
-    let _quotation_created_by_user_id = adjustFieldValue(inputQuotationCreatedByUserId);
-    let _quotation_created_by_department_of_user = adjustFieldValue(inputQuotationCreatedByDepartmentOfUser);
-    let _quotation_created_by_section_of_user = adjustFieldValue(inputQuotationCreatedBySectionOfUser);
-    let _quotation_created_by_unit_of_user = adjustFieldValue(inputQuotationCreatedByUnitOfUser);
-    let _quotation_created_by_office_of_user = adjustFieldValue(inputQuotationCreatedByOfficeOfUser);
-    let _quotation_member_name = adjustFieldValue(inputQuotationMemberName);
-    // 見積関連
-    let _quotation_no_custom = adjustFieldValue(inputQuotationNoCustom);
-    let _quotation_no_system = adjustFieldValue(inputQuotationNoSystem);
-    // let _quotation_date = inputQuotationDate ? inputQuotationDate.toISOString() : null;
-    let _quotation_date = adjustFieldValueDate(inputQuotationDateSearch);
-    // let _expiration_date = inputExpirationDate ? inputExpirationDate.toISOString() : null;
-    let _expiration_date = adjustFieldValueDate(inputExpirationDateSearch);
-    let _quotation_title = adjustFieldValue(inputQuotationTitle);
-    let _quotation_division = adjustFieldValue(inputQuotationDivision);
-    let _quotation_notes = adjustFieldValue(inputQuotationNotes);
-    let _quotation_remarks = adjustFieldValue(inputQuotationRemarks);
-    // 年月度〜年度
-    // let _quotation_year_month = adjustFieldValueNumber(inputQuotationYearMonth);
-    const parsedQuotationYearMonth = parseInt(inputQuotationYearMonth, 10);
-    let _quotation_year_month =
-      !isNaN(parsedQuotationYearMonth) && inputQuotationYearMonth === parsedQuotationYearMonth.toString()
-        ? parsedQuotationYearMonth
-        : null;
-    const parsedQuotationQuarter = parseInt(inputQuotationQuarter, 10);
-    let _quotation_quarter =
-      !isNaN(parsedQuotationQuarter) && inputQuotationQuarter === parsedQuotationQuarter.toString()
-        ? parsedQuotationQuarter
-        : null;
-    const parsedQuotationHalfYear = parseInt(inputQuotationHalfYear, 10);
-    let _quotation_half_year =
-      !isNaN(parsedQuotationHalfYear) && inputQuotationHalfYear === parsedQuotationHalfYear.toString()
-        ? parsedQuotationHalfYear
-        : null;
-    const parsedQuotationFiscalYear = parseInt(inputQuotationFiscalYear, 10);
-    let _quotation_fiscal_year =
-      !isNaN(parsedQuotationFiscalYear) && inputQuotationFiscalYear === parsedQuotationFiscalYear.toString()
-        ? parsedQuotationFiscalYear
-        : null;
-    // 印鑑 担当者名
-    let _in_charge_user_name = adjustFieldValue(inputInChargeUserName);
-    let _supervisor1_stamp_name = adjustFieldValue(inputSupervisor1Name);
-    let _supervisor2_stamp_name = adjustFieldValue(inputSupervisor2Name);
-    // 印鑑 社員番号
-    let _created_employee_id_name = adjustFieldValue(inputCreatedEmployeeId); // 作成者
-    let _in_charge_user_employee_id_name = adjustFieldValue(inputInChargeEmployeeId); // 担当印
-    let _supervisor1_employee_id_name = adjustFieldValue(inputSupervisor1EmployeeId); // 上長印1
-    let _supervisor2_employee_id_name = adjustFieldValue(inputSupervisor2EmployeeId); // 上長印2
-
-    // const params = {
-    //   // 会社 依頼元
-    //   "client_companies.name": _company_name,
-    //   "client_companies.department_name": _company_department_name,
-    //   main_phone_number: _main_phone_number,
-    //   main_fax: _main_fax,
-    //   "client_companies.zipcode": _zipcode,
-    //   "client_companies.address": _address,
-    //   // 担当者 依頼元
-    //   "contacts.name": _contact_name,
-    //   "contacts.direct_line": _direct_line,
-    //   "contacts.direct_fax": _direct_fax,
-    //   extension: _extension,
-    //   company_cell_phone: _company_cell_phone,
-    //   "contacts.email": _contact_email,
-    //   // 会社 送付先
-    //   "cc_destination.name": _destination_company_name,
-    //   "cc_destination.department_name": _destination_company_department_name,
-    //   "cc_destination.zipcode": _destination_company_zipcode,
-    //   "cc_destination.address": _destination_company_address,
-    //   // 担当者 送付先
-    //   "c_destination.name": _destination_contact_name,
-    //   "c_destination.direct_line": _destination_contact_direct_line,
-    //   "c_destination.direct_fax": _destination_contact_direct_fax,
-    //   "c_destination.email": _destination_contact_email,
-
-    //   "contacts.created_by_company_id": _contact_created_by_company_id,
-    //   // "contacts.created_by_user_id": _contact_created_by_user_id,
-    //   // quotationsテーブル
-    //   "quotations.created_by_company_id": _quotation_created_by_company_id,
-    //   "quotations.created_by_user_id": _quotation_created_by_user_id,
-    //   "quotations.created_by_department_of_user": _quotation_created_by_department_of_user,
-    //   "quotations.created_by_unit_of_user": _quotation_created_by_unit_of_user,
-    //   "quotations.created_by_office_of_user": _quotation_created_by_office_of_user,
-    //   quotation_no_custom: _quotation_no_custom,
-    //   quotation_no_system: _quotation_no_system,
-    //   quotation_member_name: _quotation_member_name,
-    //   quotation_date: _quotation_date,
-    //   expiration_date: _expiration_date,
-    //   quotation_title: _quotation_title,
-    //   quotation_division: _quotation_division,
-    //   quotation_notes: _quotation_notes,
-    //   quotation_remarks: _quotation_remarks,
-    //   // quotation_business_office: _quotation_business_office,
-    //   // quotation_department: _quotation_department,
-    //   quotation_year_month: _quotation_year_month,
-    //   "quotations.in_charge_stamp_name": _in_charge_user_name,
-    //   "employee_ids.employee_id_name": _created_employee_id_name,
-    // };
-    const params = {
-      // 会社 依頼元
-      "cc.name": _company_name,
-      "cc.department_name": _company_department_name,
-      main_phone_number: _main_phone_number,
-      main_fax: _main_fax,
-      "cc.zipcode": _zipcode,
-      "cc.address": _address,
-      // 担当者 依頼元
-      "c.name": _contact_name,
-      "c.direct_line": _direct_line,
-      "c.direct_fax": _direct_fax,
-      extension: _extension,
-      company_cell_phone: _company_cell_phone,
-      "c.email": _contact_email,
-      // 会社 送付先
-      "cc_destination.name": _destination_company_name,
-      "cc_destination.department_name": _destination_company_department_name,
-      "cc_destination.zipcode": _destination_company_zipcode,
-      "cc_destination.address": _destination_company_address,
-      // 担当者 送付先
-      "c_destination.name": _destination_contact_name,
-      "c_destination.direct_line": _destination_contact_direct_line,
-      "c_destination.direct_fax": _destination_contact_direct_fax,
-      "c_destination.email": _destination_contact_email,
-
-      "c.created_by_company_id": _contact_created_by_company_id,
-      // "contacts.created_by_user_id": _contact_created_by_user_id,
+      let _contact_created_by_company_id = userProfileState.company_id;
+      // let _contact_created_by_user_id = adjustFieldValue(inputContactCreatedByUserId);
       // quotationsテーブル
-      "q.created_by_company_id": _quotation_created_by_company_id,
-      "q.created_by_user_id": _quotation_created_by_user_id,
-      "q.created_by_department_of_user": _quotation_created_by_department_of_user,
-      "q.created_by_section_of_user": _quotation_created_by_section_of_user,
-      "q.created_by_unit_of_user": _quotation_created_by_unit_of_user,
-      "q.created_by_office_of_user": _quotation_created_by_office_of_user,
-      quotation_member_name: _quotation_member_name,
-      quotation_no_custom: _quotation_no_custom,
-      quotation_no_system: _quotation_no_system,
-      quotation_date: _quotation_date,
-      expiration_date: _expiration_date,
-      quotation_title: _quotation_title,
-      quotation_division: _quotation_division,
-      quotation_notes: _quotation_notes,
-      quotation_remarks: _quotation_remarks,
-      // quotation_business_office: _quotation_business_office,
-      // quotation_department: _quotation_department,
+      // 見積を作成した事業部・係・事業所・メンバー
+      let _quotation_created_by_company_id = userProfileState.company_id;
+      let _quotation_created_by_user_id = adjustFieldValue(inputQuotationCreatedByUserId);
+      let _quotation_created_by_department_of_user = adjustFieldValue(inputQuotationCreatedByDepartmentOfUser);
+      let _quotation_created_by_section_of_user = adjustFieldValue(inputQuotationCreatedBySectionOfUser);
+      let _quotation_created_by_unit_of_user = adjustFieldValue(inputQuotationCreatedByUnitOfUser);
+      let _quotation_created_by_office_of_user = adjustFieldValue(inputQuotationCreatedByOfficeOfUser);
+      let _quotation_member_name = adjustFieldValue(inputQuotationMemberName);
+      // 見積関連
+      let _quotation_no_custom = adjustFieldValue(inputQuotationNoCustom);
+      let _quotation_no_system = adjustFieldValue(inputQuotationNoSystem);
+      // let _quotation_date = inputQuotationDate ? inputQuotationDate.toISOString() : null;
+      // 範囲検索 見積日 -----------
+      // let _quotation_date = adjustFieldValueDate(inputQuotationDateSearch);
+      let _quotation_date = adjustFieldRangeTIMESTAMPTZ(inputQuotationDateSearch);
+
+      // let _expiration_date = inputExpirationDate ? inputExpirationDate.toISOString() : null;
+      // 範囲検索 有効期限 -----------
+      // let _expiration_date = adjustFieldValueDate(inputExpirationDateSearch);
+      let _expiration_date = adjustFieldRangeTIMESTAMPTZ(inputExpirationDateSearch);
+
+      let _quotation_title = adjustFieldValue(inputQuotationTitle);
+      let _quotation_division = adjustFieldValue(inputQuotationDivision);
+      let _quotation_notes = adjustFieldValue(inputQuotationNotes);
+      let _quotation_remarks = adjustFieldValue(inputQuotationRemarks);
       // 年月度〜年度
-      quotation_year_month: _quotation_year_month,
-      quotation_quarter: _quotation_quarter,
-      quotation_half_year: _quotation_half_year,
-      quotation_fiscal_year: _quotation_fiscal_year,
+      // let _quotation_year_month = adjustFieldValueNumber(inputQuotationYearMonth);
+      const parsedQuotationYearMonth = parseInt(inputQuotationYearMonth, 10);
+      let _quotation_year_month =
+        !isNaN(parsedQuotationYearMonth) && inputQuotationYearMonth === parsedQuotationYearMonth.toString()
+          ? parsedQuotationYearMonth
+          : null;
+      const parsedQuotationQuarter = parseInt(inputQuotationQuarter, 10);
+      let _quotation_quarter =
+        !isNaN(parsedQuotationQuarter) && inputQuotationQuarter === parsedQuotationQuarter.toString()
+          ? parsedQuotationQuarter
+          : null;
+      const parsedQuotationHalfYear = parseInt(inputQuotationHalfYear, 10);
+      let _quotation_half_year =
+        !isNaN(parsedQuotationHalfYear) && inputQuotationHalfYear === parsedQuotationHalfYear.toString()
+          ? parsedQuotationHalfYear
+          : null;
+      const parsedQuotationFiscalYear = parseInt(inputQuotationFiscalYear, 10);
+      let _quotation_fiscal_year =
+        !isNaN(parsedQuotationFiscalYear) && inputQuotationFiscalYear === parsedQuotationFiscalYear.toString()
+          ? parsedQuotationFiscalYear
+          : null;
       // 印鑑 担当者名
-      "q.in_charge_stamp_name": _in_charge_user_name,
-      "q.supervisor1_stamp_name": _supervisor1_stamp_name,
-      "q.supervisor2_stamp_name": _supervisor2_stamp_name,
+      let _in_charge_user_name = adjustFieldValue(inputInChargeUserName);
+      let _supervisor1_stamp_name = adjustFieldValue(inputSupervisor1Name);
+      let _supervisor2_stamp_name = adjustFieldValue(inputSupervisor2Name);
       // 印鑑 社員番号
-      "e.employee_id_name": _created_employee_id_name, // 作成者
-      "e_in_charge.employee_id_name": _in_charge_user_employee_id_name, // 担当印
-      "e_supervisor1.employee_id_name": _supervisor1_employee_id_name, // 上長印1
-      "e_supervisor2.employee_id_name": _supervisor2_employee_id_name, // 上長印2
-    };
+      let _created_employee_id_name = adjustFieldValue(inputCreatedEmployeeId); // 作成者
+      let _in_charge_user_employee_id_name = adjustFieldValue(inputInChargeEmployeeId); // 担当印
+      let _supervisor1_employee_id_name = adjustFieldValue(inputSupervisor1EmployeeId); // 上長印1
+      let _supervisor2_employee_id_name = adjustFieldValue(inputSupervisor2EmployeeId); // 上長印2
 
-    // const { data, error } = await supabase.rpc("", { params });
-    // const { data, error } = await supabase.rpc("search_companies", { params });
+      // const params = {
+      //   // 会社 依頼元
+      //   "client_companies.name": _company_name,
+      //   "client_companies.department_name": _company_department_name,
+      //   main_phone_number: _main_phone_number,
+      //   main_fax: _main_fax,
+      //   "client_companies.zipcode": _zipcode,
+      //   "client_companies.address": _address,
+      //   // 担当者 依頼元
+      //   "contacts.name": _contact_name,
+      //   "contacts.direct_line": _direct_line,
+      //   "contacts.direct_fax": _direct_fax,
+      //   extension: _extension,
+      //   company_cell_phone: _company_cell_phone,
+      //   "contacts.email": _contact_email,
+      //   // 会社 送付先
+      //   "cc_destination.name": _destination_company_name,
+      //   "cc_destination.department_name": _destination_company_department_name,
+      //   "cc_destination.zipcode": _destination_company_zipcode,
+      //   "cc_destination.address": _destination_company_address,
+      //   // 担当者 送付先
+      //   "c_destination.name": _destination_contact_name,
+      //   "c_destination.direct_line": _destination_contact_direct_line,
+      //   "c_destination.direct_fax": _destination_contact_direct_fax,
+      //   "c_destination.email": _destination_contact_email,
 
-    // 依頼元
-    setInputCompanyName("");
-    setInputDepartmentName("");
-    setInputTel("");
-    setInputFax("");
-    setInputZipcode("");
-    setInputAddress("");
-    // 依頼元 contactsテーブル
-    setInputContactName("");
-    setInputDirectLine("");
-    setInputDirectFax("");
-    setInputExtension("");
-    setInputCompanyCellPhone("");
-    setInputContactEmail("");
-    // 送付先
-    setInputCompanyNameDest("");
-    setInputDepartmentNameDest("");
-    setInputZipcodeDest("");
-    setInputAddressDest("");
-    // 送付先 contactsテーブル
-    setInputContactNameDest("");
-    setInputDirectLineDest("");
-    setInputDirectFaxDest("");
-    setInputContactEmailDest("");
-    //
-    setInputContactCreatedByCompanyId("");
-    // setInputContactCreatedByUserId("");
-    // quotationsテーブル
-    setInputQuotationCreatedByCompanyId("");
-    setInputQuotationCreatedByUserId("");
-    setInputQuotationCreatedByDepartmentOfUser("");
-    setInputQuotationCreatedBySectionOfUser("");
-    setInputQuotationCreatedByUnitOfUser("");
-    setInputQuotationCreatedByOfficeOfUser("");
-    setInputQuotationMemberName("");
-    setInputQuotationNoCustom("");
-    setInputQuotationNoSystem("");
-    // setInputQuotationDate(null);
-    // setInputExpirationDate(null);
-    setInputQuotationDateSearch(null);
-    setInputExpirationDateSearch(null);
-    setInputQuotationTitle("");
-    setInputQuotationDivision("");
-    setInputQuotationNotes("");
-    setInputQuotationRemarks("");
-    //
-    // setInputQuotationBusinessOffice("");
-    // setInputQuotationDepartment("");
-    // 年月度〜年度
-    setInputQuotationYearMonth("");
-    setInputQuotationQuarter("");
-    setInputQuotationHalfYear("");
-    setInputQuotationFiscalYear("");
-    // 印鑑 担当者名
-    setInputInChargeUserName(""); // 担当印
-    setInputSupervisor1Name(""); // 上長印1
-    setInputSupervisor2Name(""); // 上長印2
-    // 印鑑 社員番号
-    setInputCreatedEmployeeId(""); // 作成者
-    setInputInChargeEmployeeId(""); // 担当印
-    setInputSupervisor1EmployeeId(""); // 上長印1
-    setInputSupervisor2EmployeeId(""); // 上長印2
+      //   "contacts.created_by_company_id": _contact_created_by_company_id,
+      //   // "contacts.created_by_user_id": _contact_created_by_user_id,
+      //   // quotationsテーブル
+      //   "quotations.created_by_company_id": _quotation_created_by_company_id,
+      //   "quotations.created_by_user_id": _quotation_created_by_user_id,
+      //   "quotations.created_by_department_of_user": _quotation_created_by_department_of_user,
+      //   "quotations.created_by_unit_of_user": _quotation_created_by_unit_of_user,
+      //   "quotations.created_by_office_of_user": _quotation_created_by_office_of_user,
+      //   quotation_no_custom: _quotation_no_custom,
+      //   quotation_no_system: _quotation_no_system,
+      //   quotation_member_name: _quotation_member_name,
+      //   quotation_date: _quotation_date,
+      //   expiration_date: _expiration_date,
+      //   quotation_title: _quotation_title,
+      //   quotation_division: _quotation_division,
+      //   quotation_notes: _quotation_notes,
+      //   quotation_remarks: _quotation_remarks,
+      //   // quotation_business_office: _quotation_business_office,
+      //   // quotation_department: _quotation_department,
+      //   quotation_year_month: _quotation_year_month,
+      //   "quotations.in_charge_stamp_name": _in_charge_user_name,
+      //   "employee_ids.employee_id_name": _created_employee_id_name,
+      // };
+      const params = {
+        // 会社 依頼元
+        "cc.name": _company_name,
+        "cc.department_name": _company_department_name,
+        main_phone_number: _main_phone_number,
+        main_fax: _main_fax,
+        "cc.zipcode": _zipcode,
+        "cc.address": _address,
+        // 担当者 依頼元
+        "c.name": _contact_name,
+        "c.direct_line": _direct_line,
+        "c.direct_fax": _direct_fax,
+        extension: _extension,
+        company_cell_phone: _company_cell_phone,
+        "c.email": _contact_email,
+        // 会社 送付先
+        "cc_destination.name": _destination_company_name,
+        "cc_destination.department_name": _destination_company_department_name,
+        "cc_destination.zipcode": _destination_company_zipcode,
+        "cc_destination.address": _destination_company_address,
+        // 担当者 送付先
+        "c_destination.name": _destination_contact_name,
+        "c_destination.direct_line": _destination_contact_direct_line,
+        "c_destination.direct_fax": _destination_contact_direct_fax,
+        "c_destination.email": _destination_contact_email,
 
-    // サーチモードオフ
-    setSearchMode(false);
-    setEditSearchMode(false);
+        "c.created_by_company_id": _contact_created_by_company_id,
+        // "contacts.created_by_user_id": _contact_created_by_user_id,
+        // quotationsテーブル
+        "q.created_by_company_id": _quotation_created_by_company_id,
+        "q.created_by_user_id": _quotation_created_by_user_id,
+        "q.created_by_department_of_user": _quotation_created_by_department_of_user,
+        "q.created_by_section_of_user": _quotation_created_by_section_of_user,
+        "q.created_by_unit_of_user": _quotation_created_by_unit_of_user,
+        "q.created_by_office_of_user": _quotation_created_by_office_of_user,
+        quotation_member_name: _quotation_member_name,
+        quotation_no_custom: _quotation_no_custom,
+        quotation_no_system: _quotation_no_system,
+        // 範囲検索 見積日・有効期限 ------------
+        quotation_date: _quotation_date,
+        expiration_date: _expiration_date,
 
-    // Zustandに検索条件を格納
-    setNewSearchQuotation_Contact_CompanyParams(params);
+        quotation_title: _quotation_title,
+        quotation_division: _quotation_division,
+        quotation_notes: _quotation_notes,
+        quotation_remarks: _quotation_remarks,
+        // quotation_business_office: _quotation_business_office,
+        // quotation_department: _quotation_department,
+        // 年月度〜年度
+        quotation_year_month: _quotation_year_month,
+        quotation_quarter: _quotation_quarter,
+        quotation_half_year: _quotation_half_year,
+        quotation_fiscal_year: _quotation_fiscal_year,
+        // 印鑑 担当者名
+        "q.in_charge_stamp_name": _in_charge_user_name,
+        "q.supervisor1_stamp_name": _supervisor1_stamp_name,
+        "q.supervisor2_stamp_name": _supervisor2_stamp_name,
+        // 印鑑 社員番号
+        "e.employee_id_name": _created_employee_id_name, // 作成者
+        "e_in_charge.employee_id_name": _in_charge_user_employee_id_name, // 担当印
+        "e_supervisor1.employee_id_name": _supervisor1_employee_id_name, // 上長印1
+        "e_supervisor2.employee_id_name": _supervisor2_employee_id_name, // 上長印2
+      };
 
-    // 選択中の列データをリセット
-    setSelectedRowDataQuotation(null);
+      // const { data, error } = await supabase.rpc("", { params });
+      // const { data, error } = await supabase.rpc("search_companies", { params });
 
-    console.log("✅ 条件 params", params);
+      // 依頼元
+      setInputCompanyName("");
+      setInputDepartmentName("");
+      setInputTel("");
+      setInputFax("");
+      setInputZipcode("");
+      setInputAddress("");
+      // 依頼元 contactsテーブル
+      setInputContactName("");
+      setInputDirectLine("");
+      setInputDirectFax("");
+      setInputExtension("");
+      setInputCompanyCellPhone("");
+      setInputContactEmail("");
+      // 送付先
+      setInputCompanyNameDest("");
+      setInputDepartmentNameDest("");
+      setInputZipcodeDest("");
+      setInputAddressDest("");
+      // 送付先 contactsテーブル
+      setInputContactNameDest("");
+      setInputDirectLineDest("");
+      setInputDirectFaxDest("");
+      setInputContactEmailDest("");
+      //
+      setInputContactCreatedByCompanyId("");
+      // setInputContactCreatedByUserId("");
+      // quotationsテーブル
+      setInputQuotationCreatedByCompanyId("");
+      setInputQuotationCreatedByUserId("");
+      setInputQuotationCreatedByDepartmentOfUser("");
+      setInputQuotationCreatedBySectionOfUser("");
+      setInputQuotationCreatedByUnitOfUser("");
+      setInputQuotationCreatedByOfficeOfUser("");
+      setInputQuotationMemberName("");
+      setInputQuotationNoCustom("");
+      setInputQuotationNoSystem("");
+      // setInputQuotationDate(null);
+      // setInputExpirationDate(null);
+      // 範囲検索 見積日・有効期限 ----------------
+      // setInputQuotationDateSearch(null);
+      // setInputExpirationDateSearch(null);
+      setInputQuotationDateSearch({ min: null, max: null });
+      setInputExpirationDateSearch({ min: null, max: null });
 
-    // スクロールコンテナを最上部に戻す
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+      setInputQuotationTitle("");
+      setInputQuotationDivision("");
+      setInputQuotationNotes("");
+      setInputQuotationRemarks("");
+      //
+      // setInputQuotationBusinessOffice("");
+      // setInputQuotationDepartment("");
+      // 年月度〜年度
+      setInputQuotationYearMonth("");
+      setInputQuotationQuarter("");
+      setInputQuotationHalfYear("");
+      setInputQuotationFiscalYear("");
+      // 印鑑 担当者名
+      setInputInChargeUserName(""); // 担当印
+      setInputSupervisor1Name(""); // 上長印1
+      setInputSupervisor2Name(""); // 上長印2
+      // 印鑑 社員番号
+      setInputCreatedEmployeeId(""); // 作成者
+      setInputInChargeEmployeeId(""); // 担当印
+      setInputSupervisor1EmployeeId(""); // 上長印1
+      setInputSupervisor2EmployeeId(""); // 上長印2
+
+      // サーチモードオフ
+      setSearchMode(false);
+      setEditSearchMode(false);
+
+      // Zustandに検索条件を格納
+      setNewSearchQuotation_Contact_CompanyParams(params);
+
+      // 選択中の列データをリセット
+      setSelectedRowDataQuotation(null);
+
+      console.log("✅ 条件 params", params);
+
+      // スクロールコンテナを最上部に戻す
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.scrollTo({ top: 0, behavior: "auto" });
+      }
+    } catch (error: any) {
+      setLoadingGlobalState(false);
+      console.log("❌エラー：", error);
+      if (language === "ja") {
+        alert(error.message);
+      } else {
+        let newErrMsg = error.message;
+        switch (newErrMsg) {
+          case "日付の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。":
+            newErrMsg = "The minimum date cannot be later than the maximum date.";
+            break;
+          case "数値の下限値が上限値を上回っています。上限値を下限値と同じかそれ以上に設定してください。":
+            newErrMsg = "The minimum value cannot be greater than the maximum value.";
+            break;
+          case `数値が適切ではありません。適切な数値を入力してください。`:
+            newErrMsg = "";
+            break;
+
+          default:
+            break;
+        }
+        alert(newErrMsg);
+      }
     }
   };
 
@@ -2991,36 +3054,40 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
   // ツールチップ
   const additionalInputTooltipText = (index: number) =>
     index === 0 ? `空欄以外のデータのみ抽出` : `空欄のデータのみ抽出`;
+
   // 🔸「入力値をリセット」をクリック
   const handleClickResetInput = (
     dispatch: Dispatch<SetStateAction<any>>,
-    inputType: "string" | "number" = "string"
+    inputType: "string" | "range_string" | "range_date" | "range_number" | "array" = "string"
   ) => {
     handleCloseTooltip();
-    if (inputType === "string") {
+
+    if (inputType === "array") {
+      dispatch([]);
+    } else if (inputType === "range_string") {
+      dispatch({ min: "", max: "" });
+    } else if (inputType === "range_date" || inputType === "range_number") {
+      dispatch({ min: null, max: null });
+    } else if (inputType === "string") {
       dispatch("");
     }
-    if (inputType === "number") {
-      dispatch(null);
-    }
   };
+
   // 🔸「入力有り」をクリック
-  const handleClickIsNotNull = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+  const handleClickIsNotNull = (dispatch: Dispatch<SetStateAction<any>>) => {
     return dispatch("is not null");
-    // if (inputType === "string") {
-    //   dispatch("is not null");
-    // }
   };
+
   // 🔸「入力無し」をクリック
-  const handleClickIsNull = (dispatch: Dispatch<SetStateAction<any>>, inputType: "string" = "string") => {
+  const handleClickIsNull = (dispatch: Dispatch<SetStateAction<any>>) => {
     return dispatch("is null");
-    // if (inputType === "string") {
-    //   dispatch("is null");
-    // }
   };
+
+  // 🔸「入力有り」 or 「入力無し」をクリック
   const handleClickAdditionalAreaBtn = (index: number, dispatch: Dispatch<SetStateAction<any>>) => {
-    if (index === 0) handleClickIsNotNull(dispatch);
-    if (index === 1) handleClickIsNull(dispatch);
+    if (index === 0) dispatch("is not null");
+    if (index === 1) dispatch("is null");
+
     handleCloseTooltip();
   };
 
@@ -3280,7 +3347,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   {/* 依頼元 セクションタイトル */}
                   <div className={`${styles.row_area} flex w-full items-center`}>
                     <div className="flex h-full w-full flex-col pr-[20px]">
-                      <div className={`${styles.title_box} flex h-full items-center `}>
+                      <div className={`${styles.title_box} flex h-full items-center  ${styles.section_title_box}`}>
                         <span className={`${styles.section_title}`}>依頼元</span>
                       </div>
                       <div className={`${styles.section_underline}`}></div>
@@ -4128,13 +4195,13 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {/* 見積No・提出区分 通常 */}
                         <div className={`${styles.row_area} flex max-h-[26px] w-full items-center`}>
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                            <div className={`${styles.title_box} flex h-full items-center `}>
+                            <div className={`${styles.title_box} flex h-full items-center ${styles.section_title_box}`}>
                               <span
                                 className={`${styles.section_title} ${styles.min_text} ${
                                   useQuotationNoCustom && (isInsertModeQuotation || isUpdateModeQuotation)
                                     ? ``
                                     : `!min-w-[88px]`
-                                }`}
+                                } ${isInsertModeQuotation || isUpdateModeQuotation ? styles.title : ``}`}
                               >
                                 ●見積No
                               </span>
@@ -4319,7 +4386,9 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                             {/* <div className={`${styles.section_underline}`}></div> */}
                           </div>
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                            <div className={`${styles.title_box} flex h-full items-center `}>
+                            <div
+                              className={`${styles.title_box} flex h-full items-center  ${styles.section_title_box}`}
+                            >
                               <div className={`${styles.title} flex flex-col ${fieldEditTitle("submission_class")}`}>
                                 <span>●提出区分</span>
                               </div>
@@ -4685,6 +4754,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                           required: true,
                                         });
                                       }}
+                                      fontSize={`!text-[13px]`}
                                     />
                                   </div>
                                 </>
@@ -4934,6 +5004,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                                           required: false,
                                         });
                                       }}
+                                      fontSize={`!text-[13px]`}
                                     />
                                   </div>
                                 </>
@@ -5404,7 +5475,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                               <span
                                 className={`${styles.title} ${
                                   isInsertModeQuotation || isUpdateModeQuotation ? `` : `${styles.title_sm}`
-                                }`}
+                                } ${fieldEditTitle("quotation_notes")}`}
                               >
                                 見積備考
                               </span>
@@ -6023,7 +6094,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           <div className="flex h-full w-1/2 flex-col pr-[20px]">
                             <div className={`${styles.title_box} flex h-full items-center `}>
                               <div
-                                className={`${styles.title} flex items-center`}
+                                className={`${styles.title} flex items-center ${fieldEditTitle("discount_amount")}`}
                                 onMouseEnter={(e) => {
                                   if (!(isInsertModeQuotation || isUpdateModeQuotation)) return;
                                   if (
@@ -6600,7 +6671,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                         {/* 見積ルール */}
                         <div className={`${styles.row_area} flex w-full items-center`}>
                           <div className="flex h-full w-full flex-col pr-[20px]">
-                            <div className={`${styles.title_box} flex h-full items-center`}>
+                            <div className={`${styles.title_box} flex h-full items-center ${styles.section_title_box}`}>
                               {/* <span className={`${styles.title} ${fieldEditTitle("quotation_rule")}`}>見積ルール</span> */}
                               <div
                                 className={`${styles.title} ${fieldEditTitle("quotation_rule")} flex items-center`}
@@ -9134,7 +9205,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                   {/* 商品追加ボタンエリア */}
                   <div className={`${styles.row_area} flex w-full items-center`}>
                     <div className="flex h-full w-full flex-col pr-[20px]">
-                      <div className={`${styles.title_box} flex h-full items-center`}>
+                      <div className={`${styles.title_box} flex h-full items-center ${styles.section_title_box}`}>
                         {/* <span className={`${styles.section_title} mr-[20px] !min-w-max`}>見積商品リスト</span> */}
                         <div
                           className={`${styles.section_title} mr-[20px] flex !min-w-max items-center space-x-[6px]`}
@@ -9401,7 +9472,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
 
                   {/* 見積日・●面談ﾀｲﾌﾟ サーチ */}
                   <div className={`${styles.row_area} ${styles.row_area_search_mode} flex w-full items-center`}>
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center `}>
                         <span className={`${styles.title_search_mode}`}>見積日</span>
                         {/* <DatePickerCustomInput
@@ -9409,7 +9480,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           setStartDate={setInputQuotationDate}
                           required={false}
                         /> */}
-                        <DatePickerCustomInputForSearch
+                        {/* <DatePickerCustomInputForSearch
                           startDate={inputQuotationDateSearch}
                           setStartDate={setInputQuotationDateSearch}
                           required={false}
@@ -9420,11 +9491,96 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           isNotNullText="見積日有りのデータのみ"
                           isNullText="見積日無しのデータのみ"
                           minHeight="!min-h-[30px]"
-                        />
+                        /> */}
+                        {inputQuotationDateSearch === "is null" || inputQuotationDateSearch === "is not null" ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputQuotationDateSearch]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputQuotationDateSearch]}</span>
+                          </div>
+                        ) : (
+                          <div
+                            className={`flex h-full w-full items-center`}
+                            onMouseEnter={(e) => {
+                              const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。`;
+                              handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                            }}
+                            onMouseLeave={handleCloseTooltip}
+                          >
+                            <DatePickerCustomInputRange
+                              minmax="min"
+                              startDate={inputQuotationDateSearch}
+                              setStartDate={setInputQuotationDateSearch}
+                              required={false}
+                              handleOpenTooltip={handleOpenTooltip}
+                              handleCloseTooltip={handleCloseTooltip}
+                            />
+
+                            <span className="mx-[10px]">〜</span>
+
+                            <DatePickerCustomInputRange
+                              minmax="max"
+                              startDate={inputQuotationDateSearch}
+                              setStartDate={setInputQuotationDateSearch}
+                              required={false}
+                              handleOpenTooltip={handleOpenTooltip}
+                              handleCloseTooltip={handleCloseTooltip}
+                            />
+                          </div>
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              {isCopyableInputRange(inputQuotationDateSearch, "date") && (
+                                <button
+                                  type="button"
+                                  className={`icon_btn_green flex`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => {
+                                    copyInputRange(setInputQuotationDateSearch, "date");
+                                    handleCloseTooltip();
+                                  }}
+                                >
+                                  <LuCopyPlus className="pointer-events-none text-[14px]" />
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${
+                                  isEmptyInputRange(inputQuotationDateSearch, "date") ? `hidden` : `flex`
+                                }`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputQuotationDateSearch, "range_date")}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputQuotationDateSearch)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
-                    <div className="flex h-full w-1/2 flex-col pr-[20px]">
+                    <div className="group relative flex h-full w-1/2 flex-col pr-[20px]">
                       <div className={`${styles.title_box} flex h-full items-center`}>
                         <span className={`${styles.title_search_mode}`}>有効期限</span>
                         {/* <DatePickerCustomInput
@@ -9432,7 +9588,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           setStartDate={setInputExpirationDate}
                           required={false}
                         /> */}
-                        <DatePickerCustomInputForSearch
+                        {/* <DatePickerCustomInputForSearch
                           startDate={inputExpirationDateSearch}
                           setStartDate={setInputExpirationDateSearch}
                           required={false}
@@ -9443,9 +9599,94 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                           isNotNullText="有効期限有りのデータのみ"
                           isNullText="有効期限無しのデータのみ"
                           minHeight="!min-h-[30px]"
-                        />
+                        /> */}
+                        {inputExpirationDateSearch === "is null" || inputExpirationDateSearch === "is not null" ? (
+                          <div className={`flex min-h-[30px] items-center text-[var(--color-text-brand-f)]`}>
+                            {nullNotNullIconMap[inputExpirationDateSearch]}
+                            <span className={`text-[13px]`}>{nullNotNullTextMap[inputExpirationDateSearch]}</span>
+                          </div>
+                        ) : (
+                          <div
+                            className={`flex h-full w-full items-center`}
+                            onMouseEnter={(e) => {
+                              const content = `「〜以上」は下限値のみ、「〜以下」は上限値のみを\n「〜以上〜以下」で範囲指定する場合は上下限値の両方を入力してください。\n上下限値に同じ値を入力した場合は入力値と一致するデータを抽出します。`;
+                              handleOpenTooltip({ e, display: "top", content: content, itemsPosition: `left` });
+                            }}
+                            onMouseLeave={handleCloseTooltip}
+                          >
+                            <DatePickerCustomInputRange
+                              minmax="min"
+                              startDate={inputExpirationDateSearch}
+                              setStartDate={setInputExpirationDateSearch}
+                              required={false}
+                              handleOpenTooltip={handleOpenTooltip}
+                              handleCloseTooltip={handleCloseTooltip}
+                            />
+
+                            <span className="mx-[10px]">〜</span>
+
+                            <DatePickerCustomInputRange
+                              minmax="max"
+                              startDate={inputExpirationDateSearch}
+                              setStartDate={setInputExpirationDateSearch}
+                              required={false}
+                              handleOpenTooltip={handleOpenTooltip}
+                              handleCloseTooltip={handleCloseTooltip}
+                            />
+                          </div>
+                        )}
                       </div>
                       <div className={`${styles.underline}`}></div>
+                      {/* input下追加ボタンエリア */}
+                      {searchMode && (
+                        <>
+                          <div className={`additional_search_area_under_input fade05_forward hidden group-hover:flex`}>
+                            <div className={`line_first space-x-[6px]`}>
+                              {isCopyableInputRange(inputExpirationDateSearch, "date") && (
+                                <button
+                                  type="button"
+                                  className={`icon_btn_green flex`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: `入力値をコピーして完全一致検索` })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => {
+                                    copyInputRange(setInputExpirationDateSearch, "date");
+                                    handleCloseTooltip();
+                                  }}
+                                >
+                                  <LuCopyPlus className="pointer-events-none text-[14px]" />
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                className={`icon_btn_red ${
+                                  isEmptyInputRange(inputExpirationDateSearch, "date") ? `hidden` : `flex`
+                                }`}
+                                onMouseEnter={(e) => handleOpenTooltip({ e, content: `入力値をリセット` })}
+                                onMouseLeave={handleCloseTooltip}
+                                onClick={() => handleClickResetInput(setInputExpirationDateSearch, "range_date")}
+                              >
+                                <MdClose className="pointer-events-none text-[14px]" />
+                              </button>
+                              {firstLineComponents.map((element, index) => (
+                                <div
+                                  key={`additional_search_area_under_input_btn_f_${index}`}
+                                  className={`btn_f space-x-[3px]`}
+                                  onMouseEnter={(e) =>
+                                    handleOpenTooltip({ e, content: additionalInputTooltipText(index) })
+                                  }
+                                  onMouseLeave={handleCloseTooltip}
+                                  onClick={() => handleClickAdditionalAreaBtn(index, setInputExpirationDateSearch)}
+                                >
+                                  {element}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                      {/* input下追加ボタンエリア ここまで */}
                     </div>
                   </div>
                   {/*  */}
@@ -10097,7 +10338,7 @@ const QuotationMainContainerOneThirdMemo: FC = () => {
                     className={`${styles.row_area} ${styles.row_area_search_mode} !mt-[20px] flex w-full items-center`}
                   >
                     <div className="flex h-full w-full flex-col pr-[20px]">
-                      <div className={`${styles.title_box} flex h-full items-center `}>
+                      <div className={`${styles.title_box} flex h-full items-center  ${styles.section_title_box}`}>
                         <span className={`${styles.section_title}`}>依頼元</span>
                       </div>
                       <div className={`${styles.section_underline}`}></div>

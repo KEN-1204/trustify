@@ -147,9 +147,14 @@ import {
   adjustFieldRangePrice,
   adjustFieldRangeTIMESTAMPTZ,
   adjustIsNNN,
+  beforeAdjustFieldRangeDate,
+  beforeAdjustFieldRangeInteger,
+  beforeAdjustFieldRangeNumeric,
+  beforeAdjustIsNNN,
   copyInputRange,
   isCopyableInputRange,
   isEmptyInputRange,
+  setArrayParam,
 } from "@/utils/Helpers/MainContainer/commonHelper";
 import { DatePickerCustomInputRange } from "@/utils/DatePicker/DatePickerCustomInputRange";
 import { LuCopyPlus } from "react-icons/lu";
@@ -1044,20 +1049,20 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
         if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
         return value;
       };
-      // 復元Number専用
-      const beforeAdjustFieldValueInteger = (value: number | "ISNULL" | "ISNOTNULL" | null) => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        if (value === null) return null;
-        return value;
-      };
-      // 復元Date専用
-      const beforeAdjustFieldValueDate = (value: string | "ISNULL" | "ISNOTNULL" | null) => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        if (value === null) return null;
-        return new Date(value);
-      };
+      // // 復元Number専用
+      // const beforeAdjustFieldValueInteger = (value: number | "ISNULL" | "ISNOTNULL" | null) => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   if (value === null) return null;
+      //   return value;
+      // };
+      // // 復元Date専用
+      // const beforeAdjustFieldValueDate = (value: string | "ISNULL" | "ISNOTNULL" | null) => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   if (value === null) return null;
+      //   return new Date(value);
+      // };
 
       // 🔸範囲検索用の変換 string
       const beforeAdjustFieldRangeValue = (
@@ -1084,77 +1089,78 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
 
         return { min: adjustedMin, max: adjustedMax };
       };
-      // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
-      const beforeAdjustFieldRangeNumeric = (
-        value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL",
-        type: "" | "price" | "integer" = ""
-      ): { min: string; max: string } | "is null" | "is not null" => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        const { min, max } = value;
 
-        if (min !== null && max !== null) {
-          // if (type === "price") return { min: formatDisplayPrice(min), max: formatDisplayPrice(max) };
-          if (type === "price") return { min: min.toLocaleString(), max: max.toLocaleString() };
-          if (type === "integer") return { min: parseInt(String(min), 10).toFixed(0), max: max.toFixed(0) };
-          return { min: String(min), max: String(max) };
-        } else if (min !== null && max === null) {
-          if (type === "price") return { min: min.toLocaleString(), max: "" };
-          if (type === "integer") return { min: min.toFixed(0), max: "" };
-          return { min: String(min), max: "" };
-        } else if (min === null && max !== null) {
-          if (type === "price") return { min: "", max: max.toLocaleString() };
-          if (type === "integer") return { min: "", max: max.toFixed(0) };
-          return { min: "", max: String(max) };
-        }
-        return { min: "", max: "" };
-      };
+      // // 🔸範囲検索用の変換 数値型(Numeric Type) 資本金、従業員数、価格など 下限値「~以上」, 上限値 「~以下」
+      // const beforeAdjustFieldRangeNumeric = (
+      //   value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL",
+      //   type: "" | "price" | "integer" = ""
+      // ): { min: string; max: string } | "is null" | "is not null" => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   const { min, max } = value;
 
-      // 🔸範囲検索用の変換 INTEGER型 数量・面談時間など
-      const beforeAdjustFieldRangeInteger = (
-        value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL"
-      ): { min: number | null; max: number | null } | "is null" | "is not null" => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        const { min, max } = value;
+      //   if (min !== null && max !== null) {
+      //     // if (type === "price") return { min: formatDisplayPrice(min), max: formatDisplayPrice(max) };
+      //     if (type === "price") return { min: min.toLocaleString(), max: max.toLocaleString() };
+      //     if (type === "integer") return { min: parseInt(String(min), 10).toFixed(0), max: max.toFixed(0) };
+      //     return { min: String(min), max: String(max) };
+      //   } else if (min !== null && max === null) {
+      //     if (type === "price") return { min: min.toLocaleString(), max: "" };
+      //     if (type === "integer") return { min: min.toFixed(0), max: "" };
+      //     return { min: String(min), max: "" };
+      //   } else if (min === null && max !== null) {
+      //     if (type === "price") return { min: "", max: max.toLocaleString() };
+      //     if (type === "integer") return { min: "", max: max.toFixed(0) };
+      //     return { min: "", max: String(max) };
+      //   }
+      //   return { min: "", max: "" };
+      // };
 
-        return { min: min, max: max };
-      };
+      // // 🔸範囲検索用の変換 INTEGER型 数量・面談時間など
+      // const beforeAdjustFieldRangeInteger = (
+      //   value: { min: number | null; max: number | null } | "ISNULL" | "ISNOTNULL"
+      // ): { min: number | null; max: number | null } | "is null" | "is not null" => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   const { min, max } = value;
 
-      // 🔸範囲検索用の変換 Date型
-      const beforeAdjustFieldRangeDate = (
-        value: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL",
-        type: "" = ""
-      ): { min: Date | null; max: Date | null } | "is null" | "is not null" => {
-        if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
-        if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
-        const { min, max } = value;
+      //   return { min: min, max: max };
+      // };
 
-        if (min !== null && max !== null) {
-          return { min: new Date(min), max: new Date(max) };
-        } else if (min !== null && max === null) {
-          return { min: new Date(min), max: null };
-        } else if (min === null && max !== null) {
-          return { min: null, max: new Date(max) };
-        }
-        return { min: null, max: null };
-      };
+      // // 🔸範囲検索用の変換 Date型
+      // const beforeAdjustFieldRangeDate = (
+      //   value: { min: string | null; max: string | null } | "ISNULL" | "ISNOTNULL",
+      //   type: "" = ""
+      // ): { min: Date | null; max: Date | null } | "is null" | "is not null" => {
+      //   if (value === "ISNULL") return "is null"; // ISNULLパラメータを送信
+      //   if (value === "ISNOTNULL") return "is not null"; // ISNOTNULLパラメータを送信
+      //   const { min, max } = value;
 
-      // 🔸string配列のパラメータをstateにセットする関数
-      const setArrayParam = (
-        param: string[] | number[] | "ISNULL" | "ISNOTNULL",
-        dispatch: Dispatch<SetStateAction<any[]>>,
-        dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>
-      ) => {
-        if (param === "ISNULL" || param === "ISNOTNULL") {
-          dispatchNNN(beforeAdjustIsNNN(param));
-        } else {
-          dispatch(!!param.length ? param : []);
-        }
-      };
+      //   if (min !== null && max !== null) {
+      //     return { min: new Date(min), max: new Date(max) };
+      //   } else if (min !== null && max === null) {
+      //     return { min: new Date(min), max: null };
+      //   } else if (min === null && max !== null) {
+      //     return { min: null, max: new Date(max) };
+      //   }
+      //   return { min: null, max: null };
+      // };
 
-      const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
-        value === "ISNULL" ? "is null" : "is not null";
+      // // 🔸string配列のパラメータをstateにセットする関数
+      // const setArrayParam = (
+      //   param: string[] | number[] | "ISNULL" | "ISNOTNULL",
+      //   dispatch: Dispatch<SetStateAction<any[]>>,
+      //   dispatchNNN: Dispatch<SetStateAction<"is null" | "is not null" | null>>
+      // ) => {
+      //   if (param === "ISNULL" || param === "ISNOTNULL") {
+      //     dispatchNNN(beforeAdjustIsNNN(param));
+      //   } else {
+      //     dispatch(!!param.length ? param : []);
+      //   }
+      // };
+
+      // const beforeAdjustIsNNN = (value: "ISNULL" | "ISNOTNULL"): "is null" | "is not null" =>
+      //   value === "ISNULL" ? "is null" : "is not null";
 
       console.log(
         "🔥Propertyメインコンテナー useEffect 編集モード inputにnewSearchActivity_Contact_CompanyParamsを格納",
@@ -1189,7 +1195,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       //       : ""
       //   )
       // );
-      setInputCapitalSearch(beforeAdjustFieldRangeNumeric(newSearchProperty_Contact_CompanyParams?.capital));
+      setInputCapitalSearch(beforeAdjustFieldRangeNumeric(newSearchProperty_Contact_CompanyParams?.capital, "price"));
       setInputNumberOfEmployeesSearch(
         beforeAdjustFieldRangeNumeric(newSearchProperty_Contact_CompanyParams?.number_of_employees)
       );
@@ -1355,7 +1361,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       //   )
       // );
       setInputApprovalAmountSearch(
-        beforeAdjustFieldRangeNumeric(newSearchProperty_Contact_CompanyParams?.approval_amount)
+        beforeAdjustFieldRangeNumeric(newSearchProperty_Contact_CompanyParams?.approval_amount, "price")
       );
       // 範囲検索 決裁金額 ------------------------ここまで
       setInputContactCreatedByCompanyId(
@@ -2047,12 +2053,13 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
       // if (searchType === "manual" && value.includes("＿")) value = value.replace(/＿/g, "\\_");
       // if (value.includes("*")) value = value.replace(/\*/g, "%");
       // if (value.includes("＊")) value = value.replace(/\＊/g, "%");
-      if (value.includes("*")) value = value.replace(/\*/g, "%");
-      if (value.includes("＊")) value = value.replace(/\＊/g, "%");
+
       if (searchType === "manual" && value.includes("%")) value = value.replace(/%/g, "\\%");
       if (searchType === "manual" && value.includes("％")) value = value.replace(/％/g, "\\%");
       if (searchType === "manual" && value.includes("_")) value = value.replace(/_/g, "\\_");
       if (searchType === "manual" && value.includes("＿")) value = value.replace(/＿/g, "\\_");
+      if (value.includes("*")) value = value.replace(/\*/g, "%");
+      if (value.includes("＊")) value = value.replace(/\＊/g, "%");
       if (value === "is null") return "ISNULL"; // ISNULLパラメータを送信
       // if (value === "is not null") return "%%";
       if (value === "is not null") return "ISNOTNULL"; // ISNOTNULLパラメータを送信
@@ -3864,6 +3871,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
 
   // const tableContainerSize = useRootStore(useDashboardStore, (state) => state.tableContainerSize);
 
+  // フィールドエディットタイトル
+  const fieldEditTitle = (title: string) => (isEditModeField === title ? `${styles.field_edit}` : ``);
+
   // -------------------------- 🌠サーチモード input下の追加エリア関連🌠 --------------------------
   // ツールチップ
   const additionalInputTooltipText = (index: number) =>
@@ -4111,8 +4121,8 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               {/* 現ステータス */}
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
-                  <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.section_title}`}>現ｽﾃｰﾀｽ</span>
+                  <div className={`${styles.title_box} flex h-full items-center ${styles.section_title_box}`}>
+                    <span className={`${styles.section_title} ${fieldEditTitle("current_status")}`}>現ｽﾃｰﾀｽ</span>
                     {!searchMode && isEditModeField !== "current_status" && (
                       <span
                         className={`${styles.value} ${styles.editable_field} ${styles.value_highlight} ${styles.text_start} !pl-[0px]`}
@@ -4199,7 +4209,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title}`}>●案件名</span>
+                    <span className={`${styles.title} ${fieldEditTitle("property_name")}`}>●案件名</span>
                     {!searchMode && isEditModeField !== "property_name" && (
                       <span
                         className={`${styles.value} ${styles.value_highlight} ${styles.text_start} ${styles.editable_field}`}
@@ -4305,7 +4315,13 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area_lg_box} flex w-full items-center`}>
                 <div className="flex h-full w-full flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full `}>
-                    <span className={`${styles.title} ${styles.title_sm}`}>案件概要</span>
+                    <span
+                      className={`${styles.title} ${styles.title_sm} ${styles.min} ${fieldEditTitle(
+                        "property_summary"
+                      )}`}
+                    >
+                      案件概要
+                    </span>
                     {!searchMode && isEditModeField !== "property_summary" && (
                       <div
                         className={`${styles.textarea_box} ${
@@ -4423,7 +4439,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} text-[12px]`}>予定台数</span>
+                    <span className={`${styles.title} text-[12px] ${fieldEditTitle("product_sales")}`}>予定台数</span>
                     {!searchMode && isEditModeField !== "product_sales" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
@@ -4543,7 +4559,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     {/* <span className={`${styles.title}`}>予定時期</span> */}
-                    <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                    <div
+                      className={`${styles.title} flex flex-col ${styles.double_text} ${fieldEditTitle(
+                        "expected_order_date"
+                      )}`}
+                    >
                       <span>獲得予定</span>
                       <span>時期</span>
                     </div>
@@ -4645,6 +4665,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                                 newDateObj: inputExpectedOrderDateForFieldEditMode as Date,
                               });
                             }}
+                            fontSize={`!text-[13px]`}
                           />
                         </div>
                       </>
@@ -4666,7 +4687,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
                     {/* <span className={`${styles.title}`}>予定売上合計</span> */}
-                    <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                    <div
+                      className={`${styles.title} flex flex-col ${styles.double_text} ${fieldEditTitle(
+                        "expected_sales_price"
+                      )}`}
+                    >
                       <span>予定売上</span>
                       <span>合計</span>
                     </div>
@@ -4839,7 +4864,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} text-[12px]`}>今・来期</span>
+                    <span className={`${styles.title} text-[12px] ${fieldEditTitle("term_division")}`}>今・来期</span>
                     {!searchMode && isEditModeField !== "term_division" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
@@ -4977,7 +5002,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} text-[12px]`}>売上台数</span>
+                    <span className={`${styles.title} text-[12px] ${fieldEditTitle("unit_sales")}`}>売上台数</span>
                     {!searchMode && isEditModeField !== "unit_sales" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
@@ -5097,7 +5122,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                    <div
+                      className={`${styles.title} flex flex-col ${styles.double_text} ${fieldEditTitle(
+                        "sales_contribution_category"
+                      )}`}
+                    >
                       <span>売上貢献</span>
                       <span>区分</span>
                     </div>
@@ -5187,7 +5216,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} text-[12px]`}>売上合計</span>
+                    <span className={`${styles.title} text-[12px] ${fieldEditTitle("sales_price")}`}>売上合計</span>
                     {!searchMode && isEditModeField !== "sales_price" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
@@ -5306,7 +5335,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} text-[12px]`}>値引価格</span>
+                    <span className={`${styles.title} text-[12px] ${fieldEditTitle("discounted_price")}`}>
+                      値引価格
+                    </span>
                     {!searchMode && isEditModeField !== "discounted_price" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
@@ -5441,7 +5472,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} text-[12px]`}>導入分類</span>
+                    <span className={`${styles.title} text-[12px] ${fieldEditTitle("sales_class")}`}>導入分類</span>
                     {!searchMode && isEditModeField !== "sales_class" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
@@ -5548,7 +5579,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     {/* <span className={`${styles.title} text-[12px]`}>サブスク分類</span> */}
-                    <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                    <div
+                      className={`${styles.title} flex flex-col ${styles.double_text} ${fieldEditTitle(
+                        "subscription_interval"
+                      )}`}
+                    >
                       <span>サブスク</span>
                       <span>分類</span>
                     </div>
@@ -5657,7 +5692,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                    <div
+                      className={`${styles.title} flex flex-col ${styles.double_text} ${fieldEditTitle(
+                        "subscription_start_date"
+                      )}`}
+                    >
                       <span>サブスク</span>
                       <span>開始日</span>
                     </div>
@@ -5777,7 +5816,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                    <div
+                      className={`${styles.title} flex flex-col ${styles.double_text}  ${fieldEditTitle(
+                        "subscription_canceled_at"
+                      )}`}
+                    >
                       <span>サブスク</span>
                       <span>解約日</span>
                     </div>
@@ -5895,7 +5938,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} text-[12px]`}>ﾘｰｽ分類</span>
+                    <span className={`${styles.title} text-[12px] ${fieldEditTitle("lease_division")}`}>ﾘｰｽ分類</span>
                     {!searchMode && isEditModeField !== "lease_division" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
@@ -5998,7 +6041,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} text-[12px]`}>ﾘｰｽ会社</span>
+                    <span className={`${styles.title} text-[12px] ${fieldEditTitle("leasing_company")}`}>ﾘｰｽ会社</span>
                     {!searchMode && isEditModeField !== "leasing_company" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
@@ -6101,7 +6144,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                    <div
+                      className={`${styles.title} flex flex-col ${styles.double_text} ${fieldEditTitle(
+                        "lease_expiration_date"
+                      )}`}
+                    >
                       <span>ﾘｰｽ完了</span>
                       <span>予定日</span>
                     </div>
@@ -6200,6 +6247,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                                 required: false,
                               });
                             }}
+                            fontSize={`!text-[13px]`}
                           />
                         </div>
                       </>
@@ -6224,7 +6272,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
               <div className={`${styles.row_area} flex w-full items-center`}>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
-                    <span className={`${styles.title} text-[12px]`}>展開日付</span>
+                    <span className={`${styles.title} text-[12px] ${fieldEditTitle("expansion_date")}`}>展開日付</span>
                     {!searchMode && isEditModeField !== "expansion_date" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
@@ -6321,6 +6369,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                                 newDateObj: inputExpansionDate as Date,
                               });
                             }}
+                            fontSize={`!text-[13px]`}
                           />
                         </div>
                       </>
@@ -6341,7 +6390,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 </div>
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center`}>
-                    <span className={`${styles.title} text-[12px]`}>売上日付</span>
+                    <span className={`${styles.title} text-[12px] ${fieldEditTitle("sales_date")}`}>売上日付</span>
                     {!searchMode && isEditModeField !== "sales_date" && (
                       <span
                         className={`${styles.value} ${styles.editable_field}`}
@@ -6434,6 +6483,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                                 newDateObj: inputSalesDate as Date,
                               });
                             }}
+                            fontSize={`!text-[13px]`}
                           />
                         </div>
                       </>
@@ -6593,7 +6643,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className="flex h-full w-1/2 flex-col pr-[20px]">
                   <div className={`${styles.title_box} flex h-full items-center `}>
                     {/* <span className={`${styles.title} text-[12px]`}>案件発生日付</span> */}
-                    <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                    <div
+                      className={`${styles.title} flex flex-col ${styles.double_text}  ${fieldEditTitle(
+                        "property_date"
+                      )}`}
+                    >
                       <span>案件</span>
                       <span>発生日付</span>
                     </div>
@@ -6693,6 +6747,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                                 newDateObj: inputPropertyDate as Date,
                               });
                             }}
+                            fontSize={`!text-[13px]`}
                           />
                         </div>
                       </>
@@ -6761,8 +6816,10 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 {/* 月初確度・中間見直確度 通常 */}
                 <div className={`${styles.row_area} flex max-h-[26px] w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.section_title}`}>月初確度</span>
+                    <div className={`${styles.title_box} flex h-full items-center ${styles.section_title_box}`}>
+                      <span className={`${styles.section_title} ${fieldEditTitle("order_certainty_start_of_month")}`}>
+                        月初確度
+                      </span>
                       {!searchMode && isEditModeField !== "order_certainty_start_of_month" && (
                         <span
                           className={`${styles.value} ${styles.value_highlight} ${styles.editable_field}`}
@@ -6855,8 +6912,12 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                     {/* <div className={`${styles.section_underline}`}></div> */}
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
-                    <div className={`${styles.title_box} flex h-full items-center `}>
-                      <div className={`${styles.section_title} flex flex-col ${styles.double_text}`}>
+                    <div className={`${styles.title_box} flex h-full items-center  ${styles.section_title_box}`}>
+                      <div
+                        className={`${styles.section_title} flex flex-col ${styles.double_text} ${fieldEditTitle(
+                          "review_order_certainty"
+                        )}`}
+                      >
                         <span>中間見直</span>
                         <span>確度</span>
                       </div>
@@ -7216,7 +7277,9 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>競合発生日</span>
+                      <span className={`${styles.title} ${fieldEditTitle("competitor_appearance_date")}`}>
+                        競合発生日
+                      </span>
                       {!searchMode && isEditModeField !== "competitor_appearance_date" && (
                         <span
                           className={`${styles.value} ${styles.editable_field}`}
@@ -7312,6 +7375,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                                   required: false,
                                 });
                               }}
+                              fontSize={`!text-[13px]`}
                             />
                           </div>
                         </>
@@ -7333,7 +7397,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>競合状況</span>
+                      <span className={`${styles.title} ${fieldEditTitle("competition_state")}`}>競合状況</span>
                       {!searchMode && isEditModeField !== "competition_state" && (
                         <span
                           className={`${styles.value} ${styles.editable_field}`}
@@ -7439,7 +7503,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>競合会社</span>
+                      <span className={`${styles.title} ${fieldEditTitle("competitor")}`}>競合会社</span>
                       {!searchMode && isEditModeField !== "competitor" && (
                         <div
                           className={`${styles.value} ${styles.editable_field}`}
@@ -7549,7 +7613,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-full flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>競合商品</span>
+                      <span className={`${styles.title} ${fieldEditTitle("competitor_product")}`}>競合商品</span>
                       {!searchMode && isEditModeField !== "competitor_product" && (
                         <div
                           className={`${styles.value} ${styles.editable_field}`}
@@ -7661,7 +7725,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                      <div
+                        className={`${styles.title} flex flex-col ${styles.double_text} ${fieldEditTitle(
+                          "reason_class"
+                        )}`}
+                      >
                         <span>案件発生</span>
                         <span>動機</span>
                       </div>
@@ -7758,7 +7826,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <span className={`${styles.title}`}>動機詳細</span>
+                      <span className={`${styles.title} ${fieldEditTitle("reason_detail")}`}>動機詳細</span>
                       {!searchMode && isEditModeField !== "reason_detail" && (
                         <span
                           className={`${styles.value} ${styles.editable_field}`}
@@ -7866,7 +7934,7 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                 <div className={`${styles.row_area} flex w-full items-center`}>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center `}>
-                      <span className={`${styles.title}`}>客先予算</span>
+                      <span className={`${styles.title} ${fieldEditTitle("customer_budget")}`}>客先予算</span>
                       {!searchMode && isEditModeField !== "customer_budget" && (
                         <span
                           className={`${styles.value} ${styles.editable_field}`}
@@ -7982,7 +8050,11 @@ const PropertyMainContainerOneThirdMemo: FC = () => {
                   </div>
                   <div className="flex h-full w-1/2 flex-col pr-[20px]">
                     <div className={`${styles.title_box} flex h-full items-center`}>
-                      <div className={`${styles.title} flex flex-col ${styles.double_text}`}>
+                      <div
+                        className={`${styles.title} flex flex-col ${styles.double_text} ${fieldEditTitle(
+                          "decision_maker_negotiation"
+                        )}`}
+                      >
                         <span>決裁者</span>
                         <span>商談有無</span>
                       </div>

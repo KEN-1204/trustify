@@ -428,7 +428,8 @@
   color: var(--color-text-under-input);
   box-shadow: var(--color-bg-under-input-box-shadow);
   /* padding: 0px 6px; */
-  padding: 6px 8px;
+  /* padding: 6px 8px; */
+  padding: 0px 8px;
   border-radius: 6px;
 }
 .input_box:focus {
@@ -918,12 +919,25 @@
   font-size: 12px;
 }
 
-@media (max-width: 1600px) {
+.select_box.field_edit_mode_select_box {
+  font-size: 13px;
+  padding-left: 4px;
+  min-height: 28px;
+}
+
+.title.field_edit {
+  min-width: 77px;
+}
+
+.title_box {
+  min-height: 30px;
+}
+
+/* @media (max-width: 1600px) {
   .detail_container:global {
     --title-width: 88px;
   }
   .textarea_box {
-    /* font-size: 13px; */
     font-size: 12px;
     line-height: 20px;
   }
@@ -950,4 +964,39 @@
   .title.min {
     min-width: 85px;
   }
+  .title.field_edit {
+    min-width: 77px;
+  }
+} */
+.detail_container:global {
+  --title-width: 88px;
+}
+.textarea_box {
+  font-size: 12px;
+  line-height: 20px;
+}
+.title,
+.section_title,
+.check_title,
+.value,
+.full_value,
+.input_box,
+.select_box,
+.textarea_value {
+  font-size: 13px;
+}
+.title.double_text {
+  font-size: 12px;
+}
+.title {
+  min-width: var(--title-width);
+}
+.title.title_sm {
+  min-width: 75px;
+}
+.title.min {
+  min-width: 85px;
+}
+.title.field_edit {
+  min-width: 77px;
 }

@@ -8,6 +8,7 @@
   /* padding: 4px 8px; */
   /* min-height: 32px; */
   /* font-size: 14px; */
+  min-height: 28px;
   border-radius: 6px;
   cursor: pointer;
 }
@@ -92,12 +93,14 @@
 .field_edit_mode_btn_area.right_position {
   right: -70px;
   top: 50%;
-  transform: translateY(-56%);
+  /* transform: translateY(-56%); */
+  transform: translateY(-60%);
 }
 .field_edit_mode_btn_area.right_position_loading {
   right: -38px;
   top: 50%;
-  transform: translateY(-56%);
+  /* transform: translateY(-56%); */
+  transform: translateY(-60%);
 }
 .field_edit_mode_btn_area.under_right_position {
   right: 0;
