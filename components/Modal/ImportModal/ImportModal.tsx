@@ -17,11 +17,13 @@ import { ConfirmationModal } from "@/components/DashboardCompanyComponent/Modal/
 import {
   mappingClientCompaniesFiledToNameForInsert,
   optionsClientCompaniesColumnFieldForInsertArray,
+  requiredImportColumnOptionsSet,
 } from "@/utils/selectOptions";
 import { CustomSelectMapping } from "@/components/Parts/CustomSelectMapping/CustomSelectMapping";
 import { IoIosArrowRoundDown } from "react-icons/io";
 import { ImInfo } from "react-icons/im";
 import { ConfirmationMappingModal } from "../ConfirmationModal/ConfirmationMappingModal/ConfirmationMappingModal";
+import { DataProcessWorker } from "./DataProcessWorker/DataProcessWorker";
 
 const ImportModalMemo = () => {
   const language = useStore((state) => state.language);
@@ -41,11 +43,6 @@ const ImportModalMemo = () => {
   const stepBtnRef = useRef<HTMLDivElement | null>(null);
 
   const [step, setStep] = useState(1);
-
-  // step2 紐付け設定関連
-  // 紐付け完了確認モーダル
-  const [isOpenMappingConfirmationModal, setIsMappingConfirmationModal] = useState(false);
-  // step2 紐付け設定関連 ここまで
 
   // ------------------ CSV to JSON変換中ローディングテキストアニメーション ------------------
   // CSV to JSON変換中ローディング 5MB以上
@@ -123,6 +120,7 @@ const ImportModalMemo = () => {
   };
   // ----------------------------------------------
 
+  // -------------------------- ステップ1 「CSVのパース・解析」用state --------------------------
   // 🔸パース後のCSVデータ配列 result.data
   // => 1000以上は10000個ずつの配列を配列に格納した出力される:
   // [[]] => [0...9999] => [[0...99], [100...199], [200...299], ..., [9900...9999]]
@@ -132,12 +130,27 @@ const ImportModalMemo = () => {
   const [uploadedColumnFields, setUploadedColumnFields] = useState<string[]>([]);
   // 🔸アップロードファイル名
   const [uploadedCSVFile, setUploadedCSVFile] = useState<File | null>(null);
-  // --------- ステップ2用state ---------
+  // -------------------------- ステップ1 「CSVのパース・解析」用state ここまで --------------------------
+
+  // -------------------------- ステップ2 「ユーザーによるカラムの紐付け」用state --------------------------
   // 🔸gridテーブルの各カラムで選択中のDB用フィールド
   const [selectedColumnFieldsArray, setSelectedColumnFieldsArray] = useState<string[]>([]);
   // 🔸テーブルに展開するための最初の5行
   const [uploadedDisplayRowList, setUploadedDisplayRowList] = useState<any[]>([]);
-  // --------- ステップ2用state ここまで ---------
+  // 🔸紐付け完了確認モーダル開閉state
+  const [isOpenMappingConfirmationModal, setIsMappingConfirmationModal] = useState(false);
+  // -------------------------- ステップ2 「ユーザーによるカラムの紐付け」用state ここまで --------------------------
+
+  // -------------------------- ステップ3 「データ前処理」用state --------------------------
+  // 🔸CSVカラム名 to データベースカラム名
+  const [insertCsvColumnNameToDBColumnMap, setInsertCsvColumnNameToDBColumnMap] = useState<Map<string, string> | null>(
+    null
+  );
+  // 🔸Web Worker(バックグラウンドスレッド)でデータ前処理中
+  const [isTransformProcessing, setIsTransformProcessing] = useState(false);
+  // 🔸データ前処理完了後の一括インサート用データ
+  const [processedData, setProcessedData] = useState<any[]>([]);
+  // -------------------------- ステップ3 「データ前処理」用state ここまで --------------------------
 
   // 🔸既に選択済みのカラムのSetオブジェクト 空文字は除去
   const alreadySelectColumnsSetObj = useMemo(() => {
@@ -159,14 +172,13 @@ const ImportModalMemo = () => {
     }
   };
 
-  // 🔸選択必須の選択肢
-  const requiredOptionsSet = new Set(["name", "address"]);
-
   // INSERTで必須カラムの選択済み個数
   // not nullableのカラム: 「会社名、部署名、住所」の3個 => 部署名は選択していなかった場合は「.(ピリオド)」をプレイスホルダーでセットしてINSERTする（代表番号も経済産業省のリストが載せていないデータも多いため入れない。業種は一旦入れない）
   // const [selectedRequiredColumnCount, setSelectedRequiredColumnCount] = useState(0);
   const selectedRequiredColumnCount = useMemo(() => {
-    return Array.from(alreadySelectColumnsSetObj).filter((option) => requiredOptionsSet.has(option)).length ?? 0;
+    return (
+      Array.from(alreadySelectColumnsSetObj).filter((option) => requiredImportColumnOptionsSet.has(option)).length ?? 0
+    );
   }, [alreadySelectColumnsSetObj]);
 
   // 🔸選択肢から選択するごとに既に選択された選択肢は取り除いていく
@@ -414,7 +426,15 @@ const ImportModalMemo = () => {
    * industry_type_id: INTEGER => 業種 テーブル(ipros)の業種一覧にマッチする文字列なら対応する番号を付与 Setオブジェクトで確認
    * product_category_large: TEXT => 製品分類(大分類) それぞれの製品分類に類する特定の文字列を用意して、マッチしていれば
    */
-  const handleFormatDataProcessingPreInsert = () => {};
+
+  const handleStartTransformDataPreInsert = () => {
+    // ユーザーのブラウザーがWeb Workerをサポートしているかチェックしてからデータ前処理を実行
+    if (window.Worker) {
+      setIsTransformProcessing(true);
+    } else {
+      alert("Your Browser doesn't support web workers.");
+    }
+  };
 
   // 🔸紐付け確認モーダルに渡してモーダル側で実行する
   const handleCompleteMappingColumns = () => {
@@ -422,7 +442,7 @@ const ImportModalMemo = () => {
     setStep(3);
 
     // データ前処理を実行
-    handleFormatDataProcessingPreInsert();
+    handleStartTransformDataPreInsert();
   };
   // ------------------------------ 🌠紐付け確定🌠 ここまで ------------------------------
   // ------------------------------ 🌟step2🌟 ここまで ------------------------------
@@ -1282,7 +1302,7 @@ const ImportModalMemo = () => {
                                 bgDark
                                 isSelectedActiveColor
                                 activeColor="var(--color-active-fg)"
-                                requiredOptionsSet={requiredOptionsSet}
+                                requiredOptionsSet={requiredImportColumnOptionsSet}
                               />
                             </div>
                           );
@@ -1370,6 +1390,24 @@ const ImportModalMemo = () => {
                 </div>
               )}
               {/* -------------------------- step2 マッピング ここまで -------------------------- */}
+              {/* -------------------------- step3 データ前処理 Web Worker -------------------------- */}
+              {step === 3 && (
+                <div
+                  className={`${styles.file_upload_box_container} mb-[24px] h-full w-full bg-[var(--color-modal-solid-bg-main)] p-[12px]`}
+                >
+                  {isTransformProcessing && (
+                    <>
+                      {<CheckingAnime /> ?? <SpinnerX />}
+                      <div className={`mr-[-2px] flex min-w-[45px] items-center`}>
+                        <p ref={convertingTextRef} className={`text-[16px] text-[var(--color-text-sub)]`}>
+                          データ変換処理中
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+              {/* -------------------------- step3 データ前処理 Web Worker ここまで -------------------------- */}
             </div>
           </>
         )}
@@ -1471,6 +1509,16 @@ const ImportModalMemo = () => {
                       </div>
                     </div>
                   )}
+                  {step === 3 && isTransformProcessing && (
+                    <>
+                      <SpinnerX h="h-[24px]" w="w-[24px]" />
+                      <div className={`ml-[15px] flex min-w-max items-center`}>
+                        <p ref={convertingTextRef} className={`text-[13px] text-[var(--color-text-sub)]`}>
+                          変換処理中
+                        </p>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className={`flex h-full items-center`}>
@@ -1538,6 +1586,24 @@ const ImportModalMemo = () => {
             setIsMappingConfirmationModal(false);
           }}
           clickEventSubmit={() => {
+            // 選択されているindexを取り出す => selectedColumnFieldsArrayから空文字でないindexのみのSetオブジェクトを作成
+            const selectedIndexesArray = selectedColumnFieldsArray
+              .map((column, index) => (column !== "" ? index : null))
+              .filter((num): num is number => num !== null);
+            // InsertするCsvデータのカラム名 to データベースのカラム名 のMapオブジェクトを作成
+            const insertCsvColumnNameToDBColumnMap = new Map(
+              selectedIndexesArray.map((i) => [uploadedColumnFields[i], selectedColumnFieldsArray[i]])
+            );
+            // アップロードされたCSVデータから選択されたindexのみのカラムに絞ったデータを抽出
+            // const uploadCsvDataOnlySelectedColumns =
+            console.log(
+              "selectedIndexesArray",
+              selectedIndexesArray,
+              "insertCsvColumnNameToDBColumnMap",
+              insertCsvColumnNameToDBColumnMap,
+              "uploadedData",
+              uploadedData
+            );
             setIsMappingConfirmationModal(false);
           }}
           buttonColor="brand"
@@ -1554,6 +1620,17 @@ const ImportModalMemo = () => {
         />
       )}
       {/* ----------------------- step2 紐付け設定完了確認モーダル ここまで ----------------------- */}
+
+      {/* ----------------------- step3 データ前処理Web Workerコンポーネント起動 ----------------------- */}
+      {step === 3 && isTransformProcessing && !!uploadedData.length && insertCsvColumnNameToDBColumnMap !== null && (
+        <DataProcessWorker
+          parsedData={uploadedData}
+          columnMap={insertCsvColumnNameToDBColumnMap}
+          setIsTransformProcessing={setIsTransformProcessing}
+          setProcessedData={setProcessedData}
+        />
+      )}
+      {/* ----------------------- step3 データ前処理Web Workerコンポーネント起動 ここまで ----------------------- */}
     </>
   );
 };

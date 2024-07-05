@@ -532,6 +532,10 @@ export const getOccupationName = (Num: number, language: string = "ja") => {
 <option value="クリエイティブ">クリエイティブ</option>
  */
 
+// ----------------------------------- CSVインポート関連 -----------------------------------
+// 🔸選択必須の選択肢
+export const requiredImportColumnOptionsSet = new Set(["name", "address"]);
+
 // 🔸CSVデータインポート時に使用するclient_companiesテーブルのカラムリスト
 export const optionsClientCompaniesColumnFieldForInsertArray = [
   // "id",
@@ -543,48 +547,51 @@ export const optionsClientCompaniesColumnFieldForInsertArray = [
   // "created_by_section_of_user",
   // "created_by_unit_of_user",
   // "created_by_office_of_user",
-  "name", //
-  "department_name", //
-  "main_phone_number", //
-  "main_fax", //
-  "zipcode", //
-  "address", //
-  "department_contacts", //
-  "industry_large", //
-  "industry_small", //
-  "industry_type_id", //int4
-  "country_id", // int4
-  "region_id", //int4
-  "city_id", //int4
-  "street_address", //text
-  "building_name", //text
-  "product_category_large", //
-  "product_category_medium", //
-  "product_category_small", //
-  "number_of_employees_class", //
-  "fiscal_end_month", //int4
-  "capital", //int8 BIGINT
-  "budget_request_month1", //int4
-  "budget_request_month2", //int4
-  "website_url", //
-  "clients", //
-  "supplier", //
-  "business_content", //
-  "established_in", //text
-  "representative_name", //
-  "chairperson", //
-  "senior_vice_president", //
-  "senior_managing_director", //
-  "managing_director", //
-  "director", //
-  "auditor", //
-  "manager", //
-  "member", //
-  "facility", //
-  "business_sites", //
-  "overseas_bases", //
-  "group_company", //
-  "email", //
+  "name", // 会社名
+  "department_name", // 部署名
+  "main_phone_number", // 代表TEL
+  "main_fax", // 代表FAX
+  "zipcode", // 郵便番号
+  "address", // 住所
+  "representative_name", // 代表者名
+  "website_url", // ホームページURL
+  "email", // Email
+  "industry_type_id", //int4 業界・業種
+  "industry_large", // 業界(大分類)
+  "industry_small", // 業界(小分類)
+  "number_of_employees", // 従業員数
+  "fiscal_end_month", //int4 決算月
+  "capital", //int8 BIGINT 資本金
+  "established_in", //text 設立
+  "corporate_number", // 法人番号
+  // "country_id", // int4
+  // "region_id", //int4
+  // "city_id", //int4
+  // "street_address", //text
+  // "building_name", //text
+  // "product_category_large", //
+  // "product_category_medium", //
+  // "product_category_small", //
+  // "number_of_employees_class", //
+  "budget_request_month1", //int4 予算申請月1
+  "budget_request_month2", //int4 予算申請月2
+  "clients", // 取引先(納入先)
+  "supplier", // 仕入れ先
+  "business_content", // 事業概要
+  "chairperson", // 会長
+  "senior_vice_president", // 副社長
+  "senior_managing_director", // 専務取締役
+  "managing_director", // 常務取締役
+  "director", // 取締役
+  "board_member", // 役員
+  "auditor", // 監査役
+  "manager", // 部長
+  "member", // 担当者
+  "facility", // 設備
+  "business_sites", // 事業拠点
+  "overseas_bases", // 海外拠点
+  "group_company", // グループ会社
+  "department_contacts", // 連絡先(部署別)
   // "claim", //
   // "ban_reason", //
   // "email_ban_flag", //
@@ -592,9 +599,6 @@ export const optionsClientCompaniesColumnFieldForInsertArray = [
   // "fax_dm_ban_flag", //
   // "call_careful_flag", //
   // "call_careful_reason", //
-  "corporate_number", //
-  "board_member", //
-  "number_of_employees", //
 ] as (keyof Omit<
   Client_company,
   | "id"
@@ -606,6 +610,23 @@ export const optionsClientCompaniesColumnFieldForInsertArray = [
   | "created_by_section_of_user"
   | "created_by_unit_of_user"
   | "created_by_office_of_user"
+  //
+  | "number_of_employees_class" // 規模(ランク)
+  | "country_id" // 国コード
+  | "region_id" // 都道府県コード
+  | "city_id" // 市区町村コード
+  | "street_address" // 町名・番地
+  | "building_name" // 建物名
+  | "product_category_large" // 製品分類(大分類)
+  | "product_category_medium" // 製品分類(中分類)
+  | "product_category_small" // 製品分類(小分類)
+  | "claim" // クレーム
+  | "ban_reason" // 禁止理由
+  | "email_ban_flag"
+  | "sending_ban_flag"
+  | "fax_dm_ban_flag"
+  | "call_careful_flag"
+  | "call_careful_reason"
 >)[];
 
 export const mappingClientCompaniesFiledToNameForInsert: { [key: string]: { [key: string]: string } } = {
@@ -655,6 +676,7 @@ export const mappingClientCompaniesFiledToNameForInsert: { [key: string]: { [key
   board_member: { ja: `役員`, en: `` },
   number_of_employees: { ja: `従業員数`, en: `` },
 };
+// ----------------------------------- CSVインポート関連 -----------------------------------
 
 // 国別
 export type CountryOption = { id: number; name_ja: string; name_en: string };

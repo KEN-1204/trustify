@@ -1478,6 +1478,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-btn-brand-shadow: 0 0px 1px 1px #33333333; */
   --color-btn-brand-shadow: 0 0 0 1px var(--color-bg-brand-f), 0 0px 1px 2px #33333333;
   --color-btn-brand-shadow-dark: 0 0 0 1px var(--color-bg-brand-f), 0 0px 1px 2px #33333333;
+  --color-btn-brand-shadow-light: 0 0 0 1px var(--color-bg-brand-f), 0 0px 1px 2px #33333333;
   --color-btn-brand-shadow-inactive: 0 0px 1px 2px #33333333;
   --color-btn-basic-bg-hover: #ececec;
   --color-btn-basic-bg-on-card: #fff;
@@ -1508,6 +1509,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-target-table-header-bg: #fff;
   --color-brand-btn-active: var(--color-bg-brand-f);
   --color-brand-btn-active-hover: var(--color-bg-brand-f-deep);
+  --color-brand-btn-active-light: var(--color-bg-brand-f);
+  --color-brand-btn-active-light-hover: var(--color-bg-brand-f-deep);
 
   --color-sales-card-frozen-grad1: #fff;
   --color-sales-card-frozen-grad2: #fff;
@@ -2641,6 +2644,7 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   /* --color-btn-brand-shadow:  0 0px 1px 1px #ffffff55; */
   --color-btn-brand-shadow: 0 0 0 1px var(--color-bg-brand-f), 0 0px 1px 2px #ffffff39;
   --color-btn-brand-shadow-dark: 0 0 0 1px var(--color-bg-brand-f), 0 0px 1px 2px transparent;
+  --color-btn-brand-shadow-light: 0 0 0 1px var(--color-bg-brand-f), 0 0px 6px 3px #cccccc30;
   --color-btn-brand-shadow-inactive: 0 0px 1px 2px #ffffff39;
   --color-btn-basic-bg-hover: #666;
   --color-btn-basic-bg-on-card: #424242;
@@ -2673,6 +2677,8 @@ background: linear-gradient(454deg, #7d96fb, #ff5353);
   --color-target-table-header-bg: transparent;
   --color-brand-btn-active: var(--color-bg-brand-f90);
   --color-brand-btn-active-hover: var(--color-bg-brand-f);
+  --color-brand-btn-active-light: var(--color-bg-brand-f);
+  --color-brand-btn-active-light-hover: var(--color-bg-brand-f-deep);
 
   --color-sales-card-frozen-grad1: linear-gradient(to bottom, #242424 0%, #222 100%);
   --color-sales-card-frozen-grad2: linear-gradient(to bottom, #222 0%, #202020 100%);
@@ -2829,6 +2835,18 @@ textarea {
   color: #fff;
   background-color: var(--color-brand-btn-active-hover);
   box-shadow: 0 0 0 1px var(--color-bg-brand-f);
+}
+.brand_btn_active_light {
+  color: #fff;
+  background-color: var(--color-brand-btn-active-light);
+  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */
+  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f), 0 0px 1px 2px #ffffff55; */
+  box-shadow: var(--color-btn-brand-shadow-light);
+  cursor: pointer;
+}
+.brand_btn_active_light:hover {
+  color: #fff;
+  background-color: var(--color-brand-btn-active-light-hover);
 }
 /* ノーマルボタン */
 .basic_btn {

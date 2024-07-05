@@ -129,7 +129,7 @@ export const ConfirmationMappingModal = ({
                 className={`${styles.description_area} flex w-full flex-col space-y-[2px] pb-[15px] pt-[15px] text-[12px] text-[var(--color-text-sub)]`}
               >
                 <p>{`設定した紐付け内容に間違いないか確認してください。`}</p>
-                <p>{`「紐付けを確定し次へ」ボタンを押すことで、紐付けされた項目の全データを一括保存可能なデータ型へと変換処理へと移行します。`}</p>
+                <p>{`「紐付けを確定し次へ」ボタンを押すことで、紐付けされた項目の全データを自動でデータベースへ保存可能なデータ形式へと変換する作業に移行します。`}</p>
               </div>
 
               <ul className={`${styles.confirmation_list} flex h-auto w-full flex-col`}>
@@ -209,12 +209,15 @@ export const ConfirmationMappingModal = ({
                   //     ? `cursor-pointer bg-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f-deep)]`
                   //     : `cursor-not-allowed bg-[var(--setting-side-bg-select)] text-[var(--setting-side-bg-select-hover)]`
                   // }`}
+                  // className={`transition-bg02 w-[50%] cursor-pointer rounded-[8px] px-[15px] py-[10px] text-[14px] font-bold text-[#fff]  ${
+                  //   buttonColor === "red" && `bg-[var(--color-red-tk)] hover:bg-[var(--color-red-tk-hover-deep)]`
+                  // } ${
+                  //   buttonColor === "brand" && `bg-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f-hover)]`
+                  // }`}
                   className={`transition-bg02 w-[50%] cursor-pointer rounded-[8px] px-[15px] py-[10px] text-[14px] font-bold text-[#fff]  ${
                     buttonColor === "red" && `bg-[var(--color-red-tk)] hover:bg-[var(--color-red-tk-hover-deep)]`
-                  } ${
-                    buttonColor === "brand" && `bg-[var(--color-bg-brand-f)] hover:bg-[var(--color-bg-brand-f-hover)]`
-                  }`}
-                  disabled={true}
+                  } ${buttonColor === "brand" && `brand_btn_active_light`}`}
+                  // disabled={true}
                   onClick={clickEventSubmit}
                 >
                   <span>紐付けを確定し次へ</span>
