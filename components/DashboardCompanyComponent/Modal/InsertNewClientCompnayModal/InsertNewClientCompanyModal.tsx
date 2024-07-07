@@ -48,6 +48,7 @@ import {
   mappingProductL,
   optionsProductLNameOnly,
   regionNameOnlyJpAllSet,
+  RegionNameJpType,
 } from "@/utils/selectOptions";
 import useStore from "@/store";
 import { isValidNumber } from "@/utils/Helpers/isValidNumber";

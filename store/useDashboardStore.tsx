@@ -649,6 +649,9 @@ type State = {
   // CSVインポートモーダル
   isOpenImportModal: boolean;
   setIsOpenImportModal: (payload: boolean) => void;
+  // 事業者専用バルクインサートモーダル
+  isOpenProviderImportModal: boolean;
+  setIsOpenProviderImportModal: (payload: boolean) => void;
 };
 
 const useDashboardStore = create<State>((set) => ({
@@ -1447,6 +1450,9 @@ const useDashboardStore = create<State>((set) => ({
   // CSVインポートモーダル
   isOpenImportModal: false,
   setIsOpenImportModal: (payload) => set({ isOpenImportModal: payload }),
+  // 事業者専用バルクインサートモーダル
+  isOpenProviderImportModal: false,
+  setIsOpenProviderImportModal: (payload) => set({ isOpenProviderImportModal: payload }),
 }));
 
 export default useDashboardStore;

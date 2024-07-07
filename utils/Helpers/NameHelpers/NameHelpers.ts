@@ -254,3 +254,43 @@ export const zenkakuToHankakuJa = (input: string) => {
 };
 
 // (例：JavaScript)半角文字⇒全角文字
+
+// ----------------------------------- 漢数字 => アラビア数字 -----------------------------------
+
+export function kanjiToArabic(kanji: string) {
+  const kanjiDigits: { [key: string]: number } = {
+    一: 1,
+    二: 2,
+    三: 3,
+    四: 4,
+    五: 5,
+    六: 6,
+    七: 7,
+    八: 8,
+    九: 9,
+    十: 10,
+    百: 100,
+    千: 1000,
+  };
+  let result = 0;
+  let temp = 0;
+
+  // const kanjiNumSet =
+
+  kanji.split("").forEach((char) => {
+    if (kanjiDigits[char]) {
+      temp = kanjiDigits[char];
+    } else if (char === "十") {
+      temp = (temp === 0 ? 1 : temp) * 10;
+    } else if (char === "百") {
+      temp = (temp === 0 ? 1 : temp) * 100;
+    } else if (char === "千") {
+      temp = (temp === 0 ? 1 : temp) * 1000;
+    }
+    result += temp;
+    temp = 0;
+  });
+
+  return result;
+}
+// ----------------------------------- 漢数字 => アラビア数字 -----------------------------------ここまで

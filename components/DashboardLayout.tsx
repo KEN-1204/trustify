@@ -108,6 +108,14 @@ const ImportModal = dynamic(() => import("./Modal/ImportModal/ImportModal").then
   loading: (loadingProps) => <FallbackWholeModal />,
   ssr: false, // サーバーサイドレンダリングを無効にする
 });
+const ProviderImportModal = dynamic(
+  () => import("./Modal/ImportModal/ProviderImportModal/ProviderImportModal").then((mod) => mod.ProviderImportModal),
+  {
+    // loading: (loadingProps) => <FallbackModal />,
+    loading: (loadingProps) => <FallbackWholeModal />,
+    ssr: false, // サーバーサイドレンダリングを無効にする
+  }
+);
 
 // 🔸モーダル関連
 // INSERT関連
@@ -518,6 +526,7 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
   );
   // CSVインポートモーダル
   const isOpenImportModal = useDashboardStore((state) => state.isOpenImportModal);
+  const isOpenProviderImportModal = useDashboardStore((state) => state.isOpenProviderImportModal);
 
   // 印鑑データ設定サイドテーブル
   const isOpenSearchStampSideTable = useDashboardStore((state) => state.isOpenSearchStampSideTable);
@@ -916,6 +925,14 @@ export const DashboardLayout: FC<Prop> = ({ children, title = "TRUSTiFY" }) => {
         <ErrorBoundary FallbackComponent={ErrorFallback}>
           <Suspense fallback={<FallbackWholeModal />}>
             <ImportModal />
+          </Suspense>
+        </ErrorBoundary>
+      )}
+      {/* 事業者インポートモーダル */}
+      {isOpenProviderImportModal && (
+        <ErrorBoundary FallbackComponent={ErrorFallback}>
+          <Suspense fallback={<FallbackWholeModal />}>
+            <ProviderImportModal />
           </Suspense>
         </ErrorBoundary>
       )}

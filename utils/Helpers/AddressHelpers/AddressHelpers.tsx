@@ -66,42 +66,97 @@ export function normalizeAddress(address: string) {
   // 2-8. 取り出した住所の各要素を結合して、番地と建物名の間に半角スペースをセットする
 
   const isJa = true;
+
   // 日本の住所 形式統一
   if (isJa) {
     // 住所の各要素を保持するオブジェクト
-    const addressElements: { [K in 'prefecture' | 'city' | 'town' | 'block' | 'building']: string | null } = {
+    const addressElements: { [K in "prefecture" | "city" | "town" | "block" | "building"]: string | null } = {
       prefecture: null,
       city: null,
       town: null,
       block: null,
       building: null,
     };
-    // 都道府県の正規表現
+    // 🔸都道府県の抽出
     const prefectureMatch = address.match(regExpPrefecture);
-    if (prefectureMatch) {
-      addressElements.prefecture = prefectureMatch[0];
-      const regExpCity = regionNameToRegExpCitiesJp[addressElements.prefecture as RegionNameJpType];
-      const cityMatch = address.match(regExpCity);
-      if (cityMatch) addressElements.;
-    }
+    // 適切な住所が入力されていなければ、この行データ自体をnullで返し、最後に削除
+    if (!prefectureMatch) throw new Error("都道府県が見つかりませんでした。");
+    addressElements.prefecture = prefectureMatch[0];
 
-    // 🔸2-3. 番地の形式統一(最後にスペースか文字列の終端か数字以外まで(1-1建物名のパターン))
-    // 「丁目」や「番地」「号」の直後に数字が続く場合はハイフンに置換
-    // 「1丁目1番地1号」または「1丁目1番1号」
-    address = address.replace(/(\d+)(丁目)(\d+)(番地|番|-)(\d+)(号)(?=\s|$|[^\d])/g, "$1-$3-$5");
+    // 🔸市区町村の抽出
+    const regExpCity = regionNameToRegExpCitiesJp[addressElements.prefecture as RegionNameJpType];
+    const cityMatch = address.match(regExpCity);
+    if (!cityMatch) throw new Error("市区町村が見つかりませんでした。");
+    addressElements.city = cityMatch[1]; // 0はマッチ全体の文字列で 1はキャプチャグループでマッチした１つ目の文字
 
-    // 「4丁目10-1」=>「4-10-1」
-    address = address.replace(/(\d+)(丁目)(\d+)(番地|番|-)(\d+)(?=\s|$)/g, "$1-$3-$5");
+    // 🔸地名・町名の抽出 (番地の数字までを抜き出し)
+    const extractTownName = (address: string, city: string) => {
+      // prefectureとcityの後の地名を抽出する正規表現を動的に生成
+      // const regex = new RegExp(`${prefecture}\\s*${city}\\s*(.*?)\\d`, "i");
 
-    // 「1番地1号」または「1番1号」の後にスペースか文字列の終端がある場合は削除 「1番地1号」=>「1-1」
-    address = address.replace(/(\d+)(丁目|番地|番)(\d+)(号)(?=\s|$)/g, "$1-$3");
+      // 空白文字を削除 '東京都 港区 芝浦 4-20-2 芝浦アイランド4F' => '東京都港区芝浦4-20-2芝浦アイランド4F'
+      const addressWithoutSpace = address.replace(/[\s\u3000]+/g, "");
+      // 市区町村の直後の地名の開始位置を取得 '東京都港区芝浦4-20-2芝浦アイランド4F' => '芝浦'の芝のindex: 5
+      const startIndex = addressWithoutSpace.indexOf(city) + city.length;
+      // 地名の終了位置を取得 (市区町村名以降の部分から起算して最初の数字の位置を探す)
+      const subStringFromCityEnd = addressWithoutSpace.substring(startIndex); // => '芝浦4-20-2芝浦アイランド4F'
+      // const relativeEndIndex = subStringFromCityEnd.search(/\d/); // 最初の数字の位置を探す(相対位置)
+      const relativeEndIndex = subStringFromCityEnd.search(/\d一二三四五六七八九十百千/); // 最初の数字の位置を探す(相対位置)
 
-    // 「丁目」や「番地」の直後に数字が続く場合で、かつ最後の数字の後にスペースか文字列の終端がある場合はハイフンに置換
-    // 「1番地1」=>「1-1」or「1番地1 建物名」=>「1-1 建物名」
-    address = address.replace(/(\d+)(丁目|番地|番)(\d+)(?=\s|$)/g, "$1-$3");
+      // 地名の終了位置を絶対位置に変換
+      const endIndex = startIndex + relativeEndIndex;
 
-    // 「丁目」や「番地」「番」の後にスペースか文字列の終端がある場合は削除 「1号」=>「1」
-    address = address.replace(/(\d+)(丁目|番地|番|号)(?=\s|$)/g, "$1");
+      // 地名を抽出
+      const town = addressWithoutSpace.substring(startIndex, endIndex);
+
+      return town;
+    };
+
+    const { prefecture, city } = addressElements;
+    const townName = extractTownName(address, city);
+
+    if (!townName) throw new Error("地名が見つかりませんでした。");
+    addressElements.town = townName;
+
+    // 市区町村以下の情報を一括して扱う; 結城市大字七五三場六百四十五番地七 のように
+    // 「丁目・番地(番)・号」が漢数字の場合、「町名(地名)」と「丁目・番地(番)・号」の境界を正確に特定するのが困難のため
+
+    // // 🔸丁目・番地・号の抽出(番地・号はオプショナル)
+    // const extractBlockName = (address: string, town: string) => {
+    //   // 空白文字を削除 '東京都 港区 芝浦 4-20-2 芝浦アイランド4F' => '東京都港区芝浦4-20-2芝浦アイランド4F'
+    //   const addressWithoutSpace = address.replace(/[\s\u3000]+/g, "");
+    //   // 地名の直後の丁目・番地の開始位置を取得 '東京都港区芝浦4-20-2芝浦アイランド4F' => '4-20-2'の4のindex: 7
+    //   const startIndex = addressWithoutSpace.indexOf(town) + town.length;
+    //   // 地名の終了位置を取得 (市区町村名以降の部分から起算して最初の数字の位置を探す)
+    //   const addressFromTownEnd = addressWithoutSpace.substring(startIndex); // => '4-20-2芝浦アイランド4F'
+
+    //   // 住所の「丁目」「番地(番)」「号」のパターンは、一般的に「◯丁目・◯番地（番）・◯号」のように記載。
+    //   // たとえば、「中央区築地1-1-1」に住んでいる場合は、「中央区築地一丁目1番1号」と表記
+
+    //   const kanjiNumbers = `一|二|三|四|五|六|七|八|九|十`
+
+    //   // 下記のパターンに対応
+    //   // 「4丁目10番地1号」=>「4-10-1」
+    //   // 「4丁目10-1」=>「4-10-1」
+    //   // 「1番地1号」=>「1-1」
+    //   // 「1番地1」=>「1-1」
+    //   // 「1丁目」=>「1」
+
+    //   // const blockRegex = /(\d+)(?:丁目|番地|番|号|-)?(\d+)?(?:番地|番|号|-)?(\d+)?(?:号|-)?/;
+    //   const blockRegex =
+    //     /([\d一二三四五六七八九十百千]+)(?:丁目|番地|番|号|-)?([\d一二三四五六七八九十百千]+)?(?:番地|番|号|-)?([\d一二三四五六七八九十百千]+)?(?:号|-)?/;
+
+    //   const matches = addressFromTownEnd.match(blockRegex);
+
+    //   if (matches) {
+    //     // マッチした部分から「xx-xx-xx」形式を構築
+    //     const [_, chome = "", banchi = "", go = ""] = matches;
+    //     return [chome, banchi, go].filter((x) => x).join("-");
+    //   }
+    //   return null;
+    // };
+
+    // const blockName = extractBlockName(address, townName);
   }
 
   return address;

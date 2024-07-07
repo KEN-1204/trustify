@@ -14,6 +14,7 @@ export const mappingTitle: { [key: string]: { [key: string]: string } } = {
   SalesTarget: { ja: "売上・プロセス目標 - TRUSTiFY", en: "Sales Target - TRUSTiFY" },
   PreApproval: { ja: "事前承認 - TRUSTiFY", en: "Pre Approval - TRUSTiFY" },
   Import: { ja: "インポート - TRUSTiFY", en: "Import - TRUSTiFY" },
+  Provider: { ja: "事業者 - TRUSTiFY", en: "Provider - TRUSTiFY" },
 };
 
 interface LanguageTitles {

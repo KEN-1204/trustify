@@ -126,6 +126,7 @@ const DashboardSalesTargetComponent = dynamic(
 );
 // 稟議
 import { DashboardPreApprovalComponent } from "@/components/DashboardPreApprovalComponent/DashboardPreApprovalComponent";
+import { DashboardProviderComponent } from "@/components/DashboardProviderComponent/DashboardProviderComponent";
 // ------------------------------- 動的インポート ここまで -------------------------------
 
 // type Plans = {
@@ -370,7 +371,8 @@ const DashboardHome = ({
       {activeMenuTab === "SDB" && <DashboardSDBComponent />}
       {activeMenuTab === "SalesTarget" && <DashboardSalesTargetComponent />}
       {activeMenuTab === "PreApproval" && <DashboardPreApprovalComponent />}
-      {activeMenuTab === "Import" && <div />}
+      {/* {activeMenuTab === "Import" && <div />} */}
+      {activeMenuTab === "Provider" && <DashboardProviderComponent />}
       {/* {activeMenuTab === "Contacts" && <div className="flex-center w-screen h-screen bg-red-100">あい</div>} */}
     </DashboardLayout>
   );

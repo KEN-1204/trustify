@@ -565,6 +565,20 @@ export type Cities = {
   region_id: number | null;
   country_id: number | null;
 };
+// 町域テーブル(町名・地名)
+export type Towns = {
+  town_id: number;
+  created_at: string;
+  updated_at: string | null;
+  town_name_ja: string | null;
+  town_name_en: string | null;
+  town_name_kana: string | null;
+  normalized_name: string | null;
+  postal_code: string | null;
+  country_id: number | null;
+  region_id: number | null;
+  city_id: number | null;
+};
 
 // 営業先会社 client_companiesテーブル
 export type Client_company = {

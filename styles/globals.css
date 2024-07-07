@@ -2839,8 +2839,6 @@ textarea {
 .brand_btn_active_light {
   color: #fff;
   background-color: var(--color-brand-btn-active-light);
-  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f); */
-  /* box-shadow: 0 0 0 1px var(--color-bg-brand-f), 0 0px 1px 2px #ffffff55; */
   box-shadow: var(--color-btn-brand-shadow-light);
   cursor: pointer;
 }

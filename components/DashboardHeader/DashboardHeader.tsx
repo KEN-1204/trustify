@@ -79,6 +79,11 @@ export const DashboardHeaderMemo: FC = () => {
   const setSelectedRowDataMeeting = useDashboardStore((state) => state.setSelectedRowDataMeeting);
   const setSelectedRowDataProperty = useDashboardStore((state) => state.setSelectedRowDataProperty);
   const setSelectedRowDataQuotation = useDashboardStore((state) => state.setSelectedRowDataQuotation);
+
+  // 事業者専用
+  const [inputProvider, setInputProvider] = useState<string | null>(null);
+  const inputProviderRef = useRef<HTMLInputElement | null>(null);
+
   // テーマ別ロゴ
   // const logoSrc =
   //   theme === "light" && activeMenuTab !== "SDB"
@@ -1308,6 +1313,68 @@ export const DashboardHeaderMemo: FC = () => {
                   <div className={`${styles.active_underline}`} />
                 </div>
               </li>
+              {userProfileState?.email === "cieletoile.1204.3@gmail.com" && (
+                <>
+                  <li className={`${styles.navList2}`}>
+                    <div
+                      className={`${styles.navbarItem} ${activeMenuTab === "Provider" ? styles.active : ""} `}
+                      onClick={() => {
+                        if (tabPage !== 2) setTabPage(2);
+                        if (activeMenuTab === "Provider") return;
+                        if (inputProvider === null) {
+                          setInputProvider("");
+                        } else {
+                          setInputProvider(null);
+                        }
+                        if (inputProviderRef.current) {
+                          if (inputProviderRef.current.style.display !== "flex") {
+                            // inputProviderRef.current.style.display = `flex`;
+                            inputProviderRef.current.style.visibility = `flex`;
+                            inputProviderRef.current.focus();
+                          } else {
+                            // inputProviderRef.current.style.display = `none`;
+                          }
+                        }
+                      }}
+                    >
+                      <div
+                        className={`${styles.navbarItemInner} ${
+                          userProfileState?.email === "cieletoile.1204.3@gmail.com" ? `` : `cursor-not-allowed`
+                        }`}
+                      >
+                        <span>
+                          {language === "ja" && "事業者"}
+                          {language === "en" && "Provider"}
+                        </span>
+                      </div>
+                      <div className={`${styles.active_underline}`} />
+                    </div>
+                  </li>
+                  {inputProvider !== null && (
+                    <input
+                      ref={inputProviderRef}
+                      type="text"
+                      value={inputProvider}
+                      autoFocus
+                      onChange={(e) => {
+                        console.log("e.target.value", e.target.value);
+                        if (e.target.value === "import_provider") {
+                          setActiveMenuTab("Provider");
+                          console.log("✅チェック");
+                          setInputProvider(null);
+                          if (inputProviderRef.current) {
+                            // inputProviderRef.current.style.display = `none`;
+                            inputProviderRef.current.blur();
+                          }
+                        } else {
+                          setInputProvider(e.target.value);
+                        }
+                      }}
+                      style={{ maxWidth: `0px`, maxHeight: `0px` }}
+                    />
+                  )}
+                </>
+              )}
               {/* <li className={`${styles.navList2}`}>
                 <div
                   // href="/home"
