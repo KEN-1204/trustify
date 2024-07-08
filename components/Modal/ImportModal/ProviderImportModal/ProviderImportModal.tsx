@@ -17,7 +17,8 @@ import { CustomSelectMapping } from "@/components/Parts/CustomSelectMapping/Cust
 import { IoIosArrowRoundDown } from "react-icons/io";
 import { ImInfo } from "react-icons/im";
 import { Towns } from "@/types";
-import { regionsNameToIdMapJp } from "@/utils/selectOptions";
+import { RegionNameJpType, regionsNameToIdMapJp } from "@/utils/selectOptions";
+import { regionNameToIdMapCitiesJp } from "@/utils/Helpers/AddressHelpers/citiesOptions";
 
 const ProviderImportModalMemo = () => {
   const language = useStore((state) => state.language);
@@ -563,10 +564,19 @@ const ProviderImportModalMemo = () => {
         // 4. town_name_jaの値から（...）の部分を除去して、正規化した値をnormalized_nameにセット
         // 5. postal_codeはそのままセット
 
-        // 1. region_nameから国コードregion_idに変換する関数
+        // 1. region_nameから都道府県コードregion_idに変換する関数
         const convertRegionNameToId = (regionName: string) => {
           if (regionsNameToIdMapJp.has(regionName)) {
             return regionsNameToIdMapJp.get(regionName)!;
+          } else {
+            return null;
+          }
+        };
+
+        // 2. city_nameから市区町村コードcity_idに変換する関数
+        const convertCityNameToId = (cityName: string, cityMap: Map<string, number>) => {
+          if (cityMap.has(cityName)) {
+            return cityMap.get(cityName)!;
           } else {
             return null;
           }
@@ -580,6 +590,8 @@ const ProviderImportModalMemo = () => {
           transformedTownsData: InsertTownType[];
           combinedTownsDataArrayOnly: UploadTownsCsvType[];
           unfinishedRowCount: number;
+          invalidRows: UploadTownsCsvType[];
+          normalizedNamesArray: string[];
           //   combinedTownNamesOnly: string[];
           //   combinedTownNamesKanaOnly: string[];
         } => {
@@ -589,11 +601,12 @@ const ProviderImportModalMemo = () => {
 
           const transformedTownsData: InsertTownType[] = [];
           const combinedTownsDataArrayOnly: UploadTownsCsvType[] = [];
+          const invalidRows: UploadTownsCsvType[] = []; // 無効な行
+          const normalizedNamesArray: string[] = [];
           let consolidatedDetail = "";
           let consolidatedDetailKana = "";
           let isOpen = false; // 括弧が開いているかのフラグ
           let unfinishedRowCount = 0;
-          let invalidRow: UploadTownsCsvType[] = []; // 無効な行
 
           uploadTownsData.forEach((townData) => {
             const { town_name_ja, town_name_kana } = townData;
@@ -618,27 +631,52 @@ const ProviderImportModalMemo = () => {
               consolidatedDetailKana += town_name_kana;
 
               // 閉じられたタイミングでpush
+
+              // 2. 都道府県名からidを取得
               const convertedRegionId = convertRegionNameToId(townData.region_name);
               if (convertedRegionId !== null) {
-                const newTownData = {
-                  ...townData,
-                  town_name_ja: consolidatedDetail,
-                  town_name_kana: consolidatedDetailKana,
-                  country_id: 153, // 日本
-                  region_id: convertedRegionId,
-                  city_id: 11,
-                  town_name_en: null,
-                  normalized_name: null,
-                } as InsertTownType;
-                transformedTownsData.push(newTownData);
+                // 取得した都道府県から対応する市区町村Mapオブジェクトを取り出して市区町村名からidを取得
+                const cityNameToIdMap = regionNameToIdMapCitiesJp[townData.region_name as RegionNameJpType];
+                // 3. 市区町村idを取得
+                const convertedCityId = convertCityNameToId(townData.city_name, cityNameToIdMap);
+                if (convertedCityId !== null) {
+                  // 4. town_name_jaの値から（...）の部分を除去して、正規化した値をnormalized_nameにセット
+                  // 「芝浦（１丁目）」 => 「芝浦」 「芝浦（２～４丁目）」 => 「芝浦」
+                  //   const normalizedName = consolidatedDetail.split('(')[0];
+                  // 正規表現を使用して、最初の括弧までのテキストを抽出
+                  const match = consolidatedDetail.match(/^[^(^（]+/);
+                  let normalizedName = match ? match[0].trim() : consolidatedDetail.trim();
+                  if (normalizedName.includes("の次に")) {
+                    normalizedName = normalizedName.split("の次に")[0];
+                  }
 
-                const combinedTownData = {
-                  ...townData,
-                  town_name_ja: consolidatedDetail,
-                  town_name_kana: consolidatedDetailKana,
-                };
-                combinedTownsDataArrayOnly.push(combinedTownData);
+                  const newTownData = {
+                    town_name_ja: consolidatedDetail,
+                    town_name_kana: consolidatedDetailKana,
+                    country_id: 153, // 国コードを追加
+                    region_id: convertedRegionId, // 都道府県コード
+                    city_id: convertedCityId, // 市区町村コード
+                    town_name_en: null,
+                    normalized_name: normalizedName,
+                    postal_code: townData.postal_code, // 郵便番号はそのまま格納
+                  } as InsertTownType;
+                  transformedTownsData.push(newTownData);
+
+                  const combinedTownData = {
+                    ...townData,
+                    town_name_ja: consolidatedDetail,
+                    town_name_kana: consolidatedDetailKana,
+                  };
+                  combinedTownsDataArrayOnly.push(combinedTownData);
+
+                  normalizedNamesArray.push(normalizedName);
+                } else {
+                  // 市区町村idがnullのため無効な行として扱う
+                  invalidRows.push(townData);
+                }
               } else {
+                // 都道府県idがnullのため無効な行として扱う
+                invalidRows.push(townData);
               }
               // リセット
               consolidatedDetail = "";
@@ -647,17 +685,46 @@ const ProviderImportModalMemo = () => {
             } else if (!isOpen) {
               // 単独で完結している町域名
               //   transformedTownsData.push(townData);
-              const newTownData = {
-                ...townData,
-                town_name_ja: null,
-                town_name_kana: null,
-                country_id: 153, // 日本
-                region_id: null,
-                city_id: 11,
-                town_name_en: null,
-                normalized_name: null,
-              } as InsertTownType;
-              transformedTownsData.push(newTownData);
+
+              // 2. 都道府県名からidを取得
+              const convertedRegionId = convertRegionNameToId(townData.region_name);
+              if (convertedRegionId !== null) {
+                // 取得した都道府県から対応する市区町村Mapオブジェクトを取り出して市区町村名からidを取得
+                const cityNameToIdMap = regionNameToIdMapCitiesJp[townData.region_name as RegionNameJpType];
+                // 3. 市区町村idを取得
+                const convertedCityId = convertCityNameToId(townData.city_name, cityNameToIdMap);
+                if (convertedCityId !== null) {
+                  // 4. town_name_jaの値から（...）の部分を除去して、正規化した値をnormalized_nameにセット
+                  // 「芝浦（１丁目）」 => 「芝浦」 「芝浦（２～４丁目）」 => 「芝浦」
+                  //   const normalizedName = consolidatedDetail.split('(')[0];
+                  // 正規表現を使用して、最初の括弧までのテキストを抽出
+                  const match = townData.town_name_ja.match(/^[^(^（]+/);
+                  let normalizedName = match ? match[0].trim() : townData.town_name_ja.trim();
+                  if (normalizedName.includes("の次に")) {
+                    normalizedName = normalizedName.split("の次に")[0];
+                  }
+
+                  const newTownData = {
+                    town_name_ja: townData.town_name_ja,
+                    town_name_kana: townData.town_name_kana,
+                    country_id: 153, // 日本
+                    region_id: convertedRegionId,
+                    city_id: convertedCityId,
+                    town_name_en: null,
+                    normalized_name: normalizedName,
+                    postal_code: townData.postal_code,
+                  } as InsertTownType;
+                  transformedTownsData.push(newTownData);
+
+                  normalizedNamesArray.push(normalizedName);
+                } else {
+                  // 市区町村idがnullのため無効な行として扱う
+                  invalidRows.push(townData);
+                }
+              } else {
+                // 都道府県idがnullのため無効な行として扱う
+                invalidRows.push(townData);
+              }
             }
           });
 
@@ -682,6 +749,8 @@ const ProviderImportModalMemo = () => {
             transformedTownsData,
             combinedTownsDataArrayOnly,
             unfinishedRowCount,
+            invalidRows,
+            normalizedNamesArray,
             // combinedTownNamesOnly,
             // combinedTownNamesKanaOnly,
           };
@@ -691,9 +760,50 @@ const ProviderImportModalMemo = () => {
           transformedTownsData,
           combinedTownsDataArrayOnly,
           unfinishedRowCount,
+          invalidRows,
+          normalizedNamesArray,
           // combinedTownNamesOnly,
           // combinedTownNamesKanaOnly
         } = transformCombinedDataByMultipleEntries(uploadedData as UploadTownsCsvType[]);
+
+        // const normalizedNameSet = new Set(normalizedNamesArray);
+        const normalizedJoinedName = normalizedNamesArray.join("");
+        /*
+        a-zA-Z0-9: 半角英数字
+        ａ-ｚＡ-Ｚ０-９: 全角英数字
+        \u3040-\u309F: ひらがな
+        \u30A0-\u30FF: カタカナ
+        \u30FC: 全角の長音符(カタカナの長音符)
+        \u4E00-\u9FFF：CJK統合漢字（基本漢字）
+        \u3400-\u4DBF：CJK統合漢字拡張A（古典・難漢字）
+        \u20000-\u2A6DF：CJK統合漢字拡張B（更に古典・難漢字）
+        \uF900-\uFAFF：CJK互換漢字（他のフォントや古い文字の互換用）
+        \u2F800-\u2FA1F：CJK互換漢字補助（さらに互換用）
+        \u002D: 半角ハイフン（-） => なし
+        〜(チルダ) => なし
+        */
+        const regexNotJaCharacter =
+          /[^a-zA-Z0-9ａ-ｚＡ-Ｚ０-９\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\uF900-\uFAFF\u2F800-\u2FA1F]/;
+        const isIncludedNotJaCharacter = regexNotJaCharacter.test(normalizedJoinedName);
+
+        if (isIncludedNotJaCharacter) {
+          const match = normalizedJoinedName.match(
+            /[^a-zA-Z0-9ａ-ｚＡ-Ｚ０-９\u3000-\u303F\u3040-\u309F\u30A0-\u30FF\u30FC\u4E00-\u9FFF\u3400-\u4DBF\u20000-\u2A6DF\uF900-\uFAFF\u2F800-\u2FA1F]/g
+          );
+
+          console.log("match: ", match);
+          if (match) {
+            console.log("非日本語文字: ", match.join(", "));
+            const containsTilde = normalizedNamesArray.filter((name) => name.includes("～"));
+            const containsBaai = normalizedNamesArray.filter((name) => name.includes("場合"));
+            console.log("チルダcontainsTilde", containsTilde);
+            console.log("containsBaai", containsBaai);
+            const excludedBaai = containsBaai.map((name) => (name.includes("の次に") ? name.split("の次に")[0] : name));
+            console.log("excludedBaai", excludedBaai);
+          } else {
+            console.log("全ての文字が日本語の範囲内です。");
+          }
+        }
 
         console.log(
           "前処理完了✅ Result: ",
@@ -707,7 +817,15 @@ const ProviderImportModalMemo = () => {
           "新たに統合して生成された行",
           combinedTownsDataArrayOnly.length,
           "削減された数量uploadedData.length - transformedTownsData.length",
-          uploadedData.length - transformedTownsData.length
+          uploadedData.length - transformedTownsData.length,
+          "invalidRows",
+          invalidRows,
+          "normalizedNamesArray",
+          normalizedNamesArray,
+          "isIncludedNotJaCharacter",
+          isIncludedNotJaCharacter
+          //   "normalizedNameSet",
+          //   normalizedNameSet
           //   "combinedTownNamesOnly",
           //   combinedTownNamesOnly,
           //   "combinedTownNamesKanaOnly",
